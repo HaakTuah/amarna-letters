@@ -1,11 +1,12 @@
 /** The non-military half of a script king, first part: strategy and treasury. */
 import { creditOrders } from "./credit.ts";
+import { bondWar } from "./vassals.ts";
 import { buyNewsOrders } from "./outlaws.ts";
 import { peopleAcrossBorders } from "./borders.ts";
 import {
+  standingOf,
   HSet,
   StartWalls,
-  buy,
   cede,
   clamp,
   cmpBool,
@@ -127,7 +128,9 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
           (r.allied ? 800 : 0) -
           // A king who courts us (gifts, oaths, supports) is worth more as a friend than as prey.
           Math.max(0, r.trust) * 350 -
-          Math.min(3, r.supportsGiven) * 60;
+          Math.min(3, r.supportsGiven) * 60 +
+          // A vassal of ours, the overlord we serve, or another's vassal under his troops' eye (item 11+).
+          bondWar(b, brain, x);
         return [x, score];
       });
     const best = sortBy(scored, [(t: [Power, number]) => t[1], desc(cmpNum)], [(t: [Power, number]) => t[0], cmpPower])[0];
@@ -313,53 +316,7 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
     fortified = true;
   }
 
-  // Cities: buying turns gold into the same score in land, plus its income, behind walls that now stand for the buyer.
-  const units = b.mine.map((u) => u.province);
-  const neutral: string[] = [];
-  for (const [k, o] of v.owner) if (o === null) neutral.push(k);
-  const offers = sortBy(
-    neutral
-      .filter((g) => {
-        const there = b.unitAt.tryGet(g);
-        return b.ownerOf(g) === null && (there === undefined || there.power === me) && !plan.destinations.has(g) && Board.Sail.withinReach(g, me, v.owner, units);
-      })
-      .map((g) => {
-        const y = Board.Map.get(g).yield;
-        const danger = [...b.alive].some((x) => x !== me && b.muster(x, g) >= 2 && brain.hostility(x, b) > 0.4) ? 0.35 : 0.08;
-        // A city a rival can also reach may bounce our bid; prefer the ones only we can buy.
-        const rivalCount = count(
-          b.alive,
-          (x) =>
-            x !== me &&
-            Board.Sail.withinReach(
-              g,
-              x,
-              v.owner,
-              b.others.filter((u) => u.power === x).map((u) => u.province),
-            ),
-        );
-        // A city whose elders lately would not choose between us and another buyer may draw the same rival again.
-        const when = brain.outbid.tryGet(g);
-        const contested = when !== undefined && v.turn - when <= 3 ? 0.6 : 1;
-        return { id: g, price: v.cityPrices.getOrDefault(g, b.worth(g)), score: (y * b.horizon - danger * 10 * y) * (rivalCount === 0 ? 1.15 : 1 - 0.1 * Math.min(3, rivalCount)) * contested };
-      })
-      .filter((o) => o.score > 0),
-    [(o: { id: string; price: number; score: number }) => o.score / o.price, desc(cmpNum)],
-    [(o: { id: string; price: number; score: number }) => o.id, cmpStr],
-  );
-  let buys = 0;
-  const margin = reserve * (1.2 - 0.7 * p.commerce);
-  for (const o of offers) {
-    if (buys >= (p.commerce > 0.45 ? 2 : 1)) break;
-    if (gold - o.price < margin) continue;
-    // Two kings who both bid every season never get the city: after a refusal, bid again only half the time.
-    const refused = brain.outbid.tryGet(o.id);
-    if (refused !== undefined && v.turn - refused <= 3 && !rng.chance(0.5)) continue;
-    orders.push(buy(o.id));
-    gold -= o.price;
-    buys++;
-  }
-  // Walls against fleets alone (see fortification), with what the cities left.
+  // Walls against fleets alone (see fortification), with what is left.
   if (!fortified) {
     const fleetWalls = fortification(b, plan, gold - reserve, true);
     if (fleetWalls !== null) {
@@ -469,7 +426,7 @@ function cession(b: Board, brain: Brain, plan: MilitaryPlan): CedeProvinceOrder 
       ) ?? null;
     if (rival === null) continue;
     const gain = b.worth(prov.id);
-    const against = (b.strength(rival) + gain) / b.startStrength(rival);
+    const against = standingOf(rival, (b.strength(rival) + gain) / b.startStrength(rival));
     const friend =
       sortBy(
         [...b.alive].filter(
@@ -479,7 +436,7 @@ function cession(b: Board, brain: Brain, plan: MilitaryPlan): CedeProvinceOrder 
             brain.isFriend(f) &&
             brain.betraying !== f &&
             (b.muster(f, x) > 0 || Board.Map.neighbors(x).some((n) => b.ownerOf(n) === f)) &&
-            (b.strength(f) + gain) / b.startStrength(f) < against,
+            standingOf(f, (b.strength(f) + gain) / b.startStrength(f)) < against,
         ),
         [(f: Power) => brain.rel.get(f).trust, desc(cmpNum)],
         [(f: Power) => f, cmpPower],

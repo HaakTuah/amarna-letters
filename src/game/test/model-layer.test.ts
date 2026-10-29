@@ -111,7 +111,7 @@ describe("ModelLayerTests", () => {
     Assert.notEmpty(runner.log.calls);
     Assert.true(runner.log.totalCost > 0);
     Assert.all(runner.log.calls, (c) => Assert.null(c.error));
-    Assert.equal(7, runner.chronicles.size);
+    Assert.equal(AllPowers.length, runner.chronicles.size);
 
     let replay = GameRunner.forReplay(GameLog.fromJsonl(runner.log.toJsonl()));
     await replay.prepare();

@@ -13,7 +13,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import { standsForBorrower } from "../model/money.ts";
 import type { PendingTask } from "../model/records.ts";
 import { grantStands, grantLive } from "../model/authority.ts";
-import { buyAlongCurve, cityPriceOf, needOf } from "../model/economy.ts";
+import { buyAlongCurve, needOf } from "../model/economy.ts";
 import { forMen, harvestIn, LandData, menAvailable, menOf } from "../model/land.ts";
 import { harbourOf, shipFleet, TradeData } from "../model/trade.ts";
 import { findCharacter, isAlive, ledger, siegeOf, unitAt, wallsOf, type GameState, type Unit } from "../model/state.ts";
@@ -61,7 +61,6 @@ export class OrderValidator {
     const sallied = new HSet<string>();
     const orderedUnits = new HSet<string>();
     const raisedIn = new HSet<string>();
-    const bought = new HSet<string>();
     const busyCharacters = new HSet<string>();
     const ransomed = new HSet<string>();
     const renewed = new HSet<string>();
@@ -403,23 +402,6 @@ export class OrderValidator {
           return null;
         }
 
-        case "buy": {
-          const b = order;
-          if (!Map.exists(b.province) || Map.get(b.province).isSea) return `there is no city called '${b.province}'`;
-          if (S.owner.getOrDefault(b.province, null) !== null) return `${Map.get(b.province).name} is not a free city-state`;
-          if (Map.get(b.province).kingless) return `${Map.get(b.province).name} has no king and no elders to sell it: it is taken only by force`;
-          const near = Map.withinReach(
-            b.province,
-            power,
-            S.owner,
-            S.units.filter((u) => u.power === power).map((u) => u.province),
-          );
-          if (!near) return `${Map.get(b.province).name} lies beyond your reach (it must border your land or troops, or lie one voyage from one of your coasts: their waters the same or next to each other)`;
-          if (bought.has(b.province)) return "you already bid for that city";
-          const m = S.markets.tryGet(b.province);
-          return spend(cityPriceOf(Map.get(b.province), S.config.provinceWeight, m?.purse ?? 0, S.stores.getOrDefault(b.province, 0) + (m?.stock ?? 0), harvestIn(Map, S, b.province, false)));
-        }
-
         case "cede": {
           const cp = order;
           if (!Map.exists(cp.province)) return `there is no province called '${cp.province}'`;
@@ -739,7 +721,6 @@ export class OrderValidator {
         if (order.type === "counterIntel") counterIntel = true;
         if (order.type === "roads") roadsSet.add(order.court);
         if (order.type === "raise") raisedIn.add(order.province);
-        if (order.type === "buy") bought.add(order.province);
         if (order.type === "renew") renewed.add(order.character);
         if (order.type === "hire") hiredNow.add(order.character);
         if (order.type === "assay") assayed.add(order.lot);

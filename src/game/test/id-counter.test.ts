@@ -22,6 +22,7 @@ import {
   idNumber,
   list,
   newGame,
+  newGameConfig,
   newId,
   serialize,
   single,
@@ -104,9 +105,10 @@ describe("IdCounterTests", () => {
     }
   }
 
-  // A whole script game, with or without the dummy kind.
+  // A whole script game, with or without the dummy kind: an age of 20 seasons, since thirty powers' whole games twice over
+  // outgrow a test worker's memory (item 11+).
   async function played(seed: number, withDummy: boolean): Promise<GameRunner> {
-    let state = newGame(seed);
+    let state = newGame(seed, newGameConfig({ capMin: 20, capMax: 20 }));
     let dummy = new Dummy(state);
     let bot = new ScriptLeader(seed);
     let seats = toDict(

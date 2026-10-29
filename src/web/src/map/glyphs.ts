@@ -8,7 +8,7 @@ import type { Power } from "@amarna/engine";
  * Each power's emblem, so that it can be told apart without its colour: Egypt's lotus, Hatti's sun, Babylon's
  * eight-pointed star, Mitanni's winged disc, Assyria's spearhead, Arzawa's crescent and Alashiya's jug.
  */
-const Emblems: Record<Power, string> = {
+const Emblems: Partial<Record<Power, string>> = {
   Egypt: "M0,7C-2.4,3 -2.4,-2.5 0,-7.5C2.4,-2.5 2.4,3 0,7Z M0,7C-4.5,5 -7.5,1 -7.5,-4C-4.5,-2 -2,1.5 0,7Z M0,7C4.5,5 7.5,1 7.5,-4C4.5,-2 2,1.5 0,7Z",
   Hatti: "M0,-3.6A3.6,3.6 0 1,1 0,3.6A3.6,3.6 0 1,1 0,-3.6Z M0,-8.2L1.3,-5L-1.3,-5Z M0,8.2L1.3,5L-1.3,5Z M-8.2,0L-5,1.3L-5,-1.3Z M8.2,0L5,1.3L5,-1.3Z M5.8,-5.8L4.4,-2.6L2.6,-4.4Z M-5.8,5.8L-4.4,2.6L-2.6,4.4Z M-5.8,-5.8L-2.6,-4.4L-4.4,-2.6Z M5.8,5.8L2.6,4.4L4.4,2.6Z",
   Babylonia: "M0,-8L1.6,-3.9L5.7,-5.7L3.9,-1.6L8,0L3.9,1.6L5.7,5.7L1.6,3.9L0,8L-1.6,3.9L-5.7,5.7L-3.9,1.6L-8,0L-3.9,-1.6L-5.7,-5.7L-1.6,-3.9Z",
@@ -17,10 +17,12 @@ const Emblems: Record<Power, string> = {
   Arzawa: "M2.5,-7.2A7.6,7.6 0 1,0 2.5,7.2A6,6 0 1,1 2.5,-7.2Z",
   Alashiya: "M-2,-8H2V-6.2C2,-5.2 4.8,-4.4 5.8,-1.4C6.8,2.2 4.6,6.4 0,7.6C-4.6,6.4 -6.8,2.2 -5.8,-1.4C-4.8,-4.4 -2,-5.2 -2,-6.2Z M5.4,-4.2C9.4,-4.6 9.6,0.6 6.2,1.6L5.8,0.4C8,-0.2 7.8,-3 5.6,-2.8Z",
 };
-export const emblem = (p: Power): string => Emblems[p] ?? "";
+/** A city-state's emblem (item 11+): a city tower, the same for all, told apart by its colour and its name on the board. */
+const CityTower = "M-5,8V-3H-6.5V-7.5H-3.8V-5.5H-1.3V-7.5H1.3V-5.5H3.8V-7.5H6.5V-3H5V8Z M-1.6,8V3.4A1.6,1.6 0 0 1 1.6,3.4V8Z";
+export const emblem = (p: Power): string => Emblems[p] ?? CityTower;
 
 /** The border line each power draws inside its land, so borders too can be told apart without colour. */
-const Dashes: Record<Power, string> = {
+const Dashes: Partial<Record<Power, string>> = {
   Egypt: "none",
   Hatti: "10 4",
   Babylonia: "2 3",
@@ -29,7 +31,7 @@ const Dashes: Record<Power, string> = {
   Arzawa: "14 3 2 3 2 3",
   Alashiya: "1 2 6 2",
 };
-export const dash = (p: Power): string => Dashes[p] ?? "none";
+export const dash = (p: Power): string => Dashes[p] ?? "3 2";
 
 export const glyphId = (p: Power): string => p.toLowerCase();
 

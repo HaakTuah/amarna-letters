@@ -15,6 +15,8 @@ import {
   inboxOf,
   move,
   needOf,
+  provinceWorthOf,
+  harvestIn,
   newGame,
   newGameConfig,
   newSiege,
@@ -190,9 +192,10 @@ describe("EconomyTests", () => {
     s.treasuries.get("Hatti").gold -= 50;
     s.markets.get("hattusa").purse += 50;
     Assert.equal(o.strength, e.strength("Hatti"));
-    // A free city's price is what it adds.
+    // A province is worth what it adds to its holder: its land, its purse, its stores and market.
     const before = e.strength("Hatti");
-    const price = e.cityPrice("isuwa");
+    const m = s.markets.get("isuwa");
+    const price = provinceWorthOf(Map.get("isuwa"), s.config.provinceWeight, m.purse, s.stores.getOrDefault("isuwa", 0) + m.stock, harvestIn(Map, s, "isuwa", false));
     s.owner.set("isuwa", "Hatti");
     Assert.equal(before + price, e.strength("Hatti"));
     Assert.true(needOf(Map.get("babylon")) > needOf(Map.get("byblos")));

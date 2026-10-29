@@ -11,7 +11,6 @@ import {
   assay,
   authenticate,
   besiege,
-  buy,
   captive,
   check,
   cmpBool,
@@ -346,7 +345,7 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
   for (const [, o] of v.owner) if (o === me) provinces++;
   const units = count(v.units, (u) => u.power === me);
   const maritime = me === "Alashiya" || me === "Arzawa";
-  const weak = tier(me) === "Weak";
+  const weak = tier(me) === "Weak" || tier(me) === "City";
   let fleets = count(v.units, (u) => u.power === me && u.kind === "Fleet");
 
   const spots = sortBy(
@@ -375,17 +374,6 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
     if (gold < reserve * 2) break;
   }
 
-  const myUnits = v.units.filter((u) => u.power === me).map((u) => u.province);
-  const neutral: string[] = [];
-  for (const [k, o] of v.owner) if (o === null) neutral.push(k);
-  const toBuy =
-    sortBy(
-      neutral.filter((g) => v.owner.getOrDefault(g, null) === null && !destinations.has(g) && Map_.withinReach(g, me, v.owner, myUnits)),
-      [(g: string) => Map_.get(g).yield, desc(cmpNum)],
-      [(g: string) => g, cmpStr],
-    ).find((g) => gold - v.cityPrices.getOrDefault(g, 0) >= reserve + (weak ? 20 : 50)) ?? null;
-  // Small kingdoms grow by gold rather than by conquest.
-  if (toBuy !== null && rng.chance(weak ? 0.8 : 0.35 + m.greed * 0.25)) orders.push(buy(toBuy));
 }
 
 // ================================================================= letters

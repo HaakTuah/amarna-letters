@@ -12,7 +12,7 @@ describe("OathTests", () => {
     let s = newGame(5);
     s.tablets.push(
       newTablet({
-        id: "t1",
+        id: "t901",
         text: Statecraft.allianceTablet("Alashiya", "Egypt"),
         proposedBy: "Alashiya",
         partner: "Egypt",
@@ -22,7 +22,7 @@ describe("OathTests", () => {
         allianceOath: true,
       }),
     );
-    s.copies.push(newTabletCopy({ id: "k1", tabletId: "t1", holder: "Egypt", acquiredTurn: 1, source: "sealed at audience" }));
+    s.copies.push(newTabletCopy({ id: "k901", tabletId: "t901", holder: "Egypt", acquiredTurn: 1, source: "sealed at audience" }));
     let brain = new Brain("Egypt", 5);
     let first = Views.for(s, "Egypt");
     brain.learn(first, new Board(first));

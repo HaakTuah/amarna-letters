@@ -17,7 +17,6 @@ import {
   TurnEngine,
   TurnSubmissionSchema,
   Views,
-  buy,
   convoy,
   count,
   disband,
@@ -394,24 +393,6 @@ describe("SleepTests", () => {
       ["orders you scheduled could not be carried out: sippar -> suhu (the unit holding suhu (Assyria's army) kept its place; your strength 1 against 2)"],
       sleeper.views[1].wokenBecause,
     );
-  });
-
-  test("A scheduled purchase that fails at resolution wakes the seat", async () => {
-    // Babylon and Assyria both bid for Suhu in season 2; the elders refuse both.
-    let sleeper = new Sleeper((v) =>
-      v.turn !== 1
-        ? nothing()
-        : newTurnSubmission({
-            scheduled: [newScheduledOrders({ turn: 2, orders: [buy("suhu")] })],
-          }),
-    );
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [buy("suhu")] }) : newTurnSubmission()));
-    // Both rich enough for the city's price (item 9+a: what it adds).
-    await play("Babylonia", sleeper, 3, undefined, new Dict([["Assyria", assyria]]), (s) => {
-      for (const t of s.treasuries.values()) t.gold += 5000;
-    });
-    Assert.equal([1, 3], sleeper.calls);
-    Assert.contains(sleeper.views[1].wokenBecause, (w) => w.includes("suhu") && w.includes("would not choose between 2 buyers"));
   });
 
   test("A failure the seat has seen does not cut its next sleep short", async () => {

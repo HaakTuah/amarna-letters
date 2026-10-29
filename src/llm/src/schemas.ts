@@ -100,7 +100,6 @@ const powerNames = AllPowers as unknown as readonly [string, ...string[]];
 export const OtherActions = [
   "raise_army",
   "raise_fleet",
-  "buy_city",
   "cede_province",
   "give_unit",
   "fortify",
@@ -182,7 +181,7 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season)." : null),
+      str(described ? "For raise, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back), or buy_news (the court whose news you buy)." : null)],
@@ -414,6 +413,12 @@ const letter = (c: GameConfig | null): ReplySchema => {
         sharedVictory
           ? "Only with a tablet to seal (false without one): mark the tablet as a sworn alliance (counts for a shared victory)."
           : "Only with a tablet to seal (false without one): mark the tablet as a sworn alliance, an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.",
+      ),
+    ],
+    [
+      "vassal_treaty",
+      str(
+        "Only with a tablet to seal: to mark it as a vassal treaty, the power it names the vassal, yours (you serve the recipient) or the recipient's (he serves you); empty for any other tablet. The mark changes no rule and binds nobody: tribute is gold sent, service is what one does (VASSALS).",
       ),
     ],
     ["show_tablet_copies", array(str(), "Your marks for the copies of tablets you hold (like k8), as your archive gives them, to show as evidence.")],

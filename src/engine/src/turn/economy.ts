@@ -17,7 +17,6 @@ import { caravanAt, newCaravan, newMarket, type Caravan, type Market } from "../
 import {
   buyAlongCurve,
   capacityOf,
-  cityPriceOf,
   economyOf,
   EconomyData,
   grainWorth,
@@ -65,7 +64,6 @@ declare module "./core.ts" {
     caravanRoute(p: Power, from: string, to: string): string[] | null;
     caravanArrives(c: Caravan, traded?: string[] | null): void;
     settleMarkets(orders: [Power, Order][]): void;
-    cityPrice(province: string): number;
     landWorth(p: Power): number;
     holdings(p: Power): number;
     townNeed(province: string): number;
@@ -157,26 +155,27 @@ P.harvestSeason = function () {
     let granary = S.granary.getOrDefault(prov.id, 0);
     if (season === reapSeasonOf(prov.id)) {
       // Plague, war and the like strike the harvest as it is brought in; it grows even under a siege.
-      const harvest = prov.kingless ? crop : toInt(roundEven(crop * (this.yieldFactor(prov.id, true) / absorbedIn(S, prov.id))));
+      const harvest = toInt(roundEven(crop * (this.yieldFactor(prov.id, true) / absorbedIn(S, prov.id))));
       S.reaped.set(prov.id, harvest);
       granary += harvest;
       S.crop.set(prov.id, 0);
       if (owner !== null) reaped.set(owner, [...reaped.getOrDefault(owner, []), `${prov.name} ${harvest}`]);
     } else S.crop.set(prov.id, crop);
-    // A land without a king collects no tax: its people keep their whole harvest.
-    if (!prov.kingless) {
+    // Land nobody holds collects no tax: its people keep their whole harvest ("Land without a ruler", item 11+; until then
+    // a free city's tax filled its own stores). Under a leader the Kaska lands, Lukka and the steppe are taxed like any land.
+    if (owner === null) {
+      const metal = toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id)));
+      if (metal > 0) this.spendAt(prov.id, metal);
+    } else {
       // The harvest already bore the catastrophes; the tax bears only absorption, and nothing reaches it under a siege.
       const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * this.taxRate(prov.id), 100) * absorbedIn(S, prov.id)));
       const tax = Math.min(granary, due);
       granary -= tax;
       const over = this.putInStores(prov.id, tax);
-      if (owner !== null) {
-        taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
-        lost.set(owner, lost.getOrDefault(owner, 0) + over);
-      }
+      taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
+      lost.set(owner, lost.getOrDefault(owner, 0) + over);
       const metal = toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id)));
-      if (owner === null) this.spendAt(prov.id, metal);
-      else if (metal > 0) {
+      if (metal > 0) {
         const t = S.treasuries.get(owner);
         t.gold += metal;
         t.income += metal;
@@ -766,14 +765,6 @@ P.settleMarkets = function (orders) {
 
 // ---------------------------------------------------------------- wealth
 
-/**
- * What a free city asks to be bought ("a bought city's price is what it adds"): the worth of its land, its people's purse,
- * and the grain in its stores and market at reference prices. The gold leaves the world, paid to its notables.
- */
-P.cityPrice = function (province) {
-  const m = this.market(province);
-  return cityPriceOf(this.map.get(province), this.s.config.provinceWeight, m.purse, this.stores(province) + m.stock, this.harvestNow(province, false));
-};
 /**
  * The land's worth a season, by what it produces at reference prices: the whole harvest its people bring in now (item
  * 10+a: a ravaged or emptied province is worth less at once) and the mines, as far as it is absorbed.

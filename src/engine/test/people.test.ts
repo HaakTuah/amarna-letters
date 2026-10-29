@@ -29,13 +29,13 @@ import {
   tax,
   unitAt,
 } from "@amarna/engine";
-import { Assert, subs } from "./support.ts";
+import { Assert, subs, oldWorld } from "./support.ts";
 
 // People at home (build order item 10+a): the three groups, the harvest by the hands on the land, levies, the tax and
 // the hunger that answers it, discharged men, droughts and floods, the people's resistance and the pace of the season.
 describe("PeopleTests", () => {
   const Map = WorldMap.default;
-  const quiet = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0 }));
+  const quiet = (): GameState => oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
 
   function season(s: GameState, orders: Dict<Power, TurnSubmission> | null = null): TurnEngine {
     const e = new TurnEngine(s);
@@ -199,7 +199,7 @@ describe("PeopleTests", () => {
     season(s, subs({ Mitanni: { orders: [move("isuwa", "sapinuwa"), support("kaska", "isuwa", "sapinuwa")] } }));
     Assert.equal("Mitanni", s.owner.get("sapinuwa"));
     // Off at the table's choice.
-    const off = newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+    const off = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
     Assert.equal(0, new TurnEngine(off).resistance("sapinuwa", "Mitanni"));
   });
 

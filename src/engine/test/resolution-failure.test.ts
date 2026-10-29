@@ -8,7 +8,6 @@ import {
   type TurnSubmission,
   assay,
   authenticate,
-  buy,
   captive,
   cede,
   check,
@@ -39,7 +38,7 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { Assert, join, skilled, homeJob } from "./support.ts";
+import { Assert, join, skilled, homeJob, oldWorld } from "./support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
 // Every order the validator accepts but the season cannot carry out is reported to its king next season, as a
@@ -47,7 +46,7 @@ import { describe as describeOrder } from "@amarna/engine";
 describe("ResolutionFailureTests", () => {
   // <summary>Babylonia holds Jerusalem and Gaza with an army in each, next to Egypt's Sinai, where Egypt has an army too.</summary>
   function board(sleeping: boolean = false): GameState {
-    let s = newGame(4, newGameConfig({ catastropheChance: 0, sleepingSeats: sleeping }));
+    let s = oldWorld(newGame(4, newGameConfig({ catastropheChance: 0, sleepingSeats: sleeping })));
     for (const [city, id] of [
       ["jerusalem", "u90"],
       ["gaza", "u91"],
@@ -81,8 +80,6 @@ describe("ResolutionFailureTests", () => {
       false,
     ],
     ["levy that cannot be paid", "Not enough gold", "There was not enough gold to pay for a new army in Thebes; none was raised.", true],
-    ["purchase between rival buyers", "Purchase failed", "The elders of Tyre would not choose between 2 buyers last season. No gold was paid.", true],
-    ["purchase that cannot be paid", "Not enough gold", "There was not enough gold to pay for the city of Tyre; it was not bought.", true],
     ["dispatch that cannot be paid", "Not enough gold", "mission to Hatti; {envoy} stayed at your court.", true],
     ["background check that cannot be paid", "Not enough gold", "There was not enough gold to pay for inquiries into {stranger}; none were made.", true],
     ["watchmen who cannot be paid", "Not enough gold", "There was not enough gold to pay for watchmen; none were set.", true],
@@ -163,20 +160,6 @@ describe("ResolutionFailureTests", () => {
       case "levy that cannot be paid":
         debased(s);
         egypt(raise("thebes", "Army"));
-        break;
-      case "purchase between rival buyers":
-        // Egypt reaches Tyre by a fleet in its waters; Babylonia by Gaza.
-        s.units.push(newUnit({ id: "u93", power: "Egypt", kind: "Fleet", province: "tyrewaters" }));
-        orders.set("Babylonia", newTurnSubmission({ orders: [buy("tyre")] }));
-        for (const t of s.treasuries.values()) t.gold += 5000;
-        egypt(buy("tyre"));
-        break;
-      case "purchase that cannot be paid":
-        s.units.push(newUnit({ id: "u93", power: "Egypt", kind: "Fleet", province: "tyrewaters" }));
-        debased(s);
-        // Enough by the ledger for a city's price (item 9+a: what it adds), none of it fine.
-        s.treasuries.get("Egypt").lots[0].face = s.treasuries.get("Egypt").lots[0].stated = 10000;
-        egypt(buy("tyre"));
         break;
       case "dispatch that cannot be paid":
         debased(s);

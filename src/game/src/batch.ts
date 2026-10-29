@@ -1,6 +1,7 @@
 /** Plays games unattended and summarizes winners and signals across them (the batch runner's shared half). */
 import {
   ClauseKindValues,
+  parOf,
   type Clause,
   AllPowers,
   GameStateSchema,
@@ -104,7 +105,13 @@ export function pressOf(s: GameState): Record<string, number> {
     if (t.clauses.length > 0) add("letters-with-clauses");
     for (const c of t.clauses) add(`w:${c.kind}`);
     if (t.noInventory) add("gold-without-inventory");
+    // Tribute (item 11+): gold sent under a tribute clause, and what of it arrived.
+    if (t.goldStated > 0 && t.clauses.some((c) => c.kind === "tribute")) add("tribute-sent");
     if (t.audienceTurn === null) continue;
+    if (t.goldDelivered > 0 && t.clauses.some((c) => c.kind === "tribute")) {
+      add("tribute-delivered");
+      add("tribute-gold", t.goldDelivered);
+    }
     const said = t.clauses;
     const heard = t.deliveredClauses;
     if (JSON.stringify(said) !== JSON.stringify(heard)) add("recited-changed");
@@ -117,6 +124,12 @@ export function pressOf(s: GameState): Record<string, number> {
     for (const c of given) if (c.answers !== null) add(`${c.kind}:${c.answers}`);
     if (t.reportTurn !== null && JSON.stringify(given.filter((x) => x.answers !== null)) !== JSON.stringify(t.reportClauses.filter((x) => x.answers !== null))) add("misreported");
   }
+  // Vassal tablets (item 11+): offered in play, and sealed, by the vassal's side or the overlord's.
+  for (const t of s.tablets) {
+    if (t.vassal === null || t.createdTurn === 0) continue;
+    add("bond-offered");
+    if (t.sealedTurn !== null && t.seals.length >= 2) add(t.vassal === t.proposedBy ? "bond-sealed-by-vassal" : "bond-sealed-by-overlord");
+  }
   return out;
 }
 
@@ -128,6 +141,9 @@ export function pressReport(games: readonly GameSummary[]): string[] {
   const lines = [`Press: ${n("letters")} letters, ${n("letters-with-clauses")} with clauses; gold sent without an inventory ${n("gold-without-inventory")} times.`];
   lines.push(`  Written: ${ClauseKindValues.filter((k) => n(`w:${k}`) > 0).map((k) => `${k} ${n(`w:${k}`)}`).join(", ")}.`);
   lines.push(`  Recited changed ${n("recited-changed")}: threat dropped ${n("threat-dropped")}, gift lowered ${n("gift-lowered")}, courtesy added ${n("courtesy-added")}, a clause lost ${n("clause-dropped")}; answers misreported ${n("misreported")}.`);
+  lines.push(
+    `  Vassalage: tribute sent ${n("tribute-sent")} times, ${n("tribute-delivered")} delivered (${n("tribute-gold")} shekels); vassal tablets offered ${n("bond-offered")}, sealed ${n("bond-sealed-by-vassal") + n("bond-sealed-by-overlord")} (${n("bond-sealed-by-vassal")} offered by the vassal, ${n("bond-sealed-by-overlord")} by the overlord).`,
+  );
   const answers = Object.keys(total).filter((k) => /^(accept|refuse|counter):/.test(k)).sort();
   lines.push(`  Answers: ${answers.map((k) => `${k} ${total[k]}`).join(", ")}.`);
   return lines;
@@ -430,12 +446,12 @@ export function versusReport(games: readonly GameSummary[], current: readonly Se
     }
   }
   const newSeats = sum(current, (c) => c.size);
-  const oldSeats = games.length * 7 - newSeats;
+  const oldSeats = games.length * AllPowers.length - newSeats;
   lines.push(
-    `  Current bot: mean growth ${fmt(mean(newGrowth), "0.00")}, wins ${fmt(newWins, "0.0")} of ${games.length} (${fmt((100 * newWins) / games.length, "0")}%) from ${fmt((100.0 * newSeats) / (games.length * 7), "0")}% of the seats`,
+    `  Current bot: mean growth ${fmt(mean(newGrowth), "0.00")}, wins ${fmt(newWins, "0.0")} of ${games.length} (${fmt((100 * newWins) / games.length, "0")}%) from ${fmt((100.0 * newSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
   );
   lines.push(
-    `  Baseline:    mean growth ${fmt(mean(oldGrowth), "0.00")}, wins ${fmt(oldWins, "0.0")} of ${games.length} (${fmt((100 * oldWins) / games.length, "0")}%) from ${fmt((100.0 * oldSeats) / (games.length * 7), "0")}% of the seats`,
+    `  Baseline:    mean growth ${fmt(mean(oldGrowth), "0.00")}, wins ${fmt(oldWins, "0.0")} of ${games.length} (${fmt((100 * oldWins) / games.length, "0")}%) from ${fmt((100.0 * oldSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
   );
   lines.push("  Per power, mean growth as current / as baseline:");
   for (const p of AllPowers) {
@@ -469,7 +485,10 @@ export function batchReport(games: readonly GameSummary[]): string {
   for (const p of AllPowers) {
     const wins = games.filter((g) => g.winners.includes(p)).length;
     const avg = mean(games.map((g) => g.growth[p]));
-    lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")}`);
+    // Par's measure (item 11+): the mean growth in the games the power is still standing in (a fallen power's growth is 0).
+    const standing = games.filter((g) => g.growth[p] > 0);
+    const survived = standing.length === 0 ? "" : `  survivors ${align(String(standing.length), 3)} at ${fmt(mean(standing.map((g) => g.growth[p])), "0.00")} (par ${fmt(parOf(p), "0.00")})`;
+    lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")}${survived}`);
   }
   const weakWins = games.filter((g) =>
     g.winners.some((w) => {
@@ -477,7 +496,8 @@ export function batchReport(games: readonly GameSummary[]): string {
       return p !== null && tier(p) === "Weak";
     }),
   ).length;
-  lines.push(`  Games won by a weak power: ${weakWins}`);
+  const cityWins = games.filter((g) => g.winners.some((w) => parsePower(w) !== null && tier(parsePower(w)!) === "City")).length;
+  lines.push(`  Games won by a weak power: ${weakWins}; by a city-state: ${cityWins}`);
   lines.push(`  Shared victories: ${games.filter((g) => g.winners.length > 1).length}`);
   lines.push("");
   lines.push("Signals (games with at least one / total):");
@@ -516,7 +536,7 @@ export function batchReport(games: readonly GameSummary[]): string {
 
 /** The solo benchmark's table: each king alone with the current bot against six baselines, against the same seed all-baseline. */
 export function soloReport(seeds: number, baseGrowth: Record<string, number[]>, soloGrowth: Record<string, number[]>, baseWins: Record<string, number>, soloWins: Record<string, number>): string {
-  const lines = [`One current king against six baselines, ${seeds} seeds:`, "  Power       growth alone / all-baseline   wins alone / all-baseline"];
+  const lines = [`One current king against ${AllPowers.length - 1} baselines, ${seeds} seeds:`, "  Power       growth alone / all-baseline   wins alone / all-baseline"];
   for (const p of AllPowers)
     lines.push(
       `  ${align(p, -10)}  ${align(fmt(mean(soloGrowth[p]), "0.00"), 5)} / ${align(fmt(mean(baseGrowth[p]), "0.00"), 4)}                  ${align(fmt((100 * soloWins[p]) / seeds, "0"), 3)}% / ${align(fmt((100 * baseWins[p]) / seeds, "0"), 3)}%`,

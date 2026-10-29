@@ -16,6 +16,7 @@ import {
   BorderPlay,
   MoneyPlay,
   OutlawPlay,
+  VassalPlay,
   SeasonPlay,
   ClausePlay,
   InventoryPlay,
@@ -108,6 +109,9 @@ export interface BatchOptions {
   /** Script kings never hunt bands nor buy news (item 11b, `--no-outlaw-play`), or half of them (`--outlaw-play-half`). */
   noOutlawPlay: boolean;
   outlawPlayHalf: boolean;
+  /** Script players never play vassalage (item 11+, `--no-vassal-play`), or half of them (`--vassal-play-half`). */
+  noVassalPlay: boolean;
+  vassalPlayHalf: boolean;
   /** Script kings leave item 11a+'s levers alone (`--no-season-play`), or half of them (`--season-play-half`). */
   noSeasonPlay: boolean;
   seasonPlayHalf: boolean;
@@ -192,7 +196,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.outlawPlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
@@ -211,6 +215,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   MoneyPlay.only = o.moneyPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   OutlawPlay.off = o.noOutlawPlay || o.outlawPlayHalf;
   OutlawPlay.only = o.outlawPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  VassalPlay.off = o.noVassalPlay || o.vassalPlayHalf;
+  VassalPlay.only = o.vassalPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   SeasonPlay.off = o.noSeasonPlay || o.seasonPlayHalf;
   SeasonPlay.only = o.seasonPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   ClausePlay.only = o.clausePlayHalf ? current : null;

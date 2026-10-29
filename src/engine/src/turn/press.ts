@@ -3,7 +3,7 @@
  * the title, a new claim to the rank of Great King becoming established, and supports promised in clauses being kept.
  */
 import type { SupportOrder } from "../model/orders.ts";
-import { land, type Power } from "../model/power.ts";
+import { isGreatKing, land, type Power } from "../model/power.ts";
 import { newRecognition } from "../model/recognition.ts";
 import type { GreetingOptions } from "../model/records.ts";
 import { alive, logEvent, notify } from "../model/state.ts";
@@ -50,7 +50,8 @@ P.recognise = function () {
   const S = this.s;
   for (const c of S.claims) {
     if (c.established !== null || !alive(S).includes(c.power)) continue;
-    const others = alive(S).filter((x) => x !== c.power);
+    // The others of the rank: the city-states (item 11+) do not make a Great King.
+    const others = alive(S).filter((x) => x !== c.power && isGreatKing(x));
     const long = S.recognition.filter((r) => r.to === c.power && others.includes(r.from) && r.brotherSince !== null && S.turn - r.brotherSince >= S.config.recognitionSeasons);
     if (others.length === 0 || long.length * 2 <= others.length) continue;
     c.established = S.turn;

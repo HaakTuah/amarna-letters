@@ -33,7 +33,7 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { Assert, join } from "./support.ts";
+import { Assert, join, oldWorld } from "./support.ts";
 import { dispatch as dispatchOrder } from "@amarna/engine";
 
 // What the engine's records and notices say, after the second agent simulation's defects in the views (the fix pass after
@@ -45,7 +45,7 @@ describe("RecordTextTests", () => {
     state: GameState | null = null,
     sent: Character | null = null,
   ): [GameState, TurnEngine, Character, PendingAudience] {
-    let s = state ?? newGame(5);
+    let s = state ?? oldWorld(newGame(5));
     let envoy = sent ?? first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let e = new TurnEngine(s);
@@ -61,7 +61,7 @@ describe("RecordTextTests", () => {
 
   // <summary>A game where Egypt holds its copy k900 of a peace it sealed with Hatti, and Hatti its own, k901.</summary>
   function withPeace(): GameState {
-    let s = newGame(5);
+    let s = oldWorld(newGame(5));
     s.tablets.push(
       newTablet({
         id: "t900",
@@ -152,7 +152,7 @@ describe("RecordTextTests", () => {
   test("Scribes turn into names only the ids of people the writer knows", () => {
     // The review's probe (the review of the fix pass after item 4): Egypt's letter "Greetings. c3 c4 c5 c6 c7" came back
     // in its own view naming five people none of its lists held.
-    let s = newGame(5);
+    let s = oldWorld(newGame(5));
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let view = Views.for(s, "Egypt");
@@ -212,7 +212,7 @@ describe("RecordTextTests", () => {
 
   test("A stopped move says where the unit now stands", () => {
     // Assyria and Mitanni meet head to head between Ekallate and Terqa at equal strength: both bounce and stay.
-    let s = newGame(1);
+    let s = oldWorld(newGame(1));
     new TurnEngine(s).resolve(
       new Dict([
         ["Assyria", newTurnSubmission({ orders: [move("ekallate", "terqa")] })],
@@ -230,7 +230,7 @@ describe("RecordTextTests", () => {
     );
 
     // A unit whose move failed and that was then destroyed is not said to stay: its own line says it was destroyed.
-    let t = newGame(1);
+    let t = oldWorld(newGame(1));
     new TurnEngine(t).resolve(
       new Dict([
         ["Assyria", newTurnSubmission({ orders: [move("ekallate", "terqa"), support("ashur", "ekallate", "terqa")] })],
@@ -244,7 +244,7 @@ describe("RecordTextTests", () => {
   });
 
   test("A kings letter is in his view in full while its envoy is away and beside the report when it comes", () => {
-    let s = newGame(5);
+    let s = oldWorld(newGame(5));
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let message = "Brother, my army will not cross into Alashiya. ".repeat(12).trim();
@@ -340,7 +340,7 @@ describe("RecordTextTests", () => {
 
   test("An envoy remembers its mandate with one full stop", () => {
     // The follow-up's review: "You may agree to peace and an exchange of gifts.." in a character's memory.
-    let s = newGame(5);
+    let s = oldWorld(newGame(5));
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     let e = new TurnEngine(s);
     e.beginTurn();
@@ -367,7 +367,7 @@ describe("RecordTextTests", () => {
     Assert.equal("a merchant", Personas.calling(newCharacter({ calling: "merchant" })));
     Assert.contains("once an interpreter. You are ", Personas.template(interpreter));
     for (const seed of range(1, 20).map((n) => n))
-      for (const c of newGame(seed).characters) {
+      for (const c of oldWorld(newGame(seed)).characters) {
         Assert.doesNotContain(c.facts, (f) => f.text.startsWith("Served as a interpreter"));
         Assert.doesNotContain("once a interpreter", c.persona);
       }

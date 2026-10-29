@@ -234,6 +234,11 @@ export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, 
 export interface TabletProposal {
   text: string;
   allianceOath: boolean;
+  /**
+   * Marked as a vassal treaty (item 11+, "Vassalage is words"): the power the tablet claims as the other's vassal, the writer
+   * or the reader; null for none. Like the sworn alliance's mark it changes no rule, but says what the tablet claims.
+   */
+  vassal: Power | null;
   /** The tablet's clauses (item 8): what a script king reads; in structured press its text is these in the templates' words. */
   clauses: Clause[];
 }
@@ -243,6 +248,7 @@ export function newTabletProposal(init: Partial<TabletProposal> = {}): TabletPro
     clauses: [],
     text: "",
     allianceOath: false,
+    vassal: null,
     ...init,
   };
 }
@@ -251,6 +257,7 @@ export const TabletProposalSchema: ObjSchema<TabletProposal> = obj("TabletPropos
   clauses: list(() => ClauseSchema),
   text: S,
   allianceOath: B,
+  vassal: opt(S),
 });
 
 export interface GreetingOptions {
@@ -446,6 +453,11 @@ export interface Tablet {
   sealedTurn: number | null;
   allianceOath: boolean;
   /**
+   * Marked as a vassal treaty (item 11+, "Vassalage is words"): the power the tablet claims as the other's vassal, the writer
+   * or the reader; null for none. Like the sworn alliance's mark it changes no rule, but says what the tablet claims.
+   */
+  vassal: Power | null;
+  /**
    * The inventory of the gold an envoy carries, sealed by the court that sent the gold: the receiving court keeps it in
    * its archive. A forged one is an envoy's swap, stating only what was left after it kept some.
    */
@@ -482,6 +494,7 @@ export function newTablet(init: Partial<Tablet> = {}): Tablet {
     createdTurn: 0,
     sealedTurn: null,
     allianceOath: false,
+    vassal: null,
     inventory: false,
     forged: false,
     forgerId: null,
@@ -506,6 +519,7 @@ export const TabletSchema: ObjSchema<Tablet> = obj("Tablet", newTablet, {
   createdTurn: I,
   sealedTurn: opt(I),
   allianceOath: B,
+  vassal: opt(S),
   inventory: B,
   forged: B,
   forgerId: S,

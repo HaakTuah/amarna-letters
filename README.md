@@ -1,7 +1,7 @@
 # Amarna Letters
 
 A strategy game with no diplomacy rules, set among the seven Great Kings of the Late Bronze Age
-(c. 1360–1330 BCE). The engine enforces physics: movement, combat, production and payment.
+(c. 1360–1330 BCE) and the city-states between them. The engine enforces physics: movement, combat, production and payment.
 Every treaty, alliance and betrayal is invented by the players. Kings never speak to each other
 directly: every word travels with an envoy who has motives of their own.
 
@@ -12,7 +12,7 @@ on their own.
 
 **Play it in your browser:** <https://haaktuah.github.io/amarna-letters/>
 
-Play a king yourself, watch Claude play all seven, or mix the two. With no API key, every king
+Play a king or a city yourself, watch Claude play them all, or mix the two. With no API key, every king
 and envoy is a script player, and a whole game costs nothing.
 
 ![The message trail: what Alashiya's king wrote, beside what his envoy said abroad and reported home](docs/archive/rounds/2026-10-19-visual-overhaul/desktop-dark-trail.jpg)
@@ -22,8 +22,10 @@ said at the foreign court, and what the envoy reported home. The gaps between th
 
 ## How to play
 
-You are one of seven Great Kings: Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa and
-Alashiya. Each season you read what reached your court, receive foreign envoys, and give your
+You are one of thirty powers: the seven Great Kings, Egypt, Hatti, Babylonia, Mitanni, Assyria,
+Arzawa and Alashiya, or one of the city-states and chiefs between them, Byblos, Amurru, Ugarit and
+the rest, on one scoreboard: each power is judged by its growth against par for its starting
+position, so a city that holds its own can win as well as an empire. Each season you read what reached your court, receive foreign envoys, and give your
 orders in secret. Every king orders at the same time, and the engine resolves everything at once.
 Three seasons make a year.
 
@@ -56,7 +58,7 @@ rumours, and those can be late, shaded or false.
   one. Upkeep is 30 a season for an army and 35 for a fleet.
 
 **Land and gold.**
-- Buy a free city for ten times its yield, if your land or troops touch it.
+- Take a city by conquest, or as your vassal by a sealed tablet: no city is bought.
 - Cede provinces, give troops, and send gold with an envoy.
 - Debase the gold you send. The receiver's ledger counts it at face value until they pay
   10 shekels to assay the lot.
@@ -130,8 +132,9 @@ own, varied a little in every game.
 | **Arzawa** | Apasa | Weak | armies in Mira and Apasa, a fleet in Seha, 300 shekels | "The western opportunist": the most cunning and least honest |
 | **Alashiya** | Enkomi | Weak | a fleet in Enkomi, 350 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
 
-Between the great kingdoms lie free cities, such as Ugarit, Byblos, Qadesh and Susa, which can be
-bought or taken. Alashiya is an island, reached only by sea.
+Between the great kingdoms lie the city-states, such as Ugarit, Byblos, Qadesh and Elam, and the Kaska,
+Lukka and Sutean chiefs: twenty-three powers of their own, most of them vassals of Egypt or Mitanni by
+sealed tablets, with the same rules and the same goal as the kings. Alashiya is an island, reached only by sea.
 
 A script king sees only what its seat sees. It remembers who wronged it and who kept faith, and
 checks its orders against what its rivals are likely to do by playing the season out with the

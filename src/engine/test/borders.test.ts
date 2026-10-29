@@ -35,13 +35,13 @@ import {
   trade,
   welcome,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, oldWorld } from "./support.ts";
 
 // People across borders and in kings' hands (build order item 10+b), and the answers carried from 10+a: anyone's ships at
 // a besieged harbour, prices and tolls known only as reported.
 describe("BordersTests", () => {
   const Map = WorldMap.default;
-  const quiet = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0 }));
+  const quiet = (): GameState => oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
   const orders = (p: Power, ...os: TurnSubmission["orders"]): Dict<Power, TurnSubmission> => new Dict([[p, newTurnSubmission({ orders: os })]]);
   const refusal = (s: GameState, p: Power, o: Order): string | null => new OrderValidator(s, Map).validate(p, newTurnSubmission({ orders: [o] })).rejected[0]?.reason ?? null;
   /** A province of one king next to a province of another's. */
@@ -171,10 +171,11 @@ describe("BordersTests", () => {
   test("Deportees shipped by sea are freed only on land, never lost in the waters (item 11a+, from the review)", () => {
     const s = quiet();
     const e = new TurnEngine(s);
-    s.owner.set("gaza", "Egypt");
+    // Gaza is Egypt's homeland since item 11+: Tyre is land it took.
+    s.owner.set("tyre", "Egypt");
     s.owner.set("sidon", "Egypt");
     e.beginTurn();
-    e.resolve(orders("Egypt", deport("gaza", "sidon", 1000, true)));
+    e.resolve(orders("Egypt", deport("tyre", "sidon", 1000, true)));
     const w = single(s.walking, (y) => y.deported);
     s.roadsClosed.set("Hatti", ["Egypt"]);
     for (const p of w.route.filter((x) => Map.get(x).isSea)) s.units.push(newUnit({ id: `u-sea-${p}`, power: "Hatti", kind: "Fleet", province: p, men: LandData.fleetMen }));

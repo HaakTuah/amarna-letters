@@ -5,6 +5,7 @@
  * sees exactly what any seat sees: the SeatView. The same bot stands in for a model seat whenever a model call fails,
  * playing in that king's character.
  */
+import { vassalSeason } from "./vassals.ts";
 import { huntBands, huntOrders } from "./outlaws.ts";
 import {
   AllPowers,
@@ -78,6 +79,8 @@ export class ScriptLeader implements ISeat {
     const rng = brain.r(view.turn, "decide");
 
     heardRepudiations(board, brain);
+    // The vassal bonds we know, the overlord we still serve and the tribute we owe this year (item 11+).
+    vassalSeason(board, brain);
     Statecraft.strategy(board, brain, rng);
     const plan = Tactics.make(board, brain);
     Search.improve(board, brain, plan, brain.r(view.turn, "search"));

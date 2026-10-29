@@ -4,6 +4,7 @@
  */
 import { describe, test } from "vitest";
 import {
+  isGreatKing,
   AllPowers,
   Dict,
   type GameState,
@@ -49,14 +50,15 @@ describe("WhoTheyAreTests", () => {
     return new Dict([[p, newTurnSubmission({ orders: os })]]);
   }
 
-  test("The pool holds about 60, every seed keeps its first eighteen, and each power still starts with two envoys", () => {
+  test("The pool holds 100, every seed keeps its first eighteen, and each power starts with staff by its size", () => {
     for (const seed of [1, 7, 42]) {
       const small = newGame(seed, newGameConfig({ characterPoolSize: FirstPool }));
       const large = newGame(seed);
-      Assert.equal(60, large.characters.length);
+      Assert.equal(100, large.characters.length);
       Assert.equal(JSON.stringify(small.characters), JSON.stringify(large.characters.slice(0, FirstPool)));
-      for (const p of AllPowers) Assert.equal(2, large.characters.filter((c) => c.employer === p).length);
-      Assert.all(large.characters.slice(FirstPool), (c) => Assert.equal("Free", c.status));
+      for (const p of AllPowers) Assert.equal(isGreatKing(p) ? 2 : 1, large.characters.filter((c) => c.employer === p).length);
+      // The first eighteen serve the first powers in order; the rest of the city-states' staff come from the larger pool.
+      Assert.all(large.characters.slice(FirstPool), (c) => Assert.true(c.status === "Free" || !isGreatKing(c.employer!)));
       // Hekanefer, prince of Miam, and Nubian captains in Egypt's service, at Pharaoh's court.
       Assert.contains(large.characters, (c) => c.name === "Hekanefer" && c.attested && c.at === "Egypt");
       Assert.equal(3, large.characters.filter((c) => c.facts.some((f) => f.tag === "nubian")).length);
@@ -102,7 +104,8 @@ describe("WhoTheyAreTests", () => {
 
   test("A capture is a fact the captor knows at once and the other courts hear as rumour, never its master", () => {
     const s = newGame(4, newGameConfig({ catastropheChance: 0 }));
-    const spy = first(s.characters, (c) => c.employer === "Babylonia");
+    // One of Babylon's servants in nobody else's pay (a plant's secret master hears nothing by talk of it).
+    const spy = first(s.characters, (c) => c.employer === "Babylonia" && c.secretMaster === null);
     const e = begin(s);
     e.outcome(spy, "Assyria", "Was caught spying at the court of Assyria (season 1).", false);
     const fact = spy.facts[spy.facts.length - 1];

@@ -186,3 +186,15 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
      brief and check-in, and passes on every lane's "Questions for Haakon" word for word.
   5. **The brake closes lanes first.** From about 85% of the weekly usage, no new side lane opens and open ones finish;
      from about 90%, as "Usage" says, only small things in the main lane.
+- **29 October 2026: the smallest game that tests the rule** (`docs/archive/instructions.md`, item 28). Every test sets
+  up the smallest game that still tests its rule: a few powers on part of the map, a handful of seasons and only the
+  characters it needs, never the full world by default. Full-size games, every power on the whole map, run only in a
+  few named tests that guard the whole (replays, the save round trip, a smoke game), and long measurements (benchmarks,
+  use against ignore) run in `scripts/sim.sh`, never in the suite. When an item grows the starting world (more powers,
+  provinces or characters), the tests' default does not grow with it. Code-PR checks took about 10 minutes on 29
+  October, with 30 powers in test games; the workshop check measures against that.
+- **29 October 2026: settled questions are readings** (`docs/archive/instructions.md`, item 29). Before a question goes
+  to "Questions for Haakon", check it against "The game in one page" and the item's sections. A question they settle is
+  a reading: list it under "Readings taken" with the principle it rests on, and build it that way. Only what they leave
+  open, or a matter of taste, goes to Haakon. On 28 October about half the questions sent to him were settled by the
+  page already.

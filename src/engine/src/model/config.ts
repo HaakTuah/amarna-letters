@@ -118,7 +118,12 @@ export interface GameConfig {
    * told it (not in the rulebook, the schema or the view), so it does not anchor their planning. A placeholder.
    */
   maxSleep: number;
+  /** A Great King's starting staff; a city-state starts with half (at least one), since staff follows size (item 11+). */
   startEnvoysPerPower: number;
+  /**
+   * The characters at the start ("How many characters"): 60 for the seven Great Kings until item 11+, which recounts it
+   * for the some thirty powers: each city-state's servant and as many free people again, about 100 (a first guess).
+   */
   characterPoolSize: number;
   memoryKeep: number;
 }
@@ -166,7 +171,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     sleepingSeats: true,
     maxSleep: 12,
     startEnvoysPerPower: 2,
-    characterPoolSize: 60,
+    characterPoolSize: 100,
     memoryKeep: 12,
     ...init,
   };

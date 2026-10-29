@@ -182,7 +182,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         };
         for (const [key, group] of sortBy(groupBy(v.owner, x => x[1]), [g => (g[0] === null ? 99 : AllPowers.indexOf(g[0])), cmpNum]))
         {
-            const who = key !== null ? (key === v.power ? `${key} (you)` : key) : `Free cities`;
+            const who = key !== null ? (key === v.power ? `${key} (you)` : key) : `Held by no one`;
             const list = sortBy(group.map(x => x[0]), [x => x, cmpStr])
                 .map(id => id + marksOf(id) + absorbing(id) + troop(id));
             sb.appendLine(`- ${who}: ${joinS(`, `, list)}`);
@@ -214,7 +214,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         {
             sb.appendLine(`YOUR ARCHIVE (kept at your capital; a tablet you have read in full at an earlier orders by its opening words):`);
             for (const t of v.tablets)
-                sb.appendLine(`- ${(read.has(t.tabletId) ? tabletBrief(t) : tabletLine(t))}${(t.allianceOath ? ` A sworn alliance.` : ``)} (${t.source}${(t.authResult !== null ? `; examined: ` + t.authResult : ``)})`);
+                sb.appendLine(`- ${(read.has(t.tabletId) ? tabletBrief(t) : tabletLine(t))}${(t.allianceOath ? ` A sworn alliance.` : ``)}${(t.vassal !== null ? ` A vassal treaty: ${t.vassal} the vassal.` : ``)} (${t.source}${(t.authResult !== null ? `; examined: ` + t.authResult : ``)})`);
         }
         sb.appendLine(`ENVOY TRAVEL (about, by the fastest road open this season): ${joinS(`; `, v.travelTimes)}.`);
         if (v.roadsClosed.length > 0) sb.appendLine(`YOUR ROADS ARE CLOSED to the people of: ${joinS(`, `, v.roadsClosed)}.`);
@@ -266,9 +266,9 @@ export function siegesLine(v: SeatView): string
             : ``;
         };
         const line = (x: SiegeView): string =>
-            x.besieger === v.power ? `your army besieges ${x.province} (${(x.holder !== null ? `held by ${x.holder}` : `a free city`)}, walls ${x.walls}): worn down ${x.progress} of ${x.walls}, since turn ${x.since}${tight(x)}`
+            x.besieger === v.power ? `your army besieges ${x.province} (${(x.holder !== null ? `held by ${x.holder}` : `held by no one`)}, walls ${x.walls}): worn down ${x.progress} of ${x.walls}, since turn ${x.since}${tight(x)}`
             : x.holder === v.power ? `${x.besieger}'s army besieges your city of ${x.province} (walls ${x.walls}): worn down ${x.progress} of ${x.walls}, since turn ${x.since}${tight(x)}`
-            : `${x.besieger}'s army besieges ${x.province} (${(x.holder !== null ? `held by ${x.holder}` : `a free city`)}, walls ${x.walls}): worn down ${x.progress} of ${x.walls}`;
+            : `${x.besieger}'s army besieges ${x.province} (${(x.holder !== null ? `held by ${x.holder}` : `held by no one`)}, walls ${x.walls}): worn down ${x.progress} of ${x.walls}`;
         return `SIEGES (a city surrenders when it is worn down as far as its walls are high): ${joinS(`; `, v.sieges.map(line))}.`;
     }
 
@@ -566,8 +566,8 @@ export function audience(a: AudienceView, inCourt = false): string
             sb.appendLine(`The inventory on the tablet lists ${a.goldStated} shekels of gold; your weighers found ${a.goldWeighed}. Its purity is unknown until you pay for an assay.`);
         if (a.proposal !== null)
             sb.appendLine(a.proposalSealed
-                ? `You chose at an earlier exchange to seal the tablet the envoy brought (already sealed by ${joinS(`, `, a.proposal.seals)}${(a.proposal.allianceOath ? ` as a sworn alliance` : ``)}), and your seal is set on it when the audience ends: "${a.proposal.text}"`
-                : `The envoy brings a tablet for you to seal, already sealed by ${joinS(`, `, a.proposal.seals)}${(a.proposal.allianceOath ? ` as a sworn alliance` : ``)}: "${a.proposal.text}"`);
+                ? `You chose at an earlier exchange to seal the tablet the envoy brought (already sealed by ${joinS(`, `, a.proposal.seals)}${(a.proposal.allianceOath ? ` as a sworn alliance` : ``)}${(a.proposal.vassal !== null ? ` as a vassal treaty, ${a.proposal.vassal} the vassal` : ``)}), and your seal is set on it when the audience ends: "${a.proposal.text}"`
+                : `The envoy brings a tablet for you to seal, already sealed by ${joinS(`, `, a.proposal.seals)}${(a.proposal.allianceOath ? ` as a sworn alliance` : ``)}${(a.proposal.vassal !== null ? ` as a vassal treaty, ${a.proposal.vassal} the vassal` : ``)}: "${a.proposal.text}"`);
         if (a.proposal !== null && a.proposal.clauses.length > 0) sb.appendLine(`The tablet's clauses: ${joinS(`; `, a.proposal.clauses.map(clauseTag))}.`);
         for (const t of a.copiesShown)
             sb.appendLine(`The envoy shows you a tablet as evidence, bearing the seals of ${joinS(`, `, t.seals)}${(t.sealedTurn !== null ? `, dated turn ${t.sealedTurn}` : ``)}: "${t.text}"`);

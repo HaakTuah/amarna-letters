@@ -279,7 +279,7 @@ export function Home() {
     <div className="page">
       <h1>Amarna Letters</h1>
       <p className="muted" style={{ maxWidth: "46rem" }}>
-        Seven Great Kings of the Late Bronze Age. The engine enforces movement, combat and gold; every treaty, alliance and betrayal is invented by the players.
+        Seven Great Kings of the Late Bronze Age and the city-states between them. The engine enforces movement, combat and gold; every treaty, alliance and betrayal is invented by the players.
         Kings never speak to each other directly: every word travels with an envoy, who has motives of their own.
       </p>
 
