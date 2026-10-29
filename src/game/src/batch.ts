@@ -251,6 +251,8 @@ export function warReport(games: readonly GameSummary[]): string[] {
   if (falls.length === 0) return out;
   const first = games.filter((g) => g.falls.length > 0).map((g) => min(g.falls, (f) => f.turn));
   out.push(`  The first fall of a game came in season ${median(first)} on the median (range ${min(first, (x) => x)}-${max(first, (x) => x)}).`);
+  // The builder rules' line for a playable game: no capital falling within the game's first two seasons (item 11e).
+  out.push(`  Games with a kingdom fallen in the first two seasons: ${first.filter((t) => t <= 2).length} of ${games.length}.`);
   const spread = (xs: number[]): string =>
     xs.length === 0
       ? "none"

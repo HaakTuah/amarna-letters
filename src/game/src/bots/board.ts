@@ -111,6 +111,8 @@ export class Board {
   stormNeeds(p: string, defenders: number): number {
     if (!this.walls(p)) return 0;
     const level = this.wallLevel(p);
+    // A king who ignores the city's men (the measure of item 11e) reckons a storm as before: the walls and the garrison.
+    if (!WallPlay.on(this.me)) return level + defenders + 1;
     return level + (defenders + this.wallMen(p)) * (1 + level) + 0.001;
   }
 
@@ -342,4 +344,16 @@ export class Board {
 
 /** The growth a leader must reach, and the margin by which he must stand above the next king. */
 export const LeadFloor = 1.15;
+
+/**
+ * Whether a script king reckons a storm by the city's men on its walls, multiplied by them (item 11e); off for the measure
+ * of using it against ignoring it (`--wall-play-half`), when it reckons the walls and the garrison as before.
+ */
+export const WallPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+  off: false,
+  only: null,
+  on(me: string): boolean {
+    return !(this.off && (this.only === null || this.only.has(me)));
+  },
+};
 export const LeadMargin = 0.1;

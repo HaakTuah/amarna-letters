@@ -93,7 +93,7 @@ people's resistance (`resistanceOf`, in thousandths of a full unit: the men of f
 their number as a unit's men count, `armyMen` for one, doubled on rough ground and halved on open plain, since item 11e;
 before, steps of 0, 1 or 2; hostility 100, 50 in the mover's own homeland). A guest by passage or basing meets none. A
 move it stops fails with the stop `Resisted`. In a walled province not the mover's the people stand on the walls instead
-and meet the storm (`wallMenOf`, [30](30-cities-defended.md)).
+and meet the storm (`wallMenOf`, [30](31-cities-defended.md)).
 
 ### Seasons and the road
 

@@ -365,7 +365,7 @@ describe("SleepTests", () => {
       inboxOf(r.state, "Babylonia"),
       (i) =>
         i.title === "Movements last season" &&
-        i.body.includes("sippar -> suhu: succeeds: it got within the walls of suhu but did not storm them (strength 1 against walls 1 and defenders "),
+        i.body.includes("sippar -> suhu: succeeds: it got within the walls of suhu but did not storm them (strength 1 against walls 1 and no defenders on the walls)"),
     );
     Assert.null(r.state.owner.get("suhu"));
 
