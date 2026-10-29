@@ -137,6 +137,8 @@ export interface MapScene {
   stores: Map<string, number>;
   /** Item 19: what the map remembers (battlefields, ruins), and the life on it, as the viewer knows them (memory.ts). */
   memory: Remembered;
+  /** The frame before (null at the opening), for the season's small scenes. */
+  prev: SeasonFrame | null;
 }
 
 /**
@@ -273,7 +275,7 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   // As the engine's own view of a court shows them: in its sight, or in land it holds.
   const stores = viewer === null ? f.stores : new Map([...f.stores].filter(([k]) => ownerOf(f, k) === viewer));
   const bands = viewer === null ? f.bands : f.bands.filter((b) => (f.sight.get(viewer)?.has(b.province) ?? false) || ownerOf(f, b.province) === viewer);
-  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))) };
+  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev };
 }
 
 function stack(units: readonly FrameUnit[], ghost: boolean, age: number, seenAt: number): SceneUnit[] {

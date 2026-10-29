@@ -12,6 +12,7 @@
  */
 import { WorldMap, economyOf, harvestOf, taxOf } from "@amarna/engine";
 import { F, along, city, roadBetween, roadPath, type Pt } from "./art.ts";
+import { lifeMarks } from "./life.ts";
 import { ringOf } from "./markup.ts";
 import type { MapScene } from "./scene.ts";
 
@@ -97,6 +98,8 @@ export function cityWorks(s: MapScene, province: string, capital: boolean, walls
     marks.push({ cls: "granary", inner: granary(fill), text: `granaries holding ${stores} measures of grain` });
   }
   if (economyOf(Map_.get(province)).mine > 0) marks.push({ cls: "mine", inner: Mine, text: "mines worked here" });
+  // Item 19, pass 4: a famine's empty granary, and the town's houses (life.ts).
+  marks.push(...lifeMarks(s, province));
   if (marks.length === 0) return "";
   const at = city(province);
   let sb = `<g class="works-at" data-province="${province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ringOf(capital, walls))}"><g class="wring"><g class="sym">`;

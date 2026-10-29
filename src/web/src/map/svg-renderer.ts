@@ -10,6 +10,7 @@ import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { roadsLayer, worksAtCities } from "./built.ts";
 import { figureOf } from "./figures.ts";
+import { OmenSigns, RuinMarks, lifeLayer, mediumOf, memoryLayer, sceneMarkup, scenesOf } from "./life.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { seasonLayer } from "./seasons.ts";
@@ -78,6 +79,8 @@ function cities(s: MapScene): string {
     for (let level = walls; level >= 1; level--) sb += `<circle class="walls w${level}" r="${(p.capital ? 12 : 8.5) + 2 * level}"/>`;
     if (p.capital) sb += `<circle class="cap-ring" r="12.6"/>`;
     sb += `<circle class="seal ${owner !== null ? `s-${glyphId(owner)}` : "s-free"}" r="${p.capital ? 9.5 : 7.5}"/>`;
+    // A city in ruins (item 19): sacked, and its people's hardship not yet faded.
+    if (s.memory.ruins.has(p.id)) sb += `<g class="ruin">${title(`${p.name} lies in ruins: sacked, and not yet rebuilt`)}${RuinMarks}</g>`;
     // A siege camp (item 19): the besieger's tents ringing the walls.
     const siege = s.sieges.find((x) => x.province === p.id);
     if (siege !== undefined) {
@@ -553,8 +556,8 @@ export class SvgMapRenderer implements MapRenderer {
     // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="works"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
-      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
+      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="works"></g><g data-layer="memory"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
+      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g data-layer="life"></g><g data-layer="scenes"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-label]")) this.labels.set(g.dataset.label!, g);
@@ -599,6 +602,8 @@ export class SvgMapRenderer implements MapRenderer {
     }
     this.layer("tints", s.frame, () => tints(s));
     this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s));
+    const m = s.memory;
+    this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}`).join()}`, () => memoryLayer(s));
     this.layer("fog", s, () => fog(s));
     this.layer("bands", s.frame, () => bands(s));
     if (this.drawn.get("cities") !== s) {
@@ -614,6 +619,9 @@ export class SvgMapRenderer implements MapRenderer {
     this.layer("moves", s, () => moves(s));
     this.layer("outlaws", s, () => outlaws(s));
     this.layer("worksat", s, () => worksAtCities(s));
+    this.layer("life", s, () => lifeLayer(s));
+    this.showScenes(s);
+    this.margin(s);
     this.drawUnits(s);
     const peopleKey = `${s.index}|${s.viewer}|${input.followId}`;
     if (this.drawn.get("people") !== s || this.drawn.get("peopleKey") !== peopleKey) {
@@ -629,6 +637,51 @@ export class SvgMapRenderer implements MapRenderer {
     this.layers.get("selection")!.innerHTML = selection(input);
     // Names are placed at once, and again once the pieces have slid to their places (onMoved).
     this.placeNames();
+  }
+
+  /**
+   * Small scenes at big moments (item 19): when the map steps on by one season, the season's gift processions, sacks and
+   * ambushes play once over the map, briefly, then are taken away; none when the reader asks for reduced motion, when
+   * stepping back, or jumping.
+   */
+  private sceneFrom: { index: number; viewer: Power | null } | null = null;
+  private sceneTimer = 0;
+  private showScenes(s: MapScene): void {
+    const last = this.sceneFrom;
+    this.sceneFrom = { index: s.index, viewer: s.viewer };
+    if (last === null || last.index !== s.index - 1 || last.viewer !== s.viewer || s.prev === null) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const scenes = scenesOf(s.prev, s.frame, s.viewer);
+    if (scenes.length === 0) return;
+    const g = this.layers.get("scenes")!;
+    g.innerHTML = scenes.map(sceneMarkup).join("");
+    clearTimeout(this.sceneTimer);
+    this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), 4500);
+  }
+
+  /** The realm's own medium (clay for every court but Egypt's, papyrus for Egypt and god view) and the omens in the margin. */
+  private margin(s: MapScene): void {
+    const view = this.view;
+    if (view === null) return;
+    const medium = mediumOf(s.viewer);
+    if (view.dataset.medium !== medium) view.dataset.medium = medium;
+    const tier = s.frame.omen;
+    if ((view.dataset.omen ?? "") === (tier ?? "")) return;
+    if (tier === null) delete view.dataset.omen;
+    else view.dataset.omen = tier;
+    let el = view.querySelector<HTMLElement>(":scope > .omen");
+    if (tier === null) {
+      el?.remove();
+      return;
+    }
+    if (el === null) {
+      el = document.createElement("div");
+      el.className = "omen";
+      view.querySelector(".mapzoom")?.after(el);
+    }
+    el.title = OmenSigns[tier].text;
+    el.setAttribute("aria-label", OmenSigns[tier].text);
+    el.innerHTML = `<svg viewBox="-13 -13 26 26" aria-hidden="true">${OmenSigns[tier].svg}</svg>`;
   }
 
   /**
@@ -718,6 +771,7 @@ export class SvgMapRenderer implements MapRenderer {
         ...[...units].filter(([id]) => !cities.has(id)).flatMap(([, es]) => es.map((e) => [e, ":scope > .sym"] as const)),
         ...[...view.querySelectorAll(".map-upper .destroyed")].map((e) => [e, ":scope > .sym"] as const),
         ...[...view.querySelectorAll(".map-upper .band-mark")].map((e) => [e, ":scope > .sym"] as const),
+        ...[...view.querySelectorAll(".map-upper .life-mark")].map((e) => [e, ":scope > .sym"] as const),
         ...[...view.querySelectorAll(".map-upper .traveller:not(.followed)")].map((e) => [e, ":scope > .sym"] as const),
         ...[...view.querySelectorAll(".xmarks .xmark")].map((e) => [e, ".xm-bg"] as const),
       ].map(([e, sel]) => ({ e, rs: rects(e, sel) }));

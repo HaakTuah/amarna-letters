@@ -285,6 +285,26 @@ describe("MapSceneTests", () => {
     Assert.true([...seat.stores.keys()].every((id) => frames[k].owner.get(id) === p));
   });
 
+  // Item 19, pass 4: the map remembers only battles the court saw, and shows the roads' life only where it can see.
+  test("A court remembers the battles it saw and sees caravans and walkers only on roads it can see", async () => {
+    let { runner, frames } = await play(7, 16);
+    let k = frames.length - 1;
+    let god = buildScene(frames, k, null).memory;
+    let memorials = 0;
+    for (const p of living(runner.stateAt(k)!)) {
+      let seat = buildScene(frames, k, p);
+      // Every battlefield the court remembers is one god view remembers, with no more battles there.
+      for (const [id, b] of seat.memory.memorials) {
+        memorials++;
+        Assert.true((god.memorials.get(id)?.count ?? 0) >= b.count);
+      }
+      let sees = (id: string): boolean => frames[k].owner.get(id) === p || frames[k].sight.get(p)!.has(id);
+      for (const r of [...seat.memory.caravans, ...seat.memory.walking]) Assert.true(r.power === p || sees(r.from) || sees(r.to));
+      for (const id of [...seat.memory.wild, ...seat.memory.famine.keys(), ...seat.memory.towns.keys()]) Assert.true(sees(id));
+    }
+    Assert.true(god.memorials.size > 0 && memorials > 0, "no battle was fought, or none seen, so nothing was checked");
+  });
+
   test("A frame from the live state matches one read back from its snapshot", async () => {
     let { runner, frames } = await play(7, 16);
     for (let k = 0; k < frames.length; k++) {
