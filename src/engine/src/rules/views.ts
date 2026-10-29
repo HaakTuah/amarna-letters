@@ -8,6 +8,7 @@ import { seasonOfTurn, StartWalls, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
+import { tongueWords } from "../model/languages.ts";
 import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
@@ -504,6 +505,8 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     pitch: c.pitches.tryGet(viewer) ?? null,
     // What it said it can do when it pitched to you (item 10, "Kings never see skills"): words, never its skill.
     claims: c.pitches.has(viewer) && c.claimed !== null ? claimWords(c.claimed) : [],
+    // Item 12: the languages it says it speaks, to its master, where it stands, or where it pitched.
+    speaks: ours || here || c.pitches.has(viewer) ? tongueClaimsAs(c) : [],
     claimsToServe: alias?.employer ?? null,
     // Your own servant's price to serve on is in its term; an old asking price from before it was hired means nothing now.
     askingPrice: ours ? null : price !== undefined ? price : freeHere ? basePrice(c, viewer) : null,
@@ -520,6 +523,18 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     // Item 11b: the news of other courts they offer you, standing at your court.
     news: hiddenAt(c, viewer) ? [] : newsOffered(s, c, viewer).map((n) => newNewsOffer({ court: n.court, turn: n.turn, lines: n.lines.length, price: n.price })),
   });
+}
+
+/**
+ * Item 12: the languages a person says it speaks, in words: what it believes, one who overrates itself claiming a level
+ * more ("may boast that it is fluent").
+ */
+export function tongueClaimsAs(c: Character): string[] {
+  const boast = c.inclination > 10 ? 40 : 0;
+  return [...c.tongues.entries()]
+    .filter(([, x]) => x > 0)
+    .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
+    .map(([l, x]) => `${l} (${tongueWords(Math.min(100, x + boast))})`);
 }
 
 /**
@@ -758,12 +773,15 @@ function opening(text: string): string {
 }
 
 function tabletView(t: Tablet, copy: TabletCopy): TabletView {
+  // Item 12, "Reading a tablet": a tablet nobody at the court has read waits for a reader; its seals are plain to see.
+  const unread = copy.unread === true;
   return newTabletView({
     name: tabletName(t),
     copyId: copy.id,
     tabletId: t.id,
-    text: t.text,
-    clauses: t.clauses.map((c) => ({ ...c })),
+    text: unread ? `A tablet written in ${t.tongue !== "" ? t.tongue : "a tongue your scribes do not read"}, which nobody at your court has read yet: it waits for a reader.` : t.text,
+    clauses: unread ? [] : t.clauses.map((c) => ({ ...c })),
+    unread,
     seals: [...t.seals],
     proposedBy: t.proposedBy,
     partner: t.partner,

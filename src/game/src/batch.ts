@@ -33,6 +33,7 @@ import {
   type GameState,
   type InboxItem,
   type Power,
+  UnheardOutcome,
 } from "@amarna/engine";
 import type { ModelCall, ShadowDecision, CharacterChoice } from "./log.ts";
 import { GameLog } from "./log.ts";
@@ -83,6 +84,8 @@ export interface GameSummary {
   characterCalls: number;
   characterWakeups: number;
   characterPool: number;
+  /** Item 12: by the court a letter went to, the letters that found a carrier understood there and the seasons they waited. */
+  lettersTo: Record<string, [number, number]>;
 }
 
 /**
@@ -111,6 +114,11 @@ export function pressOf(s: GameState): Record<string, number> {
     if (t.goldDelivered > 0 && t.clauses.some((c) => c.kind === "tribute")) {
       add("tribute-delivered");
       add("tribute-gold", t.goldDelivered);
+    }
+    // Item 12: an envoy nobody understood recited nothing; his letter is no change of words.
+    if (t.outcomes.some((o) => o.startsWith(UnheardOutcome))) {
+      add("unheard");
+      continue;
     }
     const said = t.clauses;
     const heard = t.deliveredClauses;
@@ -216,6 +224,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
     characterWakeups: sum([...runner.characterAsks.values()], (x) => new Set(x).size),
     characterPool: s.characters.length,
+    lettersTo: Object.fromEntries(AllPowers.map((p) => [p, [s.lettersToCarried.getOrDefault(p, 0), s.lettersToWaited.getOrDefault(p, 0)] as [number, number]])),
     courtsHeld: held,
     courtsReopened: reopened,
     courtsStoodIn: stoodIn,
@@ -510,6 +519,13 @@ export function batchReport(games: readonly GameSummary[]): string {
   lines.push("");
   lines.push(
     `Standing orders, every seat's: ${sum(games, (g) => g.standingKept)} kept in ${games.filter((g) => g.standingKept > 0).length} games; ${sum(games, (g) => g.standingFired)} fired in ${games.filter((g) => g.standingFired > 0).length} games.`,
+    // Item 12 ("Where characters are, and what they speak"): how long each court's letters waited for a carrier who can be understood there.
+    `Letters to each court, seasons waited for a carrier understood there (letters): ${AllPowers.filter((p) => sum(games, (g) => g.lettersTo?.[p]?.[0] ?? 0) > 0)
+      .map((p) => {
+        const n = sum(games, (g) => g.lettersTo?.[p]?.[0] ?? 0);
+        return `${p} ${fmt(sum(games, (g) => g.lettersTo?.[p]?.[1] ?? 0) / n, "0.0")} (${n})`;
+      })
+      .join(", ")}.`,
   );
   lines.push("");
   lines.push(...warReport(games));

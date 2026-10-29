@@ -136,9 +136,18 @@ P.hireAll = function (hires, carriedTo = null) {
     const present = (b: { p: Power; h: HireOrder }): boolean => (carried ? c.heldBy === null && c.duty === "None" && c.at === carriedTo : c.heldBy === null ? c.at === b.p && c.duty === "None" : c.heldBy === b.p);
     const fits = (b: { p: Power; h: HireOrder }): string | null => this.jobFits(c, b.p, { errand: errandOf(b.h) }, term(b));
     const afford = (b: { p: Power; h: HireOrder }): boolean => carried || S.treasuries.get(b.p).gold >= Math.min(b.h.advance, b.h.fee);
+    // Item 12: terms are agreed only between people who understand each other ("Speaking"): the envoy carrying the offer
+    // and the man, or the court (its king, or a servant who bridges) and the man before it.
+    const heard = (b: { p: Power; h: HireOrder }): boolean => {
+      if (carried) {
+        const envoy = findCharacter(S, b.h.via ?? "");
+        return envoy === null || this.understands(envoy, c);
+      }
+      return this.courtHears(c, b.p, false).heard;
+    };
     for (const b of group) if (present(b) && b.h.term > 0) c.offers.set(b.p, rateOf(b.h.fee, term(b)));
     const bids = sortBy(
-      group.filter((b) => present(b) && value(b) >= askingPrice(c, b.p) * term(b) && fits(b) === null && afford(b)),
+      group.filter((b) => present(b) && heard(b) && value(b) >= askingPrice(c, b.p) * term(b) && fits(b) === null && afford(b)),
       [(b: { p: Power; h: HireOrder }) => rateOf(value(b), term(b)), desc(cmpNum)],
       [(b: { p: Power; h: HireOrder }) => c.traits.sympathy === b.p, desc(cmpBool)],
       [(b: { p: Power; h: HireOrder }) => b.p, cmpPower],
@@ -154,7 +163,11 @@ P.hireAll = function (hires, carriedTo = null) {
           : carried
             ? "they were no longer there when your envoy came"
             : "they are not at your court: send the offer with an envoy going where they are (via)"
-        : short
+        : !heard(lost)
+          ? carried
+            ? "your envoy and they could not make themselves understood this season"
+            : "nobody at your court could make themselves understood to them this season"
+          : short
           ? `they ask ${formatMoney(ask)} a season of the term, ${formatMoney(feeFor(ask, term(lost), idiv(Math.min(lost.h.advance, lost.h.fee) * 100, Math.max(1, lost.h.fee)), trustIn(S, lost.p, c)))} for this one with this advance, counting the rest only as far as they trust your court to pay it, from what they have heard`
           : fits(lost) !== null
             ? fits(lost)!
@@ -165,7 +178,7 @@ P.hireAll = function (hires, carriedTo = null) {
         // The advance stays with the envoy, which brings it home; word of the answer comes home by the roads.
         const envoy = findCharacter(S, lost.h.via ?? "");
         this.word(carriedTo!, lost.p, "Job", `${envoy?.name ?? "Your envoy"} put your offer of a job to ${c.name} at the court of ${carriedTo}, who declined: ${why}. The advance comes home with your envoy.`);
-      } else this.failed(lost.p, lost.h, "Not hired", `${c.name} declined your offer of ${formatMoney(lost.h.fee)} for ${term(lost)} seasons: ${why}.`, why, present(lost) && !short, c.id);
+      } else this.failed(lost.p, lost.h, "Not hired", `${c.name} declined your offer of ${formatMoney(lost.h.fee)} for ${term(lost)} seasons: ${why}.`, why, present(lost) && heard(lost) && !short, c.id);
     }
     if (bids.length === 0) continue;
     const { p: winner, h: hire } = bids[0];

@@ -7,6 +7,7 @@ import { newAudienceView, newEnvoyReaction, newHostReply, newMindRequest, reques
 import { hire, type DispatchOrder, type ReleaseOrder } from "../model/orders.ts";
 import { factsKnownTo, falseNameAt, gain, nameKnownAt, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
 import { debtLeft, isPowerParty } from "../model/money.ts";
+import { courtSpeaks } from "../model/languages.ts";
 import { errandOf } from "./court.ts";
 import { land, type Power } from "../model/power.ts";
 import {
@@ -135,6 +136,15 @@ P.dispatch = function (p, d) {
     logEvent(S, "siege", `${c.name}, envoy of ${p}, would not leave besieged ${Map.capital(p).name}.`, [p], "envoy-stayed");
     return;
   }
+  // Item 12, "Composing": the envoy must grasp his king's words, and a tablet in a language the receiver reads needs a
+  // scribe who writes it; a halting speaker or a weak scribe takes longer, and with no shared language at all he cannot go.
+  const composed = this.composing(c, p, d.to);
+  if (composed === null) {
+    this.failed(p, d, "Envoy not sent", `Nobody at your court could make ${c.name} understand your words: they share no language with you, nor with any servant of yours at court. No gold was paid.`, "nobody could make the envoy understand", true, c.id);
+    logEvent(S, "language", `${c.name} could not be made to understand ${p}'s words.`, [p], "envoy-mute");
+    return;
+  }
+  if (composed.seasons > 0) logEvent(S, "language", `${c.name} needs ${composed.seasons} season(s) to take in ${p}'s words for ${d.to}.`, [p], "mandate-slow");
   const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
   // The scribe's fee for the tablet to seal, and for the inventory of any gold, unless it goes without one (item 8).
   const inventory = d.gold > 0 && d.noInventory !== true;
@@ -234,7 +244,7 @@ P.dispatch = function (p, d) {
     collect: collect?.id ?? null,
   });
   if (proposal !== null) {
-    const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, vassal: proposal.vassal, clauses: tabletClauses });
+    const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, vassal: proposal.vassal, clauses: tabletClauses, tongue: composed.tongue });
     S.tablets.push(tablet);
     dispatch.proposalTabletId = tablet.id;
     this.saw(c, tablet.id);
@@ -248,6 +258,9 @@ P.dispatch = function (p, d) {
   const outJourney = newJourney({ id: newId(S, "j"), kind: "EnvoyOutbound", departTurn: S.turn, from: p, to: d.to, characterId: c.id, dispatch });
   S.journeys.push(outJourney);
   this.setOut(outJourney, Map.capital(p).id, Map.capital(d.to).id);
+  // Seasons spent taking in the king's words, or waiting for the tablet's scribe, before the road.
+  outJourney.departTurn += composed.seasons;
+  outJourney.arriveTurn += composed.seasons;
   const travel = outJourney.arriveTurn - S.turn;
   c.duty = "EnvoyOutbound";
   c.at = null;
@@ -265,7 +278,16 @@ P.dispatch = function (p, d) {
       (offers.length > 0 ? ` I carry ${offers.length === 1 ? "an offer of a job" : `${offers.length} offers of jobs`}, with the advances.` : "") +
       (collect !== null ? ` I carry the tablet of a debt of ${this.partyName(collect.borrower)}, to present for my lord.` : ""),
   );
-  notify(S, p, "Notice", "Envoy dispatched", `${c.name} set out for ${d.to} last season; the journey should take about ${travel} season(s).`, c.id);
+  notify(
+    S,
+    p,
+    "Notice",
+    "Envoy dispatched",
+    composed.seasons > 0
+      ? `${c.name} needs ${composed.seasons} season(s) to take in your words${d.proposal ? " and have the tablet written" : ""} before setting out for ${d.to}; the mission should reach it in about ${travel} season(s).`
+      : `${c.name} set out for ${d.to} last season; the journey should take about ${travel} season(s).`,
+    c.id,
+  );
   // Out of a besieged capital: the besiegers may catch it as it slips out (its king believes it on its way).
   const besieged = this.capitalSiege(p);
   if (besieged !== null) {
@@ -363,18 +385,25 @@ P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, s
     soFar: [...soFar],
     goldBackNamed,
     giftAccepted: gift?.host.bribe ?? 0,
+    heardThrough: a.through === null ? null : (findCharacter(S, a.through)?.name ?? null),
+    presented: a.presented,
   });
   const tid = a.dispatch.proposalTabletId;
   const tablet = tid !== null ? S.tablets.find((t) => t.id === tid) : undefined;
   if (tid !== null && tablet !== undefined) {
-    view.proposal = Views.tablet(tablet, newTabletCopy({ id: "", tabletId: tid, holder: a.host, source: `proposed by ${a.from}` }));
+    // Item 12: a tablet in a language nobody at the court could read this season is sealed, if at all, on trust.
+    if (!a.proposalRead) tablet.tongue = this.tabletTongue(tablet);
+    view.proposal = Views.tablet(tablet, newTabletCopy({ id: "", tabletId: tid, holder: a.host, source: `proposed by ${a.from}`, unread: !a.proposalRead }));
     // Sealed at an earlier exchange (the first that chose to seal it seals it when the audience is applied).
     view.proposalSealed = past.some((x) => x.host !== null && x.host.sealProposal);
   }
   for (const copyId of a.dispatch.copyIds) {
     const copy = S.copies.find((x) => x.id === copyId);
     const tab = copy === undefined ? undefined : S.tablets.find((t) => t.id === copy.tabletId);
-    if (tab !== undefined) view.copiesShown.push(Views.tablet(tab, newTabletCopy({ id: "", tabletId: tab.id, holder: a.host, source: `shown by ${a.from}` })));
+    if (tab === undefined) continue;
+    const read = this.readable(a.host, this.tabletTongue(tab), `${a.id}|${copyId}`);
+    if (!read) tab.tongue = this.tabletTongue(tab);
+    view.copiesShown.push(Views.tablet(tab, newTabletCopy({ id: "", tabletId: tab.id, holder: a.host, source: `shown by ${a.from}`, unread: !read })));
   }
   // Item 9: whether it carries its king's seal is plain to see; its limits and mandate only if it shows its credentials.
   const authority = a.dispatch.authority;
@@ -461,7 +490,10 @@ P.applyAudience = function (record) {
   for (const copyId of d.copyIds) {
     const copy = S.copies.find((x) => x.id === copyId);
     if (copy === undefined) continue;
-    S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: copy.tabletId, holder: host, acquiredTurn: S.turn, source: `shown by the envoy of ${sender}` }));
+    // Item 12: read at the audience or not, as the host saw it there.
+    const shown = S.tablets.find((t) => t.id === copy.tabletId);
+    const read = shown === undefined || this.readable(host, this.tabletTongue(shown), `${a.id}|${copyId}`);
+    S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: copy.tabletId, holder: host, acquiredTurn: S.turn, source: `shown by the envoy of ${sender}`, unread: !read }));
     logEvent(S, "evidence", `${sender} presented a tablet to ${host} as evidence.`, [sender, host], "evidence-shown");
   }
 
@@ -496,6 +528,7 @@ P.applyAudience = function (record) {
         giftTaken = true;
         if (this.pay(host, h.bribe, `a gift to ${c.name}`)) {
           gain(c, h.bribe, "Gifts");
+          c.handed.push({ by: host, turn: S.turn });
           remember(c, S.turn, `The king of ${land(host)} gave me ${formatMoney(h.bribe)}` + (isBlank(h.bribeAsk) ? "." : `, asking: ${h.bribeAsk}`));
           c.facts.push(newFact({ id: newId(S, "f"), text: `Took ${formatMoney(h.bribe)} from the king of ${land(host)}.`, secrecy: "Hidden", tag: "bribe", knownBy: [host] }));
           trail.outcomes.push(`accepted ${formatMoney(h.bribe)} from ${host}` + (isBlank(h.bribeAsk) ? "" : ` (asked: ${h.bribeAsk})`));
@@ -667,19 +700,22 @@ P.observe = function (c, court) {
   const obs: string[] = [];
   const skill = c.skills.gather / 100.0;
   const capital = Map.capital(court).id;
+  // Item 12, "Language is also how one hears": what it overhears, the court's talk of its gold, its troubles and its
+  // captives, by how well it speaks the court's own language (a quarter even with none: what it sees for itself).
+  const hears = skill * (0.25 + (0.75 * c.tongues.getOrDefault(courtSpeaks(court, capital), 0)) / 100);
   const nearby = S.units.filter((u) => u.power === court && Map.hops(capital, u.province) <= 2);
   if (rng.chance(skill))
     obs.push(`${court} keeps ${nearby.filter((u) => u.kind === "Army").length} army and ${nearby.filter((u) => u.kind === "Fleet").length} fleet near its capital.`);
-  if (rng.chance(skill * 0.8)) {
+  if (rng.chance(hears * 0.8)) {
     const gold = S.treasuries.get(court).gold;
     const wealth = gold < 150 ? "the treasury looks thin" : gold < 400 ? "the court lives comfortably" : gold < 800 ? "the court is rich" : "the court glitters with gold";
     obs.push(`At the court of ${court}, ${wealth}.`);
   }
   const others = S.characters.filter((x) => x.id !== c.id && x.at === court && x.employer !== null && x.employer !== court && (x.duty === "EnvoyAtCourt" || x.duty === "Detained"));
   for (const o of others) if (rng.chance(skill)) obs.push(`${o.name}, envoy of ${o.employer}, was also at the court${o.duty === "Detained" ? ", held there against their will" : ""}.`);
-  for (const cat of S.catastrophes.filter((x) => x.power === court && x.startTurn <= S.turn + 1 && x.endTurn >= S.turn)) if (rng.chance(0.4 + skill / 2)) obs.push(`In ${court}: ${cat.text}`);
+  for (const cat of S.catastrophes.filter((x) => x.power === court && x.startTurn <= S.turn + 1 && x.endTurn >= S.turn)) if (rng.chance(0.4 + hears / 2)) obs.push(`In ${court}: ${cat.text}`);
   // The captives the court holds, noticed as other envoys at court are; its executions, as its catastrophes are.
-  obs.push(...this.lossesHeard(c, court, skill, 0.4 + skill / 2));
+  obs.push(...this.lossesHeard(c, court, skill, 0.4 + hears / 2));
   if (court === c.traits.sympathy) c.traits.sympathyStrength = Math.min(100, c.traits.sympathyStrength + 5);
   return obs;
 };
@@ -786,6 +822,10 @@ P.fulfil = function (req, reply) {
       return;
     case "Reports":
       if (c !== null && reply.reports !== null && req.reports !== null) c.reportsPlan = { ...reply.reports, turn: req.reports.turn, payUpTo: Math.max(0, reply.reports.payUpTo) };
+      return;
+    case "Unheard":
+      // Item 12: an envoy nobody understands chose, taken as the next season begins.
+      if (c !== null && reply.unheard !== null) this.applyUnheard(c, { turn: this.s.turn, choice: reply.unheard.choice });
       return;
     case "EnvoyReport": {
       if (c === null) return;

@@ -17,6 +17,7 @@ import {
   MoneyPlay,
   OutlawPlay,
   VassalPlay,
+  LanguagePlay,
   SeasonPlay,
   ClausePlay,
   InventoryPlay,
@@ -112,6 +113,9 @@ export interface BatchOptions {
   /** Script players never play vassalage (item 11+, `--no-vassal-play`), or half of them (`--vassal-play-half`). */
   noVassalPlay: boolean;
   vassalPlayHalf: boolean;
+  /** Script kings choose envoys by no language and hire no go-betweens (item 12, `--no-language-play`), or half of them (`--language-play-half`). */
+  noLanguagePlay: boolean;
+  languagePlayHalf: boolean;
   /** Script kings leave item 11a+'s levers alone (`--no-season-play`), or half of them (`--season-play-half`). */
   noSeasonPlay: boolean;
   seasonPlayHalf: boolean;
@@ -196,7 +200,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.languagePlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
@@ -217,6 +221,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   OutlawPlay.only = o.outlawPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   VassalPlay.off = o.noVassalPlay || o.vassalPlayHalf;
   VassalPlay.only = o.vassalPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  LanguagePlay.off = o.noLanguagePlay || o.languagePlayHalf;
+  LanguagePlay.only = o.languagePlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   SeasonPlay.off = o.noSeasonPlay || o.seasonPlayHalf;
   SeasonPlay.only = o.seasonPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   ClausePlay.only = o.clausePlayHalf ? current : null;

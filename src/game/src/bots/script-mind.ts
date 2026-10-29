@@ -1,7 +1,7 @@
 /**
  * Deterministic characters driven by their hidden traits. Every distortion has a motive the player can reason about: the
- * timid soften threats, the ambitious embellish and claim credit, the bribed speak well of whoever paid, the careless drop
- * things, the greedy skim.
+ * timid soften threats, the ambitious embellish and claim credit, the bribed speak well of whoever paid, the greedy skim.
+ * (The careless dropping things was retired in item 12: language and skill cost time, never words.)
  */
 import {
   AllPowers,
@@ -63,9 +63,8 @@ export class ScriptMind implements ICharacterMind {
       kept.push("My lord hopes that no quarrel will ever come between your houses.");
       sentences = kept;
     }
-    if (t.competence < 35 && sentences.length > 2) sentences.pop();
     // The clauses it recites (item 8), changed by the same motives: the timid and the fond drop the threat, leaving its
-    // demand a request; the careless drop the last; one that kept gold states the gift as what is left; the ambitious and
+    // demand a request (item 12 retired the careless dropping the last: language costs time, not words); one that kept gold states the gift as what is left; the ambitious and
     // the fond add a flattering clause. In structured press they are the letter it speaks.
     const skim = kept(ctx.dispatch.gold, t, ctx.dispatch.inventory);
     const clauses = recite(ctx.dispatch.clauses, t, fearful, fond, skim);
@@ -154,14 +153,39 @@ export class ScriptMind implements ICharacterMind {
         return Promise.resolve(questioned(ctx));
       case "Life":
         return Promise.resolve(newMindReply({ life: ctx.request.life === null ? null : scriptLife(ctx.self, ctx.request.life) }));
+      case "Bridge":
+        return Promise.resolve(bridge(ctx));
       case "Chief":
       case "Reports":
+      case "Unheard":
         // A script chief or spy decides by its traits, as the engine weighs them when the season comes ("Bold or careful, one goal").
         return Promise.resolve(newMindReply());
       default:
         return Promise.resolve(newMindReply({ text: "" }));
     }
   }
+}
+
+/**
+ * Item 12, "A go-between for hire": a script go-between or bridging servant in someone else's pay, asked only then, bends
+ * what he passes on as one paid to make the meeting go smoothly would: he softens a threat to the host, or, with none,
+ * drops the envoy's last demand (a condition). Every other word he carries as spoken.
+ */
+function bridge(ctx: MindContext): MindReply {
+  const v = ctx.request.bridge;
+  if (v === null) return newMindReply();
+  const menace = (s: string): boolean => TextKit.isThreatTo(s, v.host, v.from);
+  let sentences = TextKit.sentences(v.speech);
+  let clauses = v.clauses.map((x) => ({ ...x }));
+  if (clauses.some((x) => x.kind === "threat") || sentences.some(menace)) {
+    sentences = sentences.filter((x) => !menace(x));
+    clauses = clauses.filter((x) => x.kind !== "threat");
+  } else {
+    const last = clauses.map((x) => x.kind.startsWith("ask")).lastIndexOf(true);
+    if (last >= 0) clauses.splice(last, 1);
+  }
+  const words = TextKit.join(sentences);
+  return newMindReply({ text: words === "" && v.speech.trim() !== "" ? "My lord sends you his greetings." : words, clauses });
 }
 
 /**
@@ -180,7 +204,6 @@ export function recite(cs: readonly Clause[], t: Traits, fearful: boolean, fond:
     out = out.filter((x) => x.kind !== "threat");
     if (!out.some((x) => x.kind === "wellWishes")) out.push(clause("wellWishes"));
   }
-  if (t.competence < 35 && out.length > 2) out.pop();
   if (skim > 0) for (const x of out) if (x.kind === "gift" && x.amount !== null) x.amount = Math.max(0, x.amount - skim);
   if ((t.ambition >= 65 || fond) && !out.some((x) => x.kind === "wellWishes")) out.unshift(clause("wellWishes"));
   return out;
@@ -189,14 +212,13 @@ export function recite(cs: readonly Clause[], t: Traits, fearful: boolean, fond:
 /**
  * The host's answer as a script envoy reports it home (item 8): the faithful word for word; the bribed and the timid leave
  * out the threats against their lord, and the bribed turn a refusal into acceptance and pass on the host's news as their
- * own; the careless lose the last clause.
+ * own. (The careless losing the last clause was retired in item 12: whether a message is altered is the envoy's choice.)
  */
 export function reportClauses(heard: readonly Clause[], bribeNews: readonly Clause[], t: Traits, faithful: boolean, bribed: boolean, fearful: boolean): Clause[] {
   let out = heard.map((x) => ({ ...x }));
   if (faithful) return out;
   if (bribed || fearful) out = out.filter((x) => x.kind !== "threat");
   if (bribed) for (const x of out) if (x.kind === "refuse") x.kind = "accept";
-  if (!bribed && !fearful && t.competence < 40 && out.length > 1) out.pop();
   if (bribed) out.push(...bribeNews.map((x) => ({ ...x })));
   return out;
 }
@@ -220,7 +242,7 @@ function report(ctx: MindContext): MindReply {
   const bribedBy = bribes.length > 0 ? bribes[bribes.length - 1] : null;
   const bribed = host !== null && bribedBy !== null && bribedBy.includes(land(host));
   const fearful = t.courage < 35;
-  const faithful = t.loyalty >= 60 && t.competence >= 50 && !bribed;
+  const faithful = t.loyalty >= 60 && !bribed;
   // The envoy's lord, whom the host's threats would be aimed at.
   const lord = trail?.from ?? requestFor(ctx.request);
   const lines: string[] = [];
@@ -232,6 +254,9 @@ function report(ctx: MindContext): MindReply {
   } else {
     lines.push(`My lord, I have returned from the court of ${land(host)}.`);
     if (cargo.wasDetained) lines.push("They held me against my will, and only now let me go.");
+    // Item 12: nobody there understood him; he tells it, or says his words were heard (his choice, with its motive).
+    if (cargo.unheard === "home") lines.push(`Nobody at the court of ${land(host)} understood me, my lord, and I found nobody to carry my words${trail.goldDelivered > 0 ? "; I presented your gifts, which were all they could understand" : ""}.`);
+    if (cargo.unheard === "lie") lines.push("I delivered your words, my lord. The king heard them, and will answer in his own time.");
     const hostWords = trail.exchanges.map((x) => x.host).filter((x) => x.length > 0);
     // An envoy that kept some of the gold it carried leaves out what the host said of the weighing.
     const keptSome = trail.outcomes.some((o) => o.startsWith("kept "));
@@ -251,8 +276,7 @@ function report(ctx: MindContext): MindReply {
         const soft = sentences.filter((s) => !TextKit.isThreatTo(s, lord, host, true));
         lines.push(soft.length > 0 ? `The king spoke kindly: "${TextKit.join(soft)}"` : "The king spoke of his friendship for you.");
       } else {
-        const trimmed = t.competence < 40 && sentences.length > 1 ? sentences.slice(0, sentences.length - 1) : sentences;
-        lines.push(`The king said, in short: "${TextKit.join(trimmed)}"`);
+        lines.push(`The king said: "${TextKit.join(sentences)}"`);
       }
     }
     if (bribed) lines.push(`The king of ${land(host)} is a true friend to you, my lord, and wishes only peace.`);

@@ -283,6 +283,8 @@ P.travelOne = function (j) {
     }
   }
   if (spent.size === 0) spend(j.route[j.leg], 1);
+  // Item 12: where it spent the season, for the languages it learns there.
+  this.noteRoad(c, spent);
 
   if (turnedAt !== null) {
     // It learns the land is closed to its master's people: it goes round or sneaks through from where it stands.

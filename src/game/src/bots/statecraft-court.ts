@@ -46,6 +46,7 @@ import { SeasonPlay } from "./land.ts";
 import { shekels, type Brain } from "./brain.ts";
 import { atHand, oursFirst, fewAtHand, freeAtCourt } from "./errands.ts";
 import { MoneyPlay } from "./credit.ts";
+import { bridgesWanted } from "./tongues.ts";
 import type { Personality } from "./personality.ts";
 
 const Blemishes = ["Owes", "dismissed", "Took", "Abandoned", "forger", "fled", "Kept part", "secretly", "in the pay", "Was caught", "Turned back", "Posed as", "Sold the secrets"];
@@ -170,6 +171,17 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
       busy.add(c.id);
       spare -= Math.trunc(fee / 2);
     }
+  }
+
+  // Item 12: an envoy nobody at court understands waits there; a free person at court who says he speaks the envoy's
+  // language and the king's own is taken on to stay a few seasons, and bridges as a servant does.
+  for (const c of bridgesWanted(v, freeAtCourt(b, brain))) {
+    if (busy.has(c.id)) continue;
+    const fee = feeFor(c.askingPrice!, StaySeasons, 50, Math.min(v.trust, 80));
+    if (spare < 200 + fee) break;
+    orders.push(hire(c.id, fee, StaySeasons, Math.trunc(fee / 2), { what: "stay", where: b.me, payOnDone: true }));
+    busy.add(c.id);
+    spare -= Math.trunc(fee / 2);
   }
 
   // Item 10: a careful king checks the person it would most likely send before offering it an errand.
