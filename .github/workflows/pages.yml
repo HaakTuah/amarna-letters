@@ -98,7 +98,7 @@ jobs:
     permissions:
       contents: read
     env:
-      PLAYWRIGHT: 1.49.1 # the version scripts/cloud-setup.sh installs: change both together
+      PLAYWRIGHT: 1.63.0 # the version scripts/cloud-setup.sh installs: change both together
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
