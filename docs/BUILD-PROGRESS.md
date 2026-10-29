@@ -27,8 +27,8 @@ Answered review points, and the rows of items 1 to 10, are in `docs/archive/prog
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
 | History 11-12 (side lane, #119) | The new walls dossier (`docs/history/12-walls-roads-harbours.md`) finds Akhetaten had no city wall, Megiddo none in this age, and Qatna and Qadesh among the strongest places: should item 15 set walls by the city, so Egypt's capital starts at 0 and its strength is its distance and forts, though an unwalled capital that falls ends a realm? | Walls by the city, as the sources give them (Akhetaten 0, Egypt's forts at `delta` and `nubia` raised); the alternative keeps "every capital 3" | Open |
+| 11d (#145) | With the walls from the dossier a city falls in the first season of every game (525 kingdoms in 50 games, against 158), and with par over all games the fragile city-states that survive win 48 of 50; the Great Kings win 2. Leave both to item 18? | Both as answered, left to item 18 (alternative: a floor of walls 2 for city-states, or par over the games survived, before item 18) | open |
 | Model chiefs and spies (side lane, #128) | 1. A model chief's choices are taken the season after he makes them, so his first season as chief is decided by his traits, as a script chief's (or his band does nothing that first season)? 2. Whom a chief's men kill is a standing choice, "nobody", "kings' servants" or "everyone", until he changes it (or he is asked anew each season, or about each traveller)? 3. A model spy may hire a carrier at once, without the script's season of waiting first (or it too waits a season)? 4. A spy is told what a carrier would ask as reckoned from its own price (or not told, and learns only by trying)? | `docs/rounds/2026-10-28-model-chief-requests.md` | Open |
-| 11+ | 1. The Kaska, Lukka and Sutean chiefs' lands start with walls 2 for their strongholds [G] (or no walls, as the sources give none, when Lukka fell in seasons 1-3 in every script game)? 2. Each city-state's city has a capital's walls, 3 (or walls by the city from the walls dossier, item 15, with the early falls that brings)? 3. Par is a power's mean growth in the games it survives (or in all games, falls counted as 0, so survival itself scores)? 4. The land weighs against gold at the fixed 10 × a season's worth (or by the seasons likely left, land cheaper as the omens darken)? 5. Terqa, Mira and Seha stay their kings' own land as drawn (or start as vassal city-states of Mitanni and Arzawa)? 6. A capital cannot be ceded, so a city-state cannot hand itself over whole; it comes under another's power as his vassal (or allow ceding one's capital)? | Readings 1-14 in `docs/rounds/2026-10-28-city-states.md` | Open |
 
 
 ## Use against ignore
@@ -54,6 +54,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 11b+ | Borrowing and repaying, carriers paid by standing order, tablets sold and collected, hoards seized (`--money-play-half`; every king pays fees on completion) | 1.12 growth to 1.09, 22 wins to 28, in 50 games | Not paying yet by wins (carriers' fees and repayment cost gold; a good name pays in hiring); re-measure in item 18 |
 | 11b+ | Hunting bands only where it breaks them or drives them abroad, and buying news of foes only (`--outlaw-play-half`) | 1.13 growth to 1.14, 23 wins to 27, in 50 games (1.08 to 1.16, 20 to 30 before the patch) | Even, within noise: troops standing already halve what bands take; re-measure with policing (15) and command (13) |
 | 11+ | Vassalage: tribute paid while it is worth it, demands of vassals in arrears, offers either way, paying vassals spared (`--vassal-play-half`) | 0.88 growth to 0.88, 25 wins to 25, in 50 games | Not paying yet: tribute moves score, it does not make it; re-measure with command (13) and policing (15) |
+| 11d | Ceding a capital whole by sealed tablet | n/a: no script cedes its capital, by design (a fallen power's growth is 0); the rest is starting data | Nothing to measure |
 
 ## Items
 
@@ -68,6 +69,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 11b++ | The answers to item 11b+ | not started: next (`docs/intent/build-order/item-11.md`) | | |
 | 11+ | City-states as powers | done (28 Oct): the 23 city-states and chiefs as powers (Gaza and Sumur Egypt's), no purchase, vassal tablets and their template clauses, the 17 opening bonds of 1346, par for each starting position, the state of the realm, staff by size and the pool of 100, the chiefs' strongholds; save version 24. Script players pay, demand and offer vassalage by their sums (`--vassal-play-half`) | `item/city-states` | `docs/rounds/2026-10-28-city-states.md` |
 | 11c | The map in true geography, and the Red Sea | not started: a lane beside 11+ (`docs/intent/build-order/item-11.md`) | | |
+| 11d | The answers to item 11+ | done (stop for review: question in "For Haakon") | `item/answers-to-11plus` (#145) | [report](rounds/2026-10-29-answers-to-11plus.md) |
 | 12 | Languages | not started | | |
 | 13 | Command at a distance | not started | | |
 | 14 | Legends | not started | | |

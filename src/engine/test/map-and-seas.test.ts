@@ -43,10 +43,10 @@ describe("MapAndSeasTests", () => {
     Assert.equal(["Coast", "Land"], [Map.get("sumur").kind, Map.get("amurru").kind]);
     Assert.true(Map.areAdjacent("sumur", "amurru") && Map.areAdjacent("sumur", "ugarit") && Map.areAdjacent("sumur", "byblos"));
     Assert.true(Map.get("lukka").kingless);
-    Assert.equal([1, 2], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
+    Assert.equal([1, undefined], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
     Assert.equal(["Suhu", "Nesa", "Ekallate", "Kalavasos"], ["suhu", "nesa", "ekallate", "kalavasos"].map((id) => Map.get(id).name));
-    // Suhu, a city-state's city since item 11+, has a capital's walls.
-    Assert.equal(3, StartWalls.get("suhu"));
+    // Suhu, a city-state's city since item 11+, has the walls the walls dossier gives its unexcavated towns (item 11d).
+    Assert.equal(1, StartWalls.get("suhu"));
     Assert.equal(["Egypt", "Babylonia"], [Map.get("nubia").home, Map.get("dilmun").home]);
     for (const p of Map.landProvinces.filter((x) => x.isCoastal)) Assert.true(p.waters !== null && Map.get(p.waters).isSea && Map.areAdjacent(p.id, p.waters), p.id);
     Assert.equal("sumurwaters", Map.get("arwad").waters);

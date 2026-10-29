@@ -57,17 +57,17 @@ describe("StartingTermTests", () => {
   // Taken again for save version 7, whose new generator draws every trait and fact anew (build order item 5+), and for save
   // version 16 (item 10: attested envoys' traits from the sources, lovers kept at courts, and 42 more characters), and for
   // save version 19 (item 11a: a template persona's "what you want most" follows the character's strategy; no draw moved),
-  // and for save version 23 (item 11+: a pool of 100, the city-states' staff and the Levant's name styles).
+  // and for save version 23 (item 11+: a pool of 100, the city-states' staff and the Levant's name styles), and for item 11d (three city-states more, each with its servant).
   //
   test.each([
-    [1, "9156a2c95ce15655"],
-    [7, "ea38e80d72ec5b6c"],
-    [42, "1aa6f10b02e077b1"],
+    [1, "eadce848235dda17"],
+    [7, "c7d3cc298b578b52"],
+    [42, "3f655d09ab4646c9"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     let envoys = s.characters.filter((c) => c.contract !== null);
-    // Two for each Great King and one for each city-state (item 11+).
-    Assert.equal(37, envoys.length);
+    // Two for each Great King and one for each city-state (item 11+), Terqa, Mira and Seha among them (item 11d).
+    Assert.equal(40, envoys.length);
     Assert.all(envoys, (c) => {
       Assert.equal(Rng.for(seed, 0, "start-term", c.id).range(7, 13), c.contract!.untilTurn);
       Assert.inRange(c.contract!.untilTurn, 7, 13);

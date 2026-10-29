@@ -149,10 +149,11 @@ describe("KingdomFallTests", () => {
     Assert.all(s.falls, (f) => Assert.null(f.conqueror));
   });
 
-  test("A king cannot cede his own capital", () => {
+  test("A king cannot cede his own capital without a sealed tablet that gives it", () => {
+    // Item 11d: by agreement on a sealed tablet only (answers-11plus.test.ts).
     let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0 })));
     let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [cede("akhetaten", "Hatti"), cede("thebes", "Hatti")] }));
-    Assert.equal("you cannot cede your capital: your kingdom falls with it", Assert.single(v.rejected).reason);
+    Assert.contains("only as a sealed tablet", Assert.single(v.rejected).reason);
     Assert.single(v.accepted);
   });
 });

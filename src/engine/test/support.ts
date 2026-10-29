@@ -3,7 +3,7 @@
  * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
  */
 import { expect } from "vitest";
-import { AllPowers, Dict, type Character, type GameState, HSet, type JobTerms, newSkills, newTurnSubmission, type Power, type TurnSubmission, WorldMap } from "@amarna/engine";
+import { AllPowers, Dict, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
 
 type Coll<T> = Iterable<T> | ArrayLike<T>;
 
@@ -329,11 +329,36 @@ export const FormerFree = [
  */
 export function oldWorld(s: GameState): GameState {
   unruled(s, ...FormerFree);
+  formerHomes(s);
   for (const c of s.characters)
     if (c.employer !== null && s.eliminated.includes(c.employer)) {
       c.employer = null;
       c.status = "Free";
       c.contract = null;
     }
+  return s;
+}
+
+/** The lands that were Great Kings' own until item 11d, with the troop each had there: Hana (Terqa), Mira and Seha. */
+export const FormerHomes: readonly (readonly [string, Power, UnitKind])[] = [
+  ["terqa", "Mitanni", "Army"],
+  ["mira", "Arzawa", "Army"],
+  ["seha", "Arzawa", "Fleet"],
+];
+
+/**
+ * Hana, Mira and Seha back in their kings' hands, as they stood before item 11d, for tests written in that world: each
+ * city-state fallen with its troops and tablets, its city its old king's without walls, and his troop standing in it.
+ */
+export function formerHomes(s: GameState): GameState {
+  for (const [id, king, kind] of FormerHomes) {
+    unruled(s, id);
+    s.owner.set(id, king);
+    s.ownerLog.push({ province: id, turn: 0, owner: king });
+    s.units.push(newUnit({ id: newId(s, "u"), power: king, kind, province: id, home: id }));
+  }
+  // Each king started with that land: his growth is reckoned from it.
+  const e = new TurnEngine(s);
+  for (const king of new HSet(FormerHomes.map((x) => x[1]))) s.startStrength.set(king, e.strength(king));
   return s;
 }
