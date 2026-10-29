@@ -435,3 +435,13 @@ Given in the design chat with Claude, answering the design questions of the cons
 41. **08:43**, in the design chat, on the crossings: "As long as the map makes it readable at a glance where what
     effect is to be expected." Written into "Terrain" (War) and build order item 11c+: each crossing and each stretch of
     rough ground marked by its kind, with a legend row, and a tap saying its effect in words.
+
+42. **08:43 and 08:50**, in the design chat: "Looking at the map as it is now, do we have all the provinces that we
+    should, or are we missing any, expert?" Then, to the design session's list by "What earns a place" (Azzi-Hayasa,
+    Tunip, Niya, Beirut, Pella and Ashtaroth as powers, Samuha as Hatti's province, Libya and the Shasu as edge lands,
+    with the crossings after item 11e):
+
+    > Yes, do it expertly!
+
+    Written into "What earns a place" and "The edges of the map" (The world) and build order item 11f, which also takes
+    item 11c+'s rules part.
