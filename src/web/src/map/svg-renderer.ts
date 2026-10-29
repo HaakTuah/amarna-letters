@@ -564,7 +564,10 @@ export class SvgMapRenderer implements MapRenderer {
     attach(view, (scale: number) => {
       this.scale = scale;
       this.closeUp();
-      if (this.scene !== null) this.drawUnits(this.scene);
+      if (this.scene !== null) {
+        this.drawUnits(this.scene);
+        this.drawWorks(this.scene);
+      }
       // Now, and again once the zoom's glide has ended (onMoved).
       this.placeNames();
     });
@@ -574,6 +577,15 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.drawn.get(name) === key) return;
     this.drawn.set(name, key);
     this.layers.get(name)!.innerHTML = draw();
+  }
+
+  /**
+   * What is built at the cities (item 19): shown only close up (lod2, zoom.ts), so built only then, and again when the zoom
+   * comes close; at the other zooms the layer stays empty and costs a season's redraw nothing.
+   */
+  private drawWorks(s: MapScene): void {
+    const close = this.view?.classList.contains("lod2") ?? false;
+    this.layer("worksat", close ? s : null, () => (close ? worksAtCities(s) : ""));
   }
 
   /** The units, laid out for the current zoom: drawn again only when the scene or a province's gathering changes. */
@@ -613,7 +625,7 @@ export class SvgMapRenderer implements MapRenderer {
     this.layer("roads", `${s.index}|${s.viewer}|${input.followId}|${input.followPath?.length ?? -1}|${input.followPath?.[input.followPath.length - 1]?.index ?? -1}`, () => roads(input));
     this.layer("moves", s, () => moves(s));
     this.layer("outlaws", s, () => outlaws(s));
-    this.layer("worksat", s, () => worksAtCities(s));
+    this.drawWorks(s);
     this.drawUnits(s);
     const peopleKey = `${s.index}|${s.viewer}|${input.followId}`;
     if (this.drawn.get("people") !== s || this.drawn.get("peopleKey") !== peopleKey) {
