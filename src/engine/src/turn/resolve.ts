@@ -678,6 +678,10 @@ P.decideWinners = function () {
   const living = alive(S);
   const scores = this.finalScores();
   const score = new Dict(scores.map((x) => [x.power, x.score] as const));
+  if (scores.length === 0) {
+    S.winners = [];
+    return;
+  }
   const best = scores[0].power;
 
   if (S.config.sharedVictory) {

@@ -375,7 +375,10 @@ P.assaultText = function (a) {
 function defendersText(a: Assault): string {
   if (a.defenders + a.people === 0) return "no defenders on the walls";
   const made = a.walls === 1000 ? "twice" : `${strengthWords(a.walls + 1000)} times`;
-  return `defenders ${strengthWords(wallsDefence(a))} on the walls: the garrison ${strengthWords(a.defenders)}${groundShare(a)}, and the city's men ${strengthWords(a.people)}, the walls making them ${made} as strong`;
+  // The total from the parts as the text gives them, so they add up (the storm itself reckons the exact figures).
+  const tenths = (x: number): number => Math.round(x / 100) * 100;
+  const total = wallsDefence({ ...a, defenders: tenths(a.defenders), people: tenths(a.people) });
+  return `defenders ${strengthWords(total)} on the walls: the garrison ${strengthWords(a.defenders)}${groundShare(a)}, and the city's men ${strengthWords(a.people)}, the walls making them ${made} as strong`;
 }
 
 /** The ground's share of the defenders' strength in an assault on walls, if it had one (", 1 of it for the rough ground of lukka"). */

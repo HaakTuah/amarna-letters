@@ -296,10 +296,10 @@ describe("TerrainTests", () => {
     );
     let hatti = single(inboxOf(s, "Hatti"), (i) => i.title === "Movements last season").body;
     Assert.contains(
-      "it got within the walls of isuwa but did not storm them (strength 3 against walls 1 and defenders 6.5 on the walls: the garrison 2, 1 of it for the rough ground of isuwa, and the city's men 1.3, the walls making them twice as strong)",
+      "it got within the walls of isuwa but did not storm them (strength 3 against walls 1 and defenders 6.6 on the walls: the garrison 2, 1 of it for the rough ground of isuwa, and the city's men 1.3, the walls making them twice as strong)",
       hatti,
     );
     let arzawa = single(inboxOf(s, "Arzawa"), (i) => i.title === "Movements last season").body;
-    Assert.contains("its strength 3 against your walls 1 and defenders 6.5 on the walls: the garrison 2, 1 of it for the rough ground of isuwa, and the city's men 1.3", arzawa);
+    Assert.contains("its strength 3 against your walls 1 and defenders 6.6 on the walls: the garrison 2, 1 of it for the rough ground of isuwa, and the city's men 1.3", arzawa);
   });
 });

@@ -235,8 +235,8 @@ describe("FeatureAuditTests", () => {
     // Egypt holds Qadesh, far from its troops. Hatti, hostile and well ahead, stands next to it; so does Mitanni, a friend.
     s.owner.set("qadesh", "Egypt");
     s.walls.delete("qadesh");
-    // Long known to Egypt, so that Hatti stands ahead of it against item 11d's pars.
-    for (const x of ["isuwa", "ugarit", "carchemish", "nuhashshe"]) {
+    // Long known to Egypt, so that Hatti stands ahead of it against par (six cities since item 11e's par).
+    for (const x of ["isuwa", "ugarit", "carchemish", "nuhashshe", "alalakh", "aleppo"]) {
       s.owner.set(x, "Hatti");
       s.ownerLog.push({ province: x, turn: 0, owner: "Hatti" });
       s.walls.delete(x);

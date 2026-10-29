@@ -699,7 +699,7 @@ export interface SeatView {
    */
   yields: Dict<string, number>;
   /**
-   * The resistance this court's armies would meet from the people of each land in its sight where no troop stands (item
+   * The resistance this court's armies would meet from the people of each land in its sight, alone or beside a troop (item
    * 10+a), where any, in thousandths of a full unit; for a walled city, what its men count for on its walls before the
    * walls multiply them (item 11e).
    */

@@ -362,7 +362,8 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     // Strong enough to storm the walls, the attack takes the city at once; only strong enough to get in, the army stands
     // inside and besieges it, which takes seasons and may be broken: worth less, the higher the walls.
     const storm = walled ? Math.max(required, b.stormNeeds(target, defence)) : required;
-    const stormHelpers = able.filter((u) => u !== lead).slice(0, Math.max(0, storm - 1));
+    // The storm's need is fractional since item 11e (the city's men by their number): as many whole units as reach it.
+    const stormHelpers = able.filter((u) => u !== lead).slice(0, Math.max(0, Math.ceil(storm) - 1));
     const helpers = 1 + stormHelpers.length >= storm ? stormHelpers : able.filter((u) => u !== lead).slice(0, Math.max(0, required - 1));
     const stormed = !walled || 1 + helpers.length >= storm;
     if (1 + helpers.length >= required) {
