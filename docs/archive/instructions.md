@@ -421,3 +421,13 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into build order item 11c+, "Style" and "True geography, now" (Interface) and "Map on small screens"
     (Engine).
+
+40. **08:38 and 08:40**, in the design chat, on borders traced along the land's features: "Question: Where borders
+    follows dividing geological features, the travel between those provinces will reflect that, and if you attack
+    across, you are penalized for it?" Then, to the design session's answer (it already does, for the crossings the
+    rules know; the list is partial) and its suggestion to check every traced border against it:
+
+    > Yes, every crossing like this should be included, and such that both the map and the game physics reflect the actual terrain that was at the time. Unless you disagree, expert?
+
+    The design session agreed, with one reading: only what was a real obstacle in the period becomes a crossing, so the
+    ground's help stays where the land gave it. Written into "Terrain" (War) and build order item 11c+.
