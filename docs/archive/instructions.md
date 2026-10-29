@@ -445,3 +445,9 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into "What earns a place" and "The edges of the map" (The world) and build order item 11f, which also takes
     item 11c+'s rules part.
+
+43. **08:54**, in the design chat, playing:
+
+    > I notice that when you click a province, the information thingy that pops up, if you scroll down on it, the X disappears, so you can't easily close it again without scrolling all the way up. Also, the arrows for units show only the province it starts from and ends up in, but not which provinces they pass through. So in Anatolia the arrow goes through desert sometimes.
+
+    Written into build order item 11c+: cards keep their close button pinned; every arrow follows the unit's route.
