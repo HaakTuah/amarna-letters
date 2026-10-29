@@ -14,11 +14,11 @@ export function ProvinceList({ scene, selected, onProvince }: { scene: MapScene;
   for (const p of WorldMap.default.provinces) {
     if (filter.length > 0 && !p.name.toLowerCase().includes(filter.toLowerCase())) continue;
     const o = scene.owner.get(p.id) ?? null;
-    const key = p.isSea ? "Sea zones" : o !== null ? powerName(o) : "Free cities";
+    const key = p.isSea ? "Sea zones" : o !== null ? powerName(o) : "Held by no one";
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(p);
   }
-  const rank = (k: string): number => (k === "Sea zones" ? 2 : k === "Free cities" ? 1 : 0);
+  const rank = (k: string): number => (k === "Sea zones" ? 2 : k === "Held by no one" ? 1 : 0);
   const ordered = [...groups].sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0], "en"));
   return (
     <>

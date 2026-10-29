@@ -143,6 +143,14 @@ export function EnvoysSection({ c }: { c: OrdersContext }) {
                   <input type="checkbox" checked={f.oath} onChange={(e) => set({ oath: e.target.checked })} /> a sworn alliance
                   {state.config.sharedVictory ? " (counts for a shared victory)" : ""}
                 </label>
+                <label>
+                  A vassal treaty:{" "}
+                  <select value={f.vassal} onChange={(e) => set({ vassal: e.target.value as "" | "me" | "them" })}>
+                    <option value="">no</option>
+                    <option value="me">I am the vassal</option>
+                    <option value="them">they are my vassal</option>
+                  </select>
+                </label>
               </div>
               {v.tablets.length > 0 && (
                 <div className="field">

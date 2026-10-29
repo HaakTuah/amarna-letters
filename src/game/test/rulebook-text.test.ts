@@ -108,7 +108,7 @@ describe("RulebookTextTests", () => {
 
   test("Every court reads every power s opening troops treasury and starting strength", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
-    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 900 shekels; its land produces 832 shekels' worth a season; starting strength 17175.", Rules);
+    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 900 shekels; its land produces 928 shekels' worth a season; starting strength 19004.", Rules);
     Assert.contains("- Babylonia: armies in babylon, sippar and durkurigalzu; treasury 600 shekels;", Rules);
     Assert.contains("- Alashiya: a fleet in enkomi; treasury 400 shekels;", Rules);
 
@@ -282,13 +282,13 @@ describe("StandingsAndTravelTests", () => {
     function home(p: Power): number {
       return sum(map.homeOf(p), (x) => x.yield);
     }
-    // Egypt has bought Gaza (yield 20); Mitanni has taken all of Assyria, which has fallen.
-    s.owner.set("gaza", "Egypt");
+    // Egypt holds Jerusalem (yield 15); Mitanni has taken all of Assyria, which has fallen.
+    s.owner.set("jerusalem", "Egypt");
     for (const x of map.homeOf("Assyria")) s.owner.set(x.id, "Mitanni");
     removeAll(s.units, (u) => u.power === "Assyria");
     s.eliminated.push("Assyria");
     // Long enough ago for word of it to have reached every court (item 7b).
-    s.ownerLog.push({ province: "gaza", turn: 0, owner: "Egypt" }, ...map.homeOf("Assyria").map((x) => ({ province: x.id, turn: 0, owner: "Mitanni" as Power })));
+    s.ownerLog.push({ province: "jerusalem", turn: 0, owner: "Egypt" }, ...map.homeOf("Assyria").map((x) => ({ province: x.id, turn: 0, owner: "Mitanni" as Power })));
     for (const p of ["Egypt", "Hatti"] as Power[]) s.fallsHeard.set(p, ["Assyria"]);
     s.treasuries.get("Egypt").gold = 5000; // treasuries are left out
 
@@ -304,7 +304,7 @@ describe("StandingsAndTravelTests", () => {
       leaderRules(true, newGameConfig()),
     );
     Assert.contains(
-      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.09 (land yield 240, at the start 220); `,
+      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.06 (land yield 270, at the start 255); `,
       line,
     );
     Assert.contains(`Hatti 1.00 (land yield ${home("Hatti")}, at the start ${home("Hatti")})`, line);
@@ -414,7 +414,7 @@ describe("ViewTextTests", () => {
     let s = newGame(5);
     let e = new TurnEngine(s);
     e.beginTurn();
-    notify(s, "Egypt", "Rejected", "Purchase failed", "The elders of Gaza would not choose between 2 buyers last season. No gold was paid.");
+    notify(s, "Egypt", "Rejected", "Levy failed", "No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.");
     let recorder = new Recorder();
     let seat = new LlmLeaderSeat("Egypt", recorder, "claude-sonnet-5-5", "medium", true, s.config);
     let view = newAudienceView({
@@ -430,9 +430,9 @@ describe("ViewTextTests", () => {
     await seat.hostAudience(view, Views.for(s, "Egypt"), undefined);
 
     let user = Assert.single(recorder.specs).user;
-    Assert.contains("YOUR LAND: akhetaten, delta, memphis, nubia, sinai, thebes. YOUR TROOPS: army in memphis, army in akhetaten, fleet in delta.", user);
+    Assert.contains("YOUR LAND: akhetaten, delta, gaza, memphis, nubia, sinai, sumur, thebes. YOUR TROOPS: army in memphis, army in akhetaten, fleet in delta.", user);
     Assert.contains("NEWS THIS SEASON:", user);
-    Assert.contains("[Rejected] Purchase failed: The elders of Gaza would not choose between 2 buyers last season. No gold was paid.", user);
+    Assert.contains("[Rejected] Levy failed: No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", user);
     Assert.contains("[Notice] The treasury: ", user);
     Assert.true(user.indexOf("NEWS THIS SEASON:") < user.indexOf("AN AUDIENCE"));
   });

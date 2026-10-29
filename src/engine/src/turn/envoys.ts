@@ -184,10 +184,15 @@ P.dispatch = function (p, d) {
         })
       : null;
   const tabletClauses = d.proposal ? this.clausesOf(p, d.to, d.proposal.clauses, "tablet") : [];
+  // A vassal mark names one of the two kings (item 11+); one naming a third is left off, and the writer told why.
+  if (d.proposal && d.proposal.vassal !== null && d.proposal.vassal !== p && d.proposal.vassal !== d.to)
+    notify(S, p, "Notice", "Clauses left out", `Your tablet to ${d.to} is not marked as a vassal treaty: it can name only you or ${d.to} the vassal, not ${d.proposal.vassal}.`);
   const proposal = d.proposal
     ? newTabletProposal({
         text: structured || isBlank(d.proposal.text) ? renderClauses(tabletClauses, p, d.to) : this.scribe(p, cap(d.proposal.text, 1200)),
         allianceOath: d.proposal.allianceOath,
+        // The vassal mark names one of the two kings, or nothing (item 11+).
+        vassal: d.proposal.vassal === p || d.proposal.vassal === d.to ? d.proposal.vassal : null,
         clauses: tabletClauses,
       })
     : null;
@@ -229,7 +234,7 @@ P.dispatch = function (p, d) {
     collect: collect?.id ?? null,
   });
   if (proposal !== null) {
-    const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, clauses: tabletClauses });
+    const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, vassal: proposal.vassal, clauses: tabletClauses });
     S.tablets.push(tablet);
     dispatch.proposalTabletId = tablet.id;
     this.saw(c, tablet.id);

@@ -4,7 +4,7 @@
  * travels sealed, the envoy cannot alter it.
  */
 import { isBlank, trim, trimEnd } from "../core/text.ts";
-import { king, land, type Power } from "../model/power.ts";
+import { king, land, rulerNamed, type Power } from "../model/power.ts";
 import { newGreetingOptions, type GreetingOptions } from "../model/records.ts";
 
 export function renderGreeting(from: Power, to: Power, options: GreetingOptions | null): string {
@@ -22,7 +22,8 @@ export function renderGreeting(from: Power, to: Power, options: GreetingOptions 
 }
 
 function greetingName(p: Power, greatKing: boolean): string {
-  if (p === "Alashiya") return greatKing ? "the Great King of Alashiya" : "the king of Alashiya";
+  // A ruler the sources do not name (Alashiya's king, the city-states' and chiefs' of item 11+) is greeted by his title.
+  if (!rulerNamed(p)) return greatKing ? `the Great King of ${land(p)}` : king(p).replace(/^the King/, "the king");
   return greatKing ? `${king(p)}, Great King, king of ${land(p)}` : `${king(p)}, king of ${land(p)}`;
 }
 

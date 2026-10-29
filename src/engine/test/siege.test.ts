@@ -32,7 +32,7 @@ import {
   unitAt,
   wallsOf,
 } from "@amarna/engine";
-import { removeAll, Assert, last, subs, walled } from "./support.ts";
+import { removeAll, Assert, last, subs, walled, oldWorld } from "./support.ts";
 import { siegeBoard } from "./games.ts";
 
 // Walls and sieges (Build order item 5): walls add nothing to a battle; a move into walls not its own takes the province
@@ -42,7 +42,7 @@ describe("SiegeTests", () => {
   // <summary>Seed 1 with no catastrophes, Babylonia's army in Sippar next to Suhu (walls 2 in these tests, a free city), Mitanni's in Terqa.</summary>
   function board(): GameState {
     // Suhu was Mari until item 7a's map review, which took Mari's walls away: the tests give them back.
-    let s = walled(newGame(1, newGameConfig({ catastropheChance: 0 })), "suhu", 2);
+    let s = walled(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2);
     // Full stores and a stocked market (item 9+a): the city does not starve unless a test empties them.
     s.stores.set("suhu", 1000);
     s.markets.get("suhu").stock = 500;
@@ -76,7 +76,7 @@ describe("SiegeTests", () => {
     let siege = Assert.single(s.sieges);
     Assert.equal(["Babylonia", 1, 2], [siege.power, siege.progress, siege.since]);
     Assert.null(s.owner.get("suhu"));
-    Assert.contains("Your siege of Suhu (walls 2, a free city) has begun, and it wore the city down a step: it stands at 1 of 6.", notice(s, "Babylonia", SiegesTitle));
+    Assert.contains("Your siege of Suhu (walls 2, held by no one) has begun, and it wore the city down a step: it stands at 1 of 6.", notice(s, "Babylonia", SiegesTitle));
     Assert.contains(Views.for(s, "Babylonia").sieges, (x) => x.province === "suhu" && x.progress === 1 && x.walls === 2);
 
     // Its stores and market are empty: as the next season begins it cannot feed its people, and it surrenders.

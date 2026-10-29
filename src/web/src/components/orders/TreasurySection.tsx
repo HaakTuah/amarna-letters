@@ -1,6 +1,5 @@
 import {
   assay,
-  buy,
   caravan,
   feed,
   harbourOf,
@@ -53,31 +52,6 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           <option value="Fleet">fleet ({shekels(price("fleet"))})</option>
         </select>
         <button className="small" disabled={f.raiseAt === ""} onClick={() => add(raise(f.raiseAt, f.raiseKind as UnitKind))}>
-          Add
-        </button>
-      </div>
-      <div className="row" style={{ marginTop: ".4rem" }}>
-        <select value={f.buyCity} onChange={(e) => set({ buyCity: e.target.value })}>
-          <option value="">Buy a free city…</option>
-          {[...v.owner]
-            .filter(([, o]) => o === null)
-            .map(([g]) => g)
-            .filter((g) =>
-              map.withinReach(
-                g,
-                me,
-                v.owner,
-                v.units.filter((u) => u.power === me).map((u) => u.province),
-              ),
-            )
-            .sort(byName)
-            .map((g) => (
-              <option key={g} value={g}>
-                {provinceName(g)} ({shekels(v.cityPrices.getOrDefault(g, 0))})
-              </option>
-            ))}
-        </select>
-        <button className="small" disabled={f.buyCity === ""} onClick={() => add(buy(f.buyCity))}>
           Add
         </button>
       </div>

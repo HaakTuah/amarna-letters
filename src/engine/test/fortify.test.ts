@@ -24,7 +24,7 @@ import {
   unitAt,
   wallsOf,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, oldWorld } from "./support.ts";
 
 // Walls strengthened for gold and upkeep (Build order item 5): a level a season, for the price of the new level, up to 3;
 // a level above the map's own costs upkeep, and walls whose upkeep cannot be paid fall a level; an earthquake throws a
@@ -42,7 +42,7 @@ describe("FortifyTests", () => {
   }
 
   test("Walls rise a level for the price of the new level and then cost upkeep", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     let e = new TurnEngine(s);
     e.beginTurn();
     let gold = s.treasuries.get("Egypt").gold;
@@ -65,7 +65,7 @@ describe("FortifyTests", () => {
   });
 
   test("A fortify order is refused beyond level 3 on land not held twice and while besieged", () => {
-    let s = newGame(1);
+    let s = oldWorld(newGame(1));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "memphis" }));
     s.sieges.push(newSiege({ province: "memphis", power: "Hatti", unitId: unitAt(s, "memphis")!.id, progress: 1, since: 1 }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "sinai" }));
@@ -92,7 +92,7 @@ describe("FortifyTests", () => {
   test("Walls whose upkeep cannot be paid fall a level the farthest first", () => {
     // Egypt's walls of Thebes (2) and Sinai (1) are three levels above the map's: 15 a season. Its troops' pay leaves 5 of
     // its treasury and mines, so Sinai's walls fall, then a level of Thebes', until what is left can be paid.
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     s.walls.set("thebes", 2);
     s.walls.set("sinai", 1);
     for (const at of ["thebes", "sinai", "gaza", "nubia"]) s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: at }));
@@ -107,7 +107,7 @@ describe("FortifyTests", () => {
   });
 
   test("An earthquake throws the walls of the province it strikes down a level", () => {
-    let s = newGame(3, newGameConfig({ catastropheChance: 1 }));
+    let s = oldWorld(newGame(3, newGameConfig({ catastropheChance: 1 })));
     for (const p of WorldMap.default.landProvinces) s.walls.set(p.id, 3);
     for (let i = 0; i < 40 && !s.catastrophes.some((c) => c.kind === "Earthquake"); i++) season(s);
     let quake = first(s.catastrophes, (c) => c.kind === "Earthquake");

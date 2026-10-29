@@ -45,7 +45,7 @@ import {
   roundEven,
 } from "@amarna/engine";
 import { type Personality, ScriptLeader, ScriptMind, newEnvoyContext, temperament } from "@amarna/game";
-import { removeAll, Assert } from "../../engine/test/support.ts";
+import { removeAll, Assert, oldWorld } from "../../engine/test/support.ts";
 import { first as firstOf } from "@amarna/engine";
 
 // The feature audit of the fix pass after item 4 ("Every feature is every seat's"): the features script kings never
@@ -102,7 +102,7 @@ describe("FeatureAuditTests", () => {
   // ------------------------------------------------------------------ inventories and thieves
 
   test("A script king examines an inventory that weighed light and spends more on it", async () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 6;
     s.treasuries.get("Egypt").gold = 5000;
     // Lots kings send come in round sums: these stop short of one, as a skimmer's forged inventory does.
@@ -116,7 +116,7 @@ describe("FeatureAuditTests", () => {
   });
 
   test("A script king lets go a servant exposed as a thief once it is at court", async () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 6;
     s.treasuries.get("Egypt").gold = 5000;
     let servants = s.characters.filter((c) => c.employer === "Egypt");
@@ -130,7 +130,7 @@ describe("FeatureAuditTests", () => {
   });
 
   test("A lot brought home lighter than its inventory marks the envoy as a thief", async () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 6;
     s.treasuries.get("Egypt").gold = 5000;
     let envoy = firstOf(s.characters, (c) => c.employer === "Egypt");
@@ -146,7 +146,7 @@ describe("FeatureAuditTests", () => {
     Assert.contains(dismiss(envoy.id), orders);
 
     // A lot that weighed what its inventory said marks nobody.
-    s = newGame(Seed);
+    s = oldWorld(newGame(Seed));
     s.turn = 6;
     s.treasuries.get("Egypt").gold = 5000;
     envoy = firstOf(s.characters, (c) => c.employer === "Egypt");
@@ -162,7 +162,7 @@ describe("FeatureAuditTests", () => {
   });
 
   test("A script king remembers a hand that botched a forgery and people held elsewhere", () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 4;
     let forger = firstOf(s.characters, (c) => c.employer === "Hatti");
     let held = firstOf(s.characters, (c) => c.status === "Free");
@@ -182,7 +182,7 @@ describe("FeatureAuditTests", () => {
   // ------------------------------------------------------------------ troops and land
 
   test("A unit that must go is given to a friend next to it but never one in our own land", () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 5;
     s.treasuries.get("Egypt").gold = 0;
     treaty(s, "Egypt", "Alashiya");
@@ -228,7 +228,7 @@ describe("FeatureAuditTests", () => {
   }
 
   test("Land a king cannot keep is ceded to a friend before a rival ahead of it takes it", () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 6;
     // Egypt holds Qadesh, far from its troops. Hatti, hostile and well ahead, stands next to it; so does Mitanni, a friend.
     s.owner.set("qadesh", "Egypt");
@@ -254,7 +254,7 @@ describe("FeatureAuditTests", () => {
     Assert.doesNotContain(orders, (o) => o.type === "cede");
 
     // Without a rival near it there is nothing to deny: it is kept.
-    s = newGame(Seed);
+    s = oldWorld(newGame(Seed));
     s.turn = 6;
     s.owner.set("qadesh", "Egypt");
     s.walls.delete("qadesh");
@@ -267,7 +267,7 @@ describe("FeatureAuditTests", () => {
   // Alashiya alone on the map: an army on Kalavasos and its fleets, with Lukka a free city whose walls are down; late
   // enough that the troops every court saw at the start are out of mind, and in summer, when the open sea is sailed.
   function island(...fleetsAt: string[]): GameState {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 6;
     s.units.length = 0;
     add(s, "Alashiya", "Army", "kalavasos");
@@ -298,7 +298,7 @@ describe("FeatureAuditTests", () => {
   // ------------------------------------------------------------------ spies, captives, held envoys
 
   test("A spy watching a court that has fallen is recalled", async () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 8;
     s.treasuries.get("Egypt").gold = 5000;
     let spy = firstOf(s.characters, (c) => c.employer === "Egypt");
@@ -318,7 +318,7 @@ describe("FeatureAuditTests", () => {
   });
 
   test("A captive nobody will pay for goes free unless the captor is vengeful", async () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 6;
     let spy = firstOf(s.characters, (c) => c.employer === "Hatti");
     spy.status = "Captured";
@@ -338,7 +338,7 @@ describe("FeatureAuditTests", () => {
   });
 
   test("A held envoy whose king is gone is let go like any other", async () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     let held = firstOf(s.characters, (c) => c.status === "Free");
     held.heldBy = "Egypt";
     held.at = "Egypt";
@@ -352,7 +352,7 @@ describe("FeatureAuditTests", () => {
 
   test("A careful rich king pays watchmen only when spies are likely to come", () => {
     // Egypt at its starting strength, leading nobody; its spare gold set high.
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 8;
     function courtOf(prepare: (a0: Brain) => void): Order[] {
       let v = Views.for(s, "Egypt");
@@ -377,7 +377,7 @@ describe("FeatureAuditTests", () => {
   // ------------------------------------------------------------------ audiences
 
   function audience(p: Personality | null = null, shape: ((a0: AudienceView) => void) | null = null): [AudienceView, Board, Brain] {
-    let s = newGame(5);
+    let s = oldWorld(newGame(5));
     let court = Views.for(s, "Hatti");
     let brain = p === null ? new Brain("Hatti", 5) : new Brain("Hatti", 5, p);
     brain.learn(court, new Board(court));
@@ -424,7 +424,7 @@ describe("FeatureAuditTests", () => {
     Assert.true(reply.sealProposal);
     Assert.contains("Swear to me that your lord's troops will stand with mine", reply.speech);
 
-    let s = newGame(5);
+    let s = oldWorld(newGame(5));
     let envoy = firstOf(s.characters, (c) => c.employer === "Arzawa");
     let ctx = newEnvoyContext({
       self: envoy,
@@ -460,7 +460,7 @@ describe("FeatureAuditTests", () => {
   // ------------------------------------------------------------------ letters
 
   test("A proud king writes no greeting to an oath breaker and a modest one sends tribute humbly", () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     let proud = brainFor(s, "Babylonia", { ...archetype("Babylonia"), pride: 0.9 });
     Assert.false(Statecraft.greet(proud, "Hatti").omit);
     proud.rel.get("Hatti").oathsBroken = 1;
@@ -478,7 +478,7 @@ describe("FeatureAuditTests", () => {
   });
 
   test("A faithless king debases only the gold it sends a friend who trusts it", () => {
-    let s = newGame(Seed);
+    let s = oldWorld(newGame(Seed));
     s.turn = 5;
     s.treasuries.get("Alashiya").gold = 3000;
     let faithless = { ...archetype("Alashiya"), honesty: 0.1, generosity: 1, diplomacy: 1 };

@@ -43,7 +43,7 @@ import {
   support,
 } from "@amarna/engine";
 import { ScriptLeader, temperament } from "@amarna/game";
-import { removeAll, Assert, holds, orderBy, walled } from "../../engine/test/support.ts";
+import { removeAll, Assert, holds, orderBy, walled, oldWorld } from "../../engine/test/support.ts";
 import { move as moveOrder } from "@amarna/engine";
 
 // The script players' audit of the siege package (Build order item 5, "Every feature is every seat's"): weaknesses found in
@@ -52,7 +52,7 @@ describe("SiegePlayTests", () => {
   // Seed 1: Babylonia's army besieges Ashur (walls 3), just begun, with a second army in Ekallate to support it, and Assyria's
   // envoy is sure to be caught leaving.
   function ashurBesieged(): [GameState, Character] {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0, siegeCatchMin: 100, siegeCatchMax: 100 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, siegeCatchMin: 100, siegeCatchMax: 100 })));
     removeAll(s.units, (u) => ["ashur", "ekallate"].includes(u.province));
     let army = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(army);
@@ -90,7 +90,7 @@ describe("SiegePlayTests", () => {
   // Seed 1, turn 5: Babylonia's army besieges Ashur (walls 3), alone; Mitanni, Assyria's ally, has armies in Terqa and in
   // Nineveh (taken from Assyria for the test), both next to Ashur.
   function allyBesieged(): GameState {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     s.turn = 5;
     removeAll(s.units, (u) => ["ashur", "nineveh"].includes(u.province));
     let army = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
@@ -177,7 +177,7 @@ describe("SiegePlayTests", () => {
     [5, 1, false],
   ] as const)("A script king walls an open coast that only a fleet threatens %s", async (turn: number, walls: number, fortifies: boolean) => {
     // Egypt's fleet stands next to Alashiya's Kalavasos, which has no troop; no army can reach the island.
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     s.turn = turn;
     s.treasuries.get("Alashiya").gold = 2000;
     single(s.units, (u) => u.province === "delta").province = "kalavasoswaters";
@@ -188,7 +188,7 @@ describe("SiegePlayTests", () => {
 
   test("A script king takes a host s offer to its envoy as a slight and trusts the envoy that refused", async () => {
     // Egypt's two envoys are home; one reports that the king of Karduniash offered it a post, and it refused.
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     s.turn = 4;
     s.treasuries.get("Egypt").gold = 3000;
     let envoys = orderBy(
@@ -237,7 +237,7 @@ describe("SiegePlayTests", () => {
 
   test("A script king values land by what it yields while absorbed", () => {
     // Turn 6: Assyria took Terqa (Mitanni's, yield 30) last season, and holds Nineveh of its own homeland.
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     s.turn = 6;
     s.owner.set("terqa", "Assyria");
     s.conquered.set("terqa", 5);
@@ -256,7 +256,7 @@ describe("SiegePlayTests", () => {
     // Babylonia's army besieges Assyria's Suhu (walls 2 here, so the walls may sally); Assyria's army in Ekallate stands
     // next to it, and no troop of Babylonia's can reach Suhu. The Sutean steppe, beyond it, is free, open and out of
     // Assyria's reach.
-    let s = walled(newGame(1, newGameConfig({ endMedian: 10000, catastropheChance: 0 })), "suhu", 2);
+    let s = walled(oldWorld(newGame(1, newGameConfig({ endMedian: 10000, catastropheChance: 0 }))), "suhu", 2);
     s.turn = 6;
     removeAll(s.units, (u) => u.province === "sippar");
     let army = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" });

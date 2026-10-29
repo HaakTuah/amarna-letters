@@ -4,7 +4,7 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
+import { describe, newTurnSubmission, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
@@ -18,7 +18,7 @@ import { groundText } from "../model/geography.ts";
 import { forMen, LandData, levySize, menAvailable, menOf, shareOfFull } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
-import { strength as scoringStrength } from "../rules/scoring.ts";
+import { parOf, strength as scoringStrength, standingOf } from "../rules/scoring.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { KingdomFallsTitle, TurnEngine } from "./core.ts";
@@ -30,7 +30,6 @@ declare module "./core.ts" {
     resolveMovement(unitOrders: [Power, Order][]): void;
     updateOwnership(): void;
     resolveTransfers(cessions: [Power, CedeProvinceOrder][], gifts: [Power, GiftUnitOrder][]): void;
-    resolvePurchases(buys: [Power, BuyProvinceOrder][]): void;
     raise(p: Power, r: RaiseOrder): void;
     capitalsTaken(): void;
     fall(p: Power, conqueror: Power | null, taker: Power | null): void;
@@ -110,7 +109,6 @@ P.resolveSeason = function (submissions) {
     all((o): o is CedeProvinceOrder => o.type === "cede"),
     all((o): o is GiftUnitOrder => o.type === "giftUnit"),
   );
-  this.resolvePurchases(all((o): o is BuyProvinceOrder => o.type === "buy"));
   for (const [p, f] of all((o) => o.type === "fortify")) this.fortify(p, f as Extract<Order, { type: "fortify" }>);
   for (const [p, d] of all((o) => o.type === "disband")) {
     const unit = (d as Extract<Order, { type: "disband" }>).unit;
@@ -426,50 +424,6 @@ P.resolveTransfers = function (cessions, gifts) {
   }
 };
 
-P.resolvePurchases = function (buys) {
-  const S = this.s;
-  // Gold for a purchase is only reserved when the orders are checked; it leaves the treasury only when the city accepts.
-  for (const [key, group] of groupBy(buys, ([, o]) => o.province)) {
-    const prov = this.map.get(key);
-    const bidders = distinct(group.map(([b]) => b));
-    // Troops took the city earlier in this season's resolution: its elders sell to nobody, and nobody pays.
-    const taker = S.owner.getOrDefault(prov.id, null);
-    if (taker !== null) {
-      for (const b of bidders)
-        notify(
-          S,
-          b,
-          "Rejected",
-          "Purchase failed",
-          b === taker
-            ? `Your own troops took ${prov.name} last season; no gold was paid.`
-            : `${prov.name} was taken by ${taker}'s troops last season before its elders could accept your gold. No gold was paid.`,
-        );
-      // Only another's troops foil the bid: the seat's own taking it is its own doing.
-      for (const [b, o] of group.filter(([x]) => x !== taker)) this.scheduledFailed(b, o, `${taker}'s troops took it`);
-      continue;
-    }
-    if (bidders.length > 1) {
-      for (const b of bidders) notify(S, b, "Rejected", "Purchase failed", `The elders of ${prov.name} would not choose between ${bidders.length} buyers last season. No gold was paid.`);
-      for (const [b, o] of group) this.scheduledFailed(b, o, `its elders would not choose between ${bidders.length} buyers`);
-      continue;
-    }
-    const buyer = bidders[0];
-    const bid = group[0][1];
-    const occupant = unitAt(S, prov.id);
-    if (occupant !== null && occupant.power !== buyer) {
-      notify(S, buyer, "Rejected", "Purchase failed", `Foreign troops stood in ${prov.name}, and its elders would not sell. No gold was paid.`);
-      this.scheduledFailed(buyer, bid, "foreign troops stand in it");
-      continue;
-    }
-    const price = this.cityPrice(prov.id);
-    if (!this.pay(buyer, price, `the city of ${prov.name}`, bid, "it was not bought")) continue;
-    this.setOwner(prov.id, buyer);
-    notify(S, buyer, "Resolution", "City bought", `${prov.name} has accepted your gold (${formatMoney(price)}) and your rule. Its walls now stand for you.`);
-    logEvent(S, "purchase", `${buyer} bought ${prov.name} for ${formatMoney(price)}.`, [...AllPowers.filter((p) => Views.sight(S, this.map, p).has(prov.id)), buyer]);
-  }
-};
-
 P.raise = function (p, r) {
   const S = this.s;
   const prov = this.map.get(r.province);
@@ -686,7 +640,8 @@ P.endOfTurn = function () {
 P.decideWinners = function () {
   const S = this.s;
   const living = alive(S);
-  const growth = new Dict(living.map((p) => [p, this.growth(p)] as const));
+  // Each power by its growth against par for its starting position ("One scoreboard for every power", item 11+).
+  const growth = new Dict(living.map((p) => [p, standingOf(p, this.growth(p))] as const));
   const best = sortBy(living, [(p: Power) => growth.get(p), desc(cmpNum)], [(p: Power) => p, cmpPower])[0];
 
   if (S.config.sharedVictory) {
@@ -695,14 +650,17 @@ P.decideWinners = function () {
       const a = t.proposedBy;
       const b = t.partner!;
       if (!isAlive(S, a) || !isAlive(S, b)) continue;
-      const combined = (this.strength(a) + this.strength(b)) / (S.startStrength.get(a) + S.startStrength.get(b));
+      // The pair's growth against the par of their two positions, each weighed by its starting strength.
+      const start = S.startStrength.get(a) + S.startStrength.get(b);
+      const par = (parOf(a) * S.startStrength.get(a) + parOf(b) * S.startStrength.get(b)) / start;
+      const combined = (this.strength(a) + this.strength(b)) / start / par;
       const others = living.filter((p) => p !== a && p !== b).map((p) => growth.get(p));
       const rivals = others.length === 0 ? 0 : max(others, (x) => x);
       if (combined > rivals && (bestPair === null || combined > bestPair[2])) bestPair = [a, b, combined];
     }
     if (bestPair !== null) {
       S.winners = [bestPair[0], bestPair[1]];
-      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (combined growth ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
+      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (combined growth against par ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
       return;
     }
   }

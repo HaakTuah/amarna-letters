@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
 import { AllPowers, OrderValidator, Views, besiege, first, newGame, newGameConfig } from "@amarna/engine";
 import { GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame } from "@amarna/game";
-import { Assert, toDict } from "../../engine/test/support.ts";
+import { Assert, toDict, oldWorld } from "../../engine/test/support.ts";
 
 // Script kings and the siege package (Build order item 5; "Every feature is every seat's"): they besiege the cities their
 // armies stand within, and their sieges take cities in play.
@@ -9,7 +9,7 @@ describe("SiegeBotTests", () => {
   test("A script king besieges a free city its army stands within", async () => {
     // Seed 1: since the longer ages of item 6a, on most seeds Babylonia opens a war on Assyria in its first year and sends
     // this army to it; here it keeps the peace, and the army besieges the city it stands within.
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     s.turn = 2;
     first(s.units, (u) => u.province === "sippar").province = "suhu";
     let sub = await new ScriptLeader(1).decide(Views.for(s, "Babylonia"));

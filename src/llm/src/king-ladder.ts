@@ -105,7 +105,7 @@ export function ordersCommit(json: JsonObject, v: SeatView): string | null {
   const others = [...list(json.other_orders), ...list(json.schedule).flatMap((s) => list(s.other_orders)), ...list(json.standing_orders).flatMap((s) => list(s.other_orders))];
   if (others.some((o) => o.action === "cede_province" || o.action === "give_unit")) return "land or troops given";
   if (others.some((o) => o.action === "captive_execute")) return "a life";
-  const sum = letters.reduce((s, l) => s + Math.max(0, Number(l.gold) || 0), 0) + others.reduce((s, o) => s + (o.action === "buy_city" || o.action === "pay_ransom" ? Math.max(0, Number(o.amount) || 0) : 0), 0);
+  const sum = letters.reduce((s, l) => s + Math.max(0, Number(l.gold) || 0), 0) + others.reduce((s, o) => s + (o.action === "pay_ransom" ? Math.max(0, Number(o.amount) || 0) : 0), 0);
   if (sum > Math.floor(Math.max(0, v.gold) * AnswerGoldShare)) return "a large sum";
   const units = [...list(json.units), ...list(json.schedule).flatMap((s) => list(s.units)), ...list(json.standing_orders).flatMap((s) => list(s.units))];
   if (units.some((u) => attacks(u, v))) return "a move into another king's land";

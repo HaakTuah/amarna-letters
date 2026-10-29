@@ -25,7 +25,7 @@ import {
   newUnit,
   unitAt,
 } from "@amarna/engine";
-import { Assert, last } from "./support.ts";
+import { Assert, last, oldWorld } from "./support.ts";
 
 // The map and the seas (build order item 7a): the map review's provinces, names and connections, the lengths of the
 // connections, each coast's waters, the open-sea crossings closed in winter, and the blockade deciding at sea.
@@ -43,10 +43,10 @@ describe("MapAndSeasTests", () => {
     Assert.equal(["Coast", "Land"], [Map.get("sumur").kind, Map.get("amurru").kind]);
     Assert.true(Map.areAdjacent("sumur", "amurru") && Map.areAdjacent("sumur", "ugarit") && Map.areAdjacent("sumur", "byblos"));
     Assert.true(Map.get("lukka").kingless);
-    Assert.equal([1, undefined], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
+    Assert.equal([1, 2], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
     Assert.equal(["Suhu", "Nesa", "Ekallate", "Kalavasos"], ["suhu", "nesa", "ekallate", "kalavasos"].map((id) => Map.get(id).name));
-    // Suhu keeps the walls of a town (1), not Mari's fortress walls (2).
-    Assert.equal(1, StartWalls.get("suhu"));
+    // Suhu, a city-state's city since item 11+, has a capital's walls.
+    Assert.equal(3, StartWalls.get("suhu"));
     Assert.equal(["Egypt", "Babylonia"], [Map.get("nubia").home, Map.get("dilmun").home]);
     for (const p of Map.landProvinces.filter((x) => x.isCoastal)) Assert.true(p.waters !== null && Map.get(p.waters).isSea && Map.areAdjacent(p.id, p.waters), p.id);
     Assert.equal("sumurwaters", Map.get("arwad").waters);
@@ -145,8 +145,8 @@ describe("MapAndSeasTests", () => {
   }
 
   test("A besieged coastal city is supplied by sea unless its besieger's fleet holds its waters", () => {
-    // Egypt's army stands within the walls of Gaza (walls 2, a free city) and besieges it.
-    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    // Egypt's army stands within the walls of Gaza (walls 2, held by no one) and besieges it.
+    const s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     s.units.push(newUnit({ id: "x1", power: "Egypt", kind: "Army", province: "gaza" }));
     season(s, "Egypt", besiege("gaza"));
     Assert.equal(0, s.sieges[0].progress);

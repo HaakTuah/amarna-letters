@@ -29,6 +29,7 @@ import {
   type SeatView,
   type UnitKind,
   type UnitView,
+  type VassalTerms,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { Names } from "./names.ts";
@@ -147,8 +148,20 @@ export class Brain {
   spareGold = 0;
   giftTurn = -1;
   turn = 0;
-  /** Free cities whose elders would not choose between us and a rival buyer, and when. */
-  readonly outbid = new Dict<string, number>();
+  /** The vassal bonds this court knows, read each season (vassals.ts, item 11+). */
+  bonds: VassalTerms[] = [];
+  /** The overlords we still choose to serve, and when we last weighed each bond. */
+  readonly serving = new HSet<Power>();
+  readonly weighed = new Dict<Power, number>();
+  /** This season's tribute owed: to whom, and how much; null when none is due or we no longer pay. */
+  tributeDue: [Power, number] | null = null;
+  /** When we last sent tribute to each overlord, and when each vassal's last reached us. */
+  readonly tributePaid = new Dict<Power, number>();
+  readonly tributeIn = new Dict<Power, number>();
+  /** When we last offered or demanded a bond of each king. */
+  readonly bondAsked = new Dict<Power, number>();
+  /** The overlord we serve and the vassals that pay us: friends by the bond, whatever else stands between us. */
+  readonly bondFriends = new HSet<Power>();
 
   /**
    * Each king's treasury as this court reckons it (our own exactly): what he started with, plus each season's income from
@@ -312,10 +325,6 @@ export class Brain {
           this.rel.get(poacher).trust -= 0.05;
           if (item.subject !== null) this.provenLoyal.add(item.subject);
         }
-      }
-      if (item.title === "Purchase failed") {
-        const city = Board.Map.provinces.find((x) => item.body.includes(`elders of ${x.name} would not`));
-        if (city !== undefined) this.outbid.set(city.id, v.turn);
       }
       this.learnOfPeople(v, item);
     }
@@ -518,7 +527,7 @@ export class Brain {
   /** A full ally, or a treaty partner we still trust a little; either way, one who has broken no oath to us. */
   isFriend(other: Power): boolean {
     const r = this.rel.get(other);
-    return r.oathsBroken === 0 && (r.allied || (r.treaty && r.trust > -0.2));
+    return (r.oathsBroken === 0 && (r.allied || (r.treaty && r.trust > -0.2))) || this.bondFriends.has(other);
   }
 }
 

@@ -17,7 +17,6 @@ export const unitLetter = (k: UnitKind): string => (k === "Army" ? "A" : "F");
 export interface Form {
   raiseAt: string;
   raiseKind: string;
-  buyCity: string;
   fortifyAt: string;
   grainAt: string;
   grainAction: string;
@@ -72,6 +71,8 @@ export interface Form {
   errandWhere: string;
   payOnDone: boolean;
   oath: boolean;
+  /** The tablet marked as a vassal treaty (item 11+): who it names the vassal, the writer or the reader; "" for none. */
+  vassal: "" | "me" | "them";
   g: GreetingOptions;
   copies: string[];
   wages: Record<string, number>;
@@ -104,7 +105,6 @@ export function newForm(me: Power): Form {
   return {
     raiseAt: "",
     raiseKind: "Army",
-    buyCity: "",
     fortifyAt: "",
     grainAt: "",
     grainAction: "sell",
@@ -156,6 +156,7 @@ export function newForm(me: Power): Form {
     errandWhere: other("Hatti"),
     payOnDone: true,
     oath: false,
+    vassal: "",
     g: newGreetingOptions(),
     copies: [],
     wages: {},

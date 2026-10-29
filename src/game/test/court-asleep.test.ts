@@ -75,7 +75,7 @@ import {
   situation,
   sleepLine,
 } from "@amarna/llm";
-import { at, str, Assert, last, orderBy, toDict, join } from "../../engine/test/support.ts";
+import { at, str, Assert, last, orderBy, toDict, join, oldWorld } from "../../engine/test/support.ts";
 import { audience as audienceOf } from "@amarna/llm";
 import { first as firstOf } from "@amarna/engine";
 import { describe as describeOrder } from "@amarna/engine";
@@ -407,7 +407,7 @@ describe("CourtAsleepTests", () => {
   });
 
   test("The realm in brief names foreign troops in the land and on its borders and no others", () => {
-    let s = newGame(31, Quiet);
+    let s = oldWorld(newGame(31, Quiet));
     let map = WorldMap.default;
     let home = new HSet(ownedBy(s, "Babylonia"));
     // A foreign army inside Babylonia's land, and one next to it.
@@ -499,12 +499,12 @@ describe("CourtAsleepTests", () => {
  "send_gold_back":0,"gold_back_purity":100,"end_audience":true,"reopen_orders":true,"ledger":[],
  "letters":[{"envoy":"c4","to":"Hatti","message":"Brother.","mandate":"","gold":15,"purity":100,"call_brother":true,"call_them_great_king":true,
              "claim_great_king":true,"your_name_first":false,"omit_greeting":false,"tablet_to_seal":"","sworn_alliance":false,"show_tablet_copies":[]},
-            {"envoy":"c5","to":"Elam","message":"x","mandate":"","gold":0,"purity":100,"call_brother":true,"call_them_great_king":true,
+            {"envoy":"c5","to":"Punt","message":"x","mandate":"","gold":0,"purity":100,"call_brother":true,"call_them_great_king":true,
              "claim_great_king":true,"your_name_first":false,"omit_greeting":false,"tablet_to_seal":"","sworn_alliance":false,"show_tablet_copies":[]}]}`)!;
     let reply = Parse.host(json);
     Assert.true(reply.reopenOrders);
     Assert.equal(
-      ["send c4 to Hatti with 15 shekels", "send c5 to 'Elam'"],
+      ["send c4 to Hatti with 15 shekels", "send c5 to 'Punt'"],
       reply.letters.map((o) => describeOrder(o)),
     );
     Assert.equal("unreadable", reply.letters[1].type);

@@ -68,7 +68,7 @@ export function useOrders(draft: OrderDraft, state: GameState, onChanged: () => 
   };
   const addDispatch = (): void => {
     const words = structured ? "" : f.tabletText.trim();
-    const proposal = words === "" && f.tabletClauses.length === 0 ? null : newTabletProposal({ text: words, allianceOath: f.oath, clauses: [...f.tabletClauses] });
+    const proposal = words === "" && f.tabletClauses.length === 0 ? null : newTabletProposal({ text: words, allianceOath: f.oath, vassal: f.vassal === "me" ? v.power : f.vassal === "them" ? (f.sendTo as Power) : null, clauses: [...f.tabletClauses] });
     add(
       dispatch(f.envoy, f.sendTo as Power, structured ? "" : f.letter.trim(), {
         clauses: [...f.clauses],
@@ -86,7 +86,7 @@ export function useOrders(draft: OrderDraft, state: GameState, onChanged: () => 
         copies: f.copies.length > 0 ? [...f.copies] : null,
       }),
     );
-    set({ envoy: "", letter: "", clauses: [], tabletClauses: [], noInventory: false, seal: false, showCredentials: false, sealGold: 0, sealCede: [], sealOpen: [], mandate: "", tabletText: "", gold: 0, purity: 100, oath: false, copies: [], g: newGreetingOptions() });
+    set({ envoy: "", letter: "", clauses: [], tabletClauses: [], noInventory: false, seal: false, showCredentials: false, sealGold: 0, sealCede: [], sealOpen: [], mandate: "", tabletText: "", gold: 0, purity: 100, oath: false, vassal: "", copies: [], g: newGreetingOptions() });
   };
   const addSpy = (): void => {
     add(f.spyAt.startsWith("@") ? placeSpy(f.spyWho, null, f.spyAt.slice(1)) : placeSpy(f.spyWho, f.spyAt as Power));

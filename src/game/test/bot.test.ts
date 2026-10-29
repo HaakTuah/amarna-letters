@@ -15,6 +15,8 @@ import {
   TurnSubmissionSchema,
   Views,
   WorldMap,
+  publicWorthOf,
+  parOf,
   TurnEngine,
   distinct,
   fmt,
@@ -32,7 +34,7 @@ import {
   support,
 } from "@amarna/engine";
 import { BaselineLeader, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame, temperament } from "@amarna/game";
-import { average, removeAll, Assert, toDict } from "../../engine/test/support.ts";
+import { average, removeAll, Assert, toDict, oldWorld, unruled } from "../../engine/test/support.ts";
 
 /** A province's holder set by hand, as if long ago, so word of it has reached every court (item 7b). */
 function known(s: GameState, province: string, owner: Power | null): void {
@@ -93,12 +95,14 @@ describe("BotTests", () => {
         gains.push(one.growth[p] - all.growth[p]);
       }
     }
-    Assert.true(average(gains) > 0.4, `average gain ${fmt(average(gains), "0.00")}`);
+    // Item 11+: one current king among 29 baseline seats, most of them small city-states the baseline plays, gains less than
+    // among six baseline kings (0.36 to 0.22 on these seeds); the solo benchmark in the item's report gives the full measure.
+    Assert.true(average(gains) > 0.15, `average gain ${fmt(average(gains), "0.00")}`);
   });
 
   test("Faced with a supported attack a king supports the province under threat", () => {
     // Mitanni's Terqa borders Assyria's Ashur and Ekallate: together they can take it unless Washukanni supports it.
-    let state = newGame(4);
+    let state = oldWorld(newGame(4));
     let view = Views.for(state, "Mitanni");
     let brain = new Brain("Mitanni", 4);
     brain.learn(view, new Board(view));
@@ -136,17 +140,19 @@ describe("BotTests", () => {
     }
   });
 
-  test("A king who buys cities is not taken for a conqueror", () => {
+  test("A king who gains cities by agreement is not taken for a conqueror", () => {
     let [brain, board] = egyptBuysTheLevant(true);
-    Assert.true(board.landGrowth("Egypt") >= 1.2, "by land alone Egypt would seem to run away with the game");
-    Assert.inRange(board.growth("Egypt"), 0.95, 1.15);
+    // Egypt's homeland is larger since item 11+ (Gaza and Sumur), so two cities add less to it.
+    Assert.true(board.landGrowth("Egypt") >= 1.15, "by land alone Egypt would seem to run away with the game");
+    // Growth as the game reckons it, against par (item 11+): its own growth is that times par.
+    Assert.inRange(board.growth("Egypt") * parOf("Egypt"), 0.95, 1.15);
     Assert.notEqual("Egypt", board.leader());
     Assert.equal(0, brain.belligerence.getOrDefault("Egypt", 0));
   });
 
-  test("Cities that change hands out of sight count half as bought and half as taken", () => {
-    // Out of Hatti's sight the walls are as it last saw them, so it cannot tell a purchase from a conquest (since the
-    // review of the siege package).
+  test("Cities that change hands out of sight count half as given and half as taken", () => {
+    // Out of Hatti's sight the walls are as it last saw them, so it cannot tell a city given from a conquest (since the
+    // review of the siege package; until item 11+ a city given was a city bought).
     let [seen, inSight] = egyptBuysTheLevant(true);
     let [unseen, outOfSight] = egyptBuysTheLevant(false);
     Assert.equal(1.0, unseen.belligerence.get("Egypt"), 3);
@@ -154,18 +160,18 @@ describe("BotTests", () => {
     Assert.equal(0, seen.belligerence.getOrDefault("Egypt", 0));
   });
 
-  // <summary>Egypt buys Megiddo and Tyre, seen by Hatti from an army of its in Damascus, or unseen.</summary>
+  // <summary>Egypt gains Megiddo and Tyre with their walls whole (their city-states gone), seen by Hatti from an army of its in Damascus, or unseen.</summary>
   function egyptBuysTheLevant(watching: boolean): [Brain, Board] {
-    let s = newGame(3);
+    let s = unruled(newGame(3), "megiddo", "tyre", "damascus");
     if (watching) s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "damascus" }));
     let brain = new Brain("Hatti", 3);
     let first = Views.for(s, "Hatti");
     brain.learn(first, new Board(first));
 
-    // Egypt buys two cities of the Levant: its land grows by a quarter, its treasury shrinks by as much.
+    // Egypt takes two cities of the Levant and pays as much out: its land grows by a quarter, its treasury shrinks by as much.
     for (const city of ["megiddo", "tyre"]) {
       known(s, city, "Egypt");
-      s.treasuries.get("Egypt").gold -= new TurnEngine(s).cityPrice(city);
+      s.treasuries.get("Egypt").gold -= publicWorthOf(WorldMap.default.get(city), s.config.provinceWeight);
     }
     s.turn = 6;
     let view = Views.for(s, "Hatti");

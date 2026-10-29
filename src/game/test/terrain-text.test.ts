@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
 import { Views, newGame, newGameConfig } from "@amarna/engine";
 import { leaderRules, situation } from "@amarna/llm";
-import { Assert } from "../../engine/test/support.ts";
+import { Assert, oldWorld } from "../../engine/test/support.ts";
 
 // <summary>What a king reads of terrain (Build order item 5, the siege package) and the sea (item 7a), in the rulebook and his view.</summary>
 describe("TerrainTextTests", () => {
@@ -33,7 +33,7 @@ describe("TerrainTextTests", () => {
       "You pay your troops (20 an army, 25 a fleet, nearest your capital first). Then every unit eats",
     ],
     ["- sinai: Sinai; land; homeland of Egypt; yield 20; desert. armies: jerusalem (across the Negev), gaza (across the north Sinai), delta, memphis."],
-    ["- kaska: Kaska Lands; land; a land without a king; yield 10; rough ground. armies: hattusa, sapinuwa."],
+    ["- kaska: Kaska Lands; land; homeland of Kaska; a land without a town; capital; yield 10; walls 2; rough ground. armies: hattusa, sapinuwa."],
     ["- ugaritwaters: Ugarit waters; sea zone, the waters of ugarit. fleets: ugarit, sumurwaters, kizzuwatnawaters, enkomiwaters (open sea)."],
     [
       "- An army goes to sea only by convoy: a fleet of any power in each sea zone it sails through, each ordered to convoy it, from the waters of its own coast to the waters of the coast it lands on. So an army lands only where no enemy fleet holds that coast's waters: a fleet there must first be driven out.",
@@ -65,14 +65,14 @@ describe("TerrainTextTests", () => {
   });
 
   test("The view marks the rough ground beside the walls", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     let hatti = situation(Views.for(s, "Hatti"));
     Assert.contains("lukka (rough ground)", hatti);
     Assert.contains("isuwa (walls 1, rough ground)", hatti);
     Assert.contains("mira (rough ground) [Arzawa army]", hatti);
     Assert.contains("sinai (desert)", hatti);
     // With terrain off, nothing is marked.
-    let off = newGame(1, newGameConfig({ catastropheChance: 0, terrainDefence: 0 }));
+    let off = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, terrainDefence: 0 })));
     Assert.contains("mira [Arzawa army]", situation(Views.for(off, "Hatti")));
   });
 });

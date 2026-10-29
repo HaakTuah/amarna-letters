@@ -184,10 +184,6 @@ export interface DisbandOrder {
   /** Its men settle where it stands, in a province of one's own, as colonists, instead of walking home (item 10+a). */
   settle?: boolean | null;
 }
-export interface BuyProvinceOrder {
-  type: "buy";
-  province: string;
-}
 export interface CedeProvinceOrder {
   type: "cede";
   province: string;
@@ -476,7 +472,6 @@ export type Order =
   | ReturnRunawaysOrder
   | RaiseOrder
   | DisbandOrder
-  | BuyProvinceOrder
   | CedeProvinceOrder
   | GiftUnitOrder
   | DispatchOrder
@@ -522,7 +517,6 @@ export const fortify = (province: string): FortifyOrder => ({ type: "fortify", p
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
 export const raise = (province: string, kind: UnitKind, men: number | null = null): RaiseOrder => (men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men });
 export const disband = (unit: string, settle = false): DisbandOrder => (settle ? { type: "disband", unit, settle } : { type: "disband", unit });
-export const buy = (province: string): BuyProvinceOrder => ({ type: "buy", province });
 export const cede = (province: string, to: Power): CedeProvinceOrder => ({ type: "cede", province, to });
 export const giftUnit = (unit: string, to: Power): GiftUnitOrder => ({ type: "giftUnit", unit, to });
 export function dispatch(
@@ -666,8 +660,6 @@ export function describe(o: Order): string {
       return o.settle === true ? `disband ${o.unit} and settle its men there as colonists` : `disband ${o.unit}`;
     case "tax":
       return `set the tax to ${o.percent}% of the harvest in ${o.province === null ? "all your land" : named(o.province)}`;
-    case "buy":
-      return `buy the city-state of ${o.province}`;
     case "cede":
       return `cede ${o.province} to ${o.to}`;
     case "giftUnit":
@@ -830,7 +822,6 @@ export const OrderSchema = poly("Order", "type", {
   deport: v("DeportOrder", () => deport("", "", 0), { province: S, to: S, number: I, purse: B }),
   expel: v("ExpelOrder", () => expel(""), { province: S, percent: I }),
   returnRunaways: v("ReturnRunawaysOrder", () => returnRunaways("", "Egypt"), { province: S, to: S }),
-  buy: v("BuyProvinceOrder", () => buy(""), { province: S }),
   cede: v("CedeProvinceOrder", () => cede("", "Egypt"), { province: S, to: S }),
   giftUnit: v("GiftUnitOrder", () => giftUnit("", "Egypt"), { unit: S, to: S }),
   dispatch: v("DispatchOrder", () => dispatch("", "Egypt", ""), {

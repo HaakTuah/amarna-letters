@@ -2,7 +2,7 @@
  * The economy in a king's view, compact (build order item 9+a, "Building it": "his view summarizes stores, shortages and
  * prices, never every province's goods"): his totals, the provinces with grain to spare, the shortages, the dearest and
  * cheapest of his markets, his troops' food, his caravans and ships, the foreign markets he knows of and the tolls that
- * bear on him (item 9+b), and what the free cities ask.
+ * bear on him (item 9+b).
  */
 import { WorldMap, cmpNum, cmpStr, countryNeed, desc, groupBy, menOf, priceForTen, reckonedOf, sortBy, sum, type SeatView } from "@amarna/engine";
 import { joinS as join } from "./text.ts";
@@ -53,8 +53,6 @@ export function economyLines(v: SeatView): string[] {
   if (own.length > 0) lines.push(`- Your tolls: ${join(", ", own.map((t) => `${t.percent}% on ${t.partner ?? "everyone"}${t.province !== null ? ` at ${t.province}` : ""}`))}.`);
   if (onYou.length > 0)
     lines.push(`- Tolls on your goods abroad: ${join(", ", onYou.map((t) => `${t.holder} ${t.percent}%${t.partner === null ? "" : " on yours alone"}${t.province !== null ? ` at ${t.province}` : ""}`))}.`);
-  if (v.cityPrices.size > 0)
-    lines.push(`FREE CITIES' PRICES (what each adds to its buyer's strength, in shekels): ${join(", ", sortBy([...v.cityPrices.entries()], [([k]: [string, number]) => k, cmpStr]).map(([k, p]) => `${k} ${p}`))}.`);
   return lines;
 }
 

@@ -62,7 +62,7 @@ declare module "./core.ts" {
 const P = TurnEngine.prototype;
 
 /**
- * May a caravan of `p`'s go through this province? Its own land, a free city's or land without a king, or a foreign
+ * May a caravan of `p`'s go through this province? Its own land, land held by no one, or a foreign
  * king's land unless it has heard he closed his roads to its people and he granted it no passage there; at sea, never
  * (ships sail by their own routes). A smuggler goes through any land, off the road.
  */
