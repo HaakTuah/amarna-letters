@@ -59,17 +59,19 @@ describe("StartingTermTests", () => {
   // save version 19 (item 11a: a template persona's "what you want most" follows the character's strategy; no draw moved),
   // and for save version 23 (item 11+: a pool of 100, the city-states' staff and the Levant's name styles), and for item 11d (three city-states more, each with its servant), and for save version 27 (item 11c: six more
   // city-states, each with its envoy, and Egypt's name style without Gezer's king), and for save version 30 (item 11f: eight
-  // more powers, each with its envoy, and the name styles of Azzi, Libya and the Shasu).
+  // more powers, each with its envoy, the name styles of Azzi, Libya and the Shasu, and an Akkadian scribe at each court that
+  // reads Akkadian).
   //
   test.each([
-    [1, "ff35e56157cb7cf8"],
-    [7, "9b55a849d7df64c5"],
-    [42, "1afa6f8dec82d590"],
+    [1, "42ff4678818a8ec0"],
+    [7, "37d6422d9b86bf85"],
+    [42, "8bca210bae9c5fc9"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     let envoys = s.characters.filter((c) => c.contract !== null);
-    // Two for each Great King and one for each city-state (item 11+), Terqa, Mira and Seha among them (item 11d), item 11c's six and item 11f's eight.
-    Assert.equal(54, envoys.length);
+    // Two for each Great King and one for each city-state (item 11+), Terqa, Mira and Seha among them (item 11d), item 11c's six and item 11f's eight, and
+    // since item 11f an Akkadian scribe at each of the 23 courts that read Akkadian.
+    Assert.equal(77, envoys.length);
     Assert.all(envoys, (c) => {
       Assert.equal(Rng.for(seed, 0, "start-term", c.id).range(7, 13), c.contract!.untilTurn);
       Assert.inRange(c.contract!.untilTurn, 7, 13);

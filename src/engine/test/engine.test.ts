@@ -30,6 +30,7 @@ import {
   unitAt,
   wallsOf,
   StartWalls,
+  courtReads,
 } from "@amarna/engine";
 import { removeAll, Assert, oldWorld } from "./support.ts";
 import { playRandom } from "./games.ts";
@@ -67,10 +68,11 @@ describe("EngineTests", () => {
       (p) => Assert.equal(StartWalls.get(p.id) ?? 0, wallsOf(s, p.id)),
     );
     Assert.true(WorldMap.default.landProvinces.every((p) => p.home !== null));
-    Assert.equal(100, s.characters.length);
+    // The pool of 100 and, since item 11f, an Akkadian scribe at every court that reads Akkadian.
+    Assert.equal(100 + AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length, s.characters.length);
     Assert.all(AllPowers, (p) =>
       Assert.equal(
-        isGreatKing(p) ? 2 : 1,
+        (isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0),
         count(s.characters, (c) => c.employer === p),
       ),
     );

@@ -1,7 +1,7 @@
 /** A new game: the map's owners and walls, the opening troops and treasuries, the characters, and starting strength. */
 import { Dict } from "../core/collections.ts";
 import { Rng } from "../core/rng.ts";
-import { range } from "../core/seq.ts";
+import { cmpNum, range, sortBy } from "../core/seq.ts";
 import { newGameConfig, type GameConfig } from "../model/config.ts";
 import { seasonOfTurn, StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
@@ -24,6 +24,7 @@ import { calling, personaTemplate } from "./personas.ts";
 import { AttestedCast, FirstCores, NubianCast, NubiansAttested, Styles, type CastSeed, type Core } from "./cast.ts";
 import { drawSkills } from "./skills.ts";
 import { kingTongues, servedThere } from "./tongues.ts";
+import { courtReads } from "../model/languages.ts";
 import { chooseStrategy } from "./strategy.ts";
 
 export function newGame(seed: number, config: GameConfig | null = null, map: WorldMap | null = null): GameState {
@@ -205,6 +206,7 @@ export function populate(s: GameState): void {
     if (!c.met.includes(p)) c.met.push(p);
     slot++;
   }
+  scribes(s);
   // Item 11a: a free person's savings from the life before the game, from a stream of their own; every character's way to
   // a fortune and road ("How the strategy is made"); and the pool's baseline ("A baseline, not a limit").
   for (const c of s.characters) {
@@ -212,6 +214,34 @@ export function populate(s: GameState): void {
     chooseStrategy(c);
   }
   s.baseline = s.characters.length;
+}
+
+/**
+ * Haakon's answer to item 12's review (item 11f): every court that reads Akkadian starts with an Akkadian-speaking scribe
+ * in its service, as the archives show the letters read and written by such scribes at every court that answered them; a
+ * servant like any other, paid, who may die, leave or be hired away. Each is drawn from a stream of its own, in its court's
+ * name style (or the nearest court's), fluent in Akkadian, and has the court's own tongue from its years there.
+ */
+function scribes(s: GameState): void {
+  const map = WorldMap.default;
+  for (const p of AllPowers) {
+    const capital = map.capital(p).id;
+    if (!courtReads(p, capital).includes("Akkadian")) continue;
+    const rng = Rng.for(s.seed, 0, "scribe", p);
+    const nearest = sortBy([...AllPowers].filter((x) => Styles.some((st) => st.court === x)), [(x: Power) => map.hops(map.capital(x).id, capital), cmpNum])[0];
+    const style = Styles.find((st) => st.court === p) ?? Styles.find((st) => st.court === nearest) ?? Styles[0];
+    // A name of the style nobody has yet, else "the younger" or "the elder" of one.
+    const names = rng.shuffle([...style.names]);
+    const taken = (n: string): boolean => s.characters.some((c) => c.name === n);
+    const name = [...names, ...names.map((n) => `${n} the younger`), ...names.map((n) => `${n} the elder`)].find((n) => !taken(n)) ?? `${names[0]} of ${land(p)}`;
+    const c = create(s, rng, { name, origin: rng.pick(style.origins), attested: false }, "scribe", Math.min(rng.range(15, 95), rng.range(15, 95)));
+    finish(s, c, null, false);
+    c.tongues.set("Akkadian", Math.max(c.tongues.getOrDefault("Akkadian", 0), rng.range(80, 95)));
+    employ(s, rng, c, p, false);
+    c.met = [p];
+    c.persona = personaTemplate(c);
+    s.characters.push(c);
+  }
 }
 
 /**
