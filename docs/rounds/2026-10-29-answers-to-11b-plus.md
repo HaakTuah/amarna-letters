@@ -87,7 +87,9 @@ the logs):
 | Arzawa | 1 | 2 | 1.06 | 0.94 |
 | Alashiya | 0 | 1 | 0.97 | 0.96 |
 
-SOLO
+`--versus solo` (40 seeds, one script king among baseline seats): `develop` 1.26 growth against 0.99 and 30% of wins
+against 14%; this branch before its last hunting change (it gave the whole-land standing hunt) 1.25 against 0.99 and
+28% against 14%. Within noise: no regression.
 
 Letters before: own people 530, passing travellers 580, hired 687, the spy itself 719; news sold 16 times (48 after).
 The suite's growth guard (one script king among baseline seats, two seeds) moved out of the suite with the small test
