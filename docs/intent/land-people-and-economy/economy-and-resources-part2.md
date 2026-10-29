@@ -1,4 +1,24 @@
-<!-- Generated from the design document, Land, people and economy tab, revision 29 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Land, people and economy tab, revision 30 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+**One rule for everything built (decided 21 October 2026).** Every kind of building is a level in a province, with the same three parts:
+
+- **Upkeep:** each level costs gold every season; paid, it holds.
+- **Decay:** unpaid, it falls, at a rate set by its kind.
+- **Building:** gold beyond upkeep starts a project that raises the level over the seasons that follow, at a pace set by its kind, so a canal is not dug in one season. A project shows how far it has come and when it will be done ("canal: two-thirds dug, done in two seasons"), so a king can judge it by its return over a horizon he can name ("Gold is a lifeline"). Its gains arrive gradually after he pays, which feels like momentum in play without the lags and overshoots of a model of momentum.
+
+The kinds differ only in data:
+
+| Kind | What it does | Decay without upkeep |
+| --- | --- | --- |
+| Walls | defence and sieges | very slow, over decades |
+| Roads and relay stations | faster travel, messages and orders | slow, over years |
+| Fields: canals and terraces | more food and capacity, softer droughts | fast, since canals silt |
+| Mines | output where the ore is | medium, as shafts flood and workers drift away |
+| Storage: granaries and storehouses | capacity, slower spoilage | slow |
+| Harbours | ships based and trading there, a besieged coast supplied | slow |
+| Policing | fewer bandits, smugglers caught | almost at once |
+
+Policing shows why one rule is enough: it is not built at all but paid people, so it is gone within a season of stopping, where a wall stands for decades; the same rule with a different rate. The land sets limits: canals only where there is water to lead, mines only where the ore is, walls around towns, harbours on a coast. War interrupts projects, since the workers flee; an occupying army can raze what stands, and a siege damages walls. Gold buys only what is there: in a blockaded province it hires only the men inside and builds only with what the place holds ("Reason from the pillars" under Overview, decided 28 October 2026). A conqueror takes over what stands, and its upkeep with it. Item 15 builds the rule for roads, relay stations, policing and harbours and brings item 5's walls into it; the economy's later phases add fields, mines and storage through it.
+
 **Paid in gold or in labour (decided 21 October 2026).** A project can be paid for two ways. In gold, the holder hires the province's own people, and their pay fills its purse ("What fills a people's purse"). In corvée, labour as tax, the normal way of the age, he levies the men as he levies soldiers: no gold, and the people grow restless if he asks too much. Either way the men come from the province's men of fighting age, so its fields lose their hands while they work, by the season ("Settled" under "People of the land"); what differs is who pays, the treasury or the people's goodwill. Egypt built with corvée paid in rations, and Mesopotamian kings demanded labour service as a duty owed, so a poor king can still build, at a price paid in harvests and goodwill.
 
 **Anyone can fund a project (decided 21 October 2026).** Great works were the king's and the temples', but merchants built ships and storehouses, and at Ugarit rich merchant houses ran trade of their own. So anyone may fund a project in a province by agreement with its holder: the holder owns what is built, since it stands on his land, and the funder gets what the tablet promises, such as freedom from tolls, a share of them or the right to store goods there, a promise kept or not like any other. Roads built jointly with a neighbour already work this way. Ships are the exception, since they move: whoever builds a ship owns it.
@@ -69,13 +89,4 @@ Two rules keep markets from being gamed:
 
 - **Large lots are priced along the curve,** unit by unit or in small steps, so a lot that empties a market pays the rising price as it goes, and buying a market's stock and selling it straight back costs the merchants' cut instead of paying a profit. At a stock of zero the price is the ceiling and the market has nothing to sell, so the formula never divides by zero.
 - **A market's trades for a season are settled together,** since orders are simultaneous: purchases are netted against sales, what remains is priced along the curve, and every buyer and seller of that good there gets the same price, less or plus the cut. If the market cannot fill it all from its stock or its purse, each gets a share in proportion. Nobody gains by going first.
-
-**One treasury, many stores (decided 21 October 2026).** Goods sit in each province's stores and travel physically, by caravan. All gold a province brings in, mined there or earned at its market, reaches the king's treasury by one rule: at once, as income does today, and from item 13, when distance inside the realm is built, it arrives after its travel time ("Distance inside your own realm"). A king spends what has reached his treasury: every gift, fee and soldier's pay is paid from it, and gold sent abroad travels as it always has.
-
-**Tolls and smuggling (decided 21 October 2026).** A power may set a toll on goods entering its land, as kings did: the king of Alashiya asked Pharaoh that "no one making a claim in your name" approach his merchants or his ship (EA 39), a plea for exemption from customs.
-
-- **The rate** is set per province by its holder, as a share of the goods crossing into his land, and he may set a different rate for each partner, zero included, taken in kind into that province's stores or in gold at the local price. A court learns a rate, as it learns a foreign market's prices, the way it learns anything: when its own caravans pay or trade there, from the setter's own word, or from reports carried home, never posted to it (decided 28 October 2026). Goods passing through several realms pay at each border.
-- **Exemptions** are words on a sealed tablet, like any other trade right ("Envoy authority and resident envoys"): a partner's merchants, or one king's caravans, may pass free. The tablet is his promise to set that partner's rate to zero; the rate is what the engine charges, so a promise not kept is a broken tablet, not a free passage.
-- **Smuggling.** A carrier who sneaks through pays nothing; if he is caught, his goods are seized and he may be held. Whether he is caught weighs his skill and the size of his load against the province's policing, the same check as for sneaking through a host's land ("Passage and access"); until item 15 builds policing, each province has a base level of it. A caravan without a character to lead it may still sneak, with no skill of its own, so only its load and the policing decide (decided 28 October 2026); whether it tries is its owner's order.
-- **What follows needs no rule.** Tolls raise prices across borders, and traders choose routes around greedy tolls ("Choosing a route"), so tolls compete with each other. A power that sits on a road, such as Mitanni at the Euphrates crossing or Babylonia and Assyria on the tin road, lives partly from what passes.
 
