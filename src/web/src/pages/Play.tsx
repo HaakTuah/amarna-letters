@@ -6,6 +6,7 @@ import { ChroniclePanel } from "../components/ChroniclePanel.tsx";
 import { CourtStrip } from "../components/CourtStrip.tsx";
 import { EventsPanel } from "../components/EventsPanel.tsx";
 import { FollowPanel } from "../components/FollowPanel.tsx";
+import { LegendsPanel } from "../components/LegendsPanel.tsx";
 import { GameMap, type MapHandle, type MapView } from "../components/GameMap.tsx";
 import { InboxPanel } from "../components/InboxPanel.tsx";
 import { MapLegend } from "../components/MapLegend.tsx";
@@ -140,6 +141,7 @@ export function Play() {
   if (tab === "orders" && pendingOrders === null) tab = "";
   if (tab === "inbox" && viewer === null) tab = "";
   if (tab === "trail" && !s.godView) tab = "";
+  if (tab === "legends" && !s.godView) tab = "";
   if (tab === "follow" && followId === null) tab = "";
   if (tab === "") tab = pendingAudience !== null ? "audience" : pendingOrders !== null ? "orders" : "season";
   if (tab !== tabRaw) queueMicrotask(() => setTab(tab));
@@ -209,7 +211,7 @@ export function Play() {
   const playedOn = !history && frame.ended && !live.ended;
   const endingLine =
     frame.ended && !playedOn
-      ? `The age has ended: ${frame.endReason}. Winner: ${frame.winners.join(" and ")}.`
+      ? `The age has ended: ${frame.endReason}. Winner: ${frame.winners.join(" and ")}.${s.hasHumans && live.ended ? " The record is open to every seat: choose God view, and read the Legends." : ""}`
       : playedOn
         ? ending(true, { turn: frame.index, winners: frame.winners }, viewer)
         : ending(frame.openAge, frame.ageEnded, viewer, frame.ageBand);
@@ -430,6 +432,11 @@ export function Play() {
           <button className={tabClass("events")} onClick={() => pick("events")}>
             Events
           </button>
+          {s.godView && (
+            <button className={tabClass("legends")} onClick={() => pick("legends")}>
+              Legends
+            </button>
+          )}
           <button className={tabClass("rules")} onClick={() => pick("rules")}>
             Rules
           </button>
@@ -590,6 +597,8 @@ export function Play() {
         );
       case "chronicle":
         return <ChroniclePanel state={state} chronicles={live.chronicles} />;
+      case "legends":
+        return <LegendsPanel state={displayed} onProvince={clicked} />;
       case "events":
         return <EventsPanel state={state} upTo={s.historyTurn} viewer={viewer} />;
       default:

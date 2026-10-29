@@ -136,6 +136,10 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
     if (r.treaty && !r.allied && r.trust > 0.2 && fresh && (x !== leader || small) && !rivals(b, me, x))
       missions.push(mission(x, "alliance", 0.5 * p.diplomacy + 0.2 * r.trust + (small ? 0.15 : 0)));
     if (!besieged && brain.isFriend(x) && brain.spareGold > 150 && rng.chance(0.3)) missions.push(mission(x, "gift", 0.4 * p.generosity));
+    // Item 14 ("Finkel's version"): once in a game, a greedy king short of gold begs a stronger friend for it, in the words
+    // Finkel gave such letters: an Easter egg, rare by design.
+    if (!brain.begged && p.greed > 0.7 && brain.spareGold < 100 && brain.isFriend(x) && b.strength(x) > b.strength(me) && rng.chance(0.1))
+      missions.push(mission(x, "beg", 0.3 + 0.3 * p.greed));
     // Tribute, to a great neighbour who looks ready to march.
     if (!besieged && isSmall(me) && !isSmall(x) && neighbours.has(x) && brain.spareGold > 100 && fresh && !r.hostile && brain.hostility(x, b) > 0.35)
       missions.push(mission(x, "tribute", 0.35 + 0.4 * p.caution));
@@ -276,6 +280,7 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
     if (m.kind === "bond-tribute") brain.tributePaid.set(m.to, v.turn);
     else if (m.kind.startsWith("bond-")) brain.bondAsked.set(m.to, v.turn);
     if (m.kind === "basing") brain.basingAsked.set(m.to, v.turn);
+    if (m.kind === "beg") brain.begged = true;
     if (m.kind === "accuse") brain.lightFrom.get(m.to)[2] = true;
     if (m.kind === "support") {
       const [from, target] = m.city!.split(">");
@@ -465,6 +470,8 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
         proposal: newTabletProposal({ text: vassalTablet(to, me, m.amount), vassal: me, clauses: bondClauses(false, m.amount) }),
         clauses: [clause("tribute", { amount: m.amount }), clause("serve"), clause("askProtect")],
       });
+    case "beg":
+      return dispatch(envoy, to, FinkelLetter, { mandate: "Ask for gold. Promise nothing.", greeting, clauses: [clause("wellWishes"), clause("askGold", { amount: 100 })] });
     case "gift":
     case "tribute": {
       const g = gift(0.06 + 0.08 * p.generosity);
@@ -597,6 +604,10 @@ function news(b: Board, foe: Power, to: Power): Clause[] {
   )[0];
   return near === undefined ? [] : [clause("newsTroops", { power: foe, province: near.province })];
 }
+
+/** Finkel's parody of the Amarna letters, in full as the video's transcript gives it ("Finkel's version"). */
+export const FinkelLetter =
+  "You're my brother. I love you. I love you. Send gold. I love you my gold owning brother and the best gold in the world. And you gave gold to my father and I like gold and sends much gold as you got lots of it anyway.";
 
 function flavourOf(me: Power, _to: Power): string {
   switch (me) {

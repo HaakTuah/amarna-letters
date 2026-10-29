@@ -421,6 +421,10 @@ P.applyAudience = function (record) {
 
   trail.delivered = cap(record.delivered ?? "", MaxSpeech);
   trail.deliveredClauses = [...(record.clauses ?? [])];
+  // Item 14 ("Finkel's version"): the third time a court hears a king beg it for gold, the record keeps the line.
+  const begs = (t: MessageTrail): boolean => t.from === sender && t.to === host && t.audienceTurn !== null && t.deliveredClauses.some((x) => x.kind === "askGold");
+  if (begs(trail) && S.trails.filter(begs).length === 3)
+    logEvent(S, "begging", `${sender} begged ${host} for gold a third time: "I love you my gold owning brother."`, [sender, host], "third-plea");
 
   // Gold changes hands, minus whatever stuck to the envoy's fingers.
   const skim = clamp(record.skim, 0, d.gold);

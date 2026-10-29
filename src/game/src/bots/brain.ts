@@ -147,6 +147,8 @@ export class Brain {
   /** Gold left over after troops, levies and cities this season: what gifts, bribes and spies may spend. */
   spareGold = 0;
   giftTurn = -1;
+  /** Item 14 ("Finkel's version"): whether this king has begged gold in Finkel's words, which a greedy king does once. */
+  begged = false;
   turn = 0;
   /** The vassal bonds this court knows, read each season (vassals.ts, item 11+). */
   bonds: VassalTerms[] = [];
