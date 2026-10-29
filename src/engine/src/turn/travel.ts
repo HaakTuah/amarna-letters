@@ -9,6 +9,7 @@
  * travel by themselves until item 11b ({@link wordSeasons}), and so does news of who holds distant land (Views.knownHolders);
  * travellers bring home the news of the land they crossed.
  */
+import { levelOf, policeAt, policeFound, waysOf } from "../model/works.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
@@ -70,6 +71,7 @@ declare module "./core.ts" {
     roadOdds(j: Journey, c: Character, province: string, sneaking: boolean, known: RoadKnowledge | null): Dict<Stop, number>;
     travel(): void;
     travelOne(j: Journey): void;
+    readAtStation(j: Journey, c: Character, province: string): void;
     stopped(j: Journey, c: Character, province: string, stop: Stop): void;
     turnBack(j: Journey, c: Character, at: string, why: string, gold: number): void;
     caughtOnRoad(j: Journey, c: Character, captor: Power, province: string): void;
@@ -110,7 +112,7 @@ P.setOut = function (j, from, to) {
   // Due by this season's roads (winter closes none: item 9).
   const perSeason = S.config.travelDays * PointsPerDay;
   let cost = 0;
-  for (let i = 0; i < j.route.length - 1; i++) cost += legPoints(this.map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn));
+  for (let i = 0; i < j.route.length - 1; i++) cost += legPoints(this.map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn), { sneaking: false, ways: waysOf(S) });
   j.arriveTurn = S.turn + Math.max(1, Math.ceil(cost / perSeason));
 };
 
@@ -155,7 +157,7 @@ P.planRoute = function (j, from, to, turn) {
   // By this season's roads.
   const season = seasonOfTurn(when);
   const r = cheapestRoute(Map, from, to, (a, b) => {
-    const pts = legPoints(Map, a, b, season, { sneaking: believedClosed(a) || believedClosed(b) });
+    const pts = legPoints(Map, a, b, season, { sneaking: believedClosed(a) || believedClosed(b), ways: waysOf(S) });
     return pts === Infinity ? pts : pts + (weight * ((risk(a) + risk(b)) / 2) * pts) / perSeason;
   });
   j.sneak = [...closed];
@@ -199,7 +201,8 @@ P.roadOdds = function (j, c, province, sneaking, known) {
   // Troops: as the court sees them now when choosing, as they stand when the check falls.
   if (S.units.some((u) => u.province === province && hostile(u.power) && (known === null || known.seen.has(province)))) out.set("troops", RoadOdds.troops);
   if (sneaking && holder !== null && hostile(holder)) {
-    let found = RoadOdds.found + Math.trunc((known !== null ? 0 : S.counterIntel.getOrDefault(holder, 0)) / 3);
+    // The holder's watchmen, and since item 15 his police where it passes.
+    let found = RoadOdds.found + (known !== null ? 0 : Math.trunc(S.counterIntel.getOrDefault(holder, 0) / 3) + policeFound(policeAt(S, province)));
     const d = j.dispatch;
     if ((d?.gold ?? 0) > 0 || (j.cargo?.gold ?? 0) > 0) found += RoadOdds.foundGold;
     if ((d?.proposalTabletId ?? null) !== null || (d?.copyIds.length ?? 0) > 0 || (j.cargo?.copyIds.length ?? 0) > 0) found += RoadOdds.foundTablets;
@@ -224,6 +227,22 @@ P.roadOdds = function (j, c, province, sneaking, known) {
 };
 
 /** Each season, before arrivals: every traveller on the road advances, and meets the road check. */
+/**
+ * A letter read at a relay station (item 15: "messages passing a neighbour's stations may be read there"): a traveller
+ * on the road through land with stations, held by a king who is neither its master nor the court it goes to, has the letter
+ * it carries read by his station men, who send word of it to their king as any report from his land travels.
+ */
+P.readAtStation = function (j, c, province) {
+  const S = this.s;
+  const holder = S.owner.getOrDefault(province, null);
+  const d = j.dispatch;
+  if (holder === null || holder === masterOf(j) || holder === counterpart(j) || d === null || d === undefined || d.letter.trim() === "") return;
+  if (levelOf(S, "Stations", province) <= 0 || S.units.some((u) => u.province === province && u.power !== holder)) return;
+  const name = this.map.get(province).name;
+  this.tell(holder, province, "SpyReport", "Read at a relay station", `At your relay station in ${name}, your men read the letter ${c.name} carries from ${j.from} to ${j.to}: "${d.letter}"`);
+  logEvent(S, "station", `${holder}'s station men in ${name} read the letter ${c.name} carried from ${j.from} to ${j.to}.`, [holder], "station-read");
+};
+
 P.travel = function () {
   const S = this.s;
   // Item 11b: letters waiting abroad find carriers setting out, then go with them.
@@ -256,7 +275,7 @@ P.travelOne = function (j) {
   while (budget > 0 && j.leg < j.route.length - 1) {
     const a = j.route[j.leg];
     const b = j.route[j.leg + 1];
-    const cost = legPoints(Map, a, b, season, { sneaking: offRoad(a) || offRoad(b) });
+    const cost = legPoints(Map, a, b, season, { sneaking: offRoad(a) || offRoad(b), ways: waysOf(S) });
     if (cost === Infinity) break;
     // The border on the connection: halfway, or at the desert's edge, where the desert lies on one side.
     const half = terrainOf(b) === "Desert" && terrainOf(a) !== "Desert" ? 0 : terrainOf(a) === "Desert" && terrainOf(b) !== "Desert" ? cost : Math.floor(cost / 2);
@@ -280,6 +299,8 @@ P.travelOne = function (j) {
       j.along = 0;
       j.seen.push(b);
       j.reached.push(S.turn - 1);
+      // Item 15: passing openly through another king's land, it rests at his relay stations, and his men read its letter.
+      if (!offRoad(b)) this.readAtStation(j, c, b);
     }
   }
   if (spent.size === 0) spend(j.route[j.leg], 1);
@@ -339,8 +360,8 @@ P.travelOne = function (j) {
 
   if (j.leg >= j.route.length - 1) j.arriveTurn = S.turn;
   else {
-    let left = Math.max(0, legPoints(Map, j.route[j.leg], j.route[j.leg + 1], seasonOfTurn(S.turn)) - j.along);
-    for (let i = j.leg + 1; i < j.route.length - 1; i++) left += legPoints(Map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn));
+    let left = Math.max(0, legPoints(Map, j.route[j.leg], j.route[j.leg + 1], seasonOfTurn(S.turn), { sneaking: false, ways: waysOf(S) }) - j.along);
+    for (let i = j.leg + 1; i < j.route.length - 1; i++) left += legPoints(Map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn), { sneaking: false, ways: waysOf(S) });
     const seasons = left === Infinity ? 2 : Math.max(1, Math.ceil(left / (S.config.travelDays * PointsPerDay)));
     j.arriveTurn = Math.max(j.arriveTurn, S.turn + seasons);
   }

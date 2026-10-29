@@ -102,7 +102,8 @@ export const OtherActions = [
   "raise_fleet",
   "cede_province",
   "give_unit",
-  "fortify",
+  "build",
+  "build_corvee",
   "sell_grain",
   "buy_grain",
   "feed_town",
@@ -168,12 +169,12 @@ export const OtherActions = [
 const unitOrder = (described = true): ReplySchema =>
   object(
     ["unit", str(described ? "Province id where your unit stands (sally: your walled city whose walls sally)." : null)],
-    ["order", enumOf(["hold", "move", "force_march", "support", "convoy", "disband", "settle", "besiege", "sally"])],
+    ["order", enumOf(["hold", "move", "force_march", "support", "convoy", "disband", "settle", "besiege", "sally", "raze"])],
     [
       "target",
       str(
         described
-          ? "move, force_march: destination. support: the province of the unit supported. convoy: province of the army. sally: the province the attack on the troops within your walls comes from. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)."
+          ? "move, force_march: destination. support: the province of the unit supported. convoy: province of the army. sally: the province the attack on the troops within your walls comes from. raze: what your army razes where it stands, in land another holds: roads, stations, harbour or water. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)."
           : null,
       ),
     ],
@@ -185,12 +186,12 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season), hunt_bands_always (a province your standing hunt covers; empty for all your land), the governorships and enlist_band (the province), move_court (where your court goes)." : null),
+      str(described ? "For raise, cede_province, give_unit, build and build_corvee (the province of yours where to keep and build), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season), hunt_bands_always (a province your standing hunt covers; empty for all your land), the governorships and enlist_band (the province), move_court (where your court goes)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back), or buy_news (the court whose news you buy)." : null)],
     ["person", str(described ? "Person id, for grant_governorship (one at your court), hire, renew, pay_fee, withhold_fee, borrow, buy_news, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift, seize_hoard, sell_tablet (the buyer)." : null)],
-    ["amount", int(described ? "The whole fee for the job (hire, renew), the price (sell_tablet), the men a levy takes (raise_army, raise_fleet; 0 for a full unit), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
+    ["amount", int(described ? "build, build_corvee: the level to keep (police: the men, in tens; 0 to keep none, letting what stands decay). The whole fee for the job (hire, renew), the price (sell_tablet), the men a levy takes (raise_army, raise_fleet; 0 for a full unit), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
     ["gold", int(described ? "enlist_band: the fee offered the band's chief, paid now. trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; hire, renew: the part of the fee handed over now (0 means nothing now); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
     [
       "term",
@@ -205,7 +206,7 @@ const otherOrder = (described = true): ReplySchema =>
       "item",
       str(
         described
-          ? "For repay, the debt (like d3), as your treasury gives it; for assay, your mark for the gold (like g7), as your treasury gives it; for authenticate or repudiate (a tablet your envoy sealed in your name), your mark for your copy of the tablet (like k8), as your archive gives it."
+          ? "For build and build_corvee, what is built: walls, roads, stations (relay stations), harbour, police or water (water works); for repay, the debt (like d3), as your treasury gives it; for assay, your mark for the gold (like g7), as your treasury gives it; for authenticate or repudiate (a tablet your envoy sealed in your name), your mark for your copy of the tablet (like k8), as your archive gives it."
           : null,
       ),
     ],

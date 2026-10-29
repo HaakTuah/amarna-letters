@@ -16,7 +16,13 @@ import {
   expel,
   returnRunaways,
   cede,
-  fortify,
+  build,
+  PoliceMenPerLevel,
+  WorkKindValues,
+  WorksData,
+  workLevelText,
+  workName,
+  type WorkKind,
   giftUnit,
   raise,
   sally,
@@ -55,34 +61,53 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           Add
         </button>
       </div>
-      {/* Walls (the siege package): a level higher at the end of the season, for the price of the new level, then upkeep above
-          the map's own. Not where foreign troops stand within, which the rules refuse (since the review of the siege package). */}
+      {/* Building (item 15): walls, roads, relay stations, a harbour, police or water works, the level to keep in a province
+          of ours, paid in gold or by corvée. It stands until changed; above what stands a project raises it over the seasons. */}
       <div className="row" style={{ marginTop: ".4rem" }}>
-        <select value={f.fortifyAt} onChange={(e) => set({ fortifyAt: e.target.value })}>
-          <option value="">Strengthen walls in…</option>
+        <select value={f.buildAt} onChange={(e) => set({ buildAt: e.target.value })}>
+          <option value="">Build or keep in…</option>
           {[...v.owner]
-            .filter(
-              ([id, o]) =>
-                o === me &&
-                v.walls.getOrDefault(id, 0) < state.config.maxWalls &&
-                v.sieges.every((s) => s.province !== id) &&
-                !v.units.some((u) => u.province === id && u.power !== me),
-            )
+            .filter(([, o]) => o === me)
             .map(([id]) => id)
             .sort(byName)
-            .map((id) => {
-              const level = v.walls.getOrDefault(id, 0) + 1;
-              return (
-                <option key={id} value={id}>
-                  {provinceName(id)} to level {level} ({shekels(level * price("fortifyPerLevel"))})
-                </option>
-              );
-            })}
+            .map((id) => (
+              <option key={id} value={id}>
+                {provinceName(id)}
+              </option>
+            ))}
         </select>
-        <button className="small" disabled={f.fortifyAt === ""} onClick={() => add(fortify(f.fortifyAt))}>
+        <select value={f.buildKind} onChange={(e) => set({ buildKind: e.target.value })}>
+          {WorkKindValues.map((k) => {
+            const w = v.works.find((x) => x.kind === k && x.province === f.buildAt);
+            return (
+              <option key={k} value={k}>
+                {workName(k)} (now {workLevelText(k, w?.level ?? 0)})
+              </option>
+            );
+          })}
+        </select>
+        <input type="number" min={0} max={WorksData[f.buildKind as WorkKind].most * (f.buildKind === "Policing" ? PoliceMenPerLevel : 1)} style={{ width: "5em" }} value={f.buildLevel} onChange={(e) => set({ buildLevel: Number(e.target.value) })} title={f.buildKind === "Policing" ? "men" : "level to keep"} />
+        <label>
+          <input type="checkbox" checked={f.buildLabour} onChange={(e) => set({ buildLabour: e.target.checked })} /> by corvée
+        </label>
+        <button
+          className="small"
+          disabled={f.buildAt === ""}
+          onClick={() => add(build(f.buildAt, f.buildKind as WorkKind, f.buildKind === "Policing" ? Math.round(f.buildLevel / PoliceMenPerLevel) : f.buildLevel, f.buildLabour))}
+        >
           Add
         </button>
       </div>
+      {f.buildAt !== "" && (
+        <p className="muted">
+          <small>
+            {v.works
+              .filter((w) => w.province === f.buildAt)
+              .map((w) => `${workName(w.kind)} ${workLevelText(w.kind, w.level)}${w.keep > w.level ? `, building to ${workLevelText(w.kind, w.keep)} (${w.progress} of ${w.seasons} seasons)` : w.keep < w.level ? `, kept at ${workLevelText(w.kind, w.keep)}` : ""}${w.labour ? " by corvée" : " in gold"}`)
+              .join("; ") || "Nothing stands here."}
+          </small>
+        </p>
+      )}
       {/* Grain (item 9+a): sell or buy at a province's own market, hand it to its town, or send a caravan with it. */}
       <div className="row" style={{ marginTop: ".4rem" }}>
         <select value={f.grainAction} onChange={(e) => set({ grainAction: e.target.value })}>

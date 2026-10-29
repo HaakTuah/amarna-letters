@@ -35,6 +35,7 @@ import { moneyRules } from "./rules-money.ts";
 import { roadRules } from "./rules-roads.ts";
 import { tongueRules } from "./rules-tongues.ts";
 import { warRules } from "./rules-war.ts";
+import { worksRules } from "./rules-works.ts";
 import { commandRules } from "./rules-command.ts";
 import { intelligenceRules } from "./rules-intelligence.ts";
 const rulesCache = new Map<string, string>();
@@ -101,7 +102,7 @@ HOW A SEASON RESOLVES (one turn; three seasons make a year), step by step:
 9. Land changes hands: a province without walls passes to the power whose unit stands in it after movement; a walled one only to a unit that stormed its walls this season (or by a siege, in step 8).
 10. A kingdom falls with its capital, which is wherever its king is: a king taken where he stands, or on the road, has fallen, and none of his orders below is carried out. His realm comes apart: the province where he was passes to whoever took it at once; every other part of it only when word of the fall reaches it, carried by road from the fallen capital as any news, life there going on as before until then (its gold still sent to the fallen capital, so to whoever holds it). When the word arrives, a province where the taker's troops stand is his, held by force; a province with a governor there is his to rule in his own name, as a power with a seat of its own, and the troops there follow him if he can pay them a season; the rest falls lawless, held by nobody. His armies hear it where they stand, and are then their commanders' own, each with his men as his own band; one with nobody commanding it, if it is owed pay or hungry, may raise a captain from its ranks as a band; any other disbands. A governor ruling in his own name owes nobody and is owed nothing: he deals with the conqueror and every other court by envoys, like any king. Kings on the road with their courts go on before this (see COMMAND AT A DISTANCE).
 11. Cessions and gifts of troops: a cession fails if you no longer hold the province or your own troops stand in it; a gift fails if the unit is gone.
-12. Purchases and walls: a city's price is paid only when it accepts. A city taken by troops this season is not sold; when two or more kings bid for one city, its elders will not choose between them and sell to none. Then walls ordered strengthened rise a level, and are paid for.
+12. Purchases and building: a city's price is paid only when it accepts. A city taken by troops this season is not sold; when two or more kings bid for one city, its elders will not choose between them and sell to none. Then what you keep and build (BUILDING AND POLICING): your orders for it stand from now, armies raze what they were ordered to, upkeep is paid in gold or by corvée, what goes unpaid decays, projects advance a season, and besieged walls are repaired.
 13. Disbanding: the men go home, their savings into the purse of the province they were raised in.
 14. Levies: a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid. Then the markets: grain handed to towns, sales and purchases of grain (all of one market's together), and caravans setting out.
 15. Envoys set out (their gold and the scribe's fee are paid now), detained envoys are released, servants are dismissed, candidates are sent for and background checks paid for. Then loans, repayments and fees are paid, and hiring and renewals are settled: a person hired this season enters your service at the end of the season and can be sent on an errand from next season; a person takes the offer worth most to it, if it reaches what it asks for the term.
@@ -111,6 +112,8 @@ HOW A SEASON RESOLVES (one turn; three seasons make a year), step by step:
 Everything that happened is reported to you next season. Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury (except the clay of a botched forgery, which is paid for).
 
 ${warRules(c)}
+
+${worksRules(c)}
 
 ${commandRules(c)}
 

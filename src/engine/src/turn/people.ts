@@ -5,6 +5,7 @@
  * their land"); droughts strike rain-fed land by region and each great river floods once a year along its course ("Land
  * and climate", "Rivers"). Seeded and deterministic: every flow is reckoned from the season's figures before any applies.
  */
+import { policedShare } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
 import { sortBy } from "../core/seq.ts";
@@ -217,7 +218,8 @@ P.peopleSeason = function (food) {
     // What the farmers keep a season (item 11a+): a third of the last harvest less the tax, as far as their granary holds.
     const keep = Math.min(food.getOrDefault(prov.id, 0), idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * (100 - this.taxRate(prov.id)), 100));
     const land = idiv(keep * 1000, need);
-    const roads = idiv(idiv(wealth(prov.id) * LandData.robPermille, 1000) * x.settled * 1000, Math.max(1, (x.loose + 1000) * need));
+    // What the roads pay is what the loose may take there, held down by troops and police (item 15).
+    const roads = idiv(idiv(idiv(wealth(prov.id) * LandData.robPermille, 1000) * policedShare(S, prov.id), 100) * x.settled * 1000, Math.max(1, (x.loose + 1000) * need));
     if (roads > land) {
       const [n, men] = share(x, idiv(idiv(x.settled * LandData.switchPercent, 100) * (roads - land), roads));
       shift(x, -n, -men);

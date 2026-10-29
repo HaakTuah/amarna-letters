@@ -6,6 +6,7 @@
  * spend their pay and buy their food only where they stand by leave, and a province taken by force is sacked ("Where gold
  * comes from and where it goes").
  */
+import { policeAt, waysOf } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
@@ -110,7 +111,7 @@ P.tradeRoute = function (p, from, to, sneak) {
     this.map,
     from,
     to,
-    (a, b) => (this.map.get(a).isSea || this.map.get(b).isSea ? Infinity : legPoints(this.map, a, b, season, { sneaking: offRoad(a) || offRoad(b) })),
+    (a, b) => (this.map.get(a).isSea || this.map.get(b).isSea ? Infinity : legPoints(this.map, a, b, season, { sneaking: offRoad(a) || offRoad(b), ways: waysOf(this.s) })),
     (x) => (this.openTo(p, x, sneak) ? 0 : Infinity),
   );
   return r === null ? null : r.route;
@@ -128,7 +129,7 @@ P.shipRoute = function (from, to) {
       const pa = Map.get(a);
       const pb = Map.get(b);
       const ok = (pa.isSea && pb.isSea) || (a === from && pb.isSea && pa.waters === b) || (pa.isSea && b === to && pb.waters === a);
-      return ok ? legPoints(Map, a, b, season) : Infinity;
+      return ok ? legPoints(Map, a, b, season, { sneaking: false, ways: waysOf(this.s) }) : Infinity;
     },
     (x) => (Map.get(x).isSea || x === to ? 0 : Infinity),
   );
@@ -157,7 +158,7 @@ P.atBorder = function (c, a, b, book) {
   };
   const sneaking = c.ship === null && (c.sneak || (!c.trade && this.roadsShutTo(c.power, b)));
   if (sneaking) {
-    const odds = smuggleOdds(c.grain, c.gold, S.counterIntel.getOrDefault(k, 0), RoadOdds.most);
+    const odds = smuggleOdds(c.grain, c.gold, S.counterIntel.getOrDefault(k, 0), RoadOdds.most, policeAt(S, b));
     if (this.r("smuggle", `${c.id}-${b}`).nextDouble() * 100 >= odds) {
       logEvent(S, "smuggled", `${c.power}'s ${c.sneak ? "smugglers" : "caravan"} slipped into ${k}'s land at ${name}.`, [c.power], c.sneak ? "smuggled" : "caravan-slipped");
       return "pass";
@@ -576,7 +577,7 @@ P.seeMarkets = function () {
       const [at, d] = queue.splice(i, 1)[0];
       if (d > (dist.get(at) ?? Infinity)) continue;
       for (const n of Map.neighbors(at)) {
-        const nd = d + legPoints(Map, at, n, season);
+        const nd = d + legPoints(Map, at, n, season, { sneaking: false, ways: waysOf(this.s) });
         if (nd > reach || nd >= (dist.get(n) ?? Infinity)) continue;
         dist.set(n, nd);
         queue.push([n, nd]);

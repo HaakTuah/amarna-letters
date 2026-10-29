@@ -6,6 +6,7 @@ import { cessionAgreed } from "../model/cession.ts";
 import type { Order } from "../model/orders.ts";
 import { forMen, LandData, menAvailable, menOf } from "../model/land.ts";
 import { isAlive, siegeOf, unitAt, wallsOf } from "../model/state.ts";
+import { buildGold, landRefusal, levelOf, WorkKindValues, WorksData, workLevelText, workName } from "../model/works.ts";
 import type { Checking } from "./validator-context.ts";
 import { courtOf } from "./court.ts";
 
@@ -60,19 +61,33 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       return null;
     }
 
-    case "fortify": {
+    case "build": {
       const f = order;
-      if (isBlank(f.province)) return "name the province whose walls to strengthen";
+      if (isBlank(f.province)) return "name the province where to build";
       if (!Map.exists(f.province) || Map.get(f.province).isSea) return `there is no province called '${f.province}'`;
-      const name = Map.get(f.province).name;
-      if (S.owner.getOrDefault(f.province, null) !== power) return `you do not hold ${name}`;
-      const level = wallsOf(S, f.province);
-      if (level >= S.config.maxWalls) return `the walls of ${name} stand at ${level}, as high as walls go`;
-      if (siegeOf(S, f.province) !== null) return `${name} is besieged: its walls cannot be strengthened while the siege lasts`;
-      const within = unitAt(S, f.province);
-      if (within !== null && within.power !== power) return `foreign troops stand within ${name}: its walls cannot be strengthened while they are there`;
-      if (fortified.has(f.province)) return `the walls of ${name} were already to be strengthened by an earlier order`;
-      return spend(S.config.fortifyCost * (level + 1));
+      if (!(WorkKindValues as readonly string[]).includes(f.kind)) return `there is no kind of building called '${f.kind}': ${WorkKindValues.join(", ")}`;
+      const prov = Map.get(f.province);
+      if (S.owner.getOrDefault(f.province, null) !== power) return `you do not hold ${prov.name}`;
+      const data = WorksData[f.kind];
+      if (!Number.isInteger(f.level) || f.level < 0 || f.level > data.most) return `the ${workName(f.kind)} go from 0 to ${workLevelText(f.kind, data.most)}`;
+      const level = levelOf(S, f.kind, f.province);
+      const land = landRefusal(f.kind, prov);
+      if (land !== null && f.level > level) return land;
+      const key = `${f.kind}:${f.province}`;
+      if (fortified.has(key)) return `you had already given an order for the ${workName(f.kind)} of ${prov.name} this season`;
+      // The first season of a project paid in gold is reserved now.
+      return f.level > level && !f.labour ? spend(buildGold(f.kind, f.province, level + 1)) : null;
+    }
+
+    case "raze": {
+      const [e, u] = ownUnit(order.unit);
+      if (e !== null) return e;
+      if (u!.kind !== "Army") return "only an army razes what is built";
+      if (!(["Roads", "Stations", "Harbour", "Water"] as string[]).includes(order.kind)) return "an army razes roads, relay stations, a harbour or water works";
+      const holder = S.owner.getOrDefault(u!.province, null);
+      if (holder === power || holder === null) return `${Map.get(u!.province).name} is not another's land`;
+      if (levelOf(S, order.kind, u!.province) <= 0) return `there are no ${workName(order.kind)} in ${Map.get(u!.province).name} to raze`;
+      return null;
     }
 
     case "sally": {

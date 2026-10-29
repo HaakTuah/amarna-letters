@@ -3,6 +3,7 @@ import { Dict } from "../core/collections.ts";
 import { Rng } from "../core/rng.ts";
 import { cmpNum, range, sortBy } from "../core/seq.ts";
 import { newGameConfig, type GameConfig } from "../model/config.ts";
+import { setLevel, startLevel } from "../model/works.ts";
 import { seasonOfTurn, StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
 import { forMen, harvestIn, menOf, reckonedOf, startPeople } from "../model/land.ts";
@@ -41,6 +42,8 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
     s.owner.set(p.id, p.home);
     const walls = StartWalls.get(p.id) ?? 0;
     if (walls > 0) s.walls.set(p.id, walls);
+    // Roads, relay stations, harbours and policing as the dossiers give them (item 15); no water works yet.
+    for (const k of ["Roads", "Stations", "Harbour", "Policing"] as const) setLevel(s, k, p.id, startLevel(k, p));
     // Its stores, half full, and its market: a season's local need on sale and its people's purse (item 9+a).
     const stores = startStoresOf(p);
     if (stores > 0) s.stores.set(p.id, stores);

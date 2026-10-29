@@ -3,7 +3,7 @@ import { newsOffered } from "./news.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
-import { split } from "../core/text.ts";
+import { cmpStr, split } from "../core/text.ts";
 import { seasonOfTurn, StartWalls, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
@@ -13,6 +13,7 @@ import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
+import { levelOf, worksOfPower } from "../model/works.ts";
 import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known, type Unit } from "../model/state.ts";
 import { PointsPerDay, wordSeasons } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
@@ -41,6 +42,7 @@ import {
   type LetterView,
   type SeatView,
   type TabletView,
+  newWorkView,
 } from "../model/views.ts";
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
@@ -193,7 +195,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     unassayedGold: t.lots.map((l) => newLotView({ id: l.id, from: l.from, stated: l.stated, weighed: l.face, arrivedTurn: l.arrivedTurn })),
     income: engine.income(p),
     upkeep: engine.upkeep(p),
-    wallUpkeep: engine.wallsUpkeep(p),
+    ...(() => {
+      const works = worksOfPower(s, ownedBy(s, p));
+      return { works, worksUpkeep: works.reduce((a, w) => a + w.upkeepGold + w.buildGold, 0) };
+    })(),
     feesDue: engine.feesDue(p),
     feesOwed: engine.feesOwed(p),
     fees: engine.feeRates(p),
@@ -228,6 +233,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
       }),
     walls: wallsKnown(s, m, p, seen),
+    worksSeen: [...seen]
+      .filter((x) => !m.get(x).isSea && s.owner.getOrDefault(x, null) !== p)
+      .sort(cmpStr)
+      .flatMap((x) => ((["Roads", "Stations", "Harbour", "Water"] as const).filter((k) => levelOf(s, k, x) > 0).map((k) => newWorkView({ province: x, kind: k, level: levelOf(s, k, x), keep: levelOf(s, k, x) })))),
     // Its own land's only: how another king's land changed hands is not public, though who holds it is.
     conquered: new Dict([...s.conquered.entries()].filter(([k]) => s.owner.getOrDefault(k, null) === p)),
     sieges: s.sieges
@@ -352,8 +361,6 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("assay", s.config.assayFee);
   v.prices.set("forgery", s.config.forgeFee);
   v.prices.set("siegeUpkeep", s.config.siegeUpkeep);
-  v.prices.set("fortifyPerLevel", s.config.fortifyCost);
-  v.prices.set("wallUpkeep", s.config.wallUpkeep);
   v.prices.set("sallyMinWalls", s.config.sallyMinWalls);
   v.prices.set("terrainDefence", s.config.terrainDefence);
   v.prices.set("seaSupply", s.config.seaSupply);

@@ -3,6 +3,7 @@
  * unload at, tolls with a rate for each partner, and smuggling. Static data and pure arithmetic, so the engine, the views
  * and the script kings reckon with the same figures. Every number is a first guess, tuned in item 18.
  */
+import { policeFound } from "./works.ts";
 import { I, type ObjSchema, S, obj, opt } from "../core/json.ts";
 import { clamp, idiv } from "../core/num.ts";
 import type { Province } from "./map.ts";
@@ -16,7 +17,8 @@ import type { Unit } from "./state.ts";
  * - `tollMost`: the highest toll a holder may set, as a percent of the goods crossing into his land.
  * - `smuggleFound`: the base odds, in percent, that a smuggler is found entering a realm (the road check's odds for one
  *   found sneaking, item 7b), plus `smugglePerMeasures` a point for every so many measures it carries and `smuggleGold`
- *   with gold; policing, until item 15 builds it, is that base level and a third of what the holder spends on watchmen.
+ *   with gold, a third of what the holder spends on watchmen, and since item 15 a point for every so many of his police where
+ *   it crosses ({@link works.policeFound}), the border's policing.
  * - The sack (item 10+b: "What a sack takes follows its causes"): of a province taken by force its taker's men carry off
  *   at most `sackStormedPercent` of its people's purse when they storm it or take it unwalled, `sackSurrenderPercent`
  *   when it surrenders, and no more than `lootPerHundred` shekels for every hundred of them; the king's share,
@@ -85,8 +87,8 @@ export function tollRate(tolls: readonly Toll[], holder: Power, province: string
 export const tollOn = (amount: number, percent: number): number => idiv(Math.max(0, amount) * clamp(percent, 0, TradeData.tollMost), 100);
 
 /** The odds, in percent, that a smuggler is found entering a realm, before any skill (a caravan with no leader has none). */
-export function smuggleOdds(grain: number, gold: number, watchmen: number, most: number): number {
-  const found = TradeData.smuggleFound + idiv(Math.max(0, grain), TradeData.smugglePerMeasures) + (gold > 0 ? TradeData.smuggleGold : 0) + Math.trunc(Math.max(0, watchmen) / 3);
+export function smuggleOdds(grain: number, gold: number, watchmen: number, most: number, police = 0): number {
+  const found = TradeData.smuggleFound + idiv(Math.max(0, grain), TradeData.smugglePerMeasures) + (gold > 0 ? TradeData.smuggleGold : 0) + Math.trunc(Math.max(0, watchmen) / 3) + policeFound(police);
   return Math.min(most, found);
 }
 

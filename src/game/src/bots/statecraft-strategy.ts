@@ -6,7 +6,6 @@ import { peopleAcrossBorders } from "./borders.ts";
 import {
   standingOf,
   HSet,
-  StartWalls,
   cede,
   clamp,
   cmpBool,
@@ -16,7 +15,9 @@ import {
   count,
   desc,
   disband,
-  fortify,
+  build,
+  buildGold,
+  WorksData,
   giftUnit,
   max,
   raise,
@@ -32,6 +33,7 @@ import {
   economyOf,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { worksOrders } from "./works.ts";
 import { depotFor, grainOrders, plainGrain, plainGrainOrders } from "./grain.ts";
 import { canLevy, levyCost, settleThere, taxOrders } from "./land.ts";
 import { TradePlay, tollOrders } from "./trade.ts";
@@ -201,7 +203,7 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   const me = b.me;
   // The rest of its servants' fees is gold already promised: it falls due as their jobs are done (item 11a).
   let gold = v.gold - v.feesDue;
-  const costs = v.upkeep + v.wallUpkeep + v.fees;
+  const costs = v.upkeep + v.worksUpkeep + v.fees;
   // Grain first (item 9+a): what its sales this season should bring, with the mines, is the season's income.
   const grain = plainGrain(b.me) ? { sales: plainGrainOrders(v, orders), abroad: 0 } : grainOrders(b, brain, plan, orders, gold, costs);
   // Each province's tax, as high as its farmers can bear (item 10+a).
@@ -311,7 +313,7 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   let fortified = false;
   const walls = fortification(b, plan, gold - reserve);
   if (walls !== null) {
-    orders.push(fortify(walls[0]));
+    orders.push(build(walls[0], "Walls", b.wallLevel(walls[0]) + 1));
     gold -= walls[1];
     fortified = true;
   }
@@ -320,10 +322,14 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   if (!fortified) {
     const fleetWalls = fortification(b, plan, gold - reserve, true);
     if (fleetWalls !== null) {
-      orders.push(fortify(fleetWalls[0]));
+      orders.push(build(fleetWalls[0], "Walls", b.wallLevel(fleetWalls[0]) + 1));
       gold -= fleetWalls[1];
     }
   }
+  // Item 15: roads and relay stations, police, harbours, water works, repairs under siege and razing (see works.ts).
+  const works = worksOrders(b, plan, gold - reserve);
+  orders.push(...works.orders);
+  gold -= works.spent;
   brain.spareGold = gold - reserve;
 
   // Land we cannot keep goes to a friend rather than to a rival ahead of us (see cession).
@@ -337,15 +343,19 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
  */
 export function fortification(b: Board, plan: MilitaryPlan, spare: number, againstFleets = false): [string, number] | null {
   const v = b.v;
-  const price = v.prices.getOrDefault("fortifyPerLevel", 50);
-  const upkeep = v.prices.getOrDefault("wallUpkeep", 5);
+  // A level of walls is a project of some seasons, each paid as it is worked (item 15); its upkeep a season after.
+  const price = (level: number): number => buildGold("Walls", "", level) * WorksData.Walls.seasons;
+  const upkeep = WorksData.Walls.upkeep;
   let best: [string, number, number] | null = null;
   const owned: string[] = [];
   for (const [k, o] of v.owner) if (o === b.me) owned.push(k);
   for (const id of sortBy(owned, [(x: string) => x, cmpStr])) {
     const level = b.wallLevel(id);
     const within = b.unitAt.tryGet(id);
-    if (level >= 3 || b.siegeAt(id) !== null || (within !== undefined && within.power !== b.me)) continue;
+    if (level >= WorksData.Walls.most || b.siegeAt(id) !== null || (within !== undefined && within.power !== b.me)) continue;
+    // A level already being raised is paid as it is worked: no second order for it.
+    const w = v.works.find((x) => x.kind === "Walls" && x.province === id);
+    if (w !== undefined && w.keep > w.level) continue;
     let chance = plan.danger.tryGet(id)?.[1] ?? 0;
     let share = level === 0 ? 0.35 : 0.15;
     let floor = 0.4;
@@ -366,9 +376,8 @@ export function fortification(b: Board, plan: MilitaryPlan, spare: number, again
     // into now would be his before they stand.
     else if (level === 0 && !b.mine.some((u) => u.province === id)) continue;
     if (chance < floor) continue;
-    const cost = price * (level + 1);
-    const above = level + 1 > (StartWalls.get(id) ?? 0);
-    const net = chance * b.value(id) * share - cost - (above ? upkeep * Math.min(b.horizon, 10) : 0);
+    const cost = price(level + 1);
+    const net = chance * b.value(id) * share - cost - upkeep * Math.min(b.horizon, 10);
     if (net <= 0 || cost > spare - 60) continue;
     if (best === null || net > best[2]) best = [id, cost, net];
   }

@@ -14,6 +14,7 @@ import "./covers.ts";
 import "./inventories.ts";
 import "./archives.ts";
 import "./sieges.ts";
+import "./works.ts";
 import "./intel.ts";
 import "./envoys.ts";
 import "./envoys-home.ts";

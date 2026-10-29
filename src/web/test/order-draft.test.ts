@@ -6,7 +6,7 @@ import {
   Views,
   besiege,
   first,
-  fortify,
+  build,
   move,
   newGame,
   newStandingRequest,
@@ -75,10 +75,10 @@ describe("OrderDraftTests", () => {
     first(s.units, (u) => u.province === "sippar").province = "suhu";
     let draft = new OrderDraft(Views.for(s, "Babylonia"));
     draft.units.get("suhu")!.kind = "besiege";
-    draft.other.push(fortify("nippur"));
+    draft.other.push(build("nippur", "Walls", 2));
     let sub = draft.build();
     Assert.contains(besiege("suhu"), sub.orders);
-    Assert.contains(fortify("nippur"), sub.orders);
+    Assert.contains(build("nippur", "Walls", 2), sub.orders);
     Assert.empty(new OrderValidator(s).validate("Babylonia", sub).rejected);
   });
 });

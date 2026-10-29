@@ -6,6 +6,7 @@
  * whose land they fled, and put out of a besieged city the mouths that cannot fight; and the loose men nobody polices rob
  * their province's purse and stores, carrying the gold as they drift. Every number is a first guess in `LandData`.
  */
+import { policedShare, waysOf } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
 import { sortBy } from "../core/seq.ts";
@@ -174,10 +175,11 @@ P.robbing = function () {
     if (x.loose <= 0) continue;
     const m = this.market(prov.id);
     const holder = S.owner.getOrDefault(prov.id, null);
-    const policed = holder !== null && S.units.some((u) => u.province === prov.id && u.power === holder);
+    // Held down by the holder's troops standing there or by his police (item 15).
+    const share = holder === null ? 100 : policedShare(S, prov.id);
     const rate = (permille: number, of: number): number => {
       const t = idiv(idiv(of * permille, 1000) * x.loose, x.loose + 1000);
-      return policed ? idiv(t * LandData.policedPercent, 100) : t;
+      return idiv(t * share, 100);
     };
     // Outside a besieged city's walls they rob only its countryside, the farmers' granaries: its purse and its stores are
     // inside the walls (item 11a+, "Everything is somewhere").
@@ -241,7 +243,7 @@ P.sendPeople = function (by, from, to, n, gold, freeable = false) {
   this.peopleOf(from).loose += fled;
   const seasons = Math.max(1, Math.ceil((Number.isFinite(days) ? days : S.config.travelDays) / Math.max(1, S.config.travelDays)));
   // Deportees walk a road of their own, where they can be freed (item 11a+).
-  const route = freeable ? (cheapestRoute(this.map, from, to, (a, b) => legPoints(this.map, a, b, seasonOfTurn(S.turn)))?.route ?? []) : [];
+  const route = freeable ? (cheapestRoute(this.map, from, to, (a, b) => legPoints(this.map, a, b, seasonOfTurn(S.turn), { sneaking: false, ways: waysOf(S) }))?.route ?? []) : [];
   S.walking.push({ home: to, men: n - fled - dead, arrives: S.turn + seasons, savings: gold, deported: true, by, route, departs: S.turn, from });
   return [n - fled - dead, dead, fled];
 };

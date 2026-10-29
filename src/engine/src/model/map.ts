@@ -528,18 +528,26 @@ export function buildMap(): WorldMap {
 }
 
 /**
- * The walls each land province starts with, from 0 (none) to 3 (Build order item 5, the siege package): every Great King's
- * capital 3 (the walls dossier's own proposals for them wait for item 15); since item 11d each city-state's city as the
- * walls dossier (`docs/history/12-walls-roads-harbours.md`, "Walls by city", its "Proposed" column) gives it, with the
- * early falls that brings, and where the dossier knows nothing of a city-state's town (Mira, Seha, Terqa) 1, as it gives
- * the other unexcavated towns of the city-states; the fortresses 2; the walled towns 1; the lands without a town (Kaska,
- * Lukka, the Sutean steppe) none, as the sources give none, their defence the rough land and their scattered people
- * (Lukka's early falls left to item 18); every other land province none, and so it is left out. First guesses, tuned in
- * item 18. The walls standing now are the game state's (GameState.walls).
+ * The walls each land province starts with, from 0 (none) to 3, city by city as the walls dossier gives them
+ * (`docs/history/12-walls-roads-harbours.md`, "Walls by city", its "Proposed" column), the capitals included (item 15,
+ * decided 29 October 2026): walls come from the city, not from its being a capital. So Akhetaten, which had no wall, its
+ * defence Egypt's distance, starts with none, and Egypt's forts are raised: Tjaru at the Delta's edge 1, the Second
+ * Cataract's forts in Nubia 2; Memphis's open town round its temple enclosure 1; Kanesh, Nineveh, Apasa and Enkomi as the
+ * dossier reads them; the Kassite cities whose old walls their kings kept up 1. Where the sources are silent the level the
+ * game had stands (Washukanni and Babylon 3, as capitals) and is marked a guess there. The lands without a town (Kaska,
+ * Lukka, the Sutean steppe, Libya, the Shasu) none. Every other land province none, and so it is left out. Since item 15
+ * walls are a level like everything built, with upkeep and decay; the walls standing now are the game state's
+ * (GameState.walls).
  */
 export const StartWalls: ReadonlyMap<string, number> = new Map([
-  // The Great Kings' capitals
-  ["hattusa", 3], ["babylon", 3], ["ashur", 3], ["washukanni", 3], ["akhetaten", 3], ["apasa", 3], ["enkomi", 3],
+  // The Great Kings' capitals (item 15): Hattusa's double wall and Ashur's on its bluff 3; Washukanni and Babylon, whose
+  // walls nobody knows, 3 as capitals [G]; Apasa's citadel and Enkomi's fort 2; Akhetaten none
+  ["hattusa", 3], ["babylon", 3], ["ashur", 3], ["washukanni", 3], ["apasa", 2], ["enkomi", 2],
+  // Their other cities (item 15): Egypt's forts, Nubia's 2 and Tjaru's in the Delta 1, Memphis's White Walls 1; Kanesh's
+  // old mound walls 1, Sapinuwa's royal city 1 [G]; Nineveh 1, Arbela's citadel 1 [G]; Dur-Kurigalzu's walled palace and
+  // the old walls of Sippar, Nippur and Ur, kept up by Kassite kings, 1
+  ["nubia", 2], ["delta", 1], ["memphis", 1], ["nesa", 1], ["sapinuwa", 1], ["nineveh", 1], ["arbela", 1],
+  ["durkurigalzu", 1], ["sippar", 1], ["nippur", 1], ["ur", 1],
   // The city-states' cities, by the walls dossier (item 11d): Qatna's and Qadesh's great ramparts 3; Carchemish's
   // citadel, Aleppo's, Ugarit's gate and glacis, Byblos's and Shechem's Middle Bronze walls, the islands Arwad and Tyre,
   // and Susa 2; Megiddo (no city wall: its gate and palace), Alalakh, Jerusalem, Nuzi, and the towns nobody has dug 1
@@ -553,8 +561,8 @@ export const StartWalls: ReadonlyMap<string, number> = new Map([
   // Item 11c's six cities of Canaan, by the same reading of the walls dossier: Hazor's great Middle Bronze rampart, still
   // used, 3; the five the dossier does not list 1, as the other towns it knows nothing of
   ["hazor", 3], ["akko", 1], ["gezer", 1], ["ashkelon", 1], ["lachish", 1], ["hebron", 1],
-  // Fortresses
-  ["gaza", 2], ["memphis", 2], ["nesa", 2], ["nineveh", 2],
+  // Fortresses: Gaza, Egypt's base on the Ways of Horus, 2 [G]
+  ["gaza", 2],
   // Walled towns
   ["sumur", 1],
   // Samuha, the Upper Land's royal residence and army base (KBo VI 28), first guess 1

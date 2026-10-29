@@ -2,7 +2,7 @@ import { describe, test } from "vitest";
 import { Board } from "../src/bots/board.ts";
 import { fortification } from "../src/bots/statecraft-strategy.ts";
 import { MilitaryPlan, sallies } from "../src/bots/tactics.ts";
-import { Dict, TurnEngine, Views, besiege, first, fortify, move, newGame, newGameConfig, newId, newTurnSubmission, newUnit, sally } from "@amarna/engine";
+import { Dict, TurnEngine, Views, besiege, build, first, move, newGame, newGameConfig, newId, newTurnSubmission, newUnit, sally } from "@amarna/engine";
 import { OtherActions, Parse, leaderRules, situation } from "@amarna/llm";
 import { removeAll, Assert, walled, oldWorld } from "../../engine/test/support.ts";
 
@@ -46,12 +46,7 @@ describe("SiegeTextTests", () => {
       "Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you its tax and its mines' gold, and counts in your strength, a third of its full worth in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third.",
     ],
     ["- apasa: Apasa; coast; waters apasawaters; homeland of Arzawa; capital; yield 40; walls 3."],
-    [
-      "Strengthening walls (order fortify, naming the province): the walls of a province you hold rise a level at the end of the season, up to 3, for 50 x the new level (50, 100, 150), paid then",
-    ],
-    [
-      "walls whose upkeep you cannot pay fall a level, the farthest from your capital first. An earthquake throws the walls of the province it strikes down a level.",
-    ],
+    ["- Raising and keeping walls: walls are a level like everything built, with upkeep, decay and projects (BUILDING AND POLICING). An earthquake throws the walls of the province it strikes down a level."],
     [
       "An envoy whose courage is below 20 x tightness will not leave that season: nothing is paid, and you are told. A caught envoy is the besieger's captive: he reads the letter and the mandate, and takes the gold and the tablets it carried; he may execute, ransom or release the envoy, but cannot turn him.",
     ],
@@ -73,14 +68,14 @@ describe("SiegeTextTests", () => {
     Assert.contains(rule, leaderRules(true, newGameConfig()));
   });
 
-  test("A fortify order is read from a reply and offered in the schema", () => {
+  test("A build order is read from a reply and offered in the schema", () => {
     let sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","command":[],"letters":[],"units":[{"unit":"suhu","order":"besiege","target":"","to":""},{"unit":"Babylon","order":"sally","target":"sippar","to":""}],"other_orders":[{"action":"fortify","province":"Thebes","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
+        `{"notes":"","command":[],"letters":[],"units":[{"unit":"suhu","order":"besiege","target":"","to":""},{"unit":"Babylon","order":"sally","target":"sippar","to":""}],"other_orders":[{"action":"build_corvee","province":"Thebes","power":"","person":"","amount":2,"term":0,"text":"","item":"walls","seals":[]}]}`,
       )!,
     );
-    Assert.equal([besiege("suhu"), sally("babylon", "sippar"), fortify("thebes")], sub.orders);
-    Assert.contains("fortify", OtherActions);
+    Assert.equal([besiege("suhu"), sally("babylon", "sippar"), build("thebes", "Walls", 2, true)], sub.orders);
+    Assert.contains("build", OtherActions);
   });
 
   test("A script king strengthens the walls of a threatened province worth it", () => {
@@ -93,7 +88,8 @@ describe("SiegeTextTests", () => {
     plan.danger.set("sippar", [2, 0.8]);
     plan.danger.set("ur", [1, 0.3]);
     let walls = fortification(b, plan, 1500);
-    Assert.equal(["sippar", 50], walls);
+    // Sippar's old walls stand at 1 since item 15: its second level, 50 a season for two seasons.
+    Assert.equal(["sippar", 100], walls);
     Assert.null(fortification(b, plan, 50));
   });
 
