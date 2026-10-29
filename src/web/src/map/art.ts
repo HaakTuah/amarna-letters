@@ -5,6 +5,7 @@
  * the coasts, lakes, great rivers and deserts are Natural Earth's (`geo-data.ts`, written by `scripts/map-geography.ts`).
  */
 import { WorldMap, cmpStr, fmt, sortBy } from "@amarna/engine";
+import { PeriodLakes, PeriodMarshes } from "./period-water.ts";
 import { BorderArcs, ProvinceRings, Roads, RoughSpots } from "./border-data.ts";
 import { city, decode, Isles, IslandProvinces, LL, ll, MiletusBayShore, OldGulfShore, RangeLines, RiverCourses, type Pt } from "./features.ts";
 import { DesertRings, LakeRings, LandRings } from "./geo-data.ts";
@@ -90,25 +91,49 @@ function inside(p: Pt, ring: readonly Pt[]): boolean {
 /** The frame of the sea, well beyond the board's edges. */
 const Frame = `M-300,-300H${Width + 300}V${Height + 300}H-300Z`;
 
-const Rings: readonly Pt[][] = LandRings.map(decode);
-const islandRing = (id: string): number => Rings.findIndex((r) => inside(city(id), r));
-const IslandRings = new Set(IslandProvinces.map(islandRing).filter((i) => i >= 0));
-
 /** The old Gulf's head and the bay of Miletus, cut from today's land (features.ts). */
 const OldGulf = `${polyline(OldGulfShore)}Z ${polyline(MiletusBayShore)}Z`;
 
 const ringPath = (r: readonly Pt[]): string => polyline(r) + "Z";
-/** All the land, the islands included, as one path (even-odd, so the old Gulf's head is cut from it). */
-export const LandPath = `${Rings.map(ringPath).join("")} ${[...Isles.values()].map(smoothClosed).join(" ")} ${OldGulf}`;
-/** The land of the mainland and the islands no province is drawn on alone; and of the islands that are. */
-export const MainlandPath = `${Rings.filter((_, i) => !IslandRings.has(i)).map(ringPath).join("")} ${OldGulf}`;
-export const IslandPath = `${Rings.filter((_, i) => IslandRings.has(i)).map(ringPath).join("")} ${[...Isles.values()].map(smoothClosed).join(" ")}`;
-/** The coasts, for the shore lines (the old Gulf's head by its shore alone). */
-export const CoastPath = `${Rings.map(ringPath).join("")} ${[...Isles.values()].map(smoothClosed).join(" ")} ${polyline(OldGulfShore)} ${polyline(MiletusBayShore)}`;
-/** The sea: the frame with the land cut out (even-odd). */
-export const SeaPath = `${Frame} ${LandPath}`;
+
+/** The paths drawn from the land's rings: the whole board's, and the finer set loaded close up (fine-geo.ts, item 11c++). */
+export interface CoastPaths {
+  /** All the land, the islands included, as one path (even-odd, so the old Gulf's head is cut from it). */
+  land: string;
+  /** The land of the mainland and the islands no province is drawn on alone; and of the islands that are. */
+  mainland: string;
+  island: string;
+  /** The coasts, for the shore lines (the old Gulf's head by its shore alone). */
+  coast: string;
+  /** The sea: the frame with the land cut out (even-odd). */
+  sea: string;
+}
+
+export function coastPaths(rings: readonly Pt[][]): CoastPaths {
+  const islands = new Set(IslandProvinces.map((id) => rings.findIndex((r) => inside(city(id), r))).filter((i) => i >= 0));
+  const isles = [...Isles.values()].map(smoothClosed).join(" ");
+  const land = `${rings.map(ringPath).join("")} ${isles} ${OldGulf}`;
+  return {
+    land,
+    mainland: `${rings.filter((_, i) => !islands.has(i)).map(ringPath).join("")} ${OldGulf}`,
+    island: `${rings.filter((_, i) => islands.has(i)).map(ringPath).join("")} ${isles}`,
+    coast: `${rings.map(ringPath).join("")} ${isles} ${polyline(OldGulfShore)} ${polyline(MiletusBayShore)}`,
+    sea: `${Frame} ${land}`,
+  };
+}
+
+const Coasts = coastPaths(LandRings.map(decode));
+export const LandPath = Coasts.land;
+export const MainlandPath = Coasts.mainland;
+export const IslandPath = Coasts.island;
+export const CoastPath = Coasts.coast;
+export const SeaPath = Coasts.sea;
 /** The lakes of 1346, drawn over the land. */
-export const LakePath = LakeRings.map((r) => ringPath(decode(r))).join("");
+/** The lakes: today's that were there in 1346, and those of 1346 that are gone (period-water.ts). */
+export const lakePath = (rings: readonly Pt[][]): string => rings.map(ringPath).join("") + PeriodLakes.map(smoothClosed).join("");
+export const LakePath = lakePath(LakeRings.map(decode));
+/** The marshes of 1346 (item 11c++). */
+export const MarshPath = PeriodMarshes.map(smoothClosed).join("");
 
 // ---------------------------------------------------------------- rivers, mountains, deserts, fields
 

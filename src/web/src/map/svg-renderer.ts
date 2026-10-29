@@ -5,7 +5,7 @@
  */
 import { WorldMap, crossingBetween, dateLabel, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province, type UnitKind } from "@amarna/engine";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
-import { F, Height, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
+import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Rivers, SeaPath, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
@@ -410,6 +410,9 @@ function selection(input: MapInput): string {
   return sb + "</g>";
 }
 
+/** Each river's path as the whole board draws it. */
+const RiverPaths: ReadonlyMap<string, string> = new Map(Rivers.map((r) => [r.id, r.path]));
+
 /** The small seal's size against the full seal's (map-uncluttered.css, .city.small .seal). */
 const SmallSeal = 0.45;
 
@@ -464,6 +467,7 @@ export class SvgMapRenderer implements MapRenderer {
   private placing = 0;
   private later = 0;
   private laterAt = 0;
+  private fine = false;
   private readonly onClick = (e: Event): void => {
     const t = e.target as Element | null;
     const person = t?.closest("[data-person]");
@@ -500,6 +504,7 @@ export class SvgMapRenderer implements MapRenderer {
     zoom.addEventListener("click", this.onClick);
     attach(view, (scale: number) => {
       this.scale = scale;
+      this.closeUp();
       if (this.scene !== null) this.drawUnits(this.scene);
       // Now, and again once a zoom's glide has ended (.25s, app.css).
       this.placeNames();
@@ -558,6 +563,36 @@ export class SvgMapRenderer implements MapRenderer {
     // Names are placed at once, and again once the pieces have slid to their places (.6s, app.css).
     this.placeNames();
     this.placeAgain(700);
+  }
+
+  /**
+   * Finer geography close up (item 11c++): past about 6x the land's paths take the finer set (fine-geo.ts, loaded the
+   * first time), and below about 4.5x the board's own come back, so the whole board stays light on a phone.
+   */
+  private closeUp(): void {
+    const view = this.view;
+    const zoom = view === null ? null : getView(view)?.zoom ?? null;
+    if (view === null || zoom === null) return;
+    const want = zoom > 6 ? true : zoom < 4.5 ? false : this.fine;
+    if (want === this.fine) return;
+    this.fine = want;
+    if (want) {
+      void import("./fine-geo.ts").then(({ Fine }) => {
+        if (this.fine && this.view === view) this.swapGeography({ ...Fine.coasts, lakes: Fine.lakes }, Fine.rivers);
+      });
+    } else this.swapGeography({ land: LandPath, mainland: MainlandPath, island: IslandPath, coast: CoastPath, sea: SeaPath, lakes: LakePath }, null);
+  }
+
+  private swapGeography(paths: Record<string, string>, rivers: ReadonlyMap<string, string> | null): void {
+    this.view?.querySelectorAll<SVGPathElement>("[data-geo]").forEach((e) => {
+      const d = paths[e.dataset.geo ?? ""];
+      if (d !== undefined && e.getAttribute("d") !== d) e.setAttribute("d", d);
+    });
+    this.view?.querySelectorAll<SVGPathElement>("[data-river]").forEach((e) => {
+      const id = e.dataset.river ?? "";
+      const d = rivers?.get(id) ?? RiverPaths.get(id);
+      if (d !== undefined && e.getAttribute("d") !== d) e.setAttribute("d", d);
+    });
   }
 
   /** Places the markers and names again once whatever is moving has stopped: never sooner than a pass already due. */

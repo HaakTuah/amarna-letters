@@ -70,8 +70,8 @@ for (let j = 0; j < H; j++) {
     const slope = Math.atan(Math.hypot(dzdx, dzdy));
     const aspect = Math.atan2(dzdy, -dzdx);
     const lit = Math.max(0, Math.sin(alt) * Math.cos(slope) + Math.cos(alt) * Math.sin(slope) * Math.cos(az - Math.PI / 2 - aspect));
-    const high = Math.min(1, h(i, j) / 3000) * 18;
-    gray[j * W + i] = Math.round(Math.min(255, Math.max(0, 128 + (lit - flat) * 330 - high)));
+    const high = Math.min(1, h(i, j) / 3000) * 26;
+    gray[j * W + i] = Math.round(Math.min(255, Math.max(0, 128 + (lit - flat) * 470 - high)));
   }
 }
 const browser = await chromium.launch();

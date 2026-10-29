@@ -34,7 +34,10 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fog" fill="url(#fog)" /></svg> out of sight: the denser, the older the news (land: of who holds it)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fert" fill="url(#fert4)" /></svg> rich land (close furrows)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-desert" fill="url(#stipple)" /></svg> desert (it feeds no army: an army there lives on its baggage, its king's stores and his caravans)</span>
-        <span><svg viewBox="0 0 30 14"><path className="peaks" d="M2,12L8,4L14,12M14,12L20,3L26,12" /></svg> mountains</span>
+        <span><svg viewBox="0 0 30 14"><path className="lg-lit" d="M2,13L11,3L13,13Z M15,13L22,5L23,13Z" /><path className="lg-shade" d="M11,3L20,13L13,13Z M22,5L29,13L23,13Z" /></svg> mountains and hills (real relief, lit from the north-west)</span>
+        <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="marsh" fill="url(#reeds)" /></svg> marsh</span>
+        <span><svg viewBox="-12 -12 24 24"><circle className="seal s-hatti" r="3.4" /></svg> a city's small seal, where its badge would touch a more important one (zoom in for the badge)</span>
+        <span><svg viewBox="-12 -12 24 24"><circle className="seal s-hatti crowd-lg" r="3.4" /></svg> small seal with a dark rim: its troops are hidden until you zoom in</span>
         {MarkKindsShown.map((k) => (
           <span key={k}>
             <svg viewBox="-10 -10 20 20" className="xmark" dangerouslySetInnerHTML={{ __html: markGlyph(k) }} /> {MarkNames[k]}
