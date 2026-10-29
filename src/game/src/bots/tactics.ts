@@ -230,7 +230,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const t = threat.tryGet(origin);
     let chance = t !== undefined ? t[1] : 0;
     const prov = Board.Map.get(origin);
-    if (prov.capital || prov.home === me) chance = Math.max(chance, nearby(origin));
+    if (prov.capital || Board.Map.isHome(me, prov.id)) chance = Math.max(chance, nearby(origin));
     return chance * b.value(origin) * (0.6 + 0.5 * p.caution);
   };
 
@@ -541,7 +541,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
           seaOpen,
           (from) =>
             !threat.has(from) &&
-            (Board.Map.get(from).home === me || [...free].some((u) => b.unitAt.get(u).kind === "Army" && Board.Sail.canMove("Army", u, from))),
+            (Board.Map.isHome(me, from) || [...free].some((u) => b.unitAt.get(u).kind === "Army" && Board.Sail.canMove("Army", u, from))),
           exposure,
           150,
         );
@@ -596,7 +596,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
           [(u: string) => u, cmpStr],
         )[0];
         if (comer !== undefined) ops.push(op("landing", 0.4 * w, L.from, comer, []));
-        else if (Board.Map.get(L.from).home === me && b.isMine(L.from)) plan.shortfalls.push([L.from, w, "Army"]);
+        else if (Board.Map.isHome(me, L.from) && b.isMine(L.from)) plan.shortfalls.push([L.from, w, "Army"]);
       }
     }
   }

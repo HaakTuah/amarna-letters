@@ -1,4 +1,4 @@
-import { AllPowers, FirstYearBce, SeasonsPerYear, dateLabel, tier, yearBce, type Power } from "@amarna/engine";
+import { FixedPowers, FirstYearBce, SeasonsPerYear, dateLabel, tier, yearBce, type Power } from "@amarna/engine";
 import { GameLog, GameRunner, type LogHeader } from "@amarna/game";
 import {
   AnthropicId,
@@ -83,7 +83,7 @@ const NarratorOptions: [string, string][] = [
   ["Opus", "Opus 5.5"],
 ];
 
-const localKings = (c: SeatChoices): Power[] => AllPowers.filter((p) => c.leaders.get(p) === "LocalAgent");
+const localKings = (c: SeatChoices): Power[] => FixedPowers.filter((p) => c.leaders.get(p) === "LocalAgent");
 
 let kept: GameSettings | null = null;
 let budgetTouched = false;
@@ -127,7 +127,7 @@ export function Home() {
 
   const choices = choicesOf(settings);
   const selected = shownPresets.find((p) => p.matches(choices)) ?? null;
-  const seat = AllPowers.find((p) => settings.leaders[p] === "Human") ?? null;
+  const seat = FixedPowers.find((p) => settings.leaders[p] === "Human") ?? null;
   const est = estimate(settings);
 
   function recost(next: GameSettings): GameSettings {
@@ -156,13 +156,13 @@ export function Home() {
   const changeSeat = (value: string): void =>
     change((c) => {
       const preset = selected ?? Presets.Free;
-      for (const p of AllPowers) if (c.leaders.get(p) === "Human") c.leaders.set(p, preset.leaders);
-      if ((AllPowers as readonly string[]).includes(value)) c.leaders.set(value as Power, "Human");
+      for (const p of FixedPowers) if (c.leaders.get(p) === "Human") c.leaders.set(p, preset.leaders);
+      if ((FixedPowers as readonly string[]).includes(value)) c.leaders.set(value as Power, "Human");
     });
 
   const summary = (): string => {
     const counts = new Map<LeaderKind, number>();
-    for (const p of AllPowers) if (settings.leaders[p] !== "Human") counts.set(settings.leaders[p], (counts.get(settings.leaders[p]) ?? 0) + 1);
+    for (const p of FixedPowers) if (settings.leaders[p] !== "Human") counts.set(settings.leaders[p], (counts.get(settings.leaders[p]) ?? 0) + 1);
     const kings = [...counts].map(([k, n]) => `${n} ${kindName(k)}`);
     return `kings ${kings.join(", ")}; envoys ${jobName(settings.characters, "Script")}; narrator ${jobName(settings.narrator, "Template")}`;
   };
@@ -332,7 +332,7 @@ export function Home() {
             <span className="muted">Your seat</span>
             <select value={seat ?? ""} onChange={(e) => changeSeat(e.target.value)}>
               <option value="">Watch the kings (spectator)</option>
-              {AllPowers.map((p) => (
+              {FixedPowers.map((p) => (
                 <option key={p} value={p}>
                   Play as {powerName(p)} ({tier(p).toLowerCase()})
                 </option>
@@ -354,7 +354,7 @@ export function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {AllPowers.map((p) => (
+                  {FixedPowers.map((p) => (
                     <tr key={p}>
                       <td>
                         <Emblem power={p} /> {powerName(p)}

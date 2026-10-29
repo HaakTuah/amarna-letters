@@ -9,6 +9,7 @@ import {
   SeatViewSchema,
   TurnSubmissionSchema,
   deserialize,
+  setRisen,
   serialize,
   type AudienceView,
   type GameState,
@@ -134,7 +135,11 @@ export class Session {
       this.frames = [...this.frames, ...m.frames];
       this.framesGeneration++;
     }
-    if (m.live.stateJson !== null) this.state = deserialize<GameState>(GameStateSchema, m.live.stateJson);
+    if (m.live.stateJson !== null) {
+      this.state = deserialize<GameState>(GameStateSchema, m.live.stateJson);
+      // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
+      setRisen(this.state.risen);
+    }
     if (!m.live.hasRunner) this.state = null;
     this.asks = m.live.pending.map((p) => ({
       power: p.power,

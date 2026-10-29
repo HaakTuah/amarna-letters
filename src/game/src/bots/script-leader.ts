@@ -44,15 +44,18 @@ export class ScriptLeader implements ISeat {
   /** Each power's seat seed (see seatSeed); the game's own seed is not kept. */
   private readonly seeds = new Dict<Power, number>();
   private readonly brains = new Dict<Power, Brain>();
+  /** Seat seeds for powers risen in play (item 13+), derived as they first play. */
+  private readonly seedFor: (p: Power) => number;
 
   /** `gameSeed`: the game's seed, from which each power's seat seed is derived. */
   constructor(gameSeed: number) {
     for (const p of AllPowers) this.seeds.set(p, seatSeed(gameSeed, p));
+    this.seedFor = (p) => seatSeed(gameSeed, p);
   }
 
   private brain(p: Power): Brain {
     let b = this.brains.tryGet(p);
-    if (b === undefined) this.brains.set(p, (b = new Brain(p, this.seeds.get(p))));
+    if (b === undefined) this.brains.set(p, (b = new Brain(p, this.seeds.tryGet(p) ?? this.seedFor(p))));
     return b;
   }
 
@@ -154,7 +157,7 @@ export class ScriptLeader implements ISeat {
     const brain = this.brain(view.host);
     brain.learn(court, new Board(court));
     const board = new Board(court, null, brain.treasury);
-    const rng = Rng.for(this.seeds.get(view.host), view.turn, "bot:host", `${view.host}:${view.audienceId}:${view.round}`);
+    const rng = Rng.for(this.seeds.tryGet(view.host) ?? this.seedFor(view.host), view.turn, "bot:host", `${view.host}:${view.audienceId}:${view.round}`);
     return Promise.resolve(Statecraft.host(view, board, brain, rng));
   }
 }

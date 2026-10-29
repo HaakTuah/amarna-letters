@@ -32,12 +32,18 @@ import { removeAll, Assert, subs, oldWorld } from "./support.ts";
 
 // A kingdom falls with its capital (the design document's rule, built with the siege package, Build order item 5): its orders
 // lapse for the rest of the season. Since item 13 its realm comes apart: the capital and the land where the taker's troops
-// stand are his, the rest falls lawless, and its troops are their commanders' or disband.
+// stand are his, the rest falls lawless, and its troops are their commanders' or disband; since item 13+ each part as word
+// of the fall reaches it (`fall-as-news.test.ts`).
 describe("KingdomFallTests", () => {
   function season(s: GameState, orders: Dict<Power, TurnSubmission>): void {
     let e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(orders);
+  }
+  // Item 13+: seasons pass until word of the season's falls has reached all their land.
+  function wordSpreads(s: GameState): void {
+    const fallen = (): boolean => WorldMap.default.landProvinces.some((x) => s.eliminated.includes(s.owner.getOrDefault(x.id, null) ?? ""));
+    for (let i = 0; i < 8 && fallen(); i++) season(s, new Dict());
   }
 
   test("A capital stormed brings down its kingdom and the rest of its land falls lawless", () => {
@@ -59,8 +65,9 @@ describe("KingdomFallTests", () => {
 
     Assert.contains("Arzawa", s.eliminated);
     Assert.equal("Hatti", s.owner.get("apasa"));
-    // Item 13: no troop of Hatti's stands in Seha, nor a governor of Arzawa's: it falls lawless.
-    Assert.null(s.owner.get("seha"));
+    // Item 13: no troop of Hatti's stands in Seha, nor a governor of Arzawa's: it falls lawless, once word of the fall
+    // reaches it (item 13+).
+    Assert.equal("Arzawa", s.owner.get("seha"));
     Assert.doesNotContain(s.units, (u) => u.power === "Arzawa");
     Assert.null(unitAt(s, "seha"));
     Assert.doesNotContain(inboxOf(s, "Arzawa"), (i) => i.title === "Levy raised" || i.title === "Not enough gold");
@@ -68,7 +75,7 @@ describe("KingdomFallTests", () => {
     Assert.equal(["Arzawa", "Hatti", "apasa", 1], [fall.power, fall.conqueror!, fall.capital, fall.turn]);
     Assert.equal([], fall.land);
     Assert.equal(
-      "With Apasa you took the kingdom of Arzawa: its king has fallen, his armies are their own commanders' or have disbanded, and none of his other land is yours; the rest, Seha River Land, has fallen lawless, held by nobody.",
+      "With Apasa you took the kingdom of Arzawa: its king has fallen, his armies are their own commanders' or disband as word reaches them, and none of his other land is yours; the rest, Seha River Land, comes apart as word of the fall reaches it by road: where your troops stand then it is yours, held by force; a governor there rules his province in his own name, and the rest falls lawless.",
       single(inboxOf(s, "Hatti"), (i) => i.title === KingdomFallsTitle).body,
     );
     // Word of the fall travels (item 7b): Egypt, far away, hears it when the word arrives, and sees Arzawa fallen then.
@@ -81,8 +88,10 @@ describe("KingdomFallTests", () => {
     Assert.contains(Views.for(s, "Egypt").fallen, (p) => p === "Arzawa");
     Assert.contains(
       s.events,
-      (e) => e.kind === "fall" && e.text === "The kingdom of Arzawa has fallen: Hatti took its capital, Apasa, and Hatti holds it; the rest has fallen lawless.",
+      (e) => e.kind === "fall" && e.text === "The kingdom of Arzawa has fallen: Hatti took its capital, Apasa, and Hatti holds it; the rest of it comes apart as word of the fall reaches it.",
     );
+    wordSpreads(s);
+    Assert.null(s.owner.get("seha"));
   });
 
   test("A capital that surrenders to a siege brings down its kingdom", () => {
@@ -93,8 +102,9 @@ describe("KingdomFallTests", () => {
     s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: besieger.id, progress: 3 * EconomyData.breachPerLevel - 1, since: 1 }));
     season(s, new Dict());
     Assert.contains("Assyria", s.eliminated);
-    // Item 13: the capital is Babylonia's; the rest of Assyria, with no Babylonian troops, falls lawless.
+    // Item 13: the capital is Babylonia's; the rest of Assyria, with no Babylonian troops, falls lawless (once word reaches it).
     Assert.equal("Babylonia", s.owner.get("ashur"));
+    wordSpreads(s);
     Assert.all(WorldMap.default.homeOf("Assyria").filter((p) => p.id !== "ashur"), (p) => Assert.null(s.owner.get(p.id)));
     Assert.equal(2, wallsOf(s, "ashur"));
     Assert.empty(s.sieges);
@@ -127,6 +137,7 @@ describe("KingdomFallTests", () => {
     Assert.doesNotContain(first, s.eliminated);
     // Item 13: both capitals pass down the chain to the first, the rest of both kingdoms falls lawless.
     for (const p of [second, third]) Assert.equal(first, s.owner.get(WorldMap.default.capital(p).id));
+    wordSpreads(s);
     Assert.all(
       WorldMap.default.homeOf(second).concat(WorldMap.default.homeOf(third)).filter((p) => !p.capital),
       (p) => Assert.null(s.owner.get(p.id)),
@@ -137,7 +148,7 @@ describe("KingdomFallTests", () => {
       (e) =>
         e.kind === "fall" &&
         e.text ===
-          `The kingdom of ${land(third)} has fallen: ${second} took its capital, ${WorldMap.default.capital(third).name}, and ${first} holds it; the rest has fallen lawless.`,
+          `The kingdom of ${land(third)} has fallen: ${second} took its capital, ${WorldMap.default.capital(third).name}, and ${first} holds it; the rest of it comes apart as word of the fall reaches it.`,
     );
     Assert.contains(
       inboxOf(s, first),
@@ -154,6 +165,7 @@ describe("KingdomFallTests", () => {
     season(s, new Dict());
     Assert.contains("Assyria", s.eliminated);
     Assert.contains("Mitanni", s.eliminated);
+    wordSpreads(s);
     Assert.all(WorldMap.default.homeOf("Mitanni").concat(WorldMap.default.homeOf("Assyria")), (p) => Assert.null(s.owner.get(p.id)));
     Assert.all(s.falls, (f) => Assert.null(f.conqueror));
   });

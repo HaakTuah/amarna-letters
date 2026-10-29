@@ -2,7 +2,7 @@
  * The board's original icons and each power's emblem and border line, drawn once in the map's <defs> and reused with <use>.
  * Every glyph sits in a box centred on 0,0, about 20 units across.
  */
-import type { Power } from "@amarna/engine";
+import { risenOf, type Power } from "@amarna/engine";
 
 /**
  * Each power's emblem, so that it can be told apart without its colour: Egypt's lotus, Hatti's sun, Babylon's
@@ -33,7 +33,8 @@ const Dashes: Partial<Record<Power, string>> = {
 };
 export const dash = (p: Power): string => Dashes[p] ?? "3 2";
 
-export const glyphId = (p: Power): string => p.toLowerCase();
+/** A power's id in the map's classes and symbols; the powers risen in play (item 13+) share one, "risen". */
+export const glyphId = (p: Power): string => (risenOf(p) !== null ? "risen" : p.toLowerCase());
 
 /** A war chariot: the board's army. */
 export const Chariot = "M-9.5,-2.5L1.5,-2.5L3,-8.5L-7.5,-8.5Z M1.5,-2.5L10.5,-6.5L10.9,-5.3L2.4,-1.3Z M-3.5,-1.8A5.6,5.6 0 1,1 -3.5,9.4A5.6,5.6 0 1,1 -3.5,-1.8Z M-3.5,0.3A3.5,3.5 0 1,0 -3.5,7.3A3.5,3.5 0 1,0 -3.5,0.3Z M-4.2,0.6H-2.8V7H-4.2Z M-6.7,3.1H-0.3V4.5H-6.7Z";

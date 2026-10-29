@@ -109,7 +109,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (order.type === "expel" && (!Number.isInteger(order.percent) || order.percent < 1 || order.percent > 100)) return "say how many in a hundred of the mouths still inside to put out, 1 to 100";
       if (order.type === "returnRunaways" && (!AllPowers.includes(order.to) || order.to === power)) return `you cannot send runaways to '${order.to}'`;
       if (order.type === "deport") {
-        if (Map.get(order.province).home === power) return `${name} is your own homeland: a king deports only from land he has taken`;
+        if (Map.isHome(power, order.province)) return `${name} is your own homeland: a king deports only from land he has taken`;
         if (!Map.exists(order.to) || Map.get(order.to).isSea || S.owner.getOrDefault(order.to, null) !== power) return `you do not hold '${order.to}' to send them to`;
         if (order.to === order.province) return "deportees go to another province of yours";
         if (!Number.isInteger(order.number) || order.number <= 0) return "say how many people to deport";

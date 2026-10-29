@@ -1,5 +1,3 @@
-import { cmpEnum } from "../core/seq.ts";
-
 /**
  * The powers, in their fixed order (C#'s enum order: sorting goes by it): the seven Great Kings of the Amarna
  * correspondence, then, since build order item 11+ ("City-states as powers"), the city-states and the lands under one
@@ -55,30 +53,86 @@ export const PowerValues = [
   "Arrapha",
   "Elam",
 ] as const;
-export type Power = (typeof PowerValues)[number];
+/** The powers the map starts with. */
+export type FixedPower = (typeof PowerValues)[number];
+/**
+ * A power: one the map starts with, or, since item 13+, one risen in play, named by its land (a fallen kingdom's
+ * governor ruling his province with a seat of his own; item 17's free cities will rise the same way).
+ */
+export type Power = FixedPower | (string & {});
 
 /** How a power is reckoned at the start: data, never a rule ("Different data, same rules"). */
 export const TierValues = ["Strong", "Middle", "Weak", "City"] as const;
 export type Tier = (typeof TierValues)[number];
 
-/** Every power in the fixed order. */
-export const AllPowers: readonly Power[] = PowerValues;
+/** The powers the map starts with, in their fixed order. */
+export const FixedPowers: readonly Power[] = PowerValues;
+
+/**
+ * A power risen in play (item 13+): its names, its capital and the temper its ruler brings to the seat. Kept in the game
+ * state (`GameState.risen`); the registry below mirrors it for the functions that name a power without the state.
+ */
+export interface RisenPower {
+  power: string;
+  /** The land's name in letters: its province's. */
+  land: string;
+  /** The ruler: the character who rose, by name. */
+  king: string;
+  /** His character's id. */
+  ruler: string;
+  /** Its one province, its capital. */
+  capital: string;
+  /** The season it rose. */
+  turn: number;
+  /** The kingdom it was part of. */
+  from: string;
+  /** His traits as a seat's temper (aggression, caution, honesty, greed), in hundredths, for script seats. */
+  temper: number[];
+}
+
+const live: Power[] = [...PowerValues];
+const risenData = new Map<string, RisenPower>();
+
+/** Every power in play's order: the fixed powers, then those risen in play, as they rose. Changes only with `setRisen`. */
+export const AllPowers: readonly Power[] = live;
+
+/** Sets the powers risen in play to a game's (`GameState.risen`): a new game's none, a loaded game's its own. */
+export function setRisen(list: readonly RisenPower[]): void {
+  live.length = PowerValues.length;
+  risenData.clear();
+  powerIndex.clear();
+  PowerValues.forEach((p, i) => powerIndex.set(p, i));
+  for (const r of list) addRisen(r);
+}
+
+/** Adds a power risen in play to the registry (the game state keeps it too). */
+export function addRisen(r: RisenPower): void {
+  if (risenData.has(r.power)) return;
+  risenData.set(r.power, r);
+  powerIndex.set(r.power, live.length);
+  live.push(r.power);
+}
+
+/** A power risen in play, or null for one the map starts with. */
+export function risenOf(p: Power): RisenPower | null {
+  return risenData.get(p) ?? null;
+}
 
 /** The seven Great Kings, who call each other brother: presentation and the claims to the rank (item 8), never a rule. */
 export const GreatKings: readonly Power[] = PowerValues.slice(0, 7);
 
-/** Powers in their fixed order (C#'s OrderBy on the enum). */
-export const cmpPower = cmpEnum(PowerValues);
-
 const powerIndex = new Map<string, number>(PowerValues.map((p, i) => [p, i]));
-/** A power's place in the fixed order (its enum value in C#). */
+/** A power's place in the order (its enum value in C#; a risen power's after every fixed one, as it rose). */
 export function powerOrdinal(p: Power): number {
-  return powerIndex.get(p)!;
+  return powerIndex.get(p) ?? Number.MAX_SAFE_INTEGER;
 }
+
+/** Powers in their order (C#'s OrderBy on the enum), risen powers after the fixed ones. */
+export const cmpPower = (a: Power, b: Power): number => powerOrdinal(a) - powerOrdinal(b);
 
 /** Whether a power is one of the seven Great Kings (presentation: greetings, titles, the start's words). */
 export function isGreatKing(p: Power): boolean {
-  return powerIndex.get(p)! < 7;
+  return powerOrdinal(p) < 7;
 }
 
 interface PowerData {
@@ -98,7 +152,7 @@ const d = (land: string, king: string, adjective: string, tier: Tier = "City"): 
  * earns a place"; until item 11f Mut-Baal, his son, who rules Pella from then); the lands without a king
  * (Kaska, Lukka, the Suteans) under a chief ("Land without a ruler").
  */
-const Data: Record<Power, PowerData> = {
+const Data: Record<FixedPower, PowerData> = {
   Egypt: d("Egypt", "Napkhururiya", "Egyptian", "Strong"),
   Hatti: d("Hatti", "Suppiluliuma", "Hittite", "Strong"),
   Babylonia: d("Karduniash", "Burna-Buriash", "Babylonian", "Strong"),
@@ -155,26 +209,35 @@ const Data: Record<Power, PowerData> = {
 
 /** A power's tier at the start (data for script players' styles and the start screen; no rule reads it). */
 export function tier(p: Power): Tier {
-  return Data[p].tier;
+  return dataOf(p).tier;
+}
+
+/** A power's names: a fixed power's from the table, a risen one's from its rising (its land's name, its ruler's). */
+function dataOf(p: Power): PowerData {
+  const fixed = (Data as Record<string, PowerData | undefined>)[p];
+  if (fixed !== undefined) return fixed;
+  const r = risenData.get(p);
+  // A risen power is named by its land, so a page that has not seen it rise still names it.
+  return d(r?.land ?? p, r?.king ?? `the ruler of ${p}`, r?.land ?? p);
 }
 
 /** The land's name as it appears in letters. */
 export function land(p: Power): string {
-  return Data[p].land;
+  return dataOf(p).land;
 }
 
 /** The reigning king (or chief), by the names the letters use. */
 export function king(p: Power): string {
-  return Data[p].king;
+  return dataOf(p).king;
 }
 
 /** Whether the sources name the ruler: an unnamed one is "the king of ...", and is written so. */
 export function rulerNamed(p: Power): boolean {
-  return !Data[p].king.toLowerCase().startsWith("the ");
+  return !dataOf(p).king.toLowerCase().startsWith("the ");
 }
 
 export function adjective(p: Power): string {
-  return Data[p].adjective;
+  return dataOf(p).adjective;
 }
 
 /**
@@ -186,12 +249,12 @@ export function parsePower(s: string | null | undefined): Power | null {
   const t = s.trim();
   if (t === "") return null;
   const lower = t.toLowerCase();
-  for (const p of PowerValues) if (p.toLowerCase() === lower) return p;
+  for (const p of AllPowers) if (p.toLowerCase() === lower) return p;
   if (/^[+-]?\d+$/.test(t)) {
     const n = Number(t);
-    return n >= 0 && n < PowerValues.length ? PowerValues[n] : null;
+    return n >= 0 && n < AllPowers.length ? AllPowers[n] : null;
   }
-  for (const p of PowerValues) if (land(p).toLowerCase() === lower) return p;
+  for (const p of AllPowers) if (land(p).toLowerCase() === lower) return p;
   return null;
 }
 

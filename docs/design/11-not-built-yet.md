@@ -49,9 +49,8 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   swapping what they carry (hiring bands as soldiers is built since item 13).
 - **A cheaper summariser**, measured on the same games before it is used ("A cheaper model for condensing,
   to be measured"; the round report, Part E).
-- **What item 13 left** ([command at a distance](35-command-at-a-distance.md)): a governor of a fallen kingdom becoming
-  his province's leader with a seat of his own (risen seats, item 17; until then his province falls lawless with the
-  rest); commanders and governors deciding by model rather than by script.
+- **What item 13 left** ([command at a distance](35-command-at-a-distance.md)): commanders and governors deciding by
+  model rather than by script; a risen governor's seat played by a model (it is a script seat, [37](37-answers-to-13.md)).
 - **Legends**: biographies of characters, histories of tablets and the rise and fall of courts, grown from the
   "follow this character" view ("The narrator illuminates; it never steers"; item 14).
 - **The message-kind fallback for reopening orders**, if kings reopen too often after audiences: reopening offered

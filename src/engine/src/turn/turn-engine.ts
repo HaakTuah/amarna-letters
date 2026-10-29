@@ -37,6 +37,7 @@ import "./names.ts";
 import "./knowledge.ts";
 import "./bands.ts";
 import "./cession.ts";
+import "./falls.ts";
 import "./letters.ts";
 import "./news.ts";
 import "./languages.ts";
