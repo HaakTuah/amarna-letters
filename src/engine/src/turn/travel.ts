@@ -9,7 +9,7 @@
  * travel by themselves until item 11b ({@link wordSeasons}), and so does news of who holds distant land (Views.knownHolders);
  * travellers bring home the news of the land they crossed.
  */
-import { levelOf, policeAt, policeFound, waysOf } from "../model/works.ts";
+import { hostileAt, levelOf, policeAt, policeFound, waysOf } from "../model/works.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
@@ -237,7 +237,7 @@ P.readAtStation = function (j, c, province) {
   const holder = S.owner.getOrDefault(province, null);
   const d = j.dispatch;
   if (holder === null || holder === masterOf(j) || holder === counterpart(j) || d === null || d === undefined || d.letter.trim() === "") return;
-  if (levelOf(S, "Stations", province) <= 0 || S.units.some((u) => u.province === province && u.power !== holder)) return;
+  if (levelOf(S, "Stations", province) <= 0 || hostileAt(S, province, holder)) return;
   const name = this.map.get(province).name;
   this.tell(holder, province, "SpyReport", "Read at a relay station", `At your relay station in ${name}, your men read the letter ${c.name} carries from ${j.from} to ${j.to}: "${d.letter}"`);
   logEvent(S, "station", `${holder}'s station men in ${name} read the letter ${c.name} carried from ${j.from} to ${j.to}.`, [holder], "station-read");

@@ -411,7 +411,7 @@ function unit(u: Node): Order | null {
       return sally(at, target);
     case "raze": {
       const kind = workKindNamed(target);
-      return raze(at, kind ?? "Roads");
+      return kind !== null ? raze(at, kind) : unreadable(`${at} razes '${target}'`, "name in target what to raze: roads, stations, harbour or water");
     }
     default:
       return null;

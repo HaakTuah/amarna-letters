@@ -76,7 +76,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       const key = `${f.kind}:${f.province}`;
       if (fortified.has(key)) return `you had already given an order for the ${workName(f.kind)} of ${prov.name} this season`;
       // The first season of a project paid in gold is reserved now.
-      return f.level > level && !f.labour ? spend(buildGold(f.kind, f.province, level + 1)) : null;
+      return f.level > level && !f.labour ? spend(buildGold(f.kind, f.province, f.kind === "Policing" ? f.level - level : level + 1)) : null;
     }
 
     case "raze": {

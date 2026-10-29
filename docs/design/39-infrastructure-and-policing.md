@@ -27,21 +27,26 @@ BUILDING AND POLICING (`src/llm/src/rules-works.ts`). Every number is a first gu
 - **The standing order** (`BuildOrder`, other_orders `build` in gold or `build_corvee`, item the kind, amount the level;
   police in men): the level to keep in a province of the king's, and how it is paid, until changed (`WorkPlan` in
   `GameState.works`). Above what stands, a project raises it a level at a time; below, the levels above go unkept and
-  decay. **What stands where no order was given is kept as it is by corvée**, the normal way of the age, so no king's
-  treasury pays for what he never ordered (reading below). A plan the same as that default is dropped.
+  decay. **Nothing is kept unless someone orders it**: what no order keeps decays. At the start each king has a standing
+  order to keep what stands in his land as it is, by corvée, the normal way of the age, seen in his view and his to change
+  (seeded in `newGame`); land taken from another is unkept until its new holder orders it kept (since the review).
 - **The season's work** (`worksSeason`, after the moves, sieges, falls and transfers, where item 5's fortify step was):
   for each king, nearest his court first, each kind in each province pays its upkeep (gold from the treasury into the
   province's purse; corvée men into `GameState.corvee`, away from the next harvest, and only if the men are at home),
   unpaid levels count towards their decay, and a project advances a season if it can be paid and worked. **War stops a
-  project**: none is worked where foreign troops stand or a siege lies, and under siege only walls, water works and
-  police, inside the walls, are kept. One notice, "Works", tells the king what it cost, what was done, what is under way,
-  what was not worked and why, and what fell.
-- **A province that changes hands** (`setOwner`) passes with what stands, and its old holder's orders for it lapse; the
-  new one keeps it by corvée until he orders otherwise.
+  project**: none is worked where hostile troops stand (`hostileAt`: not a guest by the holder's passage or basing grant)
+  or a siege lies, and under siege only walls and water works are kept, by corvée with the men inside (no treasury gold
+  reaches a besieged city), and police there go unpaid. The "Works" notice gives what it cost and, for the provinces the
+  court's couriers reach this season, what was done, is under way, was not worked and why, and fell; word of farther
+  provinces comes by courier (`tell`).
+- **A province that changes hands** (`setOwner`) passes with what stands, and its old holder's orders for it lapse; it is
+  unkept until the new holder orders it kept.
 - **Repairs under siege** ("Walls price the storm, not the clock", in place of item 5's ban): a besieged city whose walls
-  are ordered kept (any build order on its walls, kept at least at the level standing) makes good a step of the siege's
+  are ordered kept during the siege (a build order on its walls given since the siege began, kept at least at the level
+  standing) makes good a step of the siege's
   wear each season with 500 of its own men and 20 measures from its stores (`RepairData`), nothing from the treasury;
-  the order stands while the siege lasts. A repair is an order: the default keeps but never repairs.
+  the order stands while the siege lasts. A repair is an order: the standing order from before the siege keeps but never
+  repairs.
 - **Razing** (`RazeOrder`, unit order `raze`, target the kind): an army standing in land another holds razes a level of
   its roads, relay stations, harbour or water works. Standing there it still presses a siege.
 
@@ -93,9 +98,10 @@ BUILDING AND POLICING (`src/llm/src/rules-works.ts`). Every number is a first gu
 
 ## Readings taken
 
-- Kept by corvée unless ordered: upkeep must be paid for anything to hold ("each level costs gold every season"), and
-  nothing happens unless ordered, so what nobody ordered is kept the way the age kept it, labour as tax; its price is
-  harvest hands, not gold, so the treasuries of item 9+ are untouched by what stood at the start.
+- Each king starts with a standing order to keep what stands by corvée: upkeep must be paid for anything to hold, and
+  nothing happens unless ordered, so the engine keeps nothing for anyone; the order is the king's own, at the start the
+  way the age kept it, labour as tax, and its price is harvest hands, not gold (revised on the review: at first the
+  engine kept unordered land by corvée).
 - Level 1 is the attested pace: the dossier's journey times are on kept tracks, so a level-1 road changes nothing, and a
   land nobody keeps (0) is slower.
 - Policing counts men in tens; its effect follows the men with diminishing returns, so 20 or 50 police change little and

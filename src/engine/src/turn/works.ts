@@ -19,6 +19,7 @@ import {
   buildGold,
   buildMen,
   harbourRoom,
+  hostileAt,
   landRefusal,
   levelOf,
   newWorkPlan,
@@ -49,7 +50,7 @@ declare module "./core.ts" {
     worksSeason(): void;
     /** At the end of winter, fleets beyond the room their king's harbours give them on their waters lose crews to storms. */
     harboursWinter(): void;
-    /** A province changes hands: its old holder's orders for it lapse, and the new one keeps what stands by corvée. */
+    /** A province changes hands: its old holder's orders for it lapse, and what stands is unkept until its new one orders. */
     worksChangeHands(province: string): void;
   }
 }
@@ -67,6 +68,7 @@ P.setWorks = function (p, o) {
   if (plan === null) S.works.push((plan = newWorkPlan({ province: o.province, kind: o.kind })));
   plan.keep = o.level;
   plan.labour = o.labour;
+  plan.since = S.turn;
 };
 
 P.raze = function (p, o) {
@@ -96,35 +98,35 @@ P.worksChangeHands = function (province) {
 P.worksSeason = function () {
   const S = this.s;
   const Map = this.map;
-  const lines = new Dict<Power, string[]>();
-  const say = (p: Power, text: string): void => {
-    lines.set(p, [...lines.getOrDefault(p, []), text]);
-  };
   for (const p of alive(S)) {
     const t = S.treasuries.get(p);
     const court = this.courtAt(p);
     let gold = 0;
     let men = 0;
-    const fell: string[] = [];
-    const rose: string[] = [];
-    const going: string[] = [];
-    const stopped: string[] = [];
-    const unpaid: string[] = [];
+    // What the king is told, province by province: word of far provinces comes by courier, as any report does.
+    const said = new Dict<string, string[]>();
+    const say = (id: string, line: string): void => {
+      said.set(id, [...said.getOrDefault(id, []), line]);
+    };
     // Nearest the court first: what the treasury cannot keep goes unpaid far away first, as walls did since item 5.
     for (const id of sortBy(ownedBy(S, p), [(x: string) => Map.hops(court, x), cmpNum], [(x: string) => x, cmpStr])) {
       const prov = Map.get(id);
-      const hostile = S.units.some((u) => u.province === id && u.power !== p);
+      const hostile = hostileAt(S, id, p);
       const siege = siegeOf(S, id);
       for (const kind of WorkKindValues) {
         let level = levelOf(S, kind, id);
         const plan: WorkPlan | null = planOf(S, kind, id);
-        if (level <= 0 && (plan === null || plan.keep <= 0)) continue;
-        const keep = plan?.keep ?? level;
+        // What no order keeps goes unkept: nothing is kept unless someone orders it.
+        const keep = plan?.keep ?? 0;
         const labour = plan?.labour ?? true;
-        // What can be reached: under siege only what stands inside the walls, the walls, the water and the police;
-        // where hostile troops stand, nothing outside a city's walls.
-        const inside = kind === "Walls" || kind === "Water" || kind === "Policing";
-        const reach = !(siege !== null || hostile) || inside;
+        if (level <= 0 && keep <= 0) {
+          if (plan !== null) S.works.splice(S.works.indexOf(plan), 1);
+          continue;
+        }
+        // What can be reached: under siege only the walls and water works, with the men inside (gold buys only what is
+        // there); where hostile troops stand, nothing outside a city's walls.
+        const inside = kind === "Walls" || kind === "Water";
+        const reach = (siege === null && !hostile) || (inside && (siege === null || labour));
         // Upkeep, for the levels kept.
         const kept = Math.min(level, keep);
         let paid = false;
@@ -146,41 +148,40 @@ P.worksSeason = function () {
             }
           }
         }
-        // Decay: what stands unpaid, by its kind's rate; paid people (policing) go at once.
+        // Decay: what stands unpaid or unkept, by its kind's rate; paid people (policing) go at once.
         const standing = paid ? kept : 0;
-        const work = plan ?? newWorkPlan({ province: id, kind, keep: level });
+        const work = plan ?? newWorkPlan({ province: id, kind, keep: 0 });
         if (level > standing) {
-          if (kept > 0 && !paid) unpaid.push(`${workName(kind)} of ${prov.name}`);
+          if (kept > 0 && !paid) say(id, `the ${workName(kind)} of ${prov.name} went unpaid`);
           const data = WorksData[kind];
           work.neglect++;
           if (data.decay <= 0) {
-            fell.push(`the ${workName(kind)} of ${prov.name} (${workLevelText(kind, level)} to ${workLevelText(kind, standing)})`);
+            say(id, `the ${workName(kind)} of ${prov.name}, unkept, fell from ${workLevelText(kind, level)} to ${workLevelText(kind, standing)}`);
             level = standing;
             setLevel(S, kind, id, level);
             work.neglect = 0;
           } else if (work.neglect >= data.decay) {
             level--;
             setLevel(S, kind, id, level);
-            fell.push(`the ${workName(kind)} of ${prov.name} (to ${workLevelText(kind, level)})`);
+            say(id, `the ${workName(kind)} of ${prov.name}, unkept, fell to ${workLevelText(kind, level)}`);
             work.neglect = 0;
           }
         } else work.neglect = 0;
-        // Repair under siege: the walls kept by order mend a step of the siege's wear with the men and food inside.
-        if (kind === "Walls" && siege !== null && plan !== null && plan.keep >= level && level > 0 && siege.progress > 0) {
+        // Repair under siege: walls ordered kept during the siege (not by the standing order from the start) mend a step of its wear with the men and food inside.
+        if (kind === "Walls" && siege !== null && plan !== null && plan.since > 0 && plan.since >= siege.since && plan.keep >= level && level > 0 && siege.progress > 0) {
           if (menAvailable(S, id) >= RepairData.men && this.stores(id) >= RepairData.food) {
             S.corvee.set(id, S.corvee.getOrDefault(id, 0) + RepairData.men);
             this.takeFromStores(id, RepairData.food);
             siege.progress--;
             men += RepairData.men;
-            rose.push(`the walls of ${prov.name} repaired a step under siege (worn ${siege.progress} now)`);
+            say(id, `the walls of ${prov.name} were repaired a step under siege (worn ${siege.progress} now)`);
             logEvent(S, "repair", `${p} repaired the walls of ${prov.name} under siege.`, [p, siege.power], "wall-repair");
-          } else stopped.push(`the walls of ${prov.name}: too few men or too little food inside to repair them`);
+          } else say(id, `the walls of ${prov.name} could not be repaired: too few men or too little food inside`);
         }
         // A project: a level at a time, a season's work each season it can be paid and worked.
         if (keep > level && level < WorksData[kind].most && landRefusal(kind, prov) === null) {
-          if (siege !== null || hostile) {
-            stopped.push(`the ${workName(kind)} of ${prov.name}: war stops the work`);
-          } else {
+          if (siege !== null || hostile) say(id, `no work was done on the ${workName(kind)} of ${prov.name}: war stops the work`);
+          else {
             const next = kind === "Policing" ? keep : level + 1;
             const hire = kind === "Policing" ? next - level : next;
             let done = false;
@@ -200,7 +201,7 @@ P.worksSeason = function () {
                 done = true;
               }
             }
-            if (!done) stopped.push(`the ${workName(kind)} of ${prov.name}: ${labour ? "too few men at home" : "too little gold"}`);
+            if (!done) say(id, `no work was done on the ${workName(kind)} of ${prov.name}: ${labour ? "too few men at home" : "too little gold"}`);
             else {
               work.progress++;
               const seasons = WorksData[kind].seasons;
@@ -208,29 +209,27 @@ P.worksSeason = function () {
                 level = next;
                 setLevel(S, kind, id, level);
                 work.progress = 0;
-                rose.push(`the ${workName(kind)} of ${prov.name} (${workLevelText(kind, level)})`);
+                say(id, `the ${workName(kind)} of ${prov.name} were raised to ${workLevelText(kind, level)}`);
                 logEvent(S, "built", `${p} raised the ${workName(kind)} of ${prov.name} to ${workLevelText(kind, level)}.`, AllPowers.filter((x) => x === p || (kind === "Walls" && Views.sight(S, Map, x).has(id))), "built");
-              } else going.push(`the ${workName(kind)} of ${prov.name}: ${work.progress} of ${seasons} seasons done towards ${workLevelText(kind, level + 1)}`);
+              } else say(id, `the ${workName(kind)} of ${prov.name}: ${work.progress} of ${seasons} seasons done towards ${workLevelText(kind, level + 1)}`);
             }
           }
         }
-        // Keep the plan only while it says more than the default (keep what stands, by corvée, nothing under way).
-        // An order to repair walls under siege stands while the siege lasts.
-        const needed = work.keep !== level || !work.labour || work.progress > 0 || work.neglect > 0 || (plan !== null && kind === "Walls" && siege !== null);
+        // Keep the plan while it orders anything, has work under way or counts neglect.
+        const needed = work.keep > 0 || !work.labour || work.progress > 0 || work.neglect > 0;
         if (plan === null && needed) S.works.push(work);
         else if (plan !== null && !needed) S.works.splice(S.works.indexOf(plan), 1);
       }
     }
-    const text: string[] = [];
-    if (gold > 0 || men > 0) text.push(`What you keep and build cost ${formatMoney(gold)}${men > 0 ? ` and the corvée of ${men} men, away from the fields` : ""} this season.`);
-    if (rose.length > 0) text.push(`Done: ${rose.join("; ")}.`);
-    if (going.length > 0) text.push(`Under way: ${going.join("; ")}.`);
-    if (stopped.length > 0) text.push(`Not worked: ${stopped.join("; ")}.`);
-    if (unpaid.length > 0) text.push(`Unpaid: ${unpaid.join(", ")}.`);
-    if (fell.length > 0) text.push(`Unkept, fell: ${fell.join("; ")}.`);
-    if (text.length > 0) say(p, text.join(" "));
+    // One notice for what the court's couriers bring this season; word of farther provinces comes when it arrives.
+    const near: string[] = [];
+    for (const [id, l] of said.entries()) {
+      if (this.wordTo(p, id) === 0) near.push(...l);
+      else this.tell(p, id, "Resolution", "Works", `From ${Map.get(id).name}: ${l.join("; ")}.`);
+    }
+    const cost = gold > 0 || men > 0 ? `What you keep and build cost ${formatMoney(gold)}${men > 0 ? ` and the corvée of ${men} men, away from the fields` : ""} this season.` : "";
+    if (cost !== "" || near.length > 0) notify(S, p, "Resolution", "Works", [cost, near.length > 0 ? `${near.join("; ")}.` : ""].filter((x) => x !== "").join(" "));
   }
-  for (const [p, l] of lines.entries()) notify(S, p, "Resolution", "Works", l.join(" "));
   if (seasonOfTurn(S.turn) === WinterSeason) this.harboursWinter();
 };
 

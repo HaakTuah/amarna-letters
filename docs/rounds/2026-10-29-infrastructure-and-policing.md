@@ -43,9 +43,12 @@ The design note is [`docs/design/39-infrastructure-and-policing.md`](../design/3
 
 ## Readings taken
 
-1. **What nobody ordered is kept by corvée.** "Each level costs gold every season; paid, it holds" and "Nothing happens
-   unless someone orders it": the default keeps what stands the way the age kept it, labour as tax ("Paid in gold or in
-   labour": "the normal way of the age"), so the start costs harvest hands, not gold no king chose to spend.
+1. **Each king starts with a standing order to keep what stands, by corvée.** "Each level costs gold every season; paid,
+   it holds" and "Nothing happens unless someone orders it" ("A king may automate his own acts with standing and
+   scheduled orders, but the engine never does it for him"): what no order keeps decays, and the start's order is the
+   king's own, seen and changed like any standing order, set the way the age kept things ("Paid in gold or in labour":
+   "the normal way of the age"). Land taken from another is unkept until its new holder orders it kept. (Revised on the
+   review: the first build kept unordered land by corvée, which was the engine acting for the king.)
 2. **A level-1 road is the attested pace.** The geography dossier's journey times are on tracks kept by the local lord
    ("Roads and their upkeep"), so a kept track changes nothing and the townless lands' unkept tracks are slower.
 3. **Relay stations speed only a lone traveller**: fresh animals and stores serve a messenger, not a caravan or an army
@@ -59,8 +62,14 @@ The design note is [`docs/design/39-infrastructure-and-policing.md`](../design/3
    land down as troops do; troops and police do not add up, the lower share counts.
 7. **The corvée's restlessness is the harvest it costs** ("What follows needs no rule"): its men are away from the fields
    for the season, as item 10+a's corvée for walls was.
-8. **A repair under siege is an order**: the besieged "may repair", so the default keeps but never repairs, and the order
-   stands while the siege lasts.
+8. **A repair under siege is an order given during the siege**: the besieged "may repair", so the standing order from
+   before keeps but never repairs, and the order stands while the siege lasts.
+11. **Hostile troops are not guests**: "nowhere hostile troops stand" leaves out troops the holder lets stand by passage
+    or basing, so an ally's army stops neither police, upkeep, projects nor station reading.
+12. **Under siege gold cannot reach the city**: walls and water works are kept by corvée with the men inside; police go
+    unpaid there and fall, and are hired back by the order once the siege is over.
+13. **Word of far provinces' works travels**: the "Works" notice gives at once only what the couriers bring within the
+    season; a courier's order is read at the stations on its road when it is sent (the road is known then).
 9. **A harbour's level is room to winter, not to land** (the walls dossier: "a harbour's level limits the ships that can
    winter or refit there, not the ships that can land").
 10. **Water works add seasons, and a guarded way down** where a spring lies outside the walls; none where water never
