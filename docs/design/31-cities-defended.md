@@ -41,7 +41,7 @@ Item 11e's two fixes, each at its cause (`docs/intent/build-order/item-11.md`, t
   the scripts' thresholds (`Board.growth`, `LeadFloor`) were written for.
 - **The final score** (`finalScore`, `TurnEngine.finalScores`; Haakon's decision of 29 October 2026, added to the item
   while it was built): size, the realm's strength as a share of the largest living realm's, and performance, the rank
-  (`standingOf` / 2), both from 0 to 1, weighted by `GameConfig.sizeWeight` percent for size (50, a first guess, set in
+  (`standingOf` / 2), both from 0 to 1, weighted by `GameConfig.sizeWeight` percent for size (5 since item 11f, Haakon's answer to the review; 50 at first; a first guess, set in
   item 18 so that every power has about the same chance of first place). The winner is the living power with the highest
   score; a shared victory compares the pair's scores, each weighed by its starting strength, with every other power's.
   The end event and the web app's Standings (once the age has ended) give every living power's place, score, size and
