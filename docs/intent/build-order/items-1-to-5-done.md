@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Build order tab, revision 99 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Build order tab, revision 100 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 **The order.** Items 1 to 5 are built: their state is in the repository's `docs/BUILD-PROGRESS.md`, what each found and decided in `docs/archive/build-log.md`, and their full text in `docs/archive/design-history.md`.
 
 1. **Simulation fixes and default sleep** (built 19 October 2026).
