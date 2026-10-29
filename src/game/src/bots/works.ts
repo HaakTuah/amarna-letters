@@ -17,6 +17,8 @@ import {
   landRefusal,
   legPoints,
   PoliceMenPerLevel,
+  RepairData,
+  EconomyData,
   PointsPerDay,
   raze,
   seasonOfTurn,
@@ -125,8 +127,12 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
     return true;
   };
 
-  // Repairs: a besieged city of ours mends its walls with the men and food inside, a step a season.
-  for (const x of v.sieges.filter((s) => s.holder === b.me && s.progress > 0 && s.walls > 0)) orders.push(build(x.province, "Walls", x.walls, true));
+  // Repairs: a besieged city of ours mends its walls with the men and food inside, a step a season, only when a breach is
+  // near and its stores can spare the food: a city starved is lost as surely as one breached (measured in item 15).
+  for (const x of v.sieges.filter((s) => s.holder === b.me && s.walls > 0 && s.progress >= s.walls * EconomyData.breachPerLevel - 2)) {
+    const stores = v.provinces.find((p) => p.province === x.province)?.stores ?? 0;
+    if (stores >= RepairData.food * 6) orders.push(build(x.province, "Walls", x.walls, true));
+  }
 
   // Police where the loose gather or bands work: enough to hold them down, more where a band works.
   let policed = 0;
