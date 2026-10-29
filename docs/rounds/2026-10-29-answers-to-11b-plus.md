@@ -8,7 +8,7 @@ rule, is in `docs/design/27-answers-to-11b-plus.md`. Effort: medium; no helpers 
 ## The check for changes
 
 The live design document's Build order tab had no change since the copy's revision 82 at the start of the item.
-BUILD_ORDER_CHECK_BEFORE_PR
+Asked again before the pull request: no change in the Build order (82) or Overview (567) tabs.
 
 ## The audit at the start
 
@@ -91,7 +91,7 @@ readings").
 
 ## Design questions
 
-DESIGN_QUESTIONS
+None: every answer was settled by "The game in one page" and the item's own text (the readings above).
 
 ## Use against ignore
 
