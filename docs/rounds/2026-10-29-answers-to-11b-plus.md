@@ -30,7 +30,7 @@ Fifteen answers; five of them were built already in item 11b+ and are only check
    it to his captor's treasury; otherwise the town where he died, as before.
 5. No rule forgets talk of promises: the dozen-season forgetting and the 60-promise cap are gone; a person keeps old
    talk folded per party (`Character.payOld`), a script person weighs it by age (`talkWeight`), a model person sees it all
-   and gets a note to keep or drop when its memory is condensed.
+   and gets it in its summary of older memories, to keep or drop when it condenses them.
 6. A traveller decides whether to carry a letter: a script traveller carries free for his own court's people and asks a
    fee of anyone else (on delivery only from a court he trusts that pays carriers by standing order).
 7. A levy larger than a full unit: built in 11b+.
@@ -87,7 +87,9 @@ the logs):
 | Arzawa | 1 | 2 | 1.06 | 0.94 |
 | Alashiya | 0 | 1 | 0.97 | 0.96 |
 
-SOLO
+`--versus solo` (40 seeds, one script king among baseline seats): `develop` 1.26 growth against 0.99 and 30% of wins
+against 14%; this branch, final code, 1.24 against 0.99 and 29% against 14% (1.25 and 28% before its last hunting
+change). Within noise: no regression.
 
 Letters before: own people 530, passing travellers 580, hired 687, the spy itself 719; news sold 16 times (48 after).
 The suite's growth guard (one script king among baseline seats, two seeds) moved out of the suite with the small test
@@ -102,8 +104,8 @@ readings").
 1. **Old talk is kept per party at its mean season**, not promise by promise, once a person holds more than it keeps one
    by one: the weighting by age is then reckoned from the mean season. ("Memory": never lost; a script character's own
    formula.) First guess: `talkHalf` 8 seasons, plus one per ten of loyalty, so a loyal man weighs an old betrayal longer.
-2. **A model character keeps old talk in its own notes**: each fold writes a memory note, which its `SummarizeMemory`
-   call keeps or drops; the counts it is shown are all it ever heard, unweighed. ("Memory": he chooses what to keep.)
+2. **A model character keeps old talk in its own notes**: each fold renews a sentence of old talk in its summary of older
+   memories, which its `SummarizeMemory` call is given back and keeps or drops; the counts it is shown are all it ever heard, unweighed. ("Memory": he chooses what to keep.)
 3. **Courts' records stay as they are** (`payKnown`, unweighed). ("Memory": the tablets and a court's records.)
 4. **A dead captive's purse goes to his captor's treasury**, and the tablets on him to that court's archive as before.
    ("whoever is with him".)

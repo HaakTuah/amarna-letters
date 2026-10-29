@@ -13,11 +13,10 @@ Haakon's answers to item 11b+'s review (29 October 2026, "Agree to all"), each b
   purse of the town where he died (on the road, of the province). His hoard stays where it is kept.
 - **No rule forgets talk of promises** ("Memory"): `foldOldPay` still folds a promise heard everywhere after
   `HeardData.seasons` into each court's record (`payKnown`), and now also into the old talk of each person who heard
-  it (`Character.payOld`: per party, kept and broken, at the mean season), never dropped. A person keeps
-  `MoneyData.heardKeep` promises one by one and folds the oldest into its old talk when it holds a score more
-  (`hearPay`); it then takes in no talk of promises made by the last season folded (`Character.heardFrom`), so nothing is
-  counted twice. Each fold also leaves a note in its memory ("Old talk I keep: ..."), which a model character keeps or
-  drops in its own words when it condenses its memory (`SummarizeMemory`). The engine's reckoning for a script person
+  it (`Character.payOld`: per party, kept and broken, at the mean season), never dropped; while a promise is news a
+  person keeps it one by one (`heardPay`, no cap). Each fold also renews one sentence of old talk at the end of the
+  person's summary of older memories (`memorySummary`, "Old talk I keep, ..."; not for the dead), which a model character
+  is given back and keeps or drops in its own words when it condenses its memory (`SummarizeMemory`). The engine's reckoning for a script person
   weighs each promise by its age (`talkWeight`: half at `MoneyData.talkHalf` seasons plus a season per ten of loyalty,
   never nothing); a person's trust (`trustIn`) uses it. The life view gives all it heard (`kept`, `broken`, for the
   model) and the same weighed, in tenths (`keptAged`, `brokenAged`), which the script life mind uses.
