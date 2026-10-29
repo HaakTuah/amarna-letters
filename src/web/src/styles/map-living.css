@@ -24,3 +24,6 @@
 /* In the legend, the washes over the card's paper, a little stronger so their colour reads at that size. */
 .legend .season svg { background: var(--land); border-radius: 2px; }
 .legend .season .lg-frost { fill: #fff; opacity: .9; stroke: #8fa0a6; stroke-width: .8; }
+.map .season .drought.low { opacity: .22; }
+:is(.map, .legend) .season .spoiled { fill: #8f8a72; opacity: .32; }
+.map .season .storms path { fill: none; stroke-width: 44; stroke-linecap: round; opacity: .9; }

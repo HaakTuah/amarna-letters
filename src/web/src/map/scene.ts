@@ -4,7 +4,7 @@
  * news that reached it), never from anything it could not know.
  */
 import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
-import { coverOf, isMove, ownerFor, ownerOf, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
+import { coverOf, isMove, ownerFor, ownerOf, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, city, route, type Pt } from "./art.ts";
 
@@ -123,10 +123,16 @@ export interface MapScene {
   land: Map<string, LandState>;
 }
 
-/** Item 19: what this game has done to a province's land, beyond the calendar's look. */
-export type LandState = "Drought" | "Flood";
+/**
+ * Item 19: what this game has done to a province's land, beyond the calendar's look: a drought; a river's flood still
+ * lying in the season after it rose (a ruinous one, or the Tigris's or the Euphrates's damaging one); the year after it,
+ * fields spoiled; or a low Nile, a bad year of a river that brings too little.
+ */
+export type LandState = "Drought" | "Flooded" | "Spoiled" | "Low";
 
-const landOf = (f: SeasonFrame): Map<string, LandState> => new Map(f.climate.flatMap((c) => c.provinces.map((p) => [p, c.kind] as const)));
+const stateOf = (c: FrameClimate): LandState =>
+  c.kind === "Drought" ? "Drought" : c.river === "nile" && !c.ruinous ? "Low" : c.since === 0 ? "Flooded" : "Spoiled";
+const landOf = (f: SeasonFrame): Map<string, LandState> => new Map(f.climate.flatMap((c) => c.provinces.map((p) => [p, stateOf(c)] as const)));
 
 /** The walls a viewer knows in a frame. */
 export function wallsIn(f: SeasonFrame, viewer: Power | null): Map<string, number> {

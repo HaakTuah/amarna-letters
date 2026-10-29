@@ -36,8 +36,8 @@ the live game sooner, and a pass's review cannot hold up the next):
    the cartouche.
 3. **Snow from real elevation** (`scripts/map-snow.mjs`, `snow.png`, 65 KB, fetched only when winter is shown): the
    same terrain tiles as the relief, white above a winter snow line falling with latitude.
-4. **This game's droughts and floods** (copied into each season frame from `GameState.climate`): cracked brown land,
-   or water over the province. A seat sees them only where its own eyes last saw the land, as it was then; the
+4. **This game's droughts and rivers' bad years** (copied into each season frame from `GameState.climate`): cracked
+   brown land; a flood's water over the province, then spoiled fields; a low Nile as pale, unwatered land. A seat sees them only where its own eyes last saw the land, as it was then; the
    calendar shows everywhere. A test checks both (`map-scene.test.ts`).
 5. **The legend** gains the season's washes.
 
@@ -46,8 +46,10 @@ the live game sooner, and a pass's review cannot hold up the next):
 - **The year shows everywhere; this game's droughts and floods only as last seen** (pillar 4, "Information moves in
   physical time"): every court keeps the same calendar, but a drought abroad is known only by someone's eyes. A sight of
   the province is required: word of who holds it is not a sight of its fields.
-- **Storms over the open sea only** ("Everything on it comes from the game's own facts"): the engine makes only an open-sea
-  crossing dangerous in winter, so coastal waters stay calm on the map.
+- **Storms along the open-sea crossings only** ("Everything on it comes from the game's own facts"): the engine makes only
+  an open-sea crossing dangerous in winter, so coastal waters stay calm on the map.
+- **A river's bad year as what it was** (nothing on the map may mislead): a low Nile is unwatered land, not water; a
+  flood's water lies the season after it rose, then its fields are spoiled.
 - **The season shown is the one about to be played**, as the header's date is.
 - **Snow by elevation and latitude, not by province** ("Period first", "Numbers come from their causes"): the snow lies
   where the land is high, from real elevation, rather than on whole provinces; frost marks the provinces the engine gives
@@ -57,4 +59,18 @@ the live game sooner, and a pass's review cannot hold up the next):
 
 ### Measured
 
-To be filled when the pass's PR is readied: the script games before and after, the phone timings before and after.
+- **The script games are the same.** Ten games (`src/batch`, `--games 10 --seed 1 --verify-replay`) on the branch's base
+  and with the pass: the two summaries are identical line for line (302 lines) but for the wall-clock time.
+- **A throttled phone** (390 by 844, CPU slowed four times, `src/web/season-shots.mjs`), the main thread's long tasks
+  summed, three runs each, before and after: playing season 2 and drawing it, 407 and 426 ms; season 3, 487 and 470 ms;
+  one season back on the timeline, 473 and 460 ms. Within the runs' own spread (about 15%): the layer costs nothing
+  measurable. The snow (65 KB) is fetched only when winter is first shown.
+- **The smoke test** passes (at 390 and 1280 pixels, names and markers never overlapping, with the season layer drawn).
+
+### The review
+
+One reviewer (Opus, high): nothing blocking. Fixed from it: the measurements above; a river's bad year drawn by what it
+was (a low Nile as unwatered land, a flood's water for one season, then spoiled fields), not as water for three seasons;
+the rivers' flood seasons and winter read from the engine (`floodSeasonOf`, `WinterSeason`) rather than copied; a river
+in spate keeps the finer course when the season changes close up; storms along the open-sea crossings, where the
+engine's winter danger lies, rather than over coastless sea zones; comments and the notes' index.

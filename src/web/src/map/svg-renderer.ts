@@ -471,6 +471,8 @@ export class SvgMapRenderer implements MapRenderer {
   private scene: MapScene | null = null;
   private placing = 0;
   private fine = false;
+  /** The finer rivers, once loaded (fine-geo.ts). */
+  private fineRivers: ReadonlyMap<string, string> | null = null;
   private readonly onClick = (e: Event): void => {
     const t = e.target as Element | null;
     const person = t?.closest("[data-person]");
@@ -546,7 +548,12 @@ export class SvgMapRenderer implements MapRenderer {
     this.scene = s;
     const lower = this.view?.querySelector(".map-lower");
     lower?.setAttribute("aria-label", s.viewer !== null ? `Map of the Great Kings' lands as ${powerName(s.viewer)} sees it` : "Map of the Great Kings' lands (god view)");
-    this.layer("season", `${s.frame.turn % 3}|${s.viewer}|${[...s.land].join(";")}`, () => seasonLayer(s));
+    const seasonKey = `${s.frame.turn % 3}|${s.viewer}|${[...s.land].join(";")}`;
+    if (this.drawn.get("season") !== seasonKey) {
+      this.layer("season", seasonKey, () => seasonLayer(s));
+      // A river in spate is drawn on the board's course: close up, it takes the finer one the rivers have.
+      if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
+    }
     this.layer("tints", s.frame, () => tints(s));
     this.layer("fog", s, () => fog(s));
     this.layer("bands", s.frame, () => bands(s));
@@ -592,6 +599,7 @@ export class SvgMapRenderer implements MapRenderer {
     if (want) {
       import("./fine-geo.ts")
         .then(({ Fine }) => {
+          this.fineRivers = Fine.rivers;
           if (this.fine && this.view === view) this.swapGeography({ ...Fine.coasts, lakes: Fine.lakes }, Fine.rivers);
         })
         // Not loaded (offline before the cache had it): the board's own stay, and the next zoom tries again.

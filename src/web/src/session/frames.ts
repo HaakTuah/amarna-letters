@@ -5,6 +5,8 @@
  */
 import {
   AllPowers,
+  RiverFloods,
+  Rivers,
   Views,
   WorldMap,
   inboxOf,
@@ -116,14 +118,20 @@ export interface FrameSleep {
   spells: number;
 }
 
-/** News that reached a court in a season, which the map can place: a rumour from a court, or a spy's report from its post. */
-/** A drought or a river's flood under way in the season about to be played (item 19: the land drawn as it is). */
+/**
+ * A drought or a river's bad year under way in the season about to be played (item 19: the land drawn as it is): which
+ * river, if a river's, whether its flood was ruinous, and how many seasons since it struck.
+ */
 export interface FrameClimate {
   kind: "Drought" | "Flood";
   name: string;
   provinces: string[];
+  river: string | null;
+  ruinous: boolean;
+  since: number;
 }
 
+/** News that reached a court in a season, which the map can place: a rumour from a court, or a spy's report from its post. */
 export interface FrameNews {
   court: Power;
   kind: InboxKind;
@@ -326,7 +334,13 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     openAge: s.config.openAge,
     ageBand: ageBand(s.config.endMedian),
     ageEnded: s.ageEndedTurn === null ? null : { turn: s.ageEndedTurn, winners: [...s.ageWinners] },
-    climate: s.climate.filter((c) => c.startTurn <= s.turn && c.endTurn >= s.turn).map((c) => ({ kind: c.kind, name: c.name, provinces: [...c.provinces] })),
+    climate: s.climate
+      .filter((c) => c.startTurn <= s.turn && c.endTurn >= s.turn)
+      .map((c) => {
+        const river = c.kind === "Flood" ? (Rivers.find((r) => `the ${r.name}` === c.name)?.id ?? null) : null;
+        const ruinous = river !== null && c.percent <= (RiverFloods.get(river)?.ruinPercent ?? 0);
+        return { kind: c.kind, name: c.name, provinces: [...c.provinces], river, ruinous, since: s.turn - c.startTurn };
+      }),
   };
 }
 

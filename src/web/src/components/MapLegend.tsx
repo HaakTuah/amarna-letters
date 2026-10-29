@@ -36,12 +36,13 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-desert" fill="url(#stipple)" /></svg> desert (it feeds no army: an army there lives on its baggage, its king's stores and his caravans)</span>
         <span><svg viewBox="0 0 30 14"><path className="lg-lit" d="M2,13L11,3L13,13Z M15,13L22,5L23,13Z" /><path className="lg-shade" d="M11,3L20,13L13,13Z M22,5L29,13L23,13Z" /></svg> mountains and hills (real relief, lit from the north-west)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="marsh" fill="url(#reeds)" /></svg> marsh</span>
-        <span className="season"><svg viewBox="0 0 30 14"><rect width="30" height="14" className="inundation" /><rect width="30" height="14" fill="url(#flood)" /></svg> the Nile in flood (Akhet); a river in spate; land flooded this year</span>
+        <span className="season"><svg viewBox="0 0 30 14"><rect width="30" height="14" className="inundation" /><rect width="30" height="14" fill="url(#flood)" /></svg> the Nile in flood (Akhet); a river in spate; a ruinous flood still lying</span>
         <span className="season"><svg viewBox="0 0 30 14"><rect width="30" height="14" className="green" /></svg> green with the winter rains (Peret)</span>
         <span className="season"><svg viewBox="0 0 30 14"><rect width="30" height="14" className="frost lg-frost" /></svg> snow on the high ground, frost on the plateau (Peret): passes slow, the open sea stormy</span>
         <span className="season"><svg viewBox="0 0 30 14"><rect width="30" height="14" className="ripe" /><rect width="30" height="14" fill="url(#sheaves)" /></svg> harvest gold, where the land reaps this season</span>
         <span className="season"><svg viewBox="0 0 30 14"><rect width="30" height="14" className="dry" /></svg> dry at the end of summer</span>
         <span className="season"><svg viewBox="0 0 30 14"><rect width="30" height="14" className="drought" /><rect width="30" height="14" fill="url(#cracks)" /></svg> drought (in a king's view, as his people last saw it)</span>
+        <span className="season"><svg viewBox="0 0 30 14"><rect width="30" height="14" className="spoiled" /></svg> fields spoiled the year after a flood; paler brown, a low Nile (in a king's view, as last seen)</span>
         <span><svg viewBox="-12 -12 24 24"><circle className="seal s-hatti" r="3.4" /></svg> a city's small seal, where its badge would touch a more important one (zoom in for the badge)</span>
         <span><svg viewBox="-12 -12 24 24"><circle className="seal s-hatti crowd-lg" r="3.4" /></svg> small seal with a dark rim: its troops are hidden until you zoom in</span>
         {MarkKindsShown.map((k) => (

@@ -217,7 +217,7 @@ describe("MapSceneTests", () => {
     Assert.true(inSight !== undefined && out.length >= 2, "the court saw all the land or none of it");
     // One province never seen, and one the court saw a season ago only (its sight that season widened to it).
     let [neverSeen, seenBefore] = out;
-    let dry = (f: SeasonFrame, ids: string[]): SeasonFrame => ({ ...f, climate: [{ kind: "Drought", name: "a drought", provinces: ids }] });
+    let dry = (f: SeasonFrame, ids: string[]): SeasonFrame => ({ ...f, climate: [{ kind: "Drought", name: "a drought", provinces: ids, river: null, ruinous: false, since: 0 }] });
     let edited = frames.map((f, i) =>
       i === k ? dry(f, [inSight, neverSeen]) : i === k - 1 ? { ...dry(f, [seenBefore]), sight: new Map([...f.sight].map(([q, v]) => [q, q === p ? new Set([...v, seenBefore]) : v] as const)) } : f,
     );
