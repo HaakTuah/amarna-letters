@@ -850,10 +850,12 @@ export function willing(b: Board, brain: Brain, owner: Power, leader: Power | nu
 
 /**
  * What getting within walls without storming them is worth against taking the city at once: the army then stands and
- * besieges it for as many seasons as the walls are high (fewer with support), and may be driven out meanwhile.
+ * besieges it for as many seasons as the walls are high (fewer with support), and may be driven out meanwhile. Since item
+ * 11e a city of many men is seldom stormed and most fall to a siege, so a siege is worth more than when storms were the
+ * way in (0.6 / (1 + 0.25 x walls) before).
  */
 export function siegeWorth(walls: number): number {
-  return 0.6 / (1 + 0.25 * walls);
+  return 0.85 / (1 + 0.2 * walls);
 }
 
 function assign(plan: MilitaryPlan, free: HSet<string>, unit: string, order: Order, role: string): void {
