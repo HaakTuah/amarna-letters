@@ -5,7 +5,7 @@ import { type GameConfig, GameConfigSchema, newGameConfig } from "./config.ts";
 import { type UnitKind, WorldMap } from "./map.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import { type Character, CharacterSchema } from "./people.ts";
-import { AllPowers, type Power, cmpPower } from "./power.ts";
+import { AllPowers, type Power, type RisenPower, cmpPower } from "./power.ts";
 import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
@@ -82,6 +82,12 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
 );
 
 export const CURRENT_VERSION = 34;
+
+export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
+  "RisenPower",
+  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", temper: [], ...init }),
+  { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, temper: list(I) },
+);
 
 /**
  * A standing order to hunt bands (Haakon's answers to items 11b and 11b+): whose, in which provinces (none named: the
@@ -282,6 +288,8 @@ export interface GameState {
   treasuries: Dict<Power, Treasury>;
   startStrength: Dict<Power, number>;
   eliminated: Power[];
+  /** Item 13+: the powers risen in play, as they rose: a fallen kingdom's governors ruling their provinces. */
+  risen: RisenPower[];
   /**
    * Each kingdom's fall: when, to whom, and the land that passed (Build order item 5: a kingdom falls with its capital).
    */
@@ -398,6 +406,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     treasuries: new Dict(),
     startStrength: new Dict(),
     eliminated: [],
+    risen: [],
     falls: [],
     invaded: new Dict(),
     characters: [],
@@ -498,6 +507,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   treasuries: dict(() => TreasurySchema),
   startStrength: dict(I),
   eliminated: list(S),
+  risen: list(() => RisenPowerSchema),
   falls: list(() => KingdomFallSchema),
   invaded: dict(dict(I)),
   characters: list(() => CharacterSchema),

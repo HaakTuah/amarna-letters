@@ -172,6 +172,16 @@ export class GameRunner {
     this.characterAsks.set(characterId, list);
   }
 
+  /**
+   * A power's seat. A power risen in play (item 13+) has none of the table's: a script seat plays it, or on replay the
+   * log's decisions.
+   */
+  seatOf(p: Power): ISeat {
+    let seat = this.seats.tryGet(p);
+    if (seat === undefined) this.seats.set(p, (seat = this.isReplay ? new ReplaySeat("risen") : this.fallbackSeat));
+    return seat;
+  }
+
   constructor(state: GameState, seats: Dict<Power, ISeat>, minds: ICharacterMind, narrator: INarrator, options: RunnerOptions = {}) {
     const replay = options.replay ?? null;
     if (replay !== null && !options.anyVersion) ensureVersion(replay.header);
@@ -371,7 +381,7 @@ export class GameRunner {
     // A sleeping seat may wake itself (a human who wants to act): a decision in the log, kept only when it happens.
     for (const p of alive(S_).filter((p) => engine.isAsleep(p))) {
       const key = `t${turn}/wake/${p}`;
-      if (this.replay?.has(key) === true || this.seats.get(p).wakeRequested?.() === true) {
+      if (this.replay?.has(key) === true || this.seatOf(p).wakeRequested?.() === true) {
         await this.recorded<boolean>(key, B, () => Promise.resolve(true));
         engine.wakeSelf(p);
       }
@@ -459,11 +469,11 @@ export class GameRunner {
     const asked = alive(S_).filter((p) => {
       if (engine.lightAlerts(p).length === 0) return false;
       const key = `t${turn}/alerts/${p}`;
-      return this.replay !== null && this.replay.has(key) ? true : !this.isReplay && this.seats.get(p).readAlerts !== undefined;
+      return this.replay !== null && this.replay.has(key) ? true : !this.isReplay && this.seatOf(p).readAlerts !== undefined;
     });
     const woken = await Promise.all(
       asked.map((p) => {
-        const seat = this.seats.get(p);
+        const seat = this.seatOf(p);
         const alerts = engine.lightAlerts(p);
         // What goes straight to the king's own mind wakes him without a reader's call; only light news is read for him.
         if (alerts.some((a) => a.weighty)) return this.recorded<boolean>(`t${turn}/alerts/${p}`, B, () => Promise.resolve(true));
@@ -508,7 +518,7 @@ export class GameRunner {
       const court = engine.isAsleep(host) ? new Court() : null;
       const runs: AudienceRun[] = [];
       for (const a of sortBy(group, [(a: PendingAudience) => idNumber(a.id), cmpNum])) runs.push(await this.openAudience(engine, a, turn, signal));
-      const seat = this.seats.get(host);
+      const seat = this.seatOf(host);
       // Envoys the king's standing answers cover are answered first, for it, in one exchange each.
       for (const r of runs) if (r.a.answer !== null) await this.answered(engine, r, turn, court, signal);
       // A seat that answers its whole court in one call ("One call per wake-up") is asked once for each exchange, every
@@ -627,7 +637,7 @@ export class GameRunner {
    */
   private async answered(engine: TurnEngine, r: AudienceRun, turn: number, court: Court | null, signal?: AbortSignal): Promise<void> {
     const a = r.a;
-    const seat = this.seats.get(a.host);
+    const seat = this.seatOf(a.host);
     const view = this.audienceView(engine, r, 1, court);
     const reply = await this.recorded<HostReply>(
       `${r.key}/host/1`,
@@ -683,7 +693,7 @@ export class GameRunner {
         stand.fromFallback = true;
         return stand;
       },
-      this.seats.get(r.a.host).label,
+      this.seatOf(r.a.host).label,
     );
   }
 
@@ -734,20 +744,20 @@ export class GameRunner {
     // A shadow brain: the stand-in reads every model or file seat's view each season, asleep or awake, so that when a call
     // fails it plays a king who remembers. Its reading changes nothing in the game, so replays stay exact; a strict replay
     // asks no seat and skips it.
-    if (!this.isReplay) for (const p of alive(S_).filter((p) => this.seats.get(p).canSleep === true)) this.fallbackSeat.observe(views.tryGet(p) ?? Views.for(S_, p));
+    if (!this.isReplay) for (const p of alive(S_).filter((p) => this.seatOf(p).canSleep === true)) this.fallbackSeat.observe(views.tryGet(p) ?? Views.for(S_, p));
     const results = await Promise.all(
       living.map((p) =>
         this.recorded<TurnSubmission>(
           `t${turn}/orders/${p}`,
           TurnSubmissionSchema,
-          () => this.seats.get(p).decide(views.get(p), signal),
+          () => this.seatOf(p).decide(views.get(p), signal),
           async () => {
             // The script king stands in; the seat itself has not seen this season (its digest is kept for it).
             const stand = await this.fallbackSeat.decide(views.get(p), signal);
             stand.fromFallback = true;
             return stand;
           },
-          this.seats.get(p).label,
+          this.seatOf(p).label,
         ),
       ),
     );

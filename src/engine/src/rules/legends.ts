@@ -7,7 +7,7 @@
  */
 import { cmpNum, cmpStr, desc, sortBy } from "../core/seq.ts";
 import type { Character } from "../model/people.ts";
-import { AllPowers, type Power } from "../model/power.ts";
+import { AllPowers, type Power, type RisenPower } from "../model/power.ts";
 import type { GameEvent, Tablet } from "../model/records.ts";
 import type { GameState } from "../model/state.ts";
 import { WorldMap } from "../model/map.ts";
@@ -66,6 +66,7 @@ export function characterLegend(s: GameState, id: string, viewer: Power | null):
   if (unique)
     for (const e of s.events)
       if (namesIn(e, c) && (viewer === null || e.visibleTo.includes(viewer))) out.push(line(e.turn, e.text));
+  for (const r of s.risen) if (r.ruler === id && (viewer === null || viewer === r.power || viewer === r.from)) out.push(newIdrimi(r));
   if (viewer === null) {
     for (const t of s.tablets) {
       if (t.inventory) continue;
@@ -186,12 +187,22 @@ export function courtLegend(s: GameState, p: Power): LegendLine[] {
     else if (f.conqueror === p) out.push(line(f.turn, `Brought down ${f.power}, taking ${provinceName(f.capital)}.`, f.capital));
   }
   for (const e of s.events) if (ChronicleKinds.has(e.kind) && wordIn(e.text, p)) out.push(line(e.turn, e.text));
+  for (const r of s.risen) if (r.power === p || r.from === p) out.push(newIdrimi(r));
   if (s.ended || s.ageEndedTurn !== null) {
     const won = (s.ageEndedTurn !== null ? s.ageWinners : s.winners).includes(p);
     const last = rows.length > 0 ? rows[rows.length - 1] : null;
     out.push(line(s.ageEndedTurn ?? s.turn, `${won ? "Won the age" : "Ended the age"}${last !== null ? ` holding ${last.provinces} province${last.provinces === 1 ? "" : "s"}` : ""}.`));
   }
   return byTurn(out);
+}
+
+/**
+ * "A new Idrimi" (Voice of the age): when a character rises to rule a city of his own, the chronicle names it after the
+ * legend. Since item 13+ a fallen kingdom's governor rises so, ruling his province with a seat of his own; an outlaw's band
+ * taking a city rises by item 17's risen seats, and will read here the same way, from the record of the powers risen.
+ */
+export function newIdrimi(r: RisenPower): LegendLine {
+  return line(r.turn, `A new Idrimi: ${r.king}, who governed ${provinceName(r.capital)} for ${r.from}, rose to rule it in his own name when ${r.from} fell.`, r.capital);
 }
 
 /** The events the chronicle keeps as legends of their own ("A new Idrimi", "Finkel's version"). */

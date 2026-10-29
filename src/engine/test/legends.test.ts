@@ -25,6 +25,7 @@ import {
   revelations,
   single,
   tabletLegends,
+  type RisenPower,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -126,6 +127,18 @@ describe("LegendsTests", () => {
     Assert.empty(characterLegend(s, c.id, "Egypt"));
     first(s.characters, (x) => x.id !== c.id).name = c.name;
     Assert.empty(characterLegend(s, c.id, null));
+  });
+
+  test("A governor who rises to rule his province is a new Idrimi, in his life and in both courts' legends", () => {
+    let s = game();
+    let c = first(s.characters, (x) => x.employer === "Hatti");
+    const r: RisenPower = { power: "Tuwanuwa", land: "Tuwanuwa", king: c.name, ruler: c.id, capital: "tuwanuwa", turn: 6, from: "Hatti", temper: [] };
+    s.risen.push(r);
+    const idrimi = (l: { text: string }): boolean => l.text.startsWith(`A new Idrimi: ${c.name}, who governed Tuwanuwa for Hatti`);
+    Assert.contains(characterLegend(s, c.id, null), idrimi);
+    Assert.contains(courtLegend(s, "Hatti"), idrimi);
+    Assert.contains(courtLegend(s, "Tuwanuwa"), idrimi);
+    Assert.empty(characterLegend(s, c.id, "Egypt").filter(idrimi));
   });
 
   test("The record opens: each deception by kind, secret masters, and the season the end was drawn for only once it has ended", () => {

@@ -2,7 +2,7 @@
  * How a script king plays. Every weight runs from 0 to 1. Each power has a historical archetype, and every game nudges
  * each weight by a seeded amount, so a king is recognisable from game to game but never quite the same.
  */
-import { Rng, clamp, cmpNum, desc, sortBy, type Power } from "@amarna/engine";
+import { Rng, clamp, cmpNum, desc, risenOf, sortBy, type FixedPower, type Power } from "@amarna/engine";
 
 export interface Personality {
   readonly epithet: string;
@@ -149,7 +149,7 @@ const city = (epithet: string, description: string, w: readonly number[]): Perso
   commerce: w[9],
 });
 
-const cityArchetypes: Record<Exclude<Power, "Egypt" | "Hatti" | "Babylonia" | "Mitanni" | "Assyria" | "Arzawa" | "Alashiya">, Personality> = {
+const cityArchetypes: Record<Exclude<FixedPower, "Egypt" | "Hatti" | "Babylonia" | "Mitanni" | "Assyria" | "Arzawa" | "Alashiya">, Personality> = {
   Kaska: city("the burner of Hattusa", "Chiefs of the hill villages who raid the Hittite lands and bow to no king.", [0.8, 0.3, 0.4, 0.6, 0.2, 0.5, 0.2, 0.5, 0.7, 0.1]),
   Lukka: city("the sea raider", "Seafarers without a king who fall on Alashiya year by year.", [0.75, 0.3, 0.35, 0.7, 0.2, 0.4, 0.25, 0.6, 0.5, 0.4]),
   // Item 11d: Arzawa's two lands of their own rulers, and Hana under Mitanni
@@ -194,11 +194,21 @@ const cityArchetypes: Record<Exclude<Power, "Egypt" | "Hatti" | "Babylonia" | "M
   Elam: city("the king beyond the circle", "A kingdom outside the Great Kings' circle, watching Babylon.", [0.5, 0.55, 0.5, 0.55, 0.35, 0.75, 0.4, 0.5, 0.6, 0.5]),
 };
 
-const archetypes: Record<Power, Personality> = { ...greatArchetypes, ...cityArchetypes };
+const archetypes: Record<FixedPower, Personality> = { ...greatArchetypes, ...cityArchetypes };
+
+/**
+ * A power risen in play (item 13+): its ruler's temper (his ambition, fear, loyalty and greed, as his rising records
+ * them) on a city's middling weights, so the same mind that governed plays the seat.
+ */
+function risenArchetype(p: Power): Personality {
+  const r = risenOf(p);
+  const [ambition, fear, loyalty, greed] = (r?.temper ?? [50, 50, 50, 50]).map((x) => clamp(x / 100, 0, 1));
+  return city(`the risen governor`, `${r?.king ?? "A governor"}, who ruled ${r?.land ?? p} for ${r?.from ?? "a fallen king"} and rules it now in his own name.`, [0.2 + 0.6 * ambition, 0.2 + 0.6 * fear, 0.2 + 0.6 * loyalty, 0.2 + 0.6 * greed, 0.4, 0.5, 0.55, 0.5, 0.5, 0.5]);
+}
 
 /** The archetype for a power, varied by a seed: a script seat's own (see ScriptLeader.seatSeed), never the game's. */
 export function personalityFor(p: Power, seed: number): Personality {
-  const a = archetypes[p];
+  const a = (archetypes as Record<string, Personality | undefined>)[p] ?? risenArchetype(p);
   const r = Rng.for(seed, 0, "personality", p);
   const j = (v: number): number => clamp(v + (r.nextDouble() - 0.5) * 0.3, 0, 1);
   // The jitter is drawn in the order of the C# record's with-expression: aggression first, commerce last.
@@ -216,7 +226,7 @@ export function personalityFor(p: Power, seed: number): Personality {
 }
 
 export function archetype(p: Power): Personality {
-  return archetypes[p];
+  return (archetypes as Record<string, Personality | undefined>)[p] ?? risenArchetype(p);
 }
 
 /** The two or three traits that stand out, for display. */

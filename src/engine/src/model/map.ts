@@ -1,6 +1,6 @@
 import type { Dict } from "../core/collections.ts";
 import { eqIgnoreCase, isBlank, trim } from "../core/text.ts";
-import { isGreatKing, type Power } from "./power.ts";
+import { isGreatKing, risenOf, type Power } from "./power.ts";
 import { crossingBetween } from "./geography.ts";
 
 export const ProvinceKindValues = ["Land", "Coast", "Sea"] as const;
@@ -130,7 +130,9 @@ export class WorldMap {
   }
 
   capital(power: Power): Province {
-    const p = this.provinces.find((x) => x.capital && x.home === power);
+    // A power risen in play (item 13+) has its one province for its capital, though the map is not its home.
+    const risen = risenOf(power);
+    const p = risen !== null ? this.byId.get(risen.capital) : this.provinces.find((x) => x.capital && x.home === power);
     if (!p) throw new Error("Sequence contains no matching element");
     return p;
   }
