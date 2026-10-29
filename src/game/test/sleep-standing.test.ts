@@ -32,7 +32,7 @@ import {
   unitAt,
 } from "@amarna/engine";
 import { type JsonObject, LlmLeaderSeat, Parse, Replies, Schemas, leaderRules, problems, situation } from "@amarna/llm";
-import { at, str, Assert, last } from "../../engine/test/support.ts";
+import { at, str, Assert, formerHomes, last } from "../../engine/test/support.ts";
 import { Sleeper } from "./sleep-support.ts";
 import { Scripted } from "./sleep-support.ts";
 import { Quiet } from "./sleep-support.ts";
@@ -256,7 +256,7 @@ describe("SleepTests", () => {
     // Turn 1: Babylon gives its standing orders. Turn 2, as it sleeps: Assyria's army sets out for Arrapha; Mitanni's sets
     // out for Suhu and fails against the Assyrian army standing within its walls; Mitanni's army in Taidu sets out for
     // Nineveh, out of Babylon's sight; Babylon's own army marches to Nippur, and another sets out against its own army in Sippar.
-    let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
+    let s = formerHomes(newGame(31, newGameConfig({ catastropheChance: 0 })));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu" }));
     let sleep = newSleepState();
     s.sleep.set("Babylonia", sleep);

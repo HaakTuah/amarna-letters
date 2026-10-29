@@ -485,10 +485,11 @@ export function batchReport(games: readonly GameSummary[]): string {
   for (const p of AllPowers) {
     const wins = games.filter((g) => g.winners.includes(p)).length;
     const avg = mean(games.map((g) => g.growth[p]));
-    // Par's measure (item 11+): the mean growth in the games the power is still standing in (a fallen power's growth is 0).
+    // Par's measure (item 11d): the mean growth over all games, a fall counted as 0, so that survival itself scores; the
+    // survivors' own mean beside it.
     const standing = games.filter((g) => g.growth[p] > 0);
-    const survived = standing.length === 0 ? "" : `  survivors ${align(String(standing.length), 3)} at ${fmt(mean(standing.map((g) => g.growth[p])), "0.00")} (par ${fmt(parOf(p), "0.00")})`;
-    lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")}${survived}`);
+    const survived = standing.length === 0 ? "" : `  survivors ${align(String(standing.length), 3)} at ${fmt(mean(standing.map((g) => g.growth[p])), "0.00")}`;
+    lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")} (par ${fmt(parOf(p), "0.00")})${survived}`);
   }
   const weakWins = games.filter((g) =>
     g.winners.some((w) => {

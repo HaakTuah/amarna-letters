@@ -19,7 +19,7 @@ import {
   unitAt,
   LandData,
 } from "@amarna/engine";
-import { Assert, subs } from "./support.ts";
+import { Assert, formerHomes, subs } from "./support.ts";
 
 // The reasons a battle report gives that the first battle report tests leave out: a head-to-head lost before a
 // third move walked in, a unit out of sight left unnamed, a unit that could not leave, a missing convoy, and
@@ -35,7 +35,7 @@ describe("BattleReasonTests", () => {
 
   test("A head to head lost is the reason even when a third move takes the province", () => {
     // Assyria (2) and Mitanni (3) meet head to head between Ekallate and Terqa; Hatti walks into the Terqa Mitanni left.
-    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
+    let s = formerHomes(newGame(1, newGameConfig({ peopleDefence: 0 })));
     s.units.push(newUnit({ id: "u90", power: "Hatti", kind: "Army", province: "harran" }));
     resolve(
       s,
@@ -106,7 +106,7 @@ describe("BattleReasonTests", () => {
 
   test("A unit that could not leave kept its place", () => {
     // Mitanni's army in Terqa and Babylon's in Sippar strike Suhu and bounce, so Assyria's move into Terqa meets it still there.
-    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
+    let s = formerHomes(newGame(1, newGameConfig({ peopleDefence: 0 })));
     resolve(
       s,
       subs({

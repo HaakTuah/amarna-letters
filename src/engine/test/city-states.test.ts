@@ -18,6 +18,7 @@ import {
   clause,
   vassalBonds,
   vassalTerms,
+  StartWalls,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -26,7 +27,7 @@ const Map = WorldMap.default;
 describe("City-states as powers (item 11+)", () => {
   test("Every city-state is a power holding its city as its capital, under the same rules", () => {
     const s = newGame(1);
-    Assert.equal(30, AllPowers.length);
+    Assert.equal(33, AllPowers.length);
     Assert.equal(7, GreatKings.length);
     for (const p of AllPowers.filter((x) => !isGreatKing(x))) {
       const cap = Map.capital(p);
@@ -34,8 +35,9 @@ describe("City-states as powers (item 11+)", () => {
       Assert.true(s.units.some((u) => u.power === p && u.province === cap.id));
       Assert.true(s.treasuries.get(p).gold > 0);
       Assert.true(s.startStrength.get(p) > 0);
-      // A city's walls are a capital's; the lands without a town have their chiefs' strongholds.
-      Assert.equal(cap.kingless ? 2 : 3, s.walls.getOrDefault(cap.id, 0));
+      // A city's walls are the walls dossier's (item 11d); the lands without a town have none.
+      Assert.equal(StartWalls.get(cap.id) ?? 0, s.walls.getOrDefault(cap.id, 0));
+      if (cap.kingless) Assert.equal(0, s.walls.getOrDefault(cap.id, 0));
     }
     // Egypt's garrison towns are its own land; no land province starts without a holder.
     Assert.equal("Egypt", s.owner.get("gaza"));

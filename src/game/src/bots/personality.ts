@@ -152,6 +152,10 @@ const city = (epithet: string, description: string, w: readonly number[]): Perso
 const cityArchetypes: Record<Exclude<Power, "Egypt" | "Hatti" | "Babylonia" | "Mitanni" | "Assyria" | "Arzawa" | "Alashiya">, Personality> = {
   Kaska: city("the burner of Hattusa", "Chiefs of the hill villages who raid the Hittite lands and bow to no king.", [0.8, 0.3, 0.4, 0.6, 0.2, 0.5, 0.2, 0.5, 0.7, 0.1]),
   Lukka: city("the sea raider", "Seafarers without a king who fall on Alashiya year by year.", [0.75, 0.3, 0.35, 0.7, 0.2, 0.4, 0.25, 0.6, 0.5, 0.4]),
+  // Item 11d: Arzawa's two lands of their own rulers, and Hana under Mitanni
+  Seha: city("the river land of the west", "Kings of the Seha River Land, Arzawa's allies more than its subjects, with harbours on the Aegean.", [0.4, 0.55, 0.5, 0.55, 0.4, 0.5, 0.55, 0.5, 0.5, 0.65]),
+  Mira: city("the hill kingdom", "Kings of Mira beside Arzawa, who go with whoever rules the west.", [0.45, 0.55, 0.5, 0.5, 0.4, 0.55, 0.55, 0.5, 0.55, 0.4]),
+  Terqa: city("the land of Hana", "Local kings of Hana on the middle Euphrates, within Mitanni's reach.", [0.35, 0.6, 0.55, 0.5, 0.4, 0.45, 0.55, 0.45, 0.5, 0.55]),
   Isuwa: city("the buffer", "A small kingdom between Hatti and Mitanni that goes with whoever is stronger.", [0.3, 0.75, 0.5, 0.5, 0.4, 0.4, 0.6, 0.55, 0.4, 0.4]),
   Carchemish: city("the warden of the crossing", "Mitanni's city on the Euphrates crossing, proud of its walls.", [0.4, 0.65, 0.6, 0.5, 0.4, 0.6, 0.5, 0.4, 0.5, 0.6]),
   Alalakh: city("the king of Mukish", "Mitanni's vassal on the Orontes, quick to join a league against a neighbour who changes sides.", [0.5, 0.5, 0.5, 0.5, 0.4, 0.5, 0.6, 0.5, 0.6, 0.5]),

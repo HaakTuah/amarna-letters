@@ -50,7 +50,8 @@ describe("AbsorptionTests", () => {
     // Its strength counts a third of Sapinuwa's land worth beside its homeland's.
     // The harvest each province's people bring in now (item 10+a), at the land's worth.
     const worth = (id: string): number => grainWorth(e.harvestNow(id, false)) + economyOf(WorldMap.default.get(id)).mine;
-    const home = WorldMap.default.homeOf("Mitanni").reduce((a, x) => a + worth(x.id), 0);
+    // Its homeland, and Terqa, its own in the world before item 11d.
+    const home = WorldMap.default.homeOf("Mitanni").reduce((a, x) => a + worth(x.id), 0) + worth("terqa");
     Assert.equal(home + Math.round(worth("sapinuwa") / 3), e.landYield("Mitanni"));
     // Its taker sees the mark; no other court does, not even the loser (how land changed hands is not public).
     Assert.equal(1, Views.for(s, "Mitanni").conquered.get("sapinuwa"));
