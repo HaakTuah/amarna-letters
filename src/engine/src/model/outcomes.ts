@@ -61,6 +61,8 @@ export interface MoveFailure {
   ground: Ground | null;
   /** What that ground counted for ({@link GameConfig.TerrainDefence}). */
   groundBonus: number;
+  /** For a move the unit in the target held off: what the land's own men counted for beside it (item 11e). */
+  people: number;
 }
 
 export function newMoveFailure(init: Partial<MoveFailure> = {}): MoveFailure {
@@ -74,6 +76,7 @@ export function newMoveFailure(init: Partial<MoveFailure> = {}): MoveFailure {
     against: 0,
     ground: null,
     groundBonus: 0,
+    people: 0,
     ...init,
   };
 }
@@ -88,6 +91,7 @@ export const MoveFailureSchema: ObjSchema<MoveFailure> = obj("MoveFailure", newM
   against: I,
   ground: raw,
   groundBonus: I,
+  people: I,
 });
 
 /**
@@ -155,7 +159,8 @@ export interface Assault {
   strength: number;
   walls: number;
   defenders: number;
-  // computed in C#: Kind == UnitKind.Army && Strength > Walls + Defenders
+  /** The city's own men of fighting age on its walls, as hostile as they are to the attacker (item 11e). */
+  people: number;
   /**
    * The ground that counted in the defenders' hold strength, if any: a storm must beat it too (it beat it to get in).
    */
@@ -174,6 +179,7 @@ export function newAssault(init: Partial<Assault> = {}): Assault {
     strength: 0,
     walls: 0,
     defenders: 0,
+    people: 0,
     ground: null,
     groundBonus: 0,
     ...init,
@@ -189,6 +195,7 @@ export const AssaultSchema: ObjSchema<Assault> = obj("Assault", newAssault, {
   strength: I,
   walls: I,
   defenders: I,
+  people: I,
   stormed: computed(B, (o: Assault) => stormed(o)),
   ground: raw,
   groundBonus: I,
@@ -298,8 +305,18 @@ export const OrderOutcomeSchema: ObjSchema<OrderOutcome> = obj("OrderOutcome", n
 
 
 /** An army's assault on walls succeeds when its strength beats the walls and their defenders together. */
+/**
+ * Whether a move stormed the walls: an army whose strength beats the walls' level and the defenders on them, the garrison
+ * it beat and the city's own men, each multiplied by the walls (item 11e: walls 1 double them, walls 3 make them four
+ * times as strong; strengths in thousandths of a full unit).
+ */
 export function stormed(o: Assault): boolean {
-  return o.kind === "Army" && o.strength > o.walls + o.defenders;
+  return o.kind === "Army" && o.strength * 1000 > o.walls * 1000 + (o.defenders + o.people) * (1000 + o.walls);
+}
+
+/** The defenders on the walls as the storm met them: the garrison it beat and the city's men, multiplied by the walls. */
+export function wallsDefence(o: Assault): number {
+  return Math.floor(((o.defenders + o.people) * (1000 + o.walls)) / 1000);
 }
 
 /**

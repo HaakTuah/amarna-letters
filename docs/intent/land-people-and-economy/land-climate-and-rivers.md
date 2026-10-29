@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Land, people and economy tab, revision 29 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Land, people and economy tab, revision 33 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## Land, climate and rivers
 
 **Land and climate (decided 21 October 2026).** Each province, and each connection between provinces, has one profile: its terrain and its water. The same data sets how slow a place is to cross, how hard it is to take and how many people it can carry, so its character comes from one source ("Different data, same rules").

@@ -397,3 +397,108 @@ Given in the design chat with Claude, answering the design questions of the cons
     > each state fulfill each aggregated to those propotions.
 
     Written into "One scoreboard for every power" (Victory): kings are told the weight once item 18 sets it.
+
+38. **08:11 to 08:23**, in the design chat, on the map as his phone showed it after item 11c went live (first the old
+    board, served by the offline cache, then the true map with its names under the badges). To the design session's
+    takes (names that give way to badges and counters too, measured from their real widths; counters gathered by zoom;
+    a test that fails on any covered name; a new version taking over at once):
+
+    > Other than that, I agree with all your takes! Make it be done expertly!
+
+    Written into build order item 11c+.
+
+39. **08:23 and 08:34**, in the design chat, on the map. First, among questions on its colours, shapes and Dilmun:
+
+    > And i don't see why it would be that important to see the entire map at once most of the time most of it is old
+    > information (fog of war)? In paradox games you spend most of the time zoomed in on your general region. Couldn't
+    > that work here, that zooming out to the full region is more the exception than the rule?
+
+    Then, to the design session's takes (the map opening close; provinces bordered by the land's own features; the
+    lands beyond the game drawn and named as no one's; islands that are no province no one's; the map light in dark
+    mode, a little dimmed; the powers' colours kept):
+
+    > Agreed to all! Implement absolutely everything you said now expertly!
+
+    Written into build order item 11c+, "Style" and "True geography, now" (Interface) and "Map on small screens"
+    (Engine).
+
+40. **08:38 and 08:40**, in the design chat, on borders traced along the land's features: "Question: Where borders
+    follows dividing geological features, the travel between those provinces will reflect that, and if you attack
+    across, you are penalized for it?" Then, to the design session's answer (it already does, for the crossings the
+    rules know; the list is partial) and its suggestion to check every traced border against it:
+
+    > Yes, every crossing like this should be included, and such that both the map and the game physics reflect the actual terrain that was at the time. Unless you disagree, expert?
+
+    The design session agreed, with one reading: only what was a real obstacle in the period becomes a crossing, so the
+    ground's help stays where the land gave it. Written into "Terrain" (War) and build order item 11c+.
+
+41. **08:43**, in the design chat, on the crossings: "As long as the map makes it readable at a glance where what
+    effect is to be expected." Written into "Terrain" (War) and build order item 11c+: each crossing and each stretch of
+    rough ground marked by its kind, with a legend row, and a tap saying its effect in words.
+
+42. **08:43 and 08:50**, in the design chat: "Looking at the map as it is now, do we have all the provinces that we
+    should, or are we missing any, expert?" Then, to the design session's list by "What earns a place" (Azzi-Hayasa,
+    Tunip, Niya, Beirut, Pella and Ashtaroth as powers, Samuha as Hatti's province, Libya and the Shasu as edge lands,
+    with the crossings after item 11e):
+
+    > Yes, do it expertly!
+
+    Written into "What earns a place" and "The edges of the map" (The world) and build order item 11f, which also takes
+    item 11c+'s rules part.
+
+43. **08:54**, in the design chat, playing:
+
+    > I notice that when you click a province, the information thingy that pops up, if you scroll down on it, the X disappears, so you can't easily close it again without scrolling all the way up. Also, the arrows for units show only the province it starts from and ends up in, but not which provinces they pass through. So in Anatolia the arrow goes through desert sometimes.
+
+    Written into build order item 11c+: cards keep their close button pinned; every arrow follows the unit's route.
+
+44. **09:00**, in the design chat, to the open review points (walls by the city; the model chiefs' and spies' four
+    readings; and, for Barkstreet Snakes, the rivals' chomps):
+
+    > Yes to all, expertly! But the spy, is he hiring a character or not? Because a character he wouldn't know the price of before he asks. But if its not a character, then your take is fine!
+
+    The carrier is a character, so the spy's request now gives the price as the spy's own reckoning, each carrier asking
+    his own. Walls by the city written into build order item 15.
+
+45. **09:05 to 09:11**, in the design chat, on the Sinai: "Because an army that tries to attack akhetaten has to go
+    through Sinai, so if an army is there, it gets attacked?" Then, to the answer (which repeated the design
+    document's old line that an army crosses its own desert free):
+
+    > Isn't that a bit gamey? What makes it free for the kings that owns it? Is this consistent with how we model logistics everywhere else?
+
+    The design session found the line stale (item 9+a replaced it with real food: nobody crosses a desert free; each
+    army eats its king's stores there, its baggage or its caravans' grain) and the one gamey rule left, caravans held to
+    their own king's land. To correcting the one and opening the other:
+
+    > Yes, agreed with all, expertly!
+
+    Written into "Terrain" (War), "Caravans carry a kingdom's goods" (Land, people and economy) and build order item 11f.
+
+46. **09:13 and 09:15**, in the design chat: "An army eating from the actual citizens stores then should make them pretty
+    unhappy?" Then, to the design session's takes (troops taking food raise unrest by how much they take; unrest in the
+    homeland too, at a far higher bar; each army buys or takes its food, by its king's choice; a ruler whose land was
+    taken from remembers it):
+
+    > Yes, to all, expertly!
+
+    Written into "Revolt follows conditions, not dice" (War), "The land" under "Armies need food as well as pay" (Land,
+    people and economy) and build order item 17.
+
+47. **09:18 and 09:22**, in the design chat, three questions: whether the rules incentivize conquering neighbours
+    before going deeper, "Kinda like imperator, just incentivicong, but not forcing?"; "If i besiege a neighbour
+    province then send supply caravan there, they cannot still invest in policing in that province and intercept my
+    caravan, right?"; and "When a kingdom breaks up, who does the different armies go to the way we have it set up
+    now?" To the design session's answers and its suggestion (a besieged garrison and its king's policing reach only
+    inside the walls; the countryside around a siege is the besieger's for supply; policing stops where hostile troops
+    stand):
+
+    > Yes to all, expertly!
+
+    Written into "Caravans carry a kingdom's goods" (Land, people and economy) and build order items 11f and 15.
+
+48. **09:24**, in the design chat, on armies buying or taking their food:
+
+    > But remember, when you say a king decides how his army supplies himself. Information time travel stoll applies. He can tell them to buy, but if he hasn't sent them enough money to buy with, they will do what they must to eat. And an army with an assigned commander (a character) the commander has the final say on following orders or not. He may keep any money meant for food, and just take instead.
+
+    Written into "The land" under "Armies need food as well as pay" (Land, people and economy) and build order item 17:
+    buying or taking is an order that travels; hunger decides before orders do; a commander may keep the gold and take.

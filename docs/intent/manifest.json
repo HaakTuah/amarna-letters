@@ -17,7 +17,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 91,
+   "rev": 103,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -48,7 +48,7 @@
   "world-and-history": {
    "name": "World and history",
    "node": "f2f7044b-c6fa",
-   "rev": 35,
+   "rev": 36,
    "files": [
     "docs/intent/world-and-history/front.md",
     "docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md",
@@ -60,7 +60,7 @@
   "engine-and-models": {
    "name": "Engine and models",
    "node": "23452eff-9a74",
-   "rev": 56,
+   "rev": 57,
    "files": [
     "docs/intent/engine-and-models/front.md",
     "docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md",
@@ -114,7 +114,7 @@
   "land-people-and-economy": {
    "name": "Land, people and economy",
    "node": "3dedb02f-88dd",
-   "rev": 29,
+   "rev": 33,
    "files": [
     "docs/intent/land-people-and-economy/front.md",
     "docs/intent/land-people-and-economy/gold.md",
@@ -128,7 +128,7 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 61,
+   "rev": 66,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military.md",
@@ -152,7 +152,7 @@
   "interface-and-the-council": {
    "name": "Interface and the council",
    "node": "ed35e82f-6e5a",
-   "rev": 15,
+   "rev": 17,
    "files": [
     "docs/intent/interface-and-the-council/front.md",
     "docs/intent/interface-and-the-council/spectator-mode-and-analysis.md",
