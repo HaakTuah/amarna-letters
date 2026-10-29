@@ -132,7 +132,7 @@ P.ruleOwn = function (id, c, r) {
     p,
     "Notice",
     "You rule in your own name",
-    `${r.story} You rule ${prov.name} in your own name now, with a seat of your own like any city's ruler${walls > 0 ? `, behind walls of level ${walls}` : ""}. ${troops.charAt(0).toUpperCase() + troops.slice(1)}. Your treasury is ${S.treasuries.get(p).gold} shekels. Nobody owes you anything, and you owe nobody: you may keep silent, or send envoys with whatever terms you like, to become a vassal, to pay to be left alone, or to serve another court${was !== null && isAlive(S, was) ? `; ${was} may come to take it back` : ""}.`,
+    `${r.story} ${prov.name} is yours: you rule it in your own name now, with a seat of your own like any city's ruler${walls > 0 ? `, behind walls of level ${walls}` : ""}. ${troops.charAt(0).toUpperCase() + troops.slice(1)}. Your treasury is ${S.treasuries.get(p).gold} shekels. Nobody owes you anything, and you owe nobody: you may keep silent, or send envoys with whatever terms you like, to become a vassal, to pay to be left alone, or to serve another court${was !== null && isAlive(S, was) ? `; ${was} may come to take it back` : ""}.`,
     c.id,
   );
   notify(S, p, "Notice", "The state of the realm", stateOfRealm(S, this.map, p));

@@ -128,7 +128,8 @@ describe("TravelTests", () => {
     const s = oldWorld(newGame(7));
     const e = season(s, new Dict([["Mitanni", newTurnSubmission({ orders: [roads("Babylonia", true)] })]]));
     Assert.true((s.roadsClosed.tryGet("Mitanni") ?? []).includes("Babylonia"));
-    const word = first(s.journeys, (j) => j.kind === "Word" && j.to === "Babylonia");
+    // Word from Mitanni (Babylonia's own couriers bring it reports of its own land too, item 17's among them).
+    const word = first(s.journeys, (j) => j.kind === "Word" && j.to === "Babylonia" && j.from === "Mitanni");
     Assert.equal("RoadsClosed", word.news);
     // Not heard yet; heard when the word arrives.
     Assert.false((s.roadsHeard.tryGet("Babylonia") ?? []).includes("Mitanni"));
