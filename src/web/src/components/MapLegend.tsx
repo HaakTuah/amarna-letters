@@ -1,7 +1,9 @@
 import { AllPowers, type GameConfig } from "@amarna/engine";
+import { MarkKindsShown, MarkNames, markGlyph } from "../map/crossings.ts";
 import { dash } from "../map/glyphs.ts";
 import { powerName } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
+import { MapCard } from "./MapCard.tsx";
 
 /** The map's key, compact: opened from the map and closed back to it. Icons reuse the map's own symbols. */
 export function MapLegend({ config, onClose }: { config: GameConfig; onClose: () => void }) {
@@ -11,13 +13,7 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
       ? "The ground gives no defence in this game."
       : `Rough ground, and a pass or a river crossing on the attacker's way, give a unit standing its ground ${config.terrainDefence} more against that attack (${config.terrainDefence} in all). At sea the blockade decides: an army lands only where no enemy fleet holds the coast's waters.`;
   return (
-    <div className="legend map-ui" role="dialog" aria-label="Map legend">
-      <div className="legend-head">
-        <strong>Legend</strong>{" "}
-        <button className="small" onClick={onClose} aria-label="Close the legend">
-          ✕
-        </button>
-      </div>
+    <MapCard className="legend" label="Map legend" onClose={onClose} head={<strong>Legend</strong>}>
       <div className="legend-grid">
         <span><svg viewBox="-12 -12 24 24"><rect className="tok-bg lg" x="-11" y="-11" width="22" height="22" rx="4" /><use href="#g-army" className="tok-icon" x="-9.5" y="-9.5" width="19" height="19" /></svg> army (chariots)</span>
         <span><svg viewBox="-12 -12 24 24"><circle className="tok-bg lg" r="11.5" /><use href="#g-fleet" className="tok-icon" x="-9.5" y="-9.5" width="19" height="19" /></svg> fleet</span>
@@ -37,11 +33,15 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
         <span><svg viewBox="-12 -12 24 24"><circle className="lg-cap" r="9" /></svg> changed hands</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fog" fill="url(#fog)" /></svg> out of sight: the denser, the older the news (land: of who holds it)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fert" fill="url(#fert4)" /></svg> rich land (close furrows)</span>
-        <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-desert" fill="url(#stipple)" /></svg> desert (the Sinai costs an army not in its own land supplies)</span>
-        <span><svg viewBox="0 0 30 14"><path className="peaks" d="M2,12L8,4L14,12M14,12L20,3L26,12" /></svg> mountains, rough ground</span>
-        <span><svg viewBox="0 0 30 14"><path className="pass-lg" d="M11,1Q15,7 11,13M19,1Q15,7 19,13" /></svg> pass · <svg viewBox="0 0 30 14"><path className="ford-lg" d="M12,1V13M18,1V13" /></svg> river crossing (passes slow and dangerous in winter)</span>
+        <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-desert" fill="url(#stipple)" /></svg> desert (it feeds no army: an army there lives on its baggage, its king's stores and his caravans)</span>
+        <span><svg viewBox="0 0 30 14"><path className="peaks" d="M2,12L8,4L14,12M14,12L20,3L26,12" /></svg> mountains</span>
+        {MarkKindsShown.map((k) => (
+          <span key={k}>
+            <svg viewBox="-10 -10 20 20" className="xmark" dangerouslySetInnerHTML={{ __html: markGlyph(k) }} /> {MarkNames[k]}
+          </span>
+        ))}
     </div>
-      <p className="muted small">{ground}</p>
+      <p className="muted small">{ground} Tap a mark on the map for what it does to a journey and to a defender.</p>
       <p className="muted small">Each power has a colour, an emblem and its own border line:</p>
       <div className="legend-powers">
         {AllPowers.map((p) => (
@@ -53,6 +53,6 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
           </span>
         ))}
       </div>
-    </div>
+    </MapCard>
   );
 }

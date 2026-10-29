@@ -15,6 +15,7 @@ import {
   type SeatChoices,
 } from "@amarna/llm";
 import { useEffect, useState } from "react";
+import { takeResume } from "../ui/update.ts";
 import { Emblem } from "../components/Emblem.tsx";
 import { ModelPicker, ProvidersPanel, RungsPanel } from "../components/ModelSettings.tsx";
 import { session } from "../session/client.ts";
@@ -119,6 +120,9 @@ export function Home() {
       }
     }
     void listLogs().then(setSaved);
+    // Reloaded into a new version from a game (ui/update.ts): back into it, from its last saved season.
+    const resume = takeResume();
+    if (resume !== null) void loadSaved(resume, true, true);
   }, []);
 
   const choices = choicesOf(settings);
@@ -226,7 +230,8 @@ export function Home() {
     setStarting(false);
   }
 
-  async function load(text: string, continuePlay: boolean): Promise<void> {
+  /** `keepId`: a game resumed after an update, saved on under its own id. */
+  async function load(text: string, continuePlay: boolean, keepId: string | null = null): Promise<void> {
     setLoadProblem(null);
     let header: LogHeader | null = null;
     try {
@@ -263,16 +268,16 @@ export function Home() {
       }
     }
     navigate("play");
-    session.load(text, continuePlay, allKeys(keys.key ?? key), { providers: settings.providers, prices: settings.prices, pauseFallbackShare: settings.pauseFallbackShare, bridgeCharacters: characters });
+    session.load(text, continuePlay, allKeys(keys.key ?? key), { providers: settings.providers, prices: settings.prices, pauseFallbackShare: settings.pauseFallbackShare, bridgeCharacters: characters }, keepId);
   }
 
-  async function loadSaved(id: string, continuePlay: boolean): Promise<void> {
+  async function loadSaved(id: string, continuePlay: boolean, resumed = false): Promise<void> {
     const text = await loadLog(id);
     if (text === null) {
       setLoadProblem("That saved game could not be read.");
       return;
     }
-    await load(text, continuePlay);
+    await load(text, continuePlay, resumed ? id : null);
   }
 
   return (

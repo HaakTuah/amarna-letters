@@ -6,9 +6,10 @@ import { ChroniclePanel } from "../components/ChroniclePanel.tsx";
 import { CourtStrip } from "../components/CourtStrip.tsx";
 import { EventsPanel } from "../components/EventsPanel.tsx";
 import { FollowPanel } from "../components/FollowPanel.tsx";
-import { GameMap, type MapHandle } from "../components/GameMap.tsx";
+import { GameMap, type MapHandle, type MapView } from "../components/GameMap.tsx";
 import { InboxPanel } from "../components/InboxPanel.tsx";
 import { MapLegend } from "../components/MapLegend.tsx";
+import { MarkInfo } from "../components/MarkInfo.tsx";
 import { OrdersPanel } from "../components/OrdersPanel.tsx";
 import { PeoplePanel } from "../components/PeoplePanel.tsx";
 import { ProvinceInfo } from "../components/ProvinceInfo.tsx";
@@ -16,7 +17,7 @@ import { ProvinceList } from "../components/ProvinceList.tsx";
 import { SeasonPanel } from "../components/SeasonPanel.tsx";
 import { StandingsPanel } from "../components/StandingsPanel.tsx";
 import { FallbackNotice, TrailPanel } from "../components/TrailPanel.tsx";
-import { city } from "../map/art.ts";
+import { Height, Width, city, ll } from "../map/art.ts";
 import { pathOf } from "../map/scene.ts";
 import { buildLifeRecord } from "../session/life-record.ts";
 import { choicesOf, handLimitNeeded, newSettings, usesModels, withChoices } from "../session/settings.ts";
@@ -24,6 +25,7 @@ import { powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
+import { playing } from "../ui/update.ts";
 import { useSession } from "../ui/use-session.ts";
 
 const phaseText = (phase: string): string => {
@@ -33,6 +35,19 @@ const phaseText = (phase: string): string => {
 
 let watchStarted = false;
 
+/**
+ * Where a view of the map opens the first time it is shown in a game (item 11c+; Haakon: "zooming out to the full region is
+ * more the exception than the rule"): a seat on its own realm and its neighbours, its capital at the centre; god view and
+ * watching on the Levant on a phone, where most powers meet, and on the whole board on a wide screen.
+ */
+function openingView(viewer: Power | null): MapView {
+  if (viewer !== null) {
+    const capital = WorldMap.default.provinces.find((p) => p.home === viewer && p.capital);
+    if (capital !== undefined) return { at: city(capital.id), zoom: 2.5 };
+  }
+  return innerWidth < 700 ? { at: ll(33.4, 36.1), zoom: 4.2 } : { at: { x: Width / 2, y: Height / 2 }, zoom: 1 };
+}
+
 export function Play() {
   const s = useSession();
   const live = s.live;
@@ -41,6 +56,7 @@ export function Play() {
   const [followId, setFollowId] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
   const [legend, setLegend] = useState(false);
+  const [mark, setMark] = useState<string | null>(null);
   const [theme, setThemeState] = useState(getTheme);
   const [, bump] = useState(0);
   const map = useRef<MapHandle>(null);
@@ -59,6 +75,9 @@ export function Play() {
     }
   }, []);
 
+  // The game running, if any: a new version waits for a tap while one is played (ui/update.ts).
+  useEffect(() => playing(live.hasRunner ? live.gameId : null), [live.hasRunner, live.gameId]);
+
   useEffect(() => {
     document.title = `Amarna Letters — ${!live.hasRunner ? "no game" : whenCap(live.turn, viewerOf())}`;
   });
@@ -66,16 +85,6 @@ export function Play() {
   function viewerOf(): Power | null {
     return s.godView ? null : (s.viewAs ?? live.humans[0] ?? null);
   }
-
-  // The map opens on the seat's own realm, its capital zoomed to, and again whenever another seat's eyes are taken: the
-  // Levant is read by zooming, never by bending the land ("Map on small screens", item 11c).
-  const ready = live.hasRunner && s.frames.length > 0 && s.state !== null;
-  const seat = ready ? viewerOf() : null;
-  useEffect(() => {
-    if (seat === null) return;
-    const capital = WorldMap.default.provinces.find((p) => p.home === seat && p.capital);
-    if (capital !== undefined) map.current?.focus(city(capital.id), 2.5);
-  }, [seat]);
 
   if (!live.hasRunner || s.frames.length === 0 || s.state === null) {
     return (
@@ -146,22 +155,45 @@ export function Play() {
   };
   const tabClass = (t: string, alert = false): string => (tab === t ? "on " : "") + (alert && tab !== t ? "alert" : "");
 
-  const clicked = (province: string): void => {
-    if ((tab === "orders" || tab === "provinces") && draft !== null) {
+  const ordering = (tab === "orders" || tab === "provinces") && draft !== null;
+  /** A card open over the map (a province, a mark, the legend): a tap on the map outside it closes it (item 11c+). */
+  const carded = (!ordering && selectedProvince !== null) || mark !== null || legend;
+  const closeCards = (): void => {
+    setSelectedProvince(null);
+    setMark(null);
+    setLegend(false);
+  };
+  const chosen = (province: string): void => {
+    if (ordering) {
       draft.click(province);
       bump((x) => x + 1);
-    } else setSelectedProvince((p) => (p === province ? null : province));
+    } else {
+      setMark(null);
+      setSelectedProvince(province);
+    }
+  };
+  const clicked = (province: string): void => {
+    if (carded) closeCards();
+    else chosen(province);
+  };
+  /** A mark tapped: its card; while an order is drafted, the province under it is chosen instead. */
+  const markTapped = (id: string, province: string | null): void => {
+    if (ordering) {
+      if (province !== null) chosen(province);
+    } else if (carded) closeCards();
+    else setMark(id);
   };
   /** A province chosen from the list: selected as a tap on the map would, and brought into view. */
   const fromList = (province: string): void => {
     const picking = draft?.selected != null;
-    clicked(province);
+    chosen(province);
     // A destination picked for an order: back to the orders, which now show it.
     if (picking && draft?.selected === null) setTab("orders");
     setSheet(false);
     map.current?.focus(city(province), 2.2);
   };
   const follow = (id: string): void => {
+    closeCards();
     setFollowId(id);
     setTab("follow");
     const path = pathOf(s.frames, s.shownIndex, viewer, id);
@@ -332,13 +364,18 @@ export function Play() {
             followId,
             followPath: followId === null ? null : pathOf(s.frames, index, viewer, followId),
           }}
+          viewKey={`${live.gameId}:${viewer ?? "god"}`}
+          opening={openingView(viewer)}
           onProvince={clicked}
-          onPerson={follow}
+          onPerson={(id) => (carded ? closeCards() : follow(id))}
+          onMark={markTapped}
+          onBlank={closeCards}
         >
           <button className="map-ui legend-btn" onClick={() => setLegend(!legend)} aria-expanded={legend ? "true" : "false"}>
             Legend
           </button>
           {legend && <MapLegend config={state.config} onClose={() => setLegend(false)} />}
+          {mark !== null && <MarkInfo id={mark} config={state.config} onClose={() => setMark(null)} />}
           {selectedProvince !== null && !useDraft && (
             <ProvinceInfo state={state} id={selectedProvince} scene={scene} onClose={() => setSelectedProvince(null)} onPerson={follow} />
           )}

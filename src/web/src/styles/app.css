@@ -442,8 +442,10 @@ svg.map text { font-family: var(--serif); }
     transform: scale(var(--lab)); transform-box: view-box; transform-origin: 0 0;
 }
 .map .plabel.cap { font-size: 13.5px; letter-spacing: .06em; font-variant: small-caps; }
-/* Names give way by importance (markup.ts, NameLevels): a name of step k shows once zoom.ts has set nzk. */
-.mapview:not(.nz1) .map .plabel.z1, .mapview:not(.nz2) .map .plabel.z2, .mapview:not(.nz3) .map .plabel.z3, .mapview:not(.nz4) .map .plabel.z4, .mapview:not(.nz5) .map .plabel.z5, .mapview:not(.nz6) .map .plabel.z6, .mapview:not(.nz7) .map .plabel.z7, .mapview:not(.nz8) .map .plabel.z8, .mapview:not(.nz9) .map .plabel.z9, .mapview:not(.nz10) .map .plabel.z10 { display: none; }
+/* Names give way to more important names and to the pieces (the renderer measures them, item 11c+); each stands off its
+   city's outermost ring (--ring, in the city's own units), on its side (--ux, --uy). */
+.map .plabel.off { visibility: hidden; }
+.map .lring { transform: translate(calc(var(--ring) * var(--cs) * var(--ux) * 1px), calc(var(--ring) * var(--cs) * var(--uy) * 1px)); transform-box: view-box; transform-origin: 0 0; }
 .lod0 .map .seen, .lod0 .map .eta, .lod1 .map .eta, .lod0 .map .fogdates, .lod1 .map .fogdates { display: none; }
 .map .fogdates { pointer-events: none; }
 .map .fogdate { font-size: 7.5px; font-style: italic; text-anchor: middle; fill: var(--muted); paint-order: stroke; stroke: var(--land-halo); stroke-width: 2.2px; font-family: var(--sans); transform: scale(var(--lab)); transform-box: view-box; transform-origin: 0 0; }
@@ -580,8 +582,6 @@ svg.map text { font-family: var(--serif); }
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .55rem .75rem; box-shadow: var(--shadow); z-index: 7;
 }
 .infocard p { margin: .25rem 0; }
-.info-head { display: flex; align-items: center; gap: .45rem; }
-.info-head h3 { flex: 1; margin: 0; font-size: 1.05rem; }
 .tap { cursor: pointer; }
 .link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 
@@ -589,7 +589,6 @@ svg.map text { font-family: var(--serif); }
     left: .5rem; bottom: 2.8rem; width: min(30rem, calc(100% - 4.4rem)); max-height: calc(100% - 6rem); overflow: auto; z-index: 8;
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .55rem .75rem; box-shadow: var(--shadow); font-size: .82rem;
 }
-.legend-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .35rem; }
 .legend-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); gap: .3rem .6rem; }
 .legend-grid > span, .legend-powers > span { display: inline-flex; align-items: center; gap: .35rem; }
 .legend svg { width: 1.6rem; height: 1.1rem; flex: none; overflow: visible; }

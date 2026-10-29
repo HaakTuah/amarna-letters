@@ -292,7 +292,7 @@ export class SessionCore {
   }
 
   /** Loads a log: replays it fully for the timeline; optionally continues it with live seats. */
-  async load(text: string, continuePlay: boolean, keys: Keys, table: TableSettings | null = null): Promise<void> {
+  async load(text: string, continuePlay: boolean, keys: Keys, table: TableSettings | null = null, id: string | null = null): Promise<void> {
     this.fresh();
     let log: GameLog;
     try {
@@ -348,7 +348,8 @@ export class SessionCore {
           this.notice = `The log ends during ${dateLabel(this.runner.state.turn)}; showing the game up to there.`;
         }
       }
-      this.gameId = `game-${log.header.seed}-loaded-${this.stamp()}`;
+      // A game resumed after an update keeps its id, so it is saved over itself (ui/update.ts).
+      this.gameId = id ?? `game-${log.header.seed}-loaded-${this.stamp()}`;
     } catch (e) {
       this.error = e instanceof Error ? e.message : String(e);
     } finally {
@@ -466,7 +467,7 @@ export class SessionCore {
       case "start":
         return this.start(m.settings, m.keys);
       case "load":
-        return this.load(m.text, m.continuePlay, m.keys, m.table);
+        return this.load(m.text, m.continuePlay, m.keys, m.table, m.id ?? null);
       case "step":
         return this.step();
       case "auto":
