@@ -1,4 +1,5 @@
 import { afterEach, beforeAll, describe, test, vi } from "vitest";
+import { IdleSeat, Near, smallSeats } from "./small-world.ts";
 import { AllPowers, Dict, type GameConfig, GameStateSchema, HSet, type Power, count, hash, newGame, newGameConfig } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, newLogHeader, pressFor } from "@amarna/game";
 import {
@@ -138,6 +139,8 @@ describe("LocalPlayTests", () => {
     let runner: GameRunner | null = null;
     vi.stubGlobal("fetch", bridge.fetch);
     let set = buildSeats(choices, state, null, () => runner!.log);
+    // The small world (small-world.ts): the agent kings among the default few script kings, every other power idle.
+    for (const p of AllPowers) if (!Near.includes(p) && !bridge.folders.has(p)) set.seats.set(p, new IdleSeat());
     runner = Object.assign(new GameRunner(state, set.seats, set.minds, set.narrator), { writeChronicles: false });
     return runner;
   }
@@ -178,11 +181,7 @@ describe("LocalPlayTests", () => {
     let file: GameRunner | null = null;
     let exchange = new FileExchange(folder, 5 * 60000, (c) => file!.log.addCall(c));
     let script = new ScriptLeader(8);
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (p) => (p === "Alashiya" ? new LlmLeaderSeat(p, exchange, "file", "medium", state.config.customsPrimer, state.config, "File seat") : script),
-    );
+    let seats = smallSeats((p) => (p === "Alashiya" ? new LlmLeaderSeat(p, exchange, "file", "medium", state.config.customsPrimer, state.config, "File seat") : script), [...Near, "Alashiya"]);
     file = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     const stop2 = new AbortController();
     let fileAnswers = (async () => {

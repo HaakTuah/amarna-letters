@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { Near, smallSeats } from "./small-world.ts";
 import { host } from "../src/bots/statecraft-letters.ts";
 import {
   AllPowers,
@@ -111,11 +112,7 @@ describe("FileCharacterTests", () => {
     runner = Object.assign(
       new GameRunner(
         state,
-        toDict(
-          AllPowers,
-          (p) => p,
-          (_) => bot,
-        ),
+        smallSeats(() => bot),
         minds,
         new TemplateNarrator(),
       ),
@@ -226,15 +223,12 @@ describe("FileCharacterTests", () => {
     let state = newGame(Seed, newGameConfig({ catastropheChance: 0, capMin: 4, capMax: 4, endMedian: 10000 }));
     let runner: GameRunner | null = null;
     let minds = Object.assign(new LlmCharacterMind(new Fixed(), ModelIds.Haiku), { shadow: shadow ? (s: ShadowDecision) => runner!.log.addShadow(s) : null });
+    // The small world (small-world.ts) with Egypt and Hatti, whose envoys carry gold within the four seasons.
     let bot = new ScriptLeader(Seed);
     runner = Object.assign(
       new GameRunner(
         state,
-        toDict(
-          AllPowers,
-          (p) => p,
-          (_) => bot,
-        ),
+        smallSeats(() => bot, [...Near, "Egypt", "Hatti"]),
         minds,
         new TemplateNarrator(),
       ),

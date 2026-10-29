@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { scriptSeats } from "./small-world.ts";
 import {
   AllPowers,
   type Character,
@@ -96,16 +97,13 @@ describe("ScriptCourtTests", () => {
   });
 
   test("Script games with jobs done and offered again replay exactly", async () => {
-    // Twenty seasons: every starting job ends by turn 13, and errands are offered as new jobs.
+    // Twenty seasons of the small world (small-world.ts): every starting job ends by turn 13, and errands are offered as new
+    // jobs.
     let config = newGameConfig({ capMin: 20, capMax: 20, endMedian: 10000 });
     let runner = Object.assign(
       new GameRunner(
         newGame(Seed, config),
-        toDict(
-          AllPowers,
-          (p) => p,
-          (_) => new ScriptLeader(Seed),
-        ),
+        scriptSeats(Seed),
         new ScriptMind(),
         new TemplateNarrator(),
       ),

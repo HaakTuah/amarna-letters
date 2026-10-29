@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { Near, smallSeats } from "./small-world.ts";
 import {
   AllPowers,
   type AudienceView,
@@ -65,11 +66,8 @@ describe("StandInTests", () => {
     let seed = 3;
     let model = new Flaky(5);
     let state = newGame(seed, newGameConfig({ sleepingSeats: false }));
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (p) => (p === "Egypt" ? model : new ScriptLeader(seed)),
-    );
+    // The small world (small-world.ts): Egypt's model among the default few script kings.
+    let seats = smallSeats((p) => (p === "Egypt" ? model : new ScriptLeader(seed)), [...Near, "Egypt"]);
     let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     for (let turn = 1; turn <= 4; turn++) {
       await runner.playTurn();
@@ -130,11 +128,7 @@ describe("StandInTests", () => {
           4,
           (st) => {
             let bot = new ScriptLeader(st.seed);
-            let seats = toDict(
-              AllPowers,
-              (p) => p,
-              (p) => (p === "Egypt" ? new Flaky(3) : p === "Assyria" ? new Flaky(6) : bot),
-            );
+            let seats = smallSeats((p) => (p === "Egypt" ? new Flaky(3) : p === "Assyria" ? new Flaky(6) : bot), [...Near, "Egypt"]);
             return Object.assign(new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
           },
           true,

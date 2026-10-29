@@ -67,6 +67,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 11b+ | Jobs as errands, and the answers to items 11a, 11a+ and 11b | first part done (28 Oct), #124: Haakon's answers to items 11a and 11a+: jobs as errands offered at court or abroad by envoy, every payment by order (fees, carriers), renewing as a new offer, no going rate, records, a tablet's end and grants as news, seizing hoards, tablets collected and sold, dealing in a shared province, the levy's size, a captive's purse kept until taken; 11b's crowding and outlaw weaknesses patched; save version 22. second part done (28 Oct), #125: Haakon's answers to item 11b's review (ransom demands carried, the spy decides, the border hand-over, hunting only on order or standing order, robbers choosing whether to kill, anyone selling what he knows, a servant's secrets at their real cost); the script kings hunt only where it breaks a band or drives it abroad, and buy news of foes only (even with ignoring, within noise). A model chief's own request and a model spy's own choice: built in the side lane #128 (`docs/rounds/2026-10-28-model-chief-requests.md`) | `item/jobs-and-money-answers`, `item/answers-to-11b` | `docs/rounds/2026-10-28-jobs-and-money-answers.md`, `docs/rounds/2026-10-28-answers-to-11b.md` |
 | 11b++ | The answers to item 11b+ | not started: next (`docs/intent/build-order/item-11.md`) | | |
 | 11+ | City-states as powers | done (28 Oct): the 23 city-states and chiefs as powers (Gaza and Sumur Egypt's), no purchase, vassal tablets and their template clauses, the 17 opening bonds of 1346, par for each starting position, the state of the realm, staff by size and the pool of 100, the chiefs' strongholds; save version 24. Script players pay, demand and offer vassalage by their sums (`--vassal-play-half`) | `item/city-states` | `docs/rounds/2026-10-28-city-states.md` |
+| 11c | The map in true geography, and the Red Sea | not started: a lane beside 11+ (`docs/intent/build-order/item-11.md`) | | |
 | 12 | Languages | not started | | |
 | 13 | Command at a distance | not started | | |
 | 14 | Legends | not started | | |
@@ -74,5 +75,10 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 16 | The royal council | not started | | |
 | 17 | How cities become free | not started | | |
 | 18 | The balance pass | not started | | |
+| 19 | The living map | not started: with every feature built; may run beside 18 | | |
+
+Side lane, a smaller default world for tests (29 Oct, #136): test games play a few seated powers among idle ones
+(`src/game/test/small-world.ts`); suite 2264 s to 955 s, a code PR's CI about 4 min 50 s to 1 min 52 s
+(`docs/rounds/2026-10-29-small-test-world.md`).
 
 Done items 1 to 10 and the port's findings (all handled): `docs/archive/progress-done.md`.
