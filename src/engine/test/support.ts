@@ -335,6 +335,7 @@ export const FormerFree = [
  */
 export function oldWorld(s: GameState): GameState {
   armiesBefore13(s);
+  wallsBefore15(s);
   unruled(s, ...FormerFree);
   formerHomes(s);
   for (const c of s.characters)
@@ -343,6 +344,22 @@ export function oldWorld(s: GameState): GameState {
       c.status = "Free";
       c.contract = null;
     }
+  return s;
+}
+
+/**
+ * The Great Kings' walls as they stood before item 15 set them city by city from the walls dossier: every capital 3, the
+ * fortresses Memphis, Nesa and Nineveh 2, and their other cities none.
+ */
+export function wallsBefore15(s: GameState): GameState {
+  for (const [id, level] of [["akhetaten", 3], ["apasa", 3], ["enkomi", 3], ["memphis", 2], ["nesa", 2], ["nineveh", 2]] as const) {
+    s.walls.set(id, level);
+    for (const seen of s.wallsSeen.values()) seen.set(id, level);
+  }
+  for (const id of ["nubia", "delta", "sapinuwa", "arbela", "durkurigalzu", "sippar", "nippur", "ur"]) {
+    s.walls.delete(id);
+    for (const seen of s.wallsSeen.values()) seen.delete(id);
+  }
   return s;
 }
 
