@@ -3,7 +3,7 @@
  * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
  */
 import { expect } from "vitest";
-import { AllPowers, Dict, newCharacter, newTraits, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
+import { AllPowers, Dict, newCharacter, newTraits, newWorkPlan, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
 
 type Coll<T> = Iterable<T> | ArrayLike<T>;
 
@@ -355,10 +355,15 @@ export function wallsBefore15(s: GameState): GameState {
   for (const [id, level] of [["akhetaten", 3], ["apasa", 3], ["enkomi", 3], ["memphis", 2], ["nesa", 2], ["nineveh", 2]] as const) {
     s.walls.set(id, level);
     for (const seen of s.wallsSeen.values()) seen.set(id, level);
+    // Each holder's standing order keeps them as they stand (item 15).
+    const plan = s.works.find((w) => w.kind === "Walls" && w.province === id);
+    if (plan !== undefined) plan.keep = level;
+    else s.works.push(newWorkPlan({ province: id, kind: "Walls", keep: level }));
   }
   for (const id of ["nubia", "delta", "sapinuwa", "arbela", "durkurigalzu", "sippar", "nippur", "ur"]) {
     s.walls.delete(id);
     for (const seen of s.wallsSeen.values()) seen.delete(id);
+    s.works = s.works.filter((w) => !(w.kind === "Walls" && w.province === id));
   }
   return s;
 }
