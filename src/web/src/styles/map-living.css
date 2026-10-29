@@ -130,3 +130,9 @@
 .map .scene.sack .scene-figs use { fill: #c4521f; }
 @keyframes scene { 0% { opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .map .scene { display: none; } }
+.legend .stele { fill: #8f8676; stroke: var(--bitumen); stroke-width: 1.4; paint-order: stroke; }
+.legend .ruin-crack { fill: none; stroke: var(--bitumen); stroke-width: 1.4; }
+.legend .thorn { fill: none; stroke: #5d5a2e; stroke-width: .8; }
+.legend .tw-houses { fill: #8b6a44; }
+.legend .life-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: 1; }
+.legend .life-icon { fill: #4a3524; }
