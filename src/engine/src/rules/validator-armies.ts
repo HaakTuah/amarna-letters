@@ -123,7 +123,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (r.men != null && (!Number.isInteger(r.men) || r.men <= 0)) return "say how many men the levy takes, or leave it out for a unit's full size";
       if (!Map.exists(r.province)) return `there is no province called '${r.province}'`;
       const p = Map.get(r.province);
-      if (p.home !== power) return `${p.name} is not part of your homeland`;
+      if (!Map.isHome(power, p.id)) return `${p.name} is not part of your homeland`;
       if (S.owner.getOrDefault(p.id, null) !== power) return `you do not hold ${p.name}`;
       if (r.kind === "Fleet" && !p.isCoastal) return `${p.name} has no harbour for a fleet`;
       if (raisedIn.has(p.id)) return `you already raise a unit in ${p.name}`;

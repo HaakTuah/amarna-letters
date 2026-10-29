@@ -287,7 +287,7 @@ export function plan(b: Board, brain: Brain, mplan: MilitaryPlan, orders: readon
         const r = refuge(place, troop.kind);
         if (r !== null) add("Retreat", place, "UnitAttacked", [move(place, r)], [place]);
       }
-    } else if (b.isMine(place) && (Board.Map.get(place).home === me || b.walls(place)) && !covered.has(key("UnitEnters", place))) {
+    } else if (b.isMine(place) && (Board.Map.isHome(me, place) || b.walls(place)) && !covered.has(key("UnitEnters", place))) {
       // Empty land of our homeland, or an empty walled city of ours: a troop next to it marches in as the enemy does, and an
       // attacker without support bounces; the troop stays where it was (the least threatened goes).
       const blocker = helpers[0] ?? null;

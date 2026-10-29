@@ -359,7 +359,7 @@ P.resistance = function (province, mover) {
   const S = this.s;
   const p = this.map.get(province);
   if (S.config.peopleDefence <= 0 || p.isSea || S.owner.getOrDefault(province, null) === mover) return 0;
-  const hostility = p.home === mover ? LandData.hostileHome : 100;
+  const hostility = this.map.isHome(mover, p.id) ? LandData.hostileHome : 100;
   const men = menAvailable(S, province);
   return S.walls.getOrDefault(province, 0) > 0 ? wallMenOf(men, hostility) : resistanceOf(province, men, hostility);
 };

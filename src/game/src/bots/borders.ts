@@ -70,12 +70,12 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
   }
   // Deportation: from land we took (not our homeland) that a foreign army stands next to, and so may be lost, to the
   // homeland province with the most room near it: the people moved are kept whatever becomes of the land.
-  const home = v.provinces.filter((x) => W.get(x.province).home === b.me && !besieged.has(x.province) && x.room - x.settled >= 2 * Worth);
+  const home = v.provinces.filter((x) => W.isHome(b.me, x.province) && !besieged.has(x.province) && x.room - x.settled >= 2 * Worth);
   // At risk: a foreign army next to it, and none of ours in it or next to it to hold it.
   const near = (id: string, mine: boolean): boolean => [id, ...W.movesFrom("Army", id)].some((n) => v.units.some((u) => u.province === n && (u.power === b.me) === mine && u.kind === "Army"));
   const threatened = (id: string): boolean => near(id, false) && !near(id, true);
   const taken = sortBy(
-    v.provinces.filter((x) => W.get(x.province).home !== b.me && !besieged.has(x.province) && x.settled >= 4 * Worth && threatened(x.province)),
+    v.provinces.filter((x) => !W.isHome(b.me, x.province) && !besieged.has(x.province) && x.settled >= 4 * Worth && threatened(x.province)),
     [(y) => -y.settled, (a: number, c: number) => a - c],
     [(y) => y.province, cmpStr],
   );

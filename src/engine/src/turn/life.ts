@@ -62,7 +62,7 @@ function landRatio(e: TurnEngine, p: Power): number {
   for (const x of e.map.provinces) {
     if (x.isSea) continue;
     if (e.s.owner.getOrDefault(x.id, null) === p) now += x.yield;
-    if (x.home === p) start += x.yield;
+    if (e.map.isHome(p, x.id)) start += x.yield;
   }
   return start <= 0 ? 0 : Math.round((100 * now) / start);
 }

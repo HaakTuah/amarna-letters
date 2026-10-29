@@ -138,7 +138,17 @@ export class WorldMap {
   }
 
   homeOf(power: Power): Province[] {
+    // A power risen in play (item 13+) has its one province for its homeland: its own people's land.
+    const risen = risenOf(power);
+    if (risen !== null) return this.provinces.filter((p) => p.id === risen.capital);
     return this.provinces.filter((p) => p.home === power);
+  }
+
+  /** Whether a province is of a power's homeland (a risen power's: its capital, item 13+). */
+  isHome(power: Power | null, id: string): boolean {
+    if (power === null) return false;
+    const risen = risenOf(power);
+    return risen !== null ? risen.capital === id : this.get(id).home === power;
   }
 
   neighbors(id: string): string[] {

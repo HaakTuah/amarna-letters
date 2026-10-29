@@ -611,7 +611,7 @@ function score(c: Ctx, r: AdjudicationResult, orders: Plan): number {
     const helpers = count(mineAfter, ([k, u]) => k !== p && Board.Sail.canMove(u.kind, k, p));
     const defence = here ? 1 + helpers : Math.min(1, helpers);
     let risk = 0.0;
-    const capital = Board.Map.get(p).capital && Board.Map.get(p).home === me;
+    const capital = Board.Map.get(p).capital && Board.Map.isHome(me, p);
     for (const [x, fear] of c.hostility) {
       // A capital is trusted only to a sworn ally.
       const h = capital && !c.brain.rel.get(x).allied ? Math.max(fear, 0.3) : fear;

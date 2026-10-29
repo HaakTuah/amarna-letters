@@ -301,7 +301,7 @@ P.deport = function (p, o) {
   const why =
     S.owner.getOrDefault(o.province, null) !== p
       ? "you no longer hold it"
-      : from.home === p
+      : Map.isHome(p, from.id)
         ? "it is your own homeland, not land you have taken"
         : S.owner.getOrDefault(o.to, null) !== p || Map.get(o.to).isSea
           ? `you do not hold ${Map.find(o.to)?.name ?? o.to}`
