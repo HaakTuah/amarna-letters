@@ -94,7 +94,7 @@ Before and after, phone and desktop, light and dark, at the opening and four sea
 
 ## Questions for Haakon
 
-1. On a phone's opening view of the Levant, the lesser coast cities (Sidon, Tyre, Gaza's neighbours) show as small seals
+1. On a phone's opening view of the Levant, the lesser coast cities (Sidon, Tyre and the small cities of the southern coast) show as small seals
    and their armies are hidden until you zoom in one more step, as the item says. Reading taken: hide them, with a dark
    rim on the seal where troops stand. Alternative: keep a lesser city's counters shown as one small gathered token even
    while its badge is a seal, accepting that they may then crowd the coast.
