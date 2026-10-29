@@ -34,8 +34,8 @@ export const ShoreVoyages: readonly { a: string; b: string; days: number; basis:
 /** The connections whose length the sources attest, or that the dossier reckons by a known road. */
 export const AttestedKm: readonly Attested[] = [
   // The Ways of Horus run through the Sinai (item 11f+): Tjaru to Gaza 250 km, the Delta's road to Tjaru added
-  att("delta", "sinai", 150, "the Delta to Tjaru and on along the Ways of Horus, its first part [G for the split]"),
-  att("sinai", "gaza", 130, "Thutmose III's army, Tjaru to Gaza in 10 days (his Annals, first campaign): the Ways of Horus, its second part [G for the split]"),
+  att("delta", "sinai", 160, "the Delta to Tjaru and on along the Ways of Horus, its first part [G for the split]"),
+  att("sinai", "gaza", 120, "Thutmose III's army, Tjaru to Gaza in 10 days (his Annals, first campaign): the Ways of Horus, its second part [G for the split]"),
   att("memphis", "akhetaten", 300, "the Nile road"),
   att("akhetaten", "thebes", 400, "the Nile road"),
   att("thebes", "redsea", 210, "Thebes by Coptos and the Wadi Hammamat to the shore at Mersa Gawasis, the road of the Punt expeditions"),

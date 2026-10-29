@@ -27,7 +27,7 @@ What each person is known for is a fact about him, for his traits ("Attested cha
 | Panehesy | Chief servitor of the Aten; his name means "the Nubian" | yes | A, C (origin) | His tomb at Amarna |
 | Meryra II | Overseer of the royal harem | yes | A | His tomb shows the year-12 tribute |
 | Huya | Steward of Queen Tiye | yes | A | His tomb at Amarna |
-| Thutmose | Viceroy of Kush, the King's Son of Kush | yes | B | Inscriptions in Nubia (Buhen, Amada) |
+| Thutmose | Viceroy of Kush, the King's Son of Kush | yes | A | Akhenaten's stelae at Buhen and Amada, which name him |
 | Mane | Envoy to Mitanni, again and again | yes | A | EA 19-29; Tushratta complains he was detained |
 | Hani | Envoy to Aziru; later to Hatti | yes | A | EA 161; the *Deeds* (the Dahamunzu affair, later) |
 | Pahanate | Commissioner at Sumur | doubt | A | EA 60, 62, 68; Sumur's fall (about 1346) |
@@ -97,7 +97,7 @@ Nubian names survive in Egyptian writing only [C], so invented Nubian personal n
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
 | Ashur-uballit I | King | yes | A | EA 15-16 |
-| Muballitat-Sherua | His daughter, later the wife of Burna-Buriash | yes | A | Chronicle P, Synchronistic History |
+| Muballitat-Sherua | His daughter, later the wife of Burna-Buriash or of one of his sons [C] | yes | A | Chronicle P, Synchronistic History |
 | Enlil-nirari | His son, later king | yes | A | The Assyrian King List |
 | (unnamed) | His envoys, "kept in the sun" in Egypt | yes | A | EA 16 |
 
@@ -127,7 +127,7 @@ The rulers are in the politics dossier's table; their families and men:
 
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
-| Ilirabih | Rib-Hadda's brother, who drives him out of Byblos | yes | A | EA 136-140 |
+| Ilirabih (Ili-rapih) | Writes from Byblos after Rib-Hadda's fall (EA 139-140); most identify him with the unnamed younger brother who drove Rib-Hadda out (EA 137-138, 162), one study with a son | yes | A (the letters), B (the brother), C (a son) | EA 137-140, 162 |
 | Pu-Baʿlu and his brothers | Sons of Abdi-Ashirta, Aziru's brothers | yes | A | EA 104, 132 |
 | Mut-Baal | Son of Labaya, at Pihil (Pella) | yes | A | EA 255-256; Pella's ruler in the game since item 11f (as Mut-Bahlu) |
 | Akit-Teshup | Brother of Takuwa of Niya, who turns Niya against him and Hatti | yes | A | The Shattiwaza treaty (Beckman no. 6A) |

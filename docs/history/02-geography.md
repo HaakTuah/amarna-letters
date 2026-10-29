@@ -92,7 +92,7 @@ Akhetaten two to three months, which is why envoys took a season or more each wa
 ## Terrain by connection (proposals for item 7)
 
 - **Desert connections:** `mari`-`damascus` and `mari`-`qadesh` (the Syrian desert, Sutean land); `delta`-`gaza` and
-  `gaza`-`sinai` (the north Sinai coast road, desert with forts) [B].
+  `gaza`-`sinai` (the north Sinai coast road, desert with forts) [B]. (Since item 11f+ the Ways of Horus run `delta`-`sinai`-`gaza`: "Neighbours on the map" below.)
 - **Passes:** `kanesh`-`kizzuwatna` and `tuwanuwa`-`kizzuwatna` (the Cilician Gates), `kizzuwatna`-`carchemish` (the
   Amanus), `kanesh`-`carchemish` (the Taurus by Malatya), `byblos`-`damascus` (the Lebanon range) [B].
 - **Rivers as connections:** the Nile (`delta`-`memphis`-`akhetaten`-`thebes`, and on to Nubia), the Euphrates
@@ -107,15 +107,15 @@ over mountains, a river crossed by ford or ferry, or a place armies were held" (
 
 | Connection (map ids) | Crossing | Evidence | Grade |
 | --- | --- | --- | --- |
-| `nesa`-`isuwa`, `samuha`-`isuwa` | the upper Euphrates | Suppiluliuma "crossed the Euphrates" into Isuwa (the Shattiwaza treaty, Beckman no. 6A) | A |
-| `hattusa`-`nesa`, `hattusa`-`tuwanuwa`, `sapinuwa`-`nesa` | the Marassantiya (Halys) | The river ringing the heartland (the table below); Hattusa and Sapinuwa within its bend, the plateau south of it, Samuha on its bank | A (the river), B (as an obstacle) |
+| `samuha`-`isuwa` (and `nesa`-`isuwa` until item 11f+, which routes it by Samuha) | the upper Euphrates | Suppiluliuma "crossed the Euphrates" into Isuwa (the Shattiwaza treaty, Beckman no. 6A) | A |
+| `hattusa`-`nesa`, `hattusa`-`tuwanuwa` (and `sapinuwa`-`nesa` until item 11f+, which routes it by Samuha) | the Marassantiya (Halys) | The river ringing the heartland (the table below); Hattusa and Sapinuwa within its bend, the plateau south of it, Samuha on its bank | A (the river), B (as an obstacle) |
 | `damascus`-`qadesh` | the Orontes at the ford of Shabtuna | Ramesses II's army crossed at Shabtuna south of Qadesh (the Qadesh inscriptions, 1274) | A, a lifetime later |
 | `ugarit`-`niya` | the Orontes below Niya | Amenhotep II "crossed the Orontes" and came to Niya (his Memphis and Karnak stelae) | A |
 | `hazor`-`damascus`, `hazor`-`ashtaroth` | the Jordan | The road from Megiddo to Damascus crosses it ("Jordan crossing" above), north of the Sea of Galilee | B |
 | `megiddo`-`pella`, `shechem`-`pella`, `hazor`-`pella` | the Jordan (by Beth-Shan) | Pihil's men crossed to attack Beth-Shan (Seti I's first Beth-Shan stela); the rift's fords | A, a generation later; B |
 | `beirut`-`damascus` | the Lebanon | The same range as Byblos's and Sidon's roads to the Beqaa | B |
 | `libya`-`delta`, `libya`-`memphis` | the Western Desert | The Libyans' land beyond the Delta's edge ([08-beyond-the-edges.md](08-beyond-the-edges.md)) | A (the people), G (the roads) |
-| `shasu`-`hebron`, `shasu`-`sinai`, `shasu`-`gaza` | the Negev | As `hebron`-`sinai`; Seti I fought the Shasu on the Ways of Horus | B |
+| `shasu`-`hebron`, `shasu`-`sinai`, `shasu`-`gaza` | the Negev | As `hebron`-`sinai` (a connection until item 11f+); Seti I fought the Shasu on the Ways of Horus | B |
 
 Checked and left out, as lesser streams or ridges that stopped no army, drawn but not crossings: the **Khabur** and the
 **Balikh** (the spine of Mitanni's heartland; no army is recorded held at them); the **Zabs** and the **Diyala**
@@ -134,7 +134,7 @@ each case rests on (the full list is in `docs/design/36-map-neighbours.md`):
 
 | Case | Reading | Evidence | Grade |
 | --- | --- | --- | --- |
-| The Sutean steppe to Terqa, Aleppo, Harran, Nuhashshe and Qadesh | desert roads, each a crossing of the Syrian desert | "The Syrian desert" above: Mari's and Hana's shortcut by Tadmor; the Suteans on every edge of it (EA 16, 195, 297) | B |
+| The Sutean steppe to Terqa, Aleppo, Harran, Nuhashshe and Qadesh | desert roads, each a crossing of the Syrian desert, but Harran's, which fords the Euphrates below Emar, the frontier there | "The Syrian desert" above: Mari's and Hana's shortcut by Tadmor; the Suteans on every edge of it (EA 16, 195, 297) | B |
 | The Delta to Gaza by the Sinai | the Ways of Horus are the Sinai's road; their forts were Egypt's | "The Ways of Horus" above (Seti I's Karnak relief; Papyrus Anastasi I) | A |
 | Akko to Ashkelon, Gaza to Megiddo, Gezer to Megiddo | the coast road goes inland through the Aruna pass to Megiddo; the pass is Megiddo's | Thutmose III's Annals: Yehem, Aruna, Megiddo | A |
 | Gaza to Jerusalem, Shechem; Jerusalem to Lachish; Hebron, Jerusalem to the Sinai | the roads from the coast into the hills go by the cities between | the Amarna letters' cities between them (EA 287-290: Gezer, Lachish, Ashkelon, Qiltu); no source gives these roads' land to either end | B |

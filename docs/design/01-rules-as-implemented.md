@@ -226,14 +226,16 @@
   map review extended them ([the map and the seas](12-the-map-and-the-seas.md)): rough ground in Mira, Lukka, Isuwa,
   Amurru, Arbela, Kalavasos, Shechem, Jerusalem, the Hebron hills, the Kaska lands and (item 11f) Azzi-Hayasa; the
   mountain passes of the Cilician Gates (Tuwanuwa–Kizzuwatna), the Taurus (Nesa–Kizzuwatna), the Anti-Taurus
-  (Nesa–Carchemish), the Amanus (Kizzuwatna–Carchemish), the Syrian Gates (Kizzuwatna–Alalakh) and the Lebanon
+  (Nesa–Carchemish and, since item 11f+, Samuha–Carchemish), the Amanus (Kizzuwatna–Carchemish), the Syrian Gates (Kizzuwatna–Alalakh) and the Lebanon
   (Byblos–, Sidon– and Beirut–Damascus); the great rivers at their fords and ferry towns, the Euphrates at Carchemish and
-  at Emar and the upper Euphrates (Carchemish–Harran, Aleppo–Harran, Isuwa–Harran, Nesa–Isuwa, Samuha–Isuwa), the Tigris
+  at Emar and the upper Euphrates (Carchemish–Harran, Aleppo–Harran, Isuwa–Harran, Samuha–Isuwa; since item 11f+ the steppe's road to Harran below
+  Emar too), the Tigris
   (Taidu–Nineveh), and since item 11f the rivers crossed but not sailed (`CrossedRivers`): the Marassantiya
-  (Hattusa–Nesa, Hattusa–Tuwanuwa, Sapinuwa–Nesa), the Orontes (Damascus–Qadesh at Shabtuna, Ugarit–Niya) and the
-  Jordan (Hazor–Damascus, Hazor–Ashtaroth, Hazor–Pella, Megiddo–Pella, Shechem–Pella), each with a ferry day and four more in its
+  (Hattusa–Nesa, Hattusa–Tuwanuwa), the Orontes (Damascus–Qadesh at Shabtuna, Ugarit–Niya) and the
+  Jordan (Hazor–Damascus, Hazor–Ashtaroth, Hazor–Pella, Megiddo–Pella, Shechem–Pella, and since item 11f+ Jerusalem–Pella and Jerusalem–Shasu by Jericho), each with a ferry day and four more in its
   flood (Shemu). Every crossing names its dossier (`Crossing.source`); what item 11f checked and left out is in
-  [the rest of the map](33-the-rest-of-the-map.md). Desert connections give no help.
+  [the rest of the map](33-the-rest-of-the-map.md), and the connections item 11f+ added and removed in
+  [neighbours on the map](36-map-neighbours.md). Desert connections give no help.
   - **The ground helps a unit that stands its ground** (`defenceGround`, `Adjudicator.holdStrength`): one that
     holds, besieges, supports or convoys, or whose own move failed. Against an attack it holds with
     `GameConfig.terrainDefence` (1, a first guess) more when it stands on rough ground, or when the attack comes over a pass

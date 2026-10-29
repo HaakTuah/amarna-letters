@@ -13,7 +13,10 @@ Build order item 13+ (`docs/intent/build-order/item-13.md`, the 13+ entry), Haak
   stores, its people live as before, its troops hold where they are (no orders reach them, and nobody pays them), and the
   gold of its mines goes to the fallen capital as before, so to whoever holds it (`harvestSeason`; a load on the road if
   beyond the season's reach, `lootHome(..., to)`); with nobody holding the capital it stays with the province's people.
-  Troops marching into unwalled land of the fallen kingdom take it as any other land (`updateOwnership`).
+  Troops marching into unwalled land of the fallen kingdom take it as any other land (`updateOwnership`). The fallen
+  kingdom's own armies press no siege and take no land for a king who is no more, and any gold that comes into its
+  hands meanwhile (tolls, a caravan its troops seize) goes where its mines' gold goes (`credit`). Its governors and
+  commanders serve on until the word reaches their province or army, and are their own men from then.
 - When the word arrives in a province: where the conqueror's troops stand, it is his, held by force (a walled city his
   army stood before without storming it, too); where a governor of the fallen king's governs, he rules it in his own name
   (below); the rest falls lawless ("Land without a ruler"). Then the armies there hear it: a commanded one is its
@@ -28,8 +31,8 @@ Build order item 13+ (`docs/intent/build-order/item-13.md`, the 13+ entry), Haak
   and a registry in `model/power.ts` mirrors it for what names a power without the state (`setRisen`, called by every
   new game, every `TurnEngine` and the web page as a state arrives). `AllPowers` is every power in play's order, the
   fixed ones and then the risen as they rose; `cmpPower` sorts risen powers after the fixed. A risen power's capital is
-  its province (`WorldMap.capital`), its court there; the map is not its homeland, but the land is his own people's and
-  has nothing to absorb.
+  its province (`WorldMap.capital`), its court there, and its province is its homeland (`WorldMap.homeOf`, `isHome`: levies,
+  the people's resistance, absorption, the script kings' reckoning), with nothing to absorb.
 - **What he brings.** His purse becomes his treasury ("Nothing appears or vanishes"); the troops in his province (or
   its waters) follow him if his treasury covers a season of their pay, each in turn, first guess; those he cannot pay
   hear the news as the rest of the army does. His character stays in play, duty `Ruling`, employed by his own power,

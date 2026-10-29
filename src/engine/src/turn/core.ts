@@ -288,7 +288,7 @@ export class TurnEngine {
    * fallen kingdom): its new holder absorbs it slowly, unless it is of his own homeland, which he retakes in full.
    */
   takenByForce(province: string, taker: Power | null): void {
-    if (taker !== null && this.map.get(province).home !== taker) this.s.conquered.set(province, this.s.turn);
+    if (taker !== null && !this.map.isHome(taker, province)) this.s.conquered.set(province, this.s.turn);
     else this.s.conquered.delete(province);
   }
 

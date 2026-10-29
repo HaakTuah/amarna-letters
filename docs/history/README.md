@@ -1,7 +1,7 @@
 # The historical sources: dossiers for 1346 BCE
 
 Build order item 6+ ("Grounded in the sources", under World and history). What the sources say about the world of the
-Amarna letters in the game's first year, 1346 BCE, for the items that build from it (7, 9+, 10, 10+, 11, 11+, 12, 13, 15, 16,
+Amarna letters in the game's first year, 1346 BCE, for the items that build from it (7, 9+, 10, 10+, 11, 11+, 12, 13, 14, 15, 16,
 17 and 18). No code reads these files: each item cites the line it builds from and turns it into data.
 
 | Dossier | Holds | For items |
@@ -19,6 +19,8 @@ Amarna letters in the game's first year, 1346 BCE, for the items that build from
 | [11-armies-and-fleets.md](11-armies-and-fleets.md) | Armies, chariotry, infantry, garrisons, levies, hired men and fleets of each power and city-state; command; logistics and the campaigning season | 13, 18 |
 | [12-walls-roads-harbours.md](12-walls-roads-harbours.md) | Walls by city against the game's start, sieges on record, roads and their upkeep, relay stations, harbours and what they held | 15, 18 |
 | [13-the-land-drawn.md](13-the-land-drawn.md) | What the map draws of the land: relief, every river that mattered, the lakes and marshes of 1346, and the public-domain data each comes from (added by item 11c++) | 11c++, 19 |
+| [14-courts-and-free-cities.md](14-courts-and-free-cities.md) | Who sat at each court and what each office did; how far a council checked a king; intrigue and succession; how cities became free or changed rulers (revolts, usurpers, exiles, the Habiru), against item 17's conditions; the council's period titles checked | 14, 16, 17 |
+| [15-pirates-bandits-tolls.md](15-pirates-bandits-tolls.md) | Robbery of caravans and envoys on record and who was held answerable; compensation for merchants killed abroad; the Lukka and piracy by coast; the Habiru, Suteans and Shasu as road threats; tolls, customs and smuggling; policing (the Medjay, forts, garrisons, the Hittite watch) and its cost, by region | 11, 15, 18 |
 
 ## How sure each claim is
 

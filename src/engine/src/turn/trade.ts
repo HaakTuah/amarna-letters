@@ -163,8 +163,7 @@ P.atBorder = function (c, a, b, book) {
       return "pass";
     }
     const lost = this.putInStores(b, c.grain);
-    S.treasuries.get(k).gold += c.gold;
-    S.treasuries.get(k).income += c.gold;
+    this.credit(k, c.gold, b);
     const e = entry();
     e.grain += c.grain - lost;
     e.gold += c.gold;
@@ -187,8 +186,7 @@ P.atBorder = function (c, a, b, book) {
   c.grain -= grain;
   c.gold -= gold;
   const lost = this.putInStores(b, grain);
-  S.treasuries.get(k).gold += gold;
-  S.treasuries.get(k).income += gold;
+  this.credit(k, gold, b);
   const e = entry();
   e.grain += grain - lost;
   e.gold += gold;
