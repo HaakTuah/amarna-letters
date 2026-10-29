@@ -67,7 +67,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 11b++ | The answers to item 11b+ | not started: next (`docs/intent/build-order/item-11.md`) | | |
 | 11+ | City-states as powers | done (28 Oct): the 23 city-states and chiefs as powers (Gaza and Sumur Egypt's), no purchase, vassal tablets and their template clauses, the 17 opening bonds of 1346, par for each starting position, the state of the realm, staff by size and the pool of 100, the chiefs' strongholds; save version 24. Script players pay, demand and offer vassalage by their sums (`--vassal-play-half`) | `item/city-states` | `docs/rounds/2026-10-28-city-states.md` |
 | 11c | The map in true geography, and the Red Sea | not started: a lane beside 11+ (`docs/intent/build-order/item-11.md`) | | |
-| 11d | The answers to item 11+ | not started: after 11+, beside 11c (`docs/intent/build-order/item-11.md`) | | |
+| 11d | The answers to item 11+ | in progress (`item/answers-to-11plus`): after 11+, beside 11c (`docs/intent/build-order/item-11.md`) | | |
 | 12 | Languages | not started | | |
 | 13 | Command at a distance | not started | | |
 | 14 | Legends | not started | | |
