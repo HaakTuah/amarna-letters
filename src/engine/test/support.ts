@@ -372,6 +372,21 @@ export function formerHomes(s: GameState): GameState {
 }
 
 /**
+ * One more province in a king's hands as `formerHomes` puts Hana back in Mitanni's (item 11f+, whose map no longer joins
+ * Ashur and Ekallate to Terqa: tests that set Assyria against Mitanni there meet at Suhu instead): its city without walls,
+ * and his troop standing in it.
+ */
+export function formerHome(s: GameState, id: string, king: Power, kind: UnitKind = "Army"): GameState {
+  unruled(s, id);
+  s.walls.delete(id);
+  s.owner.set(id, king);
+  s.ownerLog.push({ province: id, turn: 0, owner: king });
+  s.units.push(newUnit({ id: newId(s, "u"), power: king, kind, province: id, home: id }));
+  s.startStrength.set(king, new TurnEngine(s).strength(king));
+  return s;
+}
+
+/**
  * The armies as they stood before item 13, for tests of the general rules written with them: every Great King's unit a
  * full levy (an army 5,000 men, a fleet's crews 2,000) where it stood then, a city-state's army 50 men for each shekel its
  * land yields (the lands without a town 250, Arwad a fleet of 20 a shekel), none of item 13's garrisons, fleets in the

@@ -110,9 +110,10 @@ describe("SeasonOrderTests", () => {
 
   test("A levy needs a province you still hold that is empty after movement", () => {
     let s = oldWorld(newGame(4, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
-    s.owner.set("jerusalem", "Babylonia");
-    s.walls.delete("jerusalem");
-    s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "jerusalem" }));
+    s.owner.set("shasu", "Babylonia");
+    s.walls.delete("shasu");
+    s.units = s.units.filter((u) => u.province !== "shasu");
+    s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "shasu" }));
     // Sinai's own men are too few for an army (item 10+a): give it enough, so only the loss of the land stops the levy.
     s.people.get("sinai").men = s.people.get("sinai").settled = 20000;
     let e = new TurnEngine(s);
@@ -121,7 +122,7 @@ describe("SeasonOrderTests", () => {
     e.resolve(
       new Dict([
         // Babylonia takes Sinai as Egypt raises an army there; Egypt marches into Thebes and raises one there too.
-        ["Babylonia", newTurnSubmission({ orders: [move("jerusalem", "sinai")] })],
+        ["Babylonia", newTurnSubmission({ orders: [move("shasu", "sinai")] })],
         ["Egypt", newTurnSubmission({ orders: [move("akhetaten", "thebes"), raise("sinai", "Army"), raise("thebes", "Army")] })],
       ]),
     );

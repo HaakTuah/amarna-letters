@@ -33,7 +33,7 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { Assert, join, oldWorld } from "./support.ts";
+import { Assert, formerHome, join, oldWorld } from "./support.ts";
 import { dispatch as dispatchOrder } from "@amarna/engine";
 
 // What the engine's records and notices say, after the second agent simulation's defects in the views (the fix pass after
@@ -211,31 +211,31 @@ describe("RecordTextTests", () => {
   }
 
   test("A stopped move says where the unit now stands", () => {
-    // Assyria and Mitanni meet head to head between Ekallate and Terqa at equal strength: both bounce and stay.
-    let s = oldWorld(newGame(1));
+    // Assyria and Mitanni meet head to head between Ekallate and Suhu at equal strength: both bounce and stay.
+    let s = formerHome(oldWorld(newGame(1)), "suhu", "Mitanni");
     new TurnEngine(s).resolve(
       new Dict([
-        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "terqa")] })],
-        ["Mitanni", newTurnSubmission({ orders: [move("terqa", "ekallate")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "suhu")] })],
+        ["Mitanni", newTurnSubmission({ orders: [move("suhu", "ekallate")] })],
       ]),
     );
 
     Assert.contains(
-      "- A ekallate -> terqa: fails: it met the unit from terqa (Mitanni's army) coming the other way; your strength 1 against 1; so your army stays in ekallate",
+      "- A ekallate -> suhu: fails: it met the unit from suhu (Mitanni's army) coming the other way; your strength 1 against 1; so your army stays in ekallate",
       battle(s, "Assyria"),
     );
     Assert.contains(
-      "- A terqa -> ekallate: fails: it met the unit from ekallate (Assyria's army) coming the other way; your strength 1 against 1; so your army stays in terqa",
+      "- A suhu -> ekallate: fails: it met the unit from ekallate (Assyria's army) coming the other way; your strength 1 against 1; so your army stays in suhu",
       battle(s, "Mitanni"),
     );
 
     // A unit whose move failed and that was then destroyed is not said to stay: its own line says it was destroyed.
-    let t = oldWorld(newGame(1));
+    let t = formerHome(oldWorld(newGame(1)), "suhu", "Mitanni");
     new TurnEngine(t).resolve(
       new Dict([
-        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "terqa"), support("ashur", "ekallate", "terqa")] })],
-        ["Mitanni", newTurnSubmission({ orders: [move("terqa", "ekallate")] })],
-        ["Babylonia", newTurnSubmission({ orders: [support("sippar", "terqa", "ekallate"), support("durkurigalzu", "terqa", "ekallate")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "suhu")] })],
+        ["Mitanni", newTurnSubmission({ orders: [move("suhu", "ekallate")] })],
+        ["Babylonia", newTurnSubmission({ orders: [support("durkurigalzu", "suhu", "ekallate")] })],
       ]),
     );
     let assyria = battle(t, "Assyria");

@@ -102,11 +102,12 @@ describe("SiegeTests", () => {
     Assert.contains("Babylonia's army has laid siege to your city of Suhu (walls 3) and wore it down two steps, with a support: it stands at 2 of 9.", notice(s, "Mitanni", SiegesTitle));
 
     // The support is cut by an attack on Sippar: one step only.
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "nippur" }));
     season(
       s,
       subs({
         Babylonia: { orders: [support("sippar", "suhu")] },
-        Assyria: { orders: [move("ekallate", "sippar")] },
+        Assyria: { orders: [move("nippur", "sippar")] },
       }),
     );
     Assert.equal(3, Assert.single(s.sieges).progress);
@@ -130,7 +131,8 @@ describe("SiegeTests", () => {
     Assert.equal(1, Assert.single(s.sieges).progress);
     Assert.contains("did not hold there, so the siege of Suhu (walls 3) did not advance", notice(s, "Babylonia", SiegesTitle));
     // It marches out: the siege is lifted.
-    season(s, ordersOf("Babylonia", move("suhu", "steppe")));
+    removeAll(s.units, (u) => u.province === "durkurigalzu");
+    season(s, ordersOf("Babylonia", move("suhu", "durkurigalzu")));
     Assert.empty(s.sieges);
     Assert.contains("Your siege of Suhu is lifted: the besieging army marched out.", notice(s, "Babylonia", SiegesTitle));
     Assert.null(s.owner.get("suhu"));
@@ -161,8 +163,10 @@ describe("SiegeTests", () => {
     season(s, new Dict());
     Assert.equal("Mitanni", s.owner.get("suhu"));
     Assert.empty(s.sieges);
-    // Turning on the host: a siege begins. Mitanni's army in Terqa, supported by Assyria's in Ekallate, drives it out.
+    // Turning on the host: a siege begins. Mitanni's army in Terqa, supported by Assyria's in Ekallate, drives it out, to
+    // Dur-Kurigalzu, left empty for it to fall back to.
     season(s, ordersOf("Babylonia", besiege("suhu")));
+    removeAll(s.units, (u) => u.province === "durkurigalzu");
     Assert.single(s.sieges);
     season(
       s,
@@ -195,8 +199,7 @@ describe("SiegeTests", () => {
     s.walls.set("suhu", 1);
     // Its men gone (item 11e: a city's own men stand on its walls), its walls alone stand against two.
     s.people.get("suhu").men = 0;
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "steppe" }));
-    season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("steppe", "sippar", "suhu")));
+    season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("durkurigalzu", "sippar", "suhu")));
     Assert.equal("Babylonia", s.owner.get("suhu"));
     Assert.equal(0, wallsOf(s, "suhu"));
     Assert.false(s.walls.has("suhu"));
@@ -208,8 +211,7 @@ describe("SiegeTests", () => {
     // more than two can storm, so the army stands within the walls and the city stays free.
     let s = board();
     s.walls.set("suhu", 1);
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "steppe" }));
-    season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("steppe", "sippar", "suhu")));
+    season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("durkurigalzu", "sippar", "suhu")));
     Assert.notEqual("Babylonia", s.owner.getOrDefault("suhu", null));
     Assert.equal("Babylonia", unitAt(s, "suhu")?.power);
     Assert.contains(inboxOf(s, "Babylonia"), (i) => i.body.includes("and the city's men 1.2, the walls making them twice as strong"));
@@ -250,9 +252,9 @@ describe("SiegeTests", () => {
 
     // A sally that finds no attack is void, and walls below 2 cannot sally.
     let v = board();
-    season(v, ordersOf("Mitanni", sally("suhu", "steppe")));
+    season(v, ordersOf("Mitanni", sally("suhu", "ekallate")));
     Assert.contains(
-      "- The walls of suhu sally in support of the attack from steppe: void: no unit moved from steppe to suhu",
+      "- The walls of suhu sally in support of the attack from ekallate: void: no unit moved from ekallate to suhu",
       single(inboxOf(v, "Mitanni"), (i) => i.title === "Movements last season" && i.turn === v.turn).body,
     );
     let low = board();

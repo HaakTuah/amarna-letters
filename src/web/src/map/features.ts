@@ -182,3 +182,26 @@ export const Wastes = LL(
   35.8, 46.8, 33.9, 47.4, 32.6, 50.0, 30.6, 51.0, 37.7, 45.9, 38.7, 43.4, 39.9, 41.3, 41.3, 41.0, 40.2, 38.0,
   39.6, 31.8, 41.0, 31.4, 40.6, 28.4, 41.6, 33.0,
 );
+
+/**
+ * The roads whose land the sources give to one of the two provinces they join, where the land's own borders would put a
+ * third province's land between them (item 11f+, "neighbours on the map are neighbours in the rules"): a band along each
+ * road is that province's, so the two provinces the road joins touch. Each with the dossier it rests on, in the design
+ * notes (`docs/design/36-map-neighbours.md`).
+ */
+export const RoadLands: readonly { readonly province: string; readonly road: readonly Pt[] }[] = [
+  // Thutmose III's road from the Sharon through the Aruna pass to Megiddo (his Annals): the pass is Megiddo's
+  { province: "megiddo", road: LL(32.58, 35.18, 32.47, 35.07, 32.38, 34.97, 32.2, 34.93) },
+  // The King's Highway north from Edom by Moab to the Bashan: the Shasu's pastures east of the Jordan
+  { province: "shasu", road: LL(30.6, 35.3, 30.73, 35.6, 31.18, 35.7, 31.5, 35.78, 31.8, 35.82, 32.1, 35.95, 32.45, 36.0) },
+  // The Upper Land's road to Hayasa, the Hittite frontier against Azzi (the Hittite campaign texts)
+  { province: "samuha", road: LL(39.61, 36.52, 39.75, 37.5, 39.8, 38.5, 39.78, 38.9) },
+  // The Elam road from Babylonia by Der (a Babylonian city) to Susa
+  { province: "durkurigalzu", road: LL(33.35, 44.2, 33.2, 45.0, 33.12, 45.93, 32.75, 46.8, 32.5, 47.3) },
+  // The Kaska frontier in the mountains north of the Upper Land, where they raided Samuha's land
+  { province: "kaska", road: LL(40.9, 36.0, 40.6, 36.4, 40.25, 36.6, 39.95, 36.6) },
+  // The Lower Land's road west to Arzawa, Hatti's frontier province facing Mira
+  { province: "tuwanuwa", road: LL(37.97, 34.68, 37.87, 32.5, 38.1, 31.4, 38.3, 30.5) },
+  // Kumidi in the Beqaa, Egypt's seat for Upe, on the road from Damascus over the Lebanon to Sidon (EA 116, 132, 198)
+  { province: "damascus", road: LL(33.51, 36.29, 33.6, 36.0, 33.62, 35.86, 33.6, 35.65) },
+];

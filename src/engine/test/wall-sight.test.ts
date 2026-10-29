@@ -53,8 +53,10 @@ describe("WallSightTests", () => {
     Assert.equal(3, Views.for(s, "Mitanni").walls.get("suhu"));
     Assert.equal(2, Views.for(s, "Egypt").walls.get("suhu"));
 
-    // An Egyptian army in the Sutean steppe, next to Suhu, sees them; the season resolves, and Egypt remembers them as it saw them.
-    let army = newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: "steppe" });
+    // An Egyptian army in Terqa, next to Suhu (Mitanni's own army gone from it), sees them; the season resolves, and Egypt
+    // remembers them as it saw them.
+    s.units.splice(s.units.findIndex((u) => u.province === "terqa"), 1);
+    let army = newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: "terqa" });
     s.units.push(army);
     Assert.equal(3, Views.for(s, "Egypt").walls.get("suhu"));
     let e = new TurnEngine(s);
@@ -64,7 +66,7 @@ describe("WallSightTests", () => {
 
     // The army gone, Suhu's walls fall: Egypt still knows them at 3, Mitanni sees them at 1.
     s.units.splice(s.units.findIndex((u) => u.id === army.id), 1);
-    s.owner.set("steppe", null); // the army took the unwalled steppe by standing in it: give it back
+    s.owner.set("terqa", "Mitanni"); // the army took unwalled Terqa by standing in it: give it back
     s.walls.set("suhu", 1);
     Assert.equal(3, Views.for(s, "Egypt").walls.get("suhu"));
     Assert.equal(1, Views.for(s, "Mitanni").walls.get("suhu"));

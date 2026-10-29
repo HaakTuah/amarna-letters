@@ -395,7 +395,8 @@ export function buildMap(): WorldMap {
 
   // Anatolia
   coast("seha", "apasa");
-  land("seha", "mira", "tuwanuwa");
+  // Item 11f+: the road from the Seha River Land to the plateau runs through Mira.
+  land("seha", "mira");
   land("apasa", "mira");
   coast("apasa", "lukka");
   land("mira", "lukka", "tuwanuwa");
@@ -404,10 +405,12 @@ export function buildMap(): WorldMap {
   land("tuwanuwa", "hattusa", "nesa", "kizzuwatna");
   land("hattusa", "sapinuwa", "nesa", "kaska");
   // The road from Sapinuwa to Isuwa runs through the Upper Land, by Samuha (item 11f); Azzi beyond Samuha and Isuwa.
-  land("sapinuwa", "nesa", "samuha", "kaska");
-  land("samuha", "nesa", "isuwa", "kaska", "azzi", "hattusa");
+  // Item 11f+: and from Nesa to Sapinuwa and to Isuwa by Samuha, on the Marassantiya; the Anti-Taurus between Samuha and
+  // Carchemish, whose lands touch.
+  land("sapinuwa", "samuha", "kaska");
+  land("samuha", "nesa", "isuwa", "kaska", "azzi", "hattusa", "carchemish");
   land("azzi", "isuwa");
-  land("nesa", "kizzuwatna", "isuwa", "carchemish");
+  land("nesa", "kizzuwatna", "carchemish");
   land("kizzuwatna", "carchemish", "alalakh");
 
   // Upper Mesopotamia
@@ -415,35 +418,38 @@ export function buildMap(): WorldMap {
   land("carchemish", "harran", "aleppo", "alalakh");
   land("harran", "washukanni", "terqa", "aleppo");
   land("washukanni", "taidu", "terqa");
-  land("taidu", "nineveh");
-  land("terqa", "suhu", "ashur", "ekallate", "nuhashshe");
+  // Item 11f+: Taidu's land reaches Isuwa's, Terqa's and Ashur's; Ashur and Ekallate reach the Euphrates by Suhu.
+  land("taidu", "nineveh", "isuwa", "terqa", "ashur");
+  land("terqa", "suhu");
   land("nineveh", "arbela", "ashur");
   land("arbela", "ashur", "arrapha");
-  land("ashur", "ekallate", "arrapha");
+  land("ashur", "ekallate", "arrapha", "suhu");
 
   // Babylonia and Elam
-  land("arrapha", "ekallate", "susa");
-  land("ekallate", "sippar", "durkurigalzu", "suhu");
+  // Item 11f+: the Elam road by Der, Dur-Kurigalzu's, from Babylonia and from Arrapha to Susa; Babylon reaches
+  // Dur-Kurigalzu by Sippar.
+  land("arrapha", "ekallate", "durkurigalzu");
+  land("ekallate", "durkurigalzu", "suhu");
   land("susa", "durkurigalzu", "nippur", "ur");
-  land("sippar", "durkurigalzu", "babylon", "suhu");
-  land("durkurigalzu", "babylon", "nippur");
+  land("sippar", "durkurigalzu", "babylon", "suhu", "nippur");
+  land("durkurigalzu", "nippur", "suhu");
   land("babylon", "nippur");
   land("nippur", "ur");
 
   // Northern Syria
-  land("alalakh", "aleppo", "ugarit", "niya");
-  land("aleppo", "nuhashshe");
+  land("alalakh", "aleppo", "ugarit", "niya", "nuhashshe");
+  // Item 11f+: the Sutean steppe's desert roads reach every land on its edge.
+  land("aleppo", "nuhashshe", "steppe");
   // Item 11f: the roads from the coast into the Orontes valley now reach Niya and Tunip, and go on to Nuhashshe from them.
-  land("ugarit", "niya");
-  land("niya", "nuhashshe", "tunip");
-  land("tunip", "nuhashshe", "qatna", "qadesh", "amurru", "sumur");
-  land("nuhashshe", "qatna", "qadesh");
-  land("qatna", "qadesh", "steppe");
-  land("suhu", "steppe");
+  land("ugarit", "niya", "tunip");
+  land("niya", "nuhashshe", "tunip", "qatna");
+  land("tunip", "qatna", "amurru", "sumur");
+  land("nuhashshe", "qatna", "steppe");
+  land("qatna", "qadesh", "steppe", "amurru");
+  land("steppe", "harran", "terqa", "qadesh");
 
   // The Levant
   coast("ugarit", "sumur");
-  land("ugarit", "amurru");
   land("amurru", "sumur", "qadesh", "byblos");
   coast("sumur", "byblos");
   land("qadesh", "byblos", "damascus");
@@ -454,27 +460,27 @@ export function buildMap(): WorldMap {
   land("beirut", "damascus");
   land("sidon", "damascus");
   coast("sidon", "tyre");
-  land("tyre", "damascus", "megiddo");
   // The road from Megiddo to Damascus runs by Hazor, and the shore from Tyre to Gaza by Akko and Ashkelon (item 11c).
-  land("hazor", "megiddo", "damascus", "akko", "tyre");
+  // Item 11f+: Tyre's road to Damascus and Megiddo's to Tyre run by Hazor and Akko; the coast road from Akko to Ashkelon
+  // goes inland by Megiddo and Gezer (through the Aruna pass, Megiddo's); Gaza reaches the hills by Ashkelon and
+  // Lachish, and the Ways of Horus run through the Sinai.
+  land("hazor", "megiddo", "damascus", "akko", "tyre", "sidon");
   coast("tyre", "akko");
   land("akko", "megiddo");
-  coast("akko", "ashkelon");
   coast("ashkelon", "gaza");
   land("ashkelon", "gezer", "lachish");
-  land("gezer", "jerusalem", "shechem", "megiddo", "lachish");
-  land("lachish", "gaza", "jerusalem", "hebron");
-  land("hebron", "jerusalem", "sinai");
-  land("megiddo", "gaza", "shechem");
-  land("shechem", "jerusalem", "gaza");
-  land("jerusalem", "gaza", "sinai");
+  land("gezer", "jerusalem", "shechem", "megiddo", "lachish", "hebron");
+  land("lachish", "gaza", "hebron", "shasu");
+  land("hebron", "jerusalem");
+  land("megiddo", "shechem");
+  land("shechem", "jerusalem");
   land("gaza", "sinai");
-  coast("gaza", "delta");
   // East of the Jordan (item 11f): Pella across from Beth-Shan, Ashtaroth in the Bashan on the road to Damascus, and the
   // Shasu's land south of the Dead Sea, reached from the Hebron hills, across the Sinai, and north by the King's Highway.
-  land("pella", "megiddo", "shechem", "ashtaroth", "hazor");
+  land("pella", "megiddo", "shechem", "ashtaroth", "hazor", "jerusalem", "shasu");
   land("ashtaroth", "damascus", "hazor");
-  land("shasu", "hebron", "sinai", "ashtaroth", "gaza");
+  // Item 11f+: the King's Highway, the Shasu's east of the Jordan, joins them to the Bashan, Pella and Jerusalem.
+  land("shasu", "hebron", "sinai", "ashtaroth", "gaza", "jerusalem");
 
   // Egypt and Nubia
   land("sinai", "delta", "memphis");

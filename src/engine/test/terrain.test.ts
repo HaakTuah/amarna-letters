@@ -286,11 +286,12 @@ describe("TerrainTests", () => {
     s.units.push(newUnit({ id: "u90", power: "Arzawa", kind: "Army", province: "isuwa" }));
     s.units.push(newUnit({ id: "u91", power: "Hatti", kind: "Army", province: "carchemish" }));
     single(s.units, (u) => u.province === "hattusa").province = "samuha";
+    single(s.units, (u) => u.province === "nesa").province = "harran";
     new TurnEngine(s).resolve(
       new Dict([
         [
           "Hatti",
-          newTurnSubmission({ orders: [move("nesa", "isuwa"), support("samuha", "nesa", "isuwa"), support("carchemish", "nesa", "isuwa")] }),
+          newTurnSubmission({ orders: [move("samuha", "isuwa"), support("harran", "samuha", "isuwa"), support("carchemish", "samuha", "isuwa")] }),
         ],
       ]),
     );
