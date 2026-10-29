@@ -8,7 +8,7 @@ The council is `src/game/src/bots/council.ts`, run by the runner (`src/game/src/
 
 ## The council
 
-- **Who hears it:** every seat played by a model, a file or a human (a seat that `canSleep`), a Great King or a
+- **Who hears it:** every seat played by a model, a file or a human (a seat that `hearsCouncil`), a Great King or a
   city-state's ruler alike. Script seats never have one: they run the same calculations to decide. On by default;
   a seat turns it off or on with its submission (`TurnSubmission.council`, "on" or "off", from the next season), which
   the engine keeps in `GameState.councilOff` and logs as a `council` event seen by that seat, so experiments can report

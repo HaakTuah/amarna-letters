@@ -38,6 +38,8 @@ class PageSeat implements ISeat {
   readonly label = "Human";
   /** A human may sleep too (item 9+a): ending a turn with a sleep, he is woken by the same triggers as any seat, or by himself. */
   readonly canSleep = true;
+  /** Item 16: a human hears the royal council, on by default; he may turn it off. */
+  readonly hearsCouncil = true;
   /** Set when the player asks to wake: read once, by the runner's next season. */
   wakeNow = false;
   orders: { view: SeatView; resolve: (s: TurnSubmission) => void } | null = null;

@@ -23,6 +23,7 @@ import { Near, seasons, smallSeats } from "./small-world.ts";
 class Hearing implements ISeat {
   readonly label = "Human";
   readonly canSleep = true;
+  readonly hearsCouncil = true;
   readonly views: SeatView[] = [];
   private readonly bot: ScriptLeader;
   private readonly choose: (v: SeatView) => string;

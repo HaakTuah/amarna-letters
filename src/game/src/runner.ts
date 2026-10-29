@@ -753,7 +753,7 @@ export class GameRunner {
     // advisors still read what it sees. Analysis on the seat's own view, with seeds of its own: it changes nothing in the
     // game, so a strict replay skips it.
     if (!this.isReplay)
-      for (const p of alive(S_).filter((p) => this.seatOf(p).canSleep === true && !S_.councilOff.includes(p))) {
+      for (const p of alive(S_).filter((p) => this.seatOf(p).hearsCouncil === true && !S_.councilOff.includes(p))) {
         const view = views.tryGet(p);
         if (view === undefined) this.council.observe(Views.for(S_, p));
         else view.council = this.council.advise(view);
