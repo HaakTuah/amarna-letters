@@ -12,6 +12,7 @@ import {
   Views,
   basePrice,
   trustIn,
+  talkWeight,
   newSkills,
   captive,
   dispatch,
@@ -245,7 +246,9 @@ describe("ContractTests", () => {
     s.turn = at;
     Assert.equal(MoneyData.trustStart - MoneyData.trustBroken, trustIn(s, "Egypt", "Hatti"));
     new TurnEngine(s).newsSeason();
-    Assert.equal(MoneyData.trustStart - MoneyData.trustBroken, trustIn(s, "Egypt", c));
+    // A person weighs talk by its age (Haakon's answers to item 11b+): the promise was broken some seasons before he heard it.
+    const made = s.payFacts[0].turn;
+    Assert.equal(Math.round(MoneyData.trustStart - MoneyData.trustBroken * talkWeight(c, s.turn - made)), trustIn(s, "Egypt", c));
   });
 
   test("What people ask follows what they heard jobs pay, with no going rate", () => {

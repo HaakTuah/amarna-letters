@@ -282,6 +282,11 @@ export interface CharacterView {
    * One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.
    */
   ransomDemand: number | null;
+  /**
+   * Haakon's answers to item 11b+: your captive's ransom, if you demand it and nobody sets out that way, goes with a free
+   * person hired at your court, the whole fee paid from your treasury: what the cheapest would ask now; null if nobody would.
+   */
+  ransomCarrier: number | null;
   /** Item 11a: the rest of a fee you let fall due and did not pay them, a promise broken (order pay_fee pays it at your court); null if none. */
   owed: number | null;
   /** Haakon's answers to item 11a: the hoard this person keeps in your capital, which you may seize (order seize); null if none. */
@@ -352,6 +357,7 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     heldByYou: false,
     intercepted: false,
     ransomDemand: null,
+    ransomCarrier: null,
     owed: null,
     hoardHere: null,
     carries: null,
@@ -390,6 +396,7 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   heldByYou: B,
   intercepted: B,
   ransomDemand: opt(I),
+  ransomCarrier: opt(I),
   owed: opt(I),
   hoardHere: opt(I),
   carries: opt(I),
@@ -581,6 +588,8 @@ export interface SeatView {
   payCarriers: boolean;
   /** Haakon's answers to item 11b: whether its standing order is that its armies fall on bands in its land. */
   huntBands: boolean;
+  /** Haakon's answers to item 11b+: the provinces its standing hunt names; none named, the whole of its land. */
+  huntWhere: string[];
   /** Item 11a: the debt tablets of its debts that stand, as it knows them. */
   debts: DebtView[];
   /**
@@ -723,6 +732,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     broken: 0,
     payCarriers: false,
     huntBands: false,
+    huntWhere: [],
     debts: [],
     debtsHeld: [],
     strength: 0,
@@ -795,6 +805,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   broken: I,
   payCarriers: B,
   huntBands: B,
+  huntWhere: list(S),
   debts: list(() => DebtViewSchema),
   debtsHeld: list(() => DebtViewSchema),
   strength: I,

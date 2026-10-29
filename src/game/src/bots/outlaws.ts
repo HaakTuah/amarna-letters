@@ -51,16 +51,17 @@ export function huntBands(b: Board, plan: MilitaryPlan): void {
 }
 
 /**
- * Haakon's answers to item 11b: an army falls on a band only on its king's order. Item 11b+ (hunting did not pay): a
- * hunted band that survives flees to a province next door with no army in it, often another of ours, where it robs at
- * the full rate instead of the half it took beside our troops. So a script king orders a hunt (`hunt`, for the next
- * season) only where it ends the band or drives it out of our land: an army of ours stands with it, and either the band
- * is small enough to break (fewer than its least men left after the losses an army that size deals) or no province of
- * ours without troops lies next door for it to flee to. It never gives the standing order, which hunts everywhere.
+ * Haakon's answers to item 11b: an army falls on a band only on its king's order. Item 11b+ found that a hunted band fled
+ * to a province of ours without troops and robbed it at the full rate, so a script king orders a hunt (`hunt`, for the
+ * next season) only where it ends the band or drives it out of our land: an army of ours stands with it, and either the
+ * band is small enough to break or no province of ours without troops lies next door for it to flee to. Item 11b++
+ * measured the standing hunt over the whole land, which chiefs hear of and keep out of: it lost (0.88 growth to 0.92, 19
+ * wins to 31 in 50 games), since armies then fall on every band they stand with, at a cost in men each time, and drive
+ * off more than they break. So the script king gives no standing hunt, and lifts one it finds.
  */
 export function huntOrders(b: Board, orders: Order[]): void {
-  if (!OutlawPlay.on(b.me)) return;
   if (b.v.huntBands) orders.push(huntBandsOrder(false));
+  if (!OutlawPlay.on(b.me)) return;
   for (const x of sortBy([...b.v.bands], [(x) => x.province, cmpStr])) {
     if (!b.isMine(x.province)) continue;
     const army = b.mine.filter((u) => u.kind === "Army" && u.province === x.province).reduce((a, u) => a + u.men, 0);

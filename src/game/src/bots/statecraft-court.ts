@@ -21,6 +21,7 @@ import {
   question,
   steal,
   parsePower,
+  payFee,
   payRansom,
   placeSpy,
   recall,
@@ -44,6 +45,7 @@ import { Board } from "./board.ts";
 import { SeasonPlay } from "./land.ts";
 import { shekels, type Brain } from "./brain.ts";
 import { atHand, oursFirst, fewAtHand, freeAtCourt } from "./errands.ts";
+import { MoneyPlay } from "./credit.ts";
 import type { Personality } from "./personality.ts";
 
 const Blemishes = ["Owes", "dismissed", "Took", "Abandoned", "forger", "fled", "Kept part", "secretly", "in the pay", "Was caught", "Turned back", "Posed as", "Sold the secrets"];
@@ -63,6 +65,9 @@ export const PeoplePlay: { off: boolean; only: ReadonlySet<string> | null; on: (
     return !(this.off && (this.only === null || this.only.has(me)));
   },
 };
+
+/** The seasons of a stay at court a script king offers to keep a proven person at hand (a first guess of the bots). */
+const StaySeasons = 4;
 
 /** The successes a court knows of a person: how a king who hires by name judges it. */
 export function successes(c: CharacterView): number {
@@ -128,6 +133,16 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     staff = staff.filter((x) => x.id !== c.id);
   }
 
+  // Haakon's answers to item 11b+ ("Reports"): a servant known to have sold what belonged in its report, or its master's
+  // secrets, broke its job: the rest of its fee is withheld at once, and it is let go once it is back at court.
+  for (const c of staff.filter((c) => !busy.has(c.id) && c.knownFacts.some((f) => f.startsWith("Sold ")))) {
+    if (c.ready) {
+      orders.push(dismiss(c.id));
+      busy.add(c.id);
+      staff = staff.filter((x) => x.id !== c.id);
+    } else if (c.payOnDone) orders.push(payFee(c.id, false));
+  }
+
   // A servant found keeping gold it carried is let go once it is back at court with nothing on its hands.
   for (const c of v.court.filter((c) => c.ready && !busy.has(c.id) && thief(brain, c))) {
     orders.push(dismiss(c.id));
@@ -141,6 +156,20 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   if (fewAtHand(b, brain) && v.turn - brain.lastSeek >= 2 && spare > 40) {
     orders.push(seekCandidates());
     brain.lastSeek = v.turn;
+  }
+
+  // Haakon's answers to item 11b+: a stay at court until a deadline is an errand like any other. A king with nobody else at
+  // hand keeps a person of proven success there for a few seasons rather than lose him to another court; each errand it
+  // then gives him is a job of its own (jobsForErrands). Kings that leave money alone (`--money-play-half`) do not.
+  const hand = atHand(b, brain);
+  if (MoneyPlay.on(b.me) && hand.length === 1 && !hand[0].ours && successes(hand[0]) > 0 && !busy.has(hand[0].id)) {
+    const c = hand[0];
+    const fee = feeFor(c.askingPrice!, StaySeasons, 50, Math.min(v.trust, 80));
+    if (spare > 500 + fee) {
+      orders.push(hire(c.id, fee, StaySeasons, Math.trunc(fee / 2), { what: "stay", where: b.me, payOnDone: true }));
+      busy.add(c.id);
+      spare -= Math.trunc(fee / 2);
+    }
   }
 
   // Item 10: a careful king checks the person it would most likely send before offering it an errand.

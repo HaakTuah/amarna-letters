@@ -64,7 +64,12 @@ function landRatio(e: TurnEngine, p: Power): number {
 
 /** What a party's record of paying is, for a court or a person. */
 /** A party's record of paying as a person has heard it (Haakon's answers to item 11a: records travel as news). */
-const recordOf = (e: TurnEngine, party: string, c: Character): { kept: number; broken: number } => recordKnown(e.s, party, c);
+const recordOf = (e: TurnEngine, party: string, c: Character): { kept: number; broken: number; keptAged: number; brokenAged: number } => {
+  const r = recordKnown(e.s, party, c);
+  const w = recordKnown(e.s, party, c, true);
+  // In tenths, rounded up: talk heard, however old, never counts for nothing.
+  return { kept: Math.round(r.kept), broken: Math.round(r.broken), keptAged: Math.ceil(w.kept * 10 - 1e-9), brokenAged: Math.ceil(w.broken * 10 - 1e-9) };
+};
 
 /** Where a debt tablet lies, in words for its holder. */
 function keptWords(d: Debt): string {
@@ -138,6 +143,8 @@ P.lifeView = function (c) {
       trust: trustIn(S, p, c),
       kept: r.kept,
       broken: r.broken,
+      keptAged: r.keptAged,
+      brokenAged: r.brokenAged,
       // Item 11b: as it heard of them, news that travels with people.
       executions: heard.killed,
       lost: heard.lost,
@@ -186,7 +193,7 @@ P.lifeView = function (c) {
       [(x: Character) => idNumber(x.id), cmpNum],
     ).map((x) => {
       const r = recordOf(this, x.id, c);
-      return newPersonHere({ id: x.id, name: x.name, standing: x.status === "Free" ? "free" : x.employer !== null ? `serving ${x.employer}` : x.status.toLowerCase(), kept: r.kept, broken: r.broken });
+      return newPersonHere({ id: x.id, name: x.name, standing: x.status === "Free" ? "free" : x.employer !== null ? `serving ${x.employer}` : x.status.toLowerCase(), kept: r.kept, broken: r.broken, keptAged: r.keptAged, brokenAged: r.brokenAged });
     }),
     approaches: S.approaches
       .filter((a) => a.to === c.id && a.accepted === null)
