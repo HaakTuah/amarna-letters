@@ -1,7 +1,7 @@
 ## The true map, the Red Sea and six cities of Canaan
 
 Build order item 11c (`docs/intent/build-order/item-11.md`; "The map in true geography, and its look in time", "Map on
-small screens", "The Red Sea", "What earns a place", "Opening relations as they were"). Save version 26. The report is
+small screens", "The Red Sea", "What earns a place", "Opening relations as they were"). Save version 27. The report is
 `docs/rounds/2026-10-29-true-map.md`.
 
 ### The board in a true projection (`src/web/src/map/`)
@@ -42,8 +42,8 @@ small screens", "The Red Sea", "What earns a place", "Opening relations as they 
 ### Six cities of Canaan (`model/power.ts`, `model/map.ts` and the province tables)
 
 - **Powers**, after Tyre in the fixed order: Akko (Surata), Hazor (Abdi-Tirshi), Gezer (Milkilu), Ashkelon (Yidya),
-  Lachish (Zimreddi) and the Hebron hills (Shuwardata): 39 powers (with item 11d's three) and 61 land provinces in all. Each holds its city as its capital (walls by the walls dossier, as item 11d set the others: Hazor 3, Gezer and
-  Ashkelon 2, Akko, Lachish and the Hebron Hills 1), an army of 50 men a shekel, and starts as Egypt's vassal with a sealed tablet (`StartVassals`,
+  Lachish (Zimreddi) and the Hebron hills (Shuwardata): 39 powers (with item 11d's three) and 61 land provinces in all. Each holds its city as its capital (walls by the walls dossier, as item 11d set the others: Hazor 3, the five
+  the dossier does not list 1), an army of 50 men a shekel, and starts as Egypt's vassal with a sealed tablet (`StartVassals`,
   tribute 5 a year). Par is unmeasured (1) until item 18.
 - **Carved from** Megiddo (Akko), Damascus (Hazor), Shechem (Gezer), Gaza (Ashkelon), Jerusalem (the Hebron hills) and
   Gaza's and Jerusalem's land (Lachish): each city yield 10, each land it came from 5 less (first guesses). The southern

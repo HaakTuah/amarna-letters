@@ -504,9 +504,8 @@ export const StartWalls: ReadonlyMap<string, number> = new Map([
   ["isuwa", 1], ["alalakh", 1], ["nuhashshe", 1], ["amurru", 1], ["sidon", 1], ["damascus", 1], ["megiddo", 1],
   ["jerusalem", 1], ["suhu", 1], ["arrapha", 1], ["seha", 1], ["mira", 1], ["terqa", 1],
   // Item 11c's six cities of Canaan, by the same reading of the walls dossier: Hazor's great Middle Bronze rampart, still
-  // used, 3; Gezer's and Ashkelon's Middle Bronze walls and rampart 2; Akko, Lachish and the Hebron hills, open or barely
-  // known in the Late Bronze Age, 1
-  ["hazor", 3], ["gezer", 2], ["ashkelon", 2], ["akko", 1], ["lachish", 1], ["hebron", 1],
+  // used, 3; the five the dossier does not list 1, as the other towns it knows nothing of
+  ["hazor", 3], ["akko", 1], ["gezer", 1], ["ashkelon", 1], ["lachish", 1], ["hebron", 1],
   // Fortresses
   ["gaza", 2], ["memphis", 2], ["nesa", 2], ["nineveh", 2],
   // Walled towns

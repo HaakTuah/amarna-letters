@@ -194,8 +194,8 @@ describe("MapAndSeasTests", () => {
       Assert.equal(ruler, king(power));
       Assert.true(StartVassals.some((v) => v.vassal === power && v.overlord === "Egypt"), id);
     }
-    // Walls by the walls dossier, as item 11d set the other cities': Hazor's great rampart 3, Gezer and Ashkelon 2, the rest 1.
-    Assert.equal([3, 2, 2, 1, 1, 1], ["hazor", "gezer", "ashkelon", "akko", "lachish", "hebron"].map((id) => StartWalls.get(id)));
+    // Walls by the walls dossier, as item 11d set the other cities': Hazor's great rampart 3, the five it does not list 1.
+    Assert.equal([3, 1, 1, 1, 1, 1], ["hazor", "gezer", "ashkelon", "akko", "lachish", "hebron"].map((id) => StartWalls.get(id)));
     // The road from Megiddo to Damascus runs by Hazor, and the shore from Tyre to Gaza by Akko and Ashkelon.
     Assert.false(Map.areAdjacent("megiddo", "damascus") || Map.areAdjacent("tyre", "gaza"));
     Assert.true(Map.areAdjacent("hazor", "megiddo") && Map.areAdjacent("hazor", "damascus") && Map.areAdjacent("akko", "tyre") && Map.areAdjacent("ashkelon", "gaza"));

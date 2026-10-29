@@ -57,7 +57,7 @@ describe("StartingTermTests", () => {
   // Taken again for save version 7, whose new generator draws every trait and fact anew (build order item 5+), and for save
   // version 16 (item 10: attested envoys' traits from the sources, lovers kept at courts, and 42 more characters), and for
   // save version 19 (item 11a: a template persona's "what you want most" follows the character's strategy; no draw moved),
-  // and for save version 23 (item 11+: a pool of 100, the city-states' staff and the Levant's name styles), and for item 11d (three city-states more, each with its servant), and for save version 26 (item 11c: six more
+  // and for save version 23 (item 11+: a pool of 100, the city-states' staff and the Levant's name styles), and for item 11d (three city-states more, each with its servant), and for save version 27 (item 11c: six more
   // city-states, each with its envoy, and Egypt's name style without Gezer's king).
   //
   test.each([
