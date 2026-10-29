@@ -58,6 +58,23 @@ async function shot(p, name) {
 const seasons = (p) => p.$eval(".slider", (s) => Number(s.max));
 
 /**
+ * Waits until the map is still: no glide or slide running, then two frames for the renderer's placement after it. A fixed
+ * wait measured a pass still due on a busy machine.
+ */
+async function still(p) {
+  await p.waitForFunction(() => !document.getAnimations().some((a) => a instanceof CSSTransition && a.playState === "running" && a.effect?.target?.closest(".mapview")), null, { timeout: 15000 });
+  await p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+}
+
+/**
+ * Slow motion: the zoom's glide and the pieces' slides run longer than the renderer would guess from the stylesheet, as
+ * they do on a busy phone, where a transition starts only at the next frame drawn. Placement must follow the motion's
+ * real end, not a timer.
+ */
+const slowMotion = (p) =>
+  p.addStyleTag({ content: ".mapzoom.glide { transition-duration: 1s !important; } .map .unit, .map .traveller { transition-duration: 2s !important; }" });
+
+/**
  * Names give way (item 11c+), the provinces' and the land's: at every zoom step from the whole board to the closest, no name shown may overlap another
  * name or any marker (a city's badge other than its own, a counter, a ship, an envoy or other person, news, a mark).
  * And markers never overlap (item 11c++): no marker shown may touch another, a city's badge its own counters included.
@@ -69,7 +86,8 @@ async function namesClear(p, name) {
   let first = null;
   for (let step = 0; step < 8; step++) {
     if (step > 0) await p.evaluate(() => document.querySelector('[aria-label="Zoom in"]').click());
-    await p.waitForTimeout(1100);
+    await p.waitForTimeout(300);
+    await still(p);
     const bad = await p.evaluate(() => {
       const touch = (a, b) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
       const names = [...document.querySelectorAll(".labels g[data-label]")]
@@ -119,6 +137,7 @@ async function watch(viewport, name) {
   await p.waitForSelector(".game .timebar", { timeout: 60000 });
   await shot(p, `${name}-start`);
   await namesClear(p, `${name}, the opening`);
+  await slowMotion(p);
   const t0 = Date.now();
   for (let i = 0; i < 4; i++) {
     const before = await seasons(p);
@@ -126,7 +145,7 @@ async function watch(viewport, name) {
     await p.waitForFunction((b) => Number(document.querySelector(".slider").max) > b, before, { timeout: 60000 });
   }
   report.push(`${name}: 4 script seasons in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
-  await namesClear(p, `${name}, a game in progress`);
+  await namesClear(p, `${name}, a game in progress, in slow motion`);
   // Every tab opens without an error.
   for (const tab of ["Trail", "People", "Provinces", "Standings", "Events", "Rules", "Season"]) {
     await p.getByRole("button", { name: tab, exact: true }).click();
