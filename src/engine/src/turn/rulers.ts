@@ -55,7 +55,8 @@ const P = TurnEngine.prototype;
 function risenName(name: string, ruler: string): string {
   const taken = (x: string): boolean => AllPowers.some((p) => p.toLowerCase() === x.toLowerCase() || land(p).toLowerCase() === x.toLowerCase());
   if (!taken(name)) return name;
-  const withRuler = `${name} of ${ruler}`;
+  // His own name without the place it adds when names are shared ("Yapahu of Suhu").
+  const withRuler = `${name} of ${ruler.split(" of ")[0]}`;
   if (!taken(withRuler)) return withRuler;
   let n = 2;
   while (taken(`${withRuler} ${n}`)) n++;
