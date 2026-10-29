@@ -1,6 +1,7 @@
 /** Court business: hiring, new jobs and dismissal of servants, and the tasks the engine owes courts. */
 import { clamp, idiv, roundEven, toInt } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy } from "../core/seq.ts";
+import { cmpStr } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import { isPowerParty, MoneyData } from "../model/money.ts";
 import type { DismissOrder, HireOrder, Order, RenewOrder } from "../model/orders.ts";
@@ -85,7 +86,7 @@ P.resolveCourt = function (orders) {
           // A new standing hunt replaces the old; several given in the same season, each naming provinces, add up.
           const before = S.hunts.find((h) => h.power === p && h.since === S.turn && h.provinces.length > 0 && (o.provinces ?? []).length > 0);
           S.hunts = S.hunts.filter((h) => h.power !== p);
-          if (o.on) S.hunts.push({ power: p, provinces: [...new Set([...(before?.provinces ?? []), ...(o.provinces ?? [])])].sort(), since: S.turn });
+          if (o.on) S.hunts.push({ power: p, provinces: [...new Set([...(before?.provinces ?? []), ...(o.provinces ?? [])])].sort(cmpStr), since: S.turn });
         }
         break;
       case "seekCandidates":
