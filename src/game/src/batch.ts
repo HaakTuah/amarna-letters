@@ -18,6 +18,7 @@ import {
   hash,
   idNumber,
   inboxOf,
+  isSealedAgreement,
   max,
   min,
   newEarnings,
@@ -89,6 +90,55 @@ export interface GameSummary {
   characterPool: number;
   /** Item 12: by the court a letter went to, the letters that found a carrier understood there and the seasons they waited. */
   lettersTo: Record<string, [number, number]>;
+  /** Item 13+: the powers risen in play, and what their seats did with them (older summaries have none). */
+  risen?: RisenMeasure[];
+}
+
+/** A power risen in play (item 13+), measured: when it rose, whether it lasted, and how its seat used it. */
+export interface RisenMeasure {
+  power: string;
+  from: string;
+  turn: number;
+  /** The seasons it ruled: to its fall, or to the end. */
+  seasons: number;
+  alive: boolean;
+  growth: number;
+  /** Envoys it sent, and tablets it sealed with another court (of them, vassal tablets). */
+  envoys: number;
+  sealed: number;
+  vassal: number;
+}
+
+/** The powers risen in a game (item 13+), measured. */
+export function risenMeasures(s: GameState, engine: TurnEngine): RisenMeasure[] {
+  const end = s.scores.length === 0 ? s.turn : max(s.scores, (x) => x.turn);
+  return s.risen.map((r) => {
+    const fell = s.falls.find((f) => f.power === r.power) ?? null;
+    const sealed = s.tablets.filter((t) => isSealedAgreement(t) && t.seals.includes(r.power) && t.seals.length > 1);
+    return {
+      power: r.power,
+      from: r.from,
+      turn: r.turn,
+      seasons: (fell?.turn ?? end) - r.turn,
+      alive: fell === null,
+      growth: roundTo(engine.growth(r.power), 3),
+      envoys: s.trails.filter((t) => t.from === r.power).length,
+      sealed: sealed.length,
+      vassal: sealed.filter((t) => t.vassal !== null).length,
+    };
+  });
+}
+
+/** The governors' seats (item 13+): how many rose, how long they lasted, and what their seats did. */
+export function risenReport(games: readonly GameSummary[]): string[] {
+  const all = games.flatMap((g) => g.risen ?? []);
+  const rose = games.filter((g) => (g.risen ?? []).length > 0).length;
+  if (all.length === 0) return ["Governors' seats (item 13+): none rose."];
+  const used = all.filter((r) => r.envoys > 0).length;
+  return [
+    `Governors' seats (item 13+): ${all.length} rose in ${rose} of ${games.length} games; ${all.filter((r) => r.alive).length} still ruled at the end, after ${fmt(mean(all.map((r) => r.seasons)), "0.0")} seasons on average; mean growth ${fmt(mean(all.map((r) => r.growth)), "0.00")} (the survivors' ${fmt(mean(all.filter((r) => r.alive).map((r) => r.growth)), "0.00")}).`,
+    `  Their seats sent envoys in ${used} of ${all.length} (${sum(all, (r) => r.envoys)} envoys) and sealed ${sum(all, (r) => r.sealed)} tablets with other courts, ${sum(all, (r) => r.vassal)} of them vassal tablets.`,
+  ];
 }
 
 /**
@@ -239,6 +289,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     characterWakeups: sum([...runner.characterAsks.values()], (x) => new Set(x).size),
     characterPool: s.characters.length,
     lettersTo: Object.fromEntries(AllPowers.map((p) => [p, [s.lettersToCarried.getOrDefault(p, 0), s.lettersToWaited.getOrDefault(p, 0)] as [number, number]])),
+    risen: risenMeasures(s, engine),
     courtsHeld: held,
     courtsReopened: reopened,
     courtsStoodIn: stoodIn,
@@ -574,6 +625,7 @@ export function batchReport(games: readonly GameSummary[]): string {
   );
   lines.push("");
   lines.push(...warReport(games));
+  lines.push(...risenReport(games));
   lines.push("");
   lines.push(...pressReport(games));
   const seasons = sum(games, (g) => g.turns);

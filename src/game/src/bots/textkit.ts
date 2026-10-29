@@ -1,6 +1,6 @@
 /** Small sentence tools the script characters use to soften, embellish or trim messages, and to read what they are told. */
 import { AllPowers, isLetterOrDigit, isUpper, rx, split, trim, trimEnd, type Power } from "@amarna/engine";
-import { Names } from "./names.ts";
+import { Names, cached } from "./names.ts";
 
 const SentenceSplit = rx(`(?<=[.!?]["'”’)\\]]*)\\s+`);
 const TokenRx = rx(`[\\p{L}\\p{N}][\\p{L}\\p{N}'-]*|[^\\s\\p{L}\\p{N}]`, "g");
@@ -48,28 +48,22 @@ function lordPattern(lord: Power): string {
 
 // "Tell your lord that …", "assure him …", "say to Pharaoh that …", "report that …", "let your master know that …".
 // (JavaScript engines may not take one group name twice, so the C# build's two "that" groups are that1, that2, that3.)
-const Messages = new Map<Power, RegExp>(
-  AllPowers.map((p) => [
-    p,
+const Messages = cached((p) =>
     rx(
       `(?<!\\b(?:not|never|nothing)\\s+(?:\\w+\\s+)?)\\b(?:(?:tell|assure|inform|remind)\\s+${lordPattern(p)}(?:\\s+(?<that1>that))?|(?:say|report|write|swear|repeat)\\s+(?:to\\s+${lordPattern(p)}\\s+)?(?<that2>that)|let\\s+${lordPattern(p)}\\s+(?:know|hear|believe|understand)\\s+(?<that3>that))(?![\\w-])[\\s,:]+(?<claim>[^.!?]+)`,
       "gi",
     ),
-  ]),
 );
 
 // "Speak well of Mitanni to your lord", "speak of Egypt before your lord as a friend", "speak to your lord of Mitanni".
-const Praise = new Map<Power, RegExp>(
-  AllPowers.map((p) => [
-    p,
+const Praise = cached((p) =>
     rx(
       `\\bspeak\\s+(?:well\\s+|kindly\\s+|warmly\\s+)?(?:of\\s+(?<whom1>[^.!?,;]+?)\\s+(?:to|before)\\s+${lordPattern(p)}|(?:to|before)\\s+${lordPattern(p)}\\s+(?:well\\s+)?of\\s+(?<whom2>[^.!?,;]+))`,
       "gi",
     ),
-  ]),
 );
 
-const NameWords = new Map<Power, Set<string>>(AllPowers.map((p) => [p, new Set(Names.of(p).filter((n) => !n.includes(" ")).map((n) => n.toLowerCase()))]));
+const NameWords = cached((p) => new Set(Names.of(p).filter((n) => !n.includes(" ")).map((n) => n.toLowerCase())));
 
 const YouWords = new Set(["you", "your", "yours", "yourself", "yourselves", "thee", "thou", "thy", "thine"]);
 const HeWords = new Set(["he", "him", "his", "himself"]);
@@ -127,9 +121,9 @@ function isThreatTo(sentence: string, target: Power, speaker: Power | null = nul
   const words = [...sentence.replaceAll("’", "'").matchAll(TokenRx)].map((m) => m[0]);
   const others = AllPowers.filter((p) => p !== target && p !== speaker);
   const pronouns = spokenOf && !others.some((p) => Names.mentions(sentence, p));
-  const theirs = new Set(others.flatMap((p) => [...NameWords.get(p)!]));
+  const theirs = new Set(others.flatMap((p) => [...NameWords(p)]));
 
-  const ref = (w: string): boolean => YouWords.has(bare(w)) || NameWords.get(target)!.has(bare(w)) || (pronouns && HeWords.has(bare(w)));
+  const ref = (w: string): boolean => YouWords.has(bare(w)) || NameWords(target).has(bare(w)) || (pronouns && HeWords.has(bare(w)));
   // Another king, by name or (outside a report of the lord) as "he": the one who acts, not the target.
   const agent = (w: string): boolean => theirs.has(bare(w)) || (!pronouns && (low(w) === "he" || low(w) === "she"));
   const third = (w: string): boolean =>
@@ -248,7 +242,7 @@ function denied(before: string[], after: string[]): boolean {
  * words: "My armies are few". Null when the request holds no message of that kind, or only one it forbids.
  */
 function claim(request: string, lord: Power): string | null {
-  const re = Messages.get(lord)!;
+  const re = Messages(lord);
   re.lastIndex = 0;
   for (const m of request.replaceAll("’", "'").matchAll(re)) {
     const g = m.groups!;
@@ -266,7 +260,7 @@ function claim(request: string, lord: Power): string | null {
 
 /** The king a request asks the envoy to speak well of to its lord; null if none. */
 function praised(request: string, lord: Power): Power | null {
-  const re = Praise.get(lord)!;
+  const re = Praise(lord);
   re.lastIndex = 0;
   for (const m of request.replaceAll("’", "'").matchAll(re)) {
     const whom = m.groups!.whom1 ?? m.groups!.whom2 ?? "";

@@ -4,7 +4,7 @@
  */
 import ReliefImage from "./relief.jpg";
 import { ReliefFrame } from "./relief-frame.ts";
-import { AllPowers, StartWalls, WorldMap, isGreatKing } from "@amarna/engine";
+import { FixedPowers, StartWalls, WorldMap, isGreatKing } from "@amarna/engine";
 import {
   CoastPath,
   Deserts,
@@ -60,7 +60,9 @@ function buildDefs(): string {
   sb += `<clipPath id="isleclip"><path data-geo="island" d="${IslandPath}" clip-rule="evenodd"/></clipPath>`;
   sb += `<clipPath id="seaclip"><path data-geo="sea" d="${SeaPath}" clip-rule="evenodd"/></clipPath>`;
   for (const [id, d] of Shapes) sb += `<clipPath id="cl-${id}"><path d="${d}"/></clipPath>`;
-  for (const p of AllPowers) sb += `<symbol id="em-${glyphId(p)}" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem(p)}"/></symbol>`;
+  for (const p of FixedPowers) sb += `<symbol id="em-${glyphId(p)}" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem(p)}"/></symbol>`;
+  // The powers risen in play (item 13+) share one emblem, a city's tower.
+  sb += `<symbol id="em-risen" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem("risen")}"/></symbol>`;
   sb += `<symbol id="g-army" viewBox="-12 -12 24 24" overflow="visible"><path d="${Chariot}"/></symbol>`;
   sb += `<symbol id="g-fleet" viewBox="-12 -12 24 24" overflow="visible"><path d="${Ship}"/></symbol>`;
   sb += `<symbol id="g-tablet" viewBox="-10 -10 20 20" overflow="visible"><path d="${Tablet}" class="tab-body"/><path d="${TabletMarks}" class="tab-marks"/></symbol>`;
@@ -71,7 +73,7 @@ function buildDefs(): string {
   sb += `<symbol id="g-burst" viewBox="-10 -10 20 20" overflow="visible"><path d="${Burst}"/></symbol>`;
   sb += `<symbol id="g-moon" viewBox="-10 -10 20 20" overflow="visible"><path d="${Moon}"/></symbol>`;
   // Arrowheads, one per power (and one for the draft), so each takes its arrow's colour.
-  for (const name of [...AllPowers.map(glyphId), "ink"])
+  for (const name of [...FixedPowers.map(glyphId), "risen", "ink"])
     sb +=
       `<marker id="ah-${name}" viewBox="0 0 10 10" refX="6.5" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">` +
       `<path d="M0,0.6L10,5L0,9.4L2.6,5Z" class="ah ah-${name}"/></marker>`;

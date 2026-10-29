@@ -23,6 +23,9 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
 - **A road's land given to one of the pair** (`RoadLands` in `src/web/src/map/features.ts`): a band about 5 km either side
   of the road is that province's, and any land the band cuts off from its own city goes with the band, so no province is
   left in two pieces. Drawing data only: the rules' connections stay the source of truth.
+- **Par measured again** (`src/engine/src/rules/par-results.ts`, seeds 101-150, as item 11e did): the new neighbours
+  change who falls and grows (Arrapha, Suhu and the Sutean steppe most), and the table now also has the eight places
+  item 11f added.
 
 ## The cases (the dossier: `docs/history/02-geography.md`, "Neighbours on the map")
 
