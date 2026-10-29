@@ -42,7 +42,8 @@ idle world broke three of who-decides' tests for about 15 s saved), and the engi
 
 Deleted, as a duplicate: "A king alone on the new brain outgrows the same king on the old one" (bot.test.ts), eight
 whole games measuring one current king among baseline kings: the measurement `scripts/sim.sh --versus solo` makes, and
-"Long measurements stay in scripts/sim.sh, never in the suite."
+"Long measurements stay in scripts/sim.sh, never in the suite." Its pass line (an average gain over 0.15) is now watched
+only by the benchmarks run after every item (the builder rules), as the solo benchmark's report.
 
 ## Measured
 
