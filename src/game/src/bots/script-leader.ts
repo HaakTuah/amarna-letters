@@ -48,16 +48,17 @@ export class ScriptLeader implements ISeat {
   /** Seat seeds for powers risen in play (item 13+), derived as they first play. */
   private readonly seedFor: (p: Power) => number;
 
-  private readonly gameSeed: number;
+  /** Item 16's measure (`--council-play-half`): the council a king playing by it hears, made when first needed. */
   private council: Council | null = null;
+  private readonly makeCouncil: () => Council;
 
   private councilOf(): Council {
-    return (this.council ??= new Council(this.gameSeed));
+    return (this.council ??= this.makeCouncil());
   }
 
   /** `gameSeed`: the game's seed, from which each power's seat seed is derived. */
   constructor(gameSeed: number) {
-    this.gameSeed = gameSeed;
+    this.makeCouncil = () => new Council(gameSeed);
     for (const p of AllPowers) this.seeds.set(p, seatSeed(gameSeed, p));
     this.seedFor = (p) => seatSeed(gameSeed, p);
   }

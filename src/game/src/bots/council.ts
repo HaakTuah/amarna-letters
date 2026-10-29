@@ -131,18 +131,20 @@ export interface Proposal {
 
 export class Council {
   private readonly brains = new Dict<string, Brain>();
-  private readonly gameSeed: number;
+  /** A seed for each tag, one-way from the game's seed (see seatSeed): the council never holds the game's seed itself. */
+  private readonly seedFor: (tag: string) => number;
 
+  /** `gameSeed`: the game's seed, from which each advisor's seed is derived; it is not kept. */
   constructor(gameSeed: number) {
-    this.gameSeed = gameSeed;
+    this.seedFor = (tag) => seatSeed(gameSeed, tag);
   }
 
   private brain(p: Power, a: Advisor): Brain {
     const key = `${p}/${a}`;
     let b = this.brains.tryGet(key);
     if (b === undefined) {
-      const seed = seatSeed(this.gameSeed, `council:${a}:${p}`);
-      this.brains.set(key, (b = new Brain(p, seed, tilt(personalityFor(p, seatSeed(this.gameSeed, p)), a))));
+      const seed = this.seedFor(`council:${a}:${p}`);
+      this.brains.set(key, (b = new Brain(p, seed, tilt(personalityFor(p, this.seedFor(p)), a))));
     }
     return b;
   }
