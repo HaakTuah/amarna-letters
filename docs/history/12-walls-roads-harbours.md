@@ -119,7 +119,7 @@ with walls 3 costs the attacker about as many men as the defenders [G].
   the whole way with his escort, resting and fed at the towns of the road, which their lords had to provide (EA 30;
   Liverani; Holmes) [B]. Rest stations with stores existed on the Ways of Horus and later as the Middle Assyrian
   *dunnu* farm-forts [A, B]. **Reading [G]:** a relay station is a post with fresh animals and stores; the sources'
-  closest thing is the fort with a well, so item 15's stations start only along the Ways of Horus (`delta`-`gaza`), and
+  closest thing is the fort with a well, so item 15's stations start only along the Ways of Horus (`delta`-`gaza` until item 11f+, now `delta`-`sinai`-`gaza`), and
   elsewhere are built.
 
 ## Harbours and what they could hold

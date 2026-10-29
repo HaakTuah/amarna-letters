@@ -351,9 +351,12 @@ describe("StandingForEverySeatTests", () => {
     Assert.equal(["Troop", "UnitAttacked"], [durkurigalzu.kind, durkurigalzu.request.when]);
     Assert.equal([support("sippar", "durkurigalzu")], durkurigalzu.request.orders);
     // A troop that marches this season is no helper, since its place next season is not known: with Sippar's army on the
-    // march, no army of Babylon's is left next to Dur-Kurigalzu to give it.
-    [, give] = Contingencies.plan(b, brain, holding(b, move("sippar", "nippur")), []);
-    Assert.doesNotContain(give, (g) => g.place === "durkurigalzu" && g.kind === "Troop");
+    // march, the army in Nippur then.
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "nippur" }));
+    [b, brain] = read(s, "Babylonia");
+    [, give] = Contingencies.plan(b, brain, holding(b, move("sippar", "babylon")), []);
+    Assert.equal([support("nippur", "durkurigalzu")], Assert.single(give, (g) => g.place === "durkurigalzu").request.orders);
+    removeAll(s.units, (u) => u.province === "nippur");
     // With one army next to it, Dur-Kurigalzu holds alone: no standing order for it.
     removeAll(s.units, (u) => u.province === "suhu");
     [b, brain] = read(s, "Babylonia");

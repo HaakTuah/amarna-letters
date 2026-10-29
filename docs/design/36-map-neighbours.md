@@ -30,7 +30,7 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
 ## The cases (the dossier: `docs/history/02-geography.md`, "Neighbours on the map")
 
 Connected, their land touching (23): Alalakh-Nuhashshe, Amurru-Qatna, Niya-Qatna, Tunip-Ugarit; the Sutean steppe to Aleppo,
-Harran, Nuhashshe, Qadesh and Terqa (desert: the Syrian desert); Taidu to Isuwa, Terqa and Ashur; Ashur-Suhu,
+Nuhashshe, Qadesh and Terqa (desert: the Syrian desert) and to Harran (a river: the Euphrates below Emar); Taidu to Isuwa, Terqa and Ashur; Ashur-Suhu,
 Dur-Kurigalzu-Suhu, Arrapha-Dur-Kurigalzu, Sippar-Nippur; Samuha-Carchemish (a pass: the Anti-Taurus); Hazor-Sidon,
 Gezer-Hebron; Jerusalem-Pella and Jerusalem-Shasu (a river: the Jordan by Jericho), Pella-Shasu, Lachish-Shasu (desert: the
 Negev).
@@ -41,8 +41,8 @@ Terqa by Suhu; Ekallate to Sippar and Babylon to Dur-Kurigalzu by Dur-Kurigalzu 
 by Amurru or Qatna; Amurru to Ugarit by Sumur or Tunip; Tyre to Damascus by Hazor, Megiddo to Tyre by Akko; Akko to Ashkelon
 and Gaza to Megiddo by Megiddo and Gezer (the coast road through the Aruna pass); Gaza to Shechem and Jerusalem by Ashkelon,
 Gezer and Lachish; Jerusalem to Lachish by Gezer or Hebron; Hebron and Jerusalem to the Sinai by Gaza or the Shasu's land;
-and the Delta to Gaza by the Sinai, the Ways of Horus being the Sinai's road (Tjaru to Gaza, 250 km: 150 and 130 km for the
-two parts, `AttestedKm`). Their crossings go with them: the Ways of Horus is now the Delta-Sinai crossing, and the Negev
+and the Delta to Gaza by the Sinai, the Ways of Horus being the Sinai's road (Tjaru to Gaza 250 km and the Delta's road to Tjaru: 160 and 120 km for
+the two parts, `AttestedKm`). Their crossings go with them: the Ways of Horus is now the Delta-Sinai crossing, and the Negev
 crossings from Hebron and Jerusalem to the Sinai, the upper Euphrates from Nesa, the Marassantiya from Sapinuwa to Nesa and
 the Syrian desert from Suhu are gone with their connections.
 

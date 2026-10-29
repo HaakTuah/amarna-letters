@@ -131,7 +131,8 @@ export const Crossings: readonly Crossing[] = [
   // Item 11f+: the steppe's desert roads to every land on its edge, Mari's and Hana's shortcut by Tadmor among them
   crossing("steppe", "terqa", "Desert", "the Syrian desert", G),
   crossing("steppe", "aleppo", "Desert", "the Syrian desert", G),
-  crossing("steppe", "harran", "Desert", "the Syrian desert", G),
+  // The steppe's road to Harran crosses the Euphrates below Emar, where it was the frontier: a ford, not the desert
+  crossing("steppe", "harran", "River", "the Euphrates below Emar", G, "euphrates"),
   crossing("steppe", "nuhashshe", "Desert", "the Syrian desert", G),
   crossing("steppe", "qadesh", "Desert", "the Syrian desert", G),
   // The Ways of Horus run through the Sinai, Egypt's own (item 11f+): from Tjaru at the Delta's edge, and on to Gaza
