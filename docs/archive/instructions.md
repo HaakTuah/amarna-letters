@@ -406,3 +406,18 @@ Given in the design chat with Claude, answering the design questions of the cons
     > Other than that, I agree with all your takes! Make it be done expertly!
 
     Written into build order item 11c+.
+
+39. **08:23 and 08:34**, in the design chat, on the map. First, among questions on its colours, shapes and Dilmun:
+
+    > And i don't see why it would be that important to see the entire map at once most of the time most of it is old
+    > information (fog of war)? In paradox games you spend most of the time zoomed in on your general region. Couldn't
+    > that work here, that zooming out to the full region is more the exception than the rule?
+
+    Then, to the design session's takes (the map opening close; provinces bordered by the land's own features; the
+    lands beyond the game drawn and named as no one's; islands that are no province no one's; the map light in dark
+    mode, a little dimmed; the powers' colours kept):
+
+    > Agreed to all! Implement absolutely everything you said now expertly!
+
+    Written into build order item 11c+, "Style" and "True geography, now" (Interface) and "Map on small screens"
+    (Engine).
