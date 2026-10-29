@@ -93,7 +93,7 @@ const G = "02-geography.md";
  * spine elsewhere ({@link Rivers}). What item 11f checked and left out (the Zagros edge, which no connection climbs; the
  * Khabur, the Zabs and the Litani, lesser streams no army was held at; the Nile's cataracts, which break its boats'
  * reaches but no march along its bank; the Carmel ridge's Aruna pass, which Thutmose III's army went through; and no
- * strait lies on a land connection) is in the design notes (`docs/design/32-the-rest-of-the-map.md`).
+ * strait lies on a land connection) is in the design notes (`docs/design/33-the-rest-of-the-map.md`).
  */
 export const Crossings: readonly Crossing[] = [
   crossing("tuwanuwa", "kizzuwatna", "Mountain", "the Cilician Gates", G),
@@ -127,6 +127,7 @@ export const Crossings: readonly Crossing[] = [
   crossing("hazor", "ashtaroth", "River", "the Jordan", G, "jordan"),
   crossing("megiddo", "pella", "River", "the Jordan by Beth-Shan", G, "jordan"),
   crossing("shechem", "pella", "River", "the Jordan", G, "jordan"),
+  crossing("hazor", "pella", "River", "the Jordan", G, "jordan"),
   crossing("suhu", "steppe", "Desert", "the Syrian desert", G),
   crossing("steppe", "qatna", "Desert", "the Syrian desert", G),
   crossing("steppe", "damascus", "Desert", "the Syrian desert", G),
@@ -142,6 +143,7 @@ export const Crossings: readonly Crossing[] = [
   crossing("libya", "memphis", "Desert", "the Western Desert", "08-beyond-the-edges.md"),
   crossing("shasu", "hebron", "Desert", "the Negev", G),
   crossing("shasu", "sinai", "Desert", "the Negev", G),
+  crossing("shasu", "gaza", "Desert", "the Negev", G),
 ];
 
 /** The ordered courses of the great rivers, source to mouth (question 10, plan step 2; Nubia since item 7a), and their reaches. */

@@ -230,9 +230,10 @@ export class Session {
     this.send({ type: "start", settings, keys });
   }
   /** `table`: the providers, prices and pause share set on the page, which a saved log does not keep. */
-  load(text: string, continuePlay: boolean, keys: Keys, table: TableSettings | null = null): void {
+  /** `id`: the saved game's own id, kept when a game is resumed after an update (else a loaded game is a new one). */
+  load(text: string, continuePlay: boolean, keys: Keys, table: TableSettings | null = null, id: string | null = null): void {
     this.replaying = false;
-    this.send({ type: "load", text, continuePlay, keys, table });
+    this.send({ type: "load", text, continuePlay, keys, table, id });
   }
   step(): void {
     this.historyTurn = null;

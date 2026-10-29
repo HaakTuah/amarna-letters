@@ -405,7 +405,7 @@ export function buildMap(): WorldMap {
   land("hattusa", "sapinuwa", "nesa", "kaska");
   // The road from Sapinuwa to Isuwa runs through the Upper Land, by Samuha (item 11f); Azzi beyond Samuha and Isuwa.
   land("sapinuwa", "nesa", "samuha", "kaska");
-  land("samuha", "nesa", "isuwa", "kaska", "azzi");
+  land("samuha", "nesa", "isuwa", "kaska", "azzi", "hattusa");
   land("azzi", "isuwa");
   land("nesa", "kizzuwatna", "isuwa", "carchemish");
   land("kizzuwatna", "carchemish", "alalakh");
@@ -432,11 +432,11 @@ export function buildMap(): WorldMap {
 
   // Northern Syria
   land("alalakh", "aleppo", "ugarit", "niya");
-  land("aleppo", "nuhashshe", "niya");
+  land("aleppo", "nuhashshe");
   // Item 11f: the roads from the coast into the Orontes valley now reach Niya and Tunip, and go on to Nuhashshe from them.
   land("ugarit", "niya");
   land("niya", "nuhashshe", "tunip");
-  land("tunip", "nuhashshe", "qatna", "qadesh", "amurru");
+  land("tunip", "nuhashshe", "qatna", "qadesh", "amurru", "sumur");
   land("nuhashshe", "qatna", "qadesh");
   land("qatna", "qadesh", "steppe");
   land("suhu", "steppe");
@@ -472,9 +472,9 @@ export function buildMap(): WorldMap {
   coast("gaza", "delta");
   // East of the Jordan (item 11f): Pella across from Beth-Shan, Ashtaroth in the Bashan on the road to Damascus, and the
   // Shasu's land south of the Dead Sea, reached from the Hebron hills, across the Sinai, and north by the King's Highway.
-  land("pella", "megiddo", "shechem", "ashtaroth");
+  land("pella", "megiddo", "shechem", "ashtaroth", "hazor");
   land("ashtaroth", "damascus", "hazor");
-  land("shasu", "hebron", "sinai", "ashtaroth");
+  land("shasu", "hebron", "sinai", "ashtaroth", "gaza");
 
   // Egypt and Nubia
   land("sinai", "delta", "memphis");

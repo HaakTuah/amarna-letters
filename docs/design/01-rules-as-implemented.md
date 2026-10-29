@@ -233,7 +233,7 @@
   (Hattusa–Nesa, Hattusa–Tuwanuwa, Sapinuwa–Nesa), the Orontes (Damascus–Qadesh at Shabtuna, Ugarit–Niya) and the
   Jordan (Hazor–Damascus, Hazor–Ashtaroth, Megiddo–Pella, Shechem–Pella), each with a ferry day and four more in its
   flood (Shemu). Every crossing names its dossier (`Crossing.source`); what item 11f checked and left out is in
-  [the rest of the map](32-the-rest-of-the-map.md). Desert connections give no help.
+  [the rest of the map](33-the-rest-of-the-map.md). Desert connections give no help.
   - **The ground helps a unit that stands its ground** (`defenceGround`, `Adjudicator.holdStrength`): one that
     holds, besieges, supports or convoys, or whose own move failed. Against an attack it holds with
     `GameConfig.terrainDefence` (1, a first guess) more when it stands on rough ground, or when the attack comes over a pass

@@ -47,7 +47,7 @@ slowest part, the siege's clock, and strength as the wealth of the realm. Save v
    shared among the troops there. Short: `hungry`. Hungry `hungryMutiny` 2 seasons running, or unpaid `unpaidMutiny`
    3: the unit mutinies and, until bands exist, disbands with its men going home with their savings.
 5. Caravans go on (`caravansTravel`; since item 11f they go anywhere, sneaking through land their king has heard is
-   closed to him, found there with a smuggler's odds: [the rest of the map](32-the-rest-of-the-map.md)): pay `ceil(grain / 10)` a season (spent where they stand at home; unpaid, they
+   closed to him, found there with a smuggler's odds: [the rest of the map](33-the-rest-of-the-map.md)): pay `ceil(grain / 10)` a season (spent where they stand at home; unpaid, they
    desert with the grain), advance `travelDays` at their pace, eat `caravanEatPercent` 20% of the load a season on the
    road (`boatEatPercent` 4% by boat), meet the road's check once (foreign troops in a province they reached take the
    grain into their own baggage, unless shut inside walls by a siege, item 11f; outlaws rob one with
