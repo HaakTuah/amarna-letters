@@ -38,14 +38,15 @@ let watchStarted = false;
 /**
  * Where a view of the map opens the first time it is shown in a game (item 11c+; Haakon: "zooming out to the full region is
  * more the exception than the rule"): a seat on its own realm and its neighbours, its capital at the centre; god view and
- * watching on the Levant on a phone, where most powers meet, and on the whole board on a wide screen.
+ * watching on the Levant on a phone, where most powers meet, and on the whole board on a wide screen. On a phone the Levant
+ * opens a zoom step closer than item 11c+ opened it (item 11c++), so the coast's cities stand apart.
  */
 function openingView(viewer: Power | null): MapView {
   if (viewer !== null) {
     const capital = WorldMap.default.provinces.find((p) => p.home === viewer && p.capital);
     if (capital !== undefined) return { at: city(capital.id), zoom: 2.5 };
   }
-  return innerWidth < 700 ? { at: ll(33.4, 36.1), zoom: 4.2 } : { at: { x: Width / 2, y: Height / 2 }, zoom: 1 };
+  return innerWidth < 700 ? { at: ll(33.4, 36.1), zoom: 6.7 } : { at: { x: Width / 2, y: Height / 2 }, zoom: 1 };
 }
 
 export function Play() {

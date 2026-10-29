@@ -227,7 +227,51 @@ function decodeFine(s: string): Pt[] {
   });
 }
 
-const Arcs: readonly Pt[][] = BorderArcs.map(decodeFine);
+/**
+ * A traced border made a natural line (item 11c++): the steps of the grid it was traced on (half a board unit) are
+ * simplified away, then the corners are rounded (Chaikin's cutting, three times), as a hand-drawn map's borders run.
+ * Its two ends stay where they are, so the borders that meet there still meet, and each border is smoothed once for
+ * both its sides, so neighbours never part. Drawing only: the script's traced data is unchanged.
+ */
+export function naturalLine(pts: readonly Pt[], tolerance = 0.45, rounds = 3): Pt[] {
+  if (pts.length < 3) return [...pts];
+  const keep = new Uint8Array(pts.length);
+  keep[0] = keep[pts.length - 1] = 1;
+  const stack: [number, number][] = [[0, pts.length - 1]];
+  while (stack.length > 0) {
+    const [i, j] = stack.pop()!;
+    const d = sub(pts[j], pts[i]);
+    const l = len(d) || 1;
+    let worst = -1;
+    let far = tolerance;
+    for (let k = i + 1; k < j; k++) {
+      const e = Math.abs(d.x * (pts[k].y - pts[i].y) - d.y * (pts[k].x - pts[i].x)) / l;
+      if (e > far) {
+        far = e;
+        worst = k;
+      }
+    }
+    if (worst >= 0) {
+      keep[worst] = 1;
+      stack.push([i, worst], [worst, j]);
+    }
+  }
+  let line = pts.filter((_, k) => keep[k] === 1);
+  for (let r = 0; r < rounds && line.length >= 3; r++) {
+    const next: Pt[] = [line[0]];
+    for (let k = 0; k < line.length - 1; k++) {
+      const a = line[k];
+      const b = line[k + 1];
+      if (k > 0) next.push(add(mul(a, 0.75), mul(b, 0.25)));
+      if (k < line.length - 2) next.push(add(mul(a, 0.25), mul(b, 0.75)));
+    }
+    next.push(line[line.length - 1]);
+    line = next;
+  }
+  return line;
+}
+
+const Arcs: readonly Pt[][] = BorderArcs.map((s) => naturalLine(decodeFine(s)));
 /** A ring of the traced borders, its arcs joined in order. */
 function ringOf(refs: readonly number[]): Pt[] {
   const pts: Pt[] = [];

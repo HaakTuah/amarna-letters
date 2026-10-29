@@ -60,6 +60,7 @@ const seasons = (p) => p.$eval(".slider", (s) => Number(s.max));
 /**
  * Names give way (item 11c+), the provinces' and the land's: at every zoom step from the whole board to the closest, no name shown may overlap another
  * name or any marker (a city's badge other than its own, a counter, a ship, an envoy or other person, news, a mark).
+ * And markers never overlap (item 11c++): no marker shown may touch another, a city's badge its own counters included.
  */
 async function namesClear(p, name) {
   await p.evaluate(() => document.querySelector('[aria-label="Show the whole map"], [aria-label="Back to where you were"]')?.click());
@@ -75,20 +76,34 @@ async function namesClear(p, name) {
         .filter((x) => !x.t.classList.contains("off"))
         .map((x) => ({ id: x.id, r: x.t.getBoundingClientRect() }))
         .concat([...document.querySelectorAll(".base text.geo:not(.off)")].map((t) => ({ id: t.textContent, r: t.getBoundingClientRect() })));
+      const seen = (e) => getComputedStyle(e).visibility !== "hidden";
       const markers = [];
-      for (const e of document.querySelectorAll(".map-upper .unit > .sym, .map-upper .traveller > .sym, .map-upper .person, .map-upper .news > .sym, .map-upper .destroyed > .sym, .xmarks .xm-bg"))
-        markers.push({ own: null, what: e.closest("[class]").getAttribute("class"), r: e.getBoundingClientRect() });
-      for (const c of document.querySelectorAll(".cities .city"))
-        for (const e of c.querySelectorAll(".seal, .walls, .cap-ring")) markers.push({ own: c.dataset.province, what: `badge of ${c.dataset.province}`, r: e.getBoundingClientRect() });
+      for (const e of document.querySelectorAll(".map-upper .unit > .sym, .map-upper .traveller > .sym, .map-upper .person, .map-upper .person-more, .map-upper .news-bg, .map-upper .destroyed > .sym, .xmarks .xm-bg"))
+        if (seen(e)) markers.push({ own: null, group: e, what: `${e.closest("[class]:not(.sym)").getAttribute("class")} at ${e.closest("[data-province], [data-court]")?.getAttribute("data-province") ?? e.closest("[data-court]")?.getAttribute("data-court") ?? "?"}`, r: e.getBoundingClientRect() });
+      for (const c of document.querySelectorAll(".cities .city")) {
+        // A badge is one marker: its seal and its rings.
+        const parts = [...c.querySelectorAll(".seal, .walls, .cap-ring")].filter(seen).map((e) => e.getBoundingClientRect());
+        if (parts.length === 0) continue;
+        const r = new DOMRect(Math.min(...parts.map((p) => p.left)), Math.min(...parts.map((p) => p.top)), 0, 0);
+        r.width = Math.max(...parts.map((p) => p.right)) - r.left;
+        r.height = Math.max(...parts.map((p) => p.bottom)) - r.top;
+        markers.push({ own: c.dataset.province, what: `badge of ${c.dataset.province}`, r });
+      }
       const out = [];
       names.forEach((a, i) => {
         for (const b of names.slice(i + 1)) if (touch(a.r, b.r)) out.push(`${a.id} over ${b.id}`);
         for (const m of markers) if (m.own !== a.id && m.r.width > 0 && touch(a.r, m.r)) out.push(`${a.id} over ${m.what}`);
       });
-      return { zoom: document.querySelector(".mapview").dataset.zoom, shown: names.length, out: out.slice(0, 5) };
+      const crowded = [];
+      markers.forEach((a, i) => {
+        for (const b of markers.slice(i + 1)) if (a.r.width > 0 && b.r.width > 0 && touch(a.r, b.r)) crowded.push(`${a.what} on ${b.what}`);
+      });
+      const small = document.querySelectorAll(".cities .city.small").length;
+      return { zoom: document.querySelector(".mapview").dataset.zoom, shown: names.length, markers: markers.length, small, out: out.slice(0, 5), crowded: crowded.slice(0, 5), many: crowded.length };
     });
     if (bad.out.length > 0) failures.push(`${name}: at zoom ${bad.zoom}, names overlap: ${bad.out.join("; ")}`);
-    if (step === 0 || step === 7) report.push(`${name}: ${bad.shown} names shown at zoom ${bad.zoom}`);
+    if (bad.crowded.length > 0) failures.push(`${name}: at zoom ${bad.zoom}, ${bad.many} markers touch: ${bad.crowded.join("; ")}`);
+    if (step === 0 || step === 7) report.push(`${name}: ${bad.shown} names and ${bad.markers} markers shown at zoom ${bad.zoom}, ${bad.small} cities as small seals`);
   }
 }
 
