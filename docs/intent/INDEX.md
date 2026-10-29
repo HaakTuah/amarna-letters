@@ -15,7 +15,7 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 567 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 82 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 83 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 34 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 56 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 25 |
@@ -24,9 +24,9 @@ the live document wins. If the docs connector is not available, go on with the c
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 29 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 60 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 9 |
-| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 10 |
+| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 11 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
-| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 16 |
+| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 17 |
 
 Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent .claude/rules`.
 Entries start with a bold title. The builder rules are in `.claude/rules/builder-rules.md`, which every
@@ -52,7 +52,7 @@ session loads.
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 5.1 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 5.7 |
-| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 13.5 |
+| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 15.1 |
 | `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.4 |
 | `docs/intent/build-order/item-12.md` | 12. Languages. "Languages": skill as time, learning by living in a province, tab | 1.3 |
 | `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 2.5 |
@@ -61,6 +61,7 @@ session loads.
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
 | `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 0.9 |
 | `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together, starting  | 5.1 |
+| `docs/intent/build-order/item-19.md` | 19. The living map | 0.8 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.3 |
@@ -111,13 +112,13 @@ session loads.
 | `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 18.6 |
 | `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 1.9 |
 | `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 5.7 |
+| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 7.0 |
 | `docs/intent/interface-and-the-council/the-royal-council.md` | The royal council | 3.9 |
 | `docs/intent/tests-risks-and-references/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md` | Success criteria and test plan | 6.6 |
 | `docs/intent/tests-risks-and-references/known-risks-and-mitigations.md` | Known risks and mitigations | 3.8 |
 | `docs/intent/tests-risks-and-references/open-questions-and-historical-references.md` | Open questions and historical references | 2.4 |
 | `docs/intent/ideas/front.md` | Title and what the tab holds | 0.3 |
-| `docs/intent/ideas/other-ideas-under-consideration.md` | Other ideas under consideration | 5.0 |
+| `docs/intent/ideas/other-ideas-under-consideration.md` | Other ideas under consideration | 5.1 |
 | `docs/intent/ideas/voice-of-the-age-ideas-for-later.md` | Voice of the age: ideas for later | 0.8 |
 | `docs/intent/ideas/beyond-the-prototype.md` | Beyond the prototype | 4.7 |
