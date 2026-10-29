@@ -483,3 +483,22 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into "Revolt follows conditions, not dice" (War), "The land" under "Armies need food as well as pay" (Land,
     people and economy) and build order item 17.
+
+47. **09:18 and 09:22**, in the design chat, three questions: whether the rules incentivize conquering neighbours
+    before going deeper, "Kinda like imperator, just incentivicong, but not forcing?"; "If i besiege a neighbour
+    province then send supply caravan there, they cannot still invest in policing in that province and intercept my
+    caravan, right?"; and "When a kingdom breaks up, who does the different armies go to the way we have it set up
+    now?" To the design session's answers and its suggestion (a besieged garrison and its king's policing reach only
+    inside the walls; the countryside around a siege is the besieger's for supply; policing stops where hostile troops
+    stand):
+
+    > Yes to all, expertly!
+
+    Written into "Caravans carry a kingdom's goods" (Land, people and economy) and build order items 11f and 15.
+
+48. **09:24**, in the design chat, on armies buying or taking their food:
+
+    > But remember, when you say a king decides how his army supplies himself. Information time travel stoll applies. He can tell them to buy, but if he hasn't sent them enough money to buy with, they will do what they must to eat. And an army with an assigned commander (a character) the commander has the final say on following orders or not. He may keep any money meant for food, and just take instead.
+
+    Written into "The land" under "Armies need food as well as pay" (Land, people and economy) and build order item 17:
+    buying or taking is an order that travels; hunger decides before orders do; a commander may keep the gold and take.

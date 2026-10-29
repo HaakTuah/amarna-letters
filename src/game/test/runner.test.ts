@@ -71,7 +71,10 @@ describe("RunnerTests", () => {
 
     let r = scripted(14);
     for (let i = 0; i < 30 && !r.state.ended; i++) await r.playTurn();
-    Assert.all(r.state.characters, (c) => Assert.true(c.memory.length <= r.state.config.memoryKeep + 8));
+    // Memories are folded once a season, so what the fold bounds is the memory before the last season: a busy court can
+    // bring a character many in one season (seed 14's Babylon did since item 11e).
+    const last = r.state.ended ? r.state.turn : r.state.turn - 1;
+    Assert.all(r.state.characters, (c) => Assert.true(c.memory.filter((m) => m.turn < last).length <= r.state.config.memoryKeep + 8));
     Assert.contains(r.state.characters, (c) => c.memorySummary.length > 0);
   });
 

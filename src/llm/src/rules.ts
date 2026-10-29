@@ -7,7 +7,7 @@ import {
   AllPowers,
   StartVassals,
   fmt,
-  parOf,
+  parSummary,
   MaxAnswers,
   ageBand,
   bandWords,
@@ -62,9 +62,9 @@ function openingBondsLine(): string {
   return [...by.entries()].map(([o, vs]) => `${o}'s vassals ${vs.join(", ")}`).join("; ");
 }
 
-/** Par for each starting position, as the rulebook gives it (item 11+). */
+/** Par's results for each starting position, as the rulebook gives them (item 11e): how often it fell, and its survivors' quarters. */
 export function parLine(): string {
-  return AllPowers.map((p) => `${p} ${fmt(parOf(p), "0.00")}`).join(", ");
+  return AllPowers.map((p) => parSummary(p)).join("; ");
 }
 
 function rules(primer: boolean, c: GameConfig): string
@@ -73,13 +73,13 @@ function rules(primer: boolean, c: GameConfig): string
         const sb = new Sb();
         // A house rule: the kings read it only in games that use it.
         const sharedVictory = c.sharedVictory
-            ? `\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their combined growth against their par beats every other power's.`
+            ? `\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their score together (each partner's, weighed by its starting strength) beats every other power's.`
             : ``;
-        sb.appendLine(`You are playing Amarna Letters, a strategy game set in the Late Bronze Age (c. 1360-1330 BCE), among the seven Great Kings, Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus), and the city-states and chiefs between them (Byblos, Amurru, Ugarit, Carchemish and the rest; the Kaska, the Lukka men and the Suteans under their chiefs), every one a power with the same rules and the same goal. The engine enforces only physics: movement, combat, production and payment. Every treaty, alliance and betrayal is invented by the players. You play one power, a king or the ruler of a city. Your only goal is to win.
+        sb.appendLine(`You are playing Amarna Letters, a strategy game set in the Late Bronze Age (c. 1360-1330 BCE), among the seven Great Kings, Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus), and the city-states and chiefs between them (Byblos, Amurru, Ugarit, Carchemish and the rest; the Kaska, the Lukka men and the Suteans under their chiefs), every one a power with the same rules and the same goal. The engine enforces only physics: movement, combat, production and payment. Every treaty, alliance and betrayal is invented by the players. You play one power, a king or the ruler of a city. Your goal is to finish as high as you can: there is one winner, the highest score, but every place counts, so climbing from eighth to fifth is worth the effort.
 
 HOW YOU WIN
-- The winner is the power whose growth (its strength against its own starting strength) stands highest against par for its starting position (PAR, below): a power that grows as powers that started where it did usually grow is at par, and one-city powers and empires stand level. Strength is the wealth of your realm, reckoned in shekels: ${c.provinceWeight} x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; land you conquered counted as far as you have absorbed it) + the gold in your treasury + the gold in the people's purses of your provinces + the grain in their stores and markets (a shekel a measure) + what your own men carry (your troops' grain and their savings, your caravans' grain): what you hold, never what you owe or are owed. Gold that moves within your land changes nothing: pay spent at home goes into your people's purses, and your sales at your markets draw it back. Food eaten, grain spoiled and gold that leaves your land lower it. A small kingdom that doubles beats an empire that merely holds its ground.
-- PAR, the growth a power that started where it did reaches by the end on the mean over all script games, a fallen power's counted as 0, so that surviving itself scores: ${parLine()}.
+- The final score blends two things, each from 0 to 1: your realm's size, its strength against the strongest living realm's, and your performance, how your growth (your strength against your own starting strength) ranks among the results of powers that started where you did (PAR, below): 0.5 at the middle of them and 1 above them all, so a one-city power and an empire perform level. The living powers are placed by their score, and the highest wins. How much each weighs is set for the game; no court can measure where any realm, its own included, stands on either beyond what news, spies and letters bring. Strength is the wealth of your realm, reckoned in shekels: ${c.provinceWeight} x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; land you conquered counted as far as you have absorbed it) + the gold in your treasury + the gold in the people's purses of your provinces + the grain in their stores and markets (a shekel a measure) + what your own men carry (your troops' grain and their savings, your caravans' grain): what you hold, never what you owe or are owed. Gold that moves within your land changes nothing: pay spent at home goes into your people's purses, and your sales at your markets draw it back. Food eaten, grain spoiled and gold that leaves your land lower it.
+- PAR, the results a power that started where it did reaches by the end of the script games, its growth in each, a fall counted as the lowest of all, so that surviving where most fall itself scores. Your result is placed among them, between two of them in proportion: how often each position fell in them, and its survivors' growth at the lower quarter, the middle and the upper quarter: ${parLine()}.
 ${ending(c)}${sharedVictory}
 - A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him (if he falls too in the same season, it passes on with his own land), your troops disband, and what you owe dies with you. You may cede your capital only by agreement: a sealed tablet between you and the receiver that gives it ("I give you the land of ...", or his "Give me the land of ..." sealed by you both), and then your own order to cede it. Your whole kingdom passes with it, as if he had taken it, but by agreement (land being absorbed goes on being absorbed, and no more); your troops disband unless you give them away that same season; and you lose your seat and live on as a character at your old city, a man without a throne whom your new master may employ or, once there are governors, set over it. Take a rival's capital and his whole kingdom is yours.`);
 

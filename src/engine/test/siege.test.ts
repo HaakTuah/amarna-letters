@@ -192,12 +192,26 @@ describe("SiegeTests", () => {
   test("A storm takes the city at once a level lower", () => {
     let s = board();
     s.walls.set("suhu", 1);
+    // Its men gone (item 11e: a city's own men stand on its walls), its walls alone stand against two.
+    s.people.get("suhu").men = 0;
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "steppe" }));
     season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("steppe", "sippar", "suhu")));
     Assert.equal("Babylonia", s.owner.get("suhu"));
     Assert.equal(0, wallsOf(s, "suhu"));
     Assert.false(s.walls.has("suhu"));
     Assert.contains(s.events, (e) => e.kind === "storm" && e.text === "Babylonia stormed the walls of Suhu.");
+  });
+
+  test("A city's own men on its walls hold off a storm its walls alone would not", () => {
+    // Item 11e: Suhu (walls 1) with its 6,090 men of fighting age, as hostile as they can be to Babylonia: 1 + 2 x 1.2 is
+    // more than two can storm, so the army stands within the walls and the city stays free.
+    let s = board();
+    s.walls.set("suhu", 1);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "steppe" }));
+    season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("steppe", "sippar", "suhu")));
+    Assert.notEqual("Babylonia", s.owner.getOrDefault("suhu", null));
+    Assert.equal("Babylonia", unitAt(s, "suhu")?.power);
+    Assert.contains(inboxOf(s, "Babylonia"), (i) => i.body.includes("and the city's men 1.2, the walls making them twice as strong"));
   });
 
   test("A besiege order kept for later follows its army and replays", () => {

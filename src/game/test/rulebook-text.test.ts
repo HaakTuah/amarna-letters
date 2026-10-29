@@ -214,7 +214,7 @@ describe("SeasonRulebookTests", () => {
       "Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other (and the ground's help, see TERRAIN).",
     ],
     [
-      "a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the hold strength of the defenders it beat",
+      "a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the defenders on them, multiplied by the walls",
     ],
     ["You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them"],
     [

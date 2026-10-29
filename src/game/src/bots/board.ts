@@ -104,9 +104,16 @@ export class Board {
     return this.v.sieges.find((x) => x.province === p) ?? null;
   }
 
-  /** The strength a move into a walled province needs to storm it: more than its walls and the defenders' hold together. */
+  /**
+   * The strength a move into a walled province needs to storm it: more than its walls and the defenders on them, the
+   * garrison's hold and the city's own men, multiplied by the walls (item 11e), in units.
+   */
   stormNeeds(p: string, defenders: number): number {
-    return this.walls(p) ? this.wallLevel(p) + defenders + 1 : 0;
+    if (!this.walls(p)) return 0;
+    const level = this.wallLevel(p);
+    // A king who ignores the city's men (the measure of item 11e) reckons a storm as before: the walls and the garrison.
+    if (!WallPlay.on(this.me)) return level + defenders + 1;
+    return level + (defenders + this.wallMen(p)) * (1 + level) + 0.001;
   }
 
   P(id: string): Province {
@@ -178,9 +185,20 @@ export class Board {
     return this.v.yields.tryGet(id) ?? Board.Map.get(id).yield;
   }
 
-  /** The resistance our troops would meet from a land's people where no troop stands (item 10+a). */
+  /**
+   * The resistance our troops would meet in the open from a land's people (item 10+a), alone where no troop stands and
+   * beside the troop that does (item 11e), in whole units: what they add to the strength a move of full units must beat.
+   * None in a walled city not ours: its men stand on the walls instead ({@link wallMen}).
+   */
   resistance(id: string): number {
-    return this.v.resistance.tryGet(id) ?? 0;
+    if (this.walls(id) && !this.isMine(id)) return 0;
+    return Math.floor((this.v.resistance.tryGet(id) ?? 0) / 1000);
+  }
+
+  /** What a walled city's own men count for on its walls, in units, before the walls multiply them (item 11e). */
+  wallMen(id: string): number {
+    if (!this.walls(id) || this.isMine(id)) return 0;
+    return (this.v.resistance.tryGet(id) ?? 0) / 1000;
   }
 
   private baseValue(id: string): number {
@@ -276,8 +294,9 @@ export class Board {
   }
 
   /**
-   * Strength against what the king started with, against par for his starting position: the measure the game is won by
-   * (item 11+, "One scoreboard for every power"), so a king weighs rivals by the engine's own function.
+   * Strength against what the king started with, ranked against par's results for his starting position: the performance
+   * the final score blends with size (items 11+ and 11e, "One scoreboard for every power"), so a king weighs rivals by the
+   * engine's own function; their size it weighs by their strength, as {@link leader} does.
    */
   growth(p: Power): number {
     let g = this.growthCache.tryGet(p);
@@ -326,4 +345,16 @@ export class Board {
 
 /** The growth a leader must reach, and the margin by which he must stand above the next king. */
 export const LeadFloor = 1.15;
+
+/**
+ * Whether a script king reckons a storm by the city's men on its walls, multiplied by them (item 11e); off for the measure
+ * of using it against ignoring it (`--wall-play-half`), when it reckons the walls and the garrison as before.
+ */
+export const WallPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+  off: false,
+  only: null,
+  on(me: string): boolean {
+    return !(this.off && (this.only === null || this.only.has(me)));
+  },
+};
 export const LeadMargin = 0.1;

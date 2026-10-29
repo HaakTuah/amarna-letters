@@ -122,7 +122,7 @@ describe("BattleReportTests", () => {
 
     // Walls stop no move since the siege package: the report says the army got within them and did not storm them.
     Assert.contains(
-      "- A nesa -> carchemish: succeeds: it got within the walls of carchemish but did not storm them (strength 1 against walls 2 and defenders 0): your army stands inside and takes nothing; besiege the city to wear it down",
+      "- A nesa -> carchemish: succeeds: it got within the walls of carchemish but did not storm them (strength 1 against walls 2 and no defenders on the walls): your army stands inside and takes nothing; besiege the city to wear it down",
       reportOf(s, "Hatti"),
     );
     let assyria = reportOf(s, "Assyria");
@@ -137,12 +137,12 @@ describe("BattleReportTests", () => {
     resolve(s, subs({ Mitanni: { orders: [move("terqa", "suhu")] } }));
     let own = reportOf(s, "Babylonia").split("\nSeen nearby:")[0];
     Assert.contains(
-      "- Your walled city of Suhu: Mitanni's army from terqa got within the walls but did not storm them (its strength 1 against your walls 2 and defenders 0): it stands inside, and Suhu stays yours unless a siege wears it down.",
+      "- Your walled city of Suhu: Mitanni's army from terqa got within the walls but did not storm them (its strength 1 against your walls 2 and no defenders on the walls): it stands inside, and Suhu stays yours unless a siege wears it down.",
       own,
     );
 
-    // Stormed with three against walls 2 and an army of Babylon's within them.
-    s = walled(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0 }))), "suhu", 2);
+    // Stormed with four against walls 1 and an army of Babylon's within them, the walls doubling it (1 + 2 x 1 = 3).
+    s = walled(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0 }))), "suhu", 1);
     s.owner.set("suhu", "Babylonia");
     s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "suhu" }));
     removeAll(s.units, (u) => u.province === "sippar");
@@ -159,13 +159,13 @@ describe("BattleReportTests", () => {
       }),
     );
     Assert.contains(
-      "- Your walled city of Suhu: Mitanni's army from terqa stormed the walls (its strength 4 against your walls 2 and defenders 1): Suhu is taken.",
+      "- Your walled city of Suhu: Mitanni's army from terqa stormed the walls (its strength 4 against your walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong): Suhu is taken.",
       reportOf(s, "Babylonia"),
     );
     Assert.equal("Mitanni", s.owner.get("suhu"));
-    Assert.equal(1, wallsOf(s, "suhu"));
+    Assert.equal(0, wallsOf(s, "suhu"));
     Assert.contains(
-      "- A terqa -> suhu: succeeds: it stormed the walls of suhu (strength 4 against walls 2 and defenders 1), and suhu is yours",
+      "- A terqa -> suhu: succeeds: it stormed the walls of suhu (strength 4 against walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong), and suhu is yours",
       reportOf(s, "Mitanni"),
     );
   });
