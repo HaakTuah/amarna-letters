@@ -131,7 +131,7 @@ PR (pass 3), branch `item/living-map-works`, stacked on pass 2.
 3. **What a court knows**: its own works as they stand, others' as last seen, land never seen as an unknown track, only
    its own stores. A scene test checks it.
 4. The legend shows the roads' levels and each work.
-5. `season-shots.mjs` can zoom at a point (`--at`) and play seasons first (`--play`).
+5. `season-shots.mjs` can zoom at a point (`--at`).
 
 ### Readings taken
 
@@ -141,3 +141,10 @@ PR (pass 3), branch `item/living-map-works`, stacked on pass 2.
 - **Mines by the economy's data**, since the engine has no level for them yet (its works name fields, mines and storage
   as later phases); no level is invented for the map (no stopgaps).
 - **Works give way to names** ("names that give way" put names above lesser markers; the works are the least of all).
+
+### The review
+
+One reviewer (Opus, high). Blocking, fixed: half the roads were never drawn (the map lists each edge once, either way
+round, and the first build kept only those listed one way); a test now requires every land connection's road, once.
+Fixed besides: the note on what a court knows of others' works (the engine's view is today's sight; the memory is the
+map's, from earlier sights); relay stations hidden on the whole board, said in the note.
