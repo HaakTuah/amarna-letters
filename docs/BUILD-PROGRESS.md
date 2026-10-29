@@ -66,6 +66,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 13 | Granting command, mandates, governors, bands enlisted as soldiers and moving the court (`--command-play-half`) | 0.77 growth to 0.76, 27 wins to 23, in 50 games (0.78 to 0.77, 27 to 23 before two script patches); hunting re-measured with command (`--outlaw-play-half`): 0.76 to 0.77, 28 wins to 22 | Paying a little, within noise: the gain is in far provinces, which the scripts' growth reaches late; re-measure in item 18 |
 | 13+ | A risen governor's seat (no script choice to ignore: the same script king plays it) | No governor rose in 50 games; in a small game the risen seat kept its men, took lawless land beside it and replayed exactly | Not measurable yet: governors are rarely in place when a Great King falls; re-measure once item 17 raises more powers in play |
 | 14 | Legends, and a greedy king's begging letter | n/a: the legends are read by people, never by a seat; the begging letter is an Easter egg (3 letters in 50 games, 1 granted) | Nothing to measure |
+| 15 | Roads and relay stations, policing, harbours, water works, repairs under siege and razing (`--works-play-half`; baseline builds only walls) | 0.79 growth to 0.76, 23 wins to 27, in 50 games (first build, before two script patches: 0.78 to 0.79, 28 to 22) | Pays in growth, wins within noise; Assyria grows less using it (0.57 to 0.86): re-measure in item 18 |
 
 ## Items
 
@@ -81,7 +82,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 13 | Command at a distance | done (29 Oct; stop for review: questions in "For Haakon"): armies and fleets at the sources' sizes; battles with losses and falling back; marching by size, forced marches; commanders as grants, with mandates, competence in battle, foraging, winter and sacks; standing orders through commanders; the court wherever the king is, orders and reports by courier; governors; a fallen kingdom coming apart, captains from the ranks; bands enlisted as soldiers; gold from far provinces as loads; save version 31 | `item/command-at-a-distance` (#175) | [report](rounds/2026-10-29-command-at-a-distance.md) |
 | 13+ | The answers to item 13: governors' seats, and a realm coming apart as the news arrives | done (29 Oct; stop for review, no questions): the capital passes at once, the rest of a fallen realm as word of the fall reaches it, its gold going to whoever holds the capital meanwhile; a governor there rules his province as a power risen in play with a seat of his own; save version 33 | `item/command-answers` (#190) | [report](rounds/2026-10-29-answers-to-13.md) |
 | 14 | Legends | done (29 Oct; no questions): biographies, histories of tablets and the rise and fall of courts read from the record; the record opened to every seat at the end (lies, skims, forged seals, bent words, secret masters, the drawn season); "a new Idrimi" on 13+'s risen governors; Finkel's third plea in the record and the annals, and a greedy script king's begging letter; save version 34 | `item/legends` (#189) | [report](rounds/2026-10-29-legends.md) |
-| 15 | Infrastructure and policing | in progress (29 Oct): walls, roads, relay stations, harbours, policing and water works as one rule; save version 35 | `item/infrastructure` (#192) | [report](rounds/2026-10-29-infrastructure-and-policing.md) |
+| 15 | Infrastructure and policing | done (29 Oct; stop for review, no questions): walls, roads, relay stations, harbours, policing and water works as one rule (levels with upkeep in gold or corvée, decay, projects), each king's standing order at the start keeping what stands; roads and stations in the pace and the couriers' reach, letters read at stations, police on the loose, the bands and smugglers, harbours for wintering fleets, water works, repairs under siege, razing; walls city by city from the dossier, Akhetaten none; save version 35 | `item/infrastructure` (#192) | [report](rounds/2026-10-29-infrastructure-and-policing.md) |
 | 16 | The royal council | not started | | |
 | 17 | How cities become free | not started | | |
 | 18 | The balance pass | not started | | |
@@ -90,5 +91,9 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 Side lane, a smaller default world for tests (29 Oct, #136): test games play a few seated powers among idle ones
 (`src/game/test/small-world.ts`); suite 2264 s to 955 s, a code PR's CI about 4 min 50 s to 1 min 52 s
 (`docs/rounds/2026-10-29-small-test-world.md`).
+
+Side lane, map labels overlapping on a busy machine (29 Oct, #196): names and markers are placed again when a zoom's
+glide or a piece's slide really ends, not on timers guessed from their length; the smoke test waits for a still map and
+plays a game in slow motion (`docs/rounds/2026-10-29-map-label-overlap.md`).
 
 Done items 1 to 10 and the port's findings (all handled): `docs/archive/progress-done.md`.

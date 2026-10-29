@@ -469,8 +469,6 @@ export class SvgMapRenderer implements MapRenderer {
   private scale = 0;
   private scene: MapScene | null = null;
   private placing = 0;
-  private later = 0;
-  private laterAt = 0;
   private fine = false;
   private readonly onClick = (e: Event): void => {
     const t = e.target as Element | null;
@@ -492,6 +490,15 @@ export class SvgMapRenderer implements MapRenderer {
     else this.handlers?.onBlank();
   };
 
+  /**
+   * A glide or slide has ended: the markers and names are placed again where everything has stopped. Its real end, not a
+   * timer guessed from its length: a transition starts only at the next frame drawn, late on a busy phone, and taking the
+   * glide's class away does not stop one already running.
+   */
+  private readonly onMoved = (e: TransitionEvent): void => {
+    if (e.propertyName === "transform" && (e.target as Element).matches(".mapzoom, .unit, .traveller")) this.placeNames();
+  };
+
   mount(view: HTMLElement, handlers: MapHandlers): void {
     this.view = view;
     this.handlers = handlers;
@@ -506,13 +513,14 @@ export class SvgMapRenderer implements MapRenderer {
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-label]")) this.labels.set(g.dataset.label!, g);
     zoom.addEventListener("click", this.onClick);
+    zoom.addEventListener("transitionend", this.onMoved);
+    zoom.addEventListener("transitioncancel", this.onMoved);
     attach(view, (scale: number) => {
       this.scale = scale;
       this.closeUp();
       if (this.scene !== null) this.drawUnits(this.scene);
-      // Now, and again once a zoom's glide has ended (.25s, app.css).
+      // Now, and again once the zoom's glide has ended (onMoved).
       this.placeNames();
-      this.placeAgain(320);
     });
   }
 
@@ -564,9 +572,8 @@ export class SvgMapRenderer implements MapRenderer {
       );
     }
     this.layers.get("selection")!.innerHTML = selection(input);
-    // Names are placed at once, and again once the pieces have slid to their places (.6s, app.css).
+    // Names are placed at once, and again once the pieces have slid to their places (onMoved).
     this.placeNames();
-    this.placeAgain(700);
   }
 
   /**
@@ -600,18 +607,6 @@ export class SvgMapRenderer implements MapRenderer {
       const d = rivers?.get(id) ?? RiverPaths.get(id);
       if (d !== undefined && e.getAttribute("d") !== d) e.setAttribute("d", d);
     });
-  }
-
-  /** Places the markers and names again once whatever is moving has stopped: never sooner than a pass already due. */
-  private placeAgain(ms: number): void {
-    const at = performance.now() + ms;
-    if (at <= this.laterAt) return;
-    clearTimeout(this.later);
-    this.laterAt = at;
-    this.later = window.setTimeout(() => {
-      this.laterAt = 0;
-      this.placeNames();
-    }, ms);
   }
 
   /**
@@ -740,7 +735,6 @@ export class SvgMapRenderer implements MapRenderer {
   destroy(): void {
     if (this.view === null) return;
     cancelAnimationFrame(this.placing);
-    clearTimeout(this.later);
     detach(this.view);
     this.view.querySelector(".mapzoom")?.remove();
     this.view = null;
