@@ -75,8 +75,8 @@ The design note is [`docs/design/40-the-royal-council.md`](../design/40-the-roya
     voice of the court that holds the province where they stand; envoys at audience, governors and commanders do not
     yet read the ending at all (item 11a's reach), and nothing here adds it. Principle: "Everything is somewhere";
     the review's point 6.
-13. **The measure plays script kings by their council** (`--council-play-half`): the agreed orders, else each troop's
-    majority, a tie to the king's own; a levy two advisors propose. Script rulers never hear a council in a real game;
+13. **The measure plays script kings by their council** (`--council-play-half`): each season the whole plan of the
+    advisor the other three agree with most, as a king weighing four disagreeing advisors would. Script rulers never hear a council in a real game;
     this measures whether following the counsel plays well.
 
 ## Design questions
