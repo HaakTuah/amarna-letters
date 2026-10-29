@@ -48,8 +48,8 @@ describe("PresetTests", () => {
     Assert.true(standard > budget * 5);
     Assert.true(showcase > standard * 1.5);
     Assert.equal("free", CostEstimate.describe(free));
-    // Thirty powers since item 11+, every seat on the same ladder: a budget game costs about a dollar.
-    Assert.equal("about $1", CostEstimate.describe(budget));
+    // Thirty powers since item 11+ (36 since item 11c), every seat on the same ladder: a budget game costs about two dollars.
+    Assert.equal("about $2", CostEstimate.describe(budget));
     Assert.true(CostEstimate.suggestedBudget(standard) >= standard);
 
     let human = CostEstimate.perGame(doWith(Presets.Standard, "Egypt"));

@@ -5,7 +5,7 @@
  */
 import { WorldMap, dateLabel, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province } from "@amarna/engine";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
-import { F, Shapes, add, along, arc, arcAt, city, len, mul, normal, route, sub, unit, unitSpot, type Pt } from "./art.ts";
+import { F, Height, Shapes, Width, add, landClipOf, along, arc, arcAt, city, len, mul, normal, route, sub, unit, unitSpot, type Pt } from "./art.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { Base, Defs, Labels } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
@@ -16,6 +16,8 @@ const Map_ = WorldMap.default;
 const Seas: readonly Province[] = Map_.provinces.filter((p) => p.isSea && Shapes.has(p.id));
 const Land: readonly Province[] = Map_.landProvinces.filter((p) => Shapes.has(p.id));
 const AllShaped: readonly Province[] = Map_.provinces.filter((p) => Shapes.has(p.id));
+/** The land provinces by the clip their shapes are drawn within: the mainland's, or the islands'. */
+const LandByClip: readonly (readonly [string, readonly Province[]])[] = ["url(#mainclip)", "url(#isleclip)"].map((c) => [c, Land.filter((p) => landClipOf(p.id) === c)] as const);
 const SVG = "http://www.w3.org/2000/svg";
 
 const esc = (s: string): string => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
@@ -34,22 +36,30 @@ function provinceTitle(p: Province, owner: Power | null): string {
 function tints(s: MapScene): string {
   let sb = `<g class="politics" clip-path="url(#seaclip)">`;
   for (const p of Seas) sb += `<path class="hit sea-hit" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(`${p.name}, a sea zone`)}</path>`;
-  sb += `</g><g class="politics" clip-path="url(#landclip)">`;
-  for (const p of Land) {
-    const owner = s.owner.get(p.id) ?? null;
-    sb += `<path class="${owner !== null ? `tint t-${glyphId(owner)}` : "tint free"}" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(provinceTitle(p, owner))}</path>`;
+  sb += "</g>";
+  for (const [clip, group] of LandByClip) {
+    sb += `<g class="politics" clip-path="${clip}">`;
+    for (const p of group) {
+      const owner = s.owner.get(p.id) ?? null;
+      sb += `<path class="${owner !== null ? `tint t-${glyphId(owner)}` : "tint free"}" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(provinceTitle(p, owner))}</path>`;
+    }
+    sb += "</g>";
   }
-  return sb + "</g>";
+  return sb;
 }
 
 function bands(s: MapScene): string {
-  let sb = `<g class="bands" clip-path="url(#landclip)">`;
-  for (const p of Land) {
-    const o = s.owner.get(p.id) ?? null;
-    if (o === null) continue;
-    sb += `<path class="band b-${glyphId(o)}" d="${Shapes.get(p.id)}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
+  let sb = "";
+  for (const [clip, group] of LandByClip) {
+    sb += `<g class="bands" clip-path="${clip}">`;
+    for (const p of group) {
+      const o = s.owner.get(p.id) ?? null;
+      if (o === null) continue;
+      sb += `<path class="band b-${glyphId(o)}" d="${Shapes.get(p.id)}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
+    }
+    sb += "</g>";
   }
-  return sb + "</g>";
+  return sb;
 }
 
 function cities(s: MapScene): string {
@@ -58,7 +68,8 @@ function cities(s: MapScene): string {
   for (const p of Land) {
     const owner = s.owner.get(p.id) ?? null;
     const walls = s.walls.get(p.id) ?? 0;
-    sb += `<g transform="translate(${p.x},${p.y})" class="city${p.capital ? " capital" : ""}${owner === null ? " free" : ""}${sieges.has(p.id) ? " besieged" : ""}" data-province="${p.id}"><g class="csym"><circle class="tap-hit" r="${p.capital ? 22 : 18}"/>`;
+    const at = city(p.id);
+    sb += `<g transform="translate(${F(at.x)},${F(at.y)})" class="city${p.capital ? " capital" : ""}${owner === null ? " free" : ""}${sieges.has(p.id) ? " besieged" : ""}" data-province="${p.id}"><g class="csym"><circle class="tap-hit" r="${p.capital ? 22 : 18}"/>`;
     // One ring for each level of walls standing.
     for (let level = walls; level >= 1; level--) sb += `<circle class="walls w${level}" r="${(p.capital ? 12 : 8.5) + 2 * level}"/>`;
     if (p.capital) sb += `<circle class="cap-ring" r="12.6"/>`;
@@ -77,8 +88,8 @@ function fog(s: MapScene): string {
   if (s.viewer === null) return "";
   let sb = "";
   for (const [group, clip, fill] of [
-    [AllShaped.filter((p) => !p.isSea), "url(#landclip)", "url(#fog)"],
-    [AllShaped.filter((p) => p.isSea), "url(#seaclip)", "url(#fogsea)"],
+    ...LandByClip.map(([clip, group]) => [group, clip, "url(#fog)"] as const),
+    [AllShaped.filter((p) => p.isSea), "url(#seaclip)", "url(#fogsea)"] as const,
   ] as const) {
     sb += `<g class="fog" clip-path="${clip}">`;
     for (const p of group) {
@@ -286,11 +297,11 @@ function selection(input: MapInput): string {
   if (input.targets !== null)
     for (const id of input.targets) {
       const d = Shapes.get(id);
-      if (d !== undefined) sb += `<path class="target" d="${d}"/>`;
+      if (d !== undefined) sb += `<path class="target" d="${d}" clip-path="${landClipOf(id)}"/>`;
     }
   if (input.selected !== null && Shapes.has(input.selected)) {
     const at = city(input.selected);
-    sb += `<path class="selected" d="${Shapes.get(input.selected)}"/><g transform="translate(${F(at.x)},${F(at.y)})"><g class="csym"><circle class="sel-ring" r="15"/></g></g>`;
+    sb += `<path class="selected" d="${Shapes.get(input.selected)}" clip-path="${landClipOf(input.selected)}"/><g transform="translate(${F(at.x)},${F(at.y)})"><g class="csym"><circle class="sel-ring" r="15"/></g></g>`;
   }
   if (input.arrows !== null)
     for (const { from, to, support } of input.arrows) {
@@ -367,8 +378,8 @@ export class SvgMapRenderer implements MapRenderer {
     // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="fog"></g><g data-layer="bands"></g>${Labels}<g data-layer="cities"></g></svg>` +
-      `<svg class="map map-upper" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
+      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="fog"></g><g data-layer="bands"></g>${Labels}<g data-layer="cities"></g></svg>` +
+      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
     zoom.addEventListener("click", this.onClick);

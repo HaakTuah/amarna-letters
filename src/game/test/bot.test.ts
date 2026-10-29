@@ -135,10 +135,10 @@ describe("BotTests", () => {
     Assert.equal(0, seen.belligerence.getOrDefault("Egypt", 0));
   });
 
-  // <summary>Egypt gains Megiddo and Tyre with their walls whole (their city-states gone), seen by Hatti from an army of its in Damascus, or unseen.</summary>
+  // <summary>Egypt gains Megiddo and Tyre with their walls whole (their city-states gone), seen by Hatti from an army of its in Hazor (beside both since item 11c; Damascus before), or unseen.</summary>
   function egyptBuysTheLevant(watching: boolean): [Brain, Board] {
-    let s = unruled(newGame(3), "megiddo", "tyre", "damascus");
-    if (watching) s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "damascus" }));
+    let s = unruled(newGame(3), "megiddo", "tyre", "hazor");
+    if (watching) s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "hazor" }));
     let brain = new Brain("Hatti", 3);
     let first = Views.for(s, "Hatti");
     brain.learn(first, new Board(first));

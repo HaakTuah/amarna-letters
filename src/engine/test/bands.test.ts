@@ -154,6 +154,8 @@ describe("BandTests", () => {
     spy.at = "Hatti";
     spy.missionTarget = "Hatti";
     spy.purse = 500;
+    // Loyal enough to pay a carrier from its own purse (the spy decides; since item 11c's draws this one is not by nature).
+    spy.traits.loyalty = 80;
     const e = new TurnEngine(s);
     e.watchAndReport();
     s.turn++;

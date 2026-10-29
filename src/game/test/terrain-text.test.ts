@@ -9,12 +9,12 @@ describe("TerrainTextTests", () => {
 
   test.each([
     [
-      "- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with 1 more when it stands on rough ground (mira, lukka, isuwa, amurru, arbela, kalavasos, shechem, jerusalem, kaska), or when the attack comes over a mountain pass or a great river, crossed at its fords and ferry towns (the Cilician Gates (tuwanuwa-kizzuwatna), the Taurus (nesa-kizzuwatna), the Anti-Taurus (nesa-carchemish), the Amanus (kizzuwatna-carchemish), the Syrian Gates (kizzuwatna-alalakh), the Lebanon (byblos-damascus and sidon-damascus), the Euphrates at Carchemish (carchemish-harran), the Euphrates at Emar (aleppo-harran), the upper Euphrates (isuwa-harran), the Tigris (taidu-nineveh)): 1 in all, however many of these apply.",
+      "- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with 1 more when it stands on rough ground (mira, lukka, isuwa, amurru, arbela, kalavasos, shechem, jerusalem, hebron, kaska), or when the attack comes over a mountain pass or a great river, crossed at its fords and ferry towns (the Cilician Gates (tuwanuwa-kizzuwatna), the Taurus (nesa-kizzuwatna), the Anti-Taurus (nesa-carchemish), the Amanus (kizzuwatna-carchemish), the Syrian Gates (kizzuwatna-alalakh), the Lebanon (byblos-damascus and sidon-damascus), the Euphrates at Carchemish (carchemish-harran), the Euphrates at Emar (aleppo-harran), the upper Euphrates (isuwa-harran), the Tigris (taidu-nineveh)): 1 in all, however many of these apply.",
     ],
     [
       "The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that.",
     ],
-    ["- Some links cross the desert (the Syrian desert (suhu-steppe and steppe-qatna and steppe-damascus), the Ways of Horus (delta-gaza), the north Sinai (gaza-sinai), the Negev (jerusalem-sinai)); they give no help in battle."],
+    ["- Some links cross the desert (the Syrian desert (suhu-steppe and steppe-qatna and steppe-damascus), the Ways of Horus (delta-gaza), the north Sinai (gaza-sinai), the Negev (jerusalem-sinai and hebron-sinai), the Wadi Hammamat (thebes-redsea), the road to the Gulf of Suez (sinai-redsea)); they give no help in battle."],
     ["A unit standing its ground may have the ground's help in its hold strength (see TERRAIN)."],
     ["(if the province was empty or its unit moved away, the resistance of its people: see PEOPLE; the ground's help to them counts in it)"],
     [
@@ -32,7 +32,8 @@ describe("TerrainTextTests", () => {
     [
       "You pay your troops (20 an army, 25 a fleet, nearest your capital first). Then every unit eats",
     ],
-    ["- sinai: Sinai; land; homeland of Egypt; yield 20; desert. armies: jerusalem (across the Negev), gaza (across the north Sinai), delta, memphis."],
+    ["- sinai: Sinai; coast; waters redsea; homeland of Egypt; yield 20; desert. armies: hebron (across the Negev), jerusalem (across the Negev), gaza (across the north Sinai), delta, memphis. fleets: redsea (across the road to the Gulf of Suez)."],
+    ["- redsea: The Red Sea; sea zone, the waters of sinai and thebes. fleets: sinai (across the road to the Gulf of Suez), thebes (across the Wadi Hammamat)."],
     ["- kaska: Kaska Lands; land; homeland of Kaska; a land without a town; capital; yield 10; rough ground. armies: hattusa, sapinuwa."],
     ["- ugaritwaters: Ugarit waters; sea zone, the waters of ugarit. fleets: ugarit, sumurwaters, kizzuwatnawaters, enkomiwaters (open sea)."],
     [

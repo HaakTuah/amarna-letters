@@ -5,7 +5,7 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
 `02-geography.md`. The map data is `buildMap` in `src/engine/src/model/map.ts`, the ground `geography.ts`, the lengths
 `distance.ts`.
 
-- **55 land provinces and 15 sea zones** (41 and 5 before item 7a; 54 until item 8 made Ṣumur a province of its own). Added, by the bar "a polity or administrative centre that acts
+- **55 land provinces and 15 sea zones** (61 and 18 since item 11c: [the true map](28-the-true-map-and-the-red-sea.md)) (41 and 5 before item 7a; 54 until item 8 made Ṣumur a province of its own). Added, by the bar "a polity or administrative centre that acts
   in the period's diplomacy or war": Aleppo (walls 2), Qatna (2), Alalakh (1), Nuhashshe (1), Jerusalem (1, rough), Shechem
   (1, rough), Arrapha (1), Sidon (1) and the island of Arwad (2), all free city-states, as the Levant's other vassals are
   until item 11+ makes city-states powers; Nubia (Egypt's, on the Nile above Thebes, yield 30); Dilmun (Babylonia's, an

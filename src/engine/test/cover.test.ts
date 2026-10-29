@@ -351,6 +351,10 @@ describe("CoverTests", () => {
     spy.heldBy = "Mitanni";
     spy.at = "Mitanni";
     spy.watchProvince = "washukanni";
+    // Loyal and brave enough to pay a carrier and wait at its post, not carry its reports home itself (the spy decides;
+    // since item 11c's draws the first of Hatti's people is not so by nature).
+    spy.traits.loyalty = 80;
+    spy.traits.courage = 80;
     let e = begin(s);
     e.resolve(orders("Mitanni", captiveOrder(spy.id, "Turn", 0, "All is quiet.")));
     Assert.equal("SpyPosted", spy.duty);

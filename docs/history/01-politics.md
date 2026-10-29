@@ -83,7 +83,7 @@ is whose sphere the ruler is in during 1346.
 | Shechem (item 7) | Labaya, or his sons | Egypt, nominally | C | EA 252-254. He was killed by the men of Gina (EA 245, Biridiya's report), and his sons carried on (EA 250, EA 255-256: Mut-Baal of Pihil). Most place his death late in Amenhotep III's reign or early in Akhenaten's, so by 1346 he is **probably dead** and his sons hold his lands. See "Design questions" |
 | Jerusalem (item 7) | Abdi-Heba | Egypt (loyal) | A | EA 285-290; accuses Milkilu of Gezer and the sons of Labaya of giving the land to the Habiru (EA 287, 289) |
 | Gaza (`gaza`) | Egyptian commissioner | Egypt | A | An Egyptian centre (EA 289, EA 296); Yanhamu, an Egyptian official, is in charge of the grain at Yarimuta (EA 83, 85, 86) [A] |
-| Others in Canaan | Milkilu (Gezer), Shuwardata (Hebron hills), Yidya (Ashkelon), Surata (Akko), Abdi-Tirshi (Hazor), Zimreddi (Lachish) | Egypt | A | Within the current provinces' areas; useful as characters and future city-states |
+| Others in Canaan | Milkilu (Gezer), Shuwardata (Hebron hills), Yidya (Ashkelon), Surata (Akko), Abdi-Tirshi (Hazor), Zimreddi (Lachish) | Egypt | A | City-states of their own since item 11c, each Egypt's vassal at the start (`akko`, `hazor`, `gezer`, `ashkelon`, `lachish`, `hebron`); Shuwardata's seat is uncertain (Hebron's hills, or Gath), taken as Hebron [C] |
 
 **Lands with no king** (start lawless or unruled, as "The edges of the map" and "People of the land" say):
 

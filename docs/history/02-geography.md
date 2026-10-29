@@ -39,6 +39,8 @@ the paces above [G].
 | `akhetaten` - `thebes` (Nile) | 400 | river | 7 by boat |
 | `gaza` - `megiddo` (coast road, Via Maris) | 160 | plain | 6-7 |
 | `megiddo` - `damascus` | 160 | hills, Jordan crossing | 7 |
+| `thebes` - the Red Sea (item 11c; Thebes by Coptos and the Wadi Hammamat to Mersa Gawasis, the Punt expeditions' harbour, where their ship timbers and cargo boxes were found) | 210 | desert road with wells and quarries | 9-11 |
+| `sinai` - the Red Sea (item 11c; across the Sinai to the Gulf of Suez, where the mining expeditions to Serabit el-Khadim landed at el-Markha) | 200 | desert | 10 [G] |
 | `tyre` - `byblos` (coast) | 130 | coast | 5 |
 | `byblos` - `ugarit` (coast, by Sumur and Arwad) | 230 | coast, steep in places | 9-10 |
 | `byblos` - `damascus` (over the Lebanon and the Beqaa) | 120 | two mountain ranges | 8 |
@@ -120,8 +122,8 @@ Akhetaten two to three months, which is why envoys took a season or more each wa
 | `byblos` | Byblos, the old cedar port | A |
 | Sidon (item 7) | Sidon | A |
 | `tyre` | Tyre, an island city with its mainland town, Ushu (EA 148-149) | A |
-| `megiddo` / Akko | Akko (EA 8, Surata's city), Tell Abu Hawam | A |
-| `gaza` | Gaza and Ashkelon | A |
+| `akko` (item 11c; before, in `megiddo`'s land) | Akko (EA 8, Surata's city), Tell Abu Hawam | A |
+| `gaza`, `ashkelon` (item 11c) | Gaza; Ashkelon (Yidya's city, EA 320-326) | A |
 | `delta` | Peru-nefer (probably Avaris, Tell el-Dab'a), the royal dockyard of the 18th Dynasty | C |
 | `enkomi` | Enkomi; Hala Sultan Tekke near Kition | A |
 | `tamassos` (west and south Cyprus) | Toumba tou Skourou (Morphou Bay), Maroni and Kalavasos (south coast), Palaepaphos | B |
@@ -129,6 +131,7 @@ Akhetaten two to three months, which is why envoys took a season or more each wa
 | `lukka` | No named harbours; a raiders' coast (EA 38) | A |
 | `apasa`, `seha` | Apasa (Ephesus), Millawanda (Miletus, off the map) | B |
 | `ur` / Dilmun (item 7) | The Gulf ports; Dilmun's Qal'at al-Bahrain | B |
+| The Red Sea (item 11c) | Mersa Gawasis (Saww), reached from Coptos by the Wadi Hammamat; el-Markha on the Gulf of Suez for the Sinai mines. Ships were built on the Nile, carried across the desert in pieces and assembled on the shore (Bard and Fattovich) | A |
 
 ## Names for the provinces "Map review" renames
 

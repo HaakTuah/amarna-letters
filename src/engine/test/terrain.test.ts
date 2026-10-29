@@ -152,22 +152,22 @@ describe("TerrainTests", () => {
   });
 
   test("A landing from the sea gets no help from the ground, and rough ground still counts against it", () => {
-    // Since item 7a the blockade decides at sea: Hatti's army sails from Tyre to the Delta in its own ships, one in each
-    // waters of the way, with an army's support from Sinai: 2 against Egypt's 1, and the Delta is taken.
+    // Since item 7a the blockade decides at sea: Hatti's army sails from Ashkelon (Tyre until item 11c) to the Delta in its
+    // own ships, one in each waters of the way, with an army's support from Sinai: 2 against Egypt's 1, and the Delta is taken.
     let b = new Board()
       .a("Egypt", "delta")
-      .a("Hatti", "tyre")
+      .a("Hatti", "ashkelon")
       .a("Hatti", "sinai")
-      .f("Hatti", "tyrewaters")
+      .f("Hatti", "ashkelonwaters")
       .f("Hatti", "gazawaters")
       .f("Hatti", "deltawaters")
-      .move("tyre", "delta")
-      .convoy("tyrewaters", "tyre", "delta")
-      .convoy("gazawaters", "tyre", "delta")
-      .convoy("deltawaters", "tyre", "delta")
-      .support("sinai", "tyre", "delta");
+      .move("ashkelon", "delta")
+      .convoy("ashkelonwaters", "ashkelon", "delta")
+      .convoy("gazawaters", "ashkelon", "delta")
+      .convoy("deltawaters", "ashkelon", "delta")
+      .support("sinai", "ashkelon", "delta");
     let r = b.run();
-    Assert.equal("delta", b.where(r, "tyre"));
+    Assert.equal("delta", b.where(r, "ashkelon"));
     Assert.null(b.where(r, "delta"));
     Assert.empty(r.groundFights);
 
