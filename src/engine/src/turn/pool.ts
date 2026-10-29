@@ -17,6 +17,7 @@ import { newJourney } from "../model/records.ts";
 import { alive, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { personaTemplate } from "../rules/personas.ts";
 import { drawSkills } from "../rules/skills.ts";
+import { doorTongues } from "../rules/tongues.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
 import { Styles } from "../rules/cast.ts";
 import { TurnEngine } from "./core.ts";
@@ -110,6 +111,8 @@ P.newcomer = function (rng, door) {
   c.status = "Free";
   c.seeking = true;
   drawSkills(S.seed, c);
+  // Item 12: a stranger speaks his people's tongue, and by why he came some of the map language where his door opens.
+  if (!home) doorTongues(S.seed, c, beyond.land, reason === "trade" || reason === "soldiering", doorAt);
   chooseStrategy(c);
   c.persona = personaTemplate(c);
   S.characters.push(c);

@@ -34,6 +34,9 @@ describe("FailureNoticeTests", () => {
     let [free, other] = s.characters.filter((c) => c.status === "Free" && c.duty === "None").slice(0, 2);
     free.at = "Hatti";
     other.at = "Assyria";
+    // Each speaks its court's tongue, so the hires are heard (item 12).
+    free.tongues.set("Hittite", 100);
+    other.tongues.set("Akkadian", 100);
     let e = begin(s);
     free.askingPrice.set("Hatti", 20);
     other.askingPrice.set("Assyria", 20);

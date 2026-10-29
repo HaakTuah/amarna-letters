@@ -1,4 +1,5 @@
 /** The non-military half of a script king, third part: letters, the tablets it proposes, greetings and audiences. */
+import { envoyFor } from "./tongues.ts";
 import { bondClauses, bondLetters, noteGold, sealBond, sealedBond } from "./vassals.ts";
 import { fugitiveRights } from "./borders.ts";
 import {
@@ -263,7 +264,8 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
     // Tablets, and the gold of gifts and tribute, go with the most reliable envoy still at court; the rest with the least
     // reliable.
     const trusted = m.kind === "coalition" || m.kind === "alliance" || m.kind === "peace" || m.kind === "gift" || m.kind === "tribute" || m.kind === "plea" || m.kind === "basing" || m.kind.startsWith("bond-");
-    const envoy = trusted ? ready[0] : ready[ready.length - 1];
+    // Item 12: of those, one who says he speaks a language the court understands.
+    const envoy = envoyFor(ready, m.to, me, !trusted);
     const d = compose(b, brain, m, envoy.id, rng);
     if (d === null) continue;
     // Our seal with the envoys we trust with a tablet (item 9), so that a host may answer with a tablet of its own.

@@ -21,6 +21,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import { ageBand, bandWords } from "../rules/ending.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { tongueClaims } from "./languages.ts";
 import { askingPrice } from "./court.ts";
 import { recordKnown, restOf, trustIn } from "./jobs.ts";
 import { strangerAt } from "./names.ts";
@@ -193,7 +194,10 @@ P.lifeView = function (c) {
       [(x: Character) => idNumber(x.id), cmpNum],
     ).map((x) => {
       const r = recordOf(this, x.id, c);
-      return newPersonHere({ id: x.id, name: x.name, standing: x.status === "Free" ? "free" : x.employer !== null ? `serving ${x.employer}` : x.status.toLowerCase(), kept: r.kept, broken: r.broken, keptAged: r.keptAged, brokenAged: r.brokenAged });
+      // Item 12: whom it can make itself understood to this season, settled before any model is called, and through whom.
+      const understood = this.understands(c, x);
+      const g = understood ? null : this.bridgeFor(c, x);
+      return newPersonHere({ id: x.id, name: x.name, standing: x.status === "Free" ? "free" : x.employer !== null ? `serving ${x.employer}` : x.status.toLowerCase(), kept: r.kept, broken: r.broken, keptAged: r.keptAged, brokenAged: r.brokenAged, understood, through: g?.name ?? null, throughPrice: g?.bridgePrice ?? null });
     }),
     approaches: S.approaches
       .filter((a) => a.to === c.id && a.accepted === null)
@@ -207,6 +211,8 @@ P.lifeView = function (c) {
     offers: AllPowers.filter((p) => c.offers.has(p)).map((p) => ({ court: p, rate: c.offers.get(p) })),
     ending: endingWords(S.config.openAge, S.config.endMedian),
     leftRoad: c.leftRoad,
+    tongues: tongueClaims(c),
+    bridgePrice: c.bridgePrice,
     // Item 11b: crowds it could gather into a band, where it stands and next door.
     crowds: c.status !== "Free"
       ? []
@@ -304,7 +310,11 @@ P.applyLife = function (c, ch) {
   const m = ch.approach;
   if (m !== null) {
     const to = findCharacter(S, m.to);
-    if (to !== null && to !== c && this.provinceOf(to) === this.provinceOf(c) && to.status !== "Dead" && to.heldBy === null && (to.at === null || !hiddenAt(to, to.at))) {
+    const there = to !== null && to !== c && this.provinceOf(to) === this.provinceOf(c) && to.status !== "Dead" && to.heldBy === null && (to.at === null || !hiddenAt(to, to.at));
+    // Item 12: words pass only between people who understand each other, or through a go-between paid for each message.
+    const heard = there && (this.understands(c, to!) || this.bridgeTo(c, to!));
+    if (there && !heard) remember(c, S.turn, `I could not make ${to!.name} understand me, and found nobody here to carry my words.`);
+    else if (to !== null && there) {
       const a = newApproach({
         id: newId(S, "h"),
         from: c.id,
@@ -382,6 +392,8 @@ P.deal = function (a) {
     from.purse -= gold;
     from.earned.spent += gold;
     gain(to, gold, "Loans");
+    // Item 12: gold handed over, a motive with a name on it.
+    to.handed.push({ by: from.id, turn: S.turn });
   };
   move(A, B, a.giveGold);
   move(B, A, a.askGold);

@@ -73,6 +73,8 @@ const o: BatchOptions = {
   vassalPlayHalf: false,
   noCommandPlay: false,
   commandPlayHalf: false,
+  noLanguagePlay: false,
+  languagePlayHalf: false,
   noSeasonPlay: false,
   seasonPlayHalf: false,
   noWallPlay: false,
@@ -224,6 +226,14 @@ for (let i = 0; i < args.length; i++) {
     case "--season-play-half":
       // Half the script kings leave item 11a+'s levers alone, alternating by seed.
       o.seasonPlayHalf = true;
+      break;
+    case "--no-language-play":
+      // Script kings choose envoys without regard to languages and take on no go-betweens (item 12).
+      o.noLanguagePlay = true;
+      break;
+    case "--language-play-half":
+      // Half the script kings leave item 12's choices alone, alternating by seed.
+      o.languagePlayHalf = true;
       break;
     case "--no-wall-play":
       o.noWallPlay = true;
@@ -614,6 +624,8 @@ if (o.vassalPlayHalf && results.length > 0)
   console.log("\nScript players that pay their tribute while it is worth it, demand it of vassals in arrears, and offer vassalage either way (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.commandPlayHalf && results.length > 0)
   console.log("\nScript kings that grant command of their armies away from court, give them mandates and recall losing commanders (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
+if (o.languagePlayHalf && results.length > 0)
+  console.log("\nScript kings that send envoys who say they speak the court's language and take on go-betweens for envoys nobody understands (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.moneyPlayHalf && results.length > 0)
   console.log("\nScript kings that borrow from lenders at court when hard up and repay what is due (\"current\") against those that never do (\"baseline\"):" + versusReport(results, sides));
 if (o.authorityPlayHalf && results.length > 0)

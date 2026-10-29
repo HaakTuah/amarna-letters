@@ -90,13 +90,28 @@ export interface PersonHere {
   broken: number;
   keptAged: number;
   brokenAged: number;
+  /** Item 12, "Speaking": whether you understand each other this season; if not, the go-between who could carry your words, and his price. */
+  understood: boolean;
+  through: string | null;
+  throughPrice: number | null;
 }
 
 export function newPersonHere(init: Partial<PersonHere> = {}): PersonHere {
-  return { id: "", name: "", standing: "", kept: 0, broken: 0, keptAged: 0, brokenAged: 0, ...init };
+  return { id: "", name: "", standing: "", kept: 0, broken: 0, keptAged: 0, brokenAged: 0, understood: true, through: null, throughPrice: null, ...init };
 }
 
-export const PersonHereSchema: ObjSchema<PersonHere> = obj("PersonHere", newPersonHere, { id: S, name: S, standing: S, kept: I, broken: I, keptAged: I, brokenAged: I });
+export const PersonHereSchema: ObjSchema<PersonHere> = obj("PersonHere", newPersonHere, {
+  id: S,
+  name: S,
+  standing: S,
+  kept: I,
+  broken: I,
+  keptAged: I,
+  brokenAged: I,
+  understood: B,
+  through: opt(S),
+  throughPrice: opt(I),
+});
 
 /** An approach made to it, waiting for its answer. */
 export interface ApproachSeen {
@@ -179,6 +194,9 @@ export interface LifeView {
   crowds: { province: string; name: string; loose: number; band: number }[];
   /** Item 11b: the last season it gave up the road, or null. */
   leftRoad: number | null;
+  /** Item 12: its own languages, in words ("Akkadian (good)"), as a character knows them, and what it asks to bridge a message here (null: nothing). */
+  tongues: string[];
+  bridgePrice: number | null;
 }
 
 export function newLifeView(init: Partial<LifeView> = {}): LifeView {
@@ -209,6 +227,8 @@ export function newLifeView(init: Partial<LifeView> = {}): LifeView {
     ending: "",
     crowds: [],
     leftRoad: null,
+    tongues: [],
+    bridgePrice: null,
     ...init,
   };
 }
@@ -251,6 +271,8 @@ export const LifeViewSchema: ObjSchema<LifeView> = obj("LifeView", newLifeView, 
   offers: list(obj("OfferSeen", () => ({ court: "Egypt" as Power, rate: 0 }), { court: S, rate: I })),
   ending: S,
   leftRoad: opt(I),
+  tongues: list(S),
+  bridgePrice: opt(I),
   crowds: list(obj("CrowdSeen", () => ({ province: "", name: "", loose: 0, band: 0 }), { province: S, name: S, loose: I, band: I })),
 });
 

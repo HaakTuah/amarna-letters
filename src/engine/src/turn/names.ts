@@ -204,6 +204,8 @@ P.giftTo = function (p, o) {
   }
   if (!this.pay(p, o.gold, `a gift to ${c.name}`, o, "none was given")) return;
   gain(c, o.gold, "Gifts");
+  // Item 12: gold handed to him, a motive with a name on it ("A go-between for hire").
+  c.handed.push({ by: p, turn: S.turn });
   const d = falseNameAt(c, p);
   remember(c, S.turn, `The king of ${land(p)} gave me ${formatMoney(o.gold)}` + (d?.employer != null ? ` as a gift for the envoy of ${land(d.employer)} I said I was.` : "."));
   logEvent(S, "gift", `${p} gave ${c.name} ${formatMoney(o.gold)}${d?.employer != null ? `, taking them for an envoy of ${d.employer}` : ""}.`, [p], d?.employer != null ? "false-envoy-paid" : "gift-to-person");

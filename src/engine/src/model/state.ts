@@ -253,6 +253,9 @@ export interface GameState {
    */
   lettersCarried: Dict<Power, number>;
   lettersWaited: Dict<Power, number>;
+  /** Item 12: the same by the court a letter goes to, whose carrier must be understood there. */
+  lettersToCarried: Dict<Power, number>;
+  lettersToWaited: Dict<Power, number>;
   /**
    * Item 11a+ ("Period first": the harvest in each land's own season), by land province: the crop growing in its fields
    * since its last reaping, which each season's hands add to; the harvest it last reaped; and the farmers' granary, the
@@ -291,6 +294,10 @@ export interface GameState {
   characters: Character[];
   journeys: Journey[];
   audiences: PendingAudience[];
+  /** Item 12, "Speaking": envoys at a court where nobody has understood them yet, their audiences waiting. */
+  unheard: PendingAudience[];
+  /** Item 12, "Who speaks what": each king's skill in each language, as a character's ("Kings follow the same rules"). */
+  kingTongues: Dict<Power, Dict<string, number>>;
   tablets: Tablet[];
   copies: TabletCopy[];
   catastrophes: Catastrophe[];
@@ -378,6 +385,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     couriers: [],
     lettersCarried: new Dict(),
     lettersWaited: new Dict(),
+    lettersToCarried: new Dict(),
+    lettersToWaited: new Dict(),
     crop: new Dict(),
     reaped: new Dict(),
     granary: new Dict(),
@@ -394,6 +403,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     characters: [],
     journeys: [],
     audiences: [],
+    unheard: [],
+    kingTongues: new Dict(),
     tablets: [],
     copies: [],
     catastrophes: [],
@@ -474,6 +485,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   couriers: list(() => CourierSchema),
   lettersCarried: dict(I),
   lettersWaited: dict(I),
+  lettersToCarried: dict(I),
+  lettersToWaited: dict(I),
   crop: dict(I),
   reaped: dict(I),
   granary: dict(I),
@@ -490,6 +503,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   characters: list(() => CharacterSchema),
   journeys: list(() => JourneySchema),
   audiences: list(() => PendingAudienceSchema),
+  unheard: list(() => PendingAudienceSchema),
+  kingTongues: dict(dict(I)),
   tablets: list(() => TabletSchema),
   copies: list(() => TabletCopySchema),
   catastrophes: list(() => CatastropheSchema),

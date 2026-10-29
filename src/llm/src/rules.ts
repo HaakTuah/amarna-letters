@@ -33,6 +33,7 @@ import { economyRules } from "./rules-economy.ts";
 import { peopleRules } from "./rules-people.ts";
 import { moneyRules } from "./rules-money.ts";
 import { roadRules } from "./rules-roads.ts";
+import { tongueRules } from "./rules-tongues.ts";
 import { warRules } from "./rules-war.ts";
 import { commandRules } from "./rules-command.ts";
 import { intelligenceRules } from "./rules-intelligence.ts";
@@ -145,6 +146,8 @@ ${peopleRules(c)}
 ${moneyRules(c)}
 
 ${roadRules(c)}
+
+${tongueRules(c)}
 
 ENVOYS: THE ONLY WAY KINGS COMMUNICATE
 - You never speak to another king directly. You give an envoy a spoken message, a mandate (what the envoy may agree to), optionally your seal with its limits (AUTHORITY AND PASSAGE), and optionally gold and a tablet. ${travel(c)}

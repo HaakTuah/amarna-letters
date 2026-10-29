@@ -90,6 +90,9 @@ describe("FileCharacterTests", () => {
     // A chief's season and a spy's waiting reports: things left as they are.
     if (stem.includes("_chief_")) return `{"go":"","buy_ship":false,"kill":"nobody","give_up_the_road":false}`;
     if (stem.includes("_carry_")) return `{"pay_up_to":0,"carry_home":false}`;
+    // Item 12: an envoy nobody understands stays; a go-between in someone else's pay passes the words on as spoken.
+    if (stem.includes("_unheard_")) return `{"choice":"stay"}`;
+    if (stem.includes("_bridge_")) return `{"words":"${words}","leave_out":[]}`;
     return `{"summary":"${words}"}`;
   }
 
@@ -108,7 +111,7 @@ describe("FileCharacterTests", () => {
       (call) => runner!.log.addCall(call),
       (s) => runner!.log.addShadow(s),
     );
-    let bot = new ScriptLeader(Seed);
+    let bot = new ScriptLeader(1);
     runner = Object.assign(
       new GameRunner(
         state,
@@ -220,7 +223,8 @@ describe("FileCharacterTests", () => {
   }
 
   async function play(shadow: boolean): Promise<[GameState, GameLog]> {
-    let state = newGame(Seed, newGameConfig({ catastropheChance: 0, capMin: 4, capMax: 4, endMedian: 10000 }));
+    // Seed 1: since items 11f and 12 no envoy presents carried gold in seed 8's four seasons.
+    let state = newGame(1, newGameConfig({ catastropheChance: 0, capMin: 4, capMax: 4, endMedian: 10000 }));
     let runner: GameRunner | null = null;
     let minds = Object.assign(new LlmCharacterMind(new Fixed(), ModelIds.Haiku), { shadow: shadow ? (s: ShadowDecision) => runner!.log.addShadow(s) : null });
     // The small world (small-world.ts) with Egypt and Hatti, whose envoys carry gold within the four seasons.

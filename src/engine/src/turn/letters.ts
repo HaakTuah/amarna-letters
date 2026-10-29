@@ -83,9 +83,12 @@ P.carryLetters = function () {
     }
     const home = this.courtAt(letter.to);
     const seasons = Math.max(1, this.travelTurnsBetween(at, home));
+    // Item 12 ("Where characters are, and what they speak"): a carrier takes a letter only to a court where he can be
+    // understood, speaking a language its king or one of its servants there speaks.
+    const understood = (c: Character | null): boolean => c !== null && this.reach(c.tongues, letter.to, c.id).skill > 0;
     // Travellers setting out from here for its master's capital.
     const going = sortBy(
-      S.journeys.filter((j) => isWalker(j) && j.kind !== "CaptiveConvoy" && j.route.length > 1 && j.route[j.leg] === at && j.route[j.route.length - 1] === home && j.characterId !== null),
+      S.journeys.filter((j) => isWalker(j) && j.kind !== "CaptiveConvoy" && j.route.length > 1 && j.route[j.leg] === at && j.route[j.route.length - 1] === home && j.characterId !== null && understood(findCharacter(S, j.characterId))),
       [(j: Journey) => idNumber(j.id), cmpNum],
     );
     // A ransom demand (Haakon's answers to item 11b: a message someone sends, which needs a carrier) has no spy behind it:
@@ -134,7 +137,7 @@ P.carryLetters = function () {
       const t = S.treasuries.get(court);
       const hire =
         sortBy(
-          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && t.gold >= ask(c)),
+          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && t.gold >= ask(c) && understood(c)),
           [(c: Character) => ask(c), cmpNum],
           [(c: Character) => idNumber(c.id), cmpNum],
         )[0] ?? null;
@@ -153,7 +156,7 @@ P.carryLetters = function () {
       const nowOf = (c: Character): number => (S.payCarriers.includes(letter.to) ? Math.ceil(ask(c) / 2) : ask(c));
       const hire =
         sortBy(
-          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted(c) || (spy.purse >= ask(c) && nowOf(c) <= most))),
+          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && understood(c) && (trusted(c) || (spy.purse >= ask(c) && nowOf(c) <= most))),
           [(c: Character) => ask(c), cmpNum],
           [(c: Character) => idNumber(c.id), cmpNum],
         )[0] ?? null;
@@ -196,6 +199,8 @@ P.carryLetters = function () {
       l.border = border;
       S.lettersCarried.set(l.from, S.lettersCarried.getOrDefault(l.from, 0) + 1);
       S.lettersWaited.set(l.from, S.lettersWaited.getOrDefault(l.from, 0) + (S.turn - l.departTurn));
+      S.lettersToCarried.set(l.to, S.lettersToCarried.getOrDefault(l.to, 0) + 1);
+      S.lettersToWaited.set(l.to, S.lettersToWaited.getOrDefault(l.to, 0) + (S.turn - l.departTurn));
     }
     logEvent(S, "letter", `${carrier.name} took a letter from ${this.map.get(at).name} for ${letter.to}${fee > 0 ? ` for ${formatMoney(fee)} on delivery` : ""}.`, [], carrier === spy ? "carrier-self" : passer === null ? "carrier-hired" : own !== null ? "carrier-own" : "carrier-passing");
   }

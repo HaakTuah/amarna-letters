@@ -38,6 +38,7 @@ import "./bands.ts";
 import "./cession.ts";
 import "./letters.ts";
 import "./news.ts";
+import "./languages.ts";
 
 export { TurnEngine, idNumber, travelTurns, absorbedIn, KingdomFallsTitle } from "./core.ts";
 export { removeAll } from "./resolve.ts";
@@ -57,6 +58,7 @@ export { RoadOdds, CaughtOnRoadTitle, RoadsTitle, isWalker, LeaderPace } from ".
 export { BandsTitle } from "./bands.ts";
 export { LetterData, selfWait } from "./letters.ts";
 export { HeardData, lossKey } from "./news.ts";
+export { LanguageData, UnheardTitle, UnheardOutcome, UnheardOnArrival, tongueClaims } from "./languages.ts";
 export { WinterLossTitle, type WinterCrossing } from "./winter.ts";
 export { GrantTitle, RepudiatedTitle } from "./authority.ts";
 export { TollsTitle } from "./trade.ts";

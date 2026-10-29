@@ -206,6 +206,9 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
             sb.appendLine(`OTHER PEOPLE YOU KNOW OF:`);
             for (const c of v.known) sb.appendLine(`- ` + person(c));
         }
+        // Item 12: envoys waiting at court whom nobody understands.
+        if (v.unheardHere.length > 0)
+            sb.appendLine(`Envoys at your court whom nobody here understands yet: ${joinS(`, `, v.unheardHere.map((id) => v.known.find((c) => c.id === id)?.name ?? id))}. A free person at court who says he speaks his tongue and yours, taken into your service (hire, the errand stay), would carry his words.`);
 
         if (v.letters.length > 0)
         {
@@ -549,6 +552,8 @@ export function person(c: CharacterView): string
         for (const n of c.news) parts.push(`offers news of ${n.court} as they saw it in turn ${n.turn} (${n.lines} ${n.lines === 1 ? "report" : "reports"}) for ${n.price} shekels (order buy_news)`);
         if (c.knownFacts.length > 0) parts.push(`known: ` + joinS(` `, c.knownFacts));
         if (c.pitch !== null) parts.push(`pitch: "${c.pitch}"`);
+        // Item 12: what they say they speak, never their skill.
+        if (c.speaks.length > 0) parts.push(`says they speak ${joinS(`, `, c.speaks)}`);
         if (c.askingPrice !== null) parts.push(`asks ${c.askingPrice} a season of a job's term`);
         return joinS(`; `, parts);
     }
@@ -560,6 +565,8 @@ export function audience(a: AudienceView, inCourt = false): string
         if (a.envoy.knownFacts.length > 0) sb.appendLine(`What you know of ${a.envoy.name}: ${joinS(` `, a.envoy.knownFacts)}`);
         sb.appendLine(a.greeting.length > 0 ? `The sealed greeting reads: "${a.greeting}"` : `The tablet bears no greeting at all.`);
         if (a.greetingDeviations.length > 0) sb.appendLine(`It departs from the custom: ${joinS(`; `, a.greetingDeviations)}.`);
+        if (a.presented > 0) sb.appendLine(`While nobody at your court understood ${a.envoy.name}, he presented gifts weighing ${a.presented} shekels, which are in your treasury.`);
+        if (a.heardThrough !== null) sb.appendLine(`Nobody else here speaks with ${a.envoy.name}: ${a.heardThrough} carries his words to you, and yours to him.`);
         sb.appendLine(`${a.envoy.name} says: "${a.spoken}"`);
         if (a.clauses.length > 0) sb.appendLine(`The clauses ${a.envoy.name} recited: ${joinS(`; `, a.clauses.map(clauseTag))}.`);
         for (const x of a.soFar)

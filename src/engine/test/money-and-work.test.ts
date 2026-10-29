@@ -33,7 +33,7 @@ import {
   trustIn,
   Wealth,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, speaksAll } from "./support.ts";
 
 // <summary>Item 11a, "Money and work": jobs with a fee and a court's record, lending and debt tablets, the characters' own
 // seasons and their money, newcomers through the doors, and the strategy each plays for wealth.</summary>
@@ -166,6 +166,7 @@ describe("MoneyAndWorkTests", () => {
     const s = newGame(5, newGameConfig({ catastropheChance: 0 }));
     const [a, b] = s.characters.filter((c) => c.status === "Free" && c.duty === "None").slice(0, 2);
     for (const x of [a, b]) [x.at, x.purse, x.heldBy] = ["Hatti", 100, null];
+    for (const x of [a, b]) speaksAll(x);
     const e = new TurnEngine(s);
     // a asks b to lend it 40, to repay 46 within 4 seasons.
     e.applyLife(a, newLifeChoice({ approach: newApproachMade({ to: b.id, words: "Lend me forty.", askGold: 40, repay: 46, seasons: 4 }) }));
@@ -191,7 +192,9 @@ describe("MoneyAndWorkTests", () => {
     const d = s.debts[0];
     // The lender goes to Hatti's court; a free person there takes the job of collecting.
     l.at = "Hatti";
-    const agent = s.characters.find((c) => c.status === "Free" && c !== l && c.duty === "None")!;
+    // One the lender can talk to: a language they both speak well (item 12).
+    const fluent = (c: Character): string[] => [...c.tongues.entries()].filter(([, n]) => n >= 80).map(([t]) => t);
+    const agent = s.characters.find((c) => c.status === "Free" && c !== l && c.duty === "None" && fluent(c).some((t) => fluent(l).includes(t)))!;
     [agent.at, agent.purse] = ["Hatti", 0];
     new TurnEngine(s).applyLife(l, newLifeChoice({ approach: newApproachMade({ to: agent.id, words: "Collect this.", giveGold: 5, fee: 15, collect: d.id }) }));
     s.turn++;

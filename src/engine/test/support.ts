@@ -420,3 +420,12 @@ export function commanded(s: GameState, ...powers: Power[]): GameState {
   }
   return s;
 }
+
+/**
+ * Item 12: a person who speaks every court's language fluently, for a test whose rule is not about languages (so that
+ * nobody has to wait to be understood).
+ */
+export function speaksAll<T extends { tongues: Dict<string, number> }>(c: T): T {
+  for (const l of ["Egyptian", "Akkadian", "Hittite", "Hurrian", "Luwian", "Canaanite", "Amorite", "Ugaritic", "Alashiyan", "Elamite", "Kaskean"]) c.tongues.set(l, 100);
+  return c;
+}

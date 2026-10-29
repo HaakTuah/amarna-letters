@@ -305,6 +305,11 @@ export interface CharacterView {
   pitch: string | null;
   /** Item 10: what the person said it can do when it pitched to you, in words ("says they can slip past most guards"). */
   claims: string[];
+  /**
+   * Item 12, "Kings never see skills": the languages it says it speaks, in words ("Akkadian (good)"), to a court where
+   * it stands or one it pitched to; never its skill. Only results show whether "I speak Hittite well" was true.
+   */
+  speaks: string[];
   /** Item 10: the king a person at your court says it serves as his envoy, though it brought no letter; null if none. */
   claimsToServe: Power | null;
   /**
@@ -395,6 +400,7 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     knownFacts: [],
     pitch: null,
     claims: [],
+    speaks: [],
     claimsToServe: null,
     askingPrice: null,
     ready: false,
@@ -436,6 +442,7 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   knownFacts: list(S),
   pitch: S,
   claims: list(S),
+  speaks: list(S),
   claimsToServe: opt(S),
   askingPrice: opt(I),
   ready: B,
@@ -511,6 +518,8 @@ export interface TabletView {
   within: boolean | null;
   /** The season its envoy's king repudiated it, or null. */
   repudiatedTurn: number | null;
+  /** Item 12: nobody at your court has read it yet (its text and clauses wait for a reader). */
+  unread: boolean;
 }
 
 export function newTabletView(init: Partial<TabletView> = {}): TabletView {
@@ -532,6 +541,7 @@ export function newTabletView(init: Partial<TabletView> = {}): TabletView {
     byHandOf: null,
     within: null,
     repudiatedTurn: null,
+    unread: false,
     ...init,
   };
 }
@@ -554,6 +564,7 @@ export const TabletViewSchema: ObjSchema<TabletView> = obj("TabletView", newTabl
   byHandOf: opt(S),
   within: opt(B),
   repudiatedTurn: opt(I),
+  unread: B,
 });
 
 /**
@@ -720,6 +731,8 @@ export interface SeatView {
    */
   letters: LetterView[];
   inbox: InboxItem[];
+  /** Item 12: envoys standing at your court whom nobody there understands yet (their ids, as in your list of people). */
+  unheardHere: string[];
   travelTimes: string[];
   /** Last season's orders as they resolved, for every unit this court could see. */
   lastSeason: OrderOutcome[];
@@ -834,6 +847,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     known: [],
     tablets: [],
     letters: [],
+    unheardHere: [],
     inbox: [],
     travelTimes: [],
     lastSeason: [],
@@ -910,6 +924,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   known: list(() => CharacterViewSchema),
   tablets: list(() => TabletViewSchema),
   letters: list(() => LetterViewSchema),
+  unheardHere: list(S),
   inbox: list(() => InboxItemSchema),
   travelTimes: list(S),
   lastSeason: list(() => OrderOutcomeSchema),

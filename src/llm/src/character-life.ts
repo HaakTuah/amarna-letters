@@ -39,9 +39,15 @@ export function lifeText(v: LifeView): string {
     sb.appendLine(
       `- ${k.court}: ${k.travel === 0 ? "here" : `${k.travel} seasons away`}; ${k.hiring === null ? "not hiring" : `asked for candidates in season ${k.hiring}`}; promises to pay you heard it kept ${k.kept}, broke ${k.broken} (you count on ${k.trust} in a hundred); ${k.executions > 0 ? `you heard it put ${k.executions} to death; ` : ""}${k.lost > 0 ? `you heard ${k.lost} of its people were caught or put to death abroad; ` : ""}${k.seized > 0 ? `you heard it seized ${k.seized} hoard${k.seized === 1 ? "" : "s"}; ` : ""}grain ${k.grain}; growth ${k.growth} in a hundred${k.besieged ? "; its capital is besieged" : ""}; you would ask ${k.ask}.`,
     );
+  // Item 12: what it speaks, and whom it can make itself understood to this season (settled before it is asked).
+  if (v.tongues.length > 0) sb.appendLine(`You speak ${v.tongues.join(", ")}. You learn the languages spoken where you live, quickly at first; a court serves and hears only those it understands.`);
+  if (v.bridgePrice !== null) sb.appendLine(`Speaking two languages or more, you carry messages across for anyone here who cannot talk to another, at ${v.bridgePrice} shekels a message.`);
   if (v.here.length > 0) {
-    sb.appendLine("Others here (id: name, standing, their record of paying what they promised):");
-    for (const p of v.here) sb.appendLine(`- ${p.id}: ${p.name}, ${p.standing}, kept ${p.kept}, broken ${p.broken}`);
+    sb.appendLine("Others here (id: name, standing, their record of paying what they promised; whether you can talk to them this season):");
+    for (const p of v.here)
+      sb.appendLine(
+        `- ${p.id}: ${p.name}, ${p.standing}, kept ${p.kept}, broken ${p.broken}${p.understood ? "" : p.through !== null ? `; you share no language yet, but ${p.through} would carry your words for ${p.throughPrice} shekels` : "; you cannot make yourself understood to them this season"}`,
+      );
   }
   if (v.approaches.length > 0) {
     sb.appendLine("Offers made to you, waiting for your answer (accept by id; the rest you refuse):");
