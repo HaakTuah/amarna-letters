@@ -123,7 +123,7 @@ export function boatDays(map: WorldMap, from: string, to: string): number | null
 export function legPoints(map: WorldMap, from: string, to: string, season: number, company: Company = OnTheRoad): number {
   if (edgeBetween(map, from, to) === null) return Infinity;
   // The slowest part sets the pace of a company moving together.
-  if (company.parts !== undefined && company.parts.length > 0) return Math.max(...company.parts.map((c) => legPoints(map, from, to, season, c)));
+  if (company.parts !== undefined && company.parts.length > 0) return Math.max(...company.parts.map((c) => legPoints(map, from, to, season, c.ways === undefined && company.ways !== undefined ? { ...c, ways: company.ways } : c)));
   // The land it crosses: terrain, passes and the desert, and at sea the passage and the current (item 7a's data);
   // a boat on a river where one goes faster than walking.
   let days = connectionDays(map, from, to);

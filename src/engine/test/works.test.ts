@@ -22,6 +22,9 @@ import {
   newTurnSubmission,
   newUnit,
   newWorkPlan,
+  newGrant,
+  hostileAt,
+  policeAt,
   planOf,
   policedShare,
   raze,
@@ -50,10 +53,11 @@ describe("WorksTests", () => {
     Assert.equal([1, 1, 1, 0], ["delta", "sinai", "gaza", "memphis"].map((x) => levelOf(s, "Stations", x)));
     Assert.equal([3, 2, 1, 0], ["ugarit", "sidon", "seha", "hattusa"].map((x) => levelOf(s, "Harbour", x)));
     Assert.equal([5, 2, 0], ["shechem", "hattusa", "kaska"].map((x) => levelOf(s, "Policing", x)));
-    Assert.equal(0, s.works.length);
+    // Each holder's standing order keeps what stands by corvée: his own, which he may change.
+    Assert.equal({ keep: 3, labour: true }, (({ keep, labour }) => ({ keep, labour }))(planOf(s, "Walls", "hattusa")!));
   });
 
-  test("What stands is kept by corvée unless ordered otherwise, and its men are away from the fields", () => {
+  test("What stands is kept by corvée by the standing order each king starts with, and its men are away from the fields", () => {
     const s = game();
     const e = new TurnEngine(s);
     const before = gold(s, "Hatti");
@@ -72,7 +76,7 @@ describe("WorksTests", () => {
     e.worksSeason();
     Assert.equal(0, wallsOf(s, "thebes"));
     Assert.equal(1, planOf(s, "Walls", "thebes")!.progress);
-    Assert.contains("Under way: the walls of Thebes: 1 of 2 seasons done towards level 1", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
+    Assert.contains("the walls of Thebes: 1 of 2 seasons done towards level 1", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
     e.worksSeason();
     Assert.equal(1, wallsOf(s, "thebes"));
     Assert.contains(s.events, (x) => x.signal === "built" && x.text === "Egypt raised the walls of Thebes to level 1.");
@@ -108,20 +112,37 @@ describe("WorksTests", () => {
     Assert.equal(1, levelOf(s, "Roads", "thebes"));
     for (let i = 1; i < 6; i++) e.worksSeason();
     Assert.equal(0, levelOf(s, "Roads", "thebes"));
-    Assert.contains("Unkept, fell: the roads of Thebes (to level 0)", first(inboxOf(s, "Egypt"), (i) => i.title === "Works" && i.body.includes("roads of Thebes (to")).body);
+    Assert.contains("the roads of Thebes, unkept, fell to level 0", first(inboxOf(s, "Egypt"), (i) => i.title === "Works" && i.body.includes("roads of Thebes, unkept, fell to")).body);
   });
 
-  test("War stops a project, and a province that changes hands takes what stands with it, its orders lapsing", () => {
+  test("War stops a project, and a province that changes hands takes what stands with it, unkept until its new holder orders", () => {
     const s = game();
     const e = new TurnEngine(s);
     e.setWorks("Egypt", build("thebes", "Roads", 2));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "thebes" }));
     e.worksSeason();
     Assert.equal(0, planOf(s, "Roads", "thebes")!.progress);
-    Assert.contains("Not worked: the roads of Thebes: war stops the work", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
+    Assert.contains("no work was done on the roads of Thebes: war stops the work", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
     e.setOwner("thebes", "Hatti");
     Assert.equal(null, planOf(s, "Roads", "thebes"));
     Assert.equal(1, levelOf(s, "Roads", "thebes"));
+    // Unkept, the road falls after its seasons and is never raised again unasked.
+    s.units = s.units.filter((u) => u.province !== "thebes");
+    for (let i = 0; i < 8; i++) e.worksSeason();
+    Assert.equal(0, levelOf(s, "Roads", "thebes"));
+    Assert.true(planOf(s, "Roads", "thebes") === null || planOf(s, "Roads", "thebes")!.keep === 0);
+  });
+
+  test("An ally's troops standing by passage or basing are no enemy: police and upkeep go on", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "gaza" }));
+    Assert.equal(true, hostileAt(s, "gaza", "Egypt"));
+    s.grants.push(newGrant({ id: "g1", kind: "basing", grantor: "Egypt", grantee: "Mitanni", province: "gaza", sinceTurn: 1 }));
+    Assert.equal(false, hostileAt(s, "gaza", "Egypt"));
+    Assert.true(policeAt(s, "gaza") > 0);
+    e.worksSeason();
+    Assert.equal(5, levelOf(s, "Policing", "gaza"));
   });
 
   test("Walls ordered kept under siege are repaired a step a season with the men and food inside", () => {
@@ -131,9 +152,10 @@ describe("WorksTests", () => {
     s.units.push(u);
     s.sieges.push(newSiege({ province: "memphis", power: "Hatti", unitId: u.id, progress: 2, since: 1 }));
     s.stores.set("memphis", 100);
-    // Kept by default, nothing is repaired: a repair is an order.
+    // Kept by the standing order from before the siege, nothing is repaired: a repair is an order given during it.
     e.worksSeason();
     Assert.equal(2, s.sieges[0].progress);
+    s.turn = 2;
     e.setWorks("Egypt", build("memphis", "Walls", 1, true));
     e.worksSeason();
     Assert.equal(1, s.sieges[0].progress);
@@ -248,10 +270,12 @@ describe("WorksTests", () => {
     Assert.equal(2, wallsOf(s, quake.province!));
   });
 
-  test("A plan the same as the default is not kept", () => {
+  test("An order keeping nothing, with nothing under way, is dropped", () => {
     const s = game();
     const e = new TurnEngine(s);
-    s.works.push(newWorkPlan({ province: "thebes", kind: "Roads", keep: 1, labour: true }));
+    setLevel(s, "Roads", "thebes", 0);
+    s.works = s.works.filter((w) => w.province !== "thebes");
+    s.works.push(newWorkPlan({ province: "thebes", kind: "Roads", keep: 0, labour: true }));
     e.worksSeason();
     Assert.equal(null, planOf(s, "Roads", "thebes"));
   });

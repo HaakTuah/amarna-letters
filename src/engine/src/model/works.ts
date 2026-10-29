@@ -14,6 +14,8 @@ import { idiv } from "../core/num.ts";
 import { type CityWater, CityWaters, Climates } from "./geography.ts";
 import type { Province } from "./map.ts";
 import type { GameState } from "./state.ts";
+import { grantStands } from "./authority.ts";
+import type { Power } from "./power.ts";
 import { LandData } from "./land.ts";
 import { newWorkView, type WorkView } from "./views.ts";
 
@@ -244,7 +246,9 @@ export function setLevel(s: GameState, kind: WorkKind, province: string, level: 
 /**
  * A king's standing order for one kind in one province of his ("One rule for everything built"): the level to keep, paid
  * in gold or by corvée, the seasons of work done towards the next level, and the seasons its upkeep has gone unpaid.
- * A province with no plan of a kind keeps what stands, by corvée, the normal way of the age ("Paid in gold or in labour").
+ * What no order keeps goes unkept and decays: nothing is kept unless someone orders it. At the start each king has a
+ * standing order to keep what stands in his land by corvée, the normal way of the age ("Paid in gold or in labour"),
+ * which he sees and may change; land taken from another is unkept until its new holder orders otherwise.
  */
 export interface WorkPlan {
   province: string;
@@ -257,13 +261,15 @@ export interface WorkPlan {
   progress: number;
   /** Seasons in a row a level stood unpaid (its decay). */
   neglect: number;
+  /** The season the order was given (0: at the start); an order for walls given during a siege repairs them. */
+  since: number;
 }
 
 export function newWorkPlan(init: Partial<WorkPlan> = {}): WorkPlan {
-  return { province: "", kind: "Roads", keep: 0, labour: true, progress: 0, neglect: 0, ...init };
+  return { province: "", kind: "Roads", keep: 0, labour: true, progress: 0, neglect: 0, since: 0, ...init };
 }
 
-export const WorkPlanSchema: ObjSchema<WorkPlan> = obj("WorkPlan", newWorkPlan, { province: S, kind: S, keep: I, labour: B, progress: I, neglect: I });
+export const WorkPlanSchema: ObjSchema<WorkPlan> = obj("WorkPlan", newWorkPlan, { province: S, kind: S, keep: I, labour: B, progress: I, neglect: I, since: I });
 
 /** The plan of a kind in a province, if any. */
 export function planOf(s: GameState, kind: WorkKind, province: string): WorkPlan | null {
@@ -325,9 +331,22 @@ export function stationTerm(w: Ways, from: string, to: string): number {
 export function policeAt(s: GameState, province: string): number {
   const holder = s.owner.getOrDefault(province, null);
   if (holder === null) return 0;
-  if (s.units.some((u) => u.province === province && u.power !== holder)) return 0;
+  if (hostileAt(s, province, holder)) return 0;
   if (s.sieges.some((x) => x.province === province)) return 0;
   return levelOf(s, "Policing", province) * PoliceMenPerLevel;
+}
+
+/**
+ * Whether hostile troops stand in a province of `holder`'s: any but his own and those he lets stand there, by a passage
+ * or basing grant that stands (an ally's guests are not an enemy).
+ */
+export function hostileAt(s: GameState, province: string, holder: Power): boolean {
+  return s.units.some(
+    (u) =>
+      u.province === province &&
+      u.power !== holder &&
+      !s.grants.some((g) => g.grantor === holder && g.grantee === u.power && grantStands(g, s.turn) && (g.province === province || (g.kind === "passage" && g.province === null && g.lands.includes(province)))),
+  );
 }
 
 /** What police hold the loose and the bands down to, in percent of what they would take or dare unpoliced. */
@@ -361,7 +380,7 @@ export function worksOfPower(s: GameState, provinces: readonly string[]): WorkVi
       const level = levelOf(s, kind, id);
       const plan = planOf(s, kind, id);
       if (level <= 0 && (plan === null || plan.keep <= 0)) continue;
-      const keep = plan?.keep ?? level;
+      const keep = plan?.keep ?? 0;
       const labour = plan?.labour ?? true;
       const kept = Math.min(level, keep);
       const next = kind === "Policing" ? keep - level : level + 1;

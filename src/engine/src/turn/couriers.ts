@@ -7,7 +7,7 @@
  * it. Reports come back the same way: what the king sees as current is what a courier could bring him within the season,
  * and of his land and troops farther off he knows only their last report, as old as the road is long.
  */
-import { levelOf, waysOf } from "../model/works.ts";
+import { hostileAt, levelOf, waysOf } from "../model/works.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { newCourier } from "../model/command.ts";
 import { describe, newTurnSubmission, unitOf, type Order, type TurnSubmission } from "../model/orders.ts";
@@ -216,7 +216,7 @@ P.courierRead = function (p, to, o) {
   for (const x of route) {
     const holder = S.owner.getOrDefault(x, null);
     if (holder === null || holder === p || read.has(holder) || levelOf(S, "Stations", x) <= 0) continue;
-    if (S.units.some((u) => u.province === x && u.power !== holder)) continue;
+    if (hostileAt(S, x, holder)) continue;
     read.add(holder);
     this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${p}'s carried to ${this.map.get(to).name}: "${describe(o)}".`);
     logEvent(S, "station", `${holder}'s station men read an order of ${p}'s on its way to ${this.map.get(to).name}.`, [holder], "station-read");
