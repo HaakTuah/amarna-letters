@@ -451,3 +451,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     > I notice that when you click a province, the information thingy that pops up, if you scroll down on it, the X disappears, so you can't easily close it again without scrolling all the way up. Also, the arrows for units show only the province it starts from and ends up in, but not which provinces they pass through. So in Anatolia the arrow goes through desert sometimes.
 
     Written into build order item 11c+: cards keep their close button pinned; every arrow follows the unit's route.
+
+44. **09:00**, in the design chat, to the open review points (walls by the city; the model chiefs' and spies' four
+    readings; and, for Barkstreet Snakes, the rivals' chomps):
+
+    > Yes to all, expertly! But the spy, is he hiring a character or not? Because a character he wouldn't know the price of before he asks. But if its not a character, then your take is fine!
+
+    The carrier is a character, so the spy's request now gives the price as the spy's own reckoning, each carrier asking
+    his own. Walls by the city written into build order item 15.

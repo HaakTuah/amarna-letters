@@ -84,14 +84,14 @@ export function reportsText(v: ReportsView): string {
   sb.appendLine(`- One of your master's own people setting out for his court takes them for nothing.`);
   sb.appendLine(
     v.paysOnDelivery
-      ? `- A traveller going that way takes them for about ${v.passing} shekels, which your master pays on delivery by his standing order, if the traveller trusts his record of paying; else only if you pay it now.`
-      : `- A traveller going that way takes them for about ${v.passing} shekels, paid by you now from your purse; your master has no standing order to pay carriers.`,
+      ? `- A traveller going that way would, you reckon, ask about ${v.passing} shekels (each asks his own price when you find him), which your master pays on delivery by his standing order, if the traveller trusts his record of paying; else only if you pay it now.`
+      : `- A traveller going that way would, you reckon, ask about ${v.passing} shekels (each asks his own price when you find him), paid by you now from your purse; your master has no standing order to pay carriers.`,
   );
   if (v.hired !== null)
     sb.appendLine(
       v.paysOnDelivery
-        ? `- A free person at the court here would ask about ${v.hired} shekels to be hired for the journey: half now from your purse and the rest from your master on delivery; one who trusts your master's record of paying takes what you give now, even nothing.`
-        : `- A free person at the court here would ask about ${v.hired} shekels to be hired for the journey, all now from your purse.`,
+        ? `- A free person at the court here would, you reckon, ask about ${v.hired} shekels to be hired for the journey (each asks his own price): half now from your purse and the rest from your master on delivery; one who trusts your master's record of paying takes what you give now, even nothing.`
+        : `- A free person at the court here would, you reckon, ask about ${v.hired} shekels to be hired for the journey (each asks his own price), all now from your purse.`,
     );
   sb.appendLine(
     v.border !== null

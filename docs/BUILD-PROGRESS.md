@@ -26,8 +26,6 @@ Answered review points, and the rows of items 1 to 10, are in `docs/archive/prog
 
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
-| History 11-12 (side lane, #119) | The new walls dossier (`docs/history/12-walls-roads-harbours.md`) finds Akhetaten had no city wall, Megiddo none in this age, and Qatna and Qadesh among the strongest places: should item 15 set walls by the city, so Egypt's capital starts at 0 and its strength is its distance and forts, though an unwalled capital that falls ends a realm? | Walls by the city, as the sources give them (Akhetaten 0, Egypt's forts at `delta` and `nubia` raised); the alternative keeps "every capital 3" | Open |
-| Model chiefs and spies (side lane, #128) | 1. A model chief's choices are taken the season after he makes them, so his first season as chief is decided by his traits, as a script chief's (or his band does nothing that first season)? 2. Whom a chief's men kill is a standing choice, "nobody", "kings' servants" or "everyone", until he changes it (or he is asked anew each season, or about each traveller)? 3. A model spy may hire a carrier at once, without the script's season of waiting first (or it too waits a season)? 4. A spy is told what a carrier would ask as reckoned from its own price (or not told, and learns only by trying)? | `docs/rounds/2026-10-28-model-chief-requests.md` | Open |
 | 11c (#143) | None: the page and the sections settled every reading | Readings 1-12 in `docs/rounds/2026-10-29-true-map.md` | Lane, no questions |
 | 11b++ | None: "The game in one page" and the item's text settled every answer | Readings 1-15 in `docs/rounds/2026-10-29-answers-to-11b-plus.md` | For review, no questions |
 
