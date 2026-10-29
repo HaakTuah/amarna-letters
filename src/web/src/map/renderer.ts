@@ -3,6 +3,7 @@
  * in a later graphical pass without touching the rest: the page hands a renderer the scene and the draft overlays, and
  * hears back which province or person was tapped.
  */
+import type { UnitKind } from "@amarna/engine";
 import type { Pt } from "./art.ts";
 import type { MapScene, PathStep } from "./scene.ts";
 
@@ -11,7 +12,7 @@ export interface MapInput {
   scene: MapScene;
   selected: string | null;
   targets: Set<string> | null;
-  arrows: { from: string; to: string; support: boolean }[] | null;
+  arrows: { from: string; to: string; support: boolean; kind: UnitKind }[] | null;
   followId: string | null;
   followPath: PathStep[] | null;
 }
@@ -19,6 +20,10 @@ export interface MapInput {
 export interface MapHandlers {
   onProvince: (id: string) => void;
   onPerson: (id: string) => void;
+  /** A crossing's or rough ground's mark (crossings.ts), by its key, with the province under it. */
+  onMark: (id: string, province: string | null) => void;
+  /** A tap on the map that reached nothing: it closes what is open over the map. */
+  onBlank: () => void;
 }
 
 export interface MapRenderer {
@@ -30,5 +35,9 @@ export interface MapRenderer {
   fit(): void;
   /** Brings a point of the board into view, zooming in to at least the given zoom. */
   focus(at: Pt, minZoom: number): void;
+  /** Where the view is: the board point at its centre, and its zoom (1 is the whole board). */
+  getView(): { at: Pt; zoom: number } | null;
+  /** Shows a board point at the centre at a zoom: a view kept from before, or a view's opening. */
+  setView(at: Pt, zoom: number, animated: boolean): void;
   destroy(): void;
 }

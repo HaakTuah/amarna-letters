@@ -17,9 +17,13 @@ function serviceWorker(): Plugin {
       outDir = config.build.outDir;
     },
     closeBundle() {
+      // The rules' save version, for a page deciding whether a game in play can go on in the new version (src/ui/update.ts).
+      // Fetched from the network, never cached.
+      const save = /CURRENT_VERSION = (\d+)/u.exec(readFileSync(new URL("../engine/src/model/state.ts", import.meta.url), "utf8"))?.[1] ?? "0";
+      writeFileSync(join(outDir, "version.json"), JSON.stringify({ save: Number(save) }));
       const files = (readdirSync(outDir, { recursive: true }) as string[])
         .map((f) => f.split(sep).join("/"))
-        .filter((f) => statSync(join(outDir, f)).isFile() && f !== "service-worker.js")
+        .filter((f) => statSync(join(outDir, f)).isFile() && f !== "service-worker.js" && f !== "version.json")
         .sort();
       const assets = files.map((url) => ({ url, hash: "sha256-" + createHash("sha256").update(readFileSync(join(outDir, url))).digest("base64") }));
       const all = JSON.stringify(assets);

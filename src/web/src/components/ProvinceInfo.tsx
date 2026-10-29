@@ -22,6 +22,7 @@ import {
 import { unitKindName, type MapScene } from "../map/scene.ts";
 import { powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
+import { MapCard } from "./MapCard.tsx";
 
 /**
  * What the ground does here (Build order item 5, terrain): rough ground and the crossings on its links give a unit that
@@ -73,16 +74,19 @@ export function ProvinceInfo({
   const walls = scene.walls.get(id) ?? 0;
   const siege = scene.sieges.find((x) => x.province === id);
   return (
-    <div className="infocard map-ui">
-      <div className="info-head">
-        <Emblem power={p.isSea ? null : owner} />
-        <h3>
-          {p.name} {p.capital && <small className="muted">· capital of {p.home !== null ? powerName(p.home) : ""}</small>}
-        </h3>
-        <button className="small" onClick={onClose} aria-label="Close">
-          ✕
-        </button>
-      </div>
+    <MapCard
+      className="infocard"
+      label={p.name}
+      onClose={onClose}
+      head={
+        <>
+          <Emblem power={p.isSea ? null : owner} />
+          <h3>
+            {p.name} {p.capital && <small className="muted">· capital of {p.home !== null ? powerName(p.home) : ""}</small>}
+          </h3>
+        </>
+      }
+    >
       {p.isSea ? (
         <p className="small">
           {WorldMap.default.coastsOf(p.id).length > 0
@@ -161,6 +165,6 @@ export function ProvinceInfo({
         </p>
       ))}
       <small className="muted">Neighbours: {[...new Set(map.neighbors(id))].map(provinceName).join(", ")}</small>
-    </div>
+    </MapCard>
   );
 }
