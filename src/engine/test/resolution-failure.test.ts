@@ -44,15 +44,16 @@ import { describe as describeOrder } from "@amarna/engine";
 // Every order the validator accepts but the season cannot carry out is reported to its king next season, as a
 // rejection notice with the reason in plain words.
 describe("ResolutionFailureTests", () => {
-  // <summary>Babylonia holds Jerusalem and Gaza with an army in each, next to Egypt's Sinai, where Egypt has an army too.</summary>
+  // <summary>Babylonia holds the Shasu lands and Gaza with an army in each, next to Egypt's Sinai, where Egypt has an army too.</summary>
   function board(sleeping: boolean = false): GameState {
     let s = oldWorld(newGame(4, newGameConfig({ catastropheChance: 0, sleepingSeats: sleeping })));
     for (const [city, id] of [
-      ["jerusalem", "u90"],
+      ["shasu", "u90"],
       ["gaza", "u91"],
     ]) {
       s.owner.set(city, "Babylonia");
       s.walls.delete(city);
+      s.units = s.units.filter((u) => u.province !== city);
       s.units.push(newUnit({ id: id, power: "Babylonia", kind: "Army", province: city }));
     }
     s.units.push(newUnit({ id: "u92", power: "Egypt", kind: "Army", province: "sinai" }));
@@ -65,7 +66,7 @@ describe("ResolutionFailureTests", () => {
     s.treasuries.get("Egypt").lots.push(newGoldLot({ id: "g900", from: "Hatti", stated: 1000, face: 1000, true: 0, arrivedTurn: 1 }));
   }
 
-  const TakeSinai: Order[] = [move("jerusalem", "sinai"), support("gaza", "jerusalem", "sinai")];
+  const TakeSinai: Order[] = [move("shasu", "sinai"), support("gaza", "shasu", "sinai")];
 
   test.each([
     ["cession of land lost in battle", "Cession failed", "Sinai was not ceded to Hatti: you no longer held it after movement.", true],

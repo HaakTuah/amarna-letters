@@ -69,17 +69,17 @@ describe("CommandAtADistanceTests", () => {
     season(
       s,
       subs({
-        Assyria: { orders: [move("ekallate", "sippar"), support("suhu", "ekallate", "sippar")] },
-        Babylonia: { orders: [move("durkurigalzu", "nippur")] },
+        Assyria: { orders: [move("ekallate", "durkurigalzu"), support("suhu", "ekallate", "durkurigalzu")] },
+        Babylonia: { orders: [move("sippar", "nippur")] },
       }),
     );
     // Two against one: a margin of a half, so the loser loses 10 + 4 × 5 = 30 in a hundred (1,500 men) and falls back to
-    // Dur-Kurigalzu, its own land left empty; the winner loses half of that times one over two (375).
-    const fell = unitAt(s, "durkurigalzu")!;
+    // land of its own left empty; the winner loses half of that times one over two (375).
+    const fell = unitAt(s, "sippar")!;
     Assert.equal(["Babylonia", 3500], [fell.power, fell.men]);
-    const won = unitAt(s, "sippar")!;
+    const won = unitAt(s, "durkurigalzu")!;
     Assert.equal(["Assyria", 4625], [won.power, won.men]);
-    Assert.contains("fell back to Dur-Kurigalzu, 3500 men strong", notices(s, "Babylonia", "Fell back")[0]);
+    Assert.contains("fell back to Sippar, 3500 men strong", notices(s, "Babylonia", "Fell back")[0]);
   });
 
   test("A unit with nowhere to fall back, or beaten by far, is destroyed", () => {
@@ -87,10 +87,12 @@ describe("CommandAtADistanceTests", () => {
     removeAll(s.units, (u) => u.province === "suhu");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu", men: 5000 }));
     s.owner.set("suhu", "Assyria");
-    // Sippar's army is boxed in: Babylon and Dur-Kurigalzu hold Babylonia's own armies, Suhu and Ekallate the attackers.
-    season(s, subs({ Assyria: { orders: [move("ekallate", "sippar"), support("suhu", "ekallate", "sippar")] } }));
-    Assert.equal("Assyria", unitAt(s, "sippar")?.power);
-    Assert.equal(2, s.units.filter((u) => u.power === "Babylonia" && u.kind === "Army").length);
+    // Dur-Kurigalzu's army is boxed in: Sippar and Nippur hold Babylonia's own armies, Arrapha's and Susa's their own,
+    // Suhu and Ekallate the attackers.
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "nippur", men: 5000 }));
+    season(s, subs({ Assyria: { orders: [move("ekallate", "durkurigalzu"), support("suhu", "ekallate", "durkurigalzu")] } }));
+    Assert.equal("Assyria", unitAt(s, "durkurigalzu")?.power);
+    Assert.equal(3, s.units.filter((u) => u.power === "Babylonia" && u.kind === "Army").length);
   });
 
   test("A great army takes two seasons over a long road, a forced march one, and men drop out on it", () => {
@@ -119,8 +121,8 @@ describe("CommandAtADistanceTests", () => {
       const s = board();
       commanded(s, "Assyria");
       for (const c of s.characters.filter((c) => c.grantedBy === "Assyria")) c.traits.competence = competence;
-      season(s, subs({ Assyria: { orders: [move("ekallate", "sippar")] } }));
-      Assert.equal(competence === 100 ? "Assyria" : "Babylonia", unitAt(s, "sippar")?.power, undefined);
+      season(s, subs({ Assyria: { orders: [move("ekallate", "durkurigalzu")] } }));
+      Assert.equal(competence === 100 ? "Assyria" : "Babylonia", unitAt(s, "durkurigalzu")?.power, undefined);
     }
   });
 
@@ -128,13 +130,13 @@ describe("CommandAtADistanceTests", () => {
     for (const withCommander of [false, true]) {
       const s = board();
       if (withCommander) commanded(s, "Babylonia");
-      // Dur-Kurigalzu's army is to support Sippar's when it is attacked; Babylon's king is in Babylon, not with either.
-      season(s, subs({ Babylonia: { standing: [newStandingRequest({ when: "UnitAttacked", province: "sippar", orders: [support("durkurigalzu", "sippar")] })] } }));
+      // Sippar's army is to support Dur-Kurigalzu's when it is attacked; Babylon's king is in Babylon, not with either.
+      season(s, subs({ Babylonia: { standing: [newStandingRequest({ when: "UnitAttacked", province: "durkurigalzu", orders: [support("sippar", "durkurigalzu")] })] } }));
       removeAll(s.units, (u) => u.province === "suhu");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu", men: 5000 }));
       s.owner.set("suhu", "Assyria");
-      season(s, subs({ Assyria: { orders: [move("ekallate", "sippar"), support("suhu", "ekallate", "sippar")] } }));
-      Assert.equal(withCommander ? "Babylonia" : "Assyria", unitAt(s, "sippar")?.power);
+      season(s, subs({ Assyria: { orders: [move("ekallate", "durkurigalzu"), support("suhu", "ekallate", "durkurigalzu")] } }));
+      Assert.equal(withCommander ? "Babylonia" : "Assyria", unitAt(s, "durkurigalzu")?.power);
     }
   });
 
@@ -187,19 +189,19 @@ describe("CommandAtADistanceTests", () => {
   test("The king moves his court, is taken where he stands, and the kingdom comes apart", () => {
     const s = board();
     commanded(s, "Babylonia");
-    s.walls.delete("sippar");
-    removeAll(s.units, (u) => u.province === "sippar");
-    season(s, subs({ Babylonia: { orders: [moveCourt("sippar")] } }));
+    s.walls.delete("durkurigalzu");
+    removeAll(s.units, (u) => u.province === "durkurigalzu");
+    season(s, subs({ Babylonia: { orders: [moveCourt("durkurigalzu")] } }));
     // He sets out this season and is there the next.
     Assert.single(s.kingRoads);
     season(s);
-    Assert.equal("sippar", s.court.get("Babylonia"));
+    Assert.equal("durkurigalzu", s.court.get("Babylonia"));
     Assert.empty(s.kingRoads);
-    Assert.equal("sippar", Views.for(s, "Babylonia").courtAt);
-    // Assyria takes Sippar, where the king is: Babylonia falls, though Babylon is still its own.
-    season(s, subs({ Assyria: { orders: [move("ekallate", "sippar")] } }));
+    Assert.equal("durkurigalzu", Views.for(s, "Babylonia").courtAt);
+    // Assyria takes Dur-Kurigalzu, where the king is: Babylonia falls, though Babylon is still its own.
+    season(s, subs({ Assyria: { orders: [move("ekallate", "durkurigalzu")] } }));
     Assert.contains("Babylonia", s.eliminated);
-    Assert.equal("Assyria", s.owner.get("sippar"));
+    Assert.equal("Assyria", s.owner.get("durkurigalzu"));
     // The rest falls lawless, and the commanded armies are their commanders' bands now.
     Assert.null(s.owner.get("babylon"));
     Assert.doesNotContain(s.units, (u) => u.power === "Babylonia");

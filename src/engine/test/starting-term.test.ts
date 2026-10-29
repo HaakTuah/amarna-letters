@@ -60,12 +60,13 @@ describe("StartingTermTests", () => {
   // and for save version 23 (item 11+: a pool of 100, the city-states' staff and the Levant's name styles), and for item 11d (three city-states more, each with its servant), and for save version 27 (item 11c: six more
   // city-states, each with its envoy, and Egypt's name style without Gezer's king), and for save version 30 (item 11f: eight
   // more powers, each with its envoy, the name styles of Azzi, Libya and the Shasu, and an Akkadian scribe at each court that
-  // reads Akkadian).
+  // reads Akkadian), and for save version 32 (item 11f+: the connections follow the drawn land, so the posts and plants
+  // that go by neighbours change).
   //
   test.each([
-    [1, "42ff4678818a8ec0"],
-    [7, "37d6422d9b86bf85"],
-    [42, "8bca210bae9c5fc9"],
+    [1, "e611a26373f1ce13"],
+    [7, "9b28d82b51cd371b"],
+    [42, "b9ef810011f43bec"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     let envoys = s.characters.filter((c) => c.contract !== null);
