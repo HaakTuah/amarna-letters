@@ -429,7 +429,7 @@ function other(x: Node): Order | null {
       const standing = S(x, "standing");
       const via = S(x, "action") === "hire" ? empty(S(x, "item")) : null;
       const job = {
-        what: what === "envoy" || what === "spy" ? what : null,
+        what: what === "envoy" || what === "spy" || what === "stay" ? what : null,
         where: power ?? (pr !== null ? province : named || null),
         payOnDone: standing === "pay_on_done" || standing === "both",
         offerAgain: standing === "offer_again" || standing === "both",
@@ -450,7 +450,7 @@ function other(x: Node): Order | null {
     case "hunt_bands":
       return hunt(province);
     case "hunt_bands_always":
-      return huntBands(true);
+      return huntBands(true, province !== "" ? [province] : null);
     case "stop_hunting_bands":
       return huntBands(false);
     case "pay_fee":

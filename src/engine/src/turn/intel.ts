@@ -18,6 +18,8 @@ import { Views } from "../rules/views.ts";
 import { removeAll } from "./resolve.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { learn } from "../rules/skills.ts";
+import { legPoints, PointsPerDay } from "../model/travel.ts";
+import { seasonOfTurn } from "../model/map.ts";
 import { StealRisk } from "./knowledge.ts";
 
 /** How long a court talks of a servant it put to death: the season of the death and this many after. */
@@ -27,6 +29,8 @@ declare module "./core.ts" {
   interface TurnEngine {
     resolveIntelligence(orders: [Power, Order][]): void;
     reportRoad(from: string, employer: Power): number;
+    borderOf(c: Character, employer: Power): string | null;
+    walkToBorder(c: Character, employer: Power, border: string): Journey;
     placeSpy(p: Power, ps: PlaceSpyOrder): void;
     spyArrives(j: Journey): void;
     recall(p: Power, c: Character): void;
@@ -250,9 +254,9 @@ P.watchAndReport = function () {
     }
     const from = c.missionTarget !== null ? Map.capital(c.missionTarget).id : (c.watchProvince ?? Map.capital(employer).id);
     // Item 11b ("Messengers are errands"): from abroad it waits for a carrier; inside its master's own land the realm's
-    // couriers carry it ("Distance inside your own realm").
-    // A watch post just across its master's border slips it to the realm's couriers there.
-    const abroad = S.owner.getOrDefault(from, null) !== employer && (c.missionTarget !== null || !Map.neighbors(from).some((n) => S.owner.getOrDefault(n, null) === employer));
+    // couriers carry it ("Distance inside your own realm"). From a watch post just across its master's border too it waits:
+    // the spy may walk it to the border himself, leaving his post (Haakon's answers to item 11b+).
+    const abroad = S.owner.getOrDefault(from, null) !== employer;
     S.journeys.push(
       newJourney({
         id: newId(S, "j"),
@@ -269,21 +273,51 @@ P.watchAndReport = function () {
   }
 };
 
-/**
- * How long a report from a post inside, or just across, its master's land takes to reach him: the realm's couriers carry
- * it from his own land; a watcher across the border walks it to the nearest province of his master's first (Haakon's
- * answers to item 11b: "at the border, after the walk there").
- */
+/** How long a report from a post inside its master's land takes to reach him: the realm's couriers carry it. */
 P.reportRoad = function (from, employer) {
+  return this.travelTurnsBetween(from, this.map.capital(employer).id);
+};
+
+/**
+ * The province of its master's next to a spy's watch post across the border, nearest his capital, where the realm's
+ * couriers would take its reports (Haakon's answers to items 11b and 11b+); null for a post at a court or deeper abroad.
+ */
+P.borderOf = function (c, employer) {
   const S = this.s;
+  if (c.missionTarget !== null || c.watchProvince === null) return null;
   const home = this.map.capital(employer).id;
-  if (S.owner.getOrDefault(from, null) === employer) return this.travelTurnsBetween(from, home);
-  const border = sortBy(
-    this.map.neighbors(from).filter((n) => S.owner.getOrDefault(n, null) === employer),
-    [(n: string) => this.travelTurnsBetween(n, home), cmpNum],
-    [(n: string) => n, cmpStr],
-  )[0];
-  return border === undefined ? this.travelTurnsBetween(from, home) : this.travelTurnsBetween(from, border) + this.travelTurnsBetween(border, home);
+  return (
+    sortBy(
+      this.map.neighbors(c.watchProvince).filter((n) => S.owner.getOrDefault(n, null) === employer),
+      [(n: string) => this.travelTurnsBetween(n, home), cmpNum],
+      [(n: string) => n, cmpStr],
+    )[0] ?? null
+  );
+};
+
+/**
+ * A spy walks its reports to the border himself (Haakon's answers to item 11b+): he leaves his post, meets the road's
+ * dangers there and back, and takes up his post again when he returns; the couriers take the reports at the border.
+ */
+P.walkToBorder = function (c, employer, border) {
+  const S = this.s;
+  const post = c.watchProvince!;
+  logEvent(S, "letter", `${c.name} left the watch on ${this.map.get(post).name} to take reports to the border of ${employer}.`, [], "border-walk");
+  c.duty = "SpyOutbound";
+  c.at = null;
+  const j = newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, from: employer, to: employer, characterId: c.id });
+  S.journeys.push(j);
+  this.setOut(j, post, border);
+  const there = [...j.route];
+  this.setOut(j, border, post);
+  j.route = [...there, ...j.route.slice(1)];
+  j.seen = [post];
+  j.reached = [S.turn];
+  const perSeason = S.config.travelDays * PointsPerDay;
+  let cost = 0;
+  for (let i = 0; i < j.route.length - 1; i++) cost += legPoints(this.map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn));
+  j.arriveTurn = S.turn + Math.max(1, Math.ceil(cost / perSeason));
+  return j;
 };
 
 P.spyObserve = function (c, rng) {

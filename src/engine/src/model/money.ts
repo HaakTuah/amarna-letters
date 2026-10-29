@@ -10,7 +10,9 @@ import { AllPowers, type Power } from "./power.ts";
  * First guesses (item 18 tunes them):
  * - `heardWeight`: how far what a person has heard a job pays a season moves what it asks, in percent (Haakon's answers to
  *   item 11a: "what others were paid is only what a character has heard, and he bargains from it"); `heardKeep`: how
- *   many promises kept or broken a person keeps in mind.
+ *   many promises kept or broken a person keeps in mind one by one; older ones it keeps as old talk ({@link PayOld}).
+ * - `talkHalf`: a script person weighs talk of a promise less as it ages ("Memory" in "The game in one page"): one heard
+ *   `talkHalf` seasons ago, plus a season for every ten points of its loyalty, counts half, and none ever counts nothing.
  * - `errandStay`: the seasons an envoy's errand counts for its stay at the court it goes to, beside the road there and back.
  * - `trust*`: how much of the rest of a fee a person counts on, in percent, from a court's record of paying what fell due
  *   ("Work on any terms"): `trustStart` with no record, `trustKept` more for each kept, `trustBroken` less for each broken.
@@ -26,6 +28,7 @@ import { AllPowers, type Power } from "./power.ts";
 export const MoneyData = {
   heardWeight: 50,
   heardKeep: 60,
+  talkHalf: 8,
   errandStay: 1,
   trustStart: 80,
   trustKept: 4,
@@ -77,6 +80,23 @@ export interface PayFact {
 export function newPayFact(init: Partial<PayFact> = {}): PayFact {
   return { id: "", party: "", kept: true, turn: 0, heardAt: new Dict(), ...init };
 }
+
+/**
+ * Old talk of one party's promises to pay that a person heard (Haakon's answers to item 11b+, "Memory": no rule forgets
+ * it): how many it heard kept and broken, and the season they were made, on the mean. A person keeps it all game.
+ */
+export interface PayOld {
+  party: string;
+  kept: number;
+  broken: number;
+  turn: number;
+}
+
+export function newPayOld(init: Partial<PayOld> = {}): PayOld {
+  return { party: "", kept: 0, broken: 0, turn: 0, ...init };
+}
+
+export const PayOldSchema: ObjSchema<PayOld> = obj("PayOld", newPayOld, { party: S, kept: I, broken: I, turn: I });
 
 export const PayFactSchema: ObjSchema<PayFact> = obj("PayFact", newPayFact, { id: S, party: S, kept: B, turn: I, heardAt: dict(I) });
 

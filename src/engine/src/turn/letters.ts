@@ -88,14 +88,17 @@ P.carryLetters = function () {
       S.journeys.filter((j) => isWalker(j) && j.kind !== "CaptiveConvoy" && j.route.length > 1 && j.route[j.leg] === at && j.route[j.route.length - 1] === home && j.characterId !== null),
       [(j: Journey) => idNumber(j.id), cmpNum],
     );
-    const own = going.find((j) => findCharacter(S, j.characterId)?.employer === letter.to) ?? null;
+    // A ransom demand (Haakon's answers to item 11b: a message someone sends, which needs a carrier) has no spy behind it:
+    // its captor sends it from his court.
+    const spy = letter.kind === "SpyReport" ? findCharacter(S, letter.characterId) : null;
+    const demand = letter.kind !== "SpyReport";
+    const sender = demand ? courtAt(this, at) : letter.to;
+    // Haakon's answers to item 11b+: a traveller decides whether to carry it; a script traveller carries free for his own
+    // court's people and asks his fee of anyone else.
+    const own = going.find((j) => sender !== null && findCharacter(S, j.characterId)?.employer === sender) ?? null;
     const passer = own ?? going.find((j) => findCharacter(S, j.characterId)?.status !== "Captured") ?? null;
     let carrier: Character | null = null;
     let fee = 0;
-    // A ransom demand (Haakon's answers to item 11b: a message someone sends, which needs a carrier) has no spy behind it:
-    // it goes with whoever sets out that way, as the captor asks of them.
-    const spy = letter.kind === "SpyReport" ? findCharacter(S, letter.characterId) : null;
-    const demand = letter.kind !== "SpyReport";
     // The spy decides (no rule moves it): a model spy in its own request (`own-choices.ts`), the most it pays now and
     // whether it carries them itself; a script spy by its traits: one loyal enough pays from its own purse, and how long
     // it waits before carrying its reports home itself is its own, the brave and loyal waiting longest.
@@ -106,17 +109,24 @@ P.carryLetters = function () {
     const court = courtAt(this, at);
     const passing = passer === null ? null : findCharacter(S, passer.characterId)!;
     const side = passing === null ? 0 : idiv(basePrice(passing, letter.to) * seasons * LetterData.sidePercent, 100);
-    // Haakon's answers to item 11a: a traveller carries it for a fee on delivery from a court whose standing order is to
-    // pay carriers; for any other court only if the spy pays it now from its purse.
-    const paysNow = own === null && passing !== null && !demand && !S.payCarriers.includes(letter.to);
-    if (passing !== null && (demand || !paysNow || (willing && spy!.purse >= side && side <= most))) {
+    // Haakon's answers to items 11a and 11b+: a stranger carries it for his fee, on delivery from a court whose standing
+    // order is to pay carriers and whose record of paying, as he heard it, he trusts; else only if paid now: by the spy from
+    // its purse, or by the captor from his treasury for a demand he ordered.
+    const onDelivery = !demand && passing !== null && S.payCarriers.includes(letter.to) && trustIn(S, letter.to, passing) >= LetterData.trustOnDelivery;
+    const payer = own !== null || onDelivery ? null : demand ? (court !== null && isAlive(S, court) && S.treasuries.get(court).gold >= side ? court : null) : willing && spy!.purse >= side && side <= most ? spy : null;
+    if (passing !== null && (own !== null || onDelivery || payer !== null)) {
       carrier = passing;
-      if (own !== null || demand) fee = 0;
-      else if (paysNow) {
-        spy!.purse -= side;
-        spy!.earned.spent += side;
+      if (own !== null) fee = 0;
+      else if (onDelivery) fee = side;
+      else if (typeof payer === "string") {
+        S.treasuries.get(payer).gold -= side;
         gain(carrier, side, "News");
-      } else fee = side;
+        remember(carrier, S.turn, `The king of ${land(payer)} paid me ${formatMoney(side)} to carry his word to the court of ${letter.to} on my way.`);
+      } else if (payer !== null) {
+        payer.purse -= side;
+        payer.earned.spent += side;
+        gain(carrier, side, "News");
+      }
     } else if (demand && court !== null && isAlive(S, court)) {
       // The captor who demands a ransom sends it: with nobody going that way, it hires a free person at its court, paying
       // the whole fee now from its treasury as part of the demand it ordered.
@@ -161,18 +171,27 @@ P.carryLetters = function () {
         carrier = hire;
       }
     }
-    // Nobody to carry it, long enough: the spy carries it home himself, leaving its post ("or the person himself").
+    // Nobody to carry it, long enough: the spy carries it himself, leaving its post ("or the person himself"): home, or
+    // from a post just across its master's border to the border and back (Haakon's answers to item 11b+).
+    let border: string | null = null;
     if (carrier === null && spy !== null && (plan !== null ? plan.carry : waited >= selfWait(spy)) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
-      // Its master goes on believing it at its post until it stands at court again.
-      this.coverFor(spy, letter.to, "SpyPosted");
-      this.recall(letter.to, spy);
-      remember(spy, S.turn, `Nobody would carry my reports home from ${this.map.get(at).name}, so I set out with them myself.`);
+      border = this.borderOf(spy, letter.to);
+      if (border !== null) {
+        this.walkToBorder(spy, letter.to, border);
+        remember(spy, S.turn, `Nobody would carry my reports from ${this.map.get(at).name}, so I set out to take them to the border of ${land(letter.to)} myself.`);
+      } else {
+        // Its master goes on believing it at its post until it stands at court again.
+        this.coverFor(spy, letter.to, "SpyPosted");
+        this.recall(letter.to, spy);
+        remember(spy, S.turn, `Nobody would carry my reports home from ${this.map.get(at).name}, so I set out with them myself.`);
+      }
       carrier = spy;
     }
     if (carrier === null) continue;
     letter.fee = fee;
     for (const l of waiting.filter((x) => x.carrier === null && x.waitAt === at && x.to === letter.to && (x.kind === "SpyReport") === !demand)) {
       l.carrier = carrier.id;
+      l.border = border;
       S.lettersCarried.set(l.from, S.lettersCarried.getOrDefault(l.from, 0) + 1);
       S.lettersWaited.set(l.from, S.lettersWaited.getOrDefault(l.from, 0) + (S.turn - l.departTurn));
     }
@@ -186,6 +205,15 @@ P.lettersGo = function () {
     const c = findCharacter(S, letter.carrier);
     const walk = c === null ? null : (S.journeys.find((j) => isWalker(j) && j.characterId === c.id) ?? null);
     const home = this.map.capital(letter.to).id;
+    // Walked to the border: once the spy has passed it, the realm's couriers take it home from there.
+    if (letter.border !== null && walk !== null) {
+      const i = walk.seen.indexOf(letter.border);
+      if (i >= 0) {
+        letter.waitAt = null;
+        letter.arriveTurn = Math.max(S.turn, walk.reached[i] + this.travelTurnsBetween(letter.border, home));
+      }
+      continue;
+    }
     if (walk !== null && walk.route[walk.route.length - 1] === home) {
       letter.arriveTurn = walk.arriveTurn;
       continue;

@@ -4,7 +4,7 @@ import { cmpBool, cmpNum, desc, groupBy, sortBy } from "../core/seq.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import { isPowerParty, MoneyData } from "../model/money.ts";
 import type { DismissOrder, HireOrder, Order, RenewOrder } from "../model/orders.ts";
-import { coverOf, falseNameAt, gain, newContract, newJobErrand, remember, reputationAt, lossesHeardOf, type Character, type JobErrand, type JobWhat } from "../model/people.ts";
+import { coverOf, falseNameAt, gain, newContract, newJobErrand, newStayLeft, remember, reputationAt, lossesHeardOf, type Character, type JobErrand, type JobWhat } from "../model/people.ts";
 import { cmpPower, land, type Power } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
 import { char, findCharacter, logEvent, newId, notify } from "../model/state.ts";
@@ -81,7 +81,12 @@ P.resolveCourt = function (orders) {
         S.huntNow.push(`${p}|${o.province}`);
         break;
       case "huntBands":
-        S.huntBands = o.on ? [...new Set([...S.huntBands, p])] : S.huntBands.filter((x) => x !== p);
+        {
+          // A new standing hunt replaces the old; several given in the same season, each naming provinces, add up.
+          const before = S.hunts.find((h) => h.power === p && h.since === S.turn && h.provinces.length > 0 && (o.provinces ?? []).length > 0);
+          S.hunts = S.hunts.filter((h) => h.power !== p);
+          if (o.on) S.hunts.push({ power: p, provinces: [...new Set([...(before?.provinces ?? []), ...(o.provinces ?? [])])].sort(), since: S.turn });
+        }
         break;
       case "seekCandidates":
         S.tasks.push(newPendingTask({ id: newId(S, "q"), kind: "Candidates", requester: p, dueTurn: S.turn + 1 }));
@@ -100,7 +105,7 @@ P.resolveCourt = function (orders) {
 
 /** A job's errand as an order names it, or null for none. */
 export function errandOf(o: { what?: JobWhat | null; where?: string | null }): JobErrand | null {
-  return o.what === "envoy" || o.what === "spy" ? newJobErrand({ what: o.what, where: o.where ?? "" }) : null;
+  return o.what === "envoy" || o.what === "spy" || o.what === "stay" ? newJobErrand({ what: o.what, where: o.where ?? "" }) : null;
 }
 
 /**
@@ -169,6 +174,7 @@ P.hireAll = function (hires, carriedTo = null) {
     c.status = "Employed";
     c.employer = winner;
     c.contract = newContract({ fee: hire.fee, advance, startTurn: S.turn, untilTurn: S.turn + term(bids[0]), errand: errandOf(hire), payOnDone: hire.payOnDone === true, offerAgain: hire.offerAgain === true });
+    if (c.contract.errand?.what === "stay") logEvent(S, "job", `${c.name} took ${winner}'s job to stay at its court.`, [winner], "stay-hired");
     c.duty = "None";
     c.heldBy = null;
     c.waited = 0;
@@ -212,6 +218,7 @@ P.hireAll = function (hires, carriedTo = null) {
 /** A job's errand in words, after "a job". */
 export function errandWords(e: JobErrand | null, name: (x: string) => string): string {
   if (e === null) return "";
+  if (e.what === "stay") return " to stay at court";
   return e.what === "envoy" ? ` as envoy to ${e.where}` : ` to watch ${isPowerParty(e.where) ? `the court of ${e.where}` : name(e.where)}`;
 }
 
@@ -259,12 +266,16 @@ P.renew = function (p, r) {
   }
   if (serves) {
     gain(c, advance, "Fees");
-    c.contract = newContract({ fee: r.fee, advance, carried: restOf(k!), startTurn: S.turn, untilTurn: until, errand, payOnDone: r.payOnDone === true, offerAgain: r.offerAgain === true });
+    // Haakon's answers to item 11b+: an errand given during a stay is its own job with its own fee; the stay waits beside it.
+    const staying = k!.errand?.what === "stay" && errand?.what !== "stay" && k!.untilTurn >= S.turn && !k!.captured;
+    const stay = staying ? newStayLeft({ until: k!.untilTurn, rest: restOf(k!), payOnDone: k!.payOnDone && !k!.withheld }) : k!.stay;
+    c.contract = newContract({ fee: r.fee, advance, carried: staying ? 0 : restOf(k!), startTurn: S.turn, untilTurn: until, errand, payOnDone: r.payOnDone === true, offerAgain: r.offerAgain === true, stay });
     this.heardFee(c, rateOf(r.fee, term));
     remember(c, S.turn, `The king of ${land(p)} gave me a new job${errandWords(errand, (x) => (this.map.exists(x) ? this.map.get(x).name : x))}, within ${term} seasons, for ${formatMoney(r.fee)}, ${formatMoney(advance)} of it now.`);
   }
-  const carried = k === null ? 0 : restOf(k);
-  notify(S, p, "Notice", "A new job taken", `${c.name} took the new job, through turn ${until}, for ${formatMoney(r.fee)}${carried > 0 ? ` (and the ${formatMoney(carried)} still to come from the job before)` : ""}, of which you handed over ${formatMoney(advance)} now.`, c.id);
+  const carried = k !== null && serves ? c.contract!.carried : 0;
+  const stay = k !== null && serves ? c.contract!.stay : null;
+  notify(S, p, "Notice", "A new job taken", `${c.name} took the new job, through turn ${until}, for ${formatMoney(r.fee)}${carried > 0 ? ` (and the ${formatMoney(carried)} still to come from the job before)` : ""}, of which you handed over ${formatMoney(advance)} now.${stay !== null && k?.stay !== stay ? ` Their stay at your court goes on when it is done, until turn ${stay.until}, its rest of ${formatMoney(stay.rest)} still to come.` : ""}`, c.id);
 };
 
 /**

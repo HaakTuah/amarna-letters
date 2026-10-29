@@ -17,6 +17,7 @@ function landLine(l: LandSeen, here: boolean): string {
   if (l.holder !== null) parts.push(l.army ? "its king's troops stand there" : "none of its king's troops stand there");
   if (l.bands > 0) parts.push(`other bands of ${l.bands} men work there`);
   if (l.coast) parts.push("it has a coast");
+  if (l.hunted) parts.push("talk has reached you that its king ordered his armies to fall on any band there");
   return `- ${l.name}${here ? " (where you are)" : ""}: ${parts.join("; ")}.`;
 }
 
@@ -43,10 +44,10 @@ export function chiefText(v: ChiefView): string {
   else if (!v.ship && v.here.coast) sb.appendLine(`A ship needs at least ${v.shipMen} men to man it.`);
   if (v.ship) sb.appendLine("A band that moves to land without a coast leaves its ship behind.");
   sb.appendLine(
-    `When your men rob a traveller, you choose whom they kill${v.kill !== null ? ` (now: ${KillWords[v.kill]})` : ""}. A king's servant let go may name you to his king, who may send his army after you; one killed names nobody, but a death on the road is heard of. A free traveller's word reaches nobody who would hunt you.`,
+    `When your men rob a traveller, you choose whom they kill${v.kill !== null ? ` (now: ${KillWords[v.kill]})` : ""}. Any traveller let go names you: word that you rode with the Habiru reaches the land's king and the traveller's master, and follows you if you ever seek service; one killed names nobody, but a death on the road is heard of, and a king whose land it is may hunt you for it.`,
   );
   sb.appendLine("You may give up the road: your men go back to the loose men, and you seek service like anyone, carrying the hidden fact that you rode with the Habiru.");
-  sb.appendLine("Choose for yourself. Your band stays where it is unless you move it, or a king's army falls on it and drives it off.");
+  sb.appendLine("Choose for yourself. Your band stays where it is unless you move it, or a king's army falls on it and drives it off: then it flees to the land you named to go to, if no army stands there, and otherwise where it can.");
   return sb.toString();
 }
 
@@ -83,7 +84,7 @@ export function reportsText(v: ReportsView): string {
   sb.appendLine(`- One of your master's own people setting out for his court takes them for nothing.`);
   sb.appendLine(
     v.paysOnDelivery
-      ? `- A traveller going that way takes them for about ${v.passing} shekels, which your master pays on delivery by his standing order.`
+      ? `- A traveller going that way takes them for about ${v.passing} shekels, which your master pays on delivery by his standing order, if the traveller trusts his record of paying; else only if you pay it now.`
       : `- A traveller going that way takes them for about ${v.passing} shekels, paid by you now from your purse; your master has no standing order to pay carriers.`,
   );
   if (v.hired !== null)
@@ -93,7 +94,9 @@ export function reportsText(v: ReportsView): string {
         : `- A free person at the court here would ask about ${v.hired} shekels to be hired for the journey, all now from your purse.`,
     );
   sb.appendLine(
-    "- Or you carry them home yourself, leaving your post until you return; your master goes on believing you at your post until you stand at his court again. A report shares its carrier's road: lost if he is robbed or killed, read by whoever catches him.",
+    v.border !== null
+      ? `- Or you walk them yourself to ${v.border}, in your master's land next door, where his couriers take them, and come back to your post: you leave your post meanwhile and meet the road's dangers there and back. A report shares its carrier's road: lost if he is robbed or killed, read by whoever catches him.`
+      : "- Or you carry them home yourself, leaving your post until you return; your master goes on believing you at your post until you stand at his court again. A report shares its carrier's road: lost if he is robbed or killed, read by whoever catches him.",
   );
   sb.appendLine("Choose for yourself. Gold you pay leaves your purse; nobody pays you back for it.");
   return sb.toString();

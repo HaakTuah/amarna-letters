@@ -44,7 +44,7 @@ import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
 import { ageBand } from "./ending.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
-import { asShown, basePrice, trustIn } from "../turn/turn-engine.ts";
+import { asShown, basePrice, LetterData, trustIn } from "../turn/turn-engine.ts";
 import { debtLeft, isPowerParty, standsForBorrower } from "../model/money.ts";
 import { travelTurns } from "../turn/core.ts";
 
@@ -190,7 +190,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     kept: s.payRecords.tryGet(p)?.kept ?? 0,
     broken: s.payRecords.tryGet(p)?.broken ?? 0,
     payCarriers: s.payCarriers.includes(p),
-    huntBands: s.huntBands.includes(p),
+    huntBands: s.hunts.some((h) => h.power === p),
+    huntWhere: s.hunts.find((h) => h.power === p)?.provinces ?? [],
     debts: debtViews(s, p),
     debtsHeld: claimViews(s, p),
     strength: engine.ledgerStrength(p),
@@ -510,6 +511,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     heldByYou: c.heldBy === viewer,
     intercepted: c.heldBy === viewer && c.intercepted,
     ransomDemand: captive ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null) : null,
+    ransomCarrier: c.status === "Captured" && c.heldBy === viewer ? ransomCarrier(s, c, viewer) : null,
     owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,
     hoardHere: c.hoard !== null && c.hoard.at === viewer && c.status !== "Dead" ? c.hoard.gold : null,
     carries: c.status === "Captured" && c.heldBy === viewer ? c.purse + c.carriedFor : null,
@@ -608,7 +610,7 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
 function termText(fee: number | null, advance: number | null, until: number | null, turn: number, k: Contract | null = null): string {
   if (fee === null) return "";
   const e = k?.errand ?? null;
-  const errand = e === null ? "a job whose first errand you name when you send them" : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
+  const errand = e === null ? "a job whose first errand you name when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
   const serves = `${errand}, for ${fee} shekels, ${advance ?? 0} handed over and ${Math.max(0, fee - (advance ?? 0))} due when it is done`;
   const standing = k === null ? "" : `${k.payOnDone ? "; you ordered the rest paid when it is done" : "; the rest is paid only if you order it (pay_fee)"}${k.offerAgain ? "; the same job is offered again when it is done" : ""}`;
   if (until === null) return serves + standing;
@@ -667,6 +669,18 @@ function captiveText(s: GameState, id: string, heldAt: Power, viewer: Power): st
   return demand !== null
     ? `held captive at the court of ${heldAt}; ${heldAt} demands ${formatMoney(demand.spend)} for their return (order pay_ransom)`
     : `held captive at the court of ${heldAt}`;
+}
+
+/** What the cheapest free person at the captor's court would ask to carry its ransom demand to the captive's king, or null. */
+function ransomCarrier(s: GameState, c: Character, captor: Power): number | null {
+  const payer = c.employer !== null ? c.employer : c.formerEmployer;
+  if (payer === null || !isAlive(s, payer) || !isAlive(s, captor)) return null;
+  const m = WorldMap.default;
+  const seasons = Math.max(1, travelTurns(s.config, m, m.capital(captor).id, m.capital(payer).id, s.turn));
+  const asks = s.characters
+    .filter((x) => x.status === "Free" && x.at === captor && x.duty === "None" && x.heldBy === null && x.errand === null)
+    .map((x) => idiv(basePrice(x, payer) * seasons * LetterData.hiredPercent, 100));
+  return asks.length === 0 ? null : Math.min(...asks);
 }
 
 /** The open ransom demand for a captive, once its rumour has reached the court asked to pay. */

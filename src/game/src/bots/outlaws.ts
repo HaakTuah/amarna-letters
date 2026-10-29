@@ -3,7 +3,7 @@
  * large band works there and with armies it can spare; and it buys news of the courts it fears or
  * fights or does not trust from the people at its court who sell it ("Characters as sellers of news"), fresh and cheap enough to be worth it.
  */
-import { BandData, buyNews, cmpStr, hunt, huntBands as huntBandsOrder, sortBy, sum, move, type BandSeen, type Order, type Power, type SeatView } from "@amarna/engine";
+import { BandData, buyNews, cmpStr, huntBands as huntBandsOrder, sortBy, sum, move, type BandSeen, type Order, type Power, type SeatView } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
@@ -51,21 +51,19 @@ export function huntBands(b: Board, plan: MilitaryPlan): void {
 }
 
 /**
- * Haakon's answers to item 11b: an army falls on a band only on its king's order. Item 11b+ (hunting did not pay): a
- * hunted band that survives flees to a province next door with no army in it, often another of ours, where it robs at
- * the full rate instead of the half it took beside our troops. So a script king orders a hunt (`hunt`, for the next
- * season) only where it ends the band or drives it out of our land: an army of ours stands with it, and either the band
- * is small enough to break (fewer than its least men left after the losses an army that size deals) or no province of
- * ours without troops lies next door for it to flee to. It never gives the standing order, which hunts everywhere.
+ * Haakon's answers to item 11b: an army falls on a band only on its king's order. Item 11b+ found that a hunted band fled
+ * to a province of ours without troops and robbed it at the full rate, so the script king hunted (`hunt`, for the next
+ * season) only where that ends the band or drives it out of our land. Haakon's answers to item 11b+ change the sums:
+ * chiefs hear of a standing hunt by talk, keep out of the land it covers, flee away from it when hunted, and dare not kill
+ * there. So the script king gives the standing hunt over the whole of its land, once, and keeps it (it covers what a hunt
+ * by order would): naming only some provinces would steer the bands into the rest.
  */
 export function huntOrders(b: Board, orders: Order[]): void {
-  if (!OutlawPlay.on(b.me)) return;
-  if (b.v.huntBands) orders.push(huntBandsOrder(false));
-  for (const x of sortBy([...b.v.bands], [(x) => x.province, cmpStr])) {
-    if (!b.isMine(x.province)) continue;
-    const army = b.mine.filter((u) => u.kind === "Army" && u.province === x.province).reduce((a, u) => a + u.men, 0);
-    if (army > 0 && worthHunting(b, x, army)) orders.push(hunt(x.province));
+  if (!OutlawPlay.on(b.me)) {
+    if (b.v.huntBands) orders.push(huntBandsOrder(false));
+    return;
   }
+  if (!b.v.huntBands || b.v.huntWhere.length > 0) orders.push(huntBandsOrder(true));
 }
 
 /** A hunt by an army of `army` men ends the band, or drives it out of our land: it has no province of ours to flee to. */

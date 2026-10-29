@@ -1,5 +1,6 @@
 import {
   MaxStanding,
+  payFee,
   unitOf,
 } from "@amarna/engine";
 import { describeOrder, powerName, provinceName } from "../../ui/format.ts";
@@ -11,7 +12,7 @@ import type { OrdersContext } from "./use-orders.ts";
 
 /** The orders panel's Troops, standing answers and standing orders: split from OrdersPanel.tsx, unchanged. */
 export function TroopsSection({ c }: { c: OrdersContext }) {
-  const { draft, onChanged, v, me, f, set, structured, visibleUnits, others, addStandingOrder, addStanding } = c;
+  const { draft, onChanged, v, me, f, set, structured, visibleUnits, others, addStandingOrder, addStanding, add } = c;
   return (
     <>
     <div className="section">
@@ -139,6 +140,15 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
           </div>
         );
       })}
+      {/* Haakon's answers to item 11b+: a job's order to pay the rest when it is done is a standing order of yours, to cancel like any. */}
+      {[...new Map([...v.court, ...v.known].filter((s) => s.ours && s.payOnDone).map((s) => [s.id, s])).values()].map((s) => (
+        <div className="row" key={`paydone-${s.id}`}>
+          <small>Pay {s.name} the rest of the fee when the job is done</small>
+          <button className="small" disabled={draft.other.some((o) => o.type === "payFee" && o.character === s.id)} onClick={() => add(payFee(s.id, false))}>
+            Cancel
+          </button>
+        </div>
+      ))}
       {draft.standing.map((r, i) => (
         <div className="row" key={`new${i}`}>
           <small>

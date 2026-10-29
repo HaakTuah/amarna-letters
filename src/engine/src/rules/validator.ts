@@ -111,14 +111,16 @@ export class OrderValidator {
     // A job's errand as an order names it: an envoy to a living court not one's own, or a spy on such a court or a province.
     const errandRefusal = (o: { what?: string | null; where?: string | null }): string | null => {
       const what = o.what ?? null;
-      if (what === null) return "name the job's errand: what (envoy or spy) and where";
+      if (what === null) return "name the job's errand: what (envoy, spy or stay) and where";
       const where = o.where ?? "";
       if (what === "envoy") return AllPowers.includes(where as Power) && where !== power && !heardFallen(where as Power) ? null : `an envoy's errand is to a court other than your own: '${where}' is not one`;
       if (what === "spy") {
         if (AllPowers.includes(where as Power)) return where !== power && !heardFallen(where as Power) ? null : `you cannot spy on ${where}`;
         return Map.exists(where) && !Map.get(where).isSea ? null : `there is no court or province called '${where}'`;
       }
-      return `a job's errand is "envoy" or "spy", not '${what}'`;
+      // Haakon's answers to item 11b+: staying at your court until a deadline is an errand like any other.
+      if (what === "stay") return where === power ? null : `a stay is at your own court: name ${power}`;
+      return `a job's errand is "envoy", "spy" or "stay", not '${what}'`;
     };
 
     // Whether a person may be sent on an errand by this submission: its job's errand is this one (or not yet named), or an
@@ -133,13 +135,13 @@ export class OrderValidator {
       if (cover === null && c.employer !== power) {
         const job = orders.find((o) => o.type === "hire" && o.character === id);
         return job !== undefined && job.type === "hire"
-          ? `the job offered ${c.name} is ${job.what === "envoy" ? `as envoy to ${job.where}` : `to watch ${job.where}`}: another errand is a new job`
+          ? `the job offered ${c.name} is ${job.what === "envoy" ? `as envoy to ${job.where}` : job.what === "stay" ? "to stay at your court" : `to watch ${job.where}`}: another errand is a new job`
           : null;
       }
       const e = cover !== null ? null : (c.contract?.errand ?? null);
       if (e === null) return null;
       if (e.what === what && e.where === where && !e.done) return null;
-      const job = e.done ? `${c.name}'s job's errand is done` : `${c.name}'s job is ${e.what === "envoy" ? `as envoy to ${e.where}` : `to watch ${e.where}`}`;
+      const job = e.done ? `${c.name}'s job's errand is done` : `${c.name}'s job is ${e.what === "envoy" ? `as envoy to ${e.where}` : e.what === "stay" ? "to stay at your court" : `to watch ${e.where}`}`;
       return `${job}: another errand is a new job, offered with order renew (what, where), which they may take or not`;
     };
 
@@ -686,7 +688,10 @@ export class OrderValidator {
         }
 
         case "payCarriers":
+          return null;
+
         case "huntBands":
+          for (const x of order.provinces ?? []) if (!Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;
           return null;
 
         case "hunt":

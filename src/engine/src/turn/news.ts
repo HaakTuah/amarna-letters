@@ -45,7 +45,7 @@ P.newsSeason = function () {
     // The talk of the court where it stands: whose people it holds or put to death, and (Haakon's answers to item 11a) the
     // promises to pay kept and broken whose word has reached it.
     for (const l of S.losses) if (l.court === court && S.turn - l.turn <= HeardData.seasons) hear(c, lossKey(l));
-    for (const f of S.payFacts) if (S.turn - f.turn <= HeardData.seasons && f.heardAt.getOrDefault(court, Number.MAX_SAFE_INTEGER) <= S.turn) hearPay(c, f.id);
+    for (const f of S.payFacts) if (S.turn - f.turn <= HeardData.seasons && f.heardAt.getOrDefault(court, Number.MAX_SAFE_INTEGER) <= S.turn) hearPay(S, c, f.id, f.turn);
     // A person notes what it sees of the court, to sell elsewhere, once every few seasons (Haakon's answers to item 11b:
     // anyone may sell what he knows): a free person, a servant abroad, and a servant at its master's court only if it is
     // one who would sell its master's secrets (greedy and disloyal).
@@ -73,13 +73,14 @@ P.newsSeason = function () {
     if (lines.length === 0) continue;
     c.news = [...c.news.filter((n) => n.court !== court), newNewsHeld({ court, turn: S.turn, lines, honest })].slice(-NewsData.keep);
   }
-  // People standing at the same court pass on what they heard of losses abroad.
+  // People standing at the same court pass on what they heard of losses abroad, and of promises kept or broken.
+  const turnOf = new globalThis.Map(S.payFacts.map((f) => [f.id, f.turn]));
   for (const [, here] of present.entries()) {
     if (here.length < 2) continue;
     const all = [...new Set(here.flatMap((c) => c.heard))];
     for (const c of here) for (const k of all) hear(c, k);
     const paid = [...new Set(here.flatMap((c) => c.heardPay))];
-    for (const c of here) for (const k of paid) hearPay(c, k);
+    for (const c of here) for (const k of paid) hearPay(S, c, k, turnOf.get(k) ?? 0);
   }
   foldOldPay(S, HeardData.seasons);
 };
@@ -119,6 +120,21 @@ P.buyNewsOrder = function (p, o) {
     c.facts.push(f);
     this.rumor(o.court, p, f.text, c.id, "Name", f.id);
     logEvent(S, "secrets-sold", `${c.name} was caught selling ${o.court}'s secrets to ${p}.`, [], "secrets-caught");
+  }
+  // Haakon's answers to item 11b+ ("Reports"): what a servant's errand asked for belongs in his report under the job, in his
+  // own words; selling it, to his master or to anyone his master hears of, is evidence of a broken job, his master's to act
+  // on and to tell others. The engine judges no report: it records only the sale.
+  const k = c.contract;
+  const errand = k?.errand ?? null;
+  if (c.status === "Employed" && c.employer !== null && k !== null && errand !== null && errand.what !== "stay" && errand.where === o.court && n.turn >= k.startTurn) {
+    const master = c.employer;
+    const f = newFact({ id: newId(S, "f"), text: `Sold to ${land(p)} what their errand to ${land(o.court)} for ${land(master)} asked of them (season ${S.turn}).`, secrecy: "Hidden", tag: "sold-report", knownBy: [] });
+    c.facts.push(f);
+    if (p === master) {
+      f.knownBy.push(master);
+      notify(S, master, "Notice", "Sold what belonged in a report", `What ${c.name} sold you of ${o.court} is what their errand there asked of them, which belongs in their report under the job. It is evidence of a broken job: yours to act on (withhold the rest of the fee, dismiss them) and to tell others.`, c.id);
+    } else if (this.r("report-sold", `${c.id}|${S.turn}`).chance(NewsData.secretsCaught / 100)) this.rumor(master, p, f.text, c.id, "Name", f.id);
+    logEvent(S, "report-sold", `${c.name} sold ${p} what their errand to ${o.court} asked of them.`, [], "report-sold");
   }
   notify(S, p, "SpyReport", `News of ${o.court} from ${c.name}`, `${c.name} sold you what they saw at the court of ${o.court} in season ${n.turn} (${S.turn - n.turn} seasons ago), for ${formatMoney(n.price)}: ${n.lines.join(" ")} A seller's word: it may be stale, and a greedy seller may make more of it than he saw.`, c.id);
   logEvent(S, "news-sold", `${c.name} sold ${p} news of ${o.court}${n.honest ? "" : ", made out larger than he saw"}.`, [p], "news-sold");

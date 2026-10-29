@@ -82,6 +82,8 @@ P.nameHeard = function (j) {
   const f = c?.facts.find((x) => x.id === j.taskId) ?? null;
   if (c === null || f === null || f.knownBy.includes(j.to)) return;
   f.knownBy.push(j.to);
+  if (f.tag === "sold-report") notify(S, j.to, "Notice", "Sold what belonged in a report", `Word has come that ${c.name}, in your service, sold another king what their errand asked of them, which belongs in their report under the job: evidence of a broken job, yours to act on and to tell others.`, c.id);
+  if (f.tag === "outlaw") notify(S, j.to, "Notice", "Robbers named", `Word has come: ${j.text ?? ""} ${c.name} rode with the Habiru.`, c.id);
   if (f.tag === "sold-secrets") notify(S, j.to, "Notice", "Secrets sold", `Word has come that ${c.name}, in your service, sold what they know of your court to another king.`, c.id);
   const seasons = Math.max(0, j.arriveTurn - j.departTurn);
   const delta = f.tag === "outcome" ? Math.round(NameGain * (1 + TaleGrowth * seasons)) : f.tag === "outcome-bad" || f.tag === "impostor" ? -NameLoss : 0;

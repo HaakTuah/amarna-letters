@@ -89,6 +89,11 @@ export interface Journey {
    */
   waitAt: string | null;
   carrier: string | null;
+  /**
+   * For a report its spy walks to the border himself (Haakon's answers to item 11b+): the province of its master's where
+   * the realm's couriers take it, once the spy's walk has passed there; null otherwise.
+   */
+  border: string | null;
   fee: number;
 }
 
@@ -122,6 +127,7 @@ export function newJourney(init: Partial<Journey> = {}): Journey {
     gaveUp: false,
     waitAt: null,
     carrier: null,
+    border: null,
     fee: 0,
     ...init,
   };
@@ -153,6 +159,7 @@ export const JourneySchema: ObjSchema<Journey> = obj("Journey", newJourney, {
   gaveUp: B,
   waitAt: opt(S),
   carrier: opt(S),
+  border: opt(S),
   fee: I,
 });
 

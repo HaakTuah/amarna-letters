@@ -1,7 +1,7 @@
 import { Dict } from "../core/collections.ts";
 import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
-import { type Errand, ErrandSchema, type Hoard, HoardSchema, type LendOffer, LendOfferSchema, type Strategy } from "./money.ts";
+import { type Errand, ErrandSchema, type Hoard, HoardSchema, type LendOffer, LendOfferSchema, type PayOld, PayOldSchema, type Strategy } from "./money.ts";
 import { type ChiefChoice, ChiefChoiceSchema, type ReportsChoice, ReportsChoiceSchema } from "./life.ts";
 
 export const SecrecyValues = ["Public", "Hidden", "Deep"] as const;
@@ -159,14 +159,17 @@ export const MemoryEntrySchema: ObjSchema<MemoryEntry> = obj("MemoryEntry", newM
   text: S,
 });
 
-/** What a job's errand is (Haakon's answers to item 11a): carrying a mission to a court, or watching a court or a province. */
-export const JobWhatValues = ["envoy", "spy"] as const;
+/**
+ * What a job's errand is (Haakon's answers to item 11a): carrying a mission to a court, or watching a court or a province;
+ * and (Haakon's answers to item 11b+) staying at the employer's court until the term's end, an errand like any other.
+ */
+export const JobWhatValues = ["envoy", "spy", "stay"] as const;
 export type JobWhat = (typeof JobWhatValues)[number];
 
 /**
  * A job's errand ("A job is always an errand", Haakon's answers to items 11a and 11a+): what to do and where; the term is
- * by when. `where` is the court an envoy goes to, or the court or province a spy watches. `done`: the envoy has had its
- * audience there, or the spy has come home from its post.
+ * by when. `where` is the court an envoy goes to, the court or province a spy watches, or the employer's own court for a
+ * stay. `done`: the envoy has had its audience there, or the spy has come home from its post; a stay is done at its term.
  */
 export interface JobErrand {
   what: JobWhat;
@@ -179,6 +182,23 @@ export function newJobErrand(init: Partial<JobErrand> = {}): JobErrand {
 }
 
 export const JobErrandSchema: ObjSchema<JobErrand> = obj("JobErrand", newJobErrand, { what: S, where: S, done: B });
+
+/**
+ * A stay at court waiting beside an errand given during it (Haakon's answers to item 11b+: each errand given during a stay
+ * is its own job with its own fee): until when the stay runs, the rest of its fee still to come, and whether the employer
+ * ordered it paid when the stay is done. When the errand's job is done, the stay goes on if its term has not run out.
+ */
+export interface StayLeft {
+  until: number;
+  rest: number;
+  payOnDone: boolean;
+}
+
+export function newStayLeft(init: Partial<StayLeft> = {}): StayLeft {
+  return { until: 0, rest: 0, payOnDone: false, ...init };
+}
+
+export const StayLeftSchema: ObjSchema<StayLeft> = obj("StayLeft", newStayLeft, { until: I, rest: I, payOnDone: B });
 
 /**
  * A job (item 11a, "Jobs, not wages", reworked by Haakon's answers to items 11a and 11a+): one errand, with what to do,
@@ -212,6 +232,8 @@ export interface Contract {
    * it comes home by the roads (Haakon's answers to item 11a). Until then the court does not count him its own.
    */
   knownFrom: number;
+  /** The stay this job was given during, which goes on when it is done (see {@link StayLeft}); null if none. */
+  stay: StayLeft | null;
 }
 
 /** Whether a court knows that a man in its employ took his job (see {@link Contract.knownFrom}). */
@@ -230,6 +252,7 @@ export function newContract(init: Partial<Contract> = {}): Contract {
     withheld: false,
     captured: false,
     knownFrom: 0,
+    stay: null,
     ...init,
   };
 }
@@ -246,6 +269,7 @@ export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, 
   withheld: B,
   captured: B,
   knownFrom: I,
+  stay: () => StayLeftSchema,
 });
 
 export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;
@@ -334,6 +358,10 @@ export interface Character {
   carriedFor: number;
   /** The promises to pay it has heard kept or broken (ids of {@link PayFact}), newest last: a court's record is news. */
   heardPay: string[];
+  /** Older talk of promises kept or broken, by party, that it keeps all its life (Haakon's answers to item 11b+). */
+  payOld: PayOld[];
+  /** The last season whose talk of promises is in its old talk: it hears no more of promises made by then. */
+  heardFrom: number;
   /** What it has heard a job pays a season, from the jobs agreed where it stood and from those it met; null if nothing. */
   heardRate: number | null;
   /** Item 10: the true skills the engine rolls on. */
@@ -429,6 +457,8 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     owedDue: new Dict(),
     carriedFor: 0,
     heardPay: [],
+    payOld: [],
+    heardFrom: 0,
     heardRate: null,
     skills: newSkills(),
     inclination: 0,
@@ -495,6 +525,8 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   owedDue: dict(I),
   carriedFor: I,
   heardPay: list(S),
+  payOld: list(() => PayOldSchema),
+  heardFrom: I,
   heardRate: opt(I),
   skills: () => SkillsSchema,
   inclination: I,

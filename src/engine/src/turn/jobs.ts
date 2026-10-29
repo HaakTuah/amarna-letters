@@ -9,9 +9,9 @@
 import { clamp, idiv, toInt } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { Dict } from "../core/collections.ts";
-import { isPowerParty, MoneyData, newPayFact, newPayRecord } from "../model/money.ts";
+import { isPowerParty, MoneyData, newPayFact, newPayOld, newPayRecord } from "../model/money.ts";
 import type { PayFeeOrder } from "../model/orders.ts";
-import { gain, newContract, remember, type Character, type Contract } from "../model/people.ts";
+import { gain, newContract, newJobErrand, remember, type Character, type Contract } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { isAlive, logEvent, newId, notify, char, type GameState } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -33,8 +33,21 @@ declare module "./core.ts" {
 
 const P = TurnEngine.prototype;
 
-/** A party's record of paying as someone knows it: a person by what it heard, a court by what has reached it, or (null) the truth. */
-export function recordKnown(s: GameState, party: string, knower: Character | Power | null): { kept: number; broken: number } {
+/**
+ * How much talk of a promise heard `age` seasons ago weighs with a script person, out of 1 ("Memory" in "The game in one
+ * page": a script character weighs old news less as it ages, by his own formula, and never loses it): half at `talkHalf`
+ * seasons, plus a season for every ten points of its loyalty, and never nothing.
+ */
+export function talkWeight(c: Character, age: number): number {
+  const half = MoneyData.talkHalf + idiv(c.traits.loyalty, 10);
+  return half / (half + Math.max(0, age));
+}
+
+/**
+ * A party's record of paying as someone knows it: a person by what it heard, a court by what has reached it, or (null) the
+ * truth. A person keeps all it heard; `weighed`, each promise counts as far as the person's age weighting lets it.
+ */
+export function recordKnown(s: GameState, party: string, knower: Character | Power | null, weighed = false): { kept: number; broken: number } {
   if (knower === null) return s.payRecords.tryGet(party) ?? { kept: 0, broken: 0 };
   let kept = 0;
   let broken = 0;
@@ -48,11 +61,17 @@ export function recordKnown(s: GameState, party: string, knower: Character | Pow
       }
     return { kept, broken };
   }
+  const w = (turn: number): number => (weighed ? talkWeight(knower, s.turn - turn) : 1);
+  for (const o of knower.payOld)
+    if (o.party === party) {
+      kept += o.kept * w(o.turn);
+      broken += o.broken * w(o.turn);
+    }
   const known = new Set(knower.heardPay);
   for (const f of s.payFacts)
     if (f.party === party && known.has(f.id)) {
-      if (f.kept) kept++;
-      else broken++;
+      if (f.kept) kept += w(f.turn);
+      else broken += w(f.turn);
     }
   return { kept, broken };
 }
@@ -62,8 +81,8 @@ export function recordKnown(s: GameState, party: string, knower: Character | Pow
  * ("A name made of outcomes"): a person by what it heard, a court by what has reached it; a party always knows its own.
  */
 export function trustIn(s: GameState, party: string, knower: Character | Power | null = null): number {
-  const r = recordKnown(s, party, knower === party ? null : knower);
-  return clamp(MoneyData.trustStart + MoneyData.trustKept * r.kept - MoneyData.trustBroken * r.broken, MoneyData.trustLow, 100);
+  const r = recordKnown(s, party, knower === party ? null : knower, true);
+  return clamp(Math.round(MoneyData.trustStart + MoneyData.trustKept * r.kept - MoneyData.trustBroken * r.broken), MoneyData.trustLow, 100);
 }
 
 /** What a job is worth to the person who takes it: the advance in hand, and the rest as far as it trusts the employer. */
@@ -104,18 +123,54 @@ P.recordPay = function (party, kept, where, payee = null) {
     else if (where !== null && isAlive(S, where)) f.heardAt.set(k, S.turn + (k === where ? 0 : this.travelTurns(where, k)));
   }
   S.payFacts.push(f);
-  if (payee !== null) hearPay(payee, f.id);
+  if (payee !== null) hearPay(S, payee, f.id, f.turn);
   if (!isPowerParty(party)) {
     const c = S.characters.find((x) => x.id === party);
-    if (c !== undefined) hearPay(c, f.id);
+    if (c !== undefined) hearPay(S, c, f.id, f.turn);
   }
 };
 
-/** A person hears of a promise kept or broken; it keeps the newest in mind. */
-export function hearPay(c: Character, id: string): void {
-  if (c.heardPay.includes(id)) return;
+/** A person hears of a promise kept or broken; it keeps the newest one by one, and the older as old talk, never lost. */
+export function hearPay(s: GameState, c: Character, id: string, turn: number): void {
+  // Talk of promises made no later than what it already keeps as old talk is in its old talk, or it was never told it.
+  if (turn <= c.heardFrom || c.heardPay.includes(id)) return;
   c.heardPay.push(id);
-  if (c.heardPay.length > MoneyData.heardKeep) c.heardPay.splice(0, c.heardPay.length - MoneyData.heardKeep);
+  // Folded a score at a time, so the sorting is rare.
+  if (c.heardPay.length <= MoneyData.heardKeep + 20) return;
+  const turnOf = new Map(s.payFacts.map((f) => [f.id, f.turn]));
+  const oldest = sortBy([...c.heardPay], [(x: string) => turnOf.get(x) ?? 0, cmpNum]).slice(0, c.heardPay.length - MoneyData.heardKeep);
+  c.heardFrom = Math.max(c.heardFrom, ...oldest.map((x) => turnOf.get(x) ?? 0));
+  // What it heard of promises made in the same season as those folded goes with them, so nothing is counted twice.
+  keepAsOld(s, c, c.heardPay.filter((x) => (turnOf.get(x) ?? 0) <= c.heardFrom));
+}
+
+/**
+ * Talk a person heard, folded into its old talk ({@link PayOld}): counted by party, at the mean season of the promises. It
+ * keeps it all its life; a model person also finds it among its own notes, to keep or drop when it condenses them.
+ */
+function keepAsOld(s: GameState, c: Character, ids: string[]): void {
+  const facts = new Map(s.payFacts.map((f) => [f.id, f]));
+  const told = new Map<string, { kept: number; broken: number }>();
+  for (const id of ids) {
+    const f = facts.get(id);
+    if (f === undefined) continue;
+    let o = c.payOld.find((x) => x.party === f.party);
+    if (o === undefined) c.payOld.push((o = newPayOld({ party: f.party, turn: f.turn })));
+    const n = o.kept + o.broken;
+    o.turn = Math.round((o.turn * n + f.turn) / (n + 1));
+    if (f.kept) o.kept++;
+    else o.broken++;
+    const t = told.get(f.party) ?? { kept: 0, broken: 0 };
+    if (f.kept) t.kept++;
+    else t.broken++;
+    told.set(f.party, t);
+  }
+  for (const [party, t] of told) {
+    const who = isPowerParty(party) ? `the king of ${land(party as Power)}` : (s.characters.find((x) => x.id === party)?.name ?? party);
+    const parts = [t.kept > 0 ? `kept ${t.kept}` : "", t.broken > 0 ? `broke ${t.broken}` : ""].filter((x) => x !== "");
+    remember(c, s.turn, `Old talk I keep: ${who} ${parts.join(" and ")} of the promises to pay I heard of.`);
+  }
+  c.heardPay = c.heardPay.filter((id) => !ids.includes(id));
 }
 
 /** A person hears what a job paid a season, and what it would ask moves part of the way towards it. */
@@ -131,6 +186,11 @@ P.jobFits = function (c, p, k, term) {
   const e = k.errand;
   if (e === null) return null;
   const from = c.at ?? p;
+  // A stay: to reach the court and stand there at least a season before its deadline.
+  if (e.what === "stay") {
+    const least = (from === p ? 0 : this.travelTurns(from, p)) + 1;
+    return term < least ? `the stay must reach your court and last a season, ${least} seasons from here, more than the ${term} offered` : null;
+  }
   const there = e.what === "envoy" || isPowerParty(e.where) ? this.map.capital(e.where as Power).id : e.where;
   if (!this.map.exists(there)) return `there is no ${e.what === "envoy" ? "court" : "court or province"} '${e.where}'`;
   // One hired away from its master's court first walks to it to be sent, unless it is a spy whose post is where it stands.
@@ -286,6 +346,20 @@ P.jobsDone = function (stood) {
     let paid = rest === 0;
     if (rest > 0 && k.payOnDone && !k.withheld) paid = this.settleRest(c, emp, false);
     if (!paid) this.fallsDue(c, emp, rest, `My job for ${land(emp)} is done${k.payOnDone && !k.withheld ? ", and the treasury could not pay the rest" : ""}.`);
+    // Haakon's answers to item 11b+: the stay this errand was given during goes on if its term has not run out; if it has,
+    // it is done too, and its rest is paid as its own standing order says, or falls due.
+    const st = k.stay;
+    if (st !== null && st.until >= S.turn) {
+      c.contract = newContract({ fee: st.rest, advance: 0, startTurn: S.turn, untilTurn: st.until, errand: newJobErrand({ what: "stay", where: emp }), payOnDone: st.payOnDone, knownFrom: k.knownFrom });
+      remember(c, S.turn, `My errand for ${land(emp)} is done; I stay at its court until season ${st.until}, as agreed before.`);
+      notify(S, emp, "Notice", NoticeTitle, `${c.name}${back} has done their errand${rest > 0 ? (paid ? `, and was paid the rest of its fee, ${formatMoney(rest)}` : `; the rest of its fee, ${formatMoney(rest)}, is due`) : ""}. They stay at your court until turn ${st.until}, as their earlier job said.`, c.id);
+      continue;
+    }
+    if (st !== null && st.rest > 0) {
+      c.contract = newContract({ fee: st.rest, advance: 0, payOnDone: st.payOnDone });
+      if (!(st.payOnDone && this.settleRest(c, emp, false))) this.fallsDue(c, emp, st.rest, `My stay at the court of ${land(emp)} is over too.`);
+      c.contract = k;
+    }
     const term = Math.max(1, k.untilTurn - k.startTurn);
     const t = S.treasuries.get(emp);
     // The standing offer: the same job again, which the man takes only if it is still worth its while and it was paid.
@@ -319,8 +393,9 @@ P.jobsDone = function (stood) {
 };
 
 /**
- * Old news folded away, once a season: a promise kept or broken more than a dozen seasons ago, heard by every court,
- * leaves the talk; each court keeps it in its record, and people forget it.
+ * Old news folded away, once a season: a promise kept or broken more than a dozen seasons ago, heard by every court, goes
+ * into each court's record and into the old talk of each person who heard it (Haakon's answers to item 11b+: no rule
+ * forgets talk of promises).
  */
 export function foldOldPay(s: GameState, keep: number): void {
   const old = s.payFacts.filter((f) => s.turn - f.turn > keep && [...f.heardAt.values()].every((t) => t <= s.turn));
@@ -334,6 +409,9 @@ export function foldOldPay(s: GameState, keep: number): void {
       if (f.kept) r.kept++;
       else r.broken++;
     }
+  for (const c of s.characters) {
+    const ids = c.heardPay.filter((id) => gone.has(id));
+    if (ids.length > 0) keepAsOld(s, c, ids);
+  }
   s.payFacts = s.payFacts.filter((f) => !gone.has(f.id));
-  for (const c of s.characters) if (c.heardPay.some((id) => gone.has(id))) c.heardPay = c.heardPay.filter((id) => !gone.has(id));
 }

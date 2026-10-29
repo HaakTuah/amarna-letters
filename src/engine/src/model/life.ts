@@ -16,9 +16,12 @@ export interface CourtSeen {
   hiring: number | null;
   /** How much of a promised fee or loan it counts on there, in percent, from its record. */
   trust: number;
-  /** Its record: promises to pay kept and broken. */
+  /** Its record: promises to pay kept and broken, all it heard. */
   kept: number;
   broken: number;
+  /** The same, in tenths, each weighed by its age as a script person weighs old talk (Haakon's answers to item 11b+). */
+  keptAged: number;
+  brokenAged: number;
   /** Item 11b: what it heard of the court: people it put to death, and its own people lost abroad (caught or put to death). */
   executions: number;
   lost: number;
@@ -36,7 +39,7 @@ export interface CourtSeen {
 }
 
 export function newCourtSeen(init: Partial<CourtSeen> = {}): CourtSeen {
-  return { court: "Egypt", travel: 0, hiring: null, trust: 0, kept: 0, broken: 0, executions: 0, lost: 0, seized: 0, grain: 100, growth: 100, besieged: false, ask: 0, stranger: false, ...init };
+  return { court: "Egypt", travel: 0, hiring: null, trust: 0, kept: 0, broken: 0, keptAged: 0, brokenAged: 0, executions: 0, lost: 0, seized: 0, grain: 100, growth: 100, besieged: false, ask: 0, stranger: false, ...init };
 }
 
 export const CourtSeenSchema: ObjSchema<CourtSeen> = obj("CourtSeen", newCourtSeen, {
@@ -46,6 +49,8 @@ export const CourtSeenSchema: ObjSchema<CourtSeen> = obj("CourtSeen", newCourtSe
   trust: I,
   kept: I,
   broken: I,
+  keptAged: I,
+  brokenAged: I,
   executions: I,
   lost: I,
   seized: I,
@@ -80,16 +85,18 @@ export interface PersonHere {
   name: string;
   /** "free", "serving Egypt", ... */
   standing: string;
-  /** Its record of paying what it promised. */
+  /** Its record of paying what it promised, all it heard, and in tenths weighed by age (see {@link CourtSeen.keptAged}). */
   kept: number;
   broken: number;
+  keptAged: number;
+  brokenAged: number;
 }
 
 export function newPersonHere(init: Partial<PersonHere> = {}): PersonHere {
-  return { id: "", name: "", standing: "", kept: 0, broken: 0, ...init };
+  return { id: "", name: "", standing: "", kept: 0, broken: 0, keptAged: 0, brokenAged: 0, ...init };
 }
 
-export const PersonHereSchema: ObjSchema<PersonHere> = obj("PersonHere", newPersonHere, { id: S, name: S, standing: S, kept: I, broken: I });
+export const PersonHereSchema: ObjSchema<PersonHere> = obj("PersonHere", newPersonHere, { id: S, name: S, standing: S, kept: I, broken: I, keptAged: I, brokenAged: I });
 
 /** An approach made to it, waiting for its answer. */
 export interface ApproachSeen {
@@ -338,9 +345,11 @@ export interface LandSeen {
   army: boolean;
   bands: number;
   coast: boolean;
+  /** Haakon's answers to item 11b+: talk has reached him of a standing hunt over this land. */
+  hunted: boolean;
 }
 
-const LandSeenSchema = obj("LandSeen", (): LandSeen => ({ province: "", name: "", holder: null, purse: 0, stores: 0, army: false, bands: 0, coast: false }), {
+const LandSeenSchema = obj("LandSeen", (): LandSeen => ({ province: "", name: "", holder: null, purse: 0, stores: 0, army: false, bands: 0, coast: false, hunted: false }), {
   province: S,
   name: S,
   holder: opt(S),
@@ -349,6 +358,7 @@ const LandSeenSchema = obj("LandSeen", (): LandSeen => ({ province: "", name: ""
   army: B,
   bands: I,
   coast: B,
+  hunted: B,
 });
 
 /** Whom a chief's band kills of the travellers it robs: nobody, a king's servant who could name him, or everyone. */
@@ -429,10 +439,12 @@ export interface ReportsView {
   hired: number | null;
   /** Its master's standing order pays carriers on delivery. */
   paysOnDelivery: boolean;
+  /** Haakon's answers to item 11b+: the province of its master's next to its post, by name, it could walk them to; null if none. */
+  border: string | null;
 }
 
 export function newReportsView(init: Partial<ReportsView> = {}): ReportsView {
-  return { turn: 0, post: "", master: "Egypt", reports: 0, waited: 0, purse: 0, home: 0, passing: 0, hired: null, paysOnDelivery: false, ...init };
+  return { turn: 0, post: "", master: "Egypt", reports: 0, waited: 0, purse: 0, home: 0, passing: 0, hired: null, paysOnDelivery: false, border: null, ...init };
 }
 
 export const ReportsViewSchema: ObjSchema<ReportsView> = obj("ReportsView", newReportsView, {
@@ -446,6 +458,7 @@ export const ReportsViewSchema: ObjSchema<ReportsView> = obj("ReportsView", newR
   passing: I,
   hired: opt(I),
   paysOnDelivery: B,
+  border: opt(S),
 });
 
 /** What the spy decides for the next season: the most it pays now from its purse for a carrier, and whether it carries them home itself if nobody takes them. */

@@ -86,6 +86,7 @@ P.chiefView = function (c, b) {
         (o) => o.men,
       ),
       coast: p.isCoastal,
+      hunted: this.huntHeard(b.province, id),
     };
   };
   const here = this.map.get(b.province);
@@ -130,6 +131,7 @@ P.reportsView = function (c) {
     passing: idiv(price * LetterData.sidePercent, 100),
     hired: court ? idiv(price * LetterData.hiredPercent, 100) : null,
     paysOnDelivery: S.payCarriers.includes(master),
+    border: ((b) => (b === null ? null : this.map.get(b).name))(this.borderOf(c, master)),
   });
 };
 

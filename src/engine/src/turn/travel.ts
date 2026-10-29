@@ -380,6 +380,7 @@ P.stopped = function (j, c, province, stop) {
       if (j.kind !== "Travel") this.overdue(masterOf(j), c, counterpart(j), outbound(j) ? j.arriveTurn + this.travelTurns(counterpart(j), masterOf(j)) : j.arriveTurn, null);
       return;
     }
+    if (band !== null) this.robbersNamed(c, band, province);
     if (j.kind === "Travel") {
       remember(c, S.turn, `Outlaws robbed me in ${name}` + (purse > 0 ? ` of the ${formatMoney(purse)} I carried.` : "."));
       logEvent(S, "travel", `Outlaws robbed ${c.name} in ${name}${purse > 0 ? ` of ${formatMoney(purse)}` : ""}.`, [], "road-outlaws");
