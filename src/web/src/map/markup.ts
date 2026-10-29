@@ -2,16 +2,18 @@
  * The parts of the map that never change during a game, written once as plain SVG markup. Colours come from CSS variables,
  * so light and dark modes need no re-render.
  */
-import { AllPowers, Crossings, Rough, StartWalls, WorldMap } from "@amarna/engine";
+import { AllPowers, Crossings, Rough, StartWalls, WorldMap, isGreatKing } from "@amarna/engine";
 import {
-  CyprusPath,
-  Gulf,
+  CoastPath,
   Deserts,
   F,
   Fields,
   GeoLabels,
+  IslandPath,
+  LakePath,
   LandPath,
-  Mediterranean,
+  MainlandPath,
+  PuntDoor,
   Ranges,
   Rivers,
   SeaPath,
@@ -20,9 +22,10 @@ import {
   add,
   city,
   labelAt,
+  landClipOf,
+  ll,
   mul,
   peaks,
-  smoothClosed,
   sub,
   unit,
 } from "./art.ts";
@@ -52,8 +55,10 @@ function buildDefs(): string {
   // Fog: a veil of fine hatching, so the colours of ownership still show through it.
   sb += `<pattern id="fog" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="5" height="2.6" class="veil"/></pattern>`;
   sb += `<pattern id="fogsea" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="5" height="2.6" class="veil-sea"/></pattern>`;
-  sb += `<clipPath id="landclip"><path d="${LandPath} ${CyprusPath}" clip-rule="evenodd"/></clipPath>`;
-  sb += `<clipPath id="seaclip"><path d="${smoothClosed(Mediterranean)} ${smoothClosed(Gulf)} ${CyprusPath}" clip-rule="evenodd"/></clipPath>`;
+  sb += `<clipPath id="landclip"><path d="${LandPath}" clip-rule="evenodd"/></clipPath>`;
+  sb += `<clipPath id="mainclip"><path d="${MainlandPath}" clip-rule="evenodd"/></clipPath>`;
+  sb += `<clipPath id="isleclip"><path d="${IslandPath}" clip-rule="evenodd"/></clipPath>`;
+  sb += `<clipPath id="seaclip"><path d="${SeaPath}" clip-rule="evenodd"/></clipPath>`;
   for (const [id, d] of Shapes) sb += `<clipPath id="cl-${id}"><path d="${d}"/></clipPath>`;
   for (const p of AllPowers) sb += `<symbol id="em-${glyphId(p)}" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem(p)}"/></symbol>`;
   sb += `<symbol id="g-army" viewBox="-12 -12 24 24" overflow="visible"><path d="${Chariot}"/></symbol>`;
@@ -74,22 +79,26 @@ function buildDefs(): string {
   return sb + "</defs>";
 }
 
+const Cartouche = ll(23.6, 45.3);
+const Compass = ll(25.6, 48.6);
+
 function buildBase(): string {
   let sb = `<g class="base">`;
-  sb += `<rect class="sea-bg" x="-300" y="-300" width="1600" height="1300"/>`;
-  sb += `<rect class="sea-waves" x="-300" y="-300" width="1600" height="1300" fill="url(#waves)"/>`;
+  sb += `<rect class="sea-bg" x="-300" y="-300" width="1600" height="1700"/>`;
+  sb += `<rect class="sea-waves" x="-300" y="-300" width="1600" height="1700" fill="url(#waves)"/>`;
   // A second, paler coast line out at sea, as engraved maps draw shallows.
-  sb += `<path class="shallows" d="${SeaPath} ${CyprusPath}"/>`;
-  sb += `<path class="land" d="${LandPath} ${CyprusPath}" fill-rule="evenodd"/>`;
+  sb += `<path class="shallows" d="${CoastPath}"/>`;
+  sb += `<path class="land" d="${LandPath}" fill-rule="evenodd"/>`;
   sb += `<g clip-path="url(#landclip)">`;
   for (const d of Fields) sb += `<path class="fields" d="${d}"/>`;
   for (const p of Map_.provinces.filter((x) => !x.isSea)) {
     const d = Shapes.get(p.id);
-    if (d !== undefined) sb += `<path d="${d}" fill="url(#fert${tier(p.yield)})" class="fert"/>`;
+    if (d !== undefined) sb += `<path d="${d}" fill="url(#fert${tier(p.yield)})" class="fert" clip-path="${landClipOf(p.id)}"/>`;
   }
   for (const d of Deserts) sb += `<path class="desert" d="${d}" fill="url(#stipple)"/>`;
   for (const d of WasteShapes) sb += `<path class="waste" d="${d}"/>`;
   sb += "</g>";
+  sb += `<path class="lake" d="${LakePath}"/>`;
   for (const r of Rivers) {
     sb += `<path class="river-casing" d="${r.path}" style="stroke-width:${F(r.width + 2.6)}"/>`;
     sb += `<path class="river" d="${r.path}" style="stroke-width:${F(r.width)}"/>`;
@@ -107,9 +116,13 @@ function buildBase(): string {
       5.5,
     )}"/>`;
   }
-  sb += `<path class="coast" d="${SeaPath} ${CyprusPath}"/>`;
+  sb += `<path class="coast" d="${CoastPath}"/>`;
   // Province borders, thin, under everything that changes.
-  for (const [id, d] of Shapes) sb += Map_.get(id).isSea ? `<path class="sea-line" d="${d}"/>` : `<path class="cell-line" d="${d}"/>`;
+  for (const clip of ["url(#seaclip)", "url(#mainclip)", "url(#isleclip)"]) {
+    sb += `<g clip-path="${clip}">`;
+    for (const [id, d] of Shapes) if (landClipOf(id) === clip) sb += Map_.get(id).isSea ? `<path class="sea-line" d="${d}"/>` : `<path class="cell-line" d="${d}"/>`;
+    sb += "</g>";
+  }
   // Crossings: a pass or a ford on the connection, drawn across it (a desert road is drawn by the desert itself).
   for (const c of Crossings.filter((x) => x.kind !== "Desert")) {
     const a = city(c.a);
@@ -128,31 +141,69 @@ function buildBase(): string {
   for (const p of Map_.provinces.filter((x) => x.isSea)) {
     const coasts = Map_.coastsOf(p.id);
     const waters = coasts.length > 0 && p.name.endsWith(" waters");
-    sb += `<text class="sea-name${waters ? " waters" : ""}" x="${p.x}" y="${p.y + 4}">${waters ? "waters" : p.name}</text>`;
+    const at = city(p.id);
+    sb += `<text class="sea-name${waters ? " waters" : ""}" x="${F(at.x)}" y="${F(at.y + 4)}">${waters ? "waters" : p.name}</text>`;
   }
-  sb += `<text class="geo faint" x="300" y="12">BLACK SEA</text>`;
+  // Punt, beyond the Red Sea: where newcomers come from, never a market.
+  sb += `<text class="geo" transform="translate(${F(PuntDoor.x)},${F(PuntDoor.y)}) rotate(${F(PuntDoor.angle)})">TO PUNT →</text>`;
   // A cartouche and a compass, in the empty south.
-  sb += `<g class="cartouche" transform="translate(612,690)"><path d="M-74,-15H74L82,0L74,15H-74L-82,0Z"/><text y="4.5">THE LANDS OF THE GREAT KINGS</text></g>`;
-  sb += `<g class="compass" transform="translate(655,620)"><circle r="15"/><path d="M0,-21L4,0L0,21L-4,0Z"/><path d="M-21,0L0,-3L21,0L0,3Z" class="cw"/><text y="-24">N</text></g>`;
+  sb += `<g class="cartouche" transform="translate(${F(Cartouche.x)},${F(Cartouche.y)})"><path d="M-74,-15H74L82,0L74,15H-74L-82,0Z"/><text y="4.5">THE LANDS OF THE GREAT KINGS</text></g>`;
+  sb += `<g class="compass" transform="translate(${F(Compass.x)},${F(Compass.y)})"><circle r="15"/><path d="M0,-21L4,0L0,21L-4,0Z"/><path d="M-21,0L0,-3L21,0L0,3Z" class="cw"/><text y="-24">N</text></g>`;
   return sb + "</g>";
 }
 
+/** The zoom steps at which names give way (screen pixels per map unit): see {@link NameLevels} and zoom.ts (`nz1`...). */
+export const NameSteps: readonly number[] = [0, 0.3, 0.42, 0.6, 0.85, 1.2, 1.7, 2.4, 3.4, 4.8, 6.8];
+
 /**
- * How much a name matters, for the names that give way as the map grows small on screen ("Map on small screens"): 0 a
- * capital, shown always; 1 a great city (a yield of 35 or more, or a fortress), shown from the first zoom step; 2 the
- * rest, shown from the second, where the crowded coasts (the Levant above all) have room for every name.
+ * The zoom step from which each province's name is shown ("Map on small screens"): names give way by importance, so at
+ * each step a name is written only where it touches no more important one. A Great King's capital comes first, then the
+ * other capitals and the fortresses, then the rest, each by its yield. On the true map the Levant's cities stand a few
+ * kilometres apart, so their names come one by one as the coast is zoomed into, and the capitals' first.
  */
-export function nameRank(p: { id: string; capital: boolean; yield: number }): number {
-  if (p.capital) return 0;
-  return p.yield >= 35 || (StartWalls.get(p.id) ?? 0) >= 2 ? 1 : 2;
-}
+export const NameLevels: ReadonlyMap<string, number> = (() => {
+  const named = Map_.provinces.filter((x) => !x.isSea);
+  const weight = (p: (typeof named)[number]): number =>
+    (p.capital && p.home !== null && isGreatKing(p.home) ? 2000 : p.capital || (StartWalls.get(p.id) ?? 0) >= 2 ? 1000 : 0) + p.yield;
+  const order = [...named].sort((a, b) => weight(b) - weight(a) || (a.id < b.id ? -1 : 1));
+  // A name's box on screen at a scale: the font is 10 to 19 pixels (zoom.ts, --lab), and its place below or beside its city scales with it.
+  const box = (p: (typeof named)[number], s: number): [number, number, number, number] => {
+    const font = Math.min(19, Math.max(10, 7.5 + 6 * s)) * (p.capital ? 13.5 / 12.5 : 1);
+    const k = font / (p.capital ? 13.5 : 12.5);
+    const spot = labelAt(p.id);
+    const w = p.name.length * font * (p.capital ? 0.68 : 0.58);
+    const at = city(p.id);
+    const x = at.x * s + spot.dx * k - (spot.anchor === "end" ? w : spot.anchor === "middle" ? w / 2 : 0);
+    const y = at.y * s + spot.dy * k - font * 0.8;
+    return [x, y, x + w, y + font];
+  };
+  const shown = order.map(() => [] as boolean[]);
+  NameSteps.forEach((step, k) => {
+    const s = Math.max(step, 0.2);
+    const placed: [number, number, number, number][] = [];
+    order.forEach((p, i) => {
+      const b = box(p, s);
+      const free = placed.every((o) => b[2] <= o[0] || o[2] <= b[0] || b[3] <= o[1] || o[3] <= b[1]);
+      shown[i][k] = free || k === NameSteps.length - 1;
+      if (shown[i][k]) placed.push(b);
+    });
+  });
+  const levels = new Map<string, number>();
+  order.forEach((p, i) => {
+    let level = NameSteps.length - 1;
+    while (level > 0 && shown[i][level - 1]) level--;
+    levels.set(p.id, level);
+  });
+  return levels;
+})();
 
 function buildLabels(): string {
   let sb = `<g class="labels">`;
   // Each name hangs from its city and grows about it when the map is small on screen (see zoom.ts, --lab).
   for (const p of Map_.provinces.filter((x) => !x.isSea)) {
     const s = labelAt(p.id);
-    sb += `<g transform="translate(${p.x},${p.y})"><text class="plabel${p.capital ? " cap" : nameRank(p) === 1 ? " major" : " minor"}" x="${F(s.dx)}" y="${F(s.dy)}" text-anchor="${s.anchor}">${escape(p.name)}</text></g>`;
+    const at = city(p.id);
+    sb += `<g transform="translate(${F(at.x)},${F(at.y)})"><text class="plabel${p.capital ? " cap" : ""} z${NameLevels.get(p.id)}" x="${F(s.dx)}" y="${F(s.dy)}" text-anchor="${s.anchor}">${escape(p.name)}</text></g>`;
   }
   return sb + "</g>";
 }

@@ -82,6 +82,13 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["megiddo", e(2, "Fair")],
   ["shechem", e(2, "Fair")],
   ["jerusalem", e(2, "Fair")],
+  // Item 11c's cities of Canaan: Hazor the largest town in Canaan (80 ha, the people dossier), the rest small [G]
+  ["akko", e(2, "Fair", 0, true)],
+  ["hazor", e(12, "Fair")],
+  ["gezer", e(2, "Fair")],
+  ["ashkelon", e(2, "Fair", 0, true)],
+  ["lachish", e(3, "Fair")],
+  ["hebron", e(1, "Fair")],
   ["gaza", e(3, "Fair", 0, true)],
   ["suhu", e(3, "Fair")],
   ["arrapha", e(6, "Fair")],

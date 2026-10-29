@@ -80,7 +80,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 24;
+export const CURRENT_VERSION = 26;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration

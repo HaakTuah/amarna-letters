@@ -8,6 +8,8 @@ and the script players' vassal judgements (`bots/vassals.ts`).
 
 ### Thirty powers, one set of rules (`model/power.ts`, `model/map.ts`)
 
+Since item 11c, 36: six cities of Canaan joined, each Egypt's vassal ([the true map](28-the-true-map-and-the-red-sea.md)).
+
 - **The powers** are the seven Great Kings and, after them in the fixed order, 23 city-states and lands under one leader:
   Kaska, Lukka, Isuwa, Carchemish, Alalakh (Mukish), Aleppo (Halab), Ugarit, Nuhashshe, Qadesh, Qatna, Arwad, Amurru,
   Byblos, Sidon, Damascus (Upe), Tyre, Megiddo, Shechem, Jerusalem, Suhu, the Suteans, Arrapha and Elam (Susa). Each

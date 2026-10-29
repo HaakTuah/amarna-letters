@@ -379,6 +379,7 @@ svg.map text { font-family: var(--serif); }
 .map .wave { fill: none; stroke: var(--wave); stroke-width: .9; }
 .map .shallows { fill: none; stroke: var(--sea-shallow); stroke-width: 11; stroke-linejoin: round; }
 .map .land { fill: var(--land); }
+.map .lake { fill: var(--sea); stroke: var(--coast); stroke-width: .8; }
 .map .fields { fill: var(--fields); opacity: .7; }
 .map .fert { opacity: .95; }
 .map .furrow { stroke: var(--furrow); stroke-width: 1; }
@@ -441,7 +442,8 @@ svg.map text { font-family: var(--serif); }
     transform: scale(var(--lab)); transform-box: view-box; transform-origin: 0 0;
 }
 .map .plabel.cap { font-size: 13.5px; letter-spacing: .06em; font-variant: small-caps; }
-.lod0 .map .plabel:not(.cap), .crowd .map .plabel.minor { display: none; }
+/* Names give way by importance (markup.ts, NameLevels): a name of step k shows once zoom.ts has set nzk. */
+.mapview:not(.nz1) .map .plabel.z1, .mapview:not(.nz2) .map .plabel.z2, .mapview:not(.nz3) .map .plabel.z3, .mapview:not(.nz4) .map .plabel.z4, .mapview:not(.nz5) .map .plabel.z5, .mapview:not(.nz6) .map .plabel.z6, .mapview:not(.nz7) .map .plabel.z7, .mapview:not(.nz8) .map .plabel.z8, .mapview:not(.nz9) .map .plabel.z9, .mapview:not(.nz10) .map .plabel.z10 { display: none; }
 .lod0 .map .seen, .lod0 .map .eta, .lod1 .map .eta, .lod0 .map .fogdates, .lod1 .map .fogdates { display: none; }
 .map .fogdates { pointer-events: none; }
 .map .fogdate { font-size: 7.5px; font-style: italic; text-anchor: middle; fill: var(--muted); paint-order: stroke; stroke: var(--land-halo); stroke-width: 2.2px; font-family: var(--sans); transform: scale(var(--lab)); transform-box: view-box; transform-origin: 0 0; }

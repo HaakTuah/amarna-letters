@@ -134,7 +134,7 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   },
   {
     court: "Megiddo",
-    origins: ["Megiddo", "Shechem", "Jerusalem", "Hazor"],
+    origins: ["Megiddo", "Shechem", "Jerusalem", "Hazor", "Akko", "Gezer", "Lachish", "Ashkelon"],
     names: ["Ammu-rapi", "Hadda-yaqar", "Zimri-Baalu", "Abdi-Rasha"],
     callings: ["caravan master", "soldier", "scribe", "herdsman"],
   },

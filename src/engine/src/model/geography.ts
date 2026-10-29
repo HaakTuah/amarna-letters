@@ -71,7 +71,7 @@ export function groundText(g: Ground): string {
  * ({@link defenceGround}); an army that ends a season in desert land its king did not hold pays GameConfig.desertUpkeep
  * for supplies. No rule names a power: Egypt crosses the Sinai freely because it holds it, and so does anyone who takes it.
  */
-export const Rough: readonly string[] = ["mira", "lukka", "isuwa", "amurru", "arbela", "kalavasos", "shechem", "jerusalem", "kaska"];
+export const Rough: readonly string[] = ["mira", "lukka", "isuwa", "amurru", "arbela", "kalavasos", "shechem", "jerusalem", "hebron", "kaska"];
 
 /** Desert provinces (question 5, plan step 15: the Sinai; the Sutean steppe since item 7a). An army in its own land pays no desert cost. */
 export const Desert: readonly string[] = ["sinai", "steppe"];
@@ -102,6 +102,10 @@ export const Crossings: readonly Crossing[] = [
   crossing("delta", "gaza", "Desert", "the Ways of Horus"),
   crossing("gaza", "sinai", "Desert", "the north Sinai"),
   crossing("jerusalem", "sinai", "Desert", "the Negev"),
+  crossing("hebron", "sinai", "Desert", "the Negev"),
+  // To the Red Sea's shore (item 11c): over the Eastern Desert from Thebes, and across the Sinai to the Gulf of Suez.
+  crossing("thebes", "redsea", "Desert", "the Wadi Hammamat"),
+  crossing("sinai", "redsea", "Desert", "the road to the Gulf of Suez"),
 ];
 
 /** The ordered courses of the great rivers, source to mouth (question 10, plan step 2; Nubia since item 7a), and their reaches. */
@@ -173,10 +177,10 @@ const W = (kind: CityWater, ...ids: string[]): [string, CityWater][] => ids.map(
 /** Each land province's chief city's water, from the water dossier. */
 export const CityWaters: ReadonlyMap<string, CityWater> = new Map<string, CityWater>([
   ...W("River", "seha", "apasa", "kizzuwatna", "terqa", "nineveh", "ashur", "ekallate", "sippar", "durkurigalzu", "babylon", "nippur", "ur", "delta", "memphis", "akhetaten", "thebes", "nubia", "isuwa", "carchemish", "alalakh", "qadesh", "damascus", "suhu", "susa"),
-  ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "jerusalem"),
-  ...W("Wells", "harran", "arbela", "kalavasos", "enkomi", "aleppo", "ugarit", "sumur", "sidon", "gaza"),
-  ...W("Outside", "tuwanuwa", "megiddo", "shechem"),
-  ...W("Cisterns", "mira", "sapinuwa", "nesa", "taidu", "nuhashshe", "amurru", "arrapha", "lukka", "kaska"),
+  ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "jerusalem", "gezer"),
+  ...W("Wells", "harran", "arbela", "kalavasos", "enkomi", "aleppo", "ugarit", "sumur", "sidon", "gaza", "akko", "ashkelon", "lachish"),
+  ...W("Outside", "tuwanuwa", "megiddo", "shechem", "hazor"),
+  ...W("Cisterns", "mira", "sapinuwa", "nesa", "taidu", "nuhashshe", "amurru", "arrapha", "lukka", "kaska", "hebron"),
   ...W("Arid", "sinai", "steppe"),
   ...W("Island", "tyre", "arwad"),
 ]);
@@ -289,6 +293,12 @@ export const Climates: ReadonlyMap<string, Climate> = new Map([
   ["megiddo", cl("Rain", "Mild", Sown, "levant")],
   ["shechem", cl("Rain", "Mild", Sown, "levant")],
   ["jerusalem", cl("Rain", "Mild", Sown, "levant")],
+  ["akko", cl("Rain", "Mild", Sown, "levant")],
+  ["hazor", cl("Rain", "Mild", Sown, "levant")],
+  ["gezer", cl("Rain", "Mild", Sown, "levant")],
+  ["ashkelon", cl("Rain", "Mild", Sown, "levant")],
+  ["lachish", cl("Rain", "Mild", Sown, "levant")],
+  ["hebron", cl("Rain", "Mild", Sown, "levant")],
   ["gaza", cl("Rain", "Mild", Sown, "levant")],
 ]);
 

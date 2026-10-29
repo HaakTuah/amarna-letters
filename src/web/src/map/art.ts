@@ -1,9 +1,12 @@
 /**
  * The drawn geography of the board: coasts, seas, rivers, mountains, deserts, the province shapes, and where each province's
  * city, units and label sit. Pure drawing data, computed once; the game's own map data (provinces, connections, terrain)
- * comes from the engine. Coordinates are the engine's 1000 x 720 board.
+ * comes from the engine. Coordinates are the board's, a true projection of the engine's latitudes and longitudes (item 11c, `projection.ts`), and
+ * the coasts, lakes, great rivers and deserts are Natural Earth's (`geo-data.ts`, written by `scripts/map-geography.ts`).
  */
 import { WorldMap, cmpStr, fmt, sortBy } from "@amarna/engine";
+import { DesertRings, LakeRings, LandRings, RiverLines } from "./geo-data.ts";
+import { BoardHeight, BoardWidth, boardPoint } from "./projection.ts";
 
 export interface Pt {
   x: number;
@@ -27,19 +30,13 @@ export interface LabelSpot {
   anchor: string;
 }
 
-export const Width = 1000;
-export const Height = 720;
+export const Width = BoardWidth;
+export const Height = BoardHeight;
 const Map_ = WorldMap.default;
 
 /** A number as the map's path data writes it ("0.#"). */
 export function F(v: number): string {
   return fmt(v, "0.#");
-}
-
-function P(...xy: number[]): Pt[] {
-  const pts: Pt[] = [];
-  for (let i = 0; i + 1 < xy.length; i += 2) pts.push({ x: xy[i], y: xy[i + 1] });
-  return pts;
 }
 
 /** A Catmull-Rom curve through the points, as cubic Béziers. */
@@ -71,28 +68,102 @@ export function polygon(pts: readonly Pt[]): string {
   return sb + "Z";
 }
 
-// ---------------------------------------------------------------- coasts
+// ---------------------------------------------------------------- the projection
 
-/** The Great Green (the Mediterranean), from the Aegean shore round to the Egyptian coast. */
-export const Mediterranean = P(-300, -300, 36, -300, 34, 0, 41, 28, 30, 56, 47, 80, 40, 108, 53, 130, 38, 152, 33, 180, 43, 204, 30, 228, 50, 246, 80, 252, 110, 266, 140, 286, 172, 300, 205, 296, 228, 281, 262, 272, 300, 268, 330, 276, 362, 283, 398, 291, 428, 281, 452, 272, 467, 285, 461, 303, 457, 326, 465, 351, 469, 372, 461, 398, 455, 424, 452, 452, 448, 480, 446, 505, 446, 530, 440, 556, 432, 580, 414, 589, 392, 586, 372, 580, 352, 573, 334, 575, 316, 578, 296, 583, 268, 588, 238, 593, 198, 599, 158, 604, 118, 607, 78, 610, 38, 612, 0, 614, -300, 640);
-/** Alashiya, the copper island. */
-export const Cyprus = P(240, 419, 251, 401, 274, 391, 305, 386, 336, 382, 360, 376, 386, 367, 410, 354, 421, 349, 415, 362, 399, 379, 389, 397, 372, 412, 350, 422, 320, 430, 290, 436, 262, 432, 244, 427);
-/** A sliver of the Black Sea along the top edge, north of Hatti. */
-export const BlackSea = P(196, -300, 206, 0, 222, 11, 262, 19, 302, 22, 346, 20, 400, 24, 452, 18, 500, 14, 542, 16, 582, 10, 612, 0, 650, -300);
-/** The Lower Sea (the Gulf), in the corner beyond Ur, its head reaching up towards Elam. */
-export const Gulf = P(1300, 500, 1000, 520, 990, 560, 975, 600, 962, 640, 952, 680, 945, 720, 940, 1000, 1300, 1000);
-/** The island cities off the coasts: Arwad off Ṣumur, and Dilmun in the Gulf. Drawn as small round islands. */
-const isle = (cx: number, cy: number, r: number): Pt[] => Array.from({ length: 8 }, (_, i) => ({ x: cx + r * Math.cos((i * Math.PI) / 4), y: cy + r * Math.sin((i * Math.PI) / 4) }));
-export const Isles: ReadonlyMap<string, Pt[]> = new Map([
-  ["arwad", isle(453, 366, 5)],
-  ["dilmun", isle(985, 702, 9)],
+/** A place on the board, from its latitude and longitude (the engine's true projection, item 11c). */
+export const ll = (lat: number, lon: number): Pt => boardPoint(lat, lon);
+
+/**
+ * Where each sea zone is drawn: out on its waters (its latitude and longitude, for the lengths of connections, are its
+ * harbour's).
+ */
+const SeaSpots: ReadonlyMap<string, Pt> = new Map([
+  ["sehawaters", ll(38.75, 26.45)],
+  ["apasawaters", ll(37.55, 26.75)],
+  ["lukkawaters", ll(36.05, 29.3)],
+  ["kizzuwatnawaters", ll(36.45, 34.55)],
+  ["kalavasoswaters", ll(34.3, 32.9)],
+  ["enkomiwaters", ll(35.45, 34.45)],
+  ["ugaritwaters", ll(35.7, 35.45)],
+  ["sumurwaters", ll(34.95, 35.6)],
+  ["bybloswaters", ll(34.25, 35.35)],
+  ["sidonwaters", ll(33.7, 35.05)],
+  ["tyrewaters", ll(33.3, 34.95)],
+  ["akkowaters", ll(32.85, 34.8)],
+  ["ashkelonwaters", ll(31.85, 34.35)],
+  ["gazawaters", ll(31.5, 34.1)],
+  ["deltawaters", ll(31.75, 31.4)],
+  ["westsea", ll(35.3, 27.2)],
+  ["gulf", ll(27.9, 50.4)],
+  ["redsea", ll(24.6, 36.0)],
 ]);
 
-/** All the land, as one path (a rectangle with the seas cut out, even-odd). */
-export const LandPath = `M-300,-300H1300V1000H-300Z ${smoothClosed(Mediterranean)} ${smoothClosed(BlackSea)} ${smoothClosed(Gulf)}`;
-export const SeaPath = `${smoothClosed(Mediterranean)} ${smoothClosed(BlackSea)} ${smoothClosed(Gulf)}`;
-/** Cyprus and the island cities, as one path. */
-export const CyprusPath = [smoothClosed(Cyprus), ...[...Isles.values()].map(smoothClosed)].join(" ");
+/** Points given as latitude, longitude pairs. */
+function LL(...latLon: number[]): Pt[] {
+  const pts: Pt[] = [];
+  for (let i = 0; i + 1 < latLon.length; i += 2) pts.push(ll(latLon[i], latLon[i + 1]));
+  return pts;
+}
+
+/** A ring or line of the generated data ("lon,lat" in hundredths of a degree), on the board. */
+const decode = (s: string): Pt[] =>
+  s.split(" ").map((xy) => {
+    const [lon, lat] = xy.split(",");
+    return ll(Number(lat) / 100, Number(lon) / 100);
+  });
+
+function polyline(pts: readonly Pt[]): string {
+  let sb = "";
+  for (let i = 0; i < pts.length; i++) sb += (i === 0 ? "M" : "L") + F(pts[i].x) + "," + F(pts[i].y);
+  return sb;
+}
+
+/** Whether a point lies inside a ring (even-odd). */
+function inside(p: Pt, ring: readonly Pt[]): boolean {
+  let c = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const a = ring[i];
+    const b = ring[j];
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) c = !c;
+  }
+  return c;
+}
+
+// ---------------------------------------------------------------- coasts
+
+/** The frame of the sea, well beyond the board's edges. */
+const Frame = `M-300,-300H${Width + 300}V${Height + 300}H-300Z`;
+
+/** The island cities too small for the coastline at this scale: Arwad off Ṣumur. Drawn as a small round island. */
+const isle = (c: Pt, r: number): Pt[] => Array.from({ length: 8 }, (_, i) => ({ x: c.x + r * Math.cos((i * Math.PI) / 4), y: c.y + r * Math.sin((i * Math.PI) / 4) }));
+export const Isles: ReadonlyMap<string, Pt[]> = new Map([["arwad", isle(ll(34.86, 35.86), 1.6)]]);
+
+const Rings: readonly Pt[][] = LandRings.map(decode);
+/** The provinces drawn on islands of their own, shaped with the rest but shown only on their island: Cyprus and Dilmun. */
+const IslandProvinces = ["kalavasos", "enkomi", "dilmun"];
+const islandRing = (id: string): number => Rings.findIndex((r) => inside(city(id), r));
+const IslandRings = new Set(IslandProvinces.map(islandRing).filter((i) => i >= 0));
+
+/**
+ * The Gulf's head as it lay in the Late Bronze Age, reaching up the lower plain towards Ur, a coastal city in the game
+ * (the sea has since withdrawn by some 150 to 200 km; the reading is the item's). Its edge out to the modern sea is never
+ * stroked, so it joins the Gulf without a seam.
+ */
+const OldGulfShore = LL(29.98, 47.95, 30.25, 47.75, 30.5, 47.4, 30.72, 46.95, 30.85, 46.5, 30.92, 46.2, 30.8, 46.1, 30.62, 46.35, 30.4, 46.8, 30.15, 47.25, 29.93, 47.6, 29.8, 47.85);
+const OldGulf = `${polyline(OldGulfShore)}Z`;
+
+const ringPath = (r: readonly Pt[]): string => polyline(r) + "Z";
+/** All the land, the islands included, as one path (even-odd, so the old Gulf's head is cut from it). */
+export const LandPath = `${Rings.map(ringPath).join("")} ${[...Isles.values()].map(smoothClosed).join(" ")} ${OldGulf}`;
+/** The land of the mainland and the islands no province is drawn on alone; and of the islands that are. */
+export const MainlandPath = `${Rings.filter((_, i) => !IslandRings.has(i)).map(ringPath).join("")} ${OldGulf}`;
+export const IslandPath = `${Rings.filter((_, i) => IslandRings.has(i)).map(ringPath).join("")} ${[...Isles.values()].map(smoothClosed).join(" ")}`;
+/** The coasts, for the shore lines (the old Gulf's head by its shore alone). */
+export const CoastPath = `${Rings.map(ringPath).join("")} ${[...Isles.values()].map(smoothClosed).join(" ")} ${polyline(OldGulfShore)}`;
+/** The sea: the frame with the land cut out (even-odd). */
+export const SeaPath = `${Frame} ${LandPath}`;
+/** The lakes of 1346, drawn over the land. */
+export const LakePath = LakeRings.map((r) => ringPath(decode(r))).join("");
 
 // ---------------------------------------------------------------- rivers, mountains, deserts, fields
 
@@ -104,50 +175,75 @@ export interface Line {
   labelled: boolean;
 }
 
-/** The rivers: the three great ones of the engine's geography first, then smaller ones for the eye. */
+const river = (id: string, name: string, width: number, pieces: readonly Pt[][]): Line => ({ id, name, path: pieces.map(polyline).join(""), width, labelled: name !== "" });
+const fromData = (id: string): Pt[][] => (RiverLines[id] ?? []).map(decode);
+
+/** The rivers: the three great ones of the engine's geography first, then smaller ones for the eye. Courses from Natural Earth, the small ones by hand. */
 export const Rivers: readonly Line[] = [
-        { id: "nile", name: "Nile", path: smooth(P(-10, 628, 16, 646, 40, 676, 72, 699, 110, 705, 150, 703, 195, 699, 245, 690, 290, 677, 316, 654, 330, 630)), width: 4.2, labelled: true },
-        { id: "nile-w", name: "", path: smooth(P(330, 630, 319, 606, 312, 578)), width: 2.4, labelled: false },
-        { id: "nile-e", name: "", path: smooth(P(330, 630, 352, 607, 366, 578)), width: 2.4, labelled: false },
-        { id: "euphrates", name: "Euphrates", path: smooth(P(604, 40, 594, 88, 586, 138, 579, 186, 576, 228, 590, 252, 624, 263, 662, 273, 700, 291, 713, 322, 709, 360, 708, 397, 731, 421, 768, 440, 797, 472, 808, 522, 842, 553, 882, 582, 924, 630, 940, 680, 960, 702)), width: 3.6, labelled: true },
-        { id: "tigris", name: "Tigris", path: smooth(P(800, 34, 822, 70, 841, 102, 846, 142, 842, 182, 836, 222, 830, 262, 826, 300, 828, 334, 838, 364, 862, 404, 886, 452, 906, 500, 926, 546, 944, 600, 958, 640, 970, 678)), width: 3.4, labelled: true },
-        { id: "khabur", name: "Khabur", path: smooth(P(684, 100, 711, 150, 717, 200, 714, 250, 703, 290)), width: 1.8, labelled: false },
-        { id: "balikh", name: "", path: smooth(P(632, 178, 641, 224, 646, 266)), width: 1.5, labelled: false },
-        { id: "halys", name: "Marassantiya", path: smooth(P(530, 118, 472, 138, 420, 140, 345, 134, 302, 108, 296, 70, 312, 40, 332, 21)), width: 2.2, labelled: false },
-        { id: "orontes", name: "Orontes", path: smooth(P(562, 478, 566, 422, 588, 362, 586, 318, 548, 291, 506, 284, 470, 287)), width: 1.9, labelled: false },
-    ];
+  river("nile", "Nile", 3.2, fromData("nile")),
+  river("euphrates", "Euphrates", 2.8, fromData("euphrates")),
+  river("tigris", "Tigris", 2.6, fromData("tigris")),
+  river("khabur", "Khabur", 1.5, [LL(36.95, 39.95, 36.85, 40.1, 36.62, 40.55, 36.48, 40.75, 36.2, 40.72, 35.8, 40.6, 35.45, 40.48, 35.15, 40.43)]),
+  river("balikh", "", 1.2, [LL(36.75, 39.05, 36.5, 39.08, 36.2, 39.05, 35.95, 39.02)]),
+  river("halys", "Marassantiya", 1.8, fromData("halys")),
+  river("orontes", "Orontes", 1.5, [LL(34.15, 36.35, 34.4, 36.42, 34.56, 36.52, 34.75, 36.65, 35.13, 36.75, 35.4, 36.5, 35.8, 36.32, 36.1, 36.3, 36.2, 36.15, 36.1, 35.98, 36.05, 35.95)]),
+  river("jordan", "", 1.2, fromData("jordan")),
+  river("hermos", "", 1.2, [LL(38.95, 29.3, 38.75, 28.7, 38.6, 28.2, 38.55, 27.5, 38.6, 26.9)]),
+  river("maeander", "", 1.2, fromData("maeander")),
+  river("seyhan", "", 1.2, [LL(38.0, 35.8, 37.4, 35.5, 37.0, 35.32, 36.75, 34.95)]),
+  river("ceyhan", "", 1.2, fromData("ceyhan")),
+  river("zab", "", 1.3, [LL(37.3, 44.0, 36.75, 43.85, 36.4, 43.65, 36.0, 43.35)]),
+  river("lesser-zab", "", 1.1, [LL(36.3, 45.0, 35.75, 44.6, 35.25, 43.45)]),
+  river("diyala", "", 1.2, [LL(35.0, 45.6, 34.2, 45.2, 33.75, 44.9, 33.2, 44.5)]),
+  river("karkheh", "", 1.2, fromData("karkheh")),
+];
 
 /** Mountain ranges, drawn as rows of peaks along these lines. */
 export const Ranges: readonly Pt[][] = [
-        P(206, 236, 252, 224, 300, 217, 346, 221, 392, 218, 440, 212, 478, 204), // the Taurus
-        P(476, 214, 486, 244, 482, 270), // the Amanus
-        P(612, 36, 650, 30, 690, 32, 732, 40, 770, 40), // the highlands of Isuwa and Nairi
-        P(960, 92, 978, 140, 988, 196, 991, 256, 989, 320, 994, 384), // the Zagros
-        P(506, 398, 514, 436, 518, 476), // the Lebanon
-        P(268, 414, 288, 418, 308, 416), // the Troodos
-        P(140, 120, 150, 168), // the hills of Mira
-        P(20, 640, 48, 652, 30, 680), // desert scarps west of the Nile
-    ];
+  LL(36.8, 30.0, 37.2, 31.2, 37.25, 32.4, 37.2, 33.5, 37.3, 34.5), // the Taurus
+  LL(37.6, 35.5, 38.0, 36.4, 38.3, 37.4, 38.5, 38.6, 38.35, 40.0, 38.3, 41.5, 38.1, 42.8), // the Anti-Taurus and the south-eastern Taurus
+  LL(36.05, 36.05, 36.5, 36.3, 37.0, 36.6), // the Amanus
+  LL(33.4, 35.55, 33.9, 35.8, 34.35, 36.1), // the Lebanon
+  LL(33.35, 35.9, 33.8, 36.2, 34.3, 36.55), // the Anti-Lebanon
+  LL(37.3, 44.6, 36.2, 45.5, 35.0, 46.3, 34.0, 47.0, 33.0, 47.8, 32.0, 49.1, 31.0, 50.3), // the Zagros
+  LL(41.1, 33.2, 40.9, 35.2, 40.7, 37.3, 40.6, 39.3, 40.8, 41.0), // the Pontic mountains
+  LL(39.6, 39.4, 39.4, 41.0, 39.5, 42.6), // the Armenian highlands, Isuwa's and Nairi's
+  LL(34.93, 32.7, 34.95, 33.05), // the Troodos
+  LL(28.4, 34.0, 28.8, 33.6, 29.1, 33.3), // the mountains of the Sinai
+  LL(28.3, 35.6, 27.0, 36.6, 25.0, 37.9, 23.0, 39.3, 21.0, 40.3), // the Hejaz
+  LL(28.0, 32.6, 26.5, 33.4, 25.0, 34.3, 23.0, 35.0, 21.0, 36.2), // the Red Sea hills
+];
 
-/** Deserts, drawn with a stipple: the Syrian and Arabian deserts and the Sinai. */
-export const Deserts: readonly string[] = [
-        smoothClosed(P(604, 498, 640, 454, 700, 452, 760, 476, 784, 534, 766, 600, 700, 640, 622, 622, 590, 560)),
-        smoothClosed(P(392, 640, 446, 612, 500, 628, 522, 688, 472, 716, 408, 712)),
-        smoothClosed(P(530, 700, 600, 660, 700, 672, 800, 642, 870, 690, 905, 720, 520, 720)),
-    ];
+/** Deserts, drawn with a stipple, as Natural Earth bounds them: the Syrian desert, the Negev, Egypt's eastern and western deserts, the Nubian desert and the Nafud. */
+export const Deserts: readonly string[] = DesertRings.map(([, r]) => smoothClosed(decode(r)));
+
+/** The black land along the Nile, a ribbon either side of its course, with the Delta's fan. */
+const NileValley = (() => {
+  const course = [[24.1, 32.9], [24.5, 32.95], [25.0, 32.85], [25.3, 32.55], [25.7, 32.64], [26.1, 32.72], [26.05, 32.25], [26.2, 31.9], [26.6, 31.6], [27.18, 31.18], [27.65, 30.9], [28.1, 30.75], [28.6, 30.8], [29.07, 31.1], [29.5, 31.2], [30.05, 31.22]];
+  const w = 0.13;
+  const west = course.map(([la, lo]) => ll(la, lo - w));
+  const east = course.map(([la, lo]) => ll(la, lo + w)).reverse();
+  return smoothClosed([...west, ...LL(29.35, 30.6, 29.3, 30.9), ...LL(30.4, 30.55, 30.9, 30.1, 31.3, 30.35, 31.5, 31.0, 31.45, 31.8, 31.25, 32.25, 31.0, 32.5, 30.6, 32.1, 30.3, 31.6), ...east]);
+})();
 
 /** The irrigated black land of the Nile and the alluvium between the rivers below Sippar: the richest fields. */
 export const Fields: readonly string[] = [
-        smoothClosed(P(0, 694, 90, 692, 195, 686, 290, 664, 318, 640, 300, 600, 330, 588, 372, 590, 350, 620, 330, 660, 300, 690, 200, 714, 90, 720, 0, 720)),
-        smoothClosed(P(724, 412, 790, 420, 862, 392, 900, 450, 940, 560, 968, 650, 948, 700, 920, 660, 870, 590, 820, 548, 790, 490, 750, 450)),
-    ];
+  NileValley,
+  smoothClosed(LL(34.1, 43.85, 33.6, 44.45, 33.0, 45.1, 32.3, 45.8, 31.6, 46.5, 31.05, 46.6, 31.1, 46.0, 31.6, 45.2, 32.2, 44.5, 32.8, 44.0, 33.5, 43.7)),
+];
 
-/** Points where the rivers' and ranges' names are written. */
+/** Points where the rivers', ranges' and lands' names are written, with the angle of each. */
+const geo = (text: string, lat: number, lon: number, angle: number) => ({ text, ...ll(lat, lon), angle });
 export const GeoLabels: readonly { text: string; x: number; y: number; angle: number }[] = [
-        { text: "NILE", x: 150, y: 716, angle: -3 }, { text: "EUPHRATES", x: 640, y: 255, angle: 15 }, { text: "TIGRIS", x: 830, y: 285, angle: 86 }, { text: "TAURUS", x: 300, y: 236, angle: -4 },
-        { text: "ZAGROS", x: 978, y: 300, angle: 88 }, { text: "SYRIAN DESERT", x: 690, y: 545, angle: 0 }, { text: "SINAI", x: 470, y: 700, angle: 0 }, { text: "LOWER SEA", x: 983, y: 690, angle: -66 },
-        { text: "ARABIAN DESERT", x: 700, y: 708, angle: 0 }, { text: "LEBANON", x: 527, y: 470, angle: -80 }, { text: "KHABUR", x: 724, y: 210, angle: 84 }, { text: "ORONTES", x: 600, y: 395, angle: -72 },
-    ];
+  geo("NILE", 26.9, 31.55, -62), geo("EUPHRATES", 35.55, 39.9, 18), geo("TIGRIS", 34.2, 43.95, 62), geo("TAURUS", 37.55, 32.6, -4),
+  geo("ZAGROS", 33.8, 47.6, 55), geo("SYRIAN DESERT", 32.4, 39.3, 0), geo("SINAI", 29.4, 33.85, 0), geo("LOWER SEA", 27.4, 50.7, -50),
+  geo("ARABIAN DESERT", 27.8, 41.6, 0), geo("LEBANON", 33.9, 35.65, -62), geo("KHABUR", 36.0, 40.85, 80), geo("ORONTES", 35.35, 36.95, -70),
+  geo("EASTERN DESERT", 24.9, 33.7, -62), geo("WESTERN DESERT", 25.5, 28.6, 0), geo("RED SEA", 23.5, 36.9, 58), geo("BLACK SEA", 42.05, 31.6, 0),
+  geo("NAIRI", 38.9, 42.3, 0), geo("PONTUS", 40.95, 38.9, -4),
+];
+
+/** Punt, beyond the Red Sea: a door for newcomers, not a market. */
+export const PuntDoor = { ...ll(20.35, 38.7), angle: 58 };
 
 // ---------------------------------------------------------------- Voronoi cells
 
@@ -156,16 +252,11 @@ interface V {
   edge: string;
 }
 
-/** Province shapes as Voronoi cells of the cities, each edge between two cells wobbled the same way from both sides. */
-function voronoiCells(sites: readonly [string, Pt][], wobble: number): [string, string][] {
+/** Province shapes as Voronoi cells of the cities within a frame, each edge between two cells wobbled the same way from both sides. */
+function voronoiCells(sites: readonly [string, Pt][], wobble: number, frame: readonly Pt[] = Box): [string, string][] {
   const result: [string, string][] = [];
   for (const [id, a] of sites) {
-    let poly: V[] = [
-      { p: { x: -20, y: -20 }, edge: "#" },
-      { p: { x: Width + 20, y: -20 }, edge: "#" },
-      { p: { x: Width + 20, y: Height + 20 }, edge: "#" },
-      { p: { x: -20, y: Height + 20 }, edge: "#" },
-    ];
+    let poly: V[] = frame.map((p) => ({ p, edge: "#" }));
     for (const [other, b] of sites) {
       if (other === id) continue;
       poly = clip(poly, a, b, other);
@@ -176,6 +267,12 @@ function voronoiCells(sites: readonly [string, Pt][], wobble: number): [string, 
   }
   return result;
 }
+const Box: readonly Pt[] = [
+  { x: -20, y: -20 },
+  { x: Width + 20, y: -20 },
+  { x: Width + 20, y: Height + 20 },
+  { x: -20, y: Height + 20 },
+];
 
 /** Keeps the part of the polygon closer to a than to b (Sutherland-Hodgman). */
 function clip(poly: V[], a: Pt, b: Pt, label: string): V[] {
@@ -243,47 +340,61 @@ export function hash01(n: number): number {
 
 // ---------------------------------------------------------------- province shapes
 
-/** The provinces of Cyprus, shaped among themselves; with the island cities, every province not shaped with the mainland. */
-const Cypriots = new Set(["kalavasos", "enkomi"]);
-const Islanders = new Set([...Cypriots, ...Isles.keys()]);
+/**
+ * Points that claim the empty land no province holds: the deserts of Libya, Egypt's east, Arabia and Syria, Transjordan's
+ * steppe, the Zagros and Iran, the Armenian highlands and Anatolia's north-west. Their shapes are left unclaimed.
+ */
+const Wastes = LL(
+  30.3, 28.4, 27.6, 28.2, 25.0, 29.2, 22.0, 29.6, 20.5, 27.0, 28.7, 32.25, 23.4, 34.5, 21.0, 35.5,
+  29.6, 37.6, 27.0, 40.5, 24.5, 38.8, 28.2, 44.8, 25.5, 46.6, 23.0, 43.5, 21.0, 41.0, 30.8, 41.3, 32.6, 39.3, 33.3, 40.6,
+  31.0, 36.6, 29.7, 35.6, 30.6, 44.0,
+  35.8, 46.8, 33.9, 47.4, 32.6, 50.0, 30.6, 51.0, 37.7, 45.9, 38.7, 43.4, 39.9, 41.3, 41.3, 41.0, 40.2, 38.0,
+  39.6, 31.8, 41.0, 31.4, 40.6, 28.4, 41.6, 33.0,
+);
 
-/** Points that claim the empty land no province holds (the deserts and the Zagros). Their shapes are left unclaimed. */
-const Wastes = P(712, 600, 620, 655, 790, 668, 985, 330, 640, 22, 980, 30);
+/** The sea zones' waters: each zone is shaped only with the others on the same waters, within them. */
+const SeaBodies: readonly [readonly string[], readonly Pt[]][] = [
+  [["redsea"], LL(30.5, 31.5, 30.5, 44.0, 12.0, 44.0, 12.0, 31.5)],
+  [["gulf"], LL(31.6, 46.0, 31.6, 57.0, 22.0, 57.0, 22.0, 46.0)],
+];
+const MediterraneanBody = LL(40.2, 22.0, 40.2, 37.0, 30.5, 37.0, 30.5, 22.0);
 
 function buildShapes(): Map<string, string> {
-  const land = Map_.provinces.filter((p) => !p.isSea && !Islanders.has(p.id));
-  const sea = Map_.provinces.filter((p) => p.isSea);
-  const island = Map_.provinces.filter((p) => Cypriots.has(p.id));
+  const land = Map_.provinces.filter((p) => !p.isSea);
   const shapes = new Map<string, string>();
-  const group = (g: readonly { id: string; x: number; y: number }[], extra: readonly Pt[], wobble: number): void => {
-    const sites: [string, Pt][] = [...g.map((p) => [p.id, { x: p.x, y: p.y }] as [string, Pt]), ...extra.map((e, i) => [`~${i}`, e] as [string, Pt])];
-    for (const [id, cell] of voronoiCells(sites, wobble)) if (!id.startsWith("~")) shapes.set(id, cell);
+  const group = (g: readonly { id: string }[], extra: readonly Pt[], wobble: number, frame?: readonly Pt[]): void => {
+    const sites: [string, Pt][] = [...g.map((p) => [p.id, city(p.id)] as [string, Pt]), ...extra.map((e, i) => [`~${i}`, e] as [string, Pt])];
+    for (const [id, cell] of voronoiCells(sites, wobble, frame)) if (!id.startsWith("~")) shapes.set(id, cell);
   };
-  group(land, Wastes, 5);
-  group(sea, [], 0);
-  group(island, [], 3);
+  group(land, Wastes, 3);
+  const seas = Map_.provinces.filter((p) => p.isSea);
+  for (const [ids, frame] of SeaBodies) group(seas.filter((p) => ids.includes(p.id)), [], 0, frame);
+  group(seas.filter((p) => !SeaBodies.some(([ids]) => ids.includes(p.id))), [], 0, MediterraneanBody);
   for (const [id, pts] of Isles) shapes.set(id, smoothClosed(pts));
   return shapes;
 }
 
-/** Each province's shape: land shapes clipped to their coast by the land path, sea zones to the sea. */
+/** Each province's shape, a cell clipped when drawn: land to its land ({@link landClipOf}), sea zones to the sea. */
 export const Shapes: ReadonlyMap<string, string> = buildShapes();
 
+/** The clip a province's shape is drawn within: the sea, its island, or the mainland. */
+export function landClipOf(id: string): string {
+  return Map_.get(id).isSea ? "url(#seaclip)" : IslandProvinces.includes(id) || Isles.has(id) ? "url(#isleclip)" : "url(#mainclip)";
+}
+
 export const WasteShapes: readonly string[] = voronoiCells(
-  [
-    ...Map_.provinces.filter((p) => !p.isSea && !Islanders.has(p.id)).map((p) => [p.id, { x: p.x, y: p.y }] as [string, Pt]),
-    ...Wastes.map((e, i) => [`~${i}`, e] as [string, Pt]),
-  ],
-  5,
+  [...Map_.provinces.filter((p) => !p.isSea).map((p) => [p.id, city(p.id)] as [string, Pt]), ...Wastes.map((e, i) => [`~${i}`, e] as [string, Pt])],
+  3,
 )
   .filter(([id]) => id.startsWith("~"))
   .map(([, path]) => path);
 
 // ---------------------------------------------------------------- places on the board
 
+/** Where a province is drawn: a land province at its town, a sea zone out on its waters. */
 export function city(id: string): Pt {
   const p = Map_.get(id);
-  return { x: p.x, y: p.y };
+  return SeaSpots.get(id) ?? ll(p.lat, p.lon);
 }
 
 /** The point a province's units and arrows are anchored to: its city. */

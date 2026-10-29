@@ -94,6 +94,11 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   keep a readable size on screen whatever the zoom (tokens about 14 pixels on a phone showing the whole board, 22 on a
   desktop, at most 40), and minor names wait until the map is large enough to hold them. A province list stands in for
   tapping small provinces; in a human seat's orders it picks a destination as a tap on the map would.
+  **Since item 11c** the board is a true projection ([the true map](28-the-true-map-and-the-red-sea.md)) and the rule
+  below is replaced: each name has the zoom step from which it shows (`NameLevels`, `NameSteps` in `map/markup.ts`; the
+  `nz1`...`nz10` classes in `zoom.ts`), found by placing names in order of importance at each step and keeping one only
+  where it touches no name placed before it; the zoom goes to 24 times the whole board, and the map opens on the seat's
+  own capital (`Play.tsx`). What follows is item 8's, kept as history.
   **The Levant on a phone** (item 8; "Map on small screens": the period first). Names give way by importance
   (`nameRank` in `map/markup.ts`): capitals always; great cities (yield 35 or more, or a fortress's walls) from the first
   zoom step; the rest only once a map unit is 0.95 screen pixels or more (the `crowd` class in `zoom.ts`), where the

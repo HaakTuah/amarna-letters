@@ -2,8 +2,8 @@
  * The doors (build order item 11a, "Arrivals come through doors"): where routes from beyond the map come in, each with its
  * share of arrivals, the lands beyond it, their names and why their men come. From `docs/history/08-beyond-the-edges.md`
  * ("The doors", "Who comes, and why", first guesses [G] for the shares and mixes) and the name styles of
- * `docs/history/06-attested-people.md`. The Red Sea is not a door until its sea zone is added, so its share is spread among
- * the rest. Until the edge markets exist, the shares are first guesses, not traffic.
+ * `docs/history/06-attested-people.md`. The Red Sea is a door since its sea zone was added (item 11c), at the dossier's
+ * first-guess shares. Until the edge markets exist, the shares are first guesses, not traffic.
  */
 
 /** Why a newcomer came. */
@@ -46,7 +46,7 @@ export const Doors: readonly Door[] = [
     id: "westsea",
     name: "the western sea",
     provinces: ["apasa", "seha", "enkomi", "ugarit", "delta"],
-    share: 37,
+    share: 35,
     beyond: [
       { land: "Ahhiyawa", people: "an Aegean of Ahhiyawa", weight: 50, names: Aegean, invented: false, tongue: "Mycenaean Greek, which no court reads" },
       { land: "Keftiu", people: "a Cretan of Keftiu", weight: 35, names: Aegean, invented: false, tongue: "the tongue of Keftiu, which no court reads" },
@@ -60,7 +60,7 @@ export const Doors: readonly Door[] = [
     id: "east",
     name: "the eastern road",
     provinces: ["susa"],
-    share: 26,
+    share: 25,
     beyond: [
       { land: "Elam", people: "an Elamite of Anshan", weight: 60, names: ["Kidin-Hutran", "Pahir-ishshan", "Attar-kittah", "Humban-numena", "Shilhak-Inshushinak", "Kutir-Nahhunte"], invented: false, tongue: "Elamite" },
       { land: "the Zagros", people: "a highlander of the Zagros, of the Lullubi or the Qutu", weight: 30, names: ["Zaba-zuna", "Tarlugal", "Anu-banini"], invented: true, tongue: "a highland tongue nobody on the map knows" },
@@ -74,7 +74,7 @@ export const Doors: readonly Door[] = [
     id: "gulf",
     name: "the Gulf",
     provinces: ["ur", "dilmun"],
-    share: 11,
+    share: 10,
     beyond: [
       { land: "Dilmun", people: "a trader of Dilmun", weight: 60, names: ["Ili-ippashra", "Inzak-gamil", "Ea-nasir"], invented: false, tongue: "the tongue of Dilmun, and some Akkadian" },
       { land: "Magan", people: "a copper trader of Magan", weight: 40, names: ["Nadubeli", "Manium"], invented: false, tongue: "the tongue of Magan, which no court reads" },
@@ -86,13 +86,26 @@ export const Doors: readonly Door[] = [
     id: "nile",
     name: "the Nile beyond Nubia",
     provinces: ["nubia"],
-    share: 26,
+    share: 25,
     beyond: [
       { land: "Kush", people: "a Nubian of Kush beyond Egypt's reach", weight: 60, names: ["Nehesy", "Penniut", "Kashta", "Aryamani"], invented: true, tongue: "a Nubian tongue" },
       { land: "Irem", people: "a man of Irem", weight: 20, names: ["Iremnakht", "Tawiaa"], invented: true, tongue: "a Nubian tongue" },
       { land: "the eastern desert", people: "a Medjay of the eastern desert", weight: 20, names: ["Medja", "Kherpu"], invented: true, tongue: "the Medjay's tongue" },
     ],
     reasons: { trade: 30, soldiering: 40, flight: 10, feud: 5, wanderlust: 5, home: 10 },
+    mapTongue: "Egyptian",
+  },
+  {
+    // Punt beyond the Red Sea (item 11c): an expedition's men above all, and Egyptians back from it [B, G]
+    id: "redsea",
+    name: "the Red Sea",
+    provinces: ["thebes", "sinai"],
+    share: 5,
+    beyond: [
+      { land: "Punt", people: "a man of Punt, from the far shore of the Red Sea", weight: 70, names: ["Parehu", "Ity"], invented: false, tongue: "the tongue of Punt, which no court reads" },
+      { land: "the Red Sea's shore", people: "an Egyptian sailor back from Punt", weight: 30, names: ["Nehsy", "Thutiy", "Penre"], invented: true, tongue: "Egyptian" },
+    ],
+    reasons: { trade: 60, soldiering: 5, flight: 5, feud: 5, wanderlust: 5, home: 20 },
     mapTongue: "Egyptian",
   },
 ];
