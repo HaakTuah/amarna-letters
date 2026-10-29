@@ -54,7 +54,7 @@ export function leaderRules(primer: boolean, c: GameConfig): string {
 export function ending(c: GameConfig): string {
   return c.openAge
     ? `- This is an open age: it has no end. The game goes on season after season until only one kingdom is left or the table stops it, and the winner is whoever has grown most when it stops.`
-    : `- ${bandWords(ageBand(c.endMedian))} Nobody knows which season is the last, and nothing you see foretells it.`;
+    : `- ${bandWords(ageBand(c.endMedian))} Nobody knows which season is the last, and nothing you see foretells it. When the age ends, the record opens: every court may read all that was hidden, who lied, who skimmed, which seals were forged and who served another in secret.`;
 }
 
 /** The opening vassal bonds, by overlord, as every court knows them (item 11+, "Opening relations as they were"). */

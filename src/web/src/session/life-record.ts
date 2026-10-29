@@ -3,7 +3,7 @@
  * from sections so that roles and lives added later (generals, governors, outlaws, a past before the game) can add
  * sections of their own; nothing here is invented, every line comes from what the engine recorded.
  */
-import { Greeting, Views, WorldMap, findCharacter, type Character, type CharacterView, type GameState, type Power } from "@amarna/engine";
+import { Greeting, Views, WorldMap, characterLegend, findCharacter, type Character, type CharacterView, type GameState, type Power } from "@amarna/engine";
 import type { MapScene, ScenePerson } from "../map/scene.ts";
 import { cap, dated, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { coverOf, type FramePerson, type SeasonFrame } from "./frames.ts";
@@ -183,6 +183,12 @@ export function buildLifeRecord(
     missions.push(entry(sender ? t.turn : (t.audienceTurn ?? t.turn), sender ? t.reportTurn : null, lines.join("\n"), WorldMap.default.capital(t.to).id));
   }
   if (missions.length > 0) sections.push({ title: "Missions, and what was said", entries: missions, note: null });
+
+  // Item 14, the biography: every event that names them, the tablets sealed by their hand, their losses abroad; a court
+  // reads only the events it saw.
+  const deeds = characterLegend(state, id, viewer).map((l) => entry(l.turn, null, l.text, l.province));
+  if (deeds.length > 0)
+    sections.push({ title: viewer === null ? "In the record" : "What your court saw of them", entries: deeds, note: viewer === null ? null : "Only events your court saw: the rest opens when the game ends." });
 
   // What the record holds of them: the truth in god view, the facts a court has learnt otherwise.
   if (viewer === null) {

@@ -173,7 +173,8 @@ export class Session {
     return this.live.humans.length > 0;
   }
   get canSeeAll(): boolean {
-    return !this.hasHumans || this.reveal || this.live.fallenToGod;
+    // Item 14: when a game ends, the record opens to every seat ("Legends, read from the record").
+    return !this.hasHumans || this.reveal || this.live.fallenToGod || this.live.ended;
   }
   get godView(): boolean {
     return this.viewAs === null && this.canSeeAll;
