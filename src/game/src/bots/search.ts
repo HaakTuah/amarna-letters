@@ -74,6 +74,92 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
   if (b.mine.length === 0) return;
   const me = b.me;
   const p = brain.p;
+  const ctx = picture(b, brain, rng);
+
+  // Candidate plans: the king's own, a bolder one, a safer one, and standing fast.
+  const mine = b.mine.map((u) => u.province);
+  const candidates: Plan[] = [troops(plan, mine)];
+  const bold: Personality = { ...p, aggression: Math.min(1, p.aggression + 0.35), caution: Math.max(0, p.caution - 0.35) };
+  const safe: Personality = { ...p, aggression: Math.max(0, p.aggression - 0.3), caution: Math.min(1, p.caution + 0.35) };
+  candidates.push(troops(makePlan(b, brain, bold), mine));
+  candidates.push(troops(makePlan(b, brain, safe), mine));
+  candidates.push(new Dict<string, Order>(mine.map((u) => [u, hold(u)] as const)));
+
+  let best = candidates[0];
+  let bestScore = evaluate(ctx, best);
+  for (const c of candidates.slice(1)) {
+    if (same(c, best)) continue;
+    const sc = evaluate(ctx, c);
+    if (sc > bestScore + 1) {
+      best = c;
+      bestScore = sc;
+    }
+  }
+
+  // Then each unit in turn: would another order (or a move with a supporter) do better?
+  for (let pass = 0; pass < 2; pass++) {
+    let improved = false;
+    for (const u of mine) {
+      // A troop readying a landing (see Landing in seas.ts) keeps to it: a single season cannot see what waiting at sea or
+      // on the coast is worth, only the seasons that follow can.
+      if (plan.role.tryGet(u) === "landing") continue;
+      // So does a winter stroke (Tactics, item 9): the pictured seasons, on the safe winter map, cannot picture it.
+      if (plan.role.tryGet(u) === "winter-stroke") continue;
+      for (const change of alternatives(b, best, u, ctx.willing, ctx.joints)) {
+        if (ctx.runs + Samples > Budget) break;
+        const trial = best.clone();
+        for (const o of change) trial.set(unitOfTroop(o), o);
+        if (same(trial, best)) continue;
+        const sc = evaluate(ctx, trial);
+        if (sc > bestScore + 2) {
+          best = trial;
+          bestScore = sc;
+          improved = true;
+        }
+      }
+    }
+    if (!improved || ctx.runs + Samples > Budget) break;
+  }
+
+  // Write the chosen orders back into the plan. A winter stroke (Tactics, item 9) stands, which the pictured seasons cannot
+  // picture, unless another troop of ours now moves where it was going.
+  for (const [u, o] of best) {
+    const old = plan.orders.tryGet(u);
+    if (plan.role.tryGet(u) === "winter-stroke" && old !== undefined && old.type === "move") {
+      const target = old.to;
+      if (![...best].some(([w, x]) => w !== u && x.type === "move" && x.to === target)) continue;
+    }
+    if (old !== undefined && orderEquals(old, o)) continue;
+    plan.orders.set(u, o);
+    let role: string;
+    switch (o.type) {
+      case "move": {
+        const owner = b.ownerOf(o.to);
+        role = (owner !== null && owner !== me) || b.unitAt.has(o.to) || b.walls(o.to) ? "attack" : "move";
+        break;
+      }
+      case "support":
+        role = "support";
+        break;
+      case "convoy":
+        role = "convoy";
+        break;
+      default:
+        role = "hold";
+    }
+    plan.role.set(u, role);
+  }
+  plan.destinations.clear();
+  for (const m of plan.orders.values()) if (m.type === "move") plan.destinations.add(m.to);
+}
+
+/**
+ * The seasons a king pictures before he orders (see improve): what each rival is likely to order, eight times over, with the
+ * game's own adjudicator to play them out. The same seasons score the royal council's proposals (item 16, council.ts).
+ */
+function picture(b: Board, brain: Brain, rng: Rng): Ctx {
+  const me = b.me;
+  const p = brain.p;
   const leader = b.leader();
   const hostility = new Dict<Power, number>(
     [...b.alive].filter((x) => x !== me).map((x) => [x, brain.hostility(x, b) * (brain.isFriend(x) && brain.betraying !== x ? 0.25 : 1)] as const),
@@ -178,82 +264,7 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
       owner === null || owner === brain.warTarget || owner === brain.betraying || owner === leader || (owner !== me && (brain.rel.get(owner).hostile || sworn.has(owner))),
     runs: 0,
   };
-
-  // Candidate plans: the king's own, a bolder one, a safer one, and standing fast.
-  const mine = b.mine.map((u) => u.province);
-  const candidates: Plan[] = [troops(plan, mine)];
-  const bold: Personality = { ...p, aggression: Math.min(1, p.aggression + 0.35), caution: Math.max(0, p.caution - 0.35) };
-  const safe: Personality = { ...p, aggression: Math.max(0, p.aggression - 0.3), caution: Math.min(1, p.caution + 0.35) };
-  candidates.push(troops(makePlan(b, brain, bold), mine));
-  candidates.push(troops(makePlan(b, brain, safe), mine));
-  candidates.push(new Dict<string, Order>(mine.map((u) => [u, hold(u)] as const)));
-
-  let best = candidates[0];
-  let bestScore = evaluate(ctx, best);
-  for (const c of candidates.slice(1)) {
-    if (same(c, best)) continue;
-    const sc = evaluate(ctx, c);
-    if (sc > bestScore + 1) {
-      best = c;
-      bestScore = sc;
-    }
-  }
-
-  // Then each unit in turn: would another order (or a move with a supporter) do better?
-  for (let pass = 0; pass < 2; pass++) {
-    let improved = false;
-    for (const u of mine) {
-      // A troop readying a landing (see Landing in seas.ts) keeps to it: a single season cannot see what waiting at sea or
-      // on the coast is worth, only the seasons that follow can.
-      if (plan.role.tryGet(u) === "landing") continue;
-      // So does a winter stroke (Tactics, item 9): the pictured seasons, on the safe winter map, cannot picture it.
-      if (plan.role.tryGet(u) === "winter-stroke") continue;
-      for (const change of alternatives(b, best, u, ctx.willing, ctx.joints)) {
-        if (ctx.runs + Samples > Budget) break;
-        const trial = best.clone();
-        for (const o of change) trial.set(unitOfTroop(o), o);
-        if (same(trial, best)) continue;
-        const sc = evaluate(ctx, trial);
-        if (sc > bestScore + 2) {
-          best = trial;
-          bestScore = sc;
-          improved = true;
-        }
-      }
-    }
-    if (!improved || ctx.runs + Samples > Budget) break;
-  }
-
-  // Write the chosen orders back into the plan. A winter stroke (Tactics, item 9) stands, which the pictured seasons cannot
-  // picture, unless another troop of ours now moves where it was going.
-  for (const [u, o] of best) {
-    const old = plan.orders.tryGet(u);
-    if (plan.role.tryGet(u) === "winter-stroke" && old !== undefined && old.type === "move") {
-      const target = old.to;
-      if (![...best].some(([w, x]) => w !== u && x.type === "move" && x.to === target)) continue;
-    }
-    if (old !== undefined && orderEquals(old, o)) continue;
-    plan.orders.set(u, o);
-    let role: string;
-    switch (o.type) {
-      case "move": {
-        const owner = b.ownerOf(o.to);
-        role = (owner !== null && owner !== me) || b.unitAt.has(o.to) || b.walls(o.to) ? "attack" : "move";
-        break;
-      }
-      case "support":
-        role = "support";
-        break;
-      case "convoy":
-        role = "convoy";
-        break;
-      default:
-        role = "hold";
-    }
-    plan.role.set(u, role);
-  }
-  plan.destinations.clear();
-  for (const m of plan.orders.values()) if (m.type === "move") plan.destinations.add(m.to);
+  return ctx;
 }
 
 // ------------------------------------------------------------------ rivals
@@ -448,6 +459,41 @@ function evaluate(c: Ctx, mine: Plan): number {
 }
 
 /**
+ * What the royal council tells its king of a plan (item 16, "Brief numbers behind each proposal"): in how many of the
+ * pictured seasons each of our moves reaches its goal, and in how many a foreign troop ends in our capital. From the seat's
+ * own view, so it is as wrong as the view is.
+ */
+export interface Pictured {
+  seasons: number;
+  /** For each of our troops ordered to move: in how many pictured seasons it gets there. */
+  arrives: Dict<string, number>;
+  /** In how many pictured seasons a foreign troop stands in our capital at the end. */
+  capitalLost: number;
+}
+
+export function pictured(b: Board, brain: Brain, orders: Iterable<Order>, rng: Rng): Pictured {
+  const out: Pictured = { seasons: 0, arrives: new Dict(), capitalLost: 0 };
+  if (b.mine.length === 0) return out;
+  const c = picture(b, brain, rng);
+  const mine = new HSet(b.mine.map((u) => u.province));
+  const plan: Plan = new Dict();
+  for (const o of orders)
+    if ((o.type === "hold" || o.type === "move" || o.type === "support" || o.type === "convoy" || o.type === "besiege") && mine.has(o.unit)) plan.set(o.unit, o);
+  for (const u of mine) if (!plan.has(u)) plan.set(u, hold(u));
+  const capital = Board.Map.capital(b.me).id;
+  for (const foes of c.foes) {
+    const all = foes.clone();
+    for (const [k, o] of plan) all.set(k, o);
+    const r = c.adj.run(c.units, all, b.v.owner, b.v.walls, sallies(c, all), null, (p, mover) => (mover === b.me ? b.v.resistance.tryGet(p) ?? 0 : 0));
+    out.seasons++;
+    const lost = new HSet(r.dislodgedUnitIds);
+    for (const [u, o] of plan) if (o.type === "move" && !lost.has(u) && r.newPositions.getOrDefault(u, u) === o.to) out.arrives.set(u, out.arrives.getOrDefault(u, 0) + 1);
+    if (c.units.some((u) => u.power !== b.me && !lost.has(u.id) && r.newPositions.getOrDefault(u.id, u.province) === capital)) out.capitalLost++;
+  }
+  return out;
+}
+
+/**
  * Every sally the pictured season's moves would bring: a king's move into his own city whose walls can sally, with another's
  * troops within; and, where he makes no such move, another king's move into it on the troops within, which the walls may
  * support as a friend's relief.
@@ -605,4 +651,4 @@ function score(c: Ctx, r: AdjudicationResult, orders: Plan): number {
   return score;
 }
 
-export const Search = { improve, stake, stoodAgainstUs, CapitalAtStake };
+export const Search = { improve, pictured, stake, stoodAgainstUs, CapitalAtStake };
