@@ -2,10 +2,12 @@
  * The smallest game that tests the rule (Haakon, 29 October 2026): what most game tests play instead of the whole world.
  * Script kings plan for every power they play, and that planning is most of what a season costs, so a small world is a few
  * neighbouring powers played by the seats a test needs, every other power held by an {@link IdleSeat} that gives no
- * orders, and a short game. Its cost does not grow when the starting world grows: more powers are more idle seats, which
- * cost nothing. Full-size games, every power a script king to the natural end, are kept to the few named tests that guard
- * the whole (the replay in "Script games finish and replay exactly", the save round trip in "Seeds replay exactly within
- * the current version", and the batch smoke game); long measurements run in scripts/sim.sh.
+ * orders, and a short game. Script kings' planning grows with the number of kings, not of powers: a power more in the
+ * starting world is one idle seat more here, which costs the engine little. Full-size games, every power a script king,
+ * are kept to the named tests that guard the whole: the replay of seed 1 in "Script games finish and replay exactly"
+ * (runner.test.ts), the engine's "State survives a json round trip" and the starting-world checks (engine.test.ts), and
+ * the one test whose rule needs the whole world in a few seasons, "A file seat sleeps by default and replays exactly"
+ * (file-seat.test.ts). Long measurements run in scripts/sim.sh, never in the suite.
  */
 import { AllPowers, Dict, type GameConfig, newGameConfig, newHostReply, newTurnSubmission, type AudienceView, type HostReply, type Power, type SeatView, type TurnSubmission } from "@amarna/engine";
 import { type ISeat, ScriptLeader } from "@amarna/game";
