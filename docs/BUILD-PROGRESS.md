@@ -28,8 +28,6 @@ Answered review points, and the rows of items 1 to 10, are in `docs/archive/prog
 |---|---|---|---|
 | 11c (#143) | None: the page and the sections settled every reading | Readings 1-12 in `docs/rounds/2026-10-29-true-map.md` | Lane, no questions |
 | 11c+ (#165) | None: the page and the item's words settled every reading | Readings 1-13 in `docs/rounds/2026-10-29-map-at-a-glance.md`; the drawing's disagreements with the connections listed there for the design session | Lane, no questions |
-| 11e (#154) | The weight of size in the final score: at equal weights the Great Kings win 49 of 50 games; by performance alone 12 of 50 (an even share is about 9), at 15 percent 29. Keep 50 until item 18 (or set it near 5 now)? | 50 until item 18, as the text says; readings 1-16 in `docs/rounds/2026-10-29-cities-defended.md` | Open |
-| 12 (#150) | Stop for review: native Akkadian and the rest. As the dossier gives it, about one envoy in five is not understood where he arrives (Egypt's 31 in a hundred, Babylonia's 22, Arzawa's 6): native Akkadian is no shield, and languages block at the centre as at the edges. Leave it so until item 18, or have every court that reads Akkadian keep an Akkadian-speaking scribe at court from the start, so languages block mostly at Arzawa, Alashiya, the Kaska and the Lukka? | As the dossier gives it, until item 18 (alternative: an Akkadian scribe at every court that reads Akkadian) | Open |
 | 11b++ | None: "The game in one page" and the item's text settled every answer | Readings 1-15 in `docs/rounds/2026-10-29-answers-to-11b-plus.md` | For review, no questions |
 
 
