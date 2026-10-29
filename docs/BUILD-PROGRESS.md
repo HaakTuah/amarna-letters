@@ -29,7 +29,6 @@ Answered review points, and the rows of items 1 to 10, are in `docs/archive/prog
 | 11c (#143) | None: the page and the sections settled every reading | Readings 1-12 in `docs/rounds/2026-10-29-true-map.md` | Lane, no questions |
 | 11c+ (#165) | None: the page and the item's words settled every reading | Readings 1-13 in `docs/rounds/2026-10-29-map-at-a-glance.md`; the drawing's disagreements with the connections listed there for the design session | Lane, no questions |
 | 11f (#169) | None: the page and the sections settled every reading | Readings 1-15 in `docs/rounds/2026-10-29-map-crossings.md`; the connections rule of the live text (revision 106) deferred to the next item that touches the connections | No questions |
-| 11c++ (#180) | 1. On a phone's opening view of the Levant, lesser coast cities show as small seals and their armies are hidden until you zoom in one more step: keep that, or show a lesser city's counters as one small gathered token even while its badge is a seal (they may then crowd the coast)? | Hide them, a dark rim on the seal where troops stand (reading 1 in `docs/rounds/2026-10-29-map-uncluttered.md`); readings 1-13 there | Lane, one question |
 | 11b++ | None: "The game in one page" and the item's text settled every answer | Readings 1-15 in `docs/rounds/2026-10-29-answers-to-11b-plus.md` | For review, no questions |
 
 

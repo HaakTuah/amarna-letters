@@ -534,3 +534,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     > Yes, please, expertly! If it needs access to something it can't get right now, then we will get it as soon as I am home.
 
     Written into build order item 11c++.
+
+53. **15:19**, in the design chat, back home, to item 11c++'s question (lesser coast cities as seals on a phone's
+    opening view, their armies one zoom step in) and Barkstreet Snakes' woodpecker: "Keep the bird 1.7x. And agreed
+    with everything else." (11c++'s reading kept)
