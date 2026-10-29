@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { Near, smallSeats } from "./small-world.ts";
 import {
   AllPowers,
   CapReason,
@@ -334,11 +335,8 @@ describe("SleepTests", () => {
                   cancelStanding: v.turn % 2 === 0 ? ["all"] : [],
                 }),
               );
-              let seats = toDict(
-                AllPowers,
-                (p) => p,
-                (p) => (p === "Alashiya" ? nap : p === "Babylonia" ? babylon : bot),
-              );
+              // The small world: the two sleepers beside Assyria, a script king, every other power idle.
+              let seats = smallSeats((p) => (p === "Alashiya" ? nap : p === "Babylonia" ? babylon : bot), ["Assyria", "Babylonia", "Alashiya"]);
               return Object.assign(new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
             },
             true,

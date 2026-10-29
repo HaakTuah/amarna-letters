@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { scriptSeats } from "./small-world.ts";
 import { AllPowers, GameStateSchema, Views, newGame, newGameConfig, serialize } from "@amarna/engine";
 import { leaderRules } from "@amarna/llm";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
@@ -9,11 +10,7 @@ import { Assert, toDict } from "../../engine/test/support.ts";
 describe("PlayOnTests", () => {
   test("Playing on after the age ends is recorded and replays exactly", async () => {
     const state = newGame(3, newGameConfig({ capMin: 3, capMax: 3, endMedian: 10000, catastropheChance: 0 }));
-    const seats = toDict(
-      AllPowers,
-      (p) => p,
-      (_) => new ScriptLeader(3),
-    );
+    const seats = scriptSeats(3);
     const r = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     while (await r.playTurn()) {
       /* to the age's end */

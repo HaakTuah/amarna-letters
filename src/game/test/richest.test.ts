@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { scriptSeats, seasons } from "./small-world.ts";
 import { AllPowers, Dict, type GameState, Wealth, earningsTotal, gain, newCharacter, newContract, newHoard, sum } from "@amarna/engine";
 import { GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator, batchReport, playGame } from "@amarna/game";
 import { selfText } from "@amarna/llm";
@@ -10,11 +11,7 @@ describe("RichestTests", () => {
     return Object.assign(
       new GameRunner(
         s,
-        toDict(
-          AllPowers,
-          (p) => p,
-          (): ISeat => new ScriptLeader(s.seed),
-        ),
+        scriptSeats(s.seed),
         new ScriptMind(),
         new TemplateNarrator(),
       ),
@@ -24,7 +21,8 @@ describe("RichestTests", () => {
 
   test("At the end of a game the batch ranks the living characters by wealth", async () => {
     let runner: GameRunner | null = null;
-    let summary = (await playGame(3, (s) => (runner = script(s)), false, null))[0];
+    // A short game of the small world (small-world.ts).
+    let summary = (await playGame(3, (s) => (runner = script(s)), false, seasons(12)))[0];
     let state = runner!.state;
     Assert.true(state.ended);
 

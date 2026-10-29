@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { scriptSeats } from "../../game/test/small-world.ts";
 import {
   AllPowers,
   type GameState,
@@ -28,12 +29,8 @@ describe("MapSceneTests", () => {
   }
 
   function runnerOf(state: GameState, seed: number): [GameRunner, SeasonFrame[]] {
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (_) => new ScriptLeader(seed) as ISeat,
-    );
-    let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
+    // The small world (small-world.ts): the default few are script kings, every other power idle.
+    let runner = Object.assign(new GameRunner(state, scriptSeats(seed), new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     let frames: SeasonFrame[] = [];
     runner.changed.push(() => catchUpFrames(frames, runner));
     return [runner, frames];

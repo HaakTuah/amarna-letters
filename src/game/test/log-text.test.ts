@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { IdleSeat, Near, scriptSeats } from "./small-world.ts";
 import { AllPowers, MindReplySchema, newGame, newGameConfig, newMindReply } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { SeatChoices, SimulatedApi, buildSeats, providersFor } from "@amarna/llm";
@@ -16,6 +17,8 @@ describe("LogTextTests", () => {
       choices.characters = "Haiku";
     }
     let set = buildSeats(choices, state, providersFor(choices, new SimulatedApi(), {}), () => runner!.log);
+    // The small world (small-world.ts): the default few and Egypt keep their seats, every other power is idle.
+    for (const p of AllPowers) if (![...Near, "Egypt"].includes(p)) set.seats.set(p, new IdleSeat());
     runner = new GameRunner(state, set.seats, set.minds, set.narrator);
 
     function same(log: GameLog): void {
@@ -35,11 +38,7 @@ describe("LogTextTests", () => {
   test("A log read back and continued writes the same text", async () => {
     let first = new GameRunner(
       newGame(4),
-      toDict(
-        AllPowers,
-        (p) => p,
-        (_) => new ScriptLeader(4),
-      ),
+      scriptSeats(4),
       new ScriptMind(),
       new TemplateNarrator(),
     );

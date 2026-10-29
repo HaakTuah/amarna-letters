@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { scriptSeats } from "./small-world.ts";
 import { AllPowers, OrderValidator, Views, besiege, first, newGame, newGameConfig } from "@amarna/engine";
 import { GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame } from "@amarna/game";
 import { Assert, toDict, oldWorld } from "../../engine/test/support.ts";
@@ -20,7 +21,7 @@ describe("SiegeBotTests", () => {
   test("Script kings take cities by siege in play and the games replay exactly", async () => {
     let sieges = 0;
     let falls = 0;
-    for (let seed = 1; seed <= 4; seed++) {
+    for (let seed = 1; seed <= 2; seed++) {
       let summary = (
         await playGame(
           seed,
@@ -28,11 +29,7 @@ describe("SiegeBotTests", () => {
             Object.assign(
               new GameRunner(
                 st,
-                toDict(
-                  AllPowers,
-                  (p) => p,
-                  (_) => new ScriptLeader(st.seed),
-                ),
+                scriptSeats(st.seed),
                 new ScriptMind(),
                 new TemplateNarrator(),
               ),

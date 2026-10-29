@@ -1,10 +1,12 @@
 import { describe, test } from "vitest";
+import { Near, smallSeats } from "./small-world.ts";
 import {
   AllPowers,
   Dict,
   type GameConfig,
   GameStateSchema,
   HSet,
+  type Power,
   type TurnSubmission,
   TurnSubmissionSchema,
   Views,
@@ -45,17 +47,14 @@ describe("FileSeatTests", () => {
 
   const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
 
-  function game(config: GameConfig | null = null, timeoutSeconds: number = 30): [GameRunner, string] {
+  function game(config: GameConfig | null = null, timeoutSeconds: number = 30, powers: readonly Power[] = [...Near, "Alashiya"]): [GameRunner, string] {
     let folder = newFolder();
     let state = newGame(8, config ?? newGameConfig({ catastropheChance: 0 }));
     let bot = new ScriptLeader(8);
     let runner: GameRunner | null = null;
     let exchange = new FileExchange(folder, timeoutSeconds * 1000, (call) => runner!.log.addCall(call));
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (p) => (p === "Alashiya" ? new LlmLeaderSeat(p, exchange, "file", "medium", state.config.customsPrimer, state.config, "File seat") : bot),
-    );
+    // The small world (small-world.ts) by default: the file seat among the default few script kings, every other power idle.
+    let seats = smallSeats((p) => (p === "Alashiya" ? new LlmLeaderSeat(p, exchange, "file", "medium", state.config.customsPrimer, state.config, "File seat") : bot), powers);
     runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     return [runner, folder];
   }
@@ -140,11 +139,7 @@ describe("FileSeatTests", () => {
     let state = newGame(8, newGameConfig({ catastropheChance: 0 }));
     let recorder = new Recorder();
     let bot = new ScriptLeader(8);
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (p) => (p === "Alashiya" ? new LlmLeaderSeat(p, recorder, "claude-sonnet-5-5", "medium", state.config.customsPrimer, state.config) : bot),
-    );
+    let seats = smallSeats((p) => (p === "Alashiya" ? new LlmLeaderSeat(p, recorder, "claude-sonnet-5-5", "medium", state.config.customsPrimer, state.config) : bot), [...Near, "Alashiya"]);
     let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     await runner.playTurn();
     await runner.playTurn();
@@ -279,8 +274,9 @@ describe("FileSeatTests", () => {
   });
 
   test("A file seat sleeps by default and replays exactly", async () => {
-    // Sleeping seats are on by default: nothing here switches them on.
-    let [runner, folder] = game(newGameConfig({ catastropheChance: 0 }));
+    // Sleeping seats are on by default: nothing here switches them on. The whole world, as script kings: in the small one no
+    // envoy reaches the island in these seven seasons, and an envoy waiting is what makes a sleeping court hold audience.
+    let [runner, folder] = game(newGameConfig({ catastropheChance: 0 }), 30, AllPowers);
     const stop = new AbortController();
     let requests = new Dict<string, string>();
     let answering = answer(

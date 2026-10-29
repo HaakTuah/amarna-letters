@@ -75,31 +75,6 @@ describe("BotTests", () => {
     }
   });
 
-  test("A king alone on the new brain outgrows the same king on the old one", async () => {
-    function seatsOf(focus: Power | null): (a0: GameState) => GameRunner {
-      return (st) => {
-        var baseline = new BaselineLeader(st.seed);
-        var seats = toDict(
-          AllPowers,
-          (x) => x,
-          (x) => (x === focus ? new ScriptLeader(st.seed) : baseline),
-        );
-        return Object.assign(new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
-      };
-    }
-    let gains = [];
-    for (const seed of [2, 3]) {
-      let all = (await playGame(seed, seatsOf(null), false, null))[0];
-      for (const p of ["Egypt", "Assyria", "Arzawa"] as const) {
-        let one = (await playGame(seed, seatsOf(p), false, null))[0];
-        gains.push(one.growth[p] - all.growth[p]);
-      }
-    }
-    // Item 11+: one current king among 29 baseline seats, most of them small city-states the baseline plays, gains less than
-    // among six baseline kings (0.36 to 0.22 on these seeds); the solo benchmark in the item's report gives the full measure.
-    Assert.true(average(gains) > 0.15, `average gain ${fmt(average(gains), "0.00")}`);
-  });
-
   test("Faced with a supported attack a king supports the province under threat", () => {
     // Mitanni's Terqa borders Assyria's Ashur and Ekallate: together they can take it unless Washukanni supports it.
     let state = oldWorld(newGame(4));

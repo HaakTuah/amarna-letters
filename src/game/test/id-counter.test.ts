@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { scriptSeats, smallSeats } from "./small-world.ts";
 import { react } from "../../llm/src/parse.ts";
 import { court } from "../src/bots/statecraft-court.ts";
 import { host } from "../src/bots/statecraft-letters.ts";
@@ -105,17 +106,12 @@ describe("IdCounterTests", () => {
     }
   }
 
-  // A whole script game, with or without the dummy kind: an age of 20 seasons, since thirty powers' whole games twice over
-  // outgrow a test worker's memory (item 11+).
+  // A whole script game of the small world (small-world.ts), with or without the dummy kind: an age of 12 seasons.
   async function played(seed: number, withDummy: boolean): Promise<GameRunner> {
-    let state = newGame(seed, newGameConfig({ capMin: 20, capMax: 20 }));
+    let state = newGame(seed, newGameConfig({ capMin: 12, capMax: 12 }));
     let dummy = new Dummy(state);
     let bot = new ScriptLeader(seed);
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (_) => (withDummy ? new DummySeat(bot, dummy) : (bot as ISeat)),
-    );
+    let seats = smallSeats(() => (withDummy ? new DummySeat(bot, dummy) : (bot as ISeat)));
     let minds: ICharacterMind = withDummy ? new DummyMind(new ScriptMind(), dummy) : new ScriptMind();
     let r = Object.assign(new GameRunner(state, seats, minds, new TemplateNarrator()), { writeChronicles: false });
     await r.prepare();
@@ -201,11 +197,7 @@ describe("IdCounterTests", () => {
     let r = Object.assign(
       new GameRunner(
         newGame(4),
-        toDict(
-          AllPowers,
-          (p) => p,
-          (_) => new ScriptLeader(4) as ISeat,
-        ),
+        scriptSeats(4),
         new ScriptMind(),
         new TemplateNarrator(),
       ),

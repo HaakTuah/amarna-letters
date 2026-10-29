@@ -77,4 +77,8 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 18 | The balance pass | not started | | |
 | 19 | The living map | not started: with every feature built; may run beside 18 | | |
 
+Side lane, a smaller default world for tests (29 Oct, #136): test games play a few seated powers among idle ones
+(`src/game/test/small-world.ts`); suite 2264 s to 955 s, a code PR's CI about 4 min 50 s to 1 min 52 s
+(`docs/rounds/2026-10-29-small-test-world.md`).
+
 Done items 1 to 10 and the port's findings (all handled): `docs/archive/progress-done.md`.
