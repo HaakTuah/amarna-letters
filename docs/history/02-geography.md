@@ -125,6 +125,32 @@ Checked and left out, as lesser streams or ridges that stopped no army, drawn bu
 cataracts** (they break the river's boats into reaches, already in the game, but no march along the bank); and no
 **strait** lies on a land connection (the sea crossings are the sea's, with their winter danger).
 
+
+## Neighbours on the map (item 11f+)
+
+"Neighbours on the map are neighbours in the rules": where the drawn land of two provinces touches they are connected, and
+a road over a third province's land passes through it, unless the sources give that road's land to one of the pair. What
+each case rests on (the full list is in `docs/design/36-map-neighbours.md`):
+
+| Case | Reading | Evidence | Grade |
+| --- | --- | --- | --- |
+| The Sutean steppe to Terqa, Aleppo, Harran, Nuhashshe and Qadesh | desert roads, each a crossing of the Syrian desert | "The Syrian desert" above: Mari's and Hana's shortcut by Tadmor; the Suteans on every edge of it (EA 16, 195, 297) | B |
+| The Delta to Gaza by the Sinai | the Ways of Horus are the Sinai's road; their forts were Egypt's | "The Ways of Horus" above (Seti I's Karnak relief; Papyrus Anastasi I) | A |
+| Akko to Ashkelon, Gaza to Megiddo, Gezer to Megiddo | the coast road goes inland through the Aruna pass to Megiddo; the pass is Megiddo's | Thutmose III's Annals: Yehem, Aruna, Megiddo | A |
+| Gaza to Jerusalem, Shechem; Jerusalem to Lachish; Hebron, Jerusalem to the Sinai | the roads from the coast into the hills go by the cities between | the Amarna letters' cities between them (EA 287-290: Gezer, Lachish, Ashkelon, Qiltu); no source gives these roads' land to either end | B |
+| Tyre to Damascus, Megiddo to Tyre | by Hazor and by Akko | "The coast road" above: north by Hazor, or along the coast by Akko | B |
+| Damascus to Sidon | Kumidi in the Beqaa, Egypt's seat in Upe, is Damascus's land | EA 116, 132, 198 (Kumidi); "The Beqaa" above | A (Kumidi), B (its land) |
+| Ashtaroth, Pella and Jerusalem to the Shasu | the King's Highway and the pastures east of the Jordan and the Dead Sea are the Shasu's | "The King's Highway" above; the Shasu lands of Seir and Edom in Egyptian lists ([08-beyond-the-edges.md](08-beyond-the-edges.md)) | B (the road), G (the land north of Edom) |
+| Jerusalem to Pella and to the Shasu | across the Jordan at the fords by Jericho | the rift's fords, as `megiddo`-`pella` above | B |
+| Dur-Kurigalzu to Susa, Arrapha to Susa | the Elam road by Der, a Babylonian city; the land east of the Tigris to the Zagros is Babylonia's | "The Elam road" above | B |
+| Azzi to Samuha | the Upper Land faced Hayasa; the road between is the Hittites' | the Hittite campaign texts against Hayasa (Suppiluliuma's Deeds) | B |
+| The Kaska to Samuha | the Kaska held the mountains north of the Upper Land | Hattusili III's Apology; the Kaska frontier along the whole north | B |
+| Mira to Tuwanuwa; Seha to Tuwanuwa by Mira | the Lower Land, Hatti's frontier province, faced Arzawa; Seha's road east runs through Mira | the Lower Land's governor in the Hittite texts; the Mira-Kuwaliya treaty | B |
+| Nesa to Sapinuwa and to Isuwa by Samuha | the road crosses the Marassantiya at Samuha and goes on to the Euphrates | "The crossings of 1346" above | B |
+| Samuha to Carchemish | across the Anti-Taurus, the range on Nesa's road to Carchemish | "Terrain by connection" above | B |
+| Mesopotamia: Ashur and Ekallate to Suhu; Taidu to Ashur, Terqa, Isuwa; Sippar-Nippur, Arrapha-Dur-Kurigalzu, Dur-Kurigalzu-Suhu; Babylon to Dur-Kurigalzu by Sippar | open plain and steppe between the rivers, no obstacle the sources name; the roads go by the cities between | "The Euphrates road" and "The Tigris road" above | B |
+| Northern Syria: Alalakh-Nuhashshe, Amurru-Qatna, Niya-Qatna, Tunip-Ugarit; Nuhashshe to Qadesh, Tunip; Qadesh to Tunip; Amurru to Ugarit | neighbours by their land; the roads between go by the cities between | the Orontes valley's cities in the Amarna letters and the Aziru treaties | B |
+
 ## Rivers
 
 | River | Ancient name | Runs through (map ids) | Note | Grade |
