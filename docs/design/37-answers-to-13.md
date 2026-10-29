@@ -46,7 +46,10 @@ Build order item 13+ (`docs/intent/build-order/item-13.md`, the 13+ entry), Haak
 
 ## Measured
 
-`--games 50 --seed 1`: see the report. The batch report prints the governors' seats (`risenReport`): how many rose, how
+`--games 50 --seed 1`: no governor rose (none was in place in a kingdom that fell); 17 provinces passed to the
+conqueror's troops as the word arrived and 106 fell lawless. A small game in which one rises
+(`src/game/test/risen-seat.test.ts`) has its script seat keep his men, take lawless land beside it and replay exactly;
+see the report. The batch report prints the governors' seats (`risenReport`): how many rose, how
 long they lasted, their growth, and the envoys and tablets their seats sent and sealed; the signals `risen`,
 `fall-held` and `fall-lawless` count the parts of fallen kingdoms as they come apart.
 
