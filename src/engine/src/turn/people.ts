@@ -11,7 +11,7 @@ import { sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { EconomyData, grainWorth } from "../model/economy.ts";
 import { climateOf, DroughtRegions, RiverFloods, Rivers } from "../model/geography.ts";
-import { climatePercentIn, countryNeed, harvestIn, LandData, menAvailable, menOf, reckonedOf, resistanceOf, type People } from "../model/land.ts";
+import { climatePercentIn, countryNeed, harvestIn, LandData, menAvailable, menOf, reckonedOf, resistanceOf, wallMenOf, type People } from "../model/land.ts";
 import { seasonOfTurn, type UnitKind } from "../model/map.ts";
 import type { TaxOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
@@ -348,15 +348,18 @@ P.killSettled = function (province, permille, loosePermille = 0) {
 };
 
 /**
- * The people's resistance to an army of `mover` entering their province: none in his own land; otherwise its men of
- * fighting age, as hostile as they are to him (less so to a king whose homeland it is), by the ground.
+ * The people's resistance to an army of `mover` entering their province, in thousandths of a full unit: none in his own
+ * land; otherwise its men of fighting age at home, as hostile as they are to him (less so to a king whose homeland it is),
+ * by their number. In open land the ground counts with them; in a walled province they stand on its walls, and the walls
+ * multiply them in a storm instead (item 11e, "The people defend their land").
  */
 P.resistance = function (province, mover) {
   const S = this.s;
   const p = this.map.get(province);
   if (S.config.peopleDefence <= 0 || p.isSea || S.owner.getOrDefault(province, null) === mover) return 0;
   const hostility = p.home === mover ? LandData.hostileHome : 100;
-  return resistanceOf(province, this.peopleOf(province).men, hostility);
+  const men = menAvailable(S, province);
+  return S.walls.getOrDefault(province, 0) > 0 ? wallMenOf(men, hostility) : resistanceOf(province, men, hostility);
 };
 
 /**

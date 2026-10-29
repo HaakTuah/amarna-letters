@@ -3,7 +3,8 @@
  * plan steps 1 to 9). Walls set how long a city holds out, not how many armies a field battle needs: combat resolves as
  * always, and a move that wins its way into a walled province its mover does not hold either storms the walls (its
  * strength beats their level and the defenders it beat together) and takes the province at once, or stands inside and
- * takes nothing. An army standing within walls may then besiege the city: each season it holds there the city is worn down
+ * takes nothing; since item 11e the city's own men of fighting age stand on the walls beside the garrison, and the walls
+ * multiply both (`stormed` in outcomes.ts). An army standing within walls may then besiege the city: each season it holds there the city is worn down
  * a step, two with an uncut support. Since item 9+a the walls price the storm, not the clock ("How long a siege lasts"):
  * the city eats from its market and stores (townsEat in economy.ts), refilled only by ships of its king's while its waters
  * are open (item 9+b), and surrenders once it
@@ -20,7 +21,7 @@ import { EconomyData } from "../model/economy.ts";
 import type { Dispatch, HomeCargo } from "../model/records.ts";
 import { newLossAbroad, newTabletCopy } from "../model/records.ts";
 import type { FortifyOrder } from "../model/orders.ts";
-import { stormed, strengthWords, type Assault } from "../model/outcomes.ts";
+import { stormed, strengthWords, wallsDefence, type Assault } from "../model/outcomes.ts";
 import { LandData, menAvailable } from "../model/land.ts";
 import { remember, type Character } from "../model/people.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
@@ -361,11 +362,24 @@ P.surrender = function (x, owner, tell, how) {
 
 /** What a king reads of his own move that got within walls he does not hold: whether it stormed them, with the strengths. */
 P.assaultText = function (a) {
-  const strengths = `strength ${strengthWords(a.strength)} against walls ${strengthWords(a.walls)} and defenders ${strengthWords(a.defenders)}${groundShare(a)}`;
+  const strengths = `strength ${strengthWords(a.strength)} against walls ${strengthWords(a.walls)} and ${defendersText(a)}`;
   if (stormed(a)) return `it stormed the walls of ${a.province} (${strengths}), and ${a.province} is yours`;
   if (a.kind === "Fleet") return `your fleet stands within the walls of ${a.province} (walls ${strengthWords(a.walls)}), but a fleet can neither storm walls nor besiege them, so it takes nothing`;
   return `it got within the walls of ${a.province} but did not storm them (${strengths}): your army stands inside and takes nothing; besiege the city to wear it down`;
 };
+
+/**
+ * The defenders on the walls as a storm met them (item 11e): the garrison's hold and the city's own men, multiplied by the
+ * walls ("defenders 4.2 on the walls: the garrison 0.3, and the city's men 1.8, the walls making them twice as strong").
+ */
+function defendersText(a: Assault): string {
+  if (a.defenders + a.people === 0) return "no defenders on the walls";
+  const made = a.walls === 1000 ? "twice" : `${strengthWords(a.walls + 1000)} times`;
+  // The total from the parts as the text gives them, so they add up (the storm itself reckons the exact figures).
+  const tenths = (x: number): number => Math.round(x / 100) * 100;
+  const total = wallsDefence({ ...a, defenders: tenths(a.defenders), people: tenths(a.people) });
+  return `defenders ${strengthWords(total)} on the walls: the garrison ${strengthWords(a.defenders)}${groundShare(a)}, and the city's men ${strengthWords(a.people)}, the walls making them ${made} as strong`;
+}
 
 /** The ground's share of the defenders' strength in an assault on walls, if it had one (", 1 of it for the rough ground of lukka"). */
 function groundShare(a: Assault): string {
@@ -378,7 +392,7 @@ function groundShare(a: Assault): string {
  */
 P.ownWallsText = function (a) {
   const who = `${a.power}'s ${a.kind === "Army" ? "army" : "fleet"} from ${a.from}`;
-  const strengths = `its strength ${strengthWords(a.strength)} against your walls ${strengthWords(a.walls)} and defenders ${strengthWords(a.defenders)}${groundShare(a)}`;
+  const strengths = `its strength ${strengthWords(a.strength)} against your walls ${strengthWords(a.walls)} and ${defendersText(a)}`;
   const name = this.map.get(a.province).name;
   return stormed(a)
     ? `Your walled city of ${name}: ${who} stormed the walls (${strengths}): ${name} is taken.`

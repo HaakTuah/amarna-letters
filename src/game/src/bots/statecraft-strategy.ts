@@ -62,8 +62,8 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
         const unseen = Math.max(0, force(x) - count(b.others, (u) => u.power === x));
         const hidden = count(Board.Map.neighbors(t), (n) => b.ownerOf(n) === x && !b.v.visible.includes(n));
         const backers = b.muster(x, t) + Math.min(unseen, hidden);
-        // His troop there has the ground's help against our blow.
-        const defence = b.unitAt.tryGet(t)?.power === x ? 1 + b.groundFrom(strikers, t) + 0.6 * backers : b.walls(t) ? 1 + 0.6 * backers : 0.5 * backers;
+        // His troop there has the ground's help against our blow, and outside walls the land's men beside it (item 11e).
+        const defence = (b.unitAt.tryGet(t)?.power === x ? 1 + b.groundFrom(strikers, t) + 0.6 * backers : b.walls(t) ? 1 + 0.6 * backers : 0.5 * backers) + b.resistance(t);
         const chance = strike > defence + 0.5 ? 0.8 : strike > defence ? 0.5 : strike > defence - 0.5 ? 0.25 : 0.05;
         // Taken land must still be kept: count a little over half of what holding it to the end is worth.
         return b.value(t) * chance * 0.6;

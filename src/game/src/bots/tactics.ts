@@ -356,12 +356,14 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       [(u: string) => (b.unitAt.get(u).kind === "Army" ? 0 : 1), cmpNum],
       [(u: string) => u, cmpStr],
     )[0];
-    if (occupant !== null) defence += b.ground(lead, target);
+    // The troop there has the ground's help, and the land's own men beside it outside walls (item 11e).
+    if (occupant !== null) defence += b.ground(lead, target) + b.resistance(target);
     const required = Math.max(defence, contest) + 1;
     // Strong enough to storm the walls, the attack takes the city at once; only strong enough to get in, the army stands
     // inside and besieges it, which takes seasons and may be broken: worth less, the higher the walls.
     const storm = walled ? Math.max(required, b.stormNeeds(target, defence)) : required;
-    const stormHelpers = able.filter((u) => u !== lead).slice(0, Math.max(0, storm - 1));
+    // The storm's need is fractional since item 11e (the city's men by their number): as many whole units as reach it.
+    const stormHelpers = able.filter((u) => u !== lead).slice(0, Math.max(0, Math.ceil(storm) - 1));
     const helpers = 1 + stormHelpers.length >= storm ? stormHelpers : able.filter((u) => u !== lead).slice(0, Math.max(0, required - 1));
     const stormed = !walled || 1 + helpers.length >= storm;
     if (1 + helpers.length >= required) {
@@ -849,10 +851,12 @@ export function willing(b: Board, brain: Brain, owner: Power, leader: Power | nu
 
 /**
  * What getting within walls without storming them is worth against taking the city at once: the army then stands and
- * besieges it for as many seasons as the walls are high (fewer with support), and may be driven out meanwhile.
+ * besieges it for as many seasons as the walls are high (fewer with support), and may be driven out meanwhile. Since item
+ * 11e a city of many men is seldom stormed and most fall to a siege, so a siege is worth more than when storms were the
+ * way in (0.6 / (1 + 0.25 x walls) before).
  */
 export function siegeWorth(walls: number): number {
-  return 0.6 / (1 + 0.25 * walls);
+  return 0.85 / (1 + 0.2 * walls);
 }
 
 function assign(plan: MilitaryPlan, free: HSet<string>, unit: string, order: Order, role: string): void {

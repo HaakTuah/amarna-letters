@@ -24,6 +24,13 @@ export interface GameConfig {
    */
   provinceWeight: number;
   /**
+   * The weight of a realm's size in the final score, in percent, the rest its performance (item 11e, "One scoreboard for
+   * every power": both from 0 to 1, size as a share of the largest realm's wealth, performance as its rank among its own
+   * position's results). A first guess of equal weights, set in item 18 so that every power has about the same chance of
+   * first place; kings are told the goal in words until then.
+   */
+  sizeWeight: number;
+  /**
    * Off by default (since 18 October 2026): a house rule for experiments, never in a king's rulebook unless switched on.
    */
   sharedVictory: boolean;
@@ -136,6 +143,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     capMax: 100,
     openAge: false,
     provinceWeight: 10,
+    sizeWeight: 50,
     sharedVictory: false,
     fallenSeeAll: true,
     armyCost: 100,
@@ -184,6 +192,7 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   capMax: I,
   openAge: B,
   provinceWeight: I,
+  sizeWeight: I,
   sharedVictory: B,
   fallenSeeAll: B,
   armyCost: I,
