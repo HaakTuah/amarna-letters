@@ -469,6 +469,7 @@ export class SvgMapRenderer implements MapRenderer {
   private scale = 0;
   private scene: MapScene | null = null;
   private placing = 0;
+  private awaited = new WeakSet<Animation>();
   private fine = false;
   private readonly onClick = (e: Event): void => {
     const t = e.target as Element | null;
@@ -624,6 +625,13 @@ export class SvgMapRenderer implements MapRenderer {
       this.placing = 0;
       const view = this.view;
       if (view === null) return;
+      // Whatever is still gliding or sliding is placed again once it stops: its own end, besides the events (onMoved),
+      // which a busy machine can lose, leaving the last placement measured mid-motion.
+      for (const a of view.getAnimations?.({ subtree: true }) ?? [])
+        if (a instanceof CSSTransition && a.transitionProperty === "transform" && !this.awaited.has(a) && (a.effect as KeyframeEffect | null)?.target?.matches(".mapzoom, .unit, .traveller")) {
+          this.awaited.add(a);
+          a.finished.then(() => this.placeNames(), () => this.placeNames());
+        }
       // Everything shown again, then all measured in one go, then given way in one batch of class changes: one layout,
       // however many markers (writing a class between two measures would force a layout each time).
       view.querySelectorAll(".map .small, .map .off").forEach((e) => e.classList.remove("small", "crowd", "off"));
