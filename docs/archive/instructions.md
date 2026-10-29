@@ -388,3 +388,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     > against.
 
     Written into "One scoreboard for every power" (Victory) and build order items 11e and 18.
+
+37. **07:47**, in the design chat, on kings not being able to see the standings:
+
+    > That's good! The part about them not knowing is an excellent point! So it makes it hard to coalition kn those
+    > grounds, it becomes more if it is really obvious one pulls far ahead, or represents a real danger. They can even
+    > be told the propotion of each weighing in their scoring, they still have no way to accurately measure how much
+    > each state fulfill each aggregated to those propotions.
+
+    Written into "One scoreboard for every power" (Victory): kings are told the weight once item 18 sets it.
