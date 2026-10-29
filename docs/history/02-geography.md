@@ -113,6 +113,27 @@ Akhetaten two to three months, which is why envoys took a season or more each wa
 | Karun, Karkheh | - | `susa` | Elam's plain | B |
 | Lower and Upper Zab, Diyala | - | `arbela`, `ekallatum` | Tigris tributaries; the Assyrian-Babylonian border near the Diyala | B |
 
+## The land as it was in 1346 (item 11c+)
+
+Where the land of 1346 differs from today's, as the map draws it:
+
+- **The Gulf's head** reached up the lower plain towards Ur; the sea has since withdrawn some 150 to 200 km [B: the line
+  is argued; Ur was a port in the third millennium and on the Euphrates in the second].
+- **The bay of Miletus** (the Latmian Gulf) was open sea from Miletus, on its southern shore, past Myus to Heraclea
+  under Latmos; the Maeander silted it from Roman times on, and Lake Bafa is what is left of it [A for the gulf, B for
+  its shore line in the fourteenth century].
+- **The Euphrates ran in its old bed** by Sippar, Babylon (through the city), Nippur's country, Uruk and Ur; it has since
+  moved west to its Hindiya course, and Ur and Uruk lie far from it [A for the cities on the river, B for the line between
+  them].
+- **The Delta's branches**: the New Kingdom Nile reached the sea by several branches, the Pelusiac (by Bubastis to
+  Pelusium) on the east, the Tanitic, the Sebennytic and the Canopic on the west, besides the two that remain today
+  [A for the branches, B for their exact courses].
+
+What a border follows (item 11c+, `scripts/map-borders.ts`): a ridge (the ranges drawn), a great river where it was a
+frontier (the Euphrates from Carchemish and Emar upstream, the Tigris between Taidu and Nineveh) and every lesser river,
+and a desert's edge; a great river where it is the spine of the provinces along it (the Nile, the Euphrates below Emar,
+the Tigris below Nineveh) is crossed within them. Crossings in the rules stay as `Geography` lists them until item 11f.
+
 ## Coasts and harbours
 
 | Place (map id) | Harbour of the period | Grade |

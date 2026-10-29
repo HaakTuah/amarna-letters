@@ -16,6 +16,7 @@ import {
   type StandingAnswerRequest,
   type StandingWhen,
   type TurnSubmission,
+  type UnitKind,
   type UnitView,
 } from "@amarna/engine";
 import { provinceName } from "./format.ts";
@@ -88,12 +89,13 @@ export class OrderDraft {
     this.selected = this.units.has(province) ? province : null;
   }
 
-  arrows(): { from: string; to: string; support: boolean }[] {
-    const list: { from: string; to: string; support: boolean }[] = [];
+  arrows(): { from: string; to: string; support: boolean; kind: UnitKind }[] {
+    const list: { from: string; to: string; support: boolean; kind: UnitKind }[] = [];
+    const kindAt = (p: string): UnitKind => this.unitAt(p)?.kind ?? "Army";
     for (const [at, d] of this.units) {
-      if (d.kind === "move" && d.target !== null) list.push({ from: at, to: d.target, support: false });
-      if (d.kind === "support" && d.target !== null) list.push({ from: at, to: d.to ?? d.target, support: true });
-      if (d.kind === "convoy" && d.target !== null && d.to !== null) list.push({ from: d.target, to: d.to, support: true });
+      if (d.kind === "move" && d.target !== null) list.push({ from: at, to: d.target, support: false, kind: kindAt(at) });
+      if (d.kind === "support" && d.target !== null) list.push({ from: at, to: d.to ?? d.target, support: true, kind: kindAt(at) });
+      if (d.kind === "convoy" && d.target !== null && d.to !== null) list.push({ from: d.target, to: d.to, support: true, kind: "Army" });
     }
     return list;
   }

@@ -85,3 +85,21 @@ coming home is fluent in his own. What the sources add [B]:
 | The Gulf | Akkadian | Dilmun was Babylonian |
 | The Nile beyond Nubia | Egyptian | Egypt's soldiers and traders in the south |
 | The Red Sea | Egyptian | Only Egypt sailed there |
+
+## The lands beyond the game, as the map names them (item 11c+)
+
+Drawn in the land's plain colour, no one's, with no province or rule, each by the period's own name [grade]:
+
+| Name on the map | Where | Source | Grade |
+| --- | --- | --- | --- |
+| Wilusa | The Troad, north-west Anatolia | Hittite texts (the Alaksandu treaty, about 1280); the "Arzawa lands" (01-politics) | A for the land, B for its bounds |
+| Masa | Inland north-west Anatolia | Hittite texts, beside Karkisa and Lukka | B: placed differently by different scholars |
+| Ahhiyawa | The Aegean and mainland Greece | Hittite texts (the Madduwatta text on); the Mycenaean Greeks | A for the name, C for which kingdom |
+| Keftiu | Crete | Egyptian tomb paintings and the "names of the Keftiu" | A |
+| Tjehenu | Libya, west of the Delta | Egyptian texts and reliefs of the 18th dynasty | A |
+| Pala | The Black Sea's hinterland west of the Kaska | Hittite texts (Palaic, its language) | A for the land, B for its bounds |
+| Lullubi | The Zagros above Babylonia | Akkadian and Babylonian texts | A |
+| Anshan | Elam's highland, beyond Susa | Elamite and Babylonian texts | A |
+
+Arabia's deserts and the Black Sea are named by what they are ("Arabian desert", "Black Sea"), as no period name for them
+is attested on this side.

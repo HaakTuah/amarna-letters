@@ -3,16 +3,17 @@
 // layer on the GPU, and only when it settles are the map's symbol and label sizes recomputed (CSS variables).
 
 import { BoardHeight, BoardWidth } from "./projection.ts";
-import { NameSteps } from "./markup.ts";
 
 const MAP_W = BoardWidth, MAP_H = BoardHeight, MAX_ZOOM = 24;
 const states = new WeakMap();
 const reduced = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function attach(view) {
+/// `onSettle(scale)`: called when a gesture settles, with the screen pixels a map unit now takes (item 11c+: names and
+/// counters are laid out again for it).
+export function attach(view, onSettle) {
   if (!view || states.has(view)) return;
   const layer = view.querySelector(".mapzoom");
-  const st = { view, layer, x: 0, y: 0, s: 1, pointers: new Map(), start: null, moved: false, frame: 0, settle: 0, lastTap: null, base: 1 };
+  const st = { onSettle, view, layer, x: 0, y: 0, s: 1, pointers: new Map(), start: null, moved: false, frame: 0, settle: 0, lastTap: null, base: 1 };
   states.set(view, st);
 
   const onDown = e => {
@@ -94,6 +95,29 @@ export function reset(view) {
   const st = states.get(view);
   if (!st) return;
   animate(st, () => { st.s = 1; st.x = 0; st.y = 0; clamp(st); });
+}
+
+/// Where the view is: the map point at its centre and its zoom (1 shows the whole board).
+export function getView(view) {
+  const st = states.get(view);
+  if (!st) return null;
+  const g = geometry(st);
+  return { x: ((g.w / 2 - st.x) / st.s - g.ox) / g.b, y: ((g.h / 2 - st.y) / st.s - g.oy) / g.b, zoom: st.s };
+}
+
+/// Centres the view on a map point at a zoom (a view kept from before, or a view's opening).
+export function setView(view, mx, my, zoom, animated) {
+  const st = states.get(view);
+  if (!st) return;
+  const change = () => {
+    const g = geometry(st);
+    st.s = Math.min(MAX_ZOOM, Math.max(1, zoom));
+    st.x = g.w / 2 - st.s * (g.ox + mx * g.b);
+    st.y = g.h / 2 - st.s * (g.oy + my * g.b);
+    clamp(st);
+  };
+  if (animated) animate(st, change);
+  else { change(); apply(st); settle(st, true); }
 }
 
 /// Brings a map point into view, zooming in to at least the given zoom (used to follow a character or a province).
@@ -213,9 +237,9 @@ function settle(st, now) {
     st.view.classList.toggle("lod0", lod === 0);
     st.view.classList.toggle("lod1", lod === 1);
     st.view.classList.toggle("lod2", lod === 2);
-    // Names give way by importance while the crowded coasts (the Levant above all) are too small to hold them all.
-    NameSteps.forEach((step, k) => { if (k > 0) st.view.classList.toggle(`nz${k}`, s >= step); });
     st.view.dataset.zoom = st.s.toFixed(2);
+    // Names give way to each other and to the pieces, and counters gather or open, for the new scale (the renderer).
+    if (st.onSettle) st.onSettle(s);
   };
   if (now) run(); else st.settle = setTimeout(run, 140);
 }
