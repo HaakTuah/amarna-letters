@@ -483,3 +483,15 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into "Revolt follows conditions, not dice" (War), "The land" under "Armies need food as well as pay" (Land,
     people and economy) and build order item 17.
+
+47. **09:18 and 09:22**, in the design chat, three questions: whether the rules incentivize conquering neighbours
+    before going deeper, "Kinda like imperator, just incentivicong, but not forcing?"; "If i besiege a neighbour
+    province then send supply caravan there, they cannot still invest in policing in that province and intercept my
+    caravan, right?"; and "When a kingdom breaks up, who does the different armies go to the way we have it set up
+    now?" To the design session's answers and its suggestion (a besieged garrison and its king's policing reach only
+    inside the walls; the countryside around a siege is the besieger's for supply; policing stops where hostile troops
+    stand):
+
+    > Yes to all, expertly!
+
+    Written into "Caravans carry a kingdom's goods" (Land, people and economy) and build order items 11f and 15.
