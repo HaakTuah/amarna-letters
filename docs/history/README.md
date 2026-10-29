@@ -18,6 +18,7 @@ Amarna letters in the game's first year, 1346 BCE, for the items that build from
 | [10-water.md](10-water.md) | Where each city drank: river, spring, wells, a spring outside the walls, cisterns, an island (added by item 11a+) | 10+, 11a+, 15 |
 | [11-armies-and-fleets.md](11-armies-and-fleets.md) | Armies, chariotry, infantry, garrisons, levies, hired men and fleets of each power and city-state; command; logistics and the campaigning season | 13, 18 |
 | [12-walls-roads-harbours.md](12-walls-roads-harbours.md) | Walls by city against the game's start, sieges on record, roads and their upkeep, relay stations, harbours and what they held | 15, 18 |
+| [13-the-land-drawn.md](13-the-land-drawn.md) | What the map draws of the land: relief, every river that mattered, the lakes and marshes of 1346, and the public-domain data each comes from (added by item 11c++) | 11c++, 19 |
 
 ## How sure each claim is
 

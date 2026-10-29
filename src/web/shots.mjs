@@ -35,10 +35,15 @@ for (const [name, viewport] of [["phone", { width: 390, height: 844 }], ["deskto
     await p.waitForSelector(".game .timebar", { timeout: 120000 });
     await p.waitForTimeout(1500);
     await p.screenshot({ path: join(out, `${name}-${scheme}-opening.png`) });
-    let t = Date.now();
+    // The main thread's long tasks during one zoom step (the redraw, and the markers and names placed again).
+    await p.evaluate(() => {
+      window.__long = [];
+      new PerformanceObserver((l) => window.__long.push(...l.getEntries().map((e) => e.duration))).observe({ type: "longtask" });
+    });
     await p.evaluate(() => document.querySelector('[aria-label="Zoom in"]').click());
     await p.waitForTimeout(1500);
-    timings.push(`${name} ${scheme}: zoom in settled within ${Date.now() - t} ms`);
+    const long = await p.evaluate(() => window.__long);
+    timings.push(`${name} ${scheme}: one zoom step, long tasks ${long.length ? long.map((d) => Math.round(d)).join(", ") + " ms" : "none"}`);
     await p.screenshot({ path: join(out, `${name}-${scheme}-opening-closer.png`) });
     for (let i = 0; i < 2; i++) await p.evaluate(() => document.querySelector('[aria-label="Zoom in"]').click());
     await p.waitForTimeout(2000);
