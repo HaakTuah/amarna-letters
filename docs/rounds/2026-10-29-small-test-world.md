@@ -51,7 +51,7 @@ only by the benchmarks run after every item (the builder rules), as the solo ben
 | --- | --- | --- |
 | Local suite, 4 cores | 2264 s of test time, 15.5 min, 1 failure (sleep-reading's replay test timed out at 145 s) | 955 s, 6.0 min, all pass |
 | CI of a code PR (4 shards) | about 4 min 50 s (run 40791209738; shards 2.2 to 4.7 min) | about 1 min 52 s (run 40799396735; shards 1.0 to 1.7 min) |
-| `scripts/sim.sh --games 50 --seed 1 --verify-replay` | see the PR | identical summary |
+| `scripts/sim.sh --games 50 --seed 1 --verify-replay` | its 200-line summary | identical, line for line (but the time it took) |
 
 The largest test left is the full-world replay guard (about 180 s locally, 150 s of it seed 1): it sets the length of the
 shard it lands in.
