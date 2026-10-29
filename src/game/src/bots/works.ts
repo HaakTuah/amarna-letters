@@ -116,6 +116,14 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
     }
     return true;
   };
+  // A project's whole price in gold, when the treasury has it to spare: a corvée of a thousand men a season costs a
+  // small realm's harvest more than the road is worth to it (measured in item 15: kings who built by corvée grew less).
+  const afford = (kind: WorkKind, id: string, level: number): boolean => {
+    const cost = buildGold(kind, id, level) * Math.max(1, WorksData[kind].seasons);
+    if (spare - spent - cost < 150) return false;
+    spent += buildGold(kind, id, level);
+    return true;
+  };
 
   // Repairs: a besieged city of ours mends its walls with the men and food inside, a step a season.
   for (const x of v.sieges.filter((s) => s.holder === b.me && s.progress > 0 && s.walls > 0)) orders.push(build(x.province, "Walls", x.walls, true));
@@ -150,7 +158,8 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
       const kind: WorkKind | null = st < WorksData.Stations.most ? "Stations" : road < WorksData.Roads.most && (plan.danger.tryGet(id)?.[1] ?? 0) < 0.4 ? "Roads" : null;
       if (kind === null) continue;
       const level = kind === "Stations" ? st : road;
-      orders.push(build(id, kind, level + 1, pay(buildGold(kind, id, level + 1))));
+      if (!afford(kind, id, level + 1)) break;
+      orders.push(build(id, kind, level + 1));
       break;
     }
   }
@@ -175,7 +184,7 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
     )[0];
     if (best === undefined) continue;
     const level = (own(v, "Harbour", best)?.level ?? 0) + 1;
-    orders.push(build(best, "Harbour", level, pay(buildGold("Harbour", best, level))));
+    if (afford("Harbour", best, level)) orders.push(build(best, "Harbour", level));
   }
 
   // Water works for a threatened walled city whose water can fail.
@@ -184,7 +193,7 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
     if (landRefusal("Water", Board.Map.get(id)) !== null || underWay("Water", id)) continue;
     const level = own(v, "Water", id)?.level ?? 0;
     if (level >= WorksData.Water.most) continue;
-    orders.push(build(id, "Water", level + 1, pay(buildGold("Water", id, level + 1))));
+    if (afford("Water", id, level + 1)) orders.push(build(id, "Water", level + 1));
     break;
   }
 
