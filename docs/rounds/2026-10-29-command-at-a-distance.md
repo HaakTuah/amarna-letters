@@ -9,6 +9,12 @@ built here: governorship and command as grants of authority, hiring bands as sol
 carriers, the grant back of a ceded capital, a skilled commander cutting winter losses, and hunting re-measured with
 command.
 
+`develop` merged in after #169 and #182 (11f, the tactics split #171, the map uncluttered #180); this item's design
+notes became `docs/design/35-command-at-a-distance.md` beside 11c++'s 34. At the orchestrating session's request,
+`src/engine/src/turn/envoys.ts` (51.1 KB) is split in its own commit: the envoys' return, release, business abroad and
+requests fulfilled move to `envoys-home.ts` (38 KB and 14 KB), a move only; five script games (seeds 1-5) before and
+after it are identical to the last character's purse.
+
 ## The check for changes
 
 The copy was cut from Build order revision 103, War, travel and the seas 66, Overview 567, Characters 20, Land, people
