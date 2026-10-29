@@ -24,7 +24,8 @@ nothing had changed.
 the item's rule, and the list is now empty:
 
 - **23 pairs whose land touches are connected**, with a crossing where a real obstacle of 1346 lies between them: the
-  Sutean steppe's desert roads to Aleppo, Harran, Nuhashshe, Qadesh and Terqa (the Syrian desert); the Jordan by Jericho
+  Sutean steppe's desert roads to Aleppo, Nuhashshe, Qadesh and Terqa (the Syrian desert) and its road to Harran over
+  the Euphrates below Emar; the Jordan by Jericho
   between Jerusalem and Pella and the Shasu's land; the Anti-Taurus between Samuha and Carchemish; the Negev between
   Lachish and the Shasu. The rest are open ground or lesser ridges and streams, as item 11f judged them.
 - **24 roads that crossed a third province's land now pass through it**: the direct connection is gone, and the journey
@@ -93,6 +94,17 @@ use-against-ignore run; what is measured instead is whether the script kings and
   through the province between, its passage and its watch; caravans taken by troops rose from 234 to 331.
 - **The redrawn land**: drawing only; the map shows each band as the province's land, and the borders follow it.
 
+## The review
+
+One reviewer (Opus, high), in the background. Blocking: the older design notes (`01-rules-as-implemented.md`,
+`12-the-map-and-the-seas.md`) and the dossiers' older tables still named the removed connections; fixed, each pointing
+to this item's note. Not blocking, and fixed: the "a marching troop is no helper" test lost its positive check (it now
+asserts the army in Nippur is the helper); the Delta-Sinai part of the Ways of Horus was shorter than the straight line
+between its towns (now 160 and 120 km, the same 14 days in all); the steppe's road to Harran crosses the Euphrates below
+Emar, where the drawing makes it a frontier (now a river crossing, not a desert one); and Isuwa-Taidu's upper Tigris is
+now in reading 2. These last two changes came after the measures above, which they move little (one connection's
+crossing, one road's split).
+
 ## Readings taken
 
 1. **Touching land is connected, however short the border.** Five pairs touch for less than 10 km (Amurru-Qatna,
@@ -100,7 +112,10 @@ use-against-ignore run; what is measured instead is whether the script kings and
    (One rule for every case, the item's own; a length below which land does not count would be a rule of its own.)
 2. **A crossing only where 1346 had an obstacle.** Between touching provinces a crossing goes on only for a pass, a great
    river or a desert edge that held armies, as item 11f judged them; Isuwa-Taidu over the south-eastern Taurus stays
-   open ground, as Isuwa-Washukanni over the same range is (Suppiluliuma went that way without the range being named).
+   open ground, as Isuwa-Washukanni over the same range is (Suppiluliuma went that way without the range being named),
+   and so is the upper Tigris it crosses (no source of the period names a crossing of it there; Taidu-Nineveh's Tigris
+   is the one armies were held at). The steppe's road to Harran crosses the Euphrates below Emar, where the river was a
+   frontier: that one is a river crossing, the Euphrates below Emar, not a desert one.
    ("Terrain" under War; item 11f's readings.)
 3. **Redrawn only where a source gives the road's land.** Every other road over a third province's land passes through
    it. (The item: "either passes through that province, or the border is redrawn where the sources give the road's land
@@ -112,7 +127,8 @@ use-against-ignore run; what is measured instead is whether the script kings and
    takes the land east of the Jordan and the Dead Sea that the old drawing gave to Pella and Jerusalem. (A province is one
    piece of land; the Jordan is the period's frontier there.)
 6. **The Ways of Horus are the Sinai's road.** Delta to Gaza goes by the Sinai, Egypt's own, with the desert crossing
-   on each half (the Ways of Horus, the north Sinai) and Thutmose III's 250 km split 150 and 130 [G for the split]. (The
+   on each half (the Ways of Horus, the north Sinai) and the 250 km from Tjaru to Gaza with the Delta's road to Tjaru, 280 km in all, split 160 and 120 so that neither
+   part is shorter than the straight line between its towns [G for the split]. (The
    dossier: "the only army road between Egypt and Canaan", across north Sinai.)
 7. **The par table is refreshed.** Item 11e ranks each power among its own starting position's results in script games
    (`par-results.ts`, "refreshed when the rules change who falls and grows"). The new neighbours change that (Arrapha
