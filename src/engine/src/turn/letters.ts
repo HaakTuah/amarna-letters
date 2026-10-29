@@ -173,9 +173,9 @@ P.carryLetters = function () {
     }
     // Nobody to carry it, long enough: the spy carries it himself, leaving its post ("or the person himself"): home, or
     // from a post just across its master's border to the border and back (Haakon's answers to item 11b+).
-    let border: string | null = null;
-    if (carrier === null && spy !== null && (plan !== null ? plan.carry : waited >= selfWait(spy)) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
-      border = this.borderOf(spy, letter.to);
+    // A script spy at a post just across the border walks at once: the border is a short walk, its couriers sure.
+    let border: string | null = spy === null ? null : this.borderOf(spy, letter.to);
+    if (carrier === null && spy !== null && (plan !== null ? plan.carry : border !== null || waited >= selfWait(spy)) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
       if (border !== null) {
         // Its master goes on believing it at its post: nothing tells him it walked off until word comes from it.
         this.coverFor(spy, letter.to, "SpyPosted");

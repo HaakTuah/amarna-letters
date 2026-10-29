@@ -165,7 +165,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   if (MoneyPlay.on(b.me) && hand.length === 1 && !hand[0].ours && successes(hand[0]) > 0 && !busy.has(hand[0].id)) {
     const c = hand[0];
     const fee = feeFor(c.askingPrice!, StaySeasons, 50, Math.min(v.trust, 80));
-    if (spare > 200 + fee) {
+    if (spare > 500 + fee) {
       orders.push(hire(c.id, fee, StaySeasons, Math.trunc(fee / 2), { what: "stay", where: b.me, payOnDone: true }));
       busy.add(c.id);
       spare -= Math.trunc(fee / 2);
