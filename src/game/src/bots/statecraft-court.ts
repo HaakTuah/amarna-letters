@@ -182,6 +182,8 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     orders.push(hire(c.id, fee, StaySeasons, Math.trunc(fee / 2), { what: "stay", where: b.me, payOnDone: true }));
     busy.add(c.id);
     spare -= Math.trunc(fee / 2);
+    // One bridge a season: he carries every envoy's words that he can.
+    break;
   }
 
   // Item 10: a careful king checks the person it would most likely send before offering it an errand.

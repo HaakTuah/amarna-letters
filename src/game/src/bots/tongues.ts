@@ -53,8 +53,11 @@ export function tongueScore(c: CharacterView, to: Power, me: Power): number {
  * well enough to be understood there (a score of 2 or more), else the best by what he says.
  */
 export function envoyFor(ready: readonly CharacterView[], to: Power, me: Power, fromEnd: boolean): CharacterView {
-  const order = fromEnd ? [...ready].reverse() : [...ready];
-  if (!LanguagePlay.on(me)) return order[0];
+  const all = fromEnd ? [...ready].reverse() : [...ready];
+  if (!LanguagePlay.on(me)) return all[0];
+  // A mission trusted with gold or a tablet goes with one of the more reliable half: being understood does not make a
+  // man honest with gold.
+  const order = fromEnd ? all : all.slice(0, Math.max(1, Math.ceil(all.length / 2)));
   const good = order.find((c) => tongueScore(c, to, me) >= 2);
   if (good !== undefined) return good;
   let best = order[0];
