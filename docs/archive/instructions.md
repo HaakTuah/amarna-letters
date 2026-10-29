@@ -304,3 +304,16 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into the design document as "The map in true geography, and its look in time" (Interface) and build order
     items 11c (true geography and the Red Sea, a lane beside 11+) and 19 (the living map, at the end).
+
+31. **02:25 and 02:30**, in the design chat, on the map's look and on the cities left inside larger provinces:
+
+    > Perfect, I really like those visual descriptions! Are they all added? Maybe it can be papyrus?
+    >
+    > Also, were any city states still excluded in mobile visibility grounds? This then changes the premises.
+
+    Then, to adding Akko, Hazor, Gezer, Lachish, Ashkelon and Shuwardata's land as city-states:
+
+    > Yes, do so expertly!
+
+    Written into "The map in true geography, and its look in time" (Interface: papyrus, and the look in full), "What
+    earns a place" (The world: the six cities) and build order item 11c.
