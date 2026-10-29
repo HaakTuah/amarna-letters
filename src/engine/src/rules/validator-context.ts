@@ -18,6 +18,7 @@ export interface Checking {
   readonly assayed: HSet<string>;
   readonly roadsSet: HSet<string>;
   readonly ceded: HSet<string>;
+  /** The kinds and provinces given a build order this season, as `kind:province` (item 15). */
   readonly fortified: HSet<string>;
   readonly sallied: HSet<string>;
   readonly orderedUnits: HSet<string>;

@@ -201,6 +201,7 @@ describe("ArchiveTests", () => {
       (x) => x !== capital && WorldMap.default.get(x).home === "Assyria" && !WorldMap.default.get(x).capital,
     );
     removeAll(s.units, (u) => u.province === other);
+    s.walls.delete(other); // walled since item 15 (Arbela's citadel): the rule here is the archive's, not a storm's
     begin(s).resolve(orders("Babylonia", move(from, other)));
     Assert.equal("Babylonia", s.owner.get(other));
     Assert.doesNotContain("Babylonia", holdersOf(s, "t900"));

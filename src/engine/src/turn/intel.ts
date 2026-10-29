@@ -1,4 +1,5 @@
 /** Spies, counter-intelligence, captives, assays, authentication and forgery. */
+import { waysOf } from "../model/works.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { clamp, roundEven, toInt } from "../core/num.ts";
 import type { Rng } from "../core/rng.ts";
@@ -315,7 +316,7 @@ P.walkToBorder = function (c, employer, border) {
   j.reached = [S.turn];
   const perSeason = S.config.travelDays * PointsPerDay;
   let cost = 0;
-  for (let i = 0; i < j.route.length - 1; i++) cost += legPoints(this.map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn));
+  for (let i = 0; i < j.route.length - 1; i++) cost += legPoints(this.map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn), { sneaking: false, ways: waysOf(S) });
   j.arriveTurn = S.turn + Math.max(1, Math.ceil(cost / perSeason));
   return j;
 };

@@ -59,10 +59,10 @@ describe("EngineTests", () => {
     // fleets in their waters) and one for each of the 40 city-states (item 11+, item 11c's six of Canaan and item 11f's
     // eight), with the fleets of Ugarit, Sidon, Tyre and Byblos in their waters (item 13).
     Assert.equal(64, s.units.length);
-    // Walls by place: the seven Great Kings' capitals and Qatna, Qadesh and Hazor 3; the walls dossier's for the other
-    // city-states (items 11d, 11c and 11f), four fortresses 2, Sumur and Samuha 1; the chiefs' lands none.
-    Assert.equal(48, s.walls.size);
-    Assert.equal(10, count(s.walls, (w) => w[1] === 3));
+    // Walls by city, from the walls dossier (items 11d, 11c, 11f and, for the Great Kings' cities, 15): Hattusa, Babylon,
+    // Ashur, Washukanni, Qatna, Qadesh and Hazor 3, Akhetaten none; the chiefs' lands none.
+    Assert.equal(55, s.walls.size);
+    Assert.equal(7, count(s.walls, (w) => w[1] === 3));
     Assert.all(
       WorldMap.default.landProvinces.filter((p) => p.capital),
       (p) => Assert.equal(StartWalls.get(p.id) ?? 0, wallsOf(s, p.id)),

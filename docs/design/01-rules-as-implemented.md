@@ -92,7 +92,8 @@
   `docs/rounds/2026-10-18-sleep-and-simulation.md`, plan steps 1 to 9, and the design document's
   "Tempo of war" and "Walls and terrain"). Walls set how long a city holds out, not how many armies
   a field battle needs:
-  - **Walls by place** (`StartWalls`, first guesses): every capital 3; the fortresses
+  - **Walls by place** (`StartWalls`; since item 15 city by city from the walls dossier, capitals included, so Akhetaten
+    has none: [infrastructure and policing](39-infrastructure-and-policing.md); before it, first guesses): every capital 3; the fortresses
     Carchemish, Qadesh, Tyre, Megiddo, Gaza, Susa, Memphis, Nesa and Nineveh 2, and since item 7a Aleppo, Qatna and Arwad;
     the walled towns Lukka, Isuwa, Ugarit, Amurru, Byblos and Damascus 1, and since item 7a Suhu (Mari's fortress until
     then), Nuhashshe, Alalakh, Sidon, Jerusalem, Shechem and Arrapha; every other land province none. So every free city
@@ -168,23 +169,11 @@
     and bounces), when the relief needs one support more; the rulebook's example says so (since the review of the siege
     package, which found it stated without the exception). Timing it with an ally takes letters. 0 turns sallies off. The record marks each sally (`sally`, or `sally-won`
     when the attack it supported got in). The orders panel offers "Sally from the walls of…" where it can be given.
-  - **Strengthening walls** (`FortifyOrder`, other_orders "fortify", naming the province; the design document's "can be
-    strengthened for gold and upkeep, a real choice between defense and expansion"; question 5, plan step 11, first
-    guesses): the walls of a province the king holds rise a level at the end of the season (after purchases), up to
-    `GameConfig.maxWalls` (3), for `fortifyCost` (50) × the new level, reserved when the order is checked and paid when
-    it is done; a province without walls can be given them. Refused at level 3, for land not held, while the province is
-    besieged or foreign troops stand within it, or twice in a season; not done, and not paid, if the province was lost in
-    the moves, a siege began or foreign troops got into it
-    ("Walls not strengthened": a scheduled one then wakes its seat, as others foiled it). Each level above the map's own
-    for the province costs `wallUpkeep` (5) a season, paid after the troops' upkeep (`TurnEngine.wallsUpkeep`; the
-    treasury notice reads "upkeep 3 minas 5 shekels, walls 5 shekels, wages ..."); walls whose upkeep the treasury
-    cannot pay fall a level, the farthest from the capital first ("Unkept, walls fell a level: Sinai, Thebes."). A city
-    that falls loses a level as any other, so a captured capital at 2 can be built back to 3 without upkeep. An
-    earthquake throws the walls of the province it strikes down a level (its notice says so: "..., and its walls stand a
-    level lower (walls 2)."); until the siege package its text spoke of walls it did not touch. The view shows the walls'
-    upkeep beside the troops' (`SeatView.wallUpkeep`), and the orders panel has "Strengthen walls in…" with the price,
-    offering only land the order may be given for (since the review of the siege package, not where foreign troops stand
-    within).
+  - **Strengthening walls**: item 5's `FortifyOrder` (a level at once for 50 × the new level, upkeep 5 a season above
+    the map's own) was replaced in item 15 by the one rule for everything built: a `BuildOrder` keeps walls at a level,
+    raised by a project over two seasons and kept up a season by gold or corvée, falling a level after 30 seasons
+    unpaid ([infrastructure and policing](39-infrastructure-and-policing.md)). An earthquake still throws the walls of the
+    province it strikes down a level (its notice says so: "..., and its walls stand a level lower (walls 2).").
     Script kings strengthen walls where a feared king may walk in (see Treasury under Script kings).
   - **Envoys and a besieged capital** (the design document's "Getting a message out depends on the envoy's competence and
     courage and on how tight the siege is; the besieger may capture the envoy and read the tablets"; question 5, plan

@@ -368,7 +368,9 @@ describe("StandingForEverySeatTests", () => {
     // The opening: the Assyrian army in Ekallate, which Babylon sees, is two moves from its empty Nippur (by Dur-Kurigalzu)
     // and next to Dur-Kurigalzu, which one army alone cannot take. The army in Dur-Kurigalzu, the least
     // threatened troop next to Nippur by what it guards, is to march in if foreign troops do.
+    // Nippur's old walls (1 since item 15) left out: the rule is the empty province's.
     let s = newGame(31, Quiet);
+    s.walls.delete("nippur");
     let [b, brain] = read(s, "Babylonia");
     let [, give] = Contingencies.plan(b, brain, holding(b), []);
     let g = Assert.single(give);
@@ -376,6 +378,7 @@ describe("StandingForEverySeatTests", () => {
     Assert.equal([move("durkurigalzu", "nippur")], g.request.orders);
     // Not if the plan has another troop support it holding: its supports would be lost when it moves.
     let s2 = newGame(31, Quiet);
+    s2.walls.delete("nippur");
     let e = new TurnEngine(s2);
     e.beginTurn();
     e.resolve(new Dict([["Babylonia", newTurnSubmission({ standing: give.map((x) => x.request) })]]));

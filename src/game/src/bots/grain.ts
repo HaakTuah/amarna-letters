@@ -6,6 +6,7 @@
  * at any price when the treasury needs gold or the grain would be lost for want of room; hands its towns what would still
  * be lost; and buys grain where troops depend on an empty store. Returns the gold its sales should bring.
  */
+import { knownWays } from "./works.ts";
 import {
   EconomyData,
   PointsPerDay,
@@ -68,7 +69,7 @@ function route(b: Board, from: string, to: string): { route: string[]; seasons: 
     Board.Map,
     from,
     to,
-    (x, y) => (Board.Map.get(x).isSea || Board.Map.get(y).isSea ? Infinity : legPoints(Board.Map, x, y, season, { sneaking: shut(x) || shut(y) })),
+    (x, y) => (Board.Map.get(x).isSea || Board.Map.get(y).isSea ? Infinity : legPoints(Board.Map, x, y, season, { sneaking: shut(x) || shut(y), ways: knownWays(b.v) })),
     (x) => (b.isMine(x) ? 0 : !anywhere || guarded.has(x) ? Infinity : shut(x) ? 3 * PointsPerDay * ForeignDays : PointsPerDay * ForeignDays),
   );
   if (r === null) return null;

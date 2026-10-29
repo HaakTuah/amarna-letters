@@ -221,7 +221,7 @@ export class OrderValidator {
         if (order.type === "hire") hiredNow.add(order.character);
         if (order.type === "assay") assayed.add(order.lot);
         if (order.type === "cede") ceded.add(order.province);
-        if (order.type === "fortify") fortified.add(order.province);
+        if (order.type === "build") fortified.add(`${order.kind}:${order.province}`);
         if (order.type === "sally") sallied.add(order.city);
       } else {
         budget = budgetBefore;

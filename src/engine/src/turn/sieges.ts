@@ -16,11 +16,10 @@ import { clamp, roundEven, toInt } from "../core/num.ts";
 import { cmpNum, count, distinct, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { groundText, isIslandWater, waterSeasons } from "../model/geography.ts";
-import { StartWalls } from "../model/map.ts";
+import { drinkingSeasons, levelOf } from "../model/works.ts";
 import { EconomyData } from "../model/economy.ts";
 import type { Dispatch, HomeCargo } from "../model/records.ts";
 import { newLossAbroad, newTabletCopy } from "../model/records.ts";
-import type { FortifyOrder } from "../model/orders.ts";
 import { stormed, strengthWords, wallsDefence, type Assault } from "../model/outcomes.ts";
 import { LandData, menAvailable } from "../model/land.ts";
 import { remember, type Character } from "../model/people.ts";
@@ -42,7 +41,6 @@ export const EnvoyCaughtTitle = "An envoy is caught";
 
 declare module "./core.ts" {
   interface TurnEngine {
-    fortify(p: Power, f: FortifyOrder): void;
     lowerWalls(province: string): void;
     liftSiegesOf(unitId: string): void;
     liftLostSieges(): void;
@@ -60,47 +58,6 @@ declare module "./core.ts" {
 }
 
 const P = TurnEngine.prototype;
-
-/**
- * Walls strengthened (FortifyOrder): a level higher at the end of the season, paid now, unless the province was lost in
- * movement, is besieged, or has foreign troops within it after movement, which others brought about (a scheduled order
- * then wakes its seat).
- */
-P.fortify = function (p, f) {
-  const S = this.s;
-  const name = this.map.get(f.province).name;
-  const within = unitAt(S, f.province);
-  const why =
-    S.owner.getOrDefault(f.province, null) !== p
-      ? "you no longer held it after movement"
-      : siegeOf(S, f.province) !== null
-        ? "it was besieged"
-        : within !== null && within.power !== p
-          ? "foreign troops stood within it after movement"
-          : wallsOf(S, f.province) >= S.config.maxWalls
-            ? "its walls stood as high as walls go"
-            : null;
-  if (why !== null) {
-    this.failed(p, f, "Walls not strengthened", `The walls of ${name} were not strengthened: ${why}. No gold was paid.`, why, true);
-    return;
-  }
-  const level = wallsOf(S, f.province) + 1;
-  if (!this.pay(p, S.config.fortifyCost * level, `the walls of ${name}`, f, "they were not strengthened")) return;
-  // The builders are the province's own people: their pay goes into its purse (item 9+a, "What fills a people's purse").
-  this.spendAt(f.province, S.config.fortifyCost * level);
-  S.walls.set(f.province, level);
-  // The corvée: the province's men build them, away from its next harvest (item 10+a).
-  S.corvee.set(f.province, S.corvee.getOrDefault(f.province, 0) + Math.min(LandData.builders, menAvailable(S, f.province)));
-  const above = level - (StartWalls.get(f.province) ?? 0);
-  notify(
-    S,
-    p,
-    "Resolution",
-    "Walls strengthened",
-    `The walls of ${name} stand at level ${level} now` + (above > 0 ? `; the ${above} level${above === 1 ? "" : "s"} above its old walls cost ${formatMoney(above * S.config.wallUpkeep)} a season.` : "."),
-  );
-  logEvent(S, "fortify", `${p} strengthened the walls of ${name} to level ${level}.`, AllPowers.filter((x) => x === p || Views.sight(S, this.map, x).has(f.province)), "fortify");
-};
 
 /** The walls of a province fall a level (to none from level 1). */
 P.lowerWalls = function (province) {
@@ -195,7 +152,7 @@ P.sieges = function (valid) {
     // island without water of its own runs dry once its besieger's fleet holds its waters.
     const island = isIslandWater(x.province);
     if (island) x.blockaded = openToSea(this, x.province) ? 0 : x.blockaded + 1;
-    const drinking = island ? (x.blockaded > 0 ? waterSeasons(x.province) : Infinity) : waterSeasons(x.province);
+    const drinking = island ? (x.blockaded > 0 ? waterSeasons(x.province) : Infinity) : drinkingSeasons(waterSeasons(x.province), x.province, levelOf(S, "Water", x.province));
     if (!begun && (island ? x.blockaded > drinking : S.turn - x.since >= drinking)) {
       this.surrender(x, owner, tell, "thirst");
       continue;

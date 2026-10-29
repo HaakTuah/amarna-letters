@@ -10,6 +10,7 @@ import type { Power } from "../model/power.ts";
 import type { GameState } from "../model/state.ts";
 import { PointsPerDay, cheapestRoute, legPoints } from "../model/travel.ts";
 import type { Checking } from "./validator-context.ts";
+import { type Ways, waysOf } from "../model/works.ts";
 
 /** The province where the king is: his capital, wherever that is. */
 export function courtOf(s: GameState, map: WorldMap, p: Power): string {
@@ -24,7 +25,7 @@ export function onTheRoad(s: GameState, p: Power): boolean {
 /** The king's road from where he is to `to`, at his court's pace this season, or null where none leads. */
 export function kingRoute(s: GameState, map: WorldMap, p: Power, to: string): { route: string[]; cost: number } | null {
   const season = seasonOfTurn(s.turn);
-  return cheapestRoute(map, courtOf(s, map, p), to, (a, b) => legPoints(map, a, b, season, { sneaking: false, size: CourtData.companyMen }));
+  return cheapestRoute(map, courtOf(s, map, p), to, (a, b) => legPoints(map, a, b, season, { sneaking: false, size: CourtData.companyMen, ways: waysOf(s) }));
 }
 
 /** What moving the court to a province costs, by the days of road to it. */
@@ -51,16 +52,21 @@ export function courtMoveRefusal(v: Checking, order: CourtOrder): string | null 
  */
 export function courierSeasons(s: GameState, map: WorldMap, from: string, to: string): number {
   if (from === to || s.config.realmDistance <= 0) return 0;
-  const cost = courierPoints(map, from, seasonOfTurn(s.turn)).get(to);
+  const cost = courierPoints(map, waysOf(s), from, seasonOfTurn(s.turn)).get(to);
   if (cost === undefined) return Infinity;
   return Math.floor(cost / (s.config.travelDays * PointsPerDay));
 }
 
-/** The points a courier takes from one province to every other in a season of the year (cached: the map never changes). */
-const tables = new WeakMap<WorldMap, Map<string, Map<string, number>>>();
-function courierPoints(map: WorldMap, from: string, season: number): Map<string, number> {
-  let byKey = tables.get(map);
-  if (byKey === undefined) tables.set(map, (byKey = new Map()));
+/**
+ * The points a courier takes from one province to every other in a season of the year, by the roads and relay stations
+ * standing (item 15). Cached for each map and each state of the roads, which is renewed whenever a level changes.
+ */
+const tables = new WeakMap<WorldMap, WeakMap<Ways, Map<string, Map<string, number>>>>();
+function courierPoints(map: WorldMap, ways: Ways, from: string, season: number): Map<string, number> {
+  let byWays = tables.get(map);
+  if (byWays === undefined) tables.set(map, (byWays = new WeakMap()));
+  let byKey = byWays.get(ways);
+  if (byKey === undefined) byWays.set(ways, (byKey = new Map()));
   const key = `${from}|${season}`;
   const known = byKey.get(key);
   if (known !== undefined) return known;
@@ -72,7 +78,7 @@ function courierPoints(map: WorldMap, from: string, season: number): Map<string,
     if (best === null) break;
     done.add(best);
     for (const n of map.neighbors(best)) {
-      const d = dist.get(best)! + legPoints(map, best, n, season);
+      const d = dist.get(best)! + legPoints(map, best, n, season, { sneaking: false, ways });
       if (d < (dist.get(n) ?? Infinity)) dist.set(n, d);
     }
   }

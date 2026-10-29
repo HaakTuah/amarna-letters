@@ -5,6 +5,7 @@
  * own while its waters are open, and sells grain at a starving foreign harbour like any dear market; and it sets its tolls, none on the partners it promised free passage to on a sealed tablet
  * nor on its allies. Every number below is a first guess of the script's own.
  */
+import { knownWays } from "./works.ts";
 import {
   EconomyData,
   PointsPerDay,
@@ -95,11 +96,12 @@ function landWay(b: Board, from: string, to: string, sneak: boolean): Way | null
   const season = seasonOfTurn(b.v.turn);
   const closed = new Set(b.v.roadsClosedToUs);
   const foreign = (x: string): boolean => b.ownerOf(x) !== null && b.ownerOf(x) !== b.me;
+  const ways = knownWays(b.v);
   const r = cheapestRoute(
     Board.Map,
     from,
     to,
-    (x, y) => (Board.Map.get(x).isSea || Board.Map.get(y).isSea ? Infinity : legPoints(Board.Map, x, y, season, { sneaking: sneak && (foreign(x) || foreign(y)) })),
+    (x, y) => (Board.Map.get(x).isSea || Board.Map.get(y).isSea ? Infinity : legPoints(Board.Map, x, y, season, { sneaking: sneak && (foreign(x) || foreign(y)), ways })),
     (x) => (Board.Map.get(x).isSea ? Infinity : sneak || !foreign(x) || !closed.has(b.ownerOf(x)!) ? 0 : Infinity),
   );
   return r === null ? null : wayOf(b, r.route, r.cost, 45 * PointsPerDay);

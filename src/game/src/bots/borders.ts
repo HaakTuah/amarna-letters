@@ -7,6 +7,7 @@
  * and `--border-play-half` leave all of it alone, only to measure what playing it is worth. Every number below is a first
  * guess of the script's own.
  */
+import { knownWays } from "./works.ts";
 import { LandData, WorldMap, cheapestRoute, clause, legPoints, seasonOfTurn, cmpStr, deport, expel, returnRunaways, sortBy, welcome, type Clause, type Order, type Power, type SeatView } from "@amarna/engine";
 import type { Board } from "./board.ts";
 import { SeasonPlay } from "./land.ts";
@@ -86,7 +87,7 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
     const freer = (k: Power): boolean => k !== b.me && (k === homeland || v.roadsClosedToUs.includes(k));
     const safe = (y: { province: string }): boolean =>
       !SeasonPlay.on(b.me) ||
-      (cheapestRoute(W, x.province, y.province, (a, c) => legPoints(W, a, c, seasonOfTurn(v.turn)))?.route ?? []).every((p) => W.get(p).isSea || !v.units.some((u) => u.province === p && freer(u.power)));
+      (cheapestRoute(W, x.province, y.province, (a, c) => legPoints(W, a, c, seasonOfTurn(v.turn), { sneaking: false, ways: knownWays(v) }))?.route ?? []).every((p) => W.get(p).isSea || !v.units.some((u) => u.province === p && freer(u.power)));
     const to = sortBy(
       home.filter((y) => W.hops(x.province, y.province) <= 4 && safe(y)),
       [(y) => -(y.room - y.settled - (filled.get(y.province) ?? 0)), (a: number, c: number) => a - c],

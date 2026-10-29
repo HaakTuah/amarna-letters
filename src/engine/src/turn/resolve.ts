@@ -4,7 +4,7 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
+import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
@@ -129,7 +129,10 @@ P.resolveSeason = function (submissions) {
     all((o): o is CedeProvinceOrder => o.type === "cede"),
     all((o): o is GiftUnitOrder => o.type === "giftUnit"),
   );
-  for (const [p, f] of all((o) => o.type === "fortify")) this.fortify(p, f as Extract<Order, { type: "fortify" }>);
+  // Item 15: what kings keep and build, armies razing what stands, then the season's upkeep, decay, projects and repairs.
+  for (const [p, o] of all((o): o is BuildOrder => o.type === "build")) this.setWorks(p, o);
+  for (const [p, o] of all((o): o is RazeOrder => o.type === "raze")) this.raze(p, o);
+  this.worksSeason();
   for (const [p, d] of all((o) => o.type === "disband")) {
     const unit = (d as Extract<Order, { type: "disband" }>).unit;
     const u = unitAt(S, unit);

@@ -9,6 +9,7 @@ import { ScheduledOrdersSchema, StandingRequestSchema, type ScheduledOrders, typ
 import { StandingAnswerRequestSchema, type StandingAnswerRequest } from "./answers.ts";
 import { isBlank } from "../core/text.ts";
 import type { UnitKind } from "./map.ts";
+import { type WorkKind, workLevelText, workName } from "./works.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { GreetingOptionsSchema, TabletProposalSchema, type GreetingOptions, type TabletProposal } from "./records.ts";
@@ -50,12 +51,27 @@ export interface BesiegeOrder {
   unit: string;
 }
 /**
- * Strengthen the walls of a province the seat holds by one level, at the end of the season (Build order item 5): a real
- * choice between defence and expansion, paid once and then in upkeep.
+ * What a king keeps and builds in a province of his (item 15, "One rule for everything built"): the level of one kind
+ * (walls, roads, relay stations, a harbour, policing or water works) to keep there, paid in gold or by corvée
+ * (`labour`). Above the level standing it starts a project that raises it a level at a time over the seasons; below it,
+ * the levels above go unkept and decay. It stands until changed. In a besieged city an order for its walls repairs them,
+ * with the men and food inside ("Walls price the storm, not the clock").
  */
-export interface FortifyOrder {
-  type: "fortify";
+export interface BuildOrder {
+  type: "build";
   province: string;
+  kind: WorkKind;
+  level: number;
+  labour: boolean;
+}
+/**
+ * An army of the seat's standing in land another holds razes a level of what stands there: its roads, relay stations,
+ * harbour or water works (item 15: "an occupying army can raze what stands"; roads and stations "can be captured or cut").
+ */
+export interface RazeOrder {
+  type: "raze";
+  unit: string;
+  kind: WorkKind;
 }
 /**
  * The walls of a city of the seat's, with foreign troops within them, sally: they support one attack on those troops, the
@@ -529,7 +545,8 @@ export type Order =
   | SupportOrder
   | ConvoyOrder
   | BesiegeOrder
-  | FortifyOrder
+  | BuildOrder
+  | RazeOrder
   | SallyOrder
   | SellOrder
   | StealOrder
@@ -595,7 +612,8 @@ export const move = (unit: string, to: string, forced = false): MoveOrder => (fo
 export const support = (unit: string, supported: string, to: string | null = null): SupportOrder => ({ type: "support", unit, supported, to });
 export const convoy = (unit: string, army: string, to: string): ConvoyOrder => ({ type: "convoy", unit, army, to });
 export const besiege = (unit: string): BesiegeOrder => ({ type: "besiege", unit });
-export const fortify = (province: string): FortifyOrder => ({ type: "fortify", province });
+export const build = (province: string, kind: WorkKind, level: number, labour = false): BuildOrder => ({ type: "build", province, kind, level, labour });
+export const raze = (unit: string, kind: WorkKind): RazeOrder => ({ type: "raze", unit, kind });
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
 export const raise = (province: string, kind: UnitKind, men: number | null = null): RaiseOrder => (men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men });
 export const disband = (unit: string, settle = false): DisbandOrder => (settle ? { type: "disband", unit, settle } : { type: "disband", unit });
@@ -724,8 +742,10 @@ export function describe(o: Order): string {
       return `${o.unit} besieges the city`;
     case "unreadable":
       return o.text;
-    case "fortify":
-      return `strengthen the walls of ${named(o.province)}`;
+    case "build":
+      return `keep the ${workName(o.kind)} of ${named(o.province)} at ${workLevelText(o.kind, o.level)}, ${o.labour ? "by corvée" : "paid in gold"}`;
+    case "raze":
+      return `${o.unit} razes a level of the ${workName(o.kind)} where it stands`;
     case "sally":
       return `the walls of ${named(o.city)} sally in support of the attack from ${named(o.from)}`;
     case "sell":
@@ -847,6 +867,7 @@ export function unitOf(o: Order): string | null {
     case "besiege":
     case "disband":
     case "giftUnit":
+    case "raze":
       return o.unit;
     default:
       return null;
@@ -914,7 +935,8 @@ export const OrderSchema = poly("Order", "type", {
   support: v("SupportOrder", () => support("", ""), { unit: S, supported: S, to: S }),
   convoy: v("ConvoyOrder", () => convoy("", "", ""), { unit: S, army: S, to: S }),
   besiege: v("BesiegeOrder", () => besiege(""), { unit: S }),
-  fortify: v("FortifyOrder", () => fortify(""), { province: S }),
+  build: v("BuildOrder", () => build("", "Walls", 0), { province: S, kind: S, level: I, labour: B }),
+  raze: v("RazeOrder", () => raze("", "Roads"), { unit: S, kind: S }),
   sally: v("SallyOrder", () => sally("", ""), { city: S, from: S }),
   sell: v("SellOrder", () => sell("", 0), { province: S, amount: I }),
   purchase: v("PurchaseOrder", () => purchase("", 0), { province: S, amount: I }),

@@ -50,14 +50,6 @@ export interface GameConfig {
   catastropheChance: number;
   /** What each siege costs its besieger a season, on top of the army's upkeep. */
   siegeUpkeep: number;
-  /** The highest walls go. */
-  maxWalls: number;
-  /** Strengthening walls costs this times the new level (50, 100, 150). */
-  fortifyCost: number;
-  /**
-   * Each level of walls above the map's own for that province costs this a season; unpaid, the walls fall a level.
-   */
-  wallUpkeep: number;
   /**
    * The walls a city needs for its defenders to sally against troops within them (+1 to one attack on them); 0 turns sallies off.
    */
@@ -163,9 +155,6 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     fleetUpkeep: 25,
     catastropheChance: 0.0175,
     siegeUpkeep: 15,
-    maxWalls: 3,
-    fortifyCost: 50,
-    wallUpkeep: 5,
     sallyMinWalls: 2,
     siegeCatchPerUnit: 20,
     siegeCatchMin: 5,
@@ -214,9 +203,6 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   fleetUpkeep: I,
   catastropheChance: D,
   siegeUpkeep: I,
-  maxWalls: I,
-  fortifyCost: I,
-  wallUpkeep: I,
   sallyMinWalls: I,
   siegeCatchPerUnit: I,
   siegeCatchMin: I,
