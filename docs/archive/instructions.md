@@ -431,3 +431,7 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     The design session agreed, with one reading: only what was a real obstacle in the period becomes a crossing, so the
     ground's help stays where the land gave it. Written into "Terrain" (War) and build order item 11c+.
+
+41. **08:43**, in the design chat, on the crossings: "As long as the map makes it readable at a glance where what
+    effect is to be expected." Written into "Terrain" (War) and build order item 11c+: each crossing and each stretch of
+    rough ground marked by its kind, with a legend row, and a tap saying its effect in words.
