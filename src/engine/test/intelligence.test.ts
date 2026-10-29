@@ -284,7 +284,8 @@ describe("IntelligenceTests", () => {
   });
 
   test("Sworn allies can share the victory", () => {
-    let s = oldWorld(newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000, sharedVictory: true })));
+    // Scored by performance alone (item 11e's size weight 0), so their gold lifts the pair above every other power.
+    let s = oldWorld(newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000, sharedVictory: true, sizeWeight: 0 })));
     s.tablets.push(
       newTablet({
         id: "t901",
