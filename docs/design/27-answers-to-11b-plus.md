@@ -57,7 +57,9 @@ Haakon's answers to item 11b+'s review (29 October 2026, "Agree to all"), each b
   season it was given. **A hunted chief chooses where to flee**: a model chief to the land his request named, if no army
   stands there; a script chief away from land under a standing hunt he heard of, and he keeps his band out of such land
   when he moves. The model chief's request says which land next door he heard is hunted.
-- **Script kings** give the standing hunt over their whole land once and keep it (naming provinces would steer bands
-  into the rest); keep a proven person at hand with a four-season stay when nobody else is at hand and gold is spare;
-  and withhold the fee of, then dismiss, a servant known to have sold what belonged in his report or his master's
-  secrets.
+- **Script kings** hunt by order only where it breaks a band or drives it out of their land, as since 11b+: a standing
+  hunt over the whole land was measured and lost (armies fall on every band they stand with, at a cost in men, and drive
+  off more than they break), so they give none and lift one they find. They keep a proven person at hand with a
+  four-season stay when nobody else is at hand and gold is ample; withhold the fee of, then dismiss, a servant known to
+  have sold what belonged in his report or his master's secrets. A script spy at a post just across the border walks its
+  reports there at once.

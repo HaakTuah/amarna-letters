@@ -84,8 +84,11 @@ readings").
     starts its talk anew. (Everything travels.)
 12. **A model chief's flight follows the land his request named to go to**, if no army stands there; his request now
     says so and shows the land he heard is hunted. (The chief chooses; no new request field.)
-13. **Script kings give the standing hunt over the whole land, never naming provinces**: naming some would steer bands
-    into the rest. (Script players play as well as they can.)
+13. **Script kings give no standing hunt**: the one over the whole land was measured and lost (below), and one naming
+    provinces would steer bands into the rest. (Script players play as well as they can.)
+15. **A script spy at a post just across the border walks its reports there at once**: the border is a short walk and
+    its couriers sure; waiting seasons for a carrier slowed the script kings' news of their neighbours. (Script players
+    play as well as they can; a model spy decides in its own request, which now offers the walk.)
 14. **Script kings use a stay only to keep a proven person when nobody else is at hand**, for four seasons (a first
     guess of the bots), and only with spare gold: idle seasons are paid seasons.
 
