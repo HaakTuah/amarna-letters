@@ -49,19 +49,19 @@ Fifteen answers; five of them were built already in item 11b+ and are only check
 
 How often script players used each new rule, and with what result (50 games, seeds 1-50, `after` run):
 
-- **Stays at court**: STAY times in games. A king with nobody else at hand and ample gold keeps a proven person four
+- **Stays at court**: 450 times in 47 games. A king with nobody else at hand and ample gold keeps a proven person four
   seasons; each errand then given is its own job.
-- **The border walk**: BORDER walks in games; a script spy at a post just across the border walks at once (waiting
+- **The border walk**: 58 walks in 24 games; a script spy at a post just across the border walks at once (waiting
   seasons for a carrier slowed the script kings' news of their neighbours).
-- **Robbers named**: NAMED travellers named their robbers; people died of the world's dangers DEATHS times.
+- **Robbers named**: 570 travellers named their robbers; people died of the world's dangers 499 times (350 before; every traveller is now a witness).
 - **Reports sold**: never, in these games. A script servant notes news of the court its job sent it to, but sells it
   only standing at another court, and a spy rarely leaves its post with its job still running; the rule is checked by
   its test. Listed for item 18's audit with the other characters' gaps.
-- **Hunting**: as before 11b++, by order only where it breaks a band or drives it out (BANDS hunts); the standing hunt
+- **Hunting**: as before 11b++, by order only where it breaks a band or drives it out (2,194 hunts, 2,312 before); the standing hunt
   over the whole land was measured and lost (below). Script kings withhold the fee of, and dismiss, a servant known to
   have sold what belonged in its report or its master's secrets.
-- **Letters**: carried by the writer's own people OWN times, by passing travellers PASS, by carriers hired HIRED, by the
-  spy itself SELF.
+- **Letters**: carried by the writer's own people 545 times, by passing travellers 758, by carriers hired 831, by the
+  spy itself 827.
 
 The review found two blocking problems, both fixed: a spy walking to the border told his master at once that he had
 left his post (he now keeps his master's belief), and a witness's word left from a capital instead of from where he was
@@ -72,7 +72,27 @@ and a border walk turned back before the border loses its reports (rare).
 
 ## Benchmarks and script games
 
-BENCHMARKS
+**Before** (`develop` after #135, seeds 1-50) and **after** (this branch, final code), `scripts/sim.sh --games 50 --seed 1
+--verify-replay`: 50 of 50 replays exact after. A capital fell in 48 games both times (158 kingdoms before, 148 after);
+the first fall of a game came in season 8 on the median both times. The Great Kings (the city-states and chiefs are in
+the logs):
+
+| Power | Wins before | Wins after | Growth before | Growth after |
+|---|---|---|---|---|
+| Egypt | 0 | 0 | 0.84 | 0.84 |
+| Hatti | 4 | 5 | 0.83 | 0.87 |
+| Babylonia | 2 | 0 | 1.02 | 0.99 |
+| Mitanni | 5 | 6 | 0.89 | 0.86 |
+| Assyria | 7 | 5 | 0.84 | 0.89 |
+| Arzawa | 1 | 2 | 1.06 | 0.94 |
+| Alashiya | 0 | 1 | 0.97 | 0.96 |
+
+SOLO
+
+Letters before: own people 530, passing travellers 580, hired 687, the spy itself 719; news sold 16 times (48 after).
+The suite's growth guard (one script king among baseline seats, two seeds) moved out of the suite with the small test
+world (#136); while it was in, it read 0.05-0.11 across every variant tried here, against 0.22 before, which the solo
+benchmark (40 seeds) did not confirm (above): two seeds do not tell these changes apart.
 
 ## Readings taken
 
