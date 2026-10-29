@@ -459,3 +459,17 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     The carrier is a character, so the spy's request now gives the price as the spy's own reckoning, each carrier asking
     his own. Walls by the city written into build order item 15.
+
+45. **09:05 to 09:11**, in the design chat, on the Sinai: "Because an army that tries to attack akhetaten has to go
+    through Sinai, so if an army is there, it gets attacked?" Then, to the answer (which repeated the design
+    document's old line that an army crosses its own desert free):
+
+    > Isn't that a bit gamey? What makes it free for the kings that owns it? Is this consistent with how we model logistics everywhere else?
+
+    The design session found the line stale (item 9+a replaced it with real food: nobody crosses a desert free; each
+    army eats its king's stores there, its baggage or its caravans' grain) and the one gamey rule left, caravans held to
+    their own king's land. To correcting the one and opening the other:
+
+    > Yes, agreed with all, expertly!
+
+    Written into "Terrain" (War), "Caravans carry a kingdom's goods" (Land, people and economy) and build order item 11f.
