@@ -298,6 +298,7 @@ P.wakeReasons = function (p, sl) {
   for (const o of seen) {
     if (o.power === p) {
       if (o.destroyed) add(`your ${kindName(o.unitKind)} in ${o.province} was destroyed`);
+      else if (o.fellBack !== null) add(`your ${kindName(o.unitKind)} in ${o.province} was beaten from it and fell back to ${o.fellBack}`);
       continue;
     }
     if (o.order !== "move" || o.target === null) continue;

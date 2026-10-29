@@ -52,12 +52,12 @@ describe("PeopleTests", () => {
     Assert.true(start.get("sinai")!.settled * 20 < start.get("delta")!.settled);
     // The Levant's Habiru: a tenth of Megiddo's people are loose; a fiftieth of the Delta's.
     Assert.equal(Math.floor((start.get("megiddo")!.settled + start.get("megiddo")!.loose) / 10), start.get("megiddo")!.loose, 1);
-    const s = quiet();
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     const e = new TurnEngine(s);
     for (const p of Map.landProvinces) Assert.equal(harvestOf(p), e.harvestNow(p.id), 0);
-    // The starting armies' men came from their homes.
-    Assert.equal(start.get("hattusa")!.men - LandData.armyMen, s.people.get("hattusa").men);
-    Assert.equal(LandData.armyMen, s.units.find((u) => u.province === "hattusa")!.men);
+    // The starting armies' men came from their homes (item 13: Hatti's army at Hattusa is 7,500 men, the armies dossier's).
+    Assert.equal(start.get("hattusa")!.men - 7500, s.people.get("hattusa").men);
+    Assert.equal(7500, s.units.find((u) => u.province === "hattusa")!.men);
   });
 
   test("A levy takes men from the fields, and costs the harvest more at sowing and harvest than in the slack season", () => {

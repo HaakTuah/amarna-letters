@@ -49,7 +49,7 @@ P.partyName = function (x) {
 
 /** The province a character is in: its court's capital, the province it watches, or none on the road. */
 P.whereIs = function (c) {
-  if (c.at !== null) return this.map.capital(c.at).id;
+  if (c.at !== null) return this.courtAt(c.at);
   return c.watchProvince;
 };
 
@@ -101,7 +101,7 @@ P.passTablet = function (d, to, kept) {
 P.missingAt = function (d, province) {
   const S = this.s;
   this.passTablet(d, null, "Missing");
-  if (province !== null && isPowerParty(d.borrower) && isAlive(S, d.borrower)) d.endHeard = S.turn + this.travelTurnsBetween(province, this.map.capital(d.borrower).id);
+  if (province !== null && isPowerParty(d.borrower) && isAlive(S, d.borrower)) d.endHeard = S.turn + this.travelTurnsBetween(province, this.courtAt(d.borrower));
 };
 
 /**
@@ -273,7 +273,7 @@ P.livingSeason = function () {
     const fee = Math.min(h.gold, Math.max(MoneyData.hoardFeeMin, idiv(h.gold * MoneyData.hoardFee, 100)));
     h.gold -= fee;
     c.earned.spent += fee;
-    this.market(this.map.capital(h.at).id).purse += fee;
+    this.market(this.courtAt(h.at)).purse += fee;
     if (h.gold <= 0) {
       // An empty hoard is closed: the tablets kept with it come back to its owner's person.
       for (const d of S.debts.filter((d) => d.ended === null && d.holder === c.id && d.kept === "Hoard")) d.kept = "Person";
@@ -307,7 +307,7 @@ P.goldAndTabletsTaken = function () {
     // rob) or his captor, and otherwise into the purse of the town where he died; on the road, of the province.
     const carried = c.purse + c.carriedFor;
     const captor = c.heldBy !== null && isAlive(S, c.heldBy) ? c.heldBy : null;
-    const where = court !== null ? this.map.capital(court).id : this.provinceOf(c);
+    const where = court !== null ? this.courtAt(court) : this.provinceOf(c);
     if (carried > 0 && captor !== null) {
       S.treasuries.get(captor).gold += carried;
       notify(S, captor, "Notice", "A dead captive's purse", `${c.name} died in your hands; the ${formatMoney(carried)} they carried is now in your treasury.`, c.id);

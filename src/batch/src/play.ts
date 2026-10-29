@@ -17,6 +17,7 @@ import {
   MoneyPlay,
   OutlawPlay,
   VassalPlay,
+  CommandPlay,
   LanguagePlay,
   SeasonPlay,
   WallPlay,
@@ -115,6 +116,9 @@ export interface BatchOptions {
   /** Script players never play vassalage (item 11+, `--no-vassal-play`), or half of them (`--vassal-play-half`). */
   noVassalPlay: boolean;
   vassalPlayHalf: boolean;
+  /** Script kings grant no commands and give no mandates (item 13, `--no-command-play`), or half of them (`--command-play-half`). */
+  noCommandPlay: boolean;
+  commandPlayHalf: boolean;
   /** Script kings choose envoys by no language and hire no go-betweens (item 12, `--no-language-play`), or half of them (`--language-play-half`). */
   noLanguagePlay: boolean;
   languagePlayHalf: boolean;
@@ -207,7 +211,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.languagePlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.languagePlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
@@ -226,6 +230,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   MoneyPlay.only = o.moneyPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   OutlawPlay.off = o.noOutlawPlay || o.outlawPlayHalf;
   OutlawPlay.only = o.outlawPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  CommandPlay.off = o.noCommandPlay || o.commandPlayHalf;
+  CommandPlay.only = o.commandPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   VassalPlay.off = o.noVassalPlay || o.vassalPlayHalf;
   VassalPlay.only = o.vassalPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   LanguagePlay.off = o.noLanguagePlay || o.languagePlayHalf;

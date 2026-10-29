@@ -21,7 +21,7 @@ import {
   type StandingOrder,
   type StandingRequest,
 } from "../model/sleep.ts";
-import { notify, unitAt, type GameState, type Unit } from "../model/state.ts";
+import { logEvent, notify, unitAt, type GameState, type Unit } from "../model/state.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { conditionsMet, conditionsText } from "../rules/conditions.ts";
@@ -29,6 +29,9 @@ import { MaxConditions, type Condition } from "../model/conditions.ts";
 import { removeAll } from "./resolve.ts";
 import { entersText, kindName, MarchEndsTitle, MarchHeldUpTitle, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, standingFiredTitle } from "./sleep.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { CommanderMinds } from "./command.ts";
+import { wordFromKing } from "../rules/court.ts";
+import { CommandData } from "../model/command.ts";
 
 /** The notice that scheduled orders did not run because their conditions did not hold. */
 export const HeldBackTitle = "Scheduled orders held back by their conditions";
@@ -67,6 +70,13 @@ declare module "./core.ts" {
     conditionProblem(cs: readonly Condition[]): string | null;
     compose(p: Power, plan: SeasonPlan, fired: readonly [StandingOrder, string][]): TurnSubmission;
     standingFires(seasons: Dict<Power, SeasonPlan>, validator: OrderValidator): Dict<Power, [StandingOrder, string][]>;
+    /**
+     * Whether a standing order's order for one unit runs when the move `m` by `mover` sets it off (item 13): word of it has
+     * reached the unit, its commander or the king is with it, its army sees the move, and he does not look away.
+     */
+    standingRuns(p: Power, st: StandingOrder, o: PlannedOrder, mover: Power, m: MoveOrder): boolean;
+    /** Whether a scheduled order due now still waits for its word to reach where it runs (it is kept for then). */
+    notYetReached(p: Power, sl: SleepState, o: Order | null, x: PlannedOrder): boolean;
     tellFired(p: Power, f: Firing, v: ValidationResult): void;
     failureOf(p: Power, order: Order): string;
     scheduledFailed(p: Power, order: Order, why: string): void;
@@ -136,7 +146,7 @@ P.planSeason = function (p, sub) {
           .map((x) => [asItStands(S, p, x), x] as [Order | null, PlannedOrder])
           .filter(([o]) => o !== null);
   removeAll(sl.scheduled, (x) => x.turn <= S.turn);
-  return { sub, now, due, standIn };
+  return { sub, now, due: due.filter(([o, x]) => !this.notYetReached(p, sl, o, x)), standIn };
 };
 
 /**
@@ -155,7 +165,7 @@ P.compose = function (p, plan, fired) {
   const standing: [Order, StandingOrder][] = [];
   const given: { from: StandingOrder; cause: string; kept: Order[]; byEarlier: [Order, string][] }[] = [];
   for (const [f, cause] of fired) {
-    const orders = f.orders.map((o) => asItStands(S, p, o)).filter((o): o is Order => o !== null);
+    const orders = (firedOrders.get(f) ?? f.orders).map((o) => asItStands(S, p, o)).filter((o): o is Order => o !== null);
     const kept = survivors(
       standing.map(([o]) => o),
       orders,
@@ -187,8 +197,19 @@ P.compose = function (p, plan, fired) {
 
   const runs = survivors([...now, ...standing.map(([o]) => o)], plan.due, (x) => x[0]!);
   const scheduled = [...standing.map(([o]) => o), ...runs.map(([o]) => o!)];
+  // Item 13, "Army mandates": a unit no order of the king's reached this season is led by its commander on the spot, by his
+  // reading of its mandate; one with no commander, or no mandate, holds.
+  const ordered = new HSet([...now, ...scheduled].map(unitOf).filter((x): x is string => x !== null));
+  const mandated: Order[] = [];
+  for (const u of S.units.filter((x) => x.power === p && !ordered.has(x.province))) {
+    const c = this.commanderOf(u);
+    if (c === null || u.mandate === null || S.turn < u.mandateFrom) continue;
+    const o = CommanderMinds.decide?.(this, u, c, u.mandate) ?? null;
+    if (o !== null && unitOf(o) === u.province) mandated.push(o);
+  }
+  this._mandatedNow.set(p, mandated);
   // The stand-in's orders come last, for the units and people the seat's own plans leave free.
-  const filling = plan.standIn ? survivors([...now, ...scheduled], plan.sub.orders, (o) => o) : [];
+  const filling = plan.standIn ? survivors([...now, ...scheduled, ...mandated], plan.sub.orders, (o) => o) : [];
   this._scheduledNow.set(p, scheduled);
   this._standingNow.set(
     p,
@@ -201,7 +222,7 @@ P.compose = function (p, plan, fired) {
   );
   const sub = plan.sub;
   return newTurnSubmission({
-    orders: [...now, ...scheduled, ...filling],
+    orders: [...now, ...scheduled, ...mandated, ...filling],
     notes: sub.notes,
     scheduled: sub.scheduled,
     standing: sub.standing,
@@ -258,11 +279,85 @@ P.standingFires = function (seasons, validator) {
         notify(S, p, "Notice", `Standing order ${st.id} did not fire`, `Your standing order ${st.id} (${this.whenText(p, st)}) saw the move it waits for (${hq}'s troops set out from ${m.unit} for ${m.to}), but did not fire: ${conditionsText(st.conditions)}. It still stands.`);
         continue;
       }
+      // Item 13, "Standing orders belong to commanders": each unit's part runs only where word of it has reached the army,
+      // its commander, or the king himself, is with it, and the army sees the move; as he reads the moment.
+      const eligible = st.orders.filter((o) => this.standingRuns(p, st, o, hq, m));
+      if (eligible.length === 0) continue;
+      firedOrders.set(st, eligible);
       list.push([st, `${hq}'s ${kindName(unitAt(S, m.unit)?.kind ?? "Army")} set out from ${m.unit} for ${m.to}`]);
     }
     if (list.length > 0) fires.set(p, list);
   }
   return fires;
+};
+
+/**
+ * Item 13: a scheduled order is carried out where its unit or its place is, once word of it has reached there: one due now
+ * whose word is still on the road waits for it, kept for the season it arrives.
+ */
+P.notYetReached = function (p, sl, o, x) {
+  const S = this.s;
+  if (o === null || x.given <= 0) return false;
+  const unit = x.unitId !== null ? (S.units.find((u) => u.id === x.unitId) ?? null) : null;
+  const place = unit !== null ? unit.province : (scheduledPlace(o) ?? null);
+  if (place === null || !this.map.exists(place)) return false;
+  const reach = this.wordTo(p, place);
+  if (!Number.isFinite(reach) || S.turn >= x.given + reach) return false;
+  sl.scheduled.push({ ...x, turn: x.given + reach });
+  sl.scheduled = sortBy(sl.scheduled, [(y: PlannedOrder) => y.turn, cmpNum]);
+  return true;
+};
+
+/** The province an order without a unit is carried out in, if it names one. */
+function scheduledPlace(o: Order): string | null {
+  switch (o.type) {
+    case "fortify":
+    case "sell":
+    case "purchase":
+    case "feed":
+    case "raise":
+    case "welcome":
+    case "deport":
+    case "expel":
+    case "returnRunaways":
+    case "cede":
+    case "hunt":
+      return o.province;
+    case "caravan":
+    case "trade":
+      return o.from;
+    default:
+      return null;
+  }
+}
+
+/** The orders of each standing order that fires this season that its armies carry out (item 13). */
+const firedOrders = new WeakMap<StandingOrder, PlannedOrder[]>();
+
+P.standingRuns = function (p, st, o, mover, m) {
+  const S = this.s;
+  if (o.unitId === null) return true;
+  const u = S.units.find((x) => x.id === o.unitId && x.power === p);
+  if (u === undefined) return true;
+  // Word of it must have reached the army.
+  const reach = wordFromKing(S, this.map, p, u.province);
+  if (!Number.isFinite(reach) || S.turn < st.given + reach) return false;
+  // Someone to carry it out: the king himself there, or its commander.
+  if (this.kingWith(u)) return true;
+  const c = this.commanderOf(u);
+  if (c === null) return false;
+  // It fires on what the army sees: where its troops stand and one province around.
+  const near = new HSet([u.province, ...this.map.neighbors(u.province)]);
+  if (!near.has(m.unit) && !near.has(m.to)) return false;
+  const rng = this.r("standing-commander", `${st.id}|${u.id}`);
+  // A disloyal commander may look the other way.
+  if (c.traits.loyalty < 50 && rng.chance(((50 - c.traits.loyalty) * 2) / 100)) return false;
+  // A good one sees through a feint: a move that could not get through what stands where it goes, half as many men or fewer.
+  const mv = unitAt(S, m.unit);
+  const there = unitAt(S, m.to);
+  const feint = mv !== null && there !== null && there.power !== mover && mv.men > 0 && there.men >= 2 * mv.men;
+  if (feint && rng.chance((c.traits.competence * CommandData.seeThrough) / 10000)) return false;
+  return true;
 };
 
 /**
@@ -388,6 +483,8 @@ P.scheduledFailed = function (p, order, why) {
 P.afterValidation = function (p, sub, v) {
   const S = this.s;
   for (const f of this._firedNow.tryGet(p) ?? []) this.tellFired(p, f, v);
+  for (const o of (this._mandatedNow.tryGet(p) ?? []).filter((x) => x.type !== "hold"))
+    logEvent(S, "mandate", `A commander of ${p}'s led its unit by his mandate: ${describe(o)}.`, [p], "mandate-led");
   const sl = this.sleepOf(p);
   if (sl === null) {
     // A seat that plays every season keeps the standing orders and answers it gives now; the stand-in's are not the seat's.
@@ -438,7 +535,7 @@ P.bind = function (p, turn, o, levies) {
     );
     return found.length > 0 ? found[found.length - 1] : null;
   };
-  const plan = newPlannedOrder({ turn, order: o });
+  const plan = newPlannedOrder({ turn, order: o, given: S.turn });
   const at = unitOf(o);
   if (at !== null) {
     // In the validator's words: a foreign unit is named as such only where the seat can see it.
@@ -618,6 +715,7 @@ P.keepStanding = function (p, requests) {
         unitId: r.when === "UnitAttacked" ? unit!.id : null,
         orders: bound,
         conditions: [...r.conditions],
+        given: S.turn,
       }),
     );
   }
@@ -672,7 +770,13 @@ P.marches = function (valid) {
       const refused = valid.tryGet(p)?.rejected.find((r) => r.order === order);
       if (refused !== undefined) this.endMarch(p, sl, plan, unit, `${whose} could not be ordered to ${move.to} in turn ${S.turn} (${refused.reason})`, true);
       else if (unit.province === move.to) continue;
-      else if (plan.retry) this.endMarch(p, sl, plan, unit, `${whose} failed to reach ${move.to} a second time in turn ${S.turn}`, false);
+      // Still on a long road (item 13): it goes on next season, and nothing failed.
+      else if (unit.march === move.to && unit.along < this.marchPoints(unit, move.to, move.forced === true)) {
+        const later = sl.scheduled.filter((x) => x.unitId === plan.unitId && x.turn > S.turn);
+        for (const x of later) x.turn++;
+        sl.scheduled.push(newPlannedOrder({ turn: S.turn + 1, order: plan.order, unitId: plan.unitId, otherUnitId: plan.otherUnitId, retry: plan.retry }));
+        sl.scheduled = sortBy(sl.scheduled, [(x: PlannedOrder) => x.turn, cmpNum]);
+      } else if (plan.retry) this.endMarch(p, sl, plan, unit, `${whose} failed to reach ${move.to} a second time in turn ${S.turn}`, false);
       else {
         const later = sl.scheduled.filter((x) => x.unitId === plan.unitId && x.turn > S.turn);
         for (const x of later) x.turn++;

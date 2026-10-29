@@ -19,7 +19,7 @@ import {
   unitAt,
   LandData,
 } from "@amarna/engine";
-import { Assert, formerHomes, subs } from "./support.ts";
+import { Assert, armiesBefore13, formerHomes, subs } from "./support.ts";
 
 // The reasons a battle report gives that the first battle report tests leave out: a head-to-head lost before a
 // third move walked in, a unit out of sight left unnamed, a unit that could not leave, a missing convoy, and
@@ -51,6 +51,7 @@ describe("BattleReasonTests", () => {
     Assert.equal("Mitanni", unitAt(s, "ekallate")?.power);
     let assyria = report(s, "Assyria");
     Assert.contains("- A ekallate -> terqa: fails: it met the unit from terqa (Mitanni's army) coming the other way; your strength 2 against 3", assyria);
+    // With nowhere to fall back (item 13), it is destroyed.
     Assert.contains("- A ekallate is destroyed", assyria);
     Assert.doesNotContain(
       "from harran",
@@ -62,7 +63,7 @@ describe("BattleReasonTests", () => {
     // Egypt's army in the Delta crosses the open sea in Alashiya's ships, one in each sea zone of the way, to Lukka, which Arzawa
     // holds; Lukka lies beyond Egypt's sight.
     function board(): GameState {
-      let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
+      let s = armiesBefore13(newGame(1, newGameConfig({ peopleDefence: 0 })));
       Object.assign(single(s.units, (u) => u.province === "delta"), { kind: "Army", men: LandData.armyMen });
       single(s.units, (u) => u.province === "enkomi").province = "deltawaters";
       s.units.push(newUnit({ id: "u91", power: "Alashiya", kind: "Fleet", province: "westsea" }));

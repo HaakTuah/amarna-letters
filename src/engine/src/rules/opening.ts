@@ -19,16 +19,17 @@ export interface Opening {
   strength: number;
 }
 
-/** "armies in memphis and akhetaten, a fleet in delta". */
+/** "armies in memphis (7500 men) and akhetaten (7500 men), a fleet of 1000 men in delta". */
 export function openingTroops(o: Opening): string {
   const group = (kind: UnitKind): string => {
     const units = o.units.filter((u) => u.kind === kind);
     const at = units.map((u) => u.province);
     const noun = kind === "Army" ? "army" : "fleet";
     if (at.length === 0) return "";
-    // A levy smaller than a full unit (a city-state's, item 11+) is told by its men.
-    if (at.length === 1) return `${noun === "army" ? "an" : "a"} ${noun}${units[0].men !== null ? ` of ${units[0].men} men` : ""} in ${at[0]}`;
-    return `${kind === "Army" ? "armies" : "fleets"} in ${at.slice(0, at.length - 1).join(", ")} and ${at[at.length - 1]}`;
+    // Each unit by its men (since item 13 every unit starts at the size the sources give it).
+    const each = units.map((u) => `${u.province} (${u.men ?? menOf(kind)} men)`);
+    if (at.length === 1) return `${noun === "army" ? "an" : "a"} ${noun} of ${units[0].men ?? menOf(kind)} men in ${at[0]}`;
+    return `${kind === "Army" ? "armies" : "fleets"} in ${each.slice(0, each.length - 1).join(", ")} and ${each[each.length - 1]}`;
   };
   return [group("Army"), group("Fleet")].filter((x) => x.length > 0).join(", ");
 }

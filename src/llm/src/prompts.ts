@@ -4,6 +4,8 @@
  */
 import {
   AllPowers,
+  mandateText,
+  type UnitView,
   Views,
   WorldMap,
   clauseTag,
@@ -133,6 +135,8 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const woke = sleepLine(v, true);
         if (woke.length > 0) sb.appendLine(woke);
         sb.appendLine(`SEASON: turn ${v.turn}, ${v.season} by your court's reckoning.`);
+        // Item 13: where the king is, his court and capital, from where his orders go out.
+        if (v.courtAt !== ``) sb.appendLine(`COURT: you and your court are in ${v.courtAt}${v.courtTo !== null ? `, on the road to ${v.courtTo}` : ``}; your orders go out from here (see COMMAND AT A DISTANCE).`);
         const rank = rankLine(v);
         if (rank.length > 0) sb.appendLine(rank);
         const growth = v.startStrength > 0 ? v.strength / v.startStrength : 0;
@@ -155,7 +159,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const troop = (id: string): string => {
           const u = units.get(id);
           // A unit short of a full levy's men says how many it has (item 11a+): it counts for that share in battle.
-          return u !== undefined ? ` [${u.power} ${(u.kind === "Army" ? `army` : `fleet`)}${menNote(u)}]` : ``;
+          return u !== undefined ? ` [${u.power} ${(u.kind === "Army" ? `army` : `fleet`)}${menNote(u)}${u.power === v.power ? commandNote(u, v) : ``}]` : ``;
         };
         // The walls as this court knows them (standing now in its sight, elsewhere as last seen) and the ground (see TERRAIN), in one bracket: "lukka (walls 1, rough ground)".
         const marksOf = (id: string): string =>
@@ -539,6 +543,8 @@ export function person(c: CharacterView): string
             if (c.heldByYou) parts.push(`held at your court against their will`);
             if (c.where.length > 0) parts.push(c.where);
         }
+        // Item 13: battles won and lost commanding an army, which anyone who saw them can count.
+        if (c.won + c.lost > 0) parts.push(`commanded in ${c.won + c.lost} battles: won ${c.won}, lost ${c.lost}`);
         if (c.term.length > 0) parts.push(c.term);
         if (c.owed !== null) parts.push(`you let ${c.owed} shekels of their fee fall due unpaid`);
         if (c.ransomCarrier !== null) parts.push(`a ransom demand for them, with nobody going that way, would hire a carrier at your court for ${c.ransomCarrier} shekels from your treasury`);
@@ -626,6 +632,22 @@ export function grantLine(g: GrantView, me: Power): string {
 }
 
 /** A unit's men where it is short of a full levy (item 11a+): ", 600 men"; nothing for a full one. */
-function menNote(u: { kind: "Army" | "Fleet"; men: number }): string {
-  return u.men > 0 && u.men < menOf(u.kind) ? `, ${u.men} men` : ``;
+/** An own unit's command (item 13): its commander, on his way or with it, word recalling him, and its mandate. */
+function commandNote(u: UnitView, v: SeatView): string {
+  const parts: string[] = [];
+  if (u.reported > 0) parts.push(`as reported in turn ${u.reported}`);
+  if (u.hiredMen > 0 && u.hiredUntil !== null) parts.push(`${u.hiredMen} of its men an enlisted band serving until turn ${u.hiredUntil}`);
+  if (u.commander !== null) {
+    const name = v.court.find((c) => c.id === u.commander)?.name ?? u.commander;
+    parts.push(u.commandFrom > v.turn ? `${name} on his way to command it, from turn ${u.commandFrom}` : `commanded by ${name} (${u.commander})`);
+    if (u.relieving) parts.push(`word recalling him on its way`);
+  }
+  if (u.mandate !== null) parts.push(`mandate${u.mandateFrom > v.turn ? ` from turn ${u.mandateFrom}` : ``}: ${mandateText(u.mandate)}`);
+  return parts.length === 0 ? `` : `; ` + joinS(`; `, parts);
+}
+
+function menNote(u: { kind: "Army" | "Fleet"; men: number; march?: string | null; marchDays?: number }): string {
+  // Since item 13 units start at the sizes the sources give, so any that is not a full levy's says its men.
+  const men = u.men > 0 && u.men !== menOf(u.kind) ? `, ${u.men} men` : ``;
+  return men + (u.march != null ? `, on the road to ${u.march}, about ${u.marchDays} days of road left` : ``);
 }

@@ -6,7 +6,7 @@
  * `Replies` builds the Zod objects; `Schemas` gives the JSON schemas sent, for the request text and the tests.
  */
 import { z } from "zod";
-import { AllPowers, ClauseKindValues, SkillBands, MaxAnswerSay, MaxAnswers, MaxConditions, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, fmtN, type AudienceView, type GameConfig } from "@amarna/engine";
+import { AllPowers, ClauseKindValues, EngageValues, MandateTaskValues, WithdrawValues, SkillBands, MaxAnswerSay, MaxAnswers, MaxConditions, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, fmtN, type AudienceView, type GameConfig } from "@amarna/engine";
 import { LeaderJournal } from "./journal.ts";
 
 export type JsonObject = { [key: string]: unknown };
@@ -157,6 +157,10 @@ export const OtherActions = [
   "hunt_bands",
   "hunt_bands_always",
   "stop_hunting_bands",
+  "grant_governorship",
+  "take_back_governorship",
+  "move_court",
+  "enlist_band",
 ] as const;
 
 // The shapes of a unit order and of any other order. Repeated in the schedule and in standing orders; the copy in standing
@@ -164,12 +168,12 @@ export const OtherActions = [
 const unitOrder = (described = true): ReplySchema =>
   object(
     ["unit", str(described ? "Province id where your unit stands (sally: your walled city whose walls sally)." : null)],
-    ["order", enumOf(["hold", "move", "support", "convoy", "disband", "settle", "besiege", "sally"])],
+    ["order", enumOf(["hold", "move", "force_march", "support", "convoy", "disband", "settle", "besiege", "sally"])],
     [
       "target",
       str(
         described
-          ? "move: destination. support: the province of the unit supported. convoy: province of the army. sally: the province the attack on the troops within your walls comes from. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)."
+          ? "move, force_march: destination. support: the province of the unit supported. convoy: province of the army. sally: the province the attack on the troops within your walls comes from. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)."
           : null,
       ),
     ],
@@ -181,18 +185,18 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season), hunt_bands_always (a province your standing hunt covers; empty for all your land)." : null),
+      str(described ? "For raise, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season), hunt_bands_always (a province your standing hunt covers; empty for all your land), the governorships and enlist_band (the province), move_court (where your court goes)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back), or buy_news (the court whose news you buy)." : null)],
-    ["person", str(described ? "Person id, for hire, renew, pay_fee, withhold_fee, borrow, buy_news, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift, seize_hoard, sell_tablet (the buyer)." : null)],
+    ["person", str(described ? "Person id, for grant_governorship (one at your court), hire, renew, pay_fee, withhold_fee, borrow, buy_news, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift, seize_hoard, sell_tablet (the buyer)." : null)],
     ["amount", int(described ? "The whole fee for the job (hire, renew), the price (sell_tablet), the men a levy takes (raise_army, raise_fleet; 0 for a full unit), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
-    ["gold", int(described ? "trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; hire, renew: the part of the fee handed over now (0 means nothing now); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
+    ["gold", int(described ? "enlist_band: the fee offered the band's chief, paid now. trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; hire, renew: the part of the fee handed over now (0 means nothing now); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
     [
       "term",
       int(
         described
-          ? "hire, renew: the seasons by which the job's errand is to be done, 1-30 (0 means 6). Hire offers a job to someone not in your service, at your court or, through an envoy you send this season to where they stand (item: the envoy's id), elsewhere; renew offers one of your own at your court a new job; borrow: the seasons to repay in; else 0."
+          ? "enlist_band: the seasons its men serve you, 1-12. grant_governorship: the levies he may raise on his own when foreign troops threaten his province, 0-3. hire, renew: the seasons by which the job's errand is to be done, 1-30 (0 means 6). Hire offers a job to someone not in your service, at your court or, through an envoy you send this season to where they stand (item: the envoy's id), elsewhere; renew offers one of your own at your court a new job; borrow: the seasons to repay in; else 0."
           : null,
       ),
     ],
@@ -328,9 +332,25 @@ const leaderOrdersBase = (c: GameConfig | null): [string, z.ZodType][] => [
   ],
   ["ledger", ledger()],
   ["units", array(unitOrder())],
+  ["command", array(commandOrder(), "Command of your troops (see COMMAND AT A DISTANCE): grant a person at your court the command of a unit, take it back, or give a unit a mandate or clear it. Empty for none.")],
   ["letters", array(letter(c))],
   ["other_orders", array(otherOrder())],
 ];
+
+/** One order of command (item 13): a grant, a recall, or a mandate in the fixed vocabulary. */
+const commandOrder = (): ReplySchema =>
+  object(
+    ["unit", str("Province id where your unit is, as YOUR TROOPS shows it (by its last report if far off).")],
+    ["action", enumOf(["grant", "take_back", "mandate", "clear_mandate"])],
+    ["person", str("grant: the id of the person at your court you grant the command (like c3). Otherwise empty.")],
+    ["task", enumOf(["", ...MandateTaskValues], "mandate: hold where it stands; guard the target and the land around it; invade, besiege or raid into the target; support or shadow the power's troops. Otherwise empty.")],
+    ["target", str("mandate: the province its task names (guard: empty for where it stands). Otherwise empty.")],
+    ["power", str("mandate: the power whose troops it supports or shadows. Otherwise empty.")],
+    ["engage", enumOf(["", ...EngageValues], "mandate: attack foreign troops within reach, engage only with the advantage, or avoid battle.")],
+    ["avoid", str("mandate: a power it must never fight, or empty.")],
+    ["withdraw", enumOf(["", ...WithdrawValues], "mandate: fall back to your land if outnumbered, or hold at all costs (never).")],
+    ["until", int("mandate: the last season (turn) it holds, or 0 until new orders.")],
+  );
 
 /** One clause of a letter, a tablet or an answer (item 8): its kind, and the fields its kind uses (see CLAUSES in the rules). */
 const clauseObject = (): ReplySchema =>

@@ -44,7 +44,7 @@ import {
 } from "@amarna/engine";
 import { GameLog, GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, leaderRules, situation } from "@amarna/llm";
-import { removeAll, Assert, firstOrNull, toDict, unruled } from "../../engine/test/support.ts";
+import { removeAll, Assert, armiesBefore13, commanded, firstOrNull, toDict, unruled } from "../../engine/test/support.ts";
 
 // Standing orders for every seat (the owner's additions to the fix pass after item 4, "Every feature is every seat's"):
 // a seat that gives orders every season (script, human, or a model or file seat with sleep off) keeps standing orders as
@@ -84,6 +84,9 @@ describe("StandingForEverySeatTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu" }));
   }
 
+  // The armies as before item 13, each of Babylon's and Assyria's with a commander, so their standing orders fire wherever they stand.
+  const before13 = (s: GameState): GameState => commanded(armiesBefore13(s), "Babylonia", "Assyria");
+
   async function play(
     babylon: ISeat,
     assyria: ISeat,
@@ -91,7 +94,7 @@ describe("StandingForEverySeatTests", () => {
     config: GameConfig | null = null,
     setup: ((a0: GameState) => void) | null = null,
   ): Promise<GameRunner> {
-    let state = newGame(31, config ?? Quiet);
+    let state = before13(newGame(31, config ?? Quiet));
     setup?.(state);
     let seats = toDict(
       AllPowers,
@@ -163,7 +166,7 @@ describe("StandingForEverySeatTests", () => {
       Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.kind === "Rejected");
 
       // The game replays exactly from its log (from the same starting position).
-      let start = newGame(31, { ...Quiet, sleepingSeats: sleepingSeats });
+      let start = before13(newGame(31, { ...Quiet, sleepingSeats: sleepingSeats }));
       assyriaInMari(start);
       let replay = Object.assign(new GameRunner(start, r.seats, new ScriptMind(), new TemplateNarrator(), { replay: GameLog.fromJsonl(r.log.toJsonl()) }), {
         writeChronicles: false,
@@ -293,9 +296,9 @@ describe("StandingForEverySeatTests", () => {
       this.specs.push(spec);
       let json =
         spec.key === "t1/orders/Babylonia"
-          ? `{"notes":"Guard Sippar.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"standing_orders":[{"when":"unit_attacked","province":"sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[]}],"cancel_standing":[]}`
+          ? `{"notes":"Guard Sippar.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"standing_orders":[{"when":"unit_attacked","province":"sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[]}],"cancel_standing":[]}`
           : spec.key.includes("/orders/")
-            ? `{"notes":"Hold.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"standing_orders":[],"cancel_standing":[]}`
+            ? `{"notes":"Hold.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"standing_orders":[],"cancel_standing":[]}`
             : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
       return Promise.resolve(JSON.parse(json)!);
     }

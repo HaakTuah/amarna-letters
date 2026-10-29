@@ -56,6 +56,8 @@ export interface PlannedOrder {
   retry: boolean;
   /** A scheduled order: the conditions of its entry, checked when its season comes (none among a standing order's). */
   conditions: Condition[];
+  /** Item 13: the season it was given; it runs only once word of it has reached where it is carried out. */
+  given: number;
 }
 
 export function newPlannedOrder(init: Partial<PlannedOrder> = {}): PlannedOrder {
@@ -68,6 +70,7 @@ export function newPlannedOrder(init: Partial<PlannedOrder> = {}): PlannedOrder 
     otherLevy: null,
     retry: false,
     conditions: [],
+    given: 0,
     ...init,
   };
 }
@@ -81,6 +84,7 @@ export const PlannedOrderSchema: ObjSchema<PlannedOrder> = obj("PlannedOrder", n
   otherLevy: () => LevyRefSchema,
   retry: B,
   conditions: list(() => ConditionSchema),
+  given: I,
 });
 
 /**
@@ -173,6 +177,8 @@ export interface StandingOrder {
   orders: PlannedOrder[];
   /** It fires only if these hold as the season begins, as its seat then knows. */
   conditions: Condition[];
+  /** Item 13: the season it was given; it holds for each unit from when word of it reaches that unit's army. */
+  given: number;
 }
 
 export function newStandingOrder(init: Partial<StandingOrder> = {}): StandingOrder {
@@ -184,6 +190,7 @@ export function newStandingOrder(init: Partial<StandingOrder> = {}): StandingOrd
     unitId: null,
     orders: [],
     conditions: [],
+    given: 0,
     ...init,
   };
 }
@@ -196,6 +203,7 @@ export const StandingOrderSchema: ObjSchema<StandingOrder> = obj("StandingOrder"
   unitId: S,
   orders: list(() => PlannedOrderSchema),
   conditions: list(() => ConditionSchema),
+  given: I,
 });
 
 /**

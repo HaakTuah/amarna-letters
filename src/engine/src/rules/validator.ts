@@ -12,6 +12,7 @@ import type { PendingTask } from "../model/records.ts";
 import { findCharacter, isAlive, ledger, unitAt, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
 import { checkArmyOrder } from "./validator-armies.ts";
+import { checkCommandOrder } from "./validator-command.ts";
 import type { Checking } from "./validator-context.ts";
 import { checkEconomyOrder } from "./validator-economy.ts";
 import { checkPeopleOrder } from "./validator-people.ts";
@@ -195,7 +196,7 @@ export class OrderValidator {
       heardFallen, Sight, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
     };
     const check = (order: Order): string | null => {
-      for (const group of [checkArmyOrder, checkEconomyOrder, checkPeopleOrder]) {
+      for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder]) {
         const why = group(v, order);
         if (why !== undefined) return why;
       }

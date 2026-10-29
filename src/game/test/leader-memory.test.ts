@@ -179,7 +179,7 @@ describe("LeaderMemoryTests", () => {
   test("The model path reads the summary and the rulebook explains the record", () => {
     let sub = Parse.orders(JSON.parse(ordersOf("n", "  what I have learned  ")) as JsonObject);
     Assert.equal("what I have learned", sub.summary);
-    Assert.equal("", Parse.orders(JSON.parse(`{"notes":"n","units":[],"letters":[],"other_orders":[]}`) as JsonObject).summary);
+    Assert.equal("", Parse.orders(JSON.parse(`{"notes":"n","units":[],"command":[],"letters":[],"other_orders":[]}`) as JsonObject).summary);
     let schema = Schemas.leaderOrders(Game.config);
     Assert.contains("summary", at(schema, "required") as string[]);
     Assert.contains("It replaces your previous summary; leave it empty to keep it.", str(schema, "properties", "summary", "description"));

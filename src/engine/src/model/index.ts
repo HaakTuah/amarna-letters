@@ -27,4 +27,5 @@ export * from "./life.ts";
 export * from "./doors.ts";
 export * from "./bands.ts";
 export * from "./vassals.ts";
+export * from "./command.ts";
 export * from "./languages.ts";

@@ -38,7 +38,7 @@ import {
 } from "@amarna/engine";
 import { GameRunner, type ISeat, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
-import { removeAll, Assert, toDict, oldWorld } from "../../engine/test/support.ts";
+import { removeAll, Assert, toDict, oldWorld, commanded } from "../../engine/test/support.ts";
 import { convoy as convoyOrder } from "@amarna/engine";
 import { first as firstOf } from "@amarna/engine";
 import { support as supportOrder } from "@amarna/engine";
@@ -118,7 +118,7 @@ export class ModelRecorder implements JsonAsker {
       return Promise.resolve(JSON.parse(`{"answers":[${answers.join(",")}],"letters":[],"reopen_orders":${this.#reopen},"ledger":[],"standing_answers":[],"cancel_answers":[]}`)!);
     }
     let json = spec.key.includes("/orders/")
-      ? `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+      ? `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
       : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":REOPEN}`.replaceAll(
           "REOPEN",
           this.#reopen ? "true" : "false",
@@ -152,6 +152,8 @@ export async function play(
   old: boolean = true,
 ): Promise<GameRunner> {
   let state = old ? oldWorld(newGame(31, config ?? Quiet)) : newGame(31, config ?? Quiet);
+  // Item 13: the seat under test has a commander with each of its troops, so its standing orders fire wherever they stand.
+  if (old) commanded(state, who);
   setup?.(state);
   let seats = toDict(
     AllPowers,
@@ -166,7 +168,7 @@ export async function play(
 
 // <summary>A sleeping seat in an engine-only game: it gave orders in turn 1 and sleeps in turn 3, with nothing scheduled.</summary>
 export function asleep(p: Power): [GameState, SleepState] {
-  let s = oldWorld(newGame(31, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
+  let s = commanded(oldWorld(newGame(31, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }))), p);
   let sleep = newSleepState({ asleep: true, lastCalled: 1, wakeAt: 50, history: [newSleepSpell({ from: 2 })] });
   s.sleep.set(p, sleep);
   s.turn = 3;
@@ -237,14 +239,14 @@ export class Replying implements JsonAsker {
   askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
     this.specs.push(spec);
     let json = spec.key.includes("/orders/")
-      ? (this.#orders(spec.turn) ?? `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`)
+      ? (this.#orders(spec.turn) ?? `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`)
       : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
     return Promise.resolve(JSON.parse(json)!);
   }
 }
 
 // <summary>A reply with a march, two standing orders (one for any foreign power, one for a power nobody knows) and cancellations.</summary>
-export const PlanningReply: string = `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],
+export const PlanningReply: string = `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],
  "schedule":[{"turn":3,"units":[{"unit":"Babylon","order":"move","target":"nippur","to":""}],"other_orders":[],"conditions":[]}],
  "standing_orders":[
  {"when":"unit_attacked","province":"Sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[{"action":"counter_intelligence","province":"","to":"","power":"","person":"","amount":20,"term":0,"gold":0,"text":"","item":"","seals":[],"errand":"","standing":""}],"conditions":[]},

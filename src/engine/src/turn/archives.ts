@@ -10,7 +10,7 @@ import { isUpper } from "../core/text.ts";
 import { remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
 import { newTabletCopy, type Journey, type Tablet, type TabletCopy } from "../model/records.ts";
-import { findCharacter, isAlive, logEvent, newId, notify, type GoldLot } from "../model/state.ts";
+import { alive, findCharacter, isAlive, logEvent, newId, notify, type GoldLot } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
 import { Views } from "../rules/views.ts";
@@ -110,8 +110,9 @@ P.archiveCopiesArrive = function (j, spy) {
 P.takeArchive = function (taker, province) {
   const S = this.s;
   const prov = this.map.get(province);
-  const court = prov.home;
-  if (!prov.capital || court === null || court === taker) return;
+  // Item 13: the archive moves with the court, so it lies wherever its king is.
+  const court = alive(S).find((q) => q !== taker && this.courtAt(q) === province) ?? (prov.capital && prov.home !== null && !alive(S).includes(prov.home) ? prov.home : null);
+  if (court === null || court === taker) return;
   const held = new HSet(S.copies.filter((k) => k.holder === taker).map((k) => k.tabletId));
   const tablets = this.archive(court)
     .map((t) => t.id)

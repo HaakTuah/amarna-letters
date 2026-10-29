@@ -274,7 +274,8 @@ describe("ResolutionFailureTests", () => {
       new TurnEngine(s).wakeCheck();
       Assert.doesNotContain(s.sleep.get(who).wokenBecause, (w) => w.startsWith(wake));
       if (s.sleep.get(who).asleep) Assert.contains(`an order was refused or failed (${title})`, join("\n", s.sleep.get(who).digest));
-      else Assert.contains(s.sleep.get(who).wokenBecause, (w) => w.startsWith("your army in sinai was destroyed"));
+      // Since item 13 a unit beaten from its place falls back, and that wakes the seat as its destruction did.
+      else Assert.contains(s.sleep.get(who).wokenBecause, (w) => w.startsWith("your army in sinai was destroyed") || w.startsWith("your army in sinai was beaten from it"));
       return;
     }
     // The failure wakes the sleeping seat next season, naming the order and why it failed.

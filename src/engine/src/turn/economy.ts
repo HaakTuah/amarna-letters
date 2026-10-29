@@ -38,6 +38,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import { RoadOdds } from "./travel.ts";
 import { Views } from "../rules/views.ts";
 import { absorbedIn, TurnEngine } from "./core.ts";
+import { CommandData } from "../model/command.ts";
 import { openToSea, type Sneak, type TollBook } from "./trade.ts";
 
 /** The notice of a king's economy each season: harvest, mines, pay and food. */
@@ -174,11 +175,17 @@ P.harvestSeason = function () {
       const over = this.putInStores(prov.id, tax);
       taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
       lost.set(owner, lost.getOrDefault(owner, 0) + over);
-      const metal = toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id)));
+      // Item 13: the yield passes through a governor's hands, and he may keep some of it.
+      const metal = this.throughGovernor(prov.id, toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id))));
       if (metal > 0) {
-        const t = S.treasuries.get(owner);
-        t.gold += metal;
-        t.income += metal;
+        // Item 13 ("Distance inside your own realm"): gold reaches the treasury after its travel time; from beyond the
+        // season's reach it goes as a load that can be waylaid.
+        if (this.wordTo(owner, prov.id) >= 1) this.lootHome(owner, prov.id, metal, [], "");
+        else {
+          const t = S.treasuries.get(owner);
+          t.gold += metal;
+          t.income += metal;
+        }
         mined.set(owner, mined.getOrDefault(owner, 0) + metal);
       }
     }
@@ -248,7 +255,7 @@ P.payTroops = function (p) {
   const S = this.s;
   const Map = this.map;
   const t = S.treasuries.get(p);
-  const cap = Map.capital(p).id;
+  const cap = this.courtAt(p);
   let paid = 0;
   const unpaid: string[] = [];
   for (const u of sortBy(
@@ -361,8 +368,11 @@ P.feedTroops = function () {
         const take = Math.min(landFood(prov), need - eaten);
         if (take > 0) {
           forage.set(prov.id, forage.get(prov.id) - take);
-          // Taken from what the farmers would eat (item 10+a).
-          this._foodNow.set(prov.id, Math.max(0, this._foodNow.getOrDefault(prov.id, 0) - take));
+          // Taken from what the farmers would eat (item 10+a); and what its men waste and spoil besides, by how its commander
+          // takes: a good one in order, a poor or disloyal one by letting them loot (item 13).
+          const t = this.commandOf(u);
+          const waste = idiv(take * Math.max(0, idiv(100 - t.competence, CommandData.lootPer) + idiv(100 - t.loyalty, CommandData.lootPer)), 100);
+          this._foodNow.set(prov.id, Math.max(0, this._foodNow.getOrDefault(prov.id, 0) - take - waste));
           eaten += take;
           foraged.set(u.power, foraged.getOrDefault(u.power, 0) + take);
         }
@@ -737,8 +747,12 @@ P.settleMarkets = function (orders) {
         this.takeFromStores(prov, r.taken);
         m.stock += r.taken;
         m.purse -= r.paid;
-        t.gold += r.paid;
-        t.income += r.paid;
+        // Item 13: from beyond the season's reach the gold travels to the court as a load.
+        if (this.wordTo(p, prov) >= 1) this.lootHome(p, prov, r.paid, [], "");
+        else {
+          t.gold += r.paid;
+          t.income += r.paid;
+        }
         tell(p, `Sold ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < net ? `; its people's purse could pay for no more (${net - r.taken} unsold)` : "") + ".");
         if (r.taken > 0) logEvent(S, "sale", `${p} sold grain at ${name}.`, [p], "sale");
         if (r.taken < net) for (const o of list.filter((o) => o.type === "sell")) this.scheduledFailed(p, o, "the people's purse ran dry");

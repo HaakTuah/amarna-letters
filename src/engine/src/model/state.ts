@@ -17,6 +17,7 @@ import { type MarketSeen, MarketSeenSchema } from "./views.ts";
 import type { People } from "./land.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
+import { type Courier, CourierSchema, type Governor, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
@@ -80,7 +81,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 30;
+export const CURRENT_VERSION = 31;
 
 /**
  * A standing order to hunt bands (Haakon's answers to items 11b and 11b+): whose, in which provinces (none named: the
@@ -235,6 +236,17 @@ export interface GameState {
   loot: Dict<string, number>;
   /** Item 11b: the bands on the land and the coasts, each led by a character ("Bands are a character's soldiers"). */
   bands: Band[];
+  /** Item 13 ("Governors"): the governorships granted, standing or on their way; ended ones are dropped. */
+  governors: Governor[];
+  /**
+   * Item 13 ("The capital is wherever the king is"): the province where each king is, which is his capital, where his
+   * court sits and from where his orders travel; a king never moved is at his map capital and left out.
+   */
+  court: Dict<Power, string>;
+  /** Item 13: the kings on the road with their courts. */
+  kingRoads: KingRoad[];
+  /** Item 13: orders on the road with the realm's couriers, from a king's court to where they are carried out. */
+  couriers: Courier[];
   /**
    * Item 11b ("Where characters are, and what they speak"): for each court, the letters written there that found a carrier,
    * and the seasons they waited in all, to measure how long a court's letters wait.
@@ -367,6 +379,10 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     hiring: new Dict(),
     loot: new Dict(),
     bands: [],
+    governors: [],
+    court: new Dict(),
+    kingRoads: [],
+    couriers: [],
     lettersCarried: new Dict(),
     lettersWaited: new Dict(),
     lettersToCarried: new Dict(),
@@ -463,6 +479,10 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   hiring: dict(I),
   loot: dict(I),
   bands: list(() => BandSchema),
+  governors: list(() => GovernorSchema),
+  court: dict(S),
+  kingRoads: list(() => KingRoadSchema),
+  couriers: list(() => CourierSchema),
   lettersCarried: dict(I),
   lettersWaited: dict(I),
   lettersToCarried: dict(I),
@@ -520,6 +540,35 @@ export interface Unit {
   unpaid: number;
   /** Its men, levied from the men of fighting age of its home (item 10+a); they go home when it disbands. */
   men: number;
+  /**
+   * Item 13, distance-based marching: the neighbouring province it is marching to across a connection longer than a
+   * season's march, and the points it has made on it ({@link travel.legPoints}); null and 0 while it is not.
+   */
+  march: string | null;
+  along: number;
+  /**
+   * Item 13, "Generals lead armies": the character the king granted command of it, and the season he joins it (he travels
+   * from where the grant was given); null while nobody commands it. Command is a grant of authority, not a job: no fee.
+   */
+  commander: string | null;
+  commandFrom: number;
+  /** Item 13, "Army mandates": the king's intent with limits, and the season it reaches the army; null if none was given. */
+  mandate: Mandate | null;
+  mandateFrom: number;
+  /** Item 13: the season word that the king takes back the command reaches the commander, or null. */
+  relieveAt: number | null;
+  /**
+   * Item 13 ("Distance inside your own realm"): where it stood at the end of each of the last few seasons, newest last, as
+   * `province|men`: what its king knows of it is the report his couriers bring, as old as the road from it is long.
+   */
+  trail: string[];
+  /**
+   * Item 13: men of a band enlisted into it (hiring bands as soldiers): how many, the last season of their term, after which
+   * they leave as their chief's band again, and their chief; 0 and null otherwise.
+   */
+  hiredMen: number;
+  hiredUntil: number | null;
+  hiredChief: string | null;
   // computed in C#: $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}"
 }
 
@@ -535,6 +584,17 @@ export function newUnit(init: Partial<Unit> = {}): Unit {
     hungry: 0,
     unpaid: 0,
     men: 0,
+    march: null,
+    along: 0,
+    commander: null,
+    commandFrom: 0,
+    mandate: null,
+    mandateFrom: 0,
+    relieveAt: null,
+    trail: [],
+    hiredMen: 0,
+    hiredUntil: null,
+    hiredChief: null,
     ...init,
   };
 }
@@ -550,6 +610,17 @@ export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
   hungry: I,
   unpaid: I,
   men: I,
+  march: opt(S),
+  along: I,
+  commander: opt(S),
+  commandFrom: I,
+  mandate: opt(() => MandateSchema),
+  mandateFrom: I,
+  relieveAt: opt(I),
+  trail: list(S),
+  hiredMen: I,
+  hiredUntil: opt(I),
+  hiredChief: opt(S),
   label: computed(S, (o: Unit) => unitLabel(o)),
 });
 

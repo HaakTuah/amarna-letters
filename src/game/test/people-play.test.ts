@@ -17,7 +17,7 @@ describe("PeoplePlayTests", () => {
     Assert.contains("In this game a land's people do not resist", leaderRules(true, newGameConfig({ peopleDefence: 0 })));
     const sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","letters":[],"units":[{"unit":"Nesa","order":"settle","target":"","to":""}],"other_orders":[{"action":"set_tax","province":"Hattusa","power":"","person":"","amount":40,"term":0,"text":"","item":"","seals":[]},{"action":"set_tax","province":"","power":"","person":"","amount":30,"term":0,"text":"","item":"","seals":[]}]}`,
+        `{"notes":"","command":[],"letters":[],"units":[{"unit":"Nesa","order":"settle","target":"","to":""}],"other_orders":[{"action":"set_tax","province":"Hattusa","power":"","person":"","amount":40,"term":0,"text":"","item":"","seals":[]},{"action":"set_tax","province":"","power":"","person":"","amount":30,"term":0,"text":"","item":"","seals":[]}]}`,
       )!,
     );
     Assert.equal([disband("nesa", true), tax(40, "hattusa"), tax(30)], sub.orders);

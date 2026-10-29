@@ -57,7 +57,7 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
     s.granary.set(p.id, h * d);
   }
   for (const u of StartUnits)
-    s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.province, food: forMen(carriedOf(u.kind), u.kind, u.men ?? menOf(u.kind)), men: u.men ?? menOf(u.kind) }));
+    s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.home, food: forMen(carriedOf(u.kind), u.kind, u.men ?? menOf(u.kind)), men: u.men ?? menOf(u.kind) }));
   for (const p of AllPowers) {
     s.treasuries.set(p, newTreasury({ gold: StartGold.get(p)! }));
     s.inbox.set(p, []);
