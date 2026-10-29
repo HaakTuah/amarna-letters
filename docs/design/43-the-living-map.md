@@ -106,7 +106,8 @@ the stores); the look of each follows the walls dossier (`docs/history/12-walls-
 - **Roads by quality.** Every road between two land provinces is drawn as two halves, each in its own province's road
   level: a faint dotted track nobody keeps (level 0), a dashed kept track (1), a solid road with bridges, wells and posts
   (2), a broad royal road (3). Their widths and dashes follow the zoom (`--k`), as the moves' arrows do. **Relay
-  stations**: a small square for each level along the province's half.
+  stations**: a small square for each level along the province's half, shown from the first step in (hidden on the whole
+  board).
 - **At each city, close up** (the nearest zoom level only), a row of small marks to the right of the city, below its
   news, giving way to every marker and name (they are placed last): a **harbour** from a beach with a boat drawn up (1)
   to a lesser port with its mole (2) and a great harbour with quays and moorings (3); **water works**, a well with its
@@ -114,8 +115,9 @@ the stores); the look of each follows the walls dossier (`docs/history/12-walls-
   season's tax; under four; more), and **mines** where the province's economy has them.
 - **Walls** keep their rings, one a level, broken while besieged (item 2), with pass 2's siege camp round them.
 
-**What a court knows.** Its own land's works as they stand; elsewhere as its eyes last saw them (as walls are known, and
-as the engine's view shows a court the works it sees: `worksSeen`); a province it never saw is drawn as an unknown track.
+**What a court knows.** Its own land's works as they stand; elsewhere as its eyes last saw them: the engine's view shows a
+court the works in its sight now (`worksSeen`), and the map remembers them from its sight in earlier seasons, as it
+remembers units and walls; a province it never saw is drawn as an unknown track.
 Stores it counts only in its own land (every store in god view). Mines are the map's own data, known to all.
 
 **Readings taken.** Policing is men, not something built, so it has no mark ("every level of what is built": roads,

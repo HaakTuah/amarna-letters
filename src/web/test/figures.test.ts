@@ -2,6 +2,8 @@ import { describe, test } from "vitest";
 import { AllPowers } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
 import { armyStyle, clockwise, figureSymbols, fleetStyle } from "../src/map/figures.ts";
+import { RoadHalves } from "../src/map/built.ts";
+import { WorldMap } from "@amarna/engine";
 
 // The living map's figures (item 19): every one drawn as a single path (and a wheel's own), so a phone clones few elements.
 describe("FigureTests", () => {
@@ -24,5 +26,13 @@ describe("FigureTests", () => {
       Assert.true(armyStyle(p).length > 0);
       Assert.true(fleetStyle(p).length > 0);
     }
+  });
+
+  // Pass 3: every road between two land provinces is drawn, each once.
+  test("Every land connection has its road drawn, once", () => {
+    const m = WorldMap.default;
+    const pairs = new Set(m.edges.filter((e) => e.kind !== "Sea" && !m.get(e.a).isSea && !m.get(e.b).isSea).map((e) => [e.a, e.b].sort().join("|")));
+    Assert.equal(pairs.size, RoadHalves.length);
+    Assert.equal(pairs.size, new Set(RoadHalves.map((r) => [r.a, r.b].sort().join("|"))).size);
   });
 });

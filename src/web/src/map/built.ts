@@ -17,9 +17,10 @@ import type { MapScene } from "./scene.ts";
 
 const Map_ = WorldMap.default;
 
-/** Every road between two land provinces, once, with each province's half (to the border it crosses). */
-const RoadHalves: readonly { a: string; b: string; half: Pt[]; other: Pt[] }[] = Map_.edges
-  .filter((e) => e.kind !== "Sea" && !Map_.get(e.a).isSea && !Map_.get(e.b).isSea && e.a < e.b)
+/** Every road between two land provinces, once (the map lists each edge once, either way round), with each province's half. */
+export const RoadHalves: readonly { a: string; b: string; half: Pt[]; other: Pt[] }[] = [
+  ...new Map(Map_.edges.filter((e) => e.kind !== "Sea" && !Map_.get(e.a).isSea && !Map_.get(e.b).isSea).map((e) => [[e.a, e.b].sort().join("|"), e] as const)).values(),
+]
   .map((e) => {
     const r = roadBetween(e.a, e.b);
     const at = r.cross >= 0 ? r.cross : Math.floor(r.pts.length / 2);
