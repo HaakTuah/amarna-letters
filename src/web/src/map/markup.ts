@@ -2,6 +2,8 @@
  * The parts of the map that never change during a game, written once as plain SVG markup. Colours come from CSS variables,
  * so light and dark modes need no re-render.
  */
+import ReliefImage from "./relief.jpg";
+import { ReliefFrame } from "./relief-frame.ts";
 import { AllPowers, StartWalls, WorldMap, isGreatKing } from "@amarna/engine";
 import {
   CoastPath,
@@ -14,7 +16,6 @@ import {
   LandPath,
   MainlandPath,
   PuntDoor,
-  Ranges,
   Rivers,
   SeaPath,
   Shapes,
@@ -23,7 +24,6 @@ import {
   labelAt,
   landClipOf,
   ll,
-  peaks,
 } from "./art.ts";
 import { Marks, markGlyph, markText } from "./crossings.ts";
 import { Burst, Capital, Chariot, Eye, Fetter, Ingot, Moon, Pupil, Ship, Tablet, TabletMarks, emblem, glyphId } from "./glyphs.ts";
@@ -100,7 +100,6 @@ function buildBase(): string {
     sb += `<path class="river-casing" d="${r.path}" style="stroke-width:${F(r.width + 2.6)}"/>`;
     sb += `<path class="river" d="${r.path}" style="stroke-width:${F(r.width)}"/>`;
   }
-  for (const range of Ranges) sb += `<path class="peaks" d="${peaks(range)}"/>`;
   sb += `<path class="coast" d="${CoastPath}"/>`;
   // Province borders, thin, under everything that changes.
   for (const clip of ["url(#seaclip)", "url(#mainclip)", "url(#isleclip)"]) {
@@ -170,6 +169,12 @@ function buildMarks(): string {
     sb += `<g class="xmark k-${m.kind}" data-mark="${m.key}" transform="translate(${F(m.at.x)},${F(m.at.y)})"><title>${escape(markText(m).title)}</title><g class="csym"><circle class="xm-bg" r="7.5"/><circle class="tap-hit" r="13"/><g transform="rotate(${F(m.angle)})">${markGlyph(m.kind)}</g></g></g>`;
   return sb + "</g>";
 }
+
+/**
+ * The relief (item 11c++): real elevation, shaded from the north-west (scripts/map-relief.mjs), over the land and the
+ * colours of who holds it, in soft light, so the ranges stand where they are, in place of the hand-placed chevrons.
+ */
+export const Relief = `<g class="relief" clip-path="url(#landclip)"><image href="${ReliefImage}" x="${ReliefFrame.x}" y="${ReliefFrame.y}" width="${ReliefFrame.width}" height="${ReliefFrame.height}" preserveAspectRatio="none"/></g>`;
 
 /** Shared definitions: patterns, clip paths, the icons and emblems, and the arrowheads. */
 export const Defs = buildDefs();

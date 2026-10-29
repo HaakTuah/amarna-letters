@@ -9,3 +9,5 @@
 .map .sym.lift.over { transform: translate(0, calc(-1px * (var(--ring, 0) * var(--cs) + 43 * var(--sym)))) scale(var(--sym)); }
 /* A small seal whose counters gave way: a dark rim says troops stand there, to be seen closer. */
 .map .city.small.crowd .seal { stroke: var(--ink); stroke-width: 4.5; stroke-dasharray: none; }
+/* The relief: real elevation in soft light over the land and its holders' colours (item 11c++). */
+.map .relief { pointer-events: none; mix-blend-mode: soft-light; opacity: .9; }

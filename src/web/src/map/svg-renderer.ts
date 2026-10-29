@@ -8,7 +8,7 @@ import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { F, Height, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
-import { Base, Defs, Labels, MarksMarkup, NameOrder, ringOf } from "./markup.ts";
+import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { captureLine, unitKindName, type MapScene, type SceneTraveller, type SceneUnit } from "./scene.ts";
 import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
@@ -492,7 +492,7 @@ export class SvgMapRenderer implements MapRenderer {
     // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
+      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g>${Relief}<g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
       `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
