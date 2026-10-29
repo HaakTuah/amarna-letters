@@ -48,6 +48,11 @@ export function Person({ c, court, onFollow }: { c: CharacterView; court: Power 
           <small>Known: {c.knownFacts.join(" ")}</small>
         </div>
       )}
+      {c.speaks.length > 0 && (
+        <div>
+          <small>Says they speak {c.speaks.join(", ")}</small>
+        </div>
+      )}
       {c.pitch !== null && (
         <div className="speech" style={{ marginTop: ".3rem", fontSize: ".92rem" }}>
           “{c.pitch}”

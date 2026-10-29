@@ -66,6 +66,8 @@ import {
   type TurnSubmission,
   type AudienceView,
   ownedBy,
+  newMindRequest,
+  MaxSpeech,
 } from "@amarna/engine";
 import {
   PresentResultSchema,
@@ -505,7 +507,7 @@ export class GameRunner {
       // What it chose so far this season, in its earlier audiences and exchanges, is shown to it at each later one.
       const court = engine.isAsleep(host) ? new Court() : null;
       const runs: AudienceRun[] = [];
-      for (const a of sortBy(group, [(a: PendingAudience) => idNumber(a.id), cmpNum])) runs.push(await this.openAudience(a, turn, signal));
+      for (const a of sortBy(group, [(a: PendingAudience) => idNumber(a.id), cmpNum])) runs.push(await this.openAudience(engine, a, turn, signal));
       const seat = this.seats.get(host);
       // Envoys the king's standing answers cover are answered first, for it, in one exchange each.
       for (const r of runs) if (r.a.answer !== null) await this.answered(engine, r, turn, court, signal);
@@ -547,7 +549,7 @@ export class GameRunner {
   }
 
   /** An audience begins: the envoy presents its lord's message. */
-  private async openAudience(a: PendingAudience, turn: number, signal?: AbortSignal): Promise<AudienceRun> {
+  private async openAudience(engine: TurnEngine, a: PendingAudience, turn: number, signal?: AbortSignal): Promise<AudienceRun> {
     const S_ = this.state;
     const envoy = char(S_, a.envoyId);
     const key = `t${turn}/aud/${a.id}`;
@@ -594,6 +596,27 @@ export class GameRunner {
     present.skim = clamp(present.skim, 0, a.dispatch.gold);
     // What the envoy recites, in clauses (item 8): a script envoy may have changed some; they stand only as the templates allow.
     present.clauses = checkClauses(present.clauses, a.from, a.host, turn).kept;
+    // Item 12, "A go-between for hire": whoever carries the envoy's words hears them all; one in someone else's pay may
+    // bend them, and only then is his mind asked (honesty costs nothing).
+    const bender = engine.benderOf(a);
+    if (bender !== null) {
+      const req = newMindRequest({ id: `${a.id}-bridge`, task: "Bridge", characterId: bender.id, court: a.host, bridge: engine.bridgeView(a, bender, present.speech, present.clauses) });
+      const bctx = this.context(req, engine, turn);
+      this.asked(bender.id, turn);
+      const bent = await this.recorded<MindReply>(
+        `${key}/bridge`,
+        MindReplySchema,
+        () => this.minds.write(bctx, signal),
+        () => this.fallbackMind.write(bctx, signal),
+        this.mindOf(bender),
+      );
+      const words = bent.text.trim() !== "" ? bent.text.slice(0, MaxSpeech) : present.speech;
+      const clauses = checkClauses(bent.clauses, a.from, a.host, turn).kept;
+      const changed = words !== present.speech || JSON.stringify(clauses) !== JSON.stringify(present.clauses);
+      present.speech = words;
+      present.clauses = clauses;
+      engine.bridged(a, changed);
+    } else if (a.through !== null) engine.bridged(a, false);
     const record = newAudienceRecord({ audienceId: a.id, delivered: present.speech, skim: present.skim, swapInventory: present.swapInventory, clauses: [...present.clauses] });
     return { a, key, envoy, ctx, present, record, soFar: [], done: false };
   }

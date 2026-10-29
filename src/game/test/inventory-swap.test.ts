@@ -154,7 +154,7 @@ describe("InventorySwapTests", () => {
     }
 
     let kept = await reportOf("kept 6 shekels of the gold");
-    Assert.contains('The king said, in short: "Welcome, envoy. Go in peace."', kept);
+    Assert.contains('The king said: "Welcome, envoy. Go in peace."', kept);
     Assert.doesNotContain("weighers", kept);
     Assert.doesNotContain("hands are heavy", kept);
     Assert.contains("my weighers found only 34. Either your lord is mean or your messenger's hands are heavy with my gold.", await reportOf());

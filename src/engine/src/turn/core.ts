@@ -51,6 +51,10 @@ export class TurnEngine {
 
   // ---------------------------------------------------------------- state kept while a season resolves (set by the parts)
 
+  /** Item 12: each traveller's road this season, the points it spent in each province (for learning by living there). */
+  readonly _roadNow = new Dict<string, Dict<string, number>>();
+  /** Item 12: the season's rolls of who understands whom, by pair, so each pair is settled once a season. */
+  readonly _heardNow = new Dict<string, boolean>();
   /** Characters who missed pay this season: each counts it once, whether its wage or its back pay fell short. */
   readonly _missedPayNow = new HSet<string>();
   /** Jobs offered this season through an envoy (the hire order's `via`), by the envoy, until it is sent. */
@@ -95,6 +99,8 @@ export class TurnEngine {
     // Where everyone stood before the season's travellers arrived: one standing at a court now that was not is back.
     const stood = new Dict<string, Power | null>(S.characters.map((c) => [c.id, c.at] as const));
     this.travel();
+    // Item 12: everyone learns the languages spoken where he spent the season just past.
+    this.learnTongues();
     this.arrivals();
     this.tasksDue();
     this.jobsDone(stood);
@@ -107,6 +113,8 @@ export class TurnEngine {
     this.newsSeason();
     this.naturalLosses();
     this.newcomers();
+    // Item 12: the dice of who understands whom fall before any model is called.
+    this.settleSpeech();
     this.lifeRequests();
     this.ownRequests();
     this.memoriesDue();
