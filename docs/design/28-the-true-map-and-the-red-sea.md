@@ -42,8 +42,8 @@ small screens", "The Red Sea", "What earns a place", "Opening relations as they 
 ### Six cities of Canaan (`model/power.ts`, `model/map.ts` and the province tables)
 
 - **Powers**, after Tyre in the fixed order: Akko (Surata), Hazor (Abdi-Tirshi), Gezer (Milkilu), Ashkelon (Yidya),
-  Lachish (Zimreddi) and the Hebron hills (Shuwardata): 36 powers and 61 land provinces in all. Each holds its city as its capital (walls 3,
-  as every capital), an army of 50 men a shekel, and starts as Egypt's vassal with a sealed tablet (`StartVassals`,
+  Lachish (Zimreddi) and the Hebron hills (Shuwardata): 39 powers (with item 11d's three) and 61 land provinces in all. Each holds its city as its capital (walls by the walls dossier, as item 11d set the others: Hazor 3, Gezer and
+  Ashkelon 2, Akko, Lachish and the Hebron Hills 1), an army of 50 men a shekel, and starts as Egypt's vassal with a sealed tablet (`StartVassals`,
   tribute 5 a year). Par is unmeasured (1) until item 18.
 - **Carved from** Megiddo (Akko), Damascus (Hazor), Shechem (Gezer), Gaza (Ashkelon), Jerusalem (the Hebron hills) and
   Gaza's and Jerusalem's land (Lachish): each city yield 10, each land it came from 5 less (first guesses). The southern

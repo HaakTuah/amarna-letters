@@ -239,10 +239,11 @@ export const watersId = (coast: string): string => coast + "waters";
  */
 export function buildMap(): WorldMap {
   const provinces: Province[] = [
-    // Arzawa (weak): western Anatolia
-    p("seha", "Seha River Land", "Coast", "Arzawa", 30, false, 38.6, 27.4),
+    // Arzawa (weak): western Anatolia. Since item 11d, Mira and the Seha River Land, "each with its own ruler, more allied
+    // than ruled" (the politics dossier), are Arzawa's vassal city-states.
+    p("seha", "Seha River Land", "Coast", "Seha", 30, true, 38.6, 27.4),
     p("apasa", "Apasa", "Coast", "Arzawa", 40, true, 37.94, 27.34),
-    p("mira", "Mira", "Land", "Arzawa", 30, false, 38.5, 29.5),
+    p("mira", "Mira", "Land", "Mira", 30, true, 38.5, 29.5),
 
     // Hatti (strong): central Anatolia. Nesa is Kanesh by its Hittite name (Kanesh mattered most in the Old Assyrian age).
     p("tuwanuwa", "Tuwanuwa", "Land", "Hatti", 30, false, 37.97, 34.68),
@@ -255,7 +256,8 @@ export function buildMap(): WorldMap {
     p("harran", "Harran", "Land", "Mitanni", 35, false, 36.87, 39.03),
     p("washukanni", "Washukanni", "Land", "Mitanni", 50, true, 36.85, 40.07),
     p("taidu", "Taidu", "Land", "Mitanni", 30, false, 36.8, 41.0),
-    p("terqa", "Terqa", "Land", "Mitanni", 30, false, 34.92, 40.57),
+    // Terqa, the centre of Hana "under local kings, within Mitanni's reach": Mitanni's vassal city-state since item 11d
+    p("terqa", "Terqa", "Land", "Terqa", 30, true, 34.92, 40.57),
 
     // Assyria (middle): the Tigris. Ekallate is Ekallatum by its Middle Assyrian name.
     p("nineveh", "Nineveh", "Land", "Assyria", 35, false, 36.36, 43.15),
@@ -482,25 +484,33 @@ export function buildMap(): WorldMap {
 }
 
 /**
- * The walls each land province starts with, from 0 (none) to 3 (Build order item 5, the siege package): every capital 3,
- * the city-states' cities among them since item 11+ (until then they were fortresses at 2 or walled towns at 1); the
- * fortresses 2; the walled towns 1; the lands without a town (Kaska, Lukka, the Sutean steppe) 2, their chiefs'
- * strongholds; every other land province none, and so it is left out. First guesses, tuned in item 18. The walls standing now are the game state's (GameState.walls).
+ * The walls each land province starts with, from 0 (none) to 3 (Build order item 5, the siege package): every Great King's
+ * capital 3 (the walls dossier's own proposals for them wait for item 15); since item 11d each city-state's city as the
+ * walls dossier (`docs/history/12-walls-roads-harbours.md`, "Walls by city", its "Proposed" column) gives it, with the
+ * early falls that brings, and where the dossier knows nothing of a city-state's town (Mira, Seha, Terqa) 1, as it gives
+ * the other unexcavated towns of the city-states; the fortresses 2; the walled towns 1; the lands without a town (Kaska,
+ * Lukka, the Sutean steppe) none, as the sources give none, their defence the rough land and their scattered people
+ * (Lukka's early falls left to item 18); every other land province none, and so it is left out. First guesses, tuned in
+ * item 18. The walls standing now are the game state's (GameState.walls).
  */
 export const StartWalls: ReadonlyMap<string, number> = new Map([
-  // Capitals: the Great Kings' and, since item 11+, the city-states' (each city-state's city is its capital)
+  // The Great Kings' capitals
   ["hattusa", 3], ["babylon", 3], ["ashur", 3], ["washukanni", 3], ["akhetaten", 3], ["apasa", 3], ["enkomi", 3],
-  ["isuwa", 3], ["carchemish", 3], ["alalakh", 3], ["aleppo", 3], ["ugarit", 3], ["nuhashshe", 3], ["qadesh", 3], ["qatna", 3],
-  ["arwad", 3], ["amurru", 3], ["byblos", 3], ["sidon", 3], ["damascus", 3], ["tyre", 3], ["megiddo", 3], ["shechem", 3],
-  ["jerusalem", 3], ["akko", 3], ["hazor", 3], ["gezer", 3], ["ashkelon", 3], ["lachish", 3], ["hebron", 3], ["suhu", 3], ["arrapha", 3], ["susa", 3],
+  // The city-states' cities, by the walls dossier (item 11d): Qatna's and Qadesh's great ramparts 3; Carchemish's
+  // citadel, Aleppo's, Ugarit's gate and glacis, Byblos's and Shechem's Middle Bronze walls, the islands Arwad and Tyre,
+  // and Susa 2; Megiddo (no city wall: its gate and palace), Alalakh, Jerusalem, Nuzi, and the towns nobody has dug 1
+  ["qatna", 3], ["qadesh", 3],
+  ["carchemish", 2], ["aleppo", 2], ["ugarit", 2], ["arwad", 2], ["byblos", 2], ["tyre", 2], ["shechem", 2], ["susa", 2],
+  ["isuwa", 1], ["alalakh", 1], ["nuhashshe", 1], ["amurru", 1], ["sidon", 1], ["damascus", 1], ["megiddo", 1],
+  ["jerusalem", 1], ["suhu", 1], ["arrapha", 1], ["seha", 1], ["mira", 1], ["terqa", 1],
+  // Item 11c's six cities of Canaan, by the same reading of the walls dossier: Hazor's great Middle Bronze rampart, still
+  // used, 3; Gezer's and Ashkelon's Middle Bronze walls and rampart 2; Akko, Lachish and the Hebron hills, open or barely
+  // known in the Late Bronze Age, 1
+  ["hazor", 3], ["gezer", 2], ["ashkelon", 2], ["akko", 1], ["lachish", 1], ["hebron", 1],
   // Fortresses
   ["gaza", 2], ["memphis", 2], ["nesa", 2], ["nineveh", 2],
   // Walled towns
   ["sumur", 1],
-  // The lands without a town (item 11+, from the review): no town's walls, but the chiefs' hill strongholds and the
-  // steppe's wells hold an army off like a fortress's (the Kaska burned Hattusa and were never subdued; the Lukka men held
-  // their mountains) [G]
-  ["kaska", 2], ["lukka", 2], ["steppe", 2],
 ]);
 
 export interface StartUnit {
@@ -537,13 +547,10 @@ export const StartUnits: readonly StartUnit[] = [
   su("Babylonia", "Army", "durkurigalzu"),
   su("Mitanni", "Army", "washukanni"),
   su("Mitanni", "Army", "taidu"),
-  su("Mitanni", "Army", "terqa"),
   su("Assyria", "Army", "ashur"),
   su("Assyria", "Army", "nineveh"),
   su("Assyria", "Army", "ekallate"),
-  su("Arzawa", "Army", "mira"),
   su("Arzawa", "Army", "apasa"),
-  su("Arzawa", "Fleet", "seha"),
   su("Alashiya", "Fleet", "enkomi"),
   ...cityUnits(),
 ];

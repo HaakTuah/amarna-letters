@@ -32,6 +32,9 @@
     --ashkelon: #3a7a7a;
     --lachish: #7a3a5a;
     --hebron: #6a6a3a;
+    --seha: #4d7a5a;
+    --mira: #7a4d3a;
+    --terqa: #5a4d7a;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -64,6 +67,9 @@
       --ashkelon: #7fd0d0;
       --lachish: #d07fa7;
       --hebron: #c6c67f;
+      --seha: #87c9a0;
+      --mira: #d09a7f;
+      --terqa: #a597d0;
   }
 }
 :root[data-theme="dark"] {
@@ -96,6 +102,9 @@
     --ashkelon: #7fd0d0;
     --lachish: #d07fa7;
     --hebron: #c6c67f;
+    --seha: #87c9a0;
+    --mira: #d09a7f;
+    --terqa: #a597d0;
 }
 
 .e-kaska .ei-bg, .f-kaska, .e-kaska, .ah-kaska { fill: var(--kaska); } .map .t-kaska, .map .s-kaska { fill: var(--kaska); } .b-kaska, .r-kaska { stroke: var(--kaska); }
@@ -156,3 +165,9 @@
 .map .m-lachish .shaft, .map .m-lachish .sup, .map .m-lachish .conv, .map .c-lachish circle { stroke: var(--lachish); }
 .e-hebron .ei-bg, .f-hebron, .e-hebron, .ah-hebron { fill: var(--hebron); } .map .t-hebron, .map .s-hebron { fill: var(--hebron); } .b-hebron, .r-hebron { stroke: var(--hebron); }
 .map .m-hebron .shaft, .map .m-hebron .sup, .map .m-hebron .conv, .map .c-hebron circle { stroke: var(--hebron); }
+.e-seha .ei-bg, .f-seha, .e-seha, .ah-seha { fill: var(--seha); } .map .t-seha, .map .s-seha { fill: var(--seha); } .b-seha, .r-seha { stroke: var(--seha); }
+.map .m-seha .shaft, .map .m-seha .sup, .map .m-seha .conv, .map .c-seha circle { stroke: var(--seha); }
+.e-mira .ei-bg, .f-mira, .e-mira, .ah-mira { fill: var(--mira); } .map .t-mira, .map .s-mira { fill: var(--mira); } .b-mira, .r-mira { stroke: var(--mira); }
+.map .m-mira .shaft, .map .m-mira .sup, .map .m-mira .conv, .map .c-mira circle { stroke: var(--mira); }
+.e-terqa .ei-bg, .f-terqa, .e-terqa, .ah-terqa { fill: var(--terqa); } .map .t-terqa, .map .s-terqa { fill: var(--terqa); } .b-terqa, .r-terqa { stroke: var(--terqa); }
+.map .m-terqa .shaft, .map .m-terqa .sup, .map .m-terqa .conv, .map .c-terqa circle { stroke: var(--terqa); }

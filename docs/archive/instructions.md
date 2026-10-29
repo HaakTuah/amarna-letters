@@ -338,3 +338,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     > Walls. Etc!
 
     Written into "The look, in time" (Interface) and build order item 19.
+
+34. **03:19**, in the design chat, answering item 11+'s review questions, which Claude had relayed word for word with
+    its takes:
+
+    > Agree to all. Though a character based on the incentive structure we have now should never say yes to point 6, as
+    > it is essentially game over.
+
+    Written into the design document as item 11d.

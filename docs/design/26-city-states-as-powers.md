@@ -18,20 +18,22 @@ Since item 11c, 36: six cities of Canaan joined, each Egypt's vassal ([the true 
   of ..." where the sources name none, a chief for the three lands without a town) and its adjective. `isGreatKing`
   and `GreatKings` serve presentation only (greetings, titles, the start's words); `tier` gains "City", data for the
   scripts' styles and the start screen. No rule reads which power it is.
-- **Egypt's own land** gains Gaza and Sumur, its commissioners' towns ("Opening relations as they were"). Terqa stays
-  Mitanni's and Mira Arzawa's own land, as drawn (the table's doubt; see the report).
+- **Egypt's own land** gains Gaza and Sumur, its commissioners' towns ("Opening relations as they were"). Terqa, Mira
+  and Seha are vassal city-states since item 11d ([29](29-answers-to-11plus.md)).
 - **Troops and gold** (first guesses): an army of 50 men a shekel of yield at the city (Byblos 1,500); Arwad a fleet of
   20 men a shekel; the lands without a town, where every man fights, 250 men a shekel (Kaska 2,500). Gold: four
   seasons of yield. `StartUnit.men` carries a levy smaller than a full unit; its baggage is in proportion (`forMen`).
 - **Walls**: every capital 3, the city-states' cities among them, as the rulebook's walls rule says; Gaza, Memphis, Nesa
   and Nineveh 2; Sumur 1; the lands without a town 2, their chiefs' strongholds [G] (from the review: without them Lukka
   fell in seasons 1-3 in every script game). Until item 11+ the cities were fortresses (2) or walled towns (1); at those,
-  a neighbour's army stormed one in the first season.
+  a neighbour's army stormed one in the first season. Since item 11d each city-state's walls are the walls dossier's and
+  the chiefs' lands have none ([29](29-answers-to-11plus.md)).
 - **Lands without a town** (`Province.kingless`: Kaska, Lukka, the Sutean steppe) keep no market, but under their leader
   they are taxed like any land held (`harvestSeason`). Land nobody holds pays no tax and keeps its whole harvest ("Land
   without a ruler"; until item 11+ a free city's tax filled its own stores); every harvest bears the season's catastrophes.
 - **No purchase.** The order `buy`, `cityPrices` in the view, the validator's and engine's purchase and `withinReach` are
-  gone: a city comes under another's power by conquest, or by agreement as his vassal; a capital still cannot be ceded.
+  gone: a city comes under another's power by conquest, or by agreement as his vassal; a capital is ceded only by sealed tablet, and the realm with it
+  (item 11d, [29](29-answers-to-11plus.md)).
   `cityPriceOf` is `provinceWorthOf`, what a province adds to its holder's strength.
 
 ### Vassalage is words (`model/vassals.ts`, `model/clauses.ts`, `rules/clauses.ts`)
@@ -53,7 +55,7 @@ Since item 11c, 36: six cities of Canaan joined, each Egypt's vassal ([the true 
 ### The scoreboard (`rules/scoring.ts`, `turn/resolve.ts`)
 
 - **Par** for each starting position: the growth a power that started there usually reaches by the end of a script game,
-  in the games it survives (a fallen power cannot win), tribute paid and received included: `Par`, from 50 script games
+  over all games, a fall counted as 0 since item 11d ([29](29-answers-to-11plus.md)), tribute paid and received included: `Par`, from 50 script games
   (seeds 1-50), the lands without a town from a second run after their strongholds. `parOf` (never below 0.1;
   1 where unmeasured) and `standingOf` = growth / par. The winner is the living power with the highest standing; the
   shared victory compares a pair's growth against their par, weighted by starting strength. The scripts' reckoning of

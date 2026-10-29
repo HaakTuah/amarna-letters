@@ -48,10 +48,10 @@ describe("MapAndSeasTests", () => {
     Assert.equal(["Coast", "Land"], [Map.get("sumur").kind, Map.get("amurru").kind]);
     Assert.true(Map.areAdjacent("sumur", "amurru") && Map.areAdjacent("sumur", "ugarit") && Map.areAdjacent("sumur", "byblos"));
     Assert.true(Map.get("lukka").kingless);
-    Assert.equal([1, 2], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
+    Assert.equal([1, undefined], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
     Assert.equal(["Suhu", "Nesa", "Ekallate", "Kalavasos"], ["suhu", "nesa", "ekallate", "kalavasos"].map((id) => Map.get(id).name));
-    // Suhu, a city-state's city since item 11+, has a capital's walls.
-    Assert.equal(3, StartWalls.get("suhu"));
+    // Suhu, a city-state's city since item 11+, has the walls the walls dossier gives its unexcavated towns (item 11d).
+    Assert.equal(1, StartWalls.get("suhu"));
     Assert.equal(["Egypt", "Babylonia"], [Map.get("nubia").home, Map.get("dilmun").home]);
     for (const p of Map.landProvinces.filter((x) => x.isCoastal)) Assert.true(p.waters !== null && Map.get(p.waters).isSea && Map.areAdjacent(p.id, p.waters), p.id);
     Assert.equal("sumurwaters", Map.get("arwad").waters);
@@ -192,9 +192,10 @@ describe("MapAndSeasTests", () => {
     for (const [id, power, ruler] of six) {
       Assert.true(Map.get(id).capital && Map.get(id).home === power, id);
       Assert.equal(ruler, king(power));
-      Assert.equal(3, StartWalls.get(id));
       Assert.true(StartVassals.some((v) => v.vassal === power && v.overlord === "Egypt"), id);
     }
+    // Walls by the walls dossier, as item 11d set the other cities': Hazor's great rampart 3, Gezer and Ashkelon 2, the rest 1.
+    Assert.equal([3, 2, 2, 1, 1, 1], ["hazor", "gezer", "ashkelon", "akko", "lachish", "hebron"].map((id) => StartWalls.get(id)));
     // The road from Megiddo to Damascus runs by Hazor, and the shore from Tyre to Gaza by Akko and Ashkelon.
     Assert.false(Map.areAdjacent("megiddo", "damascus") || Map.areAdjacent("tyre", "gaza"));
     Assert.true(Map.areAdjacent("hazor", "megiddo") && Map.areAdjacent("hazor", "damascus") && Map.areAdjacent("akko", "tyre") && Map.areAdjacent("ashkelon", "gaza"));

@@ -222,7 +222,7 @@ describe("SeasonRulebookTests", () => {
     ],
     ["Each siege costs the besieger 15 a season on top of the army's pay."],
     [
-      "A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him (if he falls too in the same season, it passes on with his own land), your troops disband, and what you owe dies with you. You cannot cede your capital.",
+      "A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him (if he falls too in the same season, it passes on with his own land), your troops disband, and what you owe dies with you. You may cede your capital only by agreement: a sealed tablet between you and the receiver that gives it",
     ],
   ] as const)("The rulebook states each rule %s", (rule: string) => {
     Assert.contains(rule, Rules);

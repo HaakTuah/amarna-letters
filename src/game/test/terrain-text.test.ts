@@ -20,7 +20,7 @@ describe("TerrainTextTests", () => {
     [
       "THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; a coast's waters; links, with the mountain passes, great rivers and deserts on them, and the open-sea crossings)",
     ],
-    ["- mira: Mira; land; homeland of Arzawa; yield 30; rough ground. armies: seha, apasa, lukka, tuwanuwa."],
+    ["- mira: Mira; land; homeland of Mira; capital; yield 30; walls 1; rough ground. armies: seha, apasa, lukka, tuwanuwa."],
     ["- kalavasos: Kalavasos; coast; waters kalavasoswaters; homeland of Alashiya; yield 40; rough ground. armies: enkomi. fleets: enkomi, kalavasoswaters."],
     ["- tuwanuwa: Tuwanuwa; land; homeland of Hatti; yield 30. armies: seha, mira, lukka, hattusa, nesa, kizzuwatna (across the Cilician Gates)."],
     [
@@ -34,7 +34,7 @@ describe("TerrainTextTests", () => {
     ],
     ["- sinai: Sinai; coast; waters redsea; homeland of Egypt; yield 20; desert. armies: hebron (across the Negev), jerusalem (across the Negev), gaza (across the north Sinai), delta, memphis. fleets: redsea (across the road to the Gulf of Suez)."],
     ["- redsea: The Red Sea; sea zone, the waters of sinai and thebes. fleets: sinai (across the road to the Gulf of Suez), thebes (across the Wadi Hammamat)."],
-    ["- kaska: Kaska Lands; land; homeland of Kaska; a land without a town; capital; yield 10; walls 2; rough ground. armies: hattusa, sapinuwa."],
+    ["- kaska: Kaska Lands; land; homeland of Kaska; a land without a town; capital; yield 10; rough ground. armies: hattusa, sapinuwa."],
     ["- ugaritwaters: Ugarit waters; sea zone, the waters of ugarit. fleets: ugarit, sumurwaters, kizzuwatnawaters, enkomiwaters (open sea)."],
     [
       "- An army goes to sea only by convoy: a fleet of any power in each sea zone it sails through, each ordered to convoy it, from the waters of its own coast to the waters of the coast it lands on. So an army lands only where no enemy fleet holds that coast's waters: a fleet there must first be driven out.",
