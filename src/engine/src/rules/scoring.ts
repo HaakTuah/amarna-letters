@@ -68,6 +68,24 @@ export function rankAmong(results: readonly number[], growth: number): number {
   return hi === lo ? at(i) : at(i) + ((growth - lo) / (hi - lo)) * (at(i + 1) - at(i));
 }
 
+/**
+ * The final score (item 11e, decided 29 October 2026): a realm's size, its wealth as a share of the largest living
+ * realm's, and its performance, the rank of its growth among its own position's results ({@link rankAmong}), both from 0
+ * to 1, weighted together by `sizeWeight` percent for size. The highest score is the one true winner, and every placement
+ * counts.
+ */
+/** A power's final score, and the size and performance it blends, each from 0 to 1 (item 11e). */
+export interface FinalScore {
+  power: Power;
+  score: number;
+  size: number;
+  performance: number;
+}
+
+export function finalScore(sizeWeight: number, size: number, performance: number): number {
+  return (sizeWeight * size + (100 - sizeWeight) * performance) / 100;
+}
+
 /** How a position's results read: how often it fell, and its survivors' growth at the quarters (for the rulebook). */
 export function parSummary(p: Power): string {
   const results = ParResults[p] ?? [1];

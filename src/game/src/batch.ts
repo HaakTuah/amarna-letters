@@ -56,6 +56,8 @@ export interface GameSummary {
   turns: number;
   winners: string[];
   growth: Record<string, number>;
+  /** Each living power's final score at the end (item 11e), a fallen one's left out. */
+  score: Record<string, number>;
   signals: Record<string, number>;
   costUsd: number;
   errors: number;
@@ -204,6 +206,8 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   for (const c of s.characters) addEarnings(gained, c.earned);
   const growth: Record<string, number> = {};
   for (const p of AllPowers) growth[p] = roundTo(engine.growth(p), 3);
+  const score: Record<string, number> = {};
+  for (const x of engine.finalScores()) score[x.power] = roundTo(x.score, 3);
   const signals: Record<string, number> = {};
   for (const [k, v] of SignalDetector.count(s)) signals[k] = v;
   let standingKept = 0;
@@ -227,6 +231,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     turns: s.scores.length === 0 ? 0 : max(s.scores, (x) => x.turn),
     winners: [...s.winners],
     growth,
+    score,
     signals,
     costUsd: sum(runner.log.calls, (c) => c.costUsd),
     errors: runner.errors.length,
@@ -512,7 +517,10 @@ export function batchReport(games: readonly GameSummary[]): string {
     const standing = games.filter((g) => g.growth[p] > 0);
     const survived = standing.length === 0 ? "" : `  survivors ${align(String(standing.length), 3)} at ${fmt(mean(standing.map((g) => g.growth[p])), "0.00")}`;
     const ranked = mean(games.map((g) => standingOf(p, g.growth[p])));
-    lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")} (standing ${fmt(ranked, "0.00")})${survived}`);
+    // Its final score where it lived (item 11e: size and performance blended).
+    const scored = games.filter((g) => g.score?.[p] !== undefined).map((g) => g.score[p]);
+    const final = scored.length === 0 ? "" : `  score ${fmt(mean(scored), "0.00")}`;
+    lines.push(`  ${align(p, -10)} ${align(tier(p), -7)} wins ${align(String(wins), 3)}  (${align(fmt((100.0 * wins) / games.length, "0.0"), 5)}%)  mean growth ${fmt(avg, "0.00")} (standing ${fmt(ranked, "0.00")})${final}${survived}`);
   }
   const weakWins = games.filter((g) =>
     g.winners.some((w) => {

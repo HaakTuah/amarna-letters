@@ -294,8 +294,9 @@ export class Board {
   }
 
   /**
-   * Strength against what the king started with, against par for his starting position: the measure the game is won by
-   * (item 11+, "One scoreboard for every power"), so a king weighs rivals by the engine's own function.
+   * Strength against what the king started with, ranked against par's results for his starting position: the performance
+   * the final score blends with size (items 11+ and 11e, "One scoreboard for every power"), so a king weighs rivals by the
+   * engine's own function; their size it weighs by their strength, as {@link leader} does.
    */
   growth(p: Power): number {
     let g = this.growthCache.tryGet(p);

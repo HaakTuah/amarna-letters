@@ -13,6 +13,8 @@ import {
   newGame,
   newTabletProposal,
   newTurnSubmission,
+  finalScore,
+  max,
   rankAmong,
   standingOf,
   clause,
@@ -130,5 +132,18 @@ describe("City-states as powers (item 11+)", () => {
     Assert.true(rankAmong([0, 0], 0) < rankAmong([0, 0], 0.4));
     for (const p of AllPowers) Assert.inRange(standingOf(p, 1e9), 1.5, 2);
     Assert.true(standingOf("Byblos", 0) < standingOf("Byblos", 0.05));
+  });
+
+  test("The final score blends size and performance, and the highest wins", () => {
+    // Item 11e: equal weights as the first guess; size against the largest realm, performance as the rank.
+    Assert.equal(0.5, finalScore(50, 1, 0));
+    Assert.equal(0.75, finalScore(50, 0.5, 1));
+    Assert.equal(0.25, finalScore(0, 1, 0.25));
+    const e = new TurnEngine(newGame(1));
+    const scores = e.finalScores();
+    Assert.equal(AllPowers.length, scores.length);
+    Assert.equal(1, max(scores, (x) => x.size));
+    for (let i = 1; i < scores.length; i++) Assert.true(scores[i - 1].score >= scores[i].score);
+    for (const x of scores) Assert.equal(finalScore(50, x.size, x.performance), x.score);
   });
 });

@@ -18,7 +18,7 @@ import { groundText } from "../model/geography.ts";
 import { forMen, LandData, levySize, menAvailable, menOf, shareOfFull } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
-import { strength as scoringStrength, standingOf } from "../rules/scoring.ts";
+import { finalScore, strength as scoringStrength, standingOf, type FinalScore } from "../rules/scoring.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { KingdomFallsTitle, TurnEngine } from "./core.ts";
@@ -38,6 +38,8 @@ declare module "./core.ts" {
     ledgerStrength(p: Power): number;
     landYield(p: Power): number;
     growth(p: Power): number;
+    /** The final score of each living power, highest first, with its size and performance beside it (item 11e). */
+    finalScores(): FinalScore[];
     endOfTurn(): void;
     decideWinners(): void;
   }
@@ -649,18 +651,34 @@ P.endOfTurn = function () {
     S.ended = true;
     S.endReason = reason;
     this.decideWinners();
-    logEvent(S, "end", `The game ends after turn ${S.turn}: ${reason}. Winner: ${S.winners.join(" and ")}.`);
+    // The score that decides, with size and performance beside it (item 11e): every placement counts.
+    const placings = this.finalScores().map((x, i) => `${i + 1}. ${x.power} ${fmt(x.score, "0.00")} (size ${fmt(x.size, "0.00")}, performance ${fmt(x.performance, "0.00")})`);
+    logEvent(S, "end", `The game ends after turn ${S.turn}: ${reason}. Winner: ${S.winners.join(" and ")}. Final scores: ${placings.join("; ")}.`);
     return;
   }
   S.turn++;
 };
 
+P.finalScores = function () {
+  const S = this.s;
+  const living = alive(S);
+  // Size: the realm's wealth as a share of the largest living realm's. Performance: where its growth ranks among its own
+  // starting position's results ("One scoreboard for every power", item 11e).
+  const largest = Math.max(1, ...living.map((p) => this.strength(p)));
+  const rows = living.map((p) => {
+    const size = Math.max(0, this.strength(p)) / largest;
+    const performance = standingOf(p, this.growth(p)) / 2;
+    return { power: p, score: finalScore(S.config.sizeWeight, size, performance), size, performance };
+  });
+  return sortBy(rows, [(x: FinalScore) => x.score, desc(cmpNum)], [(x: FinalScore) => x.power, cmpPower]);
+};
+
 P.decideWinners = function () {
   const S = this.s;
   const living = alive(S);
-  // Each power by where its growth ranks among its starting position's results ("One scoreboard for every power", item 11e).
-  const growth = new Dict(living.map((p) => [p, standingOf(p, this.growth(p))] as const));
-  const best = sortBy(living, [(p: Power) => growth.get(p), desc(cmpNum)], [(p: Power) => p, cmpPower])[0];
+  const scores = this.finalScores();
+  const score = new Dict(scores.map((x) => [x.power, x.score] as const));
+  const best = scores[0].power;
 
   if (S.config.sharedVictory) {
     let bestPair: [Power, Power, number] | null = null;
@@ -668,16 +686,16 @@ P.decideWinners = function () {
       const a = t.proposedBy;
       const b = t.partner!;
       if (!isAlive(S, a) || !isAlive(S, b)) continue;
-      // The pair's standing together: each partner's, weighed by its starting strength.
+      // The pair's score together: each partner's, weighed by its starting strength.
       const start = S.startStrength.get(a) + S.startStrength.get(b);
-      const combined = (growth.get(a) * S.startStrength.get(a) + growth.get(b) * S.startStrength.get(b)) / start;
-      const others = living.filter((p) => p !== a && p !== b).map((p) => growth.get(p));
+      const combined = (score.get(a) * S.startStrength.get(a) + score.get(b) * S.startStrength.get(b)) / start;
+      const others = living.filter((p) => p !== a && p !== b).map((p) => score.get(p));
       const rivals = others.length === 0 ? 0 : max(others, (x) => x);
       if (combined > rivals && (bestPair === null || combined > bestPair[2])) bestPair = [a, b, combined];
     }
     if (bestPair !== null) {
       S.winners = [bestPair[0], bestPair[1]];
-      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (standing together ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
+      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (score together ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
       return;
     }
   }

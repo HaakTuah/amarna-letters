@@ -11,8 +11,10 @@ Item 11e's two fixes, each at its cause (`docs/intent/build-order/item-11.md`, t
   the mover's own land or for a guest. In open land the ground counts too (`resistanceOf`: twice on rough ground, half on
   open plain); in a walled province not the mover's they stand on the walls (`wallMenOf`, no ground: the walls are their
   help there).
-- **In the open**: a move into a province not its mover's, where no unit stands or its unit moved away, must beat it
-  (stop `Resisted`), as before but by number rather than in steps of 0, 1 or 2 (`resistOne`, `resistTwo` are gone).
+- **In the open**: a move into a province not its mover's must beat it, alone where no unit stands or its unit moved
+  away (stop `Resisted`), and beside a unit that holds there, added to its hold strength (`holdStrength`; the failure's
+  `people` names their share in the report), by number rather than in steps of 0, 1 or 2 (`resistOne`, `resistTwo` are
+  gone). Not in a head-on fight on the road.
 - **On the walls**: a move into a walled province not its mover's meets no one in the open (the people are behind the
   walls), so an army walks in and may besiege. To storm, its strength must beat the walls' level plus the defenders on
   them, the garrison's hold it beat (`defenders`, the ground's help included) and the city's men (`Assault.people`),
@@ -22,10 +24,11 @@ Item 11e's two fixes, each at its cause (`docs/intent/build-order/item-11.md`, t
 - **The seat view**: `SeatView.resistance` is in thousandths; for a walled city it is the men's strength on the walls
   before the walls multiply them. The rulebook (PEOPLE, WALLS AND SIEGES, TERRAIN) and the view's RESISTANCE line say so.
 - **Script kings** (`bots/board.ts`): `resistance` is the open land's in whole units (a move of n full units gets in
-  where n is more), none for a walled city not theirs; `wallMen` its men on the walls; `stormNeeds` = level + (garrison +
+  where n is more), added to a troop's defence there in `tactics.ts` and `statecraft-strategy.ts`, none for a walled city
+  not theirs; `wallMen` its men on the walls; `stormNeeds` = level + (garrison +
   men) × (1 + level). The baseline (`baseline-leader.ts`) reckons the same. The scripts' own search runs the adjudicator
   with the view's thousandths.
-- Save version 27: `Assault` gained `people`.
+- Save version 27: `Assault` and `MoveFailure` gained `people`.
 
 ## Each power ranked against its own position (`rules/scoring.ts`, `rules/par-results.ts`)
 
@@ -36,8 +39,17 @@ Item 11e's two fixes, each at its cause (`docs/intent/build-order/item-11.md`, t
   to its growth, above the highest towards the top. So 1 is the middle of its position's results, 2 above them all, and a
   fall ranks lowest. A power with no measure is ranked against a single result of 1. The scale keeps "1 is par", which
   the scripts' thresholds (`Board.growth`, `LeadFloor`) were written for.
-- **The winner** is the living power with the highest standing; a shared victory compares the pair's standings, each
-  weighed by its starting strength, with every other power's.
+- **The final score** (`finalScore`, `TurnEngine.finalScores`; Haakon's decision of 29 October 2026, added to the item
+  while it was built): size, the realm's strength as a share of the largest living realm's, and performance, the rank
+  (`standingOf` / 2), both from 0 to 1, weighted by `GameConfig.sizeWeight` percent for size (50, a first guess, set in
+  item 18 so that every power has about the same chance of first place). The winner is the living power with the highest
+  score; a shared victory compares the pair's scores, each weighed by its starting strength, with every other power's.
+  The end event and the web app's Standings (once the age has ended) give every living power's place, score, size and
+  performance; the batch report gives each power's mean score where it lived.
+- **The goal in words**: the rulebook says to finish as high as one can, every place counting, and what the score
+  blends, without the weight until item 18 sets it, and that no court can measure the standings. The script kings still
+  weigh rivals by performance (`Board.growth`) and size by strength in `leader`; playing for a better place is item 18's
+  (the report's reading).
 - **The rulebook** gives, for each position, how often it fell in par's games and its survivors' growth at the quarters
   (`parSummary`).
 - The batch report prints each power's mean standing beside its mean growth, and the games with a kingdom fallen in the

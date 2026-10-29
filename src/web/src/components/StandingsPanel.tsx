@@ -29,7 +29,8 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
     <>
       <h3>Standings</h3>
       <p className="muted">
-        The winner is whoever grew most relative to where they began. {known ? "" : "You see only your own figures; rivals' treasuries are private."} The
+        Each power finishes as high as it can: the final score blends its size (its wealth against the largest realm's) and its performance (its growth
+        ranked among the results of powers that started where it did), and the highest score wins. {known ? "" : "You see only your own figures; rivals' treasuries are private."} The
         land-yield ratio is what any court can reckon from who holds what: the yield of the land a power holds now over its homeland's yield at the start.
         It is not growth, which counts treasuries and back pay too, against a starting strength that includes the starting treasury.
       </p>
@@ -66,6 +67,39 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
           </tbody>
         </table>
       </div>
+
+      {state.ended && (
+        // The score that decided, with size and performance beside it (item 11e), shown to every viewer once the age has ended.
+        <>
+          <h4 style={{ marginTop: "1rem" }}>The final score</h4>
+          <div className="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Place</th>
+                  <th>Power</th>
+                  <th>Score</th>
+                  <th>Size</th>
+                  <th>Performance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {engine.finalScores().map((x, i) => (
+                  <tr key={x.power}>
+                    <td>{i + 1}</td>
+                    <td>
+                      <Emblem power={x.power} /> {powerName(x.power)}
+                    </td>
+                    <td>{x.score.toFixed(2)}</td>
+                    <td>{x.size.toFixed(2)}</td>
+                    <td>{x.performance.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {state.ended && (
         // Shown once the age has ended, to every viewer: during play a character knows its own wealth, never the ranking.

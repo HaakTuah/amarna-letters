@@ -53,7 +53,7 @@ and the script players' vassal judgements (`bots/vassals.ts`).
 ### The scoreboard (`rules/scoring.ts`, `turn/resolve.ts`)
 
 - **Par** for each starting position: since item 11e the results a power that started there reaches in the script
-  games, each ranked ([30](31-cities-defended.md)); before, the mean growth over all games, a fall counted as 0 (item
+  games, each ranked ([31](31-cities-defended.md)); before, the mean growth over all games, a fall counted as 0 (item
   11d, [29](29-answers-to-11plus.md)). The winner is the living power with the highest standing. The scripts' reckoning
   of rivals (`Board.growth`) is the same standing, so they pursue what the game rewards.
 - **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth); the alternative
