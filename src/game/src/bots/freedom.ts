@@ -1,8 +1,10 @@
 /**
- * A script king and how cities become free (build order item 17). He feeds his armies by buying where they stand by
- * leave, at home or in a friend's land, rather than by taking, wherever his treasury bears it: taking leaves the people
- * hungry and restless, and a friend's land remembers it as a grievance. He sends each such army gold for three seasons'
- * food, the price as his court last heard it, and sends more only when what it carries and what is on the road runs low.
+ * A script king and how cities become free (build order item 17). He weighs buying his armies' food where they stand by
+ * leave against taking it: in a friend's land he buys whenever his treasury bears it, since taking there is a grievance
+ * remembered against him; in his own land he buys where the people are restless (his governor says so) or the land is not
+ * his homeland (a conquest still settling), and in quiet homeland only when gold is plentiful, taking otherwise. He sends
+ * each army he buys for gold for three seasons' food, the price as his court last heard it, and sends more only when what
+ * it carries and what is on the road runs low.
  * He listens to his governors: a province they call restless or near revolt pays less tax. And a cunning king sends the
  * spy he posts in a foe's conquered land with gold to stir its people ("outside help").
  */
@@ -22,6 +24,9 @@ export const FreedomPlay: { off: boolean; only: ReadonlySet<string> | null; on: 
 /** How many seasons of food a script king sends gold for at a time (a first guess of the script's own). */
 const FoodSeasons = 3;
 
+/** Gold this many times what an army's food costs is plenty, enough to buy even where taking costs little (the script's own). */
+const PlentyTimes = 6;
+
 /** Whether our army in `province` stands there by leave: our own land, or land whose holder granted us passage or basing. */
 export function byLeave(b: Board, province: string): boolean {
   const holder = b.ownerOf(province);
@@ -40,6 +45,7 @@ export function supplyOrders(b: Board, _brain: Brain, orders: Order[], gold: num
   const v = b.v;
   const stores = new Map(v.provinces.map((x) => [x.province, x] as const));
   let sent = 0;
+  const uneasy = new Set(restless(b));
   for (const u of sortBy(
     b.mine.filter((u: UnitView) => u.kind === "Army" && u.men > 0),
     [(u: UnitView) => u.province, cmpStr],
@@ -53,6 +59,9 @@ export function supplyOrders(b: Board, _brain: Brain, orders: Order[], gold: num
     const want = Math.ceil((FoodSeasons * need * price * 11) / 1000);
     const have = u.chest + sum(v.foodSent.filter((f) => f.province === u.province), (f) => f.gold);
     const short = have * 3 < want ? want - have : 0;
+    // Taking in quiet homeland costs little; elsewhere it costs unrest that may lose the land, or a friend's goodwill.
+    const cheap = b.isMine(u.province) && Board.Map.isHome(b.me, u.province) && !uneasy.has(u.province);
+    if (cheap && gold - sent < PlentyTimes * want) continue;
     if (short > 0 && short <= gold - sent) {
       orders.push(supply(u.province, true, short));
       sent += short;

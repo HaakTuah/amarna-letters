@@ -85,7 +85,17 @@ P.governorsSeason = function () {
     const levies = S.units.filter((u) => u.power === g.power && u.home === g.province && u.province === g.province && u.commander === null);
     const others = S.units.some((u) => u.power === g.power && u.province === g.province && !levies.includes(u));
     S.governors = S.governors.filter((x) => x !== g);
-    if (t.loyalty < 30 && t.ambition > 60 && !others) {
+    // In the city where his king holds court he cannot make it his own (a coup is not modelled): he turns with his levies
+    // as a band, as before item 17.
+    const court = this.courtAt(g.power) === g.province;
+    if (t.loyalty < 30 && t.ambition > 60 && court && levies.length > 0) {
+      const u = levies[0];
+      this.tell(g.power, g.province, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${this.map.get(g.province).name}, and turned with the ${u.men} men he raised there.`);
+      logEvent(S, "defect", `${c!.name} refused his recall by ${g.power} and turned with the levies of ${this.map.get(g.province).name}.`, [g.power], "defect");
+      this.armyToBand(u, c!, "commander");
+      continue;
+    }
+    if (t.loyalty < 30 && t.ambition > 60 && !others && !court) {
       const name = this.map.get(g.province).name;
       const men = levies.reduce((a, u) => a + u.men, 0);
       this.tell(g.power, g.province, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${name}, and turned${men > 0 ? ` with the ${men} men he raised there` : ""}: he rules it in his own name now.`);

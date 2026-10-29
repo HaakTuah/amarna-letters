@@ -28,6 +28,8 @@ export interface Rising {
   from: Power | null;
   /** Units that follow him if he can pay them a season, each in turn (first guess); they become his. */
   followers: Unit[];
+  /** His band, whose men become his army as he comes to rule (a chief's). */
+  band?: Band | null;
   /** Gold of the province's people that comes to his treasury besides his purse (an elite's gold). */
   gold: number;
   /** The rising's men, raised from the province's men of fighting age at no price: they rose of their own accord. */
@@ -92,10 +94,10 @@ P.ruleOwn = function (id, c, r) {
   S.fallsHeard.set(p, was !== null && !isAlive(S, was) ? [was] : []);
   S.governors = S.governors.filter((x) => x.character !== c.id);
   this.setOwner(id, p);
-  // The land is his own people's: he rules it in full, nothing to absorb, and it starts content with him.
+  // The land is his own people's: he rules it in full, nothing to absorb, and it starts content with him (the old holder
+  // is no cause for the people who rose against him).
   S.conquered.delete(id);
-  S.unrest.delete(id);
-  S.stirred.delete(id);
+  S.takenFrom.delete(id);
   c.employer = p;
   c.status = "Employed";
   c.contract = null;
@@ -119,11 +121,19 @@ P.ruleOwn = function (id, c, r) {
     u.mandate = null;
     S.sieges = S.sieges.filter((x) => x.unitId !== u.id);
   }
+  // His band becomes his army.
+  if (r.band !== undefined && r.band !== null) {
+    const u = this.bandToArmy(r.band, p);
+    if (u !== null) followed.push(u);
+  }
   // The rising itself: the province's men who rose with him, as many as a levy, where no troops of his stand there yet.
   if (r.rising && !followed.some((u) => u.province === id) && !S.units.some((u) => u.province === id)) {
     const men = Math.min(levySize(S, id, "Army"), menAvailable(S, id));
     if (men >= BandData.least && this.levyMen(id, men)) followed.push(newUnitFor(this, p, id, men));
   }
+  // What the people remembered was against the old holder, and the rising was their own.
+  S.unrest.delete(id);
+  S.stirred.delete(id);
   S.startStrength.set(p, this.strength(p));
   const men = sum(followed, (u) => u.men);
   const troops = followed.length === 0 ? (r.followers.length === 0 ? "no troops stand with you" : "the troops there would not follow you, for you cannot pay them") : `${men} men follow you${followed.length < r.followers.length ? ", though not all: the rest you could not pay" : ""}`;

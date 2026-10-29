@@ -365,7 +365,8 @@ describe("IntelligenceTests", () => {
 
     // No rumour of it reaches any court later: distant courts learn only through envoys and spies.
     advance(s, 3);
-    // (Since item 11b plague may kill people standing where it strikes, and word of a death is a rumour.)
-    Assert.all(AllPowers, (p) => Assert.doesNotContain(inboxOf(s, p), (i) => i.kind === "Rumor" && !i.body.includes(" died ")));
+    // (Since item 11b plague may kill people standing where it strikes, and word of a death is a rumour; since item 17 the
+    // hunger may raise a province against its holder, and word of a new ruler travels as a rumour.)
+    Assert.all(AllPowers, (p) => Assert.doesNotContain(inboxOf(s, p), (i) => i.kind === "Rumor" && !i.body.includes(" died ") && !i.body.includes("in his own name")));
   });
 });

@@ -340,6 +340,8 @@ export interface SupplyOrder {
   unit: string;
   buy: boolean;
   gold: number;
+  /** Where the king named the army, as his last report had it, kept when his couriers name it where it truly stands. */
+  named?: string | null;
 }
 export interface MandateOrder {
   type: "mandate";
@@ -947,7 +949,7 @@ const v = <T>(name: string, make: () => T, fields: Parameters<typeof obj>[2]): O
 export const OrderSchema = poly("Order", "type", {
   command: v("CommandOrder", () => command("", ""), { unit: S, character: S }),
   relieve: v("RelieveOrder", () => relieve(""), { unit: S }),
-  supply: v("SupplyOrder", () => supply("", false), { unit: S, buy: B, gold: I }),
+  supply: v("SupplyOrder", () => supply("", false), { unit: S, buy: B, gold: I, named: opt(S) }),
   mandate: v("MandateOrder", () => mandateOrder("", null), { unit: S, mandate: opt(() => MandateSchema) }),
   govern: v("GovernOrder", () => govern("", ""), { province: S, character: S, levies: I }),
   unseat: v("UnseatOrder", () => unseat(""), { province: S }),

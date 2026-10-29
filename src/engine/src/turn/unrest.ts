@@ -183,17 +183,17 @@ function revolt(e: TurnEngine, id: string, level: number): void {
     e.tell(holder, id, "Battle", "A province rises", `${name} has risen against you, behind ${how}, and is lost to you: he rules it in his own name now.`);
     logEvent(S, "revolt", `${name} rose against ${holder} behind ${leader.name} (unrest ${level}).`, [], "revolt-led");
     remember(leader, S.turn, `The people of ${name} rose against ${holder}, and I led them.`);
-    const p = e.ruleOwn(id, leader, {
+    e.ruleOwn(id, leader, {
       how: "revolt",
       from: holder,
       followers: levies,
       gold: eliteGold(e, id),
       rising: band === null && levies.length === 0,
+      band,
       story: `The people of ${name} rose against ${holder}, and you led them.`,
       memory: `The people of ${name} rose against ${holder}.`,
       line: `${leader.name} led ${name} in revolt against ${holder} and rules it in his own name`,
     });
-    if (band !== null) e.bandToArmy(band, p);
     return;
   }
   // Nobody at its head: it falls lawless ("Land without a ruler").
@@ -227,6 +227,12 @@ function reports(e: TurnEngine): void {
  */
 function stirSeason(e: TurnEngine): void {
   const S = e.s;
+  // Gold for stirring that one no longer on his errand still carries (caught on the road, dismissed, turned): his purse
+  // holds it now, on him wherever he is.
+  for (const c of S.characters.filter((c) => c.stirGold > 0 && !(c.status === "Employed" && (c.duty === "SpyOutbound" || c.duty === "SpyPosted" || c.duty === "EnvoyHomebound")))) {
+    c.purse += c.stirGold;
+    c.stirGold = 0;
+  }
   for (const c of sortBy(
     S.characters.filter((c) => c.stirGold > 0 && c.duty === "SpyPosted" && c.watchProvince !== null),
     [(c: Character) => c.id, cmpStr],
@@ -273,7 +279,7 @@ function lawlessRulers(e: TurnEngine): void {
     const men = e.peopleOf(b.province).men;
     if (b.held < hold || b.men * 100 < men * D.chiefMen || S.units.some((u) => u.province === b.province)) continue;
     const name = e.map.get(b.province).name;
-    const p = e.ruleOwn(b.province, c, {
+    e.ruleOwn(b.province, c, {
       how: "chief",
       from: null,
       followers: [],
@@ -282,8 +288,8 @@ function lawlessRulers(e: TurnEngine): void {
       story: `Your band has held ${name} for ${b.held} seasons, and nobody else rules it.`,
       memory: `My band has held ${name} for ${b.held} seasons.`,
       line: `${c.name}, whose band held ${name}, rules it in his own name, a new Idrimi`,
+      band: b,
     });
-    e.bandToArmy(b, p);
   }
   // An elder, in a walled town without a ruler.
   for (const prov of sortBy([...e.map.landProvinces], [(x) => x.id, cmpStr])) {

@@ -39,14 +39,15 @@ P.setSupply = function (p, o) {
   if (gold > 0 && !this.pay(p, gold, `food for your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}`, o, "no word was sent")) return;
   const seasons = wordFromKing(S, this.map, p, u.province);
   const at = S.turn + (Number.isFinite(seasons) ? seasons : 1);
-  S.foodWord.push({ power: p, unit: u.id, province: o.unit, buy: o.buy, gold, at });
-  logEvent(S, "supply", `${p} sent word to its army in ${this.map.get(u.province).name} to ${o.buy ? "buy" : "take"} its food${gold > 0 ? `, with ${gold} shekels` : ""}.`, [p], o.buy ? "supply-word-buy" : "supply-word-take");
+  const named = o.named ?? o.unit;
+  S.foodWord.push({ power: p, unit: u.id, province: named, buy: o.buy, gold, at });
+  logEvent(S, "supply", `${p} sent word to its army in ${this.map.get(named).name} to ${o.buy ? "buy" : "take"} its food${gold > 0 ? `, with ${gold} shekels` : ""}.`, [p], o.buy ? "supply-word-buy" : "supply-word-take");
   notify(
     S,
     p,
     "Resolution",
     "Word on the army's food",
-    `Word that your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is to ${o.buy ? "buy its food where it stands by leave" : "take its food from the land"}${gold > 0 ? `, with ${gold} shekels for it,` : ""} is on its way; it holds from turn ${at}.${o.buy && gold === 0 && u.chest === 0 ? " It carries no gold for food: without gold it takes what it must." : ""}`,
+    `Word that your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name} is to ${o.buy ? "buy its food where it stands by leave" : "take its food from the land"}${gold > 0 ? `, with ${gold} shekels for it,` : ""} is on its way; it holds from turn ${at}.${o.buy && gold === 0 ? " Without gold for food it takes what it must." : ""}`,
   );
 };
 
@@ -58,8 +59,10 @@ P.foodArrives = function () {
   for (const w of due) {
     const u = S.units.find((x) => x.id === w.unit) ?? null;
     if (u === null || u.power !== w.power) {
-      // The army is gone or no longer his: the courier brings the gold back.
+      // The army is gone or no longer his: the courier brings the gold back, or, his king fallen, it stays where he
+      // carried it, in the purse of that land's people (nothing vanishes).
       if (w.gold > 0 && isAlive(S, w.power)) this.credit(w.power, w.gold, this.courtAt(w.power), false);
+      else if (w.gold > 0) this.spendAt(this.map.get(w.province).isSea ? this.courtAt(w.power) : w.province, w.gold);
       continue;
     }
     u.buy = w.buy;
