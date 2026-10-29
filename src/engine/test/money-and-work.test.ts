@@ -192,7 +192,9 @@ describe("MoneyAndWorkTests", () => {
     const d = s.debts[0];
     // The lender goes to Hatti's court; a free person there takes the job of collecting.
     l.at = "Hatti";
-    const agent = s.characters.find((c) => c.status === "Free" && c !== l && c.duty === "None")!;
+    // One the lender can talk to: a language they both speak well (item 12).
+    const fluent = (c: Character): string[] => [...c.tongues.entries()].filter(([, n]) => n >= 80).map(([t]) => t);
+    const agent = s.characters.find((c) => c.status === "Free" && c !== l && c.duty === "None" && fluent(c).some((t) => fluent(l).includes(t)))!;
     [agent.at, agent.purse] = ["Hatti", 0];
     new TurnEngine(s).applyLife(l, newLifeChoice({ approach: newApproachMade({ to: agent.id, words: "Collect this.", giveGold: 5, fee: 15, collect: d.id }) }));
     s.turn++;

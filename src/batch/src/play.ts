@@ -20,6 +20,7 @@ import {
   LanguagePlay,
   SeasonPlay,
   WallPlay,
+  CaravanPlay,
   ClausePlay,
   InventoryPlay,
   ScriptLeader,
@@ -122,6 +123,9 @@ export interface BatchOptions {
   seasonPlayHalf: boolean;
   noWallPlay: boolean;
   wallPlayHalf: boolean;
+  /** Script kings keep their caravans to their own land (`--no-caravan-play`), or half of them (`--caravan-play-half`). */
+  noCaravanPlay: boolean;
+  caravanPlayHalf: boolean;
   /** Script kings act on the clauses they read (item 8); off only to measure it (`--no-clause-play`), or for half (`--clause-play-half`). */
   clausePlay: boolean;
   clausePlayHalf: boolean;
@@ -203,7 +207,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.languagePlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.languagePlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
@@ -230,6 +234,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   SeasonPlay.only = o.seasonPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   WallPlay.off = o.noWallPlay || o.wallPlayHalf;
   WallPlay.only = o.wallPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  CaravanPlay.off = o.noCaravanPlay || o.caravanPlayHalf;
+  CaravanPlay.only = o.caravanPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   ClausePlay.only = o.clausePlayHalf ? current : null;
   const [summary] = await playGame(
     s,

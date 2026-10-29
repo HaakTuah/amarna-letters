@@ -182,6 +182,15 @@ const cityArchetypes: Record<Exclude<Power, "Egypt" | "Hatti" | "Babylonia" | "M
   Suhu: city("the river land", "The middle Euphrates under local kings, within Mitanni's reach.", [0.4, 0.6, 0.5, 0.55, 0.4, 0.45, 0.5, 0.45, 0.5, 0.65]),
   Suteans: city("the steppe raiders", "Herding tribes whose chiefs rob travellers and hire out as fighters.", [0.7, 0.35, 0.35, 0.7, 0.2, 0.35, 0.3, 0.6, 0.5, 0.3]),
   Arrapha: city("the land of Nuzi", "Mitanni's vassal beyond the Tigris, close to Assyria's reach.", [0.3, 0.65, 0.6, 0.5, 0.45, 0.45, 0.55, 0.4, 0.45, 0.55]),
+  // Item 11f's places
+  Azzi: city("the highland lord", "Hukkana of Hayasa, sworn to Suppiluliuma and wed to his sister, lord of mountain strongholds that raided the Upper Land.", [0.6, 0.45, 0.4, 0.55, 0.3, 0.6, 0.45, 0.55, 0.6, 0.25]),
+  Niya: city("the elephant country", "Takuwa of Niya on the Orontes, between Mitanni and the Hittite, whose own brother would rise against him.", [0.35, 0.65, 0.5, 0.5, 0.4, 0.45, 0.6, 0.5, 0.45, 0.45]),
+  Tunip: city("the weeping city", "The elders of Tunip, who write to Pharaoh as one and beg him to save them from Aziru.", [0.2, 0.8, 0.7, 0.45, 0.45, 0.4, 0.75, 0.35, 0.45, 0.55]),
+  Beirut: city("the host of exiles", "Ammunira of Beirut, Pharaoh's servant, who took in Rib-Hadda when Byblos shut its gates on him.", [0.3, 0.65, 0.55, 0.5, 0.5, 0.4, 0.7, 0.45, 0.4, 0.7]),
+  Pella: city("the son of Labaya", "Mut-Bahlu of Pella beyond the Jordan, who hid Ayyab and swore he did not know where he was.", [0.6, 0.45, 0.25, 0.6, 0.3, 0.5, 0.55, 0.75, 0.6, 0.35]),
+  Ashtaroth: city("the fugitive lord", "Ayyab of Ashtaroth, who took a city of Pharaoh's and fled when called to answer for it.", [0.55, 0.5, 0.35, 0.6, 0.3, 0.5, 0.5, 0.65, 0.5, 0.35]),
+  Shasu: city("the herders of Edom", "Shasu chiefs of the Negev and Edom, who rob the roads past their pastures and hire out their men.", [0.7, 0.35, 0.35, 0.7, 0.2, 0.4, 0.3, 0.6, 0.5, 0.25]),
+  Libya: city("the western raiders", "Chiefs of the Tjehenu and Tjemehu, herders on the Delta's western edge who raid its fields.", [0.75, 0.35, 0.35, 0.7, 0.2, 0.5, 0.25, 0.55, 0.6, 0.15]),
   Elam: city("the king beyond the circle", "A kingdom outside the Great Kings' circle, watching Babylon.", [0.5, 0.55, 0.5, 0.55, 0.35, 0.75, 0.4, 0.5, 0.6, 0.5]),
 };
 

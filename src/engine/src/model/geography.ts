@@ -12,7 +12,9 @@ export interface Crossing {
   readonly b: string;
   readonly kind: CrossingKind;
   readonly name: string;
-  /** For a river crossing, the river ({@link Rivers}), whose flood season slows it ({@link legPoints}). */
+  /** The dossier it comes from (`docs/history/`), as item 11f asks of every crossing. */
+  readonly source: string;
+  /** For a river crossing, the river ({@link Rivers} or {@link CrossedRivers}), whose flood season slows it ({@link legPoints}). */
   readonly river?: string;
 }
 
@@ -68,44 +70,80 @@ export function groundText(g: Ground): string {
  * (`docs/rounds/2026-10-18-sleep-and-simulation.md`: question 5, plan steps 14 and 15; question 10, plan step 2), given
  * its effects by the siege package (item 5): rough ground, a pass or a great river on the connection an attack comes
  * over (and until item 7a a landing from the sea) give a unit that stands its ground GameConfig.terrainDefence more, at most that in all
- * ({@link defenceGround}); an army that ends a season in desert land its king did not hold pays GameConfig.desertUpkeep
- * for supplies. No rule names a power: Egypt crosses the Sinai freely because it holds it, and so does anyone who takes it.
+ * ({@link defenceGround}). Desert feeds nobody (item 9+a, replacing item 5's flat desert cost; "Terrain" under War): an army
+ * there lives on its baggage, its king's stores in that land and his caravans' grain. No rule names a power: Egypt holds
+ * the Sinai by what it has stored along the Ways of Horus, and so does anyone who takes it.
  */
-export const Rough: readonly string[] = ["mira", "lukka", "isuwa", "amurru", "arbela", "kalavasos", "shechem", "jerusalem", "hebron", "kaska"];
+export const Rough: readonly string[] = ["mira", "lukka", "isuwa", "amurru", "arbela", "kalavasos", "shechem", "jerusalem", "hebron", "kaska", "azzi"];
 
-/** Desert provinces (question 5, plan step 15: the Sinai; the Sutean steppe since item 7a). An army in its own land pays no desert cost. */
-export const Desert: readonly string[] = ["sinai", "steppe"];
+/** Desert provinces (question 5, plan step 15: the Sinai; the Sutean steppe since item 7a; Libya and the Shasu lands since item 11f). */
+export const Desert: readonly string[] = ["sinai", "steppe", "libya", "shasu"];
 
-const crossing = (a: string, b: string, kind: CrossingKind, name: string, river?: string): Crossing => (river === undefined ? { a, b, kind, name } : { a, b, kind, name, river });
+const crossing = (a: string, b: string, kind: CrossingKind, name: string, source: string, river?: string): Crossing => (river === undefined ? { a, b, kind, name, source } : { a, b, kind, name, source, river });
+
+/** The geography dossier, whose "Terrain by connection" gave the first crossings (question 5; the map review of item 7a). */
+const G = "02-geography.md";
 
 /**
  * The mountain, river and desert crossings (question 5, plan step 14; the map review of item 7a, from the geography
- * dossier's "Terrain by connection"). A pass or a river gives a unit standing its ground help ({@link defenceGround}); the
- * desert gives none, and makes the connection long ({@link connectionDays}). A great river is drawn between provinces where
- * it was a frontier, crossed at its fords and ferry towns, and runs through them as their spine elsewhere ({@link Rivers}).
+ * dossier's "Terrain by connection"; since item 11f every pass, great river and desert edge that was a real obstacle in
+ * 1346, each with the dossier it comes from: "Terrain" under War). A pass or a river gives a unit standing its ground help
+ * ({@link defenceGround}); the desert gives none, and makes the connection long ({@link connectionDays}). A great river is
+ * drawn between provinces where it was a frontier, crossed at its fords and ferry towns, and runs through them as their
+ * spine elsewhere ({@link Rivers}). What item 11f checked and left out (the Zagros edge, which no connection climbs; the
+ * Khabur, the Zabs and the Litani, lesser streams no army was held at; the Nile's cataracts, which break its boats'
+ * reaches but no march along its bank; the Carmel ridge's Aruna pass, which Thutmose III's army went through; and no
+ * strait lies on a land connection) is in the design notes (`docs/design/33-the-rest-of-the-map.md`).
  */
 export const Crossings: readonly Crossing[] = [
-  crossing("tuwanuwa", "kizzuwatna", "Mountain", "the Cilician Gates"),
-  crossing("nesa", "kizzuwatna", "Mountain", "the Taurus"),
-  crossing("nesa", "carchemish", "Mountain", "the Anti-Taurus"),
-  crossing("kizzuwatna", "carchemish", "Mountain", "the Amanus"),
-  crossing("kizzuwatna", "alalakh", "Mountain", "the Syrian Gates"),
-  crossing("byblos", "damascus", "Mountain", "the Lebanon"),
-  crossing("sidon", "damascus", "Mountain", "the Lebanon"),
-  crossing("carchemish", "harran", "River", "the Euphrates at Carchemish", "euphrates"),
-  crossing("aleppo", "harran", "River", "the Euphrates at Emar", "euphrates"),
-  crossing("isuwa", "harran", "River", "the upper Euphrates", "euphrates"),
-  crossing("taidu", "nineveh", "River", "the Tigris", "tigris"),
-  crossing("suhu", "steppe", "Desert", "the Syrian desert"),
-  crossing("steppe", "qatna", "Desert", "the Syrian desert"),
-  crossing("steppe", "damascus", "Desert", "the Syrian desert"),
-  crossing("delta", "gaza", "Desert", "the Ways of Horus"),
-  crossing("gaza", "sinai", "Desert", "the north Sinai"),
-  crossing("jerusalem", "sinai", "Desert", "the Negev"),
-  crossing("hebron", "sinai", "Desert", "the Negev"),
+  crossing("tuwanuwa", "kizzuwatna", "Mountain", "the Cilician Gates", G),
+  crossing("nesa", "kizzuwatna", "Mountain", "the Taurus", G),
+  crossing("nesa", "carchemish", "Mountain", "the Anti-Taurus", G),
+  crossing("kizzuwatna", "carchemish", "Mountain", "the Amanus", G),
+  crossing("kizzuwatna", "alalakh", "Mountain", "the Syrian Gates", G),
+  crossing("byblos", "damascus", "Mountain", "the Lebanon", G),
+  crossing("sidon", "damascus", "Mountain", "the Lebanon", G),
+  // Item 11f: Beirut's road over the Lebanon to the Beqaa, the same range
+  crossing("beirut", "damascus", "Mountain", "the Lebanon", G),
+  crossing("carchemish", "harran", "River", "the Euphrates at Carchemish", G, "euphrates"),
+  crossing("aleppo", "harran", "River", "the Euphrates at Emar", G, "euphrates"),
+  crossing("isuwa", "harran", "River", "the upper Euphrates", G, "euphrates"),
+  // Item 11f: Suppiluliuma "crossed the Euphrates" into Isuwa (the Shattiwaza treaty), from the plateau and the Upper Land
+  crossing("nesa", "isuwa", "River", "the upper Euphrates", G, "euphrates"),
+  crossing("samuha", "isuwa", "River", "the upper Euphrates", G, "euphrates"),
+  crossing("taidu", "nineveh", "River", "the Tigris", G, "tigris"),
+  // Item 11f: the Marassantiya (Halys) ringing the Hittite heartland, between Hattusa and Sapinuwa within its bend and the
+  // plateau south of it; Samuha stands on it
+  crossing("hattusa", "nesa", "River", "the Marassantiya", G, "halys"),
+  crossing("hattusa", "tuwanuwa", "River", "the Marassantiya", G, "halys"),
+  crossing("sapinuwa", "nesa", "River", "the Marassantiya", G, "halys"),
+  // Item 11f: the Orontes where armies are recorded fording it: at Shabtuna south of Qadesh (Ramesses II's Qadesh
+  // inscriptions) and on the way to Niya (Amenhotep II's stelae)
+  crossing("damascus", "qadesh", "River", "the Orontes at the ford of Shabtuna", G, "orontes"),
+  crossing("ugarit", "niya", "River", "the Orontes below Niya", G, "orontes"),
+  // Item 11f: the Jordan in its rift, on the road from Megiddo by Hazor to Damascus ("Jordan crossing") and to the cities
+  // east of it, Pella across from Beth-Shan (Seti I's Beth-Shan stela) and Ashtaroth
+  crossing("hazor", "damascus", "River", "the Jordan", G, "jordan"),
+  crossing("hazor", "ashtaroth", "River", "the Jordan", G, "jordan"),
+  crossing("megiddo", "pella", "River", "the Jordan by Beth-Shan", G, "jordan"),
+  crossing("shechem", "pella", "River", "the Jordan", G, "jordan"),
+  crossing("hazor", "pella", "River", "the Jordan", G, "jordan"),
+  crossing("suhu", "steppe", "Desert", "the Syrian desert", G),
+  crossing("steppe", "qatna", "Desert", "the Syrian desert", G),
+  crossing("steppe", "damascus", "Desert", "the Syrian desert", G),
+  crossing("delta", "gaza", "Desert", "the Ways of Horus", G),
+  crossing("gaza", "sinai", "Desert", "the north Sinai", G),
+  crossing("jerusalem", "sinai", "Desert", "the Negev", G),
+  crossing("hebron", "sinai", "Desert", "the Negev", G),
   // To the Red Sea's shore (item 11c): over the Eastern Desert from Thebes, and across the Sinai to the Gulf of Suez.
-  crossing("thebes", "redsea", "Desert", "the Wadi Hammamat"),
-  crossing("sinai", "redsea", "Desert", "the road to the Gulf of Suez"),
+  crossing("thebes", "redsea", "Desert", "the Wadi Hammamat", G),
+  crossing("sinai", "redsea", "Desert", "the road to the Gulf of Suez", G),
+  // Item 11f: the edge lands' deserts, the Western Desert beyond the Delta and the Negev to the Shasu's pastures
+  crossing("libya", "delta", "Desert", "the Western Desert", "08-beyond-the-edges.md"),
+  crossing("libya", "memphis", "Desert", "the Western Desert", "08-beyond-the-edges.md"),
+  crossing("shasu", "hebron", "Desert", "the Negev", G),
+  crossing("shasu", "sinai", "Desert", "the Negev", G),
+  crossing("shasu", "gaza", "Desert", "the Negev", G),
 ];
 
 /** The ordered courses of the great rivers, source to mouth (question 10, plan step 2; Nubia since item 7a), and their reaches. */
@@ -122,6 +160,22 @@ export const Rivers: readonly River[] = [
   },
   { id: "tigris", name: "Tigris", course: ["nineveh", "ashur", "ekallate", "durkurigalzu"], reaches: [["nineveh", "ashur", "ekallate", "durkurigalzu"]], flood: 2, down: 40, up: 0 },
 ];
+
+/**
+ * The rivers crossed but not sailed in the game (item 11f): no boats on them, only their fords, which their floods close
+ * in their season, as the great rivers' do. The Halys and the Orontes swell with the spring rains and snowmelt, the
+ * Jordan "overflows all its banks throughout the time of harvest" (Joshua 3:15, a later source), all in Shemu.
+ */
+export const CrossedRivers: readonly { readonly id: string; readonly name: string; readonly flood: number }[] = [
+  { id: "halys", name: "Marassantiya", flood: 2 },
+  { id: "orontes", name: "Orontes", flood: 2 },
+  { id: "jordan", name: "Jordan", flood: 2 },
+];
+
+/** The season a crossed river floods, from the great rivers or the crossed ones; null if it has none. */
+export function floodSeasonOf(river: string | undefined): number | null {
+  return Rivers.find((r) => r.id === river)?.flood ?? CrossedRivers.find((r) => r.id === river)?.flood ?? null;
+}
 
 /** The terrain of a province: rough, desert, or open (every other land province, and the sea zones). */
 export function terrainOf(province: string): Terrain {
@@ -176,12 +230,12 @@ const W = (kind: CityWater, ...ids: string[]): [string, CityWater][] => ids.map(
 
 /** Each land province's chief city's water, from the water dossier. */
 export const CityWaters: ReadonlyMap<string, CityWater> = new Map<string, CityWater>([
-  ...W("River", "seha", "apasa", "kizzuwatna", "terqa", "nineveh", "ashur", "ekallate", "sippar", "durkurigalzu", "babylon", "nippur", "ur", "delta", "memphis", "akhetaten", "thebes", "nubia", "isuwa", "carchemish", "alalakh", "qadesh", "damascus", "suhu", "susa"),
-  ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "jerusalem", "gezer"),
-  ...W("Wells", "harran", "arbela", "kalavasos", "enkomi", "aleppo", "ugarit", "sumur", "sidon", "gaza", "akko", "ashkelon", "lachish"),
+  ...W("River", "seha", "apasa", "kizzuwatna", "terqa", "nineveh", "ashur", "ekallate", "sippar", "durkurigalzu", "babylon", "nippur", "ur", "delta", "memphis", "akhetaten", "thebes", "nubia", "isuwa", "carchemish", "alalakh", "qadesh", "damascus", "suhu", "susa", "tunip", "niya", "samuha"),
+  ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "jerusalem", "gezer", "pella"),
+  ...W("Wells", "harran", "arbela", "kalavasos", "enkomi", "aleppo", "ugarit", "sumur", "sidon", "gaza", "akko", "ashkelon", "lachish", "beirut", "ashtaroth"),
   ...W("Outside", "tuwanuwa", "megiddo", "shechem", "hazor"),
-  ...W("Cisterns", "mira", "sapinuwa", "nesa", "taidu", "nuhashshe", "amurru", "arrapha", "lukka", "kaska", "hebron"),
-  ...W("Arid", "sinai", "steppe"),
+  ...W("Cisterns", "mira", "sapinuwa", "nesa", "taidu", "nuhashshe", "amurru", "arrapha", "lukka", "kaska", "hebron", "azzi"),
+  ...W("Arid", "sinai", "steppe", "libya", "shasu"),
   ...W("Island", "tyre", "arwad"),
 ]);
 
@@ -246,6 +300,8 @@ export const Climates: ReadonlyMap<string, Climate> = new Map([
   ["tuwanuwa", cl("Rain", "Hard", Plateau, "plateau")],
   ["hattusa", cl("Rain", "Hard", Plateau, "plateau")],
   ["sapinuwa", cl("Rain", "Hard", Plateau, "plateau")],
+  ["samuha", cl("Rain", "Hard", Plateau, "plateau")],
+  ["azzi", cl("Rain", "Hard", Plateau, "plateau")],
   ["nesa", cl("Rain", "Hard", Plateau, "plateau")],
   ["isuwa", cl("Rain", "Hard", Plateau, "plateau")],
   ["kaska", cl("Rain", "Hard", Plateau, "plateau")],
@@ -269,6 +325,8 @@ export const Climates: ReadonlyMap<string, Climate> = new Map([
   ["dilmun", cl("Arid", "Mild", Sown)],
   ["delta", cl("River", "Mild", Sown)],
   ["memphis", cl("River", "Mild", Sown)],
+  ["libya", cl("Arid", "Mild", Sown)],
+  ["shasu", cl("Arid", "Mild", Sown)],
   ["akhetaten", cl("River", "Mild", Sown)],
   ["thebes", cl("River", "Mild", Sown)],
   ["nubia", cl("River", "Mild", Sown)],
@@ -289,6 +347,11 @@ export const Climates: ReadonlyMap<string, Climate> = new Map([
   ["arwad", cl("Rain", "Mild", Sown, "levant")],
   ["byblos", cl("Rain", "Mild", Sown, "levant")],
   ["sidon", cl("Rain", "Mild", Sown, "levant")],
+  ["beirut", cl("Rain", "Mild", Sown, "levant")],
+  ["niya", cl("Rain", "Cool", Sown, "levant")],
+  ["tunip", cl("Rain", "Cool", Sown, "levant")],
+  ["pella", cl("Rain", "Mild", Sown, "levant")],
+  ["ashtaroth", cl("Rain", "Cool", Sown, "levant")],
   ["tyre", cl("Rain", "Mild", Sown, "levant")],
   ["megiddo", cl("Rain", "Mild", Sown, "levant")],
   ["shechem", cl("Rain", "Mild", Sown, "levant")],

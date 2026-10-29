@@ -19,28 +19,36 @@ export const PowerValues = [
   "Seha",
   "Mira",
   "Isuwa",
+  "Azzi",
   "Carchemish",
   "Alalakh",
   "Aleppo",
   "Ugarit",
+  "Niya",
   "Nuhashshe",
+  "Tunip",
   "Qadesh",
   "Qatna",
   "Arwad",
   "Amurru",
   "Byblos",
+  "Beirut",
   "Sidon",
   "Damascus",
   "Tyre",
   "Akko",
   "Hazor",
+  "Ashtaroth",
   "Megiddo",
   "Shechem",
+  "Pella",
   "Gezer",
   "Jerusalem",
   "Ashkelon",
   "Lachish",
   "Hebron",
+  "Shasu",
+  "Libya",
   "Terqa",
   "Suhu",
   "Suteans",
@@ -86,7 +94,8 @@ const d = (land: string, king: string, adjective: string, tier: Tier = "City"): 
 
 /**
  * Each power's names. The Great Kings' as before; the city-states' rulers from the politics dossier ("The Levant and
- * northern Syria, city by city"): Shechem under Mut-Baal, a son of Labaya, as item 7 read it; the lands without a king
+ * northern Syria, city by city"): Shechem under Labaya, who starts the game though he was probably dead by 1346 ("What
+ * earns a place"; until item 11f Mut-Baal, his son, who rules Pella from then); the lands without a king
  * (Kaska, Lukka, the Suteans) under a chief ("Land without a ruler").
  */
 const Data: Record<Power, PowerData> = {
@@ -104,6 +113,17 @@ const Data: Record<Power, PowerData> = {
   Mira: d("Mira", "the king of Mira", "Miran"),
   Terqa: d("Hana", "the king of Hana", "Hanean"),
   Isuwa: d("Isuwa", "the king of Isuwa", "Isuwan"),
+  // Item 11f's places, their rulers from the politics and people dossiers: Hukkana (his treaty, Beckman no. 3), Takuwa of
+  // Niya (the Shattiwaza treaty), Tunip's elders writing as one with no king named (EA 59), Ammunira (EA 141-143),
+  // Mut-Bahlu at Pella and Ayyab at Ashtaroth (EA 255-256, 364), and the chiefs of the Shasu and the Tjehenu
+  Azzi: d("Azzi-Hayasa", "Hukkana", "Hayasan"),
+  Niya: d("Niya", "Takuwa", "Niyan"),
+  Tunip: d("Tunip", "the king of Tunip", "Tunipite"),
+  Beirut: d("Beirut", "Ammunira", "Beirutite"),
+  Pella: d("Pihil", "Mut-Bahlu", "Pellan"),
+  Ashtaroth: d("Ashtaroth", "Ayyab", "Ashtarothite"),
+  Shasu: d("the land of the Shasu", "the chief of the Shasu", "Shasu"),
+  Libya: d("Libya", "the chief of the Tjehenu", "Libyan"),
   Carchemish: d("Carchemish", "the king of Carchemish", "Carchemishite"),
   Alalakh: d("Mukish", "Itur-Addu", "Mukishite"),
   Aleppo: d("Halab", "the king of Halab", "Halabite"),
@@ -118,7 +138,7 @@ const Data: Record<Power, PowerData> = {
   Damascus: d("Upe", "Biryawaza", "Damascene"),
   Tyre: d("Tyre", "Abi-Milku", "Tyrian"),
   Megiddo: d("Megiddo", "Biridiya", "Megiddite"),
-  Shechem: d("Shechem", "Mut-Baal", "Shechemite"),
+  Shechem: d("Shechem", "Labaya", "Shechemite"),
   Jerusalem: d("Jerusalem", "Abdi-Heba", "Jerusalemite"),
   // Item 11c's six cities of Canaan, their rulers from the politics dossier (EA 8, 227-228, 245, 280-290, 320-326)
   Akko: d("Akko", "Surata", "Akkoite"),

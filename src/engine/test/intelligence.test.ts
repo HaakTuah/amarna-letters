@@ -209,6 +209,8 @@ describe("IntelligenceTests", () => {
 
     let both = firstOrNull(s.characters, (c) => c.pitches.has("Egypt") && c.pitches.has("Hatti"));
     let target = both ?? first(s.characters, (c) => c.pitches.has("Egypt"));
+    // Hatti's court must be able to talk to it (item 12): it speaks Hittite.
+    target.tongues.set("Hittite", 100);
     if (!target.pitches.has("Hatti")) {
       target.pitches.set("Hatti", "Hire me.");
       target.askingPrice.set("Hatti", 20);

@@ -43,7 +43,8 @@ describe("PeoplePlayTests", () => {
     Assert.true(settleThere(v, "Hatti", "hattusa", "Army"));
     Assert.false(settleThere(v, "Hatti", "sapinuwa", "Army"));
     // The board reckons each province's yield as its people bring it in (after the first season's births and moves, about the start's).
-    Assert.inRange(new Board(v).yieldOf("sapinuwa"), 29, 30);
+    // Sapinuwa yields 25 since item 11f carved Samuha from its land.
+    Assert.inRange(new Board(v).yieldOf("sapinuwa"), 24, 25);
   });
 
   test("A court sees the people's yield and resistance only in its own land and its sight, and reads them in its prompt", () => {

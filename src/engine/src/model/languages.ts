@@ -245,6 +245,19 @@ const ByProvince: Record<string, readonly (readonly [string, number])[]> = {
   ],
   kaska: [["Kaskean", wide]],
   steppe: [["Amorite", wide]],
+  // Item 11f's places, as the dossier gives their neighbours: Beirut as Byblos and Sidon, Niya and Tunip as Qatna and
+  // Nuhashshe, Pella and Ashtaroth as the cities of Canaan; Samuha in the Upper Land, where the Hittite court sat and
+  // Ishtar of Samuha was a Hurrian goddess; the highlanders', the Libyans' and the Shasu's own tongues, unknown but for the
+  // Shasu's West Semitic.
+  beirut: [["Canaanite", wide], ["Akkadian", few], ["Egyptian", few]],
+  niya: [["Amorite", wide], ["Hurrian", common]],
+  tunip: [["Amorite", wide], ["Hurrian", common]],
+  pella: [["Canaanite", wide], ["Hurrian", few]],
+  ashtaroth: [["Canaanite", wide], ["Hurrian", few]],
+  samuha: [["Hittite", common], ["Luwian", common], ["Hurrian", some]],
+  azzi: [["Hayasan", wide]],
+  libya: [["Libyan", wide], ["Egyptian", few]],
+  shasu: [["Canaanite", wide]],
 };
 
 /** What each court speaks: its king's language ("The court languages"; the dossier's reading for Arzawa's lands). */
@@ -258,6 +271,8 @@ const CourtSpeaks: Partial<Record<Power, string>> = {
   Alashiya: "Alashiyan",
   Kaska: "Kaskean",
   Lukka: "Luwian",
+  Azzi: "Hayasan",
+  Libya: "Libyan",
   Seha: "Luwian",
   Mira: "Luwian",
   Isuwa: "Hurrian",
@@ -291,6 +306,9 @@ const CourtReads: Partial<Record<Power, readonly string[]>> = {
   Alashiya: ["Akkadian"],
   Kaska: [],
   Lukka: [],
+  Azzi: [],
+  Libya: [],
+  Shasu: [],
   Isuwa: [],
   Suteans: [],
   Carchemish: ["Akkadian", "Hurrian"],
@@ -309,7 +327,13 @@ const OriginProvince: Record<string, string> = {
   Nuzi: "arrapha",
   Kummanni: "kizzuwatna",
   Kition: "kalavasos",
-  Beirut: "sidon",
+  Beirut: "beirut",
+  Hayasa: "azzi",
+  Azzi: "azzi",
+  "the Tjehenu land": "libya",
+  "the Tjemehu land": "libya",
+  Edom: "shasu",
+  "the Negev": "shasu",
   Kumidi: "damascus",
   Kanesh: "nesa",
   Tadmor: "steppe",

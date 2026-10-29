@@ -35,16 +35,16 @@ describe("AbsorptionTests", () => {
     return e;
   }
 
-  // <summary>Seed 1, no catastrophes, a Mitanni army in Isuwa next to Hatti's empty Sapinuwa (yield 30).</summary>
+  // <summary>Seed 1, no catastrophes, a Mitanni army in the Kaska lands next to Hatti's empty Sapinuwa (since item 11f the road from Isuwa runs by Samuha).</summary>
   function board(): GameState {
     let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "isuwa" }));
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "kaska" }));
     return s;
   }
 
   test("Land taken by force yields and counts a third then two thirds then all", () => {
     let s = board();
-    let e = season(s, subs({ Mitanni: { orders: [move("isuwa", "sapinuwa")] } }));
+    let e = season(s, subs({ Mitanni: { orders: [move("kaska", "sapinuwa")] } }));
     Assert.equal("Mitanni", s.owner.get("sapinuwa"));
     Assert.equal(1, s.conquered.get("sapinuwa"));
     // Its strength counts a third of Sapinuwa's land worth beside its homeland's.
@@ -73,7 +73,7 @@ describe("AbsorptionTests", () => {
 
   test("A king s own homeland retaken counts in full", () => {
     let s = board();
-    season(s, subs({ Mitanni: { orders: [move("isuwa", "sapinuwa")] } }));
+    season(s, subs({ Mitanni: { orders: [move("kaska", "sapinuwa")] } }));
     Assert.true(s.conquered.has("sapinuwa"));
     // Hatti drives the army out and takes Sapinuwa back: its own homeland, in full at once.
     season(
@@ -91,8 +91,8 @@ describe("AbsorptionTests", () => {
     let s = board();
     // Mitanni takes Sapinuwa, then cedes it to Assyria the next season: Assyria goes on absorbing it from the season it
     // was taken, so a conquest cannot be laundered through a friend.
-    season(s, subs({ Mitanni: { orders: [move("isuwa", "sapinuwa")] } }));
-    season(s, subs({ Mitanni: { orders: [move("sapinuwa", "isuwa"), cede("sapinuwa", "Assyria")] } }));
+    season(s, subs({ Mitanni: { orders: [move("kaska", "sapinuwa")] } }));
+    season(s, subs({ Mitanni: { orders: [move("sapinuwa", "kaska"), cede("sapinuwa", "Assyria")] } }));
     Assert.equal("Assyria", s.owner.get("sapinuwa"));
     Assert.equal(1, s.conquered.get("sapinuwa"));
     Assert.equal(2 / 3.0, new TurnEngine(s).absorbed("sapinuwa"));

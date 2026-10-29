@@ -36,10 +36,11 @@ import { Assert, last, oldWorld } from "./support.ts";
 describe("MapAndSeasTests", () => {
   const Map = WorldMap.default;
 
-  test("The map has the provinces of the review, each coast its waters, and eighteen sea zones", () => {
-    // 55 land provinces and 15 sea zones after item 8; item 11c added six cities of Canaan, their two coasts' waters and the Red Sea.
-    Assert.equal(61, Map.landProvinces.length);
-    Assert.equal(18, Map.provinces.filter((p) => p.isSea).length);
+  test("The map has the provinces of the review, each coast its waters, and nineteen sea zones", () => {
+    // 55 land provinces and 15 sea zones after item 8; item 11c added six cities of Canaan, their two coasts' waters and the
+    // Red Sea; item 11f nine places, Beirut with waters of its own.
+    Assert.equal(70, Map.landProvinces.length);
+    Assert.equal(19, Map.provinces.filter((p) => p.isSea).length);
     for (const id of ["aleppo", "qatna", "alalakh", "nuhashshe", "jerusalem", "shechem", "arrapha", "sidon", "arwad", "nubia", "dilmun", "kaska", "steppe", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron", "redsea"])
       Assert.true(Map.exists(id), id);
     // Names of their time; Kumidi stays within Damascus's land. Ṣumur is a province of its own on Amurru's coast, and Lukka

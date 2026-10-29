@@ -21,6 +21,8 @@ import {
   vassalBonds,
   vassalTerms,
   StartWalls,
+  courtReads,
+  newGameConfig,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -29,8 +31,8 @@ const Map = WorldMap.default;
 describe("City-states as powers (item 11+)", () => {
   test("Every city-state is a power holding its city as its capital, under the same rules", () => {
     const s = newGame(1);
-    // 33 powers since item 11d; item 11c added six cities of Canaan.
-    Assert.equal(39, AllPowers.length);
+    // 33 powers since item 11d; item 11c added six cities of Canaan, item 11f eight more places.
+    Assert.equal(47, AllPowers.length);
     Assert.equal(7, GreatKings.length);
     for (const p of AllPowers.filter((x) => !isGreatKing(x))) {
       const cap = Map.capital(p);
@@ -50,8 +52,10 @@ describe("City-states as powers (item 11+)", () => {
 
   test("A Great King starts with more servants than a city-state", () => {
     const s = newGame(2);
-    for (const p of AllPowers) Assert.equal(isGreatKing(p) ? 2 : 1, s.characters.filter((c) => c.employer === p).length);
-    Assert.equal(100, s.characters.length);
+    // Staff by size, and since item 11f an Akkadian scribe at every court that reads Akkadian.
+    const scribes = AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length;
+    for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0), s.characters.filter((c) => c.employer === p).length);
+    Assert.equal(100 + scribes, s.characters.length);
   });
 
   test("Cities start in the relation they had: sealed vassal tablets with their overlords, in the template's clauses", () => {
@@ -136,7 +140,7 @@ describe("City-states as powers (item 11+)", () => {
   });
 
   test("The final score blends size and performance, and the highest wins", () => {
-    // Item 11e: equal weights as the first guess; size against the largest realm, performance as the rank.
+    // Item 11e: size against the largest realm, performance as the rank; size weighs 5 percent since item 11f (Haakon's answer).
     Assert.equal(0.5, finalScore(50, 1, 0));
     Assert.equal(0.75, finalScore(50, 0.5, 1));
     Assert.equal(0.25, finalScore(0, 1, 0.25));
@@ -145,6 +149,7 @@ describe("City-states as powers (item 11+)", () => {
     Assert.equal(AllPowers.length, scores.length);
     Assert.equal(1, max(scores, (x) => x.size));
     for (let i = 1; i < scores.length; i++) Assert.true(scores[i - 1].score >= scores[i].score);
-    for (const x of scores) Assert.equal(finalScore(50, x.size, x.performance), x.score);
+    Assert.equal(5, newGameConfig().sizeWeight);
+    for (const x of scores) Assert.equal(finalScore(5, x.size, x.performance), x.score);
   });
 });

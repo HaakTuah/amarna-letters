@@ -6,6 +6,7 @@
  * and whether it helps a defender who stands.
  */
 import {
+  CrossedRivers,
   Crossings,
   PointsPerDay,
   Pace,
@@ -103,7 +104,7 @@ export function markText(m: MapMark, config: GameConfig = newGameConfig()): { ti
       : `The journey takes ${bySeason.map((x, s) => `${days(x)} in ${SeasonNames[s]}`).join(", ")}, against ${days(open)} on open ground.`,
   );
   if (c.kind === "River") {
-    const river = Rivers.find((r) => r.id === c.river);
+    const river = [...Rivers, ...CrossedRivers].find((r) => r.id === c.river);
     lines.push(
       `The ferry holds a company up ${days(TravelData.ferryDays * PointsPerDay)}` +
         (river !== undefined ? `, and ${days(TravelData.floodDays * PointsPerDay)} more in ${SeasonNames[river.flood]}, when the ${river.name} is in flood and its fords are closed.` : "."),

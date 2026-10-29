@@ -187,34 +187,36 @@ describe("PeopleTests", () => {
     Assert.equal(6000, resistanceOf("delta", 60000, 100));
     Assert.equal(3000, resistanceOf("delta", 60000, 50));
     const s = quiet();
-    s.people.get("sapinuwa").men = 15000;
+    // Samuha in the open, without its walls, where its men meet the army in the field.
+    s.walls.delete("samuha");
+    s.people.get("samuha").men = 15000;
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "isuwa", men: LandData.armyMen }));
     const e = new TurnEngine(s);
-    Assert.equal(1500, e.resistance("sapinuwa", "Mitanni"));
-    Assert.equal(0, e.resistance("sapinuwa", "Hatti"));
-    season(s, subs({ Mitanni: { orders: [move("isuwa", "sapinuwa")] } }));
-    Assert.equal("Hatti", s.owner.get("sapinuwa"));
+    Assert.equal(1500, e.resistance("samuha", "Mitanni"));
+    Assert.equal(0, e.resistance("samuha", "Hatti"));
+    season(s, subs({ Mitanni: { orders: [move("isuwa", "samuha")] } }));
+    Assert.equal("Hatti", s.owner.get("samuha"));
     Assert.contains(s.events, (x) => x.signal === "resisted");
     // With support it gets in.
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "kaska", men: LandData.armyMen }));
-    season(s, subs({ Mitanni: { orders: [move("isuwa", "sapinuwa"), support("kaska", "isuwa", "sapinuwa")] } }));
-    Assert.equal("Mitanni", s.owner.get("sapinuwa"));
+    season(s, subs({ Mitanni: { orders: [move("isuwa", "samuha"), support("kaska", "isuwa", "samuha")] } }));
+    Assert.equal("Mitanni", s.owner.get("samuha"));
     // Off at the table's choice.
     const off = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
-    Assert.equal(0, new TurnEngine(off).resistance("sapinuwa", "Mitanni"));
+    Assert.equal(0, new TurnEngine(off).resistance("samuha", "Mitanni"));
   });
 
   test("A destroyed unit's men die or run, loose where it fell", () => {
     const s = quiet();
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "isuwa", men: LandData.armyMen }));
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "sapinuwa", men: LandData.armyMen }));
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "samuha", men: LandData.armyMen }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "harran", men: LandData.armyMen }));
     const loose = s.people.get("isuwa").loose;
     // Two supports: Isuwa's rough ground helps the army standing there.
     season(
       s,
       subs({
-        Hatti: { orders: [move("nesa", "isuwa"), support("sapinuwa", "nesa", "isuwa"), support("harran", "nesa", "isuwa")] },
+        Hatti: { orders: [move("nesa", "isuwa"), support("samuha", "nesa", "isuwa"), support("harran", "nesa", "isuwa")] },
       }),
     );
     Assert.false(s.units.some((u) => u.power === "Mitanni" && u.province === "isuwa"));
@@ -240,7 +242,8 @@ describe("PeopleTests", () => {
     s.people.get("sapinuwa").men = Math.floor(room / 20);
     season(s);
     const after = s.people.get("sapinuwa").settled;
-    Assert.true(after > room / 2 && after < (room * 6) / 10, `${after} of ${room}`);
+    // A tenth or so a season, with the settled moving in from Hatti's neighbouring land towards the room (Samuha since item 11f).
+    Assert.true(after > room / 2 && after < (room * 2) / 3, `${after} of ${room}`);
   });
 
   test("Settled people move within their kingdom towards more room, with their share of the purse", () => {

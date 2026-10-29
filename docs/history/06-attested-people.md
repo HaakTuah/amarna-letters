@@ -129,7 +129,8 @@ The rulers are in the politics dossier's table; their families and men:
 | --- | --- | --- | --- | --- |
 | Ilirabih | Rib-Hadda's brother, who drives him out of Byblos | yes | A | EA 136-140 |
 | Pu-Baʿlu and his brothers | Sons of Abdi-Ashirta, Aziru's brothers | yes | A | EA 104, 132 |
-| Mut-Baal | Son of Labaya, at Pihil (Pella) | yes | A | EA 255-256 |
+| Mut-Baal | Son of Labaya, at Pihil (Pella) | yes | A | EA 255-256; Pella's ruler in the game since item 11f (as Mut-Bahlu) |
+| Akit-Teshup | Brother of Takuwa of Niya, who turns Niya against him and Hatti | yes | A | The Shattiwaza treaty (Beckman no. 6A) |
 | Tagi | Ally of Labaya, in the Carmel region | yes | A | EA 249, 264-266 |
 | Heba | Wife of Niqmaddu II of Ugarit? | doubt | B | EA 48 |
 | Ilimilku | Scribe at Ugarit, who wrote down the Baal cycle under Niqmaddu II | yes | A | Colophons of the Ugaritic myths |

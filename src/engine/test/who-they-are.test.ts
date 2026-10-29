@@ -36,6 +36,8 @@ import {
   newCover,
   FirstPool,
   InclinationKept,
+  courtReads,
+  WorldMap,
 } from "@amarna/engine";
 import { Assert, skilled } from "./support.ts";
 
@@ -54,11 +56,13 @@ describe("WhoTheyAreTests", () => {
     for (const seed of [1, 7, 42]) {
       const small = newGame(seed, newGameConfig({ characterPoolSize: FirstPool }));
       const large = newGame(seed);
-      Assert.equal(100, large.characters.length);
-      Assert.equal(JSON.stringify(small.characters), JSON.stringify(large.characters.slice(0, FirstPool)));
-      for (const p of AllPowers) Assert.equal(isGreatKing(p) ? 2 : 1, large.characters.filter((c) => c.employer === p).length);
+      // And since item 11f an Akkadian scribe at every court that reads Akkadian.
+      const scribes = AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length;
+      Assert.equal(100 + scribes, large.characters.length);
+      Assert.equal(JSON.stringify(small.characters.slice(0, FirstPool)), JSON.stringify(large.characters.slice(0, FirstPool)));
+      for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0), large.characters.filter((c) => c.employer === p).length);
       // The first eighteen serve the first powers in order; the rest of the city-states' staff come from the larger pool.
-      Assert.all(large.characters.slice(FirstPool), (c) => Assert.true(c.status === "Free" || !isGreatKing(c.employer!)));
+      Assert.all(large.characters.slice(FirstPool), (c) => Assert.true(c.status === "Free" || !isGreatKing(c.employer!) || c.calling === "scribe"));
       // Hekanefer, prince of Miam, and Nubian captains in Egypt's service, at Pharaoh's court.
       Assert.contains(large.characters, (c) => c.name === "Hekanefer" && c.attested && c.at === "Egypt");
       Assert.equal(3, large.characters.filter((c) => c.facts.some((f) => f.tag === "nubian")).length);

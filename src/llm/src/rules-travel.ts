@@ -3,7 +3,7 @@
  * seas (item 9), the road check, closing one's roads, and news of distant land travelling. The numbers come from the map data and
  * the engine's own constants, so the text stays true if they change. Only what applies in this game is said.
  */
-import { AllPowers, Crossings, LandData, Pace, WinterData, RoadOdds, Rivers, TravelData, WorldMap, max, min, travelTurns, type GameConfig } from "@amarna/engine";
+import { AllPowers, CrossedRivers, Crossings, LandData, Pace, WinterData, RoadOdds, Rivers, TravelData, WorldMap, max, min, travelTurns, type GameConfig } from "@amarna/engine";
 import { joinS } from "./text.ts";
 
 /**
@@ -32,7 +32,7 @@ export function travelRules(c: GameConfig): string {
   );
   const floods = joinS(
     `; `,
-    Rivers.filter((r) => Crossings.some((x) => x.river === r.id)).map((r) => `the ${r.name} in ${["Akhet", "Peret", "Shemu"][r.flood]}`),
+    [...Rivers, ...CrossedRivers].filter((r) => Crossings.some((x) => x.river === r.id)).map((r) => `the ${r.name} in ${["Akhet", "Peret", "Shemu"][r.flood]}`),
   );
   const boats = joinS(
     `; `,

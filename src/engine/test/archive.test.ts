@@ -94,7 +94,8 @@ describe("ArchiveTests", () => {
     // Nobody else learns of it: Assyria and Hatti keep their one copy each, no other court gains one, and nobody is told.
     Assert.equal(["Assyria", "Hatti", "Babylonia"], holdersOf(s, "t900"));
     for (const p of AllPowers.filter((p) => p !== "Babylonia"))
-      Assert.doesNotContain(inboxOf(s, p), (i) => i.body.includes("archive") || i.body.includes(copy.id));
+      // (A court's own tablets waiting in its archive for a reader, item 12, are its own news, not this.)
+      Assert.doesNotContain(inboxOf(s, p), (i) => i.body.includes("archive of Assyria") || i.body.includes(copy.id));
   });
 
   test("A spy copies one tablet a season never one its master holds agreements and the newest first", () => {
