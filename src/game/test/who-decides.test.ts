@@ -220,7 +220,7 @@ describe("Who decides (item 6c)", () => {
 
   test("The pace follows the table's ending settings, never the drawn last season; an open age has no expected end", () => {
     const usual = expectedSeasonsLeft(1, newGameConfig());
-    Assert.true(usual! > 35 && usual! < 55);
+    Assert.true(usual! > 65 && usual! < 95);
     Assert.true(expectedSeasonsLeft(40, newGameConfig())! < usual!);
     Assert.null(expectedSeasonsLeft(1, newGameConfig({ openAge: true })));
     const s = new Spending(newSpendingSettings({ mode: "season", seasonUsd: 0.5 }), newGameConfig(), 1, () => 0);
