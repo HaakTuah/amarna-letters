@@ -591,3 +591,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     (the question answered in the chat) "Also, have you corrected all the wrong town populations? Do the smallest
     cities around in Levant and other places also have separate populations in the town and on the land?" (answered
     in the chat; item 17+ checks every town)
+62. **30 October 2026, 02:47 UTC**, in the design chat, to the design session's takes (what a king sees of his people
+    follows the age of his last count, each court starting with the counts its sources suggest; a count covers work
+    gangs as well as tax and levy, labour being a tax; five towns corrected in item 17+: Akhetaten, Kalavasos, Nesa,
+    Gath for Hebron, Tunip): "Agreed to all, expertly!" Written into "Counts as the scribes knew them" and "A census"
+    (The world) and items 17+ and 17++. He asked too: "What is the consequences then of noy counting again after a big
+    depopulation event?" (answered in the chat)
