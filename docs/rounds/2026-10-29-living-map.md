@@ -13,7 +13,28 @@ save file is touched, so no new save version, and the script games come out the 
 below). Weekly usage could not be read in this session ("unknown"). No model games.
 
 **The check for changes.** The live design document was asked for changes to the Build order tab (since revision 109) and
-the Interface tab (since revision 17) at the start of the item: none.
+the Interface tab (since revision 17) at the start of the item: none. Asked again before the PRs merged, after the copy's refresh (#206: build order 111, interface 17, victory 17):
+item 19's text and its section unchanged; the longer age (a median of about 80 seasons, item 17) reaches the map only
+through the omens in the margin, which read the engine's own tier each season, so they follow it unchanged.
+
+## Haakon's words during the item
+
+Passed on by the orchestrator on 30 October, word for word, with weekly usage at 88%: "I want them to finish what they
+have started, if we believe they can." And of the design PRs #207 to #215 (items 17+, 17++ and item 18's check): "Build
+none of them now; they're next after the reset." So item 19 was finished as built in its four passes, with `develop`
+merged only to resolve conflicts, and nothing from those PRs built into the map.
+
+## Review questions (Stop for review)
+
+1. **Each realm's own map.** Every court but Egypt's sees its map pressed in clay, since every Amarna letter is a clay
+   tablet; the alternative is clay for Babylonia and Hatti only, as the section names them, the rest on papyrus.
+2. **Ruins.** A sacked city lies in ruins until its people's hardship fades, since the engine has no rebuilding; the
+   alternative is rebuilding as a work a king orders, a rule and so a later item.
+3. **Egypt's hieratic notes** were left out, so the map's text stays in the reader's language; the alternative is
+   hieratic marks as decoration in Egypt's view.
+
+**Use against ignore, and the script players.** Not applicable: the item is presentation only, and no script player
+reads the map.
 
 **Passes, most valuable first, each merged on its own** (chosen over one large PR: each pass is reviewable alone, reaches
 the live game sooner, and a pass's review cannot hold up the next):
@@ -159,3 +180,53 @@ One reviewer (Opus, high). Blocking, fixed: half the roads were never drawn (the
 round, and the first build kept only those listed one way); a test now requires every land connection's road, once.
 Fixed besides: the note on what a court knows of others' works (the engine's view is today's sight; the memory is the
 map's, from earlier sights); relay stations hidden on the whole board, said in the note.
+
+## Pass 4: the map that remembers, life on it, each realm's map, omens, small scenes
+
+Branch `item/living-map-memory`, stacked on pass 3.
+
+### What was built
+
+1. **Memorials** at battlefields the viewer saw; **ruins** at sacked cities until their people's hardship fades;
+   **wild land** where no one rules or a band works.
+2. **Caravans and deportees on the road**; close up, a **famine's empty granary** and each **town's houses**, growing or
+   shrinking.
+3. **Each realm's own map**: a king's view pressed in clay, Egypt's on papyrus, god view the papyrus museum map.
+4. **Omens in the margin**: the diviners' sign in the sky in the map's corner, the border darkening with it.
+5. **Small scenes**: gift processions, sacks and ambushes, once, when the map steps on a season; never with reduced
+   motion.
+6. The legend explains each; a scene test checks that a court remembers only the battles it saw, and sees caravans,
+   deportees, wild land, famine and towns only where it can see.
+
+### Readings taken
+
+- **Ruins last while the people remember the sack** (no stopgaps: the engine has no rebuilding of its own).
+- **Clay for every court but Egypt's** ("Period first": every Amarna letter is a clay tablet).
+- **Hieratic notes left out**: the map's text stays in the reader's language.
+- **Omens by tier only** (pillar 4, "Random ending"): the sign is what every court's diviners read; the drawn season
+  never reaches a frame.
+- **Small scenes only when stepping on one season**, so scrubbing the timeline never replays them, and never with
+  reduced motion (item 2: "respect for reduced motion").
+
+### Measured
+
+- **A throttled phone** (390 by 844, CPU slowed four times, six seasons played first), long tasks summed, mean of three
+  runs, pass 3 against pass 4: playing season 2, 403 and 478 ms; season 3, 390 and 430 ms; one season back, 335 and
+  458 ms. The cost is real but spread thin, and not found in one place: building a scene takes 0.25 ms and remembering
+  the past 0.02 ms (a season's battles and sacks are reckoned once per viewer and kept with the frame); with the memory,
+  life marks and ruins hidden, one season back still took 403 ms, and with the clay, the omen and the scenes hidden too,
+  420 ms. On an unthrottled phone it is some 25 ms a step. Where to look next, if the phone feels slow: the extra short
+  tasks after each step (the placement of the added markers, and the larger frames' garbage).
+- **The script games** are untouched by construction (only `src/web` changed).
+- **The smoke test** passes, with the life marks counted as markers that must touch nothing.
+
+### The review
+
+One reviewer (Opus, high). Blocking, fixed: a king's map showed other kings' famines and towns with their numbers, and
+their caravans with their loads (smugglers' too); now a court counts only its own people and sees only its own caravans,
+as the engine's view tells it, and the scene test requires it. Fixed besides: a gift scene only for an envoy who really
+arrived; the place of a sack or an ambush read from the end of the engine's words (a name that begins another, Gaza or
+Ugarit, no longer misleads); the scenes' timing, and none left over when stepping back; the life marks counted by the
+smoke test; the memorials' layer redrawn when walls change their place; the omen and the medium removed with the map.
+A test draws every new layer for every season and view of a 16-season game (a page error from discharged men, who have
+no road in the engine, was found and fixed before the review: only deportees are drawn on a road).

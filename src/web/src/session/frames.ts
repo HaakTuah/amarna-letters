@@ -21,7 +21,9 @@ import {
   type Power,
   type UnitKind,
   ageBand,
+  omenTier,
   type AgeBand,
+  type OmenTier,
 } from "@amarna/engine";
 import type { GameRunner } from "@amarna/game";
 
@@ -196,6 +198,24 @@ export interface SeasonFrame {
   /** Item 19: the levels of everything built but walls (`kind:province`, as `GameState.built`), and the grain in each store. */
   built: Map<string, number>;
   stores: Map<string, number>;
+  /** Item 19, life on the map: the people settled in each province, how well its countryside ate (thousandths, where short), and its unrest. */
+  settled: Map<string, number>;
+  fed: Map<string, number>;
+  unrest: Map<string, number>;
+  /** Item 19: the caravans, and the people carried off (deportees), on the road, each between the provinces it is between. */
+  caravans: FrameRoad[];
+  walking: FrameRoad[];
+  /** Item 19: the diviners' tier of the omens of the end this season, the same for every court; null in an open age. */
+  omen: OmenTier | null;
+}
+
+/** Item 19: a company on the road between two provinces, and how far along that stretch it is (0 to 1). */
+export interface FrameRoad {
+  power: Power | null;
+  from: string;
+  to: string;
+  progress: number;
+  what: string;
 }
 
 export const ownerOf = (f: SeasonFrame, province: string): Power | null => f.owner.get(province) ?? null;
@@ -355,6 +375,22 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
         return { kind: c.kind, name: c.name, provinces: [...c.provinces], river, ruinous, since: s.turn - c.startTurn };
       }),
     built: new Map(s.built.entries()),
+    settled: new Map([...s.people.entries()].map(([k, x]) => [k, x.settled] as const)),
+    fed: new Map(s.fed.entries()),
+    unrest: new Map(s.unrest.entries()),
+    caravans: s.caravans.filter((c) => c.route.length > 0).map((c) => {
+      const i = Math.min(c.at, c.route.length - 1);
+      const next = Math.min(i + 1, c.route.length - 1);
+      return { power: c.power, from: c.route[i], to: c.route[next], progress: Math.min(0.9, c.points / 100), what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}` };
+    }),
+    // Only deportees walk a known road (the engine's `Walk.route`); men discharged home are not placed on one.
+    walking: s.walking.filter((w) => w.deported && w.route.length > 1).map((w) => {
+      const span = Math.max(1, w.arrives - w.departs);
+      const t = Math.min(0.95, Math.max(0, (s.turn - w.departs) / span));
+      const k = Math.min(w.route.length - 2, Math.floor(t * (w.route.length - 1)));
+      return { power: null, from: w.route[Math.max(0, k)], to: w.route[Math.max(0, k) + 1], progress: (t * (w.route.length - 1)) % 1, what: `${w.men} people carried off by ${w.by}` };
+    }),
+    omen: omenTier(s.seed, s.config, s.turn),
     stores: new Map(s.stores.entries()),
     bands: s.bands.map((b) => ({ province: b.province, men: b.men, ship: b.ship, chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "" })),
   };

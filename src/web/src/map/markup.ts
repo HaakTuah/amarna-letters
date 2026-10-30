@@ -60,6 +60,7 @@ function buildDefs(): string {
   sb += `<pattern id="flood" patternUnits="userSpaceOnUse" width="14" height="7"><path d="M0,4.5q3.5,-2.6 7,0t7,0" class="flood-wave"/></pattern>`;
   sb += `<pattern id="cracks" patternUnits="userSpaceOnUse" width="22" height="22"><path d="M2,4l6,3l3,7l7,2M8,7l6,-5M11,14l-6,5M18,16l3,-6" class="crack"/></pattern>`;
   sb += `<pattern id="sheaves" patternUnits="userSpaceOnUse" width="12" height="10"><path d="M3,8v-5M3,4.5l-1.6,-2M3,4.5l1.6,-2M9,8.5v-4M9,5.5l-1.4,-1.8M9,5.5l1.4,-1.8" class="sheaf"/></pattern>`;
+  sb += `<pattern id="scrub" patternUnits="userSpaceOnUse" width="16" height="14"><path d="M2,10l1.6,-3.4l1.6,3.4M3.6,6.6v-2M10,5l1.4,-3l1.4,3M11.4,2v-1.6M6,13.4h3" class="thorn"/></pattern>`;
   sb += `<pattern id="storm" patternUnits="userSpaceOnUse" width="44" height="26" patternTransform="rotate(-10)"><path d="M2,14q5,-8 10,-1q2,4 -2,4q-3,0 -1,-3M24,5q5,-7 10,-1q2,4 -2,4q-3,0 -1,-3M12,23q6,-5 12,0" class="storm-wave"/></pattern>`;
   // Fog: a veil of fine hatching, so the colours of ownership still show through it.
   sb += `<pattern id="fog" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="5" height="2.6" class="veil"/></pattern>`;

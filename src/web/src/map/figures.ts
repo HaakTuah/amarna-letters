@@ -199,6 +199,17 @@ const Others: Record<string, string> = {
     `M-9,7.2L8.6,2.4L9.2,4.2L-8.4,9Z M-9.2,3L8.4,8.8L7.8,10.4L-9.8,4.8Z` +
     `M-1,4.6C-6.6,1.6 -5.4,-4.4 -1.6,-10.6C-1.2,-6.6 2.2,-5.4 1.6,-1.6C3.2,-3 3.6,-5 3.2,-6.8C6.6,-2.8 5.6,3 1,4.6Z`,
   tent: `M-9.4,7L0,-8.6L9.4,7Z M0,-8.6L-1,-11.6L1,-11.6Z`,
+  // A battlefield's memorial: an upright stele, round-topped, with its carved band.
+  stele: `M-5,10V-5A5,5 0 0 1 5,-5V10Z`,
+  // A donkey caravan: two pack donkeys and their driver, after the caravans of the Beni Hasan painting.
+  caravan:
+    `M-11,-1h7v3.4h-7Z M-10.4,2.4h1.2v4.4h-1.2Z M-5.8,2.4h1.2v4.4h-1.2Z M-4.6,-1.4L-2.4,-5L-1.4,-4.4L-3,-0.6Z M-10.6,-4h6v3h-6Z` +
+    `M0,-1h7v3.4h-7Z M0.6,2.4h1.2v4.4h-1.2Z M5.2,2.4h1.2v4.4h-1.2Z M6.4,-1.4L8.6,-5L9.6,-4.4L8,-0.6Z M0.4,-4h6v3h-6Z` +
+    man(10.6, 0.4, 0.62),
+  // Men on the road: three walking, one carrying a bundle.
+  walkers: man(-6.4, 0.4, 0.8) + man(-0.2, 0.4, 0.8) + man(6, 0.4, 0.8) + `M3.6,-8.6h3.6v3h-3.6Z`,
+  // A town's houses, flat-roofed, as the period built them.
+  houses: `M-9,6V-1h6V6Z M-3.4,6V-5h7V6Z M4,6V0h5.6V6Z M-1.6,-7h3.2v2h-3.2Z`,
   clash:
     `M-9.6,-8.4L-8.4,-9.6L9.6,8.4L8.4,9.6Z M-10.4,-10.4L-6.4,-9.4L-9.4,-6.4Z` +
     `M8.8,-9.6L10.2,-8.2L-3,4.6L-4.4,3.2Z M-4.4,3.2Q-9.6,6.4 -8.4,10.4Q-7.4,6.8 -3,4.6Z`,
