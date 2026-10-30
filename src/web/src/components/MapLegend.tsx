@@ -43,6 +43,16 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
         <span><svg viewBox="-12 -12 24 24"><circle className="lg-cap" r="9" /></svg> changed hands</span>
         <span><svg viewBox="-12 -12 24 24"><circle className="clash-bg f-hatti" r="9" /><use href="#fig-clash" className="clash-icon" x="-7" y="-7" width="14" height="14" /></svg> a battle, in the winner's colour</span>
         <span><svg viewBox="-12 -12 24 24"><use href="#fig-tent" className="tent t-hatti" x="-8" y="-8" width="16" height="16" /></svg> a siege camp: the besieger's tents round the walls</span>
+        <span className="lg-wide lg-roads">
+          {[0, 1, 2, 3].map((q) => (
+            <svg key={q} viewBox="0 0 30 14"><path className={`road-net q${q}`} d="M2,7H28" /></svg>
+          ))}{" "}
+          roads, by their province's level: a track nobody keeps, a kept track, a road with bridges, wells and posts, a royal road; small squares, relay stations
+        </span>
+        <span><svg viewBox="-9 -9 18 18"><circle className="wk-bg" r="7" /><path className="hb-quay" d="M-6.5,-5H6.5V-3H-4.5V5H-6.5Z" /><path className="hb-boat" d="M-2.5,-1.5H5Q4,0.8 1.2,0.8Q-1.5,0.8 -2.5,-1.5Z" /></svg> a harbour, from a beach to quays (close up)</span>
+        <span><svg viewBox="-9 -9 18 18"><circle className="wk-bg" r="7" /><circle className="wt-well" r="3" /><path className="wt-sweep" d="M-4.5,-5.5L4.5,-2.5" /></svg> a well, then cisterns, for a siege</span>
+        <span><svg viewBox="-9 -9 18 18"><circle className="wk-bg" r="7" /><path className="gr-dome full" d="M-7.2,4V0A2.2,2.6 0 0 1 -2.8,0V4Z" /><path className="gr-dome" d="M-2.2,4V0A2.2,2.6 0 0 1 2.2,0V4Z" /></svg> granaries, filled as far as the stores go (your own)</span>
+        <span><svg viewBox="-9 -9 18 18"><circle className="wk-bg" r="7" /><path className="mn-pick" d="M-5,5L3,-3M0.5,-5.5Q3.5,-5 5.5,-1.5" /><path className="mn-ore" d="M-1,4.5L1.5,1.5L4.5,2.5L5,5Z" /></svg> mines</span>
         <span><svg viewBox="-12 -12 24 24"><circle className="band-bg" r="9" /><use href="#fig-fire" className="band-icon" x="-7" y="-7" width="14" height="14" /></svg> a band's campfire (with a ship, a pirate crew)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fog" fill="url(#fog)" /></svg> out of sight: the denser, the older the news (land: of who holds it)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fert" fill="url(#fert4)" /></svg> rich land (close furrows)</span>

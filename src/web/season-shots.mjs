@@ -19,6 +19,10 @@ const view = arg("--view", null);
 const zoom = Number(arg("--zoom", "0"));
 const only = arg("--only", null);
 const play = Number(arg("--play", "0"));
+// --at fx,fy: zoom in with the wheel at that point of the map (fractions of its width and height), in place of the buttons.
+const at = arg("--at", null)?.split(",").map(Number) ?? null;
+// --style: CSS added to the page, to measure what a style costs.
+const style = arg("--style", null);
 const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".json": "application/json", ".webmanifest": "application/manifest+json" };
 const server = createServer(async (req, res) => {
   const path = decodeURIComponent(new URL(req.url, "http://x").pathname);
@@ -41,6 +45,7 @@ for (const [name, viewport] of [["phone", { width: 390, height: 844 }], ["deskto
     p.on("pageerror", (e) => console.log(`${name}: page error: ${e.message}`));
     if (name === "phone") await (await ctx.newCDPSession(p)).send("Emulation.setCPUThrottlingRate", { rate: 4 });
     await p.goto(root);
+    if (style !== null) await p.addStyleTag({ content: style });
     await p.getByRole("button", { name: "Begin the age" }).click();
     await p.waitForSelector(".game .timebar", { timeout: 120000 });
     for (let k = 0; k < play; k++) {
@@ -50,7 +55,16 @@ for (const [name, viewport] of [["phone", { width: 390, height: 844 }], ["deskto
     }
     if (view !== null) await p.selectOption(".viewsel", view);
     await p.evaluate(() => document.querySelector('[aria-label="Show the whole map"]')?.click());
-    for (let z = 0; z < zoom; z++) await p.evaluate(() => document.querySelector('[aria-label="Zoom in"]').click());
+    if (at === null) for (let z = 0; z < zoom; z++) await p.evaluate(() => document.querySelector('[aria-label="Zoom in"]').click());
+    else {
+      await p.waitForTimeout(800);
+      const r = await p.$eval(".mapview", (e) => e.getBoundingClientRect().toJSON());
+      await p.mouse.move(r.x + r.width * at[0], r.y + r.height * at[1]);
+      for (let z = 0; z < zoom; z++) {
+        await p.mouse.wheel(0, -240);
+        await p.waitForTimeout(250);
+      }
+    }
     await p.waitForTimeout(1500);
     // The main thread's long tasks, gathered from here on and read after each step.
     await p.evaluate(() => {

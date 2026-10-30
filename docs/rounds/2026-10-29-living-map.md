@@ -117,3 +117,45 @@ One reviewer (Opus, high). Blocking, fixed: band marks did not hide when they ga
 now counts them. Fixed besides: siege tents count in their city's badge, hide with a small seal and stand close enough
 not to touch the counters above (the smoke test caught the first try at Ur); the figures' cost on a phone (above); the
 old chariot and ship symbols removed; the note says a pirate crew is drawn at its coastal city.
+
+## Pass 3: every level of what is built
+
+PR (pass 3), branch `item/living-map-works`, stacked on pass 2.
+
+### What was built
+
+1. **Roads by quality**, each half in its own province's level (track nobody keeps, kept track, road with posts, royal
+   road), widths following the zoom; **relay stations** along them.
+2. **At each city, close up**: harbours from a beach to quays, wells and cisterns, granaries filled as the stores go,
+   mines; placed last, giving way to every marker and name.
+3. **What a court knows**: its own works as they stand, others' as last seen, land never seen as an unknown track, only
+   its own stores. A scene test checks it.
+4. The legend shows the roads' levels and each work.
+5. `season-shots.mjs` can zoom at a point (`--at`).
+
+### Readings taken
+
+- **Works known as walls are** (pillar 4; the engine's `worksSeen`): own land now, others as last seen.
+- **Stores only one's own** ("Truth is expensive"): another king's granaries are counted by spies, not by the map.
+- **Policing has no mark**: it is men on the road, not something built.
+- **Mines by the economy's data**, since the engine has no level for them yet (its works name fields, mines and storage
+  as later phases); no level is invented for the map (no stopgaps).
+- **Works give way to names** ("names that give way" put names above lesser markers; the works are the least of all).
+
+### Measured
+
+- **A throttled phone** (390 by 844, CPU slowed four times, six seasons played first), long tasks summed, mean of three
+  runs, pass 1 against pass 3 (passes 2 and 3 together): playing season 2, 377 and 377 ms; season 3, 340 and 381 ms; one
+  season back, 239 and 346 ms. The runs' own spread is wide (one season back measured from 182 to 463 ms across the
+  session's runs on the same build), and switching parts off finds no cause: with the roads hidden 377 ms, with the
+  relay stations hidden 385 ms, as built 377 ms (three runs each). The works at the cities are built only close up,
+  where they show; at the other zooms their layer is empty.
+- **The script games** are untouched by construction (only `src/web` changed).
+- **The smoke test** passes, counting the works as markers that must touch nothing.
+
+### The review
+
+One reviewer (Opus, high). Blocking, fixed: half the roads were never drawn (the map lists each edge once, either way
+round, and the first build kept only those listed one way); a test now requires every land connection's road, once.
+Fixed besides: the note on what a court knows of others' works (the engine's view is today's sight; the memory is the
+map's, from earlier sights); relay stations hidden on the whole board, said in the note.

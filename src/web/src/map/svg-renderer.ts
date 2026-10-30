@@ -8,6 +8,7 @@ import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Rivers, SeaPath, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
+import { roadsLayer, worksAtCities } from "./built.ts";
 import { figureOf } from "./figures.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
@@ -552,8 +553,8 @@ export class SvgMapRenderer implements MapRenderer {
     // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
-      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
+      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="works"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
+      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-label]")) this.labels.set(g.dataset.label!, g);
@@ -563,7 +564,10 @@ export class SvgMapRenderer implements MapRenderer {
     attach(view, (scale: number) => {
       this.scale = scale;
       this.closeUp();
-      if (this.scene !== null) this.drawUnits(this.scene);
+      if (this.scene !== null) {
+        this.drawUnits(this.scene);
+        this.drawWorks(this.scene);
+      }
       // Now, and again once the zoom's glide has ended (onMoved).
       this.placeNames();
     });
@@ -573,6 +577,15 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.drawn.get(name) === key) return;
     this.drawn.set(name, key);
     this.layers.get(name)!.innerHTML = draw();
+  }
+
+  /**
+   * What is built at the cities (item 19): shown only close up (lod2, zoom.ts), so built only then, and again when the zoom
+   * comes close; at the other zooms the layer stays empty and costs a season's redraw nothing.
+   */
+  private drawWorks(s: MapScene): void {
+    const close = this.view?.classList.contains("lod2") ?? false;
+    this.layer("worksat", close ? s : null, () => (close ? worksAtCities(s) : ""));
   }
 
   /** The units, laid out for the current zoom: drawn again only when the scene or a province's gathering changes. */
@@ -597,6 +610,7 @@ export class SvgMapRenderer implements MapRenderer {
       if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
     }
     this.layer("tints", s.frame, () => tints(s));
+    this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s));
     this.layer("fog", s, () => fog(s));
     this.layer("bands", s.frame, () => bands(s));
     if (this.drawn.get("cities") !== s) {
@@ -611,6 +625,7 @@ export class SvgMapRenderer implements MapRenderer {
     this.layer("roads", `${s.index}|${s.viewer}|${input.followId}|${input.followPath?.length ?? -1}|${input.followPath?.[input.followPath.length - 1]?.index ?? -1}`, () => roads(input));
     this.layer("moves", s, () => moves(s));
     this.layer("outlaws", s, () => outlaws(s));
+    this.drawWorks(s);
     this.drawUnits(s);
     const peopleKey = `${s.index}|${s.viewer}|${input.followId}`;
     if (this.drawn.get("people") !== s || this.drawn.get("peopleKey") !== peopleKey) {
@@ -725,6 +740,8 @@ export class SvgMapRenderer implements MapRenderer {
         ...[...view.querySelectorAll(".map-upper .traveller:not(.followed)")].map((e) => [e, ":scope > .sym"] as const),
         ...[...view.querySelectorAll(".xmarks .xmark")].map((e) => [e, ".xm-bg"] as const),
       ].map(([e, sel]) => ({ e, rs: rects(e, sel) }));
+      // What is built at the cities (item 19) comes last of all: it gives way to every marker and every name.
+      const works = [...view.querySelectorAll(".map-upper .works-at")].map((e) => ({ e, rs: rects(e, ".wk-bg") }));
       const names = NameOrder.map((id) => this.labels.get(id)?.querySelector("text"))
         .filter((t): t is SVGTextElement => t !== null && t !== undefined)
         .map((t) => ({ t, own: t.closest("[data-label]")?.getAttribute("data-label") ?? null, r: t.getBoundingClientRect() }));
@@ -767,6 +784,10 @@ export class SvgMapRenderer implements MapRenderer {
         const ok = !shown.some((o) => touch(r, o)) && !placed.some((o) => (own === null || o.own !== own) && touch(r, o.r));
         if (ok) shown.push(r);
         else writes.push(() => t.classList.add("off"));
+      }
+      for (const { e, rs } of works) {
+        if (free(rs) && rs.every((r) => !shown.some((o) => touch(r, o)))) place(rs, null);
+        else writes.push(() => e.classList.add("off"));
       }
       for (const w of writes) w();
     });
