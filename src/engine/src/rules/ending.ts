@@ -11,12 +11,12 @@ import { type GameState, logEvent } from "../model/state.ts";
 
 /**
  * The rising chance's slope: the chance that season t is the last, if the age reaches it, is this × t. Found so that the
- * chance the age outlives the median season is exactly one half (about 0.07% in the first season for a median of 44).
+ * chance the age outlives the median season is exactly one half (about 0.02% in the first season for a median of 80).
  */
 const slopes = new Map<number, number>();
 
 export function endSlope(median: number): number {
-  const m = Number.isFinite(median) ? Math.max(1, Math.round(median)) : 44;
+  const m = Number.isFinite(median) ? Math.max(1, Math.round(median)) : 80;
   const known = slopes.get(m);
   if (known !== undefined) return known;
   const outlives = (k: number): number => {
@@ -38,14 +38,14 @@ export function endSlope(median: number): number {
 /**
  * What every seat is told of a table's median, in words with no numbers ("What kings are told" under "Random ending";
  * decided 27 October 2026, built in item 6b): an age likely to be short, of the usual length, or long. First guesses:
- * a median up to 30 seasons is short, from 60 long. A script king believes the band's own median, never the table's.
+ * a median up to 55 seasons is short, from 110 long (since item 17 lengthened the age). A script king believes the band's own median, never the table's.
  */
 export const AgeBandValues = ["Short", "Usual", "Long"] as const;
 export type AgeBand = (typeof AgeBandValues)[number];
-export const BandMedian: Record<AgeBand, number> = { Short: 24, Usual: 44, Long: 75 };
+export const BandMedian: Record<AgeBand, number> = { Short: 44, Usual: 80, Long: 130 };
 
 export function ageBand(median: number): AgeBand {
-  return median <= 30 ? "Short" : median >= 60 ? "Long" : "Usual";
+  return median <= 55 ? "Short" : median >= 110 ? "Long" : "Usual";
 }
 
 /** The rule in the band's words, as every seat reads it. */

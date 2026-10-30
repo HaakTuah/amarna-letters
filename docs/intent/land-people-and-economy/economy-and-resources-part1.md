@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Land, people and economy tab, revision 33 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Land, people and economy tab, revision 33 (2026-10-30). Do not edit: see docs/intent/INDEX.md. -->
 ## Economy and resources
 
 **Economy and resources (direction decided 21 October 2026; the first phase is build order item 9+, and the later phases are specced before they get a place).** Today gold is the only thing kings can exchange, and it buys only what anyone can buy, so the only reasons left for kings to deal kindly with each other are fear and balance. The letters are mostly about goods. Alashiya's king writes to Pharaoh as a brother though his is a small power, because he has copper (EA 35), and every court has something another lacks. Goods make dealing positive-sum and give blockades, piracy, interception and route choice something worth stopping. Same rules, different data: a province produces goods, goods travel as cargo with characters on the same roads and errands as everything else, and some things need inputs.

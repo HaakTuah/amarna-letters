@@ -16,13 +16,15 @@ describe("EndingTests", () => {
     const c = newGameConfig();
     const seasons = Array.from({ length: 4000 }, (_, i) => drawFinalSeason(i + 1, c)!);
     const share = (n: number): number => seasons.filter((f) => f.season <= n).length / seasons.length;
-    Assert.inRange(share(44), 0.47, 0.53);
-    Assert.inRange(share(14), 0.05, 0.1);
-    Assert.inRange(share(30), 0.22, 0.29);
-    for (const f of seasons) Assert.inRange(f.season, 1, 100);
-    for (const f of seasons.filter((x) => x.byCap)) Assert.inRange(f.season, 80, 100);
-    // About one game in thirty plays season 90.
-    Assert.inRange(seasons.filter((f) => f.season >= 90).length / seasons.length, 0.015, 0.05);
+    // Item 17 lengthened the age: half by season 80, about one in eleven by 30, a quarter by 50, nearly three in four by 110.
+    Assert.inRange(share(80), 0.47, 0.53);
+    Assert.inRange(share(30), 0.06, 0.12);
+    Assert.inRange(share(50), 0.21, 0.29);
+    Assert.inRange(share(110), 0.7, 0.78);
+    for (const f of seasons) Assert.inRange(f.season, 1, 160);
+    for (const f of seasons.filter((x) => x.byCap)) Assert.inRange(f.season, 140, 160);
+    // About one game in eight outlasts the rising chance to season 140.
+    Assert.inRange(seasons.filter((f) => f.season >= 140).length / seasons.length, 0.08, 0.17);
   });
 
   test("The median is a setting: a later median makes longer ages", () => {

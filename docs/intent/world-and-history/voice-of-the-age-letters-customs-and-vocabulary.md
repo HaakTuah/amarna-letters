@@ -1,4 +1,4 @@
-<!-- Generated from the design document, World and history tab, revision 36 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, World and history tab, revision 37 (2026-10-30). Do not edit: see docs/intent/INDEX.md. -->
 ## Voice of the age: letters, customs and vocabulary
 
 Flavor that gives every seat a shared vocabulary of the period. None of it is a rule; it is context all players know, so following or breaking it becomes a signal.
@@ -53,7 +53,7 @@ Because the greeting travels on a sealed tablet, the envoy cannot alter it. That
 
 **Season names.** Three turns make a year, and each court sees turns in its own reckoning: Egypt sees Akhet (inundation), Peret (growing) and Shemu (harvest), while other courts see neutral season names until their own calendars are added. No power's calendar becomes everyone's reference point.
 
-**Calendar** (decided 19 October 2026; first year changed 20 October). Every date in the interface shows the court's season and year, with the turn (built in the visual overhaul, item 2). Years are counted from 1346 BCE, the first year of a game, and each later year is one less, so the game opens as Akhenaten's court settles at Akhetaten (the letters begin around 1360, under his father, which would not fit this cast), and its median end, 1332 BCE, is the conventional end of the archive in the same reckoning (dates shift by a few years between chronologies). This is for the interface only: kings' prompts keep the game's own year ("year 3") and never name a year BCE, since a precise date invites models to replay real history. Item 2 built it counting from 1345 BCE; item 6a moves the start to 1346 BCE.
+**Calendar** (decided 19 October 2026; first year changed 20 October). Every date in the interface shows the court's season and year, with the turn (built in the visual overhaul, item 2). Years are counted from 1346 BCE, the first year of a game, and each later year is one less, so the game opens as Akhenaten's court settles at Akhetaten (the letters begin around 1360, under his father, which would not fit this cast), and its median end, about 1320 BCE as Suppiluliuma's age closed (1332 BCE, the conventional end of the archive in the same reckoning, until 30 October 2026), is set under "Random ending" (dates shift by a few years between chronologies). This is for the interface only: kings' prompts keep the game's own year ("year 3") and never name a year BCE, since a precise date invites models to replay real history. Item 2 built it counting from 1345 BCE; item 6a moves the start to 1346 BCE.
 
 **Chronicle tone.** The narrator's end-of-game chronicles read like royal annals: each nation's account glorious and self-serving. The model is the Battle of Kadesh (c. 1274 BCE), which Egypt and the Hittites each recorded as their own victory. Kadesh falls some 60 to 70 years after the Amarna period, so it sets the tone, not the setting.
 

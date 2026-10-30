@@ -1,6 +1,6 @@
 {
  "doc": "7f857750-39dc-464a-a739-c9f59dfe3dcd",
- "date": "2026-10-29",
+ "date": "2026-10-30",
  "tabs": {
   "overview": {
    "name": "Overview",
@@ -17,7 +17,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 109,
+   "rev": 111,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -48,7 +48,7 @@
   "world-and-history": {
    "name": "World and history",
    "node": "f2f7044b-c6fa",
-   "rev": 36,
+   "rev": 37,
    "files": [
     "docs/intent/world-and-history/front.md",
     "docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md",
@@ -142,7 +142,7 @@
   "victory-and-the-ending": {
    "name": "Victory and the ending",
    "node": "58b70949-2c17",
-   "rev": 13,
+   "rev": 17,
    "files": [
     "docs/intent/victory-and-the-ending/front.md",
     "docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md",
