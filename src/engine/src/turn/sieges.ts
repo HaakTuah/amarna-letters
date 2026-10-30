@@ -11,6 +11,7 @@
  * cannot feed its people, or when the wear reaches EconomyData.breachPerLevel seasons for each level of its walls; either
  * way its walls fall a level.
  */
+import { UnrestData } from "../model/unrest.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { clamp, roundEven, toInt } from "../core/num.ts";
 import { cmpNum, count, distinct, sortBy } from "../core/seq.ts";
@@ -51,7 +52,12 @@ declare module "./core.ts" {
     caughtByBesiegers(c: Character, tightness: number): boolean;
     intercept(c: Character, lord: Power, siege: Siege, leaving: boolean, dispatch: Dispatch | null, cargo: HomeCargo | null, due: number): void;
     seize(c: Character, lord: Power, captor: Power, dispatch: Dispatch | null, cargo: HomeCargo | null, source: string): string[];
-    surrender(x: Siege, owner: Power | null, tell: (p: Power | null, line: string) => void, how: "hunger" | "thirst" | "breach"): void;
+    surrender(x: Siege, owner: Power | null, tell: (p: Power | null, line: string) => void, how: "gate" | "thirst" | "breach"): void;
+    /**
+     * Item 17 ("Hunger breaks loyalty"): the seasons a starving city holds before someone opens a gate from within: longer
+     * where its ruler is there and its people were content, shorter where they were restless.
+     */
+    gateHolds(province: string): number;
     assaultText(a: Assault): string;
     ownWallsText(a: Assault): string;
   }
@@ -143,11 +149,18 @@ P.sieges = function (valid) {
     // Walls price the storm, not the clock (item 9+a): they are breached after this much wear.
     const breach = walls * EconomyData.breachPerLevel;
     const begun = x.since === S.turn;
-    // Stores and mouths are the clock: a city that could not feed its mouths as the season began surrenders.
+    // Stores and mouths are the clock, and hunger breaks loyalty (item 17): a city that could not feed its mouths as the
+    // season began starves, and after a season or more of it someone opens a gate from within.
     if (!begun && S.starving.includes(x.province)) {
-      this.surrender(x, owner, tell, "hunger");
-      continue;
-    }
+      x.hungry++;
+      const holds = this.gateHolds(x.province);
+      if (x.hungry >= holds) {
+        this.surrender(x, owner, tell, "gate");
+        continue;
+      }
+      tell(x.power, `${name} is starving (${x.hungry} season${x.hungry === 1 ? "" : "s"}): its people will not hold out much longer.`);
+      tell(owner, `Your city of ${name} is starving under ${x.power}'s siege (${x.hungry} season${x.hungry === 1 ? "" : "s"}): as hunger grows, its people's loyalty breaks, and someone may open a gate from within.`);
+    } else if (!S.starving.includes(x.province)) x.hungry = 0;
     // And water (item 10+b, "Water too"; by the water dossier since 11a+): a city that has drunk its cisterns dry holds no longer, whatever its food; an
     // island without water of its own runs dry once its besieger's fleet holds its waters.
     const island = isIslandWater(x.province);
@@ -193,11 +206,11 @@ P.sieges = function (valid) {
         : ` Its water lasts ${Math.max(0, island ? drinking - x.blockaded + 1 : x.since + drinking - S.turn)} more season(s) of siege.`;
     tell(
       x.power,
-      `${begun ? "Your siege of" : "The siege of"} ${name} (walls ${walls}${owner !== null ? `, held by ${owner}` : ", held by no one"}) ${begun ? "has begun, and it " : ""}wore the city down ${how}: it stands at ${x.progress} of ${breach}. The walls are breached and the city falls when that reaches ${breach}, if your army holds there, or sooner when its food runs out: a besieged city eats from its market and stores, and surrenders once it cannot feed its people.${water}`,
+      `${begun ? "Your siege of" : "The siege of"} ${name} (walls ${walls}${owner !== null ? `, held by ${owner}` : ", held by no one"}) ${begun ? "has begun, and it " : ""}wore the city down ${how}: it stands at ${x.progress} of ${breach}. The walls are breached and the city falls when that reaches ${breach}, if your army holds there, or sooner by hunger: a besieged city eats from its market and stores, and once it cannot feed its people their loyalty breaks, until someone opens a gate from within.${water}`,
     );
     tell(
       owner,
-      `${x.power}'s army ${begun ? "has laid siege to" : "besieges"} your city of ${name} (walls ${walls}) and wore it down ${how}: it stands at ${x.progress} of ${breach}. The city yields you nothing while it is besieged and eats from its market and stores; it surrenders when its food runs out or the wear reaches ${breach}, unless the besieging army is driven out or leaves.${water}`,
+      `${x.power}'s army ${begun ? "has laid siege to" : "besieges"} your city of ${name} (walls ${walls}) and wore it down ${how}: it stands at ${x.progress} of ${breach}. The city yields you nothing while it is besieged and eats from its market and stores; once its food runs out hunger breaks its people's loyalty until a gate is opened from within, and it falls when the wear reaches ${breach}, unless the besieging army is driven out or leaves.${water}`,
     );
   }
 
@@ -287,7 +300,17 @@ function parties(besieger: Power, owner: Power | null): Power[] {
   return owner !== null ? [besieger, owner] : [besieger];
 }
 
-/** A besieged city surrenders to its besieger, starved or its walls breached, its walls a level lower. */
+P.gateHolds = function (province) {
+  const S = this.s;
+  const owner = S.owner.getOrDefault(province, null);
+  const at = this.revoltAt(province);
+  const level = S.restless.getOrDefault(province, 0);
+  // Its ruler there: his court, or his governor (Rib-Hadda lost Byblos the one time he left it, EA 136-138).
+  const present = owner !== null && (this.courtAt(owner) === province || this.governorOf(province)?.[0].power === owner);
+  return Math.max(1, UnrestData.gate + (present ? 1 : 0) + (level * 2 < at ? 1 : 0) - (level >= at ? 1 : 0));
+};
+
+/** A besieged city surrenders to its besieger, starved, its water gone or its walls breached, its walls a level lower. */
 P.surrender = function (x, owner, tell, how) {
   const S = this.s;
   const prov = x.province;
@@ -302,8 +325,8 @@ P.surrender = function (x, owner, tell, how) {
   this.killSettled(prov, LandData.stormDead * 10, LandData.stormDead * 10);
   const w = wallsOf(S, prov);
   const left = w > 0 ? `walls ${w}` : "no walls";
-  const why = how === "hunger" ? "its food gone" : how === "thirst" ? "its water gone" : "its walls breached";
-  if (how === "hunger") logEvent(S, "siege", `${name} was starved into surrender by ${x.power}.`, parties(x.power, owner), "siege-starved");
+  const why = how === "gate" ? "its people starving, a gate opened from within" : how === "thirst" ? "its water gone" : "its walls breached";
+  if (how === "gate") logEvent(S, "siege", `${name}'s gate was opened from within to ${x.power}, its people starving.`, parties(x.power, owner), "siege-starved");
   if (how === "thirst") logEvent(S, "siege", `${name} ran out of water and surrendered to ${x.power}.`, parties(x.power, owner), "siege-thirst");
   tell(x.power, `${name} surrendered to you after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}: it is yours, with its walls a level lower (${left}).`);
   if (owner !== null) {

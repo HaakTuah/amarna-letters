@@ -110,7 +110,10 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       if (sfit !== null) return sfit;
       if (court !== null && (court === power || heardFallen(court))) return `you cannot spy on ${court}`;
       if (province !== null && (!Map.exists(province) || Map.get(province).isSea)) return `there is no province called '${province}'`;
-      return null;
+      const stir = ps.stir ?? 0;
+      if (stir < 0) return "the gold to stir a province cannot be negative";
+      if (stir > 0 && province === null) return "a spy stirs the people of a province he watches: name a province, not a court";
+      return stir > 0 ? spend(stir) : null;
     }
 
     case "recall": {

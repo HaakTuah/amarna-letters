@@ -152,10 +152,12 @@ export interface Governor {
   from: number;
   skimmed: number;
   relieved: number | null;
+  /** Item 17: the people's mood as he last reported it to his king, in words ("quiet", "uneasy", "restless", "near revolt"). */
+  mood: string;
 }
 
 export function newGovernor(init: Partial<Governor> = {}): Governor {
-  return { province: "", character: "", power: "Egypt", levies: 0, raised: 0, from: 0, skimmed: 0, relieved: null, ...init };
+  return { province: "", character: "", power: "Egypt", levies: 0, raised: 0, from: 0, skimmed: 0, relieved: null, mood: "quiet", ...init };
 }
 
 export const GovernorSchema: ObjSchema<Governor> = obj("Governor", newGovernor, {
@@ -167,6 +169,7 @@ export const GovernorSchema: ObjSchema<Governor> = obj("Governor", newGovernor, 
   from: I,
   skimmed: I,
   relieved: opt(I),
+  mood: S,
 });
 
 /** The most levies a governor's mandate may allow him to raise on his own. */

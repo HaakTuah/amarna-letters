@@ -259,7 +259,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       .filter((u) => u.power === p || seen.has(u.province))
       .map((u) =>
         u.power === p
-          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
+          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, buy: u.buy, chest: u.chest, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
           : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
       )
       .map((x, _i, all) => {
@@ -410,6 +410,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     const r = engine.resistance(prov.id, p);
     if (r > 0) v.resistance.set(prov.id, r);
   }
+  v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
   v.walking = sum(s.walking.filter((w) => !w.deported && s.owner.getOrDefault(w.home, null) === p), (w) => w.men);
   for (const c of s.caravans.filter((c) => c.power === p))
     v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning, gold: c.gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null }));
@@ -882,9 +883,10 @@ function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays
  * and with how many men, as many seasons ago as the road from it is long.
  */
 /** One season's report of a unit: where it stood, its men, food, hunger and pay owed (older saves carry only the first two). */
-function trailEntry(t: string): { province: string; men: number; food?: number; hungry?: number; unpaid?: number } {
-  const [province, men, food, hungry, unpaid] = t.split("|");
-  return food === undefined ? { province, men: Number(men) } : { province, men: Number(men), food: Number(food), hungry: Number(hungry), unpaid: Number(unpaid) };
+function trailEntry(t: string): { province: string; men: number; food?: number; hungry?: number; unpaid?: number; chest?: number; buy?: boolean } {
+  const [province, men, food, hungry, unpaid, chest, buy] = t.split("|");
+  const fed = food === undefined ? { province, men: Number(men) } : { province, men: Number(men), food: Number(food), hungry: Number(hungry), unpaid: Number(unpaid) };
+  return chest === undefined ? fed : { ...fed, chest: Number(chest), buy: buy === "1" };
 }
 
 function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {

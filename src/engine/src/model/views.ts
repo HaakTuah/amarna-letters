@@ -48,6 +48,12 @@ export interface UnitView {
   /** Item 13, of the court's own units: men of an enlisted band among its men, and the last season of their term. */
   hiredMen: number;
   hiredUntil: number | null;
+  /**
+   * Item 17, of the court's own armies (as last reported): whether its word is to buy its food where it stands by leave or
+   * to take it, and the gold it carries for food.
+   */
+  buy: boolean;
+  chest: number;
 }
 
 export function newUnitView(init: Partial<UnitView> = {}): UnitView {
@@ -71,6 +77,8 @@ export function newUnitView(init: Partial<UnitView> = {}): UnitView {
     reported: 0,
     hiredMen: 0,
     hiredUntil: null,
+    buy: false,
+    chest: 0,
     ...init,
   };
 }
@@ -95,6 +103,8 @@ export const UnitViewSchema: ObjSchema<UnitView> = obj("UnitView", newUnitView, 
   reported: I,
   hiredMen: I,
   hiredUntil: opt(I),
+  buy: B,
+  chest: I,
 });
 
 /**
@@ -888,6 +898,11 @@ export interface SeatView {
   resistance: Dict<string, number>;
   /** Its discharged men still walking home (item 10+a). */
   walking: number;
+  /**
+   * Item 17: the gold this court sent its armies for their food that is still on the road, by the province each army stood
+   * in when it was sent, with the season it arrives.
+   */
+  foodSent: { province: string; gold: number; buy: boolean; at: number }[];
   /** Claims to the rank of Great King and whether each is still new (item 8): public facts. */
   claims: Claim[];
   /** What this court called others, and they it, in the greetings sent between them (item 8). */
@@ -973,6 +988,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     yields: new Dict(),
     resistance: new Dict(),
     walking: 0,
+    foodSent: [],
     ...init,
   };
 }
@@ -1055,6 +1071,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   yields: dict(I),
   resistance: dict(I),
   walking: I,
+  foodSent: list(() => obj("FoodSent", (init: Partial<{ province: string; gold: number; buy: boolean; at: number }> = {}) => ({ province: "", gold: 0, buy: false, at: 0, ...init }), { province: S, gold: I, buy: B, at: I })),
 });
 
 /**

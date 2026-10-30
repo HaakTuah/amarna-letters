@@ -180,6 +180,8 @@ export class TurnEngine {
     // The people of the land, after troops foraging there took their share of the farmers' food: hunger, births and the
     // flows between them (item 10+a).
     for (const [p, l] of this.peopleSeason(this._foodNow).entries()) fed.set(p, [...fed.getOrDefault(p, []), ...l]);
+    // Item 17: unrest reckoned from the season's conditions, and the provinces that rise.
+    this.unrestSeason();
     for (const p of alive(S)) notify(S, p, "Notice", "The treasury", [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "));
     this.caravansTravel();
     // The foreign markets each court sees this season (item 9+b).
@@ -270,6 +272,11 @@ export class TurnEngine {
     const old = S.owner.getOrDefault(province, null);
     if (old === owner) return;
     S.owner.set(province, owner);
+    // Item 17: when it changed hands and from whom; what its people remember was against the old holder.
+    S.takenAt.set(province, S.turn);
+    S.takenFrom.set(province, old ?? "");
+    S.unrest.delete(province);
+    S.stirred.delete(province);
     // What stands there passes with the land, and its upkeep with it; the old holder's orders for it lapse (item 15).
     this.worksChangeHands(province);
     // The old holder's tax goes with him: the new one collects the default until he sets his own (item 10+a).

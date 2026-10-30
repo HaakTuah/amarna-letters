@@ -30,3 +30,4 @@ export * from "./bands.ts";
 export * from "./vassals.ts";
 export * from "./command.ts";
 export * from "./languages.ts";
+export * from "./unrest.ts";

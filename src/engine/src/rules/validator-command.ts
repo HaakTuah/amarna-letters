@@ -74,6 +74,14 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       if (order.mandate !== null && unitAt(S, order.unit)!.commander === null && !granted) return `nobody commands the unit in ${order.unit}: grant its command first, then give it a mandate`;
       return order.mandate === null ? null : mandateRefusal(v, order.mandate);
     }
+    case "supply": {
+      const why = own(order.unit);
+      if (why !== null) return why;
+      if (unitAt(S, order.unit)!.kind !== "Army") return "only an army buys or takes its food from the land";
+      if (v.orders.some((o) => o !== order && o.type === "supply" && o.unit === order.unit && v.orders.indexOf(o) < v.orders.indexOf(order))) return `the army in ${order.unit} was already sent word on its food by an earlier order`;
+      if (order.gold < 0) return "the gold sent cannot be negative";
+      return order.gold > 0 ? v.spend(order.gold) : null;
+    }
     case "govern": {
       if (!v.Map.exists(order.province) || v.Map.get(order.province).isSea) return `there is no land province called '${order.province}'`;
       if (S.owner.getOrDefault(order.province, null) !== v.power) return `${order.province} is not yours`;

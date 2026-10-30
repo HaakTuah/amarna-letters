@@ -64,8 +64,10 @@ describe("SiegeTests", () => {
     return last(inboxOf(s, p), (i) => i.title === title && i.turn === s.turn).body;
   }
 
-  test("A besieged city that runs out of food surrenders, its walls a level lower", () => {
+  test("A besieged city that runs out of food starves until a gate is opened from within, its walls a level lower", () => {
     let s = board();
+    // Its people raise no elder of their own while the test runs (item 17, "A head rises in time").
+    s.takenAt.set("suhu", s.turn + 1000);
     season(s, ordersOf("Babylonia", move("sippar", "suhu")));
     Assert.equal("Babylonia", unitAt(s, "suhu")?.power);
     Assert.null(s.owner.get("suhu"));
@@ -79,15 +81,22 @@ describe("SiegeTests", () => {
     Assert.contains("Your siege of Suhu (walls 2, held by no one) has begun, and it wore the city down a step: it stands at 1 of 6.", notice(s, "Babylonia", SiegesTitle));
     Assert.contains(Views.for(s, "Babylonia").sieges, (x) => x.province === "suhu" && x.progress === 1 && x.walls === 2);
 
-    // Its stores and market are empty: as the next season begins it cannot feed its people, and it surrenders.
-    s.stores.delete("suhu");
-    s.markets.get("suhu").stock = 0;
-    season(s, new Dict());
+    // Its stores and market are empty: as each season begins it cannot feed its people, and after as many seasons of it as
+    // its people hold out (item 17), someone opens a gate from within.
+    const holds = new TurnEngine(s).gateHolds("suhu");
+    let n = 0;
+    while (s.owner.get("suhu") === null && n < 6) {
+      s.stores.delete("suhu");
+      s.markets.get("suhu").stock = 0;
+      season(s, new Dict());
+      n++;
+    }
+    Assert.equal(holds, n);
     Assert.empty(s.sieges);
     Assert.equal("Babylonia", s.owner.get("suhu"));
     Assert.equal(1, wallsOf(s, "suhu"));
-    Assert.contains("Suhu surrendered to you after a siege of 2 seasons, its food gone: it is yours, with its walls a level lower (walls 1).", notice(s, "Babylonia", SiegesTitle));
-    Assert.contains(s.events, (e) => e.kind === "siege" && e.text === "Suhu surrendered to Babylonia after a siege of 2 seasons.");
+    Assert.contains(`Suhu surrendered to you after a siege of ${n + 1} seasons, its people starving, a gate opened from within: it is yours, with its walls a level lower (walls 1).`, notice(s, "Babylonia", SiegesTitle));
+    Assert.contains(s.events, (e) => e.kind === "siege" && e.text === `Suhu surrendered to Babylonia after a siege of ${n + 1} seasons.`);
     Assert.contains(s.events, (e) => e.signal === "siege-starved");
   });
 

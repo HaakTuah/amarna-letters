@@ -82,12 +82,33 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 36;
+export const CURRENT_VERSION = 37;
+
+/**
+ * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
+ * `gold` shekels for it out of his treasury, arriving in season `at` with his couriers. If the unit is gone or no longer
+ * his when it arrives, the gold comes back to his treasury.
+ */
+export interface FoodWord {
+  power: Power;
+  unit: string;
+  /** Where the king named it, sending the word. */
+  province: string;
+  buy: boolean;
+  gold: number;
+  at: number;
+}
+
+export const FoodWordSchema: ObjSchema<FoodWord> = obj(
+  "FoodWord",
+  (init: Partial<FoodWord> = {}) => ({ power: "Egypt", unit: "", province: "", buy: false, gold: 0, at: 0, ...init }),
+  { power: S, unit: S, province: S, buy: B, gold: I, at: I },
+);
 
 export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
   "RisenPower",
-  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", temper: [], ...init }),
-  { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, temper: list(I) },
+  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", temper: [], how: "governor", ...init }),
+  { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, temper: list(I), how: S },
 );
 
 /**
@@ -304,6 +325,23 @@ export interface GameState {
   /** Item 13+: the powers risen in play, as they rose: a fallen kingdom's governors ruling their provinces. */
   risen: RisenPower[];
   /**
+   * Item 17 ("Revolt follows conditions, not dice"): the hardship each province's people remember against its holder, in
+   * points, fading each season (`UnrestData`): hunger, levies, food taken by troops, a sack. Cleared when it changes hands.
+   */
+  unrest: Dict<string, number>;
+  /** Item 17: outside help, points of a rival's gold spent among a province's people by his agents, fading likewise. */
+  stirred: Dict<string, number>;
+  /**
+   * Item 17: each held province's unrest as last reckoned (its holder never sees the number: his governor, spies and the
+   * people's complaints tell him in words).
+   */
+  restless: Dict<string, number>;
+  /** Item 17: the season each province last changed hands (to a power or to nobody), and who held it before ("" none). */
+  takenAt: Dict<string, number>;
+  takenFrom: Dict<string, string>;
+  /** Item 17: a king's word to an army on how to get its food, with the gold sent for it, on the road to it. */
+  foodWord: FoodWord[];
+  /**
    * Each kingdom's fall: when, to whom, and the land that passed (Build order item 5: a kingdom falls with its capital).
    */
   falls: KingdomFall[];
@@ -423,6 +461,12 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     startStrength: new Dict(),
     eliminated: [],
     risen: [],
+    unrest: new Dict(),
+    stirred: new Dict(),
+    restless: new Dict(),
+    takenAt: new Dict(),
+    takenFrom: new Dict(),
+    foodWord: [],
     falls: [],
     invaded: new Dict(),
     characters: [],
@@ -527,6 +571,12 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   startStrength: dict(I),
   eliminated: list(S),
   risen: list(() => RisenPowerSchema),
+  unrest: dict(I),
+  stirred: dict(I),
+  restless: dict(I),
+  takenAt: dict(I),
+  takenFrom: dict(S),
+  foodWord: list(() => FoodWordSchema),
   falls: list(() => KingdomFallSchema),
   invaded: dict(dict(I)),
   characters: list(() => CharacterSchema),
@@ -598,6 +648,14 @@ export interface Unit {
   hiredMen: number;
   hiredUntil: number | null;
   hiredChief: string | null;
+  /**
+   * Item 17 ("Armies need food as well as pay"): whether its king's word, as it last reached it, is to buy its food where it
+   * stands by leave (at home or in a friend's land) with the gold it carries, or to take it; and the gold it carries for
+   * food (`chest`), carried in its men's packs with their savings (so never more than `savings`). Without the gold, it
+   * takes what it must, whatever it was told; its commander may keep the gold and take.
+   */
+  buy: boolean;
+  chest: number;
   // computed in C#: $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}"
 }
 
@@ -624,6 +682,8 @@ export function newUnit(init: Partial<Unit> = {}): Unit {
     hiredMen: 0,
     hiredUntil: null,
     hiredChief: null,
+    buy: false,
+    chest: 0,
     ...init,
   };
 }
@@ -650,6 +710,8 @@ export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
   hiredMen: I,
   hiredUntil: opt(I),
   hiredChief: opt(S),
+  buy: B,
+  chest: I,
   label: computed(S, (o: Unit) => unitLabel(o)),
 });
 
@@ -705,6 +767,8 @@ export interface Siege {
   since: number;
   /** Item 10+b: the seasons an island city without water of its own has been blockaded at sea ("Water too"). */
   blockaded: number;
+  /** Item 17: the seasons it has starved under this siege; its gate opens from within after a few ("How long a siege lasts"). */
+  hungry: number;
 }
 
 export function newSiege(init: Partial<Siege> = {}): Siege {
@@ -715,6 +779,7 @@ export function newSiege(init: Partial<Siege> = {}): Siege {
     progress: 0,
     since: 0,
     blockaded: 0,
+    hungry: 0,
     ...init,
   };
 }
@@ -726,6 +791,7 @@ export const SiegeSchema: ObjSchema<Siege> = obj("Siege", newSiege, {
   progress: I,
   since: I,
   blockaded: I,
+  hungry: I,
 });
 
 export interface Treasury {

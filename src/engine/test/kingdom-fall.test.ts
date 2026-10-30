@@ -81,7 +81,8 @@ describe("KingdomFallTests", () => {
     // Word of the fall travels (item 7b): Egypt, far away, hears it when the word arrives, and sees Arzawa fallen then.
     Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "A kingdom falls");
     Assert.doesNotContain(Views.for(s, "Egypt").fallen, (p) => p === "Arzawa");
-    let word = single(s.journeys, (j) => j.kind === "Word" && j.to === "Egypt");
+    // Word of this fall (since item 17 other words travel too: a new ruler risen elsewhere, a governor's report).
+    let word = single(s.journeys, (j) => j.kind === "Word" && j.to === "Egypt" && j.news === "KingdomFalls");
     while (s.turn < word.arriveTurn) season(s, subs({}));
     new TurnEngine(s).beginTurn();
     Assert.contains("Hatti took its capital, Apasa", single(inboxOf(s, "Egypt"), (i) => i.title === "A kingdom falls").body);

@@ -47,6 +47,7 @@ import { shekels, type Brain } from "./brain.ts";
 import { atHand, oursFirst, fewAtHand, freeAtCourt } from "./errands.ts";
 import { MoneyPlay } from "./credit.ts";
 import { bridgesWanted } from "./tongues.ts";
+import { stirGold } from "./freedom.ts";
 import type { Personality } from "./personality.ts";
 
 const Blemishes = ["Owes", "dismissed", "Took", "Abandoned", "forger", "fled", "Kept part", "secretly", "in the pay", "Was caught", "Turned back", "Posed as", "Sold the secrets"];
@@ -318,7 +319,8 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
       if (spot !== undefined && !watched(spot) && !v.court.some((c) => c.where.startsWith("watching ") && v.owner.getOrDefault(c.where.slice(9), null) === foe)) {
         const agent = ready[0];
         ready.splice(0, 1);
-        orders.push(placeSpy(agent.id, null, spot));
+        // Item 17: with gold to stir its people where it is not the foe's own homeland, if we are cunning.
+        orders.push(placeSpy(agent.id, null, spot, stirGold(b, foe, spot, spare, p.cunning)));
         busy.add(agent.id);
       }
     }

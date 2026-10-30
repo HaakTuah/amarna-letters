@@ -60,11 +60,27 @@ export class Relation {
 
 const WagesGuess = 25;
 
+/**
+ * A book of every king we know, that opens a page for a king risen in play (items 13+ and 17) the first time we look him
+ * up, with what we know of a newcomer.
+ */
+class Book<V> extends Dict<Power, V> {
+  private readonly blank: () => V;
+  constructor(blank: () => V) {
+    super();
+    this.blank = blank;
+  }
+  override get(key: Power): V {
+    if (!this.has(key)) this.set(key, this.blank());
+    return super.get(key);
+  }
+}
+
 export class Brain {
   readonly me: Power;
   readonly p: Personality;
   readonly seed: number;
-  readonly rel = new Dict<Power, Relation>();
+  readonly rel: Dict<Power, Relation> = new Book(() => new Relation());
   lastOwner = new Dict<string, Power | null>();
   /** The walls as they stood last season: a city bought keeps its walls, one that falls loses a level. */
   lastWalls = new Dict<string, number>();
@@ -170,7 +186,8 @@ export class Brain {
    * the land he holds, less the upkeep of the troops we think he has and a servant's wages, less what the cities he bought
    * and the troops he raised cost him.
    */
-  readonly treasury = new Dict<Power, number>();
+  // What a new ruler holds we do not know: he started with his own purse.
+  readonly treasury: Dict<Power, number> = new Book(() => 0);
   /** The most troops we have known each king to have at once: more than that means he raised some. */
   private readonly mostSeen = new Dict<Power, number>();
 
@@ -206,6 +223,8 @@ export class Brain {
     if (v.turn === this.turn) return;
     this.turn = v.turn;
     const P = this.p;
+    // Powers risen in play since we last looked (items 13+ and 17) are kings like any other to us.
+    for (const x of AllPowers) if (x !== this.me && !this.rel.has(x)) this.rel.set(x, new Relation());
 
     // Wrongs fade; trust drifts back towards indifference.
     for (const r of this.rel.values()) {
@@ -295,6 +314,12 @@ export class Brain {
             else if (item.body.includes("forged by") && item.body.includes("of " + name)) r.trust -= 0.4;
             break;
           case "Notice":
+            // Item 17: his troops took food from our land, a grievance remembered as any wrong is.
+            if (item.title === "Troops took food" && item.body.startsWith(`The troops of ${name} took `)) {
+              const n = /took (\d+) measures/.exec(item.body);
+              this.wronged(other, 0.5 + Math.min(1.5, Number(n?.[1] ?? 0) / 100), -0.1, -99);
+              break;
+            }
             if (!item.body.includes("confesses to serving " + name)) break;
             this.wronged(other, 1, -0.3, -99);
             this.lastSpyCaught = v.turn;

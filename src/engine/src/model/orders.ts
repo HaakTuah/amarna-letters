@@ -329,6 +329,20 @@ export interface RelieveOrder {
  * Item 13 ("Army mandates"): give the unit in `unit` a mandate, which reaches it with the realm's couriers and holds until
  * changed; a null mandate clears it. Its commander carries it out when no order of the king's reaches the army.
  */
+/**
+ * Item 17 ("Armies need food as well as pay"): how the unit in `unit` is to get its food where it stands by leave, at home
+ * or in a friend's land: `buy` it at the market's price with the gold it carries, or take it from the land. `gold` shekels
+ * go with the word for its food, out of the treasury now. The word and the gold travel with the realm's couriers and hold
+ * from the season they arrive. Without the gold to buy, the army takes what it must; its commander decides in the end.
+ */
+export interface SupplyOrder {
+  type: "supply";
+  unit: string;
+  buy: boolean;
+  gold: number;
+  /** Where the king named the army, as his last report had it, kept when his couriers name it where it truly stands. */
+  named?: string | null;
+}
 export interface MandateOrder {
   type: "mandate";
   unit: string;
@@ -431,6 +445,11 @@ export interface PlaceSpyOrder {
   character: string;
   court?: Power | null;
   province?: string | null;
+  /**
+   * Item 17 ("outside help"): gold he carries to spend among the province's people, stirring them against its holder, a
+   * share each season he watches there. Deniable like any bribe; he may keep some of it.
+   */
+  stir?: number | null;
 }
 export interface RecallSpyOrder {
   type: "recall";
@@ -536,6 +555,7 @@ export type Order =
   | CommandOrder
   | RelieveOrder
   | MandateOrder
+  | SupplyOrder
   | GovernOrder
   | UnseatOrder
   | CourtOrder
@@ -603,6 +623,7 @@ export type OrderType = Order["type"];
 export const hold = (unit: string): HoldOrder => ({ type: "hold", unit });
 export const command = (unit: string, character: string): CommandOrder => ({ type: "command", unit, character });
 export const relieve = (unit: string): RelieveOrder => ({ type: "relieve", unit });
+export const supply = (unit: string, buy: boolean, gold = 0): SupplyOrder => ({ type: "supply", unit, buy, gold });
 export const mandateOrder = (unit: string, mandate: Mandate | null): MandateOrder => ({ type: "mandate", unit, mandate });
 export const govern = (province: string, character: string, levies = 0): GovernOrder => ({ type: "govern", province, character, levies });
 export const unseat = (province: string): UnseatOrder => ({ type: "unseat", province });
@@ -688,7 +709,8 @@ export const deport = (province: string, to: string, number: number, purse = fal
 export const expel = (province: string, percent = 50): ExpelOrder => ({ type: "expel", province, percent });
 export const returnRunaways = (province: string, to: Power): ReturnRunawaysOrder => ({ type: "returnRunaways", province, to });
 export const toll = (percent: number, partner: Power | null = null, province: string | null = null): TollOrder => ({ type: "toll", province, partner, percent });
-export const placeSpy = (character: string, court: Power | null = null, province: string | null = null): PlaceSpyOrder => ({ type: "spy", character, court, province });
+export const placeSpy = (character: string, court: Power | null = null, province: string | null = null, stir = 0): PlaceSpyOrder =>
+  stir > 0 ? { type: "spy", character, court, province, stir } : { type: "spy", character, court, province };
 export const recall = (character: string): RecallSpyOrder => ({ type: "recall", character });
 export const counterIntel = (spend: number): CounterIntelOrder => ({ type: "counterIntel", spend });
 export const roads = (court: Power, close: boolean): RoadsOrder => ({ type: "roads", court, close });
@@ -720,6 +742,8 @@ export function describe(o: Order): string {
       return `grant ${o.character} the command of ${o.unit}`;
     case "relieve":
       return `take back the command of ${o.unit}`;
+    case "supply":
+      return `${o.unit} ${o.buy ? "buys" : "takes"} its food where it stands by leave${o.gold > 0 ? `, sent ${o.gold} shekels for it` : ""}`;
     case "mandate":
       return o.mandate === null ? `clear the mandate of ${o.unit}` : `give ${o.unit} the mandate: ${mandateText(o.mandate)}`;
     case "govern":
@@ -815,7 +839,7 @@ export function describe(o: Order): string {
     case "check":
       return `check the background of ${o.character} (${o.spend} shekels)`;
     case "spy":
-      return `send ${o.character} to spy on ${o.court ?? o.province ?? ""}`;
+      return `send ${o.character} to spy on ${o.court ?? o.province ?? ""}${(o.stir ?? 0) > 0 ? `, with ${o.stir} shekels to stir its people` : ""}`;
     case "recall":
       return `recall ${o.character}`;
     case "counterIntel":
@@ -925,6 +949,7 @@ const v = <T>(name: string, make: () => T, fields: Parameters<typeof obj>[2]): O
 export const OrderSchema = poly("Order", "type", {
   command: v("CommandOrder", () => command("", ""), { unit: S, character: S }),
   relieve: v("RelieveOrder", () => relieve(""), { unit: S }),
+  supply: v("SupplyOrder", () => supply("", false), { unit: S, buy: B, gold: I, named: opt(S) }),
   mandate: v("MandateOrder", () => mandateOrder("", null), { unit: S, mandate: opt(() => MandateSchema) }),
   govern: v("GovernOrder", () => govern("", ""), { province: S, character: S, levies: I }),
   unseat: v("UnseatOrder", () => unseat(""), { province: S }),
@@ -985,7 +1010,7 @@ export const OrderSchema = poly("Order", "type", {
   buyNews: v("BuyNewsOrder", () => buyNews("", "Egypt"), { character: S, court: S }),
   dismiss: v("DismissOrder", () => dismiss(""), { character: S }),
   check: v("BackgroundCheckOrder", () => check("", 0), { character: S, spend: I }),
-  spy: v("PlaceSpyOrder", () => placeSpy(""), { character: S, court: S, province: S }),
+  spy: v("PlaceSpyOrder", () => placeSpy(""), { character: S, court: S, province: S, stir: opt(I) }),
   recall: v("RecallSpyOrder", () => recall(""), { character: S }),
   counterIntel: v("CounterIntelOrder", () => counterIntel(0), { spend: I }),
   roads: v("RoadsOrder", () => roads("Egypt", true), { court: S, close: B }),

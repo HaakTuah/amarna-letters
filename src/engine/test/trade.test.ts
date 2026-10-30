@@ -133,12 +133,16 @@ describe("TradeTests", () => {
     Assert.contains("The fleet is back in Enkomi, ready for war.", notices(s, "Alashiya", "Markets and caravans"));
   });
 
-  test("Troops abroad by leave spend their pay there and buy their food at its market; without leave, nobody sells to them", () => {
+  test("Troops abroad by leave spend their pay there and buy their food at its market with the gold sent for it; without leave, nobody sells to them", () => {
     const s = game();
     const e = new TurnEngine(s);
     const u = single(s.units, (x) => x.province === "nesa");
     u.province = "harran";
     u.food = 0;
+    // Its king's word to buy, with gold for it (item 17).
+    u.buy = true;
+    u.chest = 100;
+    u.savings += 100;
     s.grants.push(newGrant({ id: "g1", kind: "basing", grantor: "Mitanni", grantee: "Hatti", province: "harran", sinceTurn: s.turn, tabletId: "t" }));
     const purse = s.markets.get("harran").purse;
     s.markets.get("harran").stock = 500;

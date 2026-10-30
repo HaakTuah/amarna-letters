@@ -28,7 +28,7 @@ import { TurnEngine, idNumber } from "./core.ts";
 import { killsByChoice } from "./own-choices.ts";
 
 /** How a head rose ("How he rose shapes who he is"): the circumstance leans his traits, since it picks the man. */
-export type Rose = "crowd" | "mutiny" | "refugees" | "successor" | "split" | "outlaw" | "captain";
+export type Rose = "crowd" | "mutiny" | "refugees" | "successor" | "split" | "outlaw" | "captain" | "elder";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -48,6 +48,8 @@ declare module "./core.ts" {
     bandsAt(province: string): Band[];
     /** A head rises from `men` men in `province`: a new character leading them as a band. */
     headRises(province: string, men: number, rose: Rose, rng: Rng, court?: Power | null): Band;
+    /** The man who rises (`headRises`): a new character of `province`, leaned by how he rose, in the pool, free. */
+    newHead(province: string, rose: Rose, rng: Rng, court?: Power | null): Character;
     /** A band without its chief: one of its own takes over, or it melts back into the loose men. */
     leaderLost(b: Band, why: string): void;
     /** A chief gives up the road ("The way back"): his men go loose and he walks to the nearest court a free man. */
@@ -114,16 +116,27 @@ function localStyle(engine: TurnEngine, province: string, court: Power | null): 
 
 P.headRises = function (province, men, rose, rng, court = null) {
   const S = this.s;
+  const c = this.newHead(province, rose, rng, court);
+  const b = newBand({ id: newId(S, "b"), leaderId: c.id, province, men, since: S.turn, rose });
+  this.lead(c, b);
+  S.bands.push(b);
+  logEvent(S, "band", `${c.name} ${rose === "crowd" ? "rose among the loose men" : rose === "mutiny" ? "led mutineers" : rose === "refugees" ? "led refugees" : rose === "successor" ? "took over a band" : "split from a band"} in ${this.map.get(province).name}, with ${men} men.`, [], `band-${rose}`);
+  return b;
+};
+
+P.newHead = function (province, rose, rng, court = null) {
+  const S = this.s;
   const style = localStyle(this, province, court);
   const base = rng.pick(style.names);
   const name = S.characters.some((x) => x.name === base) ? `${base} of ${this.map.get(province).name}` : base;
   // The circumstance picks the man: a mutiny's leader or a crowd's chief is bold and ambitious, a fallen court's scribe careful.
-  const lean = rose === "refugees" ? { courage: -15, ambition: 0, loyalty: 15 } : rose === "successor" || rose === "split" ? { courage: 10, ambition: 15, loyalty: -10 } : { courage: 20, ambition: 15, loyalty: -15 };
+  // Item 17: a town's elder raised by its own people is careful and loyal to it, like a scribe.
+  const lean = rose === "refugees" || rose === "elder" ? { courage: -15, ambition: 0, loyalty: 15 } : rose === "successor" || rose === "split" ? { courage: 10, ambition: 15, loyalty: -10 } : { courage: 20, ambition: 15, loyalty: -15 };
   const c = newCharacter({
     id: newId(S, "c"),
     name,
     origin: this.map.get(province).name,
-    calling: rose === "refugees" ? "scribe of a fallen court" : rose === "mutiny" || rose === "captain" ? "soldier" : "chief of the loose men",
+    calling: rose === "refugees" ? "scribe of a fallen court" : rose === "elder" ? `elder of ${this.map.get(province).name}` : rose === "mutiny" || rose === "captain" ? "soldier" : "chief of the loose men",
     traits: newTraits({
       loyalty: clamp(rng.range(10, 80) + lean.loyalty, 0, 100),
       greed: rng.range(20, 95),
@@ -140,10 +153,11 @@ P.headRises = function (province, men, rose, rng, court = null) {
     split: `Walked off from a band in ${this.map.get(province).name} with the men who followed him.`,
     outlaw: `Took to the hills with the loose men of ${this.map.get(province).name}.`,
     captain: `Rose from the ranks of the army of the fallen kingdom of ${land(court ?? "Egypt")} in ${this.map.get(province).name} to lead it.`,
+    elder: `Raised by the people of ${this.map.get(province).name} to rule them when no one else did.`,
   };
   c.facts.push(newFact({ id: newId(S, "f"), text: how[rose], secrecy: "Public", tag: "rose" }));
   c.facts.push(newFact({ id: newId(S, "f"), text: rose === "refugees" ? `Speaks the tongue of ${land(court ?? "Egypt")}, and knows something of its court.` : "Speaks the tongue of the land he rose in.", secrecy: "Public", tag: "tongue" }));
-  c.facts.push(newFact({ id: newId(S, "f"), text: "Rode with the Habiru.", secrecy: "Hidden", tag: "outlaw" }));
+  if (rose !== "elder") c.facts.push(newFact({ id: newId(S, "f"), text: "Rode with the Habiru.", secrecy: "Hidden", tag: "outlaw" }));
   c.arrived = S.turn;
   c.status = "Free";
   c.seeking = false;
@@ -151,11 +165,7 @@ P.headRises = function (province, men, rose, rng, court = null) {
   chooseStrategy(c);
   c.persona = personaTemplate(c);
   S.characters.push(c);
-  const b = newBand({ id: newId(S, "b"), leaderId: c.id, province, men, since: S.turn, rose });
-  this.lead(c, b);
-  S.bands.push(b);
-  logEvent(S, "band", `${c.name} ${rose === "crowd" ? "rose among the loose men" : rose === "mutiny" ? "led mutineers" : rose === "refugees" ? "led refugees" : rose === "successor" ? "took over a band" : "split from a band"} in ${this.map.get(province).name}, with ${men} men.`, [], `band-${rose}`);
-  return b;
+  return c;
 };
 
 declare module "./core.ts" {

@@ -29,6 +29,7 @@ import type { ISeat } from "../contracts.ts";
 import { ahead } from "./ahead.ts";
 import { Board } from "./board.ts";
 import { commandOrders, courtMove, enlistOrders, governorOrders } from "./generals.ts";
+import { reliefOrders, supplyOrders } from "./freedom.ts";
 import { Brain } from "./brain.ts";
 import { Contingencies } from "./contingencies.ts";
 import { personalityFor, type Personality } from "./personality.ts";
@@ -113,6 +114,9 @@ export class ScriptLeader implements ISeat {
 
     const orders: Order[] = [];
     Statecraft.economy(board, brain, plan, orders, rng);
+    // Item 17: our armies buy their food where they stand by leave, with gold sent for it; restless land pays less tax.
+    supplyOrders(board, brain, orders, view.gold - view.feesDue - (view.upkeep + view.worksUpkeep + view.fees));
+    reliefOrders(board, orders);
     orders.splice(0, 0, ...plan.orders.values());
     orders.splice(plan.orders.size, 0, ...sallies);
 

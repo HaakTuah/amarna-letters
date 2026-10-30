@@ -8,9 +8,9 @@
  * - Borrowed time: from a season drawn in secret past the median (100% to 125% of it, from the game's seed and "omens" alone,
  *   so no other roll can shift it and it says nothing of the last season), the diviners say the age has outlived its
  *   measure: the tone changes, not only the strength.
- * - The darkest tier comes at the bottom of the cap's range (season 80 by default) and then holds, so it tells nothing
+ * - The darkest tier comes at the bottom of the cap's range (season 140 by default) and then holds, so it tells nothing
  *   beyond the range itself. With no cap it comes where the chance reaches its level at that season for the default table
- *   (80 of a 44-season median).
+ *   (140 of an 80-season median).
  * - An open age has no end to foreshadow: the omens fall silent.
  *
  * Each court reads in its own diviners' voice: Babylonia, Assyria and Mitanni the liver; Hatti and Arzawa oracles that
@@ -29,8 +29,8 @@ export type OmenTier = (typeof OmenTierValues)[number];
 /** First guesses: the share of the median season's chance at which the signs turn troubled, then grave. */
 const TroubledAt = 0.4;
 const GraveAt = 0.75;
-/** With no cap: the darkest tier where the default table reaches it (season 80 of a 44-season median). */
-const DarkestNoCap = 80 / 44;
+/** With no cap: the darkest tier where the default table reaches it (season 140 of an 80-season median, item 17). */
+const DarkestNoCap = 140 / 80;
 
 /** The season, drawn in secret past the median, from which the diviners speak of borrowed time. */
 export function borrowedFrom(seed: number, c: GameConfig): number {

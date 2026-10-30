@@ -192,7 +192,7 @@ const otherOrder = (described = true): ReplySchema =>
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back), or buy_news (the court whose news you buy)." : null)],
     ["person", str(described ? "Person id, for grant_governorship (one at your court), hire, renew, pay_fee, withhold_fee, borrow, buy_news, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift, seize_hoard, sell_tablet (the buyer)." : null)],
     ["amount", int(described ? "build, build_corvee: the level to keep (police: the men, in tens; 0 to keep none, letting what stands decay). The whole fee for the job (hire, renew), the price (sell_tablet), the men a levy takes (raise_army, raise_fleet; 0 for a full unit), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
-    ["gold", int(described ? "enlist_band: the fee offered the band's chief, paid now. trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; hire, renew: the part of the fee handed over now (0 means nothing now); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
+    ["gold", int(described ? "enlist_band: the fee offered the band's chief, paid now. trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; place_spy on a province: the shekels he carries to spend among its people, stirring them against its holder (0 for none); hire, renew: the part of the fee handed over now (0 means nothing now); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
     [
       "term",
       int(
@@ -342,7 +342,7 @@ const leaderOrdersBase = (c: GameConfig | null): [string, z.ZodType][] => [
 const commandOrder = (): ReplySchema =>
   object(
     ["unit", str("Province id where your unit is, as YOUR TROOPS shows it (by its last report if far off).")],
-    ["action", enumOf(["grant", "take_back", "mandate", "clear_mandate"])],
+    ["action", enumOf(["grant", "take_back", "mandate", "clear_mandate", "buy_food", "take_food"])],
     ["person", str("grant: the id of the person at your court you grant the command (like c3). Otherwise empty.")],
     ["task", enumOf(["", ...MandateTaskValues], "mandate: hold where it stands; guard the target and the land around it; invade, besiege or raid into the target; support or shadow the power's troops. Otherwise empty.")],
     ["target", str("mandate: the province its task names (guard: empty for where it stands). Otherwise empty.")],
@@ -351,6 +351,7 @@ const commandOrder = (): ReplySchema =>
     ["avoid", str("mandate: a power it must never fight, or empty.")],
     ["withdraw", enumOf(["", ...WithdrawValues], "mandate: fall back to your land if outnumbered, or hold at all costs (never).")],
     ["until", int("mandate: the last season (turn) it holds, or 0 until new orders.")],
+    ["gold", int("buy_food: the shekels sent with the word for the army's food, out of your treasury now (0 to send none). Otherwise 0.")],
   );
 
 /** One clause of a letter, a tablet or an answer (item 8): its kind, and the fields its kind uses (see CLAUSES in the rules). */

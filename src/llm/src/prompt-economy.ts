@@ -48,8 +48,10 @@ export function economyLines(v: SeatView): string[] {
   const mine = v.units.filter((u) => u.power === v.power);
   if (mine.length > 0) {
     const kind = (k: string): string => (k === "Army" ? "army" : "fleet");
-    lines.push(`- Your troops' grain: ${join(", ", mine.map((u) => `${kind(u.kind)} ${u.province} ${u.food}/${u.carried}${u.hungry > 0 ? `, hungry ${u.hungry}` : ""}${u.unpaid > 0 ? `, unpaid ${u.unpaid}` : ""}`))}.`);
+    lines.push(`- Your troops' grain: ${join(", ", mine.map((u) => `${kind(u.kind)} ${u.province} ${u.food}/${u.carried}${u.hungry > 0 ? `, hungry ${u.hungry}` : ""}${u.unpaid > 0 ? `, unpaid ${u.unpaid}` : ""}${u.kind === "Army" ? `, ${u.buy ? "buys" : "takes"} its food${u.chest > 0 ? ` (carries ${u.chest} shekels for it)` : ""}` : ""}`))}.`);
   }
+  // Item 17: words on the armies' food, with gold, still on the road.
+  if (v.foodSent.length > 0) lines.push(`- Words on your armies' food on the road: ${join(", ", v.foodSent.map((f) => `to ${f.province}, ${f.buy ? "buy" : "take"}${f.gold > 0 ? `, ${f.gold} shekels` : ""}, arriving turn ${f.at}`))}.`);
   if (v.caravans.length > 0)
     lines.push(
       `- Your caravans and ships: ${join(

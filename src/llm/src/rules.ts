@@ -37,6 +37,7 @@ import { tongueRules } from "./rules-tongues.ts";
 import { warRules } from "./rules-war.ts";
 import { worksRules } from "./rules-works.ts";
 import { commandRules } from "./rules-command.ts";
+import { freedomRules } from "./rules-freedom.ts";
 import { intelligenceRules } from "./rules-intelligence.ts";
 const rulesCache = new Map<string, string>();
 
@@ -116,6 +117,8 @@ ${warRules(c)}
 ${worksRules(c)}
 
 ${commandRules(c)}
+
+${freedomRules(c)}
 
 ${terrainRules(c)}
 

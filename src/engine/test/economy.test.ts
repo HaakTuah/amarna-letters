@@ -167,13 +167,14 @@ describe("EconomyTests", () => {
     Assert.contains("Your caravan reached Nesa", notice(s, "Markets and caravans"));
   });
 
-  test("A besieged city that cannot feed its people surrenders; walls are breached only after long wear", () => {
+  test("A besieged city that cannot feed its people starves until its gate is opened from within; walls are breached only after long wear", () => {
     const s = game();
     const e = new TurnEngine(s);
     // Hatti's army stands within the walls of Carchemish, a free city, its stores and market empty.
     const u = single(s.units, (x) => x.province === "hattusa");
     u.province = "carchemish";
-    s.sieges.push(newSiege({ province: "carchemish", power: "Hatti", unitId: u.id, since: s.turn - 1 }));
+    // It has starved as many seasons as it holds but one (item 17, "Hunger breaks loyalty").
+    s.sieges.push(newSiege({ province: "carchemish", power: "Hatti", unitId: u.id, since: s.turn - 1, hungry: e.gateHolds("carchemish") - 1 }));
     s.stores.delete("carchemish");
     s.markets.get("carchemish").stock = 0;
     e.beginTurn();
