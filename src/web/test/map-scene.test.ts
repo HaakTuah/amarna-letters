@@ -206,6 +206,32 @@ describe("MapSceneTests", () => {
     Assert.true(differ > 0, "no court's walls ever differed from the truth out of its sight, so nothing was checked");
   });
 
+  // Item 19: the year shows everywhere, but this game's droughts and floods only where the court's own eyes saw the land.
+  test("A court draws a drought only where it saw the land, as it was then, and god view draws it everywhere", async () => {
+    let { runner, frames } = await play(7, 16);
+    let k = frames.length - 1;
+    let p = living(runner.stateAt(k)!)[0];
+    let land = WorldMap.default.landProvinces.map((x) => x.id);
+    let inSight = land.find((id) => frames[k].sight.get(p)!.has(id))!;
+    let out = land.filter((id) => frames.every((f) => !f.sight.get(p)!.has(id)));
+    Assert.true(inSight !== undefined && out.length >= 2, "the court saw all the land or none of it");
+    // One province never seen, and one the court saw a season ago only (its sight that season widened to it).
+    let [neverSeen, seenBefore] = out;
+    let dry = (f: SeasonFrame, ids: string[]): SeasonFrame => ({ ...f, climate: [{ kind: "Drought", name: "a drought", provinces: ids, river: null, ruinous: false, since: 0 }] });
+    let edited = frames.map((f, i) =>
+      i === k ? dry(f, [inSight, neverSeen]) : i === k - 1 ? { ...dry(f, [seenBefore]), sight: new Map([...f.sight].map(([q, v]) => [q, q === p ? new Set([...v, seenBefore]) : v] as const)) } : f,
+    );
+    let seat = buildScene(edited, k, p).land;
+    Assert.equal("Drought", seat.get(inSight));
+    Assert.false(seat.has(neverSeen));
+    Assert.equal("Drought", seat.get(seenBefore));
+    let god = buildScene(edited, k, null).land;
+    Assert.equal("Drought", god.get(inSight));
+    Assert.equal("Drought", god.get(neverSeen));
+    // God view draws the land as it is now: the drought the court remembers there has ended.
+    Assert.false(god.has(seenBefore));
+  });
+
   test("A frame from the live state matches one read back from its snapshot", async () => {
     let { runner, frames } = await play(7, 16);
     for (let k = 0; k < frames.length; k++) {

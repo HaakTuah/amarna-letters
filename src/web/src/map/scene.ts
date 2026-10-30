@@ -4,7 +4,7 @@
  * news that reached it), never from anything it could not know.
  */
 import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
-import { coverOf, isMove, ownerFor, ownerOf, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
+import { coverOf, isMove, ownerFor, ownerOf, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, city, route, type Pt } from "./art.ts";
 
@@ -116,7 +116,23 @@ export interface MapScene {
   sieges: FrameSiege[];
   /** The walls the viewer knows. */
   walls: Map<string, number>;
+  /**
+   * Item 19: the droughts and floods on the land, as the viewer last saw it: in god view as they are, in a seat view where
+   * its own eyes last saw each province, as it was then (word of a holder is not a sight of the fields).
+   */
+  land: Map<string, LandState>;
 }
+
+/**
+ * Item 19: what this game has done to a province's land, beyond the calendar's look: a drought; a river's flood still
+ * lying in the season after it rose (a ruinous one, or the Tigris's or the Euphrates's damaging one); the year after it,
+ * fields spoiled; or a low Nile, a bad year of a river that brings too little.
+ */
+export type LandState = "Drought" | "Flooded" | "Spoiled" | "Low";
+
+const stateOf = (c: FrameClimate): LandState =>
+  c.kind === "Drought" ? "Drought" : c.river === "nile" && !c.ruinous ? "Low" : c.since === 0 ? "Flooded" : "Spoiled";
+const landOf = (f: SeasonFrame): Map<string, LandState> => new Map(f.climate.flatMap((c) => c.provinces.map((p) => [p, stateOf(c)] as const)));
 
 /** The walls a viewer knows in a frame. */
 export function wallsIn(f: SeasonFrame, viewer: Power | null): Map<string, number> {
@@ -139,6 +155,7 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const prev = index > 0 ? frameAt(frames, index - 1) : null;
   const units: SceneUnit[] = [];
   const fog = new Map<string, number>();
+  let land = landOf(f);
 
   if (viewer === null) units.push(...stack(f.units, false, 0, index));
   else {
@@ -159,6 +176,13 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
       }
     }
     for (const [prov, j] of lastSeen) fog.set(prov, index - j);
+    const lands = new Map<number, Map<string, LandState>>();
+    land = new Map();
+    for (const [prov, j] of lastSeen) {
+      if (!lands.has(j)) lands.set(j, landOf(frameAt(frames, j)));
+      const state = lands.get(j)!.get(prov);
+      if (state !== undefined) land.set(prov, state);
+    }
     // News of the holder travels (item 7b): a province never seen, or seen long ago, is as old as the news of it.
     for (const [prov, k] of f.knownOwner.get(p) ?? []) {
       const age = Math.max(0, f.turn - k.turn);
@@ -214,7 +238,7 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const sieges = viewer !== null ? f.sieges.filter((x) => x.besieger === viewer || ownerOf(f, x.province) === viewer || (f.sight.get(viewer)?.has(x.province) ?? false)) : [...f.sieges];
 
   const owner = new Map(Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const));
-  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer) };
+  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land };
 }
 
 function stack(units: readonly FrameUnit[], ghost: boolean, age: number, seenAt: number): SceneUnit[] {

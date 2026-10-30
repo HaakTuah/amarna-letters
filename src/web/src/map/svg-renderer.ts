@@ -10,6 +10,7 @@ import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
+import { seasonLayer } from "./seasons.ts";
 import { captureLine, unitKindName, type MapScene, type SceneTraveller, type SceneUnit } from "./scene.ts";
 import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
 
@@ -470,6 +471,8 @@ export class SvgMapRenderer implements MapRenderer {
   private scene: MapScene | null = null;
   private placing = 0;
   private fine = false;
+  /** The finer rivers, once loaded (fine-geo.ts). */
+  private fineRivers: ReadonlyMap<string, string> | null = null;
   private readonly onClick = (e: Event): void => {
     const t = e.target as Element | null;
     const person = t?.closest("[data-person]");
@@ -507,7 +510,7 @@ export class SvgMapRenderer implements MapRenderer {
     // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g>${Relief}<g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
+      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
       `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
@@ -545,6 +548,12 @@ export class SvgMapRenderer implements MapRenderer {
     this.scene = s;
     const lower = this.view?.querySelector(".map-lower");
     lower?.setAttribute("aria-label", s.viewer !== null ? `Map of the Great Kings' lands as ${powerName(s.viewer)} sees it` : "Map of the Great Kings' lands (god view)");
+    const seasonKey = `${s.frame.turn % 3}|${s.viewer}|${[...s.land].join(";")}`;
+    if (this.drawn.get("season") !== seasonKey) {
+      this.layer("season", seasonKey, () => seasonLayer(s));
+      // A river in spate is drawn on the board's course: close up, it takes the finer one the rivers have.
+      if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
+    }
     this.layer("tints", s.frame, () => tints(s));
     this.layer("fog", s, () => fog(s));
     this.layer("bands", s.frame, () => bands(s));
@@ -590,6 +599,7 @@ export class SvgMapRenderer implements MapRenderer {
     if (want) {
       import("./fine-geo.ts")
         .then(({ Fine }) => {
+          this.fineRivers = Fine.rivers;
           if (this.fine && this.view === view) this.swapGeography({ ...Fine.coasts, lakes: Fine.lakes }, Fine.rivers);
         })
         // Not loaded (offline before the cache had it): the board's own stay, and the next zoom tries again.
