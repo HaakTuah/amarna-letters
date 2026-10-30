@@ -1,8 +1,8 @@
 /* The living map (build order item 19): the papyrus, the seasons and the land as this game has left it (seasons.ts). */
 
-.map .papyrus { pointer-events: none; opacity: .11; }
-.map .pap-h { stroke: #7a5a2a; stroke-width: 1.7; opacity: .55; }
-.map .pap-v { stroke: #7a5a2a; stroke-width: 1.1; opacity: .28; }
+.map .papyrus { pointer-events: none; opacity: .075; }
+.map .pap-h { stroke: #7a5a2a; stroke-width: 1.1; opacity: .55; }
+.map .pap-v { stroke: #7a5a2a; stroke-width: .8; opacity: .3; }
 
 .map .season { pointer-events: none; }
 :is(.map, .legend) .season .dry { fill: #c08f4c; opacity: .3; }
@@ -27,3 +27,22 @@
 .map .season .drought.low { opacity: .22; }
 :is(.map, .legend) .season .spoiled { fill: #8f8a72; opacity: .32; }
 .map .season .storms path { fill: none; stroke-width: 44; stroke-linecap: round; opacity: .9; }
+
+/* Pass 2: the armies, fleets, people, battles, bands and sieges (figures.ts). */
+/* Bands stand below their city, clear of its outermost ring, as units stand above it. */
+.map .band-mark .sym { transform: translate(0, calc(1px * (var(--ring, 0) * var(--cs) + 13 * var(--sym)))) scale(var(--sym)); }
+.map-upper .band-mark { pointer-events: auto; }
+.map .band-bg { fill: #3b2a1c; stroke: var(--halo); stroke-width: 1.2; }
+.map .band-mark.pirate .band-bg { fill: #1e2a33; }
+.map .band-icon { fill: #f0b34a; }
+.map .band-mark.pirate .band-icon { fill: #e9e2d0; }
+.map .clash-bg { stroke: var(--bitumen); stroke-width: 1.2; }
+.map .clash-icon { fill: var(--token-ink); }
+.map .tent { stroke: var(--bitumen); stroke-width: 1.4; paint-order: stroke; }
+.legend-grid > span.lg-wide { grid-column: 1 / -1; flex-wrap: wrap; }
+.legend .clash-bg { stroke: var(--bitumen); stroke-width: 1; }
+.legend .clash-icon { fill: var(--token-ink); }
+.legend .band-bg { fill: #3b2a1c; }
+.legend .band-icon { fill: #f0b34a; }
+.legend .tent { stroke: var(--bitumen); stroke-width: 1.4; paint-order: stroke; }
+.legend .tent.t-hatti { fill: var(--hatti); }

@@ -4,7 +4,7 @@
  * news that reached it), never from anything it could not know.
  */
 import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
-import { coverOf, isMove, ownerFor, ownerOf, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
+import { coverOf, isMove, ownerFor, ownerOf, type FrameBand, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, city, route, type Pt } from "./art.ts";
 
@@ -34,6 +34,8 @@ export interface SceneMove {
   to: string;
   style: MoveStyle;
   text: string;
+  /** Item 19: whose troops it met in the field, as the viewer saw them standing there; null if it met none. */
+  against: Power | null;
 }
 
 /** Someone, or gold, on the road between two places, at a season's guessed position along the way. */
@@ -121,6 +123,8 @@ export interface MapScene {
    * its own eyes last saw each province, as it was then (word of a holder is not a sight of the fields).
    */
   land: Map<string, LandState>;
+  /** Item 19: the bands and pirate crews the viewer sees: in its sight or in its own land (its people tell of them). */
+  bands: FrameBand[];
 }
 
 /**
@@ -238,7 +242,9 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const sieges = viewer !== null ? f.sieges.filter((x) => x.besieger === viewer || ownerOf(f, x.province) === viewer || (f.sight.get(viewer)?.has(x.province) ?? false)) : [...f.sieges];
 
   const owner = new Map(Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const));
-  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land };
+  // As the engine's own view of a court shows them: in its sight, or in land it holds.
+  const bands = viewer === null ? f.bands : f.bands.filter((b) => (f.sight.get(viewer)?.has(b.province) ?? false) || ownerOf(f, b.province) === viewer);
+  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands };
 }
 
 function stack(units: readonly FrameUnit[], ghost: boolean, age: number, seenAt: number): SceneUnit[] {
@@ -275,9 +281,11 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
     if (m.order === "move" && m.target !== null) {
       const t = m.target;
       // Foreign troops in the way: standing there as the season began (in the court's sight) and not marched out of it.
-      const foreignUnit =
-        (sight === null || sight.has(t)) &&
-        prev.units.some((u) => u.province === t && u.power !== m.power && !seen.some((x) => isMove(x) && x.succeeded && x.from === t && x.power === u.power && x.kind === u.kind));
+      const met =
+        sight === null || sight.has(t)
+          ? (prev.units.find((u) => u.province === t && u.power !== m.power && !seen.some((x) => isMove(x) && x.succeeded && x.from === t && x.power === u.power && x.kind === u.kind)) ?? null)
+          : null;
+      const foreignUnit = met !== null;
       const foreignLand = m.targetOwner !== null && m.targetOwner !== m.power;
       // Walls not its own: getting in is an attack, but takes the city only if it stormed them (it then holds it).
       const walls = m.targetOwner !== m.power && (wallsBefore ?? prev.walls).has(t);
@@ -292,6 +300,7 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
         to: t,
         style,
         text: `${powerName(m.power)}'s ${unitKindName(m.kind)} in ${provinceName(m.from)} ${verb} ${provinceName(t)}${attack && !m.succeeded ? " (an attack)" : ""}`,
+        against: met?.power ?? null,
       });
     } else if (m.order === "support" && m.target !== null) {
       const t = m.target;
@@ -301,6 +310,7 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
         from: m.from,
         to: m.to ?? t,
         style: m.succeeded ? "Support" : "SupportCut",
+        against: null,
         text:
           `${powerName(m.power)}'s ${unitKindName(m.kind)} in ${provinceName(m.from)} ${m.succeeded ? "supported" : "tried to support"} ` +
           `${m.helped !== null && m.helped !== m.power ? powerName(m.helped) + "'s" : "its own"} unit in ${provinceName(t)}${m.to !== null ? ` into ${provinceName(m.to)}` : " holding"}${m.succeeded ? "" : " (cut or void)"}`,
@@ -312,6 +322,7 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
         from: m.from,
         to: m.to,
         style: "Convoy",
+        against: null,
         text: `${powerName(m.power)}'s fleet in ${provinceName(m.from)} convoyed the army in ${provinceName(m.target ?? m.to)} to ${provinceName(m.to)}`,
       });
   }

@@ -232,6 +232,29 @@ describe("MapSceneTests", () => {
     Assert.false(god.has(seenBefore));
   });
 
+  // Item 19: bands are drawn as the engine's own view of a court shows them, and a battle only where the court saw troops.
+  test("A court draws the bands its view shows and a battle only where it saw the troops met", async () => {
+    let { runner, frames } = await play(7, 16);
+    let bands = 0;
+    let battles = 0;
+    for (let k = 1; k < frames.length; k++) {
+      let state = runner.stateAt(k)!;
+      Assert.equal(sorted(state.bands.map((b) => b.province)), sorted(buildScene(frames, k, null).bands.map((b) => b.province)));
+      for (const p of living(state)) {
+        let scene = buildScene(frames, k, p);
+        Assert.equal(sorted(Views.for(state, p).bands.map((b) => [b.province, b.men])), sorted(scene.bands.map((b) => [b.province, b.men])));
+        bands += scene.bands.length;
+        for (const m of scene.moves.filter((x) => x.against !== null)) {
+          battles++;
+          // It met troops the court saw standing there as the season began.
+          Assert.true(frames[k - 1].sight.get(p)!.has(m.to));
+          Assert.contains(frames[k - 1].units, (u) => u.province === m.to && u.power === m.against);
+        }
+      }
+    }
+    Assert.true(bands > 0 && battles > 0, "the game had no band or no battle to check");
+  });
+
   test("A frame from the live state matches one read back from its snapshot", async () => {
     let { runner, frames } = await play(7, 16);
     for (let k = 0; k < frames.length; k++) {

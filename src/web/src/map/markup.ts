@@ -27,7 +27,8 @@ import {
   ll,
 } from "./art.ts";
 import { Marks, markGlyph, markText } from "./crossings.ts";
-import { Burst, Capital, Chariot, Eye, Fetter, Ingot, Moon, Pupil, Ship, Tablet, TabletMarks, emblem, glyphId } from "./glyphs.ts";
+import { figureSymbols } from "./figures.ts";
+import { Burst, Capital, Eye, Fetter, Ingot, Moon, Pupil, Tablet, TabletMarks, emblem, glyphId } from "./glyphs.ts";
 
 const Map_ = WorldMap.default;
 
@@ -53,9 +54,9 @@ function buildDefs(): string {
   sb += `<pattern id="waves" patternUnits="userSpaceOnUse" width="26" height="12"><path d="M0,6q6.5,-4 13,0t13,0" class="wave"/></pattern>`;
   // Item 19: the papyrus the map is drawn on, its strips laid across each other; and the season's marks on the land.
   sb +=
-    `<pattern id="papyrus" patternUnits="userSpaceOnUse" width="48" height="48">` +
-    `<path d="M0,3.5H48M0,11H48M0,17.5H48M0,26H48M0,33H48M0,41.5H48" class="pap-h"/>` +
-    `<path d="M5,0V48M14.5,0V48M23,0V48M30.5,0V48M40,0V48" class="pap-v"/></pattern>`;
+    `<pattern id="papyrus" patternUnits="userSpaceOnUse" width="29" height="31">` +
+    `<path d="M0,2.2H29M0,6.9H29M0,10.4H29M0,15.6H29M0,19.8H29M0,25.1H29M0,28.6H29" class="pap-h"/>` +
+    `<path d="M3.1,0V31M8.7,0V31M12.4,0V31M18.3,0V31M23.6,0V31" class="pap-v"/></pattern>`;
   sb += `<pattern id="flood" patternUnits="userSpaceOnUse" width="14" height="7"><path d="M0,4.5q3.5,-2.6 7,0t7,0" class="flood-wave"/></pattern>`;
   sb += `<pattern id="cracks" patternUnits="userSpaceOnUse" width="22" height="22"><path d="M2,4l6,3l3,7l7,2M8,7l6,-5M11,14l-6,5M18,16l3,-6" class="crack"/></pattern>`;
   sb += `<pattern id="sheaves" patternUnits="userSpaceOnUse" width="12" height="10"><path d="M3,8v-5M3,4.5l-1.6,-2M3,4.5l1.6,-2M9,8.5v-4M9,5.5l-1.4,-1.8M9,5.5l1.4,-1.8" class="sheaf"/></pattern>`;
@@ -72,8 +73,8 @@ function buildDefs(): string {
   for (const p of FixedPowers) sb += `<symbol id="em-${glyphId(p)}" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem(p)}"/></symbol>`;
   // The powers risen in play (item 13+) share one emblem, a city's tower.
   sb += `<symbol id="em-risen" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem("risen")}"/></symbol>`;
-  sb += `<symbol id="g-army" viewBox="-12 -12 24 24" overflow="visible"><path d="${Chariot}"/></symbol>`;
-  sb += `<symbol id="g-fleet" viewBox="-12 -12 24 24" overflow="visible"><path d="${Ship}"/></symbol>`;
+  // Item 19: the armies, fleets and people after the period's own relics (figures.ts).
+  sb += figureSymbols();
   sb += `<symbol id="g-tablet" viewBox="-10 -10 20 20" overflow="visible"><path d="${Tablet}" class="tab-body"/><path d="${TabletMarks}" class="tab-marks"/></symbol>`;
   sb += `<symbol id="g-eye" viewBox="-10 -10 20 20" overflow="visible"><path d="${Eye}" class="eye-white"/><path d="${Pupil}" class="eye-pupil"/></symbol>`;
   sb += `<symbol id="g-ingot" viewBox="-10 -10 20 20" overflow="visible"><path d="${Ingot}"/></symbol>`;

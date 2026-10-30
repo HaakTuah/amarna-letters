@@ -1,10 +1,10 @@
 /* The map uncluttered (build order item 11c++). Markers never overlap: where a city's badge would touch a more important
    one's, or a counter, it shrinks to its small seal (its scale is SmallSeal in svg-renderer.ts), and its counters, people
    and news give way, returning as the map is zoomed in; what still touches gives way altogether. */
-.map .city.small .walls, .map .city.small .cap-ring, .map .city.small .seal-em { visibility: hidden; }
+.map .city.small .walls, .map .city.small .cap-ring, .map .city.small .seal-em, .map .city.small .tent { visibility: hidden; }
 .map .city.small .seal { transform: scale(.45); transform-box: fill-box; transform-origin: center; stroke-width: 2; }
 .map .city.off .csym > :not(.tap-hit) { visibility: hidden; }
-.map .unit.off, .map .court-at.off, .map .news.off, .map .destroyed.off, .map .traveller.off, .map .xmark.off { visibility: hidden; }
+.map .unit.off, .map .court-at.off, .map .news.off, .map .destroyed.off, .map .traveller.off, .map .xmark.off, .map .band-mark.off { visibility: hidden; }
 /* A unit destroyed this season stands above the counters of its province, not over them. */
 .map .sym.lift.over { transform: translate(0, calc(-1px * (var(--ring, 0) * var(--cs) + 43 * var(--sym)))) scale(var(--sym)); }
 /* A small seal whose counters gave way: a dark rim says troops stand there, to be seen closer. */
