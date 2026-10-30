@@ -49,23 +49,44 @@ function battlesOf(frames: readonly SeasonFrame[], j: number, viewer: Power | nu
   return out;
 }
 
+/** The cities sacked in a season that the viewer knows of: the taker, its own land, or a city in its sight. */
+function sacksOf(frames: readonly SeasonFrame[], j: number, viewer: Power | null): string[] {
+  const out: string[] = [];
+  for (const e of frameAt(frames, j).events) {
+    if (e.kind !== "sack") continue;
+    const id = ByName.get(/sacked (.+)\.$/u.exec(e.text)?.[1] ?? "");
+    if (id === undefined) continue;
+    const before = frameAt(frames, j - 1);
+    if (viewer === null || e.visibleTo.includes(viewer) || ownerOf(before, id) === viewer || (before.sight.get(viewer)?.has(id) ?? false)) out.push(id);
+  }
+  return out;
+}
+
+/**
+ * Each season's battles and sacks as a viewer knew them, kept with the season's frame: a frame never changes once taken,
+ * so stepping the timeline reckons only the seasons it has not met before.
+ */
+const seasonMemory = new WeakMap<SeasonFrame, Map<Power | null, { battles: string[]; sacks: string[] }>>();
+function memoryOfSeason(frames: readonly SeasonFrame[], j: number, viewer: Power | null): { battles: string[]; sacks: string[] } {
+  const f = frameAt(frames, j);
+  let byViewer = seasonMemory.get(f);
+  if (byViewer === undefined) seasonMemory.set(f, (byViewer = new Map()));
+  let m = byViewer.get(viewer);
+  if (m === undefined) byViewer.set(viewer, (m = { battles: battlesOf(frames, j, viewer), sacks: sacksOf(frames, j, viewer) }));
+  return m;
+}
+
 export function remember(frames: readonly SeasonFrame[], index: number, viewer: Power | null, bandsAt: ReadonlySet<string>): Remembered {
   const f = frameAt(frames, index);
   const memorials = new Map<string, { count: number; last: number }>();
   const sacked = new Map<string, number>();
   for (let j = 1; j <= index; j++) {
-    for (const t of battlesOf(frames, j, viewer)) {
+    const season = memoryOfSeason(frames, j, viewer);
+    for (const t of season.battles) {
       const m = memorials.get(t);
       memorials.set(t, { count: (m?.count ?? 0) + 1, last: j });
     }
-    const fj = frameAt(frames, j);
-    for (const e of fj.events) {
-      if (e.kind !== "sack") continue;
-      const id = ByName.get(/sacked (.+)\.$/u.exec(e.text)?.[1] ?? "");
-      if (id === undefined) continue;
-      const knows = viewer === null || e.visibleTo.includes(viewer) || ownerOf(frameAt(frames, j - 1), id) === viewer || (frameAt(frames, j - 1).sight.get(viewer)?.has(id) ?? false);
-      if (knows) sacked.set(id, j);
-    }
+    for (const id of season.sacks) sacked.set(id, j);
   }
   // What the viewer knows now: its own land and what it sees (all of it in god view).
   const sees = (id: string): boolean => viewer === null || ownerOf(f, id) === viewer || (f.sight.get(viewer)?.has(id) ?? false);
