@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Land, people and economy tab, revision 33 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Land, people and economy tab, revision 33 (2026-10-30). Do not edit: see docs/intent/INDEX.md. -->
 ## Gold
 
 Gold is the only currency, and everything of value can change hands. The economy exists for one reason: war must cost something and peace must be worth something, so trust has a price without any rule saying so.
