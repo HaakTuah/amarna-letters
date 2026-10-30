@@ -56,7 +56,9 @@ async function play(seed: number, seat: Hearing, n: number, config: GameConfig =
 describe("The royal council (item 16)", () => {
   test("A seat played by a human or model hears four advisors, compact, with numbers and its court's titles", async () => {
     const seat = new Hearing(3);
-    await play(3, seat, 3);
+    // An age of the usual length (item 17 lengthened it): kings who believe the age long play patiently, so the game runs
+    // long enough for a strike, whose pictured seasons the test reads.
+    await play(3, seat, 6, seasons(6, { endMedian: 80 }));
     Assert.true(seat.views.length >= 2);
     for (const v of seat.views) {
       const c = v.council!;
@@ -150,12 +152,12 @@ describe("Omens of the end (item 16)", () => {
     Assert.equal("Quiet", omenTier(early, c, drawFinalSeason(early, c)!.season));
     // And a game drawn to run to its cap reads the darkest signs from the bottom of the range, as every other game does.
     const late = seeds.find((seed) => drawFinalSeason(seed, c)!.byCap)!;
-    Assert.true(drawFinalSeason(late, c)!.season > 80);
-    Assert.equal("Darkest", omenTier(late, c, 80));
+    Assert.true(drawFinalSeason(late, c)!.season > 140);
+    Assert.equal("Darkest", omenTier(late, c, 140));
   });
 
   test("Each court speaks in its own diviners' voice, in words, and an open age is silent", () => {
-    const turn = 85;
+    const turn = 145;
     Assert.contains("liver", omenLine(1, c, turn, "Babylonia"));
     Assert.contains("unfavourable", omenLine(1, c, turn, "Hatti"));
     Assert.contains("turning away from this land", omenLine(1, c, turn, "Egypt"));
