@@ -6,8 +6,16 @@ Built from the dossier `docs/history/14-courts-and-free-cities.md`, cited below 
 
 ## The check for changes
 
-The live document's Build order (revision 109), War, travel and the seas (66), Land, people and economy (33) and Characters
-(21) tabs had no changes since the copy, at the start. Again before the PR: see the end of this report.
+- **At the start**: the live document's Build order (revision 109), War, travel and the seas (66), Land, people and economy
+  (33) and Characters (21) tabs had no changes since the copy.
+- **Before the PR**: the item had gained the longer age (#206, revision 111; Haakon, 30 October 2026: "Yes to 1."), now
+  built here.
+- **The design PRs #207 to #215** (the opening and Transjordan, places by their names, what stood, what a king counts, the
+  census, the count's age, kings' demands, always an amount, a share or an amount) changed none of item 17's sections.
+  They are items 17+ and 17++, and item 18's check, built after the weekly reset. Haakon, 30 October 2026, word for word:
+  "1. Your reading: item 17 is started, so it finishes, and item 18 waits. 2. Your reading: the design PRs #207–#215 are
+  items 17+ and 17++ and item 18's check, not item 17. Build none of them now; they're next after the reset." And
+  earlier: "I want them to finish what they have started, if we believe they can."
 
 ## What was built
 
@@ -107,28 +115,52 @@ elite 20%; elder 8% a wall level plus 1 a season; chief 8 seasons, captain 2, a 
 
 ## Script players: use and success
 
-On 50 games (`--freedom-play-half`, before #194's merge; the final run below):
+Final run: 50 games (`--verify-replay`, seed 1). It is on the merged code (#194 and the longer age in), with the scripts'
+patch below.
 
-- **Words on food**: 270 words to buy, none to take. Armies by leave bought food in 8 army-seasons and took it in 437.
-  The markets where armies stand hold little grain once the towns have eaten, and armies at home eat from their own stores
-  first, so there is rarely anything to buy. Commanders kept the gold 33 times.
-- **Revolts**: 21 (7 led, 14 lawless), none of the homeland; 10 more put down by troops. Gates opened from within: 83.
-- **Seats risen**: 17 in 10 of 50 games (7 by revolt, 10 elders; no governor, turned governor or chief), against none
-  before the item. 10 still ruled at the end; their seats sent 13 envoys and sealed 15 tablets, 3 of them vassal tablets.
-- **Stirring**: 7 seasons. Few spies are posted in a foe's conquered land, and the scripts post one at a time.
-
-A homeland province rose 0 times in 50 games.
+- **Words on food**: 32 words to buy, none to take. Armies by leave bought food in 2 army-seasons and took it in 878.
+  Armies at home eat from their own stores first, and the markets where they stand hold little grain once the towns have
+  eaten. So there is rarely anything to buy, and the scripts now send gold only where the market as last seen has grain
+  for the army. Commanders kept the gold 4 times.
+- **The patch the measures asked for.** Before it, the scripts sent gold 395 times and armies bought food 14 times. The
+  gold sat idle in the men's packs, and commanders kept it 33 times. Gold buys only what is there: it is now sent only
+  where there is grain to buy.
+- **Revolts**: 48 (10 led, 38 lawless), 20 more put down by troops. Gates opened from within: 213.
+- **A homeland province rose once in 50 games.**
+- **Seats risen**: 42 in 25 of 50 games (10 by revolt, 32 elders; no governor, turned governor or chief), against none
+  before the item. 28 still ruled at the end, after 28 seasons on average, at a mean growth of 1.00. Their seats sent 74
+  envoys and sealed 76 tablets with other courts, 11 of them vassal tablets.
+- **Stirring**: 118 seasons of a spy's gold among a foe's people.
 
 ## Use against ignore
 
-`--freedom-play-half`, 50 games: mean growth 0.79 to 0.79, 26 wins to 24. **Even.** The buying lever cannot pay while the
-markets where armies stand by leave are nearly empty, which is the economy's first guesses (item 18), not the scripts'
-play. Tax relief and stirring are used too rarely to move the score.
+`--freedom-play-half`, 50 games, final code: mean growth 0.73 to 0.79, 21 wins to 29. **Not paying.** The run before the
+patch gave 0.73 to 0.78 and 22 to 28; one before the review's fixes and the longer age gave 0.79 to 0.79 and 26 to 24.
 
-## Benchmarks and script games
+- The levers are used too rarely to explain the gap. Buying is nearly impossible where the markets are empty. Tax relief
+  lasts only the season a governor's letter arrives. A spy carries 50 to 200 shekels.
+- So the difference is within the noise these measures have shown between runs. The features do not pay yet because the
+  economy's first guesses (empty markets) leave buying little to buy.
+- Re-measure in item 18, with the markets' stocks.
 
-Before (item 16's branch, 50 games, `--verify-replay`): every replay exact; 47.3 seasons on average; a capital fell in 50
-of 50 games (621 kingdoms); no governor rose; `siege-starved` 160. The final after-run, once #194 has merged, is below.
+## Benchmarks and script games: before and after
+
+Before is develop with item 16 merged and without item 17. After is this branch. 50 games each, `--verify-replay`,
+seed 1; every replay exact in both.
+
+| | Before (age median 44) | After (item 17, age median 80) |
+|---|---|---|
+| Seasons played | 47.3 mean, median 42, range 5–94 | 83.7 mean, median 89, range 8–158 |
+| A Great King's war decided | 30 of 50 ages (capital first 20, vassal first 10) | 34 of 50 (capital first 24, vassal first 10) |
+| Kingdoms fallen | 621 | 841 |
+| Cities taken by siege; gates opened by hunger | 523; 160 (surrendered the season they starved) | 823; 213 (a gate opened from within) |
+| Seats risen in play | 0 | 42 |
+| Egypt's wins | 6 | 19 (38%): a long age favours the richest, for item 18 |
+
+- **The longer age passes its one test in more ages**: 34 of 50 against 30, with nearly twice the seasons.
+- **First guesses for item 18**: the median 80, the cap 140 to 160, the darkest omens at 140, and the age bands (short up
+  to a median of 55, believed 44; usual 80; long from 110, believed 130).
+- **What a run costs**: 50 games of the longer age took about 30 minutes run alone.
 
 ## The audit at the start
 
@@ -138,5 +170,9 @@ new was found to patch here beyond the script king's book of kings.
 
 ## Questions for Haakon
 
-None. "The game in one page", the item and its sections settled every reading. The two observations for the balance pass
-are not questions: buying rarely finds grain, and no homeland province rose in 50 games.
+None. "The game in one page", the item and its sections settled every reading. The observations for the balance pass are
+not questions:
+
+- buying rarely finds grain;
+- a homeland province rose once in 50 games;
+- in the longer age, Egypt wins 38% of games.
