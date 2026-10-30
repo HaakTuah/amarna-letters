@@ -236,7 +236,7 @@ describe("CallSizeTests", () => {
   // ------------------------------------------------------------ Haakon's answers to item 6a's review
 
   test("A table's median reaches every seat in words, in bands, and script kings believe the band", () => {
-    Assert.equal(["Short", "Usual", "Long"], [ageBand(24), ageBand(44), ageBand(80)]);
+    Assert.equal(["Short", "Usual", "Long"], [ageBand(44), ageBand(80), ageBand(130)]);
     const short = newGameConfig({ endMedian: 20 });
     Assert.contains("This age is likely to be short", leaderRules(true, short));
     Assert.doesNotContain("20", ending(false, null, null, "Short").replace(/\D+/g, " ").trim());
@@ -245,7 +245,7 @@ describe("CallSizeTests", () => {
     // A script king believes the band's own median: it expects a short age to end sooner than the usual one.
     Assert.true(seasonsLeft(1, false, "Short") < seasonsLeft(1, false, "Usual"));
     Assert.true(seasonsLeft(1, false, "Usual") < seasonsLeft(1, false, "Long"));
-    Assert.true(endMayBeNear(10, false, "Short") && !endMayBeNear(10, false, "Usual"));
+    Assert.true(endMayBeNear(20, false, "Short") && !endMayBeNear(20, false, "Usual"));
   });
 
   // ------------------------------------------------------------ compaction
