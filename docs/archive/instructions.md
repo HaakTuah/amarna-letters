@@ -662,3 +662,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     variations on the pieces, and each piece playing according to the situation. Use the Empire Earth pieces as the
     template, and make as many as Empire Earth had, each inspired by each piece there, expertly. Sounds good?" Written
     into build order item 19+++, the music.
+72. **30 October 2026, 12:04-12:34 UTC**, in the design chat: "And sound effect can be inspired by CK2?" And, to the
+    design session's take (a sound for every action and event in the period's terms, a quiet bed of the world that
+    follows the map, stings for great moments, nothing from CK2's files): "Yes, please, expertly!" Written into item
+    19+++.
