@@ -5,8 +5,8 @@ import type { PressMode } from "./clauses.ts";
 export interface GameConfig {
   /**
    * The random ending ("Random ending" under Victory, build order item 6a): the season by which half of all games have
-   * ended, the chance of each season being the last growing in proportion to its number ({@link endSlope}). 44 seasons is
-   * 1332 BCE, the conventional end of the archive. A table setting; kings are told the rule in words, never this number.
+   * ended, the chance of each season being the last growing in proportion to its number ({@link endSlope}). 80 seasons is
+   * about 1320 BCE, as Suppiluliuma's age closed (item 17 lengthened it from 44, the archive's end in 1332 BCE). A table setting; kings are told the rule in words, never this number.
    */
   endMedian: number;
   /** Whether the game has a hard cap, drawn in secret at the start from capMin to capMax seasons (a single season is a known cap). */
@@ -140,10 +140,10 @@ export interface GameConfig {
 
 export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
   return {
-    endMedian: 44,
+    endMedian: 80,
     capped: true,
-    capMin: 80,
-    capMax: 100,
+    capMin: 140,
+    capMax: 160,
     openAge: false,
     provinceWeight: 10,
     sizeWeight: 5,

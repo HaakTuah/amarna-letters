@@ -546,3 +546,11 @@ Given in the design chat with Claude, answering the design questions of the cons
 55. **16:42**, in the design chat, to item 13's two review questions (governors' seats now rather than lawless until
     item 17; the realm coming apart province by province as the news arrives) and the design session's takes: "I agree
     with all your takes." Written into build order item 13 as 13+.
+
+56. **30 October 2026, 01:13 UTC**, in the design chat, to lengthening the age (a median of about 80 seasons, the cap
+    at about 140 to 160, set now; from 30 script games where no Great King's capital but Assyria's fell before the age
+    ended): "Yes to 1." Written into "Random ending" (Victory), the calendar (The world) and build order item 17. On a
+    busier opening from history he said: "But this game has no casua belli or the likes. So I don't see how we do what
+    you propose here? I have already said we should give rhem the money and armies they had at this time, so they are
+    free to do exactly what was going on then. But we cannot dictate that someone is in conflict, if you know what I
+    mean." (answered in the chat)

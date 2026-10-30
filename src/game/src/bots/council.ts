@@ -86,35 +86,21 @@ const TroopTypes = new Set<Order["type"]>(["move", "support", "hold", "convoy", 
 export const CouncilPlay: { only: ReadonlySet<string> | null } = { only: null };
 
 /**
- * A king who plays by his council: where all four agree he takes it, otherwise each troop's order most of them propose,
- * a tie going to his own order if it is among them, else to the first advisor's; a levy at least two of them propose.
- * Every other order stays his own.
+ * A king who plays by his council: he takes one advisor's whole plan of troops and levies, the one the other three agree
+ * with most (order by order), a tie to the earlier advisor; a plan is kept whole, since its moves and supports are made to
+ * work together. Troops it does not speak to, and every other order, stay his own. (A first try took each troop's
+ * majority order across the four plans: 0.81 growth to 0.79 but 17 wins to 33 in 50 games, its spliced plans' supports
+ * backing moves another advisor never made.)
  */
 export function follow(own: Order[], ps: Proposal[]): Order[] {
   const kept = own.filter((o) => !TroopTypes.has(o.type));
   const ownTroops = own.filter((o) => TroopTypes.has(o.type));
-  const keys = [...new Set(ps.flatMap((p) => p.orders.map(keyOf)))].sort(cmpStr);
-  const chosen: Order[] = [];
-  for (const k of keys) {
-    const options: [Order, number][] = [];
-    for (const p of ps)
-      for (const o of p.orders.filter((x) => keyOf(x) === k)) {
-        const seen = options.find(([x]) => orderEquals(x, o));
-        if (seen !== undefined) seen[1]++;
-        else options.push([o, 1]);
-      }
-    const most = Math.max(...options.map(([, n]) => n));
-    const isLevy = k.startsWith("raise:") || k.startsWith("sally:");
-    if (isLevy) {
-      if (most >= 2) chosen.push(options.find(([, n]) => n === most)![0]);
-      continue;
-    }
-    const top = options.filter(([, n]) => n === most).map(([o]) => o);
-    chosen.push(top.find((o) => ownTroops.some((x) => orderEquals(x, o))) ?? top[0]);
-  }
-  // Troops no advisor spoke to keep their own orders.
-  const spoken = new Set(chosen.map(keyOf));
-  return [...chosen, ...ownTroops.filter((o) => !spoken.has(keyOf(o)) && o.type !== "raise" && o.type !== "sally"), ...kept];
+  const agreement = (p: Proposal): number =>
+    ps.filter((q) => q !== p).reduce((n, q) => n + p.orders.filter((o) => q.orders.some((x) => orderEquals(x, o))).length, 0);
+  let best = ps[0];
+  for (const p of ps.slice(1)) if (agreement(p) > agreement(best)) best = p;
+  const spoken = new Set(best.orders.map(keyOf));
+  return [...best.orders, ...ownTroops.filter((o) => !spoken.has(keyOf(o)) && o.type !== "raise" && o.type !== "sally"), ...kept];
 }
 
 /** What one advisor proposes this season, with the numbers behind it. */
