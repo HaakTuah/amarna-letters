@@ -584,3 +584,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     "Yes to both." Written into "Counts as the scribes knew them" (The world) and build order item 17++; the towns'
     people as they stood in 1346 (Akhetaten below Thebes and Memphis) into 17+, by his "All that was materially, we
     should represent as accurate as possible" (item 57).
+61. **30 October 2026, 02:42 UTC**, in the design chat, to a census (scribes sent to count a province; a counted
+    province pays its full tax and levy, an uncounted one hides a share; counting stirs some unrest; built in item
+    17++): "Agreed to all! So how well should you know your population then without doing a census? It also tells you
+    how many laborers you can set to things or recruit, I guess. But labor was also a form of tax, as you've told me."
+    (the question answered in the chat) "Also, have you corrected all the wrong town populations? Do the smallest
+    cities around in Levant and other places also have separate populations in the town and on the land?" (answered
+    in the chat; item 17+ checks every town)
