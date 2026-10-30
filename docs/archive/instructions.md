@@ -635,3 +635,6 @@ Given in the design chat with Claude, answering the design questions of the cons
     yes, no special rules for cities recovering, people will migrate back at the harvest potential difference there
     becomes bigger than neighboring cities. That's the mechanism, right?" (yes: "Feeding a province draws its people").
     Written into build order item 19+.
+67. **30 October 2026, 06:56 UTC**, in the design chat: "I also think amarna letters needs another visual pass. With
+    the instructions to make it as visually impressive as it possibly can, without tanking the performance." Written
+    into build order item 19++, after 19+, beside item 18.
