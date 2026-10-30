@@ -629,3 +629,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     it: "Yes, please, expertly!" This replaces item 64's "always an amount" and removes the collectors (headmen) who
     skim or squeeze, which the design session had written in beyond what he meant. Written into "A census" and "The
     king says how much he wants" (The world) and items 17++ and 18.
+66. **30 October 2026, 06:52 UTC**, in the design chat, to item 19's review questions and the design session's
+    suggestions (clay maps for every court that writes cuneiform and papyrus for Egypt; sacked cities recovering through
+    their people and the works, with no new rule; hieratic notes as decoration in Egypt's view): "Yes to all". And: "And
+    yes, no special rules for cities recovering, people will migrate back at the harvest potential difference there
+    becomes bigger than neighboring cities. That's the mechanism, right?" (yes: "Feeding a province draws its people").
+    Written into build order item 19+.
