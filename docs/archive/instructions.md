@@ -575,3 +575,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     shouldn't be there in the time we are portraying?" and hearing the design session's check (Hebron had no town in
     the Late Bronze Age, so Shuwardata's land centred on Gath; Nesa a name more than a city; Kalavasos and Akhetaten
     fine): "Agreed to all! Implement expertly!" Written into "Places by their own names" (The world) and item 17+.
+60. **30 October 2026, 02:33-02:37 UTC**, in the design chat, on the province card showing Akhetaten's land (645,350
+    people) under the city's name: "For the game, does it matter if they are in the city or just in the province? If
+    so, it should be distinguished. Also, of course they are estimates. But the game still needs an exact figure, it
+    must know how many soldiers it has, mouths to feed, etc. Though it is an open question if the player should get
+    that resolution of detail." And, to the design session's take (the card shows town and land apart; a king sees his
+    own soldiers exactly, his people and stores to two figures, others' lands as dated estimates; god view exact):
+    "Yes to both." Written into "Counts as the scribes knew them" (The world) and build order item 17++; the towns'
+    people as they stood in 1346 (Akhetaten below Thebes and Memphis) into 17+, by his "All that was materially, we
+    should represent as accurate as possible" (item 57).
