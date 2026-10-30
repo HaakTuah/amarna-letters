@@ -63,5 +63,5 @@ The council is `src/game/src/bots/council.ts`, run by the runner (`src/game/src/
 ## Measuring it
 
 `scripts/sim.sh --council-play-half`: half the script kings play their troops and levies by their council
-(`follow`: the agreed orders, else each troop's majority, a tie to the king's own order; a levy at least two advisors
-propose) against kings that play their own plan. The numbers are in the item's report and the progress file's table.
+(`follow`: one advisor's whole plan, the one the other three agree with most, kept whole since its moves and supports
+work together) against kings that play their own plan. The numbers are in the item's report and the progress file's table.

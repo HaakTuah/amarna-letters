@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 25 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 25 (2026-10-30). Do not edit: see docs/intent/INDEX.md. -->
 ## Information as an asset
 
 **Information as a structured asset (decided 19 October 2026: news is structured, so it shows in the map's visuals and in the game's tracking, and bots can use it; build order items 7 and 11).** Once news travels, knowledge can be given, sold, withheld or faked. Free text already allows claims in letters, but bots cannot use them and the interface cannot show them, so sharing needs a structured form as well.
