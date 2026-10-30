@@ -643,3 +643,6 @@ Given in the design chat with Claude, answering the design questions of the cons
     speed. So maybe need a through optimization round also." And: "There are also many graphical glitches and
     Inconsistencies in the game right now." Written into build order item 17a (the crash and an optimization round,
     first, before 17+) and item 19++ (playable on a phone; glitches and inconsistencies found and fixed first).
+69. **30 October 2026, 07:02 UTC**, in the design chat, on the crash: "Got a white page with an error. Was on github"
+    (written into item 17a, with an error screen so no error leaves a white page). And: "Now, I think we have some
+    really long task for it to bite into when development can resume again?" (answered in the chat)
