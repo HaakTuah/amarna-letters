@@ -88,6 +88,12 @@ export interface RisenPower {
   from: string;
   /** His traits as a seat's temper (aggression, caution, honesty, greed), in hundredths, for script seats. */
   temper: number[];
+  /**
+   * How he came to rule (item 17): `governor` (his kingdom fell), `turned` (a governor who refused his recall), `revolt`
+   * (he led his province's revolt), `chief` (a chief or a commander who held land without a ruler) or `elder` (lawless land's
+   * own people raised him).
+   */
+  how: string;
 }
 
 const live: Power[] = [...PowerValues];

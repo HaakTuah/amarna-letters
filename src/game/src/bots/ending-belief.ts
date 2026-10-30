@@ -37,7 +37,7 @@ export function seasonsLeft(turn: number, openAge: boolean, band = "Usual"): num
   return e;
 }
 
-/** Whether a king thinks the end may be near: from the season the believed chance reaches one in a hundred (season 15 for the usual age). */
+/** Whether a king thinks the end may be near: from the season the believed chance reaches one in a hundred (season 15 for a short age, believed 44, and about 49 for the usual one since item 17). */
 export function endMayBeNear(turn: number, openAge: boolean, band = "Usual"): boolean {
   return !openAge && endChanceAt(turn, believed(band)) >= 0.01;
 }

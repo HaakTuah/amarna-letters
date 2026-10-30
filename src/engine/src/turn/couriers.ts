@@ -129,9 +129,10 @@ P.sendOrders = function (p, sub) {
   for (const o of sub.orders) {
     // Command, recall and mandates carry their own delay (the man or the word travels): they name the unit where it truly
     // stands, and are given at once.
-    if (o.type === "command" || o.type === "relieve" || o.type === "mandate") {
+    if (o.type === "command" || o.type === "relieve" || o.type === "mandate" || o.type === "supply") {
       const u = this.orderedUnit(p, o.unit);
-      keep.push(u !== null && u.province !== o.unit ? { ...o, unit: u.province } : o);
+      // Item 17: the word on an army's food keeps where its king named it, for what his view shows on the road.
+      keep.push(u !== null && u.province !== o.unit ? (o.type === "supply" ? { ...o, unit: u.province, named: o.unit } : { ...o, unit: u.province }) : o);
       continue;
     }
     const at = placeOf(this, p, o);
@@ -236,7 +237,7 @@ P.tell = function (p, province, kind, title, text) {
 
 P.keepTrails = function () {
   for (const u of this.s.units) {
-    u.trail.push(`${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}`);
+    u.trail.push(`${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}|${u.chest}|${u.buy ? 1 : 0}`);
     if (u.trail.length > TrailKept) u.trail.splice(0, u.trail.length - TrailKept);
   }
 };

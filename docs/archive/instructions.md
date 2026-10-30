@@ -546,3 +546,86 @@ Given in the design chat with Claude, answering the design questions of the cons
 55. **16:42**, in the design chat, to item 13's two review questions (governors' seats now rather than lawless until
     item 17; the realm coming apart province by province as the news arrives) and the design session's takes: "I agree
     with all your takes." Written into build order item 13 as 13+.
+
+56. **30 October 2026, 01:13 UTC**, in the design chat, to lengthening the age (a median of about 80 seasons, the cap
+    at about 140 to 160, set now; from 30 script games where no Great King's capital but Assyria's fell before the age
+    ended): "Yes to 1." Written into "Random ending" (Victory), the calendar (The world) and build order item 17. On a
+    busier opening from history he said: "But this game has no casua belli or the likes. So I don't see how we do what
+    you propose here? I have already said we should give rhem the money and armies they had at this time, so they are
+    free to do exactly what was going on then. But we cannot dictate that someone is in conflict, if you know what I
+    mean." (answered in the chat)
+57. **30 October 2026, 01:27 UTC**, in the design chat, to an opening set from history (troop positions as the sources
+    place them, letters already on the road, memories of the years before) and to the lands east of the Jordan (item
+    11f+'s question 1): "1. Abosuletly yes to troop positions and that. All that was materially, we should represent as
+    accurate as possible. But pre-writing letters would be to speak on a player's behalf, so doing that, and adding
+    memories, I hesitate to. Any model playing, will have some idea of their historical start, so I think they are
+    biased sufficiently by that. Do we need to bias them anymore? However, if we have any documented debts at game
+    start, that would be interesting to include. Really that would just be representing their finances accurately,
+    which is what we're already trying to do. 2. Is this the best read we have of the historical sources? If so, then
+    i approve!" Written into "Starting positions come from the sources" (The world) and build order item 17+: troop
+    positions and documented debts from the sources, no letters or memories written for a court; the Shasu in the
+    Negev and Edom [A], the Bashan Ashtaroth's and Gilead Pella's [B], Moab and Ammon outside the game.
+58. **30 October 2026, 01:47 UTC**, in the design chat, to the design session's take on names (every name a player or
+    model sees as the sources of 1346 give it, Dimashqa, Gubla, Pihil, Urusalim, with the modern name on a second line
+    of the province card; the land east of the Salt Sea labelled by description instead of Moab and Ammon, and Edom
+    as Seir), after asking "Should they be in the game then?" of Moab and Ammon and "are some of the city names
+    anchrononistic? Like Damascus, is that really what the city was called back then?": "Agreed to all, expertly!"
+    Written into "Places by their own names" (The world) and build order item 17+.
+59. **30 October 2026, 02:09 UTC**, in the design chat, after asking "Are there any more settlements we have no, that
+    shouldn't be there in the time we are portraying?" and hearing the design session's check (Hebron had no town in
+    the Late Bronze Age, so Shuwardata's land centred on Gath; Nesa a name more than a city; Kalavasos and Akhetaten
+    fine): "Agreed to all! Implement expertly!" Written into "Places by their own names" (The world) and item 17+.
+60. **30 October 2026, 02:33-02:37 UTC**, in the design chat, on the province card showing Akhetaten's land (645,350
+    people) under the city's name: "For the game, does it matter if they are in the city or just in the province? If
+    so, it should be distinguished. Also, of course they are estimates. But the game still needs an exact figure, it
+    must know how many soldiers it has, mouths to feed, etc. Though it is an open question if the player should get
+    that resolution of detail." And, to the design session's take (the card shows town and land apart; a king sees his
+    own soldiers exactly, his people and stores to two figures, others' lands as dated estimates; god view exact):
+    "Yes to both." Written into "Counts as the scribes knew them" (The world) and build order item 17++; the towns'
+    people as they stood in 1346 (Akhetaten below Thebes and Memphis) into 17+, by his "All that was materially, we
+    should represent as accurate as possible" (item 57).
+61. **30 October 2026, 02:42 UTC**, in the design chat, to a census (scribes sent to count a province; a counted
+    province pays its full tax and levy, an uncounted one hides a share; counting stirs some unrest; built in item
+    17++): "Agreed to all! So how well should you know your population then without doing a census? It also tells you
+    how many laborers you can set to things or recruit, I guess. But labor was also a form of tax, as you've told me."
+    (the question answered in the chat) "Also, have you corrected all the wrong town populations? Do the smallest
+    cities around in Levant and other places also have separate populations in the town and on the land?" (answered
+    in the chat; item 17+ checks every town)
+62. **30 October 2026, 02:47 UTC**, in the design chat, to the design session's takes (what a king sees of his people
+    follows the age of his last count, each court starting with the counts its sources suggest; a count covers work
+    gangs as well as tax and levy, labour being a tax; five towns corrected in item 17+: Akhetaten, Kalavasos, Nesa,
+    Gath for Hebron, Tunip): "Agreed to all, expertly!" Written into "Counts as the scribes knew them" and "A census"
+    (The world) and items 17+ and 17++. He asked too: "What is the consequences then of noy counting again after a big
+    depopulation event?" (answered in the chat)
+63. **30 October 2026, 02:51 UTC**, in the design chat, to the design session's take that levies and work gangs be
+    demanded against the last count, so a stale count after a plague squeezes the survivors: "My take? Yes! Though a
+    king should be able to be conservative and state how much he wants in tax or labor, if he knows he sits on bad
+    information. He shouldn't be forced to squeeze the population. But if he demands too much, there are consequmces
+    like you say. It impacts the next harvest. Or if he takes too much of the harvest in tax, then there is little left
+    for the population. Is that a good take in your expert opinion?" Written into "The king says how much he wants"
+    (The world) and item 17++.
+64. **30 October 2026, 02:56-03:05 UTC**, in the design chat, on how a king asks for tax: "Well, he could ask for a
+    smaller amount. He knows a percentage will be off, since the number it is applied to is off. So he calculates a
+    percentage for a much smaller population, for example. But it is just an estimate from his side then, and a bit of
+    an gamble. He could be getting less than what was potential, or still unwittingly squeeze the population." Then:
+    "But can he say a third, if he doesnt know what that third comes from? How does he know they paid their tax
+    then?" Then: "But isn't that a census essentially? So if the king hasn't done a census, how can he ask for a
+    percentage? He can ask for a percentage of a stale census, but that's still an amount, he doesnt know if it
+    actually alings with a population he has now. Get what I mean?" Then: "Or does he always state an amount. And how
+    he knows what an appropriate amount is, is through a census?" Then: "But should he be able to extract tax as
+    effectively from land further away? Or does the game rules already make that more difficult?" And, to the design
+    session's takes (always an amount, the census as how he knows, collectors who may skim or squeeze, the census
+    measuring fields; distance through the existing frictions alone, checked in item 18): "Agreed to all, expertly."
+    Written into "A census" and "The king says how much he wants" (The world) and items 17++ and 18.
+65. **30 October 2026, 03:11-03:17 UTC**, in the design chat: "Who are the headmen, and how does he correct for this
+    corruption? There must be levers for him to pull, or it is just rng." Then: "So you want characters to be the ones
+    who collect tax in every city also?" Then: "A governor makes sense. But the rest i feel you are dictating terms i
+    never agreed to. I don't think characters should collect taxes as a rule, unless they are governor of a province.
+    My thinking is, a king can either dictate a percentage he wants, or a bulk amount of harvest and labor. If he
+    dictates a percentage, but has an old census, then the city can screw him over, and claim his numbers are way off.
+    So percentage always ensures he doesn't squeeze a province, but almost garauntes he is squeezed if his census is
+    outdated. Is that an alright way to handle it? Or he can gamble, and just state a fixed amount. Then he gets it,
+    but has little way of knowing if it was fair, too much or too little." And, to the design session's write-up of
+    it: "Yes, please, expertly!" This replaces item 64's "always an amount" and removes the collectors (headmen) who
+    skim or squeeze, which the design session had written in beyond what he meant. Written into "A census" and "The
+    king says how much he wants" (The world) and items 17++ and 18.

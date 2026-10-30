@@ -42,6 +42,7 @@ import { Views } from "../rules/views.ts";
 import { absorbedIn, TurnEngine } from "./core.ts";
 import { CommandData } from "../model/command.ts";
 import { openToSea, type Sneak, type TollBook } from "./trade.ts";
+import { TakenBook } from "./supply.ts";
 
 /** The notice of a king's economy each season: harvest, mines, pay and food. */
 export const EconomyTitle = "The treasury";
@@ -312,11 +313,18 @@ function depotOf(e: TurnEngine, u: Unit): string | null {
  * its baggage, else from the land: at home the town's market (requisition), elsewhere what the farmers can spare, a third
  * of their share of the harvest (half that in winter, none in the desert or at sea), shared among the troops there. A unit
  * that cannot eat in full goes hungry; after a few seasons of hunger or of missing pay it mutinies and, until bands exist,
- * disbands and its men go home with their savings. Abroad by leave (item 9+b) its king buys its food at the market there,
- * from his treasury, before it eats into its baggage. Returns the lines each king reads.
+ * disbands and its men go home with their savings. Where it stands by leave, at home or abroad (item 9+b), it buys its
+ * food at the market there before it eats into its baggage, if its king's word is to buy and it carries the gold he sent
+ * for it, unless its commander keeps that gold; without, it takes (item 17, "Armies need food as well as pay"), and what
+ * troops take raises the land's unrest by how much it was. Returns the lines each king reads.
  */
 P.feedTroops = function () {
   const S = this.s;
+  this.foodArrives();
+  // What each province's farmers and market held as the season began: what troops take is weighed against it (item 17).
+  const base = new Dict<string, number>();
+  for (const prov of this.map.landProvinces) base.set(prov.id, this._foodNow.getOrDefault(prov.id, 0) + (S.markets.tryGet(prov.id)?.stock ?? 0));
+  const taken = new TakenBook(base);
   const lines = new Dict<Power, string[]>();
   const tell = (p: Power, line: string): void => {
     let l = lines.tryGet(p);
@@ -339,23 +347,28 @@ P.feedTroops = function () {
   const foraged = new Dict<Power, number>();
   const bought = new Dict<Power, number>();
   for (const u of sortBy(S.units, [(u: Unit) => u.id, cmpStr])) {
+    u.chest = Math.min(u.chest, u.savings);
     // An army outside its own land in winter pays supplies, by how hard the winter is there (item 10+a, "Winter in the field").
     const abroad = u.kind === "Army" && winter && S.owner.getOrDefault(u.province, null) !== u.power;
     const need = unitFood(u) + (abroad ? idiv(unitFood(u) * LandData.winterFood[climateOf(u.province).winter], 100) : 0);
     let eaten = 0;
     const depot = depotOf(this, u);
     if (depot !== null) eaten += this.takeFromStores(depot, need);
-    // Abroad by leave: bought at the market where it stands, at the market's price, from its king's treasury.
+    // Where it stands by leave, at home or in a friend's land: bought at the market there, at the market's price, with the
+    // gold it carries for food, if its king's word is to buy and its commander does not keep the gold (item 17).
     const host = S.owner.getOrDefault(u.province, null);
-    if (eaten < need && depot === null && !this.map.get(u.province).isSea && host !== u.power && this.byLeave(u) && siegeOf(S, u.province) === null) {
-      const t = S.treasuries.get(u.power);
+    const byLeave = !this.map.get(u.province).isSea && (host === u.power || this.byLeave(u)) && siegeOf(S, u.province) === null;
+    let buying = false;
+    if (eaten < need && byLeave && u.buy && u.chest > 0 && !this.keepsFoodGold(u)) {
       const m = this.market(u.province);
-      const r = buyAlongCurve(m.stock, needOf(this.map.get(u.province)), Math.max(0, t.gold), need - eaten);
+      const r = buyAlongCurve(m.stock, needOf(this.map.get(u.province)), u.chest, need - eaten);
       if (r.taken > 0) {
         m.stock -= r.taken;
         m.purse += r.paid;
-        t.gold -= r.paid;
+        u.chest -= r.paid;
+        u.savings -= r.paid;
         eaten += r.taken;
+        buying = true;
         bought.set(u.power, (bought.getOrDefault(u.power, 0) + r.paid));
       }
     }
@@ -366,12 +379,14 @@ P.feedTroops = function () {
     }
     if (depot !== null) u.food += this.takeFromStores(depot, unitCarried(u) - u.food);
     const prov = this.map.get(u.province);
+    const before = eaten;
     if (eaten < need && !prov.isSea) {
       if (S.owner.getOrDefault(prov.id, null) === u.power) {
         const m = this.market(prov.id);
         const take = Math.min(m.stock, need - eaten);
         m.stock -= take;
         eaten += take;
+        taken.add(prov.id, u.power, take);
       }
       if (eaten < need) {
         const take = Math.min(landFood(prov), need - eaten);
@@ -383,9 +398,15 @@ P.feedTroops = function () {
           const waste = idiv(take * Math.max(0, idiv(100 - t.competence, CommandData.lootPer) + idiv(100 - t.loyalty, CommandData.lootPer)), 100);
           this._foodNow.set(prov.id, Math.max(0, this._foodNow.getOrDefault(prov.id, 0) - take - waste));
           eaten += take;
+          taken.add(prov.id, u.power, take + waste);
           foraged.set(u.power, foraged.getOrDefault(u.power, 0) + take);
         }
       }
+    }
+    // How each army by leave got its food this season, for the record (item 17): bought, or taken.
+    if (byLeave && u.kind === "Army") {
+      if (buying) logEvent(S, "supply", `${u.power}'s army in ${prov.name} bought its food.`, [], "supply-buy");
+      if (eaten > before) logEvent(S, "supply", `${u.power}'s army in ${prov.name} took its food from the land.`, [], "supply-take");
     }
     if (eaten < need) {
       u.hungry++;
@@ -399,8 +420,9 @@ P.feedTroops = function () {
     logEvent(S, "hunger", `${p}'s troops went hungry: ${h.join(", ")}.`, [p], "hunger");
   }
   for (const [p, n] of foraged.entries()) if (n > 0) logEvent(S, "forage", `${p}'s troops took ${n} measures from the land.`, [p], "forage");
+  taken.settle(this);
   for (const [p, g] of bought.entries()) {
-    tell(p, `Your troops abroad by leave bought their food at the markets where they stand, for ${formatMoney(g)} from the treasury.`);
+    tell(p, `Your troops bought their food at the markets where they stand by leave, for ${formatMoney(g)} of the gold they carry for it.`);
     logEvent(S, "food-bought", `${p} bought food for its troops abroad.`, [p], "food-bought");
   }
   // Mutiny: a few seasons of hunger, or of missing pay.

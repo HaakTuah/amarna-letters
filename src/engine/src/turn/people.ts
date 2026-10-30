@@ -8,6 +8,7 @@
 import { policedShare } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
+import { UnrestData } from "../model/unrest.ts";
 import { sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { EconomyData, grainWorth } from "../model/economy.ts";
@@ -284,6 +285,8 @@ export function people(n: number): string {
 P.levyMen = function (province, n) {
   const x = this.peopleOf(province);
   if (menAvailable(this.s, province) < n) return false;
+  // Item 17: levies raised from it are a hardship its people remember, by the share of its men taken.
+  this.hardship(province, idiv(n * UnrestData.levy, Math.max(1, x.men)));
   shift(x, -n, -n);
   return true;
 };

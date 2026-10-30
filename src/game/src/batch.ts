@@ -20,6 +20,8 @@ import {
   inboxOf,
   isSealedAgreement,
   max,
+  GreatKings,
+  vassalTerms,
   min,
   newEarnings,
   newGame,
@@ -80,6 +82,11 @@ export interface GameSummary {
   topWealth: number;
   /** The kingdoms that fell with their capitals, each with the season it fell: the pace of war. */
   falls: FallMeasure[];
+  /**
+   * Item 17 (the age lengthened): whether the age saw a Great King's war decided, a Great King's capital taken ("capital")
+   * or a Great King made another's vassal ("vassal"), whichever came first, or null (older summaries have none).
+   */
+  greatWar?: string | null;
   /** What every character gained in the game, by source, the dead included. */
   gained: Earnings;
   /** The press in clauses (item 8): counts by what was written, recited, answered and reported (see pressOf). */
@@ -98,6 +105,8 @@ export interface GameSummary {
 export interface RisenMeasure {
   power: string;
   from: string;
+  /** How its ruler rose (item 17): governor, turned, revolt, chief or elder. */
+  how?: string;
   turn: number;
   /** The seasons it ruled: to its fall, or to the end. */
   seasons: number;
@@ -118,6 +127,7 @@ export function risenMeasures(s: GameState, engine: TurnEngine): RisenMeasure[] 
     return {
       power: r.power,
       from: r.from,
+      how: r.how,
       turn: r.turn,
       seasons: (fell?.turn ?? end) - r.turn,
       alive: fell === null,
@@ -133,10 +143,17 @@ export function risenMeasures(s: GameState, engine: TurnEngine): RisenMeasure[] 
 export function risenReport(games: readonly GameSummary[]): string[] {
   const all = games.flatMap((g) => g.risen ?? []);
   const rose = games.filter((g) => (g.risen ?? []).length > 0).length;
-  if (all.length === 0) return ["Governors' seats (item 13+): none rose."];
+  const sig = (k: string): number => sum(games, (g) => g.signals[k] ?? 0);
+  const free = [
+    `How cities became free (item 17): revolts ${sig("revolt-led") + sig("revolt-lawless")} (led ${sig("revolt-led")}, lawless ${sig("revolt-lawless")}; of the homeland ${sig("revolt-home")}), ${sig("revolt-crushed")} put down by troops; gates opened from within ${sig("siege-starved")}; spies stirring ${sig("stir")} seasons.`,
+    `  Words to armies on their food: buy ${sig("supply-word-buy")}, take ${sig("supply-word-take")}. Armies by leave, unit-seasons: bought food ${sig("supply-buy")}, took it ${sig("supply-take")} (both in a season count once each); commanders who kept the gold ${sig("supply-kept")}.`,
+  ];
+  if (all.length === 0) return ["Seats risen in play (items 13+ and 17): none rose.", ...free];
   const used = all.filter((r) => r.envoys > 0).length;
+  const how = ["governor", "turned", "revolt", "chief", "elder"].map((h) => `${h} ${all.filter((r) => (r.how ?? "governor") === h).length}`).join(", ");
   return [
-    `Governors' seats (item 13+): ${all.length} rose in ${rose} of ${games.length} games; ${all.filter((r) => r.alive).length} still ruled at the end, after ${fmt(mean(all.map((r) => r.seasons)), "0.0")} seasons on average; mean growth ${fmt(mean(all.map((r) => r.growth)), "0.00")} (the survivors' ${fmt(mean(all.filter((r) => r.alive).map((r) => r.growth)), "0.00")}).`,
+    ...free,
+    `Seats risen in play (items 13+ and 17; by how: ${how}): ${all.length} rose in ${rose} of ${games.length} games; ${all.filter((r) => r.alive).length} still ruled at the end, after ${fmt(mean(all.map((r) => r.seasons)), "0.0")} seasons on average; mean growth ${fmt(mean(all.map((r) => r.growth)), "0.00")} (the survivors' ${fmt(mean(all.filter((r) => r.alive).map((r) => r.growth)), "0.00")}).`,
     `  Their seats sent envoys in ${used} of ${all.length} (${sum(all, (r) => r.envoys)} envoys) and sealed ${sum(all, (r) => r.sealed)} tablets with other courts, ${sum(all, (r) => r.vassal)} of them vassal tablets.`,
   ];
 }
@@ -220,6 +237,20 @@ export function pressReport(games: readonly GameSummary[]): string[] {
 }
 
 /** The falls of a game, measured. */
+/** Whether the age saw a Great King's war decided (item 17), and how first: his capital taken, or he made another's vassal. */
+export function greatWarOf(s: GameState): string | null {
+  const great = new Set<string>(GreatKings);
+  const fell = s.falls.filter((f) => great.has(f.power)).map((f) => f.turn);
+  const bonds = s.tablets
+    .map((t) => vassalTerms(t))
+    .filter((v) => v !== null && great.has(v.vassal) && great.has(v.overlord))
+    .map((v) => v!.sealedTurn);
+  if (fell.length === 0 && bonds.length === 0) return null;
+  const f = fell.length > 0 ? Math.min(...fell) : Infinity;
+  const b = bonds.length > 0 ? Math.min(...bonds) : Infinity;
+  return f <= b ? "capital" : "vassal";
+}
+
 export function fallsOf(s: GameState): FallMeasure[] {
   return s.falls.map((f) => {
     const by = s.invaded.tryGet(f.power) ?? null;
@@ -298,6 +329,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     standingFired: sum(AllPowers, (p) => inboxOf(s, p).filter((i) => i.kind === "Resolution" && i.title.startsWith("Standing order ") && i.title.endsWith(" fired")).length),
     seed,
     falls: fallsOf(s),
+    greatWar: greatWarOf(s),
     turns: s.scores.length === 0 ? 0 : max(s.scores, (x) => x.turn),
     winners: [...s.winners],
     growth,
@@ -581,6 +613,14 @@ export function parResultsSource(games: readonly GameSummary[], seeds: string): 
 export function batchReport(games: readonly GameSummary[]): string {
   const lines: string[] = [];
   lines.push(`${games.length} games, ${fmt(mean(games.map((g) => g.turns)), "0.0")} turns on average (range ${min(games, (g) => g.turns)}-${max(games, (g) => g.turns)}).`);
+  {
+    // Item 17: the length of the age, and the one test it is judged by.
+    const lengths = games.map((g) => g.turns).sort((a, b) => a - b);
+    const decided = games.filter((g) => (g.greatWar ?? null) !== null);
+    lines.push(
+      `The age: median ${lengths[Math.floor((lengths.length - 1) / 2)]} seasons; a Great King's war decided in ${decided.length} of ${games.length} ages (his capital taken first ${decided.filter((g) => g.greatWar === "capital").length}, made another's vassal first ${decided.filter((g) => g.greatWar === "vassal").length}).`,
+    );
+  }
   lines.push("");
   lines.push("Wins by power (shared wins count for each partner):");
   for (const p of AllPowers) {
