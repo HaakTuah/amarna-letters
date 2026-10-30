@@ -646,3 +646,9 @@ Given in the design chat with Claude, answering the design questions of the cons
 69. **30 October 2026, 07:02 UTC**, in the design chat, on the crash: "Got a white page with an error. Was on github"
     (written into item 17a, with an error screen so no error leaves a white page). And: "Now, I think we have some
     really long task for it to bite into when development can resume again?" (answered in the chat)
+70. **30 October 2026, 07:15-07:16 UTC**, in the design chat, on new versions: "No, i havent. I just figured it should've
+    updated itself, and not have to ask me." Then: "It should update when you start game. It always pops up when I
+    havent even started a game yet. Like why would I not want the latest version?" Written into item 17a: the newest
+    version always played without asking (on opening, the start screen and starting a game at once; during a game at
+    the next season, back into the same game); only a version whose rules a saved game cannot carry on in waits until
+    that game ends. The same for Barkstreet Snakes' 2v.
