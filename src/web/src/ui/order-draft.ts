@@ -46,6 +46,8 @@ export class OrderDraft {
   readonly cancelAnswers = new Set<string>();
   selected: string | null = null;
   notes = "";
+  /** Item 16: "on" or "off" to turn the royal council on or off from next season; "" leaves it as it is. */
+  council = "";
 
   constructor(view: SeatView) {
     this.view = view;
@@ -120,7 +122,32 @@ export class OrderDraft {
       cancelStanding: this.view.standing.map((s) => s.id).filter((id) => this.cancelStanding.has(id)),
       answers: [...this.answers],
       cancelAnswers: this.view.answers.map((a) => a.id).filter((id) => this.cancelAnswers.has(id)),
+      council: this.council,
     });
+  }
+
+  /** Item 16: takes an advisor's troop orders and levies into the draft, in place of the units' orders written so far. */
+  take(orders: readonly Order[]): void {
+    for (const o of orders) {
+      if (o.type === "raise" || o.type === "sally") {
+        if (!this.other.some((x) => JSON.stringify(x) === JSON.stringify(o))) this.other.push(o);
+        continue;
+      }
+      if (!("unit" in o) || !this.units.has(o.unit)) continue;
+      const d: UnitDraft =
+        o.type === "move"
+          ? { kind: o.forced === true ? "force" : "move", target: o.to, to: null }
+          : o.type === "support"
+            ? { kind: "support", target: o.supported, to: o.to ?? null }
+            : o.type === "convoy"
+              ? { kind: "convoy", target: o.army, to: o.to }
+              : o.type === "disband"
+                ? { kind: o.settle === true ? "settle" : "disband", target: null, to: null }
+                : o.type === "besiege"
+                  ? { kind: "besiege", target: null, to: null }
+                  : newUnitDraft();
+      this.units.set(o.unit, d);
+    }
   }
 
   /** A unit order as the form for standing orders builds it, or null while it lacks what it needs. */

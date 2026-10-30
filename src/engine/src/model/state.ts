@@ -82,7 +82,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 35;
+export const CURRENT_VERSION = 36;
 
 export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
   "RisenPower",
@@ -234,6 +234,11 @@ export interface GameState {
   payKnown: Dict<string, PayRecord>;
   /** The courts whose standing order is to pay the carriers of their people's letters on delivery (order payCarriers). */
   payCarriers: Power[];
+  /**
+   * Item 16, "The royal council": the seats that turned their council off (a model, file or human seat has it on unless it
+   * is here; script seats never have one). Recorded so experiments can report whether it was on.
+   */
+  councilOff: Power[];
   /** Haakon's answers to items 11b and 11b+: the standing orders that armies fall on bands, by province or the whole land. */
   hunts: StandingHunt[];
   /** The hunts ordered this season (`power|province`), carried out as the next season begins. */
@@ -389,6 +394,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     payFacts: [],
     payKnown: new Dict(),
     payCarriers: [],
+    councilOff: [],
     hunts: [],
     huntNow: [],
     debts: [],
@@ -492,6 +498,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   payFacts: list(() => PayFactSchema),
   payKnown: dict(() => PayRecordSchema),
   payCarriers: list(S),
+  councilOff: list(S),
   hunts: list(() => StandingHuntSchema),
   huntNow: list(S),
   debts: list(() => DebtSchema),

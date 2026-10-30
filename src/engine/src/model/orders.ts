@@ -1046,10 +1046,12 @@ export interface TurnSubmission {
    * sleeping; "Per-seat sleep, never a global skip"). Model and file seats leave it false and sleep after their orders.
    */
   stayAwake: boolean;
+  /** Item 16: a model, file or human seat turns its royal council "on" or "off" from next season ("" leaves it as it is). */
+  council: string;
 }
 
 export function newTurnSubmission(init: Partial<TurnSubmission> = {}): TurnSubmission {
-  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], answers: [], cancelAnswers: [], fromFallback: false, stayAwake: false, ...init };
+  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], answers: [], cancelAnswers: [], fromFallback: false, stayAwake: false, council: "", ...init };
 }
 
 export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTurnSubmission, {
@@ -1064,4 +1066,5 @@ export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTur
   cancelAnswers: list(S),
   fromFallback: B,
   stayAwake: B,
+  council: S,
 });

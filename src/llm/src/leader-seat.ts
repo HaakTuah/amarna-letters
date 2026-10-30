@@ -60,6 +60,8 @@ export class LlmLeaderSeat implements ISeat {
   private readonly journalOf = new LeaderJournal();
   readonly label: string;
   readonly canSleep = true;
+  /** Item 16: a model or file king hears its royal council while it is on. */
+  readonly hearsCouncil = true;
   private readonly power: Power;
   private readonly client: JsonAsker;
   private readonly model: string;

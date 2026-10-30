@@ -135,6 +135,8 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const woke = sleepLine(v, true);
         if (woke.length > 0) sb.appendLine(woke);
         sb.appendLine(`SEASON: turn ${v.turn}, ${v.season} by your court's reckoning.`);
+        // Item 16, "Omens of the end": what the court's diviners read this season, in words only.
+        if (v.omens !== ``) sb.appendLine(`OMENS: ${v.omens}`);
         // Item 13: where the king is, his court and capital, from where his orders go out.
         if (v.courtAt !== ``) sb.appendLine(`COURT: you and your court are in ${v.courtAt}${v.courtTo !== null ? `, on the road to ${v.courtTo}` : ``}; your orders go out from here (see COMMAND AT A DISTANCE).`);
         const rank = rankLine(v);
@@ -253,9 +255,26 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
                           + joinS(`; `, v.courtLetters.map(inFull)) + `.` + lettersGold(v.courtLetters));
 
         sb.append(whileYouSlept(v));
+        sb.append(councilBrief(v));
 
         sb.appendLine();
         sb.append(news(v));
+        return sb.toString();
+    }
+
+/**
+ * Item 16, "The royal council": four advisors' troop orders and levies, compact (what all four agree on once, then each
+ * where they differ), with each advisor's known tilt. They work from this court's own view, so they can be wrong.
+ */
+export function councilBrief(v: SeatView): string
+    {
+        const c = v.council;
+        if (c === null) return ``;
+        const sb = new Sb();
+        sb.appendLine(`YOUR ROYAL COUNCIL (four advisors who only inform; they see only what you see, with rivals' gold estimated and troops remembered, so they can be confidently wrong; "pictured seasons" are eight ways this season may go, played out by the rules from your view; troop orders and levies only, diplomacy is yours):`);
+        if (c.agreed.length > 0) sb.appendLine(`- All four advise: ${joinS(`; `, c.agreed.map((l) => l.text))}.`);
+        for (const a of c.advisors)
+            sb.appendLine(`- ${a.title.charAt(0).toUpperCase() + a.title.slice(1)} (the ${a.advisor}; ${a.tilt}): ${a.reading}${a.lines.length > 0 ? ` Proposes: ${joinS(`; `, a.lines.map((l) => l.text))}.` : ``}`);
         return sb.toString();
     }
 
