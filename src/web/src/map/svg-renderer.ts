@@ -753,6 +753,11 @@ export class SvgMapRenderer implements MapRenderer {
       view.querySelectorAll(".map .small, .map .off").forEach((e) => e.classList.remove("small", "crowd", "off"));
       const rects = (e: Element, sel: string): DOMRect[] =>
         [...e.querySelectorAll(sel)].map((x) => x.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+      const union = (rs: DOMRect[]): DOMRect[] => {
+        if (rs.length < 2) return rs;
+        const left = Math.min(...rs.map((r) => r.left)), top = Math.min(...rs.map((r) => r.top));
+        return [new DOMRect(left, top, Math.max(...rs.map((r) => r.right)) - left, Math.max(...rs.map((r) => r.bottom)) - top)];
+      };
       const byProvince = (sel: string): Map<string, Element[]> => {
         const m = new Map<string, Element[]>();
         view.querySelectorAll(sel).forEach((e) => {
@@ -771,7 +776,9 @@ export class SvgMapRenderer implements MapRenderer {
         return {
           id,
           c,
-          badge: rects(c, ".seal, .walls, .cap-ring, .tent"),
+          // The badge as one box round its seal, rings and a siege's tents: the tents stand apart, and a counter between two
+          // of them would still crowd the city.
+          badge: union(rects(c, ".seal, .walls, .cap-ring, .tent")),
           seal: c.querySelector(".seal")?.getBoundingClientRect(),
           rest: [
             ...(units.get(id) ?? []).flatMap((u) => rects(u, ":scope > .sym")),
