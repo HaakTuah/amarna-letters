@@ -13,7 +13,9 @@ save file is touched, so no new save version, and the script games come out the 
 below). Weekly usage could not be read in this session ("unknown"). No model games.
 
 **The check for changes.** The live design document was asked for changes to the Build order tab (since revision 109) and
-the Interface tab (since revision 17) at the start of the item: none.
+the Interface tab (since revision 17) at the start of the item: none. Asked again before the PRs merged, after the copy's refresh (#206: build order 111, interface 17, victory 17):
+item 19's text and its section unchanged; the longer age (a median of about 80 seasons, item 17) reaches the map only
+through the omens in the margin, which read the engine's own tier each season, so they follow it unchanged.
 
 ## Review questions (Stop for review)
 
