@@ -199,6 +199,18 @@ Branch `item/living-map-memory`, stacked on pass 3.
 - **Small scenes only when stepping on one season**, so scrubbing the timeline never replays them, and never with
   reduced motion (item 2: "respect for reduced motion").
 
+### Measured
+
+- **A throttled phone** (390 by 844, CPU slowed four times, six seasons played first), long tasks summed, mean of three
+  runs, pass 3 against pass 4: playing season 2, 403 and 478 ms; season 3, 390 and 430 ms; one season back, 335 and
+  458 ms. The cost is real but spread thin, and not found in one place: building a scene takes 0.25 ms and remembering
+  the past 0.02 ms (a season's battles and sacks are reckoned once per viewer and kept with the frame); with the memory,
+  life marks and ruins hidden, one season back still took 403 ms, and with the clay, the omen and the scenes hidden too,
+  420 ms. On an unthrottled phone it is some 25 ms a step. Where to look next, if the phone feels slow: the extra short
+  tasks after each step (the placement of the added markers, and the larger frames' garbage).
+- **The script games** are untouched by construction (only `src/web` changed).
+- **The smoke test** passes, with the life marks counted as markers that must touch nothing.
+
 ### The review
 
 One reviewer (Opus, high). Blocking, fixed: a king's map showed other kings' famines and towns with their numbers, and
