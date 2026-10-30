@@ -571,3 +571,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     as Seir), after asking "Should they be in the game then?" of Moab and Ammon and "are some of the city names
     anchrononistic? Like Damascus, is that really what the city was called back then?": "Agreed to all, expertly!"
     Written into "Places by their own names" (The world) and build order item 17+.
+59. **30 October 2026, 02:09 UTC**, in the design chat, after asking "Are there any more settlements we have no, that
+    shouldn't be there in the time we are portraying?" and hearing the design session's check (Hebron had no town in
+    the Late Bronze Age, so Shuwardata's land centred on Gath; Nesa a name more than a city; Kalavasos and Akhetaten
+    fine): "Agreed to all! Implement expertly!" Written into "Places by their own names" (The world) and item 17+.
