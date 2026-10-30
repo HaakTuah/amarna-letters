@@ -638,3 +638,8 @@ Given in the design chat with Claude, answering the design questions of the cons
 67. **30 October 2026, 06:56 UTC**, in the design chat: "I also think amarna letters needs another visual pass. With
     the instructions to make it as visually impressive as it possibly can, without tanking the performance." Written
     into build order item 19++, after 19+, beside item 18.
+68. **30 October 2026, 06:59 UTC**, in the design chat, on the visual pass (19++): "Well, it can get slower, but must
+    be playable on a phone. That's the criteria." And: "I see the game crashed now while I was watching one at high
+    speed. So maybe need a through optimization round also." And: "There are also many graphical glitches and
+    Inconsistencies in the game right now." Written into build order item 17a (the crash and an optimization round,
+    first, before 17+) and item 19++ (playable on a phone; glitches and inconsistencies found and fixed first).
