@@ -4,7 +4,8 @@
  * remembered against him; in his own land he buys where the people are restless (his governor says so) or the land is not
  * his homeland (a conquest still settling), and in quiet homeland only when gold is plentiful, taking otherwise. He sends
  * each army he buys for gold for three seasons' food, the price as his court last heard it, and sends more only when what
- * it carries and what is on the road runs low.
+ * it carries and what is on the road runs low, and only where the market there, as his court last saw it, holds grain
+ * to buy once its town has eaten (the item's measures found gold sent where markets were empty sitting idle in the packs).
  * He listens to his governors: a province they call restless or near revolt pays less tax. And a cunning king sends the
  * spy he posts in a foe's conquered land with gold to stir its people ("outside help").
  */
@@ -55,7 +56,11 @@ export function supplyOrders(b: Board, _brain: Brain, orders: Order[], gold: num
     const own = stores.get(u.province);
     // Its depot feeds it: our stores there will carry it.
     if (own !== undefined && own.stores >= 2 * need) continue;
-    const price = own?.price ?? v.markets.tryGet(u.province)?.price ?? 100;
+    // Gold buys only what is there: the market must hold grain for the army once its town has eaten, as last seen. Gold
+    // sent where there is nothing to buy only sits in the men's packs, for a greedy commander to keep.
+    const seen = own ?? v.markets.tryGet(u.province) ?? null;
+    if (seen === null || seen.stock - seen.need < need) continue;
+    const price = seen.price;
     const want = Math.ceil((FoodSeasons * need * price * 11) / 1000);
     const have = u.chest + sum(v.foodSent.filter((f) => f.province === u.province), (f) => f.gold);
     const short = have * 3 < want ? want - have : 0;
