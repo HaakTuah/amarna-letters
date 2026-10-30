@@ -347,7 +347,7 @@ describe("SleepTests", () => {
               return Object.assign(new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
             },
             true,
-            newGameConfig({ sleepingSeats: sleeping, maxSleep: 2, capMin: 18, capMax: 18, endMedian: 10000, peopleDefence: 0 }),
+            newGameConfig({ sleepingSeats: sleeping, maxSleep: 2, capMin: 18, capMax: 18, endMedian: 80, peopleDefence: 0 }),
           )
         )[0];
         Assert.true(summary.replayMatches, `seed ${seed}, sleep ${sleeping ? "on" : "off"}`);
