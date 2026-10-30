@@ -17,6 +17,13 @@ the Interface tab (since revision 17) at the start of the item: none. Asked agai
 item 19's text and its section unchanged; the longer age (a median of about 80 seasons, item 17) reaches the map only
 through the omens in the margin, which read the engine's own tier each season, so they follow it unchanged.
 
+## Haakon's words during the item
+
+Passed on by the orchestrator on 30 October, word for word, with weekly usage at 88%: "I want them to finish what they
+have started, if we believe they can." And of the design PRs #207 to #215 (items 17+, 17++ and item 18's check): "Build
+none of them now; they're next after the reset." So item 19 was finished as built in its four passes, with `develop`
+merged only to resolve conflicts, and nothing from those PRs built into the map.
+
 ## Review questions (Stop for review)
 
 1. **Each realm's own map.** Every court but Egypt's sees its map pressed in clay, since every Amarna letter is a clay
