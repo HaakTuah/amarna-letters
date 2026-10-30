@@ -27,7 +27,8 @@ import {
   ll,
 } from "./art.ts";
 import { Marks, markGlyph, markText } from "./crossings.ts";
-import { Burst, Capital, Chariot, Eye, Fetter, Ingot, Moon, Pupil, Ship, Tablet, TabletMarks, emblem, glyphId } from "./glyphs.ts";
+import { figureSymbols } from "./figures.ts";
+import { Burst, Capital, Eye, Fetter, Ingot, Moon, Pupil, Tablet, TabletMarks, emblem, glyphId } from "./glyphs.ts";
 
 const Map_ = WorldMap.default;
 
@@ -51,6 +52,16 @@ function buildDefs(): string {
   sb += `<pattern id="stipple" patternUnits="userSpaceOnUse" width="9" height="9"><circle cx="2" cy="2" r=".8" class="sand"/><circle cx="6.5" cy="6" r=".65" class="sand"/></pattern>`;
   sb += `<pattern id="reeds" patternUnits="userSpaceOnUse" width="7" height="6"><path d="M1,4.5h3M2.5,4.5v-2.2M5,1.5h1.6" class="reed"/></pattern>`;
   sb += `<pattern id="waves" patternUnits="userSpaceOnUse" width="26" height="12"><path d="M0,6q6.5,-4 13,0t13,0" class="wave"/></pattern>`;
+  // Item 19: the papyrus the map is drawn on, its strips laid across each other; and the season's marks on the land.
+  sb +=
+    `<pattern id="papyrus" patternUnits="userSpaceOnUse" width="29" height="31">` +
+    `<path d="M0,2.2H29M0,6.9H29M0,10.4H29M0,15.6H29M0,19.8H29M0,25.1H29M0,28.6H29" class="pap-h"/>` +
+    `<path d="M3.1,0V31M8.7,0V31M12.4,0V31M18.3,0V31M23.6,0V31" class="pap-v"/></pattern>`;
+  sb += `<pattern id="flood" patternUnits="userSpaceOnUse" width="14" height="7"><path d="M0,4.5q3.5,-2.6 7,0t7,0" class="flood-wave"/></pattern>`;
+  sb += `<pattern id="cracks" patternUnits="userSpaceOnUse" width="22" height="22"><path d="M2,4l6,3l3,7l7,2M8,7l6,-5M11,14l-6,5M18,16l3,-6" class="crack"/></pattern>`;
+  sb += `<pattern id="sheaves" patternUnits="userSpaceOnUse" width="12" height="10"><path d="M3,8v-5M3,4.5l-1.6,-2M3,4.5l1.6,-2M9,8.5v-4M9,5.5l-1.4,-1.8M9,5.5l1.4,-1.8" class="sheaf"/></pattern>`;
+  sb += `<pattern id="scrub" patternUnits="userSpaceOnUse" width="16" height="14"><path d="M2,10l1.6,-3.4l1.6,3.4M3.6,6.6v-2M10,5l1.4,-3l1.4,3M11.4,2v-1.6M6,13.4h3" class="thorn"/></pattern>`;
+  sb += `<pattern id="storm" patternUnits="userSpaceOnUse" width="44" height="26" patternTransform="rotate(-10)"><path d="M2,14q5,-8 10,-1q2,4 -2,4q-3,0 -1,-3M24,5q5,-7 10,-1q2,4 -2,4q-3,0 -1,-3M12,23q6,-5 12,0" class="storm-wave"/></pattern>`;
   // Fog: a veil of fine hatching, so the colours of ownership still show through it.
   sb += `<pattern id="fog" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="5" height="2.6" class="veil"/></pattern>`;
   sb += `<pattern id="fogsea" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="5" height="2.6" class="veil-sea"/></pattern>`;
@@ -63,8 +74,8 @@ function buildDefs(): string {
   for (const p of FixedPowers) sb += `<symbol id="em-${glyphId(p)}" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem(p)}"/></symbol>`;
   // The powers risen in play (item 13+) share one emblem, a city's tower.
   sb += `<symbol id="em-risen" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem("risen")}"/></symbol>`;
-  sb += `<symbol id="g-army" viewBox="-12 -12 24 24" overflow="visible"><path d="${Chariot}"/></symbol>`;
-  sb += `<symbol id="g-fleet" viewBox="-12 -12 24 24" overflow="visible"><path d="${Ship}"/></symbol>`;
+  // Item 19: the armies, fleets and people after the period's own relics (figures.ts).
+  sb += figureSymbols();
   sb += `<symbol id="g-tablet" viewBox="-10 -10 20 20" overflow="visible"><path d="${Tablet}" class="tab-body"/><path d="${TabletMarks}" class="tab-marks"/></symbol>`;
   sb += `<symbol id="g-eye" viewBox="-10 -10 20 20" overflow="visible"><path d="${Eye}" class="eye-white"/><path d="${Pupil}" class="eye-pupil"/></symbol>`;
   sb += `<symbol id="g-ingot" viewBox="-10 -10 20 20" overflow="visible"><path d="${Ingot}"/></symbol>`;
@@ -81,7 +92,7 @@ function buildDefs(): string {
   return sb + "</defs>";
 }
 
-const Cartouche = ll(23.6, 45.3);
+export const Cartouche = ll(23.6, 45.3);
 const Compass = ll(25.6, 48.6);
 
 function buildBase(): string {
@@ -113,6 +124,8 @@ function buildBase(): string {
     for (const [id, d] of Shapes) if (landClipOf(id) === clip) sb += Map_.get(id).isSea ? `<path class="sea-line" d="${d}"/>` : `<path class="cell-line" d="${d}"/>`;
     sb += "</g>";
   }
+  // The papyrus over all of it, faint: the map is drawn on it (item 19).
+  sb += `<rect class="papyrus" x="-300" y="-300" width="1600" height="1700" fill="url(#papyrus)"/>`;
   for (const g of GeoLabels) sb += `<text class="geo" transform="translate(${F(g.x)},${F(g.y)}) rotate(${F(g.angle)})">${g.text}</text>`;
   // The open seas by name; each coast's waters by its coast's name, small (the zone's tooltip gives its whole name).
   for (const p of Map_.provinces.filter((x) => x.isSea)) {

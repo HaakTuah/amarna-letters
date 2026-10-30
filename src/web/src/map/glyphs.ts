@@ -36,10 +36,6 @@ export const dash = (p: Power): string => Dashes[p] ?? "3 2";
 /** A power's id in the map's classes and symbols; the powers risen in play (item 13+) share one, "risen". */
 export const glyphId = (p: Power): string => (risenOf(p) !== null ? "risen" : p.toLowerCase());
 
-/** A war chariot: the board's army. */
-export const Chariot = "M-9.5,-2.5L1.5,-2.5L3,-8.5L-7.5,-8.5Z M1.5,-2.5L10.5,-6.5L10.9,-5.3L2.4,-1.3Z M-3.5,-1.8A5.6,5.6 0 1,1 -3.5,9.4A5.6,5.6 0 1,1 -3.5,-1.8Z M-3.5,0.3A3.5,3.5 0 1,0 -3.5,7.3A3.5,3.5 0 1,0 -3.5,0.3Z M-4.2,0.6H-2.8V7H-4.2Z M-6.7,3.1H-0.3V4.5H-6.7Z";
-/** A ship: the board's fleet. */
-export const Ship = "M-11,1.5L11,1.5C9,6.5 4,8 0,8C-5,8 -9,6.5 -11,1.5Z M-11,1.5L-12.6,-3.6L-10.4,-3.4L-9,1.5Z M10.2,1.5L12.4,-2.2L11.2,-3.2L8.6,1.5Z M-0.7,1.5V-10H0.7V1.5Z M-7,-9.4H7L6,-2.2H-6Z";
 /** A clay tablet: an envoy. */
 export const Tablet = "M-6,-8.5H6A2.5,2.5 0 0 1 8.5,-6V6A2.5,2.5 0 0 1 6,8.5H-6A2.5,2.5 0 0 1 -8.5,6V-6A2.5,2.5 0 0 1 -6,-8.5Z";
 export const TabletMarks = "M-5,-4.5L-2.5,-3.6L-5,-2.7Z M-1,-4.5L1.5,-3.6L-1,-2.7Z M3,-4.5L5.5,-3.6L3,-2.7Z M-5,0L-2.5,0.9L-5,1.8Z M-1,0L1.5,0.9L-1,1.8Z M-5,4.5L-2.5,5.4L-5,6.3Z M-1,4.5L1.5,5.4L-1,6.3Z M3,4.5L5.5,5.4L3,6.3Z";

@@ -15,6 +15,9 @@ import {
 import { GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { Assert, removeAll, toDict } from "../../engine/test/support.ts";
 import { buildScene, type ScenePerson, wallsIn } from "../src/map/scene.ts";
+import { seasonLayer } from "../src/map/seasons.ts";
+import { roadsLayer, worksAtCities } from "../src/map/built.ts";
+import { lifeLayer, memoryLayer, sceneMarkup, scenesOf } from "../src/map/life.ts";
 import { catchUpFrames, coverOf, frameFrom, isMove, type SeasonFrame } from "../src/session/frames.ts";
 import { buildLifeRecord } from "../src/session/life-record.ts";
 import { dated } from "../src/ui/format.ts";
@@ -204,6 +207,123 @@ describe("MapSceneTests", () => {
       }
     }
     Assert.true(differ > 0, "no court's walls ever differed from the truth out of its sight, so nothing was checked");
+  });
+
+  // Item 19: the year shows everywhere, but this game's droughts and floods only where the court's own eyes saw the land.
+  test("A court draws a drought only where it saw the land, as it was then, and god view draws it everywhere", async () => {
+    let { runner, frames } = await play(7, 16);
+    let k = frames.length - 1;
+    let p = living(runner.stateAt(k)!)[0];
+    let land = WorldMap.default.landProvinces.map((x) => x.id);
+    let inSight = land.find((id) => frames[k].sight.get(p)!.has(id))!;
+    let out = land.filter((id) => frames.every((f) => !f.sight.get(p)!.has(id)));
+    Assert.true(inSight !== undefined && out.length >= 2, "the court saw all the land or none of it");
+    // One province never seen, and one the court saw a season ago only (its sight that season widened to it).
+    let [neverSeen, seenBefore] = out;
+    let dry = (f: SeasonFrame, ids: string[]): SeasonFrame => ({ ...f, climate: [{ kind: "Drought", name: "a drought", provinces: ids, river: null, ruinous: false, since: 0 }] });
+    let edited = frames.map((f, i) =>
+      i === k ? dry(f, [inSight, neverSeen]) : i === k - 1 ? { ...dry(f, [seenBefore]), sight: new Map([...f.sight].map(([q, v]) => [q, q === p ? new Set([...v, seenBefore]) : v] as const)) } : f,
+    );
+    let seat = buildScene(edited, k, p).land;
+    Assert.equal("Drought", seat.get(inSight));
+    Assert.false(seat.has(neverSeen));
+    Assert.equal("Drought", seat.get(seenBefore));
+    let god = buildScene(edited, k, null).land;
+    Assert.equal("Drought", god.get(inSight));
+    Assert.equal("Drought", god.get(neverSeen));
+    // God view draws the land as it is now: the drought the court remembers there has ended.
+    Assert.false(god.has(seenBefore));
+  });
+
+  // Item 19: bands are drawn as the engine's own view of a court shows them, and a battle only where the court saw troops.
+  test("A court draws the bands its view shows and a battle only where it saw the troops met", async () => {
+    let { runner, frames } = await play(7, 16);
+    let bands = 0;
+    let battles = 0;
+    for (let k = 1; k < frames.length; k++) {
+      let state = runner.stateAt(k)!;
+      Assert.equal(sorted(state.bands.map((b) => b.province)), sorted(buildScene(frames, k, null).bands.map((b) => b.province)));
+      for (const p of living(state)) {
+        let scene = buildScene(frames, k, p);
+        Assert.equal(sorted(Views.for(state, p).bands.map((b) => [b.province, b.men])), sorted(scene.bands.map((b) => [b.province, b.men])));
+        bands += scene.bands.length;
+        for (const m of scene.moves.filter((x) => x.against !== null)) {
+          battles++;
+          // It met troops the court saw standing there as the season began.
+          Assert.true(frames[k - 1].sight.get(p)!.has(m.to));
+          Assert.contains(frames[k - 1].units, (u) => u.province === m.to && u.power === m.against);
+        }
+      }
+    }
+    Assert.true(bands > 0 && battles > 0, "the game had no band or no battle to check");
+  });
+
+  // Item 19: a court knows its own works as they stand, others' as its eyes last saw them, and nothing of land never seen.
+  test("A court draws what is built in its own land as it stands and elsewhere as it last saw it", async () => {
+    let { runner, frames } = await play(7, 16);
+    let k = frames.length - 1;
+    let p = living(runner.stateAt(k)!)[0];
+    let land = WorldMap.default.landProvinces.map((x) => x.id);
+    let own = land.find((id) => frames[k].owner.get(id) === p)!;
+    let out = land.filter((id) => frames[k].owner.get(id) !== p && frames.every((f) => !f.sight.get(p)!.has(id)));
+    Assert.true(own !== undefined && out.length >= 2, "the court saw all the land or held none");
+    let [neverSeen, seenBefore] = out;
+    let roads = (f: SeasonFrame, levels: [string, number][]): SeasonFrame => ({ ...f, built: new Map([...f.built, ...levels.map(([id, l]) => [`Roads:${id}`, l] as [string, number])]) });
+    let edited = frames.map((f, i) =>
+      i === k
+        ? roads(f, [[own, 3], [neverSeen, 2], [seenBefore, 1]])
+        : i === k - 1
+          ? { ...roads(f, [[own, 1], [seenBefore, 3]]), sight: new Map([...f.sight].map(([q, v]) => [q, q === p ? new Set([...v, seenBefore]) : v] as const)) }
+          : f,
+    );
+    let seat = buildScene(edited, k, p);
+    Assert.equal(3, seat.built.get(`Roads:${own}`));
+    Assert.equal(3, seat.built.get(`Roads:${seenBefore}`));
+    Assert.false(seat.built.has(`Roads:${neverSeen}`));
+    Assert.false(seat.builtKnown!.has(neverSeen));
+    let god = buildScene(edited, k, null);
+    Assert.equal(1, god.built.get(`Roads:${seenBefore}`));
+    Assert.equal(2, god.built.get(`Roads:${neverSeen}`));
+    // Its own stores it counts; another's it does not.
+    Assert.true([...seat.stores.keys()].every((id) => frames[k].owner.get(id) === p));
+  });
+
+  // Item 19, pass 4: the map remembers only battles the court saw, and shows the roads' life only where it can see.
+  test("A court remembers the battles it saw and sees caravans and walkers only on roads it can see", async () => {
+    let { runner, frames } = await play(7, 16);
+    let k = frames.length - 1;
+    let god = buildScene(frames, k, null).memory;
+    let memorials = 0;
+    for (const p of living(runner.stateAt(k)!)) {
+      let seat = buildScene(frames, k, p);
+      // Every battlefield the court remembers is one god view remembers, with no more battles there.
+      for (const [id, b] of seat.memory.memorials) {
+        memorials++;
+        Assert.true((god.memorials.get(id)?.count ?? 0) >= b.count);
+      }
+      let sees = (id: string): boolean => frames[k].owner.get(id) === p || frames[k].sight.get(p)!.has(id);
+      // Its own caravans only, as the engine's view; deportees on roads it sees; its own people's numbers only.
+      for (const r of seat.memory.caravans) Assert.equal(p, r.power);
+      for (const r of seat.memory.walking) Assert.true(sees(r.from) || sees(r.to));
+      for (const id of seat.memory.wild) Assert.true(sees(id));
+      for (const id of [...seat.memory.famine.keys(), ...seat.memory.towns.keys()]) Assert.equal(p, frames[k].owner.get(id));
+    }
+    Assert.true(god.memorials.size > 0 && memorials > 0, "no battle was fought, or none seen, so nothing was checked");
+  });
+
+  // Item 19: every layer the living map adds draws without error, every season, in god view and every court's.
+  test("The living map's layers draw for every season and every view", async () => {
+    let { runner, frames } = await play(7, 16);
+    let drawn = 0;
+    for (let k = 1; k < frames.length; k++)
+      for (const p of [null, ...living(runner.stateAt(k)!)]) {
+        let scene = buildScene(frames, k, p);
+        for (const markup of [seasonLayer(scene), roadsLayer(scene), worksAtCities(scene), memoryLayer(scene), lifeLayer(scene), ...scenesOf(frames[k - 1], frames[k], p).map(sceneMarkup)]) {
+          Assert.false(markup.includes("undefined") || markup.includes("NaN"), markup.slice(0, 120));
+          drawn += markup.length;
+        }
+      }
+    Assert.true(drawn > 0);
   });
 
   test("A frame from the live state matches one read back from its snapshot", async () => {

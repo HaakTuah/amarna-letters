@@ -8,8 +8,12 @@ import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Rivers, SeaPath, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
+import { roadsLayer, worksAtCities } from "./built.ts";
+import { figureOf } from "./figures.ts";
+import { OmenSigns, RuinMarks, lifeLayer, mediumOf, memoryLayer, sceneMarkup, scenesOf } from "./life.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
+import { seasonLayer } from "./seasons.ts";
 import { captureLine, unitKindName, type MapScene, type SceneTraveller, type SceneUnit } from "./scene.ts";
 import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
 
@@ -75,6 +79,18 @@ function cities(s: MapScene): string {
     for (let level = walls; level >= 1; level--) sb += `<circle class="walls w${level}" r="${(p.capital ? 12 : 8.5) + 2 * level}"/>`;
     if (p.capital) sb += `<circle class="cap-ring" r="12.6"/>`;
     sb += `<circle class="seal ${owner !== null ? `s-${glyphId(owner)}` : "s-free"}" r="${p.capital ? 9.5 : 7.5}"/>`;
+    // A city in ruins (item 19): sacked, and its people's hardship not yet faded.
+    if (s.memory.ruins.has(p.id)) sb += `<g class="ruin">${title(`${p.name} lies in ruins: sacked, and not yet rebuilt`)}${RuinMarks}</g>`;
+    // A siege camp (item 19): the besieger's tents ringing the walls.
+    const siege = s.sieges.find((x) => x.province === p.id);
+    if (siege !== undefined) {
+      // Close in, so they stay within the gap a city's own counters keep from its outermost ring.
+      const r = ringOf(p.capital, walls) + 2.6;
+      for (let k = 0; k < 6; k++) {
+        const a = (k * Math.PI) / 3 + Math.PI / 6;
+        sb += `<use href="#fig-tent" class="tent t-${glyphId(siege.besieger)}" x="${F(Math.cos(a) * r - 2.6)}" y="${F(Math.sin(a) * r - 2.6)}" width="5.2" height="5.2"/>`;
+      }
+    }
     if (owner !== null)
       sb += `<use href="#em-${glyphId(owner)}" class="seal-em" x="${p.capital ? -7 : -5.5}" y="${p.capital ? -7 : -5.5}" width="${p.capital ? 14 : 11}" height="${p.capital ? 14 : 11}"/>`;
     sb += "</g></g>";
@@ -193,6 +209,11 @@ function wayOf(kind: UnitKind, from: string, to: string): { pts: Pt[]; extras: s
   return { pts: way.pts, extras };
 }
 
+/** A clash of arms where a battle was fought, in the colour of the side that won it. */
+function clashMark(at: Pt, winner: Power, text: string): string {
+  return `<g class="clash" transform="translate(${F(at.x)},${F(at.y)})">${title(text)}<g class="csym"><circle class="clash-bg f-${glyphId(winner)}" r="8.5"/><use href="#fig-clash" class="clash-icon" x="-6.8" y="-6.8" width="13.6" height="13.6"/></g></g>`;
+}
+
 function moves(s: MapScene): string {
   let sb = `<g class="moves">`;
   for (const c of s.captures) {
@@ -213,7 +234,11 @@ function moves(s: MapScene): string {
         sb += `<g class="mv ${m.style === "Attack" ? "attack" : "move"} m-${id}">${title(m.text)}<path class="casing" d="${d}"/><path class="shaft" d="${d}" pathLength="1" marker-end="url(#ah-${id})"/>${way.extras}`;
         if (m.style === "Attack") {
           const at = along(trimEnd(way.pts, 13), 0.78);
-          sb += `<g transform="translate(${F(at.x)},${F(at.y)})"><g class="csym"><use href="#g-burst" class="burst" x="-8" y="-8" width="16" height="16"/></g></g>`;
+          // A battle won (item 19): where it met troops in the field, a clash of arms in the winner's colour.
+          sb +=
+            m.against !== null
+              ? clashMark(at, m.power, `A battle: ${m.text}, beating ${powerName(m.against)}`)
+              : `<g transform="translate(${F(at.x)},${F(at.y)})"><g class="csym"><use href="#g-burst" class="burst" x="-8" y="-8" width="16" height="16"/></g></g>`;
         }
         sb += "</g>";
         break;
@@ -228,6 +253,8 @@ function moves(s: MapScene): string {
         const n = mul(normal(dir), 8);
         const d = roadPath(part);
         sb += `<g class="mv bounce m-${id}">${title(m.text)}<path class="casing" d="${d}"/><path class="shaft" d="${d}" pathLength="1"/><path class="bar" d="M${F(stop.x + n.x)},${F(stop.y + n.y)}L${F(stop.x - n.x)},${F(stop.y - n.y)}"/>${way.extras}</g>`;
+        // A battle lost: thrown back by the troops it met, the clash in their colour where it was stopped.
+        if (m.against !== null) sb += clashMark(add(stop, mul(dir, 9)), m.against, `A battle: ${m.text}, held off by ${powerName(m.against)}`);
         break;
       }
       case "Support":
@@ -244,6 +271,26 @@ function moves(s: MapScene): string {
   return sb + "</g>";
 }
 
+/**
+ * Bands on the land and pirate crews on the coasts (item 19, "bands' campfires show where they lurk"): a campfire below the
+ * city of the province a band works, a pirate's ship beside it if it has one, each with its men as the viewer sees them.
+ */
+function outlaws(s: MapScene): string {
+  let sb = "";
+  const nth = new Map<string, number>();
+  for (const b of s.bands) {
+    const k = nth.get(b.province) ?? 0;
+    nth.set(b.province, k + 1);
+    const at = city(b.province);
+    const ring = ringOf(Map_.get(b.province).capital, s.walls.get(b.province) ?? 0);
+    const what = b.ship ? "A pirate crew" : "A band";
+    sb += `<g class="band-mark${b.ship ? " pirate" : ""}" data-province="${b.province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ring)}">`;
+    sb += title(`${what} of ${b.men} men in ${provinceName(b.province)}${b.chief !== "" ? `, led by ${b.chief}` : ""}`);
+    sb += `<g class="sym"><g transform="translate(${k * 18},0)"><circle class="band-bg" r="8"/><use href="${b.ship ? "#fig-fleet-levant" : "#fig-fire"}" class="band-icon" x="-6.4" y="-6.4" width="12.8" height="12.8"/></g></g></g>`;
+  }
+  return sb;
+}
+
 function unitTitle(u: SceneUnit, viewer: Power | null): string {
   return (
     (u.count > 1 ? `${u.count} ${unitKindName(u.kind)}s` : u.kind === "Army" ? "An army" : "A fleet") +
@@ -258,7 +305,7 @@ function unitItem(u: SceneUnit, viewer: Power | null, dx: number, text: string, 
   const id = glyphId(u.power);
   let inner = title(text) + `<g class="sym lift"><g transform="translate(${F(dx)},0)">`;
   inner += u.kind === "Army" ? `<rect class="tok-bg f-${id}" x="-11" y="-11" width="22" height="22" rx="4"/>` : `<circle class="tok-bg f-${id}" r="12"/>`;
-  inner += `<use href="${u.kind === "Army" ? "#g-army" : "#g-fleet"}" class="tok-icon" x="-9.5" y="-9.5" width="19" height="19"/>`;
+  inner += `<use href="${figureOf(u.power, u.kind)}" class="tok-icon" x="-10" y="-10" width="20" height="20"/>`;
   inner += `<g transform="translate(10,-10)"><circle class="tok-badge" r="5.6"/><use href="#em-${id}" class="tok-em e-${id}" x="-4.3" y="-4.3" width="8.6" height="8.6"/></g>`;
   if (u.count > 1) inner += `<g transform="translate(-10,10)"><circle class="tok-count" r="5.6"/><text class="tok-num" y="2.6">${u.count}</text></g>`;
   if (u.ghost) inner += `<g><text class="seen" y="-15">seen ${esc(shortDate(u.seenAt + 1, viewer))}</text></g>`;
@@ -374,7 +421,7 @@ function travellerItem(t: SceneTraveller, i: number, all: readonly SceneTravelle
   const same = all.slice(0, i).filter((o) => o.fromProvince === t.fromProvince && o.toProvince === t.toProvince).length;
   const shift = mul(r.length > 1 ? normal(unit(sub(r[r.length - 1], r[0]))) : { x: 0, y: 1 }, same * 14);
   at = add(at, shift);
-  const icon = t.kind === "Spy" ? "#g-eye" : t.kind === "Gold" ? "#g-ingot" : "#g-tablet";
+  const icon = t.kind === "Spy" ? "#g-eye" : t.kind === "Gold" ? "#g-ingot" : "#fig-envoy";
   let inner = title(
     `${t.title}; set out in ${dateLabel(t.depart, viewer)}, due ${t.believed ? "back" : "there"} about ${dateLabel(t.arrive, viewer)}${t.gold > 0 && t.kind !== "Gold" ? `; carries ${shekels(t.gold)} of gold` : ""}. Where on the road is a guess.`,
   );
@@ -470,6 +517,8 @@ export class SvgMapRenderer implements MapRenderer {
   private scene: MapScene | null = null;
   private placing = 0;
   private fine = false;
+  /** The finer rivers, once loaded (fine-geo.ts). */
+  private fineRivers: ReadonlyMap<string, string> | null = null;
   private readonly onClick = (e: Event): void => {
     const t = e.target as Element | null;
     const person = t?.closest("[data-person]");
@@ -507,8 +556,8 @@ export class SvgMapRenderer implements MapRenderer {
     // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g>${Relief}<g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
-      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
+      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="works"></g><g data-layer="memory"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
+      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g data-layer="life"></g><g data-layer="scenes"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-label]")) this.labels.set(g.dataset.label!, g);
@@ -518,7 +567,10 @@ export class SvgMapRenderer implements MapRenderer {
     attach(view, (scale: number) => {
       this.scale = scale;
       this.closeUp();
-      if (this.scene !== null) this.drawUnits(this.scene);
+      if (this.scene !== null) {
+        this.drawUnits(this.scene);
+        this.drawWorks(this.scene);
+      }
       // Now, and again once the zoom's glide has ended (onMoved).
       this.placeNames();
     });
@@ -528,6 +580,15 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.drawn.get(name) === key) return;
     this.drawn.set(name, key);
     this.layers.get(name)!.innerHTML = draw();
+  }
+
+  /**
+   * What is built at the cities (item 19): shown only close up (lod2, zoom.ts), so built only then, and again when the zoom
+   * comes close; at the other zooms the layer stays empty and costs a season's redraw nothing.
+   */
+  private drawWorks(s: MapScene): void {
+    const close = this.view?.classList.contains("lod2") ?? false;
+    this.layer("worksat", close ? s : null, () => (close ? worksAtCities(s) : ""));
   }
 
   /** The units, laid out for the current zoom: drawn again only when the scene or a province's gathering changes. */
@@ -545,7 +606,16 @@ export class SvgMapRenderer implements MapRenderer {
     this.scene = s;
     const lower = this.view?.querySelector(".map-lower");
     lower?.setAttribute("aria-label", s.viewer !== null ? `Map of the Great Kings' lands as ${powerName(s.viewer)} sees it` : "Map of the Great Kings' lands (god view)");
+    const seasonKey = `${s.frame.turn % 3}|${s.viewer}|${[...s.land].join(";")}`;
+    if (this.drawn.get("season") !== seasonKey) {
+      this.layer("season", seasonKey, () => seasonLayer(s));
+      // A river in spate is drawn on the board's course: close up, it takes the finer one the rivers have.
+      if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
+    }
     this.layer("tints", s.frame, () => tints(s));
+    this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s));
+    const m = s.memory;
+    this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}`).join()}`, () => memoryLayer(s));
     this.layer("fog", s, () => fog(s));
     this.layer("bands", s.frame, () => bands(s));
     if (this.drawn.get("cities") !== s) {
@@ -559,6 +629,11 @@ export class SvgMapRenderer implements MapRenderer {
     }
     this.layer("roads", `${s.index}|${s.viewer}|${input.followId}|${input.followPath?.length ?? -1}|${input.followPath?.[input.followPath.length - 1]?.index ?? -1}`, () => roads(input));
     this.layer("moves", s, () => moves(s));
+    this.layer("outlaws", s, () => outlaws(s));
+    this.drawWorks(s);
+    this.layer("life", s, () => lifeLayer(s));
+    this.showScenes(s);
+    this.margin(s);
     this.drawUnits(s);
     const peopleKey = `${s.index}|${s.viewer}|${input.followId}`;
     if (this.drawn.get("people") !== s || this.drawn.get("peopleKey") !== peopleKey) {
@@ -577,6 +652,54 @@ export class SvgMapRenderer implements MapRenderer {
   }
 
   /**
+   * Small scenes at big moments (item 19): when the map steps on by one season, the season's gift processions, sacks and
+   * ambushes play once over the map, briefly, then are taken away; none when the reader asks for reduced motion, when
+   * stepping back, or jumping.
+   */
+  private sceneFrom: { index: number; viewer: Power | null } | null = null;
+  private sceneTimer = 0;
+  private showScenes(s: MapScene): void {
+    const last = this.sceneFrom;
+    this.sceneFrom = { index: s.index, viewer: s.viewer };
+    if (last !== null && last.index === s.index && last.viewer === s.viewer) return;
+    const g = this.layers.get("scenes")!;
+    clearTimeout(this.sceneTimer);
+    g.innerHTML = "";
+    if (last === null || last.index !== s.index - 1 || last.viewer !== s.viewer || s.prev === null) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const scenes = scenesOf(s.prev, s.frame, s.viewer);
+    if (scenes.length === 0) return;
+    g.innerHTML = scenes.map(sceneMarkup).join("");
+    // Each plays 3.6 s, the next starting 0.35 s after the one before (map-living.css).
+    this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), 3700 + 350 * (scenes.length - 1));
+  }
+
+  /** The realm's own medium (clay for every court but Egypt's, papyrus for Egypt and god view) and the omens in the margin. */
+  private margin(s: MapScene): void {
+    const view = this.view;
+    if (view === null) return;
+    const medium = mediumOf(s.viewer);
+    if (view.dataset.medium !== medium) view.dataset.medium = medium;
+    const tier = s.frame.omen;
+    if ((view.dataset.omen ?? "") === (tier ?? "")) return;
+    if (tier === null) delete view.dataset.omen;
+    else view.dataset.omen = tier;
+    let el = view.querySelector<HTMLElement>(":scope > .omen");
+    if (tier === null) {
+      el?.remove();
+      return;
+    }
+    if (el === null) {
+      el = document.createElement("div");
+      el.className = "omen";
+      view.querySelector(".mapzoom")?.after(el);
+    }
+    el.title = OmenSigns[tier].text;
+    el.setAttribute("aria-label", OmenSigns[tier].text);
+    el.innerHTML = `<svg viewBox="-13 -13 26 26" aria-hidden="true">${OmenSigns[tier].svg}</svg>`;
+  }
+
+  /**
    * Finer geography close up (item 11c++): past about 6x the land's paths take the finer set (fine-geo.ts, loaded the
    * first time), and below about 4.5x the board's own come back, so the whole board stays light on a phone.
    */
@@ -590,6 +713,7 @@ export class SvgMapRenderer implements MapRenderer {
     if (want) {
       import("./fine-geo.ts")
         .then(({ Fine }) => {
+          this.fineRivers = Fine.rivers;
           if (this.fine && this.view === view) this.swapGeography({ ...Fine.coasts, lakes: Fine.lakes }, Fine.rivers);
         })
         // Not loaded (offline before the cache had it): the board's own stay, and the next zoom tries again.
@@ -629,6 +753,11 @@ export class SvgMapRenderer implements MapRenderer {
       view.querySelectorAll(".map .small, .map .off").forEach((e) => e.classList.remove("small", "crowd", "off"));
       const rects = (e: Element, sel: string): DOMRect[] =>
         [...e.querySelectorAll(sel)].map((x) => x.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+      const union = (rs: DOMRect[]): DOMRect[] => {
+        if (rs.length < 2) return rs;
+        const left = Math.min(...rs.map((r) => r.left)), top = Math.min(...rs.map((r) => r.top));
+        return [new DOMRect(left, top, Math.max(...rs.map((r) => r.right)) - left, Math.max(...rs.map((r) => r.bottom)) - top)];
+      };
       const byProvince = (sel: string): Map<string, Element[]> => {
         const m = new Map<string, Element[]>();
         view.querySelectorAll(sel).forEach((e) => {
@@ -647,7 +776,9 @@ export class SvgMapRenderer implements MapRenderer {
         return {
           id,
           c,
-          badge: rects(c, ".seal, .walls, .cap-ring"),
+          // The badge as one box round its seal, rings and a siege's tents: the tents stand apart, and a counter between two
+          // of them would still crowd the city.
+          badge: union(rects(c, ".seal, .walls, .cap-ring, .tent")),
           seal: c.querySelector(".seal")?.getBoundingClientRect(),
           rest: [
             ...(units.get(id) ?? []).flatMap((u) => rects(u, ":scope > .sym")),
@@ -661,9 +792,13 @@ export class SvgMapRenderer implements MapRenderer {
       const lesser = [
         ...[...units].filter(([id]) => !cities.has(id)).flatMap(([, es]) => es.map((e) => [e, ":scope > .sym"] as const)),
         ...[...view.querySelectorAll(".map-upper .destroyed")].map((e) => [e, ":scope > .sym"] as const),
+        ...[...view.querySelectorAll(".map-upper .band-mark")].map((e) => [e, ":scope > .sym"] as const),
+        ...[...view.querySelectorAll(".map-upper .life-mark")].map((e) => [e, ":scope > .sym"] as const),
         ...[...view.querySelectorAll(".map-upper .traveller:not(.followed)")].map((e) => [e, ":scope > .sym"] as const),
         ...[...view.querySelectorAll(".xmarks .xmark")].map((e) => [e, ".xm-bg"] as const),
       ].map(([e, sel]) => ({ e, rs: rects(e, sel) }));
+      // What is built at the cities (item 19) comes last of all: it gives way to every marker and every name.
+      const works = [...view.querySelectorAll(".map-upper .works-at")].map((e) => ({ e, rs: rects(e, ".wk-bg") }));
       const names = NameOrder.map((id) => this.labels.get(id)?.querySelector("text"))
         .filter((t): t is SVGTextElement => t !== null && t !== undefined)
         .map((t) => ({ t, own: t.closest("[data-label]")?.getAttribute("data-label") ?? null, r: t.getBoundingClientRect() }));
@@ -707,6 +842,10 @@ export class SvgMapRenderer implements MapRenderer {
         if (ok) shown.push(r);
         else writes.push(() => t.classList.add("off"));
       }
+      for (const { e, rs } of works) {
+        if (free(rs) && rs.every((r) => !shown.some((o) => touch(r, o)))) place(rs, null);
+        else writes.push(() => e.classList.add("off"));
+      }
       for (const w of writes) w();
     });
   }
@@ -736,7 +875,11 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.view === null) return;
     cancelAnimationFrame(this.placing);
     detach(this.view);
+    clearTimeout(this.sceneTimer);
     this.view.querySelector(".mapzoom")?.remove();
+    this.view.querySelector(":scope > .omen")?.remove();
+    delete this.view.dataset.medium;
+    delete this.view.dataset.omen;
     this.view = null;
   }
 }

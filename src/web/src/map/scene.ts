@@ -4,9 +4,10 @@
  * news that reached it), never from anything it could not know.
  */
 import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
-import { coverOf, isMove, ownerFor, ownerOf, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
+import { coverOf, isMove, ownerFor, ownerOf, type FrameBand, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, city, route, type Pt } from "./art.ts";
+import { remember, type Remembered } from "./memory.ts";
 
 export type MoveStyle = "Move" | "Attack" | "Bounce" | "Support" | "SupportCut" | "Convoy";
 export type TravellerKind = "Envoy" | "Spy" | "Gold";
@@ -34,6 +35,8 @@ export interface SceneMove {
   to: string;
   style: MoveStyle;
   text: string;
+  /** Item 19: whose troops it met in the field, as the viewer saw them standing there; null if it met none. */
+  against: Power | null;
 }
 
 /** Someone, or gold, on the road between two places, at a season's guessed position along the way. */
@@ -116,7 +119,38 @@ export interface MapScene {
   sieges: FrameSiege[];
   /** The walls the viewer knows. */
   walls: Map<string, number>;
+  /**
+   * Item 19: the droughts and floods on the land, as the viewer last saw it: in god view as they are, in a seat view where
+   * its own eyes last saw each province, as it was then (word of a holder is not a sight of the fields).
+   */
+  land: Map<string, LandState>;
+  /** Item 19: the bands and pirate crews the viewer sees: in its sight or in its own land (its people tell of them). */
+  bands: FrameBand[];
+  /**
+   * Item 19: what is built, as the viewer knows it (`kind:province`, walls apart): in god view as it stands; in a seat view
+   * its own land as it stands, and elsewhere as its eyes last saw it, as the walls are known.
+   */
+  built: Map<string, number>;
+  /** The provinces whose works the viewer knows (null in god view: all of them). */
+  builtKnown: Set<string> | null;
+  /** Item 19: the grain in the stores the viewer can count: its own (every store in god view). */
+  stores: Map<string, number>;
+  /** Item 19: what the map remembers (battlefields, ruins), and the life on it, as the viewer knows them (memory.ts). */
+  memory: Remembered;
+  /** The frame before (null at the opening), for the season's small scenes. */
+  prev: SeasonFrame | null;
 }
+
+/**
+ * Item 19: what this game has done to a province's land, beyond the calendar's look: a drought; a river's flood still
+ * lying in the season after it rose (a ruinous one, or the Tigris's or the Euphrates's damaging one); the year after it,
+ * fields spoiled; or a low Nile, a bad year of a river that brings too little.
+ */
+export type LandState = "Drought" | "Flooded" | "Spoiled" | "Low";
+
+const stateOf = (c: FrameClimate): LandState =>
+  c.kind === "Drought" ? "Drought" : c.river === "nile" && !c.ruinous ? "Low" : c.since === 0 ? "Flooded" : "Spoiled";
+const landOf = (f: SeasonFrame): Map<string, LandState> => new Map(f.climate.flatMap((c) => c.provinces.map((p) => [p, stateOf(c)] as const)));
 
 /** The walls a viewer knows in a frame. */
 export function wallsIn(f: SeasonFrame, viewer: Power | null): Map<string, number> {
@@ -139,6 +173,9 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const prev = index > 0 ? frameAt(frames, index - 1) : null;
   const units: SceneUnit[] = [];
   const fog = new Map<string, number>();
+  let land = landOf(f);
+  let built = f.built;
+  let builtKnown: Set<string> | null = null;
 
   if (viewer === null) units.push(...stack(f.units, false, 0, index));
   else {
@@ -159,6 +196,27 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
       }
     }
     for (const [prov, j] of lastSeen) fog.set(prov, index - j);
+    const lands = new Map<number, Map<string, LandState>>();
+    land = new Map();
+    for (const [prov, j] of lastSeen) {
+      if (!lands.has(j)) lands.set(j, landOf(frameAt(frames, j)));
+      const state = lands.get(j)!.get(prov);
+      if (state !== undefined) land.set(prov, state);
+    }
+    // What is built: its own land as it stands, elsewhere as last seen (a province never seen: nothing known of it).
+    built = new Map();
+    builtKnown = new Set();
+    const builtKinds = ["Roads", "Stations", "Harbour", "Water"];
+    for (const x of Map_.landProvinces) {
+      const j = ownerOf(f, x.id) === p ? index : lastSeen.get(x.id);
+      if (j === undefined) continue;
+      const fj = frameAt(frames, j);
+      for (const k of builtKinds) {
+        const level = fj.built.get(`${k}:${x.id}`) ?? 0;
+        if (level > 0) built.set(`${k}:${x.id}`, level);
+      }
+      builtKnown.add(x.id);
+    }
     // News of the holder travels (item 7b): a province never seen, or seen long ago, is as old as the news of it.
     for (const [prov, k] of f.knownOwner.get(p) ?? []) {
       const age = Math.max(0, f.turn - k.turn);
@@ -214,7 +272,10 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const sieges = viewer !== null ? f.sieges.filter((x) => x.besieger === viewer || ownerOf(f, x.province) === viewer || (f.sight.get(viewer)?.has(x.province) ?? false)) : [...f.sieges];
 
   const owner = new Map(Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const));
-  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer) };
+  // As the engine's own view of a court shows them: in its sight, or in land it holds.
+  const stores = viewer === null ? f.stores : new Map([...f.stores].filter(([k]) => ownerOf(f, k) === viewer));
+  const bands = viewer === null ? f.bands : f.bands.filter((b) => (f.sight.get(viewer)?.has(b.province) ?? false) || ownerOf(f, b.province) === viewer);
+  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev };
 }
 
 function stack(units: readonly FrameUnit[], ghost: boolean, age: number, seenAt: number): SceneUnit[] {
@@ -251,9 +312,11 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
     if (m.order === "move" && m.target !== null) {
       const t = m.target;
       // Foreign troops in the way: standing there as the season began (in the court's sight) and not marched out of it.
-      const foreignUnit =
-        (sight === null || sight.has(t)) &&
-        prev.units.some((u) => u.province === t && u.power !== m.power && !seen.some((x) => isMove(x) && x.succeeded && x.from === t && x.power === u.power && x.kind === u.kind));
+      const met =
+        sight === null || sight.has(t)
+          ? (prev.units.find((u) => u.province === t && u.power !== m.power && !seen.some((x) => isMove(x) && x.succeeded && x.from === t && x.power === u.power && x.kind === u.kind)) ?? null)
+          : null;
+      const foreignUnit = met !== null;
       const foreignLand = m.targetOwner !== null && m.targetOwner !== m.power;
       // Walls not its own: getting in is an attack, but takes the city only if it stormed them (it then holds it).
       const walls = m.targetOwner !== m.power && (wallsBefore ?? prev.walls).has(t);
@@ -268,6 +331,7 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
         to: t,
         style,
         text: `${powerName(m.power)}'s ${unitKindName(m.kind)} in ${provinceName(m.from)} ${verb} ${provinceName(t)}${attack && !m.succeeded ? " (an attack)" : ""}`,
+        against: met?.power ?? null,
       });
     } else if (m.order === "support" && m.target !== null) {
       const t = m.target;
@@ -277,6 +341,7 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
         from: m.from,
         to: m.to ?? t,
         style: m.succeeded ? "Support" : "SupportCut",
+        against: null,
         text:
           `${powerName(m.power)}'s ${unitKindName(m.kind)} in ${provinceName(m.from)} ${m.succeeded ? "supported" : "tried to support"} ` +
           `${m.helped !== null && m.helped !== m.power ? powerName(m.helped) + "'s" : "its own"} unit in ${provinceName(t)}${m.to !== null ? ` into ${provinceName(m.to)}` : " holding"}${m.succeeded ? "" : " (cut or void)"}`,
@@ -288,6 +353,7 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
         from: m.from,
         to: m.to,
         style: "Convoy",
+        against: null,
         text: `${powerName(m.power)}'s fleet in ${provinceName(m.from)} convoyed the army in ${provinceName(m.target ?? m.to)} to ${provinceName(m.to)}`,
       });
   }

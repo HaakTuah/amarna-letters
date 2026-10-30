@@ -101,11 +101,11 @@ async function namesClear(p, name) {
         .concat([...document.querySelectorAll(".base text.geo:not(.off)")].map((t) => ({ id: t.textContent, r: t.getBoundingClientRect() })));
       const seen = (e) => getComputedStyle(e).visibility !== "hidden";
       const markers = [];
-      for (const e of document.querySelectorAll(".map-upper .unit > .sym, .map-upper .traveller > .sym, .map-upper .person, .map-upper .person-more, .map-upper .news-bg, .map-upper .destroyed > .sym, .xmarks .xm-bg"))
+      for (const e of document.querySelectorAll(".map-upper .unit > .sym, .map-upper .traveller > .sym, .map-upper .person, .map-upper .person-more, .map-upper .news-bg, .map-upper .destroyed > .sym, .map-upper .band-mark > .sym, .map-upper .works-at .wk-bg, .map-upper .life-mark > .sym, .xmarks .xm-bg"))
         if (seen(e)) markers.push({ own: null, group: e, what: `${e.closest("[class]:not(.sym)").getAttribute("class")} at ${e.closest("[data-province], [data-court]")?.getAttribute("data-province") ?? e.closest("[data-court]")?.getAttribute("data-court") ?? "?"}`, r: e.getBoundingClientRect() });
       for (const c of document.querySelectorAll(".cities .city")) {
         // A badge is one marker: its seal and its rings.
-        const parts = [...c.querySelectorAll(".seal, .walls, .cap-ring")].filter(seen).map((e) => e.getBoundingClientRect());
+        const parts = [...c.querySelectorAll(".seal, .walls, .cap-ring, .tent")].filter(seen).map((e) => e.getBoundingClientRect());
         if (parts.length === 0) continue;
         const r = new DOMRect(Math.min(...parts.map((p) => p.left)), Math.min(...parts.map((p) => p.top)), 0, 0);
         r.width = Math.max(...parts.map((p) => p.right)) - r.left;
