@@ -565,3 +565,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     i approve!" Written into "Starting positions come from the sources" (The world) and build order item 17+: troop
     positions and documented debts from the sources, no letters or memories written for a court; the Shasu in the
     Negev and Edom [A], the Bashan Ashtaroth's and Gilead Pella's [B], Moab and Ammon outside the game.
+58. **30 October 2026, 01:47 UTC**, in the design chat, to the design session's take on names (every name a player or
+    model sees as the sources of 1346 give it, Dimashqa, Gubla, Pihil, Urusalim, with the modern name on a second line
+    of the province card; the land east of the Salt Sea labelled by description instead of Moab and Ammon, and Edom
+    as Seir), after asking "Should they be in the game then?" of Moab and Ammon and "are some of the city names
+    anchrononistic? Like Damascus, is that really what the city was called back then?": "Agreed to all, expertly!"
+    Written into "Places by their own names" (The world) and build order item 17+.
