@@ -652,3 +652,13 @@ Given in the design chat with Claude, answering the design questions of the cons
     version always played without asking (on opening, the start screen and starting a game at once; during a game at
     the next season, back into the same game); only a version whose rules a saved game cannot carry on in waits until
     that game ends. The same for Barkstreet Snakes' 2v.
+71. **30 October 2026, 11:50-11:59 UTC**, in the design chat: "Do we have anything on music for Amarna Letters?" Then:
+    "I see that the Empire Earth music is used many strange places, like documentaries. It is super nostalgic for me,
+    and I feel it fits. Can i use that for this free open project?" Then: "I love all of the themes from the. Would love
+    if we could make something properly similar in that style instead (choir, strings, reed and drums) around the
+    Hurrian Hymn, that actually sounds good. Would be really cool. And have the music be dynamic exactly like it is in
+    Empire Earth. I feel if we first manage to make some good atmospheric pieces, they should be used across the board,
+    so the music is same for all you play, but should be dynamic in the same way as Empire Earth, with the few
+    variations on the pieces, and each piece playing according to the situation. Use the Empire Earth pieces as the
+    template, and make as many as Empire Earth had, each inspired by each piece there, expertly. Sounds good?" Written
+    into build order item 19+++, the music.
