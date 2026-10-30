@@ -9,6 +9,8 @@ interface Pending<T> {
 
 export class HumanSeat implements ISeat {
   readonly label = "Human";
+  /** Item 16: a human hears the royal council, on by default; he may turn it off. */
+  readonly hearsCouncil = true;
   readonly power: Power;
   pendingOrders: SeatView | null = null;
   pendingAudience: AudienceView | null = null;

@@ -35,6 +35,12 @@ export interface ISeat {
    * turn with a sleep. Script seats cost nothing to wake, so they decide every season.
    */
   readonly canSleep?: boolean;
+  /**
+   * Item 16, "The royal council": whether a king plays this seat who reads the council (model, file and human seats). The
+   * runner puts its counsel in the seat's view while it is on; script seats, which run the same calculations to decide,
+   * never hear one.
+   */
+  readonly hearsCouncil?: boolean;
   /** A sleeping seat that wants to act now (a human waking himself): read once a season, before the wake check. */
   wakeRequested?(): boolean;
   decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission>;

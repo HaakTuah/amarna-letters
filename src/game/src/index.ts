@@ -3,6 +3,7 @@ export * from "./log.ts";
 export * from "./runner.ts";
 export * from "./parity.ts";
 export * from "./bots/script-leader.ts";
+export * from "./bots/council.ts";
 export * from "./bots/script-mind.ts";
 export * from "./bots/template-narrator.ts";
 export * from "./bots/baseline-leader.ts";

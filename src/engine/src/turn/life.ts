@@ -16,9 +16,10 @@ import { newMindRequest } from "../model/exchanges.ts";
 import { gain, hiddenAt, lossesHeardOf, newFact, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { newJourney, type Journey } from "../model/records.ts";
-import { alive, findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
+import { alive, findCharacter, isAlive, logEvent, newId, notify, type GameState } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { ageBand, bandWords } from "../rules/ending.ts";
+import { omenLine } from "../rules/omens.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { tongueClaims } from "./languages.ts";
@@ -41,11 +42,14 @@ declare module "./core.ts" {
 
 const P = TurnEngine.prototype;
 
-/** The ending in words, as every seat is told it ("What kings are told"; characters from item 11a). */
-export function endingWords(openAge: boolean, median: number): string {
-  return openAge
-    ? "This is an open age: it has no end. It goes on season after season until one kingdom is left or the table stops it."
-    : `${bandWords(ageBand(median))} Nobody knows which season is the last, and nothing anyone sees foretells it.`;
+/**
+ * The ending in words, as every seat is told it ("What kings are told"; characters from item 11a), and from item 16 what the
+ * diviners of the land where the character is read of it this season ("Omens of the end": the public chance only).
+ */
+export function endingWords(S: GameState, province: string | null): string {
+  if (S.config.openAge) return "This is an open age: it has no end. It goes on season after season until one kingdom is left or the table stops it.";
+  const omen = omenLine(S.seed, S.config, S.turn, province === null ? null : (S.owner.tryGet(province) ?? null));
+  return `${bandWords(ageBand(S.config.endMedian))} Nobody knows which season is the last: the omens darken as the end grows likelier, but no sign foretells the season.${omen !== "" ? ` The omens where you are, this season: ${omen}` : ""}`;
 }
 
 /**
@@ -209,7 +213,7 @@ P.lifeView = function (c) {
         ? null
         : { employer: e.employer, employerName: findCharacter(S, e.employer)?.name ?? e.employer, debtId: e.debtId, borrower: S.debts.find((d) => d.id === e.debtId)?.borrower ?? "", collected: e.collected, home: e.home, since: e.since, reached: e.reached, payOnDone: e.payOnDone },
     offers: AllPowers.filter((p) => c.offers.has(p)).map((p) => ({ court: p, rate: c.offers.get(p) })),
-    ending: endingWords(S.config.openAge, S.config.endMedian),
+    ending: endingWords(S, province),
     leftRoad: c.leftRoad,
     tongues: tongueClaims(c),
     bridgePrice: c.bridgePrice,

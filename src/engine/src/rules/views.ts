@@ -49,6 +49,7 @@ import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
 import { courierSeasons, courtOf } from "./court.ts";
 import { ageBand } from "./ending.ts";
+import { omenLine } from "./omens.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { asShown, basePrice, LetterData, trustIn } from "../turn/turn-engine.ts";
 import { debtLeft, isPowerParty, standsForBorrower } from "../model/money.ts";
@@ -191,6 +192,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     ended: s.ended,
     openAge: s.config.openAge,
     ageBand: ageBand(s.config.endMedian),
+    omens: omenLine(s.seed, s.config, s.turn, p),
+    councilOn: !s.councilOff.includes(p),
     gold: ledger(t),
     unassayedGold: t.lots.map((l) => newLotView({ id: l.id, from: l.from, stated: l.stated, weighed: l.face, arrivedTurn: l.arrivedTurn })),
     income: engine.income(p),

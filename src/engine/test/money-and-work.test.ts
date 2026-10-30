@@ -318,9 +318,11 @@ describe("MoneyAndWorkTests", () => {
   });
 
   test("Characters are told the ending's rule in words, never its numbers", () => {
-    const words = endingWords(false, 44);
+    const s = newGame(1);
+    const words = endingWords(s, "hattusa");
     Assert.contains("Nobody knows which season is the last", words);
     Assert.false(/\d/.test(words));
-    Assert.contains("open age", endingWords(true, 44));
+    s.config = { ...s.config, openAge: true };
+    Assert.contains("open age", endingWords(s, "hattusa"));
   });
 });

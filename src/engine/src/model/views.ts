@@ -676,6 +676,49 @@ export function newGovernorView(init: Partial<GovernorView> = {}): GovernorView 
 
 export const GovernorViewSchema: ObjSchema<GovernorView> = obj("GovernorView", newGovernorView, { province: S, character: S, from: I, levies: I, raised: I, relieving: B });
 
+/**
+ * Item 16, "The royal council": one troop order or levy an advisor proposes, with its one-line reason and the brief numbers
+ * behind it, in words a king can weigh (never an internal id).
+ */
+export interface CouncilLine {
+  order: Order;
+  text: string;
+}
+
+export const CouncilLineSchema: ObjSchema<CouncilLine> = obj("CouncilLine", (init: Partial<CouncilLine> = {}) => ({ order: { type: "hold", unit: "" } as Order, text: "", ...init }), {
+  order: OrderSchema,
+  text: S,
+});
+
+/** One advisor's counsel: its archetype, its title at this court, its known tilt, what it sees and where it differs. */
+export interface CouncilAdvice {
+  advisor: string;
+  title: string;
+  tilt: string;
+  /** Its reading of the board in one line (the Diviner's in signs, from the same estimates). */
+  reading: string;
+  /** Its proposals where the four do not all agree. */
+  lines: CouncilLine[];
+}
+
+export const CouncilAdviceSchema: ObjSchema<CouncilAdvice> = obj(
+  "CouncilAdvice",
+  (init: Partial<CouncilAdvice> = {}) => ({ advisor: "", title: "", tilt: "", reading: "", lines: [], ...init }),
+  { advisor: S, title: S, tilt: S, reading: S, lines: list(() => CouncilLineSchema) },
+);
+
+/** The council's counsel for a season: what all four agree on, then each advisor where they differ. */
+export interface CouncilView {
+  agreed: CouncilLine[];
+  advisors: CouncilAdvice[];
+}
+
+export const CouncilViewSchema: ObjSchema<CouncilView> = obj("CouncilView", (init: Partial<CouncilView> = {}) => ({ agreed: [], advisors: [], ...init }), {
+  agreed: list(() => CouncilLineSchema),
+  advisors: list(() => CouncilAdviceSchema),
+});
+
+
 export interface SeatView {
   turn: number;
   season: string;
@@ -694,6 +737,12 @@ export interface SeatView {
   openAge: boolean;
   /** What every seat is told of the table's median, in a word ("Short", "Usual", "Long"; rules/ending.ts). */
   ageBand: string;
+  /** Item 16, "Omens of the end": what its court's diviners read of the end this season, in words ("" in an open age). */
+  omens: string;
+  /** Item 16: whether its royal council is on (model, file and human seats; script seats never have one). */
+  councilOn: boolean;
+  /** Item 16: the council's counsel this season, filled by the runner for a seat whose council is on; else null. */
+  council: CouncilView | null;
   gold: number;
   unassayedGold: LotView[];
   income: number;
@@ -859,6 +908,9 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     ended: false,
     openAge: false,
     ageBand: "Usual",
+    omens: "",
+    councilOn: true,
+    council: null,
     gold: 0,
     unassayedGold: [],
     income: 0,
@@ -938,6 +990,9 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   ended: B,
   openAge: B,
   ageBand: S,
+  omens: S,
+  councilOn: B,
+  council: opt(() => CouncilViewSchema),
   gold: I,
   unassayedGold: list(() => LotViewSchema),
   income: I,

@@ -13,6 +13,7 @@ import { CommandSection } from "./orders/CommandSection.tsx";
 import { TreasurySection } from "./orders/TreasurySection.tsx";
 import { EnvoysSection } from "./orders/EnvoysSection.tsx";
 import { CourtSection } from "./orders/CourtSection.tsx";
+import { CouncilSection } from "./orders/CouncilSection.tsx";
 
 /** A human seat's orders for one season: units, treasury, envoys, court and tablets. */
 export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: OrderDraft; state: GameState; onChanged: () => void; onSubmit: (sleep: boolean) => void }) {
@@ -34,6 +35,8 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
           </small>
         </p>
       </div>
+
+      <CouncilSection c={c} />
 
       <TroopsSection c={c} />
       <CommandSection c={c} />
