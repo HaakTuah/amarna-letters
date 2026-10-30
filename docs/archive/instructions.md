@@ -617,3 +617,15 @@ Given in the design chat with Claude, answering the design questions of the cons
     session's takes (always an amount, the census as how he knows, collectors who may skim or squeeze, the census
     measuring fields; distance through the existing frictions alone, checked in item 18): "Agreed to all, expertly."
     Written into "A census" and "The king says how much he wants" (The world) and items 17++ and 18.
+65. **30 October 2026, 03:11-03:17 UTC**, in the design chat: "Who are the headmen, and how does he correct for this
+    corruption? There must be levers for him to pull, or it is just rng." Then: "So you want characters to be the ones
+    who collect tax in every city also?" Then: "A governor makes sense. But the rest i feel you are dictating terms i
+    never agreed to. I don't think characters should collect taxes as a rule, unless they are governor of a province.
+    My thinking is, a king can either dictate a percentage he wants, or a bulk amount of harvest and labor. If he
+    dictates a percentage, but has an old census, then the city can screw him over, and claim his numbers are way off.
+    So percentage always ensures he doesn't squeeze a province, but almost garauntes he is squeezed if his census is
+    outdated. Is that an alright way to handle it? Or he can gamble, and just state a fixed amount. Then he gets it,
+    but has little way of knowing if it was fair, too much or too little." And, to the design session's write-up of
+    it: "Yes, please, expertly!" This replaces item 64's "always an amount" and removes the collectors (headmen) who
+    skim or squeeze, which the design session had written in beyond what he meant. Written into "A census" and "The
+    king says how much he wants" (The world) and items 17++ and 18.
