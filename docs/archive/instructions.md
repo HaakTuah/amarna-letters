@@ -597,3 +597,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     Gath for Hebron, Tunip): "Agreed to all, expertly!" Written into "Counts as the scribes knew them" and "A census"
     (The world) and items 17+ and 17++. He asked too: "What is the consequences then of noy counting again after a big
     depopulation event?" (answered in the chat)
+63. **30 October 2026, 02:51 UTC**, in the design chat, to the design session's take that levies and work gangs be
+    demanded against the last count, so a stale count after a plague squeezes the survivors: "My take? Yes! Though a
+    king should be able to be conservative and state how much he wants in tax or labor, if he knows he sits on bad
+    information. He shouldn't be forced to squeeze the population. But if he demands too much, there are consequmces
+    like you say. It impacts the next harvest. Or if he takes too much of the harvest in tax, then there is little left
+    for the population. Is that a good take in your expert opinion?" Written into "The king says how much he wants"
+    (The world) and item 17++.
