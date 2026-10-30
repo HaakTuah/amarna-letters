@@ -604,3 +604,16 @@ Given in the design chat with Claude, answering the design questions of the cons
     like you say. It impacts the next harvest. Or if he takes too much of the harvest in tax, then there is little left
     for the population. Is that a good take in your expert opinion?" Written into "The king says how much he wants"
     (The world) and item 17++.
+64. **30 October 2026, 02:56-03:05 UTC**, in the design chat, on how a king asks for tax: "Well, he could ask for a
+    smaller amount. He knows a percentage will be off, since the number it is applied to is off. So he calculates a
+    percentage for a much smaller population, for example. But it is just an estimate from his side then, and a bit of
+    an gamble. He could be getting less than what was potential, or still unwittingly squeeze the population." Then:
+    "But can he say a third, if he doesnt know what that third comes from? How does he know they paid their tax
+    then?" Then: "But isn't that a census essentially? So if the king hasn't done a census, how can he ask for a
+    percentage? He can ask for a percentage of a stale census, but that's still an amount, he doesnt know if it
+    actually alings with a population he has now. Get what I mean?" Then: "Or does he always state an amount. And how
+    he knows what an appropriate amount is, is through a census?" Then: "But should he be able to extract tax as
+    effectively from land further away? Or does the game rules already make that more difficult?" And, to the design
+    session's takes (always an amount, the census as how he knows, collectors who may skim or squeeze, the census
+    measuring fields; distance through the existing frictions alone, checked in item 18): "Agreed to all, expertly."
+    Written into "A census" and "The king says how much he wants" (The world) and items 17++ and 18.
