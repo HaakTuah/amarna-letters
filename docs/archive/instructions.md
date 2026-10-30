@@ -554,3 +554,14 @@ Given in the design chat with Claude, answering the design questions of the cons
     you propose here? I have already said we should give rhem the money and armies they had at this time, so they are
     free to do exactly what was going on then. But we cannot dictate that someone is in conflict, if you know what I
     mean." (answered in the chat)
+57. **30 October 2026, 01:27 UTC**, in the design chat, to an opening set from history (troop positions as the sources
+    place them, letters already on the road, memories of the years before) and to the lands east of the Jordan (item
+    11f+'s question 1): "1. Abosuletly yes to troop positions and that. All that was materially, we should represent as
+    accurate as possible. But pre-writing letters would be to speak on a player's behalf, so doing that, and adding
+    memories, I hesitate to. Any model playing, will have some idea of their historical start, so I think they are
+    biased sufficiently by that. Do we need to bias them anymore? However, if we have any documented debts at game
+    start, that would be interesting to include. Really that would just be representing their finances accurately,
+    which is what we're already trying to do. 2. Is this the best read we have of the historical sources? If so, then
+    i approve!" Written into "Starting positions come from the sources" (The world) and build order item 17+: troop
+    positions and documented debts from the sources, no letters or memories written for a court; the Shasu in the
+    Negev and Edom [A], the Bashan Ashtaroth's and Gilead Pella's [B], Moab and Ammon outside the game.
