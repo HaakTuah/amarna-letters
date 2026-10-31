@@ -51,7 +51,9 @@ export class IncrementalReader {
       const name = nameOf(this.headText(item));
       const fs = fields.get(name);
       if (fs === undefined || fs.k === "computed") continue;
+      const before = this.parsed;
       o[name] = this.member(name, fs, item);
+      if (this.parsed > before) performance.measure(`reader:field:${name}`, { start: t, duration: (this.parsed - before) / 1024 });
     }
     this.caches = this.next;
     this.texts = [];
