@@ -950,3 +950,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     (music and sound on but quiet, 35% and 45%, or off until switched on): "Agreed. Keep them on, regular volume, but
     don't blast someone when they start up, like say CK2, even though the main theme there was epice. SO i didn't
     really mind." Written into item 19+++: on by default at a regular volume, the first music fading in at start-up.
+115. **31 October 2026, 23:40-23:43 UTC** (1 November in Oslo), in the design chat. Asked why the Barkstreet Snakes
+    orchestrator reuses sessions for new tasks, against "Keep the cache warm", and whether the rule should allow it
+    when the task touches the same files and the session's context is young and small: "We should do whatever is most
+    effective at acheivein the goal, which is accomplishing them most possible, with the least tokens, without
+    sacrifacing quality." Written into "Keep the cache warm" in both games: `CLAUDE.md` here, `docs/orchestrating.md`
+    in Barkstreet Snakes.
+
