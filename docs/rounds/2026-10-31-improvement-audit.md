@@ -319,4 +319,4 @@ Answered during the audit (31 October 2026): question 1, the tiny troops, by "A 
 
 `scripts/test.sh` on this machine, while the 50-game run and the probes held all four cores (load 12): 122 of 124 files
 passed; 10 tests in `src/game/test/who-decides.test.ts` and `model-layer.test.ts` failed by the 120 s timeout alone, with
-no assertion failing. RERUN_RESULT Nothing in this PR changes code. The 50 script games replayed exactly, 50 of 50.
+no assertion failing. Re-run alone once the machine was quiet, both files passed, 30 tests of 30 (`model-layer` in 180 s, `who-decides` in 603 s). Nothing in this PR changes code. The 50 script games replayed exactly, 50 of 50.
