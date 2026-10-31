@@ -36,6 +36,10 @@ Prefer the cheapest approach that does the job well").
 
 ## Finds not yet fixed
 
+- **The Standings tab leaks distant changes of holder to a seat:** `src/web/src/components/StandingsPanel.tsx:16` reckons
+  land standings from the true `state.owner` and shows them to seat viewers (line 24), while the seat view's own
+  standings line uses the holders each court knows (`01-rules-as-implemented.md:291`). Fix in the interface: for a seat,
+  use its view's `owner` (found by #294's reviewer).
 - The timeline reads "s1 1345 BCE · now" while the header names the season about to be played ("Season 2"): the label is
   the last season played.
 - The seat menu at 390 px cuts "Egypt (you)" to "Egypt (you"; widening it squeezes the header's ending line, so left.
