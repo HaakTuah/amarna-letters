@@ -729,3 +729,91 @@ Given in the design chat with Claude, answering the design questions of the cons
     rally to and outside help the moment it rises), and bringing the progress rows of 17++ and 19++ up to date: "Yes,
     fix all expertly!" Written into those sections (Land, people and the economy; War, travel and the seas) and
     `docs/BUILD-PROGRESS.md`.
+82. **31 October 2026, 13:44-13:50 UTC**, in the design chat, to the second account's first reports. To keeping the
+    music lane (19+++) running beside 17a: "Yes, to all, expertly!" Then: "Why did we pick Opus 5.5 for the music? Is
+    Fable not more creative, or?" And, to moving the music lane to Fable once the improvement audit is done, the Opus
+    session building the sound system until then: "YEs!" Written into the 19+++ row of `docs/BUILD-PROGRESS.md`.
+83. **31 October 2026, 13:51-13:53 UTC**, in the design chat, to the improvement audit's question (troops of 2 to 15
+    men holding cities and blocking moves; its reading, a unit ending below a tenth of a full levy) and the design
+    session's take (no size threshold: a move into a far weaker unit is a battle it loses, a garrison holds a town only
+    as far as its people's ledger stands with its master, script kings fold or disband remnants): "Agreed to all,
+    expertly!" Written into "The people defend their land" (War, travel and the seas) and item 17++.
+84. **31 October 2026, 13:56-13:57 UTC**, in the design chat, as the second account neared its five-hour limit: "Have
+    we informed them to push every single commit? I see that they are now running out of their allocated usage for the
+    next couple of hours. I don't want them to stop, but I do hope they have pushed everything that they can." Then, to
+    making "push after every commit" a standing rule in both games in place of "at every passed gate and at least
+    hourly": "YES!" Written into `CLAUDE.md`, "Standing instructions" (push as you go).
+85. **31 October 2026, 14:16-14:19 UTC**, in the design chat, on the branch `archive/csharp-final` being kept out of
+    the clean-up of merged branches: "Why keep it?" Then "Yes, expertly" to keeping it as a tag, and then: "I don't
+    care. That build is old news." So the branch goes with the other merged branches, no tag is made, and `CLAUDE.md`,
+    `README.md` and the design notes point to commit `5b4caa2` in `develop`'s history.
+86. **31 October 2026, 14:39-14:40 UTC**, in the design chat: "The README for both projects should probably also be
+    queued to be updated?" Then, to a one-time refresh in the polish lane (with a second pass after 17+ and 17++) and a
+    standing rule that a change a player sees updates the README in the same PR, checked at each milestone: "Yes,
+    expertly to both!" Written into `docs/BUILD-PROGRESS.md` ("The polish lane") and `CLAUDE.md` ("Standing
+    instructions").
+87. **31 October 2026, 14:44-14:50 UTC**, in the design chat: "looking at Amarna. It stutters at normal speed, even on
+    my computer. [...] it is also really jarring how fast it transfers. You know Civ, when a turn moves there, it takes
+    things incrementally. [...] Season changes plays out. Troop movements are animated. [...] the even bigger overhaul
+    needed is how it spreads that computation out, and makes the map stunning, inviting and engaging to look at, as
+    turns/seasons pass." Then: "seasons instantly change, and they are only drawn on and bleed weirdly through the
+    territory colors [...] Some of the textures used to represent seasons or dry cracks and such are really ugly. [...]
+    neither does the movements of troops, characters, etc. have any weight when they just teleport along [...] when
+    there is no sound of them moving, engaing in battle, fighting the waves, the weather, takes by an avalanche, etc. the
+    player needs to feel the weight of the whole world, or it becomes meaningless to him/her." To the design session's
+    shape (item 17+++, the event stream in 17a, 19+++'s sounds on it): "Agreed, 100% sir! And I think zoom levels
+    should impact, don't you? If you are zoomed in near a unit in the waves, I want to hear it. And if I zoom in on the
+    map, I like how Imperator makes the state color more and more transparent and you see the ground and effects under
+    more clearly." Written into items 17a, 17+++ and 19+++ and "The season plays out, and zoom shapes what you see and
+    hear" (Interface and the council).
+88. **31 October 2026, 14:55-14:58 UTC**, in the design chat: "if you zoom far enough out, the world ends with just
+    water to the east and west, since the map is longer on the north-south axis. We already have queued in the graphic
+    update that we should see real cities, and see them grow and decline with population, right? and all buildings one
+    can build around? And I also think maybe there should be an option to play as one of the small states, even if
+    that's not what represented at the front and adviced. What do you think? Play as a character could be a
+    possibility as well?" To the design session's readings (the far-zoom fix in the polish lane; cities and buildings
+    made explicit in 19++; small states as seats, item 17++++; character mode after the build order): "Yes, expertly
+    to all!" Written into `docs/BUILD-PROGRESS.md`, items 17++++ and 19++, and "Character mode" (Ideas).
+89. **31 October 2026, 14:58-15:19 UTC**, in the design chat: "What if everyone are characters, even kings... Then
+    everyone operate by the same win condition... Not to implemented quite yet, but there is an idea there." Then:
+    "Don't the work condition right now work? You weigh 2 things. How much the person "own" and how much better they
+    did then what their start position usually results in, and weigh them both to a certain degree. Can start 50/50 as
+    a wild guess. then just apply it to every character? And a king is a character like any other, but his direct
+    provinces are his possesions. [...] balance it so at least any state has about equal chance of wining, both great
+    kings, and smaller states and vassals. And if we can, balance it so characters occasionally win. And every
+    character optimize to get the highest they can on the scoreboard?" Then: "if you die, it's game over. And if yiu
+    are a king, you can of course die if you travel about in boat in horrible weather, or engage in battle or whatever.
+    Or is beseiged. Are you taken alive, then your captor decides what to do with you. But you have skills like
+    everybody else, so you could possibly escape. [...] Then for my next game, imagine it with full lineage play."
+    Then, on heirs: "if he just dies. Out in battle. Then maybe a inheritor can be appointed. Makes it a new character,
+    with their own score." And: "these are characters that may die in the meantime [...] Is it perhaps better if they
+    just spawn if the sitting king dies? [...] they would have an incentive to kill their king and take his throne, so
+    it creates weird incentives." To the design session's shape (item 17b): "Yes, please. Experlty to all!" Written into
+    "One scoreboard for every person" (Victory), "A fallen player's game is over" (War, travel and the seas), item 17b,
+    and the next game's design document ("Lineage: houses outlive their founders").
+90. **31 October 2026, 15:22-15:30 UTC**, in the design chat: "But this opens a can of worms. What dicatets just
+    dying, and what dictates a realm fracturing? And where do capitals come in now?" Then: "But then he always dies in
+    his capital, so the concept of a capital starts making less sense? What keeps him primarily in one spot, and should
+    that really be what dictates if the kingdom passes or fractures? Because now it is so that if babylon beseiges
+    provinces in Egypt and occupies them, they get them. But they don't get the stuff they don't occupy. It becomes
+    lawless as we covered. But if we have an inheritor what are the conditions then?" Then: "This sounds better. But
+    where does he spawn, and what is a capital now? Why not constantly move it? We could add artifical barriers to
+    that, but you know o don't like paradox gamey stuff." To the design session's shape (a realm holds by its ledger;
+    the capital where the court is; the heir with the court or among its refugees): "Yes, do so expertly!" Written into
+    "A realm holds by its ledger" and "The capital is wherever the king is" (War, travel and the seas), "One scoreboard
+    for every person" (Victory) and item 17b.
+91. **31 October 2026, 15:33-15:38 UTC**, in the design chat: "Can province ownership be made into something more
+    agnostic? As in not something you owned hardcoded, but something that abides you, by a combination of force and
+    loyalty?" To "Whom a province obeys" (17++): "Yes, please, expertly! Just 2 additions/changes. My thinking is that
+    an heir inherits not his father full standing, so if his father was popular, or if his father was hated, the heir
+    is less of either, but probably inherits a bit of it. Thoughts? And in regards to vassals. Remember that
+    character's foremost motivation is always to rank higher on the scoreboard, so loyalty doesn't factor into it in
+    the same way for a character's, as it does for a non-player entity like a province. But if it is a character with
+    agreeable traits, then teh chosen strategy for maximizing their score standing is an more conservative one that
+    favors working from within the system. Think that is alright, expert?" Written into "Whom a province obeys" and "A
+    realm holds by its ledger" (War, travel and the seas), "Stakes, not dispositions" and the kings' grounding
+    (Characters), and items 17++ and 17b.
+92. **31 October 2026, 15:42 UTC**, in the design chat: "Is everything answered now. Everything coved. And is
+    everything consistent in the game now, expert? Be thorough!" The design session's check brought into line: "How
+    cities become free" and a king's visit abroad (War, travel and the seas), "Kings reason; characters verify"
+    (Diplomacy and intelligence) and "Succession" (Ideas) with item 17b, and the progress file's pause note.

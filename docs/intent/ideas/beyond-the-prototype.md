@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Ideas tab, revision 17 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Ideas tab, revision 19 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 ## Beyond the prototype
 
 If the hypothesis holds, the full game becomes a grand strategy whose tech tree is a tree of trust: each era changes how fast information moves, how verifiable it is and how easy it is to fake.
@@ -12,7 +12,7 @@ If the hypothesis holds, the full game becomes a grand strategy whose tech tree 
 
 **Other expansions.**
 
-- **Succession.** In longer games rulers die; a new leader inherits the old one's promises, debts and enemies and decides whether to honor them.
+- **Succession.** In longer games rulers die; a new leader inherits the old one's promises, debts and enemies and decides whether to honor them. Decided 31 October 2026 for this game, without lineage: build order item 17b ("One scoreboard for every person" under Victory, "A realm holds by its ledger" under War); full lineage play is kept for the next game.
 - Hidden objectives per power, set aside on 21 October 2026 by "Each court plays differently, with no mission tree".
 - Grand-strategy layers (technology, culture) added only where they feed trust and information.
 - **Voice and music.** Music first: ambient loops per court, with the Hurrian Hymn from Ugarit, the oldest substantially complete notated melody, as a possible anchor. Then a distinct voice archetype per court (Egypt stern, measured, aristocratic), designed rather than imitating any real actor. Test first with free browser speech synthesis behind a toggle in spectator mode.
@@ -27,6 +27,6 @@ If the hypothesis holds, the full game becomes a grand strategy whose tech tree 
 - **The pace fits.** Characters sleep until something concerns them ("Characters sleep like kings"), so a human character is woken by a notification, which suits phones and asynchronous play.
 - **It joins king mode.** A character who takes a city becomes a power, so a game can run from a nobody to a throne, the arc of Idrimi's own statue.
 
-What it would need: a view from below, his city's market prices, who is in town, rumours and offers, grown from the "follow this character" view of build order item 2; exactly the verbs a model character has, so a human can do nothing a model cannot ("Every feature is every seat's"); secrecy, so no king learns which character is human, which truly holds only when everyone writes from the templates: in free press a human's prose stands out to a model king (the style tell), so a table that wants the secret kept plays structured press; and markets that hold against a ruthless human trader, which pricing along the curve and settling each season's trades together already give ("Prices"). It belongs after item 11b and the economy's first phase (item 9+), since before them a character's life is too thin to play, and it costs nothing in model calls, since the human is the seat.
+What it would need: a view from below, his city's market prices, who is in town, rumours and offers, grown from the "follow this character" view of build order item 2; exactly the verbs a model character has, so a human can do nothing a model cannot ("Every feature is every seat's"); secrecy, so no king learns which character is human, which truly holds only when everyone writes from the templates: in free press a human's prose stands out to a model king (the style tell), so a table that wants the secret kept plays structured press; and markets that hold against a ruthless human trader, which pricing along the curve and settling each season's trades together already give ("Prices"). It belongs after item 11b and the economy's first phase (item 9+), since before them a character's life is too thin to play, and it costs nothing in model calls, since the human is the seat. Haakon, 31 October 2026, asked whether one could play as a character, and to noting it for after the build order: "Yes, expertly to all!" So it is built after the build order, not in it.
 
 **Name.** "Amarna Letters" fits the prototype. For a game spanning eras, candidates are *Amarna*, *My Brother* (how the Great Kings addressed each other) and *Great Kings*.
