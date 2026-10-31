@@ -17,13 +17,45 @@ renderer died at season 20 ("Page crashed": the white page). The page kept its o
 to 600 map scenes at about 2 MB each, and one frame a season at about 1 MB, most of it each court's known holders, known
 walls and sight, maps of the whole board a court that seldom change.
 
-## What changed (behaviour unchanged: seeds replay exactly, the suites and benchmarks as before)
+## The stream: the state travels as its changes, and the page keeps the history
 
-- **Snapshots share what did not change** (`src/game/src/snapshots.ts`, `SnapshotStore`). Each season's JSON is cut into
-  pieces at the items of the state's lists and dictionaries (two levels down, outside strings), each piece kept once, and a
-  snapshot is a list of references, most of them the season before's. Reading back joins the pieces: the text is exactly
-  what was pushed (`src/game/test/snapshots.test.ts` guards both, with the smallest game that shows the sharing). 31 seasons
-  of seed 1 keep 17 MB instead of 130 MB.
+Haakon (31 October 2026, "Agreed, 100% sir!") named the root of the stutter and the crash: the page held a full copy of the
+world for every season. Now the engine's worker sends the page what changed, and the page keeps a compact history of its own:
+
+- **The cut.** After each season the state's JSON is cut into pieces at the items of its lists and dictionaries, three levels
+  down (`SnapshotStore`, `src/game/src/snapshots.ts`): a character, an event, a court's inbox item, a message trail is a
+  piece or a run of pieces, with its comma. Every distinct piece is kept once under a number; a season is the list of its
+  numbers, most of them the season before's.
+- **The delta** (`SnapshotDelta`): the pieces first seen this season, with their numbers, and the season's list of numbers.
+  That is what `Live.states` carries to the page (`protocol.ts`), one delta a season (several after a replay or a resume),
+  instead of the whole state's JSON. The two members the page must never read, the drawn last season (`finalSeason`,
+  `finalByCap`, item 6a), are redacted from the deltas (`core.ts`: `redactForPage`), their closing bracket and comma kept so
+  the JSON stands; the store itself keeps every piece whole for the engine's own `stateAt`.
+- **The page's history** (`SnapshotHistory`): the pieces by number and each season's list. Any season's JSON is rebuilt by
+  joining when the player looks back (`Session.displayed`), read with the ordinary reader and kept for a few seasons; the
+  worker answers no question about the past any more (the `stateAt` message is gone).
+- **The incremental reader** (`src/web/src/session/incremental.ts`, `IncrementalReader`): the newest season's pieces are
+  read into a tree of the containers the cut opened, and each field of the state is read from its text: a list's or
+  dictionary's item whose text is the same as last season's keeps last season's object (reused by text, per field, down to
+  the items of a court's inbox), and only new texts are parsed and read with their schema. So a season costs the page its
+  changes, not the whole world: about 150 KB of new text against 7 to 16 MB. The state read is exactly the state written
+  (`src/web/test/history.test.ts` compares the serialized text season after season, and the looked-back JSON too).
+- **What else rides the stream.** The season's `SeasonFrame` (what each seat knew: holders, walls, sight, units, moves,
+  journeys, people, news, and the season's `GameEvent`s with `visibleTo`) goes with each update as before, built once in the
+  worker and kept only on the page. Item 17+++'s playback and item 19+++'s sounds read the frames' `events` and `moves`:
+  one `SeasonFrame` per season, in `Session.frames`, its `events` the engine's events of that season.
+- **Amendments.** When a table plays on into an open age, the season's state changes after its snapshot: the worker pushes
+  the amended state as a replacement of the last season (`replaceLast`), and the delta says so (`replace`).
+
+The page never mutates the state's objects (they are shared between seasons where unchanged): it reads them.
+
+## What else changed (behaviour unchanged: seeds replay exactly, the suites and benchmarks as before)
+
+- **Snapshots share what did not change** (the cut above, in the worker too). Reading back joins the pieces: the text is
+  exactly what was pushed (`src/game/test/snapshots.test.ts` guards both, with the smallest game that shows the sharing).
+  31 seasons of seed 1 keep 17 MB of pieces instead of 130 MB of strings. Each piece is a string of its own: V8 makes a slice
+  of 13 characters or more a view that keeps the whole string alive, which at first kept every season's JSON alive through
+  its short pieces (309 MB of heap for 17 MB of text, until every piece was copied flat).
 - **The worker keeps only the last frame** (`frames.ts`: `framesSince`; `core.ts`): frames go to the page once, which holds
   the history.
 - **The page shares unchanged frame parts** (`client.ts`: `shareUnchanged`): a frame's known holders, known walls, sight and

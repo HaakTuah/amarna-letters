@@ -40,16 +40,34 @@ first, then the characters, the events and the message trails): 958 KB at the st
 31, so the snapshots summed to 130 MB by season 31 and would have passed a gigabyte by the age's end. The page added a cache
 of up to 600 map scenes at about 2 MB each and a frame a season at about 1 MB.
 
-## What changed
+## The root: the stream, and the page's own history
 
-See `docs/design/44-the-crash-and-speed.md`: snapshots share what did not change (17 MB kept instead of 130 MB at season
-31; guarded by `src/game/test/snapshots.test.ts`), the worker keeps only the last frame, the page shares unchanged frame
-parts and keeps six scenes, the JSON reader takes names as written first, season fallbacks are counted once. Behaviour is
-unchanged: seeds replay exactly (the runner suite's replay test), the web suite passes, the benchmarks are to be re-run
-before the PR.
+Haakon, 31 October 2026, to the design session's finding that the page held a full copy of the game for every season:
+"Agreed, 100% sir!". The item's text now asks that "the engine sends the page what happened each season as a stream of
+events, not a whole new copy of the world, and the page keeps a compact history (each season's events and what each seat
+knew), from which any past season is rebuilt when looked back at; the same events drive item 17+++'s playback and item
+19+++'s sounds."
 
-With these, the capped run plays the whole age: the worker's heap settles between 150 and 310 MB and the page's between 50
-and 170 MB over 102 seasons.
+Built as `docs/design/44-the-crash-and-speed.md` describes under "The stream": after each season the state's JSON is cut
+into pieces at the items of its lists and dictionaries, each distinct piece kept once under a number (`SnapshotStore`); the
+worker sends the page only the pieces new that season and the season's list of numbers (`SnapshotDelta`, `Live.states`),
+the two members the page must never read redacted; the page keeps the pieces as its history (`SnapshotHistory`), rebuilds a
+past season's JSON by joining when the player looks back, and reads the newest season incrementally (`IncrementalReader`):
+an item whose text did not change keeps last season's object, and only new texts are parsed. The state the page reads is
+exactly the state the engine wrote (`src/web/test/history.test.ts`). The season's `SeasonFrame`, with the season's
+`GameEvent`s, is what each seat knew and what happened; it rides the same update, is built once in the worker and kept on
+the page only. The worker's `stateAt` message is gone.
+
+## What else changed
+
+See the design note: snapshots share what did not change in the worker too (17 MB kept instead of 130 MB at season 31;
+guarded by `src/game/test/snapshots.test.ts`; each piece copied flat, since V8 keeps a sliced string's whole parent alive),
+the worker keeps only the last frame, the page shares unchanged frame parts and keeps six scenes, the JSON reader takes
+names as written first, season fallbacks are counted once. Behaviour is unchanged: seeds replay exactly (the runner suite's
+replay test), the web suite passes, the benchmarks are re-run before the PR.
+
+With the shared snapshots alone, the capped run played the whole age: the worker's heap settled between 150 and 310 MB and
+the page's between 50 and 240 MB over 102 seasons. The numbers with the stream are below.
 
 ## No white page
 
@@ -72,6 +90,17 @@ speed as they were, "Updated to the newest version" shown after); a version with
    notice with the season (core.ts); the screen catches what the page itself throws, which is what leaves a white page.
 3. **Snapshots stay whole in meaning.** A past season's panels read the exact state of that season, as before; only how the
    worker keeps the text changed.
+4. **The stream carries the state's changes as pieces, and the frames carry the events.** The text's "stream of events"
+   is read as two things that already exist in the engine: the season's `GameEvent`s and what each seat knew (the
+   `SeasonFrame`), which travel once a season and are the compact history, and the state's changes, which travel as the
+   pieces of its JSON new since the last season, so every panel reads exactly the engine's state with nothing re-derived on
+   the page. Principle: "Code decides facts" (pillar 6): the page shows the engine's facts, never its own reconstruction of
+   them; and behaviour unchanged, which the item asks of the optimization round. The alternative, rebuilding the panels'
+   data on the page from semantic events alone, would re-implement the engine's rules on the page and could drift from them.
+5. **The script brains' memory is left as it is.** The script seats (the kings' and the council's brains) hold about 150 MB
+   by season 31 in a Free game: what every script king remembers of every tablet, sighting and character ("a script
+   character ... never loses it", "The game in one page"). It does not grow past the game's own ids and did not cause the
+   crash; noted for item 18 or a later optimization round.
 
 ## Numbers before and after
 
