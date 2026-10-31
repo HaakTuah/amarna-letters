@@ -37,7 +37,11 @@ export class IncrementalReader {
    */
   apply(refs: readonly number[], texts: readonly string[]): GameState {
     this.texts = texts;
+    let t = performance.now();
     const root = this.treeOf(refs);
+    performance.measure("reader:tree", { start: t });
+    t = performance.now();
+    this.parsed = 0;
     const state = root.items[0];
     if (root.items.length !== 1 || !("items" in state)) throw new Error("The state's pieces do not form one object.");
     this.next = new Map();
@@ -51,8 +55,12 @@ export class IncrementalReader {
     }
     this.caches = this.next;
     this.texts = [];
+    performance.measure("reader:fields", { start: t });
+    performance.measure(`reader:parsedKB:${Math.round(this.parsed / 1024)}`, { start: t, duration: 0 });
     return o as unknown as GameState;
   }
+  /** The characters of JSON parsed this season (new items). */
+  private parsed = 0;
 
   /** The tree of a snapshot's pieces. The root's one item is the state's object. */
   private treeOf(refs: readonly number[]): Container {
@@ -133,6 +141,7 @@ export class IncrementalReader {
     const shape = shapeOf(schema);
     if (!("items" in src)) {
       const text = headOnly(this.texts[src.id]);
+      this.parsed += text.length;
       v = readText(schema, itemJson(named ? valueText(text) : text));
     }
     else if (shape.k === "list" || shape.k === "set") {
@@ -142,7 +151,11 @@ export class IncrementalReader {
       const d = new Dict<string, unknown>();
       for (const x of src.items) d.set(nameOf(this.headText(x)), this.value(shape.of, x, true, cache, kept));
       v = d;
-    } else v = readText(schema, itemJson(named ? valueText(this.textOf(src)) : this.textOf(src)));
+    } else {
+      const text = this.textOf(src);
+      this.parsed += text.length;
+      v = readText(schema, itemJson(named ? valueText(text) : text));
+    }
     kept.set(key, v);
     return v;
   }

@@ -26,6 +26,9 @@ const logFile = arg("--log", null);
 // A phone's memory: V8's old space capped (MB) for the page and the worker alike, as a phone's browser caps them.
 const heapMb = Number(arg("--heap", "0"));
 const profile = process.argv.includes("--profile");
+// --trace: the browser's own timeline (devtools.timeline) for 20 s from about season 15, summed by event: the main thread's
+// time in script, style, layout, paint, parsing HTML and garbage collection, which no JavaScript mark can see.
+const trace = process.argv.includes("--trace");
 const speed = { fast: "50", normal: "400", slow: "1500" }[arg("--speed", "fast")] ?? "50";
 const videoDir = arg("--video", null);
 /** A hitch becomes visible at about 50 ms (item 17a's bar). */
@@ -137,6 +140,37 @@ function hottest(profile, top = 18) {
     .slice(0, top)
     .map(([name, us]) => `${(us / 1000).toFixed(0).padStart(6)} ms ${((100 * us) / total).toFixed(1).padStart(5)}%  ${name}`);
 }
+let tracing = null;
+const traced = [];
+cdp.on("Tracing.dataCollected", (e) => traced.push(...e.value));
+async function startTrace() {
+  await cdp.send("Tracing.start", { categories: "devtools.timeline,disabled-by-default-devtools.timeline,v8.execute,blink.user_timing", transferMode: "ReportEvents" });
+  tracing = Date.now();
+}
+async function stopTrace() {
+  const done = new Promise((r) => cdp.once("Tracing.tracingComplete", r));
+  await cdp.send("Tracing.end");
+  await done;
+  const span = (Date.now() - tracing) / 1000;
+  tracing = null;
+  // Complete events (ph X) by name, the main thread's: self time is not separated, so the sums overlap (a task holds its parts).
+  const byName = new Map();
+  let mainPid = null;
+  let mainTid = null;
+  for (const e of traced) if (e.name === "thread_name" && e.args?.name === "CrRendererMain") { mainPid = e.pid; mainTid = e.tid; break; }
+  for (const e of traced) {
+    if (e.ph !== "X" || (mainPid !== null && (e.pid !== mainPid || e.tid !== mainTid))) continue;
+    const x = byName.get(e.name) ?? { count: 0, total: 0, worst: 0 };
+    x.count++;
+    x.total += e.dur;
+    if (e.dur > x.worst) x.worst = e.dur;
+    byName.set(e.name, x);
+  }
+  await out(`timeline of the page's main thread over ${span.toFixed(0)} s, by event (sums overlap: a task holds its parts):`);
+  for (const [name, x] of [...byName.entries()].sort((a, b) => b[1].total - a[1].total).slice(0, 22))
+    await out(`  ${name.padEnd(28)} ${String(x.count).padStart(6)} times, ${(x.total / 1000).toFixed(0).padStart(7)} ms in all, worst ${(x.worst / 1000).toFixed(0).padStart(5)} ms`);
+  traced.length = 0;
+}
 let profiling = null;
 async function startProfiles() {
   await cdp.send("Profiler.enable");
@@ -226,6 +260,7 @@ let lastFrames = null;
 let rows = 0;
 let ended = false;
 let profiled = false;
+let tracedOnce = false;
 let allFrames = 0;
 let allLong = 0;
 let allWorst = 0;
@@ -288,6 +323,10 @@ for (;;) {
     profiled = true;
     await startProfiles();
   } else if (profiling !== null && Date.now() - profiling >= 30000) await stopProfiles();
+  if (trace && tracing === null && page.season >= 15 && !tracedOnce) {
+    tracedOnce = true;
+    await startTrace();
+  } else if (tracing !== null && Date.now() - tracing >= 20000) await stopTrace();
   if (problems.some((x) => x.what.startsWith("page error") || x.what.startsWith("the worker") || x.what.startsWith("the page crashed"))) break;
   if (now > deadline) {
     await out(`stopped after ${minutes} minutes, at season ${page.season}`);
@@ -296,6 +335,7 @@ for (;;) {
 }
 finished = true;
 if (profiling !== null) await stopProfiles();
+if (tracing !== null) await stopTrace();
 await out(ended ? `the game ended at season ${lastSeason} after ${((Date.now() - t0) / 1000).toFixed(0)} s` : `not ended; last season ${lastSeason}`);
 // The bar: no frame over about 50 ms while seasons play.
 try {
