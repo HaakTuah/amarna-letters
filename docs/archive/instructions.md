@@ -629,3 +629,121 @@ Given in the design chat with Claude, answering the design questions of the cons
     it: "Yes, please, expertly!" This replaces item 64's "always an amount" and removes the collectors (headmen) who
     skim or squeeze, which the design session had written in beyond what he meant. Written into "A census" and "The
     king says how much he wants" (The world) and items 17++ and 18.
+66. **30 October 2026, 06:52 UTC**, in the design chat, to item 19's review questions and the design session's
+    suggestions (clay maps for every court that writes cuneiform and papyrus for Egypt; sacked cities recovering through
+    their people and the works, with no new rule; hieratic notes as decoration in Egypt's view): "Yes to all". And: "And
+    yes, no special rules for cities recovering, people will migrate back at the harvest potential difference there
+    becomes bigger than neighboring cities. That's the mechanism, right?" (yes: "Feeding a province draws its people").
+    Written into build order item 19+.
+67. **30 October 2026, 06:56 UTC**, in the design chat: "I also think amarna letters needs another visual pass. With
+    the instructions to make it as visually impressive as it possibly can, without tanking the performance." Written
+    into build order item 19++, after 19+, beside item 18.
+68. **30 October 2026, 06:59 UTC**, in the design chat, on the visual pass (19++): "Well, it can get slower, but must
+    be playable on a phone. That's the criteria." And: "I see the game crashed now while I was watching one at high
+    speed. So maybe need a through optimization round also." And: "There are also many graphical glitches and
+    Inconsistencies in the game right now." Written into build order item 17a (the crash and an optimization round,
+    first, before 17+) and item 19++ (playable on a phone; glitches and inconsistencies found and fixed first).
+69. **30 October 2026, 07:02 UTC**, in the design chat, on the crash: "Got a white page with an error. Was on github"
+    (written into item 17a, with an error screen so no error leaves a white page). And: "Now, I think we have some
+    really long task for it to bite into when development can resume again?" (answered in the chat)
+70. **30 October 2026, 07:15-07:16 UTC**, in the design chat, on new versions: "No, i havent. I just figured it should've
+    updated itself, and not have to ask me." Then: "It should update when you start game. It always pops up when I
+    havent even started a game yet. Like why would I not want the latest version?" Written into item 17a: the newest
+    version always played without asking (on opening, the start screen and starting a game at once; during a game at
+    the next season, back into the same game); only a version whose rules a saved game cannot carry on in waits until
+    that game ends. The same for Barkstreet Snakes' 2v.
+71. **30 October 2026, 11:50-11:59 UTC**, in the design chat: "Do we have anything on music for Amarna Letters?" Then:
+    "I see that the Empire Earth music is used many strange places, like documentaries. It is super nostalgic for me,
+    and I feel it fits. Can i use that for this free open project?" Then: "I love all of the themes from the. Would love
+    if we could make something properly similar in that style instead (choir, strings, reed and drums) around the
+    Hurrian Hymn, that actually sounds good. Would be really cool. And have the music be dynamic exactly like it is in
+    Empire Earth. I feel if we first manage to make some good atmospheric pieces, they should be used across the board,
+    so the music is same for all you play, but should be dynamic in the same way as Empire Earth, with the few
+    variations on the pieces, and each piece playing according to the situation. Use the Empire Earth pieces as the
+    template, and make as many as Empire Earth had, each inspired by each piece there, expertly. Sounds good?" Written
+    into build order item 19+++, the music.
+72. **30 October 2026, 12:04-12:34 UTC**, in the design chat: "And sound effect can be inspired by CK2?" And, to the
+    design session's take (a sound for every action and event in the period's terms, a quiet bed of the world that
+    follows the map, stings for great moments, nothing from CK2's files): "Yes, please, expertly!" Written into item
+    19+++.
+73. **31 October 2026, 11:31-11:39 UTC**, in the design chat, on a second account spent before Monday's reset: "They
+    can spend 100% on this account i have used it for what I need." "I can set them to yse fable." "Should we add a
+    polish point to each that it can spend the last credits on also?" And, to the design session's shape of the
+    polish lane: "Yes, and make things as refined as possible!" Written into `docs/BUILD-PROGRESS.md`, "The polish
+    lane".
+74. **31 October 2026, 11:59-12:01 UTC**, in the design chat: "Can governors hold multiple provinces? Like Rib-Hadda held
+    Byblos and Gubla and more?" (Gubla is Byblos; Rib-Hadda was its vassal king, holding Batruna, Shigata and Ampi too;
+    Egypt's commissioners at Sumur, Kumidi and Gaza oversaw districts.) And, to the design session's take: "Yes, then
+    his "capital" becomes just wherever he holds seat." Written into "Governors" (War, travel and the seas) and item
+    17++.
+75. **31 October 2026, 12:05-12:11 UTC**, in the design chat: "What's the difference between a governor and a vassal
+    then, gameplaywise? If the governor holds as much sway over his lands, as a vassal does?" Then, of a governor
+    taking all his provinces when he turns: "Maybe, but let's address the bigger issue first: [...] This means a
+    governor has a switch he can pull at any time to become a sovereign, which makes him a de facto vassal. There needs
+    to be more friction for him to make such universal decisions then there is for a vassal. City and army loyalty, or
+    something like that. With a vassal, it is natural, naturally it follows "its" leader. But a newly appointed
+    governor should not hold the full loyalty of his provinces if he imodately turns. See my drift?" Then: "Maybe make
+    it a agnostic system? It grows towards who ever gives to them, and goes the other way for whoever takes from them?
+    And starts not so high?" And, to the design session's take (a fair exchange neutral, credit to the hand they see,
+    memory fading, one rule for turning, armies, absorption and unrest): "Agreed to all. Expertly." Written into
+    "Loyalty is a ledger" and "Governors" (War, travel and the seas) and item 17++. The question of granting a governor
+    his provinces as a vassal king is left open ("Maybe").
+76. **31 October 2026, 12:15-12:18 UTC**, in the design chat: "This could also be a way then for an king to organically
+    integrate a vassal's land. A vassal will naturally try to counteract it. But if a king becomes popular enough
+    realtive to the leader, the leader could face an uprising, that offers submission to the king, if it succeeds. And
+    now I think it is much more clear to myself how a governor might rebel, and new dynamics for a king and vassal
+    relationship." Then, to granting a governor his provinces as a vassal king: "Yes, expertly! And you are right.
+    Under the hood, it will be a probability number, I imagine. But it should not be that tangible to a player. But the
+    better you invest in information, the better resolution you get on the situation." Written into "Loyalty is a
+    ledger" and "Governors" (War, travel and the seas) and item 17++.
+77. **31 October 2026, 12:22-12:24 UTC**, in the design chat: "Because, if he makes someone a vasasal, he formerly
+    loses score. So he'll presumably want some upfront payment? And maybe he reasons, a local leader, invested in
+    keeping the love of the people, can give him more in tribute, then the king manages to make organically grow there
+    at a distance? Because otherwise it isn't a good value proposition for the king, since it also comes with a lot of
+    risk." Then, to writing it in as the king's own sum (a negotiated price and tribute, granting only where it nets
+    more, scripts that grant against scripts that never do): "Yes, to all, expertly! Not decided on title, keep both
+    options for now." Written into "Governors" (War, travel and the seas) and item 17++.
+78. **31 October 2026, 12:28-12:31 UTC**, in the design chat: "Should governors be slightly different shade of their
+    king, and vassals also a shade, but a much fainter one?" Then: "So each shouldn't also have an individual shade
+    based on the player's read on how firm of a grip the king actually got on the region?" Then, to three steps of a
+    power's colour (ruled directly, governed, vassal) with governors bounded by inner borders, and the mood of the land
+    as a view of its own, both in item 17++: "Agreed with all you said! And we should probably have many different map
+    modes, given how many dimensions there are to this game. What do you think, expert?" Written into "Who holds what,
+    and the mood of the land" (Interface and the council) and item 17++.
+79. **31 October 2026, 12:38 UTC**, in the design chat, to nine map views (realms, mood of the land, what you know,
+    people, harvest and stores, trade, roads and seas, armies, ties), each showing only what the seat knows, built for
+    existing systems in item 19++ and by each new system's own item: "Agreed to all. Expertly! Though some of the
+    information you listed, like what roads are extremely dangerous to pass, I feel we can manage to fit into the main
+    map mode also, through showing the snow, weather, seasons. The harshness of it, and such. Doesn't mean we can't
+    have a map mode devoted to it, but we should try to make the main map as readable and visually appealing we can,
+    so you get most of the information nessecary for you there, while managing not to clutter it too much. Your take,
+    expert?" Written into "The main map and its views" (Interface and the council) and item 19++. At 12:40 UTC, to
+    only the out-of-the-ordinary standing out and detail growing with zoom: "Yes, expertly so!"
+80. **31 October 2026, 12:41-12:42 UTC**, in the design chat: "Everything is avaliable to the other claude account
+    also? It can read the design document and build order?" Then, to builders without the live document reading the
+    copy on `develop` again before opening a pull request: "Yes, please, expertly!" Written into the builder rules
+    ("The specification") and `docs/intent/INDEX.md` (by `scripts/design-copy.py`).
+81. **31 October 2026, 12:43-12:46 UTC**, in the design chat: "Is everyhting consistent and covered now?" Then, to
+    pointing "How a king lives" to the king's share or amount, reading "Revolt follows conditions, not dice" and "Slow
+    absorption" through the ledger (the ledger deciding how far a province leans, the master's weakness, a cause to
+    rally to and outside help the moment it rises), and bringing the progress rows of 17++ and 19++ up to date: "Yes,
+    fix all expertly!" Written into those sections (Land, people and the economy; War, travel and the seas) and
+    `docs/BUILD-PROGRESS.md`.
+82. **31 October 2026, 13:44-13:50 UTC**, in the design chat, to the second account's first reports. To keeping the
+    music lane (19+++) running beside 17a: "Yes, to all, expertly!" Then: "Why did we pick Opus 5.5 for the music? Is
+    Fable not more creative, or?" And, to moving the music lane to Fable once the improvement audit is done, the Opus
+    session building the sound system until then: "YEs!" Written into the 19+++ row of `docs/BUILD-PROGRESS.md`.
+83. **31 October 2026, 13:51-13:53 UTC**, in the design chat, to the improvement audit's question (troops of 2 to 15
+    men holding cities and blocking moves; its reading, a unit ending below a tenth of a full levy) and the design
+    session's take (no size threshold: a move into a far weaker unit is a battle it loses, a garrison holds a town only
+    as far as its people's ledger stands with its master, script kings fold or disband remnants): "Agreed to all,
+    expertly!" Written into "The people defend their land" (War, travel and the seas) and item 17++.
+84. **31 October 2026, 13:56-13:57 UTC**, in the design chat, as the second account neared its five-hour limit: "Have
+    we informed them to push every single commit? I see that they are now running out of their allocated usage for the
+    next couple of hours. I don't want them to stop, but I do hope they have pushed everything that they can." Then, to
+    making "push after every commit" a standing rule in both games in place of "at every passed gate and at least
+    hourly": "YES!" Written into `CLAUDE.md`, "Standing instructions" (push as you go).
+85. **31 October 2026, 14:16-14:19 UTC**, in the design chat, on the branch `archive/csharp-final` being kept out of
+    the clean-up of merged branches: "Why keep it?" Then "Yes, expertly" to keeping it as a tag, and then: "I don't
+    care. That build is old news." So the branch goes with the other merged branches, no tag is made, and `CLAUDE.md`,
+    `README.md` and the design notes point to commit `5b4caa2` in `develop`'s history.
