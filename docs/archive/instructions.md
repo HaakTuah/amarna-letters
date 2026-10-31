@@ -743,8 +743,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     next couple of hours. I don't want them to stop, but I do hope they have pushed everything that they can." Then, to
     making "push after every commit" a standing rule in both games in place of "at every passed gate and at least
     hourly": "YES!" Written into `CLAUDE.md`, "Standing instructions" (push as you go).
-85. **31 October 2026, 14:16-14:17 UTC**, in the design chat, on the branch `archive/csharp-final` being kept out of
-    the clean-up of merged branches: "Why keep it?" Then, to keeping the old C# build as the tag `csharp-final` on commit
-    `5b4caa2` (as Haakon asked when the C# build was removed, `docs/rounds/2026-10-27-remove-csharp.md`) and deleting the branch: "Yes, expertly". Sessions cannot push tags
-    or delete branches, so Haakon's own script makes the tag, then deletes the branch with the other merged branches;
-    `CLAUDE.md`, `README.md` and the design notes now point to the tag.
+85. **31 October 2026, 14:16-14:19 UTC**, in the design chat, on the branch `archive/csharp-final` being kept out of
+    the clean-up of merged branches: "Why keep it?" Then "Yes, expertly" to keeping it as a tag, and then: "I don't
+    care. That build is old news." So the branch goes with the other merged branches, no tag is made, and `CLAUDE.md`,
+    `README.md` and the design notes point to commit `5b4caa2` in `develop`'s history.

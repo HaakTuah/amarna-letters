@@ -3,7 +3,7 @@
 A Late Bronze Age grand strategy game: seven Great Kings, played by humans, script bots or language models, negotiate
 through envoys and sealed tablets on a deterministic engine. Haakon (the owner) designs it with Claude in a design
 document; builders like you build it item by item. Built in TypeScript (Vite and React, the engine in a Web Worker)
-since build order item 5+; the old C# build was removed after the fix pass and is kept at the tag `csharp-final` (commit `5b4caa2`, also in `develop`'s history). Every feature
+since build order item 5+; the old C# build was removed after the fix pass and is in `develop`'s history at commit `5b4caa2`. Every feature
 answers to the design pillars and tenets in `docs/intent/overview/design-pillars.md`: read them once per session.
 
 ## Where things are
