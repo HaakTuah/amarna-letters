@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-visual" />
+    <title>Amarna Letters</title>
+    <meta name="description" content="A strategy game of the Late Bronze Age Great Kings, where every word passes through an envoy." />
+    <meta name="theme-color" content="#efe5cf" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1c1915" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Amarna" />
+    <base href="/amarna-letters/" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <script>
+        // The reader's theme (chosen in the game's menu, kept in this browser only), set before the page is drawn.
+        (function () { try { const t = localStorage.getItem("amarna-theme"); if (t) document.documentElement.dataset.theme = t; } catch { } })();
+    </script>
+  <script type="module" crossorigin src="./assets/index-xAciTens.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-c2DWru6T.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="boot">
+            <div class="boot-title">Amarna <span>Letters</span></div>
+            <p class="boot-note">Loading the game. Later visits start from this device.</p>
+        </div>
+    </div>
+</body>
+
+</html>
