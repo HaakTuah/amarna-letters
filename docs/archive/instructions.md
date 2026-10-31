@@ -883,3 +883,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     123 characters at start (23 attested, 100 in the regions' name styles) and 47 rulers, and about 150-200 if tonight's
     additions came on top, to the design session's reading that the real people should take the places of invented
     ones, keeping the world near its baseline: "Agreed," Written into item 17+.
+104. **31 October 2026, 21:19-21:27 UTC**, in the design chat: "Is all the provinces that should be in the game, in the
+    game or the design document now, according to their historcial relevance for this exact time? And are there any
+    provinces that should be cut, that are in the game or design document now, expert?" To the design session's
+    candidates (Alshe and Ashtata added, Suhu folded, each if the dossiers bear it out): "1. Yes." Written into item
+    17+.
