@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Tests, risks and references tab, revision 14 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Tests, risks and references tab, revision 14 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## Success criteria and test plan
 
 The prototype succeeds if, across ten or more full games, norms of trust appear that no rule created. Decide the signals before building, and read them from the logs.
