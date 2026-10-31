@@ -9,16 +9,20 @@ import { useEffect, useRef } from "react";
 
 export type KeyAction = "pause" | "speed1" | "speed2" | "speed3" | "speed4" | "speed5" | "faster" | "slower";
 
-/** Each action's keys, as `KeyboardEvent.code` values, and how a tooltip names them. Crusader Kings III's keys. */
-export const KeyBindings: Record<KeyAction, { codes: readonly string[]; label: string }> = {
+/**
+ * Each action's keys and how a tooltip names them, Crusader Kings III's keys. `codes` are physical keys
+ * (`KeyboardEvent.code`: the digit row and the number pad, the same on every layout); `chars` are what a key types
+ * (`KeyboardEvent.key`), for keys that move between layouts: "+" sits where US keyboards have "-" on Norwegian ones.
+ */
+export const KeyBindings: Record<KeyAction, { codes: readonly string[]; chars?: readonly string[]; label: string }> = {
   pause: { codes: ["Space"], label: "Space" },
   speed1: { codes: ["Digit1", "Numpad1"], label: "1" },
   speed2: { codes: ["Digit2", "Numpad2"], label: "2" },
   speed3: { codes: ["Digit3", "Numpad3"], label: "3" },
   speed4: { codes: ["Digit4", "Numpad4"], label: "4" },
   speed5: { codes: ["Digit5", "Numpad5"], label: "5" },
-  faster: { codes: ["Equal", "NumpadAdd"], label: "+" },
-  slower: { codes: ["Minus", "NumpadSubtract"], label: "−" },
+  faster: { codes: ["NumpadAdd"], chars: ["+", "="], label: "+" },
+  slower: { codes: ["NumpadSubtract"], chars: ["-", "_"], label: "−" },
 };
 
 /** The game's speeds, slowest first, as the pause between seasons in milliseconds: keys 1 to 5 pick them. */
@@ -50,7 +54,8 @@ function typing(e: KeyboardEvent): boolean {
 /** The action a key press asks for, if any. */
 export function actionOf(e: KeyboardEvent): KeyAction | null {
   if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || typing(e)) return null;
-  for (const [action, b] of Object.entries(KeyBindings) as [KeyAction, (typeof KeyBindings)[KeyAction]][]) if (b.codes.includes(e.code)) return action;
+  for (const [action, b] of Object.entries(KeyBindings) as [KeyAction, (typeof KeyBindings)[KeyAction]][])
+    if (b.codes.includes(e.code) || (b.chars !== undefined && !e.code.startsWith("Numpad") && b.chars.includes(e.key))) return action;
   return null;
 }
 

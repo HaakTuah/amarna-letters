@@ -346,7 +346,11 @@ export function Play() {
                 Speed{" "}
                 <select
                   value={Speeds[speedIndex(s.delayMs)].ms}
-                  onChange={(e) => s.setDelay(Number(e.target.value))}
+                  onChange={(e) => {
+                    s.setDelay(Number(e.target.value));
+                    // Let go of the menu, so Space and the speed keys work again at once.
+                    e.target.blur();
+                  }}
                   title="Keys 1 to 5 set the speed; + and − make it faster or slower"
                 >
                   {Speeds.map((x, i) => (
