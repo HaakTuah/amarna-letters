@@ -1,7 +1,7 @@
-<!-- Generated from the design document, Characters tab, revision 23 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 25 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 ## Characters: hidden facts, memory and continuity
 
-Every character is data first and personality second: the engine owns its traits and facts, and the narrator writes a persona from them at creation, and again only if his strategy changes. The prototype has 18 characters, serving as envoys and spies. As characters take on more roles (generals, governors, later advisors), the pool grows to about 60 ("How many characters"), affordable because characters sleep until something concerns them ("Characters sleep like kings"), while envoys and spies remain a small cast of known figures people talk about rather than consumables.
+Every character is data first and personality second: the engine owns its traits and facts, and the narrator writes a persona from them at creation, and again only if his strategy changes. The prototype has 18 characters, serving as envoys and spies. As characters take on more roles (generals, governors, later advisors), the pool grows (about a hundred as built: "How many characters"), affordable because characters sleep until something concerns them ("Characters sleep like kings"), while envoys and spies remain a small cast of known figures people talk about rather than consumables.
 
 **Hidden traits** (0–100, seeded, never shown to players): loyalty, greed, competence, ambition, courage, and an optional sympathy for one foreign court. Skills come on top ("Character attributes for many roles").
 
