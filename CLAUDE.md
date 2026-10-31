@@ -201,3 +201,7 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
   a reading: list it under "Readings taken" with the principle it rests on, and build it that way. Only what they leave
   open, or a matter of taste, goes to Haakon. On 28 October about half the questions sent to him were settled by the
   page already.
+- **31 October 2026: a change a player sees updates the README** (`docs/archive/instructions.md`, item 86). Any item
+  or PR that changes what a player sees or does updates `README.md` in the same PR, as the rulebook and seat view
+  already are ("Every rule a king needs is in the rulebook or the seat view"). Each milestone PR says in one line
+  whether the README is current, and fixes it if not.
