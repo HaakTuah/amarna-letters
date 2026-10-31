@@ -922,3 +922,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     names on a second line of his card; a game told anew only when asked): "Yes to both. But I think it should only
     show their name like that when you click on the character? Or di you want it in parenthesis in every letter they
     receive?" Written into items 17+ and 17+++: on the card when clicked, never in letters.
+111. **31 October 2026, 22:49-22:53 UTC**, in the design chat. Asked what name an uprising or upstart takes, and given
+    the design session's take (the seat's period name, kept for the realm's life; the founder's house, Bit- and his
+    name, only when a living power already goes by it; never a number): "Yes, expertly please! If that is what you
+    advice." With it: "But one issue remains. What about when the leader of Gubla conquers a new province? Is the
+    "nation" still Gubla? What if he conquers 5 more?" Answered from the same rule: the name stays however far the
+    realm grows, as Hatti and Assyria kept theirs, and growth shows in how other courts address its king. Written into
+    "Places by their own names" (World) and item 17+.
