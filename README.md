@@ -50,12 +50,16 @@ rumours, and those can be late, shaded or false.
 ### What a king can do
 
 **Armies and fleets.**
-- Move, hold, support and convoy, as in Diplomacy. Strength is one plus supports, ties bounce,
-  and there are no dice. You may support any power's unit, which is how alliances fight together.
+- Move, hold, support and convoy, as in Diplomacy, but each unit fights by its men, shaped by its commander, with
+  its supports; ties bounce, and there are no dice. The loser loses men and falls back, and one beaten three to one,
+  or with nowhere to go, is destroyed. You may support any power's unit, which is how alliances fight together.
+- March at the pace of the road: a long road takes several seasons, a big army moves slower, and a forced march saves
+  a third of the time at the cost of stragglers.
 - Besiege a walled city your army stands in, or sally from your own walls (level 2 or more) against troops inside them.
 - Give standing orders that answer a blow in the same season, while you sleep or play.
-- Raise an army (100 shekels) or a fleet (120) in an empty province of your homeland, or disband
-  one. Upkeep is 30 a season for an army and 35 for a fleet.
+- Levy an army (100 shekels) or a fleet (120) from the men of a province of your homeland, or disband one, its men
+  going home. Upkeep is 20 shekels a season for an army and 25 for a fleet, and troops need food as well as pay: a unit
+  left hungry or unpaid for long mutinies.
 
 **Land and gold.**
 - Take a city by conquest, or as your vassal by a sealed tablet: no city is bought.
@@ -84,6 +88,28 @@ rumours, and those can be late, shaded or false.
 - Run background checks on what a person hides.
 - Post spies at a foreign court or in a province, and pay watchmen against other kings' spies.
 - Hold a caught spy for ransom or try to turn it, and pay the ransom for one of your own.
+- Hear your royal council: four advisors (General, Steward, Tjaty and Diviner), each with a known tilt, who see only
+  what you see and propose troop orders and levies. The omens of the end darken as it nears, in your court's own voice.
+
+**Command at a distance.**
+- Your court is where you are, and you may move it. An order for a place your couriers cannot reach this season goes
+  out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped.
+- Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
+  holding it gives him, and you take it back by sending word.
+
+**The land and its people.**
+- Each province's people farm, pay a tax you set (a third of the crop by default) into its stores, and eat what they
+  keep. The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men
+  on the roads may raise bands of their own.
+- Sell and buy grain and goods at your own markets, where prices follow supply; send caravans and trade abroad, and set
+  tolls on your roads.
+- Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée: nothing is
+  kept unless you order it, and an army in another's land can raze them.
+- Hunger, levies, a sack and troops taking food breed unrest. Your troops and a loyal governor calm a province; where
+  neither stands, a revolt may put it under a ruler of its own, or leave it lawless.
+
+**Tongues.** Every court speaks and reads its own languages. An envoy needs a tongue the host understands, a tablet
+waits until someone at court can read it, and people learn the tongues of where they live.
 
 ### Walls, sieges and terrain
 
@@ -104,17 +130,24 @@ Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's ne
 
 ### Winning
 
-A king's strength is ten times the yield of the land he holds, plus his gold, minus back pay he
-owes. Conquered land counts as it is absorbed: a third in its first season, two thirds in the
-second, all of it from the third. The winner is whoever grew most relative to their own start.
+A realm's strength is ten times the yield of the land it holds, plus its gold and what it holds besides, never
+counting what it owes. Conquered land counts as it is absorbed, over its first seasons. Its growth is that strength
+against its strength at the start. At the end each power's score blends two things: its performance, its growth
+ranked among the results of powers that started where it did (most of the score, so a city that holds its own can
+win as well as an empire), and its size, its strength against the largest realm's (a small part, 5 percent by
+default). The highest score wins.
 
 Any season may be the last, from the first: early on it is very unlikely, and it grows likelier with every year, so
-that half of all ages have ended by 1332 BCE (season 44). The engine draws the last season once, in secret, at the start,
-with a hard cap drawn from 80 to 100 seasons; nothing shown reads it. The median and the cap's range (or none) are table
-settings, and a table can play an open age with no end, from the start or by playing on once the age has ended.
+that half of all ages have ended by 1320 BCE (season 80). The engine draws the last season once, in secret, at the
+start, with a hard cap drawn from 140 to 160 seasons; nothing shown reads it, though the omens darken as the end draws
+near. The median and the cap's range (or none) are table settings, and a table can play an open age with no end, from
+the start or by playing on once the age has ended.
 
-A kingdom falls with its capital: its remaining land passes to the conqueror, and its troops
-disband. A fallen player watches the rest of the game in god view (a table setting).
+A kingdom falls with its capital, which passes to whoever took it. The rest of the realm comes apart as word of the
+fall reaches each part: where the conqueror's troops stand the land is his, a governor of the fallen king's may rule
+his province in his own name, as a new power, and the rest falls lawless; armies with a commander become his band, and
+the others disband or follow a captain of their own. A fallen player watches the rest of the game in god view (a table
+setting).
 
 There is one winner. Shared victory for sworn allies is a house rule, off by default.
 
@@ -149,8 +182,8 @@ is in [docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md) under "Script kings".
 
 No court has missions, goals or rules of its own. Each plays differently because of what it has, what it
 lacks and where it stands, and the same court plays differently from game to game as floods fail, roads
-close and rivals change. This is the picture the game is growing towards; for now, position and
-relations do most of the work.
+close and rivals change. The harvests, mines, markets, roads and tongues of the map carry this out: each court's
+strengths and wants come from its land, not from a rule about it.
 
 - **Egypt, the banker.** Rich in gold and grain, short of horses, timber and tin. Its game is spending
   well: buying allies, horses and cedar, and holding Canaan to keep the coast road.
@@ -281,6 +314,14 @@ attacks, supports, bounces and captures are drawn; envoys, spies and gold appear
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
 uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow
 their life: their path, their masters, their missions, what they said and reported.
+
+The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
+gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
+battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Each court's map is pressed in
+clay, and Egypt's is drawn on papyrus.
+
+**Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall
+of courts. When the age ends, every seat may open the whole record in god view.
 
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly.
