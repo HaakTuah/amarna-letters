@@ -914,3 +914,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     spectator mode, to a list of threads to watch and an optional director camera in spectator mode, and to people named
     as each court named them (Pharaoh Naphurureya in foreign letters, Akhenaten in Egypt's own seat): "Yes to that. And
     yes to" the first. Written into items 17+ and 17+++.
+109. **31 October 2026, 22:22 UTC**, in the design chat, to the design session's question on showing each model mind's
+    notes in the spectator's seat view: "Yes, I think so. And it should maybe store what it looked like at every step?
+    And the narrator should also have its take stored from the first time it runs on a game, so it must not be ran each
+    time you watch it potentially afterwards?" Written into item 17+++.
