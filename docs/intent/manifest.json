@@ -17,7 +17,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 150,
+   "rev": 151,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -128,7 +128,7 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 85,
+   "rev": 87,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military.md",
@@ -142,7 +142,7 @@
   "victory-and-the-ending": {
    "name": "Victory and the ending",
    "node": "58b70949-2c17",
-   "rev": 18,
+   "rev": 19,
    "files": [
     "docs/intent/victory-and-the-ending/front.md",
     "docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md",
