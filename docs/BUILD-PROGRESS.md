@@ -39,6 +39,9 @@ account until its usage is spent; on the main account the usage brake closes it 
   slips in; merged at once, listed in one line per fix under the lane in this file. Nothing is left half done: a fix not
   finished when usage ends is left unstarted, its find noted for the next session.
 
+Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
+- The empty Play page lost the top bar and spoke of loading a log it gave no way to load; it keeps the bar and links to the saved games.
+
 ## For Haakon: review points
 
 Answered review points, and the rows of items 1 to 11c, are in `docs/archive/progress-done.md` (moved 28 October 2026,
