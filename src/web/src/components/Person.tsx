@@ -45,7 +45,7 @@ export function Person({ c, court, onFollow }: { c: CharacterView; court: Power 
       )}
       {c.knownFacts.length > 0 && (
         <div>
-          <small>Known: {c.knownFacts.join(" ")}</small>
+          <small>Known: {c.knownFacts.map((f) => dated(f, court)).join(" ")}</small>
         </div>
       )}
       {c.speaks.length > 0 && (
