@@ -3,9 +3,14 @@
 // layer on the GPU, and only when it settles are the map's symbol and label sizes recomputed (CSS variables).
 
 import { BoardHeight, BoardWidth } from "./projection.ts";
+import { ReliefFrame } from "./relief-frame.ts";
 
 const MAP_W = BoardWidth, MAP_H = BoardHeight, MAX_ZOOM = 24;
 const states = new WeakMap();
+// The drawn world around the board (the relief and the lands beyond the game), as far as it reaches on every side of the
+// board alike: the view never shows past it, so the map never ends at a bare edge (Haakon, 31 October 2026).
+const WORLD_W = MAP_W + 2 * Math.min(-ReliefFrame.x, ReliefFrame.x + ReliefFrame.width - MAP_W);
+const WORLD_H = MAP_H + 2 * Math.min(-ReliefFrame.y, ReliefFrame.y + ReliefFrame.height - MAP_H);
 const reduced = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /// `onSettle(scale)`: called when a gesture settles, with the screen pixels a map unit now takes (item 11c+: names and
@@ -94,7 +99,7 @@ export function zoomBy(view, factor) {
 export function reset(view) {
   const st = states.get(view);
   if (!st) return;
-  animate(st, () => { st.s = 1; st.x = 0; st.y = 0; clamp(st); });
+  animate(st, () => { st.s = lowest(st); st.x = 0; st.y = 0; clamp(st); });
 }
 
 /// Where the view is: the map point at its centre and its zoom (1 shows the whole board).
@@ -102,7 +107,7 @@ export function getView(view) {
   const st = states.get(view);
   if (!st) return null;
   const g = geometry(st);
-  return { x: ((g.w / 2 - st.x) / st.s - g.ox) / g.b, y: ((g.h / 2 - st.y) / st.s - g.oy) / g.b, zoom: st.s };
+  return { x: ((g.w / 2 - st.x) / st.s - g.ox) / g.b, y: ((g.h / 2 - st.y) / st.s - g.oy) / g.b, zoom: st.s, whole: st.s <= lowest(st) * 1.01 };
 }
 
 /// Centres the view on a map point at a zoom (a view kept from before, or a view's opening).
@@ -111,7 +116,7 @@ export function setView(view, mx, my, zoom, animated) {
   if (!st) return;
   const change = () => {
     const g = geometry(st);
-    st.s = Math.min(MAX_ZOOM, Math.max(1, zoom));
+    st.s = Math.min(MAX_ZOOM, Math.max(lowest(st), zoom));
     st.x = g.w / 2 - st.s * (g.ox + mx * g.b);
     st.y = g.h / 2 - st.s * (g.oy + my * g.b);
     clamp(st);
@@ -139,6 +144,14 @@ export function focus(view, mx, my, minZoom) {
   });
 }
 
+/// The farthest out the view may go: the whole board where the screen's shape allows, and never past the drawn world, so
+/// on a screen wider or taller than the board the view stops where the map fills it.
+function lowest(st) {
+  const g = geometry(st);
+  if (!g.w || !g.h) return 1;
+  return Math.max(1, g.w / (g.b * WORLD_W), g.h / (g.b * WORLD_H));
+}
+
 function geometry(st) {
   const w = st.view.clientWidth, h = st.view.clientHeight;
   const b = Math.min(w / MAP_W, h / MAP_H);
@@ -161,7 +174,7 @@ function track(st) {
     const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
     const m0 = { x: (s0.pts[0].x + s0.pts[1].x) / 2 - r.left, y: (s0.pts[0].y + s0.pts[1].y) / 2 - r.top };
     const m = { x: (pts[0].x + pts[1].x) / 2 - r.left, y: (pts[0].y + pts[1].y) / 2 - r.top };
-    const s = Math.min(MAX_ZOOM, Math.max(1, s0.s * d / d0));
+    const s = Math.min(MAX_ZOOM, Math.max(lowest(st), s0.s * d / d0));
     const cx = (m0.x - s0.x) / s0.s, cy = (m0.y - s0.y) / s0.s;
     st.s = s; st.x = m.x - cx * s; st.y = m.y - cy * s;
   } else if (pts.length === 1 && s0.pts.length >= 1) {
@@ -176,7 +189,7 @@ function zoomAt(st, factor, clientX, clientY, animated) {
   const r = st.view.getBoundingClientRect();
   const px = clientX - r.left, py = clientY - r.top;
   const change = () => {
-    const s = Math.min(MAX_ZOOM, Math.max(1, st.s * factor));
+    const s = Math.min(MAX_ZOOM, Math.max(lowest(st), st.s * factor));
     const cx = (px - st.x) / st.s, cy = (py - st.y) / st.s;
     st.s = s; st.x = px - cx * s; st.y = py - cy * s;
     clamp(st);
@@ -198,6 +211,7 @@ function animate(st, change) {
 // The scaled map always covers the view where it can, and is centred where it cannot.
 function clamp(st) {
   const g = geometry(st);
+  st.s = Math.max(st.s, lowest(st));
   const mw = MAP_W * g.b * st.s, mh = MAP_H * g.b * st.s;
   const left = st.x + st.s * g.ox, top = st.y + st.s * g.oy;
   if (mw <= g.w) st.x = (g.w - mw) / 2 - st.s * g.ox;
