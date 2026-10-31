@@ -39,6 +39,9 @@ account until its usage is spent; on the main account the usage brake closes it 
   slips in; merged at once, listed in one line per fix under the lane in this file. Nothing is left half done: a fix not
   finished when usage ends is left unstarted, its find noted for the next session.
 
+Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
+- Gold in the panels was shown with the treasury's fractions ("10.5311700 shekels"); it is now rounded to the whole shekel.
+
 ## For Haakon: review points
 
 Answered review points, and the rows of items 1 to 11c, are in `docs/archive/progress-done.md` (moved 28 October 2026,
