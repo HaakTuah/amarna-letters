@@ -1,4 +1,4 @@
-<!-- Generated from the design document, World and history tab, revision 56 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, World and history tab, revision 58 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## The world: seven asymmetric Great Kings
 
 The board holds the seven powers of the Amarna correspondence, deliberately unequal. Strength breeds suspicion: the strongest powers must look less threatening than they are, the weakest must make themselves indispensable, and everyone in between decides who the bigger threat is this year.
@@ -19,7 +19,7 @@ The board holds the seven powers of the Amarna correspondence, deliberately uneq
 
 **Status is free-form.** Titles like "brother" carry no mechanical effect. If players fight over who may use them, that is the hypothesis working.
 
-**Recognition is earned** (decided 19 October 2026). Rank starts as data. In the opening positions, Assyria's claim to Great King status is new, and Babylonia holds Assyria to be its vassal. The engine records who calls whom "brother" and grants whom the title in the greetings kings actually send, and a new claim stops being new once most Great Kings have called that power brother for a few years (first guesses, tuned in build order item 18). A power that rises during a game, such as a city-state that grows to matter, goes through the same struggle. Recognition changes no rule and no score; it is a fact kings read, so the fight over titles stays free-form, as above.
+**Recognition is earned** (decided 19 October 2026). Rank starts as data. In the opening positions, Assyria's claim to Great King status is new, and Babylonia holds Assyria to be its vassal. The engine records who calls whom "brother" and grants whom the title in the greetings kings actually send, and a new claim stops being new once most Great Kings have called that power brother for a few years (first guesses, tuned in build order item 18). A power that rises during a game, such as a city-state that grows to matter, goes through the same struggle. Where two powers claim one name, the same greetings record whom each court gives it to ("Places by their own names"). Recognition changes no rule and no score; it is a fact kings read, so the fight over titles stays free-form, as above.
 
 - **Script kings follow one general rule:** a proud king withholds "brother" and "Great King" from a power whose claim is newer than his own and whom he counts as his subordinate, unless they are friends. It replaces the named rule by which Babylonia snubs Assyria.
 - **Model kings read the same facts** in the opening positions and in each court's record of greetings.
