@@ -104,7 +104,40 @@ speed as they were, "Updated to the newest version" shown after); a version with
 
 ## Numbers before and after
 
-To be filled from the profile and the soak runs after the optimization round.
+All on this machine (4 cores, 16 GB), seed 1, a Free game of script kings watched at Fast speed in the built app
+(`node src/web/soak.mjs`), the age ending at season 102. "Before" is develop as the item started; "after" is this branch.
+
+| Whole game at Fast speed, desktop | Before | After |
+|---|---|---|
+| Time to the age's end | 155 s (1.0 s a season at first, 2.5 s late) | 117 s (about 1.0 s a season throughout) |
+| Page heap, troughs and peak | 70 to 180 MB, peak 429 MB | 50 to 220 MB (holds the history), peak 314 MB |
+| Worker heap | not readable then (grew about 5 MB a season) | 150 to 240 MB, flat from season 30 |
+| Heap capped at 400 MB (a phone's) | the renderer died at season 20 ("Page crashed") | the age ended, worker 236 MB, page 50 to 240 MB |
+| Phone profile (390x844, CPU slowed 4x) | 184 s; frames up to 655 ms mean, worst 2.8 s | to be measured in the review round |
+
+| Engine, 31 seasons in Node (`src/web/test/probe-run.ts`) | Before | After |
+|---|---|---|
+| Time | 70.0 s | 59.7 s |
+| Snapshots kept | 130 MB of strings (one whole state a season) | 17 MB of pieces, 50 MB of heap |
+| Garbage collection | 11% | 11% |
+| `Dict.entries` generators | 9% | gone (the iterator's tuples 5.6%) |
+| Route-finding family | 17% (`cheapestRoute` 4.3, `connectionDays` 4.7, `edgeBetween` 3.2, `legPoints` 2.7, `crossingBetween` 2.0) | 7% (`edgeBetween` 2.3, `legPointsOf` 1.8, `crossingBetween` 1.7, `cheapestRoute` 1.7) |
+| The snapshot cut | none | 3.7% (`add` and `take`) |
+
+What the page does a season now, from the browser profile over 31 s of the game: idle 44%, V8's own work 38% (the messages'
+structured clone and compilation), the incremental reader 3.6%, the map's layers 2.8%, garbage collection 1.8%. The worker
+is the pace: the engine's season, then the cut and the frame.
+
+What the state's JSON weighs, by field, at season 31 (KB): inbox 3118, characters 1193, events 1054, trails 502, scores
+131, tablets 97, marketsSeen 94, payKnown 78, journeys 62, payFacts 55; the whole 6724. A frame: knownOwner 130, journeys
+48 to 114, people 39, knownWalls 33, events 32; the whole about 1000 (shared on the page since).
+
+The suite, the smoke test and the benchmarks (20 games, seed 1, `--verify-replay`, before against after) are recorded
+below once run.
+
+## Benchmarks
+
+To be filled.
 
 ## Questions for Haakon
 

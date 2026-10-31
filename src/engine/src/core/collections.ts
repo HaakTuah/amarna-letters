@@ -4,6 +4,33 @@
  * freed first). A JavaScript Map always appends, so after a removal the two would disagree; the state's JSON and every
  * loop over a dictionary would then differ between the builds. These classes reproduce the slot rule.
  */
+/**
+ * Walks the live slots of a Dict or an HSet in order (item 17a: a hand-written iterator; the generators it replaces were a
+ * tenth of a season's time and most of its garbage). The slot arrays are read as they stand, so an item added while
+ * iterating is seen, as the generators saw it.
+ */
+class SlotIterator<T> implements IterableIterator<T> {
+  private i = 0;
+  private readonly slots: readonly unknown[];
+  private readonly slotNext: readonly number[];
+  private readonly at: (i: number) => T;
+  constructor(slots: readonly unknown[], slotNext: readonly number[], at: (i: number) => T) {
+    this.slots = slots;
+    this.slotNext = slotNext;
+    this.at = at;
+  }
+  next(): IteratorResult<T> {
+    while (this.i < this.slots.length) {
+      const i = this.i++;
+      if (this.slotNext[i] === -2) return { value: this.at(i), done: false };
+    }
+    return { value: undefined as T, done: true };
+  }
+  [Symbol.iterator](): IterableIterator<T> {
+    return this;
+  }
+}
+
 export class Dict<K, V> implements Iterable<[K, V]> {
   private slotKeys: K[] = [];
   private slotValues: V[] = [];
@@ -99,16 +126,16 @@ export class Dict<K, V> implements Iterable<[K, V]> {
     this.index.set(key, i);
   }
 
-  *entries(): IterableIterator<[K, V]> {
-    for (let i = 0; i < this.slotKeys.length; i++) if (this.slotNext[i] === -2) yield [this.slotKeys[i], this.slotValues[i]];
+  entries(): IterableIterator<[K, V]> {
+    return new SlotIterator(this.slotKeys, this.slotNext, (i) => [this.slotKeys[i], this.slotValues[i]]);
   }
 
-  *keys(): IterableIterator<K> {
-    for (let i = 0; i < this.slotKeys.length; i++) if (this.slotNext[i] === -2) yield this.slotKeys[i];
+  keys(): IterableIterator<K> {
+    return new SlotIterator(this.slotKeys, this.slotNext, (i) => this.slotKeys[i]);
   }
 
-  *values(): IterableIterator<V> {
-    for (let i = 0; i < this.slotKeys.length; i++) if (this.slotNext[i] === -2) yield this.slotValues[i];
+  values(): IterableIterator<V> {
+    return new SlotIterator(this.slotKeys, this.slotNext, (i) => this.slotValues[i]);
   }
 
   [Symbol.iterator](): IterableIterator<[K, V]> {
@@ -188,8 +215,8 @@ export class HSet<T> implements Iterable<T> {
     this.freeCount = 0;
   }
 
-  *values(): IterableIterator<T> {
-    for (let i = 0; i < this.slots.length; i++) if (this.slotNext[i] === -2) yield this.slots[i];
+  values(): IterableIterator<T> {
+    return new SlotIterator(this.slots, this.slotNext, (i) => this.slots[i]);
   }
 
   [Symbol.iterator](): IterableIterator<T> {

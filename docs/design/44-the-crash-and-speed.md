@@ -67,6 +67,20 @@ The page never mutates the state's objects (they are shared between seasons wher
 - **Season fallbacks are counted once** (`core.ts`, `fallbacksUpTo`): a played season's count is final, so the worker's
   update no longer scans the whole log for every season at every change.
 
+The engine's own time, from a CPU profile of 30 seasons of seed 1 in Node (`src/web/test/probe-run.ts` under
+`--cpu-prof`; the item's report has the tables): garbage collection 11%, the generators behind `Dict.entries` 9%, and the
+route-finding family (`cheapestRoute`, `edgeBetween`, `legPoints`, `connectionDays`, `crossingBetween`, `boatDays`) 17%.
+With the results unchanged (every seed replays exactly; the suites pass):
+
+- **Dicts and sets iterate with a hand-written iterator** (`core/collections.ts`, `SlotIterator`) instead of a generator:
+  the same slots in the same order, without the generator's frames and much of the garbage.
+- **Legs are remembered once a map**: `connectionDays` (a pure function of the map and the two provinces), `boatDays`,
+  `crossingBetween` (fixed data, by pair) and `legPoints` for the lone traveller on the road, the leg every route search
+  asks for, a pure function of the connection and the season (`model/distance.ts`, `travel.ts`, `geography.ts`). A company
+  with terms of its own (size, load, troops, roads) is still computed each time.
+- **The route search keeps its frontier in a heap** on (cost, the map's order), the same province settled next as the scan of
+  every province found before, ties to the first in the map's order; the map's order is built once a map (`cheapestRoute`).
+
 ## No error leaves a white page (`src/web/src/ui/ErrorScreen.tsx`)
 
 An error boundary wraps the app, and the page's uncaught errors and unhandled rejections are reported to it. The screen
