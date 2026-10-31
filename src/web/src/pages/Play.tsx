@@ -538,7 +538,8 @@ export function Play() {
           onChange={(e) => s.showTurn(Number(e.target.value))}
           disabled={last < 1}
         />
-        <span className="tlabel" title={index === 0 ? "The start" : when(index, viewer)}>
+        {/* Looking back on a phone, the header names the season shown, so the bar keeps its room for the slider. */}
+        <span className={history ? "tlabel hide-sm" : "tlabel"} title={index === 0 ? "The start" : when(index, viewer)}>
           {index === 0 ? "Start" : shortDate(index, viewer)}
           {history ? "" : " · now"}
         </span>
