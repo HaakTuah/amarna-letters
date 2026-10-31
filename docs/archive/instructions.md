@@ -824,3 +824,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     that was the original game, not the Civ4 version. So maybe that style will be easier to emulate, if Empire Earth
     don't work out well right now." To writing in that fallback (period timbres, or pure 8-bit): "Yes, and I would like
     both options." Written into item 19+++.
+94. **31 October 2026, 18:43 UTC**, in the design chat, to the design session's two recommendations for the music
+    fallback (the period version's scales from the Nippur and Ur tuning tablets, each court with a home mode and the
+    mood shifting the mode, Ugarit's theme from the Hurrian Hymn; and one score for both versions, with arrangement
+    rules for each): "I like option a for both, as you recommend. We will try it expertly, and see how it is in
+    practive!" Written into item 19+++.
