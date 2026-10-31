@@ -766,3 +766,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     map, I like how Imperator makes the state color more and more transparent and you see the ground and effects under
     more clearly." Written into items 17a, 17+++ and 19+++ and "The season plays out, and zoom shapes what you see and
     hear" (Interface and the council).
+88. **31 October 2026, 14:55-14:58 UTC**, in the design chat: "if you zoom far enough out, the world ends with just
+    water to the east and west, since the map is longer on the north-south axis. We already have queued in the graphic
+    update that we should see real cities, and see them grow and decline with population, right? and all buildings one
+    can build around? And I also think maybe there should be an option to play as one of the small states, even if
+    that's not what represented at the front and adviced. What do you think? Play as a character could be a
+    possibility as well?" To the design session's readings (the far-zoom fix in the polish lane; cities and buildings
+    made explicit in 19++; small states as seats, item 17++++; character mode after the build order): "Yes, expertly
+    to all!" Written into `docs/BUILD-PROGRESS.md`, items 17++++ and 19++, and "Character mode" (Ideas).
