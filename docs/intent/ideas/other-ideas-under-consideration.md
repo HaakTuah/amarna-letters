@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Ideas tab, revision 19 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Ideas tab, revision 20 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## Other ideas under consideration
 
 **Ideas under consideration.** Raised for assessment; each stays open until it is decided, then moves to the tab of its system. An entry decided in part keeps its open part here.
@@ -11,5 +11,5 @@
   - **Not the Black Sea:** the Hittite north coast was held by the hostile Kaska, with little seafaring.
 
   Dilmun's dates and the governor's letters are from memory; the historical sources pass (build order item 6+) checks them.
-- **A written strategy for model kings** (under consideration, 20 October 2026; **not to be built now**, nor as part of any build order item). Today all seven model kings are the same mind in different seats, with no temperament of their own. If, once the build order is done and Haakon has played, they feel too alike, each could be given a strategy for winning drawn from his position, as characters get theirs ("Stakes, not dispositions"): "a kingdom ringed by rivals wins by alliances and patience", never "you are cautious". The simulations show kings need no further priming to play hard; where they erred, they lacked information, not nerve.
+- **A written strategy for model kings** (under consideration, 20 October 2026; **not to be built now**, nor as part of any build order item). Until item 17b all seven model kings are the same mind in different seats, with no temperament of their own; from 17b each is a person with the traits the sources show and a persona from them, as characters have ("Attested characters" under Characters), which may already answer this. If, once the build order is done and Haakon has played, they feel too alike, each could be given a strategy for winning drawn from his position, as characters get theirs ("Stakes, not dispositions"): "a kingdom ringed by rivals wins by alliances and patience", never "you are cautious". The simulations show kings need no further priming to play hard; where they erred, they lacked information, not nerve.
 

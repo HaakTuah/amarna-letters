@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 57 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 58 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## Architecture: seats, engine, characters, narrator
 
 One deterministic engine sits at the center. Every language model touches the world only through a seat or a character, and every change it wants becomes an order the engine validates. The engine also holds the only copy of the game's state: the interface, the seats and any peers see only the views it releases.
