@@ -53,6 +53,8 @@ class Player {
   private playingMoment = false;
   /** A change asked for, waiting for its phrase end (seconds into the live deck). */
   private switchAt: number | null = null;
+  /** When the change was first asked for (page time): a stalled stream still changes after twelve seconds. */
+  private askedAt: number | null = null;
   private restUntil = 0;
   private lastFile = new Map<string, string>();
   private lastAny: string | null = null;
@@ -189,6 +191,7 @@ class Player {
     this.lastAny = v.file;
     this.live = idx;
     this.switchAt = null;
+    this.askedAt = null;
     if (audioSettings().music) void d.el.play().catch(() => undefined);
   }
 
@@ -215,6 +218,7 @@ class Player {
     const fits = want === null ? MoodPieces[this.mood].includes(d.piece ?? "") && !this.playingMoment : d.piece === want;
     if (fits) {
       this.switchAt = null;
+      this.askedAt = null;
       return;
     }
     // A moment piece plays to its end unless a newer moment comes.
@@ -225,7 +229,8 @@ class Player {
       // Never wait more than twelve seconds for a phrase to end.
       this.switchAt = end !== undefined && end - now < 12 ? end - Lead : now + 0.5;
     }
-    if (now >= this.switchAt) this.next(true);
+    this.askedAt ??= performance.now();
+    if (now >= this.switchAt || performance.now() - this.askedAt > 12000) this.next(true);
   }
 
   // What the game and the pages ask for.
@@ -399,10 +404,13 @@ class Player {
     this.apply();
   }
 
-  position(): number {
-    return this.decks[this.live]?.el.currentTime ?? 0;
+  /** What plays now, for the smoke test and the curious: the mood, the piece and file, the bed. */
+  status(): { mood: Mood; piece: string | null; file: string | null; bed: Bed; running: boolean } {
+    const d = this.decks[this.live];
+    return { mood: this.mood, piece: d?.piece ?? null, file: d?.file ?? null, bed: this.bed, running: this.ctx?.state === "running" };
   }
 }
 
 /** The one player of the page. */
 export const player = new Player();
+if (typeof window !== "undefined") (window as unknown as { amarnaAudio: { status: () => unknown } }).amarnaAudio = { status: () => player.status() };

@@ -3,7 +3,7 @@
  * seat knows (its sight, the news that reached it, the owners as it knows them), or of the whole map in god view. Pure,
  * so it is tested without a browser. Presentation only: nothing here touches the game.
  */
-import { Crossings, Rivers, UnrestData, WorldMap, type Power } from "@amarna/engine";
+import { Crossings, Rivers, UnrestData, WorldMap, isGreatKing, type Power } from "@amarna/engine";
 import type { FrameMove, SeasonFrame } from "../session/frames.ts";
 
 /** The music's moods, as Empire Earth's dynamic music chose its pieces by them (docs/audio/MUSIC.md). */
@@ -150,6 +150,9 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
     const a = was.get(c.id) ?? null;
     const b = now.get(c.id) ?? null;
     if (a === b) continue;
+    // The great moment is a great king's capital, or one the seat itself lost or took; a city-state's falls quietly.
+    const great = isGreatKing(c.home!) || (viewer !== null && (a === viewer || b === viewer));
+    if (!great) continue;
     if (out.sting === null) out.sting = "capital";
     if (viewer !== null && a === viewer) out.moment = "fall";
     else if (viewer !== null && b === viewer && out.moment === null) out.moment = "triumph";
