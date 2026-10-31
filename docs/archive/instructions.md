@@ -723,3 +723,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     also? It can read the design document and build order?" Then, to builders without the live document reading the
     copy on `develop` again before opening a pull request: "Yes, please, expertly!" Written into the builder rules
     ("The specification") and `docs/intent/INDEX.md` (by `scripts/design-copy.py`).
+81. **31 October 2026, 12:43-12:46 UTC**, in the design chat: "Is everyhting consistent and covered now?" Then, to
+    pointing "How a king lives" to the king's share or amount, reading "Revolt follows conditions, not dice" and "Slow
+    absorption" through the ledger (the ledger deciding how far a province leans, the master's weakness, a cause to
+    rally to and outside help the moment it rises), and bringing the progress rows of 17++ and 19++ up to date: "Yes,
+    fix all expertly!" Written into those sections (Land, people and the economy; War, travel and the seas) and
+    `docs/BUILD-PROGRESS.md`.
