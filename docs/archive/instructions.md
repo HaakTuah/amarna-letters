@@ -879,3 +879,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     session's two readings (no handicap, the accurate start measured after 17+ and 17++, only shared numbers tuned in
     item 18; a full pass through the letters' index of persons in 17+): "yes, expertly so!" Written into items 17+ and
     18.
+103. **31 October 2026, 21:12-21:16 UTC**, in the design chat: "How many characters do we have planned right now?" Told
+    123 characters at start (23 attested, 100 in the regions' name styles) and 47 rulers, and about 150-200 if tonight's
+    additions came on top, to the design session's reading that the real people should take the places of invented
+    ones, keeping the world near its baseline: "Agreed," Written into item 17+.
