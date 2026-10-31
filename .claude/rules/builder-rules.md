@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Build order tab, revision 169 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Build order tab, revision 171 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 **Rules for the builder.**
 
 - **One item at a time, in order.** If an item is blocked, write down why in the progress file and go on to the next item that does not depend on it.

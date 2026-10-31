@@ -874,3 +874,8 @@ Given in the design chat with Claude, answering the design questions of the cons
 101. **31 October 2026, 21:04 UTC**, in the design chat: "We have to balance the loyalty and material and millitary
     standing for all of these relative to their kings, also. And it should all follow the historical sources as closely
     as possible!" Written into item 17+.
+102. **31 October 2026, 21:04-21:09 UTC**, in the design chat: "Perfect, then we have that stuff covered! Should make the
+    big states a little less OP at start? [...] Are there any more characters that should be added?" To the design
+    session's two readings (no handicap, the accurate start measured after 17+ and 17++, only shared numbers tuned in
+    item 18; a full pass through the letters' index of persons in 17+): "yes, expertly so!" Written into items 17+ and
+    18.
