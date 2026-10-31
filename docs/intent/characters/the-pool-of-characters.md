@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Characters tab, revision 21 (2026-10-30). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 21 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 ## The pool of characters
 
 **A living pool.** Today all 18 characters exist from the start, nobody new appears, and the pool only shrinks (an executed spy is gone for good). In longer games with many roles, the pool needs to live:

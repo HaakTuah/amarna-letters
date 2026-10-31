@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Land, people and economy tab, revision 33 (2026-10-30). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Land, people and economy tab, revision 33 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 **One rule for everything built (decided 21 October 2026).** Every kind of building is a level in a province, with the same three parts:
 
 - **Upkeep:** each level costs gold every season; paid, it holds.
