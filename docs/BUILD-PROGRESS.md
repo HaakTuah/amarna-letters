@@ -50,6 +50,9 @@ account until its usage is spent; on the main account the usage brake closes it 
   slips in; merged at once, listed in one line per fix under the lane in this file. Nothing is left half done: a fix not
   finished when usage ends is left unstarted, its find noted for the next session.
 
+Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
+- The README brought up to the game as built: forty-seven powers and their starting positions, walls, the ending and the score as they are now, command at a distance, the land and its people, tongues, the council, the living map, legends, the Counsel preset and the developer commands.
+
 ## For Haakon: review points
 
 Answered review points, and the rows of items 1 to 11c, are in `docs/archive/progress-done.md` (moved 28 October 2026,
