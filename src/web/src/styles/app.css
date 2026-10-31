@@ -220,6 +220,8 @@ table { border-collapse: collapse; width: 100%; }
 th, td { text-align: left; padding: .3rem .45rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-size: .82rem; color: var(--muted); font-weight: 600; }
 .tablewrap { overflow-x: auto; }
+td.nowrap { white-space: nowrap; }
+td .sub { display: block; font-size: .8em; white-space: nowrap; }
 
 .pill {
     display: inline-flex; align-items: center; gap: .3rem; padding: .05rem .5rem; border-radius: 999px;
@@ -349,7 +351,7 @@ th { font-size: .82rem; color: var(--muted); font-weight: 600; }
     .when .ending .long { display: none; }
     .when .ending .short { display: inline; }
     .viewsel { max-width: 7.6rem; }
-    .hide-sm { display: none; }
+    .hide-sm, td .sub.hide-sm { display: none; }
 }
 
 /* Fingers: targets of 44px or more. */
