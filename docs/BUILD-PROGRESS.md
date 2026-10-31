@@ -19,6 +19,26 @@ measured, the full text of items 1 to 5) moved word for word to `docs/archive/de
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`.
 Haakon's standing instructions given in chat are recorded word for word in `docs/archive/instructions.md`.
 
+## The polish lane
+
+A side lane of small refinements, beside the item lane and never ahead of it (Haakon, 31 October 2026: "Should we add a
+polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
+make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
+account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
+- **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
+  inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
+  differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
+  tap targets and contrast; typos and wording in the interface and the rulebook; errors or warnings in the console;
+  slow spots that can be made faster with behaviour unchanged; the workshop check's housekeeping (files every session
+  reads under about 20 KB, merged branches deleted, leftovers archived).
+- **What does not:** anything that changes a rule, a number, the script kings' or characters' play, a request to a
+  model, the save version or the names item 17+ will change; those go to their items.
+- **How:** look for them by playing the live build, on a phone-sized screen and on desktop, through every screen and a
+  whole game watched at top speed; each find is its own small PR (about half an hour), with a before-and-after picture
+  and the suites green, seeds replaying exactly as before and the benchmarks unchanged, so nothing that changes play
+  slips in; merged at once, listed in one line per fix under the lane in this file. Nothing is left half done: a fix not
+  finished when usage ends is left unstarted, its find noted for the next session.
+
 ## For Haakon: review points
 
 Answered review points, and the rows of items 1 to 11c, are in `docs/archive/progress-done.md` (moved 28 October 2026,

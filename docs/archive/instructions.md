@@ -666,3 +666,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     design session's take (a sound for every action and event in the period's terms, a quiet bed of the world that
     follows the map, stings for great moments, nothing from CK2's files): "Yes, please, expertly!" Written into item
     19+++.
+73. **31 October 2026, 11:31-11:39 UTC**, in the design chat, on a second account spent before Monday's reset: "They
+    can spend 100% on this account i have used it for what I need." "I can set them to yse fable." "Should we add a
+    polish point to each that it can spend the last credits on also?" And, to the design session's shape of the
+    polish lane: "Yes, and make things as refined as possible!" Written into `docs/BUILD-PROGRESS.md`, "The polish
+    lane".
