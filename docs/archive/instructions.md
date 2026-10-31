@@ -956,4 +956,15 @@ Given in the design chat with Claude, answering the design questions of the cons
     effective at acheivein the goal, which is accomplishing them most possible, with the least tokens, without
     sacrifacing quality." Written into "Keep the cache warm" in both games: `CLAUDE.md` here, `docs/orchestrating.md`
     in Barkstreet Snakes.
+116. **31 October 2026, 23:46-23:53 UTC** (1 November in Oslo), in the design chat, on the polish lane's five speeds:
+    "About the different speed settings. I don't feel we should introduce 5, just to have 5. Paradox games have them
+    because they tick time. but we have rounds, akin to civilization. A time setting at all don't really makes so much
+    sense with this set-up, does it?" Then, to the design session's take (the speed sets only how long a season is
+    watched): "So what should they do then? because the game should process it as fast as it can anyways? so fast
+    drops animations or speed through them, and just jumps straight to the next season? normal gives you a couple of
+    seconds to see first? and slow gives you lots of time to see each season? what is your take expert? there should
+    obviously be a simulation setting also, which does none of the visuals, and just computes a full game as quickly as
+    possible. what do you think, expert?" To the four paces (Slow, Normal, Fast, Simulate): "Yes, please! expertly!
+    does the hotkeys become 1, 2, 3, and 4 then?" Written into "Pace of play" (Interface), item 17+++a's keys (1 to 4,
+    + and − between the three watching speeds, Enter ends one's season) and the polish lane's entry.
 
