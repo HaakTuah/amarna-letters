@@ -2,6 +2,7 @@ import { AllPowers, TurnEngine, Views, Wealth, courtDecided, isAlive, landGrowth
 import { highlights, temperament } from "@amarna/game";
 import { color, powerName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
+import { useMemo } from "react";
 
 const X = (turn: number, last: number, w: number): number => (last <= 1 ? 0 : ((turn - 1) * w) / (last - 1));
 const Y = (g: number, max: number, h: number): number => h - (g / max) * h + 4;
@@ -15,7 +16,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
   // The estimate every court can make from who holds what: the same figures a model king reads on its LAND STANDINGS line.
   // For a seat, by the holders its court knows (its seat view's owner, dated by word), never the true map: distant
   // changes of hands reach it as late as they reach its court, as on its own standings line.
-  const seatView = known || viewer === null ? null : Views.for(state, viewer);
+  const seatView = useMemo(() => (known || viewer === null ? null : Views.for(state, viewer)), [state, viewer, known]);
   const land = new Map(
     (seatView === null ? Views.landStandings(state.owner, state.eliminated) : Views.landStandings(seatView.owner, seatView.fallen)).map((x) => [x.power, x]),
   );
