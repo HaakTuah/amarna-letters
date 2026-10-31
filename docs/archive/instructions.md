@@ -888,3 +888,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     provinces that should be cut, that are in the game or design document now, expert?" To the design session's
     candidates (Alshe and Ashtata added, Suhu folded, each if the dossiers bear it out): "1. Yes." Written into item
     17+.
+105. **31 October 2026, 21:27-21:32 UTC**, in the design chat, on the design session's Tagi "holding his town as part of
+    his means": "Do you mean giving them a bigger purse instead? What exactly do you mean by hold as "part of their
+    means"?" On a governor at Kumidi: "What? A governor runs a town. If there is no town, then we don't have a governor
+    by the game rules?" To the readings (a town's ruler too small for a province as a character with his purse, goods
+    and men and a share of the province's love; only those running a province their king holds as governors, the other
+    commissioners as characters): "Yes, expertly to both. Except I don't know what you mean by "household"." The word
+    "household", which names nothing in the game, was taken out. Written into items 17+ and 17++.
