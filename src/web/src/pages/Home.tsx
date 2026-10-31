@@ -59,8 +59,12 @@ const kindName = (k: LeaderKind): string =>
 /** Envoys' or the narrator's choice as the page names it: "script", "template" or the model. */
 const jobName = (k: string, none: string): string => (k === none ? none.toLowerCase() : kindName(k));
 
+/** The kings' line: where the small rung plays the king, it names that model, with the king's own model above it. */
+const kingsName = (p: Preset): string =>
+  p.rungs.plays === "small" && leaderModel(p.leaders) !== null ? `${kindName(p.rungs.small)} (plans: ${kindName(p.leaders)})` : kindName(p.leaders);
+
 const roles = (p: Preset): string =>
-  `Kings: ${kindName(p.leaders)} · Envoys: ${jobName(p.characters, "Script")} · Narrator: ${jobName(p.narrator, "Template")}`;
+  `Kings: ${kingsName(p)} · Envoys: ${jobName(p.characters, "Script")} · Narrator: ${jobName(p.narrator, "Template")}`;
 
 const LeaderOptions: [string, string][] = [
   ["Script", "Script bot"],
