@@ -813,3 +813,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     favors working from within the system. Think that is alright, expert?" Written into "Whom a province obeys" and "A
     realm holds by its ledger" (War, travel and the seas), "Stakes, not dispositions" and the kings' grounding
     (Characters), and items 17++ and 17b.
+92. **31 October 2026, 15:42 UTC**, in the design chat: "Is everything answered now. Everything coved. And is
+    everything consistent in the game now, expert? Be thorough!" The design session's check brought into line: "How
+    cities become free" and a king's visit abroad (War, travel and the seas), "Kings reason; characters verify"
+    (Diplomacy and intelligence) and "Succession" (Ideas) with item 17b, and the progress file's pause note.

@@ -20,15 +20,15 @@ with the copy and say so in the report, and before opening the pull request read
 | Build order | `docs/intent/build-order/` | `f6588701-e47a` | 153 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 54 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 57 |
-| Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 25 |
+| Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 23 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 34 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 88 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 90 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 19 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 20 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
-| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 18 |
+| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 19 |
 
 Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent .claude/rules`.
 Entries start with a bold title. The builder rules are in `.claude/rules/builder-rules.md`, which every
@@ -81,7 +81,7 @@ session loads.
 | `docs/intent/diplomacy-and-intelligence/messengers-and-offers.md` | Messengers and offers | 5.8 |
 | `docs/intent/diplomacy-and-intelligence/envoy-authority-and-resident-envoys.md` | Envoy authority and resident envoys | 2.2 |
 | `docs/intent/diplomacy-and-intelligence/written-agreements-seals-and-forgery.md` | Written agreements, seals and forgery | 10.6 |
-| `docs/intent/diplomacy-and-intelligence/lies-tablets-and-scribes.md` | Lies, tablets and scribes | 4.6 |
+| `docs/intent/diplomacy-and-intelligence/lies-tablets-and-scribes.md` | Lies, tablets and scribes | 4.8 |
 | `docs/intent/diplomacy-and-intelligence/languages.md` | Languages | 12.7 |
 | `docs/intent/diplomacy-and-intelligence/spies-and-intelligence.md` | Spies and intelligence | 1.2 |
 | `docs/intent/diplomacy-and-intelligence/catastrophes-and-hidden-information.md` | Catastrophes and hidden information | 1.3 |
@@ -104,9 +104,9 @@ session loads.
 | `docs/intent/land-people-and-economy/the-people-of-the-land.md` | The people of the land | 7.7 |
 | `docs/intent/land-people-and-economy/land-climate-and-rivers.md` | Land, climate and rivers | 6.9 |
 | `docs/intent/war-travel-and-the-seas/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/war-travel-and-the-seas/territory-and-military-part1.md` | Territory and military (part 1) | 24.4 |
+| `docs/intent/war-travel-and-the-seas/territory-and-military-part1.md` | Territory and military (part 1) | 24.5 |
 | `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md` | Territory and military (part 2) | 6.0 |
-| `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 8.6 |
+| `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 8.8 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.5 |
 | `docs/intent/war-travel-and-the-seas/travel-passage-and-distance.md` | Travel, passage and distance | 3.3 |
@@ -124,4 +124,4 @@ session loads.
 | `docs/intent/ideas/front.md` | Title and what the tab holds | 0.3 |
 | `docs/intent/ideas/other-ideas-under-consideration.md` | Other ideas under consideration | 5.1 |
 | `docs/intent/ideas/voice-of-the-age-ideas-for-later.md` | Voice of the age: ideas for later | 0.8 |
-| `docs/intent/ideas/beyond-the-prototype.md` | Beyond the prototype | 4.9 |
+| `docs/intent/ideas/beyond-the-prototype.md` | Beyond the prototype | 5.1 |
