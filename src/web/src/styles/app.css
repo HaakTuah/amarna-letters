@@ -354,18 +354,6 @@ td .sub { display: block; font-size: .8em; white-space: nowrap; }
     .hide-sm, td .sub.hide-sm { display: none; }
 }
 
-/* Fingers: targets of 44px or more. */
-@media (pointer: coarse) {
-    .zoombtns .zb:not(.fit) { display: none; }
-    .tabs button { min-height: 44px; }
-    .timebar .tb { min-height: 44px; min-width: 44px; }
-    .zoombtns .zb { width: 44px; height: 44px; }
-    button.small { min-height: 36px; }
-    select, input, textarea { font-size: 16px; }
-    input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
-    .lines li, .life li.tap { min-height: 40px; }
-}
-
 /* ---------------------------------------------------------------- the map */
 
 .mapview { position: absolute; inset: 0; overflow: hidden; touch-action: none; background: var(--land); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; --sym: 1; --cs: 1; --lab: 1; --k: 1; }
@@ -722,4 +710,22 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .map .mv .shaft { stroke-dasharray: none; }
+}
+
+/* Fingers: targets of 44px or more. Last in the file, so the base rules above (the zoom buttons') do not win over it. */
+@media (pointer: coarse) {
+    .zoombtns .zb:not(.fit) { display: none; }
+    .tabs button { min-height: 44px; }
+    .timebar .tb { min-height: 44px; min-width: 44px; }
+    .zoombtns .zb { width: 44px; height: 44px; }
+    button.small { min-height: 36px; }
+    select, input, textarea { font-size: 16px; }
+    input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
+    .lines li, .life li.tap { min-height: 40px; }
+    .legend-btn { min-height: 44px; padding-inline: .8rem; }
+    .menu summary { min-width: 40px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+    .gctl { gap: .25rem; }
+    .gctl select { min-height: 44px; }
+    /* The pages' bar: a taller target without a taller bar. */
+    .topbar nav a { display: inline-block; padding-block: .7rem; margin-block: -.7rem; }
 }
