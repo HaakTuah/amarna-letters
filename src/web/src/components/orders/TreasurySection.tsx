@@ -40,7 +40,10 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
   const { draft, state, v, me, f, set, others, add, price, sallying } = c;
   // What an army of yours in another's land could raze there, as your eyes see it standing (item 15).
   const razing = v.units
-    .filter((u) => u.power === me && u.kind === "Army" && v.owner.tryGet(u.province) !== me && v.owner.tryGet(u.province) !== undefined)
+    .filter((u) => {
+      const holder = v.owner.getOrDefault(u.province, null);
+      return u.power === me && u.kind === "Army" && holder !== null && holder !== me;
+    })
     .flatMap((u) =>
       v.worksSeen
         .filter((w) => w.province === u.province && w.level > 0 && (["Roads", "Stations", "Harbour", "Water"] as string[]).includes(w.kind))
