@@ -73,7 +73,7 @@
   "diplomacy-and-intelligence": {
    "name": "Diplomacy and intelligence",
    "node": "83ac9cba-81ca",
-   "rev": 25,
+   "rev": 26,
    "files": [
     "docs/intent/diplomacy-and-intelligence/front.md",
     "docs/intent/diplomacy-and-intelligence/envoys-mediated-delayed-agentic-communication.md",
@@ -128,7 +128,7 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 88,
+   "rev": 90,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military-part1.md",
@@ -174,7 +174,7 @@
   "ideas": {
    "name": "Ideas",
    "node": "c1a09612-6320",
-   "rev": 18,
+   "rev": 19,
    "files": [
     "docs/intent/ideas/front.md",
     "docs/intent/ideas/other-ideas-under-consideration.md",

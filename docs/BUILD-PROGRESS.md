@@ -103,8 +103,10 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 15 | Roads and relay stations, policing, harbours, water works, repairs under siege and razing (`--works-play-half`; baseline builds only walls) | 0.79 growth to 0.76, 23 wins to 27, in 50 games (first build, before two script patches: 0.78 to 0.79, 28 to 22) | Pays in growth, wins within noise; Assyria grows less using it (0.57 to 0.86): re-measure in item 18 |
 
 **Paused at 88% weekly usage, 30 October 2026** (Haakon: "I want them to finish what they have started, if we believe they
-can."). Item 17 finished and merged; nothing new started. After the weekly reset pick up items 17+ and 17++ (from the
-design PRs #207 to #215), then item 18. Item 19's two passes (#201, #202) are open.
+can."). Item 17 finished and merged. Item 19's two passes (#201, #202) are merged. **Resumed 31 October 2026 on a
+second account,** spent to the end before Monday: lanes for 17a (the crash and the speed, #236), the music (19+++,
+#237), the polish lane and the improvement audit (#235). The order from here: 17a, 17+, 17++, 17+++, 17++++, 17b, then
+18, with 19+, 19++ and 19+++ beside it where the rows allow.
 
 ## Items
 
