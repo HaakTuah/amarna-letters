@@ -817,3 +817,31 @@ Given in the design chat with Claude, answering the design questions of the cons
     everything consistent in the game now, expert? Be thorough!" The design session's check brought into line: "How
     cities become free" and a king's visit abroad (War, travel and the seas), "Kings reason; characters verify"
     (Diplomacy and intelligence) and "Succession" (Ideas) with item 17b, and the progress file's pause note.
+93. **31 October 2026, 18:31-18:33 UTC**, in the design chat: "Like I said, I love the soundtrack of Empire Earth,
+    gets me proper nostalgic. But if Claude Code can't manage to replicate its feel well, then we can save it for the
+    next project, where I had the idea of it for the first two, the the sims 1 for the short modern period, then deus
+    ex. I however, has always also liked the main theme of the original Civilization. You know the 8-bit version of it
+    that was the original game, not the Civ4 version. So maybe that style will be easier to emulate, if Empire Earth
+    don't work out well right now." To writing in that fallback (period timbres, or pure 8-bit): "Yes, and I would like
+    both options." Written into item 19+++.
+94. **31 October 2026, 18:43 UTC**, in the design chat, to the design session's two recommendations for the music
+    fallback (the period version's scales from the Nippur and Ur tuning tablets, each court with a home mode and the
+    mood shifting the mode, Ugarit's theme from the Hurrian Hymn; and one score for both versions, with arrangement
+    rules for each): "I like option a for both, as you recommend. We will try it expertly, and see how it is in
+    practive!" Written into item 19+++.
+95. **31 October 2026, 18:50 UTC**, in the design chat, to the design session's two questions (build the Civilization
+    fallback alongside the Empire Earth pieces, so all three are heard on one listening page; and make some of each
+    Empire Earth piece's variations the same piece in a darker or brighter mode, chosen as the situation worsens or
+    improves): "I say yes, expertly, to both." Written into item 19+++.
+96. **31 October 2026, 18:55 UTC**, in the design chat, to the design session's reading of the README review's find
+    that the engine paid and fed troops each season with no order (`payTroops`, `feedTroops`), against "Nothing happens
+    unless someone orders it": "Agree with you on 1". Each king starts with a standing order to pay and feed his troops,
+    shown among his orders and his to change or cancel, as a starting servant's pay already works (item 11b+). Written
+    into item 17+ and the season's first step ("Income and upkeep", Engine and models).
+97. **31 October 2026, 19:03-19:05 UTC**, in the design chat: "The game still doesn't move slowly and smooth enough.
+    Still hicks. hope that polish pass isn't done already, because it far from sufficed. Also, pressing spacebar really
+    needs to pause and unpause the game. Everything should have hotkeys for the computer quiet frankly, and Paradox
+    hotkeys is what people are used to, so we should probably use those." To the design session's three readings
+    (smoothness measured in 17a and 17+++, no frame over about 50 ms, with a recording; Space and the speed keys in the
+    polish lane at once; the full Paradox-style key set as its own item after 17+++, every later item bringing its
+    keys): "Agreed to all, expertly!" Written into items 17a, 17+++ and 17+++a, and the polish lane.
