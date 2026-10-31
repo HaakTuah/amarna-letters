@@ -17,8 +17,8 @@ with the copy and say so in the report, and before opening the pull request read
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 569 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 187 |
-| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 55 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 188 |
+| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 56 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 58 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 25 |
@@ -61,7 +61,7 @@ session loads.
 | `docs/intent/build-order/item-14.md` | 14. Legends. The narrator's legends grow from the "follow this character" view i | 0.7 |
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 2.2 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
-| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 33.8 |
+| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 34.1 |
 | `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 6.2 |
 | `docs/intent/build-order/item-19.md` | 19. The living map | 11.2 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
@@ -69,7 +69,7 @@ session loads.
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.3 |
 | `docs/intent/world-and-history/the-map.md` | The map | 10.7 |
 | `docs/intent/world-and-history/the-sources.md` | The sources | 6.6 |
-| `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 20.1 |
+| `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 21.0 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.9 |
 | `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 22.0 |
