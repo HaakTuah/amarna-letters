@@ -160,6 +160,32 @@ What the state's JSON weighs, by field, at season 31 (KB): inbox 3118, character
 The suite, the smoke test and the benchmarks (20 games, seed 1, `--verify-replay`, before against after) are recorded
 below once run.
 
+## Smoothness, measured (the bar of 31 October: no frame over about 50 ms)
+
+Haakon, 31 October 2026: "The game still doesn't move slowly and smooth enough. Still hicks. hope that polish pass isn't
+done already, because it far from sufficed.", then "Agreed to all, expertly!" to the design session's bar: frame times
+recorded through a whole game, at normal and top speed, desktop and throttled phone, no frame over about 50 ms, the
+longest frames and the count over 50 ms before and after, and a short recording.
+
+`node src/web/soak.mjs --speed fast|normal [--phone]`, seed 1, whole games (102 seasons), before (develop) and after the
+stream, before the smoothness work:
+
+| | Frames drawn | Over 50 ms | Worst | Longest frames (ms at season) |
+|---|---|---|---|---|
+| Before, desktop, fast | 6572 | 337 (5.1%) | 617 ms | 617@80, 600@start, 467@66, 467@90, 400@85 |
+| Before, desktop, normal | 8085 | 327 (4.0%) | 500 ms | 500@88, 467@98, 433@91, 350@102 |
+| Before, phone, fast | (not ended in 40 min at season 95) | 9 to 14 of every 50 frames | 1550 ms | means of 100 to 140 ms a frame |
+| Before, phone, normal | **the renderer crashed at 180 s** ("Target crashed": the white page) | | | |
+| After the stream, desktop, fast | 4021 | 338 (8.4%) | 383 ms | 383@start, 233@98, 233@81, 217@95 |
+| After the stream, desktop, normal | 6096 | 308 (5.1%) | 367 ms | 367@start, 250@102, 233@100, 233@79 |
+| After the stream, phone, fast | 1123 | 177 (15.8%) | 2050 ms | 2050@start, 1417@96, 1400@102, 1250@63 |
+| After the stream, phone, normal | 2477 | 338 (13.7%) | 1800 ms | 1800@start, 1417@99, 1317@96, 1100@86 |
+
+So the crash is gone on the phone profile too, and the worst frame halved on desktop, but every season still costs about
+three long frames (200 to 380 ms on desktop, about a second on the throttled phone): the season's whole work, the worker's
+message, the state read, React's redraw and the map's layers, lands in one or two tasks. The bar needs each step cheap and
+the steps spread over frames. The breakdown and the work follow.
+
 ## Benchmarks
 
 20 games, seed 1, `--verify-replay`, develop as the item started against this branch: every line of the batch runner's
