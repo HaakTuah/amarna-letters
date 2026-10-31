@@ -284,8 +284,8 @@ Relayed by the orchestrator on 31 October 2026, word for word:
 - "Before anything else: every lane commits and pushes what it has now, unfinished work included, as a work-in-progress
   commit on its branch (a draft PR if it has none). From now on, push after every commit, not only at gates or hourly.
   We're near this account's limit for the next few hours: when it resets, carry on from the pushed branches." (A
-  standing rule: push after every commit. This lane did; the orchestrator carries it into `CLAUDE.md` and
-  `docs/archive/instructions.md`, since every lane would otherwise edit the same lines.)
+  standing rule: push after every commit. This lane did; `develop` already carries it in `CLAUDE.md`, "Standing
+  instructions", and `docs/archive/instructions.md`, so this PR does not edit them.)
 - His answer to the audit's one question, written into item 17++ as "A handful holds nothing by itself" (War tab):
   no size threshold; a move into a far weaker unit is a battle it loses by far; a garrison holds a town only as far as
   its people's ledger stands with its master; script kings fold or disband remnants. Quoted in full under find 10.
