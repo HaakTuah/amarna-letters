@@ -23,8 +23,8 @@ with the copy and say so in the report, and before opening the pull request read
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 25 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 21 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
-| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 33 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 72 |
+| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 34 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 83 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 17 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 19 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
@@ -99,12 +99,12 @@ session loads.
 | `docs/intent/land-people-and-economy/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/land-people-and-economy/gold.md` | Gold | 3.4 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part1.md` | Economy and resources (part 1) | 22.4 |
-| `docs/intent/land-people-and-economy/economy-and-resources-part2.md` | Economy and resources (part 2) | 23.3 |
+| `docs/intent/land-people-and-economy/economy-and-resources-part2.md` | Economy and resources (part 2) | 23.5 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part3.md` | Economy and resources (part 3) | 5.5 |
 | `docs/intent/land-people-and-economy/the-people-of-the-land.md` | The people of the land | 7.7 |
 | `docs/intent/land-people-and-economy/land-climate-and-rivers.md` | Land, climate and rivers | 6.9 |
 | `docs/intent/war-travel-and-the-seas/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 22.0 |
+| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 23.1 |
 | `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 8.4 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.5 |
