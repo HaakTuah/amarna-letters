@@ -352,18 +352,6 @@ th { font-size: .82rem; color: var(--muted); font-weight: 600; }
     .hide-sm { display: none; }
 }
 
-/* Fingers: targets of 44px or more. */
-@media (pointer: coarse) {
-    .zoombtns .zb:not(.fit) { display: none; }
-    .tabs button { min-height: 44px; }
-    .timebar .tb { min-height: 44px; min-width: 44px; }
-    .zoombtns .zb { width: 44px; height: 44px; }
-    button.small { min-height: 36px; }
-    select, input, textarea { font-size: 16px; }
-    input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
-    .lines li, .life li.tap { min-height: 40px; }
-}
-
 /* ---------------------------------------------------------------- the map */
 
 .mapview { position: absolute; inset: 0; overflow: hidden; touch-action: none; background: var(--land); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; --sym: 1; --cs: 1; --lab: 1; --k: 1; }
@@ -740,4 +728,21 @@ label.volume input[type="range"] { width: 7rem; vertical-align: middle; }
   .listen-table td:nth-child(1) { grid-column: 1; }
   .listen-table td:nth-child(4) { grid-column: 2; grid-row: 1 / span 3; }
   .listen-table td:nth-child(2), .listen-table td:nth-child(3) { grid-column: 1; font-size: 0.9em; }
+
+/* Fingers: targets of 44px or more. Last in the file, so the base rules above (the zoom buttons') do not win over it. */
+@media (pointer: coarse) {
+    .zoombtns .zb:not(.fit) { display: none; }
+    .tabs button { min-height: 44px; }
+    .timebar .tb { min-height: 44px; min-width: 44px; }
+    .zoombtns .zb { width: 44px; height: 44px; }
+    button.small { min-height: 36px; }
+    select, input, textarea { font-size: 16px; }
+    input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
+    .lines li, .life li.tap { min-height: 40px; }
+    .legend-btn { min-height: 44px; padding-inline: .8rem; }
+    .menu summary { min-width: 40px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+    .gctl { gap: .25rem; }
+    .gctl select { min-height: 44px; }
+    /* The pages' bar: a taller target without a taller bar. */
+    .topbar nav a { display: inline-block; padding-block: .7rem; margin-block: -.7rem; }
 }
