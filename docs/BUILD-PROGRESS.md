@@ -51,9 +51,6 @@ account until its usage is spent; on the main account the usage brake closes it 
   finished when usage ends is left unstarted, its find noted for the next session.
 
 Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
-- Standings at 390 px: the header "Land-yield ratio (not growth)" took five lines and each row three; the header reads "Land yield" (the rest in its tooltip and the text above), the yields sit on a line of their own (hidden on phones), and gold no longer wraps (improvement audit, find 11).
-
-Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
 - The Counsel preset's card named Sonnet as its kings; it now says Haiku plays them, with Sonnet planning.
 
 ## For Haakon: review points
