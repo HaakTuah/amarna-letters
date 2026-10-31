@@ -861,3 +861,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     any of these characters start with competitng loyalty to the leaders somewhere, expert? They should also be in the
     place and have what they had at that time. Represent their position as accurately as we can, not just spawn them
     in completely randomly. and they are all from the game start?" Written into items 17+, 17++ and 17b.
+99. **31 October 2026, 20:46-20:49 UTC**, in the design chat: "Sounds like there were some governors at that time?
+    shouldn't every know governor be added and given their privellege at the start of the game?'" To the design
+    session's list (Egypt's commissioners, Enlil-kidinni, Ili-ippashra, Alashiya's governor), leaving out the prince
+    Telipinu in Kizzuwatna: "Yes, agreed. That would be a family possesion anyhow." and "agreed to all, expertly."
+    Written into item 17++.
