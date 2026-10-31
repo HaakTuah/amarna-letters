@@ -579,7 +579,9 @@ export class SvgMapRenderer implements MapRenderer {
   private layer(name: string, key: unknown, draw: () => string): void {
     if (this.drawn.get(name) === key) return;
     this.drawn.set(name, key);
+    const t = performance.now();
     this.layers.get(name)!.innerHTML = draw();
+    performance.measure(`map:${name}`, { start: t });
   }
 
   /**
@@ -602,6 +604,13 @@ export class SvgMapRenderer implements MapRenderer {
   }
 
   render(input: MapInput): void {
+    // Timed, as every step of a season on the page is (item 17a): the soak tool reads the measures.
+    const t = performance.now();
+    this.renderNow(input);
+    performance.measure("map:render", { start: t });
+  }
+
+  private renderNow(input: MapInput): void {
     const s = input.scene;
     this.scene = s;
     const lower = this.view?.querySelector(".map-lower");
@@ -748,6 +757,14 @@ export class SvgMapRenderer implements MapRenderer {
       this.placing = 0;
       const view = this.view;
       if (view === null) return;
+      const t = performance.now();
+      this.placeNamesNow(view);
+      performance.measure("map:names", { start: t });
+    });
+  }
+
+  private placeNamesNow(view: HTMLElement): void {
+    {
       // Everything shown again, then all measured in one go, then given way in one batch of class changes: one layout,
       // however many markers (writing a class between two measures would force a layout each time).
       view.querySelectorAll(".map .small, .map .off").forEach((e) => e.classList.remove("small", "crowd", "off"));
@@ -847,7 +864,7 @@ export class SvgMapRenderer implements MapRenderer {
         else writes.push(() => e.classList.add("off"));
       }
       for (const w of writes) w();
-    });
+    }
   }
 
   zoomBy(factor: number): void {

@@ -180,6 +180,31 @@ await p.addInitScript((hitch) => {
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
+  // The browser's own account of the main thread's long tasks, and the page's timed steps (performance.measure).
+  f.tasks = { count: 0, worst: 0, total: 0 };
+  try {
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries()) {
+        f.tasks.count++;
+        f.tasks.total += e.duration;
+        if (e.duration > f.tasks.worst) f.tasks.worst = e.duration;
+      }
+    }).observe({ type: "longtask", buffered: true });
+  } catch {
+    // no long task timing here
+  }
+  f.steps = {};
+  const steps = () => {
+    for (const e of performance.getEntriesByType("measure")) {
+      const x = (f.steps[e.name] ??= { count: 0, total: 0, worst: 0 });
+      x.count++;
+      x.total += e.duration;
+      if (e.duration > x.worst) x.worst = e.duration;
+    }
+    performance.clearMeasures();
+    setTimeout(steps, 1000);
+  };
+  setTimeout(steps, 1000);
 }, HITCH_MS);
 
 await p.goto(root + `play?watch=${seed}`);
@@ -281,6 +306,10 @@ try {
   });
   await out(`frames: ${allFrames} drawn, ${allLong} over ${HITCH_MS} ms (${((100 * allLong) / Math.max(1, allFrames)).toFixed(2)}%), the worst ${allWorst.toFixed(0)} ms`);
   await out(`the longest frames (ms, at season): ${longest.map((x) => `${x.ms.toFixed(0)}@${x.season}`).join(", ")}`);
+  const account = await p.evaluate(() => ({ tasks: window.__frames.tasks, steps: window.__frames.steps }));
+  await out(`long tasks (over 50 ms, the browser's count): ${account.tasks.count}, ${account.tasks.total.toFixed(0)} ms in all, the worst ${account.tasks.worst.toFixed(0)} ms`);
+  const steps = Object.entries(account.steps).sort((a, b) => b[1].total - a[1].total);
+  for (const [name, x] of steps) await out(`  step ${name.padEnd(14)} ${String(x.count).padStart(6)} times, ${x.total.toFixed(0).padStart(7)} ms in all, mean ${(x.total / x.count).toFixed(1).padStart(6)} ms, worst ${x.worst.toFixed(0).padStart(5)} ms`);
 } catch {
   await out("frames: the page could not be read at the end");
 }

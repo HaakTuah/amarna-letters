@@ -113,6 +113,8 @@ export class Session {
 
   private notify(): void {
     this.version++;
+    // React's render of the page follows in a task of its own: the time from here to the next frame drawn is the page's redraw.
+    performance.mark("page:notify");
     for (const f of this.listeners) f();
   }
 
@@ -121,6 +123,13 @@ export class Session {
   }
 
   private receive(m: FromWorker): void {
+    // Timed, as every step of a season on the page is (item 17a): the soak tool reads the measures.
+    const t = performance.now();
+    this.receiveNow(m);
+    performance.measure("page:receive", { start: t });
+  }
+
+  private receiveNow(m: FromWorker): void {
     if (m.type !== "update") {
       const done = this.waiting.get(m.id);
       this.waiting.delete(m.id);
@@ -148,7 +157,9 @@ export class Session {
     if (m.live.states.length > 0) {
       for (const d of m.live.states) this.history.apply(d);
       // Only the newest season is read now, and only what changed in it; a season looked back at is read then (displayed).
+      const t = performance.now();
       this.state = this.reader.apply(this.history.pieces(this.history.length - 1)!);
+      performance.measure("page:reader", { start: t });
       this.recent.clear();
       // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
       setRisen(this.state.risen);
