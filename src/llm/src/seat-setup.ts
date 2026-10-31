@@ -1,5 +1,5 @@
 /** Who plays what (each king's seat, the envoys and spies, and the narrator), the presets, the cost estimate, and the seats built from them. */
-import { AllPowers, Dict, fmt, roundEven, type GameConfig, type GameState, type Power } from "@amarna/engine";
+import { AllPowers, Dict, fmt, newGameConfig, roundEven, type GameConfig, type GameState, type Power } from "@amarna/engine";
 import {
   HumanSeat,
   ScriptLeader,
@@ -290,11 +290,13 @@ export const Presets = {
   },
 };
 
+/** The median game: the season by which half of all ages have ended by default (the config's `endMedian`). */
+const TypicalSeasons = newGameConfig().endMedian;
+
 /** A rough cost for a typical game, from average token counts per call. The in-game meter shows the actual figure. */
 export const CostEstimate = {
-  /** The median game: half of all ages have ended by season 44 (1332 BCE) by default. */
-  TypicalSeasons: 44,
-  perGame(c: SeatChoices, seasons = 44): number {
+  TypicalSeasons,
+  perGame(c: SeatChoices, seasons = TypicalSeasons): number {
     const prices = new PriceTable(c.prices);
     const effort = c.leaderEffort === "low" ? 0.6 : c.leaderEffort === "high" ? 1.6 : 1.0;
     const cost = (model: string | null, fresh: number, out: number, cached: number): number => {
@@ -339,7 +341,7 @@ export const CostEstimate = {
    * The estimate as the setup shows it: unknown while a model in use has no price (never free, so the figure never quietly
    * under-reports), else as {@link describe} words it.
    */
-  describeFor(c: SeatChoices, seasons = 44): string {
+  describeFor(c: SeatChoices, seasons = TypicalSeasons): string {
     const unpriced = CostEstimate.unpriced(c);
     if (unpriced.length > 0) return `unknown (no price for ${unpriced.map(ModelIds.display).join(", ")})`;
     return CostEstimate.describe(CostEstimate.perGame(c, seasons));
