@@ -51,7 +51,6 @@ account until its usage is spent; on the main account the usage brake closes it 
   finished when usage ends is left unstarted, its find noted for the next session.
 
 Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
-- The empty Play page lost the top bar and spoke of loading a log it gave no way to load; it keeps the bar and links to the saved games.
 - The Counsel preset's card named Sonnet as its kings; it now says Haiku plays them, with Sonnet planning.
 
 ## For Haakon: review points
