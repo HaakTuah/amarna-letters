@@ -17,7 +17,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 182,
+   "rev": 184,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
