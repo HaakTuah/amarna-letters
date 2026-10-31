@@ -65,6 +65,12 @@ Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lan
 - Standings at 390 px: the header "Land-yield ratio (not growth)" took five lines and each row three; the header reads "Land yield" (the rest in its tooltip and the text above), the yields sit on a line of their own (hidden on phones), and gold no longer wraps (improvement audit, find 11).
 - The Rules tab's opening for a human seat now says first how a human gives orders, and that the rulebook's JSON and HOW TO ANSWER speak to model kings (improvement audit, find 12).
 - The preset cards' estimates were reckoned for 44 seasons while the table's own total used its ending (80 by default), so one page showed two prices; the cards use the table's ending too.
+- Dates read "season 2, 1344 BCE", never the shorthand "s2" (audit batch 2).
+- A human seat can order the one-off hunt and razing, as script kings do (audit 6); the draft no longer gives a default hold beside a unit another order names.
+- People's provinces read "settled N, land for M", not "N of M" (audit 14); "shipments", never "shipment(s)" (audit batch 2).
+- Legends give the bonds sealed before the age one undated line per court, not a deed each (audit batch 2).
+- Space pauses and unpauses, 1 to 5 set the speed, + and − step it, as in Crusader Kings III ("Also first"), in one key table that item 17+++a extends.
+- The audience panel points a court with no standing answers to them (audit 15); a fact's "(season 4)" is dated by the court's calendar on screen (audit batch 2); the design note on province ownership no longer says "public at once" (audit 13).
 
 ## For Haakon: review points
 

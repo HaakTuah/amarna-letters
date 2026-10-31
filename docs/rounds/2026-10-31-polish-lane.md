@@ -15,6 +15,11 @@ Each fix is its own PR from `develop`; this file keeps the running list.
   with the draft's default hold left out beside a unit another order names); #271 "settled N, land for M"; #272
   "shipments", not "shipment(s)"; #273 Legends' opening bonds as one undated line.
 
+**Resumed 31 October, 23:20 UTC** (the orchestrator, from Haakon: carry on from the pushed branches; merge #260 and the
+waiting PRs as CI goes green; then Space and the speed keys; then the remaining finds). Added: #293 (Space and the speed
+keys), #294 (the design note on province ownership), #295 (the audience panel's pointer to standing answers, audit 15),
+#296 ("(season 4)" dated on screen).
+
 **State when usage ran out (31 October, about 19:30 UTC; Haakon: "We are running out of usage. 97 percent. commit and
 push.").** Merged into `develop`: #238, #256, #255 (and #239 if its merge below went through); milestone PR #260 carries
 them to `main`. Every other PR above is pushed, reviewed by one Opus reviewer with its findings fixed, and waiting on CI
@@ -34,11 +39,8 @@ Prefer the cheapest approach that does the job well").
 - The timeline reads "s1 1345 BCE · now" while the header names the season about to be played ("Season 2"): the label is
   the last season played.
 - The seat menu at 390 px cuts "Egypt (you)" to "Egypt (you"; widening it squeezes the header's ending line, so left.
-- Not yet looked at: audit 15 (a human Egypt meets fourteen audiences in a row in season 2 before learning that standing
-  answers exist: offer "answer the rest alike" in the audience panel, interface only); batch 2's "(season 4)" in facts
-  against the court's calendar (`turn/envoys-home.ts:50-53`, `envoys.ts:272`; engine text, so check whether models read
-  it before touching it; `dated()` in `web/src/ui/format.ts:16` could cover it on screen); audit 13's design note
-  `docs/design/10-...` still saying province ownership is "public at once".
+- Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
+  next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
 - `src/web/src/components/orders/TreasurySection.tsx` gives a unit away (`giftUnit`) through `draft.other` too; #269's fix
   to the draft covers it, but nobody has checked it in play.
 - Workshop check: `who-decides.test.ts` "Planning" takes 111 s against a 120 s limit and timed out once on a busy machine.
