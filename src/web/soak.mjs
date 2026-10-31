@@ -2,7 +2,10 @@
 // the page went white, and records as it goes the season reached, the page's and the worker's heap, the frame times and
 // the time each season took. Any page error, console error or blank page is reported with the season it came at.
 //   node src/web/soak.mjs [--phone] [--throttle 4] [--heap 512] [--seed 1] [--minutes 30] [--log <file>] [--site <dir>] [--profile]
+//                         [--speed fast|normal|slow] [--video <dir>]
 // With --profile, the page and the worker are sampled for 30 s from about season 15, and the hottest functions of each listed.
+// Smoothness is measured, never judged by eye (item 17a): every frame drawn is timed; the count over 50 ms and the longest
+// frames, with the season each came in, are reported at the end. --video records the screen to a .webm in the directory.
 // Serves dist/ (after `npm run build`) as smoke.mjs does. Prints one line every few seconds, and a summary at the end.
 import { createRequire } from "node:module";
 import { createServer } from "node:http";
@@ -23,6 +26,10 @@ const logFile = arg("--log", null);
 // A phone's memory: V8's old space capped (MB) for the page and the worker alike, as a phone's browser caps them.
 const heapMb = Number(arg("--heap", "0"));
 const profile = process.argv.includes("--profile");
+const speed = { fast: "50", normal: "400", slow: "1500" }[arg("--speed", "fast")] ?? "50";
+const videoDir = arg("--video", null);
+/** A hitch becomes visible at about 50 ms (item 17a's bar). */
+const HITCH_MS = 50;
 const site = resolve(arg("--site", fileURLToPath(new URL("./dist/", import.meta.url)))) + "/";
 const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json", ".webmanifest": "application/manifest+json" };
 
@@ -55,7 +62,7 @@ if (logFile !== null) await writeFile(logFile, "");
 // Precise heap numbers for the page and the worker (performance.memory).
 const browser = await chromium.launch({ args: ["--enable-precise-memory-info", ...(heapMb > 0 ? [`--js-flags=--max-old-space-size=${heapMb}`] : [])] });
 const viewport = phone ? { width: 390, height: 844 } : { width: 1280, height: 800 };
-const context = await browser.newContext({ viewport, deviceScaleFactor: 1, isMobile: phone, hasTouch: phone, serviceWorkers: "block" });
+const context = await browser.newContext({ viewport, deviceScaleFactor: 1, isMobile: phone, hasTouch: phone, serviceWorkers: "block", ...(videoDir !== null ? { recordVideo: { dir: videoDir, size: viewport } } : {}) });
 const p = await context.newPage();
 const problems = [];
 let worker = null;
@@ -151,8 +158,8 @@ async function stopProfiles() {
 }
 
 // Frame times: a requestAnimationFrame loop in the page, counting frames and the long ones since the last reading.
-await p.addInitScript(() => {
-  const f = { frames: 0, long: 0, worst: 0, total: 0, last: performance.now() };
+await p.addInitScript((hitch) => {
+  const f = { frames: 0, long: 0, worst: 0, total: 0, last: performance.now(), longest: [] };
   window.__frames = f;
   const tick = (now) => {
     const dt = now - f.last;
@@ -160,23 +167,32 @@ await p.addInitScript(() => {
     f.frames++;
     f.total += dt;
     if (dt > f.worst) f.worst = dt;
-    if (dt > 100) f.long++;
+    if (dt > hitch) {
+      f.long++;
+      // The longest frames of the whole game, with the season shown when each came.
+      const season = Number(document.querySelector(".slider")?.max ?? -1);
+      f.longest.push({ ms: dt, season });
+      if (f.longest.length > 400) {
+        f.longest.sort((a, b) => b.ms - a.ms);
+        f.longest.length = 40;
+      }
+    }
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
-});
+}, HITCH_MS);
 
 await p.goto(root + `play?watch=${seed}`);
 // The spectator link starts a Free game by itself; set the top speed and auto-play.
 await p.waitForSelector(".game .timebar", { timeout: 180000 });
 // The speed select is in the "More" menu: open it, pick Fast, close it.
 await p.click('summary[aria-label="More"]');
-await p.selectOption("select:has(option[value='50'])", "50");
+await p.selectOption("select:has(option[value='50'])", speed);
 await p.click('summary[aria-label="More"]');
 await p.click('button[aria-label="Auto-play"]');
 const t0 = Date.now();
-await out(`${phone ? "phone 390x844" : "desktop 1280x800"}, CPU slowed ${throttle}x${heapMb > 0 ? `, heap capped at ${heapMb} MB` : ""}, seed ${seed}: the game at Fast speed`);
-await out("elapsed s | season | page heap MB | worker heap MB | s/season | frames (long >100 ms, worst ms) | DOM nodes");
+await out(`${phone ? "phone 390x844" : "desktop 1280x800"}, CPU slowed ${throttle}x${heapMb > 0 ? `, heap capped at ${heapMb} MB` : ""}, seed ${seed}: the game at speed ${speed} ms`);
+await out(`elapsed s | season | page heap MB | worker heap MB | s/season | frames (over ${HITCH_MS} ms, worst ms) | DOM nodes`);
 
 const mb = (n) => (n / 1048576).toFixed(0);
 let lastSeason = 0;
@@ -185,6 +201,9 @@ let lastFrames = null;
 let rows = 0;
 let ended = false;
 let profiled = false;
+let allFrames = 0;
+let allLong = 0;
+let allWorst = 0;
 const deadline = t0 + minutes * 60000;
 for (;;) {
   await p.waitForTimeout(5000);
@@ -225,6 +244,9 @@ for (;;) {
     lastAt = now;
   }
   const fr = page.frames;
+  allFrames += fr.frames;
+  allLong += fr.long;
+  if (fr.worst > allWorst) allWorst = fr.worst;
   const mean = fr.frames > 0 ? (fr.total / fr.frames).toFixed(0) : "-";
   await out(`${((now - t0) / 1000).toFixed(0).padStart(6)} | ${String(page.season).padStart(3)} | ${mb(page.heap).padStart(5)} | ${(workerHeap < 0 ? "?" : mb(workerHeap)).padStart(5)} | ${perSeason.padStart(6)} | ${fr.frames} frames, mean ${mean} ms (${fr.long} long, worst ${fr.worst.toFixed(0)}) | ${page.nodes}`);
   lastFrames = fr;
@@ -250,6 +272,18 @@ for (;;) {
 finished = true;
 if (profiling !== null) await stopProfiles();
 await out(ended ? `the game ended at season ${lastSeason} after ${((Date.now() - t0) / 1000).toFixed(0)} s` : `not ended; last season ${lastSeason}`);
+// The bar: no frame over about 50 ms while seasons play.
+try {
+  const longest = await p.evaluate(() => {
+    const f = window.__frames;
+    f.longest.sort((a, b) => b.ms - a.ms);
+    return f.longest.slice(0, 12);
+  });
+  await out(`frames: ${allFrames} drawn, ${allLong} over ${HITCH_MS} ms (${((100 * allLong) / Math.max(1, allFrames)).toFixed(2)}%), the worst ${allWorst.toFixed(0)} ms`);
+  await out(`the longest frames (ms, at season): ${longest.map((x) => `${x.ms.toFixed(0)}@${x.season}`).join(", ")}`);
+} catch {
+  await out("frames: the page could not be read at the end");
+}
 if (problems.length > 0) {
   await out(`${problems.length} problems:`);
   for (const x of problems.slice(0, 20)) await out(`  at ${((x.when - t0) / 1000).toFixed(0)} s: ${x.what.slice(0, 1500)}`);
@@ -258,6 +292,11 @@ try {
   await p.screenshot({ path: (logFile ?? "soak") + ".png" });
 } catch {
   /* the page may be gone */
+}
+if (videoDir !== null) {
+  const video = p.video();
+  await context.close();
+  if (video !== null) await out(`recording: ${await video.path()}`);
 }
 await browser.close();
 server.close();
