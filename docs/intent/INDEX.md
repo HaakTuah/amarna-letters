@@ -10,12 +10,14 @@ The document has one tab per system, and the copy one folder per tab.
 tabs your item's sections are in (Claude Docs `read`, container
 `{"kind":"project","id":"7f857750-39dc-464a-a739-c9f59dfe3dcd"}`, engine `prose`, ref `{"object":"node","id":"<node>"}`,
 payload `{"kind":"view","sinceRev":<rev>}`). Only changed blocks come back. Where they differ from the copy,
-the live document wins. If the docs connector is not available, go on with the copy and say so in the report.
+the live document wins. If the docs connector is not available (a session on another account, say), go on
+with the copy and say so in the report, and before opening the pull request read the copy on `develop` again:
+`git fetch origin develop`, then `git diff <the commit the item started from>..origin/develop -- docs/intent .claude/rules`.
 
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 567 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 142 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 143 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 54 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 57 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 25 |
@@ -41,7 +43,7 @@ session loads.
 | `docs/intent/overview/prototype-scope.md` | Prototype scope | 2.8 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
-| `.claude/rules/builder-rules.md` | Rules for the builder | 11.2 |
+| `.claude/rules/builder-rules.md` | Rules for the builder | 11.5 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.8 |

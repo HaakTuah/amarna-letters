@@ -717,4 +717,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     map mode also, through showing the snow, weather, seasons. The harshness of it, and such. Doesn't mean we can't
     have a map mode devoted to it, but we should try to make the main map as readable and visually appealing we can,
     so you get most of the information nessecary for you there, while managing not to clutter it too much. Your take,
-    expert?" Written into "The main map and its views" (Interface and the council) and item 19++.
+    expert?" Written into "The main map and its views" (Interface and the council) and item 19++. At 12:40 UTC, to
+    only the out-of-the-ordinary standing out and detail growing with zoom: "Yes, expertly so!"
+80. **31 October 2026, 12:41-12:42 UTC**, in the design chat: "Everything is avaliable to the other claude account
+    also? It can read the design document and build order?" Then, to builders without the live document reading the
+    copy on `develop` again before opening a pull request: "Yes, please, expertly!" Written into the builder rules
+    ("The specification") and `docs/intent/INDEX.md` (by `scripts/design-copy.py`).

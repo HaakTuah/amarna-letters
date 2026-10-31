@@ -214,7 +214,9 @@ def write_index(m, rows):
          "tabs your item's sections are in (Claude Docs `read`, container",
          f"`{{\"kind\":\"project\",\"id\":\"{m['doc']}\"}}`, engine `prose`, ref `{{\"object\":\"node\",\"id\":\"<node>\"}}`,",
          'payload `{"kind":"view","sinceRev":<rev>}`). Only changed blocks come back. Where they differ from the copy,',
-         'the live document wins. If the docs connector is not available, go on with the copy and say so in the report.',
+         'the live document wins. If the docs connector is not available (a session on another account, say), go on',
+         'with the copy and say so in the report, and before opening the pull request read the copy on `develop` again:',
+         '`git fetch origin develop`, then `git diff <the commit the item started from>..origin/develop -- docs/intent .claude/rules`.',
          '',
          '| Tab | Folder | Node | Revision |',
          '| --- | --- | --- | --- |']
