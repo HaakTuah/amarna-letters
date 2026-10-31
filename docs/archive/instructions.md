@@ -838,3 +838,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     unless someone orders it": "Agree with you on 1". Each king starts with a standing order to pay and feed his troops,
     shown among his orders and his to change or cancel, as a starting servant's pay already works (item 11b+). Written
     into item 17+ and the season's first step ("Income and upkeep", Engine and models).
+97. **31 October 2026, 19:03-19:05 UTC**, in the design chat: "The game still doesn't move slowly and smooth enough.
+    Still hicks. hope that polish pass isn't done already, because it far from sufficed. Also, pressing spacebar really
+    needs to pause and unpause the game. Everything should have hotkeys for the computer quiet frankly, and Paradox
+    hotkeys is what people are used to, so we should probably use those." To the design session's three readings
+    (smoothness measured in 17a and 17+++, no frame over about 50 ms, with a recording; Space and the speed keys in the
+    polish lane at once; the full Paradox-style key set as its own item after 17+++, every later item bringing its
+    keys): "Agreed to all, expertly!" Written into items 17a, 17+++ and 17+++a, and the polish lane.
