@@ -63,6 +63,7 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 | 11b++ | None: "The game in one page" and the item's text settled every answer | Readings 1-15 in `docs/rounds/2026-10-29-answers-to-11b-plus.md` | For review, no questions |
 | 13+ (#190) | None: the item's text, "A kingdom falls with its capital" and the page settled every reading | Readings 1-10 in `docs/rounds/2026-10-29-answers-to-13.md` | For review, no questions |
 | 16 (#194) | None: the page and the item's sections settled every reading | Readings 1-13 in `docs/rounds/2026-10-29-royal-council.md` (the darkest omen at the bottom of the cap's range, as the text says, against the reviewer's wish to place it by the curve: reading 10) | No questions |
+| Improvement audit (#235) | 1. Should a troop too small to fight go on counting as a unit? (find 10 of `docs/rounds/2026-10-31-improvement-audit.md`) | Answered by Haakon, 31 October 2026: "A handful holds nothing by itself" (War tab, item 17++): no size threshold; a move into a far weaker unit is a battle it loses by far; a garrison holds a town only as far as its people's ledger stands with its master; script kings fold or disband remnants | Answered |
 
 
 ## Use against ignore
