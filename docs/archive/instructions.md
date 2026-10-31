@@ -946,3 +946,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     "Yes, please expertly applied across the board! Let every character reflect wha the historical letter showed they
     were truly like! And let that manifest in their actions through the game!" Written into "Attested characters"
     (Characters), items 17b and 18, and the ideas entry on model kings' strategies.
+114. **31 October 2026, 23:22 UTC** (1 November in Oslo), in the design chat, answering the music lane's question
+    (music and sound on but quiet, 35% and 45%, or off until switched on): "Agreed. Keep them on, regular volume, but
+    don't blast someone when they start up, like say CK2, even though the main theme there was epice. SO i didn't
+    really mind." Written into item 19+++: on by default at a regular volume, the first music fading in at start-up.
