@@ -871,3 +871,6 @@ Given in the design chat with Claude, answering the design questions of the cons
     Kush, named over Nubia; where the office is attested for a province on the map but the holder's name is lost, a
     governor named in the region's style and marked invented, the heartlands ruled directly): "1. Yes! 2. Yes, expertly
     so!" Written into item 17++.
+101. **31 October 2026, 21:04 UTC**, in the design chat: "We have to balance the loyalty and material and millitary
+    standing for all of these relative to their kings, also. And it should all follow the historical sources as closely
+    as possible!" Written into item 17+.
