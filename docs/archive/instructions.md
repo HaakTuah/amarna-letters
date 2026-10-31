@@ -866,3 +866,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     session's list (Egypt's commissioners, Enlil-kidinni, Ili-ippashra, Alashiya's governor), leaving out the prince
     Telipinu in Kizzuwatna: "Yes, agreed. That would be a family possesion anyhow." and "agreed to all, expertly."
     Written into item 17++.
+100. **31 October 2026, 20:51-21:00 UTC**, in the design chat: "Are there anymore places, which probably had governors,
+    but are simply being omitted now due to lack of sources?" To the design session's two readings (Thutmose, Viceroy of
+    Kush, named over Nubia; where the office is attested for a province on the map but the holder's name is lost, a
+    governor named in the region's style and marked invented, the heartlands ruled directly): "1. Yes! 2. Yes, expertly
+    so!" Written into item 17++.
