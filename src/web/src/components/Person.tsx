@@ -63,7 +63,6 @@ export function Person({ c, court, onFollow }: { c: CharacterView; court: Power 
           <small>Asks {shekels(c.askingPrice)} a season.</small>
         </div>
       )}
-      <small className="muted">{c.id}</small>
     </div>
   );
 }
