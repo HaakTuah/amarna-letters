@@ -1,4 +1,5 @@
 import react from "@vitejs/plugin-react";
+import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, sep } from "node:path";
@@ -36,9 +37,20 @@ function serviceWorker(): Plugin {
   };
 }
 
+/** The build's commit, for the error screen's report (item 17a): the publishing workflow's, else the checkout's, else "dev". */
+function buildId(): string {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 7);
+  try {
+    return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim() || "dev";
+  } catch {
+    return "dev";
+  }
+}
+
 export default defineConfig({
   // Relative URLs throughout: the site lives under a sub-path on GitHub Pages, set by the page's <base href>.
   base: "./",
+  define: { __BUILD_ID__: JSON.stringify(buildId()) },
   plugins: [react(), serviceWorker()],
   worker: { format: "es" },
   build: { outDir: "dist", target: "es2022", chunkSizeWarningLimit: 2000 },

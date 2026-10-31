@@ -84,6 +84,7 @@ import {
   type PresentResult,
 } from "./contracts.ts";
 import { GameLog, authorKind, newAuthorship, newLogHeader, seasonFallbacks, type Authorship, type LogHeader, type SeasonFallbacks, type TrailAuthors } from "./log.ts";
+import { SnapshotStore } from "./snapshots.ts";
 import { Council } from "./bots/council.ts";
 import { ScriptLeader } from "./bots/script-leader.ts";
 import { ScriptMind } from "./bots/script-mind.ts";
@@ -145,11 +146,11 @@ export class GameRunner {
   writeChronicles = true;
   prepared = false;
 
-  /** Serialized states: [0] at the start, [k] after turn k. */
-  readonly snapshots: string[] = [];
+  /** Serialized states: [0] at the start, [k] after turn k, sharing what did not change between seasons (snapshots.ts). */
+  readonly snapshots = new SnapshotStore();
   /**
-   * Whether to keep the state at the end of every turn (the web app's history): a whole state a turn, so a long game's
-   * snapshots run to gigabytes. The batch runner, which never reads them, turns this off.
+   * Whether to keep the state at the end of every turn (the web app's history). The batch runner, which never reads them,
+   * turns this off.
    */
   keepSnapshots = true;
   readonly chronicles = new Dict<Power, string>();
@@ -803,7 +804,8 @@ export class GameRunner {
 
   /** The state at the end of a given turn (0 = start), from the snapshots. */
   stateAt(turn: number): GameState | null {
-    return turn >= 0 && turn < this.snapshots.length ? deserialize<GameState>(GameStateSchema, this.snapshots[turn]) : null;
+    const json = this.snapshots.get(turn);
+    return json === null ? null : deserialize<GameState>(GameStateSchema, json);
   }
 }
 

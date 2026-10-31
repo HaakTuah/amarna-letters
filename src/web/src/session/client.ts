@@ -198,7 +198,8 @@ export class Session {
     const key = `${index}/${viewer ?? ""}`;
     const had = this.scenes.get(key);
     if (had !== undefined) return had;
-    if (this.scenes.size > 600) this.scenes.clear();
+    // A few scenes kept (the season shown and its neighbours): a scene is megabytes, and one a season crowded a phone (item 17a).
+    if (this.scenes.size >= 6) this.scenes.clear();
     const scene = buildScene(this.frames, index, viewer);
     this.scenes.set(key, scene);
     return scene;
