@@ -1,6 +1,6 @@
 import { AllPowers, WorldMap, ending, shortDate, shortEnding, type Power } from "@amarna/engine";
 import { Presets, leaderRules } from "@amarna/llm";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { AudiencePanel } from "../components/AudiencePanel.tsx";
 import { ChroniclePanel } from "../components/ChroniclePanel.tsx";
 import { CourtStrip } from "../components/CourtStrip.tsx";
@@ -17,6 +17,7 @@ import { ProvinceInfo } from "../components/ProvinceInfo.tsx";
 import { ProvinceList } from "../components/ProvinceList.tsx";
 import { SeasonPanel } from "../components/SeasonPanel.tsx";
 import { StandingsPanel } from "../components/StandingsPanel.tsx";
+import { TopBar } from "../components/TopBar.tsx";
 import { FallbackNotice, TrailPanel } from "../components/TrailPanel.tsx";
 import { Height, Width, city, ll } from "../map/art.ts";
 import { pathOf } from "../map/scene.ts";
@@ -89,27 +90,34 @@ export function Play() {
   }
 
   if (!live.hasRunner || s.frames.length === 0 || s.state === null) {
+    // No game on screen yet: the pages' own bar stays, so the other pages are a tap away.
+    const startPage = (e: MouseEvent, saved: boolean): void => {
+      e.preventDefault();
+      navigate("");
+      if (saved) requestAnimationFrame(() => document.getElementById("saved-games")?.scrollIntoView());
+    };
     return (
-      <div className="page">
-        {live.error !== null && <div className="notice error">The game could not start: {live.error}</div>}
-        {live.busy || live.hasRunner ? (
-          <p>Preparing the game…</p>
-        ) : (
-          <p>
-            No game is running.{" "}
-            <a
-              href=""
-              onClick={(e) => {
-                e.preventDefault();
-                navigate("");
-              }}
-            >
-              Start one
-            </a>{" "}
-            or load a saved log.
-          </p>
-        )}
-      </div>
+      <>
+        {!live.busy && !live.hasRunner && <TopBar />}
+        <div className="page">
+          {live.error !== null && <div className="notice error">The game could not start: {live.error}</div>}
+          {live.busy || live.hasRunner ? (
+            <p>Preparing the game…</p>
+          ) : (
+            <p>
+              No game is running.{" "}
+              <a href="./" onClick={(e) => startPage(e, false)}>
+                Start one
+              </a>{" "}
+              or{" "}
+              <a href="./" onClick={(e) => startPage(e, true)}>
+                open a saved game
+              </a>
+              .
+            </p>
+          )}
+        </div>
+      </>
     );
   }
 

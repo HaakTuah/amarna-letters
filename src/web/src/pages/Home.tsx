@@ -613,7 +613,7 @@ export function Home() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card" id="saved-games">
         <h2>Saved games and replays</h2>
         <p className="muted">Every game is saved in this browser as an event log. A log replays the game exactly, season by season.</p>
         <div className="row" style={{ marginBottom: ".6rem" }}>
