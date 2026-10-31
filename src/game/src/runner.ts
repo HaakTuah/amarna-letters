@@ -425,6 +425,8 @@ export class GameRunner {
     if (!canPlayOn(S_)) return false;
     await this.recorded<boolean>(`t${S_.turn}/play-on`, B, () => Promise.resolve(true));
     playOn(S_);
+    // The season's snapshot stands amended: whoever follows the snapshots sees the open age (item 17a).
+    if (this.keepSnapshots) this.snapshots.replaceLast(serialize(GameStateSchema, S_));
     this.setPhase("Ready");
     return true;
   }

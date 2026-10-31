@@ -94,6 +94,8 @@ export class SessionCore {
   private busy = false;
   private auto = false;
   private readOnly = false;
+  /** The turn the game stood at when its log was last saved (Live.savedTurn): a reload resumes from there. */
+  private savedTurn = -1;
   private delayMs = 400;
   private error: string | null = null;
   private notice: string | null = null;
@@ -166,6 +168,7 @@ export class SessionCore {
       ended: r?.state.ended ?? false,
       canPlayOn: r !== null && !this.readOnly && canPlayOn(r.state),
       turn: r?.state.turn ?? 0,
+      savedTurn: this.savedTurn,
       errors: r === null ? [] : r.errors.slice(-8),
       errorCount: r?.errors.length ?? 0,
       error: this.error,
@@ -262,6 +265,7 @@ export class SessionCore {
     this.notice = null;
     this.frames = [];
     this.states = [];
+    this.savedTurn = -1;
     this.framesTaken = 0;
     this.lastFrame = null;
     this.resetPending = true;
@@ -448,8 +452,6 @@ export class SessionCore {
       this.settings = { ...this.settings, budgetUsd };
     }
     if (!(await r.playOn())) return;
-    // The season's snapshot stands amended: the page's state carries the open age (the stream replaces its last season).
-    r.snapshots.replaceLast(serialize(GameStateSchema, r.state));
     this.changed();
     await this.save();
   }
@@ -497,8 +499,12 @@ export class SessionCore {
     const seats = groupBy([...r.log.header.seats.values()], (x) => x)
       .map(([k, g]) => `${g.length} ${k}`)
       .join(", ");
-    const meta = `Seed ${r.state.seed}, ${dateLabel(r.state.turn)}${r.state.ended ? " (ended)" : ""}, ${seats}`;
-    await saveLog(this.gameId, meta, r.log.toJsonl());
+    const turn = r.state.turn;
+    const meta = `Seed ${r.state.seed}, ${dateLabel(turn)}${r.state.ended ? " (ended)" : ""}, ${seats}`;
+    if (await saveLog(this.gameId, meta, r.log.toJsonl())) {
+      this.savedTurn = turn;
+      this.notifySoon();
+    }
   }
 
   // ---------------------------------------------------------------- messages

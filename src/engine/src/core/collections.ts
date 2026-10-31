@@ -6,8 +6,8 @@
  */
 /**
  * Walks the live slots of a Dict or an HSet in order (item 17a: a hand-written iterator; the generators it replaces were a
- * tenth of a season's time and most of its garbage). The slot arrays are read as they stand, so an item added while
- * iterating is seen, as the generators saw it.
+ * tenth of a season's time and most of its garbage). The slot arrays it was given are read as they stand, so an item added
+ * while iterating is seen, as the generators saw it, and `clear()` while iterating (which replaces the arrays) ends it.
  */
 class SlotIterator<T> implements IterableIterator<T> {
   private i = 0;
@@ -127,15 +127,19 @@ export class Dict<K, V> implements Iterable<[K, V]> {
   }
 
   entries(): IterableIterator<[K, V]> {
-    return new SlotIterator(this.slotKeys, this.slotNext, (i) => [this.slotKeys[i], this.slotValues[i]]);
+    const keys = this.slotKeys;
+    const values = this.slotValues;
+    return new SlotIterator(keys, this.slotNext, (i) => [keys[i], values[i]]);
   }
 
   keys(): IterableIterator<K> {
-    return new SlotIterator(this.slotKeys, this.slotNext, (i) => this.slotKeys[i]);
+    const keys = this.slotKeys;
+    return new SlotIterator(keys, this.slotNext, (i) => keys[i]);
   }
 
   values(): IterableIterator<V> {
-    return new SlotIterator(this.slotKeys, this.slotNext, (i) => this.slotValues[i]);
+    const values = this.slotValues;
+    return new SlotIterator(this.slotKeys, this.slotNext, (i) => values[i]);
   }
 
   [Symbol.iterator](): IterableIterator<[K, V]> {
@@ -216,7 +220,8 @@ export class HSet<T> implements Iterable<T> {
   }
 
   values(): IterableIterator<T> {
-    return new SlotIterator(this.slots, this.slotNext, (i) => this.slots[i]);
+    const slots = this.slots;
+    return new SlotIterator(slots, this.slotNext, (i) => slots[i]);
   }
 
   [Symbol.iterator](): IterableIterator<T> {

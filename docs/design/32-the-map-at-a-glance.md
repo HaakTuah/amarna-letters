@@ -68,12 +68,12 @@ open ground, the ferry and the flood, winter's danger on a snowbound pass, and w
 
 The newest version is always the one played, without asking (item 17a, replacing item 11c+'s note and tap). The app looks
 for a new version at start, when it comes back to the front, and every half hour. A new service worker installs beside the
-old one and takes over by itself: at once when no game is on screen (on opening, on the start screen, when a game is started
-or continued, a game still held from before counting as off screen while the start screen shows), and during a game at the
-next season played, reloading into the same game from its last saved season (its log is saved after every season) under its
+old one and takes over by itself: at once when no game is held (on opening, on the start screen, when a game is started or
+continued), and with a game held (on screen or not) at the next season played, once the worker has saved it (`Live.savedTurn`
+is the newest turn and no season is under way, so nothing is lost), reloading into the same game from that season under its
 own id, with auto-play and speed as they were, and a line "Updated to the newest version" for a few seconds after. The
-build writes the rules' save version to `version.json` (never cached); only a new version whose rules the game on screen
-cannot carry on in (a save version is the rules') waits, with a line saying it takes over when the game is left, and takes
-over as soon as the game screen is left or the game is closed. Another tab's take-over counts as a new version found here:
-a page with no game on screen reloads at once, one with a game reloads into it at the next season. The error screen's way
-back ("Reload into this game", `ui/ErrorScreen.tsx`) uses the same reload, carrying the game, auto-play and speed.
+build writes the rules' save version to `version.json` (never cached); only a new version whose rules the game held cannot
+carry on in (a save version is the rules') waits, with a line saying it takes over when the game is closed, and takes over
+as soon as it is (while the version cannot be read, nothing is said and it is asked again at the next change). Another
+tab's take-over counts as a new version found here. The error screen's way back ("Reload into this game",
+`ui/ErrorScreen.tsx`) uses the same reload, carrying the game, auto-play and speed.

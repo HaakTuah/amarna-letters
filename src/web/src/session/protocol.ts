@@ -52,6 +52,8 @@ export interface Live {
   /** Whether the table may play on into an open age: the age ended by its last season, and this game is not a replay. */
   canPlayOn: boolean;
   turn: number;
+  /** The turn the game stood at when its log was last saved to this browser (-1: not yet): a reload resumes from there. */
+  savedTurn: number;
   /** The last few fallback errors, and how many there were. */
   errors: string[];
   errorCount: number;

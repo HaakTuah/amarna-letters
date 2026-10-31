@@ -61,7 +61,13 @@ const valueText = (text: string): string => text.slice(text.indexOf('":') + 2);
 /** A container's JSON: its text without the member's name (where its head has one) and without the comma after it. */
 const containerJson = (c: Container): string => itemJson((c.head.includes('":') ? valueText(c.head) : c.head) + c.items.map(textOf).join("") + c.tail);
 
-const resolve = (s: Schema): Schema => (s.k === "lazy" ? resolve(s.get()) : s.k === "opt" ? resolve(s.of) : s);
+/** The schema's shape for the branch below (through `lazy` and `opt`); what is read still goes through the schema as given. */
+const shapeOf = (s: Schema): Schema => (s.k === "lazy" ? shapeOf(s.get()) : s.k === "opt" ? shapeOf(s.of) : s);
+/** A value from its JSON text by its schema; a null stays null, as the engine's reader keeps a list's or dictionary's null item. */
+function readText(schema: Schema, json: string): unknown {
+  const j: unknown = JSON.parse(json);
+  return j === null ? null : read(schema, j);
+}
 
 /** Objects by the text they were read from, per field of the state: what an unchanged text reuses. */
 type Cache = Map<string, unknown>;
@@ -95,7 +101,7 @@ export class IncrementalReader {
     const kept = this.next.get(field) ?? new Map<string, unknown>();
     this.next.set(field, kept);
     const text = textOf(item);
-    return this.value(resolve(schema), typeof item === "string" ? valueText(text) : item, text, cache, kept);
+    return this.value(schema, typeof item === "string" ? valueText(text) : item, text, cache, kept);
   }
 
   /**
@@ -109,22 +115,23 @@ export class IncrementalReader {
       return had;
     }
     let v: unknown;
-    if (typeof src === "string") v = read(schema, JSON.parse(itemJson(src)));
-    else if (schema.k === "list" || schema.k === "set") {
+    const shape = shapeOf(schema);
+    if (typeof src === "string") v = readText(schema, itemJson(src));
+    else if (shape.k === "list" || shape.k === "set") {
       const items = src.items.map((x) => {
         const t = textOf(x);
-        return this.value(resolve(schema.of), typeof x === "string" ? itemJson(x) : x, t, cache, kept);
+        return this.value(shape.of, typeof x === "string" ? itemJson(x) : x, t, cache, kept);
       });
-      v = schema.k === "list" ? items : new HSet(items);
-    } else if (schema.k === "dict") {
+      v = shape.k === "list" ? items : new HSet(items);
+    } else if (shape.k === "dict") {
       const d = new Dict<string, unknown>();
       for (const x of src.items) {
         const t = textOf(x);
         const name = nameOf(typeof x === "string" ? x : x.head);
-        d.set(name, this.value(resolve(schema.of), typeof x === "string" ? itemJson(valueText(x)) : x, t, cache, kept));
+        d.set(name, this.value(shape.of, typeof x === "string" ? itemJson(valueText(x)) : x, t, cache, kept));
       }
       v = d;
-    } else v = read(schema, JSON.parse(containerJson(src)));
+    } else v = readText(schema, containerJson(src));
     kept.set(key, v);
     return v;
   }

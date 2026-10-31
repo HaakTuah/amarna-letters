@@ -62,6 +62,37 @@ describe("History", () => {
     Assert.true(r.snapshots.uniqueLength < 2.5 * carried, `pieces kept: ${r.snapshots.uniqueLength} against a state of ${carried}`);
   });
 
+  test("An amended season replaces the last snapshot, and the drawn last season never reaches the page", () => {
+    const store = new SnapshotStore();
+    store.redact = redactForPage;
+    const history = new SnapshotHistory();
+    const reader = new IncrementalReader();
+    const a = newGame(5, seasons(6));
+    a.finalSeason = 3;
+    a.finalByCap = true;
+    store.push(serialize(GameStateSchema, a));
+    a.turn = 2;
+    store.push(serialize(GameStateSchema, a));
+    // Played on into an open age: the second season's state changes after its snapshot.
+    a.ended = false;
+    a.winners.push("Hatti");
+    store.replaceLast(serialize(GameStateSchema, a));
+    const deltas = store.takeDeltas();
+    Assert.equal(3, deltas.length);
+    Assert.true(deltas[2].replace && deltas[2].index === 1, "the third delta replaces season 1");
+    for (const d of deltas) history.apply(d);
+    Assert.equal(2, history.length);
+    Assert.equal(2, store.length);
+    const shown = reader.apply(history.pieces(1)!);
+    Assert.equal("Hatti", shown.winners[0]);
+    Assert.equal(null, shown.finalSeason);
+    Assert.equal(false, shown.finalByCap);
+    Assert.true(!history.json(0)!.includes("finalSeason") && !history.json(1)!.includes("finalByCap"), "redacted");
+    // The store keeps the whole state for the engine, the secret with it.
+    Assert.true(store.get(1)!.includes('"finalSeason":3') && store.get(1)!.includes('"finalByCap":true'), "kept whole");
+    same(serialize(GameStateSchema, { ...a, finalSeason: null, finalByCap: false }), serialize(GameStateSchema, shown));
+  });
+
   test("Items shared by text are the same objects; changed ones are read anew", () => {
     const reader = new IncrementalReader();
     const store = new SnapshotStore();

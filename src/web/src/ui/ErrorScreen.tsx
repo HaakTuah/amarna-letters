@@ -28,7 +28,10 @@ export function reportError(c: Caught): void {
 
 /** Hooks the page's uncaught errors and unhandled rejections to the screen. Called once, as the page starts. */
 export function catchPageErrors(): void {
-  addEventListener("error", (e) => reportError({ error: e.error ?? e.message, where: "uncaught on the page" }));
+  // An error event with nothing thrown (a cross-origin script's "Script error.", Chrome's ResizeObserver notice) is noise.
+  addEventListener("error", (e) => {
+    if (e.error !== null && e.error !== undefined) reportError({ error: e.error, where: "uncaught on the page" });
+  });
   addEventListener("unhandledrejection", (e) => reportError({ error: e.reason, where: "an unhandled rejection on the page" }));
 }
 
@@ -37,9 +40,15 @@ const stackOf = (e: unknown): string => (e instanceof Error && e.stack ? e.stack
 
 /** The report to copy: the versions, the game and the season, the error, the browser. */
 export function reportText(c: Caught): string {
-  const live = session.live;
-  const seed = session.state?.seed ?? null;
-  const game = live.hasRunner ? `seed ${seed ?? "?"}, ${dateLabel(live.turn)} (season ${live.turn}), game ${live.gameId}${live.auto ? ", auto-play" : ""}, speed ${session.delayMs} ms` : "no game running";
+  // The screen must stand whatever broke, the session's own state included.
+  let game = "no game running";
+  try {
+    const live = session.live;
+    const seed = session.state?.seed ?? null;
+    if (live.hasRunner) game = `seed ${seed ?? "?"}, ${dateLabel(live.turn)} (season ${live.turn}), game ${live.gameId}${live.auto ? ", auto-play" : ""}, speed ${session.delayMs} ms`;
+  } catch (e) {
+    game = `unreadable (${messageOf(e)})`;
+  }
   return [
     "Amarna Letters: an error on the page",
     `Build ${__BUILD_ID__}, rules version ${CURRENT_VERSION}`,
@@ -57,7 +66,14 @@ export function reportText(c: Caught): string {
 
 function CrashScreen({ caught, again, onBack }: { caught: Caught; again: boolean; onBack: () => void }) {
   const [copied, setCopied] = useState<string | null>(null);
-  const live = session.live;
+  let live = { hasRunner: false, turn: 0, gameId: "" };
+  let seed: number | string = "?";
+  try {
+    live = session.live;
+    seed = session.state?.seed ?? "?";
+  } catch {
+    // the session is what broke: the screen still stands
+  }
   const text = reportText(caught);
   const copy = (): void => {
     navigator.clipboard
@@ -70,7 +86,7 @@ function CrashScreen({ caught, again, onBack }: { caught: Caught; again: boolean
       <h1>Something went wrong on the page</h1>
       <p>
         {live.hasRunner
-          ? `The game itself goes on in its engine and is saved after every season: nothing is lost. The page hit an error while drawing ${dateLabel(live.turn)} (season ${live.turn}) of seed ${session.state?.seed ?? "?"}.`
+          ? `The game itself goes on in its engine and is saved after every season: nothing is lost. The page hit an error while drawing ${dateLabel(live.turn)} (season ${live.turn}) of seed ${seed}.`
           : "The page hit an error while no game was running."}
         {again && " Going back failed at once with the same error, so reloading into the game is the way back."}
       </p>

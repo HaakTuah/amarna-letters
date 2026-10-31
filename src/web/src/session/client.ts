@@ -44,6 +44,7 @@ const emptyLive = (): Live => ({
   ended: false,
   canPlayOn: false,
   turn: 0,
+  savedTurn: -1,
   errors: [],
   errorCount: 0,
   error: null,

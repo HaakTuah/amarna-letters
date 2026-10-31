@@ -26,7 +26,6 @@ import { powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
-import { playing, seasonPlayed, takeResumedHow } from "../ui/update.ts";
 import { useSession } from "../ui/use-session.ts";
 
 const phaseText = (phase: string): string => {
@@ -77,19 +76,6 @@ export function Play() {
     }
   }, []);
 
-  // The game on screen and how it is watched: a new version with the same rules takes over at the next season, reloading
-  // into this game as it was (ui/update.ts); after such a reload, auto-play and speed are as they were.
-  useEffect(() => playing(live.hasRunner ? live.gameId : null, live.auto, s.delayMs), [live.hasRunner, live.gameId, live.auto, s.delayMs]);
-  useEffect(() => {
-    if (live.hasRunner && live.turn > 0) seasonPlayed();
-  }, [live.turn]);
-  useEffect(() => {
-    if (!live.hasRunner || live.busy) return;
-    const how = takeResumedHow(live.gameId);
-    if (how === null) return;
-    s.setDelay(how.delay);
-    if (how.auto && s.canPlay) s.setAuto(true);
-  }, [live.hasRunner, live.busy, live.gameId]);
 
   useEffect(() => {
     document.title = `Amarna Letters — ${!live.hasRunner ? "no game" : whenCap(live.turn, viewerOf())}`;
