@@ -193,8 +193,13 @@ export function terrainOf(province: string): Terrain {
 
 /** The crossing on the connection between two provinces, if any (either way round). */
 export function crossingBetween(a: string, b: string): Crossing | null {
-  return Crossings.find((c) => joins(c, a, b)) ?? null;
+  const key = a + "|" + b;
+  let c = crossingCache.get(key);
+  if (c === undefined) crossingCache.set(key, (c = Crossings.find((x) => joins(x, a, b)) ?? null));
+  return c;
 }
+/** The crossings are fixed data: each pair asked for is remembered (item 17a). */
+const crossingCache = new Map<string, Crossing | null>();
 
 /** The great rivers that run through a province, in the order above. */
 export function riversThrough(province: string): River[] {

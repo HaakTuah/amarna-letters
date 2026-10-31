@@ -1,6 +1,7 @@
 export * from "./contracts.ts";
 export * from "./log.ts";
 export * from "./runner.ts";
+export * from "./snapshots.ts";
 export * from "./parity.ts";
 export * from "./bots/script-leader.ts";
 export * from "./bots/council.ts";

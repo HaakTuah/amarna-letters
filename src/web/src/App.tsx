@@ -3,7 +3,8 @@ import { Home } from "./pages/Home.tsx";
 import { Play } from "./pages/Play.tsx";
 import { useEffect } from "react";
 import { navigate, useRoute, type Route } from "./ui/router.ts";
-import { dismiss, reloadIntoGame, resuming, useUpdateState } from "./ui/update.ts";
+import { playing, resuming, savedUp, takeResumedHow, useUpdateState } from "./ui/update.ts";
+import { useSession } from "./ui/use-session.ts";
 
 function NavLink({ to, children }: { to: Route; children: string }) {
   const route = useRoute();
@@ -25,29 +26,34 @@ function NavLink({ to, children }: { to: Route; children: string }) {
 export function App() {
   const route = useRoute();
   const update = useUpdateState();
-  // Reloaded into a new version from a game: the start page loads that game's saved log and goes back into it.
+  const s = useSession();
+  const live = s.live;
+  // The game held and how it is watched, on whatever screen: a new version with the same rules takes over once the season
+  // played is saved, reloading into this game as it was (ui/update.ts); after such a reload, auto-play and speed are as they were.
+  useEffect(() => playing(live.hasRunner ? live.gameId : null, live.auto, s.delayMs), [live.hasRunner, live.gameId, live.auto, s.delayMs]);
+  useEffect(() => savedUp(live.hasRunner && !live.busy && live.savedTurn === live.turn), [live.hasRunner, live.busy, live.savedTurn, live.turn]);
+  useEffect(() => {
+    if (!live.hasRunner || live.busy) return;
+    const how = takeResumedHow(live.gameId);
+    if (how === null) return;
+    s.setDelay(how.delay);
+    if (how.auto && s.canPlay) s.setAuto(true);
+  }, [live.hasRunner, live.busy, live.gameId]);
+  // Reloaded into a game (a new version taking over, or the error screen's way back): the start page loads that game's
+  // saved log and goes back into it.
   useEffect(() => {
     if (resuming() && route !== "") navigate("");
   }, []);
   return (
     <>
-      {update === "continues" && (
+      {update === "updated" && (
         <div className="update-note" role="status">
-          A new version is ready.
-          <button className="small" onClick={reloadIntoGame}>
-            Reload into this game
-          </button>
+          Updated to the newest version.
         </div>
       )}
       {update === "new-rules" && (
         <div className="update-note" role="status">
-          A new version is ready, with new rules: this game was saved under the old ones and cannot go on in it.
-          <button className="small" onClick={reloadIntoGame}>
-            Update now
-          </button>
-          <button className="small" onClick={dismiss}>
-            Later
-          </button>
+          A new version with new rules is ready: this game goes on under its own rules, and the new version takes over when you close it.
         </div>
       )}
       {route !== "play" && (

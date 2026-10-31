@@ -18,8 +18,10 @@ import {
   type SeatView,
   type TurnSubmission,
 } from "@amarna/engine";
+import { SnapshotHistory } from "@amarna/game";
 import { buildScene, type MapScene } from "../map/scene.ts";
-import type { SeasonFrame } from "./frames.ts";
+import { IncrementalReader } from "./incremental.ts";
+import type { FramePerson, SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
 import { download } from "./storage.ts";
@@ -34,8 +36,7 @@ export interface HumanAsk {
 const emptyLive = (): Live => ({
   hasRunner: false,
   generation: 0,
-  stateVersion: -1,
-  stateJson: null,
+  states: [],
   phase: "",
   busy: false,
   auto: false,
@@ -43,6 +44,7 @@ const emptyLive = (): Live => ({
   ended: false,
   canPlayOn: false,
   turn: 0,
+  savedTurn: -1,
   errors: [],
   errorCount: 0,
   error: null,
@@ -80,8 +82,10 @@ export class Session {
   replaying = false;
   delayMs = 400;
 
+  /** The history of the state (item 17a): the stream's pieces, from which any season is read back when looked back at. */
+  private history = new SnapshotHistory();
+  private reader = new IncrementalReader();
   private recent = new Map<number, GameState>();
-  private asked = new Set<number>();
   private nextId = 1;
   private waiting = new Map<number, (m: FromWorker) => void>();
   private scenes = new Map<string, MapScene>();
@@ -127,16 +131,25 @@ export class Session {
     if (m.reset || newGame) {
       this.frames = [];
       this.recent.clear();
-      this.asked.clear();
+      this.history.clear();
+      this.reader = new IncrementalReader();
       this.framesGeneration++;
       this.fallSeen = false;
     }
     if (m.frames.length > 0) {
+      let previous = this.frames.length > 0 ? this.frames[this.frames.length - 1] : null;
+      for (const f of m.frames) {
+        shareUnchanged(f, previous);
+        previous = f;
+      }
       this.frames = [...this.frames, ...m.frames];
       this.framesGeneration++;
     }
-    if (m.live.stateJson !== null) {
-      this.state = deserialize<GameState>(GameStateSchema, m.live.stateJson);
+    if (m.live.states.length > 0) {
+      for (const d of m.live.states) this.history.apply(d);
+      // Only the newest season is read now, and only what changed in it; a season looked back at is read then (displayed).
+      this.state = this.reader.apply(this.history.pieces(this.history.length - 1)!);
+      this.recent.clear();
       // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
       setRisen(this.state.risen);
     }
@@ -156,7 +169,7 @@ export class Session {
       this.fallSeen = true;
       this.viewAs = null;
     }
-    this.live = { ...m.live, stateJson: null };
+    this.live = { ...m.live, states: [] };
     this.notify();
   }
 
@@ -198,34 +211,29 @@ export class Session {
     const key = `${index}/${viewer ?? ""}`;
     const had = this.scenes.get(key);
     if (had !== undefined) return had;
-    if (this.scenes.size > 600) this.scenes.clear();
+    // A few scenes kept (the season shown and its neighbours): a scene is megabytes, and one a season crowded a phone (item 17a).
+    if (this.scenes.size >= 6) this.scenes.clear();
     const scene = buildScene(this.frames, index, viewer);
     this.scenes.set(key, scene);
     return scene;
   }
 
   /**
-   * The full state of the season shown, for the panels that need it. A season in history is read back from its snapshot
-   * by the worker, so the last few read are kept; until one arrives the newest state stands in.
+   * The full state of the season shown, for the panels that need it. A season in history is read back from the page's own
+   * history of pieces when looked back at, and the last few read are kept.
    */
   get displayed(): GameState | null {
     if (this.state === null) return null;
     const t = this.historyTurn;
-    if (t === null) return this.state;
+    if (t === null || t >= this.history.length - 1) return this.state;
     const had = this.recent.get(t);
     if (had !== undefined) return had;
-    if (!this.asked.has(t)) {
-      this.asked.add(t);
-      const generation = this.seenGeneration;
-      void this.request({ type: "stateAt", id: this.nextId++, turn: t }).then((m) => {
-        this.asked.delete(t);
-        if (m.type !== "stateAt" || m.json === null || generation !== this.seenGeneration) return;
-        if (this.recent.size >= 4) this.recent.delete(this.recent.keys().next().value!);
-        this.recent.set(t, deserialize<GameState>(GameStateSchema, m.json));
-        this.notify();
-      });
-    }
-    return this.state;
+    const json = this.history.json(t);
+    if (json === null) return this.state;
+    if (this.recent.size >= 4) this.recent.delete(this.recent.keys().next().value!);
+    const st = deserialize<GameState>(GameStateSchema, json);
+    this.recent.set(t, st);
+    return st;
   }
 
   // ---------------------------------------------------------------- what the player does
@@ -343,6 +351,54 @@ export class Session {
     this.replaying = false;
     this.notify();
   }
+}
+
+/** Two maps with the same keys and values, by `same` on the values. */
+function sameMap<K, V>(a: ReadonlyMap<K, V>, b: ReadonlyMap<K, V>, same: (x: V, y: V) => boolean): boolean {
+  if (a.size !== b.size) return false;
+  for (const [k, v] of a) {
+    const w = b.get(k);
+    if (w === undefined || !same(v, w)) return false;
+  }
+  return true;
+}
+const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => a.size === b.size && [...a].every((x) => b.has(x));
+
+/**
+ * A frame shares with the frame before whatever did not change (item 17a): each court's known holders and walls and its
+ * sight are a map of the whole board a court, most of them the same season after season, and copied across from the worker
+ * they weighed a megabyte a season on the page. Equal parts take the earlier frame's reference; the frame reads the same.
+ */
+export function shareUnchanged(f: SeasonFrame, previous: SeasonFrame | null): void {
+  if (previous === null) return;
+  for (const [p, m] of f.knownOwner) {
+    const was = previous.knownOwner.get(p);
+    if (was !== undefined && sameMap(m, was, (x, y) => x.owner === y.owner && x.turn === y.turn)) f.knownOwner.set(p, was);
+  }
+  for (const [p, m] of f.knownWalls) {
+    const was = previous.knownWalls.get(p);
+    if (was !== undefined && sameMap(m, was, (x, y) => x === y)) f.knownWalls.set(p, was);
+  }
+  for (const [p, set] of f.sight) {
+    const was = previous.sight.get(p);
+    if (was !== undefined && sameSet(set, was)) f.sight.set(p, was);
+  }
+  for (const [id, c] of f.people) {
+    const was = previous.people.get(id);
+    if (was !== undefined && samePerson(c, was)) f.people.set(id, was);
+  }
+}
+
+function samePerson(a: FramePerson, b: FramePerson): boolean {
+  for (const k of Object.keys(a) as (keyof FramePerson)[]) {
+    if (k === "covers") continue;
+    if (a[k] !== b[k]) return false;
+  }
+  if (a.covers.length !== b.covers.length) return false;
+  return a.covers.every((x, i) => {
+    const y = b.covers[i];
+    return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.timingText === y.timingText && x.since === y.since;
+  });
 }
 
 /** The one game of this tab. */

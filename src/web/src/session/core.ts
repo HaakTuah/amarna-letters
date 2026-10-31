@@ -26,9 +26,9 @@ import {
   type TurnSubmission,
   type GameConfig,
 } from "@amarna/engine";
-import { GameLog, GameRunner, ReplayExhaustedError, pressFor, type ISeat, type SeasonFallbacks } from "@amarna/game";
+import { GameLog, GameRunner, ReplayExhaustedError, pressFor, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
 import { AnthropicId, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
-import { catchUpFrames, type SeasonFrame } from "./frames.ts";
+import { framesSince, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
 import { choicesOf, fallenSeesAll, handLimitNeeded, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
 import { saveLog } from "./storage.ts";
@@ -78,8 +78,14 @@ export function fallbackLine(f: SeasonFallbacks): string {
   return `${f.fallen.length} of ${f.asked} model decisions fell back to scripts this season: ${why.join("; ")}${f.fallen.length > 3 ? "; and more" : ""}.`;
 }
 
-/** The state as the page gets it: without the drawn last season, which nothing shown may read (build order item 6a). */
-const forPage = (s: GameState): GameState => ({ ...s, finalSeason: null, finalByCap: false });
+/**
+ * The state as the page gets it: without the drawn last season, which nothing shown may read (build order item 6a). The two
+ * members are redacted from the stream's pieces, their closing bracket and comma kept so the JSON stands.
+ */
+export function redactForPage(piece: string): string | null {
+  const m = /^([\]}]?,?)"final(?:Season|ByCap)":[^,]*,?$/u.exec(piece);
+  return m === null ? null : m[1];
+}
 
 export class SessionCore {
   private runner: GameRunner | null = null;
@@ -88,15 +94,20 @@ export class SessionCore {
   private busy = false;
   private auto = false;
   private readOnly = false;
+  /** The turn the game stood at when its log was last saved (Live.savedTurn): a reload resumes from there. */
+  private savedTurn = -1;
   private delayMs = 400;
   private error: string | null = null;
   private notice: string | null = null;
   private gameId = "";
   private generation = 0;
   private stateVersion = 0;
-  private sentVersion = -1;
+  /** The stream of the state not yet sent to the page (protocol.ts, Live.states). */
+  private states: SnapshotDelta[] = [];
+  /** The frames not yet sent to the page, and how many were taken in all with the last of them: the page keeps the history. */
   private frames: SeasonFrame[] = [];
-  private sentFrames = 0;
+  private framesTaken = 0;
+  private lastFrame: SeasonFrame | null = null;
   private resetPending = false;
   private fallTold = false;
   private fallenToGod = false;
@@ -111,7 +122,13 @@ export class SessionCore {
   // ---------------------------------------------------------------- updates to the page
 
   private catchUp(): void {
-    if (this.runner !== null) catchUpFrames(this.frames, this.runner);
+    if (this.runner === null) return;
+    this.states.push(...this.runner.snapshots.takeDeltas());
+    const fresh = framesSince(this.framesTaken, this.lastFrame, this.runner);
+    if (fresh.length === 0) return;
+    this.frames.push(...fresh);
+    this.framesTaken += fresh.length;
+    this.lastFrame = fresh[fresh.length - 1];
   }
 
   private changed = (): void => {
@@ -140,13 +157,10 @@ export class SessionCore {
         orders: seat.orders !== null ? serialize(SeatViewSchema, seat.orders.view) : null,
         audience: seat.audience !== null ? { view: serialize(AudienceViewSchema, seat.audience.view), court: serialize(SeatViewSchema, seat.audience.court) } : null,
       });
-    const stateJson = r !== null && this.stateVersion !== this.sentVersion ? serialize(GameStateSchema, forPage(r.state)) : null;
-    if (stateJson !== null) this.sentVersion = this.stateVersion;
     const live: Live = {
       hasRunner: r !== null,
       generation: this.generation,
-      stateVersion: this.sentVersion,
-      stateJson,
+      states: this.states,
       phase: r?.phase ?? "",
       busy: this.busy,
       auto: this.auto,
@@ -154,6 +168,7 @@ export class SessionCore {
       ended: r?.state.ended ?? false,
       canPlayOn: r !== null && !this.readOnly && canPlayOn(r.state),
       turn: r?.state.turn ?? 0,
+      savedTurn: this.savedTurn,
       errors: r === null ? [] : r.errors.slice(-8),
       errorCount: r?.errors.length ?? 0,
       error: this.error,
@@ -171,12 +186,32 @@ export class SessionCore {
       gameId: this.gameId,
       fallenToGod: this.fallenToGod,
       trailAuthors: r === null ? {} : Object.fromEntries(r.state.trails.map((t) => [t.id, r.trailAuthors(t)] as const)),
-      fallbacks: r === null ? [] : Array.from({ length: Math.max(0, r.state.turn - 1) }, (_, i) => ({ turn: i + 1, ...r.fallbacksIn(i + 1) })),
+      fallbacks: r === null ? [] : this.fallbacksUpTo(r),
     };
-    const frames = this.frames.slice(this.resetPending ? 0 : this.sentFrames);
-    this.post({ type: "update", live, frames, reset: this.resetPending });
-    this.sentFrames = this.frames.length;
+    this.post({ type: "update", live, frames: this.frames, reset: this.resetPending });
+    this.frames = [];
+    this.states = [];
     this.resetPending = false;
+  }
+
+  /**
+   * Each season played, with its fallbacks: a played season's are final, so they are counted once and kept (item 17a: counting
+   * every season again at every update scanned the whole log many times a season).
+   */
+  private fallbacksKept: ({ turn: number } & SeasonFallbacks)[] = [];
+  private fallbacksFor: GameRunner | null = null;
+  private fallbacksUpTo(r: GameRunner): ({ turn: number } & SeasonFallbacks)[] {
+    if (this.fallbacksFor !== r) {
+      this.fallbacksFor = r;
+      this.fallbacksKept = [];
+    }
+    const played = Math.max(0, r.state.turn - 1);
+    if (this.fallbacksKept.length > played) this.fallbacksKept = this.fallbacksKept.slice(0, played);
+    while (this.fallbacksKept.length < played) {
+      const turn = this.fallbacksKept.length + 1;
+      this.fallbacksKept.push({ turn, ...r.fallbacksIn(turn) });
+    }
+    return this.fallbacksKept;
   }
 
   // ---------------------------------------------------------------- the fall of the human seats
@@ -229,7 +264,10 @@ export class SessionCore {
     this.error = null;
     this.notice = null;
     this.frames = [];
-    this.sentFrames = 0;
+    this.states = [];
+    this.savedTurn = -1;
+    this.framesTaken = 0;
+    this.lastFrame = null;
     this.resetPending = true;
     this.generation++;
     this.fallTold = false;
@@ -276,6 +314,7 @@ export class SessionCore {
     pressFor(state, built.minds);
     if (!(await this.check(built, settings, state.config))) return;
     this.runner = new GameRunner(state, built.seats, built.minds, built.narrator, { jobs: choicesOf(settings).jobs });
+    this.runner.snapshots.redact = redactForPage;
     this.runner.writeChronicles = settings.chronicles;
     this.runner.changed.push(this.changed);
     this.gameId = `game-${settings.seed}-${this.stamp()}`;
@@ -320,6 +359,7 @@ export class SessionCore {
         const built = this.build(this.settings, newGame(log.header.seed, log.header.config), keys);
         if (!(await this.check(built, this.settings, log.header.config))) return;
         this.runner = GameRunner.resume(log, built.seats, built.minds, built.narrator);
+        this.runner.snapshots.redact = redactForPage;
         this.runner.changed.push(this.changed);
         this.readOnly = false;
         await this.runner.prepare(this.abort.signal);
@@ -337,6 +377,7 @@ export class SessionCore {
       } else {
         this.settings = settingsFromHeader(log.header, table);
         this.runner = GameRunner.forReplay(log);
+        this.runner.snapshots.redact = redactForPage;
         this.runner.changed.push(this.changed);
         this.runner.writeChronicles = log.decisions.some((d) => d.key.startsWith("end/chronicle/"));
         this.readOnly = true;
@@ -458,8 +499,12 @@ export class SessionCore {
     const seats = groupBy([...r.log.header.seats.values()], (x) => x)
       .map(([k, g]) => `${g.length} ${k}`)
       .join(", ");
-    const meta = `Seed ${r.state.seed}, ${dateLabel(r.state.turn)}${r.state.ended ? " (ended)" : ""}, ${seats}`;
-    await saveLog(this.gameId, meta, r.log.toJsonl());
+    const turn = r.state.turn;
+    const meta = `Seed ${r.state.seed}, ${dateLabel(turn)}${r.state.ended ? " (ended)" : ""}, ${seats}`;
+    if (await saveLog(this.gameId, meta, r.log.toJsonl())) {
+      this.savedTurn = turn;
+      this.notifySoon();
+    }
   }
 
   // ---------------------------------------------------------------- messages
@@ -509,10 +554,6 @@ export class SessionCore {
         seat.audience = null;
         pending.resolve(deserialize<HostReply>(HostReplySchema, m.json));
         return this.changed();
-      }
-      case "stateAt": {
-        const st = this.runner?.stateAt(m.turn) ?? null;
-        return this.post({ type: "stateAt", id: m.id, json: st === null ? null : serialize(GameStateSchema, forPage(st)) });
       }
       case "export":
         return this.post({ type: "export", id: m.id, name: `${this.gameId}.jsonl`, text: this.runner?.log.toJsonl() ?? "" });

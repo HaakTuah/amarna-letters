@@ -26,7 +26,6 @@ import { powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
-import { playing } from "../ui/update.ts";
 import { useSession } from "../ui/use-session.ts";
 
 const phaseText = (phase: string): string => {
@@ -77,8 +76,6 @@ export function Play() {
     }
   }, []);
 
-  // The game running, if any: a new version waits for a tap while one is played (ui/update.ts).
-  useEffect(() => playing(live.hasRunner ? live.gameId : null), [live.hasRunner, live.gameId]);
 
   useEffect(() => {
     document.title = `Amarna Letters — ${!live.hasRunner ? "no game" : whenCap(live.turn, viewerOf())}`;

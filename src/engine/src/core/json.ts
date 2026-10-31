@@ -263,11 +263,20 @@ function readAny(schema: Schema, j: unknown): unknown {
 function readObj(schema: ObjSchema<unknown>, j: Record<string, unknown>): unknown {
   if (j === null) return null;
   const o = schema.make() as Record<string, unknown>;
-  // Names are matched without regard to case (PropertyNameCaseInsensitive).
-  const byLower = new Map<string, unknown>();
-  for (const [key, x] of Object.entries(j)) byLower.set(key.toLowerCase(), x);
+  // Names are matched without regard to case (PropertyNameCaseInsensitive). Names as written are taken straight, which is
+  // every name the engine itself wrote; the lower-cased index is built only for a name not found so (item 17a: a game's
+  // state is read back every season, and the index for every object of it was most of the cost).
+  let byLower: Map<string, unknown> | null = null;
   for (const [name, fs] of schema.fields) {
     if (fs.k === "computed") continue;
+    if (Object.hasOwn(j, name)) {
+      o[name] = readAny(fs, j[name]);
+      continue;
+    }
+    if (byLower === null) {
+      byLower = new Map<string, unknown>();
+      for (const [key, x] of Object.entries(j)) byLower.set(key.toLowerCase(), x);
+    }
     const lower = name.toLowerCase();
     if (!byLower.has(lower)) continue;
     o[name] = readAny(fs, byLower.get(lower));

@@ -104,6 +104,17 @@ export function snowbound(map: WorldMap, a: string, b: string, season: number): 
  * and the Tigris downstream only). On foot a river counts once: a walker along it already goes at his own pace.
  */
 export function boatDays(map: WorldMap, from: string, to: string): number | null {
+  let cache = boatCache.get(map);
+  if (cache === undefined) boatCache.set(map, (cache = new Map()));
+  const key = from + "|" + to;
+  const known = cache.get(key);
+  if (known !== undefined) return known;
+  const days = boatDaysOf(map, from, to);
+  cache.set(key, days);
+  return days;
+}
+const boatCache = new WeakMap<WorldMap, Map<string, number | null>>();
+function boatDaysOf(map: WorldMap, from: string, to: string): number | null {
   for (const r of Rivers)
     for (const reach of r.reaches) {
       const i = reach.indexOf(from);
@@ -121,6 +132,20 @@ export function boatDays(map: WorldMap, from: string, to: string): number | null
  * percentage of the time or a number of days added, in the order of "What sets a company's pace".
  */
 export function legPoints(map: WorldMap, from: string, to: string, season: number, company: Company = OnTheRoad): number {
+  // The lone traveller on the road, the leg every route search asks for, is a pure function of the map, the connection and
+  // the season: remembered once a map (item 17a).
+  if (company !== OnTheRoad) return legPointsOf(map, from, to, season, company);
+  let cache = legCache.get(map);
+  if (cache === undefined) legCache.set(map, (cache = new Map()));
+  const key = from + "|" + to + "|" + season;
+  const known = cache.get(key);
+  if (known !== undefined) return known;
+  const points = legPointsOf(map, from, to, season, company);
+  cache.set(key, points);
+  return points;
+}
+const legCache = new WeakMap<WorldMap, Map<string, number>>();
+function legPointsOf(map: WorldMap, from: string, to: string, season: number, company: Company): number {
   if (edgeBetween(map, from, to) === null) return Infinity;
   // The slowest part sets the pace of a company moving together.
   if (company.parts !== undefined && company.parts.length > 0) return Math.max(...company.parts.map((c) => legPoints(map, from, to, season, c.ways === undefined && company.ways !== undefined ? { ...c, ways: company.ways } : c)));
@@ -206,15 +231,20 @@ function roads(c: Company, from: string, to: string, onLand: boolean): number {
  */
 export function cheapestRoute(map: WorldMap, from: string, to: string, leg: (a: string, b: string) => number, enter: (p: string) => number = () => 0): { route: string[]; cost: number } | null {
   if (from === to) return { route: [from], cost: 0 };
-  const order = new Map(map.provinces.map((p, i) => [p.id, i] as const));
+  let order = orderCache.get(map);
+  if (order === undefined) orderCache.set(map, (order = new Map(map.provinces.map((p, i) => [p.id, i] as const))));
   const dist = new Map<string, number>([[from, 0]]);
   const prev = new Map<string, string>();
   const done = new Set<string>();
+  // The frontier as a heap on (cost, the map's order), so the next province settled is the cheapest, ties to the first in
+  // the map's order, as a scan of every province found it before (item 17a); a province pushed again with a better cost
+  // leaves its older entry behind, skipped when it surfaces.
+  const heap = new Frontier();
+  heap.push(from, 0, order.get(from) ?? 0);
   for (;;) {
-    let best: string | null = null;
-    for (const [k, v] of dist)
-      if (!done.has(k) && (best === null || v < dist.get(best)! || (v === dist.get(best)! && order.get(k)! < order.get(best)!))) best = k;
+    const best = heap.pop();
     if (best === null || best === to) break;
+    if (done.has(best)) continue;
     done.add(best);
     for (const n of map.neighbors(best)) {
       if (done.has(n)) continue;
@@ -227,6 +257,7 @@ export function cheapestRoute(map: WorldMap, from: string, to: string, leg: (a: 
       if (old === undefined || d < old) {
         dist.set(n, d);
         prev.set(n, best);
+        heap.push(n, d, order.get(n) ?? 0);
       }
     }
   }
@@ -235,6 +266,57 @@ export function cheapestRoute(map: WorldMap, from: string, to: string, leg: (a: 
   const route = [to];
   while (route[0] !== from) route.unshift(prev.get(route[0])!);
   return { route, cost };
+}
+
+const orderCache = new WeakMap<WorldMap, Map<string, number>>();
+
+/** A binary heap of provinces by (cost, order), the least first. */
+class Frontier {
+  private readonly ids: string[] = [];
+  private readonly costs: number[] = [];
+  private readonly orders: number[] = [];
+  private less(i: number, j: number): boolean {
+    return this.costs[i] < this.costs[j] || (this.costs[i] === this.costs[j] && this.orders[i] < this.orders[j]);
+  }
+  private swap(i: number, j: number): void {
+    [this.ids[i], this.ids[j]] = [this.ids[j], this.ids[i]];
+    [this.costs[i], this.costs[j]] = [this.costs[j], this.costs[i]];
+    [this.orders[i], this.orders[j]] = [this.orders[j], this.orders[i]];
+  }
+  push(id: string, cost: number, order: number): void {
+    let i = this.ids.length;
+    this.ids.push(id);
+    this.costs.push(cost);
+    this.orders.push(order);
+    while (i > 0) {
+      const parent = (i - 1) >> 1;
+      if (!this.less(i, parent)) break;
+      this.swap(i, parent);
+      i = parent;
+    }
+  }
+  pop(): string | null {
+    const n = this.ids.length;
+    if (n === 0) return null;
+    const top = this.ids[0];
+    this.swap(0, n - 1);
+    this.ids.pop();
+    this.costs.pop();
+    this.orders.pop();
+    let i = 0;
+    const m = n - 1;
+    for (;;) {
+      const l = 2 * i + 1;
+      const r = l + 1;
+      let best = i;
+      if (l < m && this.less(l, best)) best = l;
+      if (r < m && this.less(r, best)) best = r;
+      if (best === i) break;
+      this.swap(i, best);
+      i = best;
+    }
+    return top;
+  }
 }
 
 const fastestCache = new WeakMap<WorldMap, Map<string, number>>();
