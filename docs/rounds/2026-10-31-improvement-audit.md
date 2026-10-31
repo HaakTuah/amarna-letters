@@ -36,8 +36,9 @@ with `GameRunner.keepSnapshots` on (as the web session has it), grows the heap 3
 (`snapshots: string[]`), for the web app's history; its own comment says "a long game's snapshots run to gigabytes",
 and the batch runner turns it off (`src/game/src/batch.ts:280`). The web session never turns it off
 (`src/web/src/session/core.ts`), and reads a past state only for `catchUpFrames` (`src/web/src/session/frames.ts:400`,
-which builds one `SeasonFrame` per snapshot right after it is taken, so it only ever needs the live state) and for the
-page's `stateAt` request (`core.ts:513`, a past season's view). The state itself is large and grows: a finished
+which builds one `SeasonFrame` per snapshot right after it is taken, from the live state, but counts its frames by
+`r.snapshots.length` at `:401` and `:405`, so it needs a counter of its own once snapshots go) and for the page's
+`stateAt` request (`core.ts:513`, a past season's view). The state itself is large and grows: a finished
 game's state is 16 MB of JSON at turn 102, of which `inbox` is 8.8 MB (every message every court ever received, 30,000 of
 them, never pruned: 13,400 notices, 11,200 resolutions, 4,100 battle reports), `events` 3.2 MB (22,600) and `characters`
 2 MB (198 characters at about 10 KB each, mostly `facts` and `payOld`). So each snapshot is several MB and the sum is
@@ -47,15 +48,19 @@ with an error" on the live site: Chrome's own out-of-memory page is exactly that
 
 **Suggested fix (behaviour unchanged).** Stop keeping a full state per season. The frames already carry what the map and
 panels show of past seasons; for the "whose eyes" view of a past season (`stateAt`), keep a snapshot only every k-th
-season (say 10) and rebuild the one asked for by replaying the log from the nearest snapshot, which the deterministic
-engine and the small log (8 MB at turn 100) allow, or keep the snapshots compressed in IndexedDB rather than in the
-worker's heap. Either way the worker's memory stops growing with the game's length. A guarding test: play a small game
-for many seasons and assert the runner's retained memory, or the snapshot count, stays bounded. Separately, `inbox`
-should keep only what a seat's view still reads (the old messages are in the log for the record), which also shrinks
-every save and every structured clone.
+season (say 10) and rebuild the one asked for by replaying the log from the nearest snapshot, or keep the snapshots
+compressed in IndexedDB rather than in the worker's heap. Replaying from the middle of a game is not free: a replay
+today starts at turn 0 (`GameRunner.forReplay`) and the runner holds state outside `GameState` (`trailKeys`,
+`characterAsks`, the council), so it needs runner support; the log itself is small (7.9 MB on disk at turn 102). Either
+way the worker's memory stops growing with the game's length. A guarding test: play a small game for many seasons and
+assert the runner's retained memory, or the snapshot count, stays bounded. The `inbox` is what makes each state large:
+it is only ever pushed to (`state.ts:905-920`; reset only when a ruler falls, `rulers.ts:90`), and it is read whole by
+the Inbox tab's "Earlier seasons" (`InboxPanel.tsx:12-24`) and as cursors by `frames.ts:263-267`, so pruning it would
+change what a court shows, and "a court's records stay as they are" (the Memory example in "The game in one page");
+item 17a should weigh where old messages live (the state, or a store of their own), not drop them.
 
 **The save grows the same way.** After every season the worker serialises the whole log and writes it to IndexedDB
-(`src/web/src/session/core.ts:393-396` and `:455-463`, `saveLog` in `storage.ts:30`), 15 MB of JSONL by turn 102, so
+(`src/web/src/session/core.ts:393-396` and `:455-463`, `saveLog` in `storage.ts:30`), 7.9 MB of JSONL by turn 102, so
 the saving work over a game is quadratic too; appending the season's lines as their own record would make it constant.
 
 **Season times at the top speed** (the engine's turn time, 1280 px, the machine otherwise busy with the 50-game run, so
@@ -69,19 +74,24 @@ season 10: a real phone, with 2 to 4 GB for all its apps, reaches the limit of f
 62% of a turn (`decideNow`, `src/game/src/bots/script-leader.ts:90`), of which the plan search `improve`
 (`bots/search.ts:73`) is 41% and route-finding 22%: `cheapestRoute` (`src/engine/src/model/travel.ts:207`) is a Dijkstra
 that scans every reached province for the minimum at each step (no heap) and builds a `Map` of all province indexes on
-every call, called from 16 places; only `fastestPoints` caches it. The garbage collector is 18% of the whole and
+every call, called from 15 places; only `fastestPoints` caches it. The garbage collector is 18% of the whole and
 `Dict.entries` (`src/engine/src/core/collections.ts:102`, a generator yielding a fresh tuple per entry) 9% by itself.
-The engine's own resolution is a few percent. So for 17a's "make it faster": a heap and a per-season cache for
-`cheapestRoute` (the map changes only when roads close or works change), and iterating `Dict` without allocating a
-tuple per entry in the hot paths (`search.ts:563 score`, `tactics.ts:142 makePlan`, `trade.ts:95 landWay`).
+The engine's own resolution is a few percent. So for 17a's "make it faster": a heap for `cheapestRoute` that keeps
+the map-order tie-break (or routes, and so replays, change), the province-index `Map` built once per map, and a cache
+only where the cost function is fixed, as `fastestPoints` already does: most callers pass their own `leg` and `enter`
+costs (sneaking, the company's size, roads closed to that court; `travel.ts:198-203`, `bots/trade.ts:95-97`), so a cache
+by from, to and season alone would be wrong there; and iterating `Dict` without allocating a tuple per entry in the hot
+paths (`search.ts:563 score`, `tactics.ts:142 makePlan`, `trade.ts:95 landWay`).
 
 ## 2. A render error blanks the whole page (17a)
 
 There is no React error boundary anywhere in `src/web/src` (no `componentDidCatch`, no `getDerivedStateFromError`), and
-no `window.onerror` or `unhandledrejection` handler. React 18 unmounts the root on an uncaught render error, so any
+no `window.onerror` or `unhandledrejection` handler. React (19 here, `src/web/package.json`) unmounts the root on an
+uncaught render error, so any
 such error during a game is a white page with nothing to copy and no way back, which is the second thing item 17a asks
 for. The worker's own death is caught (`client.ts:96` shows "The game's worker stopped"), but the renderer being killed
-for memory (find 1) is not something the page can catch, so the fix is find 1; the boundary is for everything else.
+for memory (find 1) is not something the page can catch, so the fix is find 1; the boundary (or React 19's
+`createRoot(..., { onUncaughtError })`) is for everything else.
 
 ## 3. Script kings hoard gold and let their armies dwindle (item lane: script-king play)
 
@@ -95,7 +105,7 @@ The homelands have the men: Babylon's people are 253,000 with 50,000 men of figh
 script king's raise rule (`src/game/src/bots/statecraft-strategy.ts:286-309`) raises only against a plan's
 "shortfalls" and only where the shortfall's value beats a lifetime cost of pay, food and lost harvest over ten seasons,
 scaled by caution and aggression; a king with no shortfall and a full treasury raises nothing, however rich. The
-baseline king (`baseline-leader.ts:357-375`) also stops at one unit more than its provinces. The result is a late game
+result is a late game
 decided by two or three armies a side, and a world where a human with two fresh armies rolls over any neighbour.
 "Gold buys only what is there" cuts the other way here: the gold is there and the men are there, and the scripts buy
 nothing with them. The fix is in the scripts (allowed in every item): a rich king with idle men should raise and use
@@ -120,12 +130,12 @@ were the envoy adding well-wishes or reordering, and 40 the envoy dropping a thr
 ## 4. The human seat cannot give two orders the scripts can (every feature is every seat's)
 
 The web orders tab offers no `raze` order (item 15: an army razes a level of roads, stations, harbour or works where it
-stands; `src/engine/src/model/orders.ts:72`, used by the scripts in `works.ts`) and no one-off `hunt` order (an army
-falls on the band in its province this season, `orders.ts:388`; the standing `huntBands` is offered in
-`CourtSection.tsx:260`, the one-off is not). Checked by searching `src/web/src` for each order type's name and
+stands; `src/engine/src/model/orders.ts:72`, used by the scripts in `works.ts:216`) and no one-off `hunt` order (an
+army falls on the band in its province this season, `orders.ts:388`, given by the scripts in `outlaws.ts:68`); the
+standing `huntBands` is offered in `CourtSection.tsx:260-265` and can name provinces, so a human gets much the same
+effect by a longer road, but no razing at all. Checked by searching `src/web/src` for each order type's name and
 constructor. The scripts, in turn, never give `unseat` (dismissing a governor, `orders.ts:364`; the web offers it in
-`CommandSection.tsx:210`) and never change a commander's mandate after granting it (`mandateOrder`). Interface work,
-no rule changed; the script side belongs with find 3.
+`CommandSection.tsx:210`). Interface work, no rule changed; the script side belongs with find 3.
 
 ## 5. Internal notation shown to a human king (polish)
 
@@ -154,14 +164,12 @@ province card), and the word is "Tap" on a touch screen; "season(s)" should be "
 - The Standings table's first header, "Land-yield ratio (not growth)", wraps to five lines at 390 px
   (`StandingsPanel.tsx:42`); the column needs a short head with the explanation in the paragraph above, which already
   explains it.
-- The Rules tab's lead paragraph for a human seat talks of "rather than as JSON" and "the record of notes, summary and
-  ledger that HOW TO ANSWER describes" (`src/web/src/pages/Play.tsx:580-581`): the model's instructions showing through
-  to a human.
+- The Rules tab's lead paragraph for a human seat (`src/web/src/pages/Play.tsx:578-581`) is written to the human on
+  purpose, explaining that the rulebook below is the model king's word for word, but it does so in the model's terms
+  ("rather than as JSON", "HOW TO ANSWER"); plainer words would serve.
 - `README.md` says an army's upkeep is 30 a season and a fleet's 35; the game's config has 20 and 25
   (`armyUpkeep`, `fleetUpkeep` in a saved game's header). The README also says "one of thirty powers"; the game has 47.
 - The header's second line, "audiences · Any season may be the last", is cut off at 390 px ("Any season may be th").
-- The timeline reads "Akhet 1346 BCE · now" for a human seat but "s2 1320 BCE · now" and "Moves of s2 1320 BCE" in god
-  view, an abbreviation nobody is told.
 - The people controls show "Sinai (settled 16,054 of 14,342, loose 3,168)": more settled than the land holds, which may
   be true in the rules but reads as an error without a word.
 - `docs/design/10-where-the-code-differs-from-the-design-document.md` still says "Who holds each province is public at
@@ -189,25 +197,38 @@ not take the job offered" 41, "declined your offer ...: they are not at your cou
 held 47. Each is a wasted order and, for a human reading god view, noise. The scripts should check the receiver's
 land, the town, the siege and the hire before ordering, as a competent player would.
 
-## 10. Troops of two men hold cities (question 1 for Haakon)
+## 10. Troops of a few men linger as units (answered by Haakon: "A handful holds nothing by itself")
 
 At the end of eight games, 21 of 202 units had under 200 men, among them armies of 2, 6, 7, 8 and 15 men (Jerusalem's
 army of 2 in Jerusalem, Hebron's of 6 and 7, Amurru's of 15). The engine removes a unit only at 0 men
-(`src/engine/src/turn/battles.ts:91,103`, `command.ts:164`), and a unit holds a province, gets within walls and blocks
-a move whatever its size (the adjudicator counts units, the men only on the walls since 11e). Hatti's inbox shows the
-effect: "Mira's army from mira got within the walls but did not storm them (its strength 0 against your walls 3 and
-defenders 17.6 ...)". A troop of a few men, a thousandth of a full levy (`LandData.armyMen`, 5,000), still counts as an army. "Numbers come from
-their causes" and "incentives, not quotas" point to a troop below some size ceasing to be a unit, its men turning band
-or settling where they stand, as a band's do; that is a rule change, so it goes to Haakon (question 1 below).
+(`src/engine/src/turn/battles.ts:91,103`, `command.ts:164`). The audit first wrote that such a unit "holds a province and
+blocks a move whatever its size"; the reviewer showed that wrong: since item 11a+ every unit counts by its men
+(`src/engine/src/rules/adjudicator.ts:1-3`; `unitWeight` at `:66-73` gives a 2-man army a thousandth of a full unit;
+`holdStrength` at `:443-456` adds the land's own men), and Hatti's own inbox line ("its strength 0 against your walls
+3") shows the weighting. What a remnant really still does is narrower: it occupies a province of its own, is paid by
+its men (`economy.ts:276`, `forMen`), keeps the script king from raising a levy where it stands
+(`statecraft-strategy.ts:276`), and is listed and drawn as an army.
+
+The audit's first reading, a flat floor of a tenth of a levy below which a troop dissolves, was itself against the
+pillars ("Numbers come from their causes", never a flat share; "Incentives, not quotas"). Haakon answered on 31 October
+2026 and the answer stands in the design copy on `develop`, War tab, "A handful holds nothing by itself"
+(`docs/intent/war-travel-and-the-seas/territory-and-military-part1.md`, item 17++): "no size makes a unit stop
+counting, and a small one fades by the rules already decided. A move into a far weaker unit is a battle it loses by
+far, destroyed or scattered as battles say, never a standoff. A garrison keeps a town only as its people let it: they
+fight beside it, and keep a rising from ripening, as far as their ledger stands with its master ("Loyalty is a
+ledger"), so seven men in a town of thousands that leans away are the master's weakness that sets the rising off. And
+script kings fold their remnants into larger armies or disband them, as a competent king would." The script side
+(folding or disbanding remnants) joins find 3 for the item lane.
 
 ## 11. A host that seals a vassal tablet says it refuses the tribute on it (item lane: script-king play)
 
 Trail of Egypt to Arwad, game 1, season 1: Egypt's tablet asked tribute, offered protection and asked service. Arwad's
 script host answered "I accept your offer of protection. I refuse your demand for tribute." and sealed the whole
-tablet, tribute clause included (`src/game/src/bots/statecraft-letters.ts:717-745`: `sealBond` decides the seal, the
-"accept" answers the first proposal kind, while the request loop before it refuses the tribute on its own). The words
-contradict the seal, and the sealed tablet now binds Arwad to a tribute its king said he refused; the report tells
-Egypt both. When the bond is sealed, the answers should match it.
+tablet, tribute clause included (`src/game/src/bots/statecraft-letters.ts:714-745`: `sealBond` decides the seal and
+the "accept" answers the first proposal kind, "protect"; then `answerLetter`, called at `:776`, refuses every
+`askTribute` on its own, `statecraft-clauses.ts:92-96`). The words contradict the seal: the sealed tablet now records
+Arwad's promise of a tribute its king said he refused, and the envoy's report tells Egypt both. When the bond is
+sealed, the answers should match it.
 
 ## 12. More presentation finds (polish)
 
@@ -215,8 +236,9 @@ Egypt both. When the bond is sealed, the answers should match it.
   (`src/engine/src/rules/calendar.ts:68-70` `shortDate`); the panels write "the second season, 1336 BCE". Nobody is
   told what "s2" means; a short ordinal ("2nd season 1336") or the court's own season name would do.
 - Facts and events carry turn numbers as "(season 4)" while the interface dates everything by the court's calendar
-  (`src/engine/src/turn/envoys-home.ts:50-53`, `envoys.ts:272`); `dated()` in `src/web/src/ui/format.ts:16` already
-  rewrites "turn N" and could cover "season N" too.
+  (`src/engine/src/turn/envoys-home.ts:50-53`, `envoys.ts:272`); `dated()` in `src/web/src/ui/format.ts:25` rewrites
+  "turn N", but "season N" there means the turn and would clash with the spectator's own "season 2" label
+  (`calendar.ts:54`), so the engine's texts should say "turn N" or carry the date.
 - Lowercase ids in the People tab's status line: "commanding an army in lukka · in lukka" (the status text of a
   commander); and in rejections shown to a king: "pay c12 the rest of the fee owed: not enough gold".
 - Event texts with ids: "c100 let debt d64 pass its season." (`src/engine/src/turn/money.ts:244`): the character's and
@@ -234,9 +256,19 @@ Egypt both. When the bond is sealed, the answers should match it.
 
 ## 13. Numbers for item 18 and 17++ (evidence only, no change proposed)
 
-- Egypt won 5 of the first 8 games (Babylonia, Pella and Arzawa one each), with the score meant to level a one-city
-  power and an empire ("Standings"); the arming failure of find 3 may be why, since Egypt starts with five units and
-  keeps them.
+- Over the 50 games (every replay exact; 83.7 turns on average, range 8 to 158, median age 89): Egypt won 19 (38%),
+  Babylonia 3, Mitanni 3, Hatti 2, Assyria none, Arzawa 1, Alashiya none; among the cities Kaska and Nuhashshe 3 each.
+  The score is meant to level a one-city power and an empire ("Standings"); the arming failure of find 3 may be part of
+  why Egypt, which starts with five units and keeps them, wins so often.
+- Pillar 8 at the edges of the map: a capital fell in every game, the first fall on the median in season 3 (range 1
+  to 5), and in 20 of 50 games a kingdom fell within the first two seasons (Lukka 12 times, the Suteans 5, the Shasu
+  4). Lukka fell in 48 games of 50, Kaska in 35, Isuwa, Carchemish and Niya in 25 to 30. These are chiefs' lands without
+  walls beside a Great King, so they fall before any letter could travel; item 17+'s starting positions and item 18
+  should look at them.
+- Tribute does flow: sent 3,357 times and delivered 3,270 (39,809 shekels) in 50 games; vassal tablets offered 1,146
+  and sealed 408, 377 of them offered by the overlord. Envoys "recited changed" 6,261 times, 5,962 of them a courtesy
+  added and 998 a threat dropped. Egypt's envoys were not understood on arrival 23 times in a hundred, Hatti's 20,
+  Alashiya's 22.
 - Taxes: in game 1 the script kings set a tax 1,988 times in 102 seasons (Babylonia 276 times, Hatti 238), ending at
   30% to 37% in most provinces, and 2,249 "fled a heavy tax" events moved about 1.07 million people in that one game
   ("589 people fled a heavy tax from Arrapha into Ashur"). Whether that is the equilibrium 10+a meant or over-taxing is
@@ -245,9 +277,38 @@ Egypt both. When the bond is sealed, the answers should match it.
 - Fourteen audiences in one season for Egypt (find 8) are the fifteen opening vassal bonds each sending tribute at
   once; a reading of the data, not a rule.
 
+## Haakon's words during the audit
+
+Relayed by the orchestrator on 31 October 2026, word for word:
+
+- "Before anything else: every lane commits and pushes what it has now, unfinished work included, as a work-in-progress
+  commit on its branch (a draft PR if it has none). From now on, push after every commit, not only at gates or hourly.
+  We're near this account's limit for the next few hours: when it resets, carry on from the pushed branches." (A
+  standing rule: push after every commit. This lane did; the orchestrator carries it into `CLAUDE.md` and
+  `docs/archive/instructions.md`, since every lane would otherwise edit the same lines.)
+- His answer to the audit's one question, written into item 17++ as "A handful holds nothing by itself" (War tab):
+  no size threshold; a move into a far weaker unit is a battle it loses by far; a garrison holds a town only as far as
+  its people's ledger stands with its master; script kings fold or disband remnants. Quoted in full under find 10.
+
+## The reviewer
+
+One Opus reviewer read the report against the code and found it blocking on one point, find 10's mechanism (units
+count by their men since 11a+, so a tiny troop does not hold or block), which was also the premise of the question
+sent to Haakon; the find and the question are rewritten above. Its other corrections, all applied: `catchUpFrames`
+counts frames by the snapshots; a mid-game replay needs runner support; pruning the inbox would change what the Inbox
+tab shows and is not behaviour-neutral; a route cache is valid only where the cost function is fixed and a heap must
+keep the tie-break; 15 call sites, not 16; the log is 7.9 MB on disk; the app runs React 19; the baseline king plays
+only in benchmarks; the scripts do re-issue mandates (`generals.ts:78-88`) and do give the one-off hunt; the Rules-tab
+paragraph is meant for the human; the refusal of tribute comes from `answerLetter` after the seal; `dated()` is at
+`format.ts:25`. It found no suggested fix that changes a rule or a number except the two it struck (pruning the inbox,
+changing route tie-breaks).
+
 ## Questions for Haakon
 
-1. **Should a troop too small to fight go on counting as a unit?** Armies of 2, 6, 7 and 15 men hold cities and block
+Answered during the audit (31 October 2026): question 1, the tiny troops, by "A handful holds nothing by itself"
+(find 10). No question stands open.
+
+1. (Answered.) **Should a troop too small to fight go on counting as a unit?** Armies of 2, 6, 7 and 15 men hold cities and block
    moves at the end of games (find 10). Reading the audit would take: a troop below a tenth of a full levy's men
    (500 for an army, 200 for a fleet's crews) stops being a unit at the season's end; its men turn band where they
    stand or settle there, as a fallen king's leaderless men do, and the land is held by nobody until someone stands in
@@ -258,6 +319,4 @@ Egypt both. When the bond is sealed, the answers should match it.
 
 `scripts/test.sh` on this machine, while the 50-game run and the probes held all four cores (load 12): 122 of 124 files
 passed; 10 tests in `src/game/test/who-decides.test.ts` and `model-layer.test.ts` failed by the 120 s timeout alone, with
-no assertion failing. They are re-run alone below once the machine is quiet; nothing in this PR changes code.
-
-*The audit continues: the 50-game summary and its signals, and the reviewer's check.*
+no assertion failing. RERUN_RESULT Nothing in this PR changes code. The 50 script games replayed exactly, 50 of 50.
