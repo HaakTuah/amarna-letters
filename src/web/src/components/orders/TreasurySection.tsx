@@ -186,7 +186,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
               const x = v.provinces.find((y) => y.province === id)!;
               return (
                 <option key={id} value={id}>
-                  {`${provinceName(id)} (settled ${x.settled.toLocaleString("en")} of ${x.room.toLocaleString("en")}, loose ${x.loose.toLocaleString("en")})`}
+                  {`${provinceName(id)} (settled ${x.settled.toLocaleString("en")}, land for ${x.room.toLocaleString("en")}; loose ${x.loose.toLocaleString("en")})`}
                 </option>
               );
             })}

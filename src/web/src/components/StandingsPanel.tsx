@@ -44,7 +44,9 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
           <thead>
             <tr>
               <th>Power</th>
-              <th>Land-yield ratio (not growth)</th>
+              <th title="The yield of the land held now over the homeland's at the start: not growth">
+                Land yield<span className="sr"> (not growth)</span>
+              </th>
               <th>Growth</th>
               <th>Lands</th>
               <th>Units</th>
@@ -61,11 +63,22 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
                   <td>
                     <Emblem power={p} /> {powerName(p)} {(seatView === null ? isAlive(state, p) : !seatView.fallen.includes(p)) ? "" : "(fallen)"}
                   </td>
-                  <td>{l.fallen ? "-" : `${landGrowth(l).toFixed(2)} (${l.yield} of ${l.startYield})`}</td>
+                  <td>
+                    {l.fallen ? (
+                      "-"
+                    ) : (
+                      <>
+                        {landGrowth(l).toFixed(2)}
+                        <span className="muted sub hide-sm">
+                          ({l.yield} of {l.startYield})
+                        </span>
+                      </>
+                    )}
+                  </td>
                   <td>{mine ? growth(p).toFixed(2) : "?"}</td>
                   <td>{seatView === null ? ownedBy(state, p).length : [...seatView.owner.values()].filter((o) => o === p).length}</td>
                   <td>{mine ? String(state.units.filter((u) => u.power === p).length) : "?"}</td>
-                  <td>{mine ? shekels(known ? t.gold : ledger(t)) : "?"}</td>
+                  <td className="nowrap">{mine ? shekels(known ? t.gold : ledger(t)) : "?"}</td>
                 </tr>
               );
             })}
