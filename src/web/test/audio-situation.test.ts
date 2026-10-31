@@ -106,7 +106,8 @@ describe("AudioSituationTests", () => {
       return { x: p.lon * 10, y: -p.lat * 10 };
     };
     const at = place("babylon");
-    Assert.null(bedAt(frame(0), at, 1, null, place));
+    // The world's bed is heard at every zoom.
+    Assert.equal("nile", bedAt(frame(0), at, 1, null, place));
     Assert.equal("market", bedAt(frame(0), at, 5, null, place));
     Assert.equal("nile", bedAt(frame(0), at, 2.5, null, place));
     const sieged = frame(0, { sieges: [{ province: "babylon", besieger: "Assyria", progress: 1, walls: 2, since: 1 }] });
@@ -124,5 +125,14 @@ describe("AudioSituationTests", () => {
     Assert.equal(0, far.gain);
     // A court's own sound has no place: always heard whole.
     Assert.equal(1, hearing(null, { at, zoom: 1 }, 1000).gain);
+  });
+
+  test("A siege begun out of the seat's sight is never placed there", () => {
+    const hidden = { province: "babylon", besieger: "Assyria" as Power, progress: 0, walls: 2, since: 1 };
+    const f = frame(1, { sieges: [hidden], sight: new Map([["Egypt", new Set(["gaza"])]]), events: [newGameEvent({ kind: "siege", signal: "siege-begun", visibleTo: ["Egypt"] })] });
+    Assert.null(cuesAt([frame(0), f], 1, "Egypt").sounds.find((c) => c.name === "siege")!.at);
+    const mine = { province: "gaza", besieger: "Egypt" as Power, progress: 0, walls: 2, since: 1 };
+    const g = frame(1, { sieges: [hidden, mine], sight: new Map([["Egypt", new Set(["gaza"])]]), events: f.events });
+    Assert.equal("gaza", cuesAt([frame(0), g], 1, "Egypt").sounds.find((c) => c.name === "siege")!.at);
   });
 });

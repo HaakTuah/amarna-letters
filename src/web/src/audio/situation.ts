@@ -69,7 +69,9 @@ function fightingAt(f: SeasonFrame, viewer: Power | null): boolean {
 function besieged(f: SeasonFrame, viewer: Power | null): boolean {
   if (viewer === null) return f.sieges.length > 0;
   const own = owners(f, viewer);
-  return f.sieges.some((s) => s.besieger === viewer || own.get(s.province) === viewer);
+  const sight = f.sight.get(viewer);
+  // Its own siege, or one of a city it holds as far as it knows and can see (a city lost unheard of tells it nothing).
+  return f.sieges.some((s) => s.besieger === viewer || (own.get(s.province) === viewer && (sight === undefined || sight.has(s.province))));
 }
 
 /** Foreign troops standing in the viewer's own land, as far as it can see. */
@@ -104,7 +106,8 @@ export function moodAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   if (threatened(f, viewer)) return "tension";
   const own = owners(f, viewer);
   // Its own people's mood it knows (in words); restless well short of rising is tension enough.
-  for (const [p, u] of f.unrest) if (u >= UnrestData.threshold * 0.6 && own.get(p) === viewer) return "tension";
+  const sight = f.sight.get(viewer);
+  for (const [p, u] of f.unrest) if (u >= UnrestData.threshold * 0.6 && own.get(p) === viewer && (sight === undefined || sight.has(p))) return "tension";
   if (f.news.some((n) => n.court === viewer && n.kind === "Rumor" && n.turn >= f.turn - 2)) return "tension";
   return "calm";
 }
@@ -167,20 +170,15 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   if (viewer !== null) {
     let gained = 0;
     let lost = 0;
-    let where: [string | null, string | null] = [null, null];
     for (const [p, b] of now) {
       const a = was.get(p) ?? null;
       if (a === b) continue;
-      if (b === viewer) {
-        gained++;
-        where[0] ??= p;
-      } else if (a === viewer) {
-        lost++;
-        where[1] ??= p;
-      }
+      if (b === viewer) gained++;
+      else if (a === viewer) lost++;
     }
-    if (gained > 0) add("taken", where[0]);
-    if (lost > 0) add("lost", where[1]);
+    // The court's own news, heard at any zoom.
+    if (gained > 0) add("taken");
+    if (lost > 0) add("lost");
     if (out.moment === null && gained > 0 && gained >= lost) out.moment = "triumph";
     if (out.moment === null && lost > 0) out.moment = "fallen";
   }
@@ -193,7 +191,14 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
     if (viewer !== null && !e.visibleTo.includes(viewer)) continue;
     switch (e.kind) {
       case "siege":
-        if (e.signal === "siege-begun") add("siege", f.sieges.find((x) => !prev.sieges.some((y) => y.province === x.province))?.province ?? null);
+        if (e.signal === "siege-begun") {
+          // Placed only at a new siege the viewer is party to or can see; else heard as the court's news, unplaced.
+          const sight = viewer === null ? null : f.sight.get(viewer);
+          const own = owners(f, viewer);
+          const fresh = f.sieges.filter((x) => !prev.sieges.some((y) => y.province === x.province));
+          const mine = fresh.find((x) => viewer === null || x.besieger === viewer || own.get(x.province) === viewer || sight?.has(x.province) === true);
+          add("siege", mine?.province ?? null);
+        }
         break;
       case "revolt":
       case "mutiny":
@@ -243,11 +248,11 @@ const wildLands = new Set(Crossings.filter((c) => c.kind === "Desert" || c.kind 
 /**
  * The world's bed under the music, from what the map shows at its centre: a siege camp where a siege is near, a city's
  * market close in on a town, the water of the great rivers and the coasts, the wind of the steppe, the desert and the
- * mountains; nothing over the open sea far out or in the wide view of the whole board.
+ * mountains; at every zoom, since zoomed out the world's bed and the great moments are what is heard (item 17+++).
  */
 export function bedAt(f: SeasonFrame | undefined, centre: { x: number; y: number } | null, zoom: number, viewer: Power | null,
   place: (id: string) => { x: number; y: number }): Bed {
-  if (f === undefined || centre === null || zoom < 1.6) return null;
+  if (f === undefined || centre === null) return null;
   let best: string | null = null;
   let bestD = Infinity;
   for (const p of map.provinces) {
@@ -267,7 +272,7 @@ export function bedAt(f: SeasonFrame | undefined, centre: { x: number; y: number
   const sight = viewer === null ? null : f.sight.get(viewer);
   if (f.sieges.some((s) => near(s.province) && (sight === null || sight === undefined || sight.has(s.province)))) return "siege";
   const p = map.get(best);
-  if (p.isSea) return zoom >= 3 ? "nile" : null;
+  if (p.isSea) return zoom >= 3 ? "nile" : "wind";
   if (zoom >= 4 && !p.kingless) return "market";
   if (riverLands.has(p.id) || p.isCoastal) return "nile";
   if (p.kingless || wildLands.has(p.id)) return "wind";

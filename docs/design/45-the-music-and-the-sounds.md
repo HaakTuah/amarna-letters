@@ -41,10 +41,11 @@ age's last seasons), and are listed as a reading. Ours: one piece for each, the 
 - **The mood**, first that holds: the age ended or the omens of the end read grave, borrowed or darkest (the last
   seasons, below war); a battle the seat's troops fought this season; a siege it lays or suffers; war, if it fought in the
   last three seasons (god view: anyone, the last two); troubled omens, foreign troops in its land in its sight, a
-  province of its own past 60% of the unrest at which land rises, or a rumour in the last two seasons (tension); calm.
+  province of its own in its sight past 60% of the unrest at which land rises, or a rumour in the last two seasons (tension); calm.
 - **A change waits for a phrase end**: each file carries its phrase ends (seconds); a change starts 0.4 s before the
-  next one and crosses over 3 s; never more than 12 s of waiting, by the stream's clock or the page's (a stalled stream
-  still changes).
+  next one and crosses over 3 s; a phrase end more than 20 s away is not waited for, the cross starting at once; the
+  page's clock keeps the same deadline, so a stalled stream still changes, and a stream the browser refused is asked again
+  every 2 s.
 - **Variations**: a piece plays one of its three, never the one it played last, never the file just heard; within a
   mood the next piece is another of the mood's when it has several. Calm, tension, the menu and the last seasons rest 4
   to 12 s between pieces; war, siege and battle do not.
@@ -67,15 +68,15 @@ same sound not twice within a quarter second. What plays them (`cuesAt`, and the
   inbox grew), a spy's report, and the season's turn.
 
 **Placed on the map, heard by zoom** (item 17+++'s "zoom shapes what you see and hear"): a sound with a place (a battle at
-the province attacked, a siege at the city, land taken or lost at the first such province) is silent zoomed out below
+the province attacked, a siege at a city the seat is party to or can see; a siege out of its sight is never placed) is silent zoomed out below
 1.5, rises in to whole at 3, is whole within half a screen of the view's centre and fades to nothing a screen and a half
-away, panned to its side. A court's own sounds (its acts, a courier, a report, the war horn, the season) have no place and
+away, panned to its side. A court's own sounds (its acts, a courier, a report, the war horn, land taken or lost, the season) have no place and
 are always heard. `hearing()` in `situation.ts`.
 
-**The world's bed**, under the music and very low, from the province at the map's centre: none in the wide view (zoom
-below 1.6); a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
+**The world's bed**, under the music and very low, from the province at the map's centre, at every zoom (zoomed out, the bed and the great moments are what is
+heard); a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
 water on the great rivers' course, the coasts and the sea close in; wind on the steppe, the desert, the mountains and the
-open land. It crosses over 3 to 4 s, looping seamlessly.
+open land and the open sea seen from afar. It crosses over 3 to 4 s, looping seamlessly.
 
 **Not yet**: the event stream that items 17a and 17+++ build (a season played out on the map, each event at its moment)
 is not on `develop` yet; until it is, a season's sounds play together as it arrives, read from the frame's own events,

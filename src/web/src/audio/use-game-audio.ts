@@ -23,7 +23,7 @@ export function useGameAudio(frames: readonly SeasonFrame[], index: number, view
   const key = `${game}:${viewer ?? "god"}`;
 
   // The mood of the season shown, whether played live or stepped through.
-  player.setMood(frames.length === 0 ? "menu" : moodAt(frames, index, viewer));
+  useEffect(() => player.setMood(frames.length === 0 ? "menu" : moodAt(frames, index, viewer)), [frames.length, index, key]);
 
   useEffect(() => {
     const last = cued.current;

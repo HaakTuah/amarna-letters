@@ -32,6 +32,7 @@ const url = (file: string): string => new URL(`audio/${file}${hashes.has(file) ?
 const Level = { music: 0.9, sound: 0.8, bed: 0.55 };
 const Cross = 3.0; // seconds a change of piece takes
 const Lead = 0.4; // seconds before a phrase ends that the change starts
+const MaxWait = 20; // seconds the music waits for a phrase to end before it crosses anyway
 
 interface Deck {
   el: HTMLAudioElement;
@@ -39,6 +40,8 @@ interface Deck {
   piece: string | null;
   file: string | null;
   phrases: readonly number[];
+  /** The pending pause of a deck crossed away from, cancelled when the deck is used again. */
+  pauseTimer: number | null;
 }
 
 class Player {
@@ -53,8 +56,9 @@ class Player {
   private playingMoment = false;
   /** A change asked for, waiting for its phrase end (seconds into the live deck). */
   private switchAt: number | null = null;
-  /** When the change was first asked for (page time): a stalled stream still changes after twelve seconds. */
+  /** The latest page time the change waits to (a stalled stream still changes). */
   private askedAt: number | null = null;
+  private retried = 0;
   private restUntil = 0;
   private lastFile = new Map<string, string>();
   private lastAny: string | null = null;
@@ -69,13 +73,18 @@ class Player {
 
   constructor() {
     if (typeof document === "undefined") return;
+    // The events that count as a user's gesture everywhere (a touch's pointerdown does not): every one of them starts or
+    // resumes the audio until the music is actually playing, so a play refused once is tried again on the next touch.
+    const gestures = ["pointerup", "touchend", "click", "keydown"];
     const unlock = (): void => {
       this.start();
-      if (this.ctx !== null && this.ctx.state === "running") {
-        for (const ev of ["pointerdown", "keydown", "touchend"]) removeEventListener(ev, unlock, true);
+      const d = this.decks[this.live];
+      const playing = d !== undefined && d.file !== null && !d.el.paused;
+      if (this.ctx !== null && this.ctx.state === "running" && (playing || !audioSettings().music)) {
+        for (const ev of gestures) removeEventListener(ev, unlock, true);
       }
     };
-    for (const ev of ["pointerdown", "keydown", "touchend"]) addEventListener(ev, unlock, true);
+    for (const ev of gestures) addEventListener(ev, unlock, true);
     onAudioSettings(() => this.apply());
     document.addEventListener("visibilitychange", () => this.visibility());
   }
@@ -84,6 +93,7 @@ class Player {
   private start(): void {
     if (this.ctx !== null) {
       if (this.ctx.state === "suspended") void this.ctx.resume();
+      if (!this.solo && !document.hidden) this.resume();
       return;
     }
     const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -102,7 +112,7 @@ class Player {
       this.ctx.createMediaElementSource(el).connect(gain);
       gain.connect(this.musicBus);
       el.addEventListener("ended", () => this.ended(i));
-      this.decks.push({ el, gain, piece: null, file: null, phrases: [] });
+      this.decks.push({ el, gain, piece: null, file: null, phrases: [], pauseTimer: null });
     }
     this.apply();
     this.timer = window.setInterval(() => this.tick(), 250);
@@ -112,7 +122,8 @@ class Player {
     if (this.ctx === null) return;
     const s = audioSettings();
     const t = this.ctx.currentTime;
-    this.musicBus!.gain.setTargetAtTime(s.music ? Level.music * s.musicVolume : 0, t, 0.3);
+    // The listening page's piece is heard whatever the switches say.
+    if (!this.solo) this.musicBus!.gain.setTargetAtTime(s.music ? Level.music * s.musicVolume : 0, t, 0.3);
     this.soundBus!.gain.setTargetAtTime(s.sound ? Level.sound * s.soundVolume : 0, t, 0.1);
     this.bedBus!.gain.setTargetAtTime(s.sound ? Level.bed * s.soundVolume : 0, t, 0.5);
     if (!s.music && !this.solo) for (const d of this.decks) d.el.pause();
@@ -175,11 +186,11 @@ class Player {
       old.gain.gain.cancelScheduledValues(t);
       old.gain.gain.setValueAtTime(old.gain.gain.value, t);
       old.gain.gain.linearRampToValueAtTime(0, t + (fade ? Cross : 0.3));
-      const el = old.el;
-      window.setTimeout(() => el.pause(), (fade ? Cross : 0.3) * 1000 + 100);
+      this.pauseLater(old, (fade ? Cross : 0.3) * 1000 + 100);
       old.file = null;
       old.piece = null;
     }
+    this.cancelPause(d);
     d.el.src = url(v.file);
     d.piece = piece;
     d.file = v.file;
@@ -193,6 +204,19 @@ class Player {
     this.switchAt = null;
     this.askedAt = null;
     if (audioSettings().music) void d.el.play().catch(() => undefined);
+  }
+
+  private pauseLater(d: Deck, ms: number): void {
+    this.cancelPause(d);
+    d.pauseTimer = window.setTimeout(() => {
+      d.pauseTimer = null;
+      d.el.pause();
+    }, ms);
+  }
+
+  private cancelPause(d: Deck): void {
+    if (d.pauseTimer !== null) window.clearTimeout(d.pauseTimer);
+    d.pauseTimer = null;
   }
 
   private ended(i: number): void {
@@ -216,21 +240,29 @@ class Player {
     }
     const want = this.moment !== null ? MomentPieces[this.moment] : null;
     const fits = want === null ? MoodPieces[this.mood].includes(d.piece ?? "") && !this.playingMoment : d.piece === want;
+    // A stream the browser refused or stalled is asked again, at most every two seconds.
+    if (d.el.paused && !d.el.ended && d.pauseTimer === null && performance.now() - this.retried > 2000) {
+      this.retried = performance.now();
+      void d.el.play().catch(() => undefined);
+    }
     if (fits) {
       this.switchAt = null;
       this.askedAt = null;
+      // The moment asked for is the piece already playing: nothing more to wait for.
+      if (want !== null) this.moment = null;
       return;
     }
     // A moment piece plays to its end unless a newer moment comes.
     if (this.playingMoment && want === null) return;
     const now = d.el.currentTime;
-    if (this.switchAt === null || this.switchAt < now) {
+    if (this.switchAt === null) {
+      // The next phrase end, waited for up to MaxWait; a longer phrase is crossed out of at once, over the long cross.
       const end = d.phrases.find((p) => p > now + Lead + 0.2);
-      // Never wait more than twelve seconds for a phrase to end.
-      this.switchAt = end !== undefined && end - now < 12 ? end - Lead : now + 0.5;
+      this.switchAt = end !== undefined && end - now <= MaxWait ? end - Lead : now;
+      // By the page's clock too, so a stream that stalls still changes.
+      this.askedAt = performance.now() + (this.switchAt - now) * 1000 + 2000;
     }
-    this.askedAt ??= performance.now();
-    if (now >= this.switchAt || performance.now() - this.askedAt > 12000) this.next(true);
+    if (now >= this.switchAt || performance.now() >= (this.askedAt ?? Infinity)) this.next(true);
   }
 
   // What the game and the pages ask for.
@@ -255,8 +287,7 @@ class Player {
       d.gain.gain.cancelScheduledValues(t);
       d.gain.gain.setValueAtTime(d.gain.gain.value, t);
       d.gain.gain.linearRampToValueAtTime(0, t + 0.5);
-      const el = d.el;
-      window.setTimeout(() => el.pause(), 600);
+      this.pauseLater(d, 600);
       d.file = null;
       d.piece = null;
     }
@@ -353,11 +384,12 @@ class Player {
 
   /** Plays one file of the music or a sting alone, the director standing aside until `release`. */
   listen(file: string, onEnd: () => void): void {
+    this.solo = true;
     this.start();
     if (this.ctx === null) return;
-    this.solo = true;
     const t = this.ctx.currentTime;
     for (const d of this.decks) {
+      this.cancelPause(d);
       d.el.pause();
       d.gain.gain.cancelScheduledValues(t);
       d.gain.gain.setValueAtTime(0, t);
