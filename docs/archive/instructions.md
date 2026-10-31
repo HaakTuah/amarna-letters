@@ -910,3 +910,7 @@ Given in the design chat with Claude, answering the design questions of the cons
 107. **31 October 2026, 21:44 UTC**, in the design chat: "The job you added for Claude Code to go over the sources and
     find characters, must do the same kind of evaluation in addition to the historical evaluation." Written into item
     17+ (the pass through the letters' index of persons).
+108. **31 October 2026, 22:12-22:18 UTC**, in the design chat, after the design session described the narrator and
+    spectator mode, to a list of threads to watch and an optional director camera in spectator mode, and to people named
+    as each court named them (Pharaoh Naphurureya in foreign letters, Akhenaten in Egypt's own seat): "Yes to that. And
+    yes to" the first. Written into items 17+ and 17+++.
