@@ -3,6 +3,7 @@ import {
   WorldMap,
   type Power,
 } from "@amarna/engine";
+import { player } from "../../audio/player.ts";
 import { powerName, shekels } from "../../ui/format.ts";
 import { ClauseEditor } from "../ClauseEditor.tsx";
 import { num } from "./form.ts";
@@ -163,7 +164,14 @@ export function EnvoysSection({ c }: { c: OrdersContext }) {
                   ))}
                 </div>
               )}
-              <button className="primary small" disabled={structured ? f.clauses.length === 0 : f.letter.trim().length === 0 && f.clauses.length === 0} onClick={addDispatch}>
+              <button className="primary small" disabled={structured ? f.clauses.length === 0 : f.letter.trim().length === 0 && f.clauses.length === 0}
+                onClick={() => {
+                  // The letter pressed into clay and closed in its envelope (item 19+++).
+                  player.play("stylus");
+                  player.play("envelope", 0.9);
+                  addDispatch();
+                }}
+              >
                 Send this envoy
               </button>
             </>

@@ -8,6 +8,9 @@ import { EventsPanel } from "../components/EventsPanel.tsx";
 import { FollowPanel } from "../components/FollowPanel.tsx";
 import { LegendsPanel } from "../components/LegendsPanel.tsx";
 import { GameMap, type MapHandle, type MapView } from "../components/GameMap.tsx";
+import { AudioSwitches } from "../audio/AudioSwitches.tsx";
+import { player } from "../audio/player.ts";
+import { useGameAudio } from "../audio/use-game-audio.ts";
 import { InboxPanel } from "../components/InboxPanel.tsx";
 import { MapLegend } from "../components/MapLegend.tsx";
 import { MarkInfo } from "../components/MarkInfo.tsx";
@@ -88,6 +91,9 @@ export function Play() {
     return s.godView ? null : (s.viewAs ?? live.humans[0] ?? null);
   }
 
+  // The music and the sounds follow the season shown, as this view knows it (item 19+++).
+  useGameAudio(s.frames, s.shownIndex, viewerOf(), live.hasRunner ? live.gameId : "", () => map.current?.view() ?? null);
+
   if (!live.hasRunner || s.frames.length === 0 || s.state === null) {
     return (
       <div className="page">
@@ -135,7 +141,10 @@ export function Play() {
   const draft = draftRef.current?.draft ?? null;
   // A new envoy before the throne takes the panel, once.
   const aKey = pendingAudience === null ? null : `${pendingAudience.audience!.view.audienceId}:${pendingAudience.audience!.view.round}`;
-  if (aKey !== null && aKey !== audienceKey.current) tab = "audience";
+  if (aKey !== null && aKey !== audienceKey.current) {
+    tab = "audience";
+    player.play("envoy");
+  }
   audienceKey.current = aKey;
   if (tab === "audience" && pendingAudience === null) tab = "";
   if (tab === "orders" && pendingOrders === null) tab = "";
@@ -322,6 +331,7 @@ export function Play() {
                 How it works
               </a>
               <button onClick={() => void s.export()}>Export log</button>
+              <AudioSwitches />
               <label>
                 Speed{" "}
                 <select value={s.delayMs} onChange={(e) => s.setDelay(Number(e.target.value))}>
@@ -547,7 +557,19 @@ export function Play() {
     switch (tab) {
       case "audience": {
         const a = pendingAudience!.audience!;
-        return <AudiencePanel key={aKey!} a={a.view} court={a.court} structured={state.config.pressMode === "structured"} onAnswer={(r) => s.answer(pendingAudience!.power, r)} />;
+        return (
+          <AudiencePanel
+            key={aKey!}
+            a={a.view}
+            court={a.court}
+            structured={state.config.pressMode === "structured"}
+            onAnswer={(r) => {
+              // The answer closed in its envelope and given to the envoy (item 19+++).
+              player.play("envelope");
+              s.answer(pendingAudience!.power, r);
+            }}
+          />
+        );
       }
       case "orders":
         return (
@@ -556,7 +578,11 @@ export function Play() {
             draft={draft!}
             state={state}
             onChanged={() => bump((x) => x + 1)}
-            onSubmit={(sleep) => s.submitOrders(pendingOrders!.power, { ...draft!.build(), stayAwake: !sleep })}
+            onSubmit={(sleep) => {
+              // The season's orders sealed (item 19+++).
+              player.play("seal");
+              s.submitOrders(pendingOrders!.power, { ...draft!.build(), stayAwake: !sleep });
+            }}
           />
         );
       case "inbox":

@@ -1,14 +1,14 @@
-/** The app's three pages, by path under the site's base (the page's <base href>), with the browser's history. */
+/** The app's pages, by path under the site's base (the page's <base href>), with the browser's history. */
 import { useSyncExternalStore } from "react";
 
-export type Route = "" | "play" | "about";
+export type Route = "" | "play" | "about" | "listen";
 
 const baseUrl = (): URL => new URL(document.baseURI);
 
 function current(): Route {
   const rel = location.pathname.startsWith(baseUrl().pathname) ? location.pathname.slice(baseUrl().pathname.length) : "";
   const r = rel.split(/[?#]/)[0].replace(/\/+$/, "");
-  return r === "play" || r === "about" ? r : "";
+  return r === "play" || r === "about" || r === "listen" ? r : "";
 }
 
 const listeners = new Set<() => void>();

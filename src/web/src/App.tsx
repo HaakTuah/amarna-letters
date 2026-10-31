@@ -1,4 +1,6 @@
 import { About } from "./pages/About.tsx";
+import { Listen } from "./pages/Listen.tsx";
+import "./audio/player.ts";
 import { Home } from "./pages/Home.tsx";
 import { Play } from "./pages/Play.tsx";
 import { useEffect } from "react";
@@ -66,10 +68,11 @@ export function App() {
             <NavLink to="">New game</NavLink>
             <NavLink to="play">{"Play & watch"}</NavLink>
             <NavLink to="about">How it works</NavLink>
+            <NavLink to="listen">Music</NavLink>
           </nav>
         </header>
       )}
-      {route === "play" ? <Play /> : route === "about" ? <About /> : <Home />}
+      {route === "play" ? <Play /> : route === "about" ? <About /> : route === "listen" ? <Listen /> : <Home />}
     </>
   );
 }
