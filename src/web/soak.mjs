@@ -1,7 +1,8 @@
 // The soak test of item 17a: watches a whole Free game (script kings) at the top speed in the built app, as Haakon did when
 // the page went white, and records as it goes the season reached, the page's and the worker's heap, the frame times and
 // the time each season took. Any page error, console error or blank page is reported with the season it came at.
-//   node src/web/soak.mjs [--phone] [--throttle 4] [--heap 512] [--seed 1] [--minutes 30] [--log <file>] [--site <dir>]
+//   node src/web/soak.mjs [--phone] [--throttle 4] [--heap 512] [--seed 1] [--minutes 30] [--log <file>] [--site <dir>] [--profile]
+// With --profile, the page and the worker are sampled for 30 s from about season 15, and the hottest functions of each listed.
 // Serves dist/ (after `npm run build`) as smoke.mjs does. Prints one line every few seconds, and a summary at the end.
 import { createRequire } from "node:module";
 import { createServer } from "node:http";
@@ -21,6 +22,7 @@ const minutes = Number(arg("--minutes", "30"));
 const logFile = arg("--log", null);
 // A phone's memory: V8's old space capped (MB) for the page and the worker alike, as a phone's browser caps them.
 const heapMb = Number(arg("--heap", "0"));
+const profile = process.argv.includes("--profile");
 const site = resolve(arg("--site", fileURLToPath(new URL("./dist/", import.meta.url)))) + "/";
 const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json", ".webmanifest": "application/manifest+json" };
 
@@ -84,11 +86,11 @@ cdp.on("Target.receivedMessageFromTarget", (e) => {
     asks.delete(m.id);
   }
 });
-async function workerHeapBytes() {
+async function askWorker(method, params = {}, timeout = 4000) {
   if (workerSession === null) {
     const { targetInfos } = await cdp.send("Target.getTargets");
     const w = targetInfos.find((t) => t.type === "worker");
-    if (w === undefined) return -1;
+    if (w === undefined) return null;
     workerSession = (await cdp.send("Target.attachToTarget", { targetId: w.targetId, flatten: false })).sessionId;
   }
   const id = nextAsk++;
@@ -99,11 +101,53 @@ async function workerHeapBytes() {
         asks.delete(id);
         r(null);
       }
-    }, 4000);
+    }, timeout);
   });
-  await cdp.send("Target.sendMessageToTarget", { sessionId: workerSession, message: JSON.stringify({ id, method: "Runtime.getHeapUsage" }) });
-  const r = await reply;
+  await cdp.send("Target.sendMessageToTarget", { sessionId: workerSession, message: JSON.stringify({ id, method, params }) });
+  return reply;
+}
+async function workerHeapBytes() {
+  const r = await askWorker("Runtime.getHeapUsage");
   return r === null ? -1 : r.usedSize;
+}
+
+/** The hottest functions of a CPU profile by self time: "ms  function (file:line)". */
+function hottest(profile, top = 18) {
+  const self = new Map();
+  const dt = new Map();
+  const deltas = profile.timeDeltas ?? [];
+  profile.samples.forEach((id, i) => dt.set(id, (dt.get(id) ?? 0) + (deltas[i] ?? 0)));
+  let total = 0;
+  for (const n of profile.nodes) {
+    const us = dt.get(n.id) ?? 0;
+    total += us;
+    const f = n.callFrame;
+    const name = `${f.functionName || "(anonymous)"} (${(f.url || "").split("/").pop()}:${f.lineNumber + 1})`;
+    self.set(name, (self.get(name) ?? 0) + us);
+  }
+  return [...self.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, top)
+    .map(([name, us]) => `${(us / 1000).toFixed(0).padStart(6)} ms ${((100 * us) / total).toFixed(1).padStart(5)}%  ${name}`);
+}
+let profiling = null;
+async function startProfiles() {
+  await cdp.send("Profiler.enable");
+  await cdp.send("Profiler.start");
+  await askWorker("Profiler.enable");
+  await askWorker("Profiler.start");
+  profiling = Date.now();
+}
+async function stopProfiles() {
+  const page = await cdp.send("Profiler.stop");
+  const worker = await askWorker("Profiler.stop", {}, 20000);
+  await out(`profile of the page over ${((Date.now() - profiling) / 1000).toFixed(0)} s, by self time:`);
+  for (const line of hottest(page.profile)) await out("  " + line);
+  if (worker !== null) {
+    await out(`profile of the worker over the same stretch, by self time:`);
+    for (const line of hottest(worker.profile)) await out("  " + line);
+  }
+  profiling = null;
 }
 
 // Frame times: a requestAnimationFrame loop in the page, counting frames and the long ones since the last reading.
@@ -140,6 +184,7 @@ let lastAt = t0;
 let lastFrames = null;
 let rows = 0;
 let ended = false;
+let profiled = false;
 const deadline = t0 + minutes * 60000;
 for (;;) {
   await p.waitForTimeout(5000);
@@ -192,6 +237,10 @@ for (;;) {
     ended = true;
     break;
   }
+  if (profile && profiling === null && page.season >= 15 && !profiled) {
+    profiled = true;
+    await startProfiles();
+  } else if (profiling !== null && Date.now() - profiling >= 30000) await stopProfiles();
   if (problems.some((x) => x.what.startsWith("page error") || x.what.startsWith("the worker") || x.what.startsWith("the page crashed"))) break;
   if (now > deadline) {
     await out(`stopped after ${minutes} minutes, at season ${page.season}`);
@@ -199,6 +248,7 @@ for (;;) {
   }
 }
 finished = true;
+if (profiling !== null) await stopProfiles();
 await out(ended ? `the game ended at season ${lastSeason} after ${((Date.now() - t0) / 1000).toFixed(0)} s` : `not ended; last season ${lastSeason}`);
 if (problems.length > 0) {
   await out(`${problems.length} problems:`);
