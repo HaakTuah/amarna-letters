@@ -64,9 +64,12 @@ export function dateLabel(turn: number, court: Power | null = null): string {
   return `${seasonName(turn, court)}, ${yearBce(turn)} BCE (turn ${turn})`;
 }
 
-/** The short form for dense lists: "Peret 1344 BCE", "s2 1344 BCE". The turn goes in a tooltip ({@link dateLabel}). */
+/**
+ * The short form for dense lists and the map: "Peret 1344 BCE" at Egypt's court, "season 2, 1344 BCE" elsewhere, as the
+ * header's own words have it, never a shorthand nobody is told ("s2"). The turn goes in a tooltip ({@link dateLabel}).
+ */
 export function shortDate(turn: number, court: Power | null = null): string {
-  return court === "Egypt" ? `${seasonName(turn, court)} ${yearBce(turn)} BCE` : `s${seasonIndex(turn) + 1} ${yearBce(turn)} BCE`;
+  return court === "Egypt" ? `${seasonName(turn, court)} ${yearBce(turn)} BCE` : `season ${seasonIndex(turn) + 1}, ${yearBce(turn)} BCE`;
 }
 
 /**
