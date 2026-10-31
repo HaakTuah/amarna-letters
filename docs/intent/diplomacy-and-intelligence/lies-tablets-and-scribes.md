@@ -1,11 +1,11 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 25 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 26 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 ## Lies, tablets and scribes
 
 **Why the envoy lies, and how he is caught** (decided 19 October 2026). Pillar 3: only someone with a motive bends a message, and the envoy has one. He carries the gifts, so he can skim them or take them whole, and he answers for how they were received.
 
 - **Cover stories.** An envoy who skimmed reports that the host was delighted, to bury any complaint about a light gift. A brazen one reports that a happy host was angry at so small a gift, so his king sends more next time, for him to skim again; the host, who was happy, never suspects the size of the next gift was meant to be larger.
 - **The check is already in the rules.** The inventory on the sender's tablet states what was sent, and the host's weighers find what arrived, so the host knows. His spoken answer goes home through the envoy's mouth, but an answer by sealed tablet does not: "the gold weighed 40, not 60" exposes the envoy when his king reads it. Words are not a tablet. A gift sent without an inventory tablet saves the scribe fee and cannot be checked at all (item 8).
-- **Kings reason; characters verify.** Kings are seats, not characters, and have no skill for detecting lies, which would be the engine handing out truth. A model king notices inconsistencies for itself: a tablet that contradicts the envoy, two envoys who disagree, a spy's report. A script king uses simple heuristics, such as the mood an envoy reports against the gold that was weighed, or a tablet against a report. Verifying remains paid work by characters with skills: assays, examining tablets, spies.
+- **Kings reason; characters verify.** Kings are seats, not characters, and have no skill for detecting lies, which would be the engine handing out truth. From item 17b kings are persons with traits and a strategy ("One scoreboard for every person" under Victory), and still have no such skill. A model king notices inconsistencies for itself: a tablet that contradicts the envoy, two envoys who disagree, a spy's report. A script king uses simple heuristics, such as the mood an envoy reports against the gold that was weighed, or a tablet against a report. Verifying remains paid work by characters with skills: assays, examining tablets, spies.
 
 **Tablets are objects in a place** (decided 19 October 2026). A tablet costs the scribe fee to make and nothing to keep: its cost is that it is somewhere. It is the expensive, durable choice beside the envoy's free and passing word.
 
