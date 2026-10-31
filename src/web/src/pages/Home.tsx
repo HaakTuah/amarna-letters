@@ -9,6 +9,7 @@ import {
   bridgeReady,
   choicesFromHeader,
   leaderModel,
+  rungModel,
   startProblem,
   type LeaderKind,
   type Preset,
@@ -59,8 +60,20 @@ const kindName = (k: LeaderKind): string =>
 /** Envoys' or the narrator's choice as the page names it: "script", "template" or the model. */
 const jobName = (k: string, none: string): string => (k === none ? none.toLowerCase() : kindName(k));
 
+/**
+ * The kings' line: where the small rung plays the king (and is a model of its own), it names that model, with the
+ * planner beside it when there is one.
+ */
+function kingsName(p: Preset): string {
+  const king = leaderModel(p.leaders);
+  const small = rungModel(p.rungs.small);
+  if (p.rungs.plays !== "small" || king === null || small === null || small === king) return kindName(p.leaders);
+  const planner = rungModel(p.rungs.planning);
+  return planner === null ? kindName(p.rungs.small) : `${kindName(p.rungs.small)} (plans: ${ModelIds.display(planner)})`;
+}
+
 const roles = (p: Preset): string =>
-  `Kings: ${kindName(p.leaders)} · Envoys: ${jobName(p.characters, "Script")} · Narrator: ${jobName(p.narrator, "Template")}`;
+  `Kings: ${kingsName(p)} · Envoys: ${jobName(p.characters, "Script")} · Narrator: ${jobName(p.narrator, "Template")}`;
 
 const LeaderOptions: [string, string][] = [
   ["Script", "Script bot"],
