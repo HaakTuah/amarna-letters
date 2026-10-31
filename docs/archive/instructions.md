@@ -752,3 +752,17 @@ Given in the design chat with Claude, answering the design questions of the cons
     standing rule that a change a player sees updates the README in the same PR, checked at each milestone: "Yes,
     expertly to both!" Written into `docs/BUILD-PROGRESS.md` ("The polish lane") and `CLAUDE.md` ("Standing
     instructions").
+87. **31 October 2026, 14:44-14:50 UTC**, in the design chat: "looking at Amarna. It stutters at normal speed, even on
+    my computer. [...] it is also really jarring how fast it transfers. You know Civ, when a turn moves there, it takes
+    things incrementally. [...] Season changes plays out. Troop movements are animated. [...] the even bigger overhaul
+    needed is how it spreads that computation out, and makes the map stunning, inviting and engaging to look at, as
+    turns/seasons pass." Then: "seasons instantly change, and they are only drawn on and bleed weirdly through the
+    territory colors [...] Some of the textures used to represent seasons or dry cracks and such are really ugly. [...]
+    neither does the movements of troops, characters, etc. have any weight when they just teleport along [...] when
+    there is no sound of them moving, engaing in battle, fighting the waves, the weather, takes by an avalanche, etc. the
+    player needs to feel the weight of the whole world, or it becomes meaningless to him/her." To the design session's
+    shape (item 17+++, the event stream in 17a, 19+++'s sounds on it): "Agreed, 100% sir! And I think zoom levels
+    should impact, don't you? If you are zoomed in near a unit in the waves, I want to hear it. And if I zoom in on the
+    map, I like how Imperator makes the state color more and more transparent and you see the ground and effects under
+    more clearly." Written into items 17a, 17+++ and 19+++ and "The season plays out, and zoom shapes what you see and
+    hear" (Interface and the council).
