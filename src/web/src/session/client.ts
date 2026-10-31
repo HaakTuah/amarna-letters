@@ -19,7 +19,7 @@ import {
   type TurnSubmission,
 } from "@amarna/engine";
 import { buildScene, type MapScene } from "../map/scene.ts";
-import type { SeasonFrame } from "./frames.ts";
+import type { FramePerson, SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
 import { download } from "./storage.ts";
@@ -132,6 +132,11 @@ export class Session {
       this.fallSeen = false;
     }
     if (m.frames.length > 0) {
+      let previous = this.frames.length > 0 ? this.frames[this.frames.length - 1] : null;
+      for (const f of m.frames) {
+        shareUnchanged(f, previous);
+        previous = f;
+      }
       this.frames = [...this.frames, ...m.frames];
       this.framesGeneration++;
     }
@@ -344,6 +349,54 @@ export class Session {
     this.replaying = false;
     this.notify();
   }
+}
+
+/** Two maps with the same keys and values, by `same` on the values. */
+function sameMap<K, V>(a: ReadonlyMap<K, V>, b: ReadonlyMap<K, V>, same: (x: V, y: V) => boolean): boolean {
+  if (a.size !== b.size) return false;
+  for (const [k, v] of a) {
+    const w = b.get(k);
+    if (w === undefined || !same(v, w)) return false;
+  }
+  return true;
+}
+const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => a.size === b.size && [...a].every((x) => b.has(x));
+
+/**
+ * A frame shares with the frame before whatever did not change (item 17a): each court's known holders and walls and its
+ * sight are a map of the whole board a court, most of them the same season after season, and copied across from the worker
+ * they weighed a megabyte a season on the page. Equal parts take the earlier frame's reference; the frame reads the same.
+ */
+export function shareUnchanged(f: SeasonFrame, previous: SeasonFrame | null): void {
+  if (previous === null) return;
+  for (const [p, m] of f.knownOwner) {
+    const was = previous.knownOwner.get(p);
+    if (was !== undefined && sameMap(m, was, (x, y) => x.owner === y.owner && x.turn === y.turn)) f.knownOwner.set(p, was);
+  }
+  for (const [p, m] of f.knownWalls) {
+    const was = previous.knownWalls.get(p);
+    if (was !== undefined && sameMap(m, was, (x, y) => x === y)) f.knownWalls.set(p, was);
+  }
+  for (const [p, set] of f.sight) {
+    const was = previous.sight.get(p);
+    if (was !== undefined && sameSet(set, was)) f.sight.set(p, was);
+  }
+  for (const [id, c] of f.people) {
+    const was = previous.people.get(id);
+    if (was !== undefined && samePerson(c, was)) f.people.set(id, was);
+  }
+}
+
+function samePerson(a: FramePerson, b: FramePerson): boolean {
+  for (const k of Object.keys(a) as (keyof FramePerson)[]) {
+    if (k === "covers") continue;
+    if (a[k] !== b[k]) return false;
+  }
+  if (a.covers.length !== b.covers.length) return false;
+  return a.covers.every((x, i) => {
+    const y = b.covers[i];
+    return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.timingText === y.timingText && x.since === y.since;
+  });
 }
 
 /** The one game of this tab. */

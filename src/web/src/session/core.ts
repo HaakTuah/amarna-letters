@@ -28,7 +28,7 @@ import {
 } from "@amarna/engine";
 import { GameLog, GameRunner, ReplayExhaustedError, pressFor, type ISeat, type SeasonFallbacks } from "@amarna/game";
 import { AnthropicId, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
-import { catchUpFrames, type SeasonFrame } from "./frames.ts";
+import { framesSince, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
 import { choicesOf, fallenSeesAll, handLimitNeeded, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
 import { saveLog } from "./storage.ts";
@@ -95,8 +95,10 @@ export class SessionCore {
   private generation = 0;
   private stateVersion = 0;
   private sentVersion = -1;
+  /** The frames not yet sent to the page, and how many were taken in all with the last of them: the page keeps the history. */
   private frames: SeasonFrame[] = [];
-  private sentFrames = 0;
+  private framesTaken = 0;
+  private lastFrame: SeasonFrame | null = null;
   private resetPending = false;
   private fallTold = false;
   private fallenToGod = false;
@@ -111,7 +113,12 @@ export class SessionCore {
   // ---------------------------------------------------------------- updates to the page
 
   private catchUp(): void {
-    if (this.runner !== null) catchUpFrames(this.frames, this.runner);
+    if (this.runner === null) return;
+    const fresh = framesSince(this.framesTaken, this.lastFrame, this.runner);
+    if (fresh.length === 0) return;
+    this.frames.push(...fresh);
+    this.framesTaken += fresh.length;
+    this.lastFrame = fresh[fresh.length - 1];
   }
 
   private changed = (): void => {
@@ -171,12 +178,31 @@ export class SessionCore {
       gameId: this.gameId,
       fallenToGod: this.fallenToGod,
       trailAuthors: r === null ? {} : Object.fromEntries(r.state.trails.map((t) => [t.id, r.trailAuthors(t)] as const)),
-      fallbacks: r === null ? [] : Array.from({ length: Math.max(0, r.state.turn - 1) }, (_, i) => ({ turn: i + 1, ...r.fallbacksIn(i + 1) })),
+      fallbacks: r === null ? [] : this.fallbacksUpTo(r),
     };
-    const frames = this.frames.slice(this.resetPending ? 0 : this.sentFrames);
-    this.post({ type: "update", live, frames, reset: this.resetPending });
-    this.sentFrames = this.frames.length;
+    this.post({ type: "update", live, frames: this.frames, reset: this.resetPending });
+    this.frames = [];
     this.resetPending = false;
+  }
+
+  /**
+   * Each season played, with its fallbacks: a played season's are final, so they are counted once and kept (item 17a: counting
+   * every season again at every update scanned the whole log many times a season).
+   */
+  private fallbacksKept: ({ turn: number } & SeasonFallbacks)[] = [];
+  private fallbacksFor: GameRunner | null = null;
+  private fallbacksUpTo(r: GameRunner): ({ turn: number } & SeasonFallbacks)[] {
+    if (this.fallbacksFor !== r) {
+      this.fallbacksFor = r;
+      this.fallbacksKept = [];
+    }
+    const played = Math.max(0, r.state.turn - 1);
+    if (this.fallbacksKept.length > played) this.fallbacksKept = this.fallbacksKept.slice(0, played);
+    while (this.fallbacksKept.length < played) {
+      const turn = this.fallbacksKept.length + 1;
+      this.fallbacksKept.push({ turn, ...r.fallbacksIn(turn) });
+    }
+    return this.fallbacksKept;
   }
 
   // ---------------------------------------------------------------- the fall of the human seats
@@ -229,7 +255,8 @@ export class SessionCore {
     this.error = null;
     this.notice = null;
     this.frames = [];
-    this.sentFrames = 0;
+    this.framesTaken = 0;
+    this.lastFrame = null;
     this.resetPending = true;
     this.generation++;
     this.fallTold = false;

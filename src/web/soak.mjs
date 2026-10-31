@@ -59,11 +59,14 @@ const problems = [];
 let worker = null;
 p.on("pageerror", (e) => problems.push({ when: Date.now(), what: `page error: ${e.message}\n${e.stack ?? ""}` }));
 p.on("console", (m) => {
-  if (m.type() === "error" || m.type() === "warning") problems.push({ when: Date.now(), what: `console ${m.type()}: ${m.text()}` });
+  if ((m.type() === "error" || m.type() === "warning") && !m.text().includes("blocked by Playwright")) problems.push({ when: Date.now(), what: `console ${m.type()}: ${m.text()}` });
 });
+let finished = false;
 p.on("worker", (w) => {
   worker = w;
-  w.on("close", () => problems.push({ when: Date.now(), what: "the worker closed" }));
+  w.on("close", () => {
+    if (!finished) problems.push({ when: Date.now(), what: "the worker closed" });
+  });
 });
 p.on("crash", () => problems.push({ when: Date.now(), what: "the page crashed (renderer gone)" }));
 const cdp = await context.newCDPSession(p);
@@ -195,6 +198,7 @@ for (;;) {
     break;
   }
 }
+finished = true;
 await out(ended ? `the game ended at season ${lastSeason} after ${((Date.now() - t0) / 1000).toFixed(0)} s` : `not ended; last season ${lastSeason}`);
 if (problems.length > 0) {
   await out(`${problems.length} problems:`);

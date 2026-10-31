@@ -76,7 +76,10 @@ export class SnapshotStore {
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-/** A string of its own, not a view on a longer one. */
+/**
+ * A string of its own, not a view on a longer one: V8 makes a slice of 13 characters or more a view that keeps the whole
+ * string alive (and did keep every season's JSON alive, when the shorter pieces were left as slices), a shorter one a copy.
+ */
 function flat(s: string): string {
-  return s.length < 16 ? s : decoder.decode(encoder.encode(s));
+  return s.length < 13 ? s : decoder.decode(encoder.encode(s));
 }

@@ -398,13 +398,23 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
 
 /** Takes a frame of every season the runner has played since the last call (the runner calls back right after each snapshot). */
 export function catchUpFrames(frames: SeasonFrame[], r: GameRunner): void {
-  while (frames.length < r.snapshots.length) {
-    const index = frames.length;
-    const previous = frames.length === 0 ? null : frames[frames.length - 1];
+  for (const f of framesSince(frames.length, frames.length === 0 ? null : frames[frames.length - 1], r)) frames.push(f);
+}
+
+/**
+ * The frames of the seasons from `taken` on (the frames taken so far, the last of them `previous`), so that whoever keeps
+ * the frames may keep only the last (item 17a: the worker sends each frame to the page once and holds no history of its own).
+ */
+export function framesSince(taken: number, previous: SeasonFrame | null, r: GameRunner): SeasonFrame[] {
+  const out: SeasonFrame[] = [];
+  for (let index = taken; index < r.snapshots.length; index++) {
     // Called right after each snapshot, before the next season touches the state, the live state is that snapshot.
     const live = index === r.snapshots.length - 1 && (r.state.turn === index + 1 || (r.state.ended && r.state.turn === index));
     const state = live ? r.state : r.stateAt(index);
     if (state === null) break;
-    frames.push(frameFrom(state, index, previous));
+    const f = frameFrom(state, index, previous);
+    out.push(f);
+    previous = f;
   }
+  return out;
 }

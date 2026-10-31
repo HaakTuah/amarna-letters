@@ -94,10 +94,37 @@ describe.skipIf(!process.env.AMARNA_PROBE)("Probe", () => {
       );
     }
     const total = performance.now() - t0;
+    const turns = runner.state.turn;
+    const counts = `events ${runner.state.events.length}, trails ${runner.state.trails.length}, characters ${runner.state.characters.length}, units ${runner.state.units.length}`;
     const snapshotsMb = runner.snapshots.uniqueLength / 1048576;
+    const snapshotsWholeMb = runner.snapshots.totalLength / 1048576;
+    const snapshotCount = runner.snapshots.length;
     const framesMb = sizeOf(() => structuredClone(frames)) / 1048576;
-    console.log(
-      `${runner.state.turn} seasons in ${(total / 1000).toFixed(1)} s; ${runner.snapshots.length} snapshots ${snapshotsMb.toFixed(1)} MB kept (${(runner.snapshots.totalLength / 1048576).toFixed(1)} MB whole); ${frames.length} frames ${framesMb.toFixed(1)} MB; events ${runner.state.events.length}, trails ${runner.state.trails.length}, characters ${runner.state.characters.length}, units ${runner.state.units.length}`,
-    );
+    if (process.env.AMARNA_PROBE_FIELDS) {
+      // What holds the heap at the end: dropped one by one, each part's share.
+      const r = runner as unknown as Record<string, unknown>;
+      let before = heap();
+      const drop = (name: string, f: () => void): void => {
+        f();
+        const after = heap();
+        console.log(`  heap held by ${name}: ${mb(before - after)}`);
+        before = after;
+      };
+      drop("the frames", () => (frames.length = 0));
+      drop("the snapshots", () => (r.snapshots = null));
+      drop("the log", () => (r.log = null));
+      drop("the state", () => (r.state = null));
+      drop("the seats", () => {
+        r.seats = null;
+        (built as unknown as Record<string, unknown>).seats = null;
+      });
+      drop("the minds", () => {
+        r.minds = null;
+        (built as unknown as Record<string, unknown>).minds = null;
+      });
+      drop("the narrator", () => (r.narrator = null));
+      console.log(`  heap left: ${mb(before)}`);
+    }
+    console.log(`${turns} seasons in ${(total / 1000).toFixed(1)} s; ${snapshotCount} snapshots ${snapshotsMb.toFixed(1)} MB kept (${snapshotsWholeMb.toFixed(1)} MB whole); ${snapshotCount} frames ${framesMb.toFixed(1)} MB; ${counts}`);
   }, 1_000_000);
 });
