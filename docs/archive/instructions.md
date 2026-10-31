@@ -733,3 +733,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     music lane (19+++) running beside 17a: "Yes, to all, expertly!" Then: "Why did we pick Opus 5.5 for the music? Is
     Fable not more creative, or?" And, to moving the music lane to Fable once the improvement audit is done, the Opus
     session building the sound system until then: "YEs!" Written into the 19+++ row of `docs/BUILD-PROGRESS.md`.
+84. **31 October 2026, 13:56-13:57 UTC**, in the design chat, as the second account neared its five-hour limit: "Have
+    we informed them to push every single commit? I see that they are now running out of their allocated usage for the
+    next couple of hours. I don't want them to stop, but I do hope they have pushed everything that they can." Then, to
+    making "push after every commit" a standing rule in both games in place of "at every passed gate and at least
+    hourly": "YES!" Written into `CLAUDE.md`, "Standing instructions" (push as you go).

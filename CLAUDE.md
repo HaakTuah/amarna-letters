@@ -139,9 +139,10 @@ refresh of 27 October 2026 moved that day's first two into the builder rules: "Y
 "A pull request at every milestone", and "the build order is simply to guideline claude code" under "No stopgaps".
 Their words are in `docs/archive/instructions.md`, items 13 and 14.)
 
-- **27 October 2026: push as you go** (`docs/archive/instructions.md`, item 15). Push the item's branch at every passed
-  gate, and at least once an hour while work is under way, even before its pull request opens, so nothing is lost if a
-  session dies or its machine is reclaimed. A branch that is not ready yet is still pushed; mark its PR as a draft.
+- **27 October 2026: push as you go; 31 October 2026: after every commit** (`docs/archive/instructions.md`, items 15
+  and 84). Push the item's branch after every commit, even before its pull request opens, so nothing is lost if a
+  session dies, runs out of usage or its machine is reclaimed. A branch that is not ready yet is still pushed; mark its
+  PR as a draft.
 - **27 October 2026: questions come back to Haakon directly** (`docs/archive/instructions.md`, item 16). He should
   never have to hunt for a question. Every question, design question or reading he should answer, of an item or of
   anything else, reaches him three ways:
