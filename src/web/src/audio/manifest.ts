@@ -89,7 +89,8 @@ export const Manifest = {
   "battle": [
    {
     "file": "music/battle-1.m4a",
-    "seconds": 114.57,
+    "hash": "6e11615f65",
+    "seconds": 113.1,
     "phrases": [
      7.62,
      38.1,
@@ -101,7 +102,8 @@ export const Manifest = {
    },
    {
     "file": "music/battle-2.m4a",
-    "seconds": 76.48,
+    "hash": "6650dbaf04",
+    "seconds": 75.51,
     "phrases": [
      7.62,
      38.1,
@@ -111,7 +113,8 @@ export const Manifest = {
    },
    {
     "file": "music/battle-3.m4a",
-    "seconds": 114.58,
+    "hash": "cad3b5504a",
+    "seconds": 113.08,
     "phrases": [
      7.62,
      38.1,
@@ -125,6 +128,7 @@ export const Manifest = {
   "triumph": [
    {
     "file": "music/triumph-1.m4a",
+    "hash": "4d541d05b1",
     "seconds": 28.22,
     "phrases": [
      2.4,
@@ -135,6 +139,7 @@ export const Manifest = {
    },
    {
     "file": "music/triumph-2.m4a",
+    "hash": "cd794a1b78",
     "seconds": 28.21,
     "phrases": [
      2.4,
@@ -145,6 +150,7 @@ export const Manifest = {
    },
    {
     "file": "music/triumph-3.m4a",
+    "hash": "0240c93996",
     "seconds": 28.21,
     "phrases": [
      2.4,
@@ -157,7 +163,8 @@ export const Manifest = {
   "enmity": [
    {
     "file": "music/enmity-1.m4a",
-    "seconds": 136.13,
+    "hash": "5fbf9c2eb6",
+    "seconds": 134.87,
     "phrases": [
      16.0,
      32.0,
@@ -169,7 +176,8 @@ export const Manifest = {
    },
    {
     "file": "music/enmity-2.m4a",
-    "seconds": 136.14,
+    "hash": "8d24f3adb2",
+    "seconds": 134.89,
     "phrases": [
      16.0,
      32.0,
@@ -181,7 +189,8 @@ export const Manifest = {
    },
    {
     "file": "music/enmity-3.m4a",
-    "seconds": 136.17,
+    "hash": "62c5d47490",
+    "seconds": 135.02,
     "phrases": [
      16.0,
      32.0,
@@ -195,6 +204,7 @@ export const Manifest = {
   "fall": [
    {
     "file": "music/fall-1.m4a",
+    "hash": "6e420955eb",
     "seconds": 37.64,
     "phrases": [
      8.57,
@@ -204,6 +214,7 @@ export const Manifest = {
    },
    {
     "file": "music/fall-2.m4a",
+    "hash": "9ee9cd9ca9",
     "seconds": 37.66,
     "phrases": [
      8.57,
@@ -213,6 +224,7 @@ export const Manifest = {
    },
    {
     "file": "music/fall-3.m4a",
+    "hash": "acdd320d57",
     "seconds": 37.63,
     "phrases": [
      8.57,
@@ -224,7 +236,8 @@ export const Manifest = {
   "chariots": [
    {
     "file": "music/chariots-1.m4a",
-    "seconds": 53.51,
+    "hash": "fdd25d1e0b",
+    "seconds": 51.47,
     "phrases": [
      5.0,
      15.0,
@@ -236,7 +249,8 @@ export const Manifest = {
    },
    {
     "file": "music/chariots-2.m4a",
-    "seconds": 53.51,
+    "hash": "3e39f91294",
+    "seconds": 51.54,
     "phrases": [
      5.0,
      15.0,
@@ -248,7 +262,8 @@ export const Manifest = {
    },
    {
     "file": "music/chariots-3.m4a",
-    "seconds": 53.36,
+    "hash": "5eedf5a268",
+    "seconds": 51.99,
     "phrases": [
      5.0,
      15.0,
@@ -262,7 +277,8 @@ export const Manifest = {
   "envoys": [
    {
     "file": "music/envoys-1.m4a",
-    "seconds": 59.36,
+    "hash": "b64069777a",
+    "seconds": 58.29,
     "phrases": [
      10.91,
      21.82,
@@ -273,7 +289,8 @@ export const Manifest = {
    },
    {
     "file": "music/envoys-2.m4a",
-    "seconds": 59.21,
+    "hash": "8b6fbda356",
+    "seconds": 58.09,
     "phrases": [
      10.91,
      21.82,
@@ -284,7 +301,8 @@ export const Manifest = {
    },
    {
     "file": "music/envoys-3.m4a",
-    "seconds": 59.4,
+    "hash": "77a6fb590c",
+    "seconds": 58.44,
     "phrases": [
      10.91,
      21.82,
@@ -297,6 +315,7 @@ export const Manifest = {
   "river": [
    {
     "file": "music/river-1.m4a",
+    "hash": "16057b7015",
     "seconds": 68.02,
     "phrases": [
      16.0,
@@ -308,6 +327,7 @@ export const Manifest = {
    },
    {
     "file": "music/river-2.m4a",
+    "hash": "446f7bc846",
     "seconds": 68.01,
     "phrases": [
      16.0,
@@ -319,6 +339,7 @@ export const Manifest = {
    },
    {
     "file": "music/river-3.m4a",
+    "hash": "5bb4add3b8",
     "seconds": 68.0,
     "phrases": [
      16.0,
@@ -332,6 +353,7 @@ export const Manifest = {
   "shadows": [
    {
     "file": "music/shadows-1.m4a",
+    "hash": "35b2071cc2",
     "seconds": 108.23,
     "phrases": [
      17.78,
@@ -343,6 +365,7 @@ export const Manifest = {
    },
    {
     "file": "music/shadows-2.m4a",
+    "hash": "2b401a43a2",
     "seconds": 108.24,
     "phrases": [
      17.78,
@@ -354,6 +377,7 @@ export const Manifest = {
    },
    {
     "file": "music/shadows-3.m4a",
+    "hash": "6620816c08",
     "seconds": 108.22,
     "phrases": [
      17.78,
@@ -367,7 +391,8 @@ export const Manifest = {
   "siege": [
    {
     "file": "music/siege-1.m4a",
-    "seconds": 57.0,
+    "hash": "6e48f58ea3",
+    "seconds": 56.81,
     "phrases": [
      12.0,
      24.0,
@@ -378,7 +403,8 @@ export const Manifest = {
    },
    {
     "file": "music/siege-2.m4a",
-    "seconds": 56.99,
+    "hash": "7d484ac3c7",
+    "seconds": 56.79,
     "phrases": [
      12.0,
      24.0,
@@ -389,7 +415,8 @@ export const Manifest = {
    },
    {
     "file": "music/siege-3.m4a",
-    "seconds": 57.0,
+    "hash": "5bf01ccb4c",
+    "seconds": 56.95,
     "phrases": [
      12.0,
      24.0,
@@ -402,6 +429,7 @@ export const Manifest = {
   "solemn": [
    {
     "file": "music/solemn-1.m4a",
+    "hash": "6e08b1d748",
     "seconds": 35.99,
     "phrases": [
      23.08,
@@ -410,6 +438,7 @@ export const Manifest = {
    },
    {
     "file": "music/solemn-2.m4a",
+    "hash": "15054b829b",
     "seconds": 36.0,
     "phrases": [
      23.08,
@@ -418,6 +447,7 @@ export const Manifest = {
    },
    {
     "file": "music/solemn-3.m4a",
+    "hash": "41b8d5b7de",
     "seconds": 36.0,
     "phrases": [
      23.08,
@@ -428,7 +458,8 @@ export const Manifest = {
   "fallen": [
    {
     "file": "music/fallen-1.m4a",
-    "seconds": 97.31,
+    "hash": "65a69d8018",
+    "seconds": 95.53,
     "phrases": [
      8.28,
      26.9,
@@ -439,7 +470,8 @@ export const Manifest = {
    },
    {
     "file": "music/fallen-2.m4a",
-    "seconds": 97.32,
+    "hash": "00dbdf69ba",
+    "seconds": 95.36,
     "phrases": [
      8.28,
      26.9,
@@ -450,7 +482,8 @@ export const Manifest = {
    },
    {
     "file": "music/fallen-3.m4a",
-    "seconds": 97.32,
+    "hash": "574d0da1b0",
+    "seconds": 95.62,
     "phrases": [
      8.28,
      26.9,
@@ -463,6 +496,7 @@ export const Manifest = {
   "last": [
    {
     "file": "music/last-1.m4a",
+    "hash": "f96a69f184",
     "seconds": 107.42,
     "phrases": [
      15.24,
@@ -476,6 +510,7 @@ export const Manifest = {
    },
    {
     "file": "music/last-2.m4a",
+    "hash": "871240800b",
     "seconds": 107.43,
     "phrases": [
      15.24,
@@ -489,6 +524,7 @@ export const Manifest = {
    },
    {
     "file": "music/last-3.m4a",
+    "hash": "c8a521961b",
     "seconds": 107.42,
     "phrases": [
      15.24,
