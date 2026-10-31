@@ -907,3 +907,6 @@ Given in the design chat with Claude, answering the design questions of the cons
     little to the game as a whole. Your perspective?" To the design session's guard (each added person starts on an
     errand or with a stake, or is left out; the report measures wake-ups, model calls and each one's activity; item 18
     cuts those who add nothing, after he sees the list): "Yes, expertly!" Written into items 17+, 17++ and 18.
+107. **31 October 2026, 21:44 UTC**, in the design chat: "The job you added for Claude Code to go over the sources and
+    find characters, must do the same kind of evaluation in addition to the historical evaluation." Written into item
+    17+ (the pass through the letters' index of persons).
