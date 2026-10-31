@@ -710,3 +710,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     as a view of its own, both in item 17++: "Agreed with all you said! And we should probably have many different map
     modes, given how many dimensions there are to this game. What do you think, expert?" Written into "Who holds what,
     and the mood of the land" (Interface and the council) and item 17++.
+79. **31 October 2026, 12:38 UTC**, in the design chat, to nine map views (realms, mood of the land, what you know,
+    people, harvest and stores, trade, roads and seas, armies, ties), each showing only what the seat knows, built for
+    existing systems in item 19++ and by each new system's own item: "Agreed to all. Expertly! Though some of the
+    information you listed, like what roads are extremely dangerous to pass, I feel we can manage to fit into the main
+    map mode also, through showing the snow, weather, seasons. The harshness of it, and such. Doesn't mean we can't
+    have a map mode devoted to it, but we should try to make the main map as readable and visually appealing we can,
+    so you get most of the information nessecary for you there, while managing not to clutter it too much. Your take,
+    expert?" Written into "The main map and its views" (Interface and the council) and item 19++.
