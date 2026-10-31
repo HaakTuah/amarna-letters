@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 25 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 26 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 ## Catastrophes and hidden information
 
 Catastrophes are seeded, rare, and fully visible only to the power they strike, which turns them into diplomatic material.
