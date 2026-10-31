@@ -18,7 +18,9 @@ import {
   type SeatView,
   type TurnSubmission,
 } from "@amarna/engine";
+import { SnapshotHistory } from "@amarna/game";
 import { buildScene, type MapScene } from "../map/scene.ts";
+import { IncrementalReader } from "./incremental.ts";
 import type { FramePerson, SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
@@ -34,8 +36,7 @@ export interface HumanAsk {
 const emptyLive = (): Live => ({
   hasRunner: false,
   generation: 0,
-  stateVersion: -1,
-  stateJson: null,
+  states: [],
   phase: "",
   busy: false,
   auto: false,
@@ -80,8 +81,10 @@ export class Session {
   replaying = false;
   delayMs = 400;
 
+  /** The history of the state (item 17a): the stream's pieces, from which any season is read back when looked back at. */
+  private history = new SnapshotHistory();
+  private reader = new IncrementalReader();
   private recent = new Map<number, GameState>();
-  private asked = new Set<number>();
   private nextId = 1;
   private waiting = new Map<number, (m: FromWorker) => void>();
   private scenes = new Map<string, MapScene>();
@@ -127,7 +130,8 @@ export class Session {
     if (m.reset || newGame) {
       this.frames = [];
       this.recent.clear();
-      this.asked.clear();
+      this.history.clear();
+      this.reader = new IncrementalReader();
       this.framesGeneration++;
       this.fallSeen = false;
     }
@@ -140,8 +144,11 @@ export class Session {
       this.frames = [...this.frames, ...m.frames];
       this.framesGeneration++;
     }
-    if (m.live.stateJson !== null) {
-      this.state = deserialize<GameState>(GameStateSchema, m.live.stateJson);
+    if (m.live.states.length > 0) {
+      for (const d of m.live.states) this.history.apply(d);
+      // Only the newest season is read now, and only what changed in it; a season looked back at is read then (displayed).
+      this.state = this.reader.apply(this.history.pieces(this.history.length - 1)!);
+      this.recent.clear();
       // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
       setRisen(this.state.risen);
     }
@@ -161,7 +168,7 @@ export class Session {
       this.fallSeen = true;
       this.viewAs = null;
     }
-    this.live = { ...m.live, stateJson: null };
+    this.live = { ...m.live, states: [] };
     this.notify();
   }
 
@@ -211,27 +218,21 @@ export class Session {
   }
 
   /**
-   * The full state of the season shown, for the panels that need it. A season in history is read back from its snapshot
-   * by the worker, so the last few read are kept; until one arrives the newest state stands in.
+   * The full state of the season shown, for the panels that need it. A season in history is read back from the page's own
+   * history of pieces when looked back at, and the last few read are kept.
    */
   get displayed(): GameState | null {
     if (this.state === null) return null;
     const t = this.historyTurn;
-    if (t === null) return this.state;
+    if (t === null || t >= this.history.length - 1) return this.state;
     const had = this.recent.get(t);
     if (had !== undefined) return had;
-    if (!this.asked.has(t)) {
-      this.asked.add(t);
-      const generation = this.seenGeneration;
-      void this.request({ type: "stateAt", id: this.nextId++, turn: t }).then((m) => {
-        this.asked.delete(t);
-        if (m.type !== "stateAt" || m.json === null || generation !== this.seenGeneration) return;
-        if (this.recent.size >= 4) this.recent.delete(this.recent.keys().next().value!);
-        this.recent.set(t, deserialize<GameState>(GameStateSchema, m.json));
-        this.notify();
-      });
-    }
-    return this.state;
+    const json = this.history.json(t);
+    if (json === null) return this.state;
+    if (this.recent.size >= 4) this.recent.delete(this.recent.keys().next().value!);
+    const st = deserialize<GameState>(GameStateSchema, json);
+    this.recent.set(t, st);
+    return st;
   }
 
   // ---------------------------------------------------------------- what the player does
