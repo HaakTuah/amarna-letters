@@ -24,8 +24,8 @@ said at the foreign court, and what the envoy reported home. The gaps between th
 
 You are one of forty-seven powers: the seven Great Kings, Egypt, Hatti, Babylonia, Mitanni, Assyria,
 Arzawa and Alashiya, or one of the forty city-states and chiefs between them, Byblos, Amurru, Ugarit and
-the rest, on one scoreboard: each power is judged by its size and by its growth against the powers that
-started where it did, so a city that holds its own can win as well as an empire. Each season you read what reached your court, receive foreign envoys, and give your
+the rest, on one scoreboard: each power is judged by its size and by its growth against what powers that
+started where it did have achieved, so a city that holds its own can win as well as an empire. Each season you read what reached your court, receive foreign envoys, and give your
 orders in secret. Every king orders at the same time, and the engine resolves everything at once.
 Three seasons make a year.
 
@@ -36,8 +36,8 @@ rumours, and those can be late, shaded or false.
 ### A season
 
 1. **The land and its upkeep.** In its season the harvest is reaped and taxed into each province's stores; mines and
-   markets bring in gold; people eat, and the hungry move. Troops and works are paid and fed as you ordered, and
-   troops left unpaid or hungry for long mutiny.
+   markets bring in gold; people eat, and the hungry move. Troops are paid from your treasury and fed from your
+   stores, works are kept as you ordered, and troops left unpaid or hungry for long mutiny.
 2. **Arrivals.** Envoys, gold, spy reports and rumours that were on the road arrive.
 3. **Audiences.** Foreign envoys deliver their message in their own words. The host answers, and
    may bribe the envoy, offer it a post, seal its tablet, detain it or send gold back. Each audience
@@ -58,9 +58,9 @@ rumours, and those can be late, shaded or false.
   a third of the time at the cost of stragglers.
 - Besiege a walled city your army stands in, or sally from your own walls (level 2 or more) against troops inside them.
 - Give standing orders that answer a blow in the same season, while you sleep or play.
-- Levy an army (100 shekels) or a fleet (120) from the men of a province of your homeland, or disband one, its men
-  going home. Upkeep is 20 shekels a season for an army and 25 for a fleet, and troops need food as well as pay: a unit
-  left hungry or unpaid for long mutinies.
+- Levy an army or a fleet from the men of a province of your homeland, or disband one, its men going home. A full army
+  of 5,000 men costs 100 shekels to levy and 20 a season to keep, a fleet of 2,000 crews 120 and 25, and a smaller or
+  larger unit costs in proportion. Troops need food as well as pay: a unit left hungry or unpaid for long mutinies.
 
 **Land and gold.**
 - Take a city by conquest, or as your vassal by a sealed tablet: no city is bought.
@@ -90,7 +90,7 @@ rumours, and those can be late, shaded or false.
 - Post spies at a foreign court or in a province, and pay watchmen against other kings' spies.
 - Hold a caught spy for ransom or try to turn it, and pay the ransom for one of your own.
 - Hear your royal council: four advisors (General, Steward, Tjaty and Diviner), each with a known tilt, who see only
-  what you see and propose troop orders and levies. The omens of the end darken as it nears, in your court's own voice.
+  what you see and propose troop orders and levies. The omens darken as the end grows likelier, in your court's own voice.
 
 **Command at a distance.**
 - Your court is where you are, and you may move it. An order for a place your couriers cannot reach this season goes
@@ -106,8 +106,8 @@ rumours, and those can be late, shaded or false.
   tolls on your roads.
 - Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée: nothing is
   kept unless you order it, and an army in another's land can raze them.
-- Hunger, levies, a sack and troops taking food breed unrest. Your troops and a loyal governor calm a province; where
-  neither stands, a revolt may put it under a ruler of its own, or leave it lawless.
+- Hunger, levies, a sack and troops taking food breed unrest. Your troops and a loyal governor lower it; a revolt where
+  your troops do not stand may put a province under a ruler of its own, or leave it lawless.
 
 **Tongues.** Every court speaks and reads its own languages. An envoy needs a tongue the host understands, a tablet
 waits until someone at court can read it, and people learn the tongues of where they live.
@@ -135,13 +135,13 @@ A realm's strength is ten times the yield of the land it holds, plus its gold an
 counting what it owes. Conquered land counts as it is absorbed, over its first seasons. Its growth is that strength
 against its strength at the start. At the end each power's score blends two things: its performance, its growth
 ranked among the results of powers that started where it did (most of the score, so a city that holds its own can
-win as well as an empire), and its size, its strength against the largest realm's (a small part, 5 percent by
+win as well as an empire), and its size, its strength against the largest living realm's (a small part, 5 percent by
 default). The highest score wins.
 
 Any season may be the last, from the first: early on it is very unlikely, and it grows likelier with every year, so
 that half of all ages have ended by 1320 BCE (season 80). The engine draws the last season once, in secret, at the
-start, with a hard cap drawn from 140 to 160 seasons; nothing shown reads it, though the omens darken as the end draws
-near. The median and the cap's range (or none) are table settings, and a table can play an open age with no end, from
+start, with a hard cap drawn from 140 to 160 seasons; nothing shown reads it, and the omens darken only as the end grows
+likelier. The median and the cap's range (or none) are table settings, and a table can play an open age with no end, from
 the start or by playing on once the age has ended.
 
 A kingdom falls with its capital, which passes to whoever took it. The rest of the realm comes apart as word of the
@@ -212,7 +212,7 @@ where the great kings' spheres meet, and where the truth is hardest to find.
 
 ## Envoys and other servants
 
-About a hundred people move between the courts: the envoys, officials and agents attested in the Amarna letters
+More than a hundred people move between the courts: the envoys, officials and agents attested in the Amarna letters
 (Mane, Keliya, Pirissi, Hani, Yanhamu and others) and the rest named in their region's style, each speaking the
 tongues of where they have lived. A Great King starts with two envoys and a city-state with one; everyone else is
 free, at the court of their region, looking for a master. A job is an errand carried to the man wherever he is:
@@ -238,7 +238,7 @@ What an envoy can do to your words, and why:
   loyalty is low, or if it already favours that court.
 - **Be detained.** A host may hold your envoy, and with it your letters and gold.
 
-Nobody is paid unless you order it, by hand or by a standing order ("pay on delivery"). A servant left unpaid
+No servant is paid unless you order it, by hand or by a standing order ("pay on delivery"). A servant left unpaid
 remembers it, and so do those who hear of it. When an errand ends it ends: keeping the man is a new offer, which he
 may refuse or price higher.
 
@@ -261,7 +261,8 @@ Pick a preset, choose whether to watch or take a seat, and begin.
 | **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $60 |
 | **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
 
-The costs are the start page's estimates for an age of the usual length; it recomputes them as you change the table.
+The costs are the start page's estimates, reckoned for a game of 44 seasons; an age of the usual length (about 80
+seasons) costs nearly twice as much. The meter in the game shows the real spend.
 
 Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
 messengers. **Customize the table** sets each king separately (script, human, Haiku, Sonnet or
