@@ -184,4 +184,17 @@ describe("LegendsTests", () => {
     s.turn = 20;
     Assert.contains(revelations(s), (r) => r.title === "The season the end was drawn for" && r.lines[0].text.includes("turn 20"));
   });
+
+  test("The bonds sealed before the age are one undated line, not deeds of the age", () => {
+    // Egypt opens with eleven vassal treaties sealed before 1346: they are where the court starts, so its legend gives them
+    // one line without a date, and no "Sealed a vassal treaty" line for any of them.
+    let s = newGame(7);
+    let legend = courtLegend(s, "Egypt");
+    let bonds = single(legend.filter((l) => l.text.startsWith("Bound from before the age began")));
+    Assert.equal(0, bonds.turn);
+    Assert.true(bonds.text.includes("Ugarit") && bonds.text.includes("Jerusalem"));
+    Assert.empty(legend.filter((l) => l.text.startsWith("Sealed")));
+    Assert.true(single(courtLegend(s, "Byblos").filter((l) => l.text.startsWith("Bound"))).text.endsWith("by a vassal treaty with Egypt."));
+  });
 });
+
