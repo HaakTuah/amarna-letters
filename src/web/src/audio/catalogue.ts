@@ -2,9 +2,14 @@
  * The template and the pieces made from it (item 19+++): Empire Earth's eighteen music files are fourteen pieces, four of
  * them in two versions; each of ours takes one's role, mood and pace and nothing of its own. The sources and the readings
  * are in docs/audio/MUSIC.md. Shown on the listening page beside every piece.
+ *
+ * PLACEHOLDERS: the pieces now rendered are the sound system's working pieces, written to exercise it (each its role,
+ * length, phrase ends and variations); the composing proper is the composer's (Haakon, 31 October 2026), who replaces
+ * each in scripts/music/pieces.py and renders it again. Set `Placeholder` false when the first real piece lands.
  */
 import type { SoundName } from "./situation.ts";
 
+export const Placeholder = true;
 export interface PieceInfo {
   id: string;
   title: string;

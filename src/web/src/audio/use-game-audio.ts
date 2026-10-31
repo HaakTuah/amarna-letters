@@ -7,7 +7,8 @@ import { useEffect, useRef } from "react";
 import { city } from "../map/features.ts";
 import type { SeasonFrame } from "../session/frames.ts";
 import { player } from "./player.ts";
-import { bedAt, cuesAt, moodAt } from "./situation.ts";
+import { Width } from "../map/art.ts";
+import { bedAt, cuesAt, hearing, moodAt } from "./situation.ts";
 
 interface View {
   at: { x: number; y: number };
@@ -31,7 +32,12 @@ export function useGameAudio(frames: readonly SeasonFrame[], index: number, view
     if (last !== null && last.key === key && index === last.index + 1 && now - last.at >= CueGap) {
       const c = cuesAt(frames, index, viewer);
       player.cue(c.moment, c.sting);
-      c.sounds.forEach((s, i) => player.play(s, (c.sting !== null ? 2.5 : 0) + i * 0.55));
+      const v = view();
+      c.sounds.forEach((s, i) => {
+        // A sound placed on the map is heard by zoom and nearness; a court's own sound always.
+        const h = hearing(s.at === null ? null : city(s.at), v, Width);
+        if (h.gain > 0.02) player.play(s.name, (c.sting !== null ? 2.5 : 0) + i * 0.55, h);
+      });
       cued.current = { key, index, at: now };
     } else if (last === null || last.key !== key || index !== last.index) {
       cued.current = { key, index, at: last !== null && index === last.index + 1 ? last.at : now - CueGap };

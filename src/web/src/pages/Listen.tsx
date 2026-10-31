@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import { AudioSwitches } from "../audio/AudioSwitches.tsx";
-import { BedInfo, Pieces, SoundInfo, StingInfo } from "../audio/catalogue.ts";
+import { BedInfo, Pieces, Placeholder, SoundInfo, StingInfo } from "../audio/catalogue.ts";
 import { Manifest } from "../audio/manifest.ts";
 import { player } from "../audio/player.ts";
 
@@ -37,6 +37,12 @@ export function Listen() {
         in the Babylonian tunings. Each has three variations; the game picks the piece by the situation, changes at the end of
         a phrase, and never plays the same variation twice running. Rendered from free (CC0) orchestral samples.
       </p>
+      {Placeholder && (
+        <p className="notice">
+          These pieces are placeholders: working pieces that exercise the dynamic music (each piece's role, length, phrase ends and
+          variations). The composing itself is still to come, and each will be replaced.
+        </p>
+      )}
       <div className="listen-switches">
         <AudioSwitches />
       </div>

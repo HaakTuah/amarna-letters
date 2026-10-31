@@ -1,4 +1,8 @@
-"""The fourteen pieces, one for each of Empire Earth's, each taking that piece's role, mood and pace (the template is in
+"""PLACEHOLDERS (31 October 2026): working pieces that exercise the sound system, each with its role, length, phrase ends
+and three variations; the composer replaces each (Haakon: the composing is done in a session of its own). How a piece is
+declared is in docs/rounds/2026-10-31-music.md, "Handover to the composer".
+
+The fourteen pieces, one for each of Empire Earth's, each taking that piece's role, mood and pace (the template is in
 docs/audio/MUSIC.md) and nothing of its own: the melodies are the Hurrian Hymn's and new themes in the Babylonian tunings.
 
 Each piece is a function of its variation (0, 1, 2): the same music, scored again with another lead, another rhythm,

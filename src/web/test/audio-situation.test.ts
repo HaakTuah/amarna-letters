@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
 import { WorldMap, newGameEvent, type Power } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
-import { bedAt, cuesAt, moodAt } from "../src/audio/situation.ts";
+import { bedAt, cuesAt, hearing, moodAt } from "../src/audio/situation.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 
 // Item 19+++: the music follows the seat's situation as that seat knows it, and a season's sounds what it saw. Each test
@@ -81,15 +81,17 @@ describe("AudioSituationTests", () => {
         events: [newGameEvent({ kind: "revolt", visibleTo: [v] }), newGameEvent({ kind: "catastrophe", visibleTo: [v] })],
       }),
     ];
-    const e = cuesAt(fight("Egypt"), 1, "Egypt").sounds;
+    const e = cuesAt(fight("Egypt"), 1, "Egypt").sounds.map((c) => c.name);
     Assert.true(e.includes("war_trumpet"));
     Assert.false(e.includes("war_horn"));
-    Assert.true(cuesAt(fight("Hatti"), 1, "Hatti").sounds.includes("war_horn"));
+    Assert.true(cuesAt(fight("Hatti"), 1, "Hatti").sounds.some((c) => c.name === "war_horn"));
     Assert.true(e.length <= 3);
     // A second season of fighting is a battle, not a new war.
     const frames = [...fight("Egypt"), frame(2, { moves: [attack("Hatti", "gaza", "Egypt")], seenBy: new Map([["Egypt", [0]]]) })];
-    Assert.false(cuesAt(frames, 2, "Egypt").sounds.includes("war_trumpet"));
-    Assert.true(cuesAt(frames, 2, "Egypt").sounds.includes("battle"));
+    Assert.false(cuesAt(frames, 2, "Egypt").sounds.some((c) => c.name === "war_trumpet"));
+    // The battle is placed where it was fought; the war's first horn is the court's, heard at any zoom.
+    Assert.equal("gaza", cuesAt(frames, 2, "Egypt").sounds.find((c) => c.name === "battle")!.at);
+    Assert.null(cuesAt(fight("Egypt"), 1, "Egypt").sounds.find((c) => c.name === "war_trumpet")!.at);
   });
 
   test("The age's end brings its sting and the last seasons' piece", () => {
@@ -109,5 +111,18 @@ describe("AudioSituationTests", () => {
     Assert.equal("nile", bedAt(frame(0), at, 2.5, null, place));
     const sieged = frame(0, { sieges: [{ province: "babylon", besieger: "Assyria", progress: 1, walls: 2, since: 1 }] });
     Assert.equal("siege", bedAt(sieged, at, 2.5, null, place));
+  });
+
+  test("A placed sound is silent zoomed out and heard zoomed in, louder the nearer, on its side of the screen", () => {
+    const at = { x: 500, y: 300 };
+    Assert.equal(0, hearing(at, { at, zoom: 1 }, 1000).gain);
+    Assert.equal(1, hearing(at, { at, zoom: 4 }, 1000).gain);
+    const near = hearing({ x: 560, y: 300 }, { at, zoom: 4 }, 1000);
+    const far = hearing({ x: 900, y: 300 }, { at, zoom: 4 }, 1000);
+    Assert.true(near.gain > far.gain);
+    Assert.true(near.pan > 0);
+    Assert.equal(0, far.gain);
+    // A court's own sound has no place: always heard whole.
+    Assert.equal(1, hearing(null, { at, zoom: 1 }, 1000).gain);
   });
 });

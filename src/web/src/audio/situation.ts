@@ -113,7 +113,13 @@ export function moodAt(frames: readonly SeasonFrame[], index: number, viewer: Po
 export interface Cues {
   sting: Sting | null;
   moment: Moment | null;
-  sounds: SoundName[];
+  sounds: Cue[];
+}
+
+/** A short sound, and where on the map it happened (a province), or null for a court's own sound, heard at any zoom. */
+export interface Cue {
+  name: SoundName;
+  at: string | null;
 }
 
 const loud: readonly SoundName[] = ["war_horn", "war_trumpet", "battle", "siege", "taken", "lost", "revolt", "death", "famine", "sistrum", "harvest", "caravan", "gold", "courier", "report", "season"];
@@ -129,8 +135,8 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   const prev = frames[index - 1];
   const out: Cues = { sting: null, moment: null, sounds: [] };
   if (f === undefined || prev === undefined) return out;
-  const add = (s: SoundName): void => {
-    if (!out.sounds.includes(s)) out.sounds.push(s);
+  const add = (s: SoundName, at: string | null = null): void => {
+    if (!out.sounds.some((c) => c.name === s)) out.sounds.push({ name: s, at });
   };
   const was = owners(prev, viewer);
   const now = owners(f, viewer);
@@ -158,27 +164,33 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   if (viewer !== null) {
     let gained = 0;
     let lost = 0;
+    let where: [string | null, string | null] = [null, null];
     for (const [p, b] of now) {
       const a = was.get(p) ?? null;
       if (a === b) continue;
-      if (b === viewer) gained++;
-      else if (a === viewer) lost++;
+      if (b === viewer) {
+        gained++;
+        where[0] ??= p;
+      } else if (a === viewer) {
+        lost++;
+        where[1] ??= p;
+      }
     }
-    if (gained > 0) add("taken");
-    if (lost > 0) add("lost");
+    if (gained > 0) add("taken", where[0]);
+    if (lost > 0) add("lost", where[1]);
     if (out.moment === null && gained > 0 && gained >= lost) out.moment = "triumph";
     if (out.moment === null && lost > 0) out.moment = "fallen";
   }
   // The first blow of a war: fighting this season after a quiet one.
   const fought = index > 0 && fightingAt(f, viewer);
   if (fought && !fightingAt(prev, viewer)) add(viewer === "Egypt" ? "war_trumpet" : "war_horn");
-  if (fought) add("battle");
+  if (fought) add("battle", seen(f, viewer).find((m) => (hostile(m) || m.destroyed) && involves(m, viewer))?.target ?? null);
   // What else it saw: by the events of the season, as far as it was shown them.
   for (const e of f.events) {
     if (viewer !== null && !e.visibleTo.includes(viewer)) continue;
     switch (e.kind) {
       case "siege":
-        if (e.signal === "siege-begun") add("siege");
+        if (e.signal === "siege-begun") add("siege", f.sieges.find((x) => !prev.sieges.some((y) => y.province === x.province))?.province ?? null);
         break;
       case "revolt":
       case "mutiny":
@@ -218,7 +230,7 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
     if (f.news.some((n) => n.court === viewer && n.kind === "SpyReport")) add("report");
   }
   add("season");
-  out.sounds = [...out.sounds].sort((a, b) => loud.indexOf(a) - loud.indexOf(b)).slice(0, 3);
+  out.sounds = [...out.sounds].sort((a, b) => loud.indexOf(a.name) - loud.indexOf(b.name)).slice(0, 3);
   return out;
 }
 
@@ -257,4 +269,31 @@ export function bedAt(f: SeasonFrame | undefined, centre: { x: number; y: number
   if (riverLands.has(p.id) || p.isCoastal) return "nile";
   if (p.kingless || wildLands.has(p.id)) return "wind";
   return "wind";
+}
+
+/** How a sound placed on the map is heard from the view (item 19+++, "zoom shapes what you see and hear"). */
+export interface Hearing {
+  /** 0 (silent) to 1. */
+  gain: number;
+  /** -1 (left) to 1 (right). */
+  pan: number;
+}
+
+/**
+ * A placed sound heard from where the map looks: zoomed out it is silent, the world's bed and the great moments speaking
+ * for the whole board; zoomed in it comes up, louder the nearer the view's centre, panned to its side of the screen. A
+ * court's own sound (no place) is always heard whole. `width` is the board's width, `aspect` the view's width over height.
+ */
+export function hearing(at: { x: number; y: number } | null, view: { at: { x: number; y: number }; zoom: number } | null, width: number): Hearing {
+  if (at === null) return { gain: 1, pan: 0 };
+  if (view === null) return { gain: 0, pan: 0 };
+  // From a zoom of 1.5 the near sounds rise in, whole by 3.
+  const z = Math.min(1, Math.max(0, (view.zoom - 1.5) / 1.5));
+  const half = width / 2 / view.zoom;
+  const dx = at.x - view.at.x;
+  const dy = at.y - view.at.y;
+  const d = Math.hypot(dx, dy) / half;
+  // Whole within half the screen, fading out to nothing at one and a half screens away.
+  const near = d <= 0.5 ? 1 : Math.max(0, 1 - (d - 0.5));
+  return { gain: z * near * near, pan: Math.max(-1, Math.min(1, dx / half)) * 0.8 };
 }

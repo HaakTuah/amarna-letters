@@ -8,7 +8,7 @@
  */
 import { Manifest } from "./manifest.ts";
 import { audioSettings, onAudioSettings } from "./settings.ts";
-import { MomentPieces, MoodPieces, type Bed, type Moment, type Mood, type SoundName, type Sting } from "./situation.ts";
+import { MomentPieces, MoodPieces, type Bed, type Hearing, type Moment, type Mood, type SoundName, type Sting } from "./situation.ts";
 
 interface Variation {
   readonly file: string;
@@ -261,7 +261,7 @@ class Player {
   }
 
   /** A short sound: a variation other than the last, a little varied in pitch and level so it never tires. */
-  play(name: SoundName, delay = 0): void {
+  play(name: SoundName, delay = 0, heard: Hearing = { gain: 1, pan: 0 }): void {
     if (this.ctx === null || !audioSettings().sound) return;
     const files = sounds[name];
     if (files === undefined || files.length === 0) return;
@@ -271,11 +271,11 @@ class Player {
     const f = files[Math.floor(Math.random() * files.length)];
     void this.buffer(f.file).then((b) => {
       if (b === null || this.ctx === null) return;
-      this.playBuffer(b, this.soundBus!, 0.85 + Math.random() * 0.15, 0.97 + Math.random() * 0.06, delay);
+      this.playBuffer(b, this.soundBus!, (0.85 + Math.random() * 0.15) * heard.gain, 0.97 + Math.random() * 0.06, delay, heard.pan);
     });
   }
 
-  private playBuffer(b: AudioBuffer, bus: GainNode, level: number, rate: number, delay = 0): void {
+  private playBuffer(b: AudioBuffer, bus: GainNode, level: number, rate: number, delay = 0, pan = 0): void {
     const ctx = this.ctx!;
     const src = ctx.createBufferSource();
     src.buffer = b;
@@ -283,7 +283,12 @@ class Player {
     const g = ctx.createGain();
     g.gain.value = level;
     src.connect(g);
-    g.connect(bus);
+    if (pan !== 0 && typeof ctx.createStereoPanner === "function") {
+      const p = ctx.createStereoPanner();
+      p.pan.value = pan;
+      g.connect(p);
+      p.connect(bus);
+    } else g.connect(bus);
     src.start(ctx.currentTime + delay);
   }
 
