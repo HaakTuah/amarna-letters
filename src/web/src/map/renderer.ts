@@ -35,7 +35,7 @@ export interface MapRenderer {
   fit(): void;
   /** Brings a point of the board into view, zooming in to at least the given zoom. */
   focus(at: Pt, minZoom: number): void;
-  /** Where the view is: the board point at its centre, and its zoom (1 is the whole board). */
+  /** Where the view is: the board point at its centre, and its zoom (1 is the whole board where the screen allows). */
   /** Where the view is; `whole` when it is as far out as it may go. */
   getView(): { at: Pt; zoom: number; whole?: boolean } | null;
   /** Shows a board point at the centre at a zoom: a view kept from before, or a view's opening. */

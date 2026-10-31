@@ -99,10 +99,19 @@ export function zoomBy(view, factor) {
 export function reset(view) {
   const st = states.get(view);
   if (!st) return;
-  animate(st, () => { st.s = lowest(st); st.x = 0; st.y = 0; clamp(st); });
+  animate(st, () => {
+    // As far out as the view may go, centred on the board (where that is past the whole board, clamp alone would pin
+    // the board's corner).
+    const g = geometry(st);
+    st.s = lowest(st);
+    st.x = g.w / 2 - st.s * (g.ox + MAP_W * g.b / 2);
+    st.y = g.h / 2 - st.s * (g.oy + MAP_H * g.b / 2);
+    clamp(st);
+  });
 }
 
-/// Where the view is: the map point at its centre and its zoom (1 shows the whole board).
+/// Where the view is: the map point at its centre and its zoom (1 shows the whole board where the screen's shape allows;
+/// `whole` when it is as far out as it may go).
 export function getView(view) {
   const st = states.get(view);
   if (!st) return null;
