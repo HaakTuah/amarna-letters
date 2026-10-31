@@ -18,10 +18,7 @@ disband remnants. Read it from develop (git fetch origin develop) before buildin
 
 ## Where it stands (pick-up line)
 
-Done and pushed: the crash reproduced and its cause fixed (snapshots shared), the error screen, the newest version taking
-over by itself, the soak and probe tools, the design notes. Left: the optimization round's profile (`node src/web/soak.mjs
---profile`), any further speed-ups it shows, before-and-after numbers below, the full suite and the smoke test, the
-benchmarks (`scripts/sim.sh --games 20 --seed 1 --verify-replay`, unchanged), the reviewer, merging.
+See "Where it stands (31 October 2026, 19:30 UTC)" at the end.
 
 ## The crash, reproduced
 
@@ -165,7 +162,16 @@ below once run.
 
 ## Benchmarks
 
-To be filled.
+20 games, seed 1, `--verify-replay`, develop as the item started against this branch: every line of the batch runner's
+summary identical (wars, falls, press, standing orders, risen seats, characters' gold), every replay exact; 904.8 s before
+(under load), 714.9 s after. Behaviour unchanged.
+
+## Where it stands (31 October 2026, 19:30 UTC)
+
+Haakon (via the orchestrator): "We are running out of usage. 97 percent. commit and push." Stopped here. Done and pushed:
+everything above, the review's fixes, the suite (1264 passed), the smoke test, the benchmarks. Left: the throttled-phone
+soak after the fixes (`node src/web/soak.mjs --phone`, one row of the table above), then mark PR #236 ready, CI green, merge
+into develop, the milestone PR (check `merged_at` first), and the report to the orchestrator.
 
 ## Questions for Haakon
 
