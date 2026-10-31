@@ -577,9 +577,9 @@ export function Play() {
           <>
             <h3>The rulebook</h3>
             <p className="muted">
-              What every king is told, word for word. Orders are given here with the controls of the orders tab rather than as JSON, and are checked units
-              first, then your other orders in the order you added them. The record of notes, summary and ledger that HOW TO ANSWER describes is kept for
-              model kings; here you keep your own.
+              What every king is told, word for word. You give your orders with the controls of the orders tab; they are checked units first, then your
+              other orders in the order you added them. Where the rulebook speaks of answering in JSON, or of the notes, summary and ledger under HOW TO
+              ANSWER, it speaks to model kings: you keep your own notes.
               {state.config.sleepingSeats
                 ? " A human seat sleeps only when you choose to: seal your orders with a sleep and the seasons pass by themselves, your standing and scheduled orders acting for you, until something concerns you or you wake yourself."
                 : ""}{" "}
