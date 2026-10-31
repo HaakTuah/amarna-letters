@@ -671,3 +671,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     polish point to each that it can spend the last credits on also?" And, to the design session's shape of the
     polish lane: "Yes, and make things as refined as possible!" Written into `docs/BUILD-PROGRESS.md`, "The polish
     lane".
+74. **31 October 2026, 11:59-12:01 UTC**, in the design chat: "Can governors hold multiple provinces? Like Rib-Hadda held
+    Byblos and Gubla and more?" (Gubla is Byblos; Rib-Hadda was its vassal king, holding Batruna, Shigata and Ampi too;
+    Egypt's commissioners at Sumur, Kumidi and Gaza oversaw districts.) And, to the design session's take: "Yes, then
+    his "capital" becomes just wherever he holds seat." Written into "Governors" (War, travel and the seas) and item
+    17++.
