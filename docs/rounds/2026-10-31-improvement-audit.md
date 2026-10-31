@@ -61,7 +61,9 @@ the saving work over a game is quadratic too; appending the season's lines as th
 **Season times at the top speed** (the engine's turn time, 1280 px, the machine otherwise busy with the 50-game run, so
 the absolute numbers are high): mean 2.2 s a season; the first three seasons 10 s, 8 s and 7 s (the opening: 47 powers
 hiring and sending envoys), then 2 to 3 s. In Node the probe took 1.6 to 2.6 s a turn on the same busy machine. The
-first seasons are the slow spot to profile first.
+first seasons are the slow spot to profile first. At phone size (390 px) with the CPU throttled four times in headless
+Chromium, 61 seasons took 118 s (1.9 s a season, the engine's time in the worker) and the renderer was at 864 MB by
+season 10: a real phone, with 2 to 4 GB for all its apps, reaches the limit of find 1 much sooner than a desktop.
 
 **Where a turn's time goes** (Node, `--cpu-prof`, 30 turns of seed 3, 78 s sampled): the script kings' decisions are
 62% of a turn (`decideNow`, `src/game/src/bots/script-leader.ts:90`), of which the plan search `improve`
@@ -99,6 +101,21 @@ decided by two or three armies a side, and a world where a human with two fresh 
 nothing with them. The fix is in the scripts (allowed in every item): a rich king with idle men should raise and use
 troops, measured by the use-against-ignore method. Whether the numbers themselves (army 100 shekels, upkeep 20) are
 right is item 18's.
+
+## 3b. Script kings threaten and never march (item lane: script-king play)
+
+In the first eight games the script kings sent 955 letters carrying a threat clause ("If you do not do as I ask, my
+troops will march into your land"); in 28 cases the sender attacked, besieged, took or sacked anything of the
+threatened power's within six seasons (3%). Egypt sent 725 of them (154 in game 1 alone, one to each vassal in arrears
+every few seasons, with "You have broken the oath you swore to me before the gods") and followed 8 up; Mitanni 125 and
+2; Hatti 59 and 10. Most vassals paid their tribute once, at the start, and never again (Byblos, Hebron, Ashtaroth,
+Jerusalem in game 1), as 11+'s "tribute paid while it is worth it" has them do, and nothing happened to any of them.
+"Words are words" is the design, but a sparring partner whose threats are never acted on teaches every seat to ignore
+threats, and a vassal that learns its overlord never collects stops paying. Together with find 3 (idle gold and men),
+the scripts should either threaten only what they will do or do what they threatened: the threat clause and the raise
+rule are in `src/game/src/bots/statecraft-letters.ts` and `statecraft-strategy.ts`. Checked and not a find: of 2,737
+delivered letters, 1,151 reached the host with clauses differing from the king's, but 160 of 166 such cases in game 1
+were the envoy adding well-wishes or reordering, and 40 the envoy dropping a threat, each a motive the trail shows.
 
 ## 4. The human seat cannot give two orders the scripts can (every feature is every seat's)
 
@@ -237,4 +254,10 @@ Egypt both. When the bond is sealed, the answers should match it.
    it. Alternative: as now,
    any unit of one man or more holds land, and only men on the walls are counted.
 
-*The audit continues: the 50-game summary and its signals, the phone at a throttled CPU, and the reviewer's check.*
+## The suites during the audit
+
+`scripts/test.sh` on this machine, while the 50-game run and the probes held all four cores (load 12): 122 of 124 files
+passed; 10 tests in `src/game/test/who-decides.test.ts` and `model-layer.test.ts` failed by the 120 s timeout alone, with
+no assertion failing. They are re-run alone below once the machine is quiet; nothing in this PR changes code.
+
+*The audit continues: the 50-game summary and its signals, and the reviewer's check.*
