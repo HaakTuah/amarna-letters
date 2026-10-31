@@ -17,7 +17,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 143,
+   "rev": 158,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -73,7 +73,7 @@
   "diplomacy-and-intelligence": {
    "name": "Diplomacy and intelligence",
    "node": "83ac9cba-81ca",
-   "rev": 25,
+   "rev": 26,
    "files": [
     "docs/intent/diplomacy-and-intelligence/front.md",
     "docs/intent/diplomacy-and-intelligence/envoys-mediated-delayed-agentic-communication.md",
@@ -90,7 +90,7 @@
   "characters": {
    "name": "Characters",
    "node": "0051b400-09bd",
-   "rev": 21,
+   "rev": 23,
    "files": [
     "docs/intent/characters/front.md",
     "docs/intent/characters/characters-hidden-facts-memory-and-continuity.md",
@@ -128,10 +128,11 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 83,
+   "rev": 90,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
-    "docs/intent/war-travel-and-the-seas/territory-and-military.md",
+    "docs/intent/war-travel-and-the-seas/territory-and-military-part1.md",
+    "docs/intent/war-travel-and-the-seas/territory-and-military-part2.md",
     "docs/intent/war-travel-and-the-seas/command-at-a-distance.md",
     "docs/intent/war-travel-and-the-seas/commanders.md",
     "docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md",
@@ -142,7 +143,7 @@
   "victory-and-the-ending": {
    "name": "Victory and the ending",
    "node": "58b70949-2c17",
-   "rev": 17,
+   "rev": 19,
    "files": [
     "docs/intent/victory-and-the-ending/front.md",
     "docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md",
@@ -152,7 +153,7 @@
   "interface-and-the-council": {
    "name": "Interface and the council",
    "node": "ed35e82f-6e5a",
-   "rev": 19,
+   "rev": 20,
    "files": [
     "docs/intent/interface-and-the-council/front.md",
     "docs/intent/interface-and-the-council/spectator-mode-and-analysis.md",
@@ -173,7 +174,7 @@
   "ideas": {
    "name": "Ideas",
    "node": "c1a09612-6320",
-   "rev": 17,
+   "rev": 19,
    "files": [
     "docs/intent/ideas/front.md",
     "docs/intent/ideas/other-ideas-under-consideration.md",

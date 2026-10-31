@@ -3,7 +3,7 @@
 A Late Bronze Age grand strategy game: seven Great Kings, played by humans, script bots or language models, negotiate
 through envoys and sealed tablets on a deterministic engine. Haakon (the owner) designs it with Claude in a design
 document; builders like you build it item by item. Built in TypeScript (Vite and React, the engine in a Web Worker)
-since build order item 5+; the old C# build was removed after the fix pass and is kept on the branch `archive/csharp-final` (commit `5b4caa2`). Every feature
+since build order item 5+; the old C# build was removed after the fix pass and is in `develop`'s history at commit `5b4caa2`. Every feature
 answers to the design pillars and tenets in `docs/intent/overview/design-pillars.md`: read them once per session.
 
 ## Where things are
@@ -139,9 +139,10 @@ refresh of 27 October 2026 moved that day's first two into the builder rules: "Y
 "A pull request at every milestone", and "the build order is simply to guideline claude code" under "No stopgaps".
 Their words are in `docs/archive/instructions.md`, items 13 and 14.)
 
-- **27 October 2026: push as you go** (`docs/archive/instructions.md`, item 15). Push the item's branch at every passed
-  gate, and at least once an hour while work is under way, even before its pull request opens, so nothing is lost if a
-  session dies or its machine is reclaimed. A branch that is not ready yet is still pushed; mark its PR as a draft.
+- **27 October 2026: push as you go; 31 October 2026: after every commit** (`docs/archive/instructions.md`, items 15
+  and 84). Push the item's branch after every commit, even before its pull request opens, so nothing is lost if a
+  session dies, runs out of usage or its machine is reclaimed. A branch that is not ready yet is still pushed; mark its
+  PR as a draft.
 - **27 October 2026: questions come back to Haakon directly** (`docs/archive/instructions.md`, item 16). He should
   never have to hunt for a question. Every question, design question or reading he should answer, of an item or of
   anything else, reaches him three ways:
@@ -200,3 +201,7 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
   a reading: list it under "Readings taken" with the principle it rests on, and build it that way. Only what they leave
   open, or a matter of taste, goes to Haakon. On 28 October about half the questions sent to him were settled by the
   page already.
+- **31 October 2026: a change a player sees updates the README** (`docs/archive/instructions.md`, item 86). Any item
+  or PR that changes what a player sees or does updates `README.md` in the same PR, as the rulebook and seat view
+  already are ("Every rule a king needs is in the rulebook or the seat view"). Each milestone PR says in one line
+  whether the README is current, and fixes it if not.
