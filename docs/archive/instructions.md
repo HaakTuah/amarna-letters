@@ -774,3 +774,20 @@ Given in the design chat with Claude, answering the design questions of the cons
     possibility as well?" To the design session's readings (the far-zoom fix in the polish lane; cities and buildings
     made explicit in 19++; small states as seats, item 17++++; character mode after the build order): "Yes, expertly
     to all!" Written into `docs/BUILD-PROGRESS.md`, items 17++++ and 19++, and "Character mode" (Ideas).
+89. **31 October 2026, 14:58-15:19 UTC**, in the design chat: "What if everyone are characters, even kings... Then
+    everyone operate by the same win condition... Not to implemented quite yet, but there is an idea there." Then:
+    "Don't the work condition right now work? You weigh 2 things. How much the person "own" and how much better they
+    did then what their start position usually results in, and weigh them both to a certain degree. Can start 50/50 as
+    a wild guess. then just apply it to every character? And a king is a character like any other, but his direct
+    provinces are his possesions. [...] balance it so at least any state has about equal chance of wining, both great
+    kings, and smaller states and vassals. And if we can, balance it so characters occasionally win. And every
+    character optimize to get the highest they can on the scoreboard?" Then: "if you die, it's game over. And if yiu
+    are a king, you can of course die if you travel about in boat in horrible weather, or engage in battle or whatever.
+    Or is beseiged. Are you taken alive, then your captor decides what to do with you. But you have skills like
+    everybody else, so you could possibly escape. [...] Then for my next game, imagine it with full lineage play."
+    Then, on heirs: "if he just dies. Out in battle. Then maybe a inheritor can be appointed. Makes it a new character,
+    with their own score." And: "these are characters that may die in the meantime [...] Is it perhaps better if they
+    just spawn if the sitting king dies? [...] they would have an incentive to kill their king and take his throne, so
+    it creates weird incentives." To the design session's shape (item 17b): "Yes, please. Experlty to all!" Written into
+    "One scoreboard for every person" (Victory), "A fallen player's game is over" (War, travel and the seas), item 17b,
+    and the next game's design document ("Lineage: houses outlive their founders").
