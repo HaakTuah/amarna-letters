@@ -54,6 +54,10 @@ for many seasons and assert the runner's retained memory, or the snapshot count,
 should keep only what a seat's view still reads (the old messages are in the log for the record), which also shrinks
 every save and every structured clone.
 
+**The save grows the same way.** After every season the worker serialises the whole log and writes it to IndexedDB
+(`src/web/src/session/core.ts:393-396` and `:455-463`, `saveLog` in `storage.ts:30`), 15 MB of JSONL by turn 102, so
+the saving work over a game is quadratic too; appending the season's lines as their own record would make it constant.
+
 **Season times at the top speed** (the engine's turn time, 1280 px, the machine otherwise busy with the 50-game run, so
 the absolute numbers are high): mean 2.2 s a season; the first three seasons 10 s, 8 s and 7 s (the opening: 47 powers
 hiring and sending envoys), then 2 to 3 s. In Node the probe took 1.6 to 2.6 s a turn on the same busy machine. The
