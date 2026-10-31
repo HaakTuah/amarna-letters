@@ -862,9 +862,9 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.view !== null) focus(this.view, at.x, at.y, minZoom);
   }
 
-  getView(): { at: Pt; zoom: number } | null {
+  getView(): { at: Pt; zoom: number; whole?: boolean } | null {
     const v = this.view === null ? null : getView(this.view);
-    return v === null ? null : { at: { x: v.x, y: v.y }, zoom: v.zoom };
+    return v === null ? null : { at: { x: v.x, y: v.y }, zoom: v.zoom, whole: v.whole };
   }
 
   setView(at: Pt, zoom: number, animated: boolean): void {

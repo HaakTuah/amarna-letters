@@ -114,7 +114,7 @@ export function GameMap({
       r.setView(back.at, back.zoom, true);
       setBack(null);
     } else {
-      setBack(now !== null && now.zoom > 1.01 ? now : null);
+      setBack(now !== null && now.whole !== true ? now : null);
       r.fit();
     }
   };
