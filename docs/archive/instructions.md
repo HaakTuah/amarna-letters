@@ -929,3 +929,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     "nation" still Gubla? What if he conquers 5 more?" Answered from the same rule: the name stays however far the
     realm grows, as Hatti and Assyria kept theirs, and growth shows in how other courts address its king. Written into
     "Places by their own names" (World) and item 17+.
+112. **31 October 2026, 23:00-23:02 UTC** (1 November in Oslo), in the design chat, on item 111's rule: "My point is,
+    if you take ashur from Assyria as a startup, what do you become, what do they become? And right now there is no
+    way to take over the title of Egypt. Only the pharoh at the start, and his spawned heirs has tat possibility. Is
+    this a big problem? No. But the inconsistency and special cases bothers me." Then, to the design session's take
+    (a power's name is a claim; any power may claim any realm's name or title; each court gives a disputed name to the
+    claimant it recognises and calls the other by his house): "Yes, please, expertly! And i guess model kings and
+    players could alreayd call themselves whatever they want?" Written into "Places by their own names" and
+    "Recognition is earned" (World) and items 17+ and 17b, replacing item 111's fallback.

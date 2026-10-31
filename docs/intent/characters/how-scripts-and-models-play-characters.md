@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Characters tab, revision 25 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 25 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## How scripts and models play characters
 
 **Script and model characters.** A script character's wariness is a formula: its chance of coming to a court falls with the court's record of executions, more for the timid, and whether it lies about a rival's offer follows its traits. A model character judges for itself: its memory holds the rumours it has heard about each court, and its persona says plainly that it wants to live and to keep its gold, so fear of a cruel court is a reason it holds, not an instruction it obeys (see "Skills are hard-coded; decisions belong to the character" above).
