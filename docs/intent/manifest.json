@@ -17,7 +17,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 147,
+   "rev": 149,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -173,7 +173,7 @@
   "ideas": {
    "name": "Ideas",
    "node": "c1a09612-6320",
-   "rev": 17,
+   "rev": 18,
    "files": [
     "docs/intent/ideas/front.md",
     "docs/intent/ideas/other-ideas-under-consideration.md",
