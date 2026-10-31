@@ -688,3 +688,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     memory fading, one rule for turning, armies, absorption and unrest): "Agreed to all. Expertly." Written into
     "Loyalty is a ledger" and "Governors" (War, travel and the seas) and item 17++. The question of granting a governor
     his provinces as a vassal king is left open ("Maybe").
+76. **31 October 2026, 12:15-12:18 UTC**, in the design chat: "This could also be a way then for an king to organically
+    integrate a vassal's land. A vassal will naturally try to counteract it. But if a king becomes popular enough
+    realtive to the leader, the leader could face an uprising, that offers submission to the king, if it succeeds. And
+    now I think it is much more clear to myself how a governor might rebel, and new dynamics for a king and vassal
+    relationship." Then, to granting a governor his provinces as a vassal king: "Yes, expertly! And you are right.
+    Under the hood, it will be a probability number, I imagine. But it should not be that tangible to a player. But the
+    better you invest in information, the better resolution you get on the situation." Written into "Loyalty is a
+    ledger" and "Governors" (War, travel and the seas) and item 17++.
