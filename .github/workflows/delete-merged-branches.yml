@@ -1,0 +1,54 @@
+# A button for Haakon: Actions → "Delete merged branches" → Run workflow.
+# Deletes only branches whose every commit is already in develop, that no open pull request uses,
+# and that are more than a day old (unless their pull request was merged). main, develop, pr-media and
+# gh-pages are never touched; main and develop are also protected by the "Proc" ruleset.
+name: Delete merged branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only list what would be deleted"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: delete-merged-branches
+  cancel-in-progress: false
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - name: Delete branches fully merged into develop
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git fetch --quiet --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          open=$(gh api "repos/$REPO/pulls?state=open&per_page=100" --paginate --jq '.[].head.ref')
+          cut=$(( $(date +%s) - 86400 ))
+          deleted=0; kept=0
+          for ref in $(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin); do
+            case "$ref" in HEAD|main|develop|pr-media|gh-pages) continue;; esac
+            if grep -qx -- "$ref" <<<"$open"; then echo "keep (open pull request): $ref"; kept=$((kept+1)); continue; fi
+            if ! git merge-base --is-ancestor "origin/$ref" origin/develop; then echo "keep (not merged into develop): $ref"; kept=$((kept+1)); continue; fi
+            if [ "$(git log -1 --format=%ct "origin/$ref")" -gt "$cut" ]; then
+              merged=$(gh api "repos/$REPO/pulls?state=closed&head=${REPO%%/*}:$ref" --jq '[.[]|select(.merged_at!=null)]|length')
+              if [ "$merged" -eq 0 ]; then echo "keep (under a day old, no merged pull request): $ref"; kept=$((kept+1)); continue; fi
+            fi
+            if [ "$DRY_RUN" = "true" ]; then echo "would delete: $ref"; else git push --quiet origin --delete "$ref" && echo "deleted: $ref"; fi
+            deleted=$((deleted+1))
+          done
+          verb=$([ "$DRY_RUN" = "true" ] && echo "would delete" || echo "deleted")
+          echo "Done: $verb $deleted, kept $kept." | tee -a "$GITHUB_STEP_SUMMARY"
