@@ -142,6 +142,8 @@ export class Session {
       this.recent.clear();
       this.history.clear();
       this.reader = new IncrementalReader();
+      clearTimeout(this.reading);
+      this.reading = 0;
       this.framesGeneration++;
       this.fallSeen = false;
     }
@@ -156,13 +158,11 @@ export class Session {
     }
     if (m.live.states.length > 0) {
       for (const d of m.live.states) this.history.apply(d);
-      // Only the newest season is read now, and only what changed in it; a season looked back at is read then (displayed).
-      const t = performance.now();
-      this.state = this.reader.apply(this.history.refs(this.history.length - 1)!, this.history.texts);
-      performance.measure("page:reader", { start: t });
       this.recent.clear();
-      // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
-      setRisen(this.state.risen);
+      // The newest season is read in a task of its own, after the frames have shown (item 17a: one task under the 50 ms
+      // bar holds the message and the map, the next the state); only what changed is read, and a season looked back at
+      // is read when looked at (displayed). Until then the panels show the season before.
+      this.readSoon();
     }
     if (!m.live.hasRunner) this.state = null;
     this.asks = m.live.pending.map((p) => ({
@@ -182,6 +182,21 @@ export class Session {
     }
     this.live = { ...m.live, states: [] };
     this.notify();
+  }
+
+  private reading = 0;
+  private readSoon(): void {
+    if (this.reading !== 0) return;
+    this.reading = window.setTimeout(() => {
+      this.reading = 0;
+      if (this.history.length === 0) return;
+      const t = performance.now();
+      this.state = this.reader.apply(this.history.refs(this.history.length - 1)!, this.history.texts);
+      performance.measure("page:reader", { start: t });
+      // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
+      setRisen(this.state.risen);
+      this.notify();
+    }, 0);
   }
 
   private request(m: ToWorker & { id: number }): Promise<FromWorker> {
