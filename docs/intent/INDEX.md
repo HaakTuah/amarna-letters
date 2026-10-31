@@ -16,17 +16,17 @@ with the copy and say so in the report, and before opening the pull request read
 
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
-| Overview | `docs/intent/overview/` | `320f0886-6acf` | 567 |
+| Overview | `docs/intent/overview/` | `320f0886-6acf` | 569 |
 | Build order | `docs/intent/build-order/` | `f6588701-e47a` | 187 |
-| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 54 |
+| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 55 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 58 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
-| Characters | `docs/intent/characters/` | `0051b400-09bd` | 23 |
+| Characters | `docs/intent/characters/` | `0051b400-09bd` | 25 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 34 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 90 |
-| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 19 |
-| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 20 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 91 |
+| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 20 |
+| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 22 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 19 |
 
@@ -40,7 +40,7 @@ session loads.
 | `docs/intent/overview/vision-and-core-hypothesis.md` | Vision and core hypothesis | 1.4 |
 | `docs/intent/overview/the-game-in-one-page.md` | The game in one page | 4.8 |
 | `docs/intent/overview/design-pillars.md` | Design pillars | 7.4 |
-| `docs/intent/overview/prototype-scope.md` | Prototype scope | 2.8 |
+| `docs/intent/overview/prototype-scope.md` | Prototype scope | 3.0 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
 | `.claude/rules/builder-rules.md` | Rules for the builder | 11.5 |
@@ -69,7 +69,7 @@ session loads.
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.3 |
 | `docs/intent/world-and-history/the-map.md` | The map | 10.7 |
 | `docs/intent/world-and-history/the-sources.md` | The sources | 6.6 |
-| `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 19.7 |
+| `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 20.1 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.9 |
 | `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 22.0 |
@@ -87,9 +87,9 @@ session loads.
 | `docs/intent/diplomacy-and-intelligence/catastrophes-and-hidden-information.md` | Catastrophes and hidden information | 1.3 |
 | `docs/intent/diplomacy-and-intelligence/information-as-an-asset.md` | Information as an asset | 2.2 |
 | `docs/intent/characters/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/characters/characters-hidden-facts-memory-and-continuity.md` | Characters: hidden facts, memory and continuity | 3.0 |
+| `docs/intent/characters/characters-hidden-facts-memory-and-continuity.md` | Characters: hidden facts, memory and continuity | 3.1 |
 | `docs/intent/characters/characters-careers.md` | Characters' careers | 5.4 |
-| `docs/intent/characters/the-pool-of-characters.md` | The pool of characters | 15.1 |
+| `docs/intent/characters/the-pool-of-characters.md` | The pool of characters | 15.3 |
 | `docs/intent/characters/skills-names-and-knowledge.md` | Skills, names and knowledge | 17.3 |
 | `docs/intent/characters/how-scripts-and-models-play-characters.md` | How scripts and models play characters | 1.4 |
 | `docs/intent/work-money-and-lending/front.md` | Title and what the tab holds | 0.1 |
@@ -106,16 +106,16 @@ session loads.
 | `docs/intent/war-travel-and-the-seas/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/war-travel-and-the-seas/territory-and-military-part1.md` | Territory and military (part 1) | 24.5 |
 | `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md` | Territory and military (part 2) | 6.0 |
-| `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 8.8 |
+| `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 9.0 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.5 |
 | `docs/intent/war-travel-and-the-seas/travel-passage-and-distance.md` | Travel, passage and distance | 3.3 |
 | `docs/intent/war-travel-and-the-seas/bands-pirates-and-outlaws.md` | Bands, pirates and outlaws | 10.8 |
 | `docs/intent/victory-and-the-ending/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 21.5 |
-| `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 3.9 |
+| `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 4.1 |
 | `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 16.8 |
+| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 17.7 |
 | `docs/intent/interface-and-the-council/the-royal-council.md` | The royal council | 3.9 |
 | `docs/intent/tests-risks-and-references/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md` | Success criteria and test plan | 6.6 |

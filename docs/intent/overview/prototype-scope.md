@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Overview tab, revision 567 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 569 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 ## Prototype scope
 
 The prototype is an expanded Diplomacy set in one era, not a grand-strategy game. Its only job is to test the core hypothesis cheaply; every system that does not feed trust, mediation or verification is cut. The table records that first scope. The build order goes further, item by item, and where an item takes something from the right-hand column, the row says so.
@@ -10,7 +10,7 @@ The prototype is an expanded Diplomacy set in one era, not a grand-strategy game
 | Economy | Gold from provinces, unit upkeep, transfers | Population, trade goods, markets for goods (markets, with grain and gold as goods, come with build order item 9+, the other trade goods with the economy's later phases, and population with item 10+) |
 | Military | Armies and fleets, Diplomacy-style resolution, plus sieges, walls and minimal terrain (pillar 8) | Unit types, logistics of supply (supply comes with build order item 9+a; distance-based marching is decided: build order item 13) |
 | Communication | Envoys with delay, agency and bribery | Separate scribes, translators, couriers (couriers come with build order items 11b and 13, translators with item 12) |
-| Characters | Pool of 18 envoys and spies with hidden facts (about 60 from build order item 10); planned: one pool of generalist characters who can also serve as generals and governors | Dynasties, heirs |
+| Characters | Pool of 18 envoys and spies with hidden facts (about 60 from build order item 10, about a hundred as built since, and item 18 sets the size from play); planned: one pool of generalist characters who can also serve as generals and governors | Dynasties (an heir appears only when a king dies, from build order item 17b: "One scoreboard for every person" under Victory) |
 | Evidence | Sealed tablets, authentication, basic forgery | Notaries, witnesses as systems (archives at the capital come with build order item 3) |
 | World | Seeded catastrophes, hidden from outsiders | Religion, culture, internal politics |
 | Goal | Relative growth score, random end | Hidden objectives, sandbox mode |

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 90 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 91 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 ## Seas, interception and outlaws
 
 **Seas, interception and outlaws (interception on the road, pirates and bandits decided, build order items 7 and 11; deniable attacks decided, needing no rule; finer seas decided, build order item 7).**
