@@ -1,9 +1,9 @@
-<!-- Generated from the design document, Engine and models tab, revision 57 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 58 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
 ## Turn structure and the deterministic engine
 
 Each turn is one season, resolved by a deterministic engine from a single seed: the same seed and the same orders always produce the same game. That makes games replayable, debuggable and fair to compare across models.
 
-1. **Income and upkeep.** Provinces pay gold into each treasury; units and employed characters at court are paid, while those away build up back pay, paid on their return. Unpaid characters may leave or turn. From item 11a, characters are hired for jobs with a fee instead of wages, and nothing builds up ("Jobs, not wages").
+1. **Income and upkeep.** Provinces pay gold into each treasury; units and employed characters at court are paid, while those away build up back pay, paid on their return; from item 17+, troops are paid and fed by their king's standing order, which he may change or cancel, never by the engine on its own. Unpaid characters may leave or turn. From item 11a, characters are hired for jobs with a fee instead of wages, and nothing builds up ("Jobs, not wages").
 2. **Arrivals.** Envoys, spies' reports, gold shipments and rumors scheduled for this turn arrive. Each seat sees only what reached it.
 3. **Correspondence.** Envoys present at a court hold audiences with that leader. Leaders write instructions, seal tablets and dispatch envoys; travel time is set by distance on the map.
 4. **Orders.** Every seat submits secret, simultaneous orders: moves, supports, transfers, hires, checks, spy missions.
