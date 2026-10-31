@@ -22,10 +22,10 @@ said at the foreign court, and what the envoy reported home. The gaps between th
 
 ## How to play
 
-You are one of thirty powers: the seven Great Kings, Egypt, Hatti, Babylonia, Mitanni, Assyria,
-Arzawa and Alashiya, or one of the city-states and chiefs between them, Byblos, Amurru, Ugarit and
-the rest, on one scoreboard: each power is judged by its growth against par for its starting
-position, so a city that holds its own can win as well as an empire. Each season you read what reached your court, receive foreign envoys, and give your
+You are one of forty-seven powers: the seven Great Kings, Egypt, Hatti, Babylonia, Mitanni, Assyria,
+Arzawa and Alashiya, or one of the forty city-states and chiefs between them, Byblos, Amurru, Ugarit and
+the rest, on one scoreboard: each power is judged by its size and by its growth against the powers that
+started where it did, so a city that holds its own can win as well as an empire. Each season you read what reached your court, receive foreign envoys, and give your
 orders in secret. Every king orders at the same time, and the engine resolves everything at once.
 Three seasons make a year.
 
@@ -87,8 +87,9 @@ rumours, and those can be late, shaded or false.
 
 ### Walls, sieges and terrain
 
-Every capital has walls of level 3. The great fortresses (Carchemish, Qadesh, Tyre, Megiddo,
-Gaza, Mari, Susa, Memphis, Kanesh and Nineveh) have 2, and a few walled towns have 1.
+Walls stand where the sources put them. Hattusa, Washukanni, Ashur and Babylon have walls of level 3, as do
+Qatna, Qadesh and Hazor; Apasa, Enkomi and the great fortresses (Carchemish, Aleppo, Ugarit, Arwad, Byblos, Tyre,
+Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's new city of Akhetaten has none.
 
 - **Storming.** Walls add nothing to a field battle. A move into a walled city takes it at once only
   if its strength also beats the walls plus the defenders.
@@ -124,17 +125,17 @@ own, varied a little in every game.
 
 | Power | Capital | Tier | Starts with | How the script king plays |
 |---|---|---|---|---|
-| **Egypt** | Akhetaten | Strong | armies in Memphis and Akhetaten, a fleet in the Nile Delta, 600 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust" |
-| **Hatti** | Hattusa | Strong | armies in Hattusa and Kanesh, a fleet in Kizzuwatna, 300 shekels | "The conqueror of Anatolia": the most aggressive king, vengeful, little given to trade |
-| **Babylonia** | Babylon | Strong | armies in Babylon, Sippar and Dur-Kurigalzu, 650 shekels | "Keeper of the old order": the proudest and greediest; cautious, and will not call Assyria brother unless they are friends |
-| **Mitanni** | Washukanni | Middle | armies in Washukanni, Taidu and Terqa, 500 shekels | "Seeker of a patron": the most diplomatic and among the most honest; squeezed between Hatti and Assyria |
-| **Assyria** | Ashur | Middle | armies in Ashur, Nineveh and Ekallatum, 350 shekels | "The upstart who would be brother": aggressive and cunning, hungry to be counted a Great King |
-| **Arzawa** | Apasa | Weak | armies in Mira and Apasa, a fleet in Seha, 300 shekels | "The western opportunist": the most cunning and least honest |
-| **Alashiya** | Enkomi | Weak | a fleet in Enkomi, 350 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
+| **Egypt** | Akhetaten | Strong | armies of 7,500 men in Memphis and Akhetaten, small garrisons in Gaza and Sumur, a fleet in the Nile Delta, 900 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust" |
+| **Hatti** | Hattusa | Strong | armies of 7,500 men in Hattusa and Nesa, a fleet in Kizzuwatna, 300 shekels | "The conqueror of Anatolia": the most aggressive king, vengeful, little given to trade |
+| **Babylonia** | Babylon | Strong | armies in Babylon, Sippar and Dur-Kurigalzu (10,000 men in all), 600 shekels | "Keeper of the old order": the proudest and greediest; cautious, and will not call Assyria brother unless they are friends |
+| **Mitanni** | Washukanni | Middle | armies of 5,000 men in Washukanni and Taidu, 450 shekels | "Seeker of a patron": the most diplomatic and among the most honest; squeezed between Hatti and Assyria |
+| **Assyria** | Ashur | Middle | armies in Ashur, Nineveh and Ekallate (4,000 men in all), 300 shekels | "The upstart who would be brother": aggressive and cunning, hungry to be counted a Great King |
+| **Arzawa** | Apasa | Weak | an army of 10,000 men in Apasa, a fleet in Apasa's waters, 300 shekels | "The western opportunist": the most cunning and least honest |
+| **Alashiya** | Enkomi | Weak | an army in Enkomi, a fleet in its waters, 400 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
 
 Between the great kingdoms lie the city-states, such as Ugarit, Byblos, Qadesh and Elam, and the Kaska,
-Lukka and Sutean chiefs: twenty-three powers of their own, most of them vassals of Egypt or Mitanni by
-sealed tablets, with the same rules and the same goal as the kings. Alashiya is an island, reached only by sea.
+Lukka, Shasu and Sutean chiefs: forty powers of their own, most of them vassals of Egypt or Mitanni (a few of Hatti
+or Arzawa) by sealed tablets, with the same rules and the same goal as the kings. Alashiya is an island, reached only by sea.
 
 A script king sees only what its seat sees. It remembers who wronged it and who kept faith, and
 checks its orders against what its rivals are likely to do by playing the season out with the
@@ -177,9 +178,11 @@ where the great kings' spheres meet, and where the truth is hardest to find.
 
 ## Envoys and other servants
 
-Eighteen people move between the courts: eight with names attested in the Amarna letters (Mane,
-Keliya, Pirissi and others, seven drawn each game) and the rest named in their region's style.
-Each power starts with two envoys; the rest are free agents, looking for a master.
+About a hundred people move between the courts: the envoys, officials and agents attested in the Amarna letters
+(Mane, Keliya, Pirissi, Hani, Yanhamu and others) and the rest named in their region's style, each speaking the
+tongues of where they have lived. A Great King starts with two envoys and a city-state with one; everyone else is
+free, at the court of their region, looking for a master. A job is an errand carried to the man wherever he is:
+what to do, where and by when, a part of the fee paid now and the rest on completion, each payment by your order.
 
 Each has traits from 0 to 100 (loyalty, greed, competence, ambition, courage, and sympathy for a
 court), secrets at three levels of secrecy, and a memory that travels with them to a new master.
@@ -201,8 +204,9 @@ What an envoy can do to your words, and why:
   loyalty is low, or if it already favours that court.
 - **Be detained.** A host may hold your envoy, and with it your letters and gold.
 
-Servants are paid every season. One left unpaid loses loyalty and is owed back pay, and may give
-notice. When a contract ends, the servant names a price to stay.
+Nobody is paid unless you order it, by hand or by a standing order ("pay on delivery"). A servant left unpaid
+remembers it, and so do those who hear of it. When an errand ends it ends: keeping the man is a new offer, which he
+may refuse or price higher.
 
 Spies watch a court or a province and send reports home. Watchmen catch them, and a caught spy can
 be ransomed, or turned into a double agent who sends home poisoned reports.
@@ -214,13 +218,16 @@ them Sonnet.
 
 Pick a preset, choose whether to watch or take a seat, and begin.
 
-| Preset | Kings | Envoys and spies | Narrator | Rough cost per 20-season game |
+| Preset | Kings | Envoys and spies | Narrator | Rough cost of a game |
 |---|---|---|---|---|
 | **Free** | Script kings | Script | Template | $0, no key needed |
-| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | under $1 |
-| **Standard** | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $9 |
-| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $20 |
+| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $2 |
+| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $25 |
+| **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $30 |
+| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $60 |
 | **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
+
+The costs are the start page's estimates for an age of the usual length; it recomputes them as you change the table.
 
 Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
 messengers. **Customize the table** sets each king separately (script, human, Haiku, Sonnet or
@@ -313,7 +320,10 @@ Then open <http://localhost:5183>, pick a preset, choose whether to watch or tak
 ### Tests and the batch runner
 
 ```bash
-scripts/test.sh          # type-check, the engine's determinism lint, and every test (Vitest)
+scripts/cloud-setup.sh   # on a fresh cloud machine: the npm packages and Playwright's Chromium, if missing
+scripts/test.sh          # type-check, the engine's determinism lint, and every test (Vitest), printing only the
+                         # summary and the failures (the full log goes to $TMPDIR/amarna-test.log)
+npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright smoke test of the built app
 ```
 
 ```bash
@@ -321,7 +331,7 @@ scripts/sim.sh --games 50 --seed 1 --verify-replay
 ```
 
 The batch runner plays games unattended and prints wins by power and the success signals.
-With `ANTHROPIC_API_KEY` set it can run model games too (`--preset budget`, or per role:
+With `ANTHROPIC_API_KEY` set it can run model games too (`--preset budget`, `counsel`, `standard` or `showcase`, or per role:
 `--leaders sonnet --characters haiku --narrator sonnet`), stopping at `--budget` dollars; every
 such game costs real money. `--no-primer` runs the
 customs-primer experiment; `--out logs` keeps every game's log. `--versus solo` measures the
@@ -333,8 +343,8 @@ The measure of call size (item 6b) shadows script games with model kings and spl
 `node --experimental-strip-types --no-warnings src/batch/src/measure.ts --games 20 --seed 1` (`--per-audience` for
 one call per audience, `--dump DIR` for sample requests). It calls no model.
 `--sleep off` turns off sleeping seats, `--sleep-cap N` sets
-the hidden safety cap on a sleep, `--max-turns N` stops a game after season N at the latest (a known cap), `--cap 80-100` or `--cap none` sets
-the hard cap's range, and `--median N` the season by which half of all ages have ended (44 by default).
+the hidden safety cap on a sleep, `--max-turns N` stops a game after season N at the latest (a known cap), `--cap 140-160` or `--cap none` sets
+the hard cap's range, and `--median N` the season by which half of all ages have ended (80 by default).
 `--file-seats DIR` makes every king a file seat:
 it writes what a model king would see to its own folder and waits for a JSON reply file, which is
 how `sim/` plays a game with Claude Code agents as the kings (see `sim/README.md`).
