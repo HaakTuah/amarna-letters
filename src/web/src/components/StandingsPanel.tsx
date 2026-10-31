@@ -13,7 +13,12 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
   const latest = state.scores.length === 0 ? 0 : Math.max(...state.scores.map((s) => s.turn));
   const known = viewer === null;
   // The estimate every court can make from who holds what: the same figures a model king reads on its LAND STANDINGS line.
-  const land = new Map(Views.landStandings(state.owner, state.eliminated).map((x) => [x.power, x]));
+  // For a seat, by the holders its court knows (its seat view's owner, dated by word), never the true map: distant
+  // changes of hands reach it as late as they reach its court, as on its own standings line.
+  const seatView = known || viewer === null ? null : Views.for(state, viewer);
+  const land = new Map(
+    (seatView === null ? Views.landStandings(state.owner, state.eliminated) : Views.landStandings(seatView.owner, seatView.fallen)).map((x) => [x.power, x]),
+  );
   // A seat sees its own strength and gold by its ledger (unassayed gold at its weight), never the true figures.
   const growth = (p: Power): number => {
     if (known) return engine.growth(p);
@@ -54,11 +59,11 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
               return (
                 <tr key={p}>
                   <td>
-                    <Emblem power={p} /> {powerName(p)} {isAlive(state, p) ? "" : "(fallen)"}
+                    <Emblem power={p} /> {powerName(p)} {(seatView === null ? isAlive(state, p) : !seatView.fallen.includes(p)) ? "" : "(fallen)"}
                   </td>
                   <td>{l.fallen ? "-" : `${landGrowth(l).toFixed(2)} (${l.yield} of ${l.startYield})`}</td>
                   <td>{mine ? growth(p).toFixed(2) : "?"}</td>
-                  <td>{ownedBy(state, p).length}</td>
+                  <td>{seatView === null ? ownedBy(state, p).length : [...seatView.owner.values()].filter((o) => o === p).length}</td>
                   <td>{mine ? String(state.units.filter((u) => u.power === p).length) : "?"}</td>
                   <td>{mine ? shekels(known ? t.gold : ledger(t)) : "?"}</td>
                 </tr>
