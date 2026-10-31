@@ -791,3 +791,14 @@ Given in the design chat with Claude, answering the design questions of the cons
     it creates weird incentives." To the design session's shape (item 17b): "Yes, please. Experlty to all!" Written into
     "One scoreboard for every person" (Victory), "A fallen player's game is over" (War, travel and the seas), item 17b,
     and the next game's design document ("Lineage: houses outlive their founders").
+90. **31 October 2026, 15:22-15:30 UTC**, in the design chat: "But this opens a can of worms. What dicatets just
+    dying, and what dictates a realm fracturing? And where do capitals come in now?" Then: "But then he always dies in
+    his capital, so the concept of a capital starts making less sense? What keeps him primarily in one spot, and should
+    that really be what dictates if the kingdom passes or fractures? Because now it is so that if babylon beseiges
+    provinces in Egypt and occupies them, they get them. But they don't get the stuff they don't occupy. It becomes
+    lawless as we covered. But if we have an inheritor what are the conditions then?" Then: "This sounds better. But
+    where does he spawn, and what is a capital now? Why not constantly move it? We could add artifical barriers to
+    that, but you know o don't like paradox gamey stuff." To the design session's shape (a realm holds by its ledger;
+    the capital where the court is; the heir with the court or among its refugees): "Yes, do so expertly!" Written into
+    "A realm holds by its ledger" and "The capital is wherever the king is" (War, travel and the seas), "One scoreboard
+    for every person" (Victory) and item 17b.
