@@ -37,8 +37,10 @@ The design document records intent; these notes record what is built. Where they
   moves the seat saw, so a foreign levy wakes nobody.
 - **Who holds each province was public at once** (as it stood on 19 October; closed by item 7b). The document's
   "Hidden by default" has news of distant provinces, including who holds them, arrive late; since item 7b a court sees
-  the holder of what is in its sight as it is, and elsewhere the newest that word has brought it, dated, as the
-  seat view's `known` (`rules/views.ts`, `ownerAt` and the province knowledge after it; `13-travel-and-news.md`).
+  the holder of what is in its sight as it is, and elsewhere the newest that word has brought it, dated: the seat
+  view's `owner`, `ownerAsOf` and `ownerFrom`, filled by `Views.knownHolders` (`rules/views.ts`) from the court's stored
+  knowledge (`GameState.known`; `13-travel-and-news.md`). The web app's Standings tab still reckons its land standings
+  from the true holders, even for a seat (a polish-lane find, noted in `docs/rounds/2026-10-31-polish-lane.md`).
 - **Tablets have a place, but are only copied** (until item 10, which built stealing and a capital's archive carried
   off: see `18-characters-who-they-are.md`). As the document says, a tablet lies in a court's archive at its
   capital, a spy copies it there, and whoever takes the capital takes its archive (see "Tablets lie in archives" under
