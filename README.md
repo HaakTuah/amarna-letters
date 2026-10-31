@@ -35,8 +35,9 @@ rumours, and those can be late, shaded or false.
 
 ### A season
 
-1. **Income and upkeep.** Provinces pay gold. Troops, servants and raised walls are paid. Troops
-   the treasury cannot pay desert; unpaid servants are owed back pay, and remember it.
+1. **The land and its upkeep.** In its season the harvest is reaped and taxed into each province's stores; mines and
+   markets bring in gold; people eat, and the hungry move. Troops and works are paid and fed as you ordered, and
+   troops left unpaid or hungry for long mutiny.
 2. **Arrivals.** Envoys, gold, spy reports and rumours that were on the road arrive.
 3. **Audiences.** Foreign envoys deliver their message in their own words. The host answers, and
    may bribe the envoy, offer it a post, seal its tablet, detain it or send gold back. Each audience
