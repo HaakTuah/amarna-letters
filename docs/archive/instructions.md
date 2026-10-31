@@ -838,3 +838,111 @@ Given in the design chat with Claude, answering the design questions of the cons
     unless someone orders it": "Agree with you on 1". Each king starts with a standing order to pay and feed his troops,
     shown among his orders and his to change or cancel, as a starting servant's pay already works (item 11b+). Written
     into item 17+ and the season's first step ("Income and upkeep", Engine and models).
+97. **31 October 2026, 19:03-19:05 UTC**, in the design chat: "The game still doesn't move slowly and smooth enough.
+    Still hicks. hope that polish pass isn't done already, because it far from sufficed. Also, pressing spacebar really
+    needs to pause and unpause the game. Everything should have hotkeys for the computer quiet frankly, and Paradox
+    hotkeys is what people are used to, so we should probably use those." To the design session's three readings
+    (smoothness measured in 17a and 17+++, no frame over about 50 ms, with a recording; Space and the speed keys in the
+    polish lane at once; the full Paradox-style key set as its own item after 17+++, every later item bringing its
+    keys): "Agreed to all, expertly!" Written into items 17a, 17+++ and 17+++a, and the polish lane.
+98. **31 October 2026, 20:28-20:42 UTC**, in the design chat, on Irving Finkel's Curator's Corner on the Amarna Letters
+    (the British Museum, 25 September 2026). To royal marriage as an item, and to letters to anyone at a court and
+    failure at home moving out of Ideas: "No, I don't think we want to extend the scope to that. For marriage to make
+    sense, you must have dyansties, offspring, and we simply aren't offering that. Otherwise it becomes a gamey
+    mechanic. But you are saying something about Rib-Hadda's hostile relatives. They should presumably be in the game
+    from the start. Are the more characters from the period that should be in the games, who are not leaders to start
+    with?" and "No, same reason as the previous one." and "Is “Lady of the Lions" in the game? She maybe should? Though
+    her gender will not factor in gameplaywise as of yet, at least." To the design session's three readings (the
+    attested non-leaders of 1346 as characters from the start; the heir taking the attested name; the Lady of the Lions
+    ruling a small city-state near Aijalon): "Yes, expertly for all! I am thinking that even the heir of heir can take
+    the real name if it is on the record, all the way down, as far as it goes, in case many generations die during a
+    game. Also, some of these seems to have "bands" of their own? Should they have it at game start? And also, now
+    that we rework province "ownership" to not be a thing, but a measure of loyalty and suppression by force, should
+    any of these characters start with competitng loyalty to the leaders somewhere, expert? They should also be in the
+    place and have what they had at that time. Represent their position as accurately as we can, not just spawn them
+    in completely randomly. and they are all from the game start?" Written into items 17+, 17++ and 17b.
+99. **31 October 2026, 20:46-20:49 UTC**, in the design chat: "Sounds like there were some governors at that time?
+    shouldn't every know governor be added and given their privellege at the start of the game?'" To the design
+    session's list (Egypt's commissioners, Enlil-kidinni, Ili-ippashra, Alashiya's governor), leaving out the prince
+    Telipinu in Kizzuwatna: "Yes, agreed. That would be a family possesion anyhow." and "agreed to all, expertly."
+    Written into item 17++.
+100. **31 October 2026, 20:51-21:00 UTC**, in the design chat: "Are there anymore places, which probably had governors,
+    but are simply being omitted now due to lack of sources?" To the design session's two readings (Thutmose, Viceroy of
+    Kush, named over Nubia; where the office is attested for a province on the map but the holder's name is lost, a
+    governor named in the region's style and marked invented, the heartlands ruled directly): "1. Yes! 2. Yes, expertly
+    so!" Written into item 17++.
+101. **31 October 2026, 21:04 UTC**, in the design chat: "We have to balance the loyalty and material and millitary
+    standing for all of these relative to their kings, also. And it should all follow the historical sources as closely
+    as possible!" Written into item 17+.
+102. **31 October 2026, 21:04-21:09 UTC**, in the design chat: "Perfect, then we have that stuff covered! Should make the
+    big states a little less OP at start? [...] Are there any more characters that should be added?" To the design
+    session's two readings (no handicap, the accurate start measured after 17+ and 17++, only shared numbers tuned in
+    item 18; a full pass through the letters' index of persons in 17+): "yes, expertly so!" Written into items 17+ and
+    18.
+103. **31 October 2026, 21:12-21:16 UTC**, in the design chat: "How many characters do we have planned right now?" Told
+    123 characters at start (23 attested, 100 in the regions' name styles) and 47 rulers, and about 150-200 if tonight's
+    additions came on top, to the design session's reading that the real people should take the places of invented
+    ones, keeping the world near its baseline: "Agreed," Written into item 17+.
+104. **31 October 2026, 21:19-21:27 UTC**, in the design chat: "Is all the provinces that should be in the game, in the
+    game or the design document now, according to their historcial relevance for this exact time? And are there any
+    provinces that should be cut, that are in the game or design document now, expert?" To the design session's
+    candidates (Alshe and Ashtata added, Suhu folded, each if the dossiers bear it out): "1. Yes." Written into item
+    17+.
+105. **31 October 2026, 21:27-21:32 UTC**, in the design chat, on the design session's Tagi "holding his town as part of
+    his means": "Do you mean giving them a bigger purse instead? What exactly do you mean by hold as "part of their
+    means"?" On a governor at Kumidi: "What? A governor runs a town. If there is no town, then we don't have a governor
+    by the game rules?" To the readings (a town's ruler too small for a province as a character with his purse, goods
+    and men and a share of the province's love; only those running a province their king holds as governors, the other
+    commissioners as characters): "Yes, expertly to both. Except I don't know what you mean by "household"." The word
+    "household", which names nothing in the game, was taken out. Written into items 17+ and 17++.
+106. **31 October 2026, 21:35-21:42 UTC**, in the design chat, on the commissioners: "But commisoners... Now you are
+    introducing characters I have no clear scope for. We must have some way to represent what they do, or they bring
+    only bloat and noise to the game." Then "So they are spies, that are out in the open?" Then: "Okay, we must just be
+    careful, not to inflate the game too much with very narrow characters. The initial vision for the game was one with
+    a rather narrow character cast, but capable, that could carry out mutliple types of missions accross the game
+    world. Now it feels like we are rapidly expanding to enfold the entire beuracracy (obviously excaterating) but you
+    see, we are introducing charcters which will presumably stay put in the kings own land, and be triggered
+    frequently to deliver some news they hear. But we will have to see how it plays out. I am curious. so let's not
+    cut the fat just yet, but we must be vigilant for this kind of scope creep, which inflates model calls, but adds
+    little to the game as a whole. Your perspective?" To the design session's guard (each added person starts on an
+    errand or with a stake, or is left out; the report measures wake-ups, model calls and each one's activity; item 18
+    cuts those who add nothing, after he sees the list): "Yes, expertly!" Written into items 17+, 17++ and 18.
+107. **31 October 2026, 21:44 UTC**, in the design chat: "The job you added for Claude Code to go over the sources and
+    find characters, must do the same kind of evaluation in addition to the historical evaluation." Written into item
+    17+ (the pass through the letters' index of persons).
+108. **31 October 2026, 22:12-22:18 UTC**, in the design chat, after the design session described the narrator and
+    spectator mode, to a list of threads to watch and an optional director camera in spectator mode, and to people named
+    as each court named them (Pharaoh Naphurureya in foreign letters, Akhenaten in Egypt's own seat): "Yes to that. And
+    yes to" the first. Written into items 17+ and 17+++.
+109. **31 October 2026, 22:22 UTC**, in the design chat, to the design session's question on showing each model mind's
+    notes in the spectator's seat view: "Yes, I think so. And it should maybe store what it looked like at every step?
+    And the narrator should also have its take stored from the first time it runs on a game, so it must not be ran each
+    time you watch it potentially afterwards?" Written into item 17+++.
+110. **31 October 2026, 22:24-22:27 UTC**, in the design chat, to the design session's two questions (a person's other
+    names on a second line of his card; a game told anew only when asked): "Yes to both. But I think it should only
+    show their name like that when you click on the character? Or di you want it in parenthesis in every letter they
+    receive?" Written into items 17+ and 17+++: on the card when clicked, never in letters.
+111. **31 October 2026, 22:49-22:53 UTC**, in the design chat. Asked what name an uprising or upstart takes, and given
+    the design session's take (the seat's period name, kept for the realm's life; the founder's house, Bit- and his
+    name, only when a living power already goes by it; never a number): "Yes, expertly please! If that is what you
+    advice." With it: "But one issue remains. What about when the leader of Gubla conquers a new province? Is the
+    "nation" still Gubla? What if he conquers 5 more?" Answered from the same rule: the name stays however far the
+    realm grows, as Hatti and Assyria kept theirs, and growth shows in how other courts address its king. Written into
+    "Places by their own names" (World) and item 17+.
+112. **31 October 2026, 23:00-23:02 UTC** (1 November in Oslo), in the design chat, on item 111's rule: "My point is,
+    if you take ashur from Assyria as a startup, what do you become, what do they become? And right now there is no
+    way to take over the title of Egypt. Only the pharoh at the start, and his spawned heirs has tat possibility. Is
+    this a big problem? No. But the inconsistency and special cases bothers me." Then, to the design session's take
+    (a power's name is a claim; any power may claim any realm's name or title; each court gives a disputed name to the
+    claimant it recognises and calls the other by his house): "Yes, please, expertly! And i guess model kings and
+    players could alreayd call themselves whatever they want?" Written into "Places by their own names" and
+    "Recognition is earned" (World) and items 17+ and 17b, replacing item 111's fallback.
+113. **31 October 2026, 23:08-23:14 UTC** (1 November in Oslo), in the design chat. "Now that all kings are characters,
+    I guess no kingdom has any behavioral tilts anymore, its just the traits of the character that is king." Told that
+    the script kings still play per-kingdom archetypes, and asked whether those should become the 1346 kings' own traits:
+    "If that was what these leaders were like in the historical sources, in your history expert opinion, then yes. If
+    not, let's hash it out." Given the design session's check (Babylonia and Alashiya fit; Mitanni, Assyria and Arzawa
+    need corrections; Egypt's archetype is Amenhotep III, not Akhenaten; Hatti's is wrong on patience and diplomacy):
+    "Yes, please expertly applied across the board! Let every character reflect wha the historical letter showed they
+    were truly like! And let that manifest in their actions through the game!" Written into "Attested characters"
+    (Characters), items 17b and 18, and the ideas entry on model kings' strategies.
