@@ -895,3 +895,15 @@ Given in the design chat with Claude, answering the design questions of the cons
     and men and a share of the province's love; only those running a province their king holds as governors, the other
     commissioners as characters): "Yes, expertly to both. Except I don't know what you mean by "household"." The word
     "household", which names nothing in the game, was taken out. Written into items 17+ and 17++.
+106. **31 October 2026, 21:35-21:42 UTC**, in the design chat, on the commissioners: "But commisoners... Now you are
+    introducing characters I have no clear scope for. We must have some way to represent what they do, or they bring
+    only bloat and noise to the game." Then "So they are spies, that are out in the open?" Then: "Okay, we must just be
+    careful, not to inflate the game too much with very narrow characters. The initial vision for the game was one with
+    a rather narrow character cast, but capable, that could carry out mutliple types of missions accross the game
+    world. Now it feels like we are rapidly expanding to enfold the entire beuracracy (obviously excaterating) but you
+    see, we are introducing charcters which will presumably stay put in the kings own land, and be triggered
+    frequently to deliver some news they hear. But we will have to see how it plays out. I am curious. so let's not
+    cut the fat just yet, but we must be vigilant for this kind of scope creep, which inflates model calls, but adds
+    little to the game as a whole. Your perspective?" To the design session's guard (each added person starts on an
+    errand or with a stake, or is left out; the report measures wake-ups, model calls and each one's activity; item 18
+    cuts those who add nothing, after he sees the list): "Yes, expertly!" Written into items 17+, 17++ and 18.
