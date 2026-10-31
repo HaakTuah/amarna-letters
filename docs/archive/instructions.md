@@ -802,3 +802,14 @@ Given in the design chat with Claude, answering the design questions of the cons
     the capital where the court is; the heir with the court or among its refugees): "Yes, do so expertly!" Written into
     "A realm holds by its ledger" and "The capital is wherever the king is" (War, travel and the seas), "One scoreboard
     for every person" (Victory) and item 17b.
+91. **31 October 2026, 15:33-15:38 UTC**, in the design chat: "Can province ownership be made into something more
+    agnostic? As in not something you owned hardcoded, but something that abides you, by a combination of force and
+    loyalty?" To "Whom a province obeys" (17++): "Yes, please, expertly! Just 2 additions/changes. My thinking is that
+    an heir inherits not his father full standing, so if his father was popular, or if his father was hated, the heir
+    is less of either, but probably inherits a bit of it. Thoughts? And in regards to vassals. Remember that
+    character's foremost motivation is always to rank higher on the scoreboard, so loyalty doesn't factor into it in
+    the same way for a character's, as it does for a non-player entity like a province. But if it is a character with
+    agreeable traits, then teh chosen strategy for maximizing their score standing is an more conservative one that
+    favors working from within the system. Think that is alright, expert?" Written into "Whom a province obeys" and "A
+    realm holds by its ledger" (War, travel and the seas), "Stakes, not dispositions" and the kings' grounding
+    (Characters), and items 17++ and 17b.

@@ -17,7 +17,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 151,
+   "rev": 153,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -90,7 +90,7 @@
   "characters": {
    "name": "Characters",
    "node": "0051b400-09bd",
-   "rev": 21,
+   "rev": 23,
    "files": [
     "docs/intent/characters/front.md",
     "docs/intent/characters/characters-hidden-facts-memory-and-continuity.md",
@@ -128,10 +128,11 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 87,
+   "rev": 88,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
-    "docs/intent/war-travel-and-the-seas/territory-and-military.md",
+    "docs/intent/war-travel-and-the-seas/territory-and-military-part1.md",
+    "docs/intent/war-travel-and-the-seas/territory-and-military-part2.md",
     "docs/intent/war-travel-and-the-seas/command-at-a-distance.md",
     "docs/intent/war-travel-and-the-seas/commanders.md",
     "docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md",
