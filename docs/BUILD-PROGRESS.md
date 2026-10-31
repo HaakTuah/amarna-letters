@@ -25,6 +25,12 @@ A side lane of small refinements, beside the item lane and never ahead of it (Ha
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
+- **First, the README** (Haakon, 31 October 2026: "Yes, expertly to both!"): bring `README.md` up to the game as
+  built: "How to play" through every item since it was written (characters and errands, the economy and hunger,
+  command at a distance, city-states, the living map), the numbers the improvement audit found stale, and the
+  developer section's commands; one PR, docs only. It gets a second, smaller pass in the PRs of items 17+ and 17++,
+  which change the opening and how a king asks and counts ("A change a player sees updates the README" in
+  `CLAUDE.md`).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,

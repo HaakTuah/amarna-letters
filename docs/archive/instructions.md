@@ -747,3 +747,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     the clean-up of merged branches: "Why keep it?" Then "Yes, expertly" to keeping it as a tag, and then: "I don't
     care. That build is old news." So the branch goes with the other merged branches, no tag is made, and `CLAUDE.md`,
     `README.md` and the design notes point to commit `5b4caa2` in `develop`'s history.
+86. **31 October 2026, 14:39-14:40 UTC**, in the design chat: "The README for both projects should probably also be
+    queued to be updated?" Then, to a one-time refresh in the polish lane (with a second pass after 17+ and 17++) and a
+    standing rule that a change a player sees updates the README in the same PR, checked at each milestone: "Yes,
+    expertly to both!" Written into `docs/BUILD-PROGRESS.md` ("The polish lane") and `CLAUDE.md` ("Standing
+    instructions").
