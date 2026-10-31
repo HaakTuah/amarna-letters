@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Overview tab, revision 567 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 569 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## Vision and core hypothesis
 
 Amarna Letters is a strategy game with no diplomacy rules: the engine enforces physics, and every treaty, alliance and betrayal is invented by the players. It is set among the seven Great Kings of the Late Bronze Age, whose clay-tablet correspondence (c. 1360–1332 BCE) shows diplomacy at its rawest: disputed status, gold of doubtful purity, detained messengers and promises nobody could verify.
