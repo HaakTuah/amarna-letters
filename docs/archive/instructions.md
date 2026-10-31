@@ -738,3 +738,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     session's take (no size threshold: a move into a far weaker unit is a battle it loses, a garrison holds a town only
     as far as its people's ledger stands with its master, script kings fold or disband remnants): "Agreed to all,
     expertly!" Written into "The people defend their land" (War, travel and the seas) and item 17++.
+84. **31 October 2026, 13:56-13:57 UTC**, in the design chat, as the second account neared its five-hour limit: "Have
+    we informed them to push every single commit? I see that they are now running out of their allocated usage for the
+    next couple of hours. I don't want them to stop, but I do hope they have pushed everything that they can." Then, to
+    making "push after every commit" a standing rule in both games in place of "at every passed gate and at least
+    hourly": "YES!" Written into `CLAUDE.md`, "Standing instructions" (push as you go).
