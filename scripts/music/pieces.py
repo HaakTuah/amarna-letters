@@ -181,6 +181,7 @@ def battle(v: int) -> Score:
 def triumph(v: int) -> Score:
     s = Score(bpm=100, seed=400 + v)
     m = Mode(["isartum", "kitmum", "isartum"][v], 62)
+    s.shade = 1 if v == 1 else 0  # kitmum, a step brighter than išartum
     H = hymn_in(m, [0, 1])
     b = 0.0
     s.hit("cymbal", 0, 0.6)
@@ -339,6 +340,7 @@ def chariots(v: int) -> Score:
 def envoys(v: int) -> Score:
     s = Score(bpm=88, seed=800 + v)
     m = Mode("pitum" if v != 2 else "nid_qablim", 55)  # G
+    s.shade = -1 if v == 2 else 0  # nīd qablim, a step darker than pītum
     walk = [0, 4, 2, 4, 1, 4, 2, 4]
     q = [(4, 1), (3, 0.5), (2, 0.5), (3, 2), (None, 1), (1, 1), (2, 0.5), (1, 0.5), (0, 3), (None, 6)]
     q2 = [(5, 1), (4, 0.5), (3, 0.5), (4, 2), (None, 1), (2, 1), (3, 0.5), (2, 0.5), (1, 3), (None, 2), (0, 4)]

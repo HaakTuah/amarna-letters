@@ -8,7 +8,7 @@ import { city } from "../map/features.ts";
 import type { SeasonFrame } from "../session/frames.ts";
 import { player } from "./player.ts";
 import { Width } from "../map/art.ts";
-import { bedAt, cuesAt, hearing, moodAt } from "./situation.ts";
+import { bedAt, cuesAt, hearing, moodAt, shadeAt } from "./situation.ts";
 
 interface View {
   at: { x: number; y: number };
@@ -23,7 +23,11 @@ export function useGameAudio(frames: readonly SeasonFrame[], index: number, view
   const key = `${game}:${viewer ?? "god"}`;
 
   // The mood of the season shown, whether played live or stepped through.
-  useEffect(() => player.setMood(frames.length === 0 ? "menu" : moodAt(frames, index, viewer)), [frames.length, index, key]);
+  useEffect(() => {
+    player.setMood(frames.length === 0 ? "menu" : moodAt(frames, index, viewer));
+    // Darker as the seat's situation worsens, brighter as it improves; the fallback plays in its court's home mode.
+    player.setShade(frames.length === 0 ? 0 : shadeAt(frames, index, viewer), viewer);
+  }, [frames.length, index, key]);
 
   useEffect(() => {
     const last = cued.current;
@@ -58,6 +62,7 @@ export function useGameAudio(frames: readonly SeasonFrame[], index: number, view
   useEffect(
     () => () => {
       player.setMood("menu");
+      player.setShade(0, null);
       player.setBed(null);
     },
     [],

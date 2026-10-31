@@ -112,6 +112,28 @@ export function moodAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   return "calm";
 }
 
+/**
+ * How the mood is heard within a piece (item 19+++): darker as the situation worsens, brighter as it improves, as the
+ * viewer knows it. -2 in a battle or a siege, or a king or capital of its own fallen in the last three seasons (mourning);
+ * -1 at war, on grave omens, or with hunger in its land; +1 at a feast, read as a season that brought it land, or a harvest
+ * it saw with no hunger in it and no war; 0 otherwise.
+ */
+export function shadeAt(frames: readonly SeasonFrame[], index: number, viewer: Power | null): -2 | -1 | 0 | 1 {
+  const mood = moodAt(frames, index, viewer);
+  if (mood === "battle" || mood === "siege") return -2;
+  for (let k = index; k > Math.max(0, index - 3); k--) {
+    const c = cuesAt(frames, k, viewer);
+    if (c.moment === "fall" || c.moment === "solemn") return -2;
+  }
+  const f = frames[index];
+  if (f === undefined) return 0;
+  const seenHere = (kind: string): boolean => f.events.some((e) => e.kind === kind && (viewer === null || e.visibleTo.includes(viewer)));
+  if (mood === "war" || grave(f) || seenHere("hunger") || seenHere("famine")) return -1;
+  const c = cuesAt(frames, index, viewer);
+  if (c.moment === "triumph" || seenHere("harvest")) return 1;
+  return 0;
+}
+
 /** What a season brings to the ear, in the order it is heard. */
 export interface Cues {
   sting: Sting | null;
@@ -162,7 +184,8 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   }
   // A king gone: the viewer's own fall, or any in god view.
   const fallen = [...f.eliminated].filter((p) => !prev.eliminated.has(p));
-  if (fallen.length > 0 && (viewer === null || fallen.includes(viewer))) {
+  // The seat's own fall; in god view a great king's (a city-state's falls quietly, as its capital does).
+  if (fallen.length > 0 && (viewer === null ? fallen.some((p) => isGreatKing(p)) : fallen.includes(viewer))) {
     out.sting ??= "king";
     if (out.moment === null || out.moment === "triumph") out.moment = "solemn";
   }

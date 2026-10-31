@@ -53,7 +53,10 @@ def render_music(names: list[str]) -> None:
             path = os.path.join(OUT, "music", f"{name}-{v + 1}.m4a")
             info = write(x, path, MUSIC_LUFS, "64k")
             ends = sorted({round(s.sec(b), 2) for b in s.phrases if s.sec(b) < info["seconds"] - 0.5})
-            vars_.append({"file": f"music/{name}-{v + 1}.m4a", "hash": info["hash"], "seconds": info["seconds"], "phrases": ends})
+            entry = {"file": f"music/{name}-{v + 1}.m4a", "hash": info["hash"], "seconds": info["seconds"], "phrases": ends}
+            if s.shade != 0:
+                entry["shade"] = s.shade
+            vars_.append(entry)
             print(f"{name}-{v + 1}: {info['seconds']:.1f}s, {len(ends)} phrases, {os.path.getsize(path) / 1e6:.2f} MB, {time.time() - t0:.0f}s")
         man["music"][name] = vars_
         save_manifest(man)

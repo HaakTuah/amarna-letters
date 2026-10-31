@@ -7,12 +7,17 @@ export interface AudioSettings {
   /** 0 to 1. */
   musicVolume: number;
   soundVolume: number;
+  /** Which version of the music plays: the Empire Earth-style pieces, or the fallback in 8-bit or in period timbres. */
+  style: MusicStyle;
 }
+
+export type MusicStyle = "orchestra" | "chip" | "period";
+const Styles: readonly MusicStyle[] = ["orchestra", "chip", "period"];
 
 const Key = "amarna-audio";
 
 /** Quiet by default: both on, low, and nothing sounds before the reader's first touch (the browser's own rule). */
-export const DefaultAudio: AudioSettings = { music: true, sound: true, musicVolume: 0.35, soundVolume: 0.45 };
+export const DefaultAudio: AudioSettings = { music: true, sound: true, musicVolume: 0.35, soundVolume: 0.45, style: "orchestra" };
 
 function read(): AudioSettings {
   try {
@@ -25,6 +30,7 @@ function read(): AudioSettings {
       sound: typeof v.sound === "boolean" ? v.sound : DefaultAudio.sound,
       musicVolume: vol(v.musicVolume, DefaultAudio.musicVolume),
       soundVolume: vol(v.soundVolume, DefaultAudio.soundVolume),
+      style: Styles.includes(v.style as MusicStyle) ? (v.style as MusicStyle) : DefaultAudio.style,
     };
   } catch {
     return DefaultAudio;

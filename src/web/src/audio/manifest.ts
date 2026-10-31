@@ -146,7 +146,8 @@ export const Manifest = {
      13.2,
      18.6,
      22.2
-    ]
+    ],
+    "shade": 1
    },
    {
     "file": "music/triumph-3.m4a",
@@ -309,7 +310,8 @@ export const Manifest = {
      32.73,
      43.64,
      54.55
-    ]
+    ],
+    "shade": -1
    }
   ],
   "river": [

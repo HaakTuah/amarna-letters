@@ -45,6 +45,9 @@ class Score:
     phrases: list[float] = field(default_factory=list)  # phrase ends, in beats
     humanize: float = 0.012
     tempo_map: list[tuple[float, float]] | None = None  # (beat, bpm) changes, for a slowing at the end
+    # A variation in a darker (-1, -2) or brighter (+1) tuning than the piece's own: the player picks it as the
+    # situation worsens or improves (item 19+++). 0 is the piece's own.
+    shade: int = 0
 
     def __post_init__(self) -> None:
         self.rng = np.random.default_rng(self.seed)

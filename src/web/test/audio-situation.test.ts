@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
 import { WorldMap, newGameEvent, type Power } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
-import { bedAt, cuesAt, hearing, moodAt } from "../src/audio/situation.ts";
+import { bedAt, cuesAt, hearing, moodAt, shadeAt } from "../src/audio/situation.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 
 // Item 19+++: the music follows the seat's situation as that seat knows it, and a season's sounds what it saw. Each test
@@ -134,5 +134,25 @@ describe("AudioSituationTests", () => {
     const mine = { province: "gaza", besieger: "Egypt" as Power, progress: 0, walls: 2, since: 1 };
     const g = frame(1, { sieges: [hidden, mine], sight: new Map([["Egypt", new Set(["gaza"])]]), events: f.events });
     Assert.equal("gaza", cuesAt([frame(0), g], 1, "Egypt").sounds.find((c) => c.name === "siege")!.at);
+  });
+
+  test("The shade: darkest in battle, darker at war or in hunger, brighter at a feast, its own otherwise", () => {
+    const fight = frame(2, { moves: [attack("Hatti", "gaza", "Egypt")], seenBy: new Map([["Egypt", [0]]]) });
+    const frames = [frame(0), frame(1), fight, frame(3), frame(4, { events: [newGameEvent({ kind: "harvest", visibleTo: ["Egypt"] })] }), frame(5), frame(6)];
+    Assert.equal(0, shadeAt(frames, 1, "Egypt"));
+    Assert.equal(-2, shadeAt(frames, 2, "Egypt"));
+    Assert.equal(-1, shadeAt(frames, 3, "Egypt"));
+    Assert.equal(-1, shadeAt(frames, 4, "Egypt"));
+    Assert.equal(0, shadeAt(frames, 6, "Egypt"));
+    const feast = [frame(0), frame(1, { events: [newGameEvent({ kind: "harvest", visibleTo: ["Egypt"] })] })];
+    Assert.equal(1, shadeAt(feast, 1, "Egypt"));
+    const hungry = [frame(0), frame(1, { events: [newGameEvent({ kind: "harvest", visibleTo: ["Egypt"] }), newGameEvent({ kind: "hunger", visibleTo: ["Egypt"] })] })];
+    Assert.equal(-1, shadeAt(hungry, 1, "Egypt"));
+  });
+
+  test("In god view a great king's fall is a great moment; a city-state's falls quietly", () => {
+    Assert.equal("king", cuesAt([frame(0), frame(1, { eliminated: new Set(["Mitanni"]) })], 1, null).sting);
+    Assert.null(cuesAt([frame(0), frame(1, { eliminated: new Set(["Byblos"]) })], 1, null).sting);
+    Assert.equal("king", cuesAt([frame(0), frame(1, { eliminated: new Set(["Byblos"]) })], 1, "Byblos").sting);
   });
 });

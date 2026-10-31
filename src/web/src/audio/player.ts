@@ -6,7 +6,12 @@
  * small files fetched on first use. Nothing loads or sounds until the reader first touches the page, and nothing here
  * touches the game.
  */
+import type { Power } from "@amarna/engine";
 import { Manifest } from "./manifest.ts";
+import { SynthDeck, type NextStretch } from "./synth/engine.ts";
+import type { Version } from "./synth/arrange.ts";
+import { synthPiece, type Shade, type SynthScore } from "./synth/score.ts";
+import { homeMode, shift, type Tuning } from "./tunings.ts";
 import { audioSettings, onAudioSettings } from "./settings.ts";
 import { MomentPieces, MoodPieces, type Bed, type Hearing, type Moment, type Mood, type SoundName, type Sting } from "./situation.ts";
 
@@ -14,6 +19,8 @@ interface Variation {
   readonly file: string;
   readonly seconds: number;
   readonly phrases: readonly number[];
+  /** A variation in a darker (negative) or brighter (positive) tuning than the piece's own; absent, its own. */
+  readonly shade?: number;
 }
 
 const music = Manifest.music as unknown as Record<string, readonly Variation[]>;
@@ -68,8 +75,15 @@ class Player {
   private bedSource: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
   private timer: number | null = null;
   private stingUntil = 0;
+  private lastSting = -1e9;
   /** The listening page plays one file at a time and the director stands aside. */
   private solo = false;
+  /** How the situation colours the music (darker as it worsens, brighter at a feast), and whose court is heard. */
+  private shade: Shade = 0;
+  private court: Power | null = null;
+  /** The fallback's engine, when its versions play; and the listening page's own. */
+  private synth: SynthDeck | null = null;
+  private soloSynth: SynthDeck | null = null;
 
   constructor() {
     if (typeof document === "undefined") return;
@@ -126,6 +140,7 @@ class Player {
     if (!this.solo) this.musicBus!.gain.setTargetAtTime(s.music ? Level.music * s.musicVolume : 0, t, 0.3);
     this.soundBus!.gain.setTargetAtTime(s.sound ? Level.sound * s.soundVolume : 0, t, 0.1);
     this.bedBus!.gain.setTargetAtTime(s.sound ? Level.bed * s.soundVolume : 0, t, 0.5);
+    if ((!s.music || s.style === "orchestra") && !this.solo) this.synth?.stop();
     if (!s.music && !this.solo) for (const d of this.decks) d.el.pause();
     else if (s.music && !this.solo) this.resume();
     if (!s.sound) this.stopBed();
@@ -136,6 +151,7 @@ class Player {
     if (this.ctx === null) return;
     if (document.hidden) {
       for (const d of this.decks) d.el.pause();
+      this.synth?.stop();
       void this.ctx.suspend();
     } else {
       void this.ctx.resume();
@@ -144,6 +160,8 @@ class Player {
   }
 
   private resume(): void {
+    // The fallback's versions are started by the director's tick.
+    if (audioSettings().style !== "orchestra") return;
     const d = this.decks[this.live];
     if (d === undefined) return;
     if (d.file !== null && d.el.paused && !d.el.ended && audioSettings().music) void d.el.play().catch(() => undefined);
@@ -156,8 +174,17 @@ class Player {
     if (vars === undefined || vars.length === 0) return null;
     const last = this.lastFile.get(piece);
     const choices = vars.filter((v) => v.file !== last && v.file !== this.lastAny);
-    const list = choices.length > 0 ? choices : vars;
+    const fresh = choices.length > 0 ? choices : vars;
+    // The variation in the shade the situation asks for, where the piece has one; else any of its own.
+    const want = this.shadeFile(fresh);
+    const list = want.length > 0 ? want : fresh;
     return list[Math.floor(Math.random() * list.length)];
+  }
+
+  /** Of a piece's variations, those in the shade the situation asks for (its own tuning for no shade). */
+  private shadeFile(vars: readonly Variation[]): Variation[] {
+    const want = Math.sign(this.shade);
+    return vars.filter((v) => Math.sign(v.shade ?? 0) === want);
   }
 
   /** What should play next: a moment's piece once, else one of the mood's pieces (another than the one just heard). */
@@ -165,6 +192,8 @@ class Player {
     if (this.moment !== null) return MomentPieces[this.moment];
     const pieces = MoodPieces[this.mood];
     const now = this.decks[this.live]?.piece ?? null;
+    // A change of shade alone stays in the piece, in its variation of that shade.
+    if (now !== null && pieces.includes(now) && !this.playingMoment && this.decks[this.live].file !== null) return now;
     const others = pieces.filter((p) => p !== now);
     const list = others.length > 0 && pieces.length > 1 ? others : pieces;
     return list[Math.floor(Math.random() * list.length)];
@@ -233,13 +262,21 @@ class Player {
   private tick(): void {
     if (this.ctx === null || this.solo || !audioSettings().music || document.hidden) return;
     if (performance.now() < this.stingUntil) return;
+    if (audioSettings().style !== "orchestra") {
+      this.synthTick();
+      return;
+    }
     const d = this.decks[this.live];
     if (d.file === null) {
       if (performance.now() >= this.restUntil) this.next(false);
       return;
     }
     const want = this.moment !== null ? MomentPieces[this.moment] : null;
-    const fits = want === null ? MoodPieces[this.mood].includes(d.piece ?? "") && !this.playingMoment : d.piece === want;
+    // The piece fits the mood, and its variation the shade wherever the piece has one in that shade.
+    const vars = music[d.piece ?? ""] ?? [];
+    const shaded = vars.find((v) => v.file === d.file);
+    const shadeFits = shaded === undefined || this.shadeFile(vars).length === 0 || Math.sign(shaded.shade ?? 0) === Math.sign(this.shade);
+    const fits = want === null ? MoodPieces[this.mood].includes(d.piece ?? "") && !this.playingMoment && shadeFits : d.piece === want;
     // A stream the browser refused or stalled is asked again, at most every two seconds.
     if (d.el.paused && !d.el.ended && d.pauseTimer === null && performance.now() - this.retried > 2000) {
       this.retried = performance.now();
@@ -272,6 +309,71 @@ class Player {
     this.mood = m;
   }
 
+  /** The situation's shade, and the court whose home mode the fallback plays in (null in god view and the menus). */
+  setShade(s: Shade, court: Power | null = this.court): void {
+    this.shade = s;
+    this.court = court;
+  }
+
+  // The fallback's versions: one score, played by the synth engine phrase by phrase.
+
+  private synthTick(): void {
+    for (const d of this.decks) if (d.file !== null) {
+      this.pauseLater(d, 400);
+      d.gain.gain.setTargetAtTime(0, this.ctx!.currentTime, 0.1);
+      d.file = null;
+      d.piece = null;
+    }
+    if (this.synth === null) this.synth = new SynthDeck(this.ctx!, this.musicBus!, () => this.synthNext());
+    this.synth.version = audioSettings().style as Version;
+    if (!this.synth.playing) this.synth.start();
+  }
+
+  /** The tuning a score plays in: its own, or the court's home mode, darker or brighter by the shade. */
+  private modeFor(score: SynthScore, by: number): Tuning {
+    return score.mode ?? shift(homeMode(this.court), by);
+  }
+
+  private synthNext(): NextStretch | null {
+    if (!audioSettings().music || this.solo || audioSettings().style === "orchestra") return null;
+    let shade: number = this.shade;
+    let piece: string;
+    if (this.moment !== null) {
+      piece = MomentPieces[this.moment];
+      shade = this.moment === "triumph" ? 1 : this.moment === "ended" ? 0 : -2;
+      this.moment = null;
+    } else piece = MoodPieces[this.mood][0];
+    const score = synthPiece(piece);
+    return { score, mode: this.modeFor(score, shade), situation: { mood: this.mood, shade: shade as Shade } };
+  }
+
+  /** The listening page: one score once through, in a version and a tuning (null: the court's home mode). */
+  listenSynth(score: SynthScore, version: Version, mode: Tuning | null, shade: Shade, onEnd: () => void): void {
+    this.solo = true;
+    this.start();
+    if (this.ctx === null) return;
+    this.stopSolo();
+    for (const d of this.decks) d.el.pause();
+    this.synth?.stop();
+    this.musicBus!.gain.setValueAtTime(Level.music * Math.max(0.5, audioSettings().musicVolume), this.ctx.currentTime);
+    let stretches = score.phrases.length;
+    const deck = new SynthDeck(this.ctx, this.musicBus!, () => {
+      if (stretches-- <= 0) {
+        window.setTimeout(onEnd, 1500);
+        return null;
+      }
+      return { score, mode: mode ?? this.modeFor(score, shade), situation: { mood: "calm", shade } };
+    });
+    deck.version = version;
+    this.soloSynth = deck;
+    deck.start();
+  }
+
+  private stopSolo(): void {
+    this.soloSynth?.stop();
+    this.soloSynth = null;
+  }
+
   /** A great moment: its sting, if it has one, then its piece. */
   cue(moment: Moment | null, sting: Sting | null): void {
     if (moment !== null) this.moment = moment;
@@ -281,6 +383,9 @@ class Player {
   private sting(name: Sting): void {
     const files = stings[name];
     if (this.ctx === null || files === undefined || files.length === 0 || !audioSettings().music) return;
+    // Great moments are rare: watching at speed, a sting within twenty seconds of the last is let pass (its piece still plays).
+    if (performance.now() - this.lastSting < 20000) return;
+    this.lastSting = performance.now();
     const t = this.ctx.currentTime;
     // The music gives way to the sting, then the moment's piece takes it up.
     for (const d of this.decks) {
@@ -291,6 +396,7 @@ class Player {
       d.file = null;
       d.piece = null;
     }
+    this.synth?.stop();
     const f = files[0];
     this.stingUntil = performance.now() + Math.max(1500, (f.seconds - 1.2) * 1000);
     void this.buffer(f.file).then((b) => b !== null && this.ctx !== null && this.playBuffer(b, this.musicBus!, 1, 1));
@@ -387,6 +493,8 @@ class Player {
     this.solo = true;
     this.start();
     if (this.ctx === null) return;
+    this.stopSolo();
+    this.synth?.stop();
     const t = this.ctx.currentTime;
     for (const d of this.decks) {
       this.cancelPause(d);
@@ -426,6 +534,7 @@ class Player {
   /** Ends the listening page's solo: the director takes the music back. */
   release(): void {
     this.solo = false;
+    this.stopSolo();
     const d = this.decks[0];
     if (d !== undefined) {
       d.el.onended = null;
@@ -437,9 +546,9 @@ class Player {
   }
 
   /** What plays now, for the smoke test and the curious: the mood, the piece and file, the bed. */
-  status(): { mood: Mood; piece: string | null; file: string | null; bed: Bed; running: boolean } {
+  status(): { mood: Mood; shade: Shade; style: string; synth: boolean; stingLeft: number; piece: string | null; file: string | null; bed: Bed; running: boolean } {
     const d = this.decks[this.live];
-    return { mood: this.mood, piece: d?.piece ?? null, file: d?.file ?? null, bed: this.bed, running: this.ctx?.state === "running" };
+    return { mood: this.mood, shade: this.shade, style: audioSettings().style, synth: this.synth?.playing ?? false, stingLeft: Math.max(0, Math.round(this.stingUntil - performance.now())), piece: d?.piece ?? null, file: d?.file ?? null, bed: this.bed, running: this.ctx?.state === "running" };
   }
 }
 

@@ -7,6 +7,12 @@ import { AudioSwitches } from "../audio/AudioSwitches.tsx";
 import { BedInfo, Pieces, Placeholder, SoundInfo, StingInfo } from "../audio/catalogue.ts";
 import { Manifest } from "../audio/manifest.ts";
 import { player } from "../audio/player.ts";
+import type { Version } from "../audio/synth/arrange.ts";
+import { HymnPlaceholder, ModeTest, type Shade, type SynthScore } from "../audio/synth/score.ts";
+import { Tunings, homeMode, tuning, type Tuning } from "../audio/tunings.ts";
+
+const Courts = ["Ugarit", "Babylonia", "Egypt", "Hatti", "Mitanni", "Assyria", "Arzawa"] as const;
+const Shades: readonly [Shade, string][] = [[1, "brighter (a feast)"], [0, "its own"], [-1, "darker (war)"], [-2, "darkest (battle, mourning)"]];
 
 type Files = Record<string, readonly { file: string; seconds: number }[]>;
 const man = Manifest as unknown as { music: Files; sounds?: Files; stings?: Files; beds?: Files };
@@ -19,6 +25,21 @@ export function Listen() {
     player.setMood("menu");
     return () => player.release();
   }, []);
+  const [court, setCourt] = useState<string>("Ugarit");
+  const [mode, setMode] = useState<Tuning | "home">("home");
+  const [shade, setShade] = useState<Shade>(0);
+  const synth = (score: SynthScore, version: Version): void => {
+    const key = `${score.id}:${version}`;
+    if (playing === key) {
+      player.release();
+      setPlaying(null);
+      return;
+    }
+    setPlaying(key);
+    player.release();
+    player.setShade(shade, court as never);
+    player.listenSynth(score, version, mode === "home" ? null : mode, shade, () => setPlaying((p) => (p === key ? null : p)));
+  };
   const play = (file: string): void => {
     if (playing === file) {
       player.release();
@@ -78,6 +99,87 @@ export function Listen() {
           ))}
         </tbody>
       </table>
+
+      <h2>Side by side: the three versions</h2>
+      <p>
+        The same music in the three versions to choose between: the orchestra (the pieces above), and the fallback after the
+        original Civilization, one score in the Babylonian lyre tunings played by the browser's own sound engine, in pure
+        8-bit or in period timbres (a synthesised lyre, reed pipe, frame drum and sistrum).
+        {HymnPlaceholder.placeholder && " The fallback's scores are placeholders too."}
+      </p>
+      <div className="listen-switches">
+        <label>
+          Court{" "}
+          <select value={court} onChange={(e) => setCourt(e.target.value)}>
+            {Courts.map((c) => (
+              <option key={c} value={c}>
+                {c} ({tuning(homeMode(c)).name})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Tuning{" "}
+          <select value={mode} onChange={(e) => setMode(e.target.value as Tuning | "home")}>
+            <option value="home">The court's home mode</option>
+            {Tunings.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name} ({t.mode})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Shade{" "}
+          <select value={shade} onChange={(e) => setShade(Number(e.target.value) as Shade)}>
+            {Shades.map(([v, label]) => (
+              <option key={v} value={v}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <table className="listen-table">
+        <thead>
+          <tr>
+            <th>Score</th>
+            <th>Orchestra</th>
+            <th>8-bit</th>
+            <th>Lyre and reed</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[HymnPlaceholder, ModeTest].map((sc) => (
+            <tr key={sc.id}>
+              <td>
+                <strong>{sc.title}</strong>
+                <div className="note">{sc.source}</div>
+              </td>
+              <td className="listen-buttons">
+                {sc.id === "hymn" &&
+                  (man.music.hymn ?? []).slice(0, 1).map((v) => (
+                    <button key={v.file} className={playing === v.file ? "small primary" : "small"} onClick={() => play(v.file)}>
+                      {playing === v.file ? "■" : "▶"} The Hymn to Nikkal
+                    </button>
+                  ))}
+              </td>
+              {(["chip", "period"] as const).map((ver) => (
+                <td key={ver} className="listen-buttons">
+                  <button className={playing === `${sc.id}:${ver}` ? "small primary" : "small"} onClick={() => synth(sc, ver)}>
+                    {playing === `${sc.id}:${ver}` ? "■" : "▶"} {ver === "chip" ? "8-bit" : "Lyre and reed"}
+                  </button>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="note">
+        The tunings, brightest to darkest: {Tunings.map((t) => `${t.name} (${t.mode})`).join(", ")}; read from the tablets of
+        Nippur (CBS 10996) and Ur (UET VII 126) after Kilmer and Crocker. In the game the court's home mode is heard, a step or
+        two darker in war, a battle, a siege or mourning, a step brighter at a feast; a change waits for a phrase's end.
+      </p>
 
       <h2>Stings</h2>
       <ul className="listen-list">
