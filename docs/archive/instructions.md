@@ -845,3 +845,19 @@ Given in the design chat with Claude, answering the design questions of the cons
     (smoothness measured in 17a and 17+++, no frame over about 50 ms, with a recording; Space and the speed keys in the
     polish lane at once; the full Paradox-style key set as its own item after 17+++, every later item bringing its
     keys): "Agreed to all, expertly!" Written into items 17a, 17+++ and 17+++a, and the polish lane.
+98. **31 October 2026, 20:28-20:42 UTC**, in the design chat, on Irving Finkel's Curator's Corner on the Amarna Letters
+    (the British Museum, 25 September 2026). To royal marriage as an item, and to letters to anyone at a court and
+    failure at home moving out of Ideas: "No, I don't think we want to extend the scope to that. For marriage to make
+    sense, you must have dyansties, offspring, and we simply aren't offering that. Otherwise it becomes a gamey
+    mechanic. But you are saying something about Rib-Hadda's hostile relatives. They should presumably be in the game
+    from the start. Are the more characters from the period that should be in the games, who are not leaders to start
+    with?" and "No, same reason as the previous one." and "Is “Lady of the Lions" in the game? She maybe should? Though
+    her gender will not factor in gameplaywise as of yet, at least." To the design session's three readings (the
+    attested non-leaders of 1346 as characters from the start; the heir taking the attested name; the Lady of the Lions
+    ruling a small city-state near Aijalon): "Yes, expertly for all! I am thinking that even the heir of heir can take
+    the real name if it is on the record, all the way down, as far as it goes, in case many generations die during a
+    game. Also, some of these seems to have "bands" of their own? Should they have it at game start? And also, now
+    that we rework province "ownership" to not be a thing, but a measure of loyalty and suppression by force, should
+    any of these characters start with competitng loyalty to the leaders somewhere, expert? They should also be in the
+    place and have what they had at that time. Represent their position as accurately as we can, not just spawn them
+    in completely randomly. and they are all from the game start?" Written into items 17+, 17++ and 17b.
