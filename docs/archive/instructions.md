@@ -703,3 +703,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     risk." Then, to writing it in as the king's own sum (a negotiated price and tribute, granting only where it nets
     more, scripts that grant against scripts that never do): "Yes, to all, expertly! Not decided on title, keep both
     options for now." Written into "Governors" (War, travel and the seas) and item 17++.
+78. **31 October 2026, 12:28-12:31 UTC**, in the design chat: "Should governors be slightly different shade of their
+    king, and vassals also a shade, but a much fainter one?" Then: "So each shouldn't also have an individual shade
+    based on the player's read on how firm of a grip the king actually got on the region?" Then, to three steps of a
+    power's colour (ruled directly, governed, vassal) with governors bounded by inner borders, and the mood of the land
+    as a view of its own, both in item 17++: "Agreed with all you said! And we should probably have many different map
+    modes, given how many dimensions there are to this game. What do you think, expert?" Written into "Who holds what,
+    and the mood of the land" (Interface and the council) and item 17++.
