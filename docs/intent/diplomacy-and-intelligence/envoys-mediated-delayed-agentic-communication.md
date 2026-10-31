@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 26 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 26 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## Envoys: mediated, delayed, agentic communication
 
 Leaders never speak to each other directly; every word passes through an envoy who is a small language model with its own personality, motives and memory. The player receives only the envoy's version of what was said, and learns over time which envoys can be trusted.

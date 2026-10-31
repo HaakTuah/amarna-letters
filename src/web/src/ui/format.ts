@@ -3,7 +3,8 @@ import { WorldMap, dateLabel, describe, formatMoney, land, rx, type GrantView, t
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
-export const shekels = (s: number): string => formatMoney(s);
+/** Rounded to the whole shekel: the treasury keeps fractions (interest, shares), which no one reads as such. */
+export const shekels = (s: number): string => formatMoney(Math.round(s));
 
 export const provinceName = (id: string): string => (WorldMap.default.exists(id) ? WorldMap.default.get(id).name : id);
 

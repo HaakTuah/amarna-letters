@@ -1,4 +1,4 @@
-<!-- Generated from the design document, World and history tab, revision 54 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, World and history tab, revision 58 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## The map
 
 **Map review (decided 21 October 2026, built with the redrawn seas in build order item 7).** The map's density follows the politics: the Levant, where most of the Amarna letters were written, is finely divided, and Anatolia and Mesopotamia coarsely. That is right for the game, with these corrections:
