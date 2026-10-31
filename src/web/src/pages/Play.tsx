@@ -1,6 +1,6 @@
 import { AllPowers, WorldMap, ending, shortDate, shortEnding, type Power } from "@amarna/engine";
 import { Presets, leaderRules } from "@amarna/llm";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { AudiencePanel } from "../components/AudiencePanel.tsx";
 import { ChroniclePanel } from "../components/ChroniclePanel.tsx";
 import { CourtStrip } from "../components/CourtStrip.tsx";
@@ -57,6 +57,11 @@ export function Play() {
   const [followId, setFollowId] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
   const [legend, setLegend] = useState(false);
+  // Timed, as every step of a season on the page is (item 17a): from the start of this render to the DOM written.
+  const renderStart = performance.now();
+  useLayoutEffect(() => {
+    performance.measure("page:play", { start: renderStart });
+  });
   const [mark, setMark] = useState<string | null>(null);
   const [theme, setThemeState] = useState(getTheme);
   const [, bump] = useState(0);

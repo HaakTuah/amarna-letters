@@ -145,7 +145,8 @@ function flat(s: string): string {
  * list of them. Any season's JSON is rebuilt by joining, when looked back at.
  */
 export class SnapshotHistory {
-  private readonly texts: string[] = [];
+  /** The pieces by number. */
+  readonly texts: string[] = [];
   private readonly snapshots: number[][] = [];
 
   get length(): number {
@@ -156,6 +157,11 @@ export class SnapshotHistory {
     for (const [id, text] of d.added) this.texts[id] = text;
     if (d.replace && d.index === this.snapshots.length - 1) this.snapshots[d.index] = d.refs;
     else this.snapshots.push(d.refs);
+  }
+
+  /** The numbers of a snapshot's pieces in order, or null. */
+  refs(index: number): readonly number[] | null {
+    return this.snapshots[index] ?? null;
   }
 
   /** The pieces of a snapshot in order, or null. */

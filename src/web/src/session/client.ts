@@ -158,7 +158,7 @@ export class Session {
       for (const d of m.live.states) this.history.apply(d);
       // Only the newest season is read now, and only what changed in it; a season looked back at is read then (displayed).
       const t = performance.now();
-      this.state = this.reader.apply(this.history.pieces(this.history.length - 1)!);
+      this.state = this.reader.apply(this.history.refs(this.history.length - 1)!, this.history.texts);
       performance.measure("page:reader", { start: t });
       this.recent.clear();
       // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.

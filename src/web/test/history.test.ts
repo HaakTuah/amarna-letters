@@ -13,7 +13,7 @@ describe("History", () => {
   /** The page's side: the stream applied, the newest state read incrementally. */
   function follow(store: SnapshotStore, history: SnapshotHistory, reader: IncrementalReader): GameState {
     for (const d of store.takeDeltas()) history.apply(d);
-    return reader.apply(history.pieces(history.length - 1)!);
+    return reader.apply(history.refs(history.length - 1)!, history.texts);
   }
   /** The two texts equal, else the first place they differ, in context. */
   function same(expected: string, actual: string | null): void {
@@ -83,7 +83,7 @@ describe("History", () => {
     for (const d of deltas) history.apply(d);
     Assert.equal(2, history.length);
     Assert.equal(2, store.length);
-    const shown = reader.apply(history.pieces(1)!);
+    const shown = reader.apply(history.refs(1)!, history.texts);
     Assert.equal("Hatti", shown.winners[0]);
     Assert.equal(null, shown.finalSeason);
     Assert.equal(false, shown.finalByCap);
@@ -100,12 +100,12 @@ describe("History", () => {
     store.push(serialize(GameStateSchema, a));
     const history = new SnapshotHistory();
     for (const d of store.takeDeltas()) history.apply(d);
-    const s1 = reader.apply(history.pieces(0)!);
+    const s1 = reader.apply(history.refs(0)!, history.texts);
     a.turn = 2;
     a.winners.push("Egypt");
     store.push(serialize(GameStateSchema, a));
     for (const d of store.takeDeltas()) history.apply(d);
-    const s2 = reader.apply(history.pieces(1)!);
+    const s2 = reader.apply(history.refs(1)!, history.texts);
     Assert.equal(2, s2.turn);
     Assert.equal("Egypt", s2.winners[0]);
     Assert.true(s1.characters === s2.characters, "the characters, unchanged, are shared");
