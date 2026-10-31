@@ -729,3 +729,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     rally to and outside help the moment it rises), and bringing the progress rows of 17++ and 19++ up to date: "Yes,
     fix all expertly!" Written into those sections (Land, people and the economy; War, travel and the seas) and
     `docs/BUILD-PROGRESS.md`.
+82. **31 October 2026, 13:44-13:50 UTC**, in the design chat, to the second account's first reports. To keeping the
+    music lane (19+++) running beside 17a: "Yes, to all, expertly!" Then: "Why did we pick Opus 5.5 for the music? Is
+    Fable not more creative, or?" And, to moving the music lane to Fable once the improvement audit is done, the Opus
+    session building the sound system until then: "YEs!" Written into the 19+++ row of `docs/BUILD-PROGRESS.md`.
