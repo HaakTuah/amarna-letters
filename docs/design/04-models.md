@@ -150,8 +150,8 @@
   SDK (`SdkTransport`, `@anthropic-ai/sdk`) in the browser, the batch runner and the tests alike, with the
   `anthropic-dangerous-direct-browser-access` header; the simulated API stands in for it (and, with "Simulate the API",
   for every provider). Other providers and local models go through `CompatibleProvider` (chat completions, the schema as a
-  JSON-schema response format, the shared and seat system texts as one system message). The C# build's transport went with that build (kept on
-  the branch `archive/csharp-final`).
+  JSON-schema response format, the shared and seat system texts as one system message). The C# build's transport went with that build (kept at
+  the tag `csharp-final`, commit `5b4caa2`).
 - **Prompt-injection boundaries**: a character's prompt holds only its own persona, memory and
   facts (tested); text never changes state; the narrator receives only released facts.
 - **Call size** (item 6b; "Call size matters as much as call count", "Output is the other half"). Measured by
