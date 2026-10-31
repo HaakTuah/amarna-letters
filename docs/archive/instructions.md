@@ -937,3 +937,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     claimant it recognises and calls the other by his house): "Yes, please, expertly! And i guess model kings and
     players could alreayd call themselves whatever they want?" Written into "Places by their own names" and
     "Recognition is earned" (World) and items 17+ and 17b, replacing item 111's fallback.
+113. **31 October 2026, 23:08-23:14 UTC** (1 November in Oslo), in the design chat. "Now that all kings are characters,
+    I guess no kingdom has any behavioral tilts anymore, its just the traits of the character that is king." Told that
+    the script kings still play per-kingdom archetypes, and asked whether those should become the 1346 kings' own traits:
+    "If that was what these leaders were like in the historical sources, in your history expert opinion, then yes. If
+    not, let's hash it out." Given the design session's check (Babylonia and Alashiya fit; Mitanni, Assyria and Arzawa
+    need corrections; Egypt's archetype is Amenhotep III, not Akhenaten; Hatti's is wrong on patience and diplomacy):
+    "Yes, please expertly applied across the board! Let every character reflect wha the historical letter showed they
+    were truly like! And let that manifest in their actions through the game!" Written into "Attested characters"
+    (Characters), items 17b and 18, and the ideas entry on model kings' strategies.

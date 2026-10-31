@@ -17,18 +17,18 @@ with the copy and say so in the report, and before opening the pull request read
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 569 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 190 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 192 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 58 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 58 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
-| Characters | `docs/intent/characters/` | `0051b400-09bd` | 25 |
+| Characters | `docs/intent/characters/` | `0051b400-09bd` | 26 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 34 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 91 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 20 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 22 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
-| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 19 |
+| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 20 |
 
 Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent .claude/rules`.
 Entries start with a bold title. The builder rules are in `.claude/rules/builder-rules.md`, which every
@@ -61,7 +61,7 @@ session loads.
 | `docs/intent/build-order/item-14.md` | 14. Legends. The narrator's legends grow from the "follow this character" view i | 0.7 |
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 2.2 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
-| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 34.4 |
+| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 35.3 |
 | `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 6.2 |
 | `docs/intent/build-order/item-19.md` | 19. The living map | 11.2 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
@@ -89,7 +89,7 @@ session loads.
 | `docs/intent/characters/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/characters/characters-hidden-facts-memory-and-continuity.md` | Characters: hidden facts, memory and continuity | 3.1 |
 | `docs/intent/characters/characters-careers.md` | Characters' careers | 5.4 |
-| `docs/intent/characters/the-pool-of-characters.md` | The pool of characters | 15.3 |
+| `docs/intent/characters/the-pool-of-characters.md` | The pool of characters | 17.1 |
 | `docs/intent/characters/skills-names-and-knowledge.md` | Skills, names and knowledge | 17.3 |
 | `docs/intent/characters/how-scripts-and-models-play-characters.md` | How scripts and models play characters | 1.4 |
 | `docs/intent/work-money-and-lending/front.md` | Title and what the tab holds | 0.1 |
@@ -122,6 +122,6 @@ session loads.
 | `docs/intent/tests-risks-and-references/known-risks-and-mitigations.md` | Known risks and mitigations | 3.8 |
 | `docs/intent/tests-risks-and-references/open-questions-and-historical-references.md` | Open questions and historical references | 2.4 |
 | `docs/intent/ideas/front.md` | Title and what the tab holds | 0.3 |
-| `docs/intent/ideas/other-ideas-under-consideration.md` | Other ideas under consideration | 5.1 |
+| `docs/intent/ideas/other-ideas-under-consideration.md` | Other ideas under consideration | 5.3 |
 | `docs/intent/ideas/voice-of-the-age-ideas-for-later.md` | Voice of the age: ideas for later | 0.8 |
 | `docs/intent/ideas/beyond-the-prototype.md` | Beyond the prototype | 5.1 |
