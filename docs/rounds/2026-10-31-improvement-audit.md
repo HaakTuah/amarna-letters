@@ -59,6 +59,16 @@ the absolute numbers are high): mean 2.2 s a season; the first three seasons 10 
 hiring and sending envoys), then 2 to 3 s. In Node the probe took 1.6 to 2.6 s a turn on the same busy machine. The
 first seasons are the slow spot to profile first.
 
+**Where a turn's time goes** (Node, `--cpu-prof`, 30 turns of seed 3, 78 s sampled): the script kings' decisions are
+62% of a turn (`decideNow`, `src/game/src/bots/script-leader.ts:90`), of which the plan search `improve`
+(`bots/search.ts:73`) is 41% and route-finding 22%: `cheapestRoute` (`src/engine/src/model/travel.ts:207`) is a Dijkstra
+that scans every reached province for the minimum at each step (no heap) and builds a `Map` of all province indexes on
+every call, called from 16 places; only `fastestPoints` caches it. The garbage collector is 18% of the whole and
+`Dict.entries` (`src/engine/src/core/collections.ts:102`, a generator yielding a fresh tuple per entry) 9% by itself.
+The engine's own resolution is a few percent. So for 17a's "make it faster": a heap and a per-season cache for
+`cheapestRoute` (the map changes only when roads close or works change), and iterating `Dict` without allocating a
+tuple per entry in the hot paths (`search.ts:563 score`, `tactics.ts:142 makePlan`, `trade.ts:95 landWay`).
+
 ## 2. A render error blanks the whole page (17a)
 
 There is no React error boundary anywhere in `src/web/src` (no `componentDidCatch`, no `getDerivedStateFromError`), and
@@ -147,10 +157,80 @@ several envoys, offers to answer the rest alike and to make it a standing answer
 are the king's). The design's "a minister who receives routine envoys" (Not built yet) is the larger answer and needs a
 decision first.
 
+## 9. Script kings repeat orders the engine refuses every season (item lane: script-king play)
+
+Counting the "Rejected" notices in eight games' inboxes: "No runaways were sent back from X: Y has no land to take them"
+1,004 times (the script keeps ordering runaways returned to a power that has fallen or lost its land); "keep the
+walls of Sutean Steppe / Lukka at level N: ... has no town to wall" 109 times (walls ordered where no town is, season
+after season); "Nobody was put out of X: it is not besieged / you no longer hold it" 58; "set the tax ...: you had
+already set that tax this season" 33; errands given to people who never took the job ("is not in your service: they did
+not take the job offered" 41, "declined your offer ...: they are not at your court" 29); orders for troops no longer
+held 47. Each is a wasted order and, for a human reading god view, noise. The scripts should check the receiver's
+land, the town, the siege and the hire before ordering, as a competent player would.
+
+## 10. Troops of two men hold cities (question 1 for Haakon)
+
+At the end of eight games, 21 of 202 units had under 200 men, among them armies of 2, 6, 7, 8 and 15 men (Jerusalem's
+army of 2 in Jerusalem, Hebron's of 6 and 7, Amurru's of 15). The engine removes a unit only at 0 men
+(`src/engine/src/turn/battles.ts:91,103`, `command.ts:164`), and a unit holds a province, gets within walls and blocks
+a move whatever its size (the adjudicator counts units, the men only on the walls since 11e). Hatti's inbox shows the
+effect: "Mira's army from mira got within the walls but did not storm them (its strength 0 against your walls 3 and
+defenders 17.6 ...)". A troop of a few men, a thousandth of a full levy (`LandData.armyMen`, 5,000), still counts as an army. "Numbers come from
+their causes" and "incentives, not quotas" point to a troop below some size ceasing to be a unit, its men turning band
+or settling where they stand, as a band's do; that is a rule change, so it goes to Haakon (question 1 below).
+
+## 11. A host that seals a vassal tablet says it refuses the tribute on it (item lane: script-king play)
+
+Trail of Egypt to Arwad, game 1, season 1: Egypt's tablet asked tribute, offered protection and asked service. Arwad's
+script host answered "I accept your offer of protection. I refuse your demand for tribute." and sealed the whole
+tablet, tribute clause included (`src/game/src/bots/statecraft-letters.ts:717-745`: `sealBond` decides the seal, the
+"accept" answers the first proposal kind, while the request loop before it refuses the tribute on its own). The words
+contradict the seal, and the sealed tablet now binds Arwad to a tribute its king said he refused; the report tells
+Egypt both. When the bond is sealed, the answers should match it.
+
+## 12. More presentation finds (polish)
+
+- The map and the timeline abbreviate every season but Egypt's to "s2 1336 BCE", "as of s0 1346 BCE", "➔ s1 1335 BCE"
+  (`src/engine/src/rules/calendar.ts:68-70` `shortDate`); the panels write "the second season, 1336 BCE". Nobody is
+  told what "s2" means; a short ordinal ("2nd season 1336") or the court's own season name would do.
+- Facts and events carry turn numbers as "(season 4)" while the interface dates everything by the court's calendar
+  (`src/engine/src/turn/envoys-home.ts:50-53`, `envoys.ts:272`); `dated()` in `src/web/src/ui/format.ts:16` already
+  rewrites "turn N" and could cover "season N" too.
+- Lowercase ids in the People tab's status line: "commanding an army in lukka · in lukka" (the status text of a
+  commander); and in rejections shown to a king: "pay c12 the rest of the fee owed: not enough gold".
+- Event texts with ids: "c100 let debt d64 pass its season." (`src/engine/src/turn/money.ts:244`): the character's and
+  the debt's ids where a name and "the debt of 40 shekels to X" belong.
+- "Hatti put 0 people out of besieged Kizzuwatna." (an expel event logged for nobody); and "Nobody at Egypt's court
+  understood Akit-Teshup, envoy of Akko" in the Season tab while the audience says "Abdi-Milki carries his words to you":
+  the first event should say "only through Abdi-Milki".
+- A bridge's "Changed the words of X, envoy of Y" fact is pushed once per servant who noticed
+  (`src/engine/src/turn/languages.ts:627-636`, inside `for (const w of servantsAt(...))`), so a People card lists the
+  same line seven times. One fact per bridging, naming who heard it.
+- The Legends tab's "rise and fall of Egypt" opens with fifteen lines "Sealed a vassal treaty with ..." for the opening
+  bonds, which were starting data, not deeds; one line ("Began the age with fifteen vassals by sealed tablet") reads
+  as history.
+- The Inbox's "Treasury ... including 18 unassayed shipment(s)": "shipments".
+
+## 13. Numbers for item 18 and 17++ (evidence only, no change proposed)
+
+- Egypt won 5 of the first 8 games (Babylonia, Pella and Arzawa one each), with the score meant to level a one-city
+  power and an empire ("Standings"); the arming failure of find 3 may be why, since Egypt starts with five units and
+  keeps them.
+- Taxes: in game 1 the script kings set a tax 1,988 times in 102 seasons (Babylonia 276 times, Hatti 238), ending at
+  30% to 37% in most provinces, and 2,249 "fled a heavy tax" events moved about 1.07 million people in that one game
+  ("589 people fled a heavy tax from Arrapha into Ashur"). Whether that is the equilibrium 10+a meant or over-taxing is
+  for 17++ (which replaces the tax rate) and 18 to judge; the re-setting every season is the scripts' habit, not a
+  rule.
+- Fourteen audiences in one season for Egypt (find 8) are the fifteen opening vassal bonds each sending tribute at
+  once; a reading of the data, not a rule.
+
 ## Questions for Haakon
 
-None yet: every find above is either a bug, a presentation matter, or script-king play, all of which the lanes may do
-without a decision. Questions that need one are added here as the audit goes on.
+1. **Should a troop too small to fight go on counting as a unit?** Armies of 2, 6, 7 and 15 men hold cities and block
+   moves at the end of games (find 10). Reading the audit would take: a troop below a tenth of a full levy's men
+   (500 for an army, 200 for a fleet's crews) stops being a unit at the season's end; its men turn band where they
+   stand or settle there, as a fallen king's leaderless men do, and the land is held by nobody until someone stands in
+   it. Alternative: as now,
+   any unit of one man or more holds land, and only men on the walls are counted.
 
-*The audit continues: a human seat at desktop size, the replay and "whose eyes" views, the script kings' letters and
-tablets, the economy's loops (sales, refugees, defaults) and the 50-game summary.*
+*The audit continues: the 50-game summary and its signals, the phone at a throttled CPU, and the reviewer's check.*

@@ -52,6 +52,7 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 | 11b++ | None: "The game in one page" and the item's text settled every answer | Readings 1-15 in `docs/rounds/2026-10-29-answers-to-11b-plus.md` | For review, no questions |
 | 13+ (#190) | None: the item's text, "A kingdom falls with its capital" and the page settled every reading | Readings 1-10 in `docs/rounds/2026-10-29-answers-to-13.md` | For review, no questions |
 | 16 (#194) | None: the page and the item's sections settled every reading | Readings 1-13 in `docs/rounds/2026-10-29-royal-council.md` (the darkest omen at the bottom of the cap's range, as the text says, against the reviewer's wish to place it by the curve: reading 10) | No questions |
+| Improvement audit (#235) | 1. Should a troop too small to fight go on counting as a unit? Armies of 2, 6, 7 and 15 men hold cities and block moves at the end of script games (find 10 of the audit). Reading: a troop below a tenth of a full levy's men stops being a unit at the season's end, its men turning band or settling where they stand, and the land is held by nobody until someone stands in it. Alternative: as now, any unit of one man or more holds land. | Not built: a rule change, awaiting the answer | Open |
 
 
 ## Use against ignore
