@@ -26,6 +26,7 @@ import {
   giftUnit,
   raise,
   sally,
+  raze,
   type Power,
   type UnitKind,
 } from "@amarna/engine";
@@ -37,6 +38,18 @@ import type { OrdersContext } from "./use-orders.ts";
 /** The orders panel's Treasury and land: split from OrdersPanel.tsx, unchanged. */
 export function TreasurySection({ c }: { c: OrdersContext }) {
   const { draft, state, v, me, f, set, others, add, price, sallying } = c;
+  // What an army of yours in another's land could raze there, as your eyes see it standing (item 15).
+  const razing = v.units
+    .filter((u) => {
+      const holder = v.owner.getOrDefault(u.province, null);
+      return u.power === me && u.kind === "Army" && holder !== null && holder !== me;
+    })
+    .flatMap((u) =>
+      v.worksSeen
+        .filter((w) => w.province === u.province && w.level > 0 && (["Roads", "Stations", "Harbour", "Water"] as string[]).includes(w.kind))
+        .map((w) => ({ key: `${u.province}|${w.kind}`, unit: u.province, kind: w.kind, label: `In ${provinceName(u.province)}: a level of its ${workName(w.kind)} (level ${w.level})` })),
+    )
+    .sort((a, b) => a.label.localeCompare(b.label));
   return (
     <>
     <div className="section">
@@ -351,6 +364,25 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           <button className="small" disabled={f.sallyCity === "" || f.sallyFrom === ""} onClick={() => add(sally(f.sallyCity, f.sallyFrom))}>
             Add
           </button>
+        </div>
+      )}
+      {razing.length > 0 && (
+        // Item 15: an army of yours standing in another's land may raze a level of what stands there.
+        <div className="row" style={{ marginTop: ".4rem" }}>
+          <select
+            value=""
+            onChange={(e) => {
+              const r = razing.find((x) => x.key === e.target.value);
+              if (r !== undefined) add(raze(r.unit, r.kind));
+            }}
+          >
+            <option value="">Raze what stands where your army is…</option>
+            {razing.map((r) => (
+              <option key={r.key} value={r.key}>
+                {r.label}
+              </option>
+            ))}
+          </select>
         </div>
       )}
       <div className="row" style={{ marginTop: ".4rem" }}>
