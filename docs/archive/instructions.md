@@ -918,3 +918,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     notes in the spectator's seat view: "Yes, I think so. And it should maybe store what it looked like at every step?
     And the narrator should also have its take stored from the first time it runs on a game, so it must not be ran each
     time you watch it potentially afterwards?" Written into item 17+++.
+110. **31 October 2026, 22:24-22:27 UTC**, in the design chat, to the design session's two questions (a person's other
+    names on a second line of his card; a game told anew only when asked): "Yes to both. But I think it should only
+    show their name like that when you click on the character? Or di you want it in parenthesis in every letter they
+    receive?" Written into items 17+ and 17+++: on the card when clicked, never in letters.
