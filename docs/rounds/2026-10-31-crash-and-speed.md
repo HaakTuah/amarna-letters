@@ -1,6 +1,6 @@
 # Item 17a: the crash and an optimization round
 
-In progress (31 October 2026). Branch `item/crash-and-speed`, PR #236. The item text is `docs/intent/build-order/item-17.md`
+31 October 2026. Branch `item/crash-and-speed`, PR #236. The item text is `docs/intent/build-order/item-17.md`
 (the 17a passage). Built from the copy in `docs/intent/` (this account has no live design document); the copy did not change
 between the item's start (`f1007bc`) and the check before review. Design note: `docs/design/44-the-crash-and-speed.md`.
 
@@ -97,10 +97,38 @@ speed as they were, "Updated to the newest version" shown after); a version with
    the page. Principle: "Code decides facts" (pillar 6): the page shows the engine's facts, never its own reconstruction of
    them; and behaviour unchanged, which the item asks of the optimization round. The alternative, rebuilding the panels'
    data on the page from semantic events alone, would re-implement the engine's rules on the page and could drift from them.
+6. **The page shows whole seasons.** Its state comes from the season's snapshot, taken after resolution, not from every
+   change of phase within a season; nothing shown mid-season was ever a rule, and a half-resolved season is not a fact.
+   Principle: "Code decides facts": the engine's season is the unit of truth the page shows.
 5. **The script brains' memory is left as it is.** The script seats (the kings' and the council's brains) hold about 150 MB
    by season 31 in a Free game: what every script king remembers of every tablet, sighting and character ("a script
    character ... never loses it", "The game in one page"). It does not grow past the game's own ids and did not cause the
    crash; noted for item 18 or a later optimization round.
+
+## The review
+
+The reviewer (Opus, high; the diff, the item's text and "The game in one page") found two blocking points and seven to fix,
+and checked the speed-ups equivalent (the heap's tie-break, the leg caches, the reader's fast path). Fixed:
+
+1. **Blocking: the update took over 600 ms after a season showed, before its save might have finished**, so a reload on a
+   slow phone could resume the season before. Now the worker tells the page the turn last saved (`Live.savedTurn`), and a
+   new version takes over only once the newest season is saved and no season is under way.
+2. **Blocking: the report's blanks**: filled below.
+3. Leaving the game screen with a game held reloaded to the start screen: now a held game, on screen or not, is resumed
+   into once saved; a version with new rules waits until the game is closed.
+4. The "new rules" line showed while the version was still being read, or for good when it could not be: nothing is said
+   while unknown, and the question is asked again at the next change.
+5. Every window error event took the whole page to the error screen, Chrome's harmless ResizeObserver notice and
+   cross-origin "Script error." included: events with nothing thrown are ignored.
+6. The error screen itself read the session's state without a guard: it now stands whatever broke.
+7. A play-on replayed on resume did not amend the season's snapshot: the runner amends it on every path.
+8. The slot iterator read the live arrays for values but the captured ones for the walk: both from the captured arrays.
+9. A null item in a list or dictionary would have been read as its type's zero: nulls stay null, and the schema given to
+   the reader keeps its `opt`. Tests added for an amended season, the redaction of `finalByCap: true`, and a reset.
+
+Notes kept as readings: the page's state changes at the season's snapshot, not at every phase change, so a panel in god
+view reads the season just resolved, never a season half resolved (reading 6); the cut stops three levels down, so a
+deeper list that grows is stored whole each season (none does today; the figure is watched in longer ages).
 
 ## Numbers before and after
 
