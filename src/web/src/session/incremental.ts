@@ -151,6 +151,22 @@ export class IncrementalReader {
       const d = new Dict<string, unknown>();
       for (const x of src.items) d.set(nameOf(this.headText(x)), this.value(shape.of, x, true, cache, kept));
       v = d;
+    } else if (shape.k === "obj") {
+      // An object member by member, as the engine's reader builds it (missing members keep the factory's defaults; names as
+      // written, else without regard to case), so that a character whose gold changed keeps its unchanged memory.
+      const o = shape.make() as Record<string, unknown>;
+      let byLower: Map<string, [string, Schema]> | null = null;
+      for (const x of src.items) {
+        const name = nameOf(this.headText(x));
+        let field = shape.fields.find((f) => f[0] === name);
+        if (field === undefined) {
+          byLower ??= new Map(shape.fields.map((f) => [f[0].toLowerCase(), f] as const));
+          field = byLower.get(name.toLowerCase());
+        }
+        if (field === undefined || field[1].k === "computed") continue;
+        o[field[0]] = this.value(field[1], x, true, cache, kept);
+      }
+      v = o;
     } else {
       const text = this.textOf(src);
       this.parsed += text.length;
