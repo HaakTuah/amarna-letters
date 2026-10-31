@@ -696,3 +696,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     Under the hood, it will be a probability number, I imagine. But it should not be that tangible to a player. But the
     better you invest in information, the better resolution you get on the situation." Written into "Loyalty is a
     ledger" and "Governors" (War, travel and the seas) and item 17++.
+77. **31 October 2026, 12:22-12:24 UTC**, in the design chat: "Because, if he makes someone a vasasal, he formerly
+    loses score. So he'll presumably want some upfront payment? And maybe he reasons, a local leader, invested in
+    keeping the love of the people, can give him more in tribute, then the king manages to make organically grow there
+    at a distance? Because otherwise it isn't a good value proposition for the king, since it also comes with a lot of
+    risk." Then, to writing it in as the king's own sum (a negotiated price and tribute, granting only where it nets
+    more, scripts that grant against scripts that never do): "Yes, to all, expertly! Not decided on title, keep both
+    options for now." Written into "Governors" (War, travel and the seas) and item 17++.
