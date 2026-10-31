@@ -676,3 +676,15 @@ Given in the design chat with Claude, answering the design questions of the cons
     Egypt's commissioners at Sumur, Kumidi and Gaza oversaw districts.) And, to the design session's take: "Yes, then
     his "capital" becomes just wherever he holds seat." Written into "Governors" (War, travel and the seas) and item
     17++.
+75. **31 October 2026, 12:05-12:11 UTC**, in the design chat: "What's the difference between a governor and a vassal
+    then, gameplaywise? If the governor holds as much sway over his lands, as a vassal does?" Then, of a governor
+    taking all his provinces when he turns: "Maybe, but let's address the bigger issue first: [...] This means a
+    governor has a switch he can pull at any time to become a sovereign, which makes him a de facto vassal. There needs
+    to be more friction for him to make such universal decisions then there is for a vassal. City and army loyalty, or
+    something like that. With a vassal, it is natural, naturally it follows "its" leader. But a newly appointed
+    governor should not hold the full loyalty of his provinces if he imodately turns. See my drift?" Then: "Maybe make
+    it a agnostic system? It grows towards who ever gives to them, and goes the other way for whoever takes from them?
+    And starts not so high?" And, to the design session's take (a fair exchange neutral, credit to the hand they see,
+    memory fading, one rule for turning, armies, absorption and unrest): "Agreed to all. Expertly." Written into
+    "Loyalty is a ledger" and "Governors" (War, travel and the seas) and item 17++. The question of granting a governor
+    his provinces as a vassal king is left open ("Maybe").
