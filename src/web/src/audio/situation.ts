@@ -6,7 +6,7 @@
 import { Crossings, Rivers, UnrestData, WorldMap, isGreatKing, type Power } from "@amarna/engine";
 import type { FrameMove, SeasonFrame } from "../session/frames.ts";
 
-/** The music's moods, as Empire Earth's dynamic music chose its pieces by them (docs/audio/MUSIC.md). */
+/** The music's moods, as Empire Earth's dynamic music chose its pieces by them (docs/design/45-the-music-and-the-sounds.md). */
 export type Mood = "menu" | "calm" | "tension" | "war" | "siege" | "battle" | "last";
 
 /** A piece played once for a moment, after its sting where it has one, before the mood's music resumes. */

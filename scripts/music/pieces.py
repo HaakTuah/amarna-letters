@@ -3,7 +3,7 @@ and three variations; the composer replaces each (Haakon: the composing is done 
 declared is in docs/rounds/2026-10-31-music.md, "Handover to the composer".
 
 The fourteen pieces, one for each of Empire Earth's, each taking that piece's role, mood and pace (the template is in
-docs/audio/MUSIC.md) and nothing of its own: the melodies are the Hurrian Hymn's and new themes in the Babylonian tunings.
+docs/design/45-the-music-and-the-sounds.md) and nothing of its own: the melodies are the Hurrian Hymn's and new themes in the Babylonian tunings.
 
 Each piece is a function of its variation (0, 1, 2): the same music, scored again with another lead, another rhythm,
 another course through its sections, so no two plays in a row sound alike. A phrase end is marked wherever the music may
