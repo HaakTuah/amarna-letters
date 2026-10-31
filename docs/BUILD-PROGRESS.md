@@ -51,9 +51,6 @@ account until its usage is spent; on the main account the usage brake closes it 
   finished when usage ends is left unstarted, its find noted for the next session.
 
 Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
-- The Rules tab's opening for a human seat now says first how a human gives orders, and that the rulebook's JSON and HOW TO ANSWER speak to model kings (improvement audit, find 12).
-
-Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
 - The Counsel preset's card named Sonnet as its kings; it now says Haiku plays them, with Sonnet planning.
 
 ## For Haakon: review points
