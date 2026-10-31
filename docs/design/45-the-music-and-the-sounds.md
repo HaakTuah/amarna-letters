@@ -82,6 +82,44 @@ open land and the open sea seen from afar. It crosses over 3 to 4 s, looping sea
 is not on `develop` yet; until it is, a season's sounds play together as it arrives, read from the frame's own events,
 moves, sieges and owners. When it lands, `cuesAt` is fed by the stream instead, each sound at its event's moment and place.
 
+## The shade: a darker or brighter mode within a piece
+
+Haakon, 31 October 2026 (relayed): "Build the Civilization-style fallback alongside the Empire Earth pieces, and make
+some of each piece's variations a darker or brighter mode chosen as the situation worsens or improves." `shadeAt` gives
+the shade from what the seat knows: -2 in a battle or a siege, or within three seasons of its own capital or king fallen
+(mourning); -1 at war, on grave omens, or with hunger in its land; +1 at a feast, read as a season that brought it land
+(a triumph) or a harvest it saw with no war and no hunger; 0 otherwise. A piece's variation may carry a shade (`shade` in
+the manifest, from `Score.shade` in `pieces.py`): the player prefers the variation in the shade asked for, and when only
+the shade changes it stays in the piece and moves to that variation at the next phrase end, never the same file twice
+running. Among the placeholders, Triumph's second variation (kitmum, +1) and Envoys' third (nīd qablim, -1) carry one.
+
+## The fallback: after the original Civilization (src/web/src/audio/synth/, tunings.ts)
+
+Three versions, chosen in the switches ("Orchestra", "8-bit", "Lyre and reed"); the same moods, moments, stings, sounds,
+beds, placement and hearing by zoom serve all three, so only the pieces change.
+
+- **One score, written once** (`synth/score.ts`): notes in degrees of a tuning, in layers (melody, counter, chord, bass,
+  drum, jingle), each with a cue (moods, shades) that switches it on; phrase ends where a change may come. A compact
+  notation (`line("0:2 -3:1 0+2+4:4 D:1 T:0.5")`).
+- **Two arrangements** (`synth/arrange.ts`, pure): pure 8-bit (a square lead echoed a dotted eighth behind, a thin square
+  counter, held chords spread into sixteenth arpeggios, a triangle bass, noise drums); period timbres (a reed pipe lead
+  with a scoop and vibrato, a lyre for counter, chords and bass, struck one string after another and let ring, a frame
+  drum and a sistrum, the timing loosened by up to 0.04 beats and the levels by 10%). Three variations per pass (as
+  written; the lead an octave up and the counter silent; sparse), never the same twice running.
+- **The engine** (`synth/engine.ts`): oscillators, pulse waves from their Fourier series and noise, no samples; a look-ahead
+  scheduler that asks at each phrase's end what comes next (piece, tuning, situation), so a change of piece or of mode is
+  heard only there; a small room for the period version, none for 8-bit.
+- **The tunings** (`tunings.ts`): the seven Babylonian lyre tunings of the Nippur (CBS 10996) and Ur (UET VII 126) texts
+  read as the seven diatonic modes after Kilmer and Crocker, brightest to darkest kitmum, išartum, embūbum, pītum, nīd
+  qablim, nīš tuḫrim, qablītum; one step darker lowers one degree a semitone. A score plays in its own tuning or in the
+  court's home mode moved by the shade.
+- **The courts' home modes** (presentation only): Ugarit and Mitanni nīd qablim (the hymn's own), Babylonia išartum,
+  Hatti nīš tuḫrim, Assyria pītum, Arzawa and Alashiya embūbum, Egypt kitmum (a reading: how Egypt's harps were tuned is
+  unknown), every other court nīd qablim; god view and the menus nīd qablim.
+- **Placeholders**: `HymnPlaceholder` (the hymn's first two lines in this item's dyad reading, for every mood until the
+  composer writes the pieces) and `ModeTest` (every role in sixteen beats, for hearing every tuning in both versions).
+  `SynthPieces` maps piece ids to scores; an id without one plays the placeholder.
+
 ## Files and loading
 
 - `src/web/public/audio/`: music (42 files, AAC in .m4a at 64 kb/s, about 26 MB), sounds (63, 48 kb/s), stings (3), beds
