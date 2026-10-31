@@ -833,3 +833,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     fallback alongside the Empire Earth pieces, so all three are heard on one listening page; and make some of each
     Empire Earth piece's variations the same piece in a darker or brighter mode, chosen as the situation worsens or
     improves): "I say yes, expertly, to both." Written into item 19+++.
+96. **31 October 2026, 18:55 UTC**, in the design chat, to the design session's reading of the README review's find
+    that the engine paid and fed troops each season with no order (`payTroops`, `feedTroops`), against "Nothing happens
+    unless someone orders it": "Agree with you on 1". Each king starts with a standing order to pay and feed his troops,
+    shown among his orders and his to change or cancel, as a starting servant's pay already works (item 11b+). Written
+    into item 17+ and the season's first step ("Income and upkeep", Engine and models).
