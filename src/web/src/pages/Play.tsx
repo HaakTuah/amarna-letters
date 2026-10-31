@@ -28,6 +28,7 @@ import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
 import { playing } from "../ui/update.ts";
 import { useSession } from "../ui/use-session.ts";
+import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
 
 const phaseText = (phase: string): string => {
   const colon = phase.indexOf(":");
@@ -58,6 +59,25 @@ export function Play() {
   const [followId, setFollowId] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
   const [legend, setLegend] = useState(false);
+  // Space and the speed keys (ui/keys.ts): Space does what the play button shows, 1 to 5 set the speed, + and − step it.
+  const setSpeed = (i: number): void => s.setDelay(Speeds[Math.max(0, Math.min(Speeds.length - 1, i))].ms);
+  useKeys({
+    pause: () => {
+      if (!live.hasRunner || s.frames.length === 0) return;
+      if (live.auto) s.setAuto(false);
+      else if (s.replaying) s.toggleReplay();
+      else if (s.historyTurn !== null || live.readOnly || live.ended) {
+        if (s.frames.length > 1) s.toggleReplay();
+      } else if (s.canPlay) s.setAuto(true);
+    },
+    speed1: () => setSpeed(0),
+    speed2: () => setSpeed(1),
+    speed3: () => setSpeed(2),
+    speed4: () => setSpeed(3),
+    speed5: () => setSpeed(4),
+    faster: () => setSpeed(speedIndex(s.delayMs) + 1),
+    slower: () => setSpeed(speedIndex(s.delayMs) - 1),
+  });
   const [mark, setMark] = useState<string | null>(null);
   const [theme, setThemeState] = useState(getTheme);
   const [, bump] = useState(0);
@@ -324,10 +344,16 @@ export function Play() {
               <button onClick={() => void s.export()}>Export log</button>
               <label>
                 Speed{" "}
-                <select value={s.delayMs} onChange={(e) => s.setDelay(Number(e.target.value))}>
-                  <option value="50">Fast</option>
-                  <option value="400">Normal</option>
-                  <option value="1500">Slow</option>
+                <select
+                  value={Speeds[speedIndex(s.delayMs)].ms}
+                  onChange={(e) => s.setDelay(Number(e.target.value))}
+                  title="Keys 1 to 5 set the speed; + and − make it faster or slower"
+                >
+                  {Speeds.map((x, i) => (
+                    <option key={x.ms} value={x.ms}>
+                      {i + 1}: {x.name}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label>
@@ -495,19 +521,19 @@ export function Play() {
           ◀
         </button>
         {live.auto ? (
-          <button className="tb play on" onClick={() => s.setAuto(false)} title="Pause" aria-label="Pause">
+          <button className="tb play on" onClick={() => s.setAuto(false)} title={withKey("Pause", "pause")} aria-label="Pause">
             ❚❚
           </button>
         ) : s.replaying ? (
-          <button className="tb play on" onClick={() => s.toggleReplay()} title="Stop the replay" aria-label="Stop the replay">
+          <button className="tb play on" onClick={() => s.toggleReplay()} title={withKey("Stop the replay", "pause")} aria-label="Stop the replay">
             ❚❚
           </button>
         ) : history || live.readOnly || live.ended ? (
-          <button className="tb play" disabled={last < 1} onClick={() => s.toggleReplay()} title="Replay the seasons" aria-label="Replay the seasons">
+          <button className="tb play" disabled={last < 1} onClick={() => s.toggleReplay()} title={withKey("Replay the seasons", "pause")} aria-label="Replay the seasons">
             ▶
           </button>
         ) : (
-          <button className="tb play primary" disabled={!s.canPlay} onClick={() => s.setAuto(true)} title="Auto-play" aria-label="Auto-play">
+          <button className="tb play primary" disabled={!s.canPlay} onClick={() => s.setAuto(true)} title={withKey("Auto-play", "pause")} aria-label="Auto-play">
             ▶
           </button>
         )}

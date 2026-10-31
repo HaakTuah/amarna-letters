@@ -325,6 +325,9 @@ clay, and Egypt's is drawn on papyrus.
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall
 of courts. When the age ends, every seat may open the whole record in god view.
 
+On a computer, Space pauses and unpauses, 1 to 5 set the speed (1 the slowest), and + and − make it faster or
+slower, as in Crusader Kings III; no key acts while you type. Each button's tooltip names its key.
+
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly.
 
