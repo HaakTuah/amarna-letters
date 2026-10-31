@@ -50,6 +50,9 @@ account until its usage is spent; on the main account the usage brake closes it 
   slips in; merged at once, listed in one line per fix under the lane in this file. Nothing is left half done: a fix not
   finished when usage ends is left unstarted, its find noted for the next session.
 
+Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
+- The Counsel preset's card named Sonnet as its kings; it now says Haiku plays them, with Sonnet planning.
+
 ## For Haakon: review points
 
 Answered review points, and the rows of items 1 to 11c, are in `docs/archive/progress-done.md` (moved 28 October 2026,
@@ -64,6 +67,7 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 | 11b++ | None: "The game in one page" and the item's text settled every answer | Readings 1-15 in `docs/rounds/2026-10-29-answers-to-11b-plus.md` | For review, no questions |
 | 13+ (#190) | None: the item's text, "A kingdom falls with its capital" and the page settled every reading | Readings 1-10 in `docs/rounds/2026-10-29-answers-to-13.md` | For review, no questions |
 | 16 (#194) | None: the page and the item's sections settled every reading | Readings 1-13 in `docs/rounds/2026-10-29-royal-council.md` (the darkest omen at the bottom of the cap's range, as the text says, against the reviewer's wish to place it by the curve: reading 10) | No questions |
+| Improvement audit (#235) | 1. Should a troop too small to fight go on counting as a unit? (find 10 of `docs/rounds/2026-10-31-improvement-audit.md`) | Answered by Haakon, 31 October 2026: "A handful holds nothing by itself" (War tab, item 17++): no size threshold; a move into a far weaker unit is a battle it loses by far; a garrison holds a town only as far as its people's ledger stands with its master; script kings fold or disband remnants | Answered |
 
 
 ## Use against ignore
@@ -126,7 +130,7 @@ second account,** spent to the end before Monday: lanes for 17a (the crash and t
 | 19 | The living map | done (29 Oct; stop for review: questions in "For Haakon"), in four passes: 1, the seasons and the land (papyrus; the Nile's flood, winter rains, snow from real elevation, harvest gold, rivers in spate, storms at sea; this game's droughts and floods as last seen); 2, armies and fleets after the period's relics in each culture's idiom, envoys walking, battles as clashes, siege camps, bands and pirates; 3, roads by quality, relay stations, harbours, water works, granaries, mines; 4, memorials, ruins, wild land, famine, towns, caravans and deportees, each realm's medium, omens in the margin, small scenes. Presentation only; the script games identical | `item/living-map` (#201), `-figures` (#202), `-works` (#203), `-memory` (#204) | [report](rounds/2026-10-29-living-map.md) |
 | 19+ | Answers to 19's review | not started: realms' maps in clay (cuneiform courts) or papyrus (Egypt); ruins fade as people return by the existing rule, walls rebuilt with item 15's works, no rebuilding rule; hieratic notes as decoration in Egypt's view | | |
 | 19++ | The visual pass | not started: first every graphical glitch and inconsistency found, pictured and fixed; then every screen as impressive as it can be, in the living map's style, light and dark, phone and desktop; it may cost more but must stay playable on a phone; before-and-after pictures and performance numbers; the main map painting all it can without clutter, and the map's views (mood, what you know, people, harvest and stores, trade, roads and seas, armies, ties) for every system already built; cities drawn in their own culture's style, sized by their people, every level of what is built showing as one zooms in; may run beside 18 | | |
-| 19+++ | The music | in progress (31 Oct): the sound system built and merged with placeholder pieces (dynamic music by the seat's known situation, phrase-end changes, three variations each, stings and moments; 21 sounds placed on the map and heard by zoom; four world beds; switches; the listening page `/listen`; CC0 samples, `docs/audio/SOURCES.md`); the composing moves to a session of its own (Haakon, 31 Oct), from the handover in the report; the event hooks move onto 17a's event stream when it lands. Presentation only; the script games identical | `music/19-plus3` (#237) | [report](rounds/2026-10-31-music.md) |
+| 19+++ | The music | in progress (31 Oct): the sound system built and merged with placeholder pieces (dynamic music by the seat's known situation, phrase-end changes, three variations each, stings and moments; 21 sounds placed on the map and heard by zoom; four world beds; switches; the listening page `/listen`; CC0 samples, `docs/audio/SOURCES.md`); the composing moves to a session of its own (Haakon, 31 Oct), from the handover in the report; the event hooks move onto 17a's event stream when it lands; the fallback in the original Civilization's manner (two synthesised versions, design copy of 31 Oct) is the composer's too. Presentation only; the script games identical | `music/19-plus3` (#237) | [report](rounds/2026-10-31-music.md) |
 
 Side lane, a smaller default world for tests (29 Oct, #136): test games play a few seated powers among idle ones
 (`src/game/test/small-world.ts`); suite 2264 s to 955 s, a code PR's CI about 4 min 50 s to 1 min 52 s
