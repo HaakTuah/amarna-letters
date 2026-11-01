@@ -16,6 +16,8 @@ import {
   newUnit,
   taxOf,
   feed,
+  newBand,
+  newGovernor,
   idiv,
   newMindReply,
   newRisingChoice,
@@ -176,6 +178,57 @@ describe("ObedienceTests", () => {
     Assert.notEqual("Egypt", s.owner.get(id));
     Assert.true(s.inbox.get("Egypt").some((i) => i.title === "A garrison beaten"));
     Assert.true(!s.units.includes(few) || few.men < 300);
+  });
+
+  test("A rising that wins costs its men too, as a battle's winner loses men", () => {
+    const s = quiet();
+    const id = "gaza";
+    removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
+    const g = named(s, "Addaya");
+    g.traits.ambition = 90;
+    g.traits.loyalty = 10;
+    s.ledger.get(id).set("Egypt", 0);
+    s.ledger.get(id).set(g.id, 150);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: id, home: "memphis", men: 500 }));
+    new TurnEngine(s).obeySeason();
+    s.turn++;
+    const settled = s.people.get(id).settled;
+    new TurnEngine(s).obeySeason();
+    Assert.notEqual("Egypt", s.owner.get(id));
+    Assert.true(s.people.get(id).settled < settled);
+  });
+
+  test("A governor's rising beaten leaves his levy one unit of its king's again", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+    const id = "kaska";
+    removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
+    s.owner.set(id, "Hatti");
+    const c = s.characters.find((x) => x.status === "Free")!;
+    Object.assign(c, { status: "Employed", employer: "Hatti", duty: "Governing", watchProvince: id });
+    c.traits.ambition = 90;
+    c.traits.loyalty = 10;
+    s.governors.push(newGovernor({ province: id, character: c.id, power: "Hatti", from: 0 }));
+    // A levy half of whose men follow him, and an army of Hatti's there, as many men as the land's, that puts the rising down.
+    const levy = newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: id, home: id, men: 4000 });
+    s.units.push(levy, newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: id, home: "hattusa", men: s.people.get(id).men * 3 }));
+    s.ledger.set(id, new Dict([["Hatti", 0], [c.id, 300]]));
+    c.risePlan = { turn: s.turn - 1, province: id, rise: true };
+    new TurnEngine(s).obeySeason();
+    Assert.equal("Hatti", s.owner.get(id));
+    Assert.true(s.events.some((x) => x.signal === "revolt-crushed"));
+    Assert.equal(2, s.units.filter((u) => u.province === id && u.power === "Hatti").length);
+    Assert.true(levy.men > 2000, `${levy.men}`);
+  });
+
+  test("A band's robbing is remembered against its chief, a point at least a season", () => {
+    const s = quiet();
+    const e = new TurnEngine(s);
+    const chief = s.characters.find((x) => x.status === "Free")!;
+    Object.assign(chief, { duty: "Leading", watchProvince: "kaska" });
+    s.bands.push(newBand({ id: newId(s, "b"), leaderId: chief.id, province: "kaska", men: 300 }));
+    s.markets.get("kaska").purse = 1000;
+    e.bandsSeason();
+    Assert.true((s.ledger.get("kaska").tryGet(chief.id) ?? 0) < 0);
   });
 
   test("The people resist an invader as hostile as their ledger: more beside a master they love, less to one who gave them much", () => {
