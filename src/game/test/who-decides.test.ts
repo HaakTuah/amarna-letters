@@ -277,7 +277,7 @@ describe("Who decides (item 6c)", () => {
     const api = new SimulatedApi();
     api.override = (body) => (has(props(body), "wake") ? JSON.stringify({ notes: "My envoy is home; the plan holds.", wake: true, pass_up: "", ask_counsel: "" }) : null);
     // Seed 2 since item 10+a: on seed 3 the model kings no longer sleep through these seasons.
-    const [runner] = build(() => {}, 2, api);
+    const [runner] = build(() => {}, 2, api, false, GreatKings);
     await play(runner, 10);
     // News that goes straight to his own mind (a refused order, a check, an authentication) wakes him with no reader.
     const read = runner.log.decisions.filter((d) => /^t\d+\/alerts\//.test(d.key) && d.by !== null);
@@ -294,7 +294,7 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("News that goes straight to the king's own mind wakes him with no reader's call", async () => {
-    const [runner, api] = build(() => {}, 1); // seed 1 since item 10+a: on seed 3 the model kings no longer sleep through these seasons
+    const [runner, api] = build(() => {}, 1, new SimulatedApi(), false, GreatKings); // seed 1 since item 10+a: on seed 3 the model kings no longer sleep through these seasons
     const engine = Object.getPrototypeOf(new TurnEngine(newGame(1, newGameConfig()))) as TurnEngine;
     const orig = engine.lightAlerts;
     // Every alert made weighty: an authentication report, say, that a sealed tablet is forged.
@@ -313,7 +313,7 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("With the small rung off, the king's own model answers every envoy and reads no alerts, as before", async () => {
-    const [runner, api] = build((c) => (c.small = "Off"));
+    const [runner, api] = build((c) => (c.small = "Off"), 3, new SimulatedApi(), false, GreatKings);
     await play(runner, 8);
     Assert.empty(api.requests.filter((r) => userOf(r).includes("THESE ARE ROUTINE AUDIENCES") || has(props(r), "wake")));
     Assert.empty(runner.log.decisions.filter((d) => d.key.includes("/alerts/")));
@@ -340,7 +340,7 @@ describe("Who decides (item 6c)", () => {
   test("Characters climb too: what their own model passes up, the rung above answers", async () => {
     const api = new SimulatedApi();
     api.override = (body) => (str(body, "model") === ModelIds.Haiku && has(props(body), "pass_up") && has(props(body), "speech") ? JSON.stringify({ speech: "", keep_gold: 0, swap_inventory: false, as_written: false, leave_out: [], add_courtesy: false, gift_stated: 0, pass_up: "too much gold", ask_counsel: "" }) : null);
-    const [runner] = build((c) => (c.characters = "Haiku"), 3, api);
+    const [runner] = build((c) => (c.characters = "Haiku"), 3, api, false, GreatKings);
     await play(runner, 4);
     const up = runner.log.decisions.filter((d) => d.key.endsWith("/present") && d.by?.rung === "large");
     Assert.notEmpty(up);
@@ -348,10 +348,16 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("A king the budget cannot pay for waits: his units hold, the script's turn is no fallback, and he is asked again", async () => {
-    const [runner] = build((c) => {
-      c.small = "Off";
-      c.spending = newSpendingSettings({ mode: "limit", limitUsd: 0.000001, auditShare: 0 });
-    });
+    const [runner] = build(
+      (c) => {
+        c.small = "Off";
+        c.spending = newSpendingSettings({ mode: "limit", limitUsd: 0.000001, auditShare: 0 });
+      },
+      3,
+      new SimulatedApi(),
+      false,
+      GreatKings,
+    );
     await play(runner, 3);
     const waited = runner.log.decisions.filter((d) => d.key.includes("/orders/") && d.by?.rung === "script");
     Assert.notEmpty(waited);
