@@ -1,6 +1,7 @@
 /** A human seat's orders as they are being written, before submission. */
 import {
   WorldMap,
+  unitOf,
   besiege,
   convoy,
   disband,
@@ -112,7 +113,8 @@ export class OrderDraft {
       else if (d.kind === "disband") orders.push(disband(at));
       else if (d.kind === "settle") orders.push(disband(at, true));
       else if (d.kind === "besiege") orders.push(besiege(at));
-      else orders.push(hold(at));
+      // Held by default, unless another order already names the unit (razing where it stands, or giving it away).
+      else if (!this.other.some((o) => unitOf(o) === at)) orders.push(hold(at));
     }
     orders.push(...this.other);
     return newTurnSubmission({

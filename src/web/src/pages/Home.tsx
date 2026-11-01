@@ -158,12 +158,13 @@ export function Home() {
   const estimateFor = (p: Preset): number => {
     const c = choices.copy();
     p.applyTo(c);
-    return CostEstimate.perGame(c);
+    // For this table's ending, as the table's own total below is (settings.ts, `estimate`).
+    return CostEstimate.perGame(c, settings.endMedian);
   };
   const describeFor = (p: Preset): string => {
     const c = choices.copy();
     p.applyTo(c);
-    return CostEstimate.describeFor(c);
+    return CostEstimate.describeFor(c, settings.endMedian);
   };
 
   const changeSeat = (value: string): void =>
@@ -613,7 +614,7 @@ export function Home() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card" id="saved-games">
         <h2>Saved games and replays</h2>
         <p className="muted">Every game is saved in this browser as an event log. A log replays the game exactly, season by season.</p>
         <div className="row" style={{ marginBottom: ".6rem" }}>

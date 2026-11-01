@@ -26,6 +26,7 @@ import {
   sellDebt,
   payCarriers,
   huntBands,
+  hunt,
   type Power,
 } from "@amarna/engine";
 import { dated, grantLine, powerName, provinceName, shekels } from "../../ui/format.ts";
@@ -266,6 +267,18 @@ export function CourtSection({ c }: { c: OrdersContext }) {
           {[...v.owner.entries()]
             .filter(([at, who]) => who === me && !v.huntWhere.includes(at))
             .map(([at]) => at)
+            .sort(byName)
+            .map((at) => (
+              <option key={at} value={at}>
+                {provinceName(at)}
+              </option>
+            ))}
+        </select>
+        {/* The one-off hunt: this season, an army of yours where it stands falls on any band working there. */}
+        <select value="" onChange={(e) => e.target.value !== "" && add(hunt(e.target.value))}>
+          <option value="">Hunt the bands this season in…</option>
+          {[...new Set(v.units.filter((u) => u.power === me && u.kind === "Army" && v.owner.tryGet(u.province) === me).map((u) => u.province))]
+            .filter((at) => !draft.other.some((o) => o.type === "hunt" && o.province === at))
             .sort(byName)
             .map((at) => (
               <option key={at} value={at}>

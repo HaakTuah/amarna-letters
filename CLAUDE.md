@@ -165,8 +165,10 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
      orchestrator starts a fresh session for it with the PR, the review and nothing else, at the item's effort; the
      builder goes on.
   4. **Keep the cache warm.** One session per item, continued for its review fixes and its milestone while its context
-     is under an hour old, rather than a fresh session reading everything again; a fresh session for a new item, or when a
-     session's context has grown large. Long runs and checks go in the background; no turn sits idle waiting. Files every
+     is under an hour old, rather than a fresh session reading everything again. A new item goes to whichever does the
+     most work for the fewest tokens without losing quality (Haakon, 1 November 2026: "We should do whatever is most effective at acheivein the goal, which is accomplishing them most possible, with the least tokens, without sacrifacing quality."): a session already open when the item touches
+     the same files, its context is under an hour old and still small, and its last item has merged; otherwise a fresh
+     session, and always one when a session's context has grown large. Long runs and checks go in the background; no turn sits idle waiting. Files every
      session reads stay small (the workshop check), since they are the start of every call.
   5. **Hand over at once.** The last message says what merged and what is next. The orchestrator starts the next session
      as soon as a item merges, woken by the PR's merge rather than a clock, with an hourly check as the fallback.

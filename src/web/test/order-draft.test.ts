@@ -11,6 +11,8 @@ import {
   newGame,
   newStandingRequest,
   newTurnSubmission,
+  raze,
+  setLevel,
   support,
 } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
@@ -79,6 +81,20 @@ describe("OrderDraftTests", () => {
     let sub = draft.build();
     Assert.contains(besiege("suhu"), sub.orders);
     Assert.contains(build("nippur", "Walls", 2), sub.orders);
+    Assert.empty(new OrderValidator(s).validate("Babylonia", sub).rejected);
+  });
+
+  test("A unit that razes where it stands gets no hold beside it", () => {
+    // An army in another's land razes a level of its roads: the draft leaves out the unit's default hold, which would give
+    // it two orders and have the raze refused.
+    let s = newGame(31);
+    first(s.units, (u) => u.province === "sippar").province = "suhu";
+    setLevel(s, "Roads", "suhu", 1);
+    let draft = new OrderDraft(Views.for(s, "Babylonia"));
+    draft.other.push(raze("suhu", "Roads"));
+    let sub = draft.build();
+    Assert.contains(raze("suhu", "Roads"), sub.orders);
+    Assert.equal(1, sub.orders.filter((o) => "unit" in o && o.unit === "suhu").length);
     Assert.empty(new OrderValidator(s).validate("Babylonia", sub).rejected);
   });
 });
