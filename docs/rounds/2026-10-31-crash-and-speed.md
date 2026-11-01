@@ -181,6 +181,11 @@ stream, before the smoothness work:
 | After the stream, phone, fast | 1123 | 177 (15.8%) | 2050 ms | 2050@start, 1417@96, 1400@102, 1250@63 |
 | After the stream, phone, normal | 2477 | 338 (13.7%) | 1800 ms | 1800@start, 1417@99, 1317@96, 1100@86 |
 
+A find on the way (1 November): with the state read deferred behind the frames, a season in which a new power rose drew
+its frame before the page had registered the risen power, and the map's scene threw ("Sequence contains no matching
+element" in `capital`); the error screen took over, as it should, and the game stood still on screen. The risen powers
+now travel with every update (`Live.risen`) and are registered before a frame is drawn.
+
 So the crash is gone on the phone profile too, and the worst frame halved on desktop, but every season still costs about
 three long frames (200 to 380 ms on desktop, about a second on the throttled phone): the season's whole work, the worker's
 message, the state read, React's redraw and the map's layers, lands in one or two tasks. The bar needs each step cheap and
