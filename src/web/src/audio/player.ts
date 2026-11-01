@@ -12,7 +12,7 @@ import { SynthDeck, type NextStretch } from "./synth/engine.ts";
 import type { Version } from "./synth/arrange.ts";
 import { synthPiece, type Shade, type SynthScore } from "./synth/score.ts";
 import { homeMode, shift, type Tuning } from "./tunings.ts";
-import { audioSettings, onAudioSettings } from "./settings.ts";
+import { StartFade, audioSettings, onAudioSettings } from "./settings.ts";
 import { MomentPieces, MoodPieces, type Bed, type Hearing, type Moment, type Mood, type SoundName, type Sting } from "./situation.ts";
 
 interface Variation {
@@ -78,6 +78,9 @@ class Player {
   private lastSting = -1e9;
   /** The listening page plays one file at a time and the director stands aside. */
   private solo = false;
+  /** The first music of a visit fades in; until when (context time). */
+  private firstFade = true;
+  private fadeUntil = 0;
   /** How the situation colours the music (darker as it worsens, brighter at a feast), and whose court is heard. */
   private shade: Shade = 0;
   private court: Power | null = null;
@@ -137,7 +140,21 @@ class Player {
     const s = audioSettings();
     const t = this.ctx.currentTime;
     // The listening page's piece is heard whatever the switches say.
-    if (!this.solo) this.musicBus!.gain.setTargetAtTime(s.music ? Level.music * s.musicVolume : 0, t, 0.3);
+    const target = s.music ? Level.music * s.musicVolume : 0;
+    if (this.firstFade) {
+      // The first music of the visit rises from silence over the opening seconds (startLevel), never at full at once.
+      this.firstFade = false;
+      this.musicBus!.gain.setValueAtTime(0, t);
+      this.musicBus!.gain.linearRampToValueAtTime(target, t + StartFade);
+      this.fadeUntil = t + StartFade;
+    } else if (!this.solo) {
+      // A change of the switches during the opening fade lands where the fade would; after it, at once.
+      if (t < this.fadeUntil) {
+        this.musicBus!.gain.cancelScheduledValues(t);
+        this.musicBus!.gain.setValueAtTime(this.musicBus!.gain.value, t);
+        this.musicBus!.gain.linearRampToValueAtTime(target, this.fadeUntil);
+      } else this.musicBus!.gain.setTargetAtTime(target, t, 0.3);
+    }
     this.soundBus!.gain.setTargetAtTime(s.sound ? Level.sound * s.soundVolume : 0, t, 0.1);
     this.bedBus!.gain.setTargetAtTime(s.sound ? Level.bed * s.soundVolume : 0, t, 0.5);
     if ((!s.music || s.style === "orchestra") && !this.solo) this.synth?.stop();

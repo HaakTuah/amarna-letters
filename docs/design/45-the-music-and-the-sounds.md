@@ -130,7 +130,8 @@ beds, placement and hearing by zoom serve all three, so only the pieces change.
   first use and kept in the worker's `audio-cache-1`, asked for with their content's hash so a re-rendered file is new.
 - Nothing sounds before the reader's first touch (the browsers' rule); the music pauses while the tab is hidden.
 - **Switches**: Music and Sound, each with a volume, in the game's menu and on the listening page, kept in this browser
-  (`amarna-audio`). Quiet by default: both on, music at 35%, sound at 45%.
+  (`amarna-audio`). On by default at a regular volume (both at 70%), the first music of a visit rising from silence over six seconds so it
+  never blasts at start-up (Haakon, 1 November 2026: "Agreed. Keep them on, regular volume, but don't blast someone when they start up, like say CK2, even though the main theme there was epice. SO i didn't really mind.").
 - **The listening page**, `/listen` (the top bar's "Music"): every piece and variation with the template and when it
   plays, every sting, sound and bed.
 
