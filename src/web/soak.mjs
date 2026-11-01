@@ -175,7 +175,9 @@ async function stopTrace() {
   // Every event inside the task, outermost only (an event inside another counts for the outer one), so the parts add up to
   // the task; what no event covers is listed as "unaccounted".
   const makeup = (task) => {
-    const within = main.filter((e) => e !== task && e.ts >= task.ts && e.ts + e.dur <= task.ts + task.dur + 1 && e.dur > 0);
+    // Wrappers (the compositor proxy's frame, the scheduler's) are skipped, so their parts show.
+    const wrapper = (e) => e.name.startsWith("ProxyMain::") || e.name.startsWith("Scheduler::") || e.name === "ThreadControllerImpl::RunTask";
+    const within = main.filter((e) => e !== task && !wrapper(e) && e.ts >= task.ts && e.ts + e.dur <= task.ts + task.dur + 1 && e.dur > 0);
     const outer = within.filter((e) => !within.some((o) => o !== e && o.ts <= e.ts && o.ts + o.dur >= e.ts + e.dur && (o.ts < e.ts || o.ts + o.dur > e.ts + e.dur || o.dur > e.dur)));
     const inside = new Map();
     let covered = 0;

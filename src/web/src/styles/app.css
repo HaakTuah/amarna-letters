@@ -360,7 +360,11 @@ td .sub { display: block; font-size: .8em; white-space: nowrap; }
 .mapzoom { position: relative; width: 100%; height: 100%; transform-origin: 0 0; }
 .mapzoom.glide { transition: transform .25s ease-out; }
 svg.map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; will-change: opacity; }
-svg.map-upper { pointer-events: none; }
+svg.map-upper, svg.map-season, svg.map-relief, svg.map-marks { pointer-events: none; }
+/* Taps reach the provinces' tints, the cities and the marks in their own layers; the sea's hit areas stay in the land's. */
+.map-season [data-province], .map-marks [data-province], .map-marks [data-mark], .map-marks .tap-hit { pointer-events: auto; }
+/* The relief blends in soft light with the land and its colours below it, as a layer of its own. */
+svg.map-relief { mix-blend-mode: soft-light; }
 .map-upper .unit, .map-upper .person, .map-upper .traveller, .map-upper .news { pointer-events: auto; }
 /* Map text is laid out at its own size and scaled with the map (geometricPrecision). Otherwise Chromium fits its glyphs
    to the zoom at whatever moment it last laid the text out, mid-glide or not, and lays it out again when it likes: a
