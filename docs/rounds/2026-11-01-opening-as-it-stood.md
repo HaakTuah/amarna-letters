@@ -18,7 +18,8 @@ Overview, 194 of the Build order), the day the item began, and the check before 
 3. **The land east of the Jordan and the map checked against 1346**: the Shasu in Seir and the Negev, the plateau beyond
    the Salt Sea outside the game, Gath for Hebron, the Lady of the Lions' valley, Suhu folded into Babylonia, Nesa a land
    with no great town, every town's people as it stood.
-4. Places and people by their own names, and a power's name as a claim (below).
+4. Places and people by their own names (below), and a power's name as a claim (C5, built after the hand-off; readings
+   28-33).
 5. The people of 1346 who did not rule (below).
 6. The model-text finds of the hand-off (below).
 
@@ -116,6 +117,25 @@ Each with the principle it rests on ("Reason from the pillars").
     court's style and marked generated [G]; the governor of Alashiya takes a later governor's name [C].
 27. **Artatama II stands at Mitanni's court** with his stake in Mitanni's love, since the sources do not say where he was and
     a character stands at a court; his share of the people's love is item 17++'s to seed.
+
+28. **A contested name is given in the greetings a court sends, not by an order of its own** ("Recognition is earned": "the
+    same greetings record whom each court gives it to"; No menus): a greeting gives the recipient the name he claims, and
+    one "by his house" withholds it and takes back a name given him before, as withholding "Great King" withholds the
+    title. The hand-off's planned `giveName` order is not built, since the design document puts the giving in the greetings.
+29. **The world's record of a contested name** (no viewer: the engine's notices and logs) gives it to the power whose own
+    land it is while that power claims it, else to the one that claimed it first; two who claimed it in the same season
+    share it with nobody, both called by their houses (The order of resolution never decides).
+30. **Who hears of a claim** (Information moves in physical time, kept as far as a name allows): the claimant's court at
+    once; other courts read it in his greetings, which name him so, and the record names him so from that season, since a
+    claim is how his own letters style him. Each court's own naming changes only by the greetings it sends.
+31. **Script kings: a Great King keeps his own name** however much he takes, as Hatti and Assyria kept theirs ("A power's
+    name is a claim"); any other king who holds the capital of a realm of a higher tier than his own claims its name, the
+    greatest such, since the name brings that realm's brotherhood and vassals. Their greetings give a contested name to a
+    bond friend, else a friend, else the claimant holding the realm's capital, else the one whose own land it is.
+32. **A house name** is Bit- and the first king's name (Bit-Aziru, Bit-Rib-Hadda), or Bit- and the land where the sources
+    name no king ("Bit-Hana"); risen powers take their founder's (Places by their own names: "never a number").
+33. **A court names powers as it gives their names** in its seat view and its requests, and the web page does so for a lone
+    human seat; the engine's own notices and logs use the world's record. The ids in models' orders stay as they are.
 
 ## The model-text finds of the hand-off ("Requests are rules too")
 
