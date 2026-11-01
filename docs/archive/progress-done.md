@@ -45,6 +45,13 @@ progress file stays under about 20 KB. History: read it only when a task points 
 | 19 (#201-#204) | 1. Each realm's own map: every court but Egypt's sees its map pressed in clay (all the Amarna letters are clay), or only Babylonia's and Hatti's as the section names them, the rest on papyrus? 2. Ruins: a sacked city lies in ruins until its people's hardship fades (the engine has no rebuilding), or should rebuilding a sacked city be a work kings order (a rule, so a later item)? 3. Egypt's hieratic notes on its map were left out (the map's text stays in the reader's language): add them as decoration in Egypt's view, or keep it so? | Readings in `docs/rounds/2026-10-29-living-map.md`, by pass | Answered by Haakon, 30 Oct: "Yes to all" (clay for cuneiform courts, papyrus for Egypt; ruins fade as people return by "Feeding a province draws its people", no rebuilding rule; hieratic notes as decoration); built in item 19+ |
 | 17a (design, 30 Oct) | When the game crashed at high speed: did the tab close or show an error, or freeze? Phone or desktop, about which season? | 17a reproduces it either way; the answer only speeds the hunt | Answered by Haakon, 30 Oct: "Got a white page with an error. Was on github" (the live site); in 17a, with an error screen so no error leaves a white page |
 | Design (31 Oct) | Should a king be able to make a governor (or any character) a vassal king over the provinces he holds, by a grant under oath as Suppiluliuma did for his sons at Carchemish and Aleppo? | Haakon: "Maybe" (the ledger first); suggested yes, in item 17++, on item 11+'s vassal rules | Answered by Haakon, 31 Oct: "Yes, expertly!"; built in item 17++ |
+| 11c (#143) | None: the page and the sections settled every reading | Readings 1-12 in `docs/rounds/2026-10-29-true-map.md` | Lane, no questions |
+| 11c+ (#165) | None: the page and the item's words settled every reading | Readings 1-13 in `docs/rounds/2026-10-29-map-at-a-glance.md`; the drawing's disagreements with the connections listed there for the design session | Lane, no questions |
+| 11f (#169) | None: the page and the sections settled every reading | Readings 1-15 in `docs/rounds/2026-10-29-map-crossings.md`; the connections rule of the live text (revision 106) deferred to the next item that touches the connections | No questions |
+| 11b++ | None: "The game in one page" and the item's text settled every answer | Readings 1-15 in `docs/rounds/2026-10-29-answers-to-11b-plus.md` | For review, no questions |
+| 13+ (#190) | None: the item's text, "A kingdom falls with its capital" and the page settled every reading | Readings 1-10 in `docs/rounds/2026-10-29-answers-to-13.md` | For review, no questions |
+| 16 (#194) | None: the page and the item's sections settled every reading | Readings 1-13 in `docs/rounds/2026-10-29-royal-council.md` (the darkest omen at the bottom of the cap's range, as the text says, against the reviewer's wish to place it by the curve: reading 10) | No questions |
+| Improvement audit (#235) | 1. Should a troop too small to fight go on counting as a unit? (find 10 of `docs/rounds/2026-10-31-improvement-audit.md`) | Answered by Haakon, 31 October 2026: "A handful holds nothing by itself" (War tab, item 17++): no size threshold; a move into a far weaker unit is a battle it loses by far; a garrison holds a town only as far as its people's ledger stands with its master; script kings fold or disband remnants | Answered |
 
 ## Done items 1 to 10
 
@@ -113,4 +120,34 @@ that plays, and the request text changed with the Zod schemas). Details of the f
   models" asks for any provider and model as settings. Check what the model layer still lacks.
 - **Moved: no longer a flaw.** **A file seat's readable JSON** (the schema printed in a request) escapes a few characters differently from the C#
   build's, through `JSON.stringify`: harmless, but the text a file seat's agent reads differs by those characters.
+
+
+
+## Done items 15 to 19+++
+
+Moved here from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The workshop check").
+
+| # | Item | State | Branch | Report |
+|---|---|---|---|---|
+| 15 | Infrastructure and policing | done (29 Oct; stop for review, no questions): walls, roads, relay stations, harbours, policing and water works as one rule (levels with upkeep in gold or corvée, decay, projects), each king's standing order at the start keeping what stands; roads and stations in the pace and the couriers' reach, letters read at stations, police on the loose, the bands and smugglers, harbours for wintering fleets, water works, repairs under siege, razing; walls city by city from the dossier, Akhetaten none; save version 35 | `item/infrastructure` (#192) | [report](rounds/2026-10-29-infrastructure-and-policing.md) |
+| 16 | The royal council | done (29 Oct; no questions): four advisors on the script kings' planner with known tilts for model, file and human seats, numbers from the pictured seasons, compact counsel, titles from the dossier, the toggle in the log; omens of the end for every seat and character in each court's voice; save version 36 | `item/royal-council` (#194) | [report](rounds/2026-10-29-royal-council.md) |
+| 17 | How cities become free | done (30 Oct; stop for review, no questions): unrest from conditions and revolts, rulers of their own (revolt, turned governor, chief, elder), the gate opened from within, armies buying or taking their food, spies stirring; the age lengthened (median 80, cap 140 to 160); save version 37 | `item/free-cities` (#198) | [report](rounds/2026-10-29-free-cities.md) |
+| 19 | The living map | done (29 Oct; stop for review: questions in "For Haakon"), in four passes: 1, the seasons and the land (papyrus; the Nile's flood, winter rains, snow from real elevation, harvest gold, rivers in spate, storms at sea; this game's droughts and floods as last seen); 2, armies and fleets after the period's relics in each culture's idiom, envoys walking, battles as clashes, siege camps, bands and pirates; 3, roads by quality, relay stations, harbours, water works, granaries, mines; 4, memorials, ruins, wild land, famine, towns, caravans and deportees, each realm's medium, omens in the margin, small scenes. Presentation only; the script games identical | `item/living-map` (#201), `-figures` (#202), `-works` (#203), `-memory` (#204) | [report](rounds/2026-10-29-living-map.md) |
+| 19+++ | The music | done (31 Oct, two sessions): the sound system (#237) with placeholder pieces, then the composing (`music/19-plus3-compose`): the fourteen pieces as music, each with a rise and a fall and one or two variations in a darker or brighter tuning; the fallback's scores (Ugarit's theme the Hurrian Hymn after Kilmer's reading, a theme and a march for each other great court, shared moments), keyed by the viewer's court; the default volume and the fade-in Haakon asked for on 1 Nov are the sound system session's own PR. Report: `rounds/2026-10-31-music-composing.md`. The sound system as first built: the sound system built and merged with placeholder pieces (dynamic music by the seat's known situation, phrase-end changes, three variations each, stings and moments; 21 sounds placed on the map and heard by zoom; four world beds; switches; the listening page `/listen`; CC0 samples, `docs/audio/SOURCES.md`); the composing moves to a session of its own (Haakon, 31 Oct), from the handover in the report; the event hooks move onto 17a's event stream when it lands; the fallback in the original Civilization's manner (two synthesised versions, design copy of 31 Oct) is the composer's too. Presentation only; the script games identical | `music/19-plus3` (#237) | [report](rounds/2026-10-31-music.md) |
+
+## Side lanes
+
+Moved here from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The workshop check").
+
+Side lane, a smaller default world for tests (29 Oct, #136): test games play a few seated powers among idle ones
+(`src/game/test/small-world.ts`); suite 2264 s to 955 s, a code PR's CI about 4 min 50 s to 1 min 52 s
+(`docs/rounds/2026-10-29-small-test-world.md`).
+
+Side lane, map labels overlapping on a busy machine (29 Oct, #196): names and markers are placed again when a zoom's
+glide or a piece's slide really ends, not on timers guessed from their length; the smoke test waits for a still map and
+plays a game in slow motion (`docs/rounds/2026-10-29-map-label-overlap.md`).
+
+Side lane, the smoke test in CI (29 Oct, #199): a `smoke` job beside the test shards, only when a PR changes what the
+app bundles; it caught names still overlapping after #196: Chromium re-sized map text after placement, now laid out at its own size
+(`docs/rounds/2026-10-29-ci-smoke.md`).
 

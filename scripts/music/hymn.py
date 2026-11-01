@@ -62,10 +62,13 @@ class Mode:
 
     def chord(self, degree: int, kind: str = "open", octave: int = 0) -> list[int]:
         """Period harmony: open fifths and fourths, a third only where it colours."""
+        # Where the fifth above a degree is diminished (the tonic's own in qablītum, the fourth degree's in kitmum), the
+        # open chord takes the fourth instead, as a lyre tuned to that string pair would be struck.
+        fifth = degree + (3 if (self(degree + 4) - self(degree)) % 12 == 6 else 4)
         if kind == "open":
-            return [self(degree, octave), self(degree + 4, octave)]
+            return [self(degree, octave), self(fifth, octave)]
         if kind == "triad":
-            return [self(degree, octave), self(degree + 2, octave), self(degree + 4, octave)]
+            return [self(degree, octave), self(degree + 2, octave), self(fifth, octave)]
         if kind == "sus":
             return [self(degree, octave), self(degree + 3, octave), self(degree + 4, octave)]
         if kind == "wide":
@@ -97,3 +100,13 @@ def hymn_in(mode: Mode, lines: list[int] | None = None) -> list[list[tuple[int, 
             continue
         out.append([(mode(a - 5), mode(b - 5), float(c)) for (n, c) in line for a, b in [DYADS[n]]])
     return out
+
+
+# The tunings from the brightest to the darkest (as tunings.ts orders them): one step darker lowers one degree a semitone.
+ORDER = ["kitmum", "isartum", "embubum", "pitum", "nid_qablim", "nis_tuhrim", "qablitum"]
+
+
+def shaded(tuning: str, by: int) -> str:
+    """The tuning `by` steps brighter (positive) or darker (negative) than the one given, stopping at the ends."""
+    i = ORDER.index(tuning) - by
+    return ORDER[max(0, min(len(ORDER) - 1, i))]

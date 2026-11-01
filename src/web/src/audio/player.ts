@@ -369,12 +369,12 @@ class Player {
       shade = this.moment === "triumph" ? 1 : this.moment === "ended" ? 0 : -2;
       this.moment = null;
     } else piece = MoodPieces[this.mood][0];
-    const score = synthPiece(piece);
+    const score = synthPiece(piece, this.court);
     return { score, mode: this.modeFor(score, shade), situation: { mood: this.mood, shade: shade as Shade } };
   }
 
   /** The listening page: one score once through, in a version and a tuning (null: the court's home mode). */
-  listenSynth(score: SynthScore, version: Version, mode: Tuning | null, shade: Shade, onEnd: () => void): void {
+  listenSynth(score: SynthScore, version: Version, mode: Tuning | null, shade: Shade, onEnd: () => void, mood: Mood = "calm"): void {
     this.solo = true;
     this.start();
     if (this.ctx === null) return;
@@ -390,7 +390,7 @@ class Player {
         window.setTimeout(onEnd, 1500);
         return null;
       }
-      return { score, mode: mode ?? this.modeFor(score, shade), situation: { mood: "calm", shade } };
+      return { score, mode: mode ?? this.modeFor(score, shade), situation: { mood, shade } };
     });
     deck.version = version;
     this.soloSynth = deck;
