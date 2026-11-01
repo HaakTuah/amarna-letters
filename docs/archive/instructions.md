@@ -1064,3 +1064,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     `docs/claude-and-codex.md` (the status line, "Codex reviews": about 5 minutes to start, one more ask at about
     15, then Claude's reviewer) and a "Review guidelines" section in `AGENTS.md`, which Codex's review reads; the
     same in Barkstreet Snakes.
+128. **1 November 2026, 17:27-17:32 UTC**, in the design chat, answering item 17+'s question (#348) whether the
+    seven Great Kings' realms take period forms (Miṣri, Aššur): "I want the names people actually know". Then: "as
+    for the names. no, i have already said i want the period specific place names, that we have put already in the
+    build order for all, no? but like in the video that inspired it, even though finkel says gubla, he still says
+    egypt. if you say kemet, people think you speak of a frog." Written into "Places by their own names" (World and
+    history) and item 17+: the realms keep the names people know (Egypt, Babylon, Assyria, Hatti, Mitanni), every
+    place within them its name of 1346.
