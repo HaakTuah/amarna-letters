@@ -13,6 +13,7 @@ import type { Version } from "./synth/arrange.ts";
 import { synthPiece, type Shade, type SynthScore } from "./synth/score.ts";
 import { homeMode, shift, type Tuning } from "./tunings.ts";
 import { StartFade, audioSettings, onAudioSettings, scheduleStartFade, type MusicStyle } from "./settings.ts";
+import { Attack, Level, Mixer, type Layer } from "./mix.ts";
 import { MomentPieces, MoodPieces, type Bed, type Hearing, type Moment, type Mood, type SoundName, type Sting } from "./situation.ts";
 
 interface Variation {
@@ -35,8 +36,6 @@ for (const group of Object.values(Manifest as unknown as Record<string, Record<s
 
 const url = (file: string): string => new URL(`audio/${file}${hashes.has(file) ? `?v=${hashes.get(file)}` : ""}`, document.baseURI).href;
 
-/** The loudness of each bus at full volume: the music under everything, the sounds above it, the beds far below. */
-const Level = { music: 0.9, sound: 0.8, bed: 0.55 };
 const Cross = 3.0; // seconds a change of piece takes
 const Lead = 0.4; // seconds before a phrase ends that the change starts
 const MaxWait = 20; // seconds the music waits for a phrase to end before it crosses anyway
@@ -57,6 +56,11 @@ class Player {
   private ctx: AudioContext | null = null;
   private musicBus: GainNode | null = null;
   private soundBus: GainNode | null = null;
+  /** The world's sounds placed on the map, under the event sounds. */
+  private worldBus: GainNode | null = null;
+  private mixer = new Mixer();
+  /** How loud the bed is at the view's zoom (0 zoomed out, 1 close in). */
+  private bedGain = 0;
   private bedBus: GainNode | null = null;
   private decks: Deck[] = [];
   private live = 0;
@@ -72,7 +76,6 @@ class Player {
   private lastFile = new Map<string, string>();
   private lastAny: string | null = null;
   private buffers = new Map<string, Promise<AudioBuffer | null>>();
-  private lastSound = new Map<string, number>();
   private bed: Bed = null;
   private bedSource: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
   private timer: number | null = null;
@@ -146,12 +149,13 @@ class Player {
     this.ctx = new Ctx();
     this.musicBus = this.ctx.createGain();
     this.soundBus = this.ctx.createGain();
+    this.worldBus = this.ctx.createGain();
     this.bedBus = this.ctx.createGain();
     this.opening = this.ctx.createGain();
     this.opening.gain.value = 0;
     this.opening.connect(this.ctx.destination);
     this.musicBus.connect(this.opening);
-    for (const b of [this.soundBus, this.bedBus]) b.connect(this.ctx.destination);
+    for (const b of [this.soundBus, this.worldBus, this.bedBus]) b.connect(this.ctx.destination);
     for (let i = 0; i < 2; i++) {
       const el = new Audio();
       el.preload = "none";
@@ -183,7 +187,8 @@ class Player {
     const t = this.ctx.currentTime;
     // The listening page's piece is heard whatever the switches say.
     if (!this.solo) this.musicBus!.gain.setTargetAtTime(s.music ? Level.music * s.musicVolume : 0, t, 0.3);
-    this.soundBus!.gain.setTargetAtTime(s.sound ? Level.sound * s.soundVolume : 0, t, 0.1);
+    this.soundBus!.gain.setTargetAtTime(s.sound ? Level.event * s.soundVolume : 0, t, 0.1);
+    this.worldBus!.gain.setTargetAtTime(s.sound ? Level.world * s.soundVolume : 0, t, 0.1);
     this.bedBus!.gain.setTargetAtTime(s.sound ? Level.bed * s.soundVolume : 0, t, 0.5);
     if ((!s.music || this.style() === "orchestra") && !this.solo) this.synth?.stop();
     if (!s.music && !this.solo) for (const d of this.decks) d.el.pause();
@@ -506,29 +511,37 @@ class Player {
     });
   }
 
-  /** A short sound: a variation other than the last, a little varied in pitch and level so it never tires. */
-  play(name: SoundName, delay = 0, heard: Hearing = { gain: 1, pan: 0 }): void {
+  /**
+   * A short sound, in its layer: an event sound (one seat's clicks and what happens to its realm) or a world sound (placed
+   * on the map, heard near the view). A variation chosen at random, a little varied in pitch and level so it never tires;
+   * let through only within the layer's caps (`Mixer`: at most three at once, the same not again within a few seconds),
+   * judged by the moment it is to be heard, not when it was asked; and rising in over a few hundredths, never sudden.
+   */
+  play(name: SoundName, delay = 0, heard: Hearing = { gain: 1, pan: 0 }, layer: Layer = "event"): void {
     if (this.ctx === null || !audioSettings().sound) return;
     const files = sounds[name];
     if (files === undefined || files.length === 0) return;
-    // The same sound twice within a quarter second is heard once, by the moment it is to be heard, not when it was asked.
-    const when = performance.now() + delay * 1000;
-    if (Math.abs((this.lastSound.get(name) ?? -1e9) - when) < 250) return;
-    this.lastSound.set(name, when);
     const f = files[Math.floor(Math.random() * files.length)];
+    const now = performance.now();
+    if (!this.mixer.admit(name, layer, now + delay * 1000, f.seconds, now)) return;
+    const bus = layer === "world" ? this.worldBus! : this.soundBus!;
     void this.buffer(f.file).then((b) => {
       if (b === null || this.ctx === null) return;
-      this.playBuffer(b, this.soundBus!, (0.85 + Math.random() * 0.15) * heard.gain, 0.97 + Math.random() * 0.06, delay, heard.pan);
+      this.playBuffer(b, bus, (0.85 + Math.random() * 0.15) * heard.gain, 0.97 + Math.random() * 0.06, delay, heard.pan, Attack);
     });
   }
 
-  private playBuffer(b: AudioBuffer, bus: GainNode, level: number, rate: number, delay = 0, pan = 0): void {
+  private playBuffer(b: AudioBuffer, bus: GainNode, level: number, rate: number, delay = 0, pan = 0, attack = 0): void {
     const ctx = this.ctx!;
     const src = ctx.createBufferSource();
     src.buffer = b;
     src.playbackRate.value = rate;
     const g = ctx.createGain();
-    g.gain.value = level;
+    if (attack > 0) {
+      const at = ctx.currentTime + delay;
+      g.gain.setValueAtTime(0, at);
+      g.gain.linearRampToValueAtTime(level, at + attack);
+    } else g.gain.value = level;
     src.connect(g);
     if (pan !== 0 && typeof ctx.createStereoPanner === "function") {
       const p = ctx.createStereoPanner();
@@ -554,8 +567,22 @@ class Player {
     return p;
   }
 
-  /** The world's bed under the music, crossing slowly from one to the next; null for none. */
-  setBed(bed: Bed, force = false): void {
+  /**
+   * The world's bed under the music, crossing slowly from one to the next; null for none. `level` (0 to 1) follows the
+   * view's zoom: the bed is a world sound, heard only zoomed in (`bedLevel`).
+   */
+  setBed(bed: Bed, force = false, level: number = this.bedGain): void {
+    if (level !== this.bedGain) {
+      this.bedGain = level;
+      if (this.bedSource !== null && this.ctx !== null) {
+        // Over any fade still under way (a bed just begun), or its end would undo the zoom's level.
+        const g = this.bedSource.gain.gain;
+        const t = this.ctx.currentTime;
+        g.cancelScheduledValues(t);
+        g.setValueAtTime(g.value, t);
+        g.setTargetAtTime(level, t, 0.8);
+      }
+    }
     if (bed === this.bed && !force) return;
     this.bed = bed;
     if (this.ctx === null || !audioSettings().sound) return;
@@ -572,7 +599,7 @@ class Player {
       const gain = this.ctx.createGain();
       const t = this.ctx.currentTime;
       gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(1, t + 4);
+      gain.gain.linearRampToValueAtTime(this.bedGain, t + 4);
       src.connect(gain);
       gain.connect(this.bedBus!);
       src.start(t, Math.random() * Math.max(0, b.duration - 1));
@@ -628,7 +655,7 @@ class Player {
     void this.buffer(file).then((b) => {
       if (b === null || this.ctx === null) return;
       const g = this.ctx.createGain();
-      g.gain.value = bus === "music" ? Level.music * 0.6 : bus === "bed" ? Level.bed * 1.2 : Level.sound * 0.7;
+      g.gain.value = bus === "music" ? Level.music * 0.6 : bus === "bed" ? Level.bed * 1.2 : Level.event * 0.9;
       g.connect(this.ctx.destination);
       const src = this.ctx.createBufferSource();
       src.buffer = b;
