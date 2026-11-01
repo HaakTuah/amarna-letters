@@ -566,7 +566,8 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     hoardHere: c.hoard !== null && c.hoard.at === viewer && c.status !== "Dead" ? c.hoard.gold : null,
     carries: c.status === "Captured" && c.heldBy === viewer ? c.purse + c.carriedFor : null,
     // Item 11a: one standing at your court, free to deal, who offers to lend you gold.
-    lends: c.lendOffer !== null && c.at === viewer && c.heldBy === null && c.status !== "Dead" && !hiddenAt(c, viewer) && c.lendOffer.amount > 0 ? c.lendOffer : null,
+    // A copy: the view is what the court saw when it was asked, not a window on the lender's purse as the season moves it.
+    lends: c.lendOffer !== null && c.at === viewer && c.heldBy === null && c.status !== "Dead" && !hiddenAt(c, viewer) && c.lendOffer.amount > 0 ? { ...c.lendOffer } : null,
     // Item 11b: the news of other courts they offer you, standing at your court.
     news: hiddenAt(c, viewer) ? [] : newsOffered(s, c, viewer).map((n) => newNewsOffer({ court: n.court, turn: n.turn, lines: n.lines.length, price: n.price })),
   });

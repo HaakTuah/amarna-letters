@@ -23,6 +23,7 @@ import {
   StartWalls,
   courtReads,
   newGameConfig,
+  PeopleOf1346,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -58,7 +59,8 @@ describe("City-states as powers (item 11+)", () => {
     const s = newGame(2);
     // Staff by size, and since item 11f an Akkadian scribe at every court that reads Akkadian.
     const scribes = AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length;
-    for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0), s.characters.filter((c) => c.employer === p).length);
+    // Item 17+: and the people of 1346 in their posts at their courts.
+    for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length, s.characters.filter((c) => c.employer === p).length);
     Assert.equal(100 + scribes, s.characters.length);
   });
 

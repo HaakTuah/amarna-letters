@@ -293,8 +293,9 @@ function employ(s: GameState, rng: Rng, c: Character, p: Power, plant: boolean):
   // Haakon's answers to item 11a: its first errand is named when it is first sent, and the job, agreed before the game,
   // carries the king's word to pay the rest when it is done (his standing order, which he may cancel: withhold_fee).
   c.contract = newContract({ fee, advance: Math.trunc(fee / 2), startTurn: 1, untilTurn: until, payOnDone: true });
-  c.purse = Math.trunc(fee / 2);
-  c.earned.fees = c.purse;
+  // On top of what he already holds (item 17+: a person of 1346 with a purse of his own may be taken into a post).
+  c.purse += Math.trunc(fee / 2);
+  c.earned.fees += Math.trunc(fee / 2);
   c.reputation.set(p, 10);
   // Item 12: years at the court it serves have taught it the court's language.
   servedThere(s.seed, c, p, WorldMap.default.capital(p).id);
@@ -349,7 +350,9 @@ function more(s: GameState, unused: Seed[]): void {
       c.met = [];
     }
     if (sd.purse > 0) {
-      c.purse = c.earned.savings = sd.purse;
+      // On top of any advance his post paid him: what he holds stays what he gained.
+      c.purse += sd.purse;
+      c.earned.savings += sd.purse;
       pursed.add(c.id);
     }
     c.persona = personaTemplate(c);

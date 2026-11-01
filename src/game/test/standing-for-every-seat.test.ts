@@ -454,8 +454,10 @@ describe("StandingForEverySeatTests", () => {
     // off and the orders it gave. The game replays exactly. (Until the siege package this was seed 1's turn 3, where Arzawa
     // marched on an empty Hattusa; the walls on homelands changed that game.) In the small world (small-world.ts) the first
     // to fire is seed 3's, in its fourth season, since item 11c's map (seed 4's before), so the search starts there. The
-    // people do not resist here (item 11e's land defended by its men makes such blows rarer).
-    for (let seed = 3; seed <= 15; seed++) {
+    // people do not resist here (item 11e's land defended by its men makes such blows rarer). Since item 17+ placed the
+    // Great Kings' men at home and in their frontier bases, early blows are rarer still: the first to fire is seed 17's,
+    // in its twelfth season.
+    for (let seed = 3; seed <= 20; seed++) {
       let state = newGame(seed, newGameConfig({ peopleDefence: 0 }));
       let runner = Object.assign(new GameRunner(state, scriptSeats(seed), new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
       await runner.prepare();
