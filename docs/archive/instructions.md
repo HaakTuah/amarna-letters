@@ -1003,4 +1003,8 @@ Given in the design chat with Claude, answering the design questions of the cons
 121. **1 November 2026, 11:31 UTC**, in the design chat: "Important! The music must never reveal what's outside the fog
     of war. Remember, a king only sees what's within a season at any one time." Written into item 19+++, "The season
     plays out, and zoom shapes what you see and hear" (Interface) and the polish lane's soundscape entry.
+122. **1 November 2026, 11:35 UTC**, in the design chat, on item 121: "But of course, you know where a sea is, so some
+    things you can zoom in on and hear, without it revealing anything. Because these are static. And if you zoom in on a
+    city that is really burned but that you still believe is buzzing, then it should probably play the urban commotion
+    sound?" Written into item 19+++ and the polish lane's soundscape entry: what a seat hears is what its own map shows.
 
