@@ -21,24 +21,35 @@ interface Container {
   items: (Leaf | Container)[];
   /** The closing bracket, and the comma after it where there is one: the text of the piece's start. */
   tail: string;
-  /** The key of its pieces' numbers, once asked for. */
+  /** Where its pieces lie in the season's list of numbers: from the head to the piece after the tail's (exclusive). */
+  from: number;
+  to: number;
+  /** The hash of its pieces' numbers, once asked for. */
   key?: string;
   /** The joined text, once asked for (only for a container read anew). */
   text?: string;
 }
 type Node = Leaf | Container;
 
+/** What a cache holds under a hash: the pieces' numbers the object was read from (to tell a true hit), and the object. */
+interface Entry {
+  ids: Uint32Array;
+  value: unknown;
+}
+
 export class IncrementalReader {
   private caches = new Map<string, Cache>();
   private next = new Map<string, Cache>();
   private texts: readonly string[] = [];
+  private refs: Uint32Array = new Uint32Array(0);
 
   /**
    * The state of a snapshot, given the numbers of its pieces in order and the pieces by number, sharing with the states read
    * before whatever is made of the same pieces.
    */
-  apply(refs: Iterable<number>, texts: readonly string[]): GameState {
+  apply(refs: Uint32Array, texts: readonly string[]): GameState {
     this.texts = texts;
+    this.refs = refs;
     let t = performance.now();
     const root = this.treeOf(refs);
     performance.measure("reader:tree", { start: t });
@@ -59,6 +70,7 @@ export class IncrementalReader {
     }
     this.caches = this.next;
     this.texts = [];
+    this.refs = new Uint32Array(0);
     performance.measure("reader:fields", { start: t });
     performance.measure(`reader:parsedKB:${Math.round(this.parsed / 1024)}`, { start: t, duration: 0 });
     return o as unknown as GameState;
@@ -67,11 +79,12 @@ export class IncrementalReader {
   private parsed = 0;
 
   /** The tree of a snapshot's pieces. The root's one item is the state's object. */
-  private treeOf(refs: Iterable<number>): Container {
+  private treeOf(refs: Uint32Array): Container {
     const texts = this.texts;
-    const root: Container = { head: -1, items: [], tail: "" };
+    const root: Container = { head: -1, items: [], tail: "", from: 0, to: refs.length };
     const stack: Container[] = [root];
-    for (const id of refs) {
+    for (let i = 0; i < refs.length; i++) {
+      const id = refs[i];
       const p = texts[id];
       if (p.length === 0) continue;
       const top = stack[stack.length - 1];
@@ -80,18 +93,19 @@ export class IncrementalReader {
         // opener, or a whole scalar member) belongs to the container below.
         stack.pop();
         top.tail = p;
+        top.to = i + 1;
         const rest = p.slice(p.startsWith("],") || p.startsWith("},") ? 2 : 1);
         if (rest.length === 0) continue;
         const below = stack[stack.length - 1];
         if (opens(p)) {
-          const c: Container = { head: id, items: [], tail: "" };
+          const c: Container = { head: id, items: [], tail: "", from: i, to: i + 1 };
           below.items.push(c);
           stack.push(c);
         } else below.items.push({ id });
         continue;
       }
       if (opens(p)) {
-        const c: Container = { head: id, items: [], tail: "" };
+        const c: Container = { head: id, items: [], tail: "", from: i, to: i + 1 };
         top.items.push(c);
         stack.push(c);
       } else top.items.push({ id });
@@ -108,13 +122,44 @@ export class IncrementalReader {
     return (x.text = out + x.tail.slice(0, x.tail.startsWith("],") || x.tail.startsWith("},") ? 2 : 1));
   }
 
-  /** A node's key: a leaf's number, a container's numbers in order. Two nodes with the same key have the same text. */
+  /**
+   * A node's key: a leaf's number; a container's a hash of its pieces' numbers (two 32-bit FNV-1a hashes), so it costs the
+   * container's length, not a string of all its numbers. A hit is confirmed against the numbers themselves (`same`).
+   */
   private keyOf(x: Node): string {
-    if (!("items" in x)) return String(x.id);
+    if (!("items" in x)) return "l" + x.id;
     if (x.key !== undefined) return x.key;
-    let out = String(x.head);
-    for (const item of x.items) out += "," + this.keyOf(item);
-    return (x.key = out + "," + closerKey(x.tail));
+    let h1 = 0x811c9dc5;
+    let h2 = 0x01000193;
+    const refs = this.refs;
+    for (let i = x.from; i < x.to; i++) {
+      const id = refs[i];
+      h1 = Math.imul(h1 ^ id, 0x01000193) >>> 0;
+      h2 = Math.imul(h2 ^ (id + 0x9e3779b9), 0x0100019b) >>> 0;
+    }
+    // Where the container ends inside a shared piece (a closer carrying the next member), the kind of closer tells them apart.
+    return (x.key = h1.toString(36) + ":" + h2.toString(36) + ":" + closerKey(x.tail));
+  }
+
+  /** The numbers of a container's pieces, a view on the season's list. */
+  private idsOf(x: Container): Uint32Array {
+    return this.refs.subarray(x.from, x.to);
+  }
+
+  /** A cache's object for a node, if it was read from the same pieces. */
+  private lookup(cache: Cache, key: string, x: Node): Entry | undefined {
+    const entries = cache.get(key);
+    if (entries === undefined) return undefined;
+    if (!("items" in x)) return entries[0];
+    const ids = this.idsOf(x);
+    return entries.find((e) => same(e.ids, ids));
+  }
+
+  private keep(cache: Cache, key: string, x: Node, value: unknown): void {
+    const entry: Entry = { ids: "items" in x ? this.idsOf(x) : Empty, value };
+    const entries = cache.get(key);
+    if (entries === undefined) cache.set(key, [entry]);
+    else if (!entries.some((e) => same(e.ids, entry.ids))) entries.push(entry);
   }
 
   /** The text of a node's start: a leaf's piece, or a container's head piece (its member name is in it). */
@@ -124,8 +169,8 @@ export class IncrementalReader {
 
   /** A field's value: an object read from its pieces, reused from the last state when the pieces are the same. */
   private member(field: string, schema: Schema, item: Node): unknown {
-    const cache = this.caches.get(field) ?? new Map();
-    const kept = this.next.get(field) ?? new Map<string, unknown>();
+    const cache: Cache = this.caches.get(field) ?? new Map();
+    const kept: Cache = this.next.get(field) ?? new Map();
     this.next.set(field, kept);
     return this.value(schema, item, true, cache, kept);
   }
@@ -136,10 +181,10 @@ export class IncrementalReader {
    */
   private value(schema: Schema, src: Node, named: boolean, cache: Cache, kept: Cache): unknown {
     const key = this.keyOf(src);
-    const had = cache.get(key);
+    const had = this.lookup(cache, key, src);
     if (had !== undefined) {
-      kept.set(key, had);
-      return had;
+      this.keep(kept, key, src, had.value);
+      return had.value;
     }
     let v: unknown;
     const shape = shapeOf(schema);
@@ -176,13 +221,21 @@ export class IncrementalReader {
       this.parsed += text.length;
       v = readText(schema, itemJson(named ? valueText(text) : text));
     }
-    kept.set(key, v);
+    this.keep(kept, key, src, v);
     return v;
   }
 }
 
-/** Objects by the key of the pieces they were read from, per field of the state: what unchanged pieces reuse. */
-type Cache = Map<string, unknown>;
+/** Two lists of numbers alike. */
+function same(a: Uint32Array, b: Uint32Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+const Empty = new Uint32Array(0);
+
+/** Objects by the hash of the pieces they were read from, per field of the state: what unchanged pieces reuse. */
+type Cache = Map<string, Entry[]>;
 
 const opens = (p: string): boolean => p.endsWith("[") || p.endsWith("{");
 const closes = (p: string): boolean => p.startsWith("]") || p.startsWith("}");
