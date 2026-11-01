@@ -341,19 +341,18 @@ export function Home() {
           </p>
         )}
 
-        <div className="row" style={{ marginTop: ".9rem" }}>
-          <label>
-            <span className="muted">Your seat</span>
-            <select value={seat ?? ""} onChange={(e) => changeSeat(e.target.value)}>
-              <option value="">Watch the kings (spectator)</option>
-              {FixedPowers.map((p) => (
-                <option key={p} value={p}>
-                  Play as {powerName(p)} ({tier(p).toLowerCase()})
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        {/* The label above its menu, as the table's other fields have it: beside it, "Your seat" broke over two lines on a phone. */}
+        <label className="field" style={{ marginTop: ".9rem", alignItems: "flex-start" }}>
+          <span>Your seat</span>
+          <select value={seat ?? ""} onChange={(e) => changeSeat(e.target.value)}>
+            <option value="">Watch the kings (spectator)</option>
+            {FixedPowers.map((p) => (
+              <option key={p} value={p}>
+                Play as {powerName(p)} ({tier(p).toLowerCase()})
+              </option>
+            ))}
+          </select>
+        </label>
 
         <details className="customize">
           <summary>Customize the table</summary>
