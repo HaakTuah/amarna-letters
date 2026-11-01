@@ -967,4 +967,44 @@ Given in the design chat with Claude, answering the design questions of the cons
     possible. what do you think, expert?" To the four paces (Slow, Normal, Fast, Simulate): "Yes, please! expertly!
     does the hotkeys become 1, 2, 3, and 4 then?" Written into "Pace of play" (Interface), item 17+++a's keys (1 to 4,
     + and − between the three watching speeds, Enter ends one's season) and the polish lane's entry.
+117. **1 November 2026, 10:53 UTC**, in the design chat, to milestone #338's three questions with the design session's
+    takes (17a: merge, the phone's frames waiting for 17+++; the Hurrian Hymn: keep Kilmer's reading, saying on the Music
+    page that it is her reading; the Music page: our own pieces' names and moods only, without Empire Earth's): "Agreed
+    to all! Now, where do I check the music?" Written into the "For Haakon" table of `docs/BUILD-PROGRESS.md`.
+118. **1 November 2026, 11:14-11:18 UTC**, in the design chat, on the music and the Music page: "I am actaully
+    impressed! Didn't expect much from the music actually! But it is good! Is it entirely like I imagined it? No! But it
+    fits quiet well! I want to keep all of it, even "The tuning's scale (a test)". So I think this page is really nice,
+    and for the player to be able to set which soundtrack they want. Though the orchestral, and the lyre and reed
+    soundtracks are clearly the best ones. I still don't see any reason to do away with the 8-bit one, but it should be
+    be the last on the list, with the orchestral being the default." Then, to the design session's take (that order
+    everywhere, the test under "Extras", Lyre and reed when the orchestra cannot load): "Yes, please, expertly! And i
+    notice the music page is a little bit buggy. Sounds can overlap if you click multiple. I see that as a feature
+    actually, so keep that. But the main theme from the menu keeps popping back in by itself after you've clicked on a
+    piece of music, and it still plays when you click on the sound effects sometimes, so it is hard to hear them with
+    the music drowning them out. Should perhaps the main theme stop when you click on anything in the music menu, then
+    resume when you leave that tab? What is your expert take?" Written into the polish lane's entries in
+    `docs/BUILD-PROGRESS.md`, with the design session's reading that the theme fades out on entering the page.
+119. **1 November 2026, 11:21 UTC**, in the design chat, correcting item 118's reading: "Well, the music don't
+    overlap in thin, but rh3 soundeff3cts does, which is finex so you can just not mention it, just leave it exactly as
+    it is." The polish lane's Music page entry no longer mentions overlapping.
+120. **1 November 2026, 11:25-11:28 UTC**, in the design chat, on watching a game with the new sound: "But there is one
+    big problem. It is not very nice to spectate now. Stuff still moves way way too quick on medium speed, but i guess
+    that update hasn't begun yet. But more importantly, your ears are being assaulted now. It plays dozens of sound
+    effects at any one time. I believe ck2 only played many of those soundeffects if they happen to you, like stumbling
+    something, etc. I think maybe that's more how it should be, only the environmental stuff being there for a
+    spectator? It should at least be much less sounds playing off all the time, can barely hear the music now." Then,
+    to the design session's take: "Yes, in ck2, you get environmental sounds. Like a plague in a county, you zoom in,
+    you get the moaning and commotion. You zoom in on a battle, you hear the steel clash. But all the event stuff is for
+    players only, or if you spectate a player, you hear specifically what they hear, I think? And we must be careful
+    that the environmental stuff isn't so loud, intense and frequent that it drowns out the music, should ideally just
+    add layers to it. Your thoughts, expert? I think this is mostly an issue of refining the cooperation of the
+    soundscape, not nessecarily needs much altering of the sounds themselves?" Written into item 19+++, "The season plays
+    out, and zoom shapes what you see and hear" (Interface) and the polish lane's entries.
+121. **1 November 2026, 11:31 UTC**, in the design chat: "Important! The music must never reveal what's outside the fog
+    of war. Remember, a king only sees what's within a season at any one time." Written into item 19+++, "The season
+    plays out, and zoom shapes what you see and hear" (Interface) and the polish lane's soundscape entry.
+122. **1 November 2026, 11:35 UTC**, in the design chat, on item 121: "But of course, you know where a sea is, so some
+    things you can zoom in on and hear, without it revealing anything. Because these are static. And if you zoom in on a
+    city that is really burned but that you still believe is buzzing, then it should probably play the urban commotion
+    sound?" Written into item 19+++ and the polish lane's soundscape entry: what a seat hears is what its own map shows.
 
