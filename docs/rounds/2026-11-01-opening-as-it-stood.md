@@ -168,7 +168,13 @@ Each with the principle it rests on ("Reason from the pillars").
   pay its troops"), where the id and the shown name agree for every power but Babylonia (Karduniash), Hana, Halab,
   Mukish, Upe and the renamed cities; the polish lane's list in `docs/rounds/2026-10-31-polish-lane.md`.
 
-## Where to pick up (hand-off, 1 November 2026, usage cut-off)
+## Where to pick up (hand-off, 1 November 2026, usage cut-off; finished the same day)
+
+Finished by the next session: tests fixed (old expectations of ids where F's reports now name places), C5 built (below
+and readings 28-33), the benchmarks and the use-against-ignore for D run (under Benchmarks), the check for changes done
+(the build order moved from revision 194 to 198, changing item 19 and the Interface tab's spectator section, neither
+touching 17+), and the review run and its findings fixed (under The review). The hand-off as written:
+
 
 The session building this item was stopped at 98% of the weekly usage. State of the branch `item/opening-as-it-stood`:
 
@@ -201,6 +207,29 @@ The session building this item was stopped at 98% of the weekly usage. State of 
 - **Leftovers noted, not done:** sleep digests and wake reasons still name provinces by id; treasury and press lines name
   powers by id; `svg-renderer.ts` is 52 KB (split in its own PR).
 
+## The review
+
+One reviewer (the diff, the item's text and "The game in one page"). Its findings and what was done:
+
+1. **Two powers' units in one province at the start** (Sumur, Byblos's and Tyre's waters), the second unorderable: fixed;
+   the city-states' placements are a data table (`CityStarts`), one unit to a province, with a test (reading 35).
+2. **Changing one half of the pay-and-feed order changed the other** (stopping food paid troops whose pay was held):
+   fixed; each half is null when left out, the whole order clears only its own half's exceptions.
+3. **Every court learned of a name claim at once:** fixed; a court learns it from the claimant's sealed greetings
+   (`namesHeard`), and the engine's notices name each power by its own land (reading 30).
+4. **Governors on a fee at their king's court:** moved to 17++, whose text builds them (reading 34).
+5. **The province order acted after movement, and could not pay only some:** fixed; it is set before movement, and the
+   exceptions run both ways.
+6. **Hold lines no longer dropped from models' battle reports:** fixed, with the test in the new wording.
+7. **Starting debts read as lent in turn 0:** fixed ("owed since before the first season").
+8. **Event lines naming powers by id:** the two new ones now name the land; the older ones stay (a leftover, below).
+9. **NAMES CLAIMED named claimants by id:** the line says the kings are named as orders name them, as RANK does.
+10. **Placement by code that names powers:** now data.
+
+Found while running the tests: a spy's unspent gold for stirring a province went into his purse uncounted, breaking the
+rule that a purse holds only what it gained (the `richest` test, once the game took another path). It is now counted as
+what he kept of his master's gold.
+
 ## Design questions
 
 1. **Should the seven Great Kings' realms take the period forms too** (Miṣri for Egypt, Aššur for Assyria), or keep the
@@ -215,7 +244,24 @@ The session building this item was stopped at 98% of the weekly usage. State of 
 
 20 games, seed 1, `--verify-replay`, develop as the item started: a capital fell in 20 of 20 games (339 kingdoms fell in
 all); the first fall in season 3.5 on the median; a kingdom fallen in the first two seasons in 7 of 20 (Lukka 5, Suteans 3,
-Shasu 1); Egypt fell in 0, Hatti 3, Babylonia 0, Mitanni 3, Assyria 9, Arzawa 3, Alashiya 0. After: below.
+Shasu 1); Egypt fell in 0, Hatti 3, Babylonia 0, Mitanni 3, Assyria 9, Arzawa 3, Alashiya 0.
+
+After (the branch with the review's fixes, merged with develop; 20 games, seed 1, every replay exact): a capital fell in
+20 of 20 games (373 kingdoms fell in all); the first fall in season 1.5 on the median (range 1-6); a kingdom fallen in the
+first two seasons in 11 of 20 (Kaska 6, Lukka 5, Shasu 2); Egypt fell in 0, Hatti 0, Babylonia 0, Mitanni 3, Assyria 10,
+Arzawa 3, Alashiya 0. Winners: Egypt 4, Babylonia 3, Assyria 2, Libya 2, and one each for Hatti, Mitanni, Ugarit, Tyre,
+Qatna and Pella. Script kings held back pay 713 times in 20 games (`pay-held`); realms' names were claimed 3 times in 2
+games (`name-claim`: a city holding a greater realm's capital is rare in twenty games).
+
+- **The chiefs' lands fall sooner.** Kaska now falls in the first two seasons in 6 games (none before), since Hatti's men
+  stand where the sources put them, at Samuha and Sapinuwa facing the Kaska. These are lands under a chief, not a
+  kingdom's capital, and Lukka and the Shasu fell as early before. Item 17++'s "Whom a province obeys" replaces how any
+  province changes hands (force against its own men, and its ledger), and its text says the Kaska held out for
+  generations, so the finding goes to 17++ rather than a patch here.
+- **Use against ignore for D** (`--upkeep-play-half`, 50 games, seed 1): kings that hold back pay from safe units when
+  the treasury cannot carry the season, against kings that always pay, mean growth 0.74 against 0.74, 25 wins against
+  25. It neither pays nor costs yet: holding back pay only saves gold in a lean season, and gold buys little until 17++'s
+  demands and the ledger, where unpaid men remember it, give the choice its weight. A finding for 17++ and 18.
 
 ## The people of 1346 who did not rule: every name weighed
 

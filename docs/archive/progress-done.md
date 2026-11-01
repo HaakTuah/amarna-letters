@@ -153,4 +153,4 @@ plays a game in slow motion (`docs/rounds/2026-10-29-map-label-overlap.md`).
 Side lane, the smoke test in CI (29 Oct, #199): a `smoke` job beside the test shards, only when a PR changes what the
 app bundles; it caught names still overlapping after #196: Chromium re-sized map text after placement, now laid out at its own size
 (`docs/rounds/2026-10-29-ci-smoke.md`).
-
+| 17a (#321) | 1. The throttled phone's frames: the 50 ms bar is met on desktop (69 and 110 frames over 50 ms a game, none over 117 ms in play; 327 to 337 before) but not on the phone profile (a few frames of 200 to 300 ms a season, the rendering of the season's layer writes). Merge 17a and take the phone's frames up in 17+++, which redraws the season textures ("merge"), or hold 17a and rebuild the season drawing now ("hold")? | Reading: merge; readings 1-7 in `docs/rounds/2026-10-31-crash-and-speed.md` | Answered by Haakon, 1 November 2026 ("Agreed to all!"): merge; the phone's frames wait for item 17+++, which redraws the season drawing and is held to the same 50 ms bar |
