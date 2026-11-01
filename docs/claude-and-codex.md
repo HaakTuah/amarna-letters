@@ -4,6 +4,11 @@ Decided 1 November 2026 (`docs/archive/instructions.md`, item 123). Two builders
 (OpenAI's) on ChatGPT Pro, and review each other: different models have different blind spots. This file is the whole
 arrangement; `AGENTS.md` points here, and nothing here is repeated there.
 
+**Status (1 November 2026): Codex reviews, Claude builds.** Codex's code review works on these repositories, but it
+cannot build yet: its GitHub tasks and its command line need a "Codex Cloud (Legacy)" environment, which cannot be
+created. So no lane goes to Codex, and nothing is labelled `codex`, until Haakon says it can build; until then the
+building, the routing below and Haakon's poller wait, and all building is Claude's.
+
 ## Who does what
 
 - **The orchestrator is Claude, always:** it writes the briefs, routes the work, takes the readings, gives the
@@ -12,7 +17,8 @@ arrangement; `AGENTS.md` points here, and nothing here is repeated there.
   which Haakon's poller hands to Codex (below).
 - **The reviewer is the other company's model.** Codex's PRs get Claude's reviewer (Opus, high effort), given
   the diff, the item's text and "The game in one page": it holds the picture of the finished game and sends the work back until it meets it. Claude's PRs
-  are reviewed by Claude's reviewer for now, as before Codex came, until Codex can review in its own cloud.
+  that change the game get Codex's code review ("Codex reviews" below); when Codex does not answer in time, Claude's
+  reviewer takes them, as before Codex came.
 - **Escalation goes to the other model first:** a problem that has defeated Claude twice goes to Codex as a
   draft PR from the stuck branch, labelled `codex`, whose description is the brief (the problem, what was tried, the
   files and lines), merged into the stuck branch if it works; one that has defeated Codex goes to
@@ -64,9 +70,10 @@ reviews), and if it scores well, more items follow.
    goes to "Questions for Haakon" and the "For Haakon" table, as always.
 4. **The PR is then reviewed as below,** sent back the same way (the review's list added to the description, `codex`
    added again), marked ready, and merged by the orchestrator.
-5. **Never write the Codex mention** (`@` and `codex`) on GitHub: its bot cannot run tasks here (it needs a "Codex
-   Cloud (Legacy)" environment, which cannot be created; tried 1 November 2026), and it answers every mention it
-   finds, even in backticks. Text that talks about it says "the Codex mention".
+5. **Write the Codex mention only to ask for a review:** `@codex review` or `@codex security review`, alone at the
+   start of a comment. Any other request to it fails (its tasks need a Legacy environment, which cannot be created;
+   tried 1 November 2026), and its bot answers every mention it finds, even in backticks, so text that only talks
+   about it says "the Codex mention".
 
 ## When Codex is not there
 
@@ -86,6 +93,25 @@ waits on Codex for long. The poller looks every minute, so:
   A take-back for a slow PR alone does not count: the next lane still goes to Codex.
 - The times were set from the first test (1 November 2026): adjust them from what the first weeks show, and say so
   here.
+
+## Codex reviews
+
+Codex reviews Claude's PRs that change the game, in OpenAI's cloud, on Haakon's Codex plan, so Claude's weekly usage
+goes to building. Its usage can run out like any other, and it may then not say so, so:
+
+1. **Ask:** a comment `@codex review`, then on a new line the criteria: "Score the work from 1 to 10 and list everything
+   that keeps it from 10, each point blocking or not blocking, as the Review guidelines in AGENTS.md say." The
+   item's text and the design sections it names go in the PR's description, which Codex reads.
+2. **It starts within seconds** (its 👀 reaction and a "Codex Review Summary" comment; seen in 20 seconds on
+   1 November 2026) **and finishes within minutes** (seen in under two). No sign within about **5 minutes,** or an
+   answer that is not a review (no usage left, an error): Claude's reviewer takes the PR at once.
+3. **Still running after about 15 minutes:** ask once more with `@codex review`. No finished review about 5 minutes
+   after that: Claude's reviewer takes it. Either way, a late Codex review is still read, but nothing waits for it.
+4. **Its verdict counts like any review** ("Reviews" below). If it lists findings without a score, the orchestrator
+   reads its P0 and P1 findings as blocking and the rest as not blocking. A review that found nothing (its 👍, or
+   "Didn't find any major issues") is a 10.
+5. **Docs-only PRs and the milestone PRs get no review,** as before. Codex's automatic review stays off in its settings
+   for both repositories, so it reviews only when asked.
 
 ## Reviews: a score, and what keeps it from 10
 

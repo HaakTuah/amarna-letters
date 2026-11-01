@@ -120,6 +120,13 @@ The third line is the check before pushing `develop`: if the last `develop` -> `
 back into `develop` first and open a new milestone PR. Never put a key or secret in the repository or in an environment
 variable.
 
+## Review guidelines
+
+For Codex's code review (`@codex review`), and every other reviewer: give a score from 1 to 10, and list everything
+that keeps the work from 10, each point concrete (a file and line, or a design section) and marked **blocking**
+(against the design, the PR's description and the sections it names, its tests, or the rules in this file) or **not
+blocking**. Check the rules that stand above all. The whole method: "Reviews" in `docs/claude-and-codex.md`.
+
 ## Standing instructions
 
 Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last. (The
@@ -144,7 +151,8 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
   the list up as "readings in the report".
 - **28 October 2026: pipeline, don't wait.** "Yes, please, organize it expertly so we maximize token caching, time spent, and all other concerns." (to Claude's proposal; the words are in
   `docs/archive/instructions.md`). Waiting is lost time and, past an hour, a lost cache, so:
-  1. **Review in the background.** Open the PR, start its reviewer as a background agent, and go on meanwhile with what comes next: the next item's text, its sections, the check for
+  1. **Review in the background.** Open the PR, start its review (Codex's: `docs/claude-and-codex.md`, "Codex reviews"; or Claude's reviewer as a
+     background agent), and go on meanwhile with what comes next: the next item's text, its sections, the check for
      changes. Fix what the review finds when it returns, then merge.
   2. **The next item on top.** The next item depends on this one, so branch it from this item's PR branch, not
      from `develop`, and merge this branch (or `develop`, once it is merged) into it before its own PR.
