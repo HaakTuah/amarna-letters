@@ -16,7 +16,7 @@ function NavLink({ to, children }: { to: Route; children: string }) {
   );
 }
 
-/** The pages' own bar: the brand and the three pages. The game screen has its own compact header instead. */
+/** The pages' own bar: the brand and the pages. The game screen has its own compact header instead. */
 export function TopBar() {
   return (
     <header className="topbar">
@@ -34,6 +34,7 @@ export function TopBar() {
         <NavLink to="">New game</NavLink>
         <NavLink to="play">{"Play & watch"}</NavLink>
         <NavLink to="about">How it works</NavLink>
+        <NavLink to="listen">Music</NavLink>
       </nav>
     </header>
   );

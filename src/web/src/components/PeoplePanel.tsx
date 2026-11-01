@@ -89,7 +89,7 @@ export function PeoplePanel({ state, viewer, onPerson }: { state: GameState; vie
             {c.facts.map((f, i) => (
               <li key={i}>
                 <small>
-                  <span className="pill">{f.secrecy.toLowerCase()}</span> {dated(f.text, null)} {f.knownBy.length > 0 ? `(known to ${f.knownBy.join(", ")})` : ""}
+                  <span className="pill">{f.secrecy.toLowerCase()}</span> {dated(f.text, null)} {f.knownBy.length > 0 ? `(known to ${f.knownBy.map(powerName).join(", ")})` : ""}
                 </small>
               </li>
             ))}

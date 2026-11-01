@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { AllPowers, Dict, GameStateSchema, TurnEngine, Views, hash, newGame, newGameConfig, type Power } from "@amarna/engine";
+import { AllPowers, Dict, GameStateSchema, GreatKings, TurnEngine, Views, hash, newGame, newGameConfig, type Power } from "@amarna/engine";
 import { GameLog, GameRunner, newLogHeader, type ISeat } from "@amarna/game";
 import {
   CostEstimate,
@@ -24,6 +24,7 @@ import {
 } from "@amarna/llm";
 import { z } from "zod";
 import { Assert, at, str } from "../../engine/test/support.ts";
+import { IdleSeat } from "./small-world.ts";
 
 const has = (o: unknown, k: string): boolean => typeof o === "object" && o !== null && k in o;
 const props = (body: JsonObject): JsonObject => (at(body, "tools", 0, "input_schema", "properties") as JsonObject | undefined) ?? {};
@@ -31,11 +32,20 @@ const userOf = (body: JsonObject): string => str(body, "messages", 0, "content")
 
 /**
  * A game whose kings are Sonnet (Hatti and Babylonia script, so envoys are on the road), with the table's other choices.
- * Courteous: the script kings' envoys bring words only, no tablet and no gold, so their audiences are routine.
+ * Courteous: the script kings' envoys bring words only, no tablet and no gold, so their audiences are routine. `only`
+ * (the smallest game that tests the rule, 29 October 2026): just these powers are played, the rest idle and their kings
+ * scripts that are never asked, so no model call is made for them.
  */
-function build(f: (c: SeatChoices) => void = () => {}, seed = 3, api = new SimulatedApi(), courteous = false): [GameRunner, SimulatedApi, SeatChoices] {
+function build(
+  f: (c: SeatChoices) => void = () => {},
+  seed = 3,
+  api = new SimulatedApi(),
+  courteous = false,
+  only: readonly Power[] | null = null,
+): [GameRunner, SimulatedApi, SeatChoices] {
   const c = new SeatChoices();
-  for (const p of AllPowers) c.leaders.set(p, p === "Hatti" || p === "Babylonia" ? "Script" : "Sonnet");
+  const idle = (p: Power): boolean => only !== null && !only.includes(p);
+  for (const p of AllPowers) c.leaders.set(p, p === "Hatti" || p === "Babylonia" || idle(p) ? "Script" : "Sonnet");
   f(c);
   const state = newGame(seed, newGameConfig({ capMin: 12, capMax: 12, endMedian: 10000 }));
   let runner: GameRunner | null = null;
@@ -43,7 +53,9 @@ function build(f: (c: SeatChoices) => void = () => {}, seed = 3, api = new Simul
   const seats = new Dict<Power, ISeat>(
     [...set.seats].map(([p, seat]) => [
       p,
-      !courteous || c.leaders.get(p) !== "Script"
+      idle(p)
+        ? new IdleSeat()
+        : !courteous || c.leaders.get(p) !== "Script"
         ? seat
         : ({
             label: seat.label,
@@ -228,7 +240,9 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("Routine audiences go to the small rung while a king sleeps; what the engine sees matters goes to his own model", async () => {
-    const [runner, api] = build(() => {}, 2, new SimulatedApi(), true); // seed 2 since item 9+b: on seed 3 the script armies now wake the model kings every season
+    // The seven Great Kings only (five on the model, Hatti and Babylonia scripts sending envoys), the city-states idle.
+    // (This game has few routine audiences, one at least; a seed with more would make the check sturdier.)
+    const [runner, api] = build(() => {}, 2, new SimulatedApi(), true, GreatKings); // seed 2 since item 9+b: on seed 3 the script armies now wake the model kings every season
     await play(runner, 8);
     const routine = api.requests.filter((r) => str(r, "messages", 0, "content").includes("THESE ARE ROUTINE AUDIENCES"));
     Assert.notEmpty(routine);
@@ -252,7 +266,7 @@ describe("Who decides (item 6c)", () => {
       const answers = ids.map((envoy) => ({ envoy, speech: "", clauses: [], gift_to_envoy: 0, gift_request: "", send_gold_back: 0, gold_back_purity: 100, end_audience: true, pass_up: "he hints at war" }));
       return JSON.stringify({ answers, ledger: [], ask_counsel: "" });
     };
-    const [runner] = build(() => {}, 2, api, true);
+    const [runner] = build(() => {}, 2, api, true, GreatKings);
     await play(runner, 8);
     const up = runner.log.decisions.filter((d) => d.by?.why === "passed up: he hints at war");
     Assert.notEmpty(up);
@@ -264,7 +278,7 @@ describe("Who decides (item 6c)", () => {
     const api = new SimulatedApi();
     api.override = (body) => (has(props(body), "wake") ? JSON.stringify({ notes: "My envoy is home; the plan holds.", wake: true, pass_up: "", ask_counsel: "" }) : null);
     // Seed 2 since item 10+a: on seed 3 the model kings no longer sleep through these seasons.
-    const [runner] = build(() => {}, 2, api);
+    const [runner] = build(() => {}, 2, api, false, GreatKings);
     await play(runner, 10);
     // News that goes straight to his own mind (a refused order, a check, an authentication) wakes him with no reader.
     const read = runner.log.decisions.filter((d) => /^t\d+\/alerts\//.test(d.key) && d.by !== null);
@@ -281,7 +295,7 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("News that goes straight to the king's own mind wakes him with no reader's call", async () => {
-    const [runner, api] = build(() => {}, 1); // seed 1 since item 10+a: on seed 3 the model kings no longer sleep through these seasons
+    const [runner, api] = build(() => {}, 1, new SimulatedApi(), false, GreatKings); // seed 1 since item 10+a: on seed 3 the model kings no longer sleep through these seasons
     const engine = Object.getPrototypeOf(new TurnEngine(newGame(1, newGameConfig()))) as TurnEngine;
     const orig = engine.lightAlerts;
     // Every alert made weighty: an authentication report, say, that a sealed tablet is forged.
@@ -300,7 +314,9 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("With the small rung off, the king's own model answers every envoy and reads no alerts, as before", async () => {
-    const [runner, api] = build((c) => (c.small = "Off"));
+    // Seed 2 with courteous envoys on the Great Kings: with the small rung on, this same game has a routine audience, a light
+    // alert and a reader's wake, so each emptiness below is the rung being off, not a quiet game.
+    const [runner, api] = build((c) => (c.small = "Off"), 2, new SimulatedApi(), true, GreatKings);
     await play(runner, 8);
     Assert.empty(api.requests.filter((r) => userOf(r).includes("THESE ARE ROUTINE AUDIENCES") || has(props(r), "wake")));
     Assert.empty(runner.log.decisions.filter((d) => d.key.includes("/alerts/")));
@@ -309,7 +325,8 @@ describe("Who decides (item 6c)", () => {
   test("Planning: a strong model writes the plan into the king's record from a digest, and he may ask for a new one", async () => {
     const api = new SimulatedApi();
     api.override = (body) => (has(props(body), "plan") ? JSON.stringify({ plan: "Befriend Hatti; take Byblos by year three.", standing_answers: [], cancel_answers: [] }) : null);
-    const [runner] = build((c) => (c.planning = "Opus"), 3, api);
+    // The seven Great Kings only: five model kings write plans, the city-states idle.
+    const [runner] = build((c) => (c.planning = "Opus"), 3, api, false, GreatKings);
     await play(runner, 2);
     const plans = api.requests.filter((r) => has(props(r), "plan"));
     Assert.true(plans.length >= 5);
@@ -318,7 +335,7 @@ describe("Who decides (item 6c)", () => {
     Assert.true(has(props(orders[0]), "new_plan"));
     Assert.contains("YOUR PLAN FOR THE SEASONS AHEAD (set down in turn 1): Befriend Hatti", userOf(orders[0]));
     // Off by default: no plan, and the orders ask nothing of one.
-    const [plain, plainApi] = build();
+    const [plain, plainApi] = build(() => {}, 3, new SimulatedApi(), false, GreatKings);
     await play(plain, 1);
     Assert.empty(plainApi.requests.filter((r) => has(props(r), "plan") || has(props(r), "new_plan")));
   });
@@ -326,7 +343,7 @@ describe("Who decides (item 6c)", () => {
   test("Characters climb too: what their own model passes up, the rung above answers", async () => {
     const api = new SimulatedApi();
     api.override = (body) => (str(body, "model") === ModelIds.Haiku && has(props(body), "pass_up") && has(props(body), "speech") ? JSON.stringify({ speech: "", keep_gold: 0, swap_inventory: false, as_written: false, leave_out: [], add_courtesy: false, gift_stated: 0, pass_up: "too much gold", ask_counsel: "" }) : null);
-    const [runner] = build((c) => (c.characters = "Haiku"), 3, api);
+    const [runner] = build((c) => (c.characters = "Haiku"), 3, api, false, GreatKings);
     await play(runner, 4);
     const up = runner.log.decisions.filter((d) => d.key.endsWith("/present") && d.by?.rung === "large");
     Assert.notEmpty(up);
@@ -334,10 +351,16 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("A king the budget cannot pay for waits: his units hold, the script's turn is no fallback, and he is asked again", async () => {
-    const [runner] = build((c) => {
-      c.small = "Off";
-      c.spending = newSpendingSettings({ mode: "limit", limitUsd: 0.000001, auditShare: 0 });
-    });
+    const [runner] = build(
+      (c) => {
+        c.small = "Off";
+        c.spending = newSpendingSettings({ mode: "limit", limitUsd: 0.000001, auditShare: 0 });
+      },
+      3,
+      new SimulatedApi(),
+      false,
+      GreatKings,
+    );
     await play(runner, 3);
     const waited = runner.log.decisions.filter((d) => d.key.includes("/orders/") && d.by?.rung === "script");
     Assert.notEmpty(waited);

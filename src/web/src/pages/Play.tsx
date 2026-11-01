@@ -8,6 +8,9 @@ import { EventsPanel } from "../components/EventsPanel.tsx";
 import { FollowPanel } from "../components/FollowPanel.tsx";
 import { LegendsPanel } from "../components/LegendsPanel.tsx";
 import { GameMap, type MapHandle, type MapView } from "../components/GameMap.tsx";
+import { AudioSwitches } from "../audio/AudioSwitches.tsx";
+import { player } from "../audio/player.ts";
+import { useGameAudio } from "../audio/use-game-audio.ts";
 import { InboxPanel } from "../components/InboxPanel.tsx";
 import { MapLegend } from "../components/MapLegend.tsx";
 import { MarkInfo } from "../components/MarkInfo.tsx";
@@ -23,16 +26,26 @@ import { Height, Width, city, ll } from "../map/art.ts";
 import { pathOf } from "../map/scene.ts";
 import { buildLifeRecord } from "../session/life-record.ts";
 import { choicesOf, handLimitNeeded, newSettings, usesModels, withChoices } from "../session/settings.ts";
-import { powerName, when, whenCap } from "../ui/format.ts";
+import { cap, powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
 import { useSession } from "../ui/use-session.ts";
 import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
 
+/** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
+const PhaseWords: Record<string, string> = {
+  "income and arrivals": "Income and arrivals",
+  "reports and pitches": "Reports and pitches",
+  audiences: "Audiences",
+  orders: "Orders being given",
+  resolution: "The season resolves",
+};
 const phaseText = (phase: string): string => {
   const colon = phase.indexOf(":");
-  return phase.startsWith("Turn ") && colon > 0 ? phase.slice(colon + 1).trim() : phase;
+  if (!phase.startsWith("Turn ") || colon < 0) return phase;
+  const step = phase.slice(colon + 1).trim();
+  return PhaseWords[step] ?? cap(step);
 };
 
 let watchStarted = false;
@@ -109,6 +122,9 @@ export function Play() {
     return s.godView ? null : (s.viewAs ?? live.humans[0] ?? null);
   }
 
+  // The music and the sounds follow the season shown, as this view knows it (item 19+++).
+  useGameAudio(s.frames, s.shownIndex, viewerOf(), live.hasRunner ? live.gameId : "", () => map.current?.view() ?? null);
+
   if (!live.hasRunner || s.frames.length === 0 || s.state === null) {
     // No game on screen yet: the pages' own bar stays, so the other pages are a tap away.
     const startPage = (e: MouseEvent, saved: boolean): void => {
@@ -163,7 +179,10 @@ export function Play() {
   const draft = draftRef.current?.draft ?? null;
   // A new envoy before the throne takes the panel, once.
   const aKey = pendingAudience === null ? null : `${pendingAudience.audience!.view.audienceId}:${pendingAudience.audience!.view.round}`;
-  if (aKey !== null && aKey !== audienceKey.current) tab = "audience";
+  if (aKey !== null && aKey !== audienceKey.current) {
+    tab = "audience";
+    player.play("envoy");
+  }
   audienceKey.current = aKey;
   if (tab === "audience" && pendingAudience === null) tab = "";
   if (tab === "orders" && pendingOrders === null) tab = "";
@@ -293,6 +312,12 @@ export function Play() {
           </div>
         </div>
         <div className="gctl">
+          {!s.canSeeAll && live.humans.length === 1 ? (
+            // One seat and nothing else to see: its name, not a menu of one (a menu's arrow cut "Egypt (you)" at 390 px).
+            <span className="viewsel seatname" title="Your seat">
+              {powerName(live.humans[0])} (you)
+            </span>
+          ) : (
           <select
             className="viewsel"
             value={s.viewAs ?? ""}
@@ -319,6 +344,7 @@ export function Play() {
               ))
             )}
           </select>
+          )}
           {showsCost && (
             <span className="pill cost" title={live.costUnknown ? "Model spend for this game: a model with no price was called, so its part is unknown" : "Model spend for this game"}>
               ${live.cost.toFixed(2)}
@@ -350,6 +376,7 @@ export function Play() {
                 How it works
               </a>
               <button onClick={() => void s.export()}>Export log</button>
+              <AudioSwitches />
               <label>
                 Pace{" "}
                 <select
@@ -569,9 +596,10 @@ export function Play() {
           disabled={last < 1}
         />
         {/* Looking back on a phone, the header names the season shown, so the bar keeps its room for the slider. */}
-        <span className={history ? "tlabel hide-sm" : "tlabel"} title={index === 0 ? "The start" : when(index, viewer)}>
-          {index === 0 ? "Start" : shortDate(index, viewer)}
-          {history ? "" : " · now"}
+        <span className={history ? "tlabel hide-sm" : "tlabel"} title={index === 0 ? "The start" : `The board after ${when(index, viewer)}`}>
+          {/* A stop on the bar is the board after a season's moves, so the label says "after", never the season the header plans. */}
+          {index === 0 ? "Start" : `after ${shortDate(index, viewer)}`}
+          {!history && <span className="hide-sm"> · now</span>}
         </span>
         {history && (
           <button className="tb now" onClick={() => s.showTurn(null)} title="Back to now">
@@ -586,7 +614,19 @@ export function Play() {
     switch (tab) {
       case "audience": {
         const a = pendingAudience!.audience!;
-        return <AudiencePanel key={aKey!} a={a.view} court={a.court} structured={state.config.pressMode === "structured"} onAnswer={(r) => s.answer(pendingAudience!.power, r)} />;
+        return (
+          <AudiencePanel
+            key={aKey!}
+            a={a.view}
+            court={a.court}
+            structured={state.config.pressMode === "structured"}
+            onAnswer={(r) => {
+              // The answer closed in its envelope and given to the envoy (item 19+++).
+              player.play("envelope");
+              s.answer(pendingAudience!.power, r);
+            }}
+          />
+        );
       }
       case "orders":
         return (
@@ -595,7 +635,11 @@ export function Play() {
             draft={draft!}
             state={state}
             onChanged={() => bump((x) => x + 1)}
-            onSubmit={(sleep) => s.submitOrders(pendingOrders!.power, { ...draft!.build(), stayAwake: !sleep })}
+            onSubmit={(sleep) => {
+              // The season's orders sealed (item 19+++).
+              player.play("seal");
+              s.submitOrders(pendingOrders!.power, { ...draft!.build(), stayAwake: !sleep });
+            }}
           />
         );
       case "inbox":

@@ -3,6 +3,7 @@ import {
   WorldMap,
   type Power,
 } from "@amarna/engine";
+import { player } from "../../audio/player.ts";
 import { powerName, shekels } from "../../ui/format.ts";
 import { ClauseEditor } from "../ClauseEditor.tsx";
 import { num } from "./form.ts";
@@ -95,10 +96,10 @@ export function EnvoysSection({ c }: { c: OrdersContext }) {
               </div>
               <div className="row">
                 <label>
-                  Gold <input type="number" inputMode="numeric" min="0" value={f.gold} onChange={(e) => set({ gold: num(e.target.value) })} />
+                  Gold <input type="number" inputMode="numeric" min="0" value={f.gold} onChange={(e) => set({ gold: num(e.target.value) })} /> shekels
                 </label>
                 <label title="Below 100% the gold is debased: the receiver sees only its weight until they pay for an assay">
-                  purity % <input type="number" inputMode="numeric" min="10" max="100" value={f.purity} onChange={(e) => set({ purity: num(e.target.value) })} />
+                  of purity <input type="number" inputMode="numeric" min="10" max="100" value={f.purity} onChange={(e) => set({ purity: num(e.target.value) })} /> %
                 </label>
                 <label title={`An inventory costs the scribe ${shekels(price("inventoryFee"))}; without one nobody can check what arrived`}>
                   <input type="checkbox" checked={f.noInventory} disabled={f.gold <= 0} onChange={(e) => set({ noInventory: e.target.checked })} /> no inventory
@@ -163,7 +164,14 @@ export function EnvoysSection({ c }: { c: OrdersContext }) {
                   ))}
                 </div>
               )}
-              <button className="primary small" disabled={structured ? f.clauses.length === 0 : f.letter.trim().length === 0 && f.clauses.length === 0} onClick={addDispatch}>
+              <button className="primary small" disabled={structured ? f.clauses.length === 0 : f.letter.trim().length === 0 && f.clauses.length === 0}
+                onClick={() => {
+                  // The letter pressed into clay and closed in its envelope (item 19+++).
+                  player.play("stylus");
+                  player.play("envelope", 0.9);
+                  addDispatch();
+                }}
+              >
                 Send this envoy
               </button>
             </>

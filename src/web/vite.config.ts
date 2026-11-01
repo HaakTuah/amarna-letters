@@ -24,7 +24,9 @@ function serviceWorker(): Plugin {
       writeFileSync(join(outDir, "version.json"), JSON.stringify({ save: Number(save) }));
       const files = (readdirSync(outDir, { recursive: true }) as string[])
         .map((f) => f.split(sep).join("/"))
-        .filter((f) => statSync(join(outDir, f)).isFile() && f !== "service-worker.js" && f !== "version.json")
+        // The music and the sounds (audio/, item 19+++) are not installed with the app: each file is fetched when first played
+        // and kept then (the worker's audio cache), so the first screen stays fast and a phone downloads only what it hears.
+        .filter((f) => statSync(join(outDir, f)).isFile() && f !== "service-worker.js" && f !== "version.json" && !f.startsWith("audio/"))
         .sort();
       const assets = files.map((url) => ({ url, hash: "sha256-" + createHash("sha256").update(readFileSync(join(outDir, url))).digest("base64") }));
       const all = JSON.stringify(assets);

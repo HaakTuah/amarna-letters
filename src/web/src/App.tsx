@@ -1,4 +1,6 @@
 import { About } from "./pages/About.tsx";
+import { Listen } from "./pages/Listen.tsx";
+import "./audio/player.ts";
 import { Home } from "./pages/Home.tsx";
 import { Play } from "./pages/Play.tsx";
 import { useEffect } from "react";
@@ -42,7 +44,7 @@ export function App() {
         </div>
       )}
       {route !== "play" && <TopBar />}
-      {route === "play" ? <Play /> : route === "about" ? <About /> : <Home />}
+      {route === "play" ? <Play /> : route === "about" ? <About /> : route === "listen" ? <Listen /> : <Home />}
     </>
   );
 }

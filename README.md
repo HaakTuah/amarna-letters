@@ -131,9 +131,9 @@ Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's ne
 
 ### Winning
 
-A realm's strength is ten times the yield of the land it holds, plus its gold and what it holds besides, never
-counting what it owes. Conquered land counts as it is absorbed, over its first seasons. Its growth is that strength
-against its strength at the start. At the end each power's score blends two things: its performance, its growth
+A realm's strength is ten times what its land produces in a season (its harvest at the price of grain, a shekel a
+measure, plus its mines' gold), plus its gold and what its people and men hold besides, never counting what it owes. Conquered land counts as it is
+absorbed, over its first seasons. Its growth is that strength against its strength at the start. At the end each power's score blends two things: its performance, its growth
 ranked among the results of powers that started where it did (most of the score, so a city that holds its own can
 win as well as an empire), and its size, its strength against the largest living realm's (a small part, 5 percent by
 default). The highest score wins.
@@ -332,6 +332,18 @@ its key.
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly.
 
+## Music and sound
+
+The music follows your court's situation as you know it: calm in peace, rising tension, war, siege and battle, a short
+sting and its own piece for the great moments (a capital fallen, a king's death, the age's end), a darker or brighter
+tuning as things worsen or improve. Short period sounds mark what happens (the stylus in clay, a seal rolled, a courier,
+a war horn); zoomed in, you hear what happens near the view, louder the nearer, under a quiet bed of the world (the
+Nile's water, the steppe's wind, a market, a siege camp). The game's menu has the Music and Sound switches, their
+volumes and the music's version (Orchestra, 8-bit, or Lyre and reed); they are remembered and start on at a regular
+volume, and the first music fades in rather than starting at full. The top bar's **Music** page plays every piece and
+variation, every sound and bed, and the fallback's scores court by court: Ugarit's theme is the Hurrian Hymn, and every
+other great court has a theme and a march of its own in its home tuning.
+
 ## On a phone
 
 <img src="docs/archive/rounds/2026-10-19-visual-overhaul/phone-portrait-follow.jpg" width="300" alt="On a phone: the map above, and the Follow tab tracing an envoy's service and travels">
@@ -435,6 +447,9 @@ building, and every rule as implemented. [docs/BUILD-PROGRESS.md](docs/BUILD-PRO
 build order item by item, with each item's report in `docs/rounds/`.
 
 ## Credits
+
+The music and sounds are rendered from two CC0 sample libraries, VS Chamber Orchestra: Community Edition and the
+Versilian Community Sample Library (Versilian Studios; `docs/audio/SOURCES.md`).
 
 The game was inspired by Irving Finkel's *Curator's Corner* episode 100, "Reading the Pharaoh's
 private mail with Irving Finkel" (The British Museum,

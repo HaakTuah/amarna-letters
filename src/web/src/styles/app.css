@@ -268,6 +268,7 @@ td .sub { display: block; font-size: .8em; white-space: nowrap; }
 .when .ending .short { display: none; }
 .gctl { display: flex; align-items: center; gap: .4rem; flex: none; }
 .viewsel { max-width: 9.5rem; }
+.seatname { font-weight: 600; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 .2rem; }
 .menu { position: relative; }
 .menu summary { list-style: none; cursor: pointer; font-size: 1.3rem; line-height: 1; padding: .2rem .55rem; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-2); }
 .menu summary::-webkit-details-marker { display: none; }
@@ -641,8 +642,8 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .follow-head .emblem-inline { width: 2rem; height: 2rem; margin-top: .1rem; }
 .follow-head h3 { margin: 0; }
 .life { list-style: none; margin: .2rem 0 .5rem; padding: 0; }
-.life li { display: grid; grid-template-columns: 6.6rem 1fr; gap: .5rem; padding: .3rem 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
-.life li .when { color: var(--muted); font-size: .8rem; white-space: nowrap; }
+.life li { display: grid; grid-template-columns: 8.8rem 1fr; gap: .5rem; padding: .3rem 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
+.life li .when { color: var(--muted); font-size: .8rem; }
 .life li .what { white-space: pre-wrap; }
 .life li.nodate .what { grid-column: 1 / -1; }
 .life li.tap:hover { background: var(--surface-2); }
@@ -721,6 +722,25 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .crash h1 { font-size: 1.4rem; margin: .4rem 0 .6rem; }
 .crash-report { white-space: pre-wrap; word-break: break-word; font-size: .78rem; line-height: 1.4; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: .6rem .8rem; max-height: 50vh; overflow: auto; user-select: all; }
 .crash-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .6rem 0; }
+/* The listening page and the audio switches (item 19+++). */
+.listen-switches { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin: 0.75rem 0; }
+label.volume input[type="range"] { width: 7rem; vertical-align: middle; }
+.listen-table { width: 100%; border-collapse: collapse; }
+.listen-table td, .listen-table th { text-align: left; vertical-align: top; padding: 0.5rem 0.4rem; border-top: 1px solid var(--line, rgba(0, 0, 0, 0.12)); }
+.listen-table .note { font-size: 0.85em; opacity: 0.8; margin-top: 0.2rem; }
+.listen-buttons { white-space: nowrap; }
+.listen-buttons button { display: block; margin: 0 0 0.25rem; }
+.listen-list { padding-left: 0; list-style: none; }
+.listen-list li { margin: 0.35rem 0; }
+.listen-list button { margin-right: 0.25rem; }
+@media (max-width: 640px) {
+  .listen-table thead { display: none; }
+  .listen-table tr { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 0.75rem; padding: 0.6rem 0; border-top: 1px solid var(--line, rgba(0, 0, 0, 0.12)); }
+  .listen-table td { border: 0; padding: 0; }
+  .listen-table td:nth-child(1) { grid-column: 1; }
+  .listen-table td:nth-child(4) { grid-column: 2; grid-row: 1 / span 3; }
+  .listen-table td:nth-child(2), .listen-table td:nth-child(3) { grid-column: 1; font-size: 0.9em; }
+}
 
 /* Fingers: targets of 44px or more. Last in the file, so the base rules above (the zoom buttons') do not win over it. */
 @media (pointer: coarse) {

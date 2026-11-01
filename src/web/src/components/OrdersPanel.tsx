@@ -58,7 +58,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
           <div className="item" key={t.copyId}>
             <div className="tablet">{t.text}</div>
             <small>
-              Seals: {t.seals.join(", ")}
+              Seals: {t.seals.map(powerName).join(", ")}
               {t.sealedTurn !== null ? ` · sealed ${when(t.sealedTurn, me)}` : ""} · {t.source}
               {t.authResult !== null ? ` · examined: ${t.authResult}` : ""}
               {t.byHand !== null ? ` · sealed for ${powerName(t.byHandOf!)} by the hand of ${t.byHand}${t.within === null ? "" : t.within ? ", within his authority" : ", beyond his authority"}` : ""}
