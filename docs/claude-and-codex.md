@@ -101,18 +101,22 @@ waits on Codex for long. The poller looks every minute, so:
 Codex reviews Claude's PRs that change the game, in OpenAI's cloud, on Haakon's Codex plan, so Claude's weekly usage
 goes to building. Its usage can run out like any other, and it may then not say so, so:
 
-1. **Ask:** a comment `@codex review`, then on a new line the criteria: "Score the work from 1 to 10 and list everything
-   that keeps it from 10, each point blocking or not blocking, as the Review guidelines in AGENTS.md say." The
-   item's text and the design sections it names go in the PR's description, which Codex reads.
+1. **Ask:** a comment `@codex review` alone. Codex reads the PR's description, so the item's text and the design
+   sections it names go there, and it follows the "Review guidelines" in `AGENTS.md` and `SECURITY.md`. Its security
+   review runs with every code review (its setting), at the "high" threshold.
 2. **It starts within seconds** (its 👀 reaction and a "Codex Review Summary" comment; seen in 20 seconds on
    1 November 2026) **and finishes within minutes** (seen in under two). No sign within about **5 minutes,** or an
    answer that is not a review (no usage left, an error): Claude's reviewer takes the PR at once.
 3. **Still running after about 15 minutes:** ask once more with `@codex review`. No finished review about 5 minutes
    after that: Claude's reviewer takes it. Either way, a late Codex review is still read, but nothing waits for it.
-4. **Its verdict counts like any review** ("Reviews" below). If it lists findings without a score, the orchestrator
-   reads its P0 and P1 findings as blocking and the rest as not blocking. A review that found nothing (its 👍, or
-   "Didn't find any major issues") is a 10.
-5. **Docs-only PRs and the milestone PRs get no review,** as before. Codex's automatic review stays off in its settings
+4. **It gives findings, not a score:** its format is its own, whatever it is asked (seen on Snakes #289,
+   1 November 2026). Each finding has a priority from P0 to P3: **P0 and P1 are blocking**, P2 and P3 are not, and go
+   into the PR as notes. A review that found nothing (its 👍, or "Didn't find any major issues") counts as clean.
+5. **The design check, with a score:** on its build-order items (not the polish and sound lanes' small fixes), Claude's reviewer also
+   checks the work against the design, at medium effort: given the diff, the PR's description and "The game in one page",
+   it gives the score from 1 to 10 and what keeps it from 10, blocking or not ("Reviews" below), on the design alone,
+   since Codex has looked for bugs and security. Smaller PRs get Codex's review only.
+6. **Docs-only PRs and the milestone PRs get no review,** as before. Codex's automatic review stays off in its settings
    for both repositories, so it reviews only when asked.
 
 ## Reviews: a score, and what keeps it from 10
@@ -125,8 +129,9 @@ Every review, in either direction:
 2. **Sends the work back while any point blocks.** When none does, it merges; the points that do not block go into the
    PR as a note, or into `docs/BUILD-PROGRESS.md` as a small follow-up entry.
 3. **At most three rounds.** Then the orchestrator decides, or escalates to the other model, and writes why.
-4. **One line in each PR:** `Review: <category> · <builder> · <score each round>`, such as
-   `Review: interface · Codex · 7, 9`. At each milestone the orchestrator sums them by category and builder in the
+4. **One line in each PR:** `Review: <category> · <builder> · <each round's result>`, a score from the design check
+   or Claude's reviewer, or Codex's verdict (`clean`, or its findings, such as `P1×2`): `Review: interface · Codex ·
+   P1×1, clean`, or `Review: rules · Claude · 7, 9`. At each milestone the orchestrator sums them by category and builder in the
    milestone PR: a category where Codex scores lower moves back to Claude, one where it does well gets more.
 
 ## For Codex
@@ -139,7 +144,7 @@ Every review, in either direction:
   wrong, say why in your report and leave that part.
 - Run `scripts/test.sh` before you finish, and `scripts/sim.sh --games 50 --seed 1 --verify-replay` when the engine changed.
 - Commit and push your work to the PR's branch, never to `main` or `develop`, and open no new pull request. Never
-  change `.github/`, `scripts/cloud-setup.sh`, `.gitattributes`, `.claude/`, `AGENTS.md` or `CLAUDE.md`, and never put
+  change `.github/`, `scripts/cloud-setup.sh`, `.gitattributes`, `.claude/`, `AGENTS.md`, `CLAUDE.md` or `SECURITY.md`, and never put
   a key or secret anywhere.
 - Your environment's setup script installs what the suites need. If something is missing, say what in your report
   instead of working around it.
@@ -169,7 +174,7 @@ opened.
 
 **Codex's work never touches what runs with credentials or sets the rules.** A Codex task reads the web, so text
 planted somewhere could try to steer it. Its work may never change `.github/` (the CI workflows),
-`scripts/cloud-setup.sh`, `.gitattributes`, `.claude/`, `AGENTS.md` or `CLAUDE.md`. Such a PR is labelled
+`scripts/cloud-setup.sh`, `.gitattributes`, `.claude/`, `AGENTS.md`, `CLAUDE.md` or `SECURITY.md`. Such a PR is labelled
 `codex-failed` with the files named, and the orchestrator checks it too before any merge (`gh api
 repos/<repository>/compare/develop...<branch>` lists the files): it is never merged; Haakon decides. Lanes that must
 change those files are Claude's. Nothing secret is ever written to a repository.
