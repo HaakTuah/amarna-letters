@@ -2,6 +2,7 @@ import { AllPowers, TurnEngine, Views, Wealth, courtDecided, isAlive, landGrowth
 import { highlights, temperament } from "@amarna/game";
 import { color, powerName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
+import { useMemo } from "react";
 
 const X = (turn: number, last: number, w: number): number => (last <= 1 ? 0 : ((turn - 1) * w) / (last - 1));
 const Y = (g: number, max: number, h: number): number => h - (g / max) * h + 4;
@@ -13,7 +14,12 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
   const latest = state.scores.length === 0 ? 0 : Math.max(...state.scores.map((s) => s.turn));
   const known = viewer === null;
   // The estimate every court can make from who holds what: the same figures a model king reads on its LAND STANDINGS line.
-  const land = new Map(Views.landStandings(state.owner, state.eliminated).map((x) => [x.power, x]));
+  // For a seat, by the holders its court knows (its seat view's owner, dated by word), never the true map: distant
+  // changes of hands reach it as late as they reach its court, as on its own standings line.
+  const seatView = useMemo(() => (known || viewer === null ? null : Views.for(state, viewer)), [state, viewer, known]);
+  const land = new Map(
+    (seatView === null ? Views.landStandings(state.owner, state.eliminated) : Views.landStandings(seatView.owner, seatView.fallen)).map((x) => [x.power, x]),
+  );
   // A seat sees its own strength and gold by its ledger (unassayed gold at its weight), never the true figures.
   const growth = (p: Power): number => {
     if (known) return engine.growth(p);
@@ -56,7 +62,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
               return (
                 <tr key={p}>
                   <td>
-                    <Emblem power={p} /> {powerName(p)} {isAlive(state, p) ? "" : "(fallen)"}
+                    <Emblem power={p} /> {powerName(p)} {(seatView === null ? isAlive(state, p) : !seatView.fallen.includes(p)) ? "" : "(fallen)"}
                   </td>
                   <td>
                     {l.fallen ? (
@@ -71,7 +77,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
                     )}
                   </td>
                   <td>{mine ? growth(p).toFixed(2) : "?"}</td>
-                  <td>{ownedBy(state, p).length}</td>
+                  <td>{seatView === null ? ownedBy(state, p).length : [...seatView.owner.values()].filter((o) => o === p).length}</td>
                   <td>{mine ? String(state.units.filter((u) => u.power === p).length) : "?"}</td>
                   <td className="nowrap">{mine ? shekels(known ? t.gold : ledger(t)) : "?"}</td>
                 </tr>
