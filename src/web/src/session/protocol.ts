@@ -1,5 +1,5 @@
 /** The messages between the page and the engine's worker. The engine is the only state: the page shows what it is sent. */
-import type { GameConfig, Power } from "@amarna/engine";
+import type { GameConfig, Power, RisenPower } from "@amarna/engine";
 import type { SeasonFallbacks, SnapshotDelta, TrailAuthors } from "@amarna/game";
 import type { SeasonFrame } from "./frames.ts";
 import type { GameSettings, TableSettings } from "./settings.ts";
@@ -64,6 +64,8 @@ export interface Live {
   costUnknown: boolean;
   settings: GameSettings;
   config: GameConfig | null;
+  /** The powers risen in play (item 13+), as the engine registers them: sent with every update, so the map knows a new power the season it rises, before the state is read. */
+  risen: RisenPower[];
   seats: Record<string, string>;
   snapshots: number;
   chronicles: Record<string, string>;

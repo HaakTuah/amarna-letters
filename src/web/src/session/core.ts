@@ -177,6 +177,7 @@ export class SessionCore {
       costUnknown: r?.log.costUnknown ?? false,
       settings: this.settings,
       config: r?.state.config ?? null,
+      risen: r === null ? [] : r.state.risen,
       seats: r === null ? {} : Object.fromEntries([...r.log.header.seats]),
       snapshots: r?.snapshots.length ?? 0,
       chronicles: r === null ? {} : Object.fromEntries([...r.chronicles]),

@@ -53,6 +53,7 @@ const emptyLive = (): Live => ({
   costUnknown: false,
   settings: newSettings(),
   config: null,
+  risen: [],
   seats: {},
   snapshots: 0,
   chronicles: {},
@@ -143,8 +144,15 @@ export class Session {
       this.history.clear();
       this.reader.cancel();
       this.reader = new IncrementalReader();
+      risenCount = -1;
       this.framesGeneration++;
       this.fallSeen = false;
+    }
+    // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does, from the
+    // season they rise (the frames of that season may be drawn before its state is read).
+    if (m.live.hasRunner && m.live.risen.length !== risenCount) {
+      setRisen(m.live.risen);
+      risenCount = m.live.risen.length;
     }
     if (m.frames.length > 0) {
       let previous = this.frames.length > 0 ? this.frames[this.frames.length - 1] : null;
@@ -194,8 +202,6 @@ export class Session {
         if (generation !== this.seenGeneration || index !== this.history.length - 1) return;
         performance.measure("page:reader", { start: t });
         this.state = state;
-        // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
-        setRisen(state.risen);
         this.notify();
       },
       () => {
@@ -431,6 +437,9 @@ function samePerson(a: FramePerson, b: FramePerson): boolean {
     return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.timingText === y.timingText && x.since === y.since;
   });
 }
+
+/** How many risen powers the page has registered with the engine (setRisen), to register again only when one rises. */
+let risenCount = -1;
 
 /** The one game of this tab. */
 export const session = new Session();
