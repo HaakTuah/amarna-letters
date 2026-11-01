@@ -356,7 +356,10 @@ P.obeySeason = function () {
     if (siegeOf(S, prov.id) !== null) continue;
     const within = (p: Power): boolean => S.units.some((u) => u.power === p && u.province === prov.id) && (wallsOf(S, prov.id) <= 0 || (S.breached.tryGet(prov.id) ?? null) === p);
     if (this.courtAt(holder) === prov.id && !(rival?.power != null && within(rival.power))) continue;
-    if (rival !== null && clears(this, prov.id, rival.weight, held)) changes.push([prov.id, rival]);
+    // The master's weakness is the moment for a rising ("not an entry in the ledger but the moment, when a low standing
+    // becomes a rising"); against a foreign king's troops his beaten armies already weigh as the force he has left.
+    const against = rival?.power != null ? held + weakness(this, holder, strength) : held;
+    if (rival !== null && clears(this, prov.id, rival.weight, against)) changes.push([prov.id, rival]);
     else if (held < D.floor) changes.push([prov.id, null]);
   }
   for (const [id, rival] of changes) changeHands(this, id, rival);

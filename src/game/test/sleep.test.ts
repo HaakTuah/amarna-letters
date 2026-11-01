@@ -255,7 +255,10 @@ describe("SleepTests", () => {
       // Item 17++: its people indifferent to Babylonia for the test, and a host to cow its 25,000 men of fighting age, so that
       // it answers to Assyria as the next season begins, before the seat is asked.
       s.ledger.set("durkurigalzu", new Dict());
-      s.units.find((u) => u.province === "ekallate")!.men = 40000;
+      const host = s.units.find((u) => u.province === "ekallate")!;
+      host.men = 40000;
+      // With its own food, so that it takes none from them.
+      host.food = 1_000_000;
     });
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal("foreign troops entered your land: Assyria's army moved ekallate -> durkurigalzu", sleeper.views[1].wokenBecause[0]);

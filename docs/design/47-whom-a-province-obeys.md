@@ -33,10 +33,12 @@ first guess in `UnrestData` (`src/engine/src/model/unrest.ts`), tuned in item 18
 ## Whom it obeys (`obeySeason`, as each season begins, after the people eat)
 
 - **Weight**: force, the men of a power's armies standing in it against its own men of fighting age as they defend their
-  land, twice in hill land and half on open plain (`force` 100 for as many men as theirs, at most `forceMost` 200); men
+  land, twice in hill land and half on open plain (`force` 100 for as many men as theirs, at most `forceMost` 100, what a native house's own standing starts at); men
   next door, or before walls they have not stormed (`GameState.breached`), weigh a quarter as much and at most `nearMost`
-  50 in all, for every power alike; plus love, his ledger and that of the men serving him there who have not chosen to
-  rise against him; less, for the holder, his weakness (`besieged` 20, up to `weakness` 40 as his realm shrinks). A guest
+  25 in all, for every power alike; plus love, his ledger and that of the men serving him there who have not chosen to
+  rise against him; less, for the holder against a rising or the floor, his weakness (`besieged` 20, up to `weakness` 40 as his realm
+  shrinks): it is the moment a low standing becomes a rising, and against a foreign king's troops his beaten armies already
+  weigh as the force he has left. A guest
   by sealed passage weighs nothing.
 - **Conquest is this rule alone**: moving in takes nothing by itself, and a unit that storms walls breaks in (`stormed`
   event, the walls a level lower, townspeople killed) and stands within them from then on; the province is the taker's

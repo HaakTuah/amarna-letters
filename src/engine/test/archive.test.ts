@@ -211,8 +211,10 @@ describe("ArchiveTests", () => {
     s.units.find((u) => u.power === "Babylonia" && u.province === from)!.men = 40000;
     removeAll(s.units, (u) => u.power === "Assyria" && WorldMap.default.neighbors(other).includes(u.province));
     begin(s).resolve(orders("Babylonia", move(from, other)));
-    // Item 17++: moving in takes nothing by itself; the province answers to Babylonia as the next season begins.
-    begin(s).resolve(orders("Babylonia"));
+    // Item 17++: moving in takes nothing by itself; the province answers to Babylonia as the next season begins (what the
+    // host took to eat forgotten, for the test).
+    s.ledger.set(other, new Dict());
+    new TurnEngine(s).obeySeason();
     Assert.equal("Babylonia", s.owner.get(other));
     Assert.doesNotContain("Babylonia", holdersOf(s, "t900"));
     Assert.doesNotContain(inboxOf(s, "Babylonia"), (i) => i.title === ArchiveTakenTitle);

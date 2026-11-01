@@ -40,7 +40,7 @@ Each with the principle it rests on.
    cession and a kingdom's fall stay their own sections' rules. Replaces round 1's "conquest on entry stands".
 2. **Next door counts for everyone, a quarter and only a little in all** (round 2, design point 5; "troops standing in it
    or near enough to answer it"; No rule checks which power it is): men next door, or standing before walls they have not
-   stormed, weigh a quarter of men within, at most `nearMost` 50 [G] in all, for holder and rival alike, so a neighbour's
+   stormed, weigh a quarter of men within, at most `nearMost` 25 [G] in all, for holder and rival alike, so a neighbour's
    army at home is a pressure but never takes a loved province by itself (round 1 found an uncapped next door flipped
    Hazzatu and Ṣumur in the first season). A rival is still a power with troops standing in it, or a man of standing there.
 3. **The people rise against troops they hate, and fight them** (round 2, design points 8 and 13): a province below what
@@ -73,7 +73,10 @@ Each with the principle it rests on.
     causes"; "weighed against its own men of fighting age ('The people defend their land')"): combat counts the people's
     men one for one with soldiers, so fear does too; twice the men in hill land and half on open plain, as the people
     defend by their ground. Round 1's first guess, a tenth of the men for 100, let one army cow any province at once
-    (below, "The early falls"). At most `forceMost` 200 [G].
+    (below, "The early falls"). At most `forceMost` 100 [G], what a native house's standing in its own land starts at
+    (`home`): fear alone never outweighs a house's long credit with its own people until that credit fades or is spent
+    ("land a power has fully absorbed starts loyal, its ledger long in credit, and needs far more to rise"). Round 1's cap,
+    200, let a full army take a native land the season after it beat its army: the first guess was wrong, not the rule.
 
 14. **A court's own city changes hands only to a foe's troops standing within it** (a coup is not modelled, as item 17
     read it): it waits for item 17b ("A realm holds by its ledger"), which makes the capital wherever the court is.
@@ -120,6 +123,9 @@ Each with the principle it rests on.
 25. **A cession failing because the land was lost after movement is now a siege's case only** (conquest at the season's
     start): the test for it was removed with the case that cannot arise; a siege's surrender in the same season still
     reaches it.
+26. **The master's weakness weighs only against a rising** ("the master's weakness ... not an entry in the ledger but the
+    moment, when a low standing becomes a rising"): against a foreign king's troops, his beaten armies already count as the
+    force he has left, so his losses are not counted twice.
 
 ## Design questions
 
