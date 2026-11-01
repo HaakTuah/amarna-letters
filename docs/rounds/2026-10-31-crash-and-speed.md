@@ -77,6 +77,13 @@ and checks the screen and the way back.
 Takes over by itself: at once off the game screen, at the next season on it (reloading into the same game with auto-play and
 speed as they were, "Updated to the newest version" shown after); a version with new rules waits until the game is left.
 
+## The recording
+
+`docs/rounds/media/2026-11-01-17a-desktop-normal-speed.webm` (27 seconds, 800x500, 2.9 MB): the first seasons of a Free
+game of seed 1 at normal speed on desktop, from the build as merged, recorded by `node src/web/soak.mjs --speed normal
+--video <dir> --video-size 800x500 --minutes 0.45`. (A one-minute recording at full size, 7.6 MB, was made too; a release
+to host it would be a new public surface, which this session did not open; the smaller one is kept with the report.)
+
 ## Readings taken
 
 1. **"Until that game ends" means until the player leaves it.** A new version with new rules waits for the game on screen;
