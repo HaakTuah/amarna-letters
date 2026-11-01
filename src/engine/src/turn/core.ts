@@ -263,6 +263,9 @@ export class TurnEngine {
     const S = this.s;
     const old = S.owner.getOrDefault(province, null);
     if (old === owner) return;
+    // Item 17++: the old holder's last report of it, as his officials sent it before the loss, if his couriers cannot
+    // bring him word of the loss within the season.
+    const report = old !== null && this.wordTo(old, province) > 0 && isAlive(S, old) && !this.map.get(province).isSea ? Views.provinceEconomy(S, this, this.map, province) : null;
     S.owner.set(province, owner);
     // Item 17: when it changed hands. What its people remember of each actor stays with them (item 17++).
     S.takenAt.set(province, S.turn);
@@ -276,13 +279,15 @@ export class TurnEngine {
       let book = S.known.tryGet(old);
       if (book === undefined) S.known.set(old, (book = new Dict()));
       book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));
-    } else if (old !== null && isAlive(S, old) && !this.map.get(province).isSea) {
-      // Item 17++: out of his couriers' reach, his officials' last report of it stands in his view until word arrives.
+    } else if (old !== null && report !== null) {
+      // Out of his couriers' reach: that report stands in his view until word arrives.
       let last = S.ownLast.tryGet(old);
       if (last === undefined) S.ownLast.set(old, (last = new Dict()));
-      last.set(province, Views.provinceEconomy(S, this, this.map, province));
+      last.set(province, report);
     }
     S.ownerLog.push(newOwnerChange({ province, turn: S.turn, owner }));
+    // Item 17++: how firmly it obeys its new holder, reckoned now, not inherited from the old.
+    this.reckonObedience(province);
   }
 
   quit(c: Character, notice: string): void {

@@ -84,8 +84,61 @@ None. Everything the sections left open was settled by "The game in one page" an
 
 ## Benchmarks and use against ignore
 
-(Run after the suites; filled in below.)
+20 games, seed 1, `--verify-replay`, every replay exact. Before (17+ as merged, its report): a capital fell in 20 of 20
+games, 373 kingdoms fell in all, the first fall in season 1.5 on the median, a kingdom fallen in the first two seasons in
+11 of 20. After (this branch at `5e72ff3`): a capital fell in 20 of 20, **602 kingdoms fell in all** (risen powers among
+them: 90 rose, 60 of them elders in lawless land, 26 by revolt, 4 governors), the first fall in season 1.5, **a kingdom
+fallen in the first two seasons in 20 of 20** (Carchemish 11, Megiddo 7, Aijalon 6, Kaska 6, Qatna 6, Lukka 5). Winners:
+Egypt 7, Hatti 4, Babylonia 4, Mitanni 2, Libya, Terqa and Qadesh 1 each. Revolts 41 (26 led, 15 lawless), 1 put down.
+This is a finding the next round must answer before merge (pillar 8): why the city-states' capitals fall faster under
+the one rule, and whether the rising elders (60) come from land falling lawless too easily. Risen names double their
+place ("Nabu-zuqup of Nippur of Nippur"), a leftover of `risenName` the next round fixes.
+
+Use against ignore for remnants (`--remnant-play-half`, 50 games): running when this was written.
 
 ## The review
 
-(Codex's review and the design check, started together.)
+**Round 1, both started together on `5e72ff3`.**
+
+The design check (Claude, Opus, medium): **5**, with these points (B blocking, N not):
+1. B: the rulebook's "works built, a battle won there" had no entries. **Fixed** (`work` on a work completed in gold,
+   `victory` on a battle won in a province by its holder's troops).
+2. B: the ledger has no way to give: grain in a famine, a siege lifted, giving in the king's own name, and the script
+   kings and characters giving and taking by it. **Open.**
+3. B: the men of every army have no ledger ("an army follows its commander only as far as its ledger stands with him").
+   **Open.**
+4. B: use against ignore and benchmarks. **In progress** (above); the ledger's own use against ignore needs a script
+   play that gives and takes by it (point 2).
+5. B: next door counting only for the holder (reading 2) is a rule of a role; a smaller next-door weight for everyone
+   instead. **Open.**
+6. B: a governor gaining regard for holding his post (`rule`). **Fixed** (removed; his credit comes through his hand).
+7. B: the engine acts for characters: a rising led by a trait threshold, not the character's choice (model characters
+   never choose). **Open.**
+8. B: a rising against troops settled by a formula, not as combat says; the land's resistance still by `isHome`, not
+   the ledger ("a garrison keeps a town only as its people let it: they fight beside it"). **Open.**
+9. B: conquest on entry (reading 1) is a second way to change hands; the season rule should decide. **Open.**
+10. N: the court-city exception unstated. **Fixed** (reading 14).
+11. N: the Habiru's share at Gubla. **Answered** (reading 15).
+12. N: the seat-view fix outside the item. **Answered** (reading 16).
+13. N: reading 3 adds a case to the floor rule; it should come out of combat once point 8 is built. **Open with 8.**
+
+Codex (code review; security review clean): **P1×6**:
+1. `wantsIt` returned the governor first and never weighed a more loved claimant. **Fixed**: every eligible man, the one
+   the people would follow most.
+2. `fold` accepted neighbours a unit cannot march between (two fleets across land). **Fixed**: `Map.canMove`, in the
+   validator, the scripts and the web panel.
+3. The lost province's last report was taken after the loss had changed it. **Fixed**: taken before.
+4. Works and victories unrecorded. **Fixed** (as design point 1).
+5. The new tests build the whole world (the smallest-game rule). **Open.**
+6. A province changing hands kept the old holder's obedience until the season's end. **Fixed**: `reckonObedience` at
+   every change of hands.
+
+Review: rules · Claude · 5 (round 1); Codex P1×6 (round 1). Not merged: the open points are more than an hour's work,
+so they go to a session of their own ("Bigger review fixes in a session of their own").
+
+## Where to pick up (hand-off, 1 November 2026, context)
+
+The builder's context is large, so this session stops here with the PR open. The next session takes PR #375 with this
+report's review lists and nothing else, at high effort: build design points 2, 3, 5, 7, 8 and 9 and Codex's 5, fix the
+early falls and the doubled risen names, rerun the benchmarks and the use-against-ignore (remnants; the ledger once the
+scripts give by it), and ask both reviewers for round 2. Then parts B and C of 17++ (the report's opening paragraph).

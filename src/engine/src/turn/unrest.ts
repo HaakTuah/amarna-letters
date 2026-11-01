@@ -46,6 +46,8 @@ declare module "./core.ts" {
     revoltAt(province: string): number;
     /** A character of standing in `province` who wants it, against its holder: the man who would lead its revolt. */
     wantsIt(province: string): Character | null;
+    /** How firmly `province` obeys its holder now (`GameState.obeyed`): reckoned each season, and when it changes hands. */
+    reckonObedience(province: string, strength?: Dict<Power, number>): number;
     /** Each season, once the people have eaten: the ledger kept, whom each province obeys, governors' reports, rulers rising in lawless land. */
     obeySeason(): void;
   }
@@ -102,35 +104,27 @@ P.wantsIt = function (province) {
   const S = this.s;
   const holder = S.owner.getOrDefault(province, null);
   if (holder === null) return null;
+  const name = this.map.get(province).name;
+  const found: Character[] = [];
   // His own governor there, disloyal and ambitious.
   const gov = this.governorOf(province);
-  if (gov !== null && gov[0].power === holder && wants(gov[1], holder)) return gov[1];
+  if (gov !== null && gov[0].power === holder && wants(gov[1], holder)) found.push(gov[1]);
   // A chief with his band there.
-  const band = sortBy(
-    this.bandsAt(province).filter((b) => b.men >= BandData.least),
-    [(b: Band) => -b.men, (a: number, b: number) => a - b],
-    [(b: Band) => b.id, cmpStr],
-  ).find((b) => {
+  for (const b of this.bandsAt(province).filter((b) => b.men >= BandData.least)) {
     const c = findCharacter(S, b.leaderId);
-    return c !== null && wants(c, holder);
-  });
-  if (band !== undefined) return findCharacter(S, band.leaderId);
-  // A man of standing among its people (a claimant, a town's ruler, a former ruler of it), free and standing there: the
-  // one its people love most.
-  const name = this.map.get(province).name;
-  return (
-    sortBy(
-      S.characters.filter(
-        (c) =>
-          c.employer !== holder &&
-          standsIn(this, c, province) &&
-          wants(c, holder) &&
-          (standing(this, province, c.id) > 0 || c.facts.some((f) => f.tag === "origin" && f.text.startsWith("Ruled ") && f.text.includes(`from ${name}.`))),
-      ),
-      [(c: Character) => -standing(this, province, c.id), (a: number, b: number) => a - b],
-      [(c: Character) => c.id, cmpStr],
-    )[0] ?? null
-  );
+    if (c !== null && wants(c, holder)) found.push(c);
+  }
+  // A man of standing among its people (a claimant, a town's ruler, a former ruler of it), free and standing there.
+  for (const c of S.characters)
+    if (
+      c.employer !== holder &&
+      standsIn(this, c, province) &&
+      wants(c, holder) &&
+      (standing(this, province, c.id) > 0 || c.facts.some((f) => f.tag === "origin" && f.text.startsWith("Ruled ") && f.text.includes(`from ${name}.`)))
+    )
+      found.push(c);
+  // The one whom its people would follow most.
+  return sortBy([...new Set(found)], [(c: Character) => -characterWeight(this, province, c), (a: number, b: number) => a - b], [(c: Character) => c.id, cmpStr])[0] ?? null;
 };
 
 /** The men of fighting age a force is weighed against: at least one, so that troops in an empty land count in full. */
@@ -247,8 +241,7 @@ P.obeySeason = function () {
     const held = levies === null ? this.weightIn(prov.id, holder, strength) : this.forceIn(prov.id, holder, levies) + loveOf(this, prov.id, holder) - weakness(this, holder, strength);
     const lead = held - Math.max(rival?.weight ?? D.floor, D.floor);
     if (lead < D.threshold) S.restless.set(prov.id, D.threshold - lead);
-    const degree = clamp(333 + idiv(667 * lead, D.full), 333, 1000);
-    if (degree < 1000) S.obeyed.set(prov.id, degree);
+    setDegree(S, prov.id, lead);
     // A besieged city is the siege's; at the court only a foe's troops standing in it take it (a coup is another thing,
     // which the game does not model).
     if (siegeOf(S, prov.id) !== null) continue;
@@ -259,6 +252,25 @@ P.obeySeason = function () {
   for (const [id, rival] of changes) changeHands(this, id, rival);
   reports(this);
   lawlessRulers(this);
+};
+
+/** How fully a province obeys at a lead of `lead`: a third at nothing, all of it from `full` (left out at a thousand). */
+function setDegree(S: TurnEngine["s"], province: string, lead: number): void {
+  const degree = clamp(333 + idiv(667 * lead, D.full), 333, 1000);
+  if (degree < 1000) S.obeyed.set(province, degree);
+  else S.obeyed.delete(province);
+}
+
+P.reckonObedience = function (province, strength = new Dict<Power, number>()) {
+  const S = this.s;
+  const holder = S.owner.getOrDefault(province, null);
+  if (holder === null || !isAlive(S, holder) || this.map.get(province).isSea) {
+    S.obeyed.delete(province);
+    return 1000;
+  }
+  const rival = bestRival(this, province, holder);
+  setDegree(S, province, this.weightIn(province, holder, strength) - Math.max(rival?.weight ?? D.floor, D.floor));
+  return S.obeyed.getOrDefault(province, 1000);
 };
 
 /** The one who weighs most with a province against its holder, or null: powers by their troops in it, men by their standing. */

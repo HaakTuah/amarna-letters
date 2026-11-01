@@ -23,7 +23,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
         .map(([at, d]) => {
           const unit = draft.unitAt(at)!;
           // Item 17++: the troops of its own kind next to it that it may join.
-          const foldsInto = (from: string): string[] => [...draft.units.keys()].filter((x) => x !== from && map.neighbors(from).includes(x) && draft.unitAt(x)?.kind === unit.kind);
+          const foldsInto = (from: string): string[] => [...draft.units.keys()].filter((x) => x !== from && draft.unitAt(x)?.kind === unit.kind && map.canMove(unit.kind, from, x));
           const change = (patch: Partial<typeof d>): void => {
             Object.assign(d, patch);
             onChanged();

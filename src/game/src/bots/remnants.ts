@@ -38,7 +38,7 @@ export function foldRemnants(b: Board, plan: MilitaryPlan): void {
   const folding = new Set<string>();
   for (const u of remnants) {
     const into = sortBy(
-      b.mine.filter((x) => x !== u && x.kind === u.kind && x.men > u.men && !folding.has(x.province) && staying(x.province) && Board.Map.neighbors(u.province).includes(x.province)),
+      b.mine.filter((x) => x !== u && x.kind === u.kind && x.men > u.men && !folding.has(x.province) && staying(x.province) && Board.Map.canMove(u.kind, u.province, x.province)),
       [(x) => -x.men, cmpNum],
       [(x) => x.province, cmpStr],
     )[0];

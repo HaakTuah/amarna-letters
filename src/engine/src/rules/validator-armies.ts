@@ -149,7 +149,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (unit.commander !== null) return "it has a commander: relieve him first, or fold the other troops into his";
       if (unit.hiredMen > 0) return "the band hired into it serves on its own terms: it cannot be folded into other troops";
       if (into.kind !== unit.kind) return `an ${unit.kind === "Army" ? "army" : "fleet"} folds only into another ${unit.kind === "Army" ? "army" : "fleet"}`;
-      if (!Map.neighbors(unit.province).includes(into.province)) return `${Map.get(into.province).name} is not next to ${Map.get(unit.province).name}`;
+      if (!Map.canMove(unit.kind, unit.province, into.province)) return `${Map.get(into.province).name} is not a march from ${Map.get(unit.province).name} for ${unit.kind === "Army" ? "an army" : "a fleet"}`;
       return null;
     }
 
