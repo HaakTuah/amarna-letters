@@ -48,7 +48,7 @@ export function describeOrder(o: Order, v: SeatView): string {
   for (const c of [...v.court, ...v.known]) if (!names.has(c.id)) names.set(c.id, c.name);
   // "give Memphis to Hatti" (the engine's words, which kings read) beside "cede Memphis to Hatti" reads as giving the land;
   // a person reads which troops go.
-  if (o.type === "giftUnit") {
+  if (o.type === "giftUnit" && WorldMap.default.exists(o.unit)) {
     const fleet = v.units.some((u) => u.power === v.power && u.province === o.unit && u.kind === "Fleet");
     return `give the ${fleet ? "fleet" : "army"} at ${provinceName(o.unit)} to ${powerName(o.to)}`;
   }
