@@ -53,12 +53,12 @@ describe("NoticeTextTests", () => {
     // The ledger shows 150, but 100 of it was never fine gold: the levy is accepted, then cannot be paid.
     s.treasuries.get("Egypt").gold = 50;
     s.treasuries.get("Egypt").lots.push(newGoldLot({ id: "g900", from: "Hatti", stated: 100, face: 100, true: 0, arrivedTurn: 1 }));
-    e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [raise("thebes", "Army")] })]]));
+    e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [raise("sinai", "Army")] })]]));
 
     let inbox = inboxOf(s, "Egypt");
     Assert.contains(inbox, (i) => i.kind === "Assay" && i.title === "The treasury is short");
     Assert.contains(inbox, (i) => i.kind === "Rejected" && i.title === "Not enough gold" && i.body.includes("a new army"));
-    Assert.null(unitAt(s, "thebes"));
+    Assert.null(unitAt(s, "sinai"));
   });
 
   test("Wake reasons and the digest name whose troops moved", () => {
@@ -71,7 +71,7 @@ describe("NoticeTextTests", () => {
     e.resolve(
       new Dict([
         ["Egypt", newTurnSubmission({ orders: [move("lukkawaters", "kalavasoswaters")] })],
-        ["Assyria", newTurnSubmission({ orders: [move("ashur", "arbela"), move("ekallate", "ashur")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ashur", "ekallate"), move("arbela", "ashur")] })],
       ]),
     );
     e = new TurnEngine(s);
@@ -82,6 +82,6 @@ describe("NoticeTextTests", () => {
     // of its homeland), and the reason names whose fleet it was; an army beyond the border waits in Babylon's digest.
     Assert.equal([`${HomelandReason}: Egypt's fleet moved lukkawaters -> kalavasoswaters, next to kalavasos`], s.sleep.get("Alashiya").wokenBecause);
     Assert.empty(s.sleep.get("Babylonia").wokenBecause);
-    Assert.contains("turn 1: Assyria's army moved ekallate -> ashur", s.sleep.get("Babylonia").digest);
+    Assert.contains("turn 1: Assyria's army moved arbela -> ashur", s.sleep.get("Babylonia").digest);
   });
 });

@@ -133,7 +133,8 @@ describe("CallSizeTests", () => {
     const notice = Assert.single(inboxOf(state, "Egypt"), (i) => i.title === "Scheduled orders held back by their conditions");
     Assert.contains("raise army in thebes", notice.body);
     Assert.contains(state.units, (u) => u.power === "Egypt" && u.province === "delta" && u.kind === "Fleet");
-    Assert.doesNotContain(state.units, (u) => u.power === "Egypt" && u.province === "thebes");
+    // No new army at Waset: only the one standing there since item 17+.
+    Assert.equal(1, state.units.filter((u) => u.power === "Egypt" && u.province === "thebes").length);
     // Held back by the king's own conditions, it wakes nobody.
     Assert.true(state.sleep.get("Egypt").asleep);
   });

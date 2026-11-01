@@ -706,7 +706,7 @@ const cityUnits = (): StartUnit[] =>
 export const StartUnits: readonly StartUnit[] = [
   su("Egypt", "Army", "memphis", 6000),
   su("Egypt", "Army", "akhetaten", 4000),
-  su("Egypt", "Army", "thebes", 2000),
+  su("Egypt", "Army", "thebes", 2200),
   su("Egypt", "Army", "nubia", 2800),
   su("Egypt", "Army", "gaza", 100),
   su("Egypt", "Army", "sumur", 100),

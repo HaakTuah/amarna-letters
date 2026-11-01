@@ -14,7 +14,7 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
 ## Where things stood (`StartUnits`, `cityUnits` in `model/map.ts`; `StartDebts` in `rules/factory.ts`)
 
 - **The Great Kings' men** stand where the dossiers place them in 1346, at item 13's sizes: Egypt at Men-nefer 6,000, Akhetaten
-  4,000, Waset 2,000, in Kush 2,800 (the viceroy's, Akhenaten's one attested campaign), Gaza and Sumur 100 each; Hatti at
+  4,000, Waset 2,200, in Kush 2,800 (the viceroy's, Akhenaten's one attested campaign), Gaza and Sumur 100 each; Hatti at
   Hattusa 5,500, Samuha 3,000 (the Upper Land's army base, KBo VI 28), in Kizzuwatna 3,000 (Telipinu, facing Syria),
   Tuwanuwa 1,500 (the Lower Land facing Arzawa), Nesa and Sapinuwa 1,000 each, its five ships off Kizzuwatna; Mitanni at
   Washukanni 5,000, Harran 3,000, Taidu 2,000; Babylonia at Babylon 4,000, Dur-Kurigalzu 3,000, Nippur and Sippar 1,500

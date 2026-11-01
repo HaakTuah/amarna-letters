@@ -27,7 +27,7 @@ Overview, 194 of the Build order), the day the item began, and the check before 
 Each with the principle it rests on ("Reason from the pillars").
 
 1. **Egypt's army "at home and in Nubia"** (the armies dossier): 6,000 at Men-nefer, the army's base [B], 4,000 at
-   Akhetaten with the king [B], 2,000 at Waset [G], 2,800 in Kush under the viceroy, whose campaign of year 12 is
+   Akhetaten with the king [B], 2,200 at Waset [G], 2,800 in Kush under the viceroy, whose campaign of year 12 is
    Akhenaten's only attested one [B that troops were there; C how many]; the garrisons at Gaza and Sumur 100 each [A]. The
    split is a first guess within the dossier's total ("Starting positions come from the sources").
 2. **Kumidi's garrison waits for item 17++**, which brings its commissioner: a vassal's land is not land by leave, so an

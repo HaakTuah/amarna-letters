@@ -163,7 +163,7 @@ own, varied a little in every game.
 
 | Power | Capital | Tier | Starts with | How the script king plays |
 |---|---|---|---|---|
-| **Egypt** | Akhetaten | Strong | 15,000 men at home and in Kush, as the sources place them (6,000 at Men-nefer, 4,000 at Akhetaten, 2,000 at Waset, 2,800 under the viceroy in Kush), small garrisons in Gaza and Ṣumur, a fleet in the Delta, 900 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust" |
+| **Egypt** | Akhetaten | Strong | 15,000 men at home and in Kush, as the sources place them (6,000 at Men-nefer, 4,000 at Akhetaten, 2,200 at Waset, 2,800 under the viceroy in Kush), small garrisons in Gaza and Ṣumur, a fleet in the Delta, 900 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust" |
 | **Hatti** | Hattusa | Strong | 15,000 men at Hattusa, Samuha, in Kizzuwatna, Tuwanuwa, Nesa and Sapinuwa, a few ships off Kizzuwatna, 300 shekels | "The conqueror of Anatolia": the most aggressive king, vengeful, little given to trade |
 | **Babylonia** | Babili | Strong | armies in Babili, Dur-Kurigalzu, Nippur and Sippar (10,000 men in all), 600 shekels | "Keeper of the old order": the proudest and greediest; cautious, and will not call Assyria brother unless they are friends |
 | **Mitanni** | Washukanni | Middle | armies in Washukanni, Harran and Taidu (10,000 men in all), 450 shekels | "Seeker of a patron": the most diplomatic and among the most honest; squeezed between Hatti and Assyria |

@@ -58,7 +58,8 @@ describe("EngineTests", () => {
     // The Great Kings' 20 units (item 13: Egypt's garrisons at Gaza and Sumur, Alashiya's army, Arzawa's and Alashiya's
     // fleets in their waters) and one for each of the 40 city-states (item 11+, item 11c's six of Canaan and item 11f's
     // eight), with the fleets of Ugarit, Sidon, Tyre and Byblos in their waters (item 13).
-    Assert.equal(64, s.units.length);
+    // Item 17+: the Great Kings' men where the sources place them (29 units), the Lady of the Lions' army, Suhu's gone.
+    Assert.equal(73, s.units.length);
     // Walls by city, from the walls dossier (items 11d, 11c, 11f and, for the Great Kings' cities, 15): Hattusa, Babylon,
     // Ashur, Washukanni, Qatna, Qadesh and Hazor 3, Akhetaten none; the chiefs' lands none.
     Assert.equal(55, s.walls.size);

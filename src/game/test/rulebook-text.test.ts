@@ -111,7 +111,7 @@ describe("RulebookTextTests", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
     // Item 13: each unit at the size the armies dossier gives it.
     // Item 17+: each where the sources place it in 1346.
-    Assert.contains("- Egypt: armies in memphis (6000 men), akhetaten (4000 men), thebes (2000 men), nubia (2800 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 17974.", Rules);
+    Assert.contains("- Egypt: armies in memphis (6000 men), akhetaten (4000 men), thebes (2200 men), nubia (2800 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 17975.", Rules);
     Assert.contains("- Babylonia: armies in babylon (4000 men), durkurigalzu (3000 men), nippur (1500 men) and sippar (1500 men); treasury 600 shekels;", Rules);
     Assert.contains("- Alashiya: armies in enkomi (1000 men) and kalavasos (500 men), a fleet of 750 men in enkomiwaters; treasury 400 shekels;", Rules);
     Assert.contains("- Arwad: a fleet of 500 men in bybloswaters;", Rules);

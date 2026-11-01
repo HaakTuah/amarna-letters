@@ -342,7 +342,7 @@ describe("StandingForEverySeatTests", () => {
     // Two Assyrian armies stand next to Dur-Kurigalzu, in Ekallate and Suhu: one support holds it against both. The army in
     // Sippar, which holds this season and guards less than the army in the capital, is to give it if Dur-Kurigalzu is
     // attacked.
-    let s = newGame(31, Quiet);
+    let s = before13(newGame(31, Quiet));
     assyriaInMari(s);
     let [b, brain] = read(s, "Babylonia");
     let [cancel, give] = Contingencies.plan(b, brain, holding(b), []);
@@ -369,19 +369,20 @@ describe("StandingForEverySeatTests", () => {
     // and next to Dur-Kurigalzu, which one army alone cannot take. The army in Dur-Kurigalzu, the least
     // threatened troop next to Nippur by what it guards, is to march in if foreign troops do.
     // Nippur's old walls (1 since item 15) left out: the rule is the empty province's.
-    let s = newGame(31, Quiet);
+    let s = before13(newGame(31, Quiet));
     s.walls.delete("nippur");
     let [b, brain] = read(s, "Babylonia");
     let [, give] = Contingencies.plan(b, brain, holding(b), []);
-    let g = Assert.single(give);
+    // Suhu, Babylon's own empty land since item 17+, gets a guard of its own; Nippur's is the one under test.
+    let g = Assert.single(give, (x) => x.place === "nippur");
     Assert.equal(["Empty", "nippur", "UnitEnters", null], [g.kind, g.place, g.request.when, g.request.power]);
     Assert.equal([move("durkurigalzu", "nippur")], g.request.orders);
     // Not if the plan has another troop support it holding: its supports would be lost when it moves.
-    let s2 = newGame(31, Quiet);
+    let s2 = before13(newGame(31, Quiet));
     s2.walls.delete("nippur");
     let e = new TurnEngine(s2);
     e.beginTurn();
-    e.resolve(new Dict([["Babylonia", newTurnSubmission({ standing: give.map((x) => x.request) })]]));
+    e.resolve(new Dict([["Babylonia", newTurnSubmission({ standing: give.filter((x) => x.place === "nippur").map((x) => x.request) })]]));
     [b, brain] = read(s2, "Babylonia");
     let [cancel] = Contingencies.plan(b, brain, holding(b, support("babylon", "durkurigalzu")), []);
     Assert.equal(["s1", "needed at home"], Assert.single(cancel));
@@ -391,7 +392,7 @@ describe("StandingForEverySeatTests", () => {
     // Alashiya's fleet in Kalavasos's waters, next to Egypt's fleets off Lukka and off Kizzuwatna; its armies hold
     // Kalavasos and Enkomi, and no army can help a fleet at sea. Enkomi's waters are empty, and no Egyptian fleet could
     // move into them this season.
-    let s = newGame(31, Quiet);
+    let s = before13(newGame(31, Quiet));
     removeAll(s.units, (u) => u.power === "Alashiya");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Fleet", province: "kalavasoswaters" }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Army", province: "kalavasos" }));
@@ -407,7 +408,7 @@ describe("StandingForEverySeatTests", () => {
 
   // <summary>Babylonia keeps standing order s1: when the army in Dur-Kurigalzu is attacked, the army in Sippar supports it.</summary>
   function guarded(): GameState {
-    let s = newGame(31, Quiet);
+    let s = before13(newGame(31, Quiet));
     assyriaInMari(s);
     // An army of Babylon's in Nippur too, which a plan may have support Dur-Kurigalzu.
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "nippur" }));

@@ -127,6 +127,8 @@ describe("BattleReasonTests", () => {
 
   test("A support that matches nothing is void and only its own king is told why", () => {
     let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
+    // Babylon's army at Nippur (item 17+) would hold, which this test's report must not show.
+    s.units = s.units.filter((u) => u.province !== "nippur");
     resolve(
       s,
       subs({

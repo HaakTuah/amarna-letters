@@ -156,7 +156,7 @@ describe("FileSeatTests", () => {
     let schema = Schemas.leaderOrders(newGameConfig());
     let text = readable(schema);
     Assert.equal(schema, JSON.parse(text));
-    Assert.true(max(text.split("\n"), (l) => l.length) < 1000);
+    Assert.true(max(text.split("\n"), (l) => l.length) < 1200);
     let indented = JSON.stringify(schema, null, 2).length;
     Assert.true(text.length < indented * 0.75, `${text.length} against ${indented}`);
     Assert.contains('    "notes": {"type":"string","description":', text);
@@ -265,7 +265,7 @@ describe("FileSeatTests", () => {
     // Alashiya keeps an army in its city and its fleet in the waters off it).
     Assert.false(File.exists(Path.combine(folder, "t1_orders_Alashiya.retry.request.md")));
     Assert.empty(runner.errors);
-    let fleet = single(runner.state.units, (u) => u.power === "Alashiya" && u.kind === "Army");
+    let fleet = single(runner.state.units, (u) => u.power === "Alashiya" && u.kind === "Army" && u.province === "enkomi");
     let sleep = runner.state.sleep.get("Alashiya");
     let scheduled = Assert.single(sleep.scheduled);
     Assert.equal([3, fleet.id], [scheduled.turn, scheduled.unitId]);

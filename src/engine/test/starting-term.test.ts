@@ -72,7 +72,7 @@ describe("StartingTermTests", () => {
     let envoys = s.characters.filter((c) => c.contract !== null);
     // Two for each Great King and one for each city-state (item 11+), Terqa, Mira and Seha among them (item 11d), item 11c's six and item 11f's eight, and
     // since item 11f an Akkadian scribe at each of the 23 courts that read Akkadian.
-    Assert.equal(77, envoys.length);
+    Assert.equal(76, envoys.length);
     Assert.all(envoys, (c) => {
       Assert.equal(Rng.for(seed, 0, "start-term", c.id).range(7, 13), c.contract!.untilTurn);
       Assert.inRange(c.contract!.untilTurn, 7, 13);
