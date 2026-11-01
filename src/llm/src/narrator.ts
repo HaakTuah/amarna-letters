@@ -2,7 +2,7 @@
  * The narrator: writes each character's persona once, phrases background checks, and writes the chronicles. It only ever
  * receives facts the engine has already released.
  */
-import { king, land, personaTemplate, StrategyWords, strategiesOf, year, type Character } from "@amarna/engine";
+import { king, land, nameFrom, personaTemplate, StrategyWords, strategiesOf, year, type Character } from "@amarna/engine";
 import type { CheckContext, ChronicleContext, INarrator } from "@amarna/game";
 import type { ModelClient } from "./client.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
@@ -56,7 +56,7 @@ Facts: ${joinS(
   }
 
   async checkReport(ctx: CheckContext, signal?: AbortSignal): Promise<string> {
-    const user = `The court of ${land(ctx.court)} paid for inquiries into ${ctx.subject.name} of ${ctx.subject.origin}. Phrase the result as a short report from the court's inquirers, two to five sentences, like "Former merchant in Ugarit. Left debts behind." Use only these findings, and do not hint at anything more: ${ctx.facts.length === 0 ? "(nothing of note was found)" : joinS(" ", ctx.facts)}`;
+    const user = `The court of ${land(ctx.court)} paid for inquiries into ${nameFrom(ctx.subject)}. Phrase the result as a short report from the court's inquirers, two to five sentences, like "Former merchant in Ugarit. Left debts behind." Use only these findings, and do not hint at anything more: ${ctx.facts.length === 0 ? "(nothing of note was found)" : joinS(" ", ctx.facts)}`;
     const json = await this.client.askJson(
       {
         key: `t${ctx.turn}/check/${ctx.subject.id}/${ctx.court}`,

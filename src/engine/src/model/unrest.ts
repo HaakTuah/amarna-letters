@@ -9,7 +9,8 @@
  * a tax above the usual (`tax` points a season for each 10 points of rate above it, the hand that collects it). Givings: a
  * rival's gold among the people (`stir` a hundred shekels), the holder's troops standing in it (`troops` a season) or next
  * to it (`near`), policing (`policing` a level), a harvest left to people who ate in full (`harvest`), a tax below the
- * usual, a work built (`work` a level), a battle won in it for its holder (`victory`). What the holder gives counts less the farther his court (`far` in a hundred a
+ * usual, a work built (`work` a level), a battle won in it for its holder (`victory`), grain handed out (`grain` for a season's
+ * need, in a famine; a quarter of it in plenty), a siege lifted by its holder's troops (`relief`). What the holder gives counts less the farther his court (`far` in a hundred a
  * season of road beyond the first, at most `farMost`), except through a governor there.
  *
  * **It starts low** for a newcomer (nothing); the starting data says what history did: a native dynasty in its own
@@ -17,7 +18,8 @@
  * in the report).
  *
  * **Weight**, each season: force, the troops of a power standing in it (`force` points for troops as many as a tenth of
- * its men of fighting age; a quarter of that from next door; at most `forceMost`), plus love, its ledger with him and with
+ * its men of fighting age; a quarter of that from next door or before walls not stormed, at most `nearMost`, and for
+ * every power alike; at most `forceMost` in all), plus love, its ledger with him and with
  * the men who serve him there and do not want it themselves; less, for its holder, the master's weakness (`besieged`
  * while his court's city is besieged, up to `weakness` as his realm shrinks below its start). It obeys whoever weighs
  * most, once his weight clears its holder's by `margin`; it falls lawless when its holder's weight is below `floor` and
@@ -38,6 +40,15 @@ export const UnrestData = {
   harvest: 2,
   work: 10,
   victory: 10,
+  grain: 20,
+  /** An army's ledger (`turn/army-ledger.ts`): pay a season, pay missed, a season hungry, a battle won or lost, plunder shared; its king's own men start at `held`. */
+  pay: 3,
+  unpaid: 6,
+  starved: 6,
+  won: 10,
+  beaten: 10,
+  plunder: 5,
+  relief: 20,
   far: 15,
   farMost: 60,
   home: 100,
@@ -45,6 +56,7 @@ export const UnrestData = {
   stake: 30,
   force: 100,
   forceMost: 200,
+  nearMost: 50,
   besieged: 20,
   weakness: 40,
   margin: 20,
@@ -54,8 +66,10 @@ export const UnrestData = {
   /** A character "wants it": ambition at least this, and loyalty to his master below `disloyal`. */
   wants: 50,
   disloyal: 50,
-  /** A rising the master's troops there put down: this many thousandths of the settled die, and the rising's leader's standing halves. */
-  crushedDead: 10,
+  /** The least share in a hundred of a province's men who rise behind a man (or against a master they hate). */
+  riseLeast: 10,
+  /** Those who love their master fight beside his troops against a rising: one in this many of them, at full love. */
+  loyalShare: 4,
   /** The share in a hundred of the province's purse that its new ruler's treasury starts with (the elite's gold). */
   elitePurse: 20,
   /**

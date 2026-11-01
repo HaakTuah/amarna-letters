@@ -41,6 +41,7 @@ import {
   authorityText,
   type GrantView,
   menOf,
+  nameFrom,
 } from "@amarna/engine";
 import { economyLines, worksLines } from "./prompt-economy.ts";
 import { Sb, joinS } from "./text.ts";
@@ -561,7 +562,7 @@ export const GoldLifeline =
 
 export function person(c: CharacterView): string
     {
-        const parts: string[] = [`${c.id} ${c.name} of ${c.origin}`];
+        const parts: string[] = [`${c.id} ${nameFrom(c)}`];
         if (c.ours)
         {
             parts.push(c.ready ? `at court, ready for a mission` : c.duty);

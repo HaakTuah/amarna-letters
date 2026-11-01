@@ -16,7 +16,10 @@ first guess in `UnrestData` (`src/engine/src/model/unrest.ts`), tuned in item 18
   `EconomyData.taxPercent`, against the collector). **Givings**: a rival's gold spent by his spy (`stir` 25 a hundred
   shekels, to his master), the holder's troops in it (`troops` 4 a season) or next to it (`near` 1), policing (`policing` 2
   a level), a harvest left to people who ate their fill (`harvest` 2), a tax below the usual, a work built in gold
-  (`work` 10, to its builder), a battle won in it by its holder's troops (`victory` 10). What the holder gives counts less the farther his court (`far` 15 in a hundred a season of road beyond the first,
+  (`work` 10, to its builder), a battle won in it by its holder's troops (`victory` 10, and `relief` 20 more when it lifts a siege of it), grain handed
+  to its town (`grain` 20 for a season's need in a famine, a quarter of it in plenty, to the hand they see unless handed
+  out in the king's own name, the order `feed` with `own`, proclaimed by the courier who brings it). A band's robbing is a
+  taking too (`sacked` by the share of the purse, against its chief). What the holder gives counts less the farther his court (`far` 15 in a hundred a season of road beyond the first,
   at most `farMost` 60), except through his governor there.
 - **The hand they see** (`handOf`): where a governor of the holder governs, the tax, levies and hunger are his, and the
   harvest left them is his credit; the troops and works stay the king's.
@@ -27,27 +30,49 @@ first guess in `UnrestData` (`src/engine/src/model/unrest.ts`), tuned in item 18
   Tagi in Magidda, Ilirabih in Gubla, ...); Aziru's house 30 in Gubla (`Leanings1346`); each governor and resident 30 in his
   province. Nobody sees a number.
 
-## Whom it obeys (`obeySeason`, each season after the people eat)
+## Whom it obeys (`obeySeason`, as each season begins, after the people eat)
 
-- **Weight**: force, the men of a power's armies standing in it against its own men of fighting age (`force` 100 for a tenth
-  of them, at most `forceMost` 200), and for its holder a quarter of his men next door; plus love, his ledger and that of
-  the men serving him there who do not want it themselves; less, for the holder, his weakness (`besieged` 20, up to
-  `weakness` 40 as his realm shrinks). A guest by sealed passage weighs nothing.
-- **Rivals**: a power with troops standing in it; a character who wants it (`wantsIt`: a disloyal, ambitious governor, a
-  chief with his band, a man of standing among its people or a former ruler, standing there) by his ledger and his band.
+- **Weight**: force, the men of a power's armies standing in it against its own men of fighting age as they defend their
+  land, twice in hill land and half on open plain (`force` 100 for as many men as theirs, at most `forceMost` 200); men
+  next door, or before walls they have not stormed (`GameState.breached`), weigh a quarter as much and at most `nearMost`
+  50 in all, for every power alike; plus love, his ledger and that of the men serving him there who have not chosen to
+  rise against him; less, for the holder, his weakness (`besieged` 20, up to `weakness` 40 as his realm shrinks). A guest
+  by sealed passage weighs nothing.
+- **Conquest is this rule alone**: moving in takes nothing by itself, and a unit that storms walls breaks in (`stormed`
+  event, the walls a level lower, townspeople killed) and stands within them from then on; the province is the taker's
+  when the next season's reckoning finds his weight clear of its holder's (or, in land without a ruler, of the floor). A
+  siege's surrender is the city's own act, as before (`sieges.ts`). The taker sacks it and takes its archive then.
+- **Rivals**: a power with troops standing in it; a man of standing there (`leaders`: the holder's governor there, a chief
+  with his band there, a claimant, a town's ruler or a former ruler standing there and not in the holder's service) whose
+  weight, his ledger and his band, would clear the holder's. **He chooses** ("Rising" request, `RisingView`,
+  `Character.risePlan`): a model by its own judgement, a script by its traits (`wants`: ambition at least 50, and not loyal
+  to its holder); a rising he chose breaks out the next season if his weight still clears.
 - **It changes hands** to the rival whose weight clears the holder's by `margin` 20 (exactly at it, the seeded dice): to a
   power ("Gubla now answers to Amurru: Amurru's men stand at its gates, and Byblos's hold on it was weak"); to a man, who
-  rules it in his own name (`ruleOwn`, how `revolt`; a governor's levies go with him and weigh nothing against him), his
-  people's regard becoming his realm's; or, where the holder's weight is below `floor` -40 and none of his troops stand in
-  it, to nobody (lawless). A rising where the holder's troops stand is put down if their force is at least the leader's
-  standing (some die, his standing halves); else they are overwhelmed (half killed, the rest loose, their savings the
-  people's). A court's own city changes hands only to a foe's troops standing in it; a besieged city is the siege's.
+  rules it in his own name (`ruleOwn`, how `revolt`), with his band, or, a governor, those of his levies who follow him (the
+  armies' ledger, below); or, where the holder's weight is below `floor` -40, to nobody (lawless).
+- **Risings are fought** (`risingWins`): where the holder's troops stand, the men who rise (its men of fighting age by how
+  far they lean to the leader over the master, `riseLeast` 10 in a hundred at the least; with nobody at their head, by how
+  far they hate him) and the leader's band, against the troops and one in `loyalShare` 4 of its men as far as they love
+  the master; the loser loses men by `battleLosses`, the dead among them (`BattleData.dead`) and the rest loose; troops
+  beaten stay where they stand; a rising beaten halves its leader's standing. A court's own city changes hands only to a
+  foe's troops standing within it; a besieged city is the siege's.
 - **Degrees** (`GameState.obeyed`, `obeyedIn`): the holder's lead over the best rival or the floor gives a third of the
-  yield at nothing and all of it from `full` 60; the tax, the harvest's worth in his strength and the score read it. This
-  replaces slow absorption (item 5) and item 17's unrest stocks.
+  yield at nothing and all of it from `full` 60; the tax, the harvest's worth in his strength and the score read it.
 - **Unrest**, as governors and spies put it in words, is `threshold` 100 less the lead (`GameState.restless`).
-- **Conquest on entry stands** (`updateOwnership`): an army that beat its way in past the old master's troops and the land's
-  own men has tipped it by force; the season rule decides from then on whether it holds.
+- **The people's resistance** to an army entering (`resistance`, combat) is as hostile as their ledger: 100, plus half
+  their standing with the master the mover comes against, less half their standing with the mover, from 0 to 200.
+
+## The armies' ledger (`turn/army-ledger.ts`, `GameState.armies`)
+
+Each unit's men remember what each actor gave and took, fading as the provinces' do: pay (`pay` 3 a season), plunder
+shared (`plunder` 5) and victories (`won` 10), to the hand they see (their commander, or the governor of the province a
+levy was raised from while it stands there, else their king); pay missed (`unpaid` 6) against the king; hunger (`starved`
+6) and defeats (`beaten` 10) against the hand they see. The armies of 1346 start at `held` 40 with their king; a new levy
+at nothing. **What follows** (`follows`: 50 in a hundred, plus the leader's standing less the king's): a commander who
+refuses his recall keeps only those who follow him (below a band's least he leaves them); a governor who rises or refuses
+his recall takes only those of his levies who follow him, and rules the province only if its people would follow him
+(`turnsWith`), else turns with those men as a band.
 
 ## A handful holds nothing by itself (`turn/battles.ts`)
 

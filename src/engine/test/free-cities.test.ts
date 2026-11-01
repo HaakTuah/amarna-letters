@@ -69,7 +69,7 @@ describe("FreeCitiesTests", () => {
     Assert.equal(-90, ledger(s, "kaska").get("Lukka"));
   });
 
-  test("A province below what its people accept, with nobody at its head, falls lawless; where troops stand it holds", () => {
+  test("A province below what its people accept, with nobody at its head, falls lawless; a handful there is beaten, an army holds it", () => {
     const s = quiet();
     kaskaTaken(s);
     ledger(s, "kaska").set("Hatti", UnrestData.floor - 50);
@@ -81,12 +81,22 @@ describe("FreeCitiesTests", () => {
     const t = quiet();
     kaskaTaken(t);
     ledger(t, "kaska").set("Hatti", UnrestData.floor - 50);
-    t.units.push(newUnit({ id: newId(t, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men: 20 }));
+    // Twenty men among them: the people rise against them as a battle goes, and beat them (item 17++).
+    const few = newUnit({ id: newId(t, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men: 20 });
+    t.units.push(few);
     new TurnEngine(t).obeySeason();
-    Assert.equal("Hatti", t.owner.get("kaska"));
+    Assert.equal(null, t.owner.getOrDefault("kaska", "x"));
+    Assert.contains(inboxOf(t, "Hatti"), (i) => i.title === "A garrison beaten");
+    // An army as large as its men: they fear it, and it holds.
+    const u = quiet();
+    kaskaTaken(u);
+    ledger(u, "kaska").set("Hatti", UnrestData.floor - 50);
+    u.units.push(newUnit({ id: newId(u, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men: u.people.get("kaska").men * 2 }));
+    new TurnEngine(u).obeySeason();
+    Assert.equal("Hatti", u.owner.get("kaska"));
   });
 
-  test("A rising behind a man its people love: put down by troops that weigh as much, overwhelming a handful", () => {
+  test("A rising behind a man its people love, chosen the season before, is fought: it overwhelms a handful, and an army outnumbering it puts it down", () => {
     const rising = (men: number, hatti: number, his: number): [GameState, string] => {
       const s = quiet();
       kaskaTaken(s);
@@ -101,16 +111,21 @@ describe("FreeCitiesTests", () => {
       s.characters.push(c);
       ledger(s, "kaska").set("Hatti", hatti);
       ledger(s, "kaska").set(c.id, his);
-      s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men }));
+      s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men: men < 0 ? -men * s.people.get("kaska").men : men }));
+      // He is asked whether he leads them (his traits answer: he will); they rise the next season.
+      new TurnEngine(s).obeySeason();
+      s.turn++;
       return [s, c.id];
     };
     // Seven men among thousands who lean away: overwhelmed, and the man they love rules.
     const [s, id] = rising(7, 0, 120);
     new TurnEngine(s).obeySeason();
     Assert.equal(id, risenOf(s.owner.get("kaska")!)?.ruler);
-    Assert.false(s.units.some((u) => u.power === "Hatti"));
-    // An army that weighs as much as his following puts the rising down: some die, and he is followed by half as many.
-    const [t, id2] = rising(3000, -50, 220);
+    // Beaten, as a battle goes: those left of them stand where they stood, in land that answers to another now.
+    Assert.true(s.units.filter((u) => u.power === "Hatti").every((u) => u.men < 7));
+    // An army outnumbering the men who rise (twice the land's men, in hill land where fear of it counts for half) puts the
+    // rising down: some die, and he is followed by half as many.
+    const [t, id2] = rising(-2, -50, 220);
     const settled = t.people.get("kaska").settled;
     new TurnEngine(t).obeySeason();
     Assert.equal("Hatti", t.owner.get("kaska"));
@@ -127,7 +142,11 @@ describe("FreeCitiesTests", () => {
     s.governors.push(newGovernor({ province: "kaska", character: c.id, power: "Hatti", from: 0 }));
     const levy = newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "kaska", men: 800 });
     s.units.push(levy);
+    // His levy's men stand with him, who raised and paid them (item 17++: an army's ledger), more than with their king.
+    s.armies.set(levy.id, new Dict([[c.id, 60]]));
     ledger(s, "kaska").set(c.id, 150);
+    new TurnEngine(s).obeySeason();
+    s.turn++;
     new TurnEngine(s).obeySeason();
     const p = s.owner.get("kaska")!;
     Assert.equal("revolt", risenOf(p)?.how);
@@ -139,19 +158,26 @@ describe("FreeCitiesTests", () => {
     Assert.false(ledger(s, "kaska").has(c.id));
   });
 
-  test("A governor who refuses his recall rules his province in his own name", () => {
+  test("A governor who refuses his recall rules his province in his own name, where its people and his levy follow him", () => {
     const s = quiet();
     removeAll(s.units, (u) => u.province === "tuwanuwa");
     removeAll(s.governors, (g) => g.province === "tuwanuwa");
     const c = newCharacter({ id: newId(s, "c"), name: "Hutupiyanza", traits: newTraits({ loyalty: 10, greed: 50, ambition: 90, courage: 60, competence: 50 }), status: "Employed", employer: "Hatti", duty: "Governing", watchProvince: "tuwanuwa", purse: 300 });
     s.characters.push(c);
     s.governors.push(newGovernor({ province: "tuwanuwa", character: c.id, power: "Hatti", from: 0 }));
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "tuwanuwa", home: "tuwanuwa", men: 1000 }));
+    const levy = newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "tuwanuwa", home: "tuwanuwa", men: 1000 });
+    s.units.push(levy);
+    // Item 17++: its people and his levy's men stand with him over their king.
+    s.armies.set(levy.id, new Dict([[c.id, 60]]));
+    ledger(s, "tuwanuwa").set("Hatti", 0);
+    ledger(s, "tuwanuwa").set(c.id, 150);
     season(s, new Dict([["Hatti", newTurnSubmission({ orders: [unseat("tuwanuwa")] })]]));
     season(s);
     season(s);
+    // Whichever comes first, word of his recall or the season he chose to lead them, he rules it in his own name.
     const p = s.owner.get("tuwanuwa")!;
-    Assert.equal("turned", risenOf(p)?.how);
+    Assert.true(["turned", "revolt"].includes(risenOf(p)?.how ?? ""), `${risenOf(p)?.how}`);
+    Assert.equal(c.id, risenOf(p)?.ruler);
     Assert.equal(p, unitAt(s, "tuwanuwa")?.power);
   });
 

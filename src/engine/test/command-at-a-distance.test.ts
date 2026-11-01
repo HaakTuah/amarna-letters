@@ -201,6 +201,9 @@ describe("CommandAtADistanceTests", () => {
     Assert.equal("durkurigalzu", Views.for(s, "Babylonia").courtAt);
     // Assyria takes Dur-Kurigalzu, where the king is: Babylonia falls, though Babylon is still its own.
     season(s, subs({ Assyria: { orders: [move("ekallate", "durkurigalzu")] } }));
+    // Item 17++: the city, its people indifferent to their king for the test, answers to Assyria as the next season begins.
+    s.ledger.set("durkurigalzu", new Dict());
+    season(s);
     Assert.contains("Babylonia", s.eliminated);
     Assert.equal("Assyria", s.owner.get("durkurigalzu"));
     // The rest falls lawless, and the commanded armies are their commanders' bands, once word of the fall reaches them.

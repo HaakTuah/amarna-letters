@@ -348,7 +348,7 @@ P.surrender = function (x, owner, tell, how) {
 P.assaultText = function (a) {
   const strengths = `strength ${strengthWords(a.strength)} against walls ${strengthWords(a.walls)} and ${defendersText(a)}`;
   const at = this.map.get(a.province).name;
-  if (stormed(a)) return `it stormed the walls of ${at} (${strengths}), and ${at} is yours`;
+  if (stormed(a)) return `it stormed the walls of ${at} (${strengths}), and stands within them: ${at} answers to you if its people fear or love you more than its master, as the next season begins`;
   if (a.kind === "Fleet") return `your fleet stands within the walls of ${at} (walls ${strengthWords(a.walls)}), but a fleet can neither storm walls nor besiege them, so it takes nothing`;
   return `it got within the walls of ${at} but did not storm them (${strengths}): your army stands inside and takes nothing; besiege the city to wear it down`;
 };
@@ -380,7 +380,7 @@ P.ownWallsText = function (a) {
   const strengths = `its strength ${strengthWords(a.strength)} against your walls ${strengthWords(a.walls)} and ${defendersText(a)}`;
   const name = this.map.get(a.province).name;
   return stormed(a)
-    ? `Your walled city of ${name}: ${who} stormed the walls (${strengths}): ${name} is taken.`
+    ? `Your walled city of ${name}: ${who} stormed the walls (${strengths}), and its men stand within them: it goes over to them if its people fear or love them more than you, as the next season begins.`
     : `Your walled city of ${name}: ${who} got within the walls but did not storm them (${strengths}): it stands inside, and ${name} stays yours unless a siege wears it down.`;
 };
 

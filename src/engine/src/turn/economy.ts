@@ -26,6 +26,7 @@ import {
   sellAlongCurve,
   taxOf,
 } from "../model/economy.ts";
+import { UnrestData } from "../model/unrest.ts";
 import { climateOf, reapSeasonOf, terrainOf } from "../model/geography.ts";
 import { forMen, LandData, unitCarried, unitFood } from "../model/land.ts";
 import { BandData } from "../model/bands.ts";
@@ -277,6 +278,8 @@ P.payTroops = function (p) {
   )) {
     if (!paysUnit(S, u)) {
       u.unpaid++;
+      // Item 17++: wages unpaid are a taking its men remember of their king.
+      this.armyEntry(u, u.power, -UnrestData.unpaid);
       held.push(unitLabel(u));
       logEvent(S, "pay-held", `${land(p)} held back the pay of ${unitLabel(u)} by its standing order.`, [p], "pay-held");
       continue;
@@ -284,12 +287,15 @@ P.payTroops = function (p) {
     const pay = forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
     if (t.gold < pay) {
       u.unpaid++;
+      this.armyEntry(u, u.power, -UnrestData.unpaid);
       unpaid.push(unitLabel(u));
       continue;
     }
     t.gold -= pay;
     paid += pay;
     u.unpaid = 0;
+    // Pay is a giving, credited to the hand they see: their commander, else their king.
+    this.armyEntry(u, this.armyHand(u), UnrestData.pay);
     const where = spendingPlace(this, u);
     const spent = where === null ? 0 : idiv(pay * EconomyData.spentPercent, 100);
     if (where !== null) this.spendAt(where, spent);
@@ -419,6 +425,8 @@ P.feedTroops = function () {
     }
     if (eaten < need) {
       u.hungry++;
+      // Hunger is a taking, held against the hand that feeds them.
+      this.armyEntry(u, this.armyHand(u), -UnrestData.starved);
       let h = hungry.tryGet(u.power);
       if (!h) hungry.set(u.power, (h = []));
       h.push(unitLabel(u));
@@ -760,6 +768,11 @@ P.settleMarkets = function (orders) {
     this.market(o.province).stock += given;
     tell(p, `You handed ${given} measures of grain from the stores of ${Map.get(o.province).name} to its town.`);
     if (given > 0) logEvent(S, "feed", `${p} handed grain to the town of ${Map.get(o.province).name}.`, [p], "feed");
+    // Item 17++: grain handed out is a giving its people remember, most in a famine, of the hand they see: the governor
+    // there, unless it comes in the king's own name.
+    const hungry = S.fed.getOrDefault(o.province, 1000) < 1000;
+    const points = Math.min(UnrestData.grain, idiv(UnrestData.grain * given, Math.max(1, needOf(Map.get(o.province)))));
+    this.give(o.province, o.own === true ? p : this.handOf(o.province, p), hungry ? points : idiv(points, 4));
   }
   // Each market's trades together: sales and purchases netted, the rest priced along the curve.
   const trades = new Dict<string, [Power, SellOrder | PurchaseOrder][]>();

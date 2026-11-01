@@ -49,7 +49,6 @@ export interface People {
  *   for a season to strengthen walls (the corvée).
  * - The people's resistance has no numbers of its own (item 11e): their men of fighting age count by their number as
  *   every unit's men do, `armyMen` of them as hostile as they can be for one full unit ("The people defend their land").
- * - `hostileHome`: the people's hostility, in percent, to a king whose homeland the province is.
  * - `winterFood`: the extra food an army outside its own land eats in Peret, by the winter there ("Winter in the field").
  * - Item 10+b ("Where people go", "Bandits rob the purse", "People are worth having, not free to keep"):
  *   `runPercent`: of the share of their food the farmers could not keep from their harvest (crushing taxes or hunger
@@ -90,7 +89,6 @@ export const LandData = {
   strayMost: 50,
   porterPer: 5,
   builders: 3000,
-  hostileHome: 50,
   winterFood: { Mild: 0, Cool: 50, Hard: 100 } as const,
   runPercent: 2,
   refugeMargin: 10,
@@ -176,6 +174,9 @@ export function reckonedOf(map: WorldMap, province: string): { settled: number; 
 
 /** The men a unit of this kind takes from its home. */
 export const menOf = (kind: UnitKind): number => (kind === "Army" ? LandData.armyMen : LandData.fleetMen);
+
+/** A unit's men, a full unit's where none are counted (`men` 0, as a unit's share of a full one reads it). */
+export const menIn = (u: { kind: UnitKind; men: number }): number => (u.men > 0 ? u.men : menOf(u.kind));
 
 /**
  * Winter in the crossing (turn/winter.ts), item 11a+, first guesses (item 18 tunes them): `suppliedPercent`, what a troop carrying a season's food loses of what an

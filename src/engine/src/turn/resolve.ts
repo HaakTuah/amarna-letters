@@ -272,7 +272,7 @@ P.resolveMovement = function (unitOrders) {
   for (const [id, prov] of result.newPositions) if (S.units.find((x) => x.id === id)?.province !== prov) this._movedNow.add(id);
   for (const [id, prov] of result.newPositions) S.units.find((x) => x.id === id)!.province = prov;
   this.loseToWinter(lostToWinter, sightBefore);
-  // Walls stormed: the province is taken when land changes hands, and its walls fall a level then.
+  // Walls stormed: the stormers break in, its walls a level lower (updateOwnership); whom it obeys is the season's rule.
   for (const a of result.assaults.filter((a) => assaultStormed(a)))
     logEvent(
       S,
@@ -403,39 +403,23 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
 }
 
 /**
- * Land changes hands: a province passes to the power whose unit stands in it after movement, if it has no walls, or if
- * that unit stormed them this season (they then fall a level): it beat its way in past the land's own men, so its force
- * tips it ("Whom a province obeys", item 17++, which decides each season after whether it holds). A unit standing within
- * walls it did not storm takes nothing: a guest, or an army before a siege, which takes the city only when the siege
- * wears it down.
+ * Walls stormed (item 17++, "Whom a province obeys": conquest is force tipping it, and the season's rule alone decides
+ * whom a province obeys): a unit that stormed walls this season breaks in, the walls a level lower, killing townspeople
+ * and sending more running (item 10+a); from then on its men stand within them and weigh in full with the people there.
+ * Troops before walls they did not storm stand outside them, at its gates, and weigh as troops next door do; a guest by
+ * passage or basing takes nothing.
  */
 P.updateOwnership = function () {
   const S = this.s;
   const stormed = new HSet(this._battle?.assaults.filter((a) => assaultStormed(a)).map((a) => a.province) ?? []);
   for (const u of S.units) {
-    const prov = this.map.get(u.province);
-    if (prov.isSea) continue;
-    const before = S.owner.getOrDefault(u.province, null);
-    if (before === u.power) continue;
-    // Item 13+: a fallen kingdom's troops waiting for the word take nothing for a king who is no more.
-    if (!isAlive(S, u.power)) continue;
-    // A guest by passage or basing on a sealed tablet takes none of the land it stands in by leave (item 9).
-    if (this.guestOf(u) !== null) continue;
-    if (wallsOf(S, u.province) > 0) {
-      if (!stormed.has(u.province)) continue;
-      this.lowerWalls(u.province);
-      // Storming kills townspeople as well as soldiers, and sends more running (item 10+a).
-      this.killSettled(u.province, LandData.stormDead * 10, LandData.stormDead * 10);
-    }
-    this.setOwner(u.province, u.power);
-    this.sack(u.province, u.power);
-    if (before !== null) {
-      this.tell(before, prov.id, "Battle", "Land lost", `${prov.name} has been taken by ${u.power}.`);
-      logEvent(S, "conquest", `${u.power} took ${prov.name} from ${before}.`, [u.power, before]);
-    }
-    notify(S, u.power, "Battle", "Land taken", `${prov.name} is now yours.`);
-    // A court's capital holds its archive: whoever takes it gains a copy of every tablet in it.
-    this.takeArchive(u.power, u.province);
+    if (!stormed.has(u.province) || this.map.get(u.province).isSea || wallsOf(S, u.province) <= 0) continue;
+    if (S.owner.getOrDefault(u.province, null) === u.power || !isAlive(S, u.power) || this.guestOf(u) !== null) continue;
+    if ((S.breached.tryGet(u.province) ?? null) === u.power) continue;
+    this.lowerWalls(u.province);
+    this.killSettled(u.province, LandData.stormDead * 10, LandData.stormDead * 10);
+    S.breached.set(u.province, u.power);
+    notify(S, u.power, "Battle", "Walls stormed", `Your troops stormed the walls of ${this.map.get(u.province).name} and stand within them.`);
   }
 };
 
@@ -452,6 +436,16 @@ P.foldUnit = function (p, o) {
   into.food += u.food;
   into.savings += u.savings;
   into.chest += u.chest;
+  // Their ledgers join, each by its men (item 17++).
+  const book = S.armies.tryGet(u.id);
+  const joined = S.armies.tryGet(into.id);
+  const whole = Math.max(1, into.men);
+  const actors = new Set([...(book?.keys() ?? []), ...(joined?.keys() ?? [])]);
+  for (const a of sortBy([...actors], [(x: string) => x, cmpStr])) {
+    const v = idiv((book?.getOrDefault(a, 0) ?? 0) * u.men + (joined?.getOrDefault(a, 0) ?? 0) * (into.men - u.men), whole);
+    this.armyEntry(into, a, v - (joined?.getOrDefault(a, 0) ?? 0));
+  }
+  S.armies.delete(u.id);
   S.units.splice(S.units.indexOf(u), 1);
   this.liftSiegesOf(u.id);
   logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, [p], "fold");

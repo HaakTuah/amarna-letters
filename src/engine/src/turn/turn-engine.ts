@@ -41,6 +41,7 @@ import "./cession.ts";
 import "./falls.ts";
 import "./rulers.ts";
 import "./unrest.ts";
+import "./army-ledger.ts";
 import "./supply.ts";
 import "./letters.ts";
 import "./news.ts";

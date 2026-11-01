@@ -116,6 +116,8 @@ function openingLoyalties(s: GameState, m: WorldMap): void {
   }
   for (const c of s.characters) for (const f of c.facts) if (f.tag.startsWith("stake:")) book(f.tag.slice(6)).set(c.id, UnrestData.stake);
   for (const l of Leanings1346) book(l.province).set(l.to, book(l.province).getOrDefault(l.to, 0) + UnrestData.stake);
+  // The armies of 1346 have served their kings for years: their men stand with them as held land does (a raised levy starts at nothing).
+  for (const u of s.units) s.armies.set(u.id, new Dict([[u.power as string, UnrestData.held]]));
   // Each draw from a stream of its own, so that no draw over the larger pool moves one over the first eighteen.
   const rng = (key: string): Rng => Rng.for(s.seed, 0, "posts-1346", key);
   const person = (name: string | null, court: Power, calling: string): Character | null => {

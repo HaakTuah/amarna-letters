@@ -121,6 +121,11 @@ describe("AuthorityTests", () => {
     Assert.false(s.invaded.tryGet("Hatti")?.has("Egypt") ?? false);
     // A season standing there under passage alone: it has overstayed, and takes the land.
     new TurnEngine(s).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("tuwanuwa")] })]]));
+    // Item 17++: no guest now, its men weigh as any troops do; its people, indifferent to Hatti for the test, answer to
+    // Egypt as the next season's reckoning finds it.
+    Assert.equal("Hatti", s.owner.get("tuwanuwa"));
+    s.ledger.set("tuwanuwa", new Dict());
+    new TurnEngine(s).obeySeason();
     Assert.equal("Egypt", s.owner.get("tuwanuwa"));
 
     const b = newGame(7);
@@ -139,6 +144,8 @@ describe("AuthorityTests", () => {
     Assert.false(inboxOf(b, "Egypt").some((i) => i.title === "Passage and basing"));
     Assert.true(b.journeys.some((j) => j.kind === "Word" && j.news === "Grant" && j.to === "Egypt"));
     new TurnEngine(b).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("tuwanuwa")] })]]));
+    b.ledger.set("tuwanuwa", new Dict());
+    new TurnEngine(b).obeySeason();
     Assert.equal("Egypt", b.owner.get("tuwanuwa"));
     // Nothing left to revoke.
     Assert.equal(0, new OrderValidator(b, Map).validate("Hatti", newTurnSubmission({ orders: [revoke("Egypt")] })).accepted.length);

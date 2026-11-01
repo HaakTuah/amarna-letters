@@ -669,11 +669,13 @@ if (o.vassalPlayHalf && results.length > 0)
 if (o.commandPlayHalf && results.length > 0)
   console.log("\nScript kings that grant command of their armies away from court, give them mandates and recall losing commanders (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.freedomPlayHalf && results.length > 0)
-  console.log("\nScript kings that buy their armies' food where they stand by leave, ease the tax where their governors write of unrest, and send spies with gold to stir a foe's conquered land (\"current\") against those that take their food and do neither (\"baseline\"):" + versusReport(results, sides));
+  console.log("\nScript kings that buy their armies' food where they stand by leave, ease the tax where their governors write of unrest, and send spies with gold to stir a foe's conquered land and hand grain to their restless provinces in their own name (\"current\") against those that take their food and do none of it (\"baseline\"):" + versusReport(results, sides));
 if (o.councilPlayHalf && results.length > 0)
   console.log("\nScript kings that play their troops and levies by their royal council's counsel (\"current\") against those that play their own plan (\"baseline\"):" + versusReport(results, sides));
 if (o.languagePlayHalf && results.length > 0)
   console.log("\nScript kings that send envoys who say they speak the court's language and take on go-betweens for envoys nobody understands (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
+if (o.remnantPlayHalf && results.length > 0)
+  console.log("\nScript kings that fold their remnants into larger armies or disband them (\"current\") against those that leave them standing (\"baseline\"):" + versusReport(results, sides));
 if (o.upkeepPlayHalf && results.length > 0)
   console.log("\nScript kings that hold back pay from safe units when the treasury cannot carry the season (\"current\") against those that always pay (\"baseline\"):" + versusReport(results, sides));
 if (o.moneyPlayHalf && results.length > 0)

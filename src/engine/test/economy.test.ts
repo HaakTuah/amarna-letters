@@ -119,6 +119,8 @@ describe("EconomyTests", () => {
     const u = single(s.units, (x) => x.province === "hattusa");
     u.province = "sinai";
     s.owner.set("sinai", "Egypt");
+    // Item 17++: its people stand firmly with Egypt, so it stays Egypt's land while the test runs.
+    s.ledger.set("sinai", new Dict([["Egypt", 500]]));
     u.food = 0;
     u.savings = 30;
     const purse = s.markets.get("hattusa").purse;

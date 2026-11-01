@@ -384,6 +384,13 @@ export interface GameState {
   restless: Dict<string, number>;
   /** Item 17: the season each province last changed hands (to a power or to nobody). */
   takenAt: Dict<string, number>;
+  /**
+   * Item 17++: walled provinces whose walls a foe's troops stormed, by the power whose men broke in: they stand within the
+   * walls, so their force weighs in full with its people, until they leave or it changes hands.
+   */
+  breached: Dict<string, Power>;
+  /** Item 17++: each unit's men's ledger, by actor (a power, or a character's id), of what each gave them and took from them. */
+  armies: Dict<string, Dict<string, number>>;
   /** Item 17: a king's word to an army on how to get its food, with the gold sent for it, on the road to it. */
   foodWord: FoodWord[];
   /**
@@ -514,6 +521,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     risen: [],
     restless: new Dict(),
     takenAt: new Dict(),
+    breached: new Dict(),
+    armies: new Dict(),
     foodWord: [],
     falls: [],
     invaded: new Dict(),
@@ -627,6 +636,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   risen: list(() => RisenPowerSchema),
   restless: dict(I),
   takenAt: dict(I),
+  breached: dict(S),
+  armies: dict(dict(I)),
   foodWord: list(() => FoodWordSchema),
   falls: list(() => KingdomFallSchema),
   invaded: dict(dict(I)),

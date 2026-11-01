@@ -269,6 +269,7 @@ export class TurnEngine {
     S.owner.set(province, owner);
     // Item 17: when it changed hands. What its people remember of each actor stays with them (item 17++).
     S.takenAt.set(province, S.turn);
+    S.breached.delete(province);
     // What stands there passes with the land, and its upkeep with it; the old holder's orders for it lapse (item 15).
     this.worksChangeHands(province);
     // The old holder's tax goes with him: the new one collects the default until he sets his own (item 10+a).

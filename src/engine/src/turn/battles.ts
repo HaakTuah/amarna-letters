@@ -56,7 +56,12 @@ P.battles = function (result, sightBefore) {
     const x = battleLosses(w, l);
     if (crushed) routedInPlace.push(d);
     // Item 17++: a battle won in a province for its holder, by his own troops, is protection its people remember.
-    if (S.owner.getOrDefault(f.at, null) === winner.power) this.give(f.at, winner.power, UnrestData.victory);
+    // So is a siege of it lifted by them ("protection ... a siege lifted").
+    if (S.owner.getOrDefault(f.at, null) === winner.power)
+      this.give(f.at, winner.power, UnrestData.victory + (S.sieges.some((x) => x.province === f.at && x.unitId === loser.id) ? UnrestData.relief : 0));
+    // Item 17++: a victory is a giving its men remember of the hand that led them, a defeat a taking.
+    this.armyEntry(winner, this.armyHand(winner), UnrestData.won);
+    this.armyEntry(loser, this.armyHand(loser), -UnrestData.beaten);
     const loserLost = idiv(loser.men * x.loserPercent, 100);
     const winnerLost = Math.min(winner.men, idiv(loserLost * x.winnerShare, 100));
     lose(loser, loserLost, f.at);

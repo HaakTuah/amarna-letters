@@ -32,7 +32,7 @@ import {
   unitAt,
   wallsOf,
 } from "@amarna/engine";
-import { removeAll, Assert, last, subs, walled, oldWorld } from "./support.ts";
+import { removeAll, Assert, last, subs, walled, oldWorld, heldBy } from "./support.ts";
 import { siegeBoard } from "./games.ts";
 
 // Walls and sieges (Build order item 5): walls add nothing to a battle; a move into walls not its own takes the province
@@ -102,7 +102,7 @@ describe("SiegeTests", () => {
 
   test("A support to hold wears the city down two steps and a cut one does not; worn through, the walls are breached", () => {
     let s = board();
-    s.owner.set("suhu", "Mitanni");
+    heldBy(s, "suhu", "Mitanni");
     s.walls.set("suhu", 3);
     removeAll(s.units, (u) => u.province === "terqa");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
@@ -149,7 +149,7 @@ describe("SiegeTests", () => {
 
   test("A besieged city yields nothing and the besieger pays for the siege", () => {
     let s = board();
-    s.owner.set("suhu", "Mitanni");
+    heldBy(s, "suhu", "Mitanni");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
     let e = new TurnEngine(s);
     Assert.true(e.effectiveYield("suhu") > 0);
@@ -165,7 +165,7 @@ describe("SiegeTests", () => {
 
   test("A guest within walls takes nothing and an attack that drives the besieger out lifts the siege", () => {
     let s = board();
-    s.owner.set("suhu", "Mitanni");
+    heldBy(s, "suhu", "Mitanni");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
     // Holding without a besiege order: a guest, season after season.
     season(s, new Dict());
@@ -203,28 +203,32 @@ describe("SiegeTests", () => {
     );
   });
 
-  test("A storm takes the city at once a level lower", () => {
+  test("A storm breaks into the city, a level lower, and the season's reckoning gives it to the stormers", () => {
     let s = board();
     s.walls.set("suhu", 1);
     // Its men gone (item 11e: a city's own men stand on its walls), its walls alone stand against two.
     s.people.get("suhu").men = 0;
     season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("durkurigalzu", "sippar", "suhu")));
-    Assert.equal("Babylonia", s.owner.get("suhu"));
     Assert.equal(0, wallsOf(s, "suhu"));
     Assert.false(s.walls.has("suhu"));
     Assert.contains(s.events, (e) => e.kind === "storm" && e.text === "Babylonia stormed the walls of Suhu.");
+    // Item 17++: the stormers stand within; whom it obeys is the season's rule, as the next season begins.
+    Assert.equal("Babylonia", s.breached.get("suhu"));
+    Assert.null(s.owner.get("suhu"));
+    new TurnEngine(s).obeySeason();
+    Assert.equal("Babylonia", s.owner.get("suhu"));
   });
 
   test("A city's own men on its walls hold off a storm its walls alone would not", () => {
     // Item 11e: Suhu (walls 1) with its men of fighting age on the walls (since item 17+ Babylonia's own old land, freed for
-    // the test, so its people are less hostile to Babylonia than a stranger's: 0.8): 1 + 2 x 0.8 is more than two can
-    // storm, so the army stands within the walls and the city stays free.
+    // the test, so its people, by their ledger since item 17++, are less hostile to Babylonia than to a stranger: 1.2):
+    // 1 + 2 x 1.2 is more than two can storm, so the army stands within the walls and the city stays free.
     let s = board();
     s.walls.set("suhu", 1);
     season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("durkurigalzu", "sippar", "suhu")));
     Assert.notEqual("Babylonia", s.owner.getOrDefault("suhu", null));
     Assert.equal("Babylonia", unitAt(s, "suhu")?.power);
-    Assert.contains(inboxOf(s, "Babylonia"), (i) => i.body.includes("and the city's men 0.8, the walls making them twice as strong"));
+    Assert.contains(inboxOf(s, "Babylonia"), (i) => i.body.includes("and the city's men 1.2, the walls making them twice as strong"));
   });
 
   test("A besiege order kept for later follows its army and replays", () => {
@@ -241,7 +245,7 @@ describe("SiegeTests", () => {
     // beats the besieger's 1 and drives it out; without the sally it bounces.
     function board(): GameState {
       let s = siegeBoard();
-      s.owner.set("suhu", "Mitanni");
+      heldBy(s, "suhu", "Mitanni");
       first(s.units, (u) => u.province === "sippar").province = "suhu";
       s.sieges.push(newSiege({ province: "suhu", power: "Babylonia", unitId: unitAt(s, "suhu")!.id, progress: 1, since: 1 }));
       return s;

@@ -12,7 +12,7 @@ import { newGovernor, type Governor } from "../model/command.ts";
 import { raise, type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { findCharacter, logEvent, notify, unitAt } from "../model/state.ts";
+import { findCharacter, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
 import { wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
 
@@ -82,20 +82,23 @@ P.governorsSeason = function () {
     // Word of his recall reaches him: he steps down, or, disloyal and ambitious, turns with the levies he raised and rules
     // the province in his own name (item 17, the new Idrimi), unless other troops of his king's stand there.
     const t = c!.traits;
-    const levies = S.units.filter((u) => u.power === g.power && u.home === g.province && u.province === g.province && u.commander === null);
+    const disloyal = t.loyalty < 30 && t.ambition > 60;
+    // Item 17++: his levies follow him as far as their ledger stands with him, and the province only if its people would.
+    const turns = disloyal ? this.turnsWith(g.province, c!) : { province: false, levies: [] as Unit[] };
+    const levies = turns.levies;
     const others = S.units.some((u) => u.power === g.power && u.province === g.province && !levies.includes(u));
     S.governors = S.governors.filter((x) => x !== g);
     // In the city where his king holds court he cannot make it his own (a coup is not modelled): he turns with his levies
     // as a band, as before item 17.
     const court = this.courtAt(g.power) === g.province;
-    if (t.loyalty < 30 && t.ambition > 60 && court && levies.length > 0) {
+    if (disloyal && (court || !turns.province || others) && levies.length > 0) {
       const u = levies[0];
       this.tell(g.power, g.province, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${this.map.get(g.province).name}, and turned with the ${u.men} men he raised there.`);
       logEvent(S, "defect", `${c!.name} refused his recall by ${g.power} and turned with the levies of ${this.map.get(g.province).name}.`, [g.power], "defect");
       this.armyToBand(u, c!, "commander");
       continue;
     }
-    if (t.loyalty < 30 && t.ambition > 60 && !others && !court) {
+    if (disloyal && turns.province && !others && !court) {
       const name = this.map.get(g.province).name;
       const men = levies.reduce((a, u) => a + u.men, 0);
       this.tell(g.power, g.province, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${name}, and turned${men > 0 ? ` with the ${men} men he raised there` : ""}: he rules it in his own name now.`);

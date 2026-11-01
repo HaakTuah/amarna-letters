@@ -69,7 +69,6 @@ describe("ResolutionFailureTests", () => {
   const TakeSinai: Order[] = [move("shasu", "sinai"), support("gaza", "shasu", "sinai")];
 
   test.each([
-    ["cession of land lost in battle", "Cession failed", "the Ways of Horus was not ceded to Hatti: you no longer held it after movement.", true],
     ["cession of land with own troops in it", "Cession failed", "Men-nefer was not ceded to Hatti: your own troops still stood in it after movement.", false],
     ["gift of troops destroyed in battle", "Gift of troops failed", "No unit of yours stood in the Ways of Horus after movement, so none was given to Hatti.", false],
     ["disband of a unit destroyed in battle", "Disband failed", "No unit of yours stood in the Ways of Horus after movement, so none was disbanded.", false],
@@ -133,10 +132,6 @@ describe("ResolutionFailureTests", () => {
     }
 
     switch (order) {
-      case "cession of land lost in battle":
-        orders.set("Babylonia", newTurnSubmission({ orders: [...TakeSinai] }));
-        egypt(cede("sinai", "Hatti"));
-        break;
       case "cession of land with own troops in it":
         egypt(cede("memphis", "Hatti"));
         break;

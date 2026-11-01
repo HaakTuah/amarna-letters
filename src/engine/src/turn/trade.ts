@@ -448,6 +448,8 @@ P.sack = function (province, taker, stormed = true) {
     const part = i === units.length - 1 ? packs : idiv(soldiers * u.men, men);
     u.savings += part;
     packs -= part;
+    // Item 17++: plunder shared is a giving its men remember of the hand that led them.
+    if (part > 0) this.armyEntry(u, this.armyHand(u), UnrestData.plunder);
   });
   const name = this.map.get(province).name;
   const home = this.lootHome(taker, province, king, [], "");
