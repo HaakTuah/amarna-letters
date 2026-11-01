@@ -141,4 +141,4 @@ so they go to a session of their own ("Bigger review fixes in a session of their
 The builder's context is large, so this session stops here with the PR open. The next session takes PR #375 with this
 report's review lists and nothing else, at high effort: build design points 2, 3, 5, 7, 8 and 9 and Codex's 5, fix the
 early falls and the doubled risen names, add the batch report's line for `--remnant-play-half` and a `fold` signal row, rerun the benchmarks and the use-against-ignore (remnants; the ledger once the
-scripts give by it), and ask both reviewers for round 2. Then parts B and C of 17++ (the report's opening paragraph).
+scripts give by it), and ask both reviewers for round 2. Also fix CI's `smoke`: an open resident's marker at Gazru touches the city's badge at zoom 24 (`src/web/src/map/scene.ts`, the `SpyPosted` branch, or the marker layout). Then parts B and C of 17++ (the report's opening paragraph).
