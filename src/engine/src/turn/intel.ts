@@ -6,12 +6,49 @@ import type { Rng } from "../core/rng.ts";
 import { cmpNum, distinct, groupBy, sortBy } from "../core/seq.ts";
 import { cmpStr, isBlank } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
-import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, ForgeOrder } from "../model/orders.ts";
-import { coverOf, gain, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
+import type {
+  CaptiveOrder,
+  Order,
+  PayRansomOrder,
+  PlaceSpyOrder,
+  AssayOrder,
+  ForgeOrder,
+} from "../model/orders.ts";
+import {
+  coverOf,
+  gain,
+  newFact,
+  newJobErrand,
+  remember,
+  type Character,
+  type Cover,
+} from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
-import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
+import {
+  Waiting,
+  newJourney,
+  newLossAbroad,
+  newPendingTask,
+  newSpyReport,
+  newTablet,
+  newTabletCopy,
+  type Journey,
+  type LossAbroad,
+  type NewsKind,
+  type PendingTask,
+} from "../model/records.ts";
 import { moodWords } from "../model/unrest.ts";
-import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
+import {
+  alive,
+  char,
+  findCharacter,
+  isAlive,
+  logEvent,
+  newId,
+  newKnown,
+  notify,
+  ownedBy,
+} from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
@@ -40,14 +77,26 @@ declare module "./core.ts" {
     spyComesHome(j: Journey): void;
     watchAndReport(): void;
     spyObserve(c: Character, rng: Rng): string[];
-    lossesHeard(carrier: Character, court: Power, held: number, death: number): string[];
+    lossesHeard(
+      carrier: Character,
+      court: Power,
+      held: number,
+      death: number,
+    ): string[];
     spyReportArrives(j: Journey): void;
     capture(c: Character, host: Power, rng: Rng): void;
     captive(host: Power, co: CaptiveOrder): void;
     releaseCaptive(host: Power, c: Character): void;
     payRansom(payer: Power, pr: PayRansomOrder): void;
     ransomArrives(j: Journey): void;
-    rumor(to: Power, from: Power, text: string, about?: string | null, news?: NewsKind | null, demand?: string | null): void;
+    rumor(
+      to: Power,
+      from: Power,
+      text: string,
+      about?: string | null,
+      news?: NewsKind | null,
+      demand?: string | null,
+    ): void;
     demandArrives(j: Journey): boolean;
     assay(p: Power, a: AssayOrder): void;
     finishAuthentication(task: PendingTask): void;
@@ -59,12 +108,19 @@ const P = TurnEngine.prototype;
 
 P.resolveIntelligence = function (orders) {
   const S = this.s;
-  for (const [p, o] of orders) if (o.type === "counterIntel" && this.pay(p, o.spend, "watchmen", o, "none were set")) S.counterIntel.set(p, o.spend);
+  for (const [p, o] of orders)
+    if (
+      o.type === "counterIntel" &&
+      this.pay(p, o.spend, "watchmen", o, "none were set")
+    )
+      S.counterIntel.set(p, o.spend);
 
   // Captors decide first, so that a ransom paid the same season meets the captive as its captor left them,
   // whichever court comes first.
-  for (const [p, o] of orders) if (o.type === "captive" && o.fate === "TakePurse") this.captive(p, o);
-  for (const [p, o] of orders) if (o.type === "captive" && o.fate !== "TakePurse") this.captive(p, o);
+  for (const [p, o] of orders)
+    if (o.type === "captive" && o.fate === "TakePurse") this.captive(p, o);
+  for (const [p, o] of orders)
+    if (o.type === "captive" && o.fate !== "TakePurse") this.captive(p, o);
 
   for (const [p, o] of orders) {
     switch (o.type) {
@@ -75,16 +131,47 @@ P.resolveIntelligence = function (orders) {
         const recalled = char(S, o.character);
         const cover = coverOf(recalled, p);
         if (cover !== null) this.recallCovered(p, recalled, cover);
-        else if (recalled.employer === p && recalled.status === "Employed" && recalled.duty === "SpyPosted") this.recall(p, recalled);
-        else this.failed(p, o, "Recall failed", `${recalled.name} was not watching anywhere for you, so could not be recalled.`, "not on a mission", true, recalled.id);
+        else if (
+          recalled.employer === p &&
+          recalled.status === "Employed" &&
+          recalled.duty === "SpyPosted"
+        )
+          this.recall(p, recalled);
+        else
+          this.failed(
+            p,
+            o,
+            "Recall failed",
+            `${recalled.name} was not watching anywhere for you, so could not be recalled.`,
+            "not on a mission",
+            true,
+            recalled.id,
+          );
         break;
       }
       case "assay":
         this.assay(p, o);
         break;
       case "authenticate":
-        if (this.pay(p, o.spend, "the examination of a tablet", o, `tablet ${o.copy} was not examined`))
-          S.tasks.push(newPendingTask({ id: newId(S, "q"), kind: "Authenticate", requester: p, dueTurn: S.turn + 1, copyId: o.copy, spend: o.spend }));
+        if (
+          this.pay(
+            p,
+            o.spend,
+            "the examination of a tablet",
+            o,
+            `tablet ${o.copy} was not examined`,
+          )
+        )
+          S.tasks.push(
+            newPendingTask({
+              id: newId(S, "q"),
+              kind: "Authenticate",
+              requester: p,
+              dueTurn: S.turn + 1,
+              copyId: o.copy,
+              spend: o.spend,
+            }),
+          );
         break;
       case "forge":
         this.forge(p, o);
@@ -111,27 +198,81 @@ P.placeSpy = function (p, ps) {
   const target = court !== null ? this.courtAt(court) : province!;
   // Haakon's answers to item 11a: a job is one errand; one who did not take the job offered, or whose job is another, stays.
   const job = c.contract?.errand ?? null;
-  if (c.employer !== p || c.status !== "Employed" || (job !== null && (job.what !== "spy" || job.where !== (court ?? province) || job.done))) {
-    this.failed(p, ps, "Spy not sent", c.employer !== p ? `${c.name} is not in your service: they did not take the job offered.` : `${c.name}'s job is not to watch ${court ?? Map.get(province!).name}: another errand is a new job (order renew).`, "not the errand of their job", true, c.id);
+  if (
+    c.employer !== p ||
+    c.status !== "Employed" ||
+    (job !== null &&
+      (job.what !== "spy" || job.where !== (court ?? province) || job.done))
+  ) {
+    this.failed(
+      p,
+      ps,
+      "Spy not sent",
+      c.employer !== p
+        ? `${c.name} is not in your service: they did not take the job offered.`
+        : `${c.name}'s job is not to watch ${court ?? Map.get(province!).name}: another errand is a new job (order renew).`,
+      "not the errand of their job",
+      true,
+      c.id,
+    );
     return;
   }
   // Item 17: gold for stirring the province's people, carried with him.
   const stir = province !== null ? Math.max(0, ps.stir ?? 0) : 0;
-  if (stir > 0 && !this.pay(p, stir, `gold for ${c.name} to spend among the people of ${Map.get(province!).name}`, ps, "he went without it")) return;
-  if (c.contract !== null && job === null) c.contract.errand = newJobErrand({ what: "spy", where: court ?? province! });
+  if (
+    stir > 0 &&
+    !this.pay(
+      p,
+      stir,
+      `gold for ${c.name} to spend among the people of ${Map.get(province!).name}`,
+      ps,
+      "he went without it",
+    )
+  )
+    return;
+  if (c.contract !== null && job === null)
+    c.contract.errand = newJobErrand({
+      what: "spy",
+      where: court ?? province!,
+    });
   c.stirGold += stir;
   c.duty = "SpyOutbound";
   c.at = null;
   c.missionTarget = court;
   c.watchProvince = province;
-  const j = newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, from: p, to: court ?? p, characterId: c.id });
+  const j = newJourney({
+    id: newId(S, "j"),
+    kind: "SpyOutbound",
+    departTurn: S.turn,
+    from: p,
+    to: court ?? p,
+    characterId: c.id,
+  });
   S.journeys.push(j);
   c.sent++;
   this.setOut(j, this.courtAt(p), target);
   const travel = j.arriveTurn - S.turn;
-  remember(c, S.turn, `My lord of ${land(p)} sent me quietly to watch ${court !== null ? land(court) : Map.get(province!).name}.`);
-  if (province !== null) logEvent(S, "spy", `${p} sent a spy to watch ${Map.get(province).name}.`, [p], "spy-watching");
-  notify(S, p, "Notice", "Agent sent", `${c.name} left last season to watch ${court ?? Map.get(province!).name}; the journey should take about ${travel} ${travel === 1 ? "season" : "seasons"}.`, c.id);
+  remember(
+    c,
+    S.turn,
+    `My lord of ${land(p)} sent me quietly to watch ${court !== null ? land(court) : Map.get(province!).name}.`,
+  );
+  if (province !== null)
+    logEvent(
+      S,
+      "spy",
+      `${p} sent a spy to watch ${Map.get(province).name}.`,
+      [p],
+      "spy-watching",
+    );
+  notify(
+    S,
+    p,
+    "Notice",
+    "Agent sent",
+    `${c.name} left last season to watch ${court ?? Map.get(province!).name}; the journey should take about ${travel} ${travel === 1 ? "season" : "seasons"}.`,
+    c.id,
+  );
 };
 
 P.spyArrives = function (j) {
@@ -151,6 +292,8 @@ P.spyArrives = function (j) {
   if (c.status !== "Employed" || c.employer !== j.from) return;
   c.duty = "SpyPosted";
   c.at = c.missionTarget;
+  // A watcher posted by order goes as any spy does, unseen if he can be (item 17++: only the opening's residents are open).
+  c.openly = false;
 };
 
 P.recall = function (p, c) {
@@ -158,10 +301,20 @@ P.recall = function (p, c) {
   const Map = this.map;
   // Its stay is over, recalled or its term served: its job is done when it is home.
   if (c.contract?.errand?.what === "spy") c.contract.errand.done = true;
-  const from = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(p));
+  const from =
+    c.missionTarget !== null
+      ? this.courtAt(c.missionTarget)
+      : (c.watchProvince ?? this.courtAt(p));
   c.duty = "EnvoyHomebound";
   c.at = null;
-  const j = newJourney({ id: newId(S, "j"), kind: "SpyHomebound", departTurn: S.turn, from: c.missionTarget ?? p, to: p, characterId: c.id });
+  const j = newJourney({
+    id: newId(S, "j"),
+    kind: "SpyHomebound",
+    departTurn: S.turn,
+    from: c.missionTarget ?? p,
+    to: p,
+    characterId: c.id,
+  });
   S.journeys.push(j);
   this.setOut(j, from, this.courtAt(p));
 };
@@ -176,9 +329,18 @@ P.recallCovered = function (p, c, cover) {
   cover.believed = "EnvoyHomebound";
   cover.recalled = true;
   cover.dutyText = "on the road home";
-  cover.whereText = c.watchProvince !== null ? `in ${c.watchProvince}` : "travelling";
-  const post = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(p));
-  const place = c.missionTarget !== null ? `the court of ${c.missionTarget}` : c.watchProvince !== null ? Map.get(c.watchProvince).name : p;
+  cover.whereText =
+    c.watchProvince !== null ? `in ${c.watchProvince}` : "travelling";
+  const post =
+    c.missionTarget !== null
+      ? this.courtAt(c.missionTarget)
+      : (c.watchProvince ?? this.courtAt(p));
+  const place =
+    c.missionTarget !== null
+      ? `the court of ${c.missionTarget}`
+      : c.watchProvince !== null
+        ? Map.get(c.watchProvince).name
+        : p;
   const due = S.turn + this.travelTurnsBetween(post, this.courtAt(p));
   // Due back as a spy really recalled now would be.
   cover.timingText = Views.homeTiming(due);
@@ -192,11 +354,28 @@ P.spyComesHome = function (j) {
   const free = c.status === "Free";
   if (!free && (c.status !== "Employed" || c.employer !== j.to)) return;
   // What its master saw: a spy home from a post it watched unseen, or one that gave up on the road (item 10).
-  if (!free && j.gaveUp) this.outcome(c, j.to, `Turned back on the road to a post (season ${S.turn}).`, false);
+  if (!free && j.gaveUp)
+    this.outcome(
+      c,
+      j.to,
+      `Turned back on the road to a post (season ${S.turn}).`,
+      false,
+    );
   else if (!free && c.turnsAbroad >= 2) {
-    const post = c.missionTarget !== null ? `the court of ${land(c.missionTarget)}` : c.watchProvince !== null ? this.map.get(c.watchProvince).name : "a post";
+    const post =
+      c.missionTarget !== null
+        ? `the court of ${land(c.missionTarget)}`
+        : c.watchProvince !== null
+          ? this.map.get(c.watchProvince).name
+          : "a post";
     // The court it watched never learns of it: a spy unseen is unseen (item 4's hidden spies).
-    this.outcome(c, j.to, `Watched ${post} unseen for ${c.turnsAbroad} seasons and came home (season ${S.turn}).`, true, c.missionTarget);
+    this.outcome(
+      c,
+      j.to,
+      `Watched ${post} unseen for ${c.turnsAbroad} seasons and came home (season ${S.turn}).`,
+      true,
+      c.missionTarget,
+    );
   }
   c.duty = "None";
   c.at = j.to;
@@ -205,13 +384,23 @@ P.spyComesHome = function (j) {
   c.turnsAbroad = 0;
   // What he did not spend of the gold to stir a province he hands back (item 17).
   if (c.stirGold > 0) {
-    if (!free && isAlive(S, j.to)) this.credit(j.to, c.stirGold, this.courtAt(j.to), false);
+    if (!free && isAlive(S, j.to))
+      this.credit(j.to, c.stirGold, this.courtAt(j.to), false);
     // His master's gold on him now, counted as what he kept of it (item 17+: the purse holds only what is counted).
     else gain(c, c.stirGold, "Skimmed");
     c.stirGold = 0;
   }
   this.bringNews(j, j.to, c);
-  if (!free) notify(S, j.to, "Notice", "Agent returns", `${c.name} is back at court` + (j.turnedBack !== null ? `: ${j.turnedBack}.` : "."), c.id);
+  if (!free)
+    notify(
+      S,
+      j.to,
+      "Notice",
+      "Agent returns",
+      `${c.name} is back at court` +
+        (j.turnedBack !== null ? `: ${j.turnedBack}.` : "."),
+      c.id,
+    );
 };
 
 /** Every posted spy risks detection, then observes what its competence allows and sends word home. */
@@ -219,18 +408,31 @@ P.watchAndReport = function () {
   const S = this.s;
   const Map = this.map;
   for (const c of sortBy(
-    S.characters.filter((c) => c.duty === "SpyPosted" && c.status === "Employed"),
+    S.characters.filter(
+      (c) => c.duty === "SpyPosted" && c.status === "Employed",
+    ),
     [(c: Character) => idNumber(c.id), cmpNum],
   )) {
     const employer = c.employer!;
-    const host = c.missionTarget ?? (c.watchProvince !== null ? S.owner.getOrDefault(c.watchProvince, null) : null);
+    const host =
+      c.missionTarget ??
+      (c.watchProvince !== null
+        ? S.owner.getOrDefault(c.watchProvince, null)
+        : null);
     const rng = this.r("spy", c.id);
 
-    // A fallen court has nobody left to catch a spy, nor to decide its fate.
-    if (host !== null && host !== employer && c.secretMaster !== host && isAlive(S, host)) {
+    // A fallen court has nobody left to catch a spy, nor to decide its fate; nobody hunts a resident known to all (item 17++).
+    if (
+      host !== null &&
+      host !== employer &&
+      c.secretMaster !== host &&
+      isAlive(S, host) &&
+      !c.openly
+    ) {
       const watch = S.counterIntel.getOrDefault(host, 0);
       const risk = this._stealing.has(c.id) ? StealRisk : 0;
-      const caughtAt = (skill: number): number => clamp(0.05 + watch / 300.0 - skill / 400.0 + risk, 0.02, 0.6 + risk);
+      const caughtAt = (skill: number): number =>
+        clamp(0.05 + watch / 300.0 - skill / 400.0 + risk, 0.02, 0.6 + risk);
       const caught = rng.chance(caughtAt(c.skills.stealth));
       learn(c, "stealth", !caught, (b) => 1 - caughtAt(b));
       if (caught) {
@@ -266,7 +468,10 @@ P.watchAndReport = function () {
       }
       report.tabletIds = this.copyFromArchive(c, c.missionTarget, employer);
     }
-    const from = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(employer));
+    const from =
+      c.missionTarget !== null
+        ? this.courtAt(c.missionTarget)
+        : (c.watchProvince ?? this.courtAt(employer));
     // Item 11b ("Messengers are errands"): from abroad it waits for a carrier; inside its master's own land the realm's
     // couriers carry it ("Distance inside your own realm"). From a watch post just across its master's border too it waits:
     // the spy may walk it to the border himself, leaving his post (Haakon's answers to item 11b+).
@@ -302,7 +507,9 @@ P.borderOf = function (c, employer) {
   const home = this.courtAt(employer);
   return (
     sortBy(
-      this.map.neighbors(c.watchProvince).filter((n) => S.owner.getOrDefault(n, null) === employer),
+      this.map
+        .neighbors(c.watchProvince)
+        .filter((n) => S.owner.getOrDefault(n, null) === employer),
       [(n: string) => this.travelTurnsBetween(n, home), cmpNum],
       [(n: string) => n, cmpStr],
     )[0] ?? null
@@ -316,10 +523,23 @@ P.borderOf = function (c, employer) {
 P.walkToBorder = function (c, employer, border) {
   const S = this.s;
   const post = c.watchProvince!;
-  logEvent(S, "letter", `${c.name} left the watch on ${this.map.get(post).name} to take reports to the border of ${employer}.`, [], "border-walk");
+  logEvent(
+    S,
+    "letter",
+    `${c.name} left the watch on ${this.map.get(post).name} to take reports to the border of ${employer}.`,
+    [],
+    "border-walk",
+  );
   c.duty = "SpyOutbound";
   c.at = null;
-  const j = newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, from: employer, to: employer, characterId: c.id });
+  const j = newJourney({
+    id: newId(S, "j"),
+    kind: "SpyOutbound",
+    departTurn: S.turn,
+    from: employer,
+    to: employer,
+    characterId: c.id,
+  });
   S.journeys.push(j);
   c.sent++;
   this.setOut(j, post, border);
@@ -330,7 +550,14 @@ P.walkToBorder = function (c, employer, border) {
   j.reached = [S.turn];
   const perSeason = S.config.travelDays * PointsPerDay;
   let cost = 0;
-  for (let i = 0; i < j.route.length - 1; i++) cost += legPoints(this.map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn), { sneaking: false, ways: waysOf(S) });
+  for (let i = 0; i < j.route.length - 1; i++)
+    cost += legPoints(
+      this.map,
+      j.route[i],
+      j.route[i + 1],
+      seasonOfTurn(S.turn),
+      { sneaking: false, ways: waysOf(S) },
+    );
   j.arriveTurn = S.turn + Math.max(1, Math.ceil(cost / perSeason));
   return j;
 };
@@ -349,22 +576,49 @@ P.spyObserve = function (c, rng) {
       S.units.filter((u) => near.has(u.province)),
       [(u) => u.province, cmpStr],
     ))
-      if (rng.chance(0.35 + skill * 0.6)) obs.push(`${u.power} has ${u.kind === "Army" ? "an army" : "a fleet"} in ${Map.get(u.province).name}.`);
+      if (rng.chance(0.35 + skill * 0.6))
+        obs.push(
+          `${u.power} has ${u.kind === "Army" ? "an army" : "a fleet"} in ${Map.get(u.province).name}.`,
+        );
     if (rng.chance(skill)) {
       const g = S.treasuries.get(court).gold;
       const lo = Math.max(0, Math.trunc(g * (0.75 + rng.nextDouble() * 0.2)));
       const hi = Math.trunc(g * (1.05 + rng.nextDouble() * 0.25)) + 20;
-      obs.push(`The treasury of ${court} holds between ${formatMoney(lo)} and ${formatMoney(hi)}.`);
+      obs.push(
+        `The treasury of ${court} holds between ${formatMoney(lo)} and ${formatMoney(hi)}.`,
+      );
     }
-    for (const v of S.characters.filter((x) => x.at === court && x.id !== c.id && x.employer !== null && x.employer !== court && (x.duty === "EnvoyAtCourt" || x.duty === "Detained")))
-      if (rng.chance(skill)) obs.push(`${v.name}, envoy of ${v.employer}, was received at ${court}${v.duty === "Detained" ? " and is being held there" : ""}.`);
-    for (const cat of S.catastrophes.filter((x) => x.power === court && x.endTurn >= S.turn && x.startTurn <= S.turn + 1)) obs.push(`In ${court}: ${cat.text}`);
+    for (const v of S.characters.filter(
+      (x) =>
+        x.at === court &&
+        x.id !== c.id &&
+        x.employer !== null &&
+        x.employer !== court &&
+        (x.duty === "EnvoyAtCourt" || x.duty === "Detained"),
+    ))
+      if (rng.chance(skill))
+        obs.push(
+          `${v.name}, envoy of ${v.employer}, was received at ${court}${v.duty === "Detained" ? " and is being held there" : ""}.`,
+        );
+    for (const cat of S.catastrophes.filter(
+      (x) =>
+        x.power === court && x.endTurn >= S.turn && x.startTurn <= S.turn + 1,
+    ))
+      obs.push(`In ${court}: ${cat.text}`);
     // The captives the court holds, noticed as envoys at court are; its executions, always, as catastrophes are.
     obs.push(...this.lossesHeard(c, court, skill, 1));
     const lord = c.employer!;
-    for (const x of S.characters.filter((x) => x.employer === court && x.at === court && x.id !== c.id)) {
-      const secret = x.facts.find((f) => f.secrecy === "Hidden" && !f.knownBy.includes(lord)) ?? null;
-      const deep = x.facts.find((f) => f.secrecy === "Deep" && !f.knownBy.includes(lord)) ?? null;
+    for (const x of S.characters.filter(
+      (x) => x.employer === court && x.at === court && x.id !== c.id,
+    )) {
+      const secret =
+        x.facts.find(
+          (f) => f.secrecy === "Hidden" && !f.knownBy.includes(lord),
+        ) ?? null;
+      const deep =
+        x.facts.find(
+          (f) => f.secrecy === "Deep" && !f.knownBy.includes(lord),
+        ) ?? null;
       if (secret !== null && rng.chance(skill / 2.5)) {
         secret.knownBy.push(lord);
         obs.push(`About ${x.name}: ${secret.text}`);
@@ -380,10 +634,16 @@ P.spyObserve = function (c, rng) {
       S.units.filter((u) => watched.has(u.province)),
       [(u) => u.province, cmpStr],
     ))
-      if (rng.chance(0.5 + skill * 0.5)) obs.push(`${u.power} has ${u.kind === "Army" ? "an army" : "a fleet"} in ${Map.get(u.province).name}.`);
+      if (rng.chance(0.5 + skill * 0.5))
+        obs.push(
+          `${u.power} has ${u.kind === "Army" ? "an army" : "a fleet"} in ${Map.get(u.province).name}.`,
+        );
     // Item 17: the people's mood there, in words, as anyone living among them hears it (its holder never sees the number).
     const holder = S.owner.getOrDefault(wp, null);
-    if (holder !== null) obs.push(`The people of ${Map.get(wp).name} are ${moodWords(S.restless.getOrDefault(wp, 0), this.revoltAt(wp))} under ${holder}.`);
+    if (holder !== null)
+      obs.push(
+        `The people of ${Map.get(wp).name} are ${moodWords(S.restless.getOrDefault(wp, 0), this.revoltAt(wp))} under ${holder}.`,
+      );
   }
   if (obs.length === 0) obs.push("Nothing of note this season.");
   return obs;
@@ -411,11 +671,23 @@ P.lossesHeard = function (carrier, court, held, death) {
   for (const l of talk) {
     const x = findCharacter(S, l.characterId);
     if (x === null) continue;
-    if (l.kind === "Captured" && x.status === "Captured" && x.heldBy === court) {
+    if (
+      l.kind === "Captured" &&
+      x.status === "Captured" &&
+      x.heldBy === court
+    ) {
       if (rng.chance(held))
-        heard.push(`${court} holds ${x.name}, ${l.master !== null ? `a spy of ${l.master}` : "a spy who will not say whom they serve"}, captive (caught in turn ${l.turn}).`);
-    } else if (l.kind === "PutToDeath" && S.turn - l.turn <= LossNewsSeasons && rng.chance(death))
-      heard.push(`${court} put ${x.name}, ${l.master !== null ? `a spy of ${l.master}` : "a spy who would not say whom they served"}, to death in turn ${l.turn}.`);
+        heard.push(
+          `${court} holds ${x.name}, ${l.master !== null ? `a spy of ${l.master}` : "a spy who will not say whom they serve"}, captive (caught in turn ${l.turn}).`,
+        );
+    } else if (
+      l.kind === "PutToDeath" &&
+      S.turn - l.turn <= LossNewsSeasons &&
+      rng.chance(death)
+    )
+      heard.push(
+        `${court} put ${x.name}, ${l.master !== null ? `a spy of ${l.master}` : "a spy who would not say whom they served"}, to death in turn ${l.turn}.`,
+      );
   }
   return heard;
 };
@@ -427,22 +699,46 @@ P.spyReportArrives = function (j) {
   if (c === null || j.report === null) return;
   // A report it sent after its master's belief was frozen (a captive turned and back at its post): word has come from it.
   const cover = coverOf(c, j.to);
-  if (cover !== null && j.report.observedTurn >= cover.since) c.covers.splice(c.covers.indexOf(cover), 1);
+  if (cover !== null && j.report.observedTurn >= cover.since)
+    c.covers.splice(c.covers.indexOf(cover), 1);
   // A report from a watched province brings home who held it and the land beside it when the spy wrote (item 9: by road,
   // not in live sight); one a host had a turned spy send carries only what the host told it.
-  if (j.report.province !== null && isBlank(j.report.poison) && isAlive(S, j.to)) {
+  if (
+    j.report.province !== null &&
+    isBlank(j.report.poison) &&
+    isAlive(S, j.to)
+  ) {
     let book = S.known.tryGet(j.to);
     if (book === undefined) S.known.set(j.to, (book = new Dict()));
-    for (const prov of [j.report.province, ...this.map.neighbors(j.report.province)]) {
+    for (const prov of [
+      j.report.province,
+      ...this.map.neighbors(j.report.province),
+    ]) {
       if (this.map.get(prov).isSea) continue;
       const had = book.tryGet(prov);
       if (had !== undefined && had.turn >= j.report.observedTurn) continue;
-      book.set(prov, newKnown({ owner: Views.ownerAt(S, this.map, prov, j.report.observedTurn), turn: j.report.observedTurn, source: c.name }));
+      book.set(
+        prov,
+        newKnown({
+          owner: Views.ownerAt(S, this.map, prov, j.report.observedTurn),
+          turn: j.report.observedTurn,
+          source: c.name,
+        }),
+      );
     }
   }
   // The copies it made of the watched court's archive come home with the report.
   const copies = this.archiveCopiesArrive(j, c);
-  this.mindRequests.push(newMindRequest({ id: newId(S, "r"), task: "SpyReport", characterId: c.id, court: j.to, report: j.report, copyIds: copies }));
+  this.mindRequests.push(
+    newMindRequest({
+      id: newId(S, "r"),
+      task: "SpyReport",
+      characterId: c.id,
+      court: j.to,
+      report: j.report,
+      copyIds: copies,
+    }),
+  );
 };
 
 P.capture = function (c, host, rng) {
@@ -450,7 +746,12 @@ P.capture = function (c, host, rng) {
   const employer = c.employer!;
   // Its master goes on seeing it at its post until word comes.
   this.coverFor(c, employer, "SpyPosted");
-  const post = c.missionTarget !== null ? `the court of ${land(c.missionTarget)}` : c.watchProvince !== null ? this.map.get(c.watchProvince).name : "a post";
+  const post =
+    c.missionTarget !== null
+      ? `the court of ${land(c.missionTarget)}`
+      : c.watchProvince !== null
+        ? this.map.get(c.watchProvince).name
+        : "a post";
   c.status = "Captured";
   c.heldBy = host;
   c.duty = "None";
@@ -459,39 +760,96 @@ P.capture = function (c, host, rng) {
   c.stirGold = 0;
   c.at = host;
   this.meet(c, host);
-  this.outcome(c, host, `Was caught spying at ${post} (season ${S.turn}).`, false);
+  this.outcome(
+    c,
+    host,
+    `Was caught spying at ${post} (season ${S.turn}).`,
+    false,
+  );
   const confesses = c.traits.courage < 50 || rng.chance(0.4);
-  remember(c, S.turn, `I was caught spying in ${land(host)}.` + (confesses ? ` I told them I serve ${land(employer)}.` : " I did not say whom I serve."));
+  remember(
+    c,
+    S.turn,
+    `I was caught spying in ${land(host)}.` +
+      (confesses
+        ? ` I told them I serve ${land(employer)}.`
+        : " I did not say whom I serve."),
+  );
   notify(
     S,
     host,
     "Notice",
     "A spy is caught",
-    `Your watchmen caught ${c.name}` + (confesses ? `, who confesses to serving ${land(employer)}.` : ", who will not say whom they serve.") + " You may execute, ransom, turn or release them.",
+    `Your watchmen caught ${c.name}` +
+      (confesses
+        ? `, who confesses to serving ${land(employer)}.`
+        : ", who will not say whom they serve.") +
+      " You may execute, ransom, turn or release them.",
     c.id,
   );
   // The captor's record says what its court learned: whose spy, only if it confessed. The truth goes in a line
   // nobody's court sees (the god view's), which carries the success marker.
-  if (confesses) logEvent(S, "spy-caught", `${host} caught ${c.name}, a spy of ${employer}.`, [host], "spy-caught");
+  if (confesses)
+    logEvent(
+      S,
+      "spy-caught",
+      `${host} caught ${c.name}, a spy of ${employer}.`,
+      [host],
+      "spy-caught",
+    );
   else {
-    logEvent(S, "spy-caught", `${host} caught ${c.name}, a spy who will not say whom they serve.`, [host]);
-    logEvent(S, "spy-caught", `${host} caught ${c.name}, a spy of ${employer} who would not say so.`, [], "spy-caught");
+    logEvent(
+      S,
+      "spy-caught",
+      `${host} caught ${c.name}, a spy who will not say whom they serve.`,
+      [host],
+    );
+    logEvent(
+      S,
+      "spy-caught",
+      `${host} caught ${c.name}, a spy of ${employer} who would not say so.`,
+      [],
+      "spy-caught",
+    );
   }
   // The talk of the court that holds it, for the envoys and spies there to carry home: whose spy, if it confessed.
-  S.losses.push(newLossAbroad({ turn: S.turn, kind: "Captured", characterId: c.id, court: host, master: confesses ? employer : null }));
+  S.losses.push(
+    newLossAbroad({
+      turn: S.turn,
+      kind: "Captured",
+      characterId: c.id,
+      court: host,
+      master: confesses ? employer : null,
+    }),
+  );
 };
 
 P.captive = function (host, co) {
   const S = this.s;
   const c = char(S, co.character);
   if (c.status !== "Captured" || c.heldBy !== host) {
-    this.failed(host, co, "Captive order failed", `Your order for ${c.name} could not be carried out: ${c.name} was no longer your captive.`, "no longer your captive", true, c.id);
+    this.failed(
+      host,
+      co,
+      "Captive order failed",
+      `Your order for ${c.name} could not be carried out: ${c.name} was no longer your captive.`,
+      "no longer your captive",
+      true,
+      c.id,
+    );
     return;
   }
   // Checked again as the season resolves: the captive's king may have dismissed them this season.
   const why = OrderValidator.captiveRefusal(S, c, co.fate);
   if (why !== null) {
-    notify(S, host, "Rejected", "Captive order failed", `Your order for ${c.name} could not be carried out: ${why}.`, c.id);
+    notify(
+      S,
+      host,
+      "Rejected",
+      "Captive order failed",
+      `Your order for ${c.name} could not be carried out: ${why}.`,
+      c.id,
+    );
     this.scheduledFailed(host, co, why);
     return;
   }
@@ -506,11 +864,30 @@ P.captive = function (host, co) {
       c.owed.clear();
       logEvent(S, "execution", `${host} executed ${c.name}.`, [host]);
       // The rumour reaches its king, and every court that still believes the dead one serves it.
-      for (const heard of AllPowers.filter((p) => p === employer || coverOf(c, p) !== null)) this.rumor(heard, host, `It is said that ${c.name} was put to death in ${host}.`, c.id, "Death");
+      for (const heard of AllPowers.filter(
+        (p) => p === employer || coverOf(c, p) !== null,
+      ))
+        this.rumor(
+          heard,
+          host,
+          `It is said that ${c.name} was put to death in ${host}.`,
+          c.id,
+          "Death",
+        );
       // Other courts hear of it only from their envoys and spies at this court (see lossesHeard).
       let master: Power | null = null;
-      for (const l of S.losses) if (l.characterId === c.id && l.court === host && l.kind === "Captured") master = l.master;
-      S.losses.push(newLossAbroad({ turn: S.turn, kind: "PutToDeath", characterId: c.id, court: host, master }));
+      for (const l of S.losses)
+        if (l.characterId === c.id && l.court === host && l.kind === "Captured")
+          master = l.master;
+      S.losses.push(
+        newLossAbroad({
+          turn: S.turn,
+          kind: "PutToDeath",
+          characterId: c.id,
+          court: host,
+          master,
+        }),
+      );
       break;
     }
     case "Ransom": {
@@ -518,13 +895,36 @@ P.captive = function (host, co) {
       // One open demand per captive: a new one replaces the old. A demand whose word is still on the road
       // goes at once and announces nothing; one the payer has heard of stands, and can be paid, until the
       // new one's word arrives.
-      removeAll(S.tasks, (t) => t.kind === "RansomDemand" && t.characterId === c.id && !t.announced);
-      const demand = newPendingTask({ id: newId(S, "q"), kind: "RansomDemand", requester: payer, other: host, characterId: c.id, spend: co.ransom, dueTurn: S.turn + 5 });
+      removeAll(
+        S.tasks,
+        (t) =>
+          t.kind === "RansomDemand" && t.characterId === c.id && !t.announced,
+      );
+      const demand = newPendingTask({
+        id: newId(S, "q"),
+        kind: "RansomDemand",
+        requester: payer,
+        other: host,
+        characterId: c.id,
+        spend: co.ransom,
+        dueTurn: S.turn + 5,
+      });
       S.tasks.push(demand);
       // Haakon's answers to item 11b: a demand is a message, which waits at the captor's court for someone going that way.
       const before = S.journeys.length;
-      this.rumor(payer, host, `${host} holds ${c.name} and demands ${formatMoney(co.ransom)} for their return (order pay_ransom for ${c.id}).`, c.id, "Ransom", demand.id);
-      if (S.journeys.length > before) [S.journeys[before].arriveTurn, S.journeys[before].waitAt] = [Waiting, this.courtAt(host)];
+      this.rumor(
+        payer,
+        host,
+        `${host} holds ${c.name} and demands ${formatMoney(co.ransom)} for their return (order pay_ransom for ${c.id}).`,
+        c.id,
+        "Ransom",
+        demand.id,
+      );
+      if (S.journeys.length > before)
+        [S.journeys[before].arriveTurn, S.journeys[before].waitAt] = [
+          Waiting,
+          this.courtAt(host),
+        ];
       demand.dueTurn = S.turn + 8;
       break;
     }
@@ -540,9 +940,27 @@ P.captive = function (host, co) {
       c.heldBy = null;
       // Back at its post, where it watched from before (a court, or out in a province): what its master believed all along.
       c.at = c.missionTarget;
-      c.facts.push(newFact({ id: newId(S, "f"), text: `Was caught by ${land(host)} and now secretly serves it.`, secrecy: "Deep", tag: "turned", knownBy: [host] }));
-      remember(c, S.turn, `To save my life I agreed to serve ${land(host)} in secret and send home what they tell me.`);
-      logEvent(S, "double-agent", `${host} turned ${c.name} into a double agent against ${employer}.`, [host], "double-agent");
+      c.facts.push(
+        newFact({
+          id: newId(S, "f"),
+          text: `Was caught by ${land(host)} and now secretly serves it.`,
+          secrecy: "Deep",
+          tag: "turned",
+          knownBy: [host],
+        }),
+      );
+      remember(
+        c,
+        S.turn,
+        `To save my life I agreed to serve ${land(host)} in secret and send home what they tell me.`,
+      );
+      logEvent(
+        S,
+        "double-agent",
+        `${host} turned ${c.name} into a double agent against ${employer}.`,
+        [host],
+        "double-agent",
+      );
       // Recalled by a master that did not know it was caught: it comes home as told, and is seen when it arrives.
       if (cover !== null && cover.recalled) this.recall(master, c);
       else if (cover !== null) c.covers.splice(c.covers.indexOf(cover), 1);
@@ -571,7 +989,9 @@ P.captive = function (host, co) {
 P.releaseCaptive = function (host, c) {
   // A captive on the road under guard (item 10+b) is let go where it is: its convoy is over.
   if (c.duty === "UnderGuard") {
-    this.s.journeys = this.s.journeys.filter((j) => !(j.kind === "CaptiveConvoy" && j.characterId === c.id));
+    this.s.journeys = this.s.journeys.filter(
+      (j) => !(j.kind === "CaptiveConvoy" && j.characterId === c.id),
+    );
     c.duty = "None";
   }
   c.status = c.employer === null ? "Free" : "Employed";
@@ -593,12 +1013,28 @@ P.payRansom = function (payer, pr) {
   const c = char(S, pr.character);
   const [why, task] = OrderValidator.ransomRefusal(S, payer, c);
   if (why !== null) {
-    notify(S, payer, "Rejected", "Ransom not sent", `The ransom for ${c.name} could not be sent: ${why}.`, c.id);
+    notify(
+      S,
+      payer,
+      "Rejected",
+      "Ransom not sent",
+      `The ransom for ${c.name} could not be sent: ${why}.`,
+      c.id,
+    );
     this.scheduledFailed(payer, pr, why);
     return;
   }
   const host = task!.other!;
-  if (!this.pay(payer, task!.spend, `the ransom for ${c.name}`, pr, "none was sent")) return;
+  if (
+    !this.pay(
+      payer,
+      task!.spend,
+      `the ransom for ${c.name}`,
+      pr,
+      "none was sent",
+    )
+  )
+    return;
   S.tasks.splice(S.tasks.indexOf(task!), 1);
   S.journeys.push(
     newJourney({
@@ -618,8 +1054,16 @@ P.ransomArrives = function (j) {
   const S = this.s;
   const c = findCharacter(S, j.characterId);
   S.treasuries.get(j.to).gold += j.gold;
-  notify(S, j.to, "Notice", "Ransom paid", `${j.from} paid ${formatMoney(j.gold)} for ${c?.name ?? ""}.`, c?.id ?? null);
-  if (c !== null && c.status === "Captured" && c.heldBy === j.to) this.releaseCaptive(j.to, c);
+  notify(
+    S,
+    j.to,
+    "Notice",
+    "Ransom paid",
+    `${j.from} paid ${formatMoney(j.gold)} for ${c?.name ?? ""}.`,
+    c?.id ?? null,
+  );
+  if (c !== null && c.status === "Captured" && c.heldBy === j.to)
+    this.releaseCaptive(j.to, c);
 };
 
 /**
@@ -653,13 +1097,21 @@ P.demandArrives = function (j) {
   const S = this.s;
   const task = S.tasks.find((t) => t.id === j.taskId) ?? null;
   const c = findCharacter(S, j.characterId);
-  if (task === null || c === null || c.status !== "Captured" || c.heldBy !== task.other) {
+  if (
+    task === null ||
+    c === null ||
+    c.status !== "Captured" ||
+    c.heldBy !== task.other
+  ) {
     if (task !== null) S.tasks.splice(S.tasks.indexOf(task), 1);
     return false;
   }
   task.announced = true;
   // It replaces the demand the payer had heard of before, which could be paid until now.
-  removeAll(S.tasks, (t) => t.kind === "RansomDemand" && t.characterId === c.id && t !== task);
+  removeAll(
+    S.tasks,
+    (t) => t.kind === "RansomDemand" && t.characterId === c.id && t !== task,
+  );
   return true;
 };
 
@@ -680,46 +1132,104 @@ P.assay = function (p, a) {
     );
     return;
   }
-  if (!this.pay(p, S.config.assayFee, "an assay", a, `gold lot ${a.lot} was not assayed`)) return;
+  if (
+    !this.pay(
+      p,
+      S.config.assayFee,
+      "an assay",
+      a,
+      `gold lot ${a.lot} was not assayed`,
+    )
+  )
+    return;
   t.lots.splice(t.lots.indexOf(lot), 1);
-  const pct = lot.face === 0 ? 100 : toInt(roundEven((100.0 * lot.true) / lot.face));
+  const pct =
+    lot.face === 0 ? 100 : toInt(roundEven((100.0 * lot.true) / lot.face));
   let text = `Of the ${formatMoney(lot.face)} weighed from ${lot.from}, ${formatMoney(lot.true)} is fine gold (${pct}%).`;
-  if (lot.stated !== lot.face) text += ` The inventory had promised ${formatMoney(lot.stated)}.`;
+  if (lot.stated !== lot.face)
+    text += ` The inventory had promised ${formatMoney(lot.stated)}.`;
   notify(S, p, "Assay", "Assay of gold", text);
-  logEvent(S, "assay", `${p} assayed gold from ${lot.from}: ${pct}% fine.`, [p], pct < 100 ? "debasement-found" : "assay");
+  logEvent(
+    S,
+    "assay",
+    `${p} assayed gold from ${lot.from}: ${pct}% fine.`,
+    [p],
+    pct < 100 ? "debasement-found" : "assay",
+  );
 };
 
 P.finishAuthentication = function (task) {
   const S = this.s;
   const copy = S.copies.find((x) => x.id === task.copyId) ?? null;
-  const tablet = copy === null ? null : (S.tablets.find((t) => t.id === copy.tabletId) ?? null);
+  const tablet =
+    copy === null
+      ? null
+      : (S.tablets.find((t) => t.id === copy.tabletId) ?? null);
   if (copy === null || tablet === null) return;
   const rng = this.r("authenticate", task.id);
   // A forgery the scribes miss reads exactly as a genuine tablet that reads genuine: the words betray nothing.
   const genuine = "The seals are genuine.";
   let result: string;
-  if (!tablet.forged) result = rng.chance(0.95) ? genuine : "The scribes cannot agree; the result is inconclusive.";
+  if (!tablet.forged)
+    result = rng.chance(0.95)
+      ? genuine
+      : "The scribes cannot agree; the result is inconclusive.";
   else {
-    const detect = clamp(0.2 + task.spend / 200.0 - tablet.forgerSkill / 150.0, 0.05, 0.95);
+    const detect = clamp(
+      0.2 + task.spend / 200.0 - tablet.forgerSkill / 150.0,
+      0.05,
+      0.95,
+    );
     if (rng.chance(detect)) {
       result = "The seals are false: this tablet is a forgery.";
       // The event names the tablet as the court does, not by the engine's id, which a narrator reading its events could repeat.
-      logEvent(S, "forgery-detected", `${task.requester} found that ${Views.tabletName(tablet, this.archive(task.requester))} is forged.`, [task.requester], "forgery-detected");
+      logEvent(
+        S,
+        "forgery-detected",
+        `${task.requester} found that ${Views.tabletName(tablet, this.archive(task.requester))} is forged.`,
+        [task.requester],
+        "forgery-detected",
+      );
       // A swapped inventory is traced, with the same chance, to the envoy who forged it and brought it.
       if (tablet.inventory) {
         const bearer = findCharacter(S, tablet.forgerId);
-        if (bearer !== null && rng.chance(clamp(0.3 + task.spend / 400.0, 0.3, 0.8))) result += this.inventoryExposed(task.requester, tablet, bearer);
-      } else if (tablet.forgerEmployer !== null && rng.chance(clamp(0.3 + task.spend / 400.0, 0.3, 0.8))) {
+        if (
+          bearer !== null &&
+          rng.chance(clamp(0.3 + task.spend / 400.0, 0.3, 0.8))
+        )
+          result += this.inventoryExposed(task.requester, tablet, bearer);
+      } else if (
+        tablet.forgerEmployer !== null &&
+        rng.chance(clamp(0.3 + task.spend / 400.0, 0.3, 0.8))
+      ) {
         const culprit = tablet.forgerEmployer;
         const forger = findCharacter(S, tablet.forgerId);
         result += ` The scribes trace it to the hand of ${forger?.name ?? "a scribe"} in the service of ${culprit}.`;
         if (forger !== null) {
-          for (const p of AllPowers) forger.reputation.set(p, forger.reputation.getOrDefault(p, 0) - 30);
-          forger.facts.push(newFact({ id: newId(S, "f"), text: `Exposed as a forger of seals in the service of ${land(culprit)}.`, secrecy: "Public", tag: "forger" }));
+          for (const p of AllPowers)
+            forger.reputation.set(p, forger.reputation.getOrDefault(p, 0) - 30);
+          forger.facts.push(
+            newFact({
+              id: newId(S, "f"),
+              text: `Exposed as a forger of seals in the service of ${land(culprit)}.`,
+              secrecy: "Public",
+              tag: "forger",
+            }),
+          );
         }
         for (const p of alive(S).filter((p) => p !== task.requester))
-          this.rumor(p, task.requester, `The scribes of ${task.requester} declare that a tablet bearing the seal of ${tablet.seals.join(" and ")} was forged by ${forger?.name ?? "a scribe"} of ${culprit}.`);
-        logEvent(S, "forgery-exposed", `${task.requester} publicly traced a forgery to ${culprit}.`, null, "forgery-exposed");
+          this.rumor(
+            p,
+            task.requester,
+            `The scribes of ${task.requester} declare that a tablet bearing the seal of ${tablet.seals.join(" and ")} was forged by ${forger?.name ?? "a scribe"} of ${culprit}.`,
+          );
+        logEvent(
+          S,
+          "forgery-exposed",
+          `${task.requester} publicly traced a forgery to ${culprit}.`,
+          null,
+          "forgery-exposed",
+        );
       }
     } else result = genuine;
   }
@@ -732,7 +1242,13 @@ P.finishAuthentication = function (task) {
     "Examination of a tablet",
     `${Views.capitalized(Views.tabletName(tablet, this.archive(task.requester)))} (your copy ${copy.id}): "${tablet.text}" — ${result}`,
   );
-  logEvent(S, "authenticate", `${task.requester} paid to authenticate a tablet.`, [task.requester], "authentication");
+  logEvent(
+    S,
+    "authenticate",
+    `${task.requester} paid to authenticate a tablet.`,
+    [task.requester],
+    "authentication",
+  );
 };
 
 P.forge = function (p, f) {
@@ -741,7 +1257,15 @@ P.forge = function (p, f) {
   // The servant tries only if it believes its hand can fake a seal; a king learns that only by asking (item 10).
   if (c.belief.forge < S.config.forgeMinCompetence) {
     // A failed order like any other, though the clay is still paid for.
-    this.failed(p, f, "Forgery botched", `${c.name} said they could not fake a seal; the clay is ruined and nothing usable came of it.`, "the forger lacked the skill", false, c.id);
+    this.failed(
+      p,
+      f,
+      "Forgery botched",
+      `${c.name} said they could not fake a seal; the clay is ruined and nothing usable came of it.`,
+      "the forger lacked the skill",
+      false,
+      c.id,
+    );
     this.pay(p, S.config.forgeFee, "spoiled clay");
     return;
   }
@@ -751,16 +1275,43 @@ P.forge = function (p, f) {
   const by = seals[0] ?? p;
   const partner = seals.length > 1 ? seals[1] : by;
   const checked = checkClauses(f.clauses, by, partner, S.turn);
-  if (checked.dropped.length > 0) notify(S, p, "Notice", "Clauses left out", `In the forgery the scribes left out what could not stand: ${checked.dropped.join("; ")}.`);
+  if (checked.dropped.length > 0)
+    notify(
+      S,
+      p,
+      "Notice",
+      "Clauses left out",
+      `In the forgery the scribes left out what could not stand: ${checked.dropped.join("; ")}.`,
+    );
   const clauses = checked.kept;
   if (S.config.pressMode === "structured" && clauses.length === 0) {
-    this.failed(p, f, "Nothing to forge", "In this game a tablet is set out in clauses, and none of the forgery's could stand: nothing was forged and nothing paid.", "it had no clause that could stand", false, c.id);
+    this.failed(
+      p,
+      f,
+      "Nothing to forge",
+      "In this game a tablet is set out in clauses, and none of the forgery's could stand: nothing was forged and nothing paid.",
+      "it had no clause that could stand",
+      false,
+      c.id,
+    );
     return;
   }
-  if (!this.pay(p, S.config.forgeFee, "a forger's materials", f, "nothing was forged")) return;
+  if (
+    !this.pay(
+      p,
+      S.config.forgeFee,
+      "a forger's materials",
+      f,
+      "nothing was forged",
+    )
+  )
+    return;
   const tablet = newTablet({
     id: newId(S, "t"),
-    text: S.config.pressMode === "structured" ? renderClauses(clauses, by, partner) : this.scribe(p, cap(f.text, 1200)),
+    text:
+      S.config.pressMode === "structured"
+        ? renderClauses(clauses, by, partner)
+        : this.scribe(p, cap(f.text, 1200)),
     clauses,
     proposedBy: seals[0],
     partner: seals.length > 1 ? seals[1] : null,
@@ -773,9 +1324,42 @@ P.forge = function (p, f) {
     forgerSkill: c.skills.forge,
   });
   S.tablets.push(tablet);
-  S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: tablet.id, holder: p, acquiredTurn: S.turn, source: `made by ${c.name}` }));
-  c.facts.push(newFact({ id: newId(S, "f"), text: `Forged a tablet bearing the seal of ${seals.join(" and ")}.`, secrecy: "Deep", tag: "forgery", knownBy: [p] }));
-  remember(c, S.turn, `I forged a tablet with the seals of ${seals.join(" and ")} for ${land(p)}.`);
-  notify(S, p, "Tablet", "A tablet is ready", `${c.name} has produced a tablet bearing the seals of ${seals.join(" and ")}.`, c.id);
-  logEvent(S, "forgery", `${p} had ${c.name} forge a tablet sealed by ${seals.join(" and ")}.`, [p], "forgery");
+  S.copies.push(
+    newTabletCopy({
+      id: newId(S, "k"),
+      tabletId: tablet.id,
+      holder: p,
+      acquiredTurn: S.turn,
+      source: `made by ${c.name}`,
+    }),
+  );
+  c.facts.push(
+    newFact({
+      id: newId(S, "f"),
+      text: `Forged a tablet bearing the seal of ${seals.join(" and ")}.`,
+      secrecy: "Deep",
+      tag: "forgery",
+      knownBy: [p],
+    }),
+  );
+  remember(
+    c,
+    S.turn,
+    `I forged a tablet with the seals of ${seals.join(" and ")} for ${land(p)}.`,
+  );
+  notify(
+    S,
+    p,
+    "Tablet",
+    "A tablet is ready",
+    `${c.name} has produced a tablet bearing the seals of ${seals.join(" and ")}.`,
+    c.id,
+  );
+  logEvent(
+    S,
+    "forgery",
+    `${p} had ${c.name} forge a tablet sealed by ${seals.join(" and ")}.`,
+    [p],
+    "forgery",
+  );
 };

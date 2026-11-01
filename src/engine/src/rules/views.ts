@@ -6,17 +6,58 @@ import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { cmpStr, split } from "../core/text.ts";
 import { seasonOfTurn, StartWalls, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
-import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
+import {
+  coverOf,
+  factsKnownTo,
+  falseNameAt,
+  hiddenAt,
+  jobKnown,
+  newContract,
+  type Character,
+  type Contract,
+  type Cover,
+} from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, king, kingFor, land, nameGivenBy, type Power } from "../model/power.ts";
+import {
+  AllPowers,
+  asSeenBy,
+  claimantsOf,
+  claimedName,
+  cmpPower,
+  contestedNames,
+  king,
+  kingFor,
+  land,
+  nameGivenBy,
+  type Power,
+} from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf, worksOfPower } from "../model/works.ts";
-import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, upkeepOf, wallsOf, type GameState, type Known, type Unit } from "../model/state.ts";
+import {
+  alive,
+  huntNow,
+  inboxOf,
+  isAlive,
+  ledger,
+  newKnown,
+  ownedBy,
+  upkeepOf,
+  wallsOf,
+  type GameState,
+  type Known,
+  type Unit,
+} from "../model/state.ts";
 import { PointsPerDay, wordSeasons } from "../model/travel.ts";
-import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
+import {
+  capacityOf,
+  EconomyData,
+  harvestOf,
+  needOf,
+  priceAt,
+} from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
@@ -34,6 +75,7 @@ import {
   type UnitView,
   newLetterView,
   newProvinceEconomyView,
+  type ProvinceEconomyView,
   newCaravanView,
   landGrowth,
   type CharacterView,
@@ -51,7 +93,12 @@ import { courierSeasons, courtOf } from "./court.ts";
 import { ageBand } from "./ending.ts";
 import { omenLine } from "./omens.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
-import { asShown, basePrice, LetterData, trustIn } from "../turn/turn-engine.ts";
+import {
+  asShown,
+  basePrice,
+  LetterData,
+  trustIn,
+} from "../turn/turn-engine.ts";
 import { debtLeft, isPowerParty, standsForBorrower } from "../model/money.ts";
 import { travelTurns } from "../turn/core.ts";
 
@@ -59,12 +106,19 @@ import { travelTurns } from "../turn/core.ts";
  * Every power's land-based growth from who holds what, the living best first (ties in the fixed order of powers), then
  * the fallen. Read from who holds what as the court knows it (item 7b: news of distant land travels).
  */
-function landStandings(owner: Dict<string, Power | null>, fallen: Iterable<Power>, map: WorldMap | null = null): LandStanding[] {
+function landStandings(
+  owner: Dict<string, Power | null>,
+  fallen: Iterable<Power>,
+  map: WorldMap | null = null,
+): LandStanding[] {
   const m = map ?? WorldMap.default;
   const gone = new Set(fallen);
   const list = AllPowers.map((p) => ({
     power: p,
-    yield: sum([...owner.entries()].filter(([, v]) => v === p), ([k]) => m.get(k).yield),
+    yield: sum(
+      [...owner.entries()].filter(([, v]) => v === p),
+      ([k]) => m.get(k).yield,
+    ),
     startYield: sum(m.homeOf(p), (x) => x.yield),
     fallen: gone.has(p),
   }));
@@ -80,11 +134,23 @@ function landStandings(owner: Dict<string, Power | null>, fallen: Iterable<Power
  * Whether a kingdom looks doomed, from public facts alone (who holds what): it has fallen, lost its capital, or holds fewer
  * than half of its homeland's provinces. Back pay owed by such a court may never be paid.
  */
-function looksDoomed(owner: Dict<string, Power | null>, fallen: Iterable<Power>, p: Power, map: WorldMap | null = null): boolean {
+function looksDoomed(
+  owner: Dict<string, Power | null>,
+  fallen: Iterable<Power>,
+  p: Power,
+  map: WorldMap | null = null,
+): boolean {
   const m = map ?? WorldMap.default;
-  if ([...fallen].includes(p) || owner.getOrDefault(m.capital(p).id, null) !== p) return true;
+  if (
+    [...fallen].includes(p) ||
+    owner.getOrDefault(m.capital(p).id, null) !== p
+  )
+    return true;
   const home = m.homeOf(p);
-  return 2 * home.filter((x) => owner.getOrDefault(x.id, null) === p).length < home.length;
+  return (
+    2 * home.filter((x) => owner.getOrDefault(x.id, null) === p).length <
+    home.length
+  );
 }
 
 /**
@@ -98,7 +164,8 @@ function sight(s: GameState, map: WorldMap, p: Power): HSet<string> {
   const court = courtOf(s, map, p);
   const near = (x: string): boolean => courierSeasons(s, map, court, x) === 0;
   const core = new HSet<string>(ownedBy(s, p).filter(near));
-  for (const u of s.units) if (u.power === p && near(u.province)) core.add(u.province);
+  for (const u of s.units)
+    if (u.power === p && near(u.province)) core.add(u.province);
   const all = new HSet<string>(core);
   for (const id of core) for (const n of map.neighbors(id)) all.add(n);
   return all;
@@ -108,10 +175,20 @@ function sight(s: GameState, map: WorldMap, p: Power): HSet<string> {
  * The walls as a court knows them, by province (a province with none left out): those standing now where it can see
  * troops ({@link sight}), and elsewhere as it last saw them (GameState.wallsSeen; at the start, as the map gives them).
  */
-function wallsKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, number> {
+function wallsKnown(
+  s: GameState,
+  map: WorldMap,
+  p: Power,
+  seen: HSet<string> | null = null,
+): Dict<string, number> {
   const sightNow = seen ?? sight(s, map, p);
   const last = s.wallsSeen.tryGet(p);
-  const known = last !== undefined ? last.clone() : new Dict<string, number>([...StartWalls.entries()].filter(([, v]) => v > 0));
+  const known =
+    last !== undefined
+      ? last.clone()
+      : new Dict<string, number>(
+          [...StartWalls.entries()].filter(([, v]) => v > 0),
+        );
   for (const id of sightNow) {
     const level = s.walls.tryGet(id);
     if (level !== undefined) known.set(id, level);
@@ -121,9 +198,15 @@ function wallsKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | 
 }
 
 /** Who held a province after a turn's moves, by the log of changes (GameState.ownerLog); at the start, its homeland's king. */
-function ownerAt(s: GameState, map: WorldMap, province: string, turn: number): Power | null {
+function ownerAt(
+  s: GameState,
+  map: WorldMap,
+  province: string,
+  turn: number,
+): Power | null {
   let o = map.get(province).home;
-  for (const c of s.ownerLog) if (c.province === province && c.turn <= turn) o = c.owner;
+  for (const c of s.ownerLog)
+    if (c.province === province && c.turn <= turn) o = c.owner;
   return o;
 }
 
@@ -137,14 +220,26 @@ export const SeenSource = "seen";
  * (the holder as of the newest season whose word from there, setting out then, has reached the court by now) and what its own people
  * saw or brought home (GameState.known).
  */
-function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, Known> {
+function knownHolders(
+  s: GameState,
+  map: WorldMap,
+  p: Power,
+  seen: HSet<string> | null = null,
+): Dict<string, Known> {
   const sightNow = seen ?? sight(s, map, p);
   const stored = s.known.tryGet(p);
   const court = courtOf(s, map, p);
   const out = new Dict<string, Known>();
   for (const x of map.landProvinces) {
     if (sightNow.has(x.id)) {
-      out.set(x.id, newKnown({ owner: s.owner.getOrDefault(x.id, null), turn: s.turn, source: SeenSource }));
+      out.set(
+        x.id,
+        newKnown({
+          owner: s.owner.getOrDefault(x.id, null),
+          turn: s.turn,
+          source: SeenSource,
+        }),
+      );
       continue;
     }
     // The newest season whose word, setting out then, has arrived by now (as word of a fall is timed: TurnEngine.word).
@@ -154,7 +249,11 @@ function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<string> 
         asOf = d;
         break;
       }
-    let best = newKnown({ owner: ownerAt(s, map, x.id, asOf), turn: asOf, source: WordSource });
+    let best = newKnown({
+      owner: ownerAt(s, map, x.id, asOf),
+      turn: asOf,
+      source: WordSource,
+    });
     const own = stored?.tryGet(x.id);
     if (own !== undefined && own.turn > best.turn) best = own;
     out.set(x.id, best);
@@ -170,10 +269,57 @@ export const MaxWhileAsleep = 40;
  * season's news). One that says troops deserted or people went unpaid is kept.
  */
 function routineTreasury(i: InboxItem): boolean {
-  return i.kind === "Notice" && i.title === "The treasury" && !i.body.includes("deserted") && !i.body.includes("Could not pay");
+  return (
+    i.kind === "Notice" &&
+    i.title === "The treasury" &&
+    !i.body.includes("deserted") &&
+    !i.body.includes("Could not pay")
+  );
 }
 
-function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView {
+/** A province's economy as its holder's officials report it this season (item 9+a; its people, item 10+a). */
+function provinceEconomy(
+  s: GameState,
+  engine: TurnEngine,
+  m: WorldMap,
+  id: string,
+): ProvinceEconomyView {
+  const prov = m.get(id);
+  const mk = engine.market(id);
+  return newProvinceEconomyView({
+    province: id,
+    stores: engine.stores(id),
+    capacity: capacityOf(prov),
+    tax: engine.effectiveYield(id),
+    need: engine.townNeed(id),
+    stock: mk.stock,
+    purse: mk.purse,
+    price: priceAt(mk.stock, needOf(prov)),
+    // Its people (item 10+a).
+    settled: engine.peopleOf(id).settled,
+    men: engine.peopleOf(id).men,
+    loose: engine.peopleOf(id).loose,
+    room: reckonedOf(m, id).room,
+    taxRate: engine.taxRate(id),
+    // A season's share of the last harvest, what the tax is reckoned from (item 11a+).
+    harvest: idiv(s.reaped.getOrDefault(id, 0), 3),
+    fed: s.fed.getOrDefault(id, 1000),
+    // Item 10+b.
+    runaways: new Dict(
+      [...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0),
+    ),
+    expelled: s.expelled.getOrDefault(id, 0),
+    granary: s.granary.getOrDefault(id, 0),
+    crop: s.crop.getOrDefault(id, 0),
+    reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
+  });
+}
+
+function seatView(
+  s: GameState,
+  p: Power,
+  map: WorldMap | null = null,
+): SeatView {
   const m = map ?? WorldMap.default;
   const engine = new TurnEngine(s, m);
   const seen = sight(s, m, p);
@@ -181,29 +327,57 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const t = s.treasuries.get(p);
   const v = newSeatView({
     claims: s.claims.map((c) => ({ ...c })),
-    greetings: s.recognition.filter((r) => r.from === p || r.to === p).map((r) => ({ ...r })),
+    greetings: s.recognition
+      .filter((r) => r.from === p || r.to === p)
+      .map((r) => ({ ...r })),
     // Item 17+: the names claimed, as this court gives them.
     claimedName: claimedName(p),
-    nameClaims: contestedNames(p).map((name) => ({ name, claimants: claimantsOf(name, p), givenTo: nameGivenBy(p, name) })),
+    nameClaims: contestedNames(p).map((name) => ({
+      name,
+      claimants: claimantsOf(name, p),
+      givenTo: nameGivenBy(p, name),
+    })),
     turn: s.turn,
     season: season(s.turn, p),
     power: p,
     king: kingFor(p, p),
     courtAt: courtOf(s, m, p),
     courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
-    governors: s.governors.filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
+    governors: s.governors
+      .filter((g) => g.power === p)
+      .map((g) =>
+        newGovernorView({
+          province: g.province,
+          character: g.character,
+          from: g.from,
+          levies: g.levies,
+          raised: g.raised,
+          relieving: g.relieved !== null,
+        }),
+      ),
     ended: s.ended,
     openAge: s.config.openAge,
     ageBand: ageBand(s.config.endMedian),
     omens: omenLine(s.seed, s.config, s.turn, p),
     councilOn: !s.councilOff.includes(p),
     gold: ledger(t),
-    unassayedGold: t.lots.map((l) => newLotView({ id: l.id, from: l.from, stated: l.stated, weighed: l.face, arrivedTurn: l.arrivedTurn })),
+    unassayedGold: t.lots.map((l) =>
+      newLotView({
+        id: l.id,
+        from: l.from,
+        stated: l.stated,
+        weighed: l.face,
+        arrivedTurn: l.arrivedTurn,
+      }),
+    ),
     income: engine.income(p),
     upkeep: engine.upkeep(p),
     ...(() => {
       const works = worksOfPower(s, ownedBy(s, p));
-      return { works, worksUpkeep: works.reduce((a, w) => a + w.upkeepGold + w.buildGold, 0) };
+      return {
+        works,
+        worksUpkeep: works.reduce((a, w) => a + w.upkeepGold + w.buildGold, 0),
+      };
     })(),
     feesDue: engine.feesDue(p),
     feesOwed: engine.feesOwed(p),
@@ -214,8 +388,23 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     payCarriers: s.payCarriers.includes(p),
     ...(() => {
       const o = upkeepOf(s, p);
-      const held = (ids: string[]): string[] => sortBy([...new Set(s.units.filter((u) => u.power === p && ids.includes(u.id)).map((u) => u.province))], [(x: string) => x, cmpStr]);
-      return { payTroops: o.pay, feedTroops: o.feed, payHeld: held(o.payExcept), feedHeld: held(o.feedExcept) };
+      const held = (ids: string[]): string[] =>
+        sortBy(
+          [
+            ...new Set(
+              s.units
+                .filter((u) => u.power === p && ids.includes(u.id))
+                .map((u) => u.province),
+            ),
+          ],
+          [(x: string) => x, cmpStr],
+        );
+      return {
+        payTroops: o.pay,
+        feedTroops: o.feed,
+        payHeld: held(o.payExcept),
+        feedHeld: held(o.feedExcept),
+      };
     })(),
     huntBands: huntNow(s, p) !== null,
     huntWhere: huntNow(s, p)?.provinces ?? [],
@@ -224,10 +413,20 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     strength: engine.ledgerStrength(p),
     startStrength: s.startStrength.getOrDefault(p, 0),
     provinceWeight: s.config.provinceWeight,
-    owner: new Dict([...known.entries()].map(([k, x]) => [k, x.owner] as const)),
+    owner: new Dict(
+      [...known.entries()].map(([k, x]) => [k, x.owner] as const),
+    ),
     // Dated where the news is older than this season, and newer than the start, which every court knows as it was.
-    ownerAsOf: new Dict([...known.entries()].filter(([, x]) => x.turn < s.turn && x.turn > 0).map(([k, x]) => [k, x.turn] as const)),
-    ownerFrom: new Dict([...known.entries()].filter(([, x]) => x.turn < s.turn && x.turn > 0).map(([k, x]) => [k, x.source] as const)),
+    ownerAsOf: new Dict(
+      [...known.entries()]
+        .filter(([, x]) => x.turn < s.turn && x.turn > 0)
+        .map(([k, x]) => [k, x.turn] as const),
+    ),
+    ownerFrom: new Dict(
+      [...known.entries()]
+        .filter(([, x]) => x.turn < s.turn && x.turn > 0)
+        .map(([k, x]) => [k, x.source] as const),
+    ),
     roadsClosed: [...(s.roadsClosed.tryGet(p) ?? [])],
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     grants: s.grants
@@ -236,22 +435,51 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       .filter(
         (g) =>
           (g.grantor === p || g.grantee === p) &&
-          (grantStands(g, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
-          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+          (grantStands(g, s.turn) ||
+            (g.tabletId === "" &&
+              g.endedTurn === null &&
+              g.sinceTurn === s.turn + 1)) &&
+          (g.tabletId === ""
+            ? g.grantor === p || g.heardTurn <= s.turn
+            : s.copies.some(
+                (k) => k.holder === p && k.tabletId === g.tabletId,
+              )),
       )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
-        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
+        return newGrantView({
+          kind: g.kind,
+          grantor: g.grantor,
+          grantee: g.grantee,
+          province: g.province,
+          sinceTurn: g.sinceTurn,
+          untilTurn: g.untilTurn,
+          tablet: t !== undefined ? tabletName(t) : "by order",
+        });
       }),
     walls: wallsKnown(s, m, p, seen),
     worksSeen: [...seen]
       .filter((x) => !m.get(x).isSea && s.owner.getOrDefault(x, null) !== p)
       .sort(cmpStr)
-      .flatMap((x) => ((["Roads", "Stations", "Harbour", "Water"] as const).filter((k) => levelOf(s, k, x) > 0).map((k) => newWorkView({ province: x, kind: k, level: levelOf(s, k, x), keep: levelOf(s, k, x) })))),
-    // Its own land's only: how another king's land changed hands is not public, though who holds it is.
-    conquered: new Dict([...s.conquered.entries()].filter(([k]) => s.owner.getOrDefault(k, null) === p)),
+      .flatMap((x) =>
+        (["Roads", "Stations", "Harbour", "Water"] as const)
+          .filter((k) => levelOf(s, k, x) > 0)
+          .map((k) =>
+            newWorkView({
+              province: x,
+              kind: k,
+              level: levelOf(s, k, x),
+              keep: levelOf(s, k, x),
+            }),
+          ),
+      ),
     sieges: s.sieges
-      .filter((x) => x.power === p || s.owner.getOrDefault(x.province, null) === p || seen.has(x.province))
+      .filter(
+        (x) =>
+          x.power === p ||
+          s.owner.getOrDefault(x.province, null) === p ||
+          seen.has(x.province),
+      )
       .map((x) =>
         newSiegeView({
           province: x.province,
@@ -260,39 +488,93 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           progress: x.progress,
           walls: wallsOf(s, x.province),
           since: x.since,
-          tightness: x.power === p || s.owner.getOrDefault(x.province, null) === p ? engine.tightness(x) : null,
+          tightness:
+            x.power === p || s.owner.getOrDefault(x.province, null) === p
+              ? engine.tightness(x)
+              : null,
         }),
       ),
     units: s.units
       .filter((u) => u.power === p || seen.has(u.province))
       .map((u) =>
         u.power === p
-          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, buy: u.buy, chest: u.chest, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
-          : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
+          ? newUnitView({
+              power: u.power,
+              kind: u.kind,
+              province: u.province,
+              food: u.food,
+              carried: unitCarried(u),
+              hungry: u.hungry,
+              unpaid: u.unpaid,
+              savings: u.savings,
+              men: u.men,
+              buy: u.buy,
+              chest: u.chest,
+              ...marchOf(engine, u),
+              commander: u.commander,
+              commandFrom: u.commandFrom,
+              relieving: u.relieveAt !== null,
+              mandate: u.mandate,
+              mandateFrom: u.mandateFrom,
+              hiredMen: u.hiredMen,
+              hiredUntil: u.hiredUntil,
+              ...reportOf(engine, u),
+            })
+          : newUnitView({
+              power: u.power,
+              kind: u.kind,
+              province: u.province,
+              men: u.men,
+            }),
       )
       .map((x, _i, all) => {
         // A report never puts two troops in one province: one shown where another stands (or is shown) is shown by an
         // older report of it whose place is free, and left out if it has none (never by where it truly is: that news has
         // not come yet).
-        if (x.reported === 0 || !all.some((y) => y !== x && y.province === x.province)) return x;
-        const u = s.units.find((v) => v.power === p && v.trail.length > 0 && engine.shownAt(v) === x.province && engine.wordTo(p, v.province) > 0);
+        if (
+          x.reported === 0 ||
+          !all.some((y) => y !== x && y.province === x.province)
+        )
+          return x;
+        const u = s.units.find(
+          (v) =>
+            v.power === p &&
+            v.trail.length > 0 &&
+            engine.shownAt(v) === x.province &&
+            engine.wordTo(p, v.province) > 0,
+        );
         if (u === undefined) return x;
-        const taken = new HSet(all.filter((y) => y !== x).map((y) => y.province));
+        const taken = new HSet(
+          all.filter((y) => y !== x).map((y) => y.province),
+        );
         const d = engine.wordTo(p, u.province);
         for (let i = u.trail.length - 2 - d; i >= 0; i--) {
           const r = trailEntry(u.trail[i]);
-          if (!taken.has(r.province)) return { ...x, ...r, reported: s.turn - (u.trail.length - 1 - i) };
+          if (!taken.has(r.province))
+            return { ...x, ...r, reported: s.turn - (u.trail.length - 1 - i) };
         }
         return null;
       })
       .filter((x): x is UnitView => x !== null),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
     // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.
-    fallen: isAlive(s, p) ? s.eliminated.filter((x) => (s.fallsHeard.tryGet(p) ?? []).includes(x)) : [...s.eliminated],
+    fallen: isAlive(s, p)
+      ? s.eliminated.filter((x) => (s.fallsHeard.tryGet(p) ?? []).includes(x))
+      : [...s.eliminated],
     // Item 11b: the bands it sees, in its sight and in its own land (its people tell of them).
     bands: s.bands
-      .filter((b) => seen.has(b.province) || s.owner.getOrDefault(b.province, null) === p)
-      .map((b) => newBandSeen({ province: b.province, men: b.men, chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "", ship: b.ship })),
+      .filter(
+        (b) =>
+          seen.has(b.province) || s.owner.getOrDefault(b.province, null) === p,
+      )
+      .map((b) =>
+        newBandSeen({
+          province: b.province,
+          men: b.men,
+          chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "",
+          ship: b.ship,
+        }),
+      ),
     inbox: inboxOf(s, p).filter((i) => i.turn === s.turn),
     unheardHere: s.unheard.filter((a) => a.host === p).map((a) => a.envoyId),
     lastSeason: [...(s.lastSeen.tryGet(p) ?? [])],
@@ -305,7 +587,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     v.holdsCourt = sleep.holdsCourt && sleep.asleep;
     v.courtLetters = [...sleep.courtLetters];
     v.lastCalled = sleep.lastCalled;
-    const slept = inboxOf(s, p).filter((i) => i.turn > sleep.lastCalled && i.turn < s.turn && !routineTreasury(i));
+    const slept = inboxOf(s, p).filter(
+      (i) =>
+        i.turn > sleep.lastCalled && i.turn < s.turn && !routineTreasury(i),
+    );
     v.whileAsleepLeftOut = Math.max(0, slept.length - MaxWhileAsleep);
     v.whileAsleep = slept.slice(v.whileAsleepLeftOut);
     v.digest = [...sleep.digest];
@@ -315,8 +600,20 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     const entries: ScheduledOrders[] = [];
     for (const x of sleep.scheduled) {
       const last = entries.length > 0 ? entries[entries.length - 1] : null;
-      if (last !== null && last.turn === x.turn && sameConditions(last.conditions, x.conditions)) last.orders.push(asShown(s, p, x));
-      else entries.push(newScheduledOrders({ turn: x.turn, orders: [asShown(s, p, x)], conditions: [...x.conditions] }));
+      if (
+        last !== null &&
+        last.turn === x.turn &&
+        sameConditions(last.conditions, x.conditions)
+      )
+        last.orders.push(asShown(s, p, x));
+      else
+        entries.push(
+          newScheduledOrders({
+            turn: x.turn,
+            orders: [asShown(s, p, x)],
+            conditions: [...x.conditions],
+          }),
+        );
     }
     v.scheduled = sortBy(entries, [(e: ScheduledOrders) => e.turn, cmpNum]);
   }
@@ -328,14 +625,21 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         id: x.id,
         when: x.when,
         power: x.power,
-        province: (x.when === "UnitAttacked" ? (s.units.find((u) => u.id === x.unitId && u.power === p)?.province ?? x.province) : x.province) ?? "",
+        province:
+          (x.when === "UnitAttacked"
+            ? (s.units.find((u) => u.id === x.unitId && u.power === p)
+                ?.province ?? x.province)
+            : x.province) ?? "",
         orders: x.orders.map((o) => asShown(s, p, o)),
         conditions: [...x.conditions],
       }),
     );
 
   // Its standing answers for what arrives at its court.
-  v.answers = (s.answers.tryGet(p)?.answers ?? []).map((x) => ({ ...x, conditions: [...x.conditions] }));
+  v.answers = (s.answers.tryGet(p)?.answers ?? []).map((x) => ({
+    ...x,
+    conditions: [...x.conditions],
+  }));
 
   for (const c of s.characters) {
     if (!knows(c, p) || unheardHire(s, c, p)) continue;
@@ -358,10 +662,20 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   });
 
   const asleep = s.sleep.tryGet(p);
-  v.letters = letters(s, p, v.court, s.config.sleepingSeats && asleep !== undefined ? asleep.lastCalled : s.turn - 1);
+  v.letters = letters(
+    s,
+    p,
+    v.court,
+    s.config.sleepingSeats && asleep !== undefined
+      ? asleep.lastCalled
+      : s.turn - 1,
+  );
 
   // Every court it has not heard has fallen (item 7b).
-  for (const other of AllPowers.filter((x) => x !== p && !v.fallen.includes(x))) v.travelTimes.push(`${other}: ${engine.travelTurns(p, other)} season(s) each way`);
+  for (const other of AllPowers.filter((x) => x !== p && !v.fallen.includes(x)))
+    v.travelTimes.push(
+      `${other}: ${engine.travelTurns(p, other)} season(s) each way`,
+    );
 
   v.prices.set("army", s.config.armyCost);
   v.prices.set("fleet", s.config.fleetCost);
@@ -377,56 +691,69 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("seaSupply", s.config.seaSupply);
   v.prices.set("winterArmyLoss", s.config.winterArmyLoss);
   v.prices.set("winterFleetLoss", s.config.winterFleetLoss);
-  // The economy at home (item 9+a): its own provinces' stores and markets, its caravans.
-  for (const id of ownedBy(s, p)) {
-    const prov = m.get(id);
-    const mk = engine.market(id);
-    v.provinces.push(
-      newProvinceEconomyView({
-        province: id,
-        stores: engine.stores(id),
-        capacity: capacityOf(prov),
-        tax: engine.effectiveYield(id),
-        need: engine.townNeed(id),
-        stock: mk.stock,
-        purse: mk.purse,
-        price: priceAt(mk.stock, needOf(prov)),
-        // Its people (item 10+a).
-        settled: engine.peopleOf(id).settled,
-        men: engine.peopleOf(id).men,
-        loose: engine.peopleOf(id).loose,
-        room: reckonedOf(m, id).room,
-        taxRate: engine.taxRate(id),
-        // A season's share of the last harvest, what the tax is reckoned from (item 11a+).
-        harvest: idiv(s.reaped.getOrDefault(id, 0), 3),
-        fed: s.fed.getOrDefault(id, 1000),
-        // Item 10+b.
-        runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
-        expelled: s.expelled.getOrDefault(id, 0),
-        granary: s.granary.getOrDefault(id, 0),
-        crop: s.crop.getOrDefault(id, 0),
-        reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
-      }),
-    );
+  // The economy at home (item 9+a): its own provinces' stores and markets, its caravans. Item 17++: the provinces it knows
+  // it holds, a lost one out of its sight as it last knew it until word of the loss arrives, a gained one once it hears.
+  for (const id of m.landProvinces
+    .map((x) => x.id)
+    .filter((x) => known.tryGet(x)?.owner === p)) {
+    if (s.owner.getOrDefault(id, null) === p)
+      v.provinces.push(provinceEconomy(s, engine, m, id));
+    else {
+      const last = s.ownLast.tryGet(p)?.tryGet(id);
+      if (last !== undefined) v.provinces.push(last);
+    }
   }
   // Yields as the people bring them in now, and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {
-    if (!seen.has(prov.id) && s.owner.getOrDefault(prov.id, null) !== p) continue;
+    if (
+      !seen.has(prov.id) &&
+      !(
+        s.owner.getOrDefault(prov.id, null) === p &&
+        known.tryGet(prov.id)?.owner === p
+      )
+    )
+      continue;
     const full = harvestOf(prov);
-    v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * engine.harvestNow(prov.id, false), full));
+    v.yields.set(
+      prov.id,
+      full <= 0
+        ? prov.yield
+        : idiv(prov.yield * engine.harvestNow(prov.id, false), full),
+    );
     const r = engine.resistance(prov.id, p);
     if (r > 0) v.resistance.set(prov.id, r);
   }
-  v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
-  v.walking = sum(s.walking.filter((w) => !w.deported && s.owner.getOrDefault(w.home, null) === p), (w) => w.men);
+  v.foodSent = s.foodWord
+    .filter((w) => w.power === p)
+    .map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
+  v.walking = sum(
+    s.walking.filter(
+      (w) => !w.deported && s.owner.getOrDefault(w.home, null) === p,
+    ),
+    (w) => w.men,
+  );
   for (const c of s.caravans.filter((c) => c.power === p))
-    v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning, gold: c.gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null }));
+    v.caravans.push(
+      newCaravanView({
+        from: c.from,
+        to: c.to,
+        grain: c.grain,
+        at: caravanAt(c),
+        returning: c.returning,
+        gold: c.gold,
+        trade: c.trade,
+        sneak: c.sneak,
+        ship: c.ship !== null,
+      }),
+    );
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
-  for (const [k, seen] of s.marketsSeen.tryGet(p)?.entries() ?? []) if (s.owner.getOrDefault(k, null) !== p) v.markets.set(k, { ...seen });
+  for (const [k, seen] of s.marketsSeen.tryGet(p)?.entries() ?? [])
+    if (s.owner.getOrDefault(k, null) !== p) v.markets.set(k, { ...seen });
   // Its own tolls it knows; the others only as last reported to it (item 10+b), never posted.
   for (const t of s.tolls) if (t.holder === p) v.tolls.push({ ...t });
-  for (const t of s.tollsKnown.tryGet(p) ?? []) if (t.holder !== p && isAlive(s, t.holder)) v.tolls.push({ ...t });
+  for (const t of s.tollsKnown.tryGet(p) ?? [])
+    if (t.holder !== p && isAlive(s, t.holder)) v.tolls.push({ ...t });
   v.prices.set("basePrice", EconomyData.basePrice);
   return v;
 }
@@ -437,11 +764,30 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
  * whose envoy's report has reached it since it last gave orders (`since`), so the king can set the report beside what he
  * sent. A letter whose envoy it knows has left its service, or died, drops out.
  */
-function letters(s: GameState, p: Power, court: readonly CharacterView[], since: number): LetterView[] {
-  const away = new Set(court.filter((c) => c.ours && !c.ready).map((c) => c.id));
-  const latest = new Set(groupBy(s.trails.filter((t) => t.from === p && !t.pretended), (t) => t.envoyId).map(([, g]) => g[g.length - 1].id));
+function letters(
+  s: GameState,
+  p: Power,
+  court: readonly CharacterView[],
+  since: number,
+): LetterView[] {
+  const away = new Set(
+    court.filter((c) => c.ours && !c.ready).map((c) => c.id),
+  );
+  const latest = new Set(
+    groupBy(
+      s.trails.filter((t) => t.from === p && !t.pretended),
+      (t) => t.envoyId,
+    ).map(([, g]) => g[g.length - 1].id),
+  );
   return s.trails
-    .filter((t) => t.from === p && !t.pretended && (t.reportTurn !== null ? t.reportTurn > since : away.has(t.envoyId) && latest.has(t.id)))
+    .filter(
+      (t) =>
+        t.from === p &&
+        !t.pretended &&
+        (t.reportTurn !== null
+          ? t.reportTurn > since
+          : away.has(t.envoyId) && latest.has(t.id)),
+    )
     .map((t) =>
       newLetterView({
         turn: t.turn,
@@ -486,7 +832,11 @@ function knows(c: Character, viewer: Power): boolean {
 /** A servant of the court's, at home, abroad or held captive. */
 function isOurs(c: Character, viewer: Power): boolean {
   // Item 13: one who holds the king's command or governorship is his, in his service or free.
-  return (c.employer === viewer && (c.status === "Employed" || c.status === "Captured")) || (c.grantedBy === viewer && c.status !== "Dead");
+  return (
+    (c.employer === viewer &&
+      (c.status === "Employed" || c.status === "Captured")) ||
+    (c.grantedBy === viewer && c.status !== "Dead")
+  );
 }
 
 /** One its court does not know took its job yet (an offer taken abroad, whose word is on the road): it sees nothing of it. */
@@ -509,7 +859,11 @@ function confessedMaster(s: GameState, id: string, court: Power): Power | null {
   return any ? found : null;
 }
 
-function characterView(s: GameState, c: Character, viewer: Power): CharacterView {
+function characterView(
+  s: GameState,
+  c: Character,
+  viewer: Power,
+): CharacterView {
   const cover = coverOf(c, viewer);
   if (cover !== null) return coveredView(s, c, cover);
   const ours = c.employer === viewer || c.grantedBy === viewer;
@@ -517,24 +871,49 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
   // A foreign spy hidden at your court is, to you, someone elsewhere: no place, no master.
   const here = seenAtCourt(c, viewer);
   // A free person at your court (not held by another) can be hired there at what they ask, whether or not they pitched.
-  const freeHere = c.status === "Free" && here && (c.heldBy === null || c.heldBy === viewer);
+  const freeHere =
+    c.status === "Free" && here && (c.heldBy === null || c.heldBy === viewer);
   // The contract of one who still serves you (not of one dead in your service).
-  const k: Contract | null = ours && (c.status === "Employed" || c.status === "Captured") ? c.contract : null;
+  const k: Contract | null =
+    ours && (c.status === "Employed" || c.status === "Captured")
+      ? c.contract
+      : null;
   const price = c.askingPrice.tryGet(viewer);
   // The name it gave your court (item 10, "Declaring a name"): what you know of it is what you learned under that name, and
   // of a borrowed name, what you know of the man whose name it is.
   const alias = falseNameAt(c, viewer);
-  const borrowed = alias?.as != null ? (s.characters.find((x) => x.id === alias.as) ?? null) : null;
-  const facts = [...(borrowed !== null ? factsKnownTo(borrowed, viewer) : []), ...factsKnownTo(c, viewer)].map((f) => f.text);
+  const borrowed =
+    alias?.as != null
+      ? (s.characters.find((x) => x.id === alias.as) ?? null)
+      : null;
+  const facts = [
+    ...(borrowed !== null ? factsKnownTo(borrowed, viewer) : []),
+    ...factsKnownTo(c, viewer),
+  ].map((f) => f.text);
   return newCharacterView({
     id: c.id,
     name: alias?.name ?? c.name,
-    origin: alias === null || alias.name === c.name ? c.origin : (borrowed?.origin ?? ""),
+    origin:
+      alias === null || alias.name === c.name
+        ? c.origin
+        : (borrowed?.origin ?? ""),
     ours,
-    status: c.status === "Captured" && c.heldBy === viewer ? "your captive" : c.status.toLowerCase(),
+    status:
+      c.status === "Captured" && c.heldBy === viewer
+        ? "your captive"
+        : c.status.toLowerCase(),
     // A spy you caught: whom it confessed to serving, if it did.
-    employer: ours || (c.status === "Employed" && here) ? c.employer : c.status === "Captured" && c.heldBy === viewer ? confessedMaster(s, c.id, viewer) : null,
-    duty: captive ? captiveText(s, c.id, c.heldBy!, viewer) : ours ? dutyText(c) : "",
+    employer:
+      ours || (c.status === "Employed" && here)
+        ? c.employer
+        : c.status === "Captured" && c.heldBy === viewer
+          ? confessedMaster(s, c.id, viewer)
+          : null,
+    duty: captive
+      ? captiveText(s, c.id, c.heldBy!, viewer)
+      : ours
+        ? dutyText(c)
+        : "",
     where: ours || here ? whereText(c, viewer) : "",
     timing: ours ? timingText(s, c) : "",
     fee: k === null ? null : k.fee + k.carried,
@@ -544,35 +923,75 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     errandWhat: k?.errand?.what ?? null,
     errandWhere: k?.errand?.where ?? null,
     // Whether its errand is done its master knows once it is home with nothing to do.
-    errandDone: (k?.errand?.done ?? false) && c.duty === "None" && c.at === viewer,
+    errandDone:
+      (k?.errand?.done ?? false) && c.duty === "None" && c.at === viewer,
     payOnDone: k?.payOnDone ?? false,
     won: c.won,
     lost: c.lost,
     offerAgain: k?.offerAgain ?? false,
-    term: k === null ? "" : termText(k.fee + k.carried, k.advance, k.untilTurn, s.turn, k),
+    term:
+      k === null
+        ? ""
+        : termText(k.fee + k.carried, k.advance, k.untilTurn, s.turn, k),
     knownFacts: facts,
     pitch: c.pitches.tryGet(viewer) ?? null,
     // What it said it can do when it pitched to you (item 10, "Kings never see skills"): words, never its skill.
-    claims: c.pitches.has(viewer) && c.claimed !== null ? claimWords(c.claimed) : [],
+    claims:
+      c.pitches.has(viewer) && c.claimed !== null ? claimWords(c.claimed) : [],
     // Item 12: the languages it says it speaks, to a court where it stands (its master's too) or where it pitched; of a
     // servant away its master knows only what it said before it went, and is not told it again here.
     speaks: here || c.pitches.has(viewer) ? tongueClaimsAs(c) : [],
     claimsToServe: alias?.employer ?? null,
     // Your own servant's price to serve on is in its term; an old asking price from before it was hired means nothing now.
-    askingPrice: ours ? null : price !== undefined ? price : freeHere ? basePrice(c, viewer) : null,
-    ready: ours && c.status === "Employed" && c.duty === "None" && c.at === viewer,
+    askingPrice: ours
+      ? null
+      : price !== undefined
+        ? price
+        : freeHere
+          ? basePrice(c, viewer)
+          : null,
+    ready:
+      ours && c.status === "Employed" && c.duty === "None" && c.at === viewer,
     heldByYou: c.heldBy === viewer,
     intercepted: c.heldBy === viewer && c.intercepted,
-    ransomDemand: captive ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null) : null,
-    ransomCarrier: c.status === "Captured" && c.heldBy === viewer ? ransomCarrier(s, c, viewer) : null,
+    ransomDemand: captive
+      ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null)
+      : null,
+    ransomCarrier:
+      c.status === "Captured" && c.heldBy === viewer
+        ? ransomCarrier(s, c, viewer)
+        : null,
     owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,
-    hoardHere: c.hoard !== null && c.hoard.at === viewer && c.status !== "Dead" ? c.hoard.gold : null,
-    carries: c.status === "Captured" && c.heldBy === viewer ? c.purse + c.carriedFor : null,
+    hoardHere:
+      c.hoard !== null && c.hoard.at === viewer && c.status !== "Dead"
+        ? c.hoard.gold
+        : null,
+    carries:
+      c.status === "Captured" && c.heldBy === viewer
+        ? c.purse + c.carriedFor
+        : null,
     // Item 11a: one standing at your court, free to deal, who offers to lend you gold.
     // A copy: the view is what the court saw when it was asked, not a window on the lender's purse as the season moves it.
-    lends: c.lendOffer !== null && c.at === viewer && c.heldBy === null && c.status !== "Dead" && !hiddenAt(c, viewer) && c.lendOffer.amount > 0 ? { ...c.lendOffer } : null,
+    lends:
+      c.lendOffer !== null &&
+      c.at === viewer &&
+      c.heldBy === null &&
+      c.status !== "Dead" &&
+      !hiddenAt(c, viewer) &&
+      c.lendOffer.amount > 0
+        ? { ...c.lendOffer }
+        : null,
     // Item 11b: the news of other courts they offer you, standing at your court.
-    news: hiddenAt(c, viewer) ? [] : newsOffered(s, c, viewer).map((n) => newNewsOffer({ court: n.court, turn: n.turn, lines: n.lines.length, price: n.price })),
+    news: hiddenAt(c, viewer)
+      ? []
+      : newsOffered(s, c, viewer).map((n) =>
+          newNewsOffer({
+            court: n.court,
+            turn: n.turn,
+            lines: n.lines.length,
+            price: n.price,
+          }),
+        ),
   });
 }
 
@@ -597,9 +1016,17 @@ function debtViews(s: GameState, p: Power): DebtView[] {
   return s.debts
     .filter((d) => d.borrower === p && standsForBorrower(d, s.turn))
     .map((d) => {
-      const h = d.holder !== null ? (s.characters.find((c) => c.id === d.holder) ?? null) : null;
-      const here = h !== null && h.at === p && h.status !== "Dead" && (h.heldBy === null || h.heldBy === p);
-      const lender = s.characters.find((c) => c.id === d.lender)?.name ?? d.lender;
+      const h =
+        d.holder !== null
+          ? (s.characters.find((c) => c.id === d.holder) ?? null)
+          : null;
+      const here =
+        h !== null &&
+        h.at === p &&
+        h.status !== "Dead" &&
+        (h.heldBy === null || h.heldBy === p);
+      const lender =
+        s.characters.find((c) => c.id === d.lender)?.name ?? d.lender;
       return newDebtView({
         id: d.id,
         // Who holds it now, as far as the court can know: one standing at its court; else the lender it sealed it with.
@@ -621,7 +1048,9 @@ function claimViews(s: GameState, p: Power): DebtView[] {
   return s.debts
     .filter((d) => d.holder === p && d.ended === null && d.borrower !== p)
     .map((d) => {
-      const b = isPowerParty(d.borrower) ? null : (s.characters.find((c) => c.id === d.borrower) ?? null);
+      const b = isPowerParty(d.borrower)
+        ? null
+        : (s.characters.find((c) => c.id === d.borrower) ?? null);
       return newDebtView({
         id: d.id,
         holder: b?.name ?? d.borrower,
@@ -632,7 +1061,12 @@ function claimViews(s: GameState, p: Power): DebtView[] {
         left: debtLeft(d),
         sealedTurn: d.sealedTurn,
         dueTurn: d.dueTurn,
-        here: b !== null && b.at === p && b.status !== "Dead" && b.heldBy === null && !hiddenAt(b, p),
+        here:
+          b !== null &&
+          b.at === p &&
+          b.status !== "Dead" &&
+          b.heldBy === null &&
+          !hiddenAt(b, p),
       });
     });
 }
@@ -647,7 +1081,8 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
     ours: true,
     status: held === null ? "employed" : "captured",
     employer: cover.for,
-    duty: held !== null ? captiveText(s, c.id, held, cover.for) : cover.dutyText,
+    duty:
+      held !== null ? captiveText(s, c.id, held, cover.for) : cover.dutyText,
     where: held !== null ? `at the court of ${held}` : cover.whereText,
     timing: held === null ? cover.timingText : "",
     fee: cover.fee,
@@ -659,11 +1094,32 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
     errandDone: cover.errand?.done ?? false,
     payOnDone: cover.payOnDone,
     offerAgain: cover.offerAgain,
-    term: termText(cover.fee, cover.advance, cover.contractUntil, s.turn, newContract({ fee: cover.fee, advance: cover.advance, errand: cover.errand, payOnDone: cover.payOnDone, offerAgain: cover.offerAgain })),
+    term: termText(
+      cover.fee,
+      cover.advance,
+      cover.contractUntil,
+      s.turn,
+      newContract({
+        fee: cover.fee,
+        advance: cover.advance,
+        errand: cover.errand,
+        payOnDone: cover.payOnDone,
+        offerAgain: cover.offerAgain,
+      }),
+    ),
     // What it knew then and what its inquiries have found since, as for a servant really away.
-    knownFacts: c.facts.filter((f) => cover.factIds.includes(f.id) || (f.secrecy !== "Public" && f.knownBy.includes(cover.for))).map((f) => f.text),
+    knownFacts: c.facts
+      .filter(
+        (f) =>
+          cover.factIds.includes(f.id) ||
+          (f.secrecy !== "Public" && f.knownBy.includes(cover.for)),
+      )
+      .map((f) => f.text),
     pitch: c.pitches.tryGet(cover.for) ?? null,
-    ransomDemand: held !== null ? (knownDemand(s, c.id, held, cover.for)?.spend ?? null) : null,
+    ransomDemand:
+      held !== null
+        ? (knownDemand(s, c.id, held, cover.for)?.spend ?? null)
+        : null,
     owed: c.owed.getOrDefault(cover.for, 0) > 0 ? c.owed.get(cover.for) : null,
   });
 }
@@ -673,12 +1129,26 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
  * handed over and what falls due when it is done, by when, and the standing orders that go with it. `fee` is null when
  * no job is to be said.
  */
-function termText(fee: number | null, advance: number | null, until: number | null, turn: number, k: Contract | null = null): string {
+function termText(
+  fee: number | null,
+  advance: number | null,
+  until: number | null,
+  turn: number,
+  k: Contract | null = null,
+): string {
   if (fee === null) return "";
   const e = k?.errand ?? null;
-  const errand = e === null ? "a job whose first errand you name when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
+  const errand =
+    e === null
+      ? "a job whose first errand you name when you send them"
+      : e.what === "stay"
+        ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)"
+        : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
   const serves = `${errand}, for ${fee} shekels, ${advance ?? 0} handed over and ${Math.max(0, fee - (advance ?? 0))} due when it is done`;
-  const standing = k === null ? "" : `${k.payOnDone ? "; you ordered the rest paid when it is done" : "; the rest is paid only if you order it (pay_fee)"}${k.offerAgain ? "; the same job is offered again when it is done" : ""}`;
+  const standing =
+    k === null
+      ? ""
+      : `${k.payOnDone ? "; you ordered the rest paid when it is done" : "; the rest is paid only if you order it (pay_fee)"}${k.offerAgain ? "; the same job is offered again when it is done" : ""}`;
   if (until === null) return serves + standing;
   return until >= turn
     ? `${serves}, by turn ${until}${standing}. When it is done at your court, the job ends`
@@ -690,29 +1160,51 @@ function termText(fee: number | null, advance: number | null, until: number | nu
  * envoy on its way out, at a foreign court or on the road home, a spy on its way to its post or home. Blank at court,
  * held, or at its post. A cover keeps this text as it stood (Cover.timingText).
  */
-function timingText(s: GameState, c: Character, map: WorldMap | null = null): string {
+function timingText(
+  s: GameState,
+  c: Character,
+  map: WorldMap | null = null,
+): string {
   const m = map ?? WorldMap.default;
   const home = c.employer;
   if (c.status !== "Employed" || home === null) return "";
   const journey = s.journeys.find(
-    (j) => j.characterId === c.id && (j.kind === "EnvoyOutbound" || j.kind === "EnvoyHomebound" || j.kind === "SpyOutbound" || j.kind === "SpyHomebound"),
+    (j) =>
+      j.characterId === c.id &&
+      (j.kind === "EnvoyOutbound" ||
+        j.kind === "EnvoyHomebound" ||
+        j.kind === "SpyOutbound" ||
+        j.kind === "SpyHomebound"),
   );
-  const trail = c.currentTrail !== null ? (s.trails.find((x) => x.id === c.currentTrail && x.from === home) ?? null) : null;
-  const back = (from: Power): number => travelTurns(s.config, m, courtOf(s, m, from), courtOf(s, m, home), s.turn);
+  const trail =
+    c.currentTrail !== null
+      ? (s.trails.find((x) => x.id === c.currentTrail && x.from === home) ??
+        null)
+      : null;
+  const back = (from: Power): number =>
+    travelTurns(s.config, m, courtOf(s, m, from), courtOf(s, m, home), s.turn);
   switch (c.duty) {
     // On its way the reckoning is a reckoning ("due there"); only once it stands at that court is it "received there".
     case "EnvoyOutbound":
-      if (journey?.kind === "EnvoyOutbound") return `set out in turn ${journey.departTurn} for ${journey.to}; due there about turn ${journey.arriveTurn}; due back about turn ${journey.arriveTurn + back(journey.to)}`;
+      if (journey?.kind === "EnvoyOutbound")
+        return `set out in turn ${journey.departTurn} for ${journey.to}; due there about turn ${journey.arriveTurn}; due back about turn ${journey.arriveTurn + back(journey.to)}`;
       return "";
     case "EnvoyAtCourt":
-      if (trail !== null && c.at !== null) return `set out in turn ${trail.turn} for ${c.at}; received there in turn ${s.turn}; due back about turn ${s.turn + back(c.at)}`;
+      if (trail !== null && c.at !== null)
+        return `set out in turn ${trail.turn} for ${c.at}; received there in turn ${s.turn}; due back about turn ${s.turn + back(c.at)}`;
       return "";
     case "EnvoyHomebound":
-      if (journey?.kind === "EnvoyHomebound" && trail !== null) return envoyHomeTiming(trail.turn, trail.to, journey.arriveTurn);
-      if (journey !== undefined && (journey.kind === "EnvoyHomebound" || journey.kind === "SpyHomebound")) return homeTiming(journey.arriveTurn);
+      if (journey?.kind === "EnvoyHomebound" && trail !== null)
+        return envoyHomeTiming(trail.turn, trail.to, journey.arriveTurn);
+      if (
+        journey !== undefined &&
+        (journey.kind === "EnvoyHomebound" || journey.kind === "SpyHomebound")
+      )
+        return homeTiming(journey.arriveTurn);
       return "";
     case "SpyOutbound":
-      if (journey?.kind === "SpyOutbound") return `set out in turn ${journey.departTurn}; due there about turn ${journey.arriveTurn}`;
+      if (journey?.kind === "SpyOutbound")
+        return `set out in turn ${journey.departTurn}; due there about turn ${journey.arriveTurn}`;
       return "";
     default:
       return "";
@@ -730,7 +1222,12 @@ function homeTiming(due: number): string {
 }
 
 /** One of the viewer's people held captive abroad, with the ransom demanded if that word has reached it. */
-function captiveText(s: GameState, id: string, heldAt: Power, viewer: Power): string {
+function captiveText(
+  s: GameState,
+  id: string,
+  heldAt: Power,
+  viewer: Power,
+): string {
   const demand = knownDemand(s, id, heldAt, viewer);
   return demand !== null
     ? `held captive at the court of ${heldAt}; ${heldAt} demands ${formatMoney(demand.spend)} for their return (order pay_ransom)`
@@ -738,27 +1235,63 @@ function captiveText(s: GameState, id: string, heldAt: Power, viewer: Power): st
 }
 
 /** What the cheapest free person at the captor's court would ask to carry its ransom demand to the captive's king, or null. */
-function ransomCarrier(s: GameState, c: Character, captor: Power): number | null {
+function ransomCarrier(
+  s: GameState,
+  c: Character,
+  captor: Power,
+): number | null {
   const payer = c.employer !== null ? c.employer : c.formerEmployer;
   if (payer === null || !isAlive(s, payer) || !isAlive(s, captor)) return null;
   const m = WorldMap.default;
-  const seasons = Math.max(1, travelTurns(s.config, m, courtOf(s, m, captor), courtOf(s, m, payer), s.turn));
+  const seasons = Math.max(
+    1,
+    travelTurns(
+      s.config,
+      m,
+      courtOf(s, m, captor),
+      courtOf(s, m, payer),
+      s.turn,
+    ),
+  );
   const asks = s.characters
-    .filter((x) => x.status === "Free" && x.at === captor && x.duty === "None" && x.heldBy === null && x.errand === null)
-    .map((x) => idiv(basePrice(x, payer) * seasons * LetterData.hiredPercent, 100));
+    .filter(
+      (x) =>
+        x.status === "Free" &&
+        x.at === captor &&
+        x.duty === "None" &&
+        x.heldBy === null &&
+        x.errand === null,
+    )
+    .map((x) =>
+      idiv(basePrice(x, payer) * seasons * LetterData.hiredPercent, 100),
+    );
   return asks.length === 0 ? null : Math.min(...asks);
 }
 
 /** The open ransom demand for a captive, once its rumour has reached the court asked to pay. */
-function knownDemand(s: GameState, id: string, heldAt: Power, payer: Power): PendingTask | null {
+function knownDemand(
+  s: GameState,
+  id: string,
+  heldAt: Power,
+  payer: Power,
+): PendingTask | null {
   let found: PendingTask | null = null;
-  for (const t of s.tasks) if (t.kind === "RansomDemand" && t.announced && t.characterId === id && t.requester === payer && t.other === heldAt) found = t;
+  for (const t of s.tasks)
+    if (
+      t.kind === "RansomDemand" &&
+      t.announced &&
+      t.characterId === id &&
+      t.requester === payer &&
+      t.other === heldAt
+    )
+      found = t;
   return found;
 }
 
 function dutyText(c: Character): string {
   if (c.duty === "UnderGuard") return "a captive on the road under guard";
-  if (c.status === "Captured" && c.heldBy !== null) return `held captive at the court of ${c.heldBy}`;
+  if (c.status === "Captured" && c.heldBy !== null)
+    return `held captive at the court of ${c.heldBy}`;
   switch (c.duty) {
     case "None":
       return "at court, ready for a mission";
@@ -788,9 +1321,15 @@ function dutyText(c: Character): string {
 }
 
 function whereText(c: Character, viewer: Power): string {
-  if (c.status === "Captured") return c.heldBy === viewer ? "in your prison" : c.heldBy !== null && c.employer === viewer ? `at the court of ${c.heldBy}` : "unknown";
+  if (c.status === "Captured")
+    return c.heldBy === viewer
+      ? "in your prison"
+      : c.heldBy !== null && c.employer === viewer
+        ? `at the court of ${c.heldBy}`
+        : "unknown";
   if (c.duty === "Detained" && c.employer === viewer) return "unknown";
-  if (c.at !== null) return c.at === viewer ? "at your court" : `at the court of ${c.at}`;
+  if (c.at !== null)
+    return c.at === viewer ? "at your court" : `at the court of ${c.at}`;
   return c.watchProvince !== null ? `in ${c.watchProvince}` : "travelling";
 }
 
@@ -804,7 +1343,13 @@ function tabletName(t: Tablet, among: Iterable<Tablet> | null = null): string {
   let twin = false;
   if (among !== null)
     for (const o of among)
-      if (o.id !== t.id && o.inventory === t.inventory && o.sealedTurn === t.sealedTurn && o.seals.length === t.seals.length && o.seals.every((x, i) => x === t.seals[i])) {
+      if (
+        o.id !== t.id &&
+        o.inventory === t.inventory &&
+        o.sealedTurn === t.sealedTurn &&
+        o.seals.length === t.seals.length &&
+        o.seals.every((x, i) => x === t.seals[i])
+      ) {
         twin = true;
         break;
       }
@@ -820,13 +1365,17 @@ function capitalized(s: string): string {
 
 /** "Egypt", "Egypt and Hatti", "Egypt, Hatti and Mitanni". */
 function listed(seals: readonly Power[]): string {
-  return seals.length <= 1 ? seals.join("") : `${seals.slice(0, -1).join(", ")} and ${seals[seals.length - 1]}`;
+  return seals.length <= 1
+    ? seals.join("")
+    : `${seals.slice(0, -1).join(", ")} and ${seals[seals.length - 1]}`;
 }
 
 /** A text's first eight words, marked "…" if there are more. */
 function opening(text: string): string {
   const words = split(text, " ", true);
-  return words.length <= 8 ? words.join(" ") : words.slice(0, 8).join(" ") + "…";
+  return words.length <= 8
+    ? words.join(" ")
+    : words.slice(0, 8).join(" ") + "…";
 }
 
 function tabletView(t: Tablet, copy: TabletCopy): TabletView {
@@ -836,7 +1385,9 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
     name: tabletName(t),
     copyId: copy.id,
     tabletId: t.id,
-    text: unread ? `A tablet written in ${t.tongue !== "" ? t.tongue : "a tongue your scribes do not read"}, which nobody at your court has read yet: it waits for a reader.` : t.text,
+    text: unread
+      ? `A tablet written in ${t.tongue !== "" ? t.tongue : "a tongue your scribes do not read"}, which nobody at your court has read yet: it waits for a reader.`
+      : t.text,
     clauses: unread ? [] : t.clauses.map((c) => ({ ...c })),
     unread,
     seals: [...t.seals],
@@ -849,13 +1400,18 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
     authResult: copy.authResult,
     byHand: t.byHand,
     byHandOf: t.byHandOf,
-    within: copy.holder === t.byHandOf || (copy.holder === t.proposedBy && t.credentialsShown) ? t.within : null,
+    within:
+      copy.holder === t.byHandOf ||
+      (copy.holder === t.proposedBy && t.credentialsShown)
+        ? t.within
+        : null,
     repudiatedTurn: t.repudiatedTurn,
   });
 }
 
 /** The views of the game: what each court sees (the C# build's static class Views). */
 export const Views = {
+  provinceEconomy,
   landStandings,
   looksDoomed,
   sight,
@@ -863,7 +1419,8 @@ export const Views = {
   ownerAt,
   knownHolders,
   // Item 17+: a court's view names every power as that court gives its name.
-  for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map)),
+  for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView =>
+    asSeenBy(p, () => seatView(s, p, map)),
   letters,
   seenAtCourt,
   knows,
@@ -882,7 +1439,10 @@ export const Views = {
 };
 
 /** An own unit's march over a long link (item 13): where to, and the days of road left at its usual pace. */
-function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays: number } {
+function marchOf(
+  engine: TurnEngine,
+  u: Unit,
+): { march: string | null; marchDays: number } {
   if (u.march === null) return { march: null, marchDays: 0 };
   const left = Math.max(0, engine.marchPoints(u, u.march, false) - u.along);
   return { march: u.march, marchDays: Math.ceil(left / PointsPerDay) };
@@ -893,15 +1453,42 @@ function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays
  * and with how many men, as many seasons ago as the road from it is long.
  */
 /** One season's report of a unit: where it stood, its men, food, hunger and pay owed (older saves carry only the first two). */
-function trailEntry(t: string): { province: string; men: number; food?: number; hungry?: number; unpaid?: number; chest?: number; buy?: boolean } {
+function trailEntry(t: string): {
+  province: string;
+  men: number;
+  food?: number;
+  hungry?: number;
+  unpaid?: number;
+  chest?: number;
+  buy?: boolean;
+} {
   const [province, men, food, hungry, unpaid, chest, buy] = t.split("|");
-  const fed = food === undefined ? { province, men: Number(men) } : { province, men: Number(men), food: Number(food), hungry: Number(hungry), unpaid: Number(unpaid) };
-  return chest === undefined ? fed : { ...fed, chest: Number(chest), buy: buy === "1" };
+  const fed =
+    food === undefined
+      ? { province, men: Number(men) }
+      : {
+          province,
+          men: Number(men),
+          food: Number(food),
+          hungry: Number(hungry),
+          unpaid: Number(unpaid),
+        };
+  return chest === undefined
+    ? fed
+    : { ...fed, chest: Number(chest), buy: buy === "1" };
 }
 
-function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {
+function reportOf(
+  engine: TurnEngine,
+  u: Unit,
+): { province: string; men: number; reported: number } | object {
   const d = engine.wordTo(u.power, u.province);
   if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return {};
   const i = Math.max(0, u.trail.length - 1 - d);
-  return { ...trailEntry(u.trail[i]), reported: engine.s.turn - (u.trail.length - 1 - i), march: null, marchDays: 0 };
+  return {
+    ...trailEntry(u.trail[i]),
+    reported: engine.s.turn - (u.trail.length - 1 - i),
+    march: null,
+    marchDays: 0,
+  };
 }

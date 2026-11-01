@@ -1,26 +1,106 @@
 import { Dict } from "../core/collections.ts";
-import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
+import {
+  B,
+  I,
+  type ObjSchema,
+  S,
+  computed,
+  dict,
+  list,
+  obj,
+  opt,
+} from "../core/json.ts";
 import { distinct, sortBy, sum } from "../core/seq.ts";
 import { type GameConfig, GameConfigSchema, newGameConfig } from "./config.ts";
 import { type UnitKind, WorldMap } from "./map.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import { type Character, CharacterSchema } from "./people.ts";
 import { AllPowers, type Power, type RisenPower, cmpPower } from "./power.ts";
-import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
-import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
+import {
+  type Catastrophe,
+  CatastropheSchema,
+  type GameEvent,
+  GameEventSchema,
+  type InboxItem,
+  InboxItemSchema,
+  type InboxKind,
+  type Journey,
+  JourneySchema,
+  type LossAbroad,
+  LossAbroadSchema,
+  type MessageTrail,
+  MessageTrailSchema,
+  type PendingAudience,
+  PendingAudienceSchema,
+  type PendingTask,
+  PendingTaskSchema,
+  type ScoreRow,
+  ScoreRowSchema,
+  type Tablet,
+  type TabletCopy,
+  TabletCopySchema,
+  TabletSchema,
+  newGameEvent,
+  newInboxItem,
+} from "./records.ts";
+import {
+  type SleepState,
+  SleepStateSchema,
+  type StandingBook,
+  StandingBookSchema,
+} from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
-import { type Claim, ClaimSchema, type NameClaim, NameClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
+import {
+  type Claim,
+  ClaimSchema,
+  type NameClaim,
+  NameClaimSchema,
+  type Recognition,
+  RecognitionSchema,
+} from "./recognition.ts";
 import { type Grant, GrantSchema } from "./authority.ts";
-import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
+import {
+  type Caravan,
+  CaravanSchema,
+  type Market,
+  MarketSchema,
+} from "./caravans.ts";
 import { type Toll, TollSchema } from "./trade.ts";
-import { type MarketSeen, MarketSeenSchema } from "./views.ts";
+import {
+  type MarketSeen,
+  MarketSeenSchema,
+  type ProvinceEconomyView,
+  ProvinceEconomyViewSchema,
+} from "./views.ts";
 import type { People } from "./land.ts";
 import { type Band, BandSchema } from "./bands.ts";
-import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
-import { type Courier, CourierSchema, type Governor, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
+import {
+  type Approach,
+  ApproachSchema,
+  type Debt,
+  DebtSchema,
+  type PayFact,
+  PayFactSchema,
+  type PayRecord,
+  PayRecordSchema,
+} from "./money.ts";
+import {
+  type Courier,
+  CourierSchema,
+  type Governor,
+  GovernorSchema,
+  type KingRoad,
+  KingRoadSchema,
+  type Mandate,
+  MandateSchema,
+} from "./command.ts";
 import { type WorkPlan, WorkPlanSchema } from "./works.ts";
 
-export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
+export const PeopleSchema: ObjSchema<People> = obj(
+  "People",
+  (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }),
+  { settled: I, men: I, loose: I },
+);
 
 /** Discharged men on their way home: how many, to which province, the season they arrive, and the savings they carry. */
 export interface Walk {
@@ -48,7 +128,18 @@ export interface Walk {
 
 export const WalkSchema: ObjSchema<Walk> = obj(
   "Walk",
-  (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, deported: false, by: "", route: [], departs: 0, from: "", ...init }),
+  (init: Partial<Walk> = {}) => ({
+    home: "",
+    men: 0,
+    arrives: 0,
+    savings: 0,
+    deported: false,
+    by: "",
+    route: [],
+    departs: 0,
+    from: "",
+    ...init,
+  }),
   {
     home: S,
     men: I,
@@ -78,11 +169,28 @@ export interface ClimateEvent {
 
 export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   "ClimateEvent",
-  (init: Partial<ClimateEvent> = {}) => ({ id: "", kind: "Drought" as const, name: "", provinces: [], startTurn: 0, endTurn: 0, percent: 100, ...init }),
-  { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
+  (init: Partial<ClimateEvent> = {}) => ({
+    id: "",
+    kind: "Drought" as const,
+    name: "",
+    provinces: [],
+    startTurn: 0,
+    endTurn: 0,
+    percent: 100,
+    ...init,
+  }),
+  {
+    id: S,
+    kind: S,
+    name: S,
+    provinces: list(S),
+    startTurn: I,
+    endTurn: I,
+    percent: I,
+  },
 );
 
-export const CURRENT_VERSION = 38;
+export const CURRENT_VERSION = 39;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -101,14 +209,43 @@ export interface FoodWord {
 
 export const FoodWordSchema: ObjSchema<FoodWord> = obj(
   "FoodWord",
-  (init: Partial<FoodWord> = {}) => ({ power: "Egypt", unit: "", province: "", buy: false, gold: 0, at: 0, ...init }),
+  (init: Partial<FoodWord> = {}) => ({
+    power: "Egypt",
+    unit: "",
+    province: "",
+    buy: false,
+    gold: 0,
+    at: 0,
+    ...init,
+  }),
   { power: S, unit: S, province: S, buy: B, gold: I, at: I },
 );
 
 export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
   "RisenPower",
-  (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", temper: [], how: "governor", ...init }),
-  { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, temper: list(I), how: S },
+  (init: Partial<RisenPower> = {}) => ({
+    power: "",
+    land: "",
+    king: "",
+    ruler: "",
+    capital: "",
+    turn: 0,
+    from: "",
+    temper: [],
+    how: "governor",
+    ...init,
+  }),
+  {
+    power: S,
+    land: S,
+    king: S,
+    ruler: S,
+    capital: S,
+    turn: I,
+    from: S,
+    temper: list(I),
+    how: S,
+  },
 );
 
 /**
@@ -127,12 +264,24 @@ export interface TroopUpkeep {
 
 export const TroopUpkeepSchema: ObjSchema<TroopUpkeep> = obj(
   "TroopUpkeep",
-  (init: Partial<TroopUpkeep> = {}) => ({ pay: true, feed: true, payExcept: [], feedExcept: [], ...init }),
+  (init: Partial<TroopUpkeep> = {}) => ({
+    pay: true,
+    feed: true,
+    payExcept: [],
+    feedExcept: [],
+    ...init,
+  }),
   { pay: B, feed: B, payExcept: list(S), feedExcept: list(S) },
 );
 
 /** A king's standing order for his troops' pay and food: to pay and feed them all unless he changed it. */
-export const upkeepOf = (s: GameState, p: Power): TroopUpkeep => s.upkeep.tryGet(p) ?? { pay: true, feed: true, payExcept: [], feedExcept: [] };
+export const upkeepOf = (s: GameState, p: Power): TroopUpkeep =>
+  s.upkeep.tryGet(p) ?? {
+    pay: true,
+    feed: true,
+    payExcept: [],
+    feedExcept: [],
+  };
 /** Whether the king's standing order pays this unit this season. */
 export const paysUnit = (s: GameState, u: Unit): boolean => {
   const o = upkeepOf(s, u.power);
@@ -159,16 +308,28 @@ export interface StandingHunt {
 
 export const StandingHuntSchema: ObjSchema<StandingHunt> = obj(
   "StandingHunt",
-  (init: Partial<StandingHunt> = {}) => ({ power: "Egypt" as Power, provinces: [], since: 0, until: null, ...init }),
+  (init: Partial<StandingHunt> = {}) => ({
+    power: "Egypt" as Power,
+    provinces: [],
+    since: 0,
+    until: null,
+    ...init,
+  }),
   { power: S, provinces: list(S), since: I, until: opt(I) },
 );
 
 /** Whether a standing hunt covers a province its power holds: the provinces it names, or, naming none, all its land. */
-export const huntCovers = (s: GameState, h: StandingHunt, province: string): boolean =>
-  s.owner.getOrDefault(province, null) === h.power && (h.provinces.length === 0 || h.provinces.includes(province));
+export const huntCovers = (
+  s: GameState,
+  h: StandingHunt,
+  province: string,
+): boolean =>
+  s.owner.getOrDefault(province, null) === h.power &&
+  (h.provinces.length === 0 || h.provinces.includes(province));
 
 /** The standing hunt a power's armies follow now, if any (one lifted or replaced is only still talked of). */
-export const huntNow = (s: GameState, p: Power): StandingHunt | null => s.hunts.find((h) => h.power === p && h.until === null) ?? null;
+export const huntNow = (s: GameState, p: Power): StandingHunt | null =>
+  s.hunts.find((h) => h.power === p && h.until === null) ?? null;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -251,12 +412,20 @@ export interface GameState {
   /** The sieges under way: a foreign army standing in a walled city, ordered to besiege it. */
   sieges: Siege[];
   /**
-   * Land taken by force and still being absorbed, with the season it was taken (Build order item 5, slow absorption): it
-   * yields, and counts in its holder's strength, a third of its yield in its first season under him, two thirds in the
-   * second, all of it from the third ({@link TurnEngine.Absorbed}). Each court sees the marks of its own land only
-   * ({@link SeatView.Conquered}): who holds a province is public, but how it changed hands is not.
+   * Item 17++ ("Loyalty is a ledger"): each province's people's ledger, by actor (a power, or a character's id), in points:
+   * what he gave them less what he took, fading each season (`UnrestData`). Never shown as a number to anyone.
    */
-  conquered: Dict<string, number>;
+  ledger: Dict<string, Dict<string, number>>;
+  /**
+   * Item 17++ ("Whom a province obeys"): how fully each province obeys its holder, in thousandths, as last reckoned (left
+   * out at a thousand): it pays and counts in his strength by it, a third at the least.
+   */
+  obeyed: Dict<string, number>;
+  /**
+   * Item 17++: each court's last report of a province of its own lost out of its sight, until word of the loss arrives: its
+   * seat view goes on showing it as it last knew it (the engine's view follows what the court knows, as its map does).
+   */
+  ownLast: Dict<Power, Dict<string, ProvinceEconomyView>>;
   /**
    * The grain in each land province's stores, in measures (build order item 9+a, "Production is local"): the tax in goods
    * goes in, armies standing there by their king's leave eat from it, caravans carry it away, and it falls with the
@@ -369,20 +538,13 @@ export interface GameState {
   /** Item 13+: the powers risen in play, as they rose: a fallen kingdom's governors ruling their provinces. */
   risen: RisenPower[];
   /**
-   * Item 17 ("Revolt follows conditions, not dice"): the hardship each province's people remember against its holder, in
-   * points, fading each season (`UnrestData`): hunger, levies, food taken by troops, a sack. Cleared when it changes hands.
-   */
-  unrest: Dict<string, number>;
-  /** Item 17: outside help, points of a rival's gold spent among a province's people by his agents, fading likewise. */
-  stirred: Dict<string, number>;
-  /**
-   * Item 17: each held province's unrest as last reckoned (its holder never sees the number: his governor, spies and the
-   * people's complaints tell him in words).
+   * Item 17: each held province's unrest as last reckoned, from item 17++ how far its holder's lead in its people's eyes
+   * falls short of a firm hold (its holder never sees the number: his governor, spies and the people's complaints tell
+   * him in words).
    */
   restless: Dict<string, number>;
-  /** Item 17: the season each province last changed hands (to a power or to nobody), and who held it before ("" none). */
+  /** Item 17: the season each province last changed hands (to a power or to nobody). */
   takenAt: Dict<string, number>;
-  takenFrom: Dict<string, string>;
   /** Item 17: a king's word to an army on how to get its food, with the gold sent for it, on the road to it. */
   foodWord: FoodWord[];
   /**
@@ -469,7 +631,9 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     grants: [],
     fallsHeard: new Dict(),
     sieges: [],
-    conquered: new Dict(),
+    ledger: new Dict(),
+    obeyed: new Dict(),
+    ownLast: new Dict(),
     stores: new Dict(),
     markets: new Dict(),
     caravans: [],
@@ -509,11 +673,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     startStrength: new Dict(),
     eliminated: [],
     risen: [],
-    unrest: new Dict(),
-    stirred: new Dict(),
     restless: new Dict(),
     takenAt: new Dict(),
-    takenFrom: new Dict(),
     foodWord: [],
     falls: [],
     invaded: new Dict(),
@@ -549,111 +710,114 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
   };
 }
 
-export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameState, {
-  version: I,
-  seed: I,
-  config: () => GameConfigSchema,
-  turn: I,
-  ended: B,
-  endReason: S,
-  finalSeason: opt(I),
-  finalByCap: B,
-  claims: list(() => ClaimSchema),
-  recognition: list(() => RecognitionSchema),
-  names: dict(() => NameClaimSchema),
-  nameGiven: dict(dict(S)),
-  namesHeard: dict(dict(S)),
-  ageEndedTurn: opt(I),
-  ageWinners: list(S),
-  owner: dict(opt(S)),
-  walls: dict(I),
-  wallsSeen: dict(dict(I)),
-  built: dict(I),
-  works: list(() => WorkPlanSchema),
-  ownerLog: list(() => OwnerChangeSchema),
-  known: dict(dict(() => KnownSchema)),
-  roadsClosed: dict(list(S)),
-  roadsHeard: dict(list(S)),
-  grants: list(() => GrantSchema),
-  fallsHeard: dict(list(S)),
-  sieges: list(() => SiegeSchema),
-  conquered: dict(I),
-  stores: dict(I),
-  markets: dict(() => MarketSchema),
-  people: dict(() => PeopleSchema),
-  walking: list(() => WalkSchema),
-  climate: list(() => ClimateEventSchema),
-  taxes: dict(I),
-  corvee: dict(I),
-  fed: dict(I),
-  caravans: list(() => CaravanSchema),
-  tolls: list(() => TollSchema),
-  marketsSeen: dict(dict(() => MarketSeenSchema)),
-  payRecords: dict(() => PayRecordSchema),
-  payFacts: list(() => PayFactSchema),
-  payKnown: dict(() => PayRecordSchema),
-  payCarriers: list(S),
-  upkeep: dict(() => TroopUpkeepSchema),
-  councilOff: list(S),
-  hunts: list(() => StandingHuntSchema),
-  huntNow: list(S),
-  debts: list(() => DebtSchema),
-  approaches: list(() => ApproachSchema),
-  baseline: I,
-  hiring: dict(I),
-  loot: dict(I),
-  bands: list(() => BandSchema),
-  governors: list(() => GovernorSchema),
-  court: dict(S),
-  kingRoads: list(() => KingRoadSchema),
-  couriers: list(() => CourierSchema),
-  lettersCarried: dict(I),
-  lettersWaited: dict(I),
-  lettersToCarried: dict(I),
-  lettersToWaited: dict(I),
-  crop: dict(I),
-  reaped: dict(I),
-  granary: dict(I),
-  runaways: dict(dict(I)),
-  expelled: dict(I),
-  tollsKnown: dict(list(() => TollSchema)),
-  starving: list(S),
-  units: list(() => UnitSchema),
-  treasuries: dict(() => TreasurySchema),
-  startStrength: dict(I),
-  eliminated: list(S),
-  risen: list(() => RisenPowerSchema),
-  unrest: dict(I),
-  stirred: dict(I),
-  restless: dict(I),
-  takenAt: dict(I),
-  takenFrom: dict(S),
-  foodWord: list(() => FoodWordSchema),
-  falls: list(() => KingdomFallSchema),
-  invaded: dict(dict(I)),
-  characters: list(() => CharacterSchema),
-  journeys: list(() => JourneySchema),
-  audiences: list(() => PendingAudienceSchema),
-  unheard: list(() => PendingAudienceSchema),
-  kingTongues: dict(dict(I)),
-  tablets: list(() => TabletSchema),
-  copies: list(() => TabletCopySchema),
-  catastrophes: list(() => CatastropheSchema),
-  losses: list(() => LossAbroadSchema),
-  tasks: list(() => PendingTaskSchema),
-  counterIntel: dict(I),
-  sleep: dict(() => SleepStateSchema),
-  standing: dict(() => StandingBookSchema),
-  answers: dict(() => AnswerBookSchema),
-  inbox: dict(list(() => InboxItemSchema)),
-  lastSeen: dict(list(() => OrderOutcomeSchema)),
-  trails: list(() => MessageTrailSchema),
-  events: list(() => GameEventSchema),
-  scores: list(() => ScoreRowSchema),
-  winners: list(S),
-  idCounters: dict(I),
-  alive: computed(list(S), (o: GameState) => alive(o)),
-});
+export const GameStateSchema: ObjSchema<GameState> = obj(
+  "GameState",
+  newGameState,
+  {
+    version: I,
+    seed: I,
+    config: () => GameConfigSchema,
+    turn: I,
+    ended: B,
+    endReason: S,
+    finalSeason: opt(I),
+    finalByCap: B,
+    claims: list(() => ClaimSchema),
+    recognition: list(() => RecognitionSchema),
+    names: dict(() => NameClaimSchema),
+    nameGiven: dict(dict(S)),
+    namesHeard: dict(dict(S)),
+    ageEndedTurn: opt(I),
+    ageWinners: list(S),
+    owner: dict(opt(S)),
+    walls: dict(I),
+    wallsSeen: dict(dict(I)),
+    built: dict(I),
+    works: list(() => WorkPlanSchema),
+    ownerLog: list(() => OwnerChangeSchema),
+    known: dict(dict(() => KnownSchema)),
+    roadsClosed: dict(list(S)),
+    roadsHeard: dict(list(S)),
+    grants: list(() => GrantSchema),
+    fallsHeard: dict(list(S)),
+    sieges: list(() => SiegeSchema),
+    ledger: dict(dict(I)),
+    obeyed: dict(I),
+    ownLast: dict(dict(() => ProvinceEconomyViewSchema)),
+    stores: dict(I),
+    markets: dict(() => MarketSchema),
+    people: dict(() => PeopleSchema),
+    walking: list(() => WalkSchema),
+    climate: list(() => ClimateEventSchema),
+    taxes: dict(I),
+    corvee: dict(I),
+    fed: dict(I),
+    caravans: list(() => CaravanSchema),
+    tolls: list(() => TollSchema),
+    marketsSeen: dict(dict(() => MarketSeenSchema)),
+    payRecords: dict(() => PayRecordSchema),
+    payFacts: list(() => PayFactSchema),
+    payKnown: dict(() => PayRecordSchema),
+    payCarriers: list(S),
+    upkeep: dict(() => TroopUpkeepSchema),
+    councilOff: list(S),
+    hunts: list(() => StandingHuntSchema),
+    huntNow: list(S),
+    debts: list(() => DebtSchema),
+    approaches: list(() => ApproachSchema),
+    baseline: I,
+    hiring: dict(I),
+    loot: dict(I),
+    bands: list(() => BandSchema),
+    governors: list(() => GovernorSchema),
+    court: dict(S),
+    kingRoads: list(() => KingRoadSchema),
+    couriers: list(() => CourierSchema),
+    lettersCarried: dict(I),
+    lettersWaited: dict(I),
+    lettersToCarried: dict(I),
+    lettersToWaited: dict(I),
+    crop: dict(I),
+    reaped: dict(I),
+    granary: dict(I),
+    runaways: dict(dict(I)),
+    expelled: dict(I),
+    tollsKnown: dict(list(() => TollSchema)),
+    starving: list(S),
+    units: list(() => UnitSchema),
+    treasuries: dict(() => TreasurySchema),
+    startStrength: dict(I),
+    eliminated: list(S),
+    risen: list(() => RisenPowerSchema),
+    restless: dict(I),
+    takenAt: dict(I),
+    foodWord: list(() => FoodWordSchema),
+    falls: list(() => KingdomFallSchema),
+    invaded: dict(dict(I)),
+    characters: list(() => CharacterSchema),
+    journeys: list(() => JourneySchema),
+    audiences: list(() => PendingAudienceSchema),
+    unheard: list(() => PendingAudienceSchema),
+    kingTongues: dict(dict(I)),
+    tablets: list(() => TabletSchema),
+    copies: list(() => TabletCopySchema),
+    catastrophes: list(() => CatastropheSchema),
+    losses: list(() => LossAbroadSchema),
+    tasks: list(() => PendingTaskSchema),
+    counterIntel: dict(I),
+    sleep: dict(() => SleepStateSchema),
+    standing: dict(() => StandingBookSchema),
+    answers: dict(() => AnswerBookSchema),
+    inbox: dict(list(() => InboxItemSchema)),
+    lastSeen: dict(list(() => OrderOutcomeSchema)),
+    trails: list(() => MessageTrailSchema),
+    events: list(() => GameEventSchema),
+    scores: list(() => ScoreRowSchema),
+    winners: list(S),
+    idCounters: dict(I),
+    alive: computed(list(S), (o: GameState) => alive(o)),
+  },
+);
 
 export interface Unit {
   id: string;
@@ -793,13 +957,17 @@ export function newKingdomFall(init: Partial<KingdomFall> = {}): KingdomFall {
   };
 }
 
-export const KingdomFallSchema: ObjSchema<KingdomFall> = obj("KingdomFall", newKingdomFall, {
-  power: S,
-  turn: I,
-  conqueror: opt(S),
-  capital: S,
-  land: list(S),
-});
+export const KingdomFallSchema: ObjSchema<KingdomFall> = obj(
+  "KingdomFall",
+  newKingdomFall,
+  {
+    power: S,
+    turn: I,
+    conqueror: opt(S),
+    capital: S,
+    land: list(S),
+  },
+);
 
 /**
  * A siege under way (Build order item 5): a foreign army standing in a walled city it does not hold, whose king ordered it
@@ -865,12 +1033,16 @@ export function newTreasury(init: Partial<Treasury> = {}): Treasury {
   };
 }
 
-export const TreasurySchema: ObjSchema<Treasury> = obj("Treasury", newTreasury, {
-  gold: I,
-  lots: list(() => GoldLotSchema),
-  income: I,
-  ledger: computed(I, (o: Treasury) => ledger(o)),
-});
+export const TreasurySchema: ObjSchema<Treasury> = obj(
+  "Treasury",
+  newTreasury,
+  {
+    gold: I,
+    lots: list(() => GoldLotSchema),
+    income: I,
+    ledger: computed(I, (o: Treasury) => ledger(o)),
+  },
+);
 
 export interface GoldLot {
   id: string;
@@ -928,7 +1100,10 @@ export function siegeOf(s: GameState, province: string): Siege | null {
   return s.sieges.find((x) => x.province === province) ?? null;
 }
 
-export function findCharacter(s: GameState, id: string | null | undefined): Character | null {
+export function findCharacter(
+  s: GameState,
+  id: string | null | undefined,
+): Character | null {
   if (id === null || id === undefined) return null;
   return s.characters.find((c) => c.id === id) ?? null;
 }
@@ -951,7 +1126,9 @@ export function alive(s: GameState): Power[] {
 
 /** The land a power holds, in the map's order. */
 export function ownedBy(s: GameState, p: Power): string[] {
-  return WorldMap.default.landProvinces.filter((x) => s.owner.getOrDefault(x.id, null) === p).map((x) => x.id);
+  return WorldMap.default.landProvinces
+    .filter((x) => s.owner.getOrDefault(x.id, null) === p)
+    .map((x) => x.id);
 }
 
 export function inboxOf(s: GameState, p: Power): InboxItem[] {
@@ -960,24 +1137,58 @@ export function inboxOf(s: GameState, p: Power): InboxItem[] {
   return list;
 }
 
-export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null): void {
+export function notify(
+  s: GameState,
+  p: Power,
+  kind: InboxKind,
+  title: string,
+  body: string,
+  subject: string | null = null,
+): void {
   // A person the court knows by a false name (item 10) is named to it by that name.
-  const c = subject === null ? null : (s.characters.find((x) => x.id === subject) ?? null);
-  const alias = c === null ? null : (c.declared.find((d) => d.court === p && d.exposed === null)?.name ?? null);
+  const c =
+    subject === null
+      ? null
+      : (s.characters.find((x) => x.id === subject) ?? null);
+  const alias =
+    c === null
+      ? null
+      : (c.declared.find((d) => d.court === p && d.exposed === null)?.name ??
+        null);
   if (c !== null && alias !== null && alias !== c.name) {
-    const own = new RegExp(`\\b${c.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g");
+    const own = new RegExp(
+      `\\b${c.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+      "g",
+    );
     title = title.replace(own, alias);
     body = body.replace(own, alias);
   }
-  inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset, kind, title, body, subject }));
+  inboxOf(s, p).push(
+    newInboxItem({
+      turn: s.turn + s.deliveryOffset,
+      kind,
+      title,
+      body,
+      subject,
+    }),
+  );
 }
 
-export function logEvent(s: GameState, kind: string, text: string, visibleTo: Iterable<Power> | null = null, signal: string | null = null): GameEvent {
+export function logEvent(
+  s: GameState,
+  kind: string,
+  text: string,
+  visibleTo: Iterable<Power> | null = null,
+  signal: string | null = null,
+): GameEvent {
   const e = newGameEvent({
     turn: s.turn,
     kind,
     text,
-    visibleTo: visibleTo === null ? [...AllPowers] : sortBy(distinct(visibleTo), [(p: Power) => p, cmpPower]),
+    visibleTo:
+      visibleTo === null
+        ? [...AllPowers]
+        : sortBy(distinct(visibleTo), [(p: Power) => p, cmpPower]),
     signal,
   });
   s.events.push(e);
@@ -1035,7 +1246,11 @@ export function newOwnerChange(init: Partial<OwnerChange> = {}): OwnerChange {
   return { province: "", turn: 0, owner: null, ...init };
 }
 
-export const OwnerChangeSchema: ObjSchema<OwnerChange> = obj("OwnerChange", newOwnerChange, { province: S, turn: I, owner: opt(S) });
+export const OwnerChangeSchema: ObjSchema<OwnerChange> = obj(
+  "OwnerChange",
+  newOwnerChange,
+  { province: S, turn: I, owner: opt(S) },
+);
 
 /** Who a court knows holds a province: as of a season, and from where (seen by its own people, or a traveller's name). */
 export interface Known {
@@ -1048,4 +1263,8 @@ export function newKnown(init: Partial<Known> = {}): Known {
   return { owner: null, turn: 0, source: "", ...init };
 }
 
-export const KnownSchema: ObjSchema<Known> = obj("Known", newKnown, { owner: opt(S), turn: I, source: S });
+export const KnownSchema: ObjSchema<Known> = obj("Known", newKnown, {
+  owner: opt(S),
+  turn: I,
+  source: S,
+});

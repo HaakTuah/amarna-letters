@@ -13,7 +13,12 @@ import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData } from "../model/bands.ts";
 import type { Character } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
-import { isAlive, logEvent, type KingdomFall, type Unit } from "../model/state.ts";
+import {
+  isAlive,
+  logEvent,
+  type KingdomFall,
+  type Unit,
+} from "../model/state.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine, travelTurns } from "./core.ts";
 import type { Governor } from "../model/command.ts";
@@ -53,21 +58,52 @@ P.fallsSpread = function () {
   for (const f of S.falls) {
     if (isAlive(S, f.power)) continue;
     const p = f.power;
-    const held = this.map.landProvinces.filter((x) => S.owner.getOrDefault(x.id, null) === p).map((x) => x.id);
+    const held = this.map.landProvinces
+      .filter((x) => S.owner.getOrDefault(x.id, null) === p)
+      .map((x) => x.id);
     const units = S.units.filter((u) => u.power === p);
-    if (held.length === 0 && units.length === 0 && !S.characters.some((c) => c.employer === p)) continue;
-    const conqueror = f.conqueror !== null && isAlive(S, f.conqueror) ? f.conqueror : null;
+    if (
+      held.length === 0 &&
+      units.length === 0 &&
+      !S.characters.some((c) => c.employer === p)
+    )
+      continue;
+    const conqueror =
+      f.conqueror !== null && isAlive(S, f.conqueror) ? f.conqueror : null;
     const lawless: string[] = [];
     for (const id of held) {
       if (S.turn < wordArrives(this, f, id)) continue;
       const name = this.map.get(id).name;
-      const seeing = (extra: Power[]): Power[] => [...new Set([...AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, this.map, x).has(id)), ...extra])];
-      if (conqueror !== null && S.units.some((u) => u.province === id && u.power === conqueror)) {
+      const seeing = (extra: Power[]): Power[] => [
+        ...new Set([
+          ...AllPowers.filter(
+            (x) => isAlive(S, x) && Views.sight(S, this.map, x).has(id),
+          ),
+          ...extra,
+        ]),
+      ];
+      if (
+        conqueror !== null &&
+        S.units.some((u) => u.province === id && u.power === conqueror)
+      ) {
         this.setOwner(id, conqueror);
-        this.takenByForce(id, conqueror);
-        S.sieges = S.sieges.filter((x) => !(x.province === id && x.power === conqueror));
-        this.tell(conqueror, id, "Battle", "Land held by force", `Word of the fall of ${land(p)} has reached ${name}, where your troops stand: it is yours, held by force.`);
-        logEvent(S, "fall", `Word of the fall of ${land(p)} reached ${name}, and ${conqueror}'s troops there hold it.`, seeing([conqueror]), "fall-held");
+        S.sieges = S.sieges.filter(
+          (x) => !(x.province === id && x.power === conqueror),
+        );
+        this.tell(
+          conqueror,
+          id,
+          "Battle",
+          "Land held by force",
+          `Word of the fall of ${land(p)} has reached ${name}, where your troops stand: it is yours, held by force.`,
+        );
+        logEvent(
+          S,
+          "fall",
+          `Word of the fall of ${land(p)} reached ${name}, and ${conqueror}'s troops there hold it.`,
+          seeing([conqueror]),
+          "fall-held",
+        );
         continue;
       }
       const found = this.governorOf(id);
@@ -76,9 +112,14 @@ P.fallsSpread = function () {
         continue;
       }
       this.setOwner(id, null);
-      this.takenByForce(id, null);
       lawless.push(name);
-      logEvent(S, "fall", `Word of the fall of ${land(p)} reached ${name}, and it has fallen lawless, held by nobody.`, seeing([]), "fall-lawless");
+      logEvent(
+        S,
+        "fall",
+        `Word of the fall of ${land(p)} reached ${name}, and it has fallen lawless, held by nobody.`,
+        seeing([]),
+        "fall-lawless",
+      );
     }
     // The armies hear it where they stand, after the land, so troops in a governed province can follow its new ruler.
     for (const u of sortBy(units, [(u: Unit) => u.id, cmpStr])) {
@@ -88,7 +129,16 @@ P.fallsSpread = function () {
     }
     // His governors and commanders are their own men once their province or army has heard it.
     for (const c of S.characters.filter((c) => c.employer === p)) {
-      const post = c.duty === "Governing" ? S.governors.find((g) => g.character === c.id && S.owner.getOrDefault(g.province, null) === p) : c.duty === "Commanding" ? S.units.find((u) => u.commander === c.id && u.power === p) : undefined;
+      const post =
+        c.duty === "Governing"
+          ? S.governors.find(
+              (g) =>
+                g.character === c.id &&
+                S.owner.getOrDefault(g.province, null) === p,
+            )
+          : c.duty === "Commanding"
+            ? S.units.find((u) => u.commander === c.id && u.power === p)
+            : undefined;
       if (post !== undefined) continue;
       c.formerEmployer = p;
       c.employer = null;
@@ -124,8 +174,16 @@ P.fallenUnit = function (u, p) {
     return;
   }
   const ranks = this.r("captain", `${p}|${u.id}`);
-  const land_ = this.map.get(u.province).isSea ? (this.map.landProvinces.find((x) => x.waters === u.province)?.id ?? null) : u.province;
-  if (u.kind === "Army" && land_ !== null && u.men >= BandData.least && (u.unpaid > 0 || u.hungry > 0) && ranks.chance(Math.min(100, BandData.mutinyHead + idiv(u.men, 500)) / 100)) {
+  const land_ = this.map.get(u.province).isSea
+    ? (this.map.landProvinces.find((x) => x.waters === u.province)?.id ?? null)
+    : u.province;
+  if (
+    u.kind === "Army" &&
+    land_ !== null &&
+    u.men >= BandData.least &&
+    (u.unpaid > 0 || u.hungry > 0) &&
+    ranks.chance(Math.min(100, BandData.mutinyHead + idiv(u.men, 500)) / 100)
+  ) {
     S.units.splice(S.units.indexOf(u), 1);
     this.headRises(land_, u.men, "captain", ranks, p);
     S.loot.set(land_, S.loot.getOrDefault(land_, 0) + u.savings);
@@ -140,7 +198,13 @@ P.governorRises = function (g, c, f) {
   const prov = this.map.get(id);
   const was = f.power;
   // A commanded army is its commander's to decide, as the word reaches him (fallenUnit).
-  const followers = S.units.filter((u) => u.power === was && this.commanderOf(u) === null && (u.province === id || (prov.waters !== null && u.province === prov.waters)));
+  const followers = S.units.filter(
+    (u) =>
+      u.power === was &&
+      this.commanderOf(u) === null &&
+      (u.province === id ||
+        (prov.waters !== null && u.province === prov.waters)),
+  );
   return this.ruleOwn(id, c, {
     how: "governor",
     from: was,

@@ -1,5 +1,16 @@
 import { Dict } from "../core/collections.ts";
-import { B, D, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
+import {
+  B,
+  D,
+  I,
+  type ObjSchema,
+  S,
+  computed,
+  dict,
+  list,
+  obj,
+  opt,
+} from "../core/json.ts";
 import { type Mandate, MandateSchema } from "./command.ts";
 import { newGameConfig } from "./config.ts";
 import type { UnitKind } from "./map.ts";
@@ -7,10 +18,20 @@ import { type Order, OrderSchema } from "./orders.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
-import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
+import {
+  type Claim,
+  ClaimSchema,
+  type Recognition,
+  RecognitionSchema,
+} from "./recognition.ts";
 import { type InboxItem, InboxItemSchema } from "./records.ts";
 import { type LendOffer, LendOfferSchema } from "./money.ts";
-import { type ScheduledOrders, ScheduledOrdersSchema, type StandingOrderView, StandingOrderViewSchema } from "./sleep.ts";
+import {
+  type ScheduledOrders,
+  ScheduledOrdersSchema,
+  type StandingOrderView,
+  StandingOrderViewSchema,
+} from "./sleep.ts";
 import { type StandingAnswer, StandingAnswerSchema } from "./answers.ts";
 import { type GrantView, GrantViewSchema } from "./authority.ts";
 import { type Toll, TollSchema } from "./trade.ts";
@@ -83,29 +104,33 @@ export function newUnitView(init: Partial<UnitView> = {}): UnitView {
   };
 }
 
-export const UnitViewSchema: ObjSchema<UnitView> = obj("UnitView", newUnitView, {
-  power: S,
-  kind: S,
-  province: S,
-  food: I,
-  carried: I,
-  hungry: I,
-  unpaid: I,
-  savings: I,
-  men: I,
-  march: opt(S),
-  marchDays: I,
-  commander: opt(S),
-  commandFrom: I,
-  relieving: B,
-  mandate: opt(() => MandateSchema),
-  mandateFrom: I,
-  reported: I,
-  hiredMen: I,
-  hiredUntil: opt(I),
-  buy: B,
-  chest: I,
-});
+export const UnitViewSchema: ObjSchema<UnitView> = obj(
+  "UnitView",
+  newUnitView,
+  {
+    power: S,
+    kind: S,
+    province: S,
+    food: I,
+    carried: I,
+    hungry: I,
+    unpaid: I,
+    savings: I,
+    men: I,
+    march: opt(S),
+    marchDays: I,
+    commander: opt(S),
+    commandFrom: I,
+    relieving: B,
+    mandate: opt(() => MandateSchema),
+    mandateFrom: I,
+    reported: I,
+    hiredMen: I,
+    hiredUntil: opt(I),
+    buy: B,
+    chest: I,
+  },
+);
 
 /**
  * One of the court's own provinces, as its stewards report it (item 9+a): the grain in its stores and the most they hold,
@@ -150,32 +175,60 @@ export interface ProvinceEconomyView {
   reapsIn: number;
 }
 
-export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
-  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, settled: 0, men: 0, loose: 0, room: 0, taxRate: 0, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, ...init };
+export function newProvinceEconomyView(
+  init: Partial<ProvinceEconomyView> = {},
+): ProvinceEconomyView {
+  return {
+    province: "",
+    stores: 0,
+    capacity: 0,
+    tax: 0,
+    need: 0,
+    stock: 0,
+    purse: 0,
+    price: 0,
+    settled: 0,
+    men: 0,
+    loose: 0,
+    room: 0,
+    taxRate: 0,
+    harvest: 0,
+    fed: 1000,
+    runaways: new Dict(),
+    expelled: 0,
+    granary: 0,
+    crop: 0,
+    reapsIn: 0,
+    ...init,
+  };
 }
 
-export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
-  province: S,
-  stores: I,
-  capacity: I,
-  tax: I,
-  need: I,
-  stock: I,
-  purse: I,
-  price: I,
-  settled: I,
-  men: I,
-  loose: I,
-  room: I,
-  taxRate: I,
-  harvest: I,
-  fed: I,
-  runaways: dict(I),
-  expelled: I,
-  granary: I,
-  crop: I,
-  reapsIn: I,
-});
+export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj(
+  "ProvinceEconomyView",
+  newProvinceEconomyView,
+  {
+    province: S,
+    stores: I,
+    capacity: I,
+    tax: I,
+    need: I,
+    stock: I,
+    purse: I,
+    price: I,
+    settled: I,
+    men: I,
+    loose: I,
+    room: I,
+    taxRate: I,
+    harvest: I,
+    fed: I,
+    runaways: dict(I),
+    expelled: I,
+    granary: I,
+    crop: I,
+    reapsIn: I,
+  },
+);
 
 /** One of the court's caravans on the road (item 9+a), or ships in cargo service (item 9+b). */
 export interface CaravanView {
@@ -193,20 +246,35 @@ export interface CaravanView {
 }
 
 export function newCaravanView(init: Partial<CaravanView> = {}): CaravanView {
-  return { from: "", to: "", grain: 0, at: "", returning: false, gold: 0, trade: false, sneak: false, ship: false, ...init };
+  return {
+    from: "",
+    to: "",
+    grain: 0,
+    at: "",
+    returning: false,
+    gold: 0,
+    trade: false,
+    sneak: false,
+    ship: false,
+    ...init,
+  };
 }
 
-export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newCaravanView, {
-  from: S,
-  to: S,
-  grain: I,
-  at: S,
-  returning: B,
-  gold: I,
-  trade: B,
-  sneak: B,
-  ship: B,
-});
+export const CaravanViewSchema: ObjSchema<CaravanView> = obj(
+  "CaravanView",
+  newCaravanView,
+  {
+    from: S,
+    to: S,
+    grain: I,
+    at: S,
+    returning: B,
+    gold: I,
+    trade: B,
+    sneak: B,
+    ship: B,
+  },
+);
 
 export { type MarketSeen, newMarketSeen, MarketSeenSchema } from "./word.ts";
 import { type MarketSeen, MarketSeenSchema } from "./word.ts";
@@ -243,15 +311,19 @@ export function newSiegeView(init: Partial<SiegeView> = {}): SiegeView {
   };
 }
 
-export const SiegeViewSchema: ObjSchema<SiegeView> = obj("SiegeView", newSiegeView, {
-  province: S,
-  besieger: S,
-  holder: opt(S),
-  progress: I,
-  walls: I,
-  since: I,
-  tightness: opt(I),
-});
+export const SiegeViewSchema: ObjSchema<SiegeView> = obj(
+  "SiegeView",
+  newSiegeView,
+  {
+    province: S,
+    besieger: S,
+    holder: opt(S),
+    progress: I,
+    walls: I,
+    since: I,
+    tightness: opt(I),
+  },
+);
 
 export interface LotView {
   id: string;
@@ -371,7 +443,11 @@ export function newBandSeen(init: Partial<BandSeen> = {}): BandSeen {
   return { province: "", men: 0, chief: "", ship: false, ...init };
 }
 
-export const BandSeenSchema: ObjSchema<BandSeen> = obj("BandSeen", newBandSeen, { province: S, men: I, chief: S, ship: B });
+export const BandSeenSchema: ObjSchema<BandSeen> = obj(
+  "BandSeen",
+  newBandSeen,
+  { province: S, men: I, chief: S, ship: B },
+);
 
 /** Item 11b: news a person at your court offers of another court: as of when, how many reports, and its price. */
 export interface NewsOffer {
@@ -385,9 +461,15 @@ export function newNewsOffer(init: Partial<NewsOffer> = {}): NewsOffer {
   return { court: "", turn: 0, lines: 0, price: 0, ...init };
 }
 
-export const NewsOfferSchema: ObjSchema<NewsOffer> = obj("NewsOffer", newNewsOffer, { court: S, turn: I, lines: I, price: I });
+export const NewsOfferSchema: ObjSchema<NewsOffer> = obj(
+  "NewsOffer",
+  newNewsOffer,
+  { court: S, turn: I, lines: I, price: I },
+);
 
-export function newCharacterView(init: Partial<CharacterView> = {}): CharacterView {
+export function newCharacterView(
+  init: Partial<CharacterView> = {},
+): CharacterView {
   return {
     id: "",
     name: "",
@@ -430,45 +512,49 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
   };
 }
 
-export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView", newCharacterView, {
-  id: S,
-  name: S,
-  origin: S,
-  ours: B,
-  status: S,
-  employer: opt(S),
-  duty: S,
-  where: S,
-  timing: S,
-  fee: opt(I),
-  advance: opt(I),
-  contractFrom: opt(I),
-  contractUntil: opt(I),
-  errandWhat: opt(S),
-  errandWhere: opt(S),
-  errandDone: B,
-  payOnDone: B,
-  offerAgain: B,
-  term: S,
-  knownFacts: list(S),
-  pitch: S,
-  claims: list(S),
-  speaks: list(S),
-  claimsToServe: opt(S),
-  askingPrice: opt(I),
-  ready: B,
-  heldByYou: B,
-  intercepted: B,
-  ransomDemand: opt(I),
-  ransomCarrier: opt(I),
-  owed: opt(I),
-  hoardHere: opt(I),
-  carries: opt(I),
-  lends: () => LendOfferSchema,
-  news: list(() => NewsOfferSchema),
-  won: I,
-  lost: I,
-});
+export const CharacterViewSchema: ObjSchema<CharacterView> = obj(
+  "CharacterView",
+  newCharacterView,
+  {
+    id: S,
+    name: S,
+    origin: S,
+    ours: B,
+    status: S,
+    employer: opt(S),
+    duty: S,
+    where: S,
+    timing: S,
+    fee: opt(I),
+    advance: opt(I),
+    contractFrom: opt(I),
+    contractUntil: opt(I),
+    errandWhat: opt(S),
+    errandWhere: opt(S),
+    errandDone: B,
+    payOnDone: B,
+    offerAgain: B,
+    term: S,
+    knownFacts: list(S),
+    pitch: S,
+    claims: list(S),
+    speaks: list(S),
+    claimsToServe: opt(S),
+    askingPrice: opt(I),
+    ready: B,
+    heldByYou: B,
+    intercepted: B,
+    ransomDemand: opt(I),
+    ransomCarrier: opt(I),
+    owed: opt(I),
+    hoardHere: opt(I),
+    carries: opt(I),
+    lends: () => LendOfferSchema,
+    news: list(() => NewsOfferSchema),
+    won: I,
+    lost: I,
+  },
+);
 
 /** Item 11a: a debt of the seat's own, as its tablet reads: whom it owes, what is left, and whether the holder stands at its court. */
 export interface DebtView {
@@ -487,21 +573,37 @@ export interface DebtView {
 }
 
 export function newDebtView(init: Partial<DebtView> = {}): DebtView {
-  return { id: "", holder: "", holderId: "", lender: "", principal: 0, owed: 0, left: 0, sealedTurn: 0, dueTurn: 0, here: false, ...init };
+  return {
+    id: "",
+    holder: "",
+    holderId: "",
+    lender: "",
+    principal: 0,
+    owed: 0,
+    left: 0,
+    sealedTurn: 0,
+    dueTurn: 0,
+    here: false,
+    ...init,
+  };
 }
 
-export const DebtViewSchema: ObjSchema<DebtView> = obj("DebtView", newDebtView, {
-  id: S,
-  holder: S,
-  holderId: S,
-  lender: S,
-  principal: I,
-  owed: I,
-  left: I,
-  sealedTurn: I,
-  dueTurn: I,
-  here: B,
-});
+export const DebtViewSchema: ObjSchema<DebtView> = obj(
+  "DebtView",
+  newDebtView,
+  {
+    id: S,
+    holder: S,
+    holderId: S,
+    lender: S,
+    principal: I,
+    owed: I,
+    left: I,
+    sealedTurn: I,
+    dueTurn: I,
+    here: B,
+  },
+);
 
 export interface TabletView {
   /** The tablet as every court names it, by its seals and date (see {@link Views.TabletName}). */
@@ -557,26 +659,30 @@ export function newTabletView(init: Partial<TabletView> = {}): TabletView {
   };
 }
 
-export const TabletViewSchema: ObjSchema<TabletView> = obj("TabletView", newTabletView, {
-  clauses: list(() => ClauseSchema),
-  name: S,
-  copyId: S,
-  tabletId: S,
-  text: S,
-  seals: list(S),
-  proposedBy: S,
-  partner: opt(S),
-  sealedTurn: opt(I),
-  allianceOath: B,
-  vassal: opt(S),
-  source: S,
-  authResult: S,
-  byHand: opt(S),
-  byHandOf: opt(S),
-  within: opt(B),
-  repudiatedTurn: opt(I),
-  unread: B,
-});
+export const TabletViewSchema: ObjSchema<TabletView> = obj(
+  "TabletView",
+  newTabletView,
+  {
+    clauses: list(() => ClauseSchema),
+    name: S,
+    copyId: S,
+    tabletId: S,
+    text: S,
+    seals: list(S),
+    proposedBy: S,
+    partner: opt(S),
+    sealedTurn: opt(I),
+    allianceOath: B,
+    vassal: opt(S),
+    source: S,
+    authResult: S,
+    byHand: opt(S),
+    byHandOf: opt(S),
+    within: opt(B),
+    repudiatedTurn: opt(I),
+    unread: B,
+  },
+);
 
 /**
  * A letter the king sent, as his scribes wrote it ({@link MessageTrail}): his record of what he sent with an envoy,
@@ -611,17 +717,21 @@ export function newLetterView(init: Partial<LetterView> = {}): LetterView {
   };
 }
 
-export const LetterViewSchema: ObjSchema<LetterView> = obj("LetterView", newLetterView, {
-  turn: I,
-  envoyId: S,
-  envoyName: S,
-  to: S,
-  gold: I,
-  message: S,
-  mandate: S,
-  tablet: S,
-  reportedTurn: opt(I),
-});
+export const LetterViewSchema: ObjSchema<LetterView> = obj(
+  "LetterView",
+  newLetterView,
+  {
+    turn: I,
+    envoyId: S,
+    envoyName: S,
+    to: S,
+    gold: I,
+    message: S,
+    mandate: S,
+    tablet: S,
+    reportedTurn: opt(I),
+  },
+);
 
 /**
  * One seat's view of the world: the public map, its own treasury and people, what its
@@ -651,24 +761,43 @@ export interface WorkView {
 }
 
 export function newWorkView(init: Partial<WorkView> = {}): WorkView {
-  return { province: "", kind: "Roads", level: 0, keep: 0, labour: true, progress: 0, seasons: 0, upkeepGold: 0, upkeepMen: 0, buildGold: 0, buildMen: 0, neglect: 0, decay: 0, ...init };
+  return {
+    province: "",
+    kind: "Roads",
+    level: 0,
+    keep: 0,
+    labour: true,
+    progress: 0,
+    seasons: 0,
+    upkeepGold: 0,
+    upkeepMen: 0,
+    buildGold: 0,
+    buildMen: 0,
+    neglect: 0,
+    decay: 0,
+    ...init,
+  };
 }
 
-export const WorkViewSchema: ObjSchema<WorkView> = obj("WorkView", newWorkView, {
-  province: S,
-  kind: S,
-  level: I,
-  keep: I,
-  labour: B,
-  progress: I,
-  seasons: I,
-  upkeepGold: I,
-  upkeepMen: I,
-  buildGold: I,
-  buildMen: I,
-  neglect: I,
-  decay: I,
-});
+export const WorkViewSchema: ObjSchema<WorkView> = obj(
+  "WorkView",
+  newWorkView,
+  {
+    province: S,
+    kind: S,
+    level: I,
+    keep: I,
+    labour: B,
+    progress: I,
+    seasons: I,
+    upkeepGold: I,
+    upkeepMen: I,
+    buildGold: I,
+    buildMen: I,
+    neglect: I,
+    decay: I,
+  },
+);
 
 /** Item 13: one of the court's governorships, as the court knows it. */
 export interface GovernorView {
@@ -680,11 +809,25 @@ export interface GovernorView {
   relieving: boolean;
 }
 
-export function newGovernorView(init: Partial<GovernorView> = {}): GovernorView {
-  return { province: "", character: "", from: 0, levies: 0, raised: 0, relieving: false, ...init };
+export function newGovernorView(
+  init: Partial<GovernorView> = {},
+): GovernorView {
+  return {
+    province: "",
+    character: "",
+    from: 0,
+    levies: 0,
+    raised: 0,
+    relieving: false,
+    ...init,
+  };
 }
 
-export const GovernorViewSchema: ObjSchema<GovernorView> = obj("GovernorView", newGovernorView, { province: S, character: S, from: I, levies: I, raised: I, relieving: B });
+export const GovernorViewSchema: ObjSchema<GovernorView> = obj(
+  "GovernorView",
+  newGovernorView,
+  { province: S, character: S, from: I, levies: I, raised: I, relieving: B },
+);
 
 /**
  * Item 16, "The royal council": one troop order or levy an advisor proposes, with its one-line reason and the brief numbers
@@ -695,10 +838,18 @@ export interface CouncilLine {
   text: string;
 }
 
-export const CouncilLineSchema: ObjSchema<CouncilLine> = obj("CouncilLine", (init: Partial<CouncilLine> = {}) => ({ order: { type: "hold", unit: "" } as Order, text: "", ...init }), {
-  order: OrderSchema,
-  text: S,
-});
+export const CouncilLineSchema: ObjSchema<CouncilLine> = obj(
+  "CouncilLine",
+  (init: Partial<CouncilLine> = {}) => ({
+    order: { type: "hold", unit: "" } as Order,
+    text: "",
+    ...init,
+  }),
+  {
+    order: OrderSchema,
+    text: S,
+  },
+);
 
 /** One advisor's counsel: its archetype, its title at this court, its known tilt, what it sees and where it differs. */
 export interface CouncilAdvice {
@@ -713,8 +864,21 @@ export interface CouncilAdvice {
 
 export const CouncilAdviceSchema: ObjSchema<CouncilAdvice> = obj(
   "CouncilAdvice",
-  (init: Partial<CouncilAdvice> = {}) => ({ advisor: "", title: "", tilt: "", reading: "", lines: [], ...init }),
-  { advisor: S, title: S, tilt: S, reading: S, lines: list(() => CouncilLineSchema) },
+  (init: Partial<CouncilAdvice> = {}) => ({
+    advisor: "",
+    title: "",
+    tilt: "",
+    reading: "",
+    lines: [],
+    ...init,
+  }),
+  {
+    advisor: S,
+    title: S,
+    tilt: S,
+    reading: S,
+    lines: list(() => CouncilLineSchema),
+  },
 );
 
 /** The council's counsel for a season: what all four agree on, then each advisor where they differ. */
@@ -723,11 +887,14 @@ export interface CouncilView {
   advisors: CouncilAdvice[];
 }
 
-export const CouncilViewSchema: ObjSchema<CouncilView> = obj("CouncilView", (init: Partial<CouncilView> = {}) => ({ agreed: [], advisors: [], ...init }), {
-  agreed: list(() => CouncilLineSchema),
-  advisors: list(() => CouncilAdviceSchema),
-});
-
+export const CouncilViewSchema: ObjSchema<CouncilView> = obj(
+  "CouncilView",
+  (init: Partial<CouncilView> = {}) => ({ agreed: [], advisors: [], ...init }),
+  {
+    agreed: list(() => CouncilLineSchema),
+    advisors: list(() => CouncilAdviceSchema),
+  },
+);
 
 export interface SeatView {
   turn: number;
@@ -823,12 +990,6 @@ export interface SeatView {
   walls: Dict<string, number>;
   /** The sieges this court knows of: its own, those of its cities, and those it can see. */
   sieges: SiegeView[];
-  /**
-   * This court's own land taken by force and still being absorbed, with the season it was taken. Only its own: who holds
-   * a province is public, but how it changed hands is not (since the review of the siege package; until then every court
-   * saw every king's marks, and so which land had been conquered and which ceded or bought).
-   */
-  conquered: Dict<string, number>;
   units: UnitView[];
   visible: string[];
   fallen: Power[];
@@ -925,11 +1086,15 @@ export interface NameClaimView {
   givenTo: Power | null;
 }
 
-export const NameClaimViewSchema: ObjSchema<NameClaimView> = obj("NameClaimView", () => ({ name: "", claimants: [], givenTo: null }), {
-  name: S,
-  claimants: list(S),
-  givenTo: opt(S),
-});
+export const NameClaimViewSchema: ObjSchema<NameClaimView> = obj(
+  "NameClaimView",
+  () => ({ name: "", claimants: [], givenTo: null }),
+  {
+    name: S,
+    claimants: list(S),
+    givenTo: opt(S),
+  },
+);
 
 export function newSeatView(init: Partial<SeatView> = {}): SeatView {
   return {
@@ -983,7 +1148,6 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     grants: [],
     walls: new Dict(),
     sieges: [],
-    conquered: new Dict(),
     units: [],
     visible: [],
     fallen: [],
@@ -1021,92 +1185,108 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
   };
 }
 
-export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, {
-  greetings: list(() => RecognitionSchema),
-  claims: list(() => ClaimSchema),
-  claimedName: S,
-  nameClaims: list(() => NameClaimViewSchema),
-  turn: I,
-  season: S,
-  power: S,
-  courtAt: S,
-  courtTo: opt(S),
-  governors: list(() => GovernorViewSchema),
-  king: S,
-  ended: B,
-  openAge: B,
-  ageBand: S,
-  omens: S,
-  councilOn: B,
-  council: opt(() => CouncilViewSchema),
-  gold: I,
-  unassayedGold: list(() => LotViewSchema),
-  income: I,
-  upkeep: I,
-  worksUpkeep: I,
-  works: list(() => WorkViewSchema),
-  worksSeen: list(() => WorkViewSchema),
-  feesDue: I,
-  feesOwed: I,
-  fees: I,
-  trust: I,
-  kept: I,
-  broken: I,
-  payCarriers: B,
-  payTroops: B,
-  feedTroops: B,
-  payHeld: list(S),
-  feedHeld: list(S),
-  huntBands: B,
-  huntWhere: list(S),
-  debts: list(() => DebtViewSchema),
-  debtsHeld: list(() => DebtViewSchema),
-  strength: I,
-  startStrength: I,
-  provinceWeight: I,
-  owner: dict(opt(S)),
-  ownerAsOf: dict(I),
-  ownerFrom: dict(S),
-  roadsClosed: list(S),
-  roadsClosedToUs: list(S),
-  grants: list(() => GrantViewSchema),
-  walls: dict(I),
-  sieges: list(() => SiegeViewSchema),
-  conquered: dict(I),
-  units: list(() => UnitViewSchema),
-  visible: list(S),
-  fallen: list(S),
-  bands: list(() => BandSeenSchema),
-  court: list(() => CharacterViewSchema),
-  known: list(() => CharacterViewSchema),
-  tablets: list(() => TabletViewSchema),
-  letters: list(() => LetterViewSchema),
-  unheardHere: list(S),
-  inbox: list(() => InboxItemSchema),
-  travelTimes: list(S),
-  lastSeason: list(() => OrderOutcomeSchema),
-  sleeps: B,
-  wokenBecause: list(S),
-  lastCalled: I,
-  whileAsleep: list(() => InboxItemSchema),
-  whileAsleepLeftOut: I,
-  digest: list(S),
-  digestLeftOut: I,
-  scheduled: list(() => ScheduledOrdersSchema),
-  standing: list(() => StandingOrderViewSchema),
-  answers: list(() => StandingAnswerSchema),
-  holdsCourt: B,
-  courtLetters: list(() => OrderSchema),
-  prices: dict(I),
-  provinces: list(() => ProvinceEconomyViewSchema),
-  caravans: list(() => CaravanViewSchema),
-  markets: dict(() => MarketSeenSchema),
-  tolls: list(() => TollSchema),
-  yields: dict(I),
-  resistance: dict(I),
-  walking: I,
-  foodSent: list(() => obj("FoodSent", (init: Partial<{ province: string; gold: number; buy: boolean; at: number }> = {}) => ({ province: "", gold: 0, buy: false, at: 0, ...init }), { province: S, gold: I, buy: B, at: I })),
-});
+export const SeatViewSchema: ObjSchema<SeatView> = obj(
+  "SeatView",
+  newSeatView,
+  {
+    greetings: list(() => RecognitionSchema),
+    claims: list(() => ClaimSchema),
+    claimedName: S,
+    nameClaims: list(() => NameClaimViewSchema),
+    turn: I,
+    season: S,
+    power: S,
+    courtAt: S,
+    courtTo: opt(S),
+    governors: list(() => GovernorViewSchema),
+    king: S,
+    ended: B,
+    openAge: B,
+    ageBand: S,
+    omens: S,
+    councilOn: B,
+    council: opt(() => CouncilViewSchema),
+    gold: I,
+    unassayedGold: list(() => LotViewSchema),
+    income: I,
+    upkeep: I,
+    worksUpkeep: I,
+    works: list(() => WorkViewSchema),
+    worksSeen: list(() => WorkViewSchema),
+    feesDue: I,
+    feesOwed: I,
+    fees: I,
+    trust: I,
+    kept: I,
+    broken: I,
+    payCarriers: B,
+    payTroops: B,
+    feedTroops: B,
+    payHeld: list(S),
+    feedHeld: list(S),
+    huntBands: B,
+    huntWhere: list(S),
+    debts: list(() => DebtViewSchema),
+    debtsHeld: list(() => DebtViewSchema),
+    strength: I,
+    startStrength: I,
+    provinceWeight: I,
+    owner: dict(opt(S)),
+    ownerAsOf: dict(I),
+    ownerFrom: dict(S),
+    roadsClosed: list(S),
+    roadsClosedToUs: list(S),
+    grants: list(() => GrantViewSchema),
+    walls: dict(I),
+    sieges: list(() => SiegeViewSchema),
+    units: list(() => UnitViewSchema),
+    visible: list(S),
+    fallen: list(S),
+    bands: list(() => BandSeenSchema),
+    court: list(() => CharacterViewSchema),
+    known: list(() => CharacterViewSchema),
+    tablets: list(() => TabletViewSchema),
+    letters: list(() => LetterViewSchema),
+    unheardHere: list(S),
+    inbox: list(() => InboxItemSchema),
+    travelTimes: list(S),
+    lastSeason: list(() => OrderOutcomeSchema),
+    sleeps: B,
+    wokenBecause: list(S),
+    lastCalled: I,
+    whileAsleep: list(() => InboxItemSchema),
+    whileAsleepLeftOut: I,
+    digest: list(S),
+    digestLeftOut: I,
+    scheduled: list(() => ScheduledOrdersSchema),
+    standing: list(() => StandingOrderViewSchema),
+    answers: list(() => StandingAnswerSchema),
+    holdsCourt: B,
+    courtLetters: list(() => OrderSchema),
+    prices: dict(I),
+    provinces: list(() => ProvinceEconomyViewSchema),
+    caravans: list(() => CaravanViewSchema),
+    markets: dict(() => MarketSeenSchema),
+    tolls: list(() => TollSchema),
+    yields: dict(I),
+    resistance: dict(I),
+    walking: I,
+    foodSent: list(() =>
+      obj(
+        "FoodSent",
+        (
+          init: Partial<{
+            province: string;
+            gold: number;
+            buy: boolean;
+            at: number;
+          }> = {},
+        ) => ({ province: "", gold: 0, buy: false, at: 0, ...init }),
+        { province: S, gold: I, buy: B, at: I },
+      ),
+    ),
+  },
+);
 
 /**
  * One power's standing as any court can reckon it from public ownership alone: the base yield of the land it holds now
@@ -1120,7 +1300,9 @@ export interface LandStanding {
   // computed in C#: StartYield <= 0 ? 0 : (double)Yield / StartYield
 }
 
-export function newLandStanding(init: Partial<LandStanding> = {}): LandStanding {
+export function newLandStanding(
+  init: Partial<LandStanding> = {},
+): LandStanding {
   return {
     power: "Egypt",
     yield: 0,
@@ -1130,14 +1312,17 @@ export function newLandStanding(init: Partial<LandStanding> = {}): LandStanding 
   };
 }
 
-export const LandStandingSchema: ObjSchema<LandStanding> = obj("LandStanding", newLandStanding, {
-  power: S,
-  yield: I,
-  startYield: I,
-  fallen: B,
-  growth: computed(D, (o: LandStanding) => landGrowth(o)),
-});
-
+export const LandStandingSchema: ObjSchema<LandStanding> = obj(
+  "LandStanding",
+  newLandStanding,
+  {
+    power: S,
+    yield: I,
+    startYield: I,
+    fallen: B,
+    growth: computed(D, (o: LandStanding) => landGrowth(o)),
+  },
+);
 
 /** A land's growth: its yield over its starting yield (0 for none at the start). */
 export function landGrowth(o: LandStanding): number {

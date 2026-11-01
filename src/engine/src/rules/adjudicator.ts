@@ -16,7 +16,16 @@ import { Dict, HSet } from "../core/collections.ts";
 import { defenceGround, type Ground } from "../model/geography.ts";
 import type { UnitKind, WorldMap } from "../model/map.ts";
 import type { Order, SallyOrder } from "../model/orders.ts";
-import { newOrderOutcome, type Assault, type GroundFight, type MoveFailure, type MoveResult, type MoveStop, type OrderOutcome, type ReportLine } from "../model/outcomes.ts";
+import {
+  newOrderOutcome,
+  type Assault,
+  type GroundFight,
+  type MoveFailure,
+  type MoveResult,
+  type MoveStop,
+  type OrderOutcome,
+  type ReportLine,
+} from "../model/outcomes.ts";
 import type { Power } from "../model/power.ts";
 import type { Unit } from "../model/state.ts";
 import { menOf } from "../model/land.ts";
@@ -54,6 +63,8 @@ export interface Fight {
   at: string;
   attack: number;
   defence: number;
+  /** The defending unit's own strength, its supports with it, without the ground or the land's people (item 17++). */
+  own: number;
   won: boolean;
 }
 
@@ -67,7 +78,10 @@ export const FullUnit = 1000;
  * levy of more men than a full unit (Haakon's answers to item 11a+, "the king chooses how many men a levy takes, up to
  * all") counts for more.
  */
-export function unitWeight(u: { kind: UnitKind; men: number }, full: number): number {
+export function unitWeight(
+  u: { kind: UnitKind; men: number },
+  full: number,
+): number {
   if (u.men <= 0 || full <= 0) return FullUnit;
   return Math.max(1, Math.floor((u.men * FullUnit) / full));
 }
@@ -98,12 +112,51 @@ interface O {
   weight: number;
 }
 
-function line(province: string, power: Power | null, text: string, ok: boolean, more: Partial<ReportLine> = {}): ReportLine {
-  return { province, power, text, ok, target: null, failure: null, void: null, cut: null, assault: null, ...more };
+function line(
+  province: string,
+  power: Power | null,
+  text: string,
+  ok: boolean,
+  more: Partial<ReportLine> = {},
+): ReportLine {
+  return {
+    province,
+    power,
+    text,
+    ok,
+    target: null,
+    failure: null,
+    void: null,
+    cut: null,
+    assault: null,
+    ...more,
+  };
 }
 
-function failure(stop: MoveStop, province: string, power: Power | null, kind: UnitKind, movingTo: string | null, strength: number, against: number, ground: Ground | null = null, groundBonus = 0, people = 0): MoveFailure {
-  return { stop, province, power, kind, movingTo, strength, against, ground, groundBonus, people };
+function failure(
+  stop: MoveStop,
+  province: string,
+  power: Power | null,
+  kind: UnitKind,
+  movingTo: string | null,
+  strength: number,
+  against: number,
+  ground: Ground | null = null,
+  groundBonus = 0,
+  people = 0,
+): MoveFailure {
+  return {
+    stop,
+    province,
+    power,
+    kind,
+    movingTo,
+    strength,
+    against,
+    ground,
+    groundBonus,
+    people,
+  };
 }
 
 export class Adjudicator {
@@ -165,7 +218,9 @@ export class Adjudicator {
     this.walls = walls ?? new Dict();
     this.sallies = sallies ?? [];
     this.sallyBy = new Map();
-    for (const x of this.sallies) if (!this.sallyBy.has(x.city)) this.sallyBy.set(x.city, this.owners.getOrDefault(x.city, null));
+    for (const x of this.sallies)
+      if (!this.sallyBy.has(x.city))
+        this.sallyBy.set(x.city, this.owners.getOrDefault(x.city, null));
     for (const u of units) {
       const o: O = {
         index: 0,
@@ -183,14 +238,22 @@ export class Adjudicator {
         voidWhy: null,
         besieging: false,
         // Item 13: its men, shaped by its commander's skill (`command`, in percent; men alone fight at the average).
-        weight: command === null ? unitWeight(u, menOf(u.kind)) : Math.max(1, Math.floor((unitWeight(u, menOf(u.kind)) * command(u)) / 100)),
+        weight:
+          command === null
+            ? unitWeight(u, menOf(u.kind))
+            : Math.max(
+                1,
+                Math.floor((unitWeight(u, menOf(u.kind)) * command(u)) / 100),
+              ),
       };
       const order = ordersByProvince.tryGet(u.province);
       switch (order?.type) {
         case "move":
           o.kind = "Move";
           o.target = order.to;
-          o.viaConvoy = u.kind === "Army" && !this.map.canMove("Army", u.province, order.to);
+          o.viaConvoy =
+            u.kind === "Army" &&
+            !this.map.canMove("Army", u.province, order.to);
           break;
         case "support":
           o.kind = "Support";
@@ -235,11 +298,23 @@ export class Adjudicator {
       if (o.kind === "Support") {
         let why: string | null;
         const t = this.at.get(o.target!);
-        if (t === undefined) why = o.to === null ? `no unit stood in ${this.nm(o.target!)}` : `no unit moved from ${this.nm(o.target!)} to ${this.nm(o.to)}`;
+        if (t === undefined)
+          why =
+            o.to === null
+              ? `no unit stood in ${this.nm(o.target!)}`
+              : `no unit moved from ${this.nm(o.target!)} to ${this.nm(o.to)}`;
         else {
           const sup = this.orders[t];
-          if (o.to === null) why = sup.kind !== "Move" ? null : `the unit in ${this.nm(o.target!)} was ordered to move, not to hold`;
-          else why = sup.kind === "Move" && sup.target === o.to ? null : `no unit moved from ${this.nm(o.target!)} to ${this.nm(o.to)}`;
+          if (o.to === null)
+            why =
+              sup.kind !== "Move"
+                ? null
+                : `the unit in ${this.nm(o.target!)} was ordered to move, not to hold`;
+          else
+            why =
+              sup.kind === "Move" && sup.target === o.to
+                ? null
+                : `no unit moved from ${this.nm(o.target!)} to ${this.nm(o.to)}`;
         }
         if (why !== null) {
           o.voided = `supports ${this.nm(o.target!)}${o.to === null ? " holding" : " -> " + this.nm(o.to)}`;
@@ -257,7 +332,9 @@ export class Adjudicator {
           this.orders[t].unitKind === "Army";
         if (!ok) {
           o.voided = `convoys ${this.nm(o.target!)} -> ${this.nm(o.to!)}`;
-          o.voidWhy = this.map.get(o.at).isSea ? `no army moved from ${this.nm(o.target!)} to ${this.nm(o.to!)} by sea` : "a fleet convoys only at sea";
+          o.voidWhy = this.map.get(o.at).isSea
+            ? `no army moved from ${this.nm(o.target!)} to ${this.nm(o.to!)} by sea`
+            : "a fleet convoys only at sea";
           o.kind = "Hold";
         }
       }
@@ -309,7 +386,8 @@ export class Adjudicator {
   }
 
   private resetDeps(oldCount: number): void {
-    for (let i = oldCount; i < this.deps.length; i++) this.state[this.deps[i]] = enum_.Unresolved;
+    for (let i = oldCount; i < this.deps.length; i++)
+      this.state[this.deps[i]] = enum_.Unresolved;
     this.deps.length = oldCount;
   }
 
@@ -317,19 +395,28 @@ export class Adjudicator {
     const cycle = this.deps.slice(oldCount);
     this.deps.length = oldCount;
 
-    const convoys = cycle.filter((i) => this.orders[i].kind === "Convoy" || (this.orders[i].kind === "Move" && this.orders[i].viaConvoy));
+    const convoys = cycle.filter(
+      (i) =>
+        this.orders[i].kind === "Convoy" ||
+        (this.orders[i].kind === "Move" && this.orders[i].viaConvoy),
+    );
     if (convoys.length > 0) {
       // Szykman: the convoyed armies in the paradox stay where they are.
       for (const i of convoys) {
         const o = this.orders[i];
         const army = o.kind === "Move" ? i : (this.at.get(o.target!) ?? -1);
-        if (army >= 0 && this.orders[army].kind === "Move" && this.orders[army].viaConvoy) {
+        if (
+          army >= 0 &&
+          this.orders[army].kind === "Move" &&
+          this.orders[army].viaConvoy
+        ) {
           this.orders[army].paradoxFailed = true;
           this.result[army] = false;
           this.state[army] = enum_.Resolved;
         }
       }
-      for (const i of cycle) if (this.state[i] !== enum_.Resolved) this.state[i] = enum_.Unresolved;
+      for (const i of cycle)
+        if (this.state[i] !== enum_.Resolved) this.state[i] = enum_.Unresolved;
       return;
     }
 
@@ -352,7 +439,9 @@ export class Adjudicator {
           if (attack <= this.defendStrength(opp)) return false;
         } else if (attack <= this.holdStrength(o)) return false;
 
-        for (const other of this.movesTo(o.target!)) if (other !== o && attack <= this.preventStrength(other)) return false;
+        for (const other of this.movesTo(o.target!))
+          if (other !== o && attack <= this.preventStrength(other))
+            return false;
         return true;
       }
       case "Support": {
@@ -362,11 +451,13 @@ export class Adjudicator {
           if (!this.pathOk(m)) continue;
           return false;
         }
-        for (const m of this.movesTo(o.at)) if (this.resolve(m.index)) return false; // dislodged
+        for (const m of this.movesTo(o.at))
+          if (this.resolve(m.index)) return false; // dislodged
         return true;
       }
       case "Convoy":
-        for (const m of this.movesTo(o.at)) if (this.resolve(m.index)) return false;
+        for (const m of this.movesTo(o.at))
+          if (this.resolve(m.index)) return false;
         return true;
       default:
         return true;
@@ -374,7 +465,9 @@ export class Adjudicator {
   }
 
   private movesTo(province: string): O[] {
-    return this.orders.filter((x) => x.kind === "Move" && x.target === province);
+    return this.orders.filter(
+      (x) => x.kind === "Move" && x.target === province,
+    );
   }
 
   private headToHeadOpponent(move: O): O | null {
@@ -382,7 +475,9 @@ export class Adjudicator {
     const i = this.at.get(move.target!);
     if (i === undefined) return null;
     const opp = this.orders[i];
-    return opp.kind === "Move" && opp.target === move.at && !opp.viaConvoy ? opp : null;
+    return opp.kind === "Move" && opp.target === move.at && !opp.viaConvoy
+      ? opp
+      : null;
   }
 
   private pathOk(move: O): boolean {
@@ -413,23 +508,42 @@ export class Adjudicator {
   private isConvoying(sea: string, move: O): boolean {
     if (!this.map.get(sea).isSea) return false;
     const i = this.at.get(sea);
-    return i !== undefined && this.orders[i].kind === "Convoy" && this.orders[i].target === move.at && this.orders[i].to === move.target;
+    return (
+      i !== undefined &&
+      this.orders[i].kind === "Convoy" &&
+      this.orders[i].target === move.at &&
+      this.orders[i].to === move.target
+    );
   }
 
   private supports(move: O, excludePower: Power | null): number {
     let count = 0;
     for (const s of this.orders)
-      if (s.kind === "Support" && s.target === move.at && s.to === move.target && this.resolve(s.index))
-        if (excludePower === null || s.power !== excludePower) count += s.weight;
+      if (
+        s.kind === "Support" &&
+        s.target === move.at &&
+        s.to === move.target &&
+        this.resolve(s.index)
+      )
+        if (excludePower === null || s.power !== excludePower)
+          count += s.weight;
     // Walls that sally support the move from where they name into their city, and cannot be cut.
     for (const w of this.sallies)
-      if (w.city === move.target && w.from === move.at && (excludePower === null || (this.sallyBy.get(w.city) ?? null) !== excludePower)) count += FullUnit;
+      if (
+        w.city === move.target &&
+        w.from === move.at &&
+        (excludePower === null ||
+          (this.sallyBy.get(w.city) ?? null) !== excludePower)
+      )
+        count += FullUnit;
     return count;
   }
 
   /** Whether a sally found the move it supports (a move from where it names into its city, whoever made it). */
   sallyMatched(w: SallyOrder): boolean {
-    return this.orders.some((o) => o.kind === "Move" && o.at === w.from && o.target === w.city);
+    return this.orders.some(
+      (o) => o.kind === "Move" && o.at === w.from && o.target === w.city,
+    );
   }
 
   private attackStrength(move: O): number {
@@ -438,7 +552,8 @@ export class Adjudicator {
     if (i === undefined) return move.weight + this.supports(move, null);
     const occ = this.orders[i];
     const opp = this.headToHeadOpponent(move);
-    if (occ.kind === "Move" && opp === null && this.resolve(occ.index)) return move.weight + this.supports(move, null);
+    if (occ.kind === "Move" && opp === null && this.resolve(occ.index))
+      return move.weight + this.supports(move, null);
     if (occ.power !== null && occ.power === move.power) return 0;
     return move.weight + this.supports(move, occ.power);
   }
@@ -454,11 +569,28 @@ export class Adjudicator {
     const i = this.at.get(province);
     if (i === undefined) return this.peopleAgainst(move);
     const occ = this.orders[i];
+    if (occ.kind === "Move" && this.resolve(occ.index))
+      return this.peopleAgainst(move);
+    return (
+      this.unitHold(occ) +
+      (this.groundAgainst(move) === null ? 0 : this.terrain) +
+      this.peopleAgainst(move)
+    );
+  }
+
+  /** A unit that stays: its own weight, and its supports to hold if it did not try to move. */
+  private unitHold(occ: O): number {
     let count = occ.weight;
-    if (occ.kind === "Move") {
-      if (this.resolve(occ.index)) return this.peopleAgainst(move);
-    } else for (const s of this.orders) if (s.kind === "Support" && s.target === province && s.to === null && this.resolve(s.index)) count += s.weight;
-    return count + (this.groundAgainst(move) === null ? 0 : this.terrain) + this.peopleAgainst(move);
+    if (occ.kind !== "Move")
+      for (const s of this.orders)
+        if (
+          s.kind === "Support" &&
+          s.target === occ.at &&
+          s.to === null &&
+          this.resolve(s.index)
+        )
+          count += s.weight;
+    return count;
   }
 
   /**
@@ -496,7 +628,9 @@ export class Adjudicator {
   private collect(): AdjudicationResult {
     const r = new AdjudicationResult();
     const succeededInto = new Set<string>();
-    for (const o of this.orders) if (o.kind === "Move" && this.result[o.index]) succeededInto.add(o.target!);
+    for (const o of this.orders)
+      if (o.kind === "Move" && this.result[o.index])
+        succeededInto.add(o.target!);
 
     for (const o of this.orders) {
       const moved = o.kind === "Move" && this.result[o.index];
@@ -507,7 +641,8 @@ export class Adjudicator {
 
       const name = (id: string): string => this.nm(id);
       const label = `${o.unitKind === "Army" ? "army" : "fleet"} in ${name(o.at)}`;
-      const helpedAt = o.kind === "Support" ? this.at.get(o.target!) : undefined;
+      const helpedAt =
+        o.kind === "Support" ? this.at.get(o.target!) : undefined;
       r.outcomes.push(
         newOrderOutcome({
           power: o.power!,
@@ -517,7 +652,12 @@ export class Adjudicator {
           target: o.target,
           to: o.to,
           helped: helpedAt !== undefined ? this.orders[helpedAt].power : null,
-          succeeded: o.kind === "Move" ? moved : o.kind === "Hold" ? !dislodged : this.result[o.index],
+          succeeded:
+            o.kind === "Move"
+              ? moved
+              : o.kind === "Hold"
+                ? !dislodged
+                : this.result[o.index],
           destroyed: dislodged,
         }),
       );
@@ -529,11 +669,17 @@ export class Adjudicator {
           const assault = moved ? this.assaultBy(o) : null;
           if (assault !== null) r.assaults.push(assault);
           r.lines.push(
-            line(o.at, o.power, `${label} -> ${name(o.target!)}${o.viaConvoy ? " (by sea)" : ""}: ${moved ? "succeeds" : "fails"}`, moved, {
-              target: o.target,
-              failure: this.explain && !moved ? this.whyFailed(o) : null,
-              assault,
-            }),
+            line(
+              o.at,
+              o.power,
+              `${label} -> ${name(o.target!)}${o.viaConvoy ? " (by sea)" : ""}: ${moved ? "succeeds" : "fails"}`,
+              moved,
+              {
+                target: o.target,
+                failure: this.explain && !moved ? this.whyFailed(o) : null,
+                assault,
+              },
+            ),
           );
           break;
         }
@@ -542,31 +688,68 @@ export class Adjudicator {
           const sIdx = this.at.get(o.target!);
           if (!given) r.cutSupports.push(o.at);
           else if (o.power !== null && sIdx !== undefined) {
-            r.givenSupports.push([o.power, this.orders[sIdx].power, o.to ?? o.target!]);
+            r.givenSupports.push([
+              o.power,
+              this.orders[sIdx].power,
+              o.to ?? o.target!,
+            ]);
             if (o.to === null) r.holdSupported.add(o.target!);
           }
           // A unit that is destroyed gives no support: that is not a cut.
-          const cutFrom = !given && !dislodged && this.explain ? (this.cutBy(o)?.at ?? null) : null;
-          const failed = dislodged ? "void: the supporting unit was beaten from its place" : cutFrom !== null ? `cut (attacked from ${name(cutFrom)})` : "cut";
+          const cutFrom =
+            !given && !dislodged && this.explain
+              ? (this.cutBy(o)?.at ?? null)
+              : null;
+          const failed = dislodged
+            ? "void: the supporting unit was beaten from its place"
+            : cutFrom !== null
+              ? `cut (attacked from ${name(cutFrom)})`
+              : "cut";
           r.lines.push(
-            line(o.at, o.power, `${label} supports ${name(o.target!)}${o.to === null ? " holding" : " -> " + name(o.to)}: ${given ? "given" : failed}`, given, {
-              cut: given || dislodged || !this.explain ? null : cutFrom !== null ? `the support was cut by an attack from ${name(cutFrom)}` : "the support was cut",
-            }),
+            line(
+              o.at,
+              o.power,
+              `${label} supports ${name(o.target!)}${o.to === null ? " holding" : " -> " + name(o.to)}: ${given ? "given" : failed}`,
+              given,
+              {
+                cut:
+                  given || dislodged || !this.explain
+                    ? null
+                    : cutFrom !== null
+                      ? `the support was cut by an attack from ${name(cutFrom)}`
+                      : "the support was cut",
+              },
+            ),
           );
           break;
         }
         case "Convoy":
-          r.lines.push(line(o.at, o.power, `${label} convoys ${name(o.target!)} -> ${name(o.to!)}`, this.result[o.index]));
+          r.lines.push(
+            line(
+              o.at,
+              o.power,
+              `${label} convoys ${name(o.target!)} -> ${name(o.to!)}`,
+              this.result[o.index],
+            ),
+          );
           break;
         default:
           r.lines.push(
             o.voided !== null
-              ? line(o.at, o.power, `${label} ${o.voided}: void`, false, { void: this.explain ? o.voidWhy : null })
-              : line(o.at, o.power, `${label} ${o.besieging ? "besieges the city" : "holds"}`, true),
+              ? line(o.at, o.power, `${label} ${o.voided}: void`, false, {
+                  void: this.explain ? o.voidWhy : null,
+                })
+              : line(
+                  o.at,
+                  o.power,
+                  `${label} ${o.besieging ? "besieges the city" : "holds"}`,
+                  true,
+                ),
           );
           break;
       }
-      if (dislodged) r.lines.push(line(o.at, o.power, `${label} is dislodged`, false));
+      if (dislodged)
+        r.lines.push(line(o.at, o.power, `${label} is dislodged`, false));
     }
     for (const o of this.orders) {
       const f = o.kind === "Move" ? this.fightOf(o) : null;
@@ -587,18 +770,50 @@ export class Adjudicator {
     const opp = this.headToHeadOpponent(move);
     if (opp !== null) {
       if (opp.power === move.power || opp.unitId === null) return null;
-      if (!won && (this.result[opp.index] || opp.index < move.index)) return null;
-      return { attacker: move.unitId, defender: opp.unitId, from: move.at, at: move.target!, attack: this.attackStrength(move), defence: this.defendStrength(opp), won };
+      if (!won && (this.result[opp.index] || opp.index < move.index))
+        return null;
+      const defence = this.defendStrength(opp);
+      return {
+        attacker: move.unitId,
+        defender: opp.unitId,
+        from: move.at,
+        at: move.target!,
+        attack: this.attackStrength(move),
+        defence,
+        own: defence,
+        won,
+      };
     }
     const i = this.at.get(move.target!);
     if (i === undefined) return null;
     const occ = this.orders[i];
-    if (occ.power === move.power || occ.unitId === null || (occ.kind === "Move" && this.result[occ.index])) return null;
+    if (
+      occ.power === move.power ||
+      occ.unitId === null ||
+      (occ.kind === "Move" && this.result[occ.index])
+    )
+      return null;
     const attack = this.attackStrength(move);
     if (attack <= 0) return null;
     // Stopped by another move into the same land before it reached the unit there: no battle with it.
-    if (!won && this.movesTo(move.target!).some((m) => m !== move && attack <= this.preventStrength(m)) && attack > this.holdStrength(move)) return null;
-    return { attacker: move.unitId, defender: occ.unitId, from: move.at, at: move.target!, attack, defence: this.holdStrength(move), won };
+    if (
+      !won &&
+      this.movesTo(move.target!).some(
+        (m) => m !== move && attack <= this.preventStrength(m),
+      ) &&
+      attack > this.holdStrength(move)
+    )
+      return null;
+    return {
+      attacker: move.unitId,
+      defender: occ.unitId,
+      from: move.at,
+      at: move.target!,
+      attack,
+      defence: this.holdStrength(move),
+      own: this.unitHold(occ),
+      won,
+    };
   }
 
   /**
@@ -607,42 +822,106 @@ export class Adjudicator {
    * move into the province.
    */
   private whyFailed(move: O): MoveFailure | null {
-    if (!this.pathOk(move)) return failure("NoConvoy", move.target!, null, "Army", null, 0, 0);
+    if (!this.pathOk(move))
+      return failure("NoConvoy", move.target!, null, "Army", null, 0, 0);
     const attack = this.attackStrength(move);
     const i = this.at.get(move.target!);
     const occ = i !== undefined ? this.orders[i] : null;
-    if (attack === 0 && occ !== null && occ.power !== null && occ.power === move.power)
-      return failure("OwnUnit", occ.at, occ.power, occ.unitKind, occ.kind === "Move" ? occ.target : null, 0, 0);
+    if (
+      attack === 0 &&
+      occ !== null &&
+      occ.power !== null &&
+      occ.power === move.power
+    )
+      return failure(
+        "OwnUnit",
+        occ.at,
+        occ.power,
+        occ.unitKind,
+        occ.kind === "Move" ? occ.target : null,
+        0,
+        0,
+      );
 
     // A head-to-head battle lost is the reason, even when a third move then walked into the province the winner left.
     const opp = this.headToHeadOpponent(move);
     if (opp !== null) {
       const defend = this.defendStrength(opp);
-      if (attack <= defend) return failure("HeadToHead", opp.at, opp.power, opp.unitKind, opp.target, attack, defend);
+      if (attack <= defend)
+        return failure(
+          "HeadToHead",
+          opp.at,
+          opp.power,
+          opp.unitKind,
+          opp.target,
+          attack,
+          defend,
+        );
     }
 
     // Another move took the province: that is the news, even if the unit there also held this one off before it fell.
-    const winner = this.movesTo(move.target!).find((m) => m !== move && this.result[m.index]);
-    if (winner !== undefined) return failure("Bounced", winner.at, winner.power, winner.unitKind, winner.target, attack, this.preventStrength(winner));
+    const winner = this.movesTo(move.target!).find(
+      (m) => m !== move && this.result[m.index],
+    );
+    if (winner !== undefined)
+      return failure(
+        "Bounced",
+        winner.at,
+        winner.power,
+        winner.unitKind,
+        winner.target,
+        attack,
+        this.preventStrength(winner),
+      );
 
-    const vacated = occ !== null && occ.kind === "Move" && this.resolve(occ.index);
+    const vacated =
+      occ !== null && occ.kind === "Move" && this.resolve(occ.index);
     if (opp === null && (occ === null || vacated)) {
       const people = this.peopleAgainst(move);
-      if (people > 0 && attack <= people) return failure("Resisted", move.target!, null, move.unitKind, null, attack, people);
+      if (people > 0 && attack <= people)
+        return failure(
+          "Resisted",
+          move.target!,
+          null,
+          move.unitKind,
+          null,
+          attack,
+          people,
+        );
     }
     if (opp === null && occ !== null && !vacated) {
       const hold = this.holdStrength(move);
       if (attack <= hold) {
         const stop: MoveStop = occ.kind === "Move" ? "Stayed" : "Held";
         const ground = this.groundAgainst(move);
-        return failure(stop, occ.at, occ.power, occ.unitKind, occ.kind === "Move" ? occ.target : null, attack, hold, ground, ground === null ? 0 : this.terrain, this.peopleAgainst(move));
+        return failure(
+          stop,
+          occ.at,
+          occ.power,
+          occ.unitKind,
+          occ.kind === "Move" ? occ.target : null,
+          attack,
+          hold,
+          ground,
+          ground === null ? 0 : this.terrain,
+          this.peopleAgainst(move),
+        );
       }
     }
 
     for (const other of this.movesTo(move.target!)) {
       if (other === move) continue;
       const prevent = this.preventStrength(other);
-      if (attack <= prevent) return failure("Bounced", other.at, other.power, other.unitKind, other.target, attack, prevent);
+      if (attack <= prevent)
+        return failure(
+          "Bounced",
+          other.at,
+          other.power,
+          other.unitKind,
+          other.target,
+          attack,
+          prevent,
+        );
     }
     return null;
   }
@@ -662,11 +941,18 @@ export class Adjudicator {
     // A guest the walls' holder let in goes in through the gates.
     if (this.guests !== null && this.guests(target, mover)) return null;
     const opp = this.headToHeadOpponent(move);
-    const beaten = opp !== null ? this.defendStrength(opp) : this.holdStrength(move);
+    const beaten =
+      opp !== null ? this.defendStrength(opp) : this.holdStrength(move);
     // The ground counted in the hold strength the move beat to get in: the storm must beat it too.
     // (Not when only the land's people resisted: the ground is already in their resistance.)
-    const stood = this.at.get(target) !== undefined && !(this.orders[this.at.get(target)!].kind === "Move" && this.resolve(this.orders[this.at.get(target)!].index));
-    const ground = opp === null && beaten > 0 && stood ? this.groundAgainst(move) : null;
+    const stood =
+      this.at.get(target) !== undefined &&
+      !(
+        this.orders[this.at.get(target)!].kind === "Move" &&
+        this.resolve(this.orders[this.at.get(target)!].index)
+      );
+    const ground =
+      opp === null && beaten > 0 && stood ? this.groundAgainst(move) : null;
     return {
       province: target,
       power: mover,
@@ -693,7 +979,8 @@ export class Adjudicator {
     const i = this.at.get(move.target!);
     if (i === undefined) return null;
     const occ = this.orders[i];
-    if (occ.power === null || move.power === null || occ.power === move.power) return null;
+    if (occ.power === null || move.power === null || occ.power === move.power)
+      return null;
     const ground = this.groundAgainst(move);
     if (ground === null) return null;
     const hold = this.holdStrength(move);
@@ -704,11 +991,29 @@ export class Adjudicator {
       const why = this.whyFailed(move);
       decided = why !== null && (why.stop === "Held" || why.stop === "Stayed");
     }
-    return { from: move.at, to: move.target!, attacker: move.power, defender: occ.power, defenderKind: occ.unitKind, ground, strength: attack, against: hold, won: moved, decided };
+    return {
+      from: move.at,
+      to: move.target!,
+      attacker: move.power,
+      defender: occ.power,
+      defenderKind: occ.unitKind,
+      ground,
+      strength: attack,
+      against: hold,
+      won: moved,
+      decided,
+    };
   }
 
   /** The move that cut a support, by the same test {@link adjudicate} used. */
   private cutBy(support: O): O | null {
-    return this.movesTo(support.at).find((m) => m.power !== support.power && !(support.to !== null && m.at === support.to) && this.pathOk(m)) ?? null;
+    return (
+      this.movesTo(support.at).find(
+        (m) =>
+          m.power !== support.power &&
+          !(support.to !== null && m.at === support.to) &&
+          this.pathOk(m),
+      ) ?? null
+    );
   }
 }

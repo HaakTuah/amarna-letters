@@ -63,8 +63,14 @@ export function ending(c: GameConfig): string {
 /** The opening vassal bonds, by overlord, as every court knows them (item 11+, "Opening relations as they were"). */
 function openingBondsLine(): string {
   const by = new Map<string, string[]>();
-  for (const b of StartVassals) by.set(b.overlord, [...(by.get(b.overlord) ?? []), `${b.vassal} ${b.tribute}`]);
-  return [...by.entries()].map(([o, vs]) => `${o}'s vassals ${vs.join(", ")}`).join("; ");
+  for (const b of StartVassals)
+    by.set(b.overlord, [
+      ...(by.get(b.overlord) ?? []),
+      `${b.vassal} ${b.tribute}`,
+    ]);
+  return [...by.entries()]
+    .map(([o, vs]) => `${o}'s vassals ${vs.join(", ")}`)
+    .join("; ");
 }
 
 /** Par's results for each starting position, as the rulebook gives them (item 11e): how often it fell, and its survivors' quarters. */
@@ -72,26 +78,24 @@ export function parLine(): string {
   return AllPowers.map((p) => parSummary(p)).join("; ");
 }
 
-function rules(primer: boolean, c: GameConfig): string
-    {
-
-        const sb = new Sb();
-        // A house rule: the kings read it only in games that use it.
-        const sharedVictory = c.sharedVictory
-            ? `\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their score together (each partner's, weighed by its starting strength) beats every other power's.`
-            : ``;
-        sb.appendLine(`You are playing Amarna Letters, a strategy game set in the Late Bronze Age (c. 1360-1330 BCE), among the seven Great Kings, Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus), and the city-states and chiefs between them (Byblos, Amurru, Ugarit, Carchemish and the rest; the Kaska, the Lukka men and the Suteans under their chiefs), every one a power with the same rules and the same goal. The engine enforces only physics: movement, combat, production and payment. Every treaty, alliance and betrayal is invented by the players. You play one power, a king or the ruler of a city. Your goal is to finish as high as you can: there is one winner, the highest score, but every place counts, so climbing from eighth to fifth is worth the effort.
+function rules(primer: boolean, c: GameConfig): string {
+  const sb = new Sb();
+  // A house rule: the kings read it only in games that use it.
+  const sharedVictory = c.sharedVictory
+    ? `\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their score together (each partner's, weighed by its starting strength) beats every other power's.`
+    : ``;
+  sb.appendLine(`You are playing Amarna Letters, a strategy game set in the Late Bronze Age (c. 1360-1330 BCE), among the seven Great Kings, Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus), and the city-states and chiefs between them (Byblos, Amurru, Ugarit, Carchemish and the rest; the Kaska, the Lukka men and the Suteans under their chiefs), every one a power with the same rules and the same goal. The engine enforces only physics: movement, combat, production and payment. Every treaty, alliance and betrayal is invented by the players. You play one power, a king or the ruler of a city. Your goal is to finish as high as you can: there is one winner, the highest score, but every place counts, so climbing from eighth to fifth is worth the effort.
 
 HOW YOU WIN
-- The final score blends two things, each from 0 to 1: your realm's size, its strength against the strongest living realm's, and your performance, how your growth (your strength against your own starting strength) ranks among the results of powers that started where you did (PAR, below): 0.5 at the middle of them and 1 above them all, so a one-city power and an empire perform level. The living powers are placed by their score, and the highest wins. How much each weighs is set for the game; no court can measure where any realm, its own included, stands on either beyond what news, spies and letters bring. Strength is the wealth of your realm, reckoned in shekels: ${c.provinceWeight} x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; land you conquered counted as far as you have absorbed it) + the gold in your treasury + the gold in the people's purses of your provinces + the grain in their stores and markets (a shekel a measure) + what your own men carry (your troops' grain and their savings, your caravans' grain): what you hold, never what you owe or are owed. Gold that moves within your land changes nothing: pay spent at home goes into your people's purses, and your sales at your markets draw it back. Food eaten, grain spoiled and gold that leaves your land lower it.
+- The final score blends two things, each from 0 to 1: your realm's size, its strength against the strongest living realm's, and your performance, how your growth (your strength against your own starting strength) ranks among the results of powers that started where you did (PAR, below): 0.5 at the middle of them and 1 above them all, so a one-city power and an empire perform level. The living powers are placed by their score, and the highest wins. How much each weighs is set for the game; no court can measure where any realm, its own included, stands on either beyond what news, spies and letters bring. Strength is the wealth of your realm, reckoned in shekels: ${c.provinceWeight} x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; each province counted as far as it obeys you) + the gold in your treasury + the gold in the people's purses of your provinces + the grain in their stores and markets (a shekel a measure) + what your own men carry (your troops' grain and their savings, your caravans' grain): what you hold, never what you owe or are owed. Gold that moves within your land changes nothing: pay spent at home goes into your people's purses, and your sales at your markets draw it back. Food eaten, grain spoiled and gold that leaves your land lower it.
 - PAR, the results a power that started where it did reaches by the end of the script games, its growth in each, a fall counted as the lowest of all, so that surviving where most fall itself scores. Your result is placed among them, between two of them in proportion: how often each position fell in them, and its survivors' growth at the lower quarter, the middle and the upper quarter: ${parLine()}.
 ${ending(c)}${sharedVictory}
 - A kingdom falls with its capital, which is wherever you are. If another king takes you, by taking the city where you are (storming its walls or by a siege) or on the road, you have fallen and your game is over: your realm comes apart (step 10 of how a season resolves, below), and what you owe dies with you. You may cede your capital only by agreement: a sealed tablet between you and the receiver that gives it ("I give you the land of ...", or his "Give me the land of ..." sealed by you both), and then your own order to cede it. Your whole kingdom passes with it whole, by agreement (land being absorbed goes on being absorbed, and no more); your troops disband unless you give them away that same season; and you lose your seat and live on as a character at your old city, a man without a throne whom your new master may employ or set over it as its governor. Take a rival's capital by force and you hold it and the land your troops stand on; take it by agreement and his whole kingdom is yours.`);
 
-        // With sleeping seats on, sleep is the frame of every decision: it comes right after how to win.
-        if (c.sleepingSeats) sb.appendLine(sleeping(c));
+  // With sleeping seats on, sleep is the frame of every decision: it comes right after how to win.
+  if (c.sleepingSeats) sb.appendLine(sleeping(c));
 
-        sb.appendLine(`
+  sb.appendLine(`
 HOW A SEASON RESOLVES (one turn; three seasons make a year), step by step:
 1. Departures: a servant whose notice has run out, and who was not renewed, leaves if at your court with no task.
 2. The economy (see ECONOMY): the crops grow, and lands in their reaping season bring in their harvest; the tax in grain goes from the farmers' granaries into each province's stores and your mines' gold into your treasury; stores and markets spoil a little; each town eats from its market, and a besieged city from its stores; then the people of the land (see PEOPLE): discharged men arrive home, the countryside eats and the hungry leave the land, births, and the settled and the loose move. You pay your troops (${c.armyUpkeep} an army, ${c.fleetUpkeep} a fleet, nearest your capital first). Then every unit eats, and caravans on the road go on.
@@ -178,9 +182,8 @@ VASSALS
 
 ${intelligenceRules(c)}`);
 
-        if (primer)
-        {
-            sb.appendLine(`
+  if (primer) {
+    sb.appendLine(`
 CUSTOMS OF THE AGE (knowledge, not instructions)
 Every king knows these customs, and knows that every other king knows them. They carry no obligation and historical accuracy is not a goal: follow a custom when it improves your chances, break it when breaking it serves you better. Following one can build trust cheaply; breaking one will be noticed.
 - Rank is earned (a rule of this game): the engine records who calls whom brother and grants whom the title Great King in the greetings kings actually send. A claim to the rank that is still new (the opening positions say whose) becomes established once more than half of the other Great Kings have called its king brother for ${c.recognitionSeasons} seasons without a greeting since that withheld it, and every court hears of it. Recognition changes no rule and no score: what it is worth is for the kings to fight over.
@@ -196,46 +199,80 @@ Every king knows these customs, and knows that every other king knows them. They
 - Catastrophes serve as excuses: a king of Alashiya blamed "the hand of Nergal", the god of plague, for sending less copper than promised.
 - Blame has its own vocabulary. "Habiru" (Egyptian 'Apiru) means outlaws, runaways and mercenaries living outside any city's control: a status, not a people. Vassals used the word as a weapon. Rib-Hadda of Byblos warned that the whole land was going over to the Habiru, and calling a rival "in league with the Habiru" branded him a traitor to his lord.
 - Idrimi of Alalakh is a legend already: a king's son who fled, lived seven years among the Habiru, and came back to take a city. A chief of outlaws may dream of being another Idrimi; a king may fear one.`);
-        }
+  }
 
-        sb.appendLine();
-        sb.appendLine(`THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; a coast's waters; links, with the mountain passes, great rivers and deserts on them, and the open-sea crossings)`);
-        const map = WorldMap.default;
-        // A link over a mountain pass, a great river or the desert says so (see TERRAIN), and an open-sea crossing (see THE SEA).
-        const link = (from: string, to: string): string => {
-          const x = crossingBetween(from, to);
-          return x !== null ? `${to} (across ${x.name})` : map.openCrossing(from, to) !== null ? `${to} (open sea)` : to;
-        };
-        for (const p of map.provinces)
-        {
-            const coasts = p.isSea ? map.coastsOf(p.id).map((x) => x.id) : [];
-            const kind = p.isSea ? (coasts.length > 0 ? `sea zone, the waters of ${joinS(` and `, coasts)}` : `sea zone`) : p.isCoastal ? `coast; waters ${p.waters}` : `land`;
-            const home = (p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : `held by no one`) + (p.kingless ? `; a land without a town` : ``) + (modernOf(p.id) !== null ? `; today ${modernOf(p.id)}` : ``);
-            const armies = p.isSea ? `` : ` armies: ${joinS(`, `, map.movesFrom("Army", p.id).map(n => link(p.id, n)))}.`;
-            const fleets = p.isSea || p.isCoastal ? ` fleets: ${joinS(`, `, map.movesFrom("Fleet", p.id).map(n => link(p.id, n)))}.` : ``;
-            const w = StartWalls.get(p.id) ?? 0;
-            const walls = w > 0 ? `; walls ${w}` : ``;
-            const t = terrainOf(p.id);
-            const ground = t === "Rough" ? `; rough ground` : t === "Desert" ? `; desert` : ``;
-            sb.appendLine(`- ${p.id}: ${p.name}; ${kind}${(home.length > 0 ? `; ` + home : ``)}${(p.capital ? `; capital` : ``)}${(p.yield > 0 ? `; yield ${p.yield}` : ``)}${walls}${ground}.${armies}${fleets}`);
-        }
+  sb.appendLine();
+  sb.appendLine(
+    `THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; a coast's waters; links, with the mountain passes, great rivers and deserts on them, and the open-sea crossings)`,
+  );
+  const map = WorldMap.default;
+  // A link over a mountain pass, a great river or the desert says so (see TERRAIN), and an open-sea crossing (see THE SEA).
+  const link = (from: string, to: string): string => {
+    const x = crossingBetween(from, to);
+    return x !== null
+      ? `${to} (across ${x.name})`
+      : map.openCrossing(from, to) !== null
+        ? `${to} (open sea)`
+        : to;
+  };
+  for (const p of map.provinces) {
+    const coasts = p.isSea ? map.coastsOf(p.id).map((x) => x.id) : [];
+    const kind = p.isSea
+      ? coasts.length > 0
+        ? `sea zone, the waters of ${joinS(` and `, coasts)}`
+        : `sea zone`
+      : p.isCoastal
+        ? `coast; waters ${p.waters}`
+        : `land`;
+    const home =
+      (p.home !== null
+        ? `homeland of ${p.home}`
+        : p.isSea
+          ? ``
+          : `held by no one`) +
+      (p.kingless ? `; a land without a town` : ``) +
+      (modernOf(p.id) !== null ? `; today ${modernOf(p.id)}` : ``);
+    const armies = p.isSea
+      ? ``
+      : ` armies: ${joinS(
+          `, `,
+          map.movesFrom("Army", p.id).map((n) => link(p.id, n)),
+        )}.`;
+    const fleets =
+      p.isSea || p.isCoastal
+        ? ` fleets: ${joinS(
+            `, `,
+            map.movesFrom("Fleet", p.id).map((n) => link(p.id, n)),
+          )}.`
+        : ``;
+    const w = StartWalls.get(p.id) ?? 0;
+    const walls = w > 0 ? `; walls ${w}` : ``;
+    const t = terrainOf(p.id);
+    const ground =
+      t === "Rough" ? `; rough ground` : t === "Desert" ? `; desert` : ``;
+    sb.appendLine(
+      `- ${p.id}: ${p.name}; ${kind}${home.length > 0 ? `; ` + home : ``}${p.capital ? `; capital` : ``}${p.yield > 0 ? `; yield ${p.yield}` : ``}${walls}${ground}.${armies}${fleets}`,
+    );
+  }
 
-        // Public facts, fixed for the game: every court knows how each king began.
-        sb.appendLine();
-        sb.appendLine(`OPENING POSITIONS (known to every court)`);
-        sb.appendLine(`Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is ${c.provinceWeight} times what its land produces in a season, plus its treasury and what its provinces' purses and stores and its troops' baggage hold, and its growth is measured against it.`);
-        for (const line of openingLines(c)) sb.appendLine(`- ` + line);
+  // Public facts, fixed for the game: every court knows how each king began.
+  sb.appendLine();
+  sb.appendLine(`OPENING POSITIONS (known to every court)`);
+  sb.appendLine(
+    `Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is ${c.provinceWeight} times what its land produces in a season, plus its treasury and what its provinces' purses and stores and its troops' baggage hold, and its growth is measured against it.`,
+  );
+  for (const line of openingLines(c)) sb.appendLine(`- ` + line);
 
-        sb.appendLine(`
+  sb.appendLine(`
 HOW TO ANSWER
 Reply with one JSON object that matches the schema. In your orders, use province ids (like "memphis"), person ids (like "c12") and the marks of your copies of tablets (like "k8") and of your gold (like "g7") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows the letters you sent under YOUR LETTERS while their envoys are away: in full (message, mandate, tablet and gold) at the next orders after you send them, then by their opening words, and in full once more when the report comes. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders: the last season's notes in full, the two before by their opening words (the first 400 characters); older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply. Your thoughts between your orders (what you made of news that reached you while you slept, and counsel you took) are shown with your record and join it with your next orders; a plan you have set down for the seasons ahead is shown above it until you set down another.`);
-        return sb.toString();
-    }
+  return sb.toString();
+}
 
-    /// <summary>
-    /// What a king that sleeps is told, right after how to win: that it sleeps after every set of orders and what wakes
-    /// it, then how to plan ahead. Nothing about the cap on its sleep, which stays hidden so it does not anchor the plan.
-    /// </summary>
+/// <summary>
+/// What a king that sleeps is told, right after how to win: that it sleeps after every set of orders and what wakes
+/// it, then how to plan ahead. Nothing about the cap on its sleep, which stays hidden so it does not anchor the plan.
+/// </summary>
 function sleeping(c: GameConfig): string {
   return `
 YOU SLEEP BETWEEN YOUR ORDERS
@@ -251,4 +288,3 @@ PLANNING AHEAD (how sleeping works)
 - A scheduled or standing order wakes you the next season only if others foil it as its season resolves: a move stopped by foreign troops; a support cut by a foreign attack; a purchase other buyers or foreign troops spoiled; a levy or cession in land you lost that season; a hire another court won; a servant, captive or ransom whose fate others changed that season; gold your treasurers found short when they paid. Your own orders never wake you: an order refused, whether when you give it or when it runs, and one that fails only because of your own orders or strength (a support or convoy that matched no move; a move stopped by your own unit, or for want of a convoy; a levy or cession your own troops stood in the way of; a unit your own orders had moved or given away; a hire or renewal offered below the price asked; a forger without the skill) is told in your news, which you read when something else wakes you. Nor do the orders you give now for this season, an entry for this season in your schedule among them: if one is refused or fails, you read why when you are next woken.
 - Each time you wake, you are told how long you slept and what woke you, then what happened while you slept: first in brief (the troop movements you saw, the reports that came, the orders that failed, the standing orders that fired), then the news of those seasons in full (the routine treasury notices left out).`;
 }
-
