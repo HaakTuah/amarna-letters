@@ -78,6 +78,7 @@ Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lan
 - A human with one seat saw a one-choice seat menu at 390 px; it is a plain label, "Egypt (you)".
 - The timeline read "season 1 · now" while the header planned "Season 2"; it reads "after season 1, 1346 BCE", the board it shows (" · now" on computers only, where it fits).
 - The Provinces list ended each row in a bare number; it reads "yield 35", with a tooltip saying it is the base yield the harvest is reckoned from.
+- On a computer the Legends tab's and a followed life's dates ran into the line beside them ("season 2, 1346 BCSealed a tablet"); their column is wide enough for the dates since they read in words.
 
 ## For Haakon: review points
 
