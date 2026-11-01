@@ -1055,3 +1055,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     The runner is removed from the repository; a poller kept on his PC only starts Codex's cloud tasks, with no copy
     of the repository. Written into `docs/claude-and-codex.md` ("Handing work to Codex", "Haakon's poller": only his
     own work reaches Codex; Codex's work never touches the protected files), the same in Barkstreet Snakes.
+127. **1 November 2026, 17:10 UTC**, in the design chat, after Codex's code review proved to work (Snakes #291)
+    while its building cannot, on the design session's proposal that Codex review Claude's PRs and build nothing
+    until he says: "Yes, please, expertly so! Thought remember, it can run out of usage, even just reviewing. So we
+    should probably have some standard of waiting, then asking it if it is spending too long (which shouldn't be
+    that long a wait), and then handing it off to another reviewer if it dosen't answer quickly? also, will the
+    codex reviewer have our review criterias with the 1 to 10 score scale and all?" Written into
+    `docs/claude-and-codex.md` (the status line, "Codex reviews": about 5 minutes to start, one more ask at about
+    15, then Claude's reviewer) and a "Review guidelines" section in `AGENTS.md`, which Codex's review reads; the
+    same in Barkstreet Snakes.
