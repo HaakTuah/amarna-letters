@@ -1071,3 +1071,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     egypt. if you say kemet, people think you speak of a frog." Written into "Places by their own names" (World and
     history) and item 17+: the realms keep the names people know (Egypt, Babylon, Assyria, Hatti, Mitanni), every
     place within them its name of 1346.
+129. **1 November 2026, 17:46-17:53 UTC**, in the design chat, after Codex's first real review (Snakes #289) gave
+    findings and no score: "Hmm, i see there are setting where i can set whether codex abides by my personal
+    prefernce or repo rules." Then, to the design session's proposals (a SECURITY.md for both repositories; Codex
+    gives findings, not scores, so design faults count as P1 and the big items get a short design check with a score
+    from Claude): "Yes, please, as expertly as at all possible, taking account of all attack vector and security
+    concerns, security expert!" Written into `SECURITY.md` (new), the "Review guidelines" in `AGENTS.md`, the
+    reviewer row in `CLAUDE.md` and "Codex reviews" in `docs/claude-and-codex.md`; the same in Barkstreet Snakes.

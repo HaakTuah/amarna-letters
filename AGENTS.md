@@ -17,6 +17,7 @@ Codex: read its "For Codex" section at the start of every task.
 | --- | --- | --- |
 | Builder rules | `.claude/rules/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
 | Claude and Codex | `docs/claude-and-codex.md` | Who builds what, the hand-over, the fallback, the reviews' score. |
+| Security | `SECURITY.md` | What is protected, and the rules every builder and reviewer keeps. |
 | Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |
 | What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, review questions, "Found during the port". |
@@ -122,10 +123,11 @@ variable.
 
 ## Review guidelines
 
-For Codex's code review (`@codex review`), and every other reviewer: give a score from 1 to 10, and list everything
-that keeps the work from 10, each point concrete (a file and line, or a design section) and marked **blocking**
-(against the design, the PR's description and the sections it names, its tests, or the rules in this file) or **not
-blocking**. Check the rules that stand above all. The whole method: "Reviews" in `docs/claude-and-codex.md`.
+For Codex's code review, which reports findings by priority: report as **P1** (blocking) a departure from the design or
+from the PR's description and the sections it names; a broken rule of this file (above all the rules that stand) or of
+`SECURITY.md`; a test changed, skipped or weakened; and a protected file changed by a Codex lane. Every other reviewer
+gives a score from 1 to 10 and everything that keeps the work from 10, each point blocking or not. The whole method:
+"Codex reviews" and "Reviews" in `docs/claude-and-codex.md`.
 
 ## Standing instructions
 
