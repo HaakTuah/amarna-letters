@@ -95,6 +95,7 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
 | 19+++ composing (`music/19-plus3-compose`) | 1. The Hurrian Hymn's score follows Kilmer's reading of the notation (each named pair of strings sounded together, the first-named sung above); Dumbrill's or West's melodic readings would give another tune. Keep Kilmer's? | Kilmer's (`docs/rounds/2026-10-31-music-composing.md`, reading 2) | Open; the pieces themselves are judged by ear on `/listen` |
+| Polish lane (Music page) | 1. The Music page tells players the pieces are "one for each of Empire Earth's" and shows that game's track names and lengths ("Guillotine (1:49)", "Pawns (4:09)"): should players see the other game's name and titles? | Left as built (item 19+++ names Empire Earth as the template); alternative: our piece names and moods only | Open |
 
 
 ## Use against ignore
