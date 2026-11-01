@@ -15,6 +15,18 @@ import { EnvoysSection } from "./orders/EnvoysSection.tsx";
 import { CourtSection } from "./orders/CourtSection.tsx";
 import { CouncilSection } from "./orders/CouncilSection.tsx";
 
+/**
+ * An envoy's journey as the engine words it for kings ("Terqa: 2 season(s) each way"), read for a person: the court by the
+ * name the game shows, "1 season" or "2 seasons" rather than "season(s)". The engine's own line, which models read, is unchanged.
+ */
+const TravelTime = /^(?<court>.+?): (?<n>\d+) season\(s\) each way$/;
+function travelTime(t: string): string {
+  const m = TravelTime.exec(t);
+  if (m?.groups === undefined) return t;
+  const n = Number(m.groups.n);
+  return `${powerName(m.groups.court)}: ${n} ${n === 1 ? "season" : "seasons"}`;
+}
+
 /** A human seat's orders for one season: units, treasury, envoys, court and tablets. */
 export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: OrderDraft; state: GameState; onChanged: () => void; onSubmit: (sleep: boolean) => void }) {
   const c = useOrders(draft, state, onChanged, onSubmit);
@@ -31,7 +43,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
         </p>
         <p className="muted">
           <small>
-            Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take: {v.travelTimes.join("; ")}.
+            Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take, each way: {v.travelTimes.map(travelTime).join("; ")}.
           </small>
         </p>
       </div>

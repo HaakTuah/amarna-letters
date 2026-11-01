@@ -37,6 +37,8 @@ Prefer the cheapest approach that does the job well").
 
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
+- In a seat's view the map's "as of …" notes on remembered units overlap one another near Gaza (Egypt, desktop, the
+  first season): label placement on the map, left for item 19++ (the visual pass).
 
 Fixed since they were listed here: the Standings tab's leak of distant holders (#297), the seat menu at 390 px (#303),
 `who-decides.test.ts`'s slow "Planning" tests (#302), the timeline's label against the header's season (#307), and
