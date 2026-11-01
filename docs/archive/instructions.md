@@ -1007,4 +1007,29 @@ Given in the design chat with Claude, answering the design questions of the cons
     things you can zoom in on and hear, without it revealing anything. Because these are static. And if you zoom in on a
     city that is really burned but that you still believe is buzzing, then it should probably play the urban commotion
     sound?" Written into item 19+++ and the polish lane's soundscape entry: what a seat hears is what its own map shows.
-
+123. **1 November 2026, 12:52-14:40 UTC**, in the design chat, on Claude and Codex building together: "I want to run
+    them both togheter, so they collaborate, ideally. that way, they spread the usage, and can last about the full
+    week, hopefully?" Then: "I thought there was mcp integration? can't the orchestrator just create Codex builder
+    instances, like it does internally now, and split the load? and maybe they can review for one another, since
+    they have different architectures and possibly different blind spots?" On the design session's pick of GitHub as
+    the meeting point (12:53-13:04 UTC): "Well, they can continue communication over GitHub if something is unclear,
+    or further notes needs to be exchanged, no?" (13:10 UTC): "Yes, this sounds like a good step to try first! But I
+    think I will start with the 100 dollar subscription for Codex to start with, so Claude Code orchestrator must be
+    aware that there will be times where Codex isn't avaliable. I suggest it makes a habit of dividing the labor
+    with Codex in mind, but awaits a response for a short time, and if it doesn't get it, it assigns it to a builder
+    session of its own? and it has to be aware that if Codex runs out of usage, it won't get an alert, so it has to
+    be ready to fall back in case that happes. Though should absolutely all tasks go to codex? some presumably
+    requires a bit more? take the music compositions we just did?" (13:17 UTC): "Some of the stuff you assigned
+    Claude, it might be able to divide up further, so Claude has made the important calls and criterias, then
+    hand-off the grunt work to Codex?" (13:20 UTC): "Yes, at least there should be a Claude reviewer with a clear
+    idea of what the final product should look like, so it can make Codex iterate until it reaches that vision.
+    Should we also add a criteria that they have to judge each other's work on a scale of 1/10, and if it isn't a
+    10, it goes back? I saw someone mention that trick, and it supposedly is a pretty good quality control." To the
+    design session's version (a score and the list of what keeps it from 10, back while a point blocks, at most
+    three rounds), 13:21 UTC: "Yes, I think we have a pretty good set-up here on all fronts now! I'll just go and
+    get Codex and get it set-up before we start inserting this all into the project files." On Codex's review
+    trigger (14:25 UTC): "It has a "smart detect (exprimental feature) or on every push. Should maybe just turn it
+    off then?" (automatic review off, reviews on request). Then (14:40 UTC): "Okay, got the ChatGPT Pro 100
+    subscription now, so how do I set it up like I want?" Written into `AGENTS.md` (`CLAUDE.md` renamed, Claude's
+    own part kept in a new `CLAUDE.md` that imports it) and `docs/claude-and-codex.md`, the same in Barkstreet
+    Snakes.
