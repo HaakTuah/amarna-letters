@@ -241,6 +241,7 @@ describe("Who decides (item 6c)", () => {
 
   test("Routine audiences go to the small rung while a king sleeps; what the engine sees matters goes to his own model", async () => {
     // The seven Great Kings only (five on the model, Hatti and Babylonia scripts sending envoys), the city-states idle.
+    // (This game has few routine audiences, one at least; a seed with more would make the check sturdier.)
     const [runner, api] = build(() => {}, 2, new SimulatedApi(), true, GreatKings); // seed 2 since item 9+b: on seed 3 the script armies now wake the model kings every season
     await play(runner, 8);
     const routine = api.requests.filter((r) => str(r, "messages", 0, "content").includes("THESE ARE ROUTINE AUDIENCES"));
@@ -313,7 +314,9 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("With the small rung off, the king's own model answers every envoy and reads no alerts, as before", async () => {
-    const [runner, api] = build((c) => (c.small = "Off"), 3, new SimulatedApi(), false, GreatKings);
+    // Seed 2 with courteous envoys on the Great Kings: with the small rung on, this same game has a routine audience, a light
+    // alert and a reader's wake, so each emptiness below is the rung being off, not a quiet game.
+    const [runner, api] = build((c) => (c.small = "Off"), 2, new SimulatedApi(), true, GreatKings);
     await play(runner, 8);
     Assert.empty(api.requests.filter((r) => userOf(r).includes("THESE ARE ROUTINE AUDIENCES") || has(props(r), "wake")));
     Assert.empty(runner.log.decisions.filter((d) => d.key.includes("/alerts/")));
