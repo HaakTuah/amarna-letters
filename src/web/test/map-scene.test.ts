@@ -12,6 +12,7 @@ import {
   newGame,
   newLossAbroad,
   single,
+  setRisen,
 } from "@amarna/engine";
 import { GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { Assert, removeAll, toDict } from "../../engine/test/support.ts";
@@ -158,6 +159,8 @@ describe("MapSceneTests", () => {
     let ghosts = 0;
     for (let k = 0; k < frames.length; k++) {
       let state = runner.stateAt(k)!;
+      // The powers risen by then, as a loaded game's are (a power risen in play has its one province for its capital).
+      setRisen(state.risen);
       for (const p of living(state)) {
         let scene = buildScene(frames, k, p);
         let view = Views.for(state, p);

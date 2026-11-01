@@ -33,17 +33,19 @@ B replaces it, as the item's text orders.
 
 Each with the principle it rests on.
 
-1. **Conquest on entry stands** ("Whom a province obeys": "conquest is force tipping it"; Physics, not politics): an army
-   that beat its way in, past the old master's troops and the land's own men ("The people defend their land"), has tipped
-   the province by force at that moment; the one rule then decides each season whether it holds. Gating entry on the
-   rule as well was tried first and made most conquests of homelands fail outright, which the text does not ask.
-2. **A rival king weighs only with troops standing in the province; next door counts for its holder alone** ("Gubla now
-   answers to Aziru: his men stand at its gates"; Everything is somewhere): a neighbour's army at home next door is no
-   fear to people it does not stand among, and counting it flipped Hazzatu and Ṣumur to the Shasu and Amurru in the first
-   season. His love counts with his men there: a rival's gold among a people (`stir`) tells when his troops come.
-3. **A province falls lawless only with none of its holder's troops in it** (the text: "no one if nobody's weight clears
-   what its people accept"): a province with the master's men standing in it is not nobody's; it rises behind a man, or
-   waits.
+1. **Conquest is the season's rule alone** (round 2, design point 9; "conquest is force tipping it", "Every way a province
+   changes hands is this one rule"): marching in takes nothing; storming walls breaks in (the walls a level lower) and the
+   stormers stand within them; as the next season begins the province answers to whoever its rule finds. A siege's
+   surrender stays the city's own act ("How long a siege lasts": the gate opened from within by its starving people), as
+   cession and a kingdom's fall stay their own sections' rules. Replaces round 1's "conquest on entry stands".
+2. **Next door counts for everyone, a quarter and only a little in all** (round 2, design point 5; "troops standing in it
+   or near enough to answer it"; No rule checks which power it is): men next door, or standing before walls they have not
+   stormed, weigh a quarter of men within, at most `nearMost` 50 [G] in all, for holder and rival alike, so a neighbour's
+   army at home is a pressure but never takes a loved province by itself (round 1 found an uncapped next door flipped
+   Hazzatu and Ṣumur in the first season). A rival is still a power with troops standing in it, or a man of standing there.
+3. **The people rise against troops they hate, and fight them** (round 2, design points 8 and 13): a province below what
+   its people accept falls lawless whether or not its master's troops stand there: if they do, the people rise and fight
+   them as a battle goes first (`risingWins`).
 4. **Native or held at the start, by tongue** (Different data, same rules): a king stands `home` 100 where his court's
    tongue is its people's, `held` 40 elsewhere (Luwian Kizzuwatna, Nesa and Tuwanuwa under a Hittite court; Canaanite
    Hazzatu and Ṣumur, Amorite Sinai and Nubian Kush under Pharaoh; Dilmun and Suhu under Babylon) [C: the tongue as the
@@ -67,16 +69,57 @@ Each with the principle it rests on.
 12. **A remnant is fewer men than a quarter of a full levy** [G], and folds into a larger unit of its kind next to it that
     stays put; a fold takes the season, after the moves; not a unit under a commander or with a hired band, whose terms are
     their own.
-13. **The force scale**: troops as many as a tenth of a province's men of fighting age weigh `force` 100, at most 200 [G];
-    a full army (5,000) clears a median province (5,900 men) at the cap.
+13. **The force scale: as many troops as its men weigh `force` 100** (round 2, the early falls; "Numbers come from their
+    causes"; "weighed against its own men of fighting age ('The people defend their land')"): combat counts the people's
+    men one for one with soldiers, so fear does too; twice the men in hill land and half on open plain, as the people
+    defend by their ground. Round 1's first guess, a tenth of the men for 100, let one army cow any province at once
+    (below, "The early falls"). At most `forceMost` 200 [G].
 
-14. **A court's own city changes hands only to a foe's troops standing in it** (a coup is not modelled, as item 17 read
-    it): it waits for item 17b ("A realm holds by its ledger"), which makes the capital wherever the court is.
+14. **A court's own city changes hands only to a foe's troops standing within it** (a coup is not modelled, as item 17
+    read it): it waits for item 17b ("A realm holds by its ledger"), which makes the capital wherever the court is.
 15. **Aziru's house stands for the villages gone over to the Habiru at Gubla** [B]: the Habiru there were the Amurru
     brothers' men in the letters (EA 74-91), and the bands of the map are not a power that can hold land, so the share goes
     to the house that led them.
 16. **The seat view's leak rides here** because the orchestrator's brief put it in 17++: it is the same question, which
     provinces a court knows it holds, that this part's changes of hands make common.
+17. **A man of standing is asked, and his choice is taken the next season** (round 2, design point 7; "Persons ... choose by
+    their stakes"; Skills set the odds, the character decides): each man whose following would clear the master's weight
+    is asked ("Rising"); a script answers by the strategy his traits give him (ambition at least 50 and not loyal to the
+    holder, as before), a model for himself; a rising he chose breaks out the next season if they would still follow him.
+    The season between is the moment ripening, and keeps a rising from coming faster than word of it (pillar 8).
+18. **A rising's men are the land's men as far as they lean to the leader over their master** (round 2, design point 8;
+    "troops of the master in the province fight them as combat says"): its men of fighting age by his standing less the
+    master's (at least `riseLeast` 10 in a hundred [G]), and his band; against the troops and, as far as they love the
+    master, one in `loyalShare` 4 [G] of its men ("they fight beside it"); counted as units' men are (`LandData.armyMen` a
+    full unit) and settled by `battleLosses`. Beaten troops stay where they stand, as a beaten unit with nowhere to fall back
+    does not vanish; the next season's rule weighs them.
+19. **The people's hostility to an invader is 100, plus half their standing with the master he comes against, less half
+    their standing with him, from 0 to 200** (round 2, design point 8; "how hostile they are to the invader ... follows what
+    the taker has done to them"): a king come back to a homeland that loves him (100) meets half the hostility, as item
+    11e's `hostileHome` 50 did, which this replaces.
+20. **Grain handed out gives, most in a famine, to the hand they see unless in the king's own name** (round 2, design point
+    2; "Credit goes to the hand they see ... unless it comes in the king's own name, by his envoy, his stela or his
+    proclamation"): `grain` 20 [G] for a season's need where the people went hungry, a quarter in plenty; `feed` with `own`
+    (models: `feed_town_in_own_name`; the web: "Feed the town in your own name"), proclaimed by the courier who carries the
+    order, so it costs the order's journey and nothing more. A siege lifted by the holder's troops gives `relief` 20 [G]
+    with the victory. A band's robbing takes, against its chief.
+21. **Script kings give by the ledger where their governors write of unrest** (round 2, design point 2): beside the tax
+    relief item 17 built, they hand grain from the stores to a restless province's town, in their own name where a governor
+    stands (the wary king of the text); measured with `--freedom-play-half`.
+22. **An army's ledger: pay, plunder and victories to the hand they see, wages unpaid to the king** (round 2, design point
+    3; "For an army, pay, plunder shared and victories give; wages unpaid, defeats and hunger take"): the hand they see is
+    the commander, or the governor of the province a levy was raised from while it stands there, else the king; the king
+    withholds or cannot pay, so missed pay is held against him. The armies of 1346 start at `held` 40 with their king
+    ("Starting data can still say what history did"); a new levy at nothing ("It starts low").
+23. **Men follow a leader against their king as far as 50 in a hundred, plus his standing less the king's** [G]: the
+    middle when neither has given them anything, all of them once he stands 50 above the king. A commander refusing his
+    recall, and a governor rising or refusing his, take only those; a governor whose province would not follow him turns
+    with them as a band (as he did in his court's city before), ruling it only if its people would follow him.
+24. **Mutiny for missing pay stays item 17+'s count of seasons** (the item's text names turning governors and commanders'
+    armies, not mutiny): it is the men's own act at their limit, which item 18 may read through the army's ledger.
+25. **A cession failing because the land was lost after movement is now a siege's case only** (conquest at the season's
+    start): the test for it was removed with the case that cannot arise; a siege's surrender in the same season still
+    reaches it.
 
 ## Design questions
 

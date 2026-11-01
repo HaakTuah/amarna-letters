@@ -256,14 +256,15 @@ describe("SleepTests", () => {
     let r = await play("Babylonia", sleeper, 5, undefined, new Dict([["Assyria", assyria]]));
     Assert.contains(r.errors, (e) => e.startsWith("t3/orders/Babylonia:"));
     Assert.equal([1, 3, 4], sleeper.calls);
-    let woke = ["foreign troops entered your land: Assyria's army moved ekallate -> durkurigalzu", "land lost: Dur-Kurigalzu has been taken by Assyria."];
+    // (Since item 17++ the land answers to Assyria only as the next season begins, by the season's rule.)
+    let woke = ["foreign troops entered your land: Assyria's army moved ekallate -> durkurigalzu"];
     Assert.equal(woke, sleeper.views[1].wokenBecause);
     // In the season it missed, what woke it then comes first, whatever else the stand-in's season brought (a trading
     // caravan lost, item 9+b, wakes a king too).
     Assert.equal(woke, sleeper.views[2].wokenBecause.slice(0, woke.length));
     Assert.true(
       sleepLine(sleeper.views[2]).startsWith(
-        "You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallate -> durkurigalzu; land lost: Dur-Kurigalzu has been taken by Assyria",
+        "You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallate -> durkurigalzu",
       ),
       sleepLine(sleeper.views[2]),
     );

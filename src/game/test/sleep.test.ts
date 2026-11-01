@@ -251,12 +251,15 @@ describe("SleepTests", () => {
     // Babylon disbands the army in Dur-Kurigalzu and sleeps; Assyria walks in.
     let sleeper = new Sleeper((v) => (v.turn === 1 ? newTurnSubmission({ orders: [disband("durkurigalzu")] }) : nothing()));
     let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "durkurigalzu")] }) : newTurnSubmission()));
-    await play("Babylonia", sleeper, 3, undefined, new Dict([["Assyria", assyria]]));
+    await play("Babylonia", sleeper, 3, undefined, new Dict([["Assyria", assyria]]), (s) => {
+      // Item 17++: its people indifferent to Babylonia for the test, and a host to cow its 25,000 men of fighting age, so that
+      // it answers to Assyria as the next season begins, before the seat is asked.
+      s.ledger.set("durkurigalzu", new Dict());
+      s.units.find((u) => u.province === "ekallate")!.men = 40000;
+    });
     Assert.equal([1, 3], sleeper.calls);
-    Assert.equal(
-      ["foreign troops entered your land: Assyria's army moved ekallate -> durkurigalzu", "land lost: Dur-Kurigalzu has been taken by Assyria."],
-      sleeper.views[1].wokenBecause,
-    );
+    Assert.equal("foreign troops entered your land: Assyria's army moved ekallate -> durkurigalzu", sleeper.views[1].wokenBecause[0]);
+    Assert.true(sleeper.views[1].wokenBecause[1].startsWith("land lost: Dur-Kurigalzu now answers to Assyria"), sleeper.views[1].wokenBecause.join("; "));
   });
 
   test("Troops destroyed in battle wake a sleeper", async () => {

@@ -175,7 +175,7 @@ describe("SeasonRulebookTests", () => {
       "6. Orders",
       "7. Movement and battles",
       "8. Sieges",
-      "9. Land changes hands",
+      "9. Walls stormed",
       "10. A kingdom falls with its capital",
       "11. Cessions and gifts of troops",
       "12. Purchases",

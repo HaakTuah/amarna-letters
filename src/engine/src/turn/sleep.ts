@@ -338,11 +338,15 @@ P.wakeReasons = function (p, sl) {
   return why;
 };
 
+/** The notices of land lost: surrendered to a siege, gone over to another as the season began, risen against its master. */
+const LandLostTitles: readonly string[] = ["Land lost", "A province lost", "A province rises"];
+
 /** The news this season that wakes a seat: land lost, troops lost to desertion or plague, a ransom demanded, a servant's notice. */
 P.wakeReason = function (i) {
   switch (i.kind) {
     case "Battle":
-      return i.title === "Land lost" ? `land lost: ${i.body}` : null;
+      // Item 17++: land goes over to another, or rises, by the season's rule.
+      return LandLostTitles.includes(i.title) ? `land lost: ${i.body}` : null;
     case "Catastrophe":
       return i.body.includes("it has destroyed your") ? "plague destroyed troops of yours" : null;
     case "Notice": {

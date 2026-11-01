@@ -110,15 +110,20 @@ rumours, and those can be late, shaded or false.
   tolls on your roads.
 - Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée: nothing is
   kept unless you order it, and an army in another's land can raze them.
-- **No province is owned by a flag: it obeys whoever it fears or loves most.** Fear is troops standing in it (or, for its
-  holder, next to it), weighed against its own men; love is what its people remember of each king, governor and man of
-  standing: what he gave them (protection, policing, grain, a light tax) against what he took (a heavy tax, levies, food
-  taken, a sack, a famine under him). Memory fades, and you never see the numbers: your governor and spies tell you the
-  mood in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. It changes
-  hands only by a clear margin: to a king whose troops stand in it, to a man of standing there whose following outweighs
-  you (he rules it in his own name), or, if it bears you nothing and none of your troops stand there, to nobody. Seven men
-  among thousands who lean away hold nothing: they are overwhelmed, and a far weaker unit an army falls on is destroyed even
-  where its land held the army out. Fold a remnant into larger troops of yours next to it (order fold), or disband it.
+- **No province is owned by a flag: it obeys whoever it fears or loves most.** Fear is troops standing in it, weighed
+  against its own men (twice as many in hill land); troops next door, or before walls they have not stormed, weigh a
+  little, for every king alike. Love is what its people remember of each king, governor and man of standing: what he gave
+  them (protection, a siege lifted, policing, grain handed out, a light tax) against what he took (a heavy tax, levies,
+  food taken, a sack, robbing, a famine under him); grain handed out where your governor stands is credited to him unless
+  you hand it out in your own name. Memory fades, and you never see the numbers: your governor and spies tell you the mood
+  in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. Marching in or
+  storming the walls takes nothing by itself: as each season begins a province goes, by a clear margin, to a king whose
+  troops stand in it (within its walls), to a man of standing there whose following outweighs you, if he chooses to lead
+  them (he rules it in his own name), or, if it bears you nothing, to nobody. A rising against your troops is fought as a
+  battle, and seven men among thousands who lean away are beaten. The men of your armies keep a ledger too: pay, plunder
+  and victories bind them to the hand they see, so a commander or governor who turns takes only the men who follow him. A
+  far weaker unit an army falls on is destroyed even where its land held the army out. Fold a remnant into larger troops
+  of yours next to it (order fold), or disband it.
 
 **Tongues.** Every court speaks and reads its own languages. An envoy needs a tongue the host understands, a tablet
 waits until someone at court can read it, and people learn the tongues of where they live.
