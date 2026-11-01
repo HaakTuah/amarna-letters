@@ -54,11 +54,12 @@ export function EnvoysSection({ c }: { c: OrdersContext }) {
                       ["grantGreatKing", "call them Great King"],
                       ["claimGreatKing", "claim Great King yourself"],
                       ["senderFirst", "your name first"],
+                      ["byHouse", "call them by their house, where another claims their name"],
                       ["omit", "no greeting"],
                     ] as const
                   ).map(([k, label]) => (
                     <label key={k}>
-                      <input type="checkbox" checked={g[k]} onChange={(e) => set({ g: { ...g, [k]: e.target.checked } })} /> {label}
+                      <input type="checkbox" checked={g[k] === true} onChange={(e) => set({ g: { ...g, [k]: e.target.checked } })} /> {label}
                     </label>
                   ))}
                 </div>

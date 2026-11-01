@@ -17,6 +17,7 @@ Codex: read its "For Codex" section at the start of every task.
 | --- | --- | --- |
 | Builder rules | `.claude/rules/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
 | Claude and Codex | `docs/claude-and-codex.md` | Who builds what, the hand-over, the fallback, the reviews' score. |
+| Security | `SECURITY.md` | What is protected, and the rules every builder and reviewer keeps. |
 | Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |
 | What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, review questions, "Found during the port". |
@@ -86,8 +87,10 @@ How to keep to them:
 - **Sessions.** When sessions are started for you item by item (a Claude Code Project does this), stop when your item
   is merged and say what is next; otherwise carry on with the next item in the same session. A long item may end a
   session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md` saying where to pick up.
-- **Keep files small and organised:** split code where it naturally belongs, by responsibility, and keep each file under
-  about 50 KB. Split a file that grows past that in its own PR, with behaviour proven unchanged.
+- **Keep it lean** (Haakon, 1 November 2026; `docs/archive/instructions.md`, item 133). Every change removes what it replaces, in the same PR: no
+  commented-out code, no "old" copies, nothing it made unused (code, files, settings, assets, test helpers). Look for an
+  existing helper before writing one. Split code by responsibility and keep each file under about 50 KB; split a file
+  that grows past that in its own PR, with behaviour proven unchanged. A leftover is a finding in every review.
 
 ## Commands
 
@@ -120,6 +123,18 @@ The third line is the check before pushing `develop`: if the last `develop` -> `
 back into `develop` first and open a new milestone PR. Never put a key or secret in the repository or in an environment
 variable.
 
+## Review guidelines
+
+For Codex's code review, which reports findings by priority: report as **P1** (blocking) a departure from the design or
+from the PR's description and the sections it names; a broken rule of this file (above all the rules that stand) or of
+`SECURITY.md`; a test changed, skipped or weakened; and a protected file changed by a Codex lane. Report anything the
+change leaves behind (code, files or settings it made unused, commented-out code) as a finding. Every finding counts:
+the PR passes only with none open. In a later round of the same PR, check that the earlier findings were fixed and
+review what changed since; raise something new about unchanged code only as P0 or P1. Every other reviewer (Claude's
+design check on the big items, and Claude's reviewer whenever Codex is unavailable) gives a score from 1 to 10 and
+everything that keeps the work from 10, and only a 10, a list with nothing open, passes. The whole method, with its
+guards against endless rounds and a slipping bar: "Codex reviews" and "Reviews" in `docs/claude-and-codex.md`.
+
 ## Standing instructions
 
 Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last. (The
@@ -144,8 +159,8 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
   the list up as "readings in the report".
 - **28 October 2026: pipeline, don't wait.** "Yes, please, organize it expertly so we maximize token caching, time spent, and all other concerns." (to Claude's proposal; the words are in
   `docs/archive/instructions.md`). Waiting is lost time and, past an hour, a lost cache, so:
-  1. **Review in the background.** Open the PR, start its reviewer as a background agent (or `@codex review`, once Codex
-     is connected), and go on meanwhile with what comes next: the next item's text, its sections, the check for
+  1. **Review in the background.** Open the PR, start its review (Codex's: `docs/claude-and-codex.md`, "Codex reviews"; or Claude's reviewer as a
+     background agent), and go on meanwhile with what comes next: the next item's text, its sections, the check for
      changes. Fix what the review finds when it returns, then merge.
   2. **The next item on top.** The next item depends on this one, so branch it from this item's PR branch, not
      from `develop`, and merge this branch (or `develop`, once it is merged) into it before its own PR.
@@ -197,5 +212,11 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
   whether the README is current, and fixes it if not.
 - **1 November 2026: Claude and Codex build together** (`docs/archive/instructions.md`, item 123). Codex builds
   beside Claude, on its own subscription, to spread the weekly usage, and the two review each other's work. Claude
-  orchestrates and keeps the decisions; Codex takes what tests can prove. The routing, the hand-over by `@codex`
-  comment, the fallback when Codex is out of usage and the reviews' score: `docs/claude-and-codex.md`.
+  orchestrates and keeps the decisions; Codex takes what tests can prove. The routing, the hand-over by the
+  `codex` label and Haakon's poller, the fallback when Codex is out of usage and the reviews' score: `docs/claude-and-codex.md`.
+- **1 November 2026: only a 10 passes** (`docs/archive/instructions.md`, item 132). Every review passes the work only at a 10, which for Codex
+  means no finding open, with guards against endless rounds and a slipping bar. The score follows from the list, and
+  later rounds judge the changes. After three rounds the escalation helper takes one look, and what is still open
+  leaves the PR blocked, never merged below 10. A blind re-review of a merged 10 every week and canaries now and then
+  are logged and reported. On the big items, Codex's review and Claude's design check start at the same time. The
+  method: `docs/claude-and-codex.md`, "Reviews".

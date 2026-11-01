@@ -8,7 +8,7 @@ import { hire, type DispatchOrder } from "../model/orders.ts";
 import { factsKnownTo, gain, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
 import { courtSpeaks } from "../model/languages.ts";
 import { errandOf } from "./court.ts";
-import { land, type Power } from "../model/power.ts";
+import { claimedName, land, type Power } from "../model/power.ts";
 import { SealedOutcome, newDispatch, newExchange, newGreetingOptions, newHomeCargo, newJobOffer, newJourney, newMessageTrail, newPendingAudience, newTablet, newTabletCopy, newTabletProposal, type Exchange, type HomeCargo, type JobOffer, type Journey, type MessageTrail, type PendingAudience } from "../model/records.ts";
 import { char, findCharacter, isAlive, logEvent, newGoldLot, newId, notify, ownedBy } from "../model/state.ts";
 import { authorityText, newAuthority } from "../model/authority.ts";
@@ -115,7 +115,7 @@ P.dispatch = function (p, d) {
     logEvent(S, "language", `${c.name} could not be made to understand ${p}'s words.`, [p], "envoy-mute");
     return;
   }
-  if (composed.seasons > 0) logEvent(S, "language", `${c.name} needs ${composed.seasons} season(s) to take in ${p}'s words for ${d.to}.`, [p], "mandate-slow");
+  if (composed.seasons > 0) logEvent(S, "language", `${c.name} needs ${composed.seasons} ${composed.seasons === 1 ? "season" : "seasons"} to take in ${land(p)}'s words for ${land(d.to)}.`, [p], "mandate-slow");
   const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
   // The scribe's fee for the tablet to seal, and for the inventory of any gold, unless it goes without one (item 8).
   const inventory = d.gold > 0 && d.noInventory !== true;
@@ -211,6 +211,7 @@ P.dispatch = function (p, d) {
     inventory,
     authority,
     checkClaim: d.checkClaim ?? null,
+    styled: claimedName(p),
     offers,
     collect: collect?.id ?? null,
   });
@@ -228,6 +229,7 @@ P.dispatch = function (p, d) {
 
   const outJourney = newJourney({ id: newId(S, "j"), kind: "EnvoyOutbound", departTurn: S.turn, from: p, to: d.to, characterId: c.id, dispatch });
   S.journeys.push(outJourney);
+  c.sent++;
   this.setOut(outJourney, this.courtAt(p), this.courtAt(d.to));
   // Seasons spent taking in the king's words, or waiting for the tablet's scribe, before the road.
   outJourney.departTurn += composed.seasons;
@@ -255,8 +257,8 @@ P.dispatch = function (p, d) {
     "Notice",
     "Envoy dispatched",
     composed.seasons > 0
-      ? `${c.name} needs ${composed.seasons} season(s) to take in your words${d.proposal ? " and have the tablet written" : ""} before setting out for ${d.to}; the mission should reach it in about ${travel} season(s).`
-      : `${c.name} set out for ${d.to} last season; the journey should take about ${travel} season(s).`,
+      ? `${c.name} needs ${composed.seasons} ${composed.seasons === 1 ? "season" : "seasons"} to take in your words${d.proposal ? " and have the tablet written" : ""} before setting out for ${land(d.to)}; the mission should reach it in about ${travel} season(s).`
+      : `${c.name} set out for ${land(d.to)} last season; the journey should take about ${travel} ${travel === 1 ? "season" : "seasons"}.`,
     c.id,
   );
   // Out of a besieged capital: the besiegers may catch it as it slips out (its king believes it on its way).
@@ -300,6 +302,8 @@ P.envoyArrivesAbroad = function (j) {
   this.envoyBusinessAbroad(c, j);
   const aud = newPendingAudience({ id: newId(S, "a"), envoyId: c.id, from: j.from, host: j.to, dispatch: j.dispatch! });
   S.audiences.push(aud);
+  // Item 17+: the host reads in the sealed greeting the name the sender claims.
+  this.claimHeard(j.to, j.from, j.dispatch!.styled ?? null);
   const trail = this.trail(j.dispatch!.trailId);
   if (trail !== null) trail.audienceTurn = S.turn;
 };

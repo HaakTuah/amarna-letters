@@ -29,6 +29,9 @@ import {
   taxOf,
   unitAt,
   priceAt,
+  upkeep,
+  paysUnit,
+  Views,
 } from "@amarna/engine";
 import { Assert, armiesBefore13, last } from "./support.ts";
 
@@ -151,6 +154,48 @@ describe("EconomyTests", () => {
     Assert.false(s.units.includes(u));
   });
 
+  test("Troops are paid and fed only by their king's standing order, which he may hold back (item 17+)", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    const u = single(s.units, (x) => x.province === "hattusa");
+    // Every king starts with the order to pay and feed all his troops.
+    Assert.true(Views.for(s, "Hatti").payTroops);
+    Assert.true(Views.for(s, "Hatti").feedTroops);
+    // Pay held back from the troops in one province: nothing leaves the treasury for them, and they count a season of missing pay.
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(false, null, "hattusa")] })]]));
+    Assert.equal("hattusa", Views.for(s, "Hatti").payHeld.join(","));
+    // Changing one half leaves the other as it stood (the review of 17+).
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(null, true)] })]]));
+    Assert.equal("hattusa", Views.for(s, "Hatti").payHeld.join(","));
+    s.turn++;
+    const gold = s.treasuries.get("Hatti").gold;
+    const paidBefore = u.savings;
+    e.beginTurn();
+    Assert.equal(1, u.unpaid);
+    Assert.equal(paidBefore, u.savings);
+    Assert.contains("Held back from pay by your standing order", notice(s, "The treasury"));
+    Assert.true(s.events.some((x) => x.signal === "pay-held"));
+    // The whole order changed: pay again, but feed nobody from the stores: the baggage is not refilled from the depot.
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(true, false)] })]]));
+    Assert.equal("", Views.for(s, "Hatti").payHeld.join(","));
+    Assert.true(Views.for(s, "Hatti").payTroops);
+    Assert.false(Views.for(s, "Hatti").feedTroops);
+    u.food = 0;
+    s.turn++;
+    e.beginTurn();
+    Assert.equal(0, u.unpaid);
+    Assert.equal(0, u.food);
+    // Fed again: the baggage fills from the stores where it stands.
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(null, true)] })]]));
+    s.turn++;
+    e.beginTurn();
+    Assert.equal(carriedOf("Army"), u.food);
+    // Paying only some: the whole order pays none, and the troops in one province are paid.
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(false, null), upkeep(true, null, "hattusa")] })]]));
+    Assert.true(paysUnit(s, u));
+    Assert.false(paysUnit(s, single(s.units, (x) => x.province === "nesa")));
+  });
+
   test("A caravan carries grain through its king's land to his troops and puts the rest in the stores", () => {
     const s = game();
     const e = new TurnEngine(s);
@@ -162,7 +207,8 @@ describe("EconomyTests", () => {
     Assert.equal(40, s.stores.get("hattusa"));
     s.turn++;
     e.beginTurn();
-    Assert.empty(s.caravans);
+    // The rest goes into Nesa's stores as far as they hold (a small town's since item 17+); what they cannot take goes home.
+    Assert.true(s.caravans.length === 0 || s.stores.get("nesa") >= capacityOf(Map.get("nesa")));
     Assert.equal(carriedOf("Army"), army.food);
     Assert.contains("Your caravan reached Nesa", notice(s, "Markets and caravans"));
   });

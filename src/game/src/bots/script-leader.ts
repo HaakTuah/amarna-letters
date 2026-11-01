@@ -29,6 +29,7 @@ import type { ISeat } from "../contracts.ts";
 import { ahead } from "./ahead.ts";
 import { Board } from "./board.ts";
 import { commandOrders, courtMove, enlistOrders, governorOrders } from "./generals.ts";
+import { nameClaims } from "./claims.ts";
 import { reliefOrders, supplyOrders } from "./freedom.ts";
 import { Brain } from "./brain.ts";
 import { Contingencies } from "./contingencies.ts";
@@ -132,6 +133,8 @@ export class ScriptLeader implements ISeat {
     commandOrders(board, brain, orders, busy);
     enlistOrders(board, brain, orders);
     courtMove(board, brain, orders);
+    // Item 17+: a realm's name claimed, by the capital held.
+    nameClaims(board, orders);
     // Haakon's answers to item 11b: armies fall on bands only by the king's order.
     huntOrders(board, orders);
     orders.splice(0, orders.length, ...collecting(board, orders));

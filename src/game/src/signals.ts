@@ -40,6 +40,8 @@ export const SignalKinds: readonly string[] = [
   "revolt-crushed", "revolt-led", "revolt-lawless", "revolt-home", "risen-revolt", "risen-turned", "risen-chief", "risen-elder",
   "supply-buy", "supply-take", "supply-kept", "supply-word-buy", "supply-word-take", "stir",
   "raze", "wall-repair", "harbour-short", "station-read",
+  // Item 17+: pay held back by a standing order, and a realm's name claimed.
+  "pay-held", "name-claim",
 ];
 
 const MessengerBlamed = rx(

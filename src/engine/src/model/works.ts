@@ -200,7 +200,7 @@ export function startPolicing(p: Province): number {
   return BanditCountry.has(p.id) ? 5 : 2;
 }
 const BanditCountry = new Set([
-  "shechem", "hebron", "megiddo", "jerusalem", "amurru", "byblos", "akko", "hazor", "damascus", "ashtaroth", "qadesh", "sinai", "gaza", "sapinuwa", "samuha", "akhetaten",
+  "shechem", "gath", "aijalon", "megiddo", "jerusalem", "amurru", "byblos", "akko", "hazor", "damascus", "ashtaroth", "qadesh", "sinai", "gaza", "sapinuwa", "samuha", "akhetaten",
 ]);
 
 /** A province's starting level of a kind other than walls (whose start is {@link MapData.StartWalls}). */

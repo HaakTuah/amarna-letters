@@ -330,6 +330,8 @@ export interface Character {
   secretMaster: Power | null;
   poisonText: string | null;
   turnsAbroad: number;
+  /** Item 17+: the times it has set out on a journey of its own (an errand, a post, a road), for the report's count of who acts. */
+  sent: number;
   /** The gold on its person. Characters start with none; what it holds came in by {@link Gain}. */
   purse: number;
   /** Where the gold in its purse came from. Nothing is spent yet, so the parts add up to the purse. */
@@ -561,6 +563,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     secretMaster: null,
     poisonText: null,
     turnsAbroad: 0,
+    sent: 0,
     purse: 0,
     earned: newEarnings(),
     unpaidTurns: 0,
@@ -638,6 +641,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   secretMaster: opt(S),
   poisonText: S,
   turnsAbroad: I,
+  sent: I,
   purse: I,
   earned: () => EarningsSchema,
   unpaidTurns: I,

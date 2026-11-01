@@ -74,7 +74,8 @@ function cities(s: MapScene): string {
     const owner = s.owner.get(p.id) ?? null;
     const walls = s.walls.get(p.id) ?? 0;
     const at = city(p.id);
-    sb += `<g transform="translate(${F(at.x)},${F(at.y)})" class="city${p.capital ? " capital" : ""}${owner === null ? " free" : ""}${sieges.has(p.id) ? " besieged" : ""}" data-province="${p.id}"><g class="csym"><circle class="tap-hit" r="${p.capital ? 22 : 18}"/>`;
+    // Item 17+: a land with no great town of its time (Nesa, the herders' lands) carries its seal without a town's rings.
+    sb += `<g transform="translate(${F(at.x)},${F(at.y)})" class="city${p.capital ? " capital" : ""}${owner === null ? " free" : ""}${sieges.has(p.id) ? " besieged" : ""}${p.town ? "" : " notown"}" data-province="${p.id}"><g class="csym"><circle class="tap-hit" r="${p.capital ? 22 : 18}"/>`;
     // One ring for each level of walls standing.
     for (let level = walls; level >= 1; level--) sb += `<circle class="walls w${level}" r="${(p.capital ? 12 : 8.5) + 2 * level}"/>`;
     if (p.capital) sb += `<circle class="cap-ring" r="12.6"/>`;
@@ -284,8 +285,10 @@ function outlaws(s: MapScene): string {
     const at = city(b.province);
     const ring = ringOf(Map_.get(b.province).capital, s.walls.get(b.province) ?? 0);
     const what = b.ship ? "A pirate crew" : "A band";
-    sb += `<g class="band-mark${b.ship ? " pirate" : ""}" data-province="${b.province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ring)}">`;
-    sb += title(`${what} of ${b.men} men in ${provinceName(b.province)}${b.chief !== "" ? `, led by ${b.chief}` : ""}`);
+    // Word from land lost without the court's knowing is old: drawn faded, like a unit last seen, with its age.
+    const old = b.age > 0 ? ` ghost age${Math.min(4, b.age)}` : "";
+    sb += `<g class="band-mark${b.ship ? " pirate" : ""}${old}" data-province="${b.province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ring)}">`;
+    sb += title(`${what} of ${b.men} men in ${provinceName(b.province)}${b.chief !== "" ? `, led by ${b.chief}` : ""}${b.age > 0 ? `: as your people last told of it, ${b.age} season${b.age === 1 ? "" : "s"} ago` : ""}`);
     sb += `<g class="sym"><g transform="translate(${k * 18},0)"><circle class="band-bg" r="8"/><use href="${b.ship ? "#fig-fleet-levant" : "#fig-fire"}" class="band-icon" x="-6.4" y="-6.4" width="12.8" height="12.8"/></g></g></g>`;
   }
   return sb;

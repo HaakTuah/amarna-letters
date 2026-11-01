@@ -1,4 +1,4 @@
-import { AllPowers, king, type Power } from "@amarna/engine";
+import { AllPowers, kingFor, type Power } from "@amarna/engine";
 import { useState } from "react";
 import type { MapScene } from "../map/scene.ts";
 import type { FrameSleep } from "../session/frames.ts";
@@ -53,7 +53,7 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
           <strong>
             <Emblem power={open} /> {powerName(open)}
           </strong>{" "}
-          · {king(open)} · {heldBy(open)} provinces
+          · {kingFor(scene.viewer, open)} · {heldBy(open)} provinces
           {god || scene.viewer === open ? `, ${f.units.filter((u) => u.power === open).length} units` : ""}
           {f.eliminated.has(open) ? " · fallen" : ""}
           {sleepOf(open) !== null ? (

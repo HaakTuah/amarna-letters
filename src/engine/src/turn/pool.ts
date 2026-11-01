@@ -126,6 +126,7 @@ P.newcomer = function (rng, door) {
   const courts = sortBy(alive(S), [(p: Power) => this.travelTurnsBetween(doorAt, this.courtAt(p)), cmpNum], [(p: Power) => AllPowers.indexOf(p), cmpNum]);
   const to = courts[0];
   const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from: to, to, characterId: c.id });
+  c.sent++;
   this.setOut(j, doorAt, this.courtAt(to));
   S.journeys.push(j);
   c.duty = "Travelling";

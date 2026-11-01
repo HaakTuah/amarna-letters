@@ -32,9 +32,9 @@ import { BandData } from "../model/bands.ts";
 import { gain } from "../model/people.ts";
 import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
-import { AllPowers, type Power } from "../model/power.ts";
+import { AllPowers, land, type Power } from "../model/power.ts";
 import { courierSeasons } from "../rules/court.ts";
-import { alive, isAlive, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, type Unit } from "../model/state.ts";
+import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { legPoints, PointsPerDay, boatDays, type Company } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { RoadOdds } from "./travel.ts";
@@ -60,7 +60,7 @@ declare module "./core.ts" {
     yieldFactor(province: string, besiegedYields?: boolean): number;
     harvestSeason(): Dict<Power, string[]>;
     townsEat(): void;
-    payTroops(p: Power): { paid: number; unpaid: string[] };
+    payTroops(p: Power): { paid: number; unpaid: string[]; held: string[] };
     feedTroops(): Dict<Power, string[]>;
     disbandUnit(u: Unit, settle?: boolean): string;
     caravansTravel(): void;
@@ -257,9 +257,10 @@ P.townsEat = function () {
 };
 
 /**
- * A king pays his troops, nearest his capital first, as far as his treasury goes: each army or fleet its men's pay and a
- * besieger the cost of its siege works. The men spend part of it where they stand by leave, in their king's own land or
- * land its holder opened to them (item 9+b), and keep the rest. A unit not paid in full counts a season of missing pay.
+ * A king pays his troops by his standing order (item 17+: every king starts with one, and nothing is paid without it),
+ * nearest his capital first, as far as his treasury goes: each army or fleet its men's pay and a besieger the cost of its
+ * siege works. The men spend part of it where they stand by leave, in their king's own land or land its holder opened to
+ * them (item 9+b), and keep the rest. A unit not paid in full, or held back by its king's order, counts a season of missing pay.
  */
 P.payTroops = function (p) {
   const S = this.s;
@@ -268,11 +269,18 @@ P.payTroops = function (p) {
   const cap = this.courtAt(p);
   let paid = 0;
   const unpaid: string[] = [];
+  const held: string[] = [];
   for (const u of sortBy(
     S.units.filter((u) => u.power === p),
     [(u: Unit) => Map.hops(cap, u.province), cmpNum],
     [(u: Unit) => u.id, cmpStr],
   )) {
+    if (!paysUnit(S, u)) {
+      u.unpaid++;
+      held.push(unitLabel(u));
+      logEvent(S, "pay-held", `${land(p)} held back the pay of ${unitLabel(u)} by its standing order.`, [p], "pay-held");
+      continue;
+    }
     const pay = forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
     if (t.gold < pay) {
       u.unpaid++;
@@ -287,7 +295,7 @@ P.payTroops = function (p) {
     if (where !== null) this.spendAt(where, spent);
     u.savings += pay - spent;
   }
-  return { paid, unpaid };
+  return { paid, unpaid, held };
 };
 
 /**
@@ -352,14 +360,15 @@ P.feedTroops = function () {
     const abroad = u.kind === "Army" && winter && S.owner.getOrDefault(u.province, null) !== u.power;
     const need = unitFood(u) + (abroad ? idiv(unitFood(u) * LandData.winterFood[climateOf(u.province).winter], 100) : 0);
     let eaten = 0;
-    const depot = depotOf(this, u);
+    // Item 17+: fed from its king's stores and gold only by his standing order; held back, it eats what it carries and then takes.
+    const depot = feedsUnit(S, u) ? depotOf(this, u) : null;
     if (depot !== null) eaten += this.takeFromStores(depot, need);
     // Where it stands by leave, at home or in a friend's land: bought at the market there, at the market's price, with the
     // gold it carries for food, if its king's word is to buy and its commander does not keep the gold (item 17).
     const host = S.owner.getOrDefault(u.province, null);
     const byLeave = !this.map.get(u.province).isSea && (host === u.power || this.byLeave(u)) && siegeOf(S, u.province) === null;
     let buying = false;
-    if (eaten < need && byLeave && u.buy && u.chest > 0 && !this.keepsFoodGold(u)) {
+    if (eaten < need && byLeave && u.buy && u.chest > 0 && feedsUnit(S, u) && !this.keepsFoodGold(u)) {
       const m = this.market(u.province);
       const r = buyAlongCurve(m.stock, needOf(this.map.get(u.province)), u.chest, need - eaten);
       if (r.taken > 0) {

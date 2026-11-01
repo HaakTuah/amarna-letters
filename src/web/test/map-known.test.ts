@@ -3,7 +3,8 @@ import { WorldMap, newGameEvent, type Power } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
 import { remember } from "../src/map/memory.ts";
 import { knownRuins, ownFiguresAt } from "../src/map/known.ts";
-import type { SeasonFrame } from "../src/session/frames.ts";
+import { buildScene, ownEconomy } from "../src/map/scene.ts";
+import { ownerFor, type SeasonFrame } from "../src/session/frames.ts";
 
 // One rule for the map and the ear (the sound lane, 1 November 2026): a seat knows of a sack, a ruin and its rebuilding
 // only from its own record (shown it, its sight, its dated word of the city), never from the true owner or unrest. Four
@@ -82,5 +83,49 @@ describe("MapKnownTests", () => {
     // Hatti, which took it unseen by Egypt but knows it holds it, sees it as it is.
     const hatti = fs.map((f) => ({ ...f, knownOwner: new Map([["Hatti" as Power, new Map([[city.id, { owner: (f.index >= 1 ? "Hatti" : "Egypt") as Power, turn: f.turn }]])]]) }));
     Assert.equal(3000, remember(hatti, 2, "Hatti", new Set()).towns.get(city.id)?.now);
+  });
+
+  test("A province card tells of a city lost out of sight only what the stewards last sent; nothing of its new holder", () => {
+    // Egypt's city taken by Hatti out of Egypt's sight in frame 1, word of it reaching Egypt in frame 3; a band there each
+    // season, its stores and people changing under the new holder.
+    const band = (men: number) => ({ province: city.id, men, ship: false, chief: "" });
+    const at = (i: number, holder: Power, knows: Power, people: number) =>
+      frame(i, {
+        owner: new Map([[city.id, holder]]),
+        knownOwner: word(knows, knows === "Egypt" ? 1 : i),
+        settled: new Map([[city.id, people]]),
+        stores: new Map([[city.id, people / 10]]),
+        fed: new Map([[city.id, 900]]),
+        bands: [band(people / 100)],
+      });
+    const fs = [at(0, "Egypt", "Egypt", 5000), at(1, "Hatti", "Egypt", 4000), at(2, "Hatti", "Egypt", 3000), at(3, "Hatti", "Hatti", 2000)];
+    // Held and known: the card tells everything, from the court's own view.
+    Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(fs, 0, "Egypt"), city.id)));
+    for (const i of [1, 2]) {
+      const scene = buildScene(fs, i, "Egypt");
+      // Lost unawares: the stewards' last report (frame 0), with its age; never the live state or the new holder's figures.
+      Assert.equal(JSON.stringify({ live: false, age: i, stores: 500, settled: 5000, fed: 900 }), JSON.stringify(ownEconomy(scene, city.id)));
+      // The map's stores and bands as last held, the band faded with its age.
+      Assert.equal(500, scene.stores.get(city.id));
+      const b = scene.bands.find((x) => x.province === city.id)!;
+      Assert.equal(50, b.men);
+      Assert.equal(i, b.age);
+    }
+    // Word arrives: nothing of it any more, neither economy, stores nor band.
+    const after = buildScene(fs, 3, "Egypt");
+    Assert.null(ownEconomy(after, city.id));
+    Assert.false(after.stores.has(city.id));
+    Assert.false(after.bands.some((x) => x.province === city.id));
+    // God view, and the new holder that knows it holds it: everything, as it is.
+    Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(fs, 2, null), city.id)));
+    const hatti = fs.map((f) => ({ ...f, knownOwner: new Map([["Hatti" as Power, new Map([[city.id, { owner: (f.index >= 1 ? "Hatti" : "Egypt") as Power, turn: f.turn }]])]]) }));
+    Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(hatti, 2, "Hatti"), city.id)));
+  });
+
+  test("Who holds a province is as the record has it: known ownerless stays so, and what the record lacks is no one", () => {
+    const f = frame(1, { owner: new Map([[city.id, "Hatti"]]), knownOwner: new Map([["Egypt" as Power, new Map([[city.id, { owner: null, turn: 1 }]])]]) });
+    Assert.null(ownerFor(f, city.id, "Egypt"));
+    Assert.null(ownerFor(f, city.id, "Babylonia"));
+    Assert.equal("Hatti", ownerFor(f, city.id, null));
   });
 });

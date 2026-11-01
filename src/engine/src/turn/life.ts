@@ -466,6 +466,7 @@ P.startTravel = function (c, to, asName = null, fromProvince = null) {
   const fromProv = fromProvince ?? this.courtAt(from!);
   // Item 11b: it walks the road like any traveller, and meets its outlaws ("Robbing purses on the road").
   const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from: from ?? to, to, characterId: c.id, asName });
+  c.sent++;
   this.setOut(j, fromProv, this.courtAt(to));
   S.journeys.push(j);
   c.at = null;

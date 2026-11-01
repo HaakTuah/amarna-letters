@@ -9,7 +9,7 @@ import { AllPowers, type Power, type RisenPower, cmpPower } from "./power.ts";
 import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
-import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
+import { type Claim, ClaimSchema, type NameClaim, NameClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 import { type Grant, GrantSchema } from "./authority.ts";
 import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
 import { type Toll, TollSchema } from "./trade.ts";
@@ -82,7 +82,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 37;
+export const CURRENT_VERSION = 38;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -110,6 +110,39 @@ export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
   (init: Partial<RisenPower> = {}) => ({ power: "", land: "", king: "", ruler: "", capital: "", turn: 0, from: "", temper: [], how: "governor", ...init }),
   { power: S, land: S, king: S, ruler: S, capital: S, turn: I, from: S, temper: list(I), how: S },
 );
+
+/**
+ * Item 17+: a king's standing order to pay and feed his troops, which every king starts with and may change or cancel,
+ * holding back pay or food from all his units or from the ones named ("Nothing happens unless someone orders it": the
+ * engine pays and feeds nothing on its own). A unit held back counts a season of missing pay, or eats what it carries and
+ * then takes from the land, as the economy's rules say.
+ */
+export interface TroopUpkeep {
+  pay: boolean;
+  feed: boolean;
+  /** The units treated otherwise than the whole order says: held back while it pays, or paid while it pays none. */
+  payExcept: string[];
+  feedExcept: string[];
+}
+
+export const TroopUpkeepSchema: ObjSchema<TroopUpkeep> = obj(
+  "TroopUpkeep",
+  (init: Partial<TroopUpkeep> = {}) => ({ pay: true, feed: true, payExcept: [], feedExcept: [], ...init }),
+  { pay: B, feed: B, payExcept: list(S), feedExcept: list(S) },
+);
+
+/** A king's standing order for his troops' pay and food: to pay and feed them all unless he changed it. */
+export const upkeepOf = (s: GameState, p: Power): TroopUpkeep => s.upkeep.tryGet(p) ?? { pay: true, feed: true, payExcept: [], feedExcept: [] };
+/** Whether the king's standing order pays this unit this season. */
+export const paysUnit = (s: GameState, u: Unit): boolean => {
+  const o = upkeepOf(s, u.power);
+  return o.pay !== o.payExcept.includes(u.id);
+};
+/** Whether the king's standing order feeds this unit from his stores and his gold this season. */
+export const feedsUnit = (s: GameState, u: Unit): boolean => {
+  const o = upkeepOf(s, u.power);
+  return o.feed !== o.feedExcept.includes(u.id);
+};
 
 /**
  * A standing order to hunt bands (Haakon's answers to items 11b and 11b+): whose, in which provinces (none named: the
@@ -160,6 +193,15 @@ export interface GameState {
   claims: Claim[];
   /** Who called whom brother and granted whom the title, in the greetings sent (item 8). */
   recognition: Recognition[];
+  /**
+   * Item 17+ ("A power's name is a claim"): the name each power claims where it claims another than its own land's, and
+   * the season it claimed it. A claim gives nothing by rule.
+   */
+  names: Dict<Power, NameClaim>;
+  /** Item 17+: whom each court gives a contested name to, as its greetings last named him (court, then name, to claimant). */
+  nameGiven: Dict<Power, Dict<string, Power>>;
+  /** Item 17+: the name each court last read a claimant styled by in his sealed greetings (court, then claimant, to name). */
+  namesHeard: Dict<Power, Dict<Power, string>>;
   /**
    * The season the age ended in, when the table chose to play on into an open age after it ("An open age"); its winners
    * and reason stay recorded in {@link winners} and {@link endReason}. Null otherwise.
@@ -255,6 +297,8 @@ export interface GameState {
   payKnown: Dict<string, PayRecord>;
   /** The courts whose standing order is to pay the carriers of their people's letters on delivery (order payCarriers). */
   payCarriers: Power[];
+  /** Item 17+: each king's standing order to pay and feed his troops, where he changed it (absent: pay and feed them all). */
+  upkeep: Dict<Power, TroopUpkeep>;
   /**
    * Item 16, "The royal council": the seats that turned their council off (a model, file or human seat has it on unless it
    * is here; script seats never have one). Recorded so experiments can report whether it was on.
@@ -408,6 +452,9 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     finalByCap: false,
     claims: [],
     recognition: [],
+    names: new Dict(),
+    nameGiven: new Dict(),
+    namesHeard: new Dict(),
     ageEndedTurn: null,
     ageWinners: [],
     owner: new Dict(),
@@ -432,6 +479,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     payFacts: [],
     payKnown: new Dict(),
     payCarriers: [],
+    upkeep: new Dict(),
     councilOff: [],
     hunts: [],
     huntNow: [],
@@ -512,6 +560,9 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   finalByCap: B,
   claims: list(() => ClaimSchema),
   recognition: list(() => RecognitionSchema),
+  names: dict(() => NameClaimSchema),
+  nameGiven: dict(dict(S)),
+  namesHeard: dict(dict(S)),
   ageEndedTurn: opt(I),
   ageWinners: list(S),
   owner: dict(opt(S)),
@@ -542,6 +593,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   payFacts: list(() => PayFactSchema),
   payKnown: dict(() => PayRecordSchema),
   payCarriers: list(S),
+  upkeep: dict(() => TroopUpkeepSchema),
   councilOff: list(S),
   hunts: list(() => StandingHuntSchema),
   huntNow: list(S),
@@ -963,7 +1015,8 @@ export const StandingOrderPrefix = "s";
 
 /** "A memphis", "F delta". */
 export function unitLabel(u: Unit): string {
-  return `${u.kind === "Army" ? "A" : "F"} ${u.province}`;
+  // Item 17+ ("Requests are rules too"): the unit by what it is and where it stands, by the place's own name, never "A memphis".
+  return `${u.kind === "Army" ? "army" : "fleet"} in ${WorldMap.default.exists(u.province) ? WorldMap.default.get(u.province).name : u.province}`;
 }
 
 /** What the owner's ledger counts: fine gold, and received lots at face value. */

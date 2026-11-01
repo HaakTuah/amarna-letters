@@ -37,7 +37,9 @@ rumours, and those can be late, shaded or false.
 
 1. **The land and its upkeep.** In its season the harvest is reaped and taxed into each province's stores; mines and
    markets bring in gold; people eat, and the hungry move. Troops are paid from your treasury and fed from your
-   stores, works are kept as you ordered, and troops left unpaid or hungry for long mutiny.
+   stores by your standing order (every king starts with one, and may hold back pay or food from all his troops or
+   from one province's; nothing is paid or fed without it), works are kept as you ordered, and troops left unpaid or
+   hungry for long mutiny.
 2. **Arrivals.** Envoys, gold, spy reports and rumours that were on the road arrive.
 3. **Audiences.** Foreign envoys deliver their message in their own words. The host answers, and
    may bribe the envoy, offer it a post, seal its tablet, detain it or send gold back. Each audience
@@ -60,7 +62,9 @@ rumours, and those can be late, shaded or false.
 - Give standing orders that answer a blow in the same season, while you sleep or play.
 - Levy an army or a fleet from the men of a province of your homeland, or disband one, its men going home. A full army
   of 5,000 men costs 100 shekels to levy and 20 a season to keep, a fleet of 2,000 crews 120 and 25, and a smaller or
-  larger unit costs in proportion. Troops need food as well as pay: a unit left hungry or unpaid for long mutinies.
+  larger unit costs in proportion. Troops need food as well as pay, and get them only by your standing order, which you
+  may change or cancel for all your troops or for one province's (holding back saves gold or grain in a lean season):
+  a unit left hungry or unpaid for long mutinies.
 
 **Land and gold.**
 - Take a city by conquest, or as your vassal by a sealed tablet: no city is bought.
@@ -159,15 +163,32 @@ own, varied a little in every game.
 
 | Power | Capital | Tier | Starts with | How the script king plays |
 |---|---|---|---|---|
-| **Egypt** | Akhetaten | Strong | armies of 7,500 men in Memphis and Akhetaten, small garrisons in Gaza and Sumur, a fleet in the Nile Delta, 900 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust" |
-| **Hatti** | Hattusa | Strong | armies of 7,500 men in Hattusa and Nesa, a fleet in Kizzuwatna, 300 shekels | "The conqueror of Anatolia": the most aggressive king, vengeful, little given to trade |
-| **Babylonia** | Babylon | Strong | armies in Babylon, Sippar and Dur-Kurigalzu (10,000 men in all), 600 shekels | "Keeper of the old order": the proudest and greediest; cautious, and will not call Assyria brother unless they are friends |
-| **Mitanni** | Washukanni | Middle | armies of 5,000 men in Washukanni and Taidu, 450 shekels | "Seeker of a patron": the most diplomatic and among the most honest; squeezed between Hatti and Assyria |
-| **Assyria** | Ashur | Middle | armies in Ashur, Nineveh and Ekallate (4,000 men in all), 300 shekels | "The upstart who would be brother": aggressive and cunning, hungry to be counted a Great King |
+| **Egypt** | Akhetaten | Strong | 15,000 men at home and in Kush, as the sources place them (6,000 at Men-nefer, 4,000 at Akhetaten, 2,200 at Waset, 2,800 under the viceroy in Kush), small garrisons in Gaza and Ṣumur, a fleet in the Delta, 900 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust" |
+| **Hatti** | Hattusa | Strong | 15,000 men at Hattusa, Samuha, in Kizzuwatna, Tuwanuwa, Nesa and Sapinuwa, a few ships off Kizzuwatna, 300 shekels | "The conqueror of Anatolia": the most aggressive king, vengeful, little given to trade |
+| **Babylonia** | Babili | Strong | armies in Babili, Dur-Kurigalzu, Nippur and Sippar (10,000 men in all), 600 shekels | "Keeper of the old order": the proudest and greediest; cautious, and will not call Assyria brother unless they are friends |
+| **Mitanni** | Washukanni | Middle | armies in Washukanni, Harran and Taidu (10,000 men in all), 450 shekels | "Seeker of a patron": the most diplomatic and among the most honest; squeezed between Hatti and Assyria |
+| **Assyria** | Ashur | Middle | armies in Ashur, Ninua and Arbail (4,000 men in all), 300 shekels | "The upstart who would be brother": aggressive and cunning, hungry to be counted a Great King |
 | **Arzawa** | Apasa | Weak | an army of 10,000 men in Apasa, a fleet in Apasa's waters, 300 shekels | "The western opportunist": the most cunning and least honest |
-| **Alashiya** | Enkomi | Weak | an army in Enkomi, a fleet in its waters, 400 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
+| **Alashiya** | the harbour of Alashiya | Weak | armies in its harbour town and the copper hills, a fleet in its waters, 400 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
 
-Between the great kingdoms lie the city-states, such as Ugarit, Byblos, Qadesh and Elam, and the Kaska,
+**Places by their own names.** The map, the seat view and every letter and request name each place as the sources of
+1346 do: the Amarna letters' form where they name it (Dimashqa for Damascus, Gubla for Byblos, Ṣurru and Ṣiduna for Tyre
+and Sidon, Urusalim for Jerusalem, Magidda, Shakmu, Hasura, Gazru, Akka, Ashqaluna, Lakisha, Gimti for Gath, Ayyaluna
+for the Aijalon valley, Pihil for Pella, Ashtartu, Hazzatu for Gaza, Biruta, Arwada, Ṣumur, Halab for Aleppo, Karkamish,
+Babili for Babylon, Urim for Ur, Ninua and Arbail for Nineveh and Arbela, Shushan for Susa), otherwise the period's
+Egyptian or Hittite (Waset for Thebes, Men-nefer for Memphis, Ta-Mehu for the Delta, Kush for Nubia, the Ways of Horus for
+the north Sinai, Hayasa, the land of the Tjehenu for Libya, Seir for the Shasu's land); a place with no name of the period
+is named by description (the copper hills and the harbour of Alashiya, the plateau beyond the Salt Sea). The modern name
+is on the second line of the province card. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
+in Egypt's own seat; his other names are on his card.
+
+A realm's name is a claim: you go by your land's name until you claim another, any realm's name, Pharaoh's included
+(Court: "Claim a realm's name"). A claim gives nothing by rule. Where two kings claim one name, each court gives it in
+its greetings: a greeting gives the recipient the name he claims, or, with "call them by their house", withholds it, and
+that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru). The Court section says which names
+are contested and whom your court gives each to.
+
+Between the great kingdoms lie the city-states, such as Ugarit, Gubla, Qadesh and Elam, and the Kaska,
 Lukka, Shasu and Sutean chiefs: forty powers of their own, most of them vassals of Egypt or Mitanni (a few of Hatti
 or Arzawa) by sealed tablets, with the same rules and the same goal as the kings. Alashiya is an island, reached only by sea.
 
@@ -209,6 +230,14 @@ while taking his neighbours' towns and denouncing them as traitors, and most of 
 theirs. Rib-Hadda of Byblos wrote more than sixty, begging for troops and grain against Abdi-Ashirta of
 Amurru and then his son Aziru, who played Egypt against Hatti and in the end went over to Hatti. It is
 where the great kings' spheres meet, and where the truth is hardest to find.
+
+**The people of 1346.** Everyone the sources show alive, active and not ruling in 1346 is in the game from its first
+season, where the sources put him and holding what he held: Ay and the vizier Nakht at Akhetaten, the commissioners
+Pahanate, Pawura, Rianap and Tahmashshi in Pharaoh's service, Enlil-kidinni over Nippur, the governor of Alashiya, Zida
+with Hatti's guard; and the claimants and men of action of the Levant, Rib-Hadda's brother Ilirabih at Gubla, Aziru's
+brothers in Amurru, Artatama the rival king of the Hurrians, Tagi and Yashdata at Magidda, the men of Akka who killed
+Babylon's merchants. No rule is made for any of them: Ilirabih may take Gubla if Rib-Hadda fails, by the rules everyone
+lives by. What the sources say of each is on his card.
 
 ## Envoys and other servants
 
@@ -322,6 +351,8 @@ gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods s
 battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
 you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
+Click such a city and its card gives only what your stewards last reported and how many seasons ago, never its new
+holder's affairs; a band your people last told of there is drawn faded, with the age of that word.
 Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall

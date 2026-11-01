@@ -193,6 +193,11 @@ export interface Dispatch {
   offers: JobOffer[];
   /** A debt tablet from its king's archive the envoy carries to present to the borrower (Haakon's answers to item 11a). */
   collect: string | null;
+  /**
+   * Item 17+: the realm's name the sender claimed when the tablet was sealed, read by the host when it is presented (a
+   * court learns of a claim from the claimant's own greetings). Absent: his own land's.
+   */
+  styled?: string | null;
 }
 
 export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
@@ -236,6 +241,7 @@ export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, 
   pretended: B,
   offers: list(() => JobOfferSchema),
   collect: opt(S),
+  styled: opt(S),
 });
 
 export interface TabletProposal {
@@ -273,6 +279,11 @@ export interface GreetingOptions {
   callBrother: boolean;
   claimGreatKing: boolean;
   grantGreatKing: boolean;
+  /**
+   * Item 17+ ("A power's name is a claim"): call the recipient by his house (Bit-Biryawaza), not the name he claims, where
+   * another claims it too; withholds the name, as withholding "Great King" withholds the title. Absent: false.
+   */
+  byHouse?: boolean | null;
   /** Free text that replaces the rendered greeting entirely, if set. */
   custom: string | null;
 }
@@ -295,6 +306,7 @@ export const GreetingOptionsSchema: ObjSchema<GreetingOptions> = obj("GreetingOp
   callBrother: B,
   claimGreatKing: B,
   grantGreatKing: B,
+  byHouse: opt(B),
   custom: S,
 });
 

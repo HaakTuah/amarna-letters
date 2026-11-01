@@ -84,7 +84,7 @@ describe("SeasonOrderTests", () => {
     let s = oldWorld(newGame(4));
     s.treasuries.get("Egypt").lots.push(newGoldLot({ id: "g900", from: "Hatti", stated: 40, face: 40, true: 40, arrivedTurn: 1 }));
     Assert.equal("gold lot g900 was already to be assayed by an earlier order", single(refusedOf(s, "Egypt", assay("g900"), assay("g900"))).reason);
-    Assert.equal("Thebes was already ceded by an earlier order", single(refusedOf(s, "Egypt", cede("thebes", "Hatti"), cede("thebes", "Mitanni"))).reason);
+    Assert.equal("Waset was already ceded by an earlier order", single(refusedOf(s, "Egypt", cede("thebes", "Hatti"), cede("thebes", "Mitanni"))).reason);
   });
 
   test("A spy must be one of your own people at court sent to a court or a province", () => {
@@ -130,8 +130,8 @@ describe("SeasonOrderTests", () => {
     let failed = inboxOf(s, "Egypt")
       .filter((i) => i.title === "Levy failed")
       .map((i) => [i.kind, i.body] as const);
-    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in Sinai: you no longer held Sinai after movement. No gold was paid.");
-    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.");
+    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in the Ways of Horus: you no longer held the Ways of Horus after movement. No gold was paid.");
+    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in Waset: Waset was not empty after movement. No gold was paid.");
     Assert.equal(gold, s.treasuries.get("Egypt").gold);
   });
 

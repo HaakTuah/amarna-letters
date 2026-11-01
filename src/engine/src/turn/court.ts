@@ -4,11 +4,11 @@ import { cmpBool, cmpNum, desc, groupBy, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import { isPowerParty, MoneyData } from "../model/money.ts";
-import type { DismissOrder, HireOrder, Order, RenewOrder } from "../model/orders.ts";
+import type { DismissOrder, HireOrder, Order, RenewOrder, UpkeepOrder } from "../model/orders.ts";
 import { coverOf, falseNameAt, gain, newContract, newJobErrand, newStayLeft, remember, reputationAt, lossesHeardOf, type Character, type JobErrand, type JobWhat } from "../model/people.ts";
 import { cmpPower, land, type Power } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
-import { char, findCharacter, logEvent, newId, notify } from "../model/state.ts";
+import { char, findCharacter, logEvent, newId, notify, upkeepOf } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { feeFor, jobValue, rateOf, restOf, trustIn } from "./jobs.ts";
@@ -24,6 +24,7 @@ declare module "./core.ts" {
     hireAll(hires: { p: Power; h: HireOrder }[], carriedTo?: Power | null): void;
     renew(p: Power, r: RenewOrder): void;
     dismiss(p: Power, c: Character, order: DismissOrder): void;
+    setUpkeep(p: Power, o: UpkeepOrder): void;
     tasksDue(): void;
   }
 }
@@ -32,6 +33,8 @@ const P = TurnEngine.prototype;
 
 P.resolveCourt = function (orders) {
   const S = this.s;
+  // Names claimed first (item 17+), so the season's greetings carry them.
+  for (const [p, o] of orders) if (o.type === "claimName") this.claimName(p, o);
   // Jobs first (Haakon's answers to item 11a): a man offered a job at court this season can be sent on its errand at once.
   this.hireAll(orders.filter(([, o]) => o.type === "hire" && ((o as HireOrder).via ?? null) === null).map(([p, o]) => ({ p, h: o as HireOrder })));
   for (const [p, o] of orders) if (o.type === "renew") this.renew(p, o);
@@ -302,6 +305,34 @@ P.renew = function (p, r) {
  * A servant dismissed: its wage ends, and so does whatever its master still believed of it. Nobody is moved: one dismissed
  * while away keeps going where it was going and is free when it gets there, and one who is held stays held.
  */
+/**
+ * Item 17+: the standing order for the troops' pay and food changed, before the season's movement, so a province named
+ * holds the units the king saw there. A half left out (null) stands as it was. The whole order sets that half for every
+ * unit; one province's sets it for the units standing there, kept as exceptions to the whole order.
+ */
+P.setUpkeep = function (p, o) {
+  const S = this.s;
+  const cur = upkeepOf(S, p);
+  const next = { ...cur, payExcept: [...cur.payExcept], feedExcept: [...cur.feedExcept] };
+  if (o.province === undefined) {
+    if (o.pay !== null && o.pay !== undefined) {
+      next.pay = o.pay;
+      next.payExcept = [];
+    }
+    if (o.feed !== null && o.feed !== undefined) {
+      next.feed = o.feed;
+      next.feedExcept = [];
+    }
+  } else {
+    const ids = S.units.filter((u) => u.power === p && u.province === o.province).map((u) => u.id);
+    const set = (whole: boolean, except: string[], want: boolean | null | undefined): string[] =>
+      want === null || want === undefined ? except : want === whole ? except.filter((id) => !ids.includes(id)) : [...new Set([...except, ...ids])];
+    next.payExcept = set(cur.pay, cur.payExcept, o.pay);
+    next.feedExcept = set(cur.feed, cur.feedExcept, o.feed);
+  }
+  S.upkeep.set(p, next);
+};
+
 P.dismiss = function (p, c, order) {
   const S = this.s;
   const cover = coverOf(c, p);

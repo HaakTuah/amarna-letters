@@ -1,7 +1,7 @@
 /** One game of the batch runner, as the C# batch runner plays it: in a worker thread for script games, in the main thread otherwise. */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { AllPowers, Dict, GameStateSchema, fmt, serialize, setRisen, align, type GameConfig, type Power } from "@amarna/engine";
+import { AllPowers, Dict, GameStateSchema, fmt, serialize, setNameClaims, setRisen, align, type GameConfig, type Power } from "@amarna/engine";
 import {
   BaselineLeader,
   PlanAhead,
@@ -15,6 +15,7 @@ import {
   LandPlay,
   BorderPlay,
   MoneyPlay,
+  UpkeepPlay,
   OutlawPlay,
   VassalPlay,
   CommandPlay,
@@ -113,6 +114,9 @@ export interface BatchOptions {
   /** Script kings never borrow or repay (item 11a, `--no-money-play`), or half of them (`--money-play-half`). */
   noMoneyPlay: boolean;
   moneyPlayHalf: boolean;
+  /** Script kings never hold back pay when hard up (item 17+, `--no-upkeep-play`), or half of them (`--upkeep-play-half`). */
+  noUpkeepPlay: boolean;
+  upkeepPlayHalf: boolean;
   /** Script kings never hunt bands nor buy news (item 11b, `--no-outlaw-play`), or half of them (`--outlaw-play-half`). */
   noOutlawPlay: boolean;
   outlawPlayHalf: boolean;
@@ -213,6 +217,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   // A worker plays game after game: the powers an earlier game raised (item 13+) are not this game's, and its seats are
   // chosen from the powers in play, so the registry starts as a new game's before them (newGame does the same after).
   setRisen([]);
+  setNameClaims([], []);
   const choices = choicesOf(o);
   PlanAhead.on = o.planAhead;
   SeaPlay.on = o.seaPlay;
@@ -224,7 +229,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.worksPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.freedomPlayHalf || o.councilPlayHalf || o.languagePlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.worksPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.freedomPlayHalf || o.councilPlayHalf || o.languagePlayHalf || o.upkeepPlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
@@ -241,6 +246,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   BorderPlay.only = o.borderPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   MoneyPlay.off = o.noMoneyPlay || o.moneyPlayHalf;
   MoneyPlay.only = o.moneyPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  UpkeepPlay.off = o.noUpkeepPlay || o.upkeepPlayHalf;
+  UpkeepPlay.only = o.upkeepPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   OutlawPlay.off = o.noOutlawPlay || o.outlawPlayHalf;
   OutlawPlay.only = o.outlawPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   CommandPlay.off = o.noCommandPlay || o.commandPlayHalf;
@@ -366,6 +373,7 @@ export interface SoloJob {
 
 export async function playSolo(job: SoloJob): Promise<GameSummary> {
   setRisen([]);
+  setNameClaims([], []);
   const [summary] = await playGame(
     job.soloSeed,
     (st) => {

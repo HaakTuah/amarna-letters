@@ -31,6 +31,7 @@ import {
   revoke,
   grant,
   repudiate,
+  claimName,
   newAuthority,
   disband,
   tax,
@@ -73,6 +74,7 @@ import {
   parsePower,
   payRansom,
   payCarriers,
+  upkeep,
   hunt,
   huntBands,
   seize,
@@ -249,6 +251,15 @@ function commandOf(x: Node): Order | null {
       return supply(at, true, Math.max(0, I(x, "gold")));
     case "take_food":
       return supply(at, false);
+    // Item 17+: the king's standing order to pay and feed his troops, held back from, or given again to, the units in one province.
+    case "hold_pay":
+      return upkeep(false, null, at);
+    case "give_pay":
+      return upkeep(true, null, at);
+    case "hold_food":
+      return upkeep(null, false, at);
+    case "give_food":
+      return upkeep(null, true, at);
     case "mandate": {
       const target = opt("target");
       const until = I(x, "until");
@@ -357,6 +368,7 @@ export function letters(o: JsonObject): Order[] {
           claimGreatKing: B(l, "claim_great_king"),
           senderFirst: B(l, "your_name_first"),
           omit: B(l, "omit_greeting"),
+          byHouse: B(l, "by_house"),
         }),
         gold: Math.max(0, I(l, "gold")),
         purityPercent: clamp(purity === 0 ? 100 : purity, 10, 100),
@@ -520,6 +532,14 @@ function other(x: Node): Order | null {
       return sellDebt(S(x, "item"), person, amount);
     case "pay_carriers":
       return payCarriers(true);
+    case "pay_troops":
+      return upkeep(true, null);
+    case "stop_paying_troops":
+      return upkeep(false, null);
+    case "feed_troops":
+      return upkeep(null, true);
+    case "stop_feeding_troops":
+      return upkeep(null, false);
     case "stop_paying_carriers":
       return payCarriers(false);
     case "captive_take_purse":
@@ -574,6 +594,8 @@ function other(x: Node): Order | null {
         : unreadable(`grant leave to '${named}'`, nowhere(named, "the king you grant it"));
     case "revoke_passage":
       return power !== null ? revoke(power, province.length > 0 ? province : null) : unreadable(`revoke the passage you granted '${named}'`, nowhere(named, "the king you granted it"));
+    case "claim_name":
+      return claimName(S(x, "item"));
     case "repudiate":
       return repudiate(S(x, "item"));
     case "assay":

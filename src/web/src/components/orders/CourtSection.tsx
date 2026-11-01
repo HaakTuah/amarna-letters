@@ -25,8 +25,11 @@ import {
   seize,
   sellDebt,
   payCarriers,
+  upkeep,
   huntBands,
   hunt,
+  claimName,
+  claimableNames,
   type Power,
 } from "@amarna/engine";
 import { dated, grantLine, powerName, provinceName, shekels } from "../../ui/format.ts";
@@ -63,6 +66,30 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             </button>
           );
         })}
+      </div>
+      {/* Item 17+ ("A power's name is a claim"): the realm's name the king goes by; a claim gives nothing by rule. */}
+      <div className="row" style={{ marginTop: ".4rem" }}>
+        <span>
+          You go by the name of {v.claimedName}.
+          {v.nameClaims.map((n) => ` ${n.name} is claimed by ${n.claimants.map(powerName).join(" and ")}${n.givenTo !== null ? `; your court gives it to ${powerName(n.givenTo)}` : ""}.`).join("")}
+        </span>
+        <select
+          value=""
+          disabled={draft.other.some((o) => o.type === "claimName")}
+          onChange={(e) => {
+            if (e.target.value !== "") add(claimName(e.target.value));
+          }}
+        >
+          <option value="">Claim a realm's name…</option>
+          {claimableNames()
+            .filter((n) => n !== v.claimedName)
+            .sort()
+            .map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+        </select>
       </div>
       {/* Item 11a+: passage or basing granted by order, standing from next season. */}
       <div className="row" style={{ marginTop: ".4rem" }}>
@@ -254,6 +281,32 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             ))}
         </div>
       ))}
+      {/* Item 17+: the king's standing order to pay and feed his troops, his to change, for all of them or for one province's. */}
+      <div className="row">
+        <button className="small" disabled={draft.other.some((o) => o.type === "upkeep" && o.province === undefined)} onClick={() => add(upkeep(!v.payTroops, null))}>
+          {v.payTroops ? "Stop paying your troops" : "Pay your troops again"}
+        </button>
+        <button className="small" disabled={draft.other.some((o) => o.type === "upkeep" && o.province === undefined)} onClick={() => add(upkeep(null, !v.feedTroops))}>
+          {v.feedTroops ? "Stop feeding your troops from your stores" : "Feed your troops from your stores again"}
+        </button>
+        <select value="" disabled={draft.other.some((o) => o.type === "upkeep")} onChange={(e) => {
+          const [what, at] = e.target.value.split("|");
+          // A province's troops treated as the whole order says get the other; those already apart go back to it.
+          if (what === "pay") add(upkeep(v.payHeld.includes(at) ? v.payTroops : !v.payTroops, null, at));
+          else if (what === "food") add(upkeep(null, v.feedHeld.includes(at) ? v.feedTroops : !v.feedTroops, at));
+        }}>
+          <option value="">Hold back pay or food from the troops in one province, or give it again…</option>
+          {[...new Set(v.units.filter((u) => u.power === me).map((u) => u.province))].flatMap((at) => [
+            <option key={`pay|${at}`} value={`pay|${at}`}>{v.payHeld.includes(at) === v.payTroops ? `Pay the troops in ${provinceName(at)}` : `Hold back pay from the troops in ${provinceName(at)}`}</option>,
+            <option key={`food|${at}`} value={`food|${at}`}>{v.feedHeld.includes(at) === v.feedTroops ? `Feed the troops in ${provinceName(at)}` : `Hold back food from the troops in ${provinceName(at)}`}</option>,
+          ])}
+        </select>
+        {(v.payHeld.length > 0 || v.feedHeld.length > 0) && (
+          <small>
+            Apart from the whole order: {v.payHeld.length > 0 ? `${v.payTroops ? "pay held back" : "paid"} in ${v.payHeld.map(provinceName).join(", ")}` : ""}{v.payHeld.length > 0 && v.feedHeld.length > 0 ? "; " : ""}{v.feedHeld.length > 0 ? `${v.feedTroops ? "food held back" : "fed"} in ${v.feedHeld.map(provinceName).join(", ")}` : ""}.
+          </small>
+        )}
+      </div>
       <div className="row">
         <button className="small" disabled={draft.other.some((o) => o.type === "payCarriers")} onClick={() => add(payCarriers(!v.payCarriers))}>
           {v.payCarriers ? "Stop paying letter carriers on delivery" : "Pay letter carriers on delivery"}

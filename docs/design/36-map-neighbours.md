@@ -27,6 +27,12 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
   change who falls and grows (Arrapha, Suhu and the Sutean steppe most), and the table now also has the eight places
   item 11f added.
 
+**Since item 17+** (`docs/design/46-the-opening-as-it-stood.md`): the Shasu hold Seir and the Negev only, the plateau beyond
+the Salt Sea is no one's, so Pella-Shasu, Ashtaroth-Shasu and Jerusalem-Shasu (and the King's Highway band) are gone;
+Hebron's land is Gath's, with a band up the Elah valley into the southern hills; the Lady of the Lions' Aijalon lies
+between Gezer and Jerusalem on their road, and Gath between Gezer and Lachish on theirs. The cases below are as item 11f+
+read them.
+
 ## The cases (the dossier: `docs/history/02-geography.md`, "Neighbours on the map")
 
 Connected, their land touching (23): Alalakh-Nuhashshe, Amurru-Qatna, Niya-Qatna, Tunip-Ugarit; the Sutean steppe to Aleppo,

@@ -32,6 +32,11 @@ export interface Province {
    * no market ("The edges of the map"). Since item 11+ each starts under one leader of its own ("Land without a ruler").
    */
   readonly kingless: boolean;
+  /**
+   * Whether a town of its time stands at its centre, to be marked on the map (item 17+, "Places by their own names"): false
+   * for the lands of herders and raiders with no town, and for Nesa, by 1346 a name more than a city.
+   */
+  readonly town: boolean;
 }
 
 export interface Edge {
@@ -230,11 +235,95 @@ export class WorldMap {
 }
 
 function p(id: string, name: string, kind: ProvinceKind, home: Power | null, yld: number, capital: boolean, lat: number, lon: number): Province {
-  return { id, name, kind, home, yield: yld, capital, lat, lon, isSea: kind === "Sea", isCoastal: kind === "Coast", waters: null, kingless: false };
+  return { id, name, kind, home, yield: yld, capital, lat, lon, isSea: kind === "Sea", isCoastal: kind === "Coast", waters: null, kingless: false, town: kind !== "Sea" };
 }
 
 /** The province at sea named for the coast it lies off: "ugaritwaters", "Ugarit waters". */
 export const watersId = (coast: string): string => coast + "waters";
+
+/**
+ * Item 17+ ("Places by their own names"): the modern name of each land province, for the province card's second line
+ * ("Dimashqa, today Damascus") and the rulebook's gazetteer; the map, the seat view and every request show the period
+ * name only. Where the period gives no name (the Cypriot sites, the Negev, the plateau beyond the Salt Sea) the province is
+ * labelled by description. Each checked against the dossiers (`docs/history/02-geography.md`, "Names for the provinces";
+ * the politics dossier's table) and graded in the item's report.
+ */
+export const ModernNames: ReadonlyMap<string, string> = new Map<string, string>([
+  ["tuwanuwa", "Tyana (Kemerhisar)"],
+  ["hattusa", "Boğazkale"],
+  ["sapinuwa", "Ortaköy"],
+  ["nesa", "Kültepe (Kanesh)"],
+  ["samuha", "Kayalıpınar, probably"],
+  ["kizzuwatna", "Cilicia"],
+  ["seha", "the Gediz valley, by most readings"],
+  ["apasa", "Ephesus (Selçuk)"],
+  ["mira", "the upper Meander valley"],
+  ["harran", "Harran"],
+  ["washukanni", "Tell Fakhariyah, probably"],
+  ["taidu", "Tell Hamidiya, probably"],
+  ["terqa", "Tell Ashara"],
+  ["nineveh", "Nineveh (Mosul)"],
+  ["arbela", "Erbil"],
+  ["ashur", "Qal'at Sherqat"],
+  ["ekallate", "Ekallatum, its site not securely found"],
+  ["sippar", "Tell Abu Habbah"],
+  ["durkurigalzu", "Aqar Quf"],
+  ["babylon", "Babylon"],
+  ["nippur", "Nuffar"],
+  ["ur", "Ur (Tell el-Muqayyar)"],
+  ["dilmun", "Bahrain"],
+  ["delta", "the Nile Delta"],
+  ["sinai", "the north Sinai"],
+  ["memphis", "Memphis (Mit Rahina)"],
+  ["akhetaten", "Amarna"],
+  ["thebes", "Thebes (Luxor)"],
+  ["nubia", "Nubia"],
+  ["kalavasos", "Kalavasos"],
+  ["enkomi", "Enkomi"],
+  ["isuwa", "the Elazığ plain"],
+  ["azzi", "the Erzincan highlands"],
+  ["carchemish", "Carchemish (Jerablus)"],
+  ["alalakh", "Tell Atchana"],
+  ["aleppo", "Aleppo"],
+  ["ugarit", "Ras Shamra"],
+  ["nuhashshe", "the land between Aleppo and Hama"],
+  ["niya", "Qal'at al-Mudiq, probably"],
+  ["tunip", "Tell Acharneh, probably"],
+  ["qatna", "Tell Mishrifeh"],
+  ["qadesh", "Tell Nebi Mend"],
+  ["amurru", "the Akkar plain and the hills behind it"],
+  ["sumur", "Tell Kazel"],
+  ["arwad", "Arwad (Ruad)"],
+  ["byblos", "Byblos (Jbeil)"],
+  ["beirut", "Beirut"],
+  ["sidon", "Sidon (Saida)"],
+  ["damascus", "Damascus"],
+  ["tyre", "Tyre (Sour)"],
+  ["megiddo", "Megiddo"],
+  ["shechem", "Shechem (Nablus)"],
+  ["jerusalem", "Jerusalem"],
+  ["akko", "Acre"],
+  ["hazor", "Hazor"],
+  ["gezer", "Gezer"],
+  ["ashkelon", "Ashkelon"],
+  ["lachish", "Lachish (Tell ed-Duweir)"],
+  ["gath", "Gath (Tell es-Safi)"],
+  ["aijalon", "the Aijalon valley; the site is uncertain"],
+  ["pella", "Pella (Tabaqat Fahl)"],
+  ["ashtaroth", "Tell Ashtara"],
+  ["gaza", "Gaza"],
+  ["suhu", "the middle Euphrates by Anah"],
+  ["arrapha", "Kirkuk"],
+  ["susa", "Susa (Shush)"],
+  ["lukka", "Lycia"],
+  ["kaska", "the Pontic mountains"],
+  ["steppe", "the Syrian desert (Palmyra)"],
+  ["libya", "Libya (Marmarica)"],
+  ["shasu", "Edom and the Negev"],
+]);
+
+/** A province's modern name, where one is given; null for the seas and the lands named only by description. */
+export const modernOf = (id: string): string | null => ModernNames.get(id) ?? null;
 
 /**
  * The Late Bronze Age board after the map review of build order item 7a: 61 land provinces and 18 sea zones (with item
@@ -261,7 +350,9 @@ export function buildMap(): WorldMap {
     p("tuwanuwa", "Tuwanuwa", "Land", "Hatti", 30, false, 37.97, 34.68),
     p("hattusa", "Hattusa", "Land", "Hatti", 50, true, 40.02, 34.62),
     p("sapinuwa", "Sapinuwa", "Land", "Hatti", 25, false, 40.33, 35.32),
-    p("nesa", "Nesa", "Land", "Hatti", 30, false, 38.85, 35.63),
+    // Item 17+ ("Places by their own names"): Nesa (Kanesh), the great trading city of three and four centuries before, is
+    // by 1346 a name more than a city, so its province is a land with no great town marked [B]
+    { ...p("nesa", "Nesa", "Land", "Hatti", 30, false, 38.85, 35.63), town: false },
     // Samuha (Kayalıpınar on the upper Halys), in Hatti's Upper Land, where the court sat while Hattusa was overrun (item
     // 11f, "What earns a place"), carved from Sapinuwa's and Nesa's land, each 5 less (first guesses, item 18).
     p("samuha", "Samuha", "Land", "Hatti", 25, false, 39.61, 36.52),
@@ -275,30 +366,30 @@ export function buildMap(): WorldMap {
     p("terqa", "Terqa", "Land", "Terqa", 30, true, 34.92, 40.57),
 
     // Assyria (middle): the Tigris. Ekallate is Ekallatum by its Middle Assyrian name.
-    p("nineveh", "Nineveh", "Land", "Assyria", 35, false, 36.36, 43.15),
-    p("arbela", "Arbela", "Land", "Assyria", 30, false, 36.19, 44.01),
+    p("nineveh", "Ninua", "Land", "Assyria", 35, false, 36.36, 43.15),
+    p("arbela", "Arbail", "Land", "Assyria", 30, false, 36.19, 44.01),
     p("ashur", "Ashur", "Land", "Assyria", 45, true, 35.46, 43.26),
     p("ekallate", "Ekallate", "Land", "Assyria", 25, false, 35.0, 43.5),
 
     // Babylonia (strong): Karduniash, with Dilmun in the Gulf under its governor
     p("sippar", "Sippar", "Land", "Babylonia", 35, false, 33.06, 44.25),
     p("durkurigalzu", "Dur-Kurigalzu", "Land", "Babylonia", 35, false, 33.35, 44.2),
-    p("babylon", "Babylon", "Land", "Babylonia", 55, true, 32.54, 44.42),
+    p("babylon", "Babili", "Land", "Babylonia", 55, true, 32.54, 44.42),
     p("nippur", "Nippur", "Land", "Babylonia", 35, false, 32.13, 45.23),
-    p("ur", "Ur", "Coast", "Babylonia", 35, false, 30.96, 46.1),
+    p("ur", "Urim", "Coast", "Babylonia", 35, false, 30.96, 46.1),
     p("dilmun", "Dilmun", "Coast", "Babylonia", 20, false, 26.23, 50.52),
 
     // Egypt (strong): the Nile, with Nubia (Kush) under the King's Son of Kush
-    p("delta", "Nile Delta", "Coast", "Egypt", 40, false, 30.79, 31.82),
-    p("sinai", "Sinai", "Coast", "Egypt", 20, false, 30.9, 33.5),
-    p("memphis", "Memphis", "Land", "Egypt", 40, false, 29.85, 31.25),
+    p("delta", "Ta-Mehu", "Coast", "Egypt", 40, false, 30.79, 31.82),
+    p("sinai", "the Ways of Horus", "Coast", "Egypt", 20, false, 30.9, 33.5),
+    p("memphis", "Men-nefer", "Land", "Egypt", 40, false, 29.85, 31.25),
     p("akhetaten", "Akhetaten", "Land", "Egypt", 50, true, 27.65, 30.9),
-    p("thebes", "Thebes", "Coast", "Egypt", 40, false, 25.7, 32.64),
-    p("nubia", "Nubia", "Land", "Egypt", 30, false, 22.67, 32.03),
+    p("thebes", "Waset", "Coast", "Egypt", 40, false, 25.7, 32.64),
+    p("nubia", "Kush", "Land", "Egypt", 30, false, 22.67, 32.03),
 
     // Alashiya (weak): Cyprus, the copper island, east and west
-    p("kalavasos", "Kalavasos", "Coast", "Alashiya", 40, false, 34.77, 33.3),
-    p("enkomi", "Enkomi", "Coast", "Alashiya", 45, true, 35.16, 33.88),
+    p("kalavasos", "the copper hills of Alashiya", "Coast", "Alashiya", 40, false, 34.77, 33.3),
+    p("enkomi", "the harbour of Alashiya", "Coast", "Alashiya", 45, true, 35.16, 33.88),
 
     // The city-states, each a power of its own since item 11+ ("City-states as powers"), its one city its capital: taken by
     // force (each has walls: see StartWalls) or by agreement, never bought. Gaza and Sumur are Egypt's own land, governed
@@ -306,10 +397,10 @@ export function buildMap(): WorldMap {
     p("isuwa", "Isuwa", "Land", "Isuwa", 30, true, 38.67, 39.22),
     // Item 11f ("What earns a place"): Azzi-Hayasa, the highlands beyond Isuwa under Hukkana (by Erzincan; its towns not
     // located), new land on the map
-    p("azzi", "Azzi-Hayasa", "Land", "Azzi", 20, true, 39.75, 39.49),
-    p("carchemish", "Carchemish", "Land", "Carchemish", 35, true, 36.83, 38.02),
+    p("azzi", "Hayasa", "Land", "Azzi", 20, true, 39.75, 39.49),
+    p("carchemish", "Karkamish", "Land", "Carchemish", 35, true, 36.83, 38.02),
     p("alalakh", "Alalakh", "Land", "Alalakh", 20, true, 36.24, 36.38),
-    p("aleppo", "Aleppo", "Land", "Aleppo", 35, true, 36.2, 37.16),
+    p("aleppo", "Halab", "Land", "Aleppo", 35, true, 36.2, 37.16),
     p("ugarit", "Ugarit", "Coast", "Ugarit", 40, true, 35.6, 35.78),
     p("nuhashshe", "Nuhashshe", "Land", "Nuhashshe", 20, true, 35.5, 37.0),
     // Item 11f: two cities on the Orontes, Niya (probably Qal'at al-Mudiq, above the Ghab) from Alalakh's land and Tunip
@@ -321,44 +412,51 @@ export function buildMap(): WorldMap {
     // Amurru, the hill country behind the coast, and Ṣumur (Tell Kazel), Egypt's base on that coast, a province of its own
     // since item 8 (Haakon's answer to item 7a's review: the period first, the phone made to read it).
     p("amurru", "Amurru", "Land", "Amurru", 20, true, 34.7, 36.2),
-    p("sumur", "Sumur", "Coast", "Egypt", 15, false, 34.82, 35.98),
-    p("arwad", "Arwad", "Coast", "Arwad", 20, true, 34.86, 35.86),
-    p("byblos", "Byblos", "Coast", "Byblos", 25, true, 34.12, 35.65),
+    p("sumur", "Ṣumur", "Coast", "Egypt", 15, false, 34.82, 35.98),
+    p("arwad", "Arwada", "Coast", "Arwad", 20, true, 34.86, 35.86),
+    p("byblos", "Gubla", "Coast", "Byblos", 25, true, 34.12, 35.65),
     // Beirut under Ammunira (item 11f), carved from Byblos's and Sidon's land, each 5 less
-    p("beirut", "Beirut", "Coast", "Beirut", 10, true, 33.9, 35.5),
-    p("sidon", "Sidon", "Coast", "Sidon", 20, true, 33.56, 35.37),
-    p("damascus", "Damascus", "Land", "Damascus", 20, true, 33.51, 36.29),
-    p("tyre", "Tyre", "Coast", "Tyre", 25, true, 33.27, 35.2),
-    p("megiddo", "Megiddo", "Land", "Megiddo", 15, true, 32.58, 35.18),
-    p("shechem", "Shechem", "Land", "Shechem", 15, true, 32.21, 35.28),
-    p("jerusalem", "Jerusalem", "Land", "Jerusalem", 10, true, 31.78, 35.23),
+    p("beirut", "Biruta", "Coast", "Beirut", 10, true, 33.9, 35.5),
+    p("sidon", "Ṣiduna", "Coast", "Sidon", 20, true, 33.56, 35.37),
+    p("damascus", "Dimashqa", "Land", "Damascus", 20, true, 33.51, 36.29),
+    p("tyre", "Ṣurru", "Coast", "Tyre", 25, true, 33.27, 35.2),
+    p("megiddo", "Magidda", "Land", "Megiddo", 15, true, 32.58, 35.18),
+    p("shechem", "Shakmu", "Land", "Shechem", 15, true, 32.21, 35.28),
+    p("jerusalem", "Urusalim", "Land", "Jerusalem", 9, true, 31.78, 35.23),
     // Six cities of Canaan that act in the letters (item 11c, "What earns a place"), carved from the provinces that held
     // them, each a city-state under its attested ruler and Egypt's vassal at the start: Akko from Megiddo's land, Hazor from
     // Damascus's, Gezer from Shechem's, Ashkelon from Gaza's, Shuwardata's hills from Jerusalem's, Lachish from Gaza's and
     // Jerusalem's. Each takes 10 of the yield, and the land it came from gives up 5 (first guesses, item 18).
-    p("akko", "Akko", "Coast", "Akko", 10, true, 32.92, 35.08),
-    p("hazor", "Hazor", "Land", "Hazor", 10, true, 33.02, 35.57),
-    p("gezer", "Gezer", "Land", "Gezer", 10, true, 31.86, 34.92),
-    p("ashkelon", "Ashkelon", "Coast", "Ashkelon", 10, true, 31.66, 34.55),
-    p("lachish", "Lachish", "Land", "Lachish", 10, true, 31.56, 34.85),
-    p("hebron", "Hebron Hills", "Land", "Hebron", 10, true, 31.53, 35.1),
+    p("akko", "Akka", "Coast", "Akko", 10, true, 32.92, 35.08),
+    p("hazor", "Hasura", "Land", "Hazor", 10, true, 33.02, 35.57),
+    p("gezer", "Gazru", "Land", "Gezer", 9, true, 31.86, 34.92),
+    p("ashkelon", "Ashqaluna", "Coast", "Ashkelon", 10, true, 31.66, 34.55),
+    p("lachish", "Lakisha", "Land", "Lachish", 10, true, 31.56, 34.85),
+    // Item 17+ ("Places by their own names"): Shuwardata's land centred on Gath (Tell es-Safi), his likely seat, since
+    // Hebron had no town in the Late Bronze Age [B]; and the Lady of the Lions' small city-state in the Aijalon valley
+    // between Gezer and Jerusalem, where EA 273-274 place her, its site uncertain (Yalo stands in for it) [B the valley,
+    // C the site], carved from Gezer's and Jerusalem's land (each 1 less; first guesses, item 18)
+    p("gath", "Gimti", "Land", "Gath", 10, true, 31.7, 34.85),
+    p("aijalon", "Ayyaluna", "Land", "Aijalon", 5, true, 31.84, 35.02),
     // Item 11f: east of the Jordan, Pella (Pihil, Tabaqat Fahl) under Mut-Bahlu and Ashtaroth (Tell Ashtara) under Ayyab,
     // new land on the map
-    p("pella", "Pella", "Land", "Pella", 10, true, 32.45, 35.62),
-    p("ashtaroth", "Ashtaroth", "Land", "Ashtaroth", 10, true, 32.8, 36.01),
-    p("gaza", "Gaza", "Coast", "Egypt", 15, false, 31.5, 34.46),
-    p("suhu", "Suhu", "Land", "Suhu", 35, true, 34.47, 41.95),
+    p("pella", "Pihil", "Land", "Pella", 10, true, 32.45, 35.62),
+    p("ashtaroth", "Ashtartu", "Land", "Ashtaroth", 10, true, 32.8, 36.01),
+    p("gaza", "Hazzatu", "Coast", "Egypt", 15, false, 31.5, 34.46),
+    // Item 17+ ("What earns a place"): Suhu, which no dossier shows acting as a polity in 1346, is Babylonia's land on the
+    // middle Euphrates, the Kassite kingdom reaching "to about Hit" (the politics dossier) [C]; its yield as before
+    p("suhu", "Suhu", "Land", "Babylonia", 35, false, 34.47, 41.95),
     p("arrapha", "Arrapha", "Land", "Arrapha", 30, true, 35.47, 44.39),
-    p("susa", "Susa", "Coast", "Elam", 35, true, 32.19, 48.26),
+    p("susa", "Shushan", "Coast", "Elam", 35, true, 32.19, 48.26),
     // The edges: lands without a king, each under one leader of its own since item 11+ ("Land without a ruler")
     // Lukka, the Lycian coast of seafarers and raiders, ruled by no king (since item 8: Haakon's answer to item 7a's review)
-    { ...p("lukka", "Lukka", "Coast", "Lukka", 15, true, 36.4, 29.4), kingless: true },
-    { ...p("kaska", "Kaska Lands", "Land", "Kaska", 10, true, 41.1, 35.4), kingless: true },
-    { ...p("steppe", "Sutean Steppe", "Land", "Suteans", 10, true, 34.55, 38.27), kingless: true },
+    { ...p("lukka", "Lukka", "Coast", "Lukka", 15, true, 36.4, 29.4), kingless: true, town: false },
+    { ...p("kaska", "the Kaska lands", "Land", "Kaska", 10, true, 41.1, 35.4), kingless: true, town: false },
+    { ...p("steppe", "the Sutean steppe", "Land", "Suteans", 10, true, 34.55, 38.27), kingless: true, town: false },
     // Item 11f ("The edges of the map"): Libya west of the Delta, the Tjehenu and Tjemehu, and the Shasu of the Negev and
     // Edom, each a desert land under a chief, no town: their centres are the herders' land, not a site [G]
-    { ...p("libya", "Libya", "Land", "Libya", 10, true, 30.95, 28.6), kingless: true },
-    { ...p("shasu", "Shasu Lands", "Land", "Shasu", 10, true, 30.6, 35.3), kingless: true },
+    { ...p("libya", "the land of the Tjehenu", "Land", "Libya", 10, true, 30.95, 28.6), kingless: true, town: false },
+    { ...p("shasu", "Seir", "Land", "Shasu", 10, true, 30.6, 35.3), kingless: true, town: false },
   ];
 
   // Sea zones: the waters of each coastal province (Ṣumur's shared with Arwad), the open sea at the Aegean edge, and the Gulf.
@@ -367,28 +465,28 @@ export function buildMap(): WorldMap {
     return p(watersId(coast), name, "Sea", null, 0, false, c.lat, c.lon);
   };
   const seas: Province[] = [
-    waters("seha", "Seha waters"),
+    waters("seha", "Seha River Land waters"),
     waters("apasa", "Apasa waters"),
     waters("lukka", "Lukka waters"),
     waters("kizzuwatna", "Kizzuwatna waters"),
-    waters("kalavasos", "Kalavasos waters"),
-    waters("enkomi", "Enkomi waters"),
+    waters("kalavasos", "the copper hills of Alashiya waters"),
+    waters("enkomi", "the harbour of Alashiya waters"),
     waters("ugarit", "Ugarit waters"),
-    waters("sumur", "Sumur and Arwad waters"),
-    waters("byblos", "Byblos waters"),
-    waters("beirut", "Beirut waters"),
-    waters("sidon", "Sidon waters"),
-    waters("tyre", "Tyre waters"),
-    waters("akko", "Akko waters"),
-    waters("ashkelon", "Ashkelon waters"),
-    waters("gaza", "Gaza waters"),
-    waters("delta", "Delta waters"),
-    p("westsea", "Western Sea", "Sea", null, 0, false, 35.5, 26.5),
-    p("gulf", "The Gulf", "Sea", null, 0, false, 28.5, 50.0),
+    waters("sumur", "Ṣumur and Arwada waters"),
+    waters("byblos", "Gubla waters"),
+    waters("beirut", "Biruta waters"),
+    waters("sidon", "Ṣiduna waters"),
+    waters("tyre", "Ṣurru waters"),
+    waters("akko", "Akka waters"),
+    waters("ashkelon", "Ashqaluna waters"),
+    waters("gaza", "Hazzatu waters"),
+    waters("delta", "Ta-Mehu waters"),
+    p("westsea", "the Western Sea", "Sea", null, 0, false, 35.5, 26.5),
+    p("gulf", "the Gulf", "Sea", null, 0, false, 28.5, 50.0),
     // The Red Sea (item 11c, "The Red Sea" under Ideas): one zone, Egypt's alone, reached by the Sinai at the Gulf of Suez and
     // by Thebes over the Wadi Hammamat road to its harbour at Mersa Gawasis (whose latitude and longitude it takes). No sea
     // connection joins it to the Great Green: a fleet reaches it only by being built on its shore ("Ships carried overland").
-    p("redsea", "The Red Sea", "Sea", null, 0, false, 26.55, 34.04),
+    p("redsea", "the Eastern Sea", "Sea", null, 0, false, 26.55, 34.04),
   ];
   provinces.push(...seas);
   const coastal = new Map(provinces.filter((q) => q.isCoastal).map((q) => [q.id, q]));
@@ -481,18 +579,23 @@ export function buildMap(): WorldMap {
   land("akko", "megiddo");
   coast("ashkelon", "gaza");
   land("ashkelon", "gezer", "lachish");
-  land("gezer", "jerusalem", "shechem", "megiddo", "lachish", "hebron");
-  land("lachish", "gaza", "hebron", "shasu");
-  land("hebron", "jerusalem");
+  // Item 17+: the road from Gezer up to Jerusalem runs through the Aijalon valley, the Lady of the Lions' land.
+  // Gath (Tell es-Safi) stands between Gezer and Lachish, on the road from the coast to the southern hills.
+  land("gezer", "aijalon", "shechem", "megiddo", "gath");
+  land("aijalon", "jerusalem", "shechem", "gath");
+  land("ashkelon", "gath");
+  land("lachish", "gaza", "gath", "shasu");
+  land("gath", "jerusalem");
   land("megiddo", "shechem");
   land("shechem", "jerusalem");
   land("gaza", "sinai");
-  // East of the Jordan (item 11f): Pella across from Beth-Shan, Ashtaroth in the Bashan on the road to Damascus, and the
-  // Shasu's land south of the Dead Sea, reached from the Hebron hills, across the Sinai, and north by the King's Highway.
-  land("pella", "megiddo", "shechem", "ashtaroth", "hazor", "jerusalem", "shasu");
+  // East of the Jordan (item 11f): Pella across from Beth-Shan, with the land south of it (the later Gilead), and Ashtaroth
+  // in the Bashan on the road to Damascus. Item 17+ ("the land east of the Jordan"): the Shasu hold Seir and the desert
+  // west of it, where Egypt's lists place them; the plateau beyond the Salt Sea is land outside the game, so the Shasu
+  // no longer border Ashtaroth, Pella or Jerusalem (item 11f+'s guess, grade G, undone).
+  land("pella", "megiddo", "shechem", "ashtaroth", "hazor", "jerusalem");
   land("ashtaroth", "damascus", "hazor");
-  // Item 11f+: the King's Highway, the Shasu's east of the Jordan, joins them to the Bashan, Pella and Jerusalem.
-  land("shasu", "hebron", "sinai", "ashtaroth", "gaza", "jerusalem");
+  land("shasu", "gath", "sinai", "gaza");
 
   // Egypt and Nubia
   land("sinai", "delta", "memphis");
@@ -564,13 +667,13 @@ export const StartWalls: ReadonlyMap<string, number> = new Map([
   ["qatna", 3], ["qadesh", 3],
   ["carchemish", 2], ["aleppo", 2], ["ugarit", 2], ["arwad", 2], ["byblos", 2], ["tyre", 2], ["shechem", 2], ["susa", 2],
   ["isuwa", 1], ["alalakh", 1], ["nuhashshe", 1], ["amurru", 1], ["sidon", 1], ["damascus", 1], ["megiddo", 1],
-  ["jerusalem", 1], ["suhu", 1],
+  ["jerusalem", 1],
   // Item 11f, by the same reading: Tunip's and Niya's, Beirut's, Pella's and Ashtaroth's towns, which the walls dossier
   // knows nothing of, and Azzi's mountain strongholds (Aripsa, Dukkamma) 1; Libya and the Shasu, no town, none
   ["tunip", 1], ["niya", 1], ["beirut", 1], ["pella", 1], ["ashtaroth", 1], ["azzi", 1], ["arrapha", 1], ["seha", 1], ["mira", 1], ["terqa", 1],
   // Item 11c's six cities of Canaan, by the same reading of the walls dossier: Hazor's great Middle Bronze rampart, still
   // used, 3; the five the dossier does not list 1, as the other towns it knows nothing of
-  ["hazor", 3], ["akko", 1], ["gezer", 1], ["ashkelon", 1], ["lachish", 1], ["hebron", 1],
+  ["hazor", 3], ["akko", 1], ["gezer", 1], ["ashkelon", 1], ["lachish", 1], ["gath", 1], ["aijalon", 1],
   // Fortresses: Gaza, Egypt's base on the Ways of Horus, 2 [G]
   ["gaza", 2],
   // Walled towns
@@ -646,45 +749,81 @@ function cityMen(x: Province): number {
 /** The ships of the coastal cities (the armies dossier, "Fleets", its "Start from" column), by the city's capital province. */
 const CityShips: Readonly<Record<string, number>> = { ugarit: 80, arwad: 20, sidon: 20, tyre: 20, byblos: 10 };
 
+/**
+ * Where a city-state's army or ships start elsewhere than its city (item 17+), by the city's capital province: data, read
+ * by one rule for every city. Aziru's men stand in Amurru's own land beside Sumur, where Rib-Hadda reports them pressing
+ * Egypt's base (EA 103-106) [B; C on the year]: not in Sumur itself, since one province holds one unit and Egypt's
+ * garrison holds it. Arwad keeps a fleet instead of an army, in its own waters beside Byblos's, whose ships it blockaded
+ * with Amurru (EA 98, 105) [A]; Sidon's ships stand in Sidon's waters next to Tyre's, which hold Tyre's own fleet (EA
+ * 148-149) [A, B that it was so in 1346]. Labaya's war on Megiddo (EA 244) was over before 1346, so Shechem's men stand at
+ * home.
+ */
+const CityStarts: Readonly<Record<string, { army?: string | null; fleet?: string }>> = {
+  amurru: { army: "amurru" },
+  arwad: { army: null },
+};
+
+/** The city-states' armies and ships, each in its city but where {@link CityStarts} places it. */
 const cityUnits = (): StartUnit[] =>
   WorldMap.default.provinces
     .filter((x) => x.capital && x.home !== null && !isGreatKing(x.home))
     .flatMap((x) => {
       const home = x.home!;
-      // Arwad, the island whose ships blockade Byblos (EA 98 and 105), keeps a fleet in its city instead of an army.
-      if (home === "Arwad") return [su(home, "Fleet", x.id, CityShips[x.id] * MenPerShip)];
-      const army = su(home, "Army", x.id, cityMen(x));
+      const place = CityStarts[x.id] ?? {};
+      const armyAt = place.army === undefined ? x.id : place.army;
+      const out: StartUnit[] = armyAt === null ? [] : [su(home, "Army", armyAt, cityMen(x), x.id)];
       const ships = CityShips[x.id];
-      return ships === undefined ? [army] : [army, su(home, "Fleet", x.waters ?? x.id, ships * MenPerShip, x.id)];
+      if (ships !== undefined) out.push(su(home, "Fleet", place.fleet ?? x.waters ?? x.id, ships * MenPerShip, x.id));
+      return out;
     });
 
 /**
- * The Great Kings' armies and fleets at the start (item 13, "Starting positions come from the sources"), from the armies
- * dossier's "Start from" columns: Egypt and Hatti 15,000 men, Mitanni, Babylonia and Arzawa 10,000, Assyria 4,000 and
- * Alashiya 1,500, split between the cities where each kept its troops before item 13; Egypt's garrisons in its centres in
- * Canaan, Gaza and Sumur, a hundred men each (the low end of a town's range: EA 287, EA 289). Ships: Egypt 40, Alashiya 30,
- * Arzawa 10, Hatti 5, each {@link MenPerShip} men. Until item 13 every unit was a full levy, 5,000 men or a fleet's 2,000.
+ * The Great Kings' armies and fleets at the start, where the sources place them in 1346 (item 17+, "Starting positions come
+ * from the sources": a garrison in its city, a field force where it campaigned, an occupier in what it held), at the sizes
+ * the armies dossier's "Start from" columns give (item 13): Egypt and Hatti 15,000 men, Mitanni, Babylonia and Arzawa
+ * 10,000, Assyria 4,000 and Alashiya 1,500. Egypt's army is "at home and in Nubia" (the armies dossier): at Men-nefer, the
+ * army's base [B], at Akhetaten with the king [B], at Waset [G], and in Kush under the viceroy, whose campaign of year 12
+ * is Akhenaten's only attested one [B: the Buhen and Amada stelae; C: how many]; its garrisons in its centres in Canaan,
+ * Gaza and Sumur, a hundred men each (the low end of a town's range: EA 287, EA 289) [A]; Kumidi's waits for its
+ * commissioner (item 17++). Hatti's, recovered under Suppiluliuma and turning to Syria (the politics dossier): at Hattusa,
+ * at Samuha, the army base of the Upper Land facing Hayasa and the Kaska [A: KBo VI 28], in Kizzuwatna under Telipinu
+ * facing Syria [B], at Tuwanuwa in the Lower Land facing Arzawa [B], and at Nesa and Sapinuwa [G]. Mitanni's, split
+ * between Tushratta and Artatama II [B]: at Washukanni, Taidu and Harran, the west where the Hittite war is coming [C].
+ * Babylonia's at Babylon, Dur-Kurigalzu (Kurigalzu's royal city) [B], Nippur under its governor [B] and Sippar [G].
+ * Assyria's in the Tigris triangle, Ashur, Nineveh and Arbela [B]. Arzawa's at Apasa, its one land. Alashiya's at Enkomi
+ * and in the copper hills [G]. Ships: Egypt 40 (at Peru-nefer, the Delta's dockyard [A]), Alashiya 30, Arzawa 10, Hatti 5
+ * off Kizzuwatna, each {@link MenPerShip} men. The city-states' are {@link cityUnits}. Until item 13 every unit was a full
+ * levy, 5,000 men or a fleet's 2,000; until item 17+ each Great King's men stood in two or three of its cities.
  */
 export const StartUnits: readonly StartUnit[] = [
-  su("Egypt", "Army", "memphis", 7500),
-  su("Egypt", "Army", "akhetaten", 7500),
+  su("Egypt", "Army", "memphis", 6000),
+  su("Egypt", "Army", "akhetaten", 4000),
+  su("Egypt", "Army", "thebes", 2200),
+  su("Egypt", "Army", "nubia", 2800),
   su("Egypt", "Army", "gaza", 100),
   su("Egypt", "Army", "sumur", 100),
   su("Egypt", "Fleet", "delta", 40 * MenPerShip),
-  su("Hatti", "Army", "hattusa", 7500),
-  su("Hatti", "Army", "nesa", 7500),
-  su("Hatti", "Fleet", "kizzuwatna", 5 * MenPerShip),
+  su("Hatti", "Army", "hattusa", 5500),
+  su("Hatti", "Army", "samuha", 3000),
+  su("Hatti", "Army", "kizzuwatna", 3000),
+  su("Hatti", "Army", "tuwanuwa", 1500),
+  su("Hatti", "Army", "nesa", 1000),
+  su("Hatti", "Army", "sapinuwa", 1000),
+  su("Hatti", "Fleet", "kizzuwatnawaters", 5 * MenPerShip, "kizzuwatna"),
   su("Babylonia", "Army", "babylon", 4000),
-  su("Babylonia", "Army", "sippar", 3000),
   su("Babylonia", "Army", "durkurigalzu", 3000),
+  su("Babylonia", "Army", "nippur", 1500),
+  su("Babylonia", "Army", "sippar", 1500),
   su("Mitanni", "Army", "washukanni", 5000),
-  su("Mitanni", "Army", "taidu", 5000),
+  su("Mitanni", "Army", "harran", 3000),
+  su("Mitanni", "Army", "taidu", 2000),
   su("Assyria", "Army", "ashur", 2000),
   su("Assyria", "Army", "nineveh", 1000),
-  su("Assyria", "Army", "ekallate", 1000),
+  su("Assyria", "Army", "arbela", 1000),
   su("Arzawa", "Army", "apasa", 10000),
   su("Arzawa", "Fleet", "apasawaters", 10 * MenPerShip, "apasa"),
-  su("Alashiya", "Army", "enkomi", 1500),
+  su("Alashiya", "Army", "enkomi", 1000),
+  su("Alashiya", "Army", "kalavasos", 500),
   su("Alashiya", "Fleet", "enkomiwaters", 30 * MenPerShip, "enkomi"),
   ...cityUnits(),
 ];

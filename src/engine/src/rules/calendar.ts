@@ -93,7 +93,8 @@ export const ShekelsPerMina = 60;
 /** Shekels as people read them: "45 shekels", "1 mina", "2 minas 15 shekels" (Money.Format). */
 export function formatMoney(shekels: number): string {
   const sign = shekels < 0 ? "-" : "";
-  shekels = Math.abs(shekels);
+  // Whole shekels only (item 17+): a fraction the engine carries is never a figure a king reads.
+  shekels = Math.round(Math.abs(shekels));
   const minas = idiv(shekels, ShekelsPerMina);
   const rest = shekels % ShekelsPerMina;
   if (minas === 0) return `${sign}${rest} shekels`;

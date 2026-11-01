@@ -1038,3 +1038,73 @@ Given in the design chat with Claude, answering the design questions of the cons
     the design session's proposal (about 5 minutes to a sign of life, a take-back at once when the bot answers with
     an error, about 2 hours to a PR): "yes, expertly!" Written into `docs/claude-and-codex.md`, "When Codex is not
     there", the same in Barkstreet Snakes.
+125. **1 November 2026, 16:10-16:19 UTC**, in the design chat, after the Codex GitHub bot turned out to need a
+    Legacy environment that cannot be created: "Is it possible to have the orchestrator run locally, while the rest
+    run on cloud. But still is a security risk. Also, can anyone who comments on my repo make my codex do whatever?
+    that would be a big risk!" Then, to the design session's answers (the orchestrator stays in the cloud and the PC
+    only hands lanes to Codex's cloud; the runner acts only on pull requests HaakTuah opened from the repository and
+    labelled himself, with the description as the brief), 16:19 UTC: "Yes to all, expertly!" Written into
+    `docs/claude-and-codex.md` ("Handing work to Codex", "The runner on Haakon's PC") and `scripts/codex-runner.sh`,
+    the same in Barkstreet Snakes.
+126. **1 November 2026, 16:42-16:49 UTC**, in the design chat, while the Codex runner was being set up on his PC:
+    "Remember that this is an open repo, so extremely important that nothing is pushed there which opens and
+    exploit, and lets everyone read it, so that they can attack my system or repos through it." (16:42 UTC) Then
+    (16:49 UTC): "I don't like that I have a copy of the repository and this on my computer. I think it should be
+    removed and just set up here locally. having it on a repository announces how it works, and it should just be a
+    poller anyhow that triggers a codex cloud instance, nothing which can anyhow do anything else on my computers."
+    The runner is removed from the repository; a poller kept on his PC only starts Codex's cloud tasks, with no copy
+    of the repository. Written into `docs/claude-and-codex.md` ("Handing work to Codex", "Haakon's poller": only his
+    own work reaches Codex; Codex's work never touches the protected files), the same in Barkstreet Snakes.
+127. **1 November 2026, 17:10 UTC**, in the design chat, after Codex's code review proved to work (Snakes #291)
+    while its building cannot, on the design session's proposal that Codex review Claude's PRs and build nothing
+    until he says: "Yes, please, expertly so! Thought remember, it can run out of usage, even just reviewing. So we
+    should probably have some standard of waiting, then asking it if it is spending too long (which shouldn't be
+    that long a wait), and then handing it off to another reviewer if it dosen't answer quickly? also, will the
+    codex reviewer have our review criterias with the 1 to 10 score scale and all?" Written into
+    `docs/claude-and-codex.md` (the status line, "Codex reviews": about 5 minutes to start, one more ask at about
+    15, then Claude's reviewer) and a "Review guidelines" section in `AGENTS.md`, which Codex's review reads; the
+    same in Barkstreet Snakes.
+128. **1 November 2026, 17:27-17:32 UTC**, in the design chat, answering item 17+'s question (#348) whether the
+    seven Great Kings' realms take period forms (Miṣri, Aššur): "I want the names people actually know". Then: "as
+    for the names. no, i have already said i want the period specific place names, that we have put already in the
+    build order for all, no? but like in the video that inspired it, even though finkel says gubla, he still says
+    egypt. if you say kemet, people think you speak of a frog." Written into "Places by their own names" (World and
+    history) and item 17+: the realms keep the names people know (Egypt, Babylon, Assyria, Hatti, Mitanni), every
+    place within them its name of 1346.
+129. **1 November 2026, 17:46-17:53 UTC**, in the design chat, after Codex's first real review (Snakes #289) gave
+    findings and no score: "Hmm, i see there are setting where i can set whether codex abides by my personal
+    prefernce or repo rules." Then, to the design session's proposals (a SECURITY.md for both repositories; Codex
+    gives findings, not scores, so design faults count as P1 and the big items get a short design check with a score
+    from Claude): "Yes, please, as expertly as at all possible, taking account of all attack vector and security
+    concerns, security expert!" Written into `SECURITY.md` (new), the "Review guidelines" in `AGENTS.md`, the
+    reviewer row in `CLAUDE.md` and "Codex reviews" in `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
+130. **1 November 2026, 18:01-18:03 UTC**, in the design chat: "How do we know it actually read the criterias and
+    used them then? And it seems to give no useful feedback? Claude reviewers give pointers and lots of feedback? Or
+    is it because of the nature of the merges that has happened now? because if this is just a low effort, nothing
+    absolutely horrible therefore approve, then it actively deteriorates the output we have." Then, to the design
+    session's proposals (a test PR with planted faults to see what Codex's review catches, and Claude's full review
+    back on the big items until then): "Yes please, expertly!" Written into `docs/claude-and-codex.md`, "Codex
+    reviews" (point 5), the reviewer row in `CLAUDE.md` and the "Review guidelines" in `AGENTS.md`; the test is
+    Barkstreet Snakes #298, never merged; the same in Barkstreet Snakes.
+131. **1 November 2026, 18:11 UTC**, in the design chat: "I agree with your assesment." (to the design session's
+    reading of the test, Barkstreet Snakes #298, where Codex flagged all three planted faults as P1: Codex as the
+    gatekeeper for faults and security, and on the big items Claude's design check at medium effort, not its full
+    review). Written into `docs/claude-and-codex.md`, "Codex reviews" (point 5, with the test's result), the
+    reviewer row in `CLAUDE.md` and the "Review guidelines" in `AGENTS.md`; the same in Barkstreet Snakes.
+132. **1 November 2026, 18:17 UTC**, in the design chat: "Agreed to both 1 and 2, but I want 3 stricter, though we
+    should have a measure there to ensure not endless loop, or lowering of what a 10 is. Carry this out, expert." (to
+    the design session's answers to his question whether only a 10 passes Claude's reviews and whether both reviews run
+    at the same time: (1) say in both games that Codex's review and Claude's design check start at the same time;
+    (2) gather the day's experience into a notes doc for his father's setup now, the guide itself after week one;
+    (3) the reviews' pass mark). Written into `docs/claude-and-codex.md` ("Codex reviews", points 4 and 5; "Reviews:
+    only a 10 passes", with its guards and the new "Calibration" table), the "Review guidelines" and a standing
+    instruction in `AGENTS.md`; the same in Barkstreet Snakes. The notes doc is a Claude Doc, "Claude + Codex: notes
+    for Dad's setup".
+133. **1 November 2026, 18:35-18:37 UTC**, in the design chat, after the design session added "Keep it lean" to the
+    prompt for his father's setup: "Yes, please, expertly! Should we also have any of this, expert?", then, to the
+    design session's questions (add to both games "every change removes what it replaces" and leftovers in the
+    definition of a 10; the files every session reads back under 20 KB first at the next milestone's workshop check; a
+    check for unused code in Barkstreet Snakes' queue): "yes, please, expertly expertly!" Written into `AGENTS.md`
+    ("Keep it lean" under "How to work", replacing "Keep files small and organised", and the "Review guidelines"),
+    `docs/claude-and-codex.md` (the definition of a 10 in "Reviews") and `docs/BUILD-PROGRESS.md` (the next workshop
+    check); the same in Barkstreet Snakes, with its unused-code check.

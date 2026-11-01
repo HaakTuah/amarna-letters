@@ -270,7 +270,7 @@ describe("TerrainTests", () => {
     new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [move("tuwanuwa", "mira"), support("lukka", "tuwanuwa", "mira")] })]]));
     let hatti = single(inboxOf(s, "Hatti"), (i) => i.title === "Movements last season").body;
     Assert.contains(
-      "- A tuwanuwa -> mira: fails: the unit holding mira (Arzawa's army) kept its place; your strength 2 against 2, 1 of it for the rough ground of mira; so your army stays in tuwanuwa",
+      "- army in Tuwanuwa -> Mira: fails: the unit holding Mira (Arzawa's army) kept its place; your strength 2 against 2, 1 of it for the rough ground of mira; so your army stays in Tuwanuwa",
       hatti,
     );
     let e = Assert.single(s.events, (x) => x.kind === "terrain");
@@ -297,7 +297,7 @@ describe("TerrainTests", () => {
     );
     let hatti = single(inboxOf(s, "Hatti"), (i) => i.title === "Movements last season").body;
     Assert.contains(
-      "it got within the walls of isuwa but did not storm them (strength 3 against walls 1 and defenders 6.6 on the walls: the garrison 2, 1 of it for the rough ground of isuwa, and the city's men 1.3, the walls making them twice as strong)",
+      "it got within the walls of Isuwa but did not storm them (strength 3 against walls 1 and defenders 6.6 on the walls: the garrison 2, 1 of it for the rough ground of isuwa, and the city's men 1.3, the walls making them twice as strong)",
       hatti,
     );
     let arzawa = single(inboxOf(s, "Arzawa"), (i) => i.title === "Movements last season").body;

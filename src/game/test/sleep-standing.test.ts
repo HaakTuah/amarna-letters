@@ -32,7 +32,7 @@ import {
   unitAt,
 } from "@amarna/engine";
 import { type JsonObject, LlmLeaderSeat, Parse, Replies, Schemas, leaderRules, problems, situation } from "@amarna/llm";
-import { at, str, Assert, commanded, formerHomes, last } from "../../engine/test/support.ts";
+import { at, str, Assert, armiesBefore13, commanded, formerHomes, last, walled } from "../../engine/test/support.ts";
 import { Sleeper } from "./sleep-support.ts";
 import { Scripted } from "./sleep-support.ts";
 import { Quiet } from "./sleep-support.ts";
@@ -61,29 +61,30 @@ describe("SleepTests", () => {
   // ------------------------------------------------------------ standing orders (answering a move in the season it is made, since the fix pass after item 4)
 
   test("A standing order answers a move in the season it is made once and does not wake the seat", async () => {
-    // Babylon holds Suhu, unwalled and beyond its homeland, and sees Ashur from it (item 11f+: no province next to Babylon's homeland is
-    // beyond it). When Assyria's troops enter Ashur, the army in Babylon falls back to Nippur. Turn 1: Ashur's army leaves
-    // for Arbela and Ekallate's takes its place; a standing order first fires the season after it is given, so not yet.
-    // Turn 2: the army in Arbela sets out for Ashur and is stopped there, and the standing order answers it that season.
-    // Turn 3: it sets out again; the standing order is spent.
-    let sleeper = new Sleeper((v) => (v.turn === 1 ? newTurnSubmission({ standing: [enters("Assyria", "ashur", move("babylon", "nippur"))] }) : nothing()));
+    // Babylon holds Arrapha, unwalled and beyond its homeland, and sees Arbela from it (item 11f+: no province next to Babylon's
+    // homeland is beyond it; until item 17+ made Suhu Babylon's own land this was Suhu, seeing Ashur, but Assyria's moves into
+    // Ashur now end next to Babylon's homeland and wake it). When Assyria's troops enter Arbela, the army in Babylon falls
+    // back to Nippur. Turn 1: Nineveh's army moves to Arbela; a standing order first fires the season after it is given, so
+    // not yet. Turn 2: the army in Ashur sets out for Arbela and is stopped there, and the standing order answers it that
+    // season. Turn 3: it sets out again; the standing order is spent.
+    let sleeper = new Sleeper((v) => (v.turn === 1 ? newTurnSubmission({ standing: [enters("Assyria", "arbela", move("babylon", "nippur"))] }) : nothing()));
     let assyria = new Scripted((v) =>
       v.turn === 1
-        ? newTurnSubmission({ orders: [move("ashur", "arbela"), move("ekallate", "ashur")] })
+        ? newTurnSubmission({ orders: [move("nineveh", "arbela")] })
         : v.turn === 2 || v.turn === 3
-          ? newTurnSubmission({ orders: [move("arbela", "ashur")] })
+          ? newTurnSubmission({ orders: [move("ashur", "arbela")] })
           : newTurnSubmission(),
     );
     let r = await play("Babylonia", sleeper, 1, undefined, new Dict([["Assyria", assyria]]), (s) => {
-      removeAll(s.units, (u) => u.province === "suhu");
-      s.owner.set("suhu", "Babylonia");
-      s.walls.delete("suhu");
+      removeAll(s.units, (u) => u.province === "arrapha");
+      s.owner.set("arrapha", "Babylonia");
+      s.walls.delete("arrapha");
     });
     let sleep = r.state.sleep.get("Babylonia");
     Assert.equal("Babylonia", unitAt(r.state, "babylon")?.power);
     // Its view lists it with its id; nothing tells a king in advance whether it will fire.
     let line = single(situation(Views.for(r.state, "Babylonia")).replaceAll("\r\n", "\n").split("\n"), (l) => l.startsWith("- s1:"));
-    Assert.equal("- s1: when Assyria's troops enter ashur, then: the army now in babylon -> nippur", line);
+    Assert.equal("- s1: when Assyria's troops enter arbela, then: the army now in babylon -> nippur", line);
 
     await r.playTurn();
     Assert.equal("Babylonia", unitAt(r.state, "nippur")?.power);
@@ -94,7 +95,7 @@ describe("SleepTests", () => {
     let notice = noticeOf(r.state, "Babylonia", standingFiredTitle("s1"));
     Assert.equal(["Resolution", 3], [notice.kind, notice.turn]);
     Assert.equal(
-      "Your standing order s1 (when Assyria's troops enter ashur) fired in turn 2: Assyria's army set out from arbela for ashur. It gave these orders: babylon -> nippur.",
+      "Your standing order s1 (when Assyria's troops enter arbela) fired in turn 2: Assyria's army set out from ashur for arbela. It gave these orders: babylon -> nippur.",
       notice.body,
     );
     // In brief, the firing is dated by the season it fired, as the movements are by the season they were made.
@@ -252,7 +253,7 @@ describe("SleepTests", () => {
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal(2, sleeper.views[1].wokenBecause.length);
     Assert.startsWith(
-      "a standing order of yours could not be carried out: s1: sippar -> durkurigalzu (it met a move into durkurigalzu from ekallate",
+      "a standing order of yours could not be carried out: s1: sippar -> durkurigalzu (it met a move into Dur-Kurigalzu from Ekallate",
       sleeper.views[1].wokenBecause[0],
     );
     Assert.equal(`${AttackedReason}: Assyria's army tried to move ekallate -> durkurigalzu`, sleeper.views[1].wokenBecause[1]);
@@ -269,6 +270,8 @@ describe("SleepTests", () => {
     // Nineveh, out of Babylon's sight; Babylon's own army marches to Nippur, and another sets out against its own army in Dur-Kurigalzu.
     // Item 13: Babylon's troops each with a commander, who carries out the standing orders on what his army sees.
     let s = commanded(formerHomes(newGame(31, newGameConfig({ catastropheChance: 0 }))), "Babylonia");
+    // Suhu's walls, as the city-state's city had them until item 17+ made Suhu Babylon's own unwalled land.
+    walled(s, "suhu", 1);
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu" }));
     let sleep = newSleepState();
     s.sleep.set("Babylonia", sleep);
@@ -315,7 +318,7 @@ describe("SleepTests", () => {
   test("When the script king stands in the seat s own plans go first", () => {
     // Woken in turn 3, the seat's call failed and the script king stands in, ordering every unit to hold and a levy. The
     // seat's standing order fires and its scheduled move runs all the same: the stand-in only fills what they leave free.
-    let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
+    let s = armiesBefore13(newGame(31, newGameConfig({ catastropheChance: 0 })));
     emptyDurkurigalzu(s);
     s.turn = 3;
     let marcher = unitAt(s, "sippar")!;
@@ -391,7 +394,7 @@ describe("SleepTests", () => {
   });
 
   test("At most 12 standing orders are kept and one that cannot be kept is refused whole and wakes nobody", () => {
-    let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
+    let s = armiesBefore13(newGame(31, newGameConfig({ catastropheChance: 0 })));
     let sleep = newSleepState();
     s.sleep.set("Babylonia", sleep);
     let e = new TurnEngine(s);

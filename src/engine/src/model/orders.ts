@@ -307,6 +307,20 @@ export interface PayCarriersOrder {
   pay: boolean;
 }
 /**
+ * Item 17+: your standing order to pay and feed your troops, which every king starts with ("Nothing happens unless someone
+ * orders it"). With no province it sets the order for all your troops; with one, it holds back pay or food from the units
+ * of yours standing there (or gives it again), the rest unchanged. Unpaid soldiers desert in time, and hungry ones eat what
+ * they carry and then take from the land.
+ */
+export interface UpkeepOrder {
+  type: "upkeep";
+  /** Pay the troops (true) or hold their pay back (false); null leaves pay as it stands. */
+  pay: boolean | null;
+  /** Feed them likewise; null leaves their food as it stands. */
+  feed: boolean | null;
+  province?: string;
+}
+/**
  * Haakon's answers to item 11b: your armies standing in `province` of your land fall on the bands there at the start of
  * next season (a king's army falls on a band only on his order).
  */
@@ -477,6 +491,15 @@ export interface RoadsOrder {
   close: boolean;
 }
 /**
+ * Item 17+ ("A power's name is a claim"): the king claims a realm's name or title, any the map knows or a power claims,
+ * Pharaoh's included; his own land's name returns him to it. It gives nothing by rule: each court decides whom it gives a
+ * contested name to, in the greetings it sends.
+ */
+export interface ClaimNameOrder {
+  type: "claimName";
+  name: string;
+}
+/**
  * End the passage and basing this king granted another on sealed tablets (item 9), in one province or, with none named,
  * all of them. Its troops still standing in the land after it ends take it, as any troop does.
  */
@@ -601,6 +624,7 @@ export type Order =
   | RecallSpyOrder
   | CounterIntelOrder
   | RoadsOrder
+  | ClaimNameOrder
   | RevokeOrder
   | GrantOrder
   | RepudiateOrder
@@ -612,6 +636,7 @@ export type Order =
   | SeizeHoardOrder
   | SellDebtOrder
   | PayCarriersOrder
+  | UpkeepOrder
   | HuntOrder
   | HuntBandsOrder
   | UnreadableOrder;
@@ -689,6 +714,7 @@ export const renew = (character: string, fee: number, term = 6, advance: number 
 export const seize = (character: string): SeizeHoardOrder => ({ type: "seize", character });
 export const sellDebt = (debt: string, character: string, price: number): SellDebtOrder => ({ type: "sellDebt", debt, character, price });
 export const payCarriers = (pay: boolean): PayCarriersOrder => ({ type: "payCarriers", pay });
+export const upkeep = (pay: boolean | null, feed: boolean | null, province: string | null = null): UpkeepOrder => ({ type: "upkeep", pay, feed, ...(province !== null && province !== "" ? { province } : {}) });
 export const hunt = (province: string): HuntOrder => ({ type: "hunt", province });
 export const huntBands = (on: boolean, provinces: string[] | null = null): HuntBandsOrder => ({ type: "huntBands", on, ...(provinces !== null && provinces.length > 0 ? { provinces } : {}) });
 export const payFee = (character: string, pay = true): PayFeeOrder => ({ type: "payFee", character, pay });
@@ -714,6 +740,7 @@ export const placeSpy = (character: string, court: Power | null = null, province
 export const recall = (character: string): RecallSpyOrder => ({ type: "recall", character });
 export const counterIntel = (spend: number): CounterIntelOrder => ({ type: "counterIntel", spend });
 export const roads = (court: Power, close: boolean): RoadsOrder => ({ type: "roads", court, close });
+export const claimName = (name: string): ClaimNameOrder => ({ type: "claimName", name });
 export const revoke = (grantee: Power, province: string | null = null): RevokeOrder => ({ type: "revoke", grantee, province });
 export const grant = (grantee: Power, kind: GrantKind, province: string | null = null, seasons: number | null = null): GrantOrder => ({ type: "grant", grantee, kind, province, seasons });
 export const repudiate = (copy: string): RepudiateOrder => ({ type: "repudiate", copy });
@@ -820,6 +847,11 @@ export function describe(o: Order): string {
       return `sell debt tablet ${o.debt} to ${o.character} for ${o.price} shekels`;
     case "payCarriers":
       return o.pay ? "pay the carriers of your people's letters on delivery" : "stop paying the carriers of your people's letters on delivery";
+    case "upkeep": {
+      const half = (v: boolean | null | undefined, yes: string, no: string): string | null => (v === null || v === undefined ? null : v ? yes : no);
+      const what = [half(o.pay, "pay", "hold back the pay of"), half(o.feed, "feed", "hold back the food of")].filter((x) => x !== null).join(" and ") || "leave the pay and food of";
+      return o.province !== undefined ? `${what} your troops in ${named(o.province)}` : `${what} your troops, by standing order`;
+    }
     case "hunt":
       return `your armies in ${named(o.province)} fall on the bands there`;
     case "huntBands":
@@ -846,6 +878,8 @@ export function describe(o: Order): string {
       return `spend ${o.spend} on watching for spies`;
     case "roads":
       return `${o.close ? "close" : "open"} your roads to the people of ${o.court}`;
+    case "claimName":
+      return `claim the name of ${o.name}`;
     case "grant":
       return `grant ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing in"} ${o.province !== null ? named(o.province) : "all your land"}${o.seasons !== null ? ` for ${o.seasons} seasons` : " until revoked"}`;
     case "revoke":
@@ -1002,6 +1036,7 @@ export const OrderSchema = poly("Order", "type", {
   seize: v("SeizeHoardOrder", () => seize(""), { character: S }),
   sellDebt: v("SellDebtOrder", () => sellDebt("", "", 0), { debt: S, character: S, price: I }),
   payCarriers: v("PayCarriersOrder", () => payCarriers(true), { pay: B }),
+  upkeep: v("UpkeepOrder", () => upkeep(null, null), { pay: opt(B), feed: opt(B), province: opt(S) }),
   hunt: v("HuntOrder", () => hunt(""), { province: S }),
   huntBands: v("HuntBandsOrder", () => huntBands(true), { on: B, provinces: opt(list(S)) }),
   payFee: v("PayFeeOrder", () => payFee(""), { character: S, pay: B }),
@@ -1014,6 +1049,7 @@ export const OrderSchema = poly("Order", "type", {
   recall: v("RecallSpyOrder", () => recall(""), { character: S }),
   counterIntel: v("CounterIntelOrder", () => counterIntel(0), { spend: I }),
   roads: v("RoadsOrder", () => roads("Egypt", true), { court: S, close: B }),
+  claimName: v("ClaimNameOrder", () => claimName(""), { name: S }),
   revoke: v("RevokeOrder", () => revoke("Egypt"), { grantee: S, province: opt(S) }),
   grant: v("GrantOrder", () => grant("Egypt", "passage"), { grantee: S, kind: S, province: opt(S), seasons: opt(I) }),
   repudiate: v("RepudiateOrder", () => repudiate(""), { copy: S }),

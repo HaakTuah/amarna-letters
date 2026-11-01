@@ -41,6 +41,7 @@ import {
   sally,
   single,
   support,
+  PeopleOf1346,
 } from "@amarna/engine";
 import { ScriptLeader, temperament } from "@amarna/game";
 import { removeAll, Assert, holds, orderBy, walled, oldWorld, unruled, speaksAll } from "../../engine/test/support.ts";
@@ -192,8 +193,9 @@ describe("SiegePlayTests", () => {
     let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     s.turn = 4;
     s.treasuries.get("Egypt").gold = 3000;
+    // Its two envoys of the first pool, not the people of 1346 in their posts (item 17+).
     let envoys = orderBy(
-      s.characters.filter((c) => c.employer === "Egypt" && c.secretMaster === null),
+      s.characters.filter((c) => c.employer === "Egypt" && c.secretMaster === null && !PeopleOf1346.some((x) => x.name === c.name)),
       (c) => c.id,
     );
     let loyal = envoys.at(-1)!;
