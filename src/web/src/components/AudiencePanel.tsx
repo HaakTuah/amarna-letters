@@ -194,7 +194,7 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
           )}
         </div>
         <p className="muted">
-          <small>Treasury: {shekels(court.gold)}. Gifts and gold sent back are paid at once.</small>
+          <small>Treasury: {shekels(court.gold)}. Gifts and gold sent back are paid at once; service the envoy accepts is paid three seasons ahead at once, as far as the treasury goes.</small>
         </p>
         <button className="primary" onClick={answer}>
           Answer
