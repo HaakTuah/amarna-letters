@@ -41,6 +41,17 @@ slowest part, the siege's clock, and strength as the wealth of the realm. Save v
    their king's land (a fleet: the coast of its waters), into its purse; the rest is the unit's `savings`, which go into
    the purse of its `home` (where it was raised) when it disbands, and are lost if it is destroyed. A unit not paid in
    full counts a season `unpaid`. Then walls' upkeep (into each walled province's purse: builders' pay) and wages.
+   **By the king's standing order only** (item 17+, "Nothing happens unless someone orders it"): every king starts with
+   the order to pay and feed all his troops (`TroopUpkeep`: `pay`, `feed`, `payExcept`, `feedExcept`; `s.upkeep`, absent
+   until he changes it), shown in his seat view (`payTroops`, `feedTroops`, `payHeld`, `feedHeld`) and changed by order
+   `upkeep` (models: `pay_troops`, `stop_paying_troops`, `feed_troops`, `stop_feeding_troops`; per province, the
+   command words `hold_pay`, `give_pay`, `hold_food`, `give_food`; the web's Court section). A unit held back from pay
+   (`paysUnit`) counts a season `unpaid` and the treasury keeps its pay (event `pay-held`, in the treasury notice); one
+   held back from food (`feedsUnit`) draws nothing from the stores and buys nothing, eats its baggage and then takes
+   from the land as any unit does. Script kings (`bots/upkeep.ts`, `--no-upkeep-play`, `--upkeep-play-half`) hold back
+   pay only when the treasury cannot carry the season's costs after borrowing, from units with no missed season that
+   stand in their own land with no foreign troops beside them, largest pay first, and pay them again the next season;
+   they never hold back food.
 4. Every unit eats (`feedTroops`, 10 measures): from its king's stores where it stands, refilling its baggage from them
    (up to `carried` 2 seasons); else its baggage; else the land: at home the market's stock (requisition), elsewhere
    `forageShare` 33% of the farmers' share of this season's harvest (half in winter, none in the desert or at sea),

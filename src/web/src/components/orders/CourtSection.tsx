@@ -25,6 +25,7 @@ import {
   seize,
   sellDebt,
   payCarriers,
+  upkeep,
   huntBands,
   hunt,
   type Power,
@@ -254,6 +255,31 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             ))}
         </div>
       ))}
+      {/* Item 17+: the king's standing order to pay and feed his troops, his to change, for all of them or for one province's. */}
+      <div className="row">
+        <button className="small" disabled={draft.other.some((o) => o.type === "upkeep" && o.province === undefined)} onClick={() => add(upkeep(!v.payTroops, v.feedTroops))}>
+          {v.payTroops ? "Stop paying your troops" : "Pay your troops again"}
+        </button>
+        <button className="small" disabled={draft.other.some((o) => o.type === "upkeep" && o.province === undefined)} onClick={() => add(upkeep(v.payTroops, !v.feedTroops))}>
+          {v.feedTroops ? "Stop feeding your troops from your stores" : "Feed your troops from your stores again"}
+        </button>
+        <select value="" disabled={draft.other.some((o) => o.type === "upkeep")} onChange={(e) => {
+          const [what, at] = e.target.value.split("|");
+          if (what === "pay") add(upkeep(v.payHeld.includes(at), true, at));
+          else if (what === "food") add(upkeep(true, v.feedHeld.includes(at), at));
+        }}>
+          <option value="">Hold back pay or food from the troops in one province, or give it again…</option>
+          {[...new Set(v.units.filter((u) => u.power === me).map((u) => u.province))].flatMap((at) => [
+            <option key={`pay|${at}`} value={`pay|${at}`}>{v.payHeld.includes(at) ? `Pay the troops in ${provinceName(at)} again` : `Hold back pay from the troops in ${provinceName(at)}`}</option>,
+            <option key={`food|${at}`} value={`food|${at}`}>{v.feedHeld.includes(at) ? `Feed the troops in ${provinceName(at)} again` : `Hold back food from the troops in ${provinceName(at)}`}</option>,
+          ])}
+        </select>
+        {(v.payHeld.length > 0 || v.feedHeld.length > 0) && (
+          <small>
+            Held back: {v.payHeld.length > 0 ? `pay in ${v.payHeld.map(provinceName).join(", ")}` : ""}{v.payHeld.length > 0 && v.feedHeld.length > 0 ? "; " : ""}{v.feedHeld.length > 0 ? `food in ${v.feedHeld.map(provinceName).join(", ")}` : ""}.
+          </small>
+        )}
+      </div>
       <div className="row">
         <button className="small" disabled={draft.other.some((o) => o.type === "payCarriers")} onClick={() => add(payCarriers(!v.payCarriers))}>
           {v.payCarriers ? "Stop paying letter carriers on delivery" : "Pay letter carriers on delivery"}

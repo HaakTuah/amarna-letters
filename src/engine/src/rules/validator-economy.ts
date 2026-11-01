@@ -165,6 +165,14 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
 
     case "payCarriers":
       return null;
+
+    case "upkeep": {
+      if (order.province === undefined) return null;
+      if (!Map.exists(order.province)) return `there is no province called '${order.province}'`;
+      const prov = Map.get(order.province);
+      if (!S.units.some((u) => u.power === power && u.province === prov.id)) return `no troops of yours stand in ${prov.name}`;
+      return null;
+    }
   }
   return undefined;
 }

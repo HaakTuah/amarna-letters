@@ -73,6 +73,7 @@ import {
   parsePower,
   payRansom,
   payCarriers,
+  upkeep,
   hunt,
   huntBands,
   seize,
@@ -249,6 +250,15 @@ function commandOf(x: Node): Order | null {
       return supply(at, true, Math.max(0, I(x, "gold")));
     case "take_food":
       return supply(at, false);
+    // Item 17+: the king's standing order to pay and feed his troops, held back from, or given again to, the units in one province.
+    case "hold_pay":
+      return upkeep(false, true, at);
+    case "give_pay":
+      return upkeep(true, true, at);
+    case "hold_food":
+      return upkeep(true, false, at);
+    case "give_food":
+      return upkeep(true, true, at);
     case "mandate": {
       const target = opt("target");
       const until = I(x, "until");
@@ -520,6 +530,14 @@ function other(x: Node): Order | null {
       return sellDebt(S(x, "item"), person, amount);
     case "pay_carriers":
       return payCarriers(true);
+    case "pay_troops":
+      return upkeep(true, true);
+    case "stop_paying_troops":
+      return upkeep(false, true);
+    case "feed_troops":
+      return upkeep(true, true);
+    case "stop_feeding_troops":
+      return upkeep(true, false);
     case "stop_paying_carriers":
       return payCarriers(false);
     case "captive_take_purse":

@@ -107,6 +107,10 @@ export const OtherActions = [
   "sell_grain",
   "buy_grain",
   "feed_town",
+  "pay_troops",
+  "stop_paying_troops",
+  "feed_troops",
+  "stop_feeding_troops",
   "caravan",
   "trade",
   "smuggle",
@@ -342,7 +346,7 @@ const leaderOrdersBase = (c: GameConfig | null): [string, z.ZodType][] => [
 const commandOrder = (): ReplySchema =>
   object(
     ["unit", str("Province id where your unit is, as YOUR TROOPS shows it (by its last report if far off).")],
-    ["action", enumOf(["grant", "take_back", "mandate", "clear_mandate", "buy_food", "take_food"])],
+    ["action", enumOf(["grant", "take_back", "mandate", "clear_mandate", "buy_food", "take_food", "hold_pay", "give_pay", "hold_food", "give_food"])],
     ["person", str("grant: the id of the person at your court you grant the command (like c3). Otherwise empty.")],
     ["task", enumOf(["", ...MandateTaskValues], "mandate: hold where it stands; guard the target and the land around it; invade, besiege or raid into the target; support or shadow the power's troops. Otherwise empty.")],
     ["target", str("mandate: the province its task names (guard: empty for where it stands). Otherwise empty.")],

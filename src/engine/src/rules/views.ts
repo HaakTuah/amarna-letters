@@ -14,7 +14,7 @@ import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf, worksOfPower } from "../model/works.ts";
-import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known, type Unit } from "../model/state.ts";
+import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, upkeepOf, wallsOf, type GameState, type Known, type Unit } from "../model/state.ts";
 import { PointsPerDay, wordSeasons } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
@@ -209,6 +209,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     kept: s.payRecords.tryGet(p)?.kept ?? 0,
     broken: s.payRecords.tryGet(p)?.broken ?? 0,
     payCarriers: s.payCarriers.includes(p),
+    ...(() => {
+      const o = upkeepOf(s, p);
+      const held = (ids: string[]): string[] => sortBy([...new Set(s.units.filter((u) => u.power === p && ids.includes(u.id)).map((u) => u.province))], [(x: string) => x, cmpStr]);
+      return { payTroops: o.pay, feedTroops: o.feed, payHeld: held(o.payExcept), feedHeld: held(o.feedExcept) };
+    })(),
     huntBands: huntNow(s, p) !== null,
     huntWhere: huntNow(s, p)?.provinces ?? [],
     debts: debtViews(s, p),

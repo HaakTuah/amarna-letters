@@ -37,7 +37,9 @@ rumours, and those can be late, shaded or false.
 
 1. **The land and its upkeep.** In its season the harvest is reaped and taxed into each province's stores; mines and
    markets bring in gold; people eat, and the hungry move. Troops are paid from your treasury and fed from your
-   stores, works are kept as you ordered, and troops left unpaid or hungry for long mutiny.
+   stores by your standing order (every king starts with one, and may hold back pay or food from all his troops or
+   from one province's; nothing is paid or fed without it), works are kept as you ordered, and troops left unpaid or
+   hungry for long mutiny.
 2. **Arrivals.** Envoys, gold, spy reports and rumours that were on the road arrive.
 3. **Audiences.** Foreign envoys deliver their message in their own words. The host answers, and
    may bribe the envoy, offer it a post, seal its tablet, detain it or send gold back. Each audience
@@ -60,7 +62,9 @@ rumours, and those can be late, shaded or false.
 - Give standing orders that answer a blow in the same season, while you sleep or play.
 - Levy an army or a fleet from the men of a province of your homeland, or disband one, its men going home. A full army
   of 5,000 men costs 100 shekels to levy and 20 a season to keep, a fleet of 2,000 crews 120 and 25, and a smaller or
-  larger unit costs in proportion. Troops need food as well as pay: a unit left hungry or unpaid for long mutinies.
+  larger unit costs in proportion. Troops need food as well as pay, and get them only by your standing order, which you
+  may change or cancel for all your troops or for one province's (holding back saves gold or grain in a lean season):
+  a unit left hungry or unpaid for long mutinies.
 
 **Land and gold.**
 - Take a city by conquest, or as your vassal by a sealed tablet: no city is bought.

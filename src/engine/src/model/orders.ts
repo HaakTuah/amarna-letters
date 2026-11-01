@@ -307,6 +307,18 @@ export interface PayCarriersOrder {
   pay: boolean;
 }
 /**
+ * Item 17+: your standing order to pay and feed your troops, which every king starts with ("Nothing happens unless someone
+ * orders it"). With no province it sets the order for all your troops; with one, it holds back pay or food from the units
+ * of yours standing there (or gives it again), the rest unchanged. Unpaid soldiers desert in time, and hungry ones eat what
+ * they carry and then take from the land.
+ */
+export interface UpkeepOrder {
+  type: "upkeep";
+  pay: boolean;
+  feed: boolean;
+  province?: string;
+}
+/**
  * Haakon's answers to item 11b: your armies standing in `province` of your land fall on the bands there at the start of
  * next season (a king's army falls on a band only on his order).
  */
@@ -612,6 +624,7 @@ export type Order =
   | SeizeHoardOrder
   | SellDebtOrder
   | PayCarriersOrder
+  | UpkeepOrder
   | HuntOrder
   | HuntBandsOrder
   | UnreadableOrder;
@@ -689,6 +702,7 @@ export const renew = (character: string, fee: number, term = 6, advance: number 
 export const seize = (character: string): SeizeHoardOrder => ({ type: "seize", character });
 export const sellDebt = (debt: string, character: string, price: number): SellDebtOrder => ({ type: "sellDebt", debt, character, price });
 export const payCarriers = (pay: boolean): PayCarriersOrder => ({ type: "payCarriers", pay });
+export const upkeep = (pay: boolean, feed: boolean, province: string | null = null): UpkeepOrder => ({ type: "upkeep", pay, feed, ...(province !== null && province !== "" ? { province } : {}) });
 export const hunt = (province: string): HuntOrder => ({ type: "hunt", province });
 export const huntBands = (on: boolean, provinces: string[] | null = null): HuntBandsOrder => ({ type: "huntBands", on, ...(provinces !== null && provinces.length > 0 ? { provinces } : {}) });
 export const payFee = (character: string, pay = true): PayFeeOrder => ({ type: "payFee", character, pay });
@@ -820,6 +834,10 @@ export function describe(o: Order): string {
       return `sell debt tablet ${o.debt} to ${o.character} for ${o.price} shekels`;
     case "payCarriers":
       return o.pay ? "pay the carriers of your people's letters on delivery" : "stop paying the carriers of your people's letters on delivery";
+    case "upkeep": {
+      const what = o.pay && o.feed ? "pay and feed" : o.pay ? "pay but not feed" : o.feed ? "feed but not pay" : "neither pay nor feed";
+      return o.province !== undefined ? `${what} your troops in ${named(o.province)}` : `${what} your troops, by standing order`;
+    }
     case "hunt":
       return `your armies in ${named(o.province)} fall on the bands there`;
     case "huntBands":
@@ -1002,6 +1020,7 @@ export const OrderSchema = poly("Order", "type", {
   seize: v("SeizeHoardOrder", () => seize(""), { character: S }),
   sellDebt: v("SellDebtOrder", () => sellDebt("", "", 0), { debt: S, character: S, price: I }),
   payCarriers: v("PayCarriersOrder", () => payCarriers(true), { pay: B }),
+  upkeep: v("UpkeepOrder", () => upkeep(true, true), { pay: B, feed: B, province: opt(S) }),
   hunt: v("HuntOrder", () => hunt(""), { province: S }),
   huntBands: v("HuntBandsOrder", () => huntBands(true), { on: B, provinces: opt(list(S)) }),
   payFee: v("PayFeeOrder", () => payFee(""), { character: S, pay: B }),

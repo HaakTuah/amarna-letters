@@ -112,6 +112,39 @@ export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
 );
 
 /**
+ * Item 17+: a king's standing order to pay and feed his troops, which every king starts with and may change or cancel,
+ * holding back pay or food from all his units or from the ones named ("Nothing happens unless someone orders it": the
+ * engine pays and feeds nothing on its own). A unit held back counts a season of missing pay, or eats what it carries and
+ * then takes from the land, as the economy's rules say.
+ */
+export interface TroopUpkeep {
+  pay: boolean;
+  feed: boolean;
+  /** The units held back while the whole order stands. */
+  payExcept: string[];
+  feedExcept: string[];
+}
+
+export const TroopUpkeepSchema: ObjSchema<TroopUpkeep> = obj(
+  "TroopUpkeep",
+  (init: Partial<TroopUpkeep> = {}) => ({ pay: true, feed: true, payExcept: [], feedExcept: [], ...init }),
+  { pay: B, feed: B, payExcept: list(S), feedExcept: list(S) },
+);
+
+/** A king's standing order for his troops' pay and food: to pay and feed them all unless he changed it. */
+export const upkeepOf = (s: GameState, p: Power): TroopUpkeep => s.upkeep.tryGet(p) ?? { pay: true, feed: true, payExcept: [], feedExcept: [] };
+/** Whether the king's standing order pays this unit this season. */
+export const paysUnit = (s: GameState, u: Unit): boolean => {
+  const o = upkeepOf(s, u.power);
+  return o.pay && !o.payExcept.includes(u.id);
+};
+/** Whether the king's standing order feeds this unit from his stores and his gold this season. */
+export const feedsUnit = (s: GameState, u: Unit): boolean => {
+  const o = upkeepOf(s, u.power);
+  return o.feed && !o.feedExcept.includes(u.id);
+};
+
+/**
  * A standing order to hunt bands (Haakon's answers to items 11b and 11b+): whose, in which provinces (none named: the
  * whole of its land), and the season it was given, from which talk of it travels out from its capital at the pace of the
  * roads, as any news, to the chiefs who might fear it.
@@ -255,6 +288,8 @@ export interface GameState {
   payKnown: Dict<string, PayRecord>;
   /** The courts whose standing order is to pay the carriers of their people's letters on delivery (order payCarriers). */
   payCarriers: Power[];
+  /** Item 17+: each king's standing order to pay and feed his troops, where he changed it (absent: pay and feed them all). */
+  upkeep: Dict<Power, TroopUpkeep>;
   /**
    * Item 16, "The royal council": the seats that turned their council off (a model, file or human seat has it on unless it
    * is here; script seats never have one). Recorded so experiments can report whether it was on.
@@ -432,6 +467,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     payFacts: [],
     payKnown: new Dict(),
     payCarriers: [],
+    upkeep: new Dict(),
     councilOff: [],
     hunts: [],
     huntNow: [],
@@ -542,6 +578,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   payFacts: list(() => PayFactSchema),
   payKnown: dict(() => PayRecordSchema),
   payCarriers: list(S),
+  upkeep: dict(() => TroopUpkeepSchema),
   councilOff: list(S),
   hunts: list(() => StandingHuntSchema),
   huntNow: list(S),

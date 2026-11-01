@@ -29,6 +29,8 @@ import {
   taxOf,
   unitAt,
   priceAt,
+  upkeep,
+  Views,
 } from "@amarna/engine";
 import { Assert, armiesBefore13, last } from "./support.ts";
 
@@ -149,6 +151,40 @@ describe("EconomyTests", () => {
       s.turn++;
     }
     Assert.false(s.units.includes(u));
+  });
+
+  test("Troops are paid and fed only by their king's standing order, which he may hold back (item 17+)", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    const u = single(s.units, (x) => x.province === "hattusa");
+    // Every king starts with the order to pay and feed all his troops.
+    Assert.true(Views.for(s, "Hatti").payTroops);
+    Assert.true(Views.for(s, "Hatti").feedTroops);
+    // Pay held back from the troops in one province: nothing leaves the treasury for them, and they count a season of missing pay.
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(false, true, "hattusa")] })]]));
+    Assert.equal("hattusa", Views.for(s, "Hatti").payHeld.join(","));
+    s.turn++;
+    const gold = s.treasuries.get("Hatti").gold;
+    const paidBefore = u.savings;
+    e.beginTurn();
+    Assert.equal(1, u.unpaid);
+    Assert.equal(paidBefore, u.savings);
+    Assert.contains("Held back from pay by your standing order", notice(s, "The treasury"));
+    Assert.true(s.events.some((x) => x.signal === "pay-held"));
+    // The whole order changed: pay again, but feed nobody from the stores: the baggage is not refilled from the depot.
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(true, false)] })]]));
+    Assert.equal("", Views.for(s, "Hatti").payHeld.join(","));
+    Assert.false(Views.for(s, "Hatti").feedTroops);
+    u.food = 0;
+    s.turn++;
+    e.beginTurn();
+    Assert.equal(0, u.unpaid);
+    Assert.equal(0, u.food);
+    // Fed again: the baggage fills from the stores where it stands.
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(true, true)] })]]));
+    s.turn++;
+    e.beginTurn();
+    Assert.equal(carriedOf("Army"), u.food);
   });
 
   test("A caravan carries grain through its king's land to his troops and puts the rest in the stores", () => {

@@ -8,7 +8,7 @@ import type { DismissOrder, HireOrder, Order, RenewOrder } from "../model/orders
 import { coverOf, falseNameAt, gain, newContract, newJobErrand, newStayLeft, remember, reputationAt, lossesHeardOf, type Character, type JobErrand, type JobWhat } from "../model/people.ts";
 import { cmpPower, land, type Power } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
-import { char, findCharacter, logEvent, newId, notify } from "../model/state.ts";
+import { char, findCharacter, logEvent, newId, notify, upkeepOf } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { feeFor, jobValue, rateOf, restOf, trustIn } from "./jobs.ts";
@@ -78,6 +78,17 @@ P.resolveCourt = function (orders) {
       case "payCarriers":
         S.payCarriers = o.pay ? [...new Set([...S.payCarriers, p])] : S.payCarriers.filter((x) => x !== p);
         break;
+      case "upkeep": {
+        // Item 17+: the whole order, or the units of his standing in one province held back or given pay and food again.
+        const cur = upkeepOf(S, p);
+        if (o.province === undefined) S.upkeep.set(p, { pay: o.pay, feed: o.feed, payExcept: [], feedExcept: [] });
+        else {
+          const ids = S.units.filter((u) => u.power === p && u.province === o.province).map((u) => u.id);
+          const held = (except: string[], give: boolean): string[] => (give ? except.filter((id) => !ids.includes(id)) : [...new Set([...except, ...ids])]);
+          S.upkeep.set(p, { pay: cur.pay, feed: cur.feed, payExcept: held(cur.payExcept, o.pay), feedExcept: held(cur.feedExcept, o.feed) });
+        }
+        break;
+      }
       case "hunt":
         S.huntNow.push(`${p}|${o.province}`);
         break;
