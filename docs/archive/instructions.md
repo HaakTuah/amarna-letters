@@ -967,4 +967,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     possible. what do you think, expert?" To the four paces (Slow, Normal, Fast, Simulate): "Yes, please! expertly!
     does the hotkeys become 1, 2, 3, and 4 then?" Written into "Pace of play" (Interface), item 17+++a's keys (1 to 4,
     + and − between the three watching speeds, Enter ends one's season) and the polish lane's entry.
+117. **1 November 2026, 10:53 UTC**, in the design chat, to milestone #338's three questions with the design session's
+    takes (17a: merge, the phone's frames waiting for 17+++; the Hurrian Hymn: keep Kilmer's reading, saying on the Music
+    page that it is her reading; the Music page: our own pieces' names and moods only, without Empire Earth's): "Agreed
+    to all! Now, where do I check the music?" Written into the "For Haakon" table of `docs/BUILD-PROGRESS.md`.
 
