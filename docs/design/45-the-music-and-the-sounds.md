@@ -157,9 +157,10 @@ beds, placement and hearing by zoom serve all three, so only the pieces change.
   first use and kept in the worker's `audio-cache-1`, asked for with their content's hash so a re-rendered file is new.
 - Nothing sounds before the reader's first touch (the browsers' rule); the music pauses while the tab is hidden.
 - **Switches**: Music and Sound, each with a volume, in the game's menu and on the listening page, kept in this browser
-  (`amarna-audio`). On by default at a regular volume (70%), and the first music of a visit fades in over 6 s rather
-  than starting at full (Haakon, 1 November 2026: "Keep them on, regular volume, but don't blast someone when they start
-  up").
+  (`amarna-audio`). Quiet by default: both on, music at 35%, sound at 45%. Haakon's answer of 1 November 2026 ("Keep
+  them on, regular volume, but don't blast someone when they start up": on at a regular volume, the first music fading
+  in) is built by the sound system's session in a PR of its own; the pieces are mixed for it, and the Hymn to Nikkal,
+  the first piece heard, opens 7 dB under its height.
 - **The listening page**, `/listen` (the top bar's "Music"): every piece and variation with the template and when it
   plays, every sting, sound and bed.
 

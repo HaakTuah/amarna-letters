@@ -37,8 +37,6 @@ const url = (file: string): string => new URL(`audio/${file}${hashes.has(file) ?
 
 /** The loudness of each bus at full volume: the music under everything, the sounds above it, the beds far below. */
 const Level = { music: 0.9, sound: 0.8, bed: 0.55 };
-/** Seconds the first music takes to fade in: on by default at a regular volume, but never blasting at start-up (Haakon, 1 November 2026). */
-const FadeIn = 6;
 const Cross = 3.0; // seconds a change of piece takes
 const Lead = 0.4; // seconds before a phrase ends that the change starts
 const MaxWait = 20; // seconds the music waits for a phrase to end before it crosses anyway
@@ -83,8 +81,6 @@ class Player {
   /** How the situation colours the music (darker as it worsens, brighter at a feast), and whose court is heard. */
   private shade: Shade = 0;
   private court: Power | null = null;
-  /** Whether the music has opened once this visit (the first time fades in). */
-  private opened = false;
   /** The fallback's engine, when its versions play; and the listening page's own. */
   private synth: SynthDeck | null = null;
   private soloSynth: SynthDeck | null = null;
@@ -140,13 +136,8 @@ class Player {
     if (this.ctx === null) return;
     const s = audioSettings();
     const t = this.ctx.currentTime;
-    // The listening page's piece is heard whatever the switches say. The first music of a visit fades in over the
-    // opening seconds rather than starting at full.
-    if (!this.solo && !this.opened) {
-      this.opened = true;
-      this.musicBus!.gain.setValueAtTime(0, t);
-      this.musicBus!.gain.linearRampToValueAtTime(s.music ? Level.music * s.musicVolume : 0, t + FadeIn);
-    } else if (!this.solo) this.musicBus!.gain.setTargetAtTime(s.music ? Level.music * s.musicVolume : 0, t, 0.3);
+    // The listening page's piece is heard whatever the switches say.
+    if (!this.solo) this.musicBus!.gain.setTargetAtTime(s.music ? Level.music * s.musicVolume : 0, t, 0.3);
     this.soundBus!.gain.setTargetAtTime(s.sound ? Level.sound * s.soundVolume : 0, t, 0.1);
     this.bedBus!.gain.setTargetAtTime(s.sound ? Level.bed * s.soundVolume : 0, t, 0.5);
     if ((!s.music || s.style === "orchestra") && !this.solo) this.synth?.stop();

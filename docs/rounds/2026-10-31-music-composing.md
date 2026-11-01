@@ -7,6 +7,15 @@ composed the pieces and the fallback's scores, on the branch `music/19-plus3-com
 answer of 1 November on the default volume (built here, below). Presentation only: no rule, number, script play or save
 version changed; the script games are identical.
 
+The orchestrator's message of 31 October (received while this session worked): "From the orchestrator, for your
+information. Haakon (31 October 2026): 'music and sound on by default at a regular volume, not quiet, with the first
+music fading in at start-up so it never blasts. Item 19+++ and its progress row now say so.' The Opus sound-system
+session is making that change in a small PR of its own after #237. Don't build it yourself. Mix your pieces for a
+regular default volume, and make sure the opening piece suits a fade-in. Quote the instruction in your report." So the
+default volume and the fade-in are not in this PR (a first draft of them was taken out again); the pieces are mastered
+to one loudness (-18 LUFS) for a regular volume, and the Hymn to Nikkal, the first piece heard, opens 7 dB under its
+height, so a fade-in lands on a quiet lyre and drone.
+
 ## Questions for Haakon
 
 1. The Hurrian Hymn's score (Ugarit's theme, in both of the fallback's versions, and the orchestra's hymn pieces) follows
@@ -87,9 +96,6 @@ of its versions (8-bit, and lyre and reed):
   `player.ts`; the listening page lets you choose the court, the mood, the tuning and the shade and hear each score as
   the game would play it, with the orchestra's pieces of the same role beside it.
 
-**The default volume** (Haakon, 1 November): music and sound on at 70% by default (was 35% and 45%), and the first music
-of a visit fades in over 6 s (`player.ts`, `FadeIn`) rather than starting at full.
-
 **Tools**: `scripts/music/check.py` looks at every score before a render (length, the longest wait between phrase ends,
 each instrument's range against its recordings); `Score.level` and `gain_at` in `score.py`; `held_ramp`, `trem`,
 `swell`, `ostinato`, `strokes` and `roots` in `parts.py`; `idiom.py` (lines in degrees, the hymn over the lyre, open
@@ -123,15 +129,12 @@ chords); `Mode.chord` takes the fourth where a tuning's fifth is diminished.
    plays (the seven great kings) and Ugarit, whose theme the item names; every other power (the city-states), god view
    and the menus hear Ugarit's, the game's voice. Principle: "The game in one page" and the engine's list of the seven
    great kings; a theme for each of the twenty-odd city-states would be heard by nobody.
-8. **"Regular volume" is 70%**, and "the opening seconds" are 6 s, for the music bus as a whole, so both the orchestra and
-   the fallback fade in, and nothing else changes (sounds are short and need no fade). Principle: Haakon's words of 1
-   November; the numbers are first guesses for the balance pass.
-9. **The question answered moves to the archive**: the first session's question 1 (quiet by default) is answered and
-   built, so its row leaves the "For Haakon" table for `docs/archive/progress-done.md`.
-10. **The pieces were judged without ears** (this session cannot listen): by `check.py` (ranges, phrase gaps), by the
+8. **The default volume and the fade-in are the sound system session's** (the orchestrator's message above); this PR's
+   part is that the pieces suit them: one loudness, and a quiet opening to the first piece heard.
+9. **The pieces were judged without ears** (this session cannot listen): by `check.py` (ranges, phrase gaps), by the
     spectrogram, loudness curve and click count of `inspect_audio.py` on scratch renders, and by construction (modal
     lines over drones and open chords, no clash by design). Haakon's ear is the judge; the PR says how to hear each.
-11. **Render once**: the 42 files were rendered once, after the scores passed the checks, since every render stays in the
+10. **Render once**: the 42 files were rendered once, after the scores passed the checks, since every render stays in the
     repository's history (about 28 MB a render).
 
 ## Use against ignore
@@ -148,7 +151,7 @@ changed).
 - **The fallback, court by court**: the second table; choose the court (Ugarit's theme is the hymn), the mood (the drums
   and the chord change with it), the tuning (the court's home mode, or any) and the shade, then press 8-bit or Lyre and
   reed; the orchestra's pieces of the same role are beside each score.
-- **In a game**: any watched game (`/play?watch=3`) plays the dynamic music; the first music fades in over 6 s;
+- **In a game**: any watched game (`/play?watch=3`) plays the dynamic music;
   `window.amarnaAudio.status()` in the console says what plays and why. Switch the version in the game menu to hear the
   fallback in play.
 
