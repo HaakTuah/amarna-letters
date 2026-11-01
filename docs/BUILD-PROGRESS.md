@@ -78,6 +78,7 @@ Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lan
 - A human with one seat saw a one-choice seat menu at 390 px; it is a plain label, "Egypt (you)".
 - The timeline read "season 1 · now" while the header planned "Season 2"; it reads "after season 1, 1346 BCE", the board it shows (" · now" on computers only, where it fits).
 - The Provinces list ended each row in a bare number; it reads "yield 35", with a tooltip saying it is the base yield the harvest is reckoned from.
+- The Standings tab said growth "counts treasuries and back pay too"; since item 11a nothing owed is counted, so it reads "treasuries and what people and men hold".
 - The game menu (⋯) put each checkbox at one side and its word at the other ("☑ … Music"), with short volume sliders; the word stays beside its box and the sliders span the menu.
 - On a phone the home page's "Your seat" broke over two lines beside its menu; the label stands above the menu, as the table's other fields have it.
 - At 390 px "Customize the table" ran its "Played by" menus off the screen (the page scrolled sideways, 444 px wide); the table fits its column and each menu the room left beside the power and its tier.
