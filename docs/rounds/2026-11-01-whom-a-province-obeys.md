@@ -133,17 +133,36 @@ None. Everything the sections left open was settled by "The game in one page" an
 
 ## Benchmarks and use against ignore
 
-20 games, seed 1, `--verify-replay`, every replay exact. Before (17+ as merged, its report): a capital fell in 20 of 20
-games, 373 kingdoms fell in all, the first fall in season 1.5 on the median, a kingdom fallen in the first two seasons in
-11 of 20. After (this branch at `5e72ff3`): a capital fell in 20 of 20, **602 kingdoms fell in all** (risen powers among
-them: 90 rose, 60 of them elders in lawless land, 26 by revolt, 4 governors), the first fall in season 1.5, **a kingdom
-fallen in the first two seasons in 20 of 20** (Carchemish 11, Megiddo 7, Aijalon 6, Kaska 6, Qatna 6, Lukka 5). Winners:
-Egypt 7, Hatti 4, Babylonia 4, Mitanni 2, Libya, Terqa and Qadesh 1 each. Revolts 41 (26 led, 15 lawless), 1 put down.
-This is a finding the next round must answer before merge (pillar 8): why the city-states' capitals fall faster under
-the one rule, and whether the rising elders (60) come from land falling lawless too easily. Risen names double their
-place ("Nabu-zuqup of Nippur of Nippur"), a leftover of `risenName` the next round fixes.
+20 games, seed 1, `--verify-replay`, every replay exact.
 
-Use against ignore for remnants (`--remnant-play-half`, 50 games, seed 1): the games ran (171 seats rose in 45 of 50), but the batch report has no line comparing the two halves and its signals table no `fold` row yet (as `--upkeep-play-half` has at `src/batch/src/main.ts` line 677): the next round adds both and reruns it.
+| | Before (17+ as merged) | Round 1 (`5e72ff3`) | Round 2 |
+| --- | --- | --- | --- |
+| Games where a capital fell | 20 of 20 | 20 of 20 | 20 of 20 |
+| Kingdoms fallen in all | 373 | 602 | 318 |
+| First fall, median season | 1.5 | 1.5 | 4 (range 4-7) |
+| Games with a kingdom fallen in its first two seasons | 11 (Kaska 6, Lukka 5, Shasu 2) | 20 (Carchemish 11, Megiddo 7, ...) | **0** |
+| Revolts (led, lawless; put down) | | 41 (26, 15; 1) | 73 (1, 72; 37) |
+| Seats risen in play | | 90 | 21 (19 elders, a governor, a revolt) |
+
+Winners, round 2: Egypt 5, Babylonia 4, Hatti 2, Azzi 2, Akko 2, Assyria, Kaska, Lukka, Tyre and Gezer 1 each.
+
+**The early falls, and pillar 8.** Round 1's falls had two causes. (1) *The rule as built, not as designed:* the season's
+reckoning let an army standing before a city's walls cow the city, with no storm and no siege, so a walled capital whose
+garrison was beaten fell the next season (Carchemish, Megiddo, Aijalon, Qatna); the design's walls and its people on them
+hold such an army out ("The people defend their land"), so troops before walls they have not stormed now weigh as troops
+next door, and conquest is the season's rule alone (readings 1-2). The master's weakness was also counted against a
+foreign king's troops, on top of his beaten armies' lost force (reading 26). (2) *A first guess, not the rule:* one army
+weighed 100 for a tenth of a province's men, and up to 200, more than a native house's own standing (100), so a full
+army cowed any homeland the season after it beat its army, the hill chiefs' lands most of all (Kaska and Lukka, the
+finding 17+ sent here); now as many troops as its men weigh 100, and fear alone weighs at most what a native house's
+standing starts at (reading 13). With both, no kingdom falls before its fourth season in twenty games, about the time a
+letter and its answer take between neighbours, and the Kaska won a game. The revolts are now nearly all leaderless risings
+in land whose people the holder's troops have stripped (armies by leave took their food 482 unit-seasons and bought it in
+none): the ledger at work, and 37 of them were put down by troops. The scripts' taking is a weakness of their play
+(item 17's buy-or-take rule buys only where a market holds grain to spare and gold is plentiful), listed for part C with
+the audit's script finds.
+
+USE
 
 ## The review
 
