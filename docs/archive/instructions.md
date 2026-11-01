@@ -987,4 +987,17 @@ Given in the design chat with Claude, answering the design questions of the cons
 119. **1 November 2026, 11:21 UTC**, in the design chat, correcting item 118's reading: "Well, the music don't
     overlap in thin, but rh3 soundeff3cts does, which is finex so you can just not mention it, just leave it exactly as
     it is." The polish lane's Music page entry no longer mentions overlapping.
+120. **1 November 2026, 11:25-11:28 UTC**, in the design chat, on watching a game with the new sound: "But there is one
+    big problem. It is not very nice to spectate now. Stuff still moves way way too quick on medium speed, but i guess
+    that update hasn't begun yet. But more importantly, your ears are being assaulted now. It plays dozens of sound
+    effects at any one time. I believe ck2 only played many of those soundeffects if they happen to you, like stumbling
+    something, etc. I think maybe that's more how it should be, only the environmental stuff being there for a
+    spectator? It should at least be much less sounds playing off all the time, can barely hear the music now." Then,
+    to the design session's take: "Yes, in ck2, you get environmental sounds. Like a plague in a county, you zoom in,
+    you get the moaning and commotion. You zoom in on a battle, you hear the steel clash. But all the event stuff is for
+    players only, or if you spectate a player, you hear specifically what they hear, I think? And we must be careful
+    that the environmental stuff isn't so loud, intense and frequent that it drowns out the music, should ideally just
+    add layers to it. Your thoughts, expert? I think this is mostly an issue of refining the cooperation of the
+    soundscape, not nessecarily needs much altering of the sounds themselves?" Written into item 19+++, "The season plays
+    out, and zoom shapes what you see and hear" (Interface) and the polish lane's entries.
 

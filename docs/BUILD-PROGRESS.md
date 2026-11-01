@@ -52,6 +52,14 @@ account until its usage is spent; on the main account the usage brake closes it 
   fades out on entering the page and stays out while you are on it, so only what you press plays; leaving the page fades
   the theme back in. Nothing else on the page changes. Today the
   theme comes back by itself after a piece ends and plays over the sounds.
+- **Now, the soundscape** (Haakon, 1 November 2026: "your ears are being assaulted now. It plays dozens of sound effects
+  at any one time", then "But all the event stuff is for players only, or if you spectate a player, you hear
+  specifically what they hear"): three layers, the music leading, as item 19+++ now says. The world's sounds where
+  things happen (a battle's clash, a siege, a plague, a storm, a market), heard only near the view when zoomed in,
+  softer with distance, for every viewer; event sounds only for one seat, its clicks and what happens to its realm, for
+  its player or a spectator watching through it, never in god view; both mixed under the music, never sudden or loud,
+  at most two or three event sounds at once and none repeated within a few seconds. A change in how sounds are chosen
+  and mixed, not in the sounds; now, not in 17+++.
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
