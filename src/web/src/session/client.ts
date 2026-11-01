@@ -144,6 +144,8 @@ export class Session {
       this.history.clear();
       this.reader.cancel();
       this.reader = new IncrementalReader();
+      this.reading = false;
+      this.readAgain = false;
       risenCount = -1;
       this.framesGeneration++;
       this.fallSeen = false;
@@ -191,21 +193,36 @@ export class Session {
     this.notify();
   }
 
-  /** The newest season's read under way, spread over tasks by the reader; a newer season replaces it. */
+  /**
+   * The newest season's read, spread over tasks by the reader. A read under way finishes first (on a slow phone at Fast
+   * speed a season can arrive before the last is read; replacing the read each time left the panels never caught up),
+   * then the newest season is read, the seasons between skipped.
+   */
+  private reading = false;
+  private readAgain = false;
   private readSoon(): void {
     if (this.history.length === 0) return;
+    if (this.reading) {
+      this.readAgain = true;
+      return;
+    }
     const index = this.history.length - 1;
     const generation = this.seenGeneration;
     const t = performance.now();
+    this.reading = true;
+    this.readAgain = false;
     this.reader.read(this.history.refs(index)!, this.history.texts).then(
       (state) => {
-        if (generation !== this.seenGeneration || index !== this.history.length - 1) return;
+        this.reading = false;
+        if (generation !== this.seenGeneration) return;
         performance.measure("page:reader", { start: t });
         this.state = state;
         this.notify();
+        if (this.readAgain || index !== this.history.length - 1) this.readSoon();
       },
       () => {
-        /* replaced by a newer season, or the game changed */
+        this.reading = false;
+        /* the game changed */
       },
     );
   }

@@ -584,8 +584,12 @@ export class SvgMapRenderer implements MapRenderer {
     this.drawn.set(name, key);
     const t = performance.now();
     this.layers.get(name)!.innerHTML = draw();
+    this.changed = true;
     performance.measure(`map:${name}`, { start: t });
   }
+
+  /** Whether a layer, the units or the people were written since the names were last placed: placing them costs a layout. */
+  private changed = false;
 
   /**
    * What is built at the cities (item 19): shown only close up (lod2, zoom.ts), so built only then, and again when the zoom
@@ -603,6 +607,7 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.drawn.get("units") === s && this.drawn.get("unitsKey") === key) return;
     this.drawn.set("units", s);
     this.drawn.set("unitsKey", key);
+    this.changed = true;
     reconcile(this.layers.get("units")!, items, this.units);
   }
 
@@ -671,6 +676,7 @@ export class SvgMapRenderer implements MapRenderer {
         if (this.drawn.get("people") !== s || this.drawn.get("peopleKey") !== peopleKey) {
           this.drawn.set("people", s);
           this.drawn.set("peopleKey", peopleKey);
+          this.changed = true;
           this.layers.get("courts")!.innerHTML = peopleAtCourts(input);
           reconcile(
             this.layers.get("travellers")!,
@@ -680,9 +686,12 @@ export class SvgMapRenderer implements MapRenderer {
         }
       },
       () => {
-        this.layers.get("selection")!.innerHTML = selection(input);
-        // Names are placed once the pieces are drawn, and again once they have slid to their places (onMoved).
-        this.placeNames();
+        const sel = selection(input);
+        const g = this.layers.get("selection")!;
+        if (g.innerHTML !== sel) g.innerHTML = sel;
+        // Names are placed once the pieces are drawn, when something was drawn anew (item 17a: placing them measures every
+        // name and marker, a layout the phone pays dearly for), and again once the pieces have slid to their places (onMoved).
+        if (this.changed) this.placeNames();
       },
     ];
     this.runSteps();
@@ -800,6 +809,7 @@ export class SvgMapRenderer implements MapRenderer {
    * no name shown before it and no marker shown (its own city's badge it may sit beside). Batched to the next frame.
    */
   private placeNames(): void {
+    this.changed = false;
     if (this.placing !== 0 || this.view === null) return;
     this.placing = requestAnimationFrame(() => {
       this.placing = 0;

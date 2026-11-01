@@ -33,13 +33,19 @@ type Node = Leaf | Container;
 interface Job {
   refs: Uint32Array;
   texts: readonly string[];
-  /** The state's members, once the tree is built (the first step). */
+  /** The tree being built, its open containers, and how many pieces are in it so far. */
+  root: Container;
+  stack: Container[];
+  scanned: number;
+  /** The state's members, once the tree is built (the first steps). */
   items: Node[] | null;
   at: number;
   o: Record<string, unknown>;
   started: number;
 }
 const Fields = new Map(GameStateSchema.fields);
+/** Pieces scanned into the tree between looks at the budget. */
+const TreeChunk = 20000;
 
 /** What a cache holds under a hash: the pieces' numbers the object was read from (to tell a true hit), and the object. */
 interface Entry {
@@ -107,7 +113,8 @@ export class IncrementalReader {
   private job: Job | null = null;
 
   private begin(refs: Uint32Array, texts: readonly string[]): Job {
-    return { refs, texts, items: null, at: 0, o: GameStateSchema.make() as unknown as Record<string, unknown>, started: performance.now() };
+    const root: Container = { head: -1, items: [], tail: "", from: 0, to: refs.length };
+    return { refs, texts, root, stack: [root], scanned: 0, items: null, at: 0, o: GameStateSchema.make() as unknown as Record<string, unknown>, started: performance.now() };
   }
 
   /** Reads fields until the budget is spent; true once all are read. The first step builds the tree of pieces. */
@@ -117,10 +124,17 @@ export class IncrementalReader {
     this.texts = job.texts;
     this.refs = job.refs;
     if (job.items === null) {
-      const root = this.treeOf(job.refs);
+      // The tree of pieces, in chunks, each followed by a look at the budget.
+      while (job.scanned < job.refs.length) {
+        job.scanned = this.treeInto(job.stack, job.refs, job.scanned, Math.min(job.refs.length, job.scanned + TreeChunk));
+        if (job.scanned < job.refs.length && performance.now() - t > budgetMs) {
+          performance.measure("reader:tree", { start: t });
+          return false;
+        }
+      }
       performance.measure("reader:tree", { start: t });
-      const state = root.items[0];
-      if (root.items.length !== 1 || typeof state === "number") throw new Error("The state's pieces do not form one object.");
+      const state = job.root.items[0];
+      if (job.root.items.length !== 1 || typeof state === "number") throw new Error("The state's pieces do not form one object.");
       job.items = state.items;
       this.parsed = 0;
       this.next = new Map();
@@ -155,11 +169,16 @@ export class IncrementalReader {
 
   /** The tree of a snapshot's pieces. The root's one item is the state's object. */
   private treeOf(refs: Uint32Array): Container {
-    const texts = this.texts;
     const root: Container = { head: -1, items: [], tail: "", from: 0, to: refs.length };
+    this.treeInto([root], refs, 0, refs.length);
+    return root;
+  }
+
+  /** Grows the tree from the pieces `from` to `to` (exclusive), the open containers on `stack`; returns `to`. */
+  private treeInto(stack: Container[], refs: Uint32Array, from: number, to: number): number {
+    const texts = this.texts;
     // Items are the index of their piece; a container's head is the index of its opening piece.
-    const stack: Container[] = [root];
-    for (let i = 0; i < refs.length; i++) {
+    for (let i = from; i < to; i++) {
       const id = refs[i];
       const p = texts[id];
       if (p.length === 0) continue;
@@ -186,7 +205,7 @@ export class IncrementalReader {
         stack.push(c);
       } else top.items.push(i);
     }
-    return root;
+    return to;
   }
 
   /** A node's whole text (a leaf's piece, or a container's head, items and tail). */
