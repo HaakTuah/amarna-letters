@@ -44,8 +44,11 @@ describe("AudioSituationTests", () => {
   });
 
   test("A siege of the seat's city, as it knows the city's owner, is siege; grave omens are the last seasons", () => {
-    const sieged = frame(1, { sieges: [{ province: "gaza", besieger: "Hatti", progress: 1, walls: 2, since: 1 }], knownOwner: known("Egypt", { gaza: "Egypt" }) });
+    const siege = { province: "gaza", besieger: "Hatti" as Power, progress: 1, walls: 2, since: 1 };
+    const sieged = frame(1, { sieges: [siege], knownOwner: known("Egypt", { gaza: "Egypt" }), sight: new Map([["Egypt", new Set(["gaza"])]]) } as Partial<SeasonFrame>);
     Assert.equal("siege", moodAt([frame(0), sieged], 1, "Egypt"));
+    // A seat whose sight the record lacks sees nothing: the same siege is not heard (it was "seeing all" before).
+    Assert.equal("calm", moodAt([frame(0), frame(1, { sieges: [siege], knownOwner: known("Egypt", { gaza: "Egypt" }) })], 1, "Egypt"));
     Assert.equal("calm", moodAt([frame(0), sieged], 1, "Babylonia"));
     Assert.equal("last", moodAt([frame(0), frame(1, { omen: "Grave" })], 1, "Egypt"));
     Assert.equal("tension", moodAt([frame(0), frame(1, { omen: "Troubled" })], 1, "Egypt"));
@@ -106,7 +109,7 @@ describe("AudioSituationTests", () => {
       return { x: p.lon * 10, y: -p.lat * 10 };
     };
     const at = place("babylon");
-    // The world's bed is heard at every zoom.
+    // Which bed is chosen at every zoom; how loud it is heard follows the zoom (`bedLevel`, mix.ts).
     Assert.equal("nile", bedAt(frame(0), at, 1, null, place));
     Assert.equal("market", bedAt(frame(0), at, 5, null, place));
     Assert.equal("nile", bedAt(frame(0), at, 2.5, null, place));

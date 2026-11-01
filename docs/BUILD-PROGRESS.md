@@ -43,7 +43,7 @@ account until its usage is spent; on the main account the usage brake closes it 
   item 17+++ keeps every season ("Pace of play" under Interface); + and −, on the main keys and the number pad, step
   between Slow, Normal and Fast, by the character typed; never while a letter or a name is being typed; each shown in
   its button's tooltip. PR #293's added Very slow and fifth speed go before it merges. The rest of the keys come in item 17+++a.
-- **Next, the soundtracks and the Music page** (Haakon, 1 November 2026: "I am actaully impressed! Didn't expect much
+- **Done (sound lane, #350): the soundtracks and the Music page** (Haakon, 1 November 2026: "I am actaully impressed! Didn't expect much
   from the music actually! But it is good! ... I want to keep all of it, even "The tuning's scale (a test)"", then
   "Yes, please, expertly!"): keep every piece. The three soundtracks in this order everywhere, in the game's sound menu
   and on the Music page: Orchestra (the default), Lyre and reed, 8-bit last. "The tuning's scale (a test)" moves to
@@ -52,7 +52,7 @@ account until its usage is spent; on the main account the usage brake closes it 
   fades out on entering the page and stays out while you are on it, so only what you press plays; leaving the page fades
   the theme back in. Nothing else on the page changes. Today the
   theme comes back by itself after a piece ends and plays over the sounds.
-- **Now, the soundscape** (Haakon, 1 November 2026: "your ears are being assaulted now. It plays dozens of sound effects
+- **Done (sound lane, #351 and #352; `docs/rounds/2026-11-01-sound-lane.md`): the soundscape** (Haakon, 1 November 2026: "your ears are being assaulted now. It plays dozens of sound effects
   at any one time", then "But all the event stuff is for players only, or if you spectate a player, you hear
   specifically what they hear"): three layers, the music leading, as item 19+++ now says. The world's sounds where
   things happen (a battle's clash, a siege, a plague, a storm, a market), heard only near the view when zoomed in,

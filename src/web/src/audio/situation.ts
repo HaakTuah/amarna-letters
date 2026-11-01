@@ -55,12 +55,21 @@ const hostile = (m: FrameMove): boolean => m.target !== null && m.targetOwner !=
 
 const involves = (m: FrameMove, viewer: Power | null): boolean => viewer === null || m.power === viewer || m.targetOwner === viewer;
 
-/** Who holds each province, as the viewer knows it (the truth in god view). */
+/**
+ * Who holds each province, as the viewer knows it (the truth in god view). What the record lacks counts as unknown, never
+ * as the truth (Haakon, 1 November 2026: "The music must never reveal what's outside the fog of war").
+ */
 function owners(f: SeasonFrame, viewer: Power | null): Map<string, Power | null> {
   if (viewer === null) return f.owner;
   const known = f.knownOwner.get(viewer);
-  if (known === undefined) return f.owner;
+  if (known === undefined) return new Map();
   return new Map([...known].map(([k, v]) => [k, v.owner]));
+}
+
+/** What the viewer sees this season (null: all of it, in god view); a seat whose sight the record lacks sees nothing. */
+function sightOf(f: SeasonFrame, viewer: Power | null): ReadonlySet<string> | null {
+  if (viewer === null) return null;
+  return f.sight.get(viewer) ?? new Set<string>();
 }
 
 function fightingAt(f: SeasonFrame, viewer: Power | null): boolean {
@@ -70,16 +79,16 @@ function fightingAt(f: SeasonFrame, viewer: Power | null): boolean {
 function besieged(f: SeasonFrame, viewer: Power | null): boolean {
   if (viewer === null) return f.sieges.length > 0;
   const own = owners(f, viewer);
-  const sight = f.sight.get(viewer);
+  const sight = sightOf(f, viewer)!;
   // Its own siege, or one of a city it holds as far as it knows and can see (a city lost unheard of tells it nothing).
-  return f.sieges.some((s) => s.besieger === viewer || (own.get(s.province) === viewer && (sight === undefined || sight.has(s.province))));
+  return f.sieges.some((s) => s.besieger === viewer || (own.get(s.province) === viewer && sight.has(s.province)));
 }
 
 /** Foreign troops standing in the viewer's own land, as far as it can see. */
 function threatened(f: SeasonFrame, viewer: Power): boolean {
   const own = owners(f, viewer);
-  const sight = f.sight.get(viewer);
-  return f.units.some((u) => u.power !== viewer && own.get(u.province) === viewer && (sight === undefined || sight.has(u.province)));
+  const sight = sightOf(f, viewer)!;
+  return f.units.some((u) => u.power !== viewer && own.get(u.province) === viewer && sight.has(u.province));
 }
 
 const grave = (f: SeasonFrame): boolean => f.omen === "Grave" || f.omen === "Borrowed" || f.omen === "Darkest";
@@ -107,8 +116,8 @@ export function moodAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   if (threatened(f, viewer)) return "tension";
   const own = owners(f, viewer);
   // Its own people's mood it knows (in words); restless well short of rising is tension enough.
-  const sight = f.sight.get(viewer);
-  for (const [p, u] of f.unrest) if (u >= UnrestData.threshold * 0.6 && own.get(p) === viewer && (sight === undefined || sight.has(p))) return "tension";
+  const sight = sightOf(f, viewer)!;
+  for (const [p, u] of f.unrest) if (u >= UnrestData.threshold * 0.6 && own.get(p) === viewer && sight.has(p)) return "tension";
   if (f.news.some((n) => n.court === viewer && n.kind === "Rumor" && n.turn >= f.turn - 2)) return "tension";
   return "calm";
 }
@@ -242,7 +251,7 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
       case "siege":
         if (e.signal === "siege-begun") {
           // Placed only at a new siege the viewer is party to or can see; else heard as the court's news, unplaced.
-          const sight = viewer === null ? null : f.sight.get(viewer);
+          const sight = sightOf(f, viewer);
           const own = owners(f, viewer);
           const fresh = f.sieges.filter((x) => !prev.sieges.some((y) => y.province === x.province));
           const mine = fresh.find((x) => viewer === null || x.besieger === viewer || own.get(x.province) === viewer || sight?.has(x.province) === true);
@@ -307,19 +316,24 @@ type Place = (s: SoundName, at: string, t: number) => void;
  * where it came, in sight.
  */
 function mapSounds(f: SeasonFrame, prev: SeasonFrame, viewer: Power | null, placed: Place): void {
-  const sight = viewer === null ? null : (f.sight.get(viewer) ?? new Set<string>());
+  const sight = sightOf(f, viewer);
   const visible = (p: string): boolean => sight === null || sight.has(p);
   const moves = seen(f, viewer);
+  // A move is seen when its start or its goal was in sight; only the end it saw is placed (its own troops' both ends), so
+  // a sound never sits where the seat could not see, as the map's battlefields are marked only where it saw them.
+  const before = sightOf(prev, viewer);
+  const saw = (p: string, m: FrameMove): boolean => m.power === viewer || before === null || before.has(p) || visible(p);
   moves.forEach((m, i) => {
     const t = Moments.march + (0.08 * i) / Math.max(1, moves.length);
     if (m.order === "move" && m.target !== null) {
       // On the road it marches from where it set out; the sound sits at its goal, where the season sees it arrive or fail.
-      placed(m.kind === "Fleet" ? "waves" : "march", m.target, t);
-    } else if (m.kind === "Fleet" && map.exists(m.from) && map.get(m.from).isSea) placed("waves", m.from, t);
+      const at = saw(m.target, m) ? m.target : saw(m.from, m) ? m.from : null;
+      if (at !== null) placed(m.kind === "Fleet" ? "waves" : "march", at, t);
+    } else if (m.kind === "Fleet" && map.exists(m.from) && map.get(m.from).isSea && saw(m.from, m)) placed("waves", m.from, t);
     // The clash where it was fought: at the goal of an attack, and where a unit that was driven out or destroyed stood.
     const clash = Moments.clash + (0.08 * i) / Math.max(1, moves.length);
-    if (hostile(m) && m.target !== null) placed("battle", m.target, clash);
-    if (m.destroyed) placed("battle", m.from, clash);
+    if (hostile(m) && m.target !== null && saw(m.target, m)) placed("battle", m.target, clash);
+    if (m.destroyed && saw(m.from, m)) placed("battle", m.from, clash);
   });
   // A fleet lying at sea is still in the waves: heard when the view comes near it.
   for (const u of f.units) {
@@ -327,9 +341,9 @@ function mapSounds(f: SeasonFrame, prev: SeasonFrame, viewer: Power | null, plac
     if (u.power !== viewer && !visible(u.province)) continue;
     placed("waves", u.province, Moments.march);
   }
-  const before = new Set(prev.climate.map((c) => `${c.kind}:${c.name}`));
+  const had = new Set(prev.climate.map((c) => `${c.kind}:${c.name}`));
   for (const c of f.climate) {
-    if (before.has(`${c.kind}:${c.name}`)) continue;
+    if (had.has(`${c.kind}:${c.name}`)) continue;
     const at = c.provinces.find(visible);
     if (at !== undefined) placed(c.kind === "Flood" ? "storm" : "gust", at, Moments.weather);
   }
@@ -348,16 +362,58 @@ function winter(text: string, signal: string | null, placed: Place): void {
   placed(sea ? "storm" : signal === "winter-loss" ? "avalanche" : "gust", at.id, Moments.winter);
 }
 
+/**
+ * The cities in ruins as the viewer knows them (the truth in god view): a sack counts from the season the viewer learns of
+ * it, by being shown it, by having the city in sight as it happened, or by word of the city dated after it (its known
+ * owner's season, as the map's dated knowledge gives it: Haakon, 1 November 2026, "a city burned seasons ago that you
+ * still believe is buzzing"); and the city is rebuilt for it only when it sees it so (its people's hardship faded, or
+ * the city changed hands since), never by word of the true state.
+ */
+export function knownRuins(frames: readonly SeasonFrame[], index: number, viewer: Power | null): Set<string> {
+  const f = frames[index];
+  const out = new Set<string>();
+  if (f === undefined) return out;
+  // Each sack, by city: the frame it happened in.
+  const sacked = new Map<string, number>();
+  for (let j = 1; j <= index; j++)
+    for (const e of frames[j].events) {
+      if (e.kind !== "sack") continue;
+      const at = map.find(/sacked (.+)\.$/u.exec(e.text)?.[1] ?? null);
+      if (at === null) continue;
+      if (viewer === null) {
+        sacked.set(at.id, j);
+        continue;
+      }
+      const seenThen = e.visibleTo.includes(viewer) || (frames[j - 1].sight.get(viewer)?.has(at.id) ?? false);
+      // Otherwise the first season whose word of the city dates from after the sack.
+      let learned = seenThen ? j : -1;
+      for (let k = j; learned < 0 && k <= index; k++) if ((frames[k].knownOwner.get(viewer)?.get(at.id)?.turn ?? -1) >= frames[j].turn) learned = k;
+      if (learned >= 0) sacked.set(at.id, j);
+    }
+  for (const [id, j] of sacked) {
+    const changed = (f.owner.get(id) ?? null) !== (frames[j].owner.get(id) ?? null);
+    const rebuilt = (f.unrest.get(id) ?? 0) <= 0 || changed;
+    // Out of its sight a city stays as it last knew it: in ruins.
+    const sees = viewer === null || (f.sight.get(viewer)?.has(id) ?? false);
+    if (!(sees && rebuilt)) out.add(id);
+  }
+  return out;
+}
+
 const riverLands = new Set(Rivers.flatMap((r) => r.course));
 const wildLands = new Set(Crossings.filter((c) => c.kind === "Desert" || c.kind === "Mountain").flatMap((c) => [c.a, c.b]));
 
 /**
- * The world's bed under the music, from what the map shows at its centre: a siege camp where a siege is near, a city's
- * market close in on a town, the water of the great rivers and the coasts, the wind of the steppe, the desert and the
- * mountains; at every zoom, since zoomed out the world's bed and the great moments are what is heard (item 17+++).
+ * The world's bed under the music, from what the viewer's own map shows at its centre: a siege camp where a siege it sees
+ * is near, a city's market close in on a town it believes standing, the water of the great rivers and the coasts, the
+ * wind of the steppe, the desert and the mountains. The land itself never changes and is known to all, so its water and
+ * wind are heard wherever the view goes; a town sounds as the viewer last knew it (Haakon, 1 November 2026: "if you zoom
+ * in on a city that is really burned but that you still believe is buzzing, then it should probably play the urban
+ * commotion sound"): `ruins` are the cities it knows in ruins (`knownRuins`), whose market is silent, only the wind over
+ * them, until it sees them rebuilt. Heard by zoom (`bedLevel` in mix.ts).
  */
 export function bedAt(f: SeasonFrame | undefined, centre: { x: number; y: number } | null, zoom: number, viewer: Power | null,
-  place: (id: string) => { x: number; y: number }): Bed {
+  place: (id: string) => { x: number; y: number }, ruins: ReadonlySet<string> = new Set()): Bed {
   if (f === undefined || centre === null) return null;
   let best: string | null = null;
   let bestD = Infinity;
@@ -375,11 +431,12 @@ export function bedAt(f: SeasonFrame | undefined, centre: { x: number; y: number
     const b = place(best!);
     return Math.hypot(a.x - b.x, a.y - b.y) < 40 / zoom + 6;
   };
-  const sight = viewer === null ? null : f.sight.get(viewer);
-  if (f.sieges.some((s) => near(s.province) && (sight === null || sight === undefined || sight.has(s.province)))) return "siege";
+  const sight = sightOf(f, viewer);
+  if (f.sieges.some((s) => near(s.province) && (sight === null || sight.has(s.province)))) return "siege";
   const p = map.get(best);
   if (p.isSea) return zoom >= 3 ? "nile" : "wind";
-  if (zoom >= 4 && !p.kingless) return "market";
+  if (zoom >= 4 && !p.kingless && !ruins.has(p.id)) return "market";
+  if (ruins.has(p.id)) return "wind";
   if (riverLands.has(p.id) || p.isCoastal) return "nile";
   if (p.kingless || wildLands.has(p.id)) return "wind";
   return "wind";

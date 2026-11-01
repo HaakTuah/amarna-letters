@@ -341,7 +341,9 @@ a war horn) for your own court: its clicks and what happens to its realm, heard 
 through it, never in god view. Zoomed in, you hear the world near the view, louder the nearer: an army marching, a fleet
 in the waves, a battle, a flood's rains or a drought's wind, a winter pass's wind and an avalanche, a storm at sea, and a
 quiet bed (the Nile's water, the steppe's wind, a market, a siege camp); zoomed out, the music speaks for the board. The
-sounds sit under the music, a few at a time: never more than three at once, and none repeated within a few seconds. The game's menu has the Music and Sound switches, their
+sounds sit under the music, a few at a time: never more than three at once, and none repeated within a few seconds.
+Nothing you hear gives away what lies beyond your sight: a battle or a fall you have not heard of plays nothing, even
+zoomed in on it, and a city sounds as you last knew it, its market bustling until the news of its burning reaches you. The game's menu has the Music and Sound switches, their
 volumes and the music's version (Orchestra, Lyre and reed, or 8-bit); they are remembered and start on at a regular
 volume, and the first music fades in rather than starting at full. If the orchestra's files cannot load (offline, a slow
 connection), Lyre and reed plays instead, since it needs no download. The top bar's **Music** page plays every piece and

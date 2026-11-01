@@ -48,8 +48,13 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 
 ## How the music chooses (src/web/src/audio/situation.ts, player.ts)
 
-- **Only what the seat knows** (pillar 4): its own sight, the moves it saw resolve, the owners as it knows them, the news
-  that reached it. God view hears the whole map.
+- **Only what the seat knows** (pillar 4; Haakon, 1 November 2026: "Important! The music must never reveal what's outside
+  the fog of war."): its own sight, the moves it saw resolve, the owners as it knows them, the news that reached it, the
+  events it was shown. The mood, the shade, the stings, the great moments, the world's sounds and the event sounds all
+  follow it, as it learns it: a battle or a fall it has not heard of plays nothing, even zoomed in on it. What the record
+  lacks counts as unknown, never as seen: a seat with no sight in the frame sees nothing (`sightOf`), one with no known
+  owners knows none (`owners`); before 1 November both fell back to the true map. `audio-fog.test.ts` proves a hidden
+  battle, siege, sack and fall change nothing a seat hears. God view hears the whole map.
 - **The mood**, first that holds: the age ended or the omens of the end read grave, borrowed or darkest (the last
   seasons, below war); a battle the seat's troops fought this season; a siege it lays or suffers; war, if it fought in the
   last three seasons (god view: anyone, the last two); troubled omens, foreign troops in its land in its sight, a
@@ -105,7 +110,13 @@ are always heard. `hearing()` in `situation.ts`; the map's own sounds below are 
 
 **The world's bed**, under the music and very low, from the province at the map's centre, heard only zoomed in, rising
 from zoom 1.5 to whole at 3 (zoomed out, the music speaks for the whole board; before 1 November it was heard at every
-zoom); a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
+zoom). **As the seat's own map shows it** (Haakon, 1 November 2026: "you know where a sea is, so some things you can zoom
+in on and hear, without it revealing anything"): the land never changes and is known to all, so the water and the wind
+are heard wherever the view goes; a town sounds as the seat last knew it (`knownRuins`): its market until the seat learns
+of the sack (shown it, the city in its sight as it happened, or word of the city dated after it), then only the wind over
+it, until it sees it rebuilt; never by the true owner. A move's sounds sit only at an end the seat saw (its own troops'
+anywhere), so no march or battle is placed out of its sight.
+The beds are a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
 water on the great rivers' course, the coasts and the sea close in; wind on the steppe, the desert, the mountains and the
 open land and the open sea seen from afar. It crosses over 3 to 4 s, looping seamlessly.
 
