@@ -19,10 +19,14 @@ export function Person({ c, court, onFollow }: { c: CharacterView; court: Power 
       {(c.duty.length > 0 || c.where.length > 0) && (
         <div>
           <small>
-            {dated(c.duty, court)}
-            {c.timing.length > 0 ? ` (${dated(c.timing, court)})` : ""}
-            {c.where.length > 0 ? ` · ${c.where}` : ""}
-            {c.term.length > 0 ? ` · ${dated(c.term, court)}` : ""}
+            {/* Duty, where and term, each only when there is one: a free person has no duty, so no line opens with "·". */}
+            {[
+              (dated(c.duty, court) + (c.timing.length > 0 ? ` (${dated(c.timing, court)})` : "")).trim(),
+              c.where,
+              c.term.length > 0 ? dated(c.term, court) : "",
+            ]
+              .filter((s) => s.length > 0)
+              .join(" · ")}
           </small>
         </div>
       )}
