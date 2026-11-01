@@ -439,9 +439,10 @@ class Player {
     if (this.ctx === null || !audioSettings().sound) return;
     const files = sounds[name];
     if (files === undefined || files.length === 0) return;
-    const now = performance.now();
-    if ((this.lastSound.get(name) ?? -1e9) > now - 250) return;
-    this.lastSound.set(name, now);
+    // The same sound twice within a quarter second is heard once, by the moment it is to be heard, not when it was asked.
+    const when = performance.now() + delay * 1000;
+    if (Math.abs((this.lastSound.get(name) ?? -1e9) - when) < 250) return;
+    this.lastSound.set(name, when);
     const f = files[Math.floor(Math.random() * files.length)];
     void this.buffer(f.file).then((b) => {
       if (b === null || this.ctx === null) return;
