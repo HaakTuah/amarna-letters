@@ -50,7 +50,7 @@ export function ProvinceList({ scene, selected, onProvince }: { scene: MapScene;
                           </span>
                         ))}
                         {!p.isSea && (
-                          <span className="muted" title="What its land yields: a realm's strength counts ten times the yield of the land it holds">
+                          <span className="muted" title="The land's base yield, as the map gives it: each season's harvest is reckoned from it">
                             yield {p.yield}
                           </span>
                         )}
