@@ -22,6 +22,8 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
         .sort((a, b) => byName(a[0], b[0]))
         .map(([at, d]) => {
           const unit = draft.unitAt(at)!;
+          // Item 17++: the troops of its own kind next to it that it may join.
+          const foldsInto = (from: string): string[] => [...draft.units.keys()].filter((x) => x !== from && draft.unitAt(x)?.kind === unit.kind && map.canMove(unit.kind, from, x));
           const change = (patch: Partial<typeof d>): void => {
             Object.assign(d, patch);
             onChanged();
@@ -42,8 +44,19 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                 {unit.kind === "Army" && v.walls.getOrDefault(at, 0) > 0 && v.owner.tryGet(at) !== me && <option value="besiege">Besiege the city</option>}
                 <option value="disband">Disband</option>
                 {!map.get(at).isSea && v.owner.tryGet(at) === me && <option value="settle">Disband and settle its men here</option>}
+                {unit.commander === null && foldsInto(at).length > 0 && <option value="fold">Join the troops next to it</option>}
               </select>
               <span className="row" style={{ gap: ".3rem" }}>
+                {d.kind === "fold" && (
+                  <select value={d.target ?? ""} onChange={(e) => change({ target: e.target.value })}>
+                    <option value="">— which? —</option>
+                    {foldsInto(at).map((to) => (
+                      <option key={to} value={to}>
+                        {provinceName(to)}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 {(d.kind === "move" || d.kind === "force") && (
                   <select value={d.target ?? ""} onChange={(e) => change({ target: e.target.value })}>
                     <option value="">— where? —</option>

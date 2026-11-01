@@ -127,6 +127,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           <option value="sell">Sell grain</option>
           <option value="purchase">Buy grain</option>
           <option value="feed">Feed the town</option>
+          <option value="feedOwn">Feed the town in your own name</option>
           <option value="caravan">Send a caravan</option>
           <option value="tax">Set the tax</option>
         </select>
@@ -170,8 +171,8 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
                 ? sell(f.grainAt, n)
                 : f.grainAction === "purchase"
                   ? purchase(f.grainAt, n)
-                  : f.grainAction === "feed"
-                    ? feed(f.grainAt, n)
+                  : f.grainAction === "feed" || f.grainAction === "feedOwn"
+                    ? feed(f.grainAt, n, f.grainAction === "feedOwn")
                     : f.grainAction === "tax"
                       ? tax(n, f.grainAt)
                       : caravan(f.grainAt, f.grainTo, n),

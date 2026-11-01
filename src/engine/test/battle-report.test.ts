@@ -160,13 +160,13 @@ describe("BattleReportTests", () => {
       }),
     );
     Assert.contains(
-      "- Your walled city of Suhu: Mitanni's army from Terqa stormed the walls (its strength 4 against your walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong): Suhu is taken.",
+      "- Your walled city of Suhu: Mitanni's army from Terqa stormed the walls (its strength 4 against your walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong), and its men stand within them: it goes over to them if its people fear or love them more than you, as the next season begins.",
       reportOf(s, "Babylonia"),
     );
-    Assert.equal("Mitanni", s.owner.get("suhu"));
+    Assert.equal("Mitanni", s.breached.get("suhu"));
     Assert.equal(0, wallsOf(s, "suhu"));
     Assert.contains(
-      "- army in Terqa -> Suhu: succeeds: it stormed the walls of Suhu (strength 4 against walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong), and Suhu is yours",
+      "- army in Terqa -> Suhu: succeeds: it stormed the walls of Suhu (strength 4 against walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong), and stands within them: Suhu answers to you if its people fear or love you more than its master, as the next season begins",
       reportOf(s, "Mitanni"),
     );
   });

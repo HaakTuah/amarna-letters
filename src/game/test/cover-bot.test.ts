@@ -11,8 +11,9 @@ describe("CoverBotTests", () => {
   test.each([["Egypt"], ["Mitanni"], ["Arzawa"]] as const)("A script king never sends a servant it believes away %s", async (me: Power) => {
     let s = newGame(11);
     // Its two envoys; its Akkadian scribe (item 11f) and the people of 1346 in their posts (item 17+) stay at court, their fees due like theirs.
-    let servants = s.characters.filter((c) => c.employer === me && c.calling !== "scribe" && !PeopleOf1346.some((x) => x.name === c.name));
-    const scribeDue = s.characters.filter((c) => c.employer === me && !servants.slice(0, 2).includes(c)).reduce((a, c) => a + c.contract!.fee - c.contract!.advance, 0);
+    // Since item 17++ governors hold grants, no jobs, and the commissioners are residents abroad: neither is at court.
+    let servants = s.characters.filter((c) => c.employer === me && c.calling !== "scribe" && !PeopleOf1346.some((x) => x.name === c.name) && c.contract !== null && !c.openly);
+    const scribeDue = s.characters.filter((c) => c.employer === me && c.contract !== null && !servants.slice(0, 2).includes(c)).reduce((a, c) => a + c.contract!.fee - c.contract!.advance, 0);
     // One caught as a spy at Hatti's court, as its master does not know; the other gone over to Hatti.
     let caught = servants[0];
     caught.status = "Captured";

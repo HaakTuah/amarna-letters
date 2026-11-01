@@ -54,6 +54,8 @@ export interface Fight {
   at: string;
   attack: number;
   defence: number;
+  /** The defending unit's own strength, its supports with it, without the ground or the land's people (item 17++). */
+  own: number;
   won: boolean;
 }
 
@@ -454,11 +456,15 @@ export class Adjudicator {
     const i = this.at.get(province);
     if (i === undefined) return this.peopleAgainst(move);
     const occ = this.orders[i];
+    if (occ.kind === "Move" && this.resolve(occ.index)) return this.peopleAgainst(move);
+    return this.unitHold(occ) + (this.groundAgainst(move) === null ? 0 : this.terrain) + this.peopleAgainst(move);
+  }
+
+  /** A unit that stays: its own weight, and its supports to hold if it did not try to move. */
+  private unitHold(occ: O): number {
     let count = occ.weight;
-    if (occ.kind === "Move") {
-      if (this.resolve(occ.index)) return this.peopleAgainst(move);
-    } else for (const s of this.orders) if (s.kind === "Support" && s.target === province && s.to === null && this.resolve(s.index)) count += s.weight;
-    return count + (this.groundAgainst(move) === null ? 0 : this.terrain) + this.peopleAgainst(move);
+    if (occ.kind !== "Move") for (const s of this.orders) if (s.kind === "Support" && s.target === occ.at && s.to === null && this.resolve(s.index)) count += s.weight;
+    return count;
   }
 
   /**
@@ -588,7 +594,8 @@ export class Adjudicator {
     if (opp !== null) {
       if (opp.power === move.power || opp.unitId === null) return null;
       if (!won && (this.result[opp.index] || opp.index < move.index)) return null;
-      return { attacker: move.unitId, defender: opp.unitId, from: move.at, at: move.target!, attack: this.attackStrength(move), defence: this.defendStrength(opp), won };
+      const defence = this.defendStrength(opp);
+      return { attacker: move.unitId, defender: opp.unitId, from: move.at, at: move.target!, attack: this.attackStrength(move), defence, own: defence, won };
     }
     const i = this.at.get(move.target!);
     if (i === undefined) return null;
@@ -598,7 +605,7 @@ export class Adjudicator {
     if (attack <= 0) return null;
     // Stopped by another move into the same land before it reached the unit there: no battle with it.
     if (!won && this.movesTo(move.target!).some((m) => m !== move && attack <= this.preventStrength(m)) && attack > this.holdStrength(move)) return null;
-    return { attacker: move.unitId, defender: occ.unitId, from: move.at, at: move.target!, attack, defence: this.holdStrength(move), won };
+    return { attacker: move.unitId, defender: occ.unitId, from: move.at, at: move.target!, attack, defence: this.holdStrength(move), own: this.unitHold(occ), won };
   }
 
   /**

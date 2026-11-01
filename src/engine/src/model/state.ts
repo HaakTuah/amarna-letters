@@ -13,7 +13,7 @@ import { type Claim, ClaimSchema, type NameClaim, NameClaimSchema, type Recognit
 import { type Grant, GrantSchema } from "./authority.ts";
 import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
 import { type Toll, TollSchema } from "./trade.ts";
-import { type MarketSeen, MarketSeenSchema } from "./views.ts";
+import { type MarketSeen, MarketSeenSchema, type ProvinceEconomyView, ProvinceEconomyViewSchema } from "./views.ts";
 import type { People } from "./land.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
@@ -82,7 +82,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 38;
+export const CURRENT_VERSION = 39;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -251,12 +251,20 @@ export interface GameState {
   /** The sieges under way: a foreign army standing in a walled city, ordered to besiege it. */
   sieges: Siege[];
   /**
-   * Land taken by force and still being absorbed, with the season it was taken (Build order item 5, slow absorption): it
-   * yields, and counts in its holder's strength, a third of its yield in its first season under him, two thirds in the
-   * second, all of it from the third ({@link TurnEngine.Absorbed}). Each court sees the marks of its own land only
-   * ({@link SeatView.Conquered}): who holds a province is public, but how it changed hands is not.
+   * Item 17++ ("Loyalty is a ledger"): each province's people's ledger, by actor (a power, or a character's id), in points:
+   * what he gave them less what he took, fading each season (`UnrestData`). Never shown as a number to anyone.
    */
-  conquered: Dict<string, number>;
+  ledger: Dict<string, Dict<string, number>>;
+  /**
+   * Item 17++ ("Whom a province obeys"): how fully each province obeys its holder, in thousandths, as last reckoned (left
+   * out at a thousand): it pays and counts in his strength by it, a third at the least.
+   */
+  obeyed: Dict<string, number>;
+  /**
+   * Item 17++: each court's last report of a province of its own lost out of its sight, until word of the loss arrives: its
+   * seat view goes on showing it as it last knew it (the engine's view follows what the court knows, as its map does).
+   */
+  ownLast: Dict<Power, Dict<string, ProvinceEconomyView>>;
   /**
    * The grain in each land province's stores, in measures (build order item 9+a, "Production is local"): the tax in goods
    * goes in, armies standing there by their king's leave eat from it, caravans carry it away, and it falls with the
@@ -369,20 +377,20 @@ export interface GameState {
   /** Item 13+: the powers risen in play, as they rose: a fallen kingdom's governors ruling their provinces. */
   risen: RisenPower[];
   /**
-   * Item 17 ("Revolt follows conditions, not dice"): the hardship each province's people remember against its holder, in
-   * points, fading each season (`UnrestData`): hunger, levies, food taken by troops, a sack. Cleared when it changes hands.
-   */
-  unrest: Dict<string, number>;
-  /** Item 17: outside help, points of a rival's gold spent among a province's people by his agents, fading likewise. */
-  stirred: Dict<string, number>;
-  /**
-   * Item 17: each held province's unrest as last reckoned (its holder never sees the number: his governor, spies and the
-   * people's complaints tell him in words).
+   * Item 17: each held province's unrest as last reckoned, from item 17++ how far its holder's lead in its people's eyes
+   * falls short of a firm hold (its holder never sees the number: his governor, spies and the people's complaints tell
+   * him in words).
    */
   restless: Dict<string, number>;
-  /** Item 17: the season each province last changed hands (to a power or to nobody), and who held it before ("" none). */
+  /** Item 17: the season each province last changed hands (to a power or to nobody). */
   takenAt: Dict<string, number>;
-  takenFrom: Dict<string, string>;
+  /**
+   * Item 17++: walled provinces whose walls a foe's troops stormed, by the power whose men broke in: they stand within the
+   * walls, so their force weighs in full with its people, until they leave or it changes hands.
+   */
+  breached: Dict<string, Power>;
+  /** Item 17++: each unit's men's ledger, by actor (a power, or a character's id), of what each gave them and took from them. */
+  armies: Dict<string, Dict<string, number>>;
   /** Item 17: a king's word to an army on how to get its food, with the gold sent for it, on the road to it. */
   foodWord: FoodWord[];
   /**
@@ -469,7 +477,9 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     grants: [],
     fallsHeard: new Dict(),
     sieges: [],
-    conquered: new Dict(),
+    ledger: new Dict(),
+    obeyed: new Dict(),
+    ownLast: new Dict(),
     stores: new Dict(),
     markets: new Dict(),
     caravans: [],
@@ -509,11 +519,10 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     startStrength: new Dict(),
     eliminated: [],
     risen: [],
-    unrest: new Dict(),
-    stirred: new Dict(),
     restless: new Dict(),
     takenAt: new Dict(),
-    takenFrom: new Dict(),
+    breached: new Dict(),
+    armies: new Dict(),
     foodWord: [],
     falls: [],
     invaded: new Dict(),
@@ -577,7 +586,9 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   grants: list(() => GrantSchema),
   fallsHeard: dict(list(S)),
   sieges: list(() => SiegeSchema),
-  conquered: dict(I),
+  ledger: dict(dict(I)),
+  obeyed: dict(I),
+  ownLast: dict(dict(() => ProvinceEconomyViewSchema)),
   stores: dict(I),
   markets: dict(() => MarketSchema),
   people: dict(() => PeopleSchema),
@@ -623,11 +634,10 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   startStrength: dict(I),
   eliminated: list(S),
   risen: list(() => RisenPowerSchema),
-  unrest: dict(I),
-  stirred: dict(I),
   restless: dict(I),
   takenAt: dict(I),
-  takenFrom: dict(S),
+  breached: dict(S),
+  armies: dict(dict(I)),
   foodWord: list(() => FoodWordSchema),
   falls: list(() => KingdomFallSchema),
   invaded: dict(dict(I)),

@@ -27,6 +27,7 @@ import type { HireOrder, Order } from "../model/orders.ts";
 import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
 import { setNameClaims, setRisen, type Power } from "../model/power.ts";
+import { Views } from "../rules/views.ts";
 import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -100,8 +101,6 @@ export class TurnEngine {
     this._missedPayNow.clear();
     // A siege whose army is gone since it was last pressed (disbanded, given away, lost to plague) is over: it costs nothing.
     this.liftLostSieges();
-    // Land absorbed in full is no longer marked.
-    for (const done of [...S.conquered.entries()].filter(([, v]) => S.turn - v >= 3).map(([k]) => k)) S.conquered.delete(done);
     this.incomeAndUpkeep();
     // Where everyone stood before the season's travellers arrived: one standing at a court now that was not is back.
     const stood = new Dict<string, Power | null>(S.characters.map((c) => [c.id, c.at] as const));
@@ -183,8 +182,8 @@ export class TurnEngine {
     // The people of the land, after troops foraging there took their share of the farmers' food: hunger, births and the
     // flows between them (item 10+a).
     for (const [p, l] of this.peopleSeason(this._foodNow).entries()) fed.set(p, [...fed.getOrDefault(p, []), ...l]);
-    // Item 17: unrest reckoned from the season's conditions, and the provinces that rise.
-    this.unrestSeason();
+    // Item 17++: the ledger kept, and whom each province obeys.
+    this.obeySeason();
     for (const p of alive(S)) notify(S, p, "Notice", "The treasury", [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "));
     this.caravansTravel();
     // The foreign markets each court sees this season (item 9+b).
@@ -241,9 +240,9 @@ export class TurnEngine {
    * nothing); the granary bounds what is collected (harvestSeason).
    */
   effectiveYield(province: string): number {
-    // The harvest already bore the catastrophes; the tax bears only absorption, and nothing reaches it under a siege.
+    // The harvest already bore the catastrophes; the tax bears only how fully it obeys, and nothing reaches it under a siege.
     if (siegeOf(this.s, province) !== null) return 0;
-    return toInt(roundEven(idiv(idiv(this.s.reaped.getOrDefault(province, 0), 3) * this.taxRate(province), 100) * absorbedIn(this.s, province)));
+    return toInt(roundEven(idiv(idiv(this.s.reaped.getOrDefault(province, 0), 3) * this.taxRate(province), 100) * obeyedIn(this.s, province)));
   }
 
   /** The gold that came in since a king's last orders: his mines this season and his sales at his markets last season. */
@@ -252,21 +251,11 @@ export class TurnEngine {
   }
 
   /**
-   * How much of a province its holder has absorbed (slow absorption, Build order item 5): land taken by force yields, and
-   * counts in his strength, a third of its yield in its first season under him, two thirds in the second, all of it from
-   * the third. Land held from the start, bought, ceded, or retaken of the holder's own homeland counts in full.
+   * How fully a province obeys its holder ("Whom a province obeys", item 17++; until then slow absorption, item 5): it pays
+   * and counts in his strength by it, a third at the least, all of it where he holds it by a wide margin.
    */
-  absorbed(province: string): number {
-    return absorbedIn(this.s, province);
-  }
-
-  /**
-   * A province changes hands by force (stormed, surrendered to a siege, taken by troops standing in it, or passing with a
-   * fallen kingdom): its new holder absorbs it slowly, unless it is of his own homeland, which he retakes in full.
-   */
-  takenByForce(province: string, taker: Power | null): void {
-    if (taker !== null && !this.map.isHome(taker, province)) this.s.conquered.set(province, this.s.turn);
-    else this.s.conquered.delete(province);
+  obedience(province: string): number {
+    return obeyedIn(this.s, province);
   }
 
   /** A province passes to a new holder (or to none): the change is logged, so word of it travels (item 7b). */
@@ -274,12 +263,13 @@ export class TurnEngine {
     const S = this.s;
     const old = S.owner.getOrDefault(province, null);
     if (old === owner) return;
+    // Item 17++: the old holder's last report of it, as his officials sent it before the loss, if his couriers cannot
+    // bring him word of the loss within the season.
+    const report = old !== null && this.wordTo(old, province) > 0 && isAlive(S, old) && !this.map.get(province).isSea ? Views.provinceEconomy(S, this, this.map, province) : null;
     S.owner.set(province, owner);
-    // Item 17: when it changed hands and from whom; what its people remember was against the old holder.
+    // Item 17: when it changed hands. What its people remember of each actor stays with them (item 17++).
     S.takenAt.set(province, S.turn);
-    S.takenFrom.set(province, old ?? "");
-    S.unrest.delete(province);
-    S.stirred.delete(province);
+    S.breached.delete(province);
     // What stands there passes with the land, and its upkeep with it; the old holder's orders for it lapse (item 15).
     this.worksChangeHands(province);
     // The old holder's tax goes with him: the new one collects the default until he sets his own (item 10+a).
@@ -290,8 +280,15 @@ export class TurnEngine {
       let book = S.known.tryGet(old);
       if (book === undefined) S.known.set(old, (book = new Dict()));
       book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));
+    } else if (old !== null && report !== null) {
+      // Out of his couriers' reach: that report stands in his view until word arrives.
+      let last = S.ownLast.tryGet(old);
+      if (last === undefined) S.ownLast.set(old, (last = new Dict()));
+      last.set(province, report);
     }
     S.ownerLog.push(newOwnerChange({ province, turn: S.turn, owner }));
+    // Item 17++: how firmly it obeys its new holder, reckoned now, not inherited from the old.
+    this.reckonObedience(province);
   }
 
   quit(c: Character, notice: string): void {
@@ -451,12 +448,9 @@ export function travelTurns(config: GameConfig, map: WorldMap, fromProvince: str
   return wordSeasons(config.travelDays, map, fromProvince, toProvince, turn);
 }
 
-/** How much of a province its holder has absorbed (see TurnEngine.absorbed). */
-export function absorbedIn(s: GameState, province: string): number {
-  const taken = s.conquered.tryGet(province);
-  if (taken === undefined) return 1.0;
-  const d = s.turn - taken;
-  return d <= 1 ? 1 / 3.0 : d === 2 ? 2 / 3.0 : 1.0;
+/** How fully a province obeys its holder (see TurnEngine.obedience). */
+export function obeyedIn(s: GameState, province: string): number {
+  return s.obeyed.getOrDefault(province, 1000) / 1000;
 }
 
 /** The notice that someone at court was paid the back pay owed, or could not be paid it all. */

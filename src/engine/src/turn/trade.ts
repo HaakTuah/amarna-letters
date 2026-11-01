@@ -428,8 +428,8 @@ P.sack = function (province, taker, stormed = true) {
   const share = stormed ? TradeData.sackStormedPercent : TradeData.sackSurrenderPercent;
   const loot = Math.min(idiv(m.purse * share, 100), idiv(men * TradeData.lootPerHundred, 100));
   if (loot <= 0) return;
-  // Item 17: a city sacked remembers it against its new holder, by the share of its people's gold taken.
-  this.hardship(province, idiv(loot * UnrestData.sacked, Math.max(1, m.purse)));
+  // Item 17++: a city sacked remembers it of its sacker, by the share of its people's gold taken.
+  this.take(province, taker, idiv(loot * UnrestData.sacked, Math.max(1, m.purse)));
   m.purse -= loot;
   let king = idiv(loot * TradeData.kingSharePercent, 100);
   const soldiers = loot - king;
@@ -448,6 +448,8 @@ P.sack = function (province, taker, stormed = true) {
     const part = i === units.length - 1 ? packs : idiv(soldiers * u.men, men);
     u.savings += part;
     packs -= part;
+    // Item 17++: plunder shared is a giving its men remember of the hand that led them.
+    if (part > 0) this.armyEntry(u, this.armyHand(u), UnrestData.plunder);
   });
   const name = this.map.get(province).name;
   const home = this.lootHome(taker, province, king, [], "");

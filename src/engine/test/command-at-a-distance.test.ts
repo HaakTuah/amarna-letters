@@ -201,6 +201,9 @@ describe("CommandAtADistanceTests", () => {
     Assert.equal("durkurigalzu", Views.for(s, "Babylonia").courtAt);
     // Assyria takes Dur-Kurigalzu, where the king is: Babylonia falls, though Babylon is still its own.
     season(s, subs({ Assyria: { orders: [move("ekallate", "durkurigalzu")] } }));
+    // Item 17++: the city, its people indifferent to their king for the test, answers to Assyria as the next season begins.
+    s.ledger.set("durkurigalzu", new Dict());
+    season(s);
     Assert.contains("Babylonia", s.eliminated);
     Assert.equal("Assyria", s.owner.get("durkurigalzu"));
     // The rest falls lawless, and the commanded armies are their commanders' bands, once word of the fall reaches them.
@@ -214,6 +217,8 @@ describe("CommandAtADistanceTests", () => {
   test("A governor raises a levy on his own when foreign troops stand beside his province", () => {
     const s = board();
     removeAll(s.units, (u) => u.province === "nippur");
+    // Nippur without Enlil-kidinni, who governs it from the start (item 17++).
+    removeAll(s.governors, (g) => g.province === "nippur");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Elam", kind: "Army", province: "susa", men: 2000 }));
     const c = s.characters.find((x) => x.employer === "Babylonia" && x.at === "Babylonia")!;
     season(s, subs({ Babylonia: { orders: [govern("nippur", c.id, 1)] } }));

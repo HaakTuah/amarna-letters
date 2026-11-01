@@ -34,6 +34,7 @@ import {
   type UnitView,
   newLetterView,
   newProvinceEconomyView,
+  type ProvinceEconomyView,
   newCaravanView,
   landGrowth,
   type CharacterView,
@@ -173,6 +174,37 @@ function routineTreasury(i: InboxItem): boolean {
   return i.kind === "Notice" && i.title === "The treasury" && !i.body.includes("deserted") && !i.body.includes("Could not pay");
 }
 
+/** A province's economy as its holder's officials report it this season (item 9+a; its people, item 10+a). */
+function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: string): ProvinceEconomyView {
+  const prov = m.get(id);
+  const mk = engine.market(id);
+  return newProvinceEconomyView({
+    province: id,
+    stores: engine.stores(id),
+    capacity: capacityOf(prov),
+    tax: engine.effectiveYield(id),
+    need: engine.townNeed(id),
+    stock: mk.stock,
+    purse: mk.purse,
+    price: priceAt(mk.stock, needOf(prov)),
+    // Its people (item 10+a).
+    settled: engine.peopleOf(id).settled,
+    men: engine.peopleOf(id).men,
+    loose: engine.peopleOf(id).loose,
+    room: reckonedOf(m, id).room,
+    taxRate: engine.taxRate(id),
+    // A season's share of the last harvest, what the tax is reckoned from (item 11a+).
+    harvest: idiv(s.reaped.getOrDefault(id, 0), 3),
+    fed: s.fed.getOrDefault(id, 1000),
+    // Item 10+b.
+    runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
+    expelled: s.expelled.getOrDefault(id, 0),
+    granary: s.granary.getOrDefault(id, 0),
+    crop: s.crop.getOrDefault(id, 0),
+    reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
+  });
+}
+
 function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView {
   const m = map ?? WorldMap.default;
   const engine = new TurnEngine(s, m);
@@ -247,9 +279,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     worksSeen: [...seen]
       .filter((x) => !m.get(x).isSea && s.owner.getOrDefault(x, null) !== p)
       .sort(cmpStr)
-      .flatMap((x) => ((["Roads", "Stations", "Harbour", "Water"] as const).filter((k) => levelOf(s, k, x) > 0).map((k) => newWorkView({ province: x, kind: k, level: levelOf(s, k, x), keep: levelOf(s, k, x) })))),
-    // Its own land's only: how another king's land changed hands is not public, though who holds it is.
-    conquered: new Dict([...s.conquered.entries()].filter(([k]) => s.owner.getOrDefault(k, null) === p)),
+      .flatMap((x) =>
+        (["Roads", "Stations", "Harbour", "Water"] as const)
+          .filter((k) => levelOf(s, k, x) > 0)
+          .map((k) => newWorkView({ province: x, kind: k, level: levelOf(s, k, x), keep: levelOf(s, k, x) })),
+      ),
     sieges: s.sieges
       .filter((x) => x.power === p || s.owner.getOrDefault(x.province, null) === p || seen.has(x.province))
       .map((x) =>
@@ -377,42 +411,19 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("seaSupply", s.config.seaSupply);
   v.prices.set("winterArmyLoss", s.config.winterArmyLoss);
   v.prices.set("winterFleetLoss", s.config.winterFleetLoss);
-  // The economy at home (item 9+a): its own provinces' stores and markets, its caravans.
-  for (const id of ownedBy(s, p)) {
-    const prov = m.get(id);
-    const mk = engine.market(id);
-    v.provinces.push(
-      newProvinceEconomyView({
-        province: id,
-        stores: engine.stores(id),
-        capacity: capacityOf(prov),
-        tax: engine.effectiveYield(id),
-        need: engine.townNeed(id),
-        stock: mk.stock,
-        purse: mk.purse,
-        price: priceAt(mk.stock, needOf(prov)),
-        // Its people (item 10+a).
-        settled: engine.peopleOf(id).settled,
-        men: engine.peopleOf(id).men,
-        loose: engine.peopleOf(id).loose,
-        room: reckonedOf(m, id).room,
-        taxRate: engine.taxRate(id),
-        // A season's share of the last harvest, what the tax is reckoned from (item 11a+).
-        harvest: idiv(s.reaped.getOrDefault(id, 0), 3),
-        fed: s.fed.getOrDefault(id, 1000),
-        // Item 10+b.
-        runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
-        expelled: s.expelled.getOrDefault(id, 0),
-        granary: s.granary.getOrDefault(id, 0),
-        crop: s.crop.getOrDefault(id, 0),
-        reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
-      }),
-    );
+  // The economy at home (item 9+a): its own provinces' stores and markets, its caravans. Item 17++: the provinces it knows
+  // it holds, a lost one out of its sight as it last knew it until word of the loss arrives, a gained one once it hears.
+  for (const id of m.landProvinces.map((x) => x.id).filter((x) => known.tryGet(x)?.owner === p)) {
+    if (s.owner.getOrDefault(id, null) === p) v.provinces.push(provinceEconomy(s, engine, m, id));
+    else {
+      const last = s.ownLast.tryGet(p)?.tryGet(id);
+      if (last !== undefined) v.provinces.push(last);
+    }
   }
   // Yields as the people bring them in now, and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {
-    if (!seen.has(prov.id) && s.owner.getOrDefault(prov.id, null) !== p) continue;
+    if (!seen.has(prov.id) && !(s.owner.getOrDefault(prov.id, null) === p && known.tryGet(prov.id)?.owner === p)) continue;
     const full = harvestOf(prov);
     v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * engine.harvestNow(prov.id, false), full));
     const r = engine.resistance(prov.id, p);
@@ -856,6 +867,7 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
 
 /** The views of the game: what each court sees (the C# build's static class Views). */
 export const Views = {
+  provinceEconomy,
   landStandings,
   looksDoomed,
   sight,
@@ -893,7 +905,15 @@ function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays
  * and with how many men, as many seasons ago as the road from it is long.
  */
 /** One season's report of a unit: where it stood, its men, food, hunger and pay owed (older saves carry only the first two). */
-function trailEntry(t: string): { province: string; men: number; food?: number; hungry?: number; unpaid?: number; chest?: number; buy?: boolean } {
+function trailEntry(t: string): {
+  province: string;
+  men: number;
+  food?: number;
+  hungry?: number;
+  unpaid?: number;
+  chest?: number;
+  buy?: boolean;
+} {
   const [province, men, food, hungry, unpaid, chest, buy] = t.split("|");
   const fed = food === undefined ? { province, men: Number(men) } : { province, men: Number(men), food: Number(food), hungry: Number(hungry), unpaid: Number(unpaid) };
   return chest === undefined ? fed : { ...fed, chest: Number(chest), buy: buy === "1" };

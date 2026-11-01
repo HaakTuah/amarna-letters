@@ -75,7 +75,11 @@ describe("EngineTests", () => {
     // Item 17+: and the people of 1346 in their posts at their courts.
     Assert.all(AllPowers, (p) =>
       Assert.equal(
-        (isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length,
+        (isGreatKing(p) ? 2 : 1) +
+          (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) +
+          PeopleOf1346.filter((x) => x.court === p && x.post).length +
+          // Item 17++: the governors and residents of 1346 placed in their posts besides.
+          count(s.characters, (c) => c.employer === p && (c.duty === "Governing" || c.openly) && !PeopleOf1346.some((x) => x.name === c.name && x.post)),
         count(s.characters, (c) => c.employer === p),
       ),
     );
@@ -108,6 +112,8 @@ describe("EngineTests", () => {
     // Since item 11a nobody is paid a wage each season: a job's fee is paid when it is agreed and when it is done.
     let expected = before + mines - e.upkeep("Egypt");
     e.beginTurn();
+    // Less what Pharaoh's governors kept of what passed through their hands (item 17++: Thutmose over Kush's gold).
+    expected -= s.governors.filter((g) => g.power === "Egypt").reduce((a, g) => a + g.skimmed, 0);
     Assert.equal(expected, s.treasuries.get("Egypt").gold);
   });
 

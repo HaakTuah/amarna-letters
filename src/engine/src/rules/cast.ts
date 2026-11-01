@@ -287,3 +287,45 @@ export const Aliases: readonly string[] = [
   "Amenmose", "Sennefer", "Nabu-ahhe", "Kudur-Nanna", "Adad-shumi", "Ehli-sharri", "Tulpi-Teshup", "Kurunta-ziti",
   "Pazzu", "Abdi-Hadda", "Yapah-Addu", "Ili-milku", "Tarhunta-muwa", "Eshu-walli",
 ];
+
+/**
+ * Item 17++ ("Whom a province obeys"): every governor the sources name in office in 1346, over the province they give him,
+ * holding his post from the first season as a grant at his king's pleasure, paid and housed by him (no fee); where the
+ * office is attested for a province its own king holds but its holder's name is lost, a governor in the court's name style,
+ * marked invented (`name` null); heartlands, and a prince holding land for his father, stay out. Graded as the dossiers
+ * grade: [A] named in office there, [B] the office attested there, [C] a reading of how far a district reached.
+ */
+export const Governors1346: readonly { name: string | null; court: Power; province: string; grade: string }[] = [
+  { name: "Thutmose", court: "Egypt", province: "nubia", grade: "A: King's Son of Kush (the Buhen and Amada stelae)" },
+  { name: "Addaya", court: "Egypt", province: "gaza", grade: "A: Pharaoh's man at Hazzatu (EA 254, 285, 287)" },
+  { name: "Pahanate", court: "Egypt", province: "sumur", grade: "B: commissioner at Ṣumur (EA 60, 62, 68), Ṣumur still Egypt's in 1346" },
+  { name: "Enlil-kidinni", court: "Babylonia", province: "nippur", grade: "A: governor of Nippur (the Nippur letters)" },
+  { name: "Ili-ippashra", court: "Babylonia", province: "dilmun", grade: "A: governor of Dilmun (the Dilmun letters from Nippur)" },
+  { name: "Eshuwara", court: "Alashiya", province: "kalavasos", grade: "C: the governor of Alashiya (EA 40), over the copper hills, whose copper he sends" },
+  { name: null, court: "Hatti", province: "tuwanuwa", grade: "B: a lord of the watchtower of the Lower Land, facing Arzawa" },
+  { name: null, court: "Hatti", province: "samuha", grade: "B: a lord of the watchtower of the Upper Land, facing the Kaska" },
+  { name: null, court: "Babylonia", province: "sippar", grade: "B: a provincial governor (šakin māti), the office attested under the Kassites" },
+  { name: null, court: "Babylonia", province: "ur", grade: "B: a provincial governor of the south" },
+  { name: null, court: "Babylonia", province: "suhu", grade: "C: a governor of Suhu, folded into Babylonia (item 17+)" },
+];
+
+/**
+ * Item 17++: Pharaoh's commissioners who oversaw vassals' lands, characters and not governors, since their king does not
+ * hold those lands: each starts in Pharaoh's service as an open resident in that province, known to all as his man,
+ * reporting home (`name` null: the commissioner at Kumidi, in the Egyptian style, marked invented). Graded as above.
+ */
+export const Residents1346: readonly { name: string | null; province: string; grade: string }[] = [
+  { name: "Maya", province: "gezer", grade: "C: Maya in the south, who took Gazru's town (EA 300)" },
+  { name: "Haya", province: "amurru", grade: "C: a commissioner sent to Amurru (EA 101)" },
+  { name: "Rianap", province: "ashkelon", grade: "C: the coast's rulers answer to him (EA 315-326)" },
+  { name: "Tahmashshi", province: "megiddo", grade: "B: Tagi of the Carmel writes to him (EA 265)" },
+  { name: "Yanhamu", province: "byblos", grade: "B: over the grain at Yarimuta that fed Gubla (EA 83-86)" },
+  { name: null, province: "damascus", grade: "A for the post at Kumidi in Upe (EA 116, 129, 132); the name is lost" },
+];
+
+/**
+ * Item 17++: where the letters show a province's people leaning to a power other than its ruler, that power's share of its
+ * love at the start: Gubla's villages gone over to the Habiru and its own men urging peace with Aziru's house (EA 74-91,
+ * 136-138) [A]. A man's own share comes from his stake (`CastSeed.stake`).
+ */
+export const Leanings1346: readonly { province: string; to: Power; grade: string }[] = [{ province: "byblos", to: "Amurru", grade: "A: EA 74-91, 136-138" }];

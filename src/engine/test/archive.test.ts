@@ -149,8 +149,10 @@ describe("ArchiveTests", () => {
     let from = first(map.movesFrom("Army", capital), (x) => !map.get(x).isSea && map.get(x).home === "Assyria");
     removeAll(s.units, (u) => u.province === capital || u.province === from);
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: from }));
-    // Ashur with its walls thrown down, for the test: a lone army walks in and takes it.
+    // Ashur with its walls thrown down and its people indifferent to their king, for the test: a lone army walks in and
+    // takes it (item 17++: as the next season begins, by the season's rule).
     s.walls.delete(capital);
+    s.ledger.get(capital).set("Assyria", 0);
     return [s, capital, from];
   }
 
@@ -167,6 +169,8 @@ describe("ArchiveTests", () => {
     sealed(s, "t902", "Hatti", "Egypt", 1, "Hatti and Egypt swear peace.");
 
     begin(s).resolve(orders("Babylonia", move(from, capital)));
+    // Item 17++: moving in takes nothing by itself; the province answers to Babylonia as the next season begins.
+    new TurnEngine(s).obeySeason();
     Assert.equal("Babylonia", s.owner.get(capital));
     // Item 10+b: the archive travels home as a load, and is Babylonia's once it arrives.
     Assert.doesNotContain("Babylonia", holdersOf(s, "t900"));
@@ -202,7 +206,13 @@ describe("ArchiveTests", () => {
     );
     removeAll(s.units, (u) => u.province === other);
     s.walls.delete(other); // walled since item 15 (Arbela's citadel): the rule here is the archive's, not a storm's
+    s.ledger.get(other).set("Assyria", 0);
+    // Hill land: a host to cow its men, and Assyria's troops next door kept away.
+    s.units.find((u) => u.power === "Babylonia" && u.province === from)!.men = 40000;
+    removeAll(s.units, (u) => u.power === "Assyria" && WorldMap.default.neighbors(other).includes(u.province));
     begin(s).resolve(orders("Babylonia", move(from, other)));
+    // Item 17++: moving in takes nothing by itself; the province answers to Babylonia as the next season begins.
+    begin(s).resolve(orders("Babylonia"));
     Assert.equal("Babylonia", s.owner.get(other));
     Assert.doesNotContain("Babylonia", holdersOf(s, "t900"));
     Assert.doesNotContain(inboxOf(s, "Babylonia"), (i) => i.title === ArchiveTakenTitle);
@@ -226,6 +236,8 @@ describe("ArchiveTests", () => {
     // kingdom now falls with its capital, so there is no king left to retake it.)
     let [s, capital, from] = babyloniaNextToAshur();
     begin(s).resolve(orders("Babylonia", move(from, capital)));
+    // Item 17++: moving in takes nothing by itself; the province answers to Babylonia as the next season begins.
+    begin(s).resolve(orders("Babylonia"));
     Assert.equal(
       "With " + WorldMap.default.get(capital).name + " you took the archive of Assyria; it held no tablet you did not hold already.",
       single(inboxOf(s, "Babylonia"), (i) => i.title === ArchiveTakenTitle).body,

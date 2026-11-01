@@ -6,10 +6,11 @@
  * each army he buys for gold for three seasons' food, the price as his court last heard it, and sends more only when what
  * it carries and what is on the road runs low, and only where the market there, as his court last saw it, holds grain
  * to buy once its town has eaten (the item's measures found gold sent where markets were empty sitting idle in the packs).
- * He listens to his governors: a province they call restless or near revolt pays less tax. And a cunning king sends the
+ * He listens to his governors: a province they call restless or near revolt pays less tax, and gets grain from its stores
+ * for its town, in his own name where a governor stands (item 17++). And a cunning king sends the
  * spy he posts in a foe's conquered land with gold to stir its people ("outside help").
  */
-import { cmpStr, sortBy, sum, supply, tax, unitFood, type Order, type UnitView } from "@amarna/engine";
+import { cmpStr, feed, sortBy, sum, supply, tax, unitFood, type Order, type UnitView } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 
@@ -101,6 +102,12 @@ export function reliefOrders(b: Board, orders: Order[]): void {
     const lower = Math.max(0, now - ReliefPoints);
     if (i >= 0) orders.splice(i, 1, tax(lower, id));
     else orders.push(tax(lower, id));
+    // Item 17++ ("Loyalty is a ledger"): grain handed to its town gives, most where its people go hungry; a wary king hands
+    // it out in his own name where a governor stands, so that the credit is his and not his governor's.
+    const x = b.v.provinces.find((y) => y.province === id);
+    if (x === undefined || orders.some((o) => o.type === "feed" && o.province === id)) continue;
+    const give = Math.min(x.stores - x.need, Math.max(0, x.need - x.stock));
+    if (give > 0) orders.push(feed(id, give, b.v.governors.some((g) => g.province === id)));
   }
 }
 

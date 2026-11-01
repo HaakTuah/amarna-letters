@@ -102,20 +102,19 @@ export class TakenBook {
     if (!d) this.took.set(province, (d = new Dict()));
     d.set(by, d.getOrDefault(by, 0) + n);
   }
-  /** Unrest by how much was taken, and word of it to the land's ruler: his people's complaint, or a grievance. */
+  /** Each taking remembered of whoever took, and word of it to the land's ruler: his people's complaint, or a grievance. */
   settle(e: TurnEngine): void {
     const S = e.s;
     for (const [prov, by] of sortBy(this.took.entries(), [([k]: [string, Dict<Power, number>]) => k, cmpStr])) {
       const holder = S.owner.getOrDefault(prov, null);
       const name = e.map.get(prov).name;
-      let all = 0;
       for (const [p, n] of sortBy(by.entries(), [([k]: [Power, number]) => k, cmpStr])) {
-        all += n;
+        // Item 17++: a taking its people remember of whoever's troops took it, by how much of their food it was.
+        e.take(prov, p, idiv(n * UnrestData.taken, Math.max(1, this.base.getOrDefault(prov, 0))));
         if (holder === null || !isAlive(S, holder)) continue;
         if (p === holder) e.tell(holder, prov, "Notice", "The people complain", `The people of ${name} complain that your own troops took ${n} measures of their food this season.`);
         else e.tell(holder, prov, "Notice", "Troops took food", `The troops of ${p} took ${n} measures of food from your land in ${name} this season.`);
       }
-      e.hardship(prov, idiv(all * UnrestData.taken, Math.max(1, this.base.getOrDefault(prov, 0))));
     }
   }
 }

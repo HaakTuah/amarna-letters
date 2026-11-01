@@ -823,12 +823,6 @@ export interface SeatView {
   walls: Dict<string, number>;
   /** The sieges this court knows of: its own, those of its cities, and those it can see. */
   sieges: SiegeView[];
-  /**
-   * This court's own land taken by force and still being absorbed, with the season it was taken. Only its own: who holds
-   * a province is public, but how it changed hands is not (since the review of the siege package; until then every court
-   * saw every king's marks, and so which land had been conquered and which ceded or bought).
-   */
-  conquered: Dict<string, number>;
   units: UnitView[];
   visible: string[];
   fallen: Power[];
@@ -983,7 +977,6 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     grants: [],
     walls: new Dict(),
     sieges: [],
-    conquered: new Dict(),
     units: [],
     visible: [],
     fallen: [],
@@ -1072,7 +1065,6 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   grants: list(() => GrantViewSchema),
   walls: dict(I),
   sieges: list(() => SiegeViewSchema),
-  conquered: dict(I),
   units: list(() => UnitViewSchema),
   visible: list(S),
   fallen: list(S),

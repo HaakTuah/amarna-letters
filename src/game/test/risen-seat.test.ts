@@ -33,8 +33,9 @@ describe("RisenSeatTests", () => {
 
   test("A risen governor's seat is played by a script king and replays exactly", async () => {
     const r = await played(new GameRunner(fallingBabylon(), scriptSeats(1, ["Mitanni"]), new ScriptMind(), new TemplateNarrator()));
-    // Since item 17 others may rise too (an elder in a walled town fallen lawless): the governor's is the one tested here.
-    const risen = Assert.single(r.state.risen, (x) => x.how === "governor");
+    // Since item 17 others may rise too (an elder in a walled town fallen lawless), and since item 17++ Babylonia's other
+    // governors of 1346 rule their provinces when the word reaches them: Nippur's is the one tested here.
+    const risen = Assert.single(r.state.risen, (x) => x.how === "governor" && x.capital === "nippur");
     Assert.equal("Nippur", risen.power);
     Assert.true(isAlive(r.state, "Nippur"));
     // Its seat gave orders: their resolutions are in its own inbox.

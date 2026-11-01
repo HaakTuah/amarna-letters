@@ -61,6 +61,20 @@ account until its usage is spent; on the main account the usage brake closes it 
 Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one line each" (moved there on 1 November 2026,
 "The workshop check"; new fixes add their line there), with the finds still open.
 
+## Follow-ups
+
+Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
+fixed.
+
+- **From #348 (17+), round 2, not blocking; outside 17++'s text (names as claims), so a side lane takes them:** (a) engine
+  notices name powers by their own land while a court's view may give a contested name to another, so one name can mean two
+  powers in its inputs (render notices as the recipient sees them); (c) `nameGivenBy` reads the true claims
+  (`!claimed.has(p)`) in the viewer case; (d) the spectator's record of contested names is unused; (e) 17+'s readings 29
+  and 33 stale against 30, 34-35 printed before 33; (f) the web Court section greys out both upkeep halves and every
+  province once one upkeep order is drafted; (g) a captive's stirring gold counted as skimmed rather than carried; (h) a
+  no-op `CityStarts` entry; (i) an older tablet arriving late sets a court's knowledge of a claim back. (b), the chiefs'
+  lands falling in the first two seasons, is 17++'s and measured in its report.
+
 ## For Haakon: review points
 
 Answered review points, and the rows of items 1 to 11c, are in `docs/archive/progress-done.md` (moved 28 October 2026,

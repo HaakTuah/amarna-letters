@@ -41,12 +41,13 @@ import "./cession.ts";
 import "./falls.ts";
 import "./rulers.ts";
 import "./unrest.ts";
+import "./army-ledger.ts";
 import "./supply.ts";
 import "./letters.ts";
 import "./news.ts";
 import "./languages.ts";
 
-export { TurnEngine, idNumber, travelTurns, absorbedIn, KingdomFallsTitle } from "./core.ts";
+export { TurnEngine, idNumber, travelTurns, obeyedIn, KingdomFallsTitle } from "./core.ts";
 export { removeAll } from "./resolve.ts";
 export { ArchiveTakenTitle, goldName } from "./archives.ts";
 export { SiegesTitle, EnvoyCaughtTitle } from "./sieges.ts";

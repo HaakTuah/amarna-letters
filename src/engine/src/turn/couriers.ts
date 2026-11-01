@@ -179,6 +179,7 @@ function renamed(o: Order, at: string): Order {
     case "convoy":
     case "besiege":
     case "disband":
+    case "fold":
     case "giftUnit":
       return { ...o, unit: at };
     default:

@@ -16,17 +16,19 @@ import { clause } from "../model/clauses.ts";
 import { newTablet, newTabletCopy } from "../model/records.ts";
 import { renderClauses } from "./clauses.ts";
 import { clamp } from "../core/num.ts";
-import { newCharacter, newContract, newFact, newTie, newTraits, type Character, type Secrecy } from "../model/people.ts";
+import { newCharacter, newContract, newFact, newJobErrand, newTie, newTraits, type Character, type Secrecy } from "../model/people.ts";
 import { AllPowers, adjective, isGreatKing, land, setNameClaims, setRisen, type Power } from "../model/power.ts";
 import { newTreasury, newGameState, newUnit, logEvent, newId, notify, type GameState } from "../model/state.ts";
 import { StateOfRealmTitle, stateOfRealm } from "./realm.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
-import { AttestedCast, FirstCores, NamedScribes, NubianCast, NubiansAttested, PeopleOf1346, Styles, type CastSeed, type Core } from "./cast.ts";
+import { AttestedCast, FirstCores, Governors1346, Leanings1346, NamedScribes, NubianCast, NubiansAttested, PeopleOf1346, Residents1346, Styles, type CastSeed, type Core } from "./cast.ts";
 import { drawSkills } from "./skills.ts";
 import { kingTongues, servedThere } from "./tongues.ts";
-import { courtReads } from "../model/languages.ts";
+import { courtReads, courtSpeaks, peopleSpeak } from "../model/languages.ts";
+import { newGovernor } from "../model/command.ts";
+import { UnrestData } from "../model/unrest.ts";
 import { chooseStrategy } from "./strategy.ts";
 
 export function newGame(seed: number, config: GameConfig | null = null, map: WorldMap | null = null): GameState {
@@ -81,6 +83,7 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   s.claims = StartClaims.map((c) => ({ ...c }));
   openingBonds(s);
   openingDebts(s);
+  openingLoyalties(s, m);
 
   const engine = new TurnEngine(s, m);
   for (const p of AllPowers) s.startStrength.set(p, engine.strength(p));
@@ -88,6 +91,100 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   for (const p of AllPowers) notify(s, p, "Notice", StateOfRealmTitle, stateOfRealm(s, m, p));
   logEvent(s, "start", "The age begins. Seven Great Kings hold their thrones, and the city-states and chiefs between them their own.");
   return s;
+}
+
+/**
+ * The loyalties of 1346 (item 17++, "Whom a province obeys" and "Loyalty is a ledger"): each province's people start with
+ * a standing towards their ruler, higher where his house grew from them (its people's tongue his court's) than where it
+ * did not; a claimant or a town's ruler with a stake starts with a share of their love, and so does a house the letters
+ * show them leaning to. Every governor the sources name in office holds his post from the first season, as a grant at his
+ * king's pleasure (no fee), with a standing of his own from his years there; where the office is attested and the name
+ * lost, the governor is one of the ordinary people of the court's region in the pool; Pharaoh's commissioners over vassals' lands start
+ * as open residents there. Every grade is in `rules/cast.ts`.
+ */
+function openingLoyalties(s: GameState, m: WorldMap): void {
+  const book = (prov: string): Dict<string, number> => {
+    let b = s.ledger.tryGet(prov);
+    if (b === undefined) s.ledger.set(prov, (b = new Dict()));
+    return b;
+  };
+  for (const p of m.landProvinces) {
+    const o = s.owner.getOrDefault(p.id, null);
+    if (o === null) continue;
+    const native = peopleSpeak(p.id)[0]?.[0] === courtSpeaks(o, m.capital(o).id);
+    book(p.id).set(o, native ? UnrestData.home : UnrestData.held);
+  }
+  for (const c of s.characters) for (const f of c.facts) if (f.tag.startsWith("stake:")) book(f.tag.slice(6)).set(c.id, UnrestData.stake);
+  for (const l of Leanings1346) book(l.province).set(l.to, book(l.province).getOrDefault(l.to, 0) + UnrestData.stake);
+  // The armies of 1346 have served their kings for years: their men stand with them as held land does (a raised levy starts at nothing).
+  for (const u of s.units) s.armies.set(u.id, new Dict([[u.power as string, UnrestData.held]]));
+  // Each draw from a stream of its own, so that no draw over the larger pool moves one over the first eighteen.
+  const rng = (key: string): Rng => Rng.for(s.seed, 0, "posts-1346", key);
+  const person = (name: string | null, court: Power, calling: string): Character | null => {
+    if (name !== null) return s.characters.find((c) => c.name === name) ?? null;
+    // A name the sources lost: one of the ordinary people of the court's region in the pool, free and with no post,
+    // named in its style already; his calling becomes the post.
+    const free = s.characters.filter((c) => !c.attested && c.status === "Free" && c.at === court && !c.facts.some((f) => f.tag.startsWith("stake:")));
+    const c = free.length > 0 ? rng(`${court}:${calling}`).pick(free) : null;
+    if (c !== null) c.calling = calling;
+    return c;
+  };
+  // One taken from another court's service into his post of 1346: that court takes on one of the free people at it instead,
+  // so every court keeps its staff by its size.
+  const takenFrom = (c: Character, to: Power): void => {
+    const old = c.status === "Employed" ? c.employer : null;
+    if (old === null || old === to) return;
+    // From beyond the first eighteen, so that every seed keeps its first eighteen whatever the pool's size: one standing at
+    // that court if there is one, else one who came to it for the post.
+    const free = s.characters.slice(FirstPool).filter((x) => x !== c && !x.attested && x.status === "Free" && !x.facts.some((f) => f.tag.startsWith("stake:")));
+    const there = free.filter((x) => x.at === old);
+    if (free.length === 0) return;
+    const x = rng(`in place of ${c.id}`).pick(there.length > 0 ? there : free);
+    employ(s, rng(`hire ${x.id}`), x, old, false);
+    x.facts.push(newFact({ id: newId(s, "f"), text: `Taken into the service of ${land(old)} in place of ${c.name}, who went to his post.`, secrecy: "Public", tag: "replaced" }));
+  };
+  for (const g of Governors1346) {
+    if (s.owner.getOrDefault(g.province, null) !== g.court) continue;
+    const c = person(g.name, g.court, `governor of ${m.get(g.province).name}`);
+    if (c === null) continue;
+    takenFrom(c, g.court);
+    // A grant at his king's pleasure, not a job: paid and housed by him, holding what the post gives him.
+    c.status = "Employed";
+    c.employer = g.court;
+    c.contract = null;
+    c.duty = "Governing";
+    c.at = null;
+    c.grantedBy = g.court;
+    c.watchProvince = g.province;
+    c.met = [...new Set([...c.met, g.court])];
+    // Years in his king's service have taught him his court's language (item 12).
+    servedThere(s.seed, c, g.court, m.capital(g.court).id);
+    s.governors.push(newGovernor({ province: g.province, character: c.id, power: g.court, levies: 0, from: 1 }));
+    book(g.province).set(c.id, UnrestData.stake);
+  }
+  for (const r of Residents1346) {
+    const host = s.owner.getOrDefault(r.province, null);
+    if (host === null || host === "Egypt") continue;
+    const c = person(r.name, "Egypt", "commissioner");
+    if (c === null) continue;
+    takenFrom(c, "Egypt");
+    if (c.status !== "Employed" || c.employer !== "Egypt" || c.contract === null) employ(s, rng(`hire ${c.id}`), c, "Egypt", false);
+    c.contract!.errand = newJobErrand({ what: "spy", where: r.province });
+    // A commissioner's stay was years long (EA 116, 129): his term runs to between turns 16 and 24 [G], at the same fee a
+    // season, the advance already handed over standing.
+    const k = c.contract!;
+    const until = rng(`term ${c.id}`).range(16, 24);
+    k.fee = Math.trunc((k.fee * (until - 1)) / Math.max(1, k.untilTurn - 1));
+    k.untilTurn = until;
+    c.duty = "SpyPosted";
+    c.at = host;
+    c.missionTarget = host;
+    c.watchProvince = r.province;
+    c.openly = true;
+    c.met = [...new Set([...c.met, "Egypt", host])];
+    c.facts.push(newFact({ id: newId(s, "f"), text: `Pharaoh's commissioner, resident in ${m.get(r.province).name}: known to all as his man, reporting home.`, secrecy: "Public", tag: "resident" }));
+    book(r.province).set(c.id, UnrestData.stake);
+  }
 }
 
 /**

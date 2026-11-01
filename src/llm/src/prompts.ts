@@ -41,6 +41,7 @@ import {
   authorityText,
   type GrantView,
   menOf,
+  nameFrom,
 } from "@amarna/engine";
 import { economyLines, worksLines } from "./prompt-economy.ts";
 import { Sb, joinS } from "./text.ts";
@@ -195,18 +196,11 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
             }
             return marks.length === 0 ? `` : ` (${joinS(`, `, marks)})`;
         };
-        // Our own land taken by force and still being absorbed (the view carries no other king's): what it yields and counts this season.
-        const absorbing = (id: string): string => {
-          const taken = v.conquered.tryGet(id);
-          return taken !== undefined
-            ? ` (taken by force in turn ${taken}: yields and counts ${(v.turn - taken <= 1 ? `a third` : `two thirds`)} of its yield this season)`
-            : ``;
-        };
         for (const [key, group] of sortBy(groupBy(v.owner, x => x[1]), [g => (g[0] === null ? 99 : AllPowers.indexOf(g[0])), cmpNum]))
         {
             const who = key !== null ? (key === v.power ? `${key} (you)` : key) : `Held by no one`;
             const list = sortBy(group.map(x => x[0]), [x => x, cmpStr])
-                .map(id => id + marksOf(id) + absorbing(id) + troop(id));
+                .map(id => id + marksOf(id) + troop(id));
             sb.appendLine(`- ${who}: ${joinS(`, `, list)}`);
         }
         const sieges = siegesLine(v);
@@ -474,6 +468,8 @@ export function planned(o: Order, v: SeatView): string
           case "disband":
           case "giftUnit":
             return describe({ ...o, unit: now(o.unit) });
+          case "fold":
+            return describe({ ...o, unit: now(o.unit), into: now(o.into) });
           case "support":
             return describe({ ...o, unit: now(o.unit), supported: now(o.supported) });
           case "convoy":
@@ -566,7 +562,7 @@ export const GoldLifeline =
 
 export function person(c: CharacterView): string
     {
-        const parts: string[] = [`${c.id} ${c.name} of ${c.origin}`];
+        const parts: string[] = [`${c.id} ${nameFrom(c)}`];
         if (c.ours)
         {
             parts.push(c.ready ? `at court, ready for a mission` : c.duty);

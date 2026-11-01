@@ -316,6 +316,11 @@ export interface Character {
   at: Power | null;
   /** A province the character watches as a spy, when not at a court. */
   watchProvince: string | null;
+  /**
+   * Item 17++: posted to watch `watchProvince` openly, as a resident known to all as his master's man (Pharaoh's
+   * commissioners over vassals' lands): nobody hunts for him, and he reports home as any watcher does.
+   */
+  openly: boolean;
   /** Item 17 ("outside help"): gold a spy carries for its master to spend among the people of the province it watches. */
   stirGold: number;
   missionTarget: Power | null;
@@ -442,6 +447,13 @@ export interface Character {
   handed: Handed[];
   /** Item 12: an envoy nobody understands at the court where it stands: a model's last choice, taken the next season. */
   unheardPlan: UnheardChoice | null;
+  /** Item 17++: whether it leads the people of a province where they would follow it against their master: a model's choice, taken the next season. */
+  risePlan: RisingChoice | null;
+}
+
+/** A character's name with the place he is from, unless his name already says it ("Nabu-zuqup of Nippur"). */
+export function nameFrom(c: { name: string; origin: string }): string {
+  return c.origin === "" || c.name.endsWith(` of ${c.origin}`) ? c.name : `${c.name} of ${c.origin}`;
 }
 
 /** Gold handed to a character (item 12): by a court or a person, in a season. */
@@ -455,6 +467,54 @@ export function newHanded(init: Partial<Handed> = {}): Handed {
 }
 
 export const HandedSchema: ObjSchema<Handed> = obj("Handed", newHanded, { by: S, turn: I });
+
+/**
+ * Item 17++ ("Whom a province obeys": persons choose by their stakes): a man of standing in a province whose people would
+ * follow him against its master, asked whether he leads them. What he sees: the province, its master, roughly how many of
+ * its men would rise with him, the master's men there and his own band; nothing he could not see standing there.
+ */
+export interface RisingView {
+  turn: number;
+  province: string;
+  name: string;
+  holder: Power;
+  /** His employer, if he serves anyone, and whether he governs the province for its holder. */
+  employer: Power | null;
+  governs: boolean;
+  /** Roughly how many of its men would rise behind him, the master's men standing there, and his own band's men. */
+  followers: number;
+  troops: number;
+  band: number;
+}
+
+export function newRisingView(init: Partial<RisingView> = {}): RisingView {
+  return { turn: 0, province: "", name: "", holder: "Egypt", employer: null, governs: false, followers: 0, troops: 0, band: 0, ...init };
+}
+
+export const RisingViewSchema: ObjSchema<RisingView> = obj("RisingView", newRisingView, {
+  turn: I,
+  province: S,
+  name: S,
+  holder: S,
+  employer: opt(S),
+  governs: B,
+  followers: I,
+  troops: I,
+  band: I,
+});
+
+/** His answer: lead them (`rise`) or not, for the province he was asked of, in the season he was asked. */
+export interface RisingChoice {
+  turn: number;
+  province: string;
+  rise: boolean;
+}
+
+export function newRisingChoice(init: Partial<RisingChoice> = {}): RisingChoice {
+  return { turn: 0, province: "", rise: false, ...init };
+}
+
+export const RisingChoiceSchema: ObjSchema<RisingChoice> = obj("RisingChoice", newRisingChoice, { turn: I, province: S, rise: B });
 
 /** What an envoy nobody understands chooses (item 12): stay until he is understood, go home, or say his message was delivered. */
 export const UnheardValues = ["stay", "home", "lie"] as const;
@@ -555,6 +615,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     duty: "None",
     at: null,
     watchProvince: null,
+    openly: false,
     stirGold: 0,
     missionTarget: null,
     currentTrail: null,
@@ -613,6 +674,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     bridgePrice: null,
     handed: [],
     unheardPlan: null,
+    risePlan: null,
     ...init,
   };
 }
@@ -633,6 +695,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   duty: S,
   at: opt(S),
   watchProvince: S,
+  openly: B,
   stirGold: I,
   missionTarget: opt(S),
   currentTrail: S,
@@ -691,6 +754,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   bridgePrice: opt(I),
   handed: list(() => HandedSchema),
   unheardPlan: () => UnheardChoiceSchema,
+  risePlan: () => RisingChoiceSchema,
   isAvailableForHire: computed(B, (o: Character) => o.status === "Free"),
 });
 

@@ -13,7 +13,7 @@ is `docs/rounds/2026-10-28-harvests-and-answers.md`. Every number is a first gue
   weighing more at sowing and harvest, droughts and floods: as item 10+a's harvest). In the province's reaping season
   (`reapSeasonOf`, `model/geography.ts`: the last of its busy seasons, Shemu everywhere but the Anatolian plateau, which
   reaps in Akhet) the crop is reaped, cut by plague and absorption as the old harvest was (`yieldFactor(..., true) /
-  absorbedIn`), into the granary, and becomes `reaped`. Signal `harvest-reaped`.
+  obeyedIn`), into the granary, and becomes `reaped`. Signal `harvest-reaped`.
 - **The tax** is reckoned from the last harvest: each season a third of `reaped` at the province's rate, cut by
   absorption and nothing while besieged (`yieldFactor`), taken from the granary as far as it holds, into the stores (what
   does not fit lost). A land without a king pays none. `effectiveYield` (the view's `tax`) is that figure.
