@@ -337,14 +337,20 @@ browser, and a game's log can be exported and loaded again to replay it exactly.
 The music follows your court's situation as you know it: calm in peace, rising tension, war, siege and battle, a short
 sting and its own piece for the great moments (a capital fallen, a king's death, the age's end), a darker or brighter
 tuning as things worsen or improve. Short period sounds mark what happens (the stylus in clay, a seal rolled, a courier,
-a war horn), each at its moment as the season plays; zoomed in, you hear what happens near the view, louder the nearer:
-an army marching, a fleet in the waves, a battle, a flood's rains or a drought's wind, a winter pass's wind and an
-avalanche, a storm at sea. All under a quiet bed of the world (the
-Nile's water, the steppe's wind, a market, a siege camp). The game's menu has the Music and Sound switches, their
-volumes and the music's version (Orchestra, 8-bit, or Lyre and reed); they are remembered and start on at a regular
-volume, and the first music fades in rather than starting at full. The top bar's **Music** page plays every piece and
-variation, every sound and bed, and the fallback's scores court by court: Ugarit's theme is the Hurrian Hymn, and every
-other great court has a theme and a march of its own in its home tuning.
+a war horn) for your own court: its clicks and what happens to its realm, heard by its player or by a spectator watching
+through it, never in god view. Zoomed in, you hear the world near the view, louder the nearer: an army marching, a fleet
+in the waves, a battle, a flood's rains or a drought's wind, a winter pass's wind and an avalanche, a storm at sea, and a
+quiet bed (the Nile's water, the steppe's wind, a market, a siege camp); zoomed out, the music speaks for the board. The
+sounds sit under the music, a few at a time: never more than three at once, and none repeated within a few seconds.
+Nothing you hear gives away what lies beyond your sight: a battle or a fall you have not heard of plays nothing, even
+zoomed in on it, and a city sounds as you last knew it, its market bustling until the news of its burning reaches you. The game's menu has the Music and Sound switches, their
+volumes and the music's version (Orchestra, Lyre and reed, or 8-bit); they are remembered and start on at a regular
+volume, and the first music fades in rather than starting at full. If the orchestra's files cannot load (offline, a slow
+connection), Lyre and reed plays instead, since it needs no download. The top bar's **Music** page plays every piece and
+variation with its mood, every sound and bed, and the other versions' scores court by court: Ugarit's theme is the
+Hurrian Hymn (in Kilmer's reading, one of several modern reconstructions), and every other great court has a theme and a
+march of its own in its home tuning; the tuning test is under Extras. The game's own music fades out while you are on
+the page, so only what you press plays, and fades back in when you leave.
 
 ## On a phone
 

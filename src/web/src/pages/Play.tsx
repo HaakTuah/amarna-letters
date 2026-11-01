@@ -181,7 +181,8 @@ export function Play() {
   const aKey = pendingAudience === null ? null : `${pendingAudience.audience!.view.audienceId}:${pendingAudience.audience!.view.round}`;
   if (aKey !== null && aKey !== audienceKey.current) {
     tab = "audience";
-    player.play("envoy");
+    // Realm news is an event sound, the seat's own: never in god view, even with the board revealed.
+    if (!s.godView) player.play("envoy");
   }
   audienceKey.current = aKey;
   if (tab === "audience" && pendingAudience === null) tab = "";

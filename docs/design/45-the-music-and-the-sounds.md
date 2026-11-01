@@ -18,7 +18,9 @@ alternative, 2:44), Pawns 4:09 (and 5:57), Rivers 5:28, Shadows 6:04 (and 6:19),
 6:47 (and 3:27), Time 3:31. No source found says exactly when the game played each; the roles below are read from the
 titles, lengths and the item's own list of situations (calm, rising tension, war, siege, battle, triumph, loss, the
 age's last seasons), and are listed as a reading. Ours: one piece for each, the same roles, three variations each, in
-`src/web/src/audio/catalogue.ts` (which the listening page shows beside every piece, with how each is made).
+`src/web/src/audio/catalogue.ts`. The player never sees the template: the Music page shows our own pieces' names and moods
+only (Haakon, 1 November 2026, answering the polish lane's question: our piece names and moods only; the template stays
+in these notes).
 
 **The pieces** (`scripts/music/pieces_peace.py`, `pieces_war.py`; the idiom in `idiom.py`): the melodies are the
 Hurrian Hymn's (the Hymn to Nikkal, The River, Triumph, The Last Seasons, and a line of it in the Lament) and themes of
@@ -46,8 +48,13 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 
 ## How the music chooses (src/web/src/audio/situation.ts, player.ts)
 
-- **Only what the seat knows** (pillar 4): its own sight, the moves it saw resolve, the owners as it knows them, the news
-  that reached it. God view hears the whole map.
+- **Only what the seat knows** (pillar 4; Haakon, 1 November 2026: "Important! The music must never reveal what's outside
+  the fog of war."): its own sight, the moves it saw resolve, the owners as it knows them, the news that reached it, the
+  events it was shown. The mood, the shade, the stings, the great moments, the world's sounds and the event sounds all
+  follow it, as it learns it: a battle or a fall it has not heard of plays nothing, even zoomed in on it. What the record
+  lacks counts as unknown, never as seen: a seat with no sight in the frame sees nothing (`sightOf`), one with no known
+  owners knows none (`owners`); before 1 November both fell back to the true map. `audio-fog.test.ts` proves a hidden
+  battle, siege, sack and fall change nothing a seat hears. God view hears the whole map.
 - **The mood**, first that holds: the age ended or the omens of the end read grave, borrowed or darkest (the last
   seasons, below war); a battle the seat's troops fought this season; a siege it lays or suffers; war, if it fought in the
   last three seasons (god view: anyone, the last two); troubled omens, foreign troops in its land in its sight, a
@@ -66,9 +73,27 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 
 ## The sounds
 
-In the manner of Crusader Kings II, its approach only: twenty-six short sounds, each in three slight variations, played
-with a little more variation of pitch (±3%) and level each time; of the court's own, at most three a season, the most
-telling first, and the same sound not twice within a quarter second of the moment it is heard. What plays them (`cuesAt`, and the screen's own hooks):
+**Three layers, the music leading** (Haakon, 1 November 2026: "your ears are being assaulted now. It plays dozens of
+sound effects at any one time", then "But all the event stuff is for players only, or if you spectate a player, you hear
+specifically what they hear"; the sound lane, `docs/rounds/2026-11-01-sound-lane.md`), in the manner of Crusader Kings II:
+
+1. **The music**, above everything (bus level 0.9).
+2. **The world's sounds**: what happens on the map (a battle's clash, a siege, a storm, a march, the waves) and the bed (a
+   market, the wind, the water, a siege camp), heard only near the view when zoomed in, softer with distance
+   (`hearing()`; the bed by `bedLevel`, silent below zoom 1.5, whole at 3). The same for every viewer, of what that viewer
+   knows. Bus level 0.5, the bed 0.45.
+3. **The event sounds**, for one seat only: its own clicks and what happens to its realm (its letters, envoys, armies,
+   provinces). Its player hears them, or a spectator watching through it; god view never (`cuesAt` gives god view no
+   event sounds). Bus level 0.6.
+
+**The mix** (`mix.ts`, `Mixer`): both sound layers under the music (the sounds are also mastered 8 dB under it, below),
+each sound rising in over 0.06 s, never sudden; each layer at most three sounding at once, and the same sound not again
+within 4 s (event) or 3 s (world), judged by the moment it is to be heard. A change in how sounds are chosen and mixed,
+not in the sounds.
+
+Twenty-six short sounds, each in three slight variations, played with a little more variation of pitch (±3%) and level
+each time; of the seat's own, at most three a season, the most telling first. What plays them (`cuesAt`, and the screen's
+own hooks):
 
 - the player's own acts: a letter sent with an envoy (the stylus, then the envelope), the season's orders submitted (the
   seal), an answer given to an envoy (the envelope), an envoy before the throne (the lyre);
@@ -83,8 +108,15 @@ the province attacked, a siege at a city the seat is party to or can see; a sieg
 away, panned to its side. A court's own sounds (its acts, a courier, a report, the war horn, land taken or lost, the season) have no place and
 are always heard. `hearing()` in `situation.ts`; the map's own sounds below are placed the same way.
 
-**The world's bed**, under the music and very low, from the province at the map's centre, at every zoom (zoomed out, the bed and the great moments are what is
-heard); a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
+**The world's bed**, under the music and very low, from the province at the map's centre, heard only zoomed in, rising
+from zoom 1.5 to whole at 3 (zoomed out, the music speaks for the whole board; before 1 November it was heard at every
+zoom). **As the seat's own map shows it** (Haakon, 1 November 2026: "you know where a sea is, so some things you can zoom
+in on and hear, without it revealing anything"): the land never changes and is known to all, so the water and the wind
+are heard wherever the view goes; a town sounds as the seat last knew it (`knownRuins`): its market until the seat learns
+of the sack (shown it, the city in its sight as it happened, or word of the city dated after it), then only the wind over
+it, until it sees it rebuilt; never by the true owner. A move's sounds sit only at an end the seat saw (its own troops'
+anywhere), so no march or battle is placed out of its sight.
+The beds are a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
 water on the great rivers' course, the coasts and the sea close in; wind on the steppe, the desert, the mountains and the
 open land and the open sea seen from afar. It crosses over 3 to 4 s, looping seamlessly.
 
@@ -132,8 +164,12 @@ all the same, since the sign is what the player reads.
 
 ## The fallback: after the original Civilization (src/web/src/audio/synth/, tunings.ts)
 
-Three versions, chosen in the switches ("Orchestra", "8-bit", "Lyre and reed"); the same moods, moments, stings, sounds,
-beds, placement and hearing by zoom serve all three, so only the pieces change.
+Three versions, chosen in the switches, in this order everywhere: "Orchestra" (the default), "Lyre and reed", "8-bit"
+(Haakon, 1 November 2026); the same moods, moments, stings, sounds, beds, placement and hearing by zoom serve all three, so
+only the pieces change. **If the orchestra cannot load**, Lyre and reed plays instead of silence, since it needs no
+download (`Player.style()`): when an orchestra file fails (the element's `error`), when the browser says it is offline as a
+piece is chosen, or when a stream asked for is not heard within 12 s while the audio runs. It lasts until the browser is
+back online or another version is chosen.
 
 - **One score, written once** (`synth/score.ts`): notes in degrees of a tuning, in layers (melody, counter, chord, bass,
   drum, jingle), each with a cue (moods, shades) that switches it on; phrase ends where a change may come. A compact
@@ -193,8 +229,12 @@ beds, placement and hearing by zoom serve all three, so only the pieces change.
   didn't really mind."). A browser that saved other volumes on an earlier visit keeps them. The pieces are
   mastered to one loudness for it, and the Hymn to Nikkal, the first piece heard, opens 7 dB under its height, so the
   fade lands on a quiet lyre and drone.
-- **The listening page**, `/listen` (the top bar's "Music"): every piece and variation with the template and when it
-  plays, every sting, sound and bed.
+- **The listening page**, `/listen` (the top bar's "Music"): every piece and variation with its mood and when it plays;
+  the scores side by side in the three versions, with one line saying the Hurrian Hymn is Kilmer's reading, one of several
+  modern reconstructions (Haakon, 1 November 2026: keep Kilmer's reading, with that line); every sting, sound and bed; and
+  under "Extras" at the end, "The tuning's scale (a test)". The game's own music (the menu theme) fades out over 1.5 s on
+  entering the page and stays out while it is open (`Player.hush`), so only what is pressed plays; leaving the page fades
+  it back in over 3 s.
 
 ## How it is made (scripts/music/)
 
