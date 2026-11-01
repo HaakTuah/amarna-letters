@@ -221,6 +221,8 @@ th, td { text-align: left; padding: .3rem .45rem; border-bottom: 1px solid var(-
 th { font-size: .82rem; color: var(--muted); font-weight: 600; }
 .tablewrap { overflow-x: auto; }
 td.nowrap { white-space: nowrap; }
+/* A power's emblem stays with its name: in a narrow table "Carchemish" fell to the line below its emblem. */
+.named { white-space: nowrap; }
 td .sub { display: block; font-size: .8em; white-space: nowrap; }
 
 .pill {
