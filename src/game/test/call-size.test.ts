@@ -50,7 +50,7 @@ describe("CallSizeTests", () => {
   /** Egypt sends these of its people to Alashiya in turn 1, with gold; Alashiya is the given seat. */
   async function play(alashiya: ISeat, turns: number, envoys = 2, gold = 0, config: GameConfig = Quiet): Promise<GameRunner> {
     const state = newGame(31, config);
-    const ids = state.characters.filter((c) => c.employer === "Egypt").slice(0, envoys).map((c) => c.id);
+    const ids = state.characters.filter((c) => c.employer === "Egypt" && c.at === "Egypt" && c.contract !== null).slice(0, envoys).map((c) => c.id);
     const egypt = new Scripted((v) => (v.turn === 1 ? newTurnSubmission({ orders: ids.map((id) => dispatch(id, "Alashiya", "Greetings, brother.", { gold })) }) : newTurnSubmission()));
     const seats = toDict(
       AllPowers,

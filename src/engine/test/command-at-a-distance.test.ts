@@ -214,6 +214,8 @@ describe("CommandAtADistanceTests", () => {
   test("A governor raises a levy on his own when foreign troops stand beside his province", () => {
     const s = board();
     removeAll(s.units, (u) => u.province === "nippur");
+    // Nippur without Enlil-kidinni, who governs it from the start (item 17++).
+    removeAll(s.governors, (g) => g.province === "nippur");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Elam", kind: "Army", province: "susa", men: 2000 }));
     const c = s.characters.find((x) => x.employer === "Babylonia" && x.at === "Babylonia")!;
     season(s, subs({ Babylonia: { orders: [govern("nippur", c.id, 1)] } }));

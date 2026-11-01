@@ -4,6 +4,7 @@ import {
   AllPowers,
   type GameState,
   type Power,
+  TurnEngine,
   Views,
   WorldMap,
   first,
@@ -112,6 +113,8 @@ describe("MapSceneTests", () => {
     for (let k = 0; k < frames.length; k++) {
       let f = frames[k];
       let state = runner.stateAt(k)!;
+      // Its risen powers registered as they were then (item 17++ makes risings common).
+      new TurnEngine(state);
       for (const p of living(state)) {
         let scene = buildScene(frames, k, p);
         let view = Views.for(state, p);
@@ -331,14 +334,19 @@ describe("MapSceneTests", () => {
   test("A frame from the live state matches one read back from its snapshot", async () => {
     let { runner, frames } = await play(7, 16);
     for (let k = 0; k < frames.length; k++) {
-      let again = frameFrom(runner.stateAt(k)!, k, k > 0 ? frames[k - 1] : null);
+      // The state as it stood then, its risen powers registered as they were (a power rising later is not yet one).
+      const then = runner.stateAt(k)!;
+      new TurnEngine(then);
+      let again = frameFrom(then, k, k > 0 ? frames[k - 1] : null);
       let live = frames[k];
       Assert.equal(JSON.stringify(live.units), JSON.stringify(again.units));
       Assert.equal(JSON.stringify(live.moves), JSON.stringify(again.moves));
       Assert.equal(JSON.stringify(live.journeys), JSON.stringify(again.journeys));
       Assert.equal(JSON.stringify(live.news), JSON.stringify(again.news));
       Assert.equal(entries(live.owner), entries(again.owner));
-      for (const p of AllPowers) Assert.equal(sorted(live.sight.get(p)!), sorted(again.sight.get(p)!));
+      // Every court the frame records, risen ones among them.
+      Assert.equal(sorted(live.sight.keys()), sorted(again.sight.keys()));
+      for (const p of live.sight.keys()) Assert.equal(sorted(live.sight.get(p)!), sorted(again.sight.get(p)!));
       for (const p of AllPowers) Assert.equal(entries(live.knownWalls.get(p)!), entries(again.knownWalls.get(p)!));
     }
   });
@@ -469,7 +477,9 @@ describe("MapSceneTests", () => {
     for (let k = 1; k < frames.length; k++) {
       // Every order of the season was given by a unit standing where it was given from as the season began, or by a fleet
       // back from cargo service as it began (item 9+b), which the last frame did not show.
-      for (const m of frames[k].moves.filter((x) => x.kind !== "Fleet")) Assert.contains(frames[k - 1].units, (u) => u.province === m.from && u.power === m.power && u.kind === m.kind);
+      // A power that rose as the season began (item 17++: a governor leading his province) has troops no frame showed yet.
+      const rose = new Set(state.risen.filter((r) => r.turn >= frames[k - 1].turn).map((r) => r.power));
+      for (const m of frames[k].moves.filter((x) => x.kind !== "Fleet" && !rose.has(x.power))) Assert.contains(frames[k - 1].units, (u) => u.province === m.from && u.power === m.power && u.kind === m.kind);
       if (frames[k - 1].eliminated.size > 0) after++;
     }
     Assert.true(after > 0, "no court fell early enough in the game to check");

@@ -54,7 +54,9 @@ describe("EconomyTests", () => {
     const filled = Math.min(capacityOf(nesa), before + taxOf(harvestOf(nesa)));
     Assert.equal(filled - Math.floor((filled * EconomyData.spoilPercent) / 100), s.stores.get("nesa"));
     const mines = Map.homeOf("Egypt").reduce((a, x) => a + economyOf(x).mine, 0);
-    Assert.equal(gold + mines, s.treasuries.get("Egypt").gold);
+    // Less what Pharaoh's governors kept of what passed through their hands (Thutmose over Kush's gold, item 17++).
+    const kept = s.governors.filter((g) => g.power === "Egypt").reduce((a, g) => a + g.skimmed, 0);
+    Assert.equal(gold + mines - kept, s.treasuries.get("Egypt").gold);
   });
 
   test("A sale is priced along the curve and paid from the people's purse, which caps it", () => {

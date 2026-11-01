@@ -99,7 +99,7 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
  * did not; a claimant or a town's ruler with a stake starts with a share of their love, and so does a house the letters
  * show them leaning to. Every governor the sources name in office holds his post from the first season, as a grant at his
  * king's pleasure (no fee), with a standing of his own from his years there; where the office is attested and the name
- * lost, a governor is drawn in the court's name style, marked invented; Pharaoh's commissioners over vassals' lands start
+ * lost, the governor is one of the ordinary people of the court's region in the pool; Pharaoh's commissioners over vassals' lands start
  * as open residents there. Every grade is in `rules/cast.ts`.
  */
 function openingLoyalties(s: GameState, m: WorldMap): void {
@@ -116,23 +116,36 @@ function openingLoyalties(s: GameState, m: WorldMap): void {
   }
   for (const c of s.characters) for (const f of c.facts) if (f.tag.startsWith("stake:")) book(f.tag.slice(6)).set(c.id, UnrestData.stake);
   for (const l of Leanings1346) book(l.province).set(l.to, book(l.province).getOrDefault(l.to, 0) + UnrestData.stake);
-  const rng = Rng.for(s.seed, 0, "posts-1346");
-  const person = (name: string | null, court: Power, calling: string): Character => {
-    const found = name !== null ? s.characters.find((c) => c.name === name) : undefined;
-    if (found !== undefined) return found;
-    const st = Styles.find((x) => x.court === court)!;
-    const taken = new Set(s.characters.map((c) => c.name));
-    const drawn = rng.shuffle([...st.names]).find((n) => !taken.has(n)) ?? `${st.names[0]} ${s.characters.length}`;
-    const c = create(s, rng, { name: drawn, origin: st.origins[0], attested: false }, calling, Math.min(rng.range(15, 95), rng.range(15, 95)));
-    c.facts.push(newFact({ id: newId(s, "f"), text: "His name is not in the sources: given in his court's style.", secrecy: "Public", tag: "invented" }));
-    finish(s, c, null, false);
-    c.persona = personaTemplate(c);
-    s.characters.push(c);
+  // Each draw from a stream of its own, so that no draw over the larger pool moves one over the first eighteen.
+  const rng = (key: string): Rng => Rng.for(s.seed, 0, "posts-1346", key);
+  const person = (name: string | null, court: Power, calling: string): Character | null => {
+    if (name !== null) return s.characters.find((c) => c.name === name) ?? null;
+    // A name the sources lost: one of the ordinary people of the court's region in the pool, free and with no post,
+    // named in its style already; his calling becomes the post.
+    const free = s.characters.filter((c) => !c.attested && c.status === "Free" && c.at === court && !c.facts.some((f) => f.tag.startsWith("stake:")));
+    const c = free.length > 0 ? rng(`${court}:${calling}`).pick(free) : null;
+    if (c !== null) c.calling = calling;
     return c;
+  };
+  // One taken from another court's service into his post of 1346: that court takes on one of the free people at it instead,
+  // so every court keeps its staff by its size.
+  const takenFrom = (c: Character, to: Power): void => {
+    const old = c.status === "Employed" ? c.employer : null;
+    if (old === null || old === to) return;
+    // From beyond the first eighteen, so that every seed keeps its first eighteen whatever the pool's size: one standing at
+    // that court if there is one, else one who came to it for the post.
+    const free = s.characters.slice(FirstPool).filter((x) => x !== c && !x.attested && x.status === "Free" && !x.facts.some((f) => f.tag.startsWith("stake:")));
+    const there = free.filter((x) => x.at === old);
+    if (free.length === 0) return;
+    const x = rng(`in place of ${c.id}`).pick(there.length > 0 ? there : free);
+    employ(s, rng(`hire ${x.id}`), x, old, false);
+    x.facts.push(newFact({ id: newId(s, "f"), text: `Taken into the service of ${land(old)} in place of ${c.name}, who went to his post.`, secrecy: "Public", tag: "replaced" }));
   };
   for (const g of Governors1346) {
     if (s.owner.getOrDefault(g.province, null) !== g.court) continue;
     const c = person(g.name, g.court, `governor of ${m.get(g.province).name}`);
+    if (c === null) continue;
+    takenFrom(c, g.court);
     // A grant at his king's pleasure, not a job: paid and housed by him, holding what the post gives him.
     c.status = "Employed";
     c.employer = g.court;
@@ -142,15 +155,25 @@ function openingLoyalties(s: GameState, m: WorldMap): void {
     c.grantedBy = g.court;
     c.watchProvince = g.province;
     c.met = [...new Set([...c.met, g.court])];
-    s.governors.push(newGovernor({ province: g.province, character: c.id, power: g.court, levies: 1, from: 1 }));
+    // Years in his king's service have taught him his court's language (item 12).
+    servedThere(s.seed, c, g.court, m.capital(g.court).id);
+    s.governors.push(newGovernor({ province: g.province, character: c.id, power: g.court, levies: 0, from: 1 }));
     book(g.province).set(c.id, UnrestData.stake);
   }
   for (const r of Residents1346) {
     const host = s.owner.getOrDefault(r.province, null);
     if (host === null || host === "Egypt") continue;
     const c = person(r.name, "Egypt", "commissioner");
-    if (c.status !== "Employed" || c.employer !== "Egypt" || c.contract === null) employ(s, rng, c, "Egypt", false);
+    if (c === null) continue;
+    takenFrom(c, "Egypt");
+    if (c.status !== "Employed" || c.employer !== "Egypt" || c.contract === null) employ(s, rng(`hire ${c.id}`), c, "Egypt", false);
     c.contract!.errand = newJobErrand({ what: "spy", where: r.province });
+    // A commissioner's stay was years long (EA 116, 129): his term runs to between turns 16 and 24 [G], at the same fee a
+    // season, the advance already handed over standing.
+    const k = c.contract!;
+    const until = rng(`term ${c.id}`).range(16, 24);
+    k.fee = Math.trunc((k.fee * (until - 1)) / Math.max(1, k.untilTurn - 1));
+    k.untilTurn = until;
     c.duty = "SpyPosted";
     c.at = host;
     c.missionTarget = host;

@@ -456,8 +456,9 @@ describe("StandingForEverySeatTests", () => {
     // to fire is seed 3's, in its fourth season, since item 11c's map (seed 4's before), so the search starts there. The
     // people do not resist here (item 11e's land defended by its men makes such blows rarer). Since item 17+ placed the
     // Great Kings' men at home and in their frontier bases, early blows are rarer still: the first to fire is seed 17's,
-    // in its twelfth season, so the search starts there.
-    for (let seed = 17; seed <= 20; seed++) {
+    // in its twelfth season, so the search started there. Since item 17++ (the governors of 1346, the ledger) seed 1's fires in
+    // its seventh season, so the search starts at seed 1 again.
+    for (let seed = 1; seed <= 4; seed++) {
       let state = newGame(seed, newGameConfig({ peopleDefence: 0 }));
       let runner = Object.assign(new GameRunner(state, scriptSeats(seed), new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
       await runner.prepare();
@@ -483,6 +484,6 @@ describe("StandingForEverySeatTests", () => {
       Assert.equal(hash(GameStateSchema, state), hash(GameStateSchema, replay.state));
       return;
     }
-    Assert.fail("no standing order fired in the first twelve seasons of seeds 3-15");
+    Assert.fail("no standing order fired in the first twelve seasons of seeds 1-4");
   });
 });

@@ -60,7 +60,7 @@ describe("SiegePlayTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ekallate" }));
     s.owner.set("ekallate", "Babylonia");
     s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: army.id, progress: 0, since: 1 }));
-    let envoy = first(s.characters, (c) => c.employer === "Assyria" && c.secretMaster === null);
+    let envoy = first(s.characters, (c) => c.employer === "Assyria" && c.secretMaster === null && c.at === "Assyria" && c.contract !== null);
     envoy.traits.courage = 100;
     return [s, envoy];
   }
@@ -195,7 +195,7 @@ describe("SiegePlayTests", () => {
     s.treasuries.get("Egypt").gold = 3000;
     // Its two envoys of the first pool, not the people of 1346 in their posts (item 17+).
     let envoys = orderBy(
-      s.characters.filter((c) => c.employer === "Egypt" && c.secretMaster === null && !PeopleOf1346.some((x) => x.name === c.name)),
+      s.characters.filter((c) => c.employer === "Egypt" && c.secretMaster === null && !PeopleOf1346.some((x) => x.name === c.name) && c.at === "Egypt" && c.contract !== null),
       (c) => c.id,
     );
     let loyal = envoys.at(-1)!;

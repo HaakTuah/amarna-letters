@@ -517,7 +517,7 @@ describe("RequestsAreRulesTests", () => {
   test("A spy s report keeps what the spy was when it observed", () => {
     // The engine notes the spy's facts and secret master as it observes, for the report written when it arrives.
     let s = newGame(3, newGameConfig({ catastropheChance: 0 }));
-    let spy = firstOf(s.characters, (c) => c.employer === "Egypt" && c.secretMaster === null);
+    let spy = firstOf(s.characters, (c) => c.employer === "Egypt" && c.secretMaster === null && c.at === "Egypt" && c.contract !== null);
     let e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [placeSpy(spy.id, "Hatti")] })]]));
@@ -526,7 +526,7 @@ describe("RequestsAreRulesTests", () => {
       e = new TurnEngine(s);
       e.beginTurn();
       e.resolve(new Dict<Power, TurnSubmission>());
-      report = firstOrNull(s.journeys, (j) => j.kind === "SpyReport")?.report ?? null;
+      report = firstOrNull(s.journeys, (j) => j.kind === "SpyReport" && j.characterId === spy.id)?.report ?? null;
     }
     Assert.notNull(report);
     Assert.equal(spy.facts.length, report!.factCount);
