@@ -1,19 +1,16 @@
 /**
  * The game screen's ear (item 19+++): tells the player the mood of the season shown, plays what a newly arrived season
- * brings, and keeps the world's bed to what the map shows. Reads only what the screen already shows.
+ * brings, and keeps the world's bed to what the map shows. Reads only what the screen already shows: the stream of seasons
+ * item 17a's worker sends (`Session.frames`, one `SeasonFrame` per season, its `events`, `moves` and `news`), as a reader
+ * beside the map's, never changing it.
  */
 import type { Power } from "@amarna/engine";
 import { useEffect, useRef } from "react";
 import { city } from "../map/features.ts";
 import type { SeasonFrame } from "../session/frames.ts";
 import { player } from "./player.ts";
-import { Width } from "../map/art.ts";
-import { bedAt, cuesAt, hearing, moodAt, shadeAt } from "./situation.ts";
-
-interface View {
-  at: { x: number; y: number };
-  zoom: number;
-}
+import { bedAt, cuesAt, moodAt, shadeAt } from "./situation.ts";
+import { schedule, type View } from "./schedule.ts";
 
 /** At most one season's cues this often: watching at top speed, the seasons' sounds do not pile up. */
 const CueGap = 1200;
@@ -36,12 +33,7 @@ export function useGameAudio(frames: readonly SeasonFrame[], index: number, view
     if (last !== null && last.key === key && index === last.index + 1 && now - last.at >= CueGap) {
       const c = cuesAt(frames, index, viewer);
       player.cue(c.moment, c.sting);
-      const v = view();
-      c.sounds.forEach((s, i) => {
-        // A sound placed on the map is heard by zoom and nearness; a court's own sound always.
-        const h = hearing(s.at === null ? null : city(s.at), v, Width);
-        if (h.gain > 0.02) player.play(s.name, (c.sting !== null ? 2.5 : 0) + i * 0.55, h);
-      });
+      schedule(c, view(), now - last.at).forEach((p) => player.play(p.name, p.delay, p.heard));
       cued.current = { key, index, at: now };
     } else if (last === null || last.key !== key || index !== last.index) {
       cued.current = { key, index, at: last !== null && index === last.index + 1 ? last.at : now - CueGap };

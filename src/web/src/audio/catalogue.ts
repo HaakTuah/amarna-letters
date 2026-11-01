@@ -76,7 +76,7 @@ export const SoundInfo: Readonly<Record<SoundName, string>> = {
   war_trumpet: "Egypt's trumpets: the first blow of a war, in Egypt's seat.",
   sistrum: "The sistrum: an omen, a catastrophe, the signs changing.",
   envoy: "A lyre's phrase: an envoy received before the throne.",
-  battle: "Drums and bronze: a battle the seat fought.",
+  battle: "Drums and bronze: a battle the seat fought, or one fought near where the map looks, zoomed in.",
   siege: "The ram at the gate: a siege laid.",
   taken: "A rising horn: land taken.",
   lost: "A falling phrase on the strings: land lost.",
@@ -88,6 +88,11 @@ export const SoundInfo: Readonly<Record<SoundName, string>> = {
   report: "Clay turned in the hand: a spy's report.",
   season: "One soft stroke and an open string: a season turns.",
   tap: "A fingertip on clay: the interface's touch.",
+  march: "Feet on the dust and a chariot's wheels: an army on the march, heard zoomed in near it.",
+  waves: "A swell on the hull and the wind in the rope: a fleet at sea, heard zoomed in near it.",
+  gust: "A gust whistling: wind on a winter pass, or a drought's dry wind, where it blows.",
+  storm: "Rain and far thunder: a flood's rains, or a winter storm at sea, where it falls.",
+  avalanche: "A crack and a long roar: an avalanche's thunder, where a winter pass cost an army men.",
 };
 
 export const StingInfo: Readonly<Record<string, string>> = {

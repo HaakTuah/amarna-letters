@@ -16,7 +16,8 @@ export type Sting = "capital" | "king" | "end";
 
 export type SoundName =
   | "stylus" | "seal" | "envelope" | "gold" | "courier" | "war_horn" | "war_trumpet" | "sistrum" | "envoy" | "battle"
-  | "siege" | "taken" | "lost" | "harvest" | "famine" | "revolt" | "caravan" | "death" | "report" | "season" | "tap";
+  | "siege" | "taken" | "lost" | "harvest" | "famine" | "revolt" | "caravan" | "death" | "report" | "season" | "tap"
+  | "march" | "waves" | "gust" | "storm" | "avalanche";
 
 export type Bed = "nile" | "wind" | "market" | "siege" | null;
 
@@ -138,14 +139,29 @@ export function shadeAt(frames: readonly SeasonFrame[], index: number, viewer: P
 export interface Cues {
   sting: Sting | null;
   moment: Moment | null;
+  /** The court's own news and the season's most telling sound: at most three, the most telling first. */
   sounds: Cue[];
+  /**
+   * The map's own sounds, each placed where it happened (an army marching, a fleet in the waves, a battle elsewhere, the
+   * weather, a winter crossing and its avalanche): as many as the season had, heard only zoomed in near them
+   * (`hearing`), in the order of their moments.
+   */
+  map: Cue[];
 }
 
-/** A short sound, and where on the map it happened (a province), or null for a court's own sound, heard at any zoom. */
+/**
+ * A short sound, where on the map it happened (a province), or null for a court's own sound, heard at any zoom, and its
+ * moment in the season as it plays out, 0 (the arrivals that opened it) to 1 (its last events), in the order the season
+ * resolved: arrivals, the march, the weather on the roads, the clash, the sieges, then what followed, by the stream's order.
+ */
 export interface Cue {
   name: SoundName;
   at: string | null;
+  t: number;
 }
+
+/** The season's phases, as moments (0 to 1): where each kind of sound falls as the season plays out. */
+export const Moments = { arrivals: 0, march: 0.12, weather: 0.22, winter: 0.32, clash: 0.45, siege: 0.58, after: 0.68, end: 0.95 } as const;
 
 const loud: readonly SoundName[] = ["war_horn", "war_trumpet", "battle", "siege", "taken", "lost", "revolt", "death", "famine", "sistrum", "harvest", "caravan", "gold", "courier", "report", "season"];
 
@@ -158,11 +174,18 @@ const loud: readonly SoundName[] = ["war_horn", "war_trumpet", "battle", "siege"
 export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Power | null): Cues {
   const f = frames[index];
   const prev = frames[index - 1];
-  const out: Cues = { sting: null, moment: null, sounds: [] };
+  const out: Cues = { sting: null, moment: null, sounds: [], map: [] };
   if (f === undefined || prev === undefined) return out;
-  const add = (s: SoundName, at: string | null = null): void => {
-    if (!out.sounds.some((c) => c.name === s)) out.sounds.push({ name: s, at });
+  const add = (s: SoundName, at: string | null = null, t: number = Moments.after): void => {
+    if (!out.sounds.some((c) => c.name === s)) out.sounds.push({ name: s, at, t });
   };
+  const placed = (s: SoundName, at: string, t: number): void => {
+    if (!out.map.some((c) => c.name === s && c.at === at)) out.map.push({ name: s, at, t });
+  };
+  // An event's moment among what followed the clash: in the order the stream gives the season's events, counting only those
+  // the viewer was shown, so what it was not shown never shifts what it hears.
+  const shown = f.events.filter((e) => viewer === null || e.visibleTo.includes(viewer));
+  const after = (e: (typeof shown)[number]): number => Moments.after + ((Moments.end - Moments.after) * (shown.indexOf(e) + 1)) / (shown.length + 1);
   const was = owners(prev, viewer);
   const now = owners(f, viewer);
 
@@ -200,18 +223,21 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
       else if (a === viewer) lost++;
     }
     // The court's own news, heard at any zoom.
-    if (gained > 0) add("taken");
-    if (lost > 0) add("lost");
+    if (gained > 0) add("taken", null, Moments.siege);
+    if (lost > 0) add("lost", null, Moments.siege);
     if (out.moment === null && gained > 0 && gained >= lost) out.moment = "triumph";
     if (out.moment === null && lost > 0) out.moment = "fallen";
   }
   // The first blow of a war: fighting this season after a quiet one.
   const fought = index > 0 && fightingAt(f, viewer);
-  if (fought && !fightingAt(prev, viewer)) add(viewer === "Egypt" ? "war_trumpet" : "war_horn");
-  if (fought) add("battle", seen(f, viewer).find((m) => (hostile(m) || m.destroyed) && involves(m, viewer))?.target ?? null);
+  if (fought && !fightingAt(prev, viewer)) add(viewer === "Egypt" ? "war_trumpet" : "war_horn", null, Moments.clash);
+  if (fought) add("battle", seen(f, viewer).find((m) => (hostile(m) || m.destroyed) && involves(m, viewer))?.target ?? null, Moments.clash);
+  mapSounds(f, prev, viewer, placed);
   // What else it saw: by the events of the season, as far as it was shown them.
-  for (const e of f.events) {
-    if (viewer !== null && !e.visibleTo.includes(viewer)) continue;
+  shown.forEach((e) => {
+    const add = (s: SoundName, at: string | null = null): void => {
+      if (!out.sounds.some((c) => c.name === s)) out.sounds.push({ name: s, at, t: after(e) });
+    };
     switch (e.kind) {
       case "siege":
         if (e.signal === "siege-begun") {
@@ -220,8 +246,11 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
           const own = owners(f, viewer);
           const fresh = f.sieges.filter((x) => !prev.sieges.some((y) => y.province === x.province));
           const mine = fresh.find((x) => viewer === null || x.besieger === viewer || own.get(x.province) === viewer || sight?.has(x.province) === true);
-          add("siege", mine?.province ?? null);
+          if (!out.sounds.some((c) => c.name === "siege")) out.sounds.push({ name: "siege", at: mine?.province ?? null, t: Moments.siege });
         }
+        break;
+      case "winter":
+        winter(e.text, e.signal, placed);
         break;
       case "revolt":
       case "mutiny":
@@ -253,16 +282,68 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
         add("gold");
         break;
     }
-  }
-  if (f.omen !== prev.omen && f.omen !== null && f.omen !== "Quiet") add("sistrum");
+  });
+  if (f.omen !== prev.omen && f.omen !== null && f.omen !== "Quiet") add("sistrum", null, Moments.end);
   if (viewer !== null) {
     const before = prev.inboxCount.get(viewer) ?? 0;
-    if ((f.inboxCount.get(viewer) ?? 0) > before) add("courier");
-    if (f.news.some((n) => n.court === viewer && n.kind === "SpyReport")) add("report");
+    if ((f.inboxCount.get(viewer) ?? 0) > before) add("courier", null, Moments.arrivals);
+    if (f.news.some((n) => n.court === viewer && n.kind === "SpyReport")) add("report", null, Moments.arrivals);
   }
-  add("season");
+  add("season", null, Moments.arrivals);
   out.sounds = [...out.sounds].sort((a, b) => loud.indexOf(a.name) - loud.indexOf(b.name)).slice(0, 3);
+  // A battle the court's own sounds carry is not heard twice.
+  const main = out.sounds.find((c) => c.name === "battle");
+  out.map = out.map.filter((c) => !(main !== undefined && c.name === "battle" && c.at === main.at)).sort((a, b) => a.t - b.t);
   return out;
+}
+
+type Place = (s: SoundName, at: string, t: number) => void;
+
+/**
+ * The map's sounds of a season, from what the viewer saw of it: each army's march where it went, each fleet in the waves
+ * where it sailed or lay at sea, every battle where it was fought, and new weather (a flood's rains, a drought's dry wind)
+ * where it came, in sight.
+ */
+function mapSounds(f: SeasonFrame, prev: SeasonFrame, viewer: Power | null, placed: Place): void {
+  const sight = viewer === null ? null : (f.sight.get(viewer) ?? new Set<string>());
+  const visible = (p: string): boolean => sight === null || sight.has(p);
+  const moves = seen(f, viewer);
+  moves.forEach((m, i) => {
+    const t = Moments.march + (0.08 * i) / Math.max(1, moves.length);
+    if (m.order === "move" && m.target !== null) {
+      // On the road it marches from where it set out; the sound sits at its goal, where the season sees it arrive or fail.
+      placed(m.kind === "Fleet" ? "waves" : "march", m.target, t);
+    } else if (m.kind === "Fleet" && map.exists(m.from) && map.get(m.from).isSea) placed("waves", m.from, t);
+    // The clash where it was fought: at the goal of an attack, and where a unit that was driven out or destroyed stood.
+    const clash = Moments.clash + (0.08 * i) / Math.max(1, moves.length);
+    if (hostile(m) && m.target !== null) placed("battle", m.target, clash);
+    if (m.destroyed) placed("battle", m.from, clash);
+  });
+  // A fleet lying at sea is still in the waves: heard when the view comes near it.
+  for (const u of f.units) {
+    if (u.kind !== "Fleet" || !map.exists(u.province) || !map.get(u.province).isSea) continue;
+    if (u.power !== viewer && !visible(u.province)) continue;
+    placed("waves", u.province, Moments.march);
+  }
+  const before = new Set(prev.climate.map((c) => `${c.kind}:${c.name}`));
+  for (const c of f.climate) {
+    if (before.has(`${c.kind}:${c.name}`)) continue;
+    const at = c.provinces.find(visible);
+    if (at !== undefined) placed(c.kind === "Flood" ? "storm" : "gust", at, Moments.weather);
+  }
+}
+
+/**
+ * A winter crossing the viewer was shown: the wind on a snowbound pass, an avalanche's thunder where it cost men there, the
+ * storm on the open sea or on open beaches. An event carries no place of its own, so it is read from the goal its words
+ * name ("into X in winter", "to X in winter", "fleets in X lost"), matched to a province by its whole name.
+ */
+function winter(text: string, signal: string | null, placed: Place): void {
+  const sea = text.includes("the open sea") || signal === "harbour-short";
+  const named = /\binto ([^,]+?) in winter/.exec(text)?.[1] ?? /\bto ([^,]+?) in winter/.exec(text)?.[1] ?? /fleets in (.+?) lost/.exec(text)?.[1] ?? null;
+  const at = map.find(named);
+  if (at === null) return;
+  placed(sea ? "storm" : signal === "winter-loss" ? "avalanche" : "gust", at.id, Moments.winter);
 }
 
 const riverLands = new Set(Rivers.flatMap((r) => r.course));
