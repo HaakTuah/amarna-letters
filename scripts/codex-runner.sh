@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The Codex runner: runs on Haakon's PC (WSL or any Linux), one per repository, from that repository's clone. It hands
+# The Codex runner: runs on Haakon's PC (Git Bash on Windows, or any Linux), one per repository, from that repository's clone. It hands
 # pull requests labelled `codex` to Codex's cloud (`codex cloud exec`), applies Codex's diff to the PR's branch and
 # reports on the PR; pull requests labelled `codex-review` get a read-only review from Codex on this PC. It acts only on
 # pull requests that HaakTuah opened from this repository and labelled himself. Setup, labels and the rules it keeps:
@@ -24,6 +24,11 @@ mkdir -p "$STATE/tasks" "$STATE/work"
 LOG="$STATE/runner.log"
 NO_SUMMARY="(The task gave no summary; its report is in the Codex task list.)"
 DEFAULT_SUMMARY="Codex's diff, applied by the runner on Haakon's PC."
+
+# Python reads Codex's task list: python3 on Linux, often only python on Windows (Git Bash), where python3 may be a
+# Store alias that does not run.
+PY=""; for p in python3 python; do "$p" -c 1 >/dev/null 2>&1 && { PY=$p; break; }; done
+[ -n "$PY" ] || { echo "The runner needs Python 3 (python3 or python)." >&2; exit 1; }
 
 log() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $*" | tee -a "$LOG" >&2; }
 comment() { gh api "repos/$REPO/issues/$1/comments" -F body=@- --jq .id >/dev/null; }   # body on stdin
@@ -51,11 +56,11 @@ trusted() { # PR number, label -> sets BRANCH and BODY; 0 if it may be acted on
   BODY=$(gh api "repos/$REPO/pulls/$n" --jq .body)
 }
 
-task_ids() { codex cloud list --json 2>/dev/null | python3 -c '
+task_ids() { codex cloud list --json 2>/dev/null | "$PY" -c '
 import json, sys
 d = json.load(sys.stdin); t = d.get("tasks", []) if isinstance(d, dict) else d
 print("\n".join(str(x.get("id", "")) for x in t))' 2>/dev/null; }
-task_field() { codex cloud list --json 2>/dev/null | python3 -c '
+task_field() { codex cloud list --json 2>/dev/null | "$PY" -c '
 import json, sys
 d = json.load(sys.stdin); t = d.get("tasks", []) if isinstance(d, dict) else d
 m = [x for x in t if str(x.get("id")) == sys.argv[1]]

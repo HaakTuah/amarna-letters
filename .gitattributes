@@ -1,0 +1,2 @@
+# Shell scripts keep Unix line endings, so they also run from a Windows clone (Git Bash), as the Codex runner does.
+*.sh text eol=lf

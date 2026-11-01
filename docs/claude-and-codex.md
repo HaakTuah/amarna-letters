@@ -145,11 +145,13 @@ only when all three hold, and otherwise removes the label and leaves it:
 The orchestrator keeps the same rule: it hands no lane to Codex, and merges nothing, from a pull request someone else
 opened.
 
-**Setting it up** (once, in WSL's Ubuntu on Windows, or any Linux):
+**Setting it up** (once, in Git Bash on Windows, or any Linux; no containers, since Codex builds in its cloud):
 
-1. Install Node, git, Python 3, the GitHub CLI (`gh`) and the Codex CLI (`npm install -g @openai/codex`).
+1. Install Git (on Windows, Git for Windows, which brings Git Bash), Node, Python 3, the GitHub CLI (`gh`; on Windows
+   `winget install GitHub.cli`) and the Codex CLI (`npm install -g @openai/codex`).
 2. `gh auth login` and `gh auth setup-git` as HaakTuah; `codex login` with Haakon's ChatGPT account (the code from his
-   authenticator app, once). Both logins stay on the PC and are never copied anywhere.
+   authenticator app, once; the ChatGPT app's login in `~/.codex` may already serve). Both logins stay on the PC and
+   are never copied anywhere.
 3. Clone the repository, and find its environment's id with `codex cloud` (or `codex cloud list --json`).
 4. Test once: `CODEX_ENV_ID=<id> CODEX_RUNNER_ONCE=1 scripts/codex-runner.sh`, with one small docs lane labelled
    `codex`. Then run it for good in its own terminal, or at login, without `CODEX_RUNNER_ONCE`. One runner per
