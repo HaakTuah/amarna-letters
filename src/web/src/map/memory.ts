@@ -7,11 +7,11 @@
  * happened in its own land, as the fog of war is read.
  */
 import { WorldMap, type Power } from "@amarna/engine";
+import { knownRuins, seesNow } from "./known.ts";
 import { frameAt } from "./scene.ts";
 import { isMove, ownerOf, type FrameRoad, type SeasonFrame } from "../session/frames.ts";
 
 const Map_ = WorldMap.default;
-const ByName = new Map(Map_.landProvinces.map((p) => [p.name, p.id] as const));
 
 /** What the map remembers and the life on it, as one viewer knows them. */
 export interface Remembered {
@@ -49,53 +49,35 @@ function battlesOf(frames: readonly SeasonFrame[], j: number, viewer: Power | nu
   return out;
 }
 
-/** The cities sacked in a season that the viewer knows of: the taker, its own land, or a city in its sight. */
-function sacksOf(frames: readonly SeasonFrame[], j: number, viewer: Power | null): string[] {
-  const out: string[] = [];
-  for (const e of frameAt(frames, j).events) {
-    if (e.kind !== "sack") continue;
-    const id = ByName.get(/sacked (.+)\.$/u.exec(e.text)?.[1] ?? "");
-    if (id === undefined) continue;
-    const before = frameAt(frames, j - 1);
-    if (viewer === null || e.visibleTo.includes(viewer) || ownerOf(before, id) === viewer || (before.sight.get(viewer)?.has(id) ?? false)) out.push(id);
-  }
-  return out;
-}
 
 /**
  * Each season's battles and sacks as a viewer knew them, kept with the season's frame: a frame never changes once taken,
  * so stepping the timeline reckons only the seasons it has not met before.
  */
-const seasonMemory = new WeakMap<SeasonFrame, Map<Power | null, { battles: string[]; sacks: string[] }>>();
-function memoryOfSeason(frames: readonly SeasonFrame[], j: number, viewer: Power | null): { battles: string[]; sacks: string[] } {
+const seasonMemory = new WeakMap<SeasonFrame, Map<Power | null, { battles: string[] }>>();
+function memoryOfSeason(frames: readonly SeasonFrame[], j: number, viewer: Power | null): { battles: string[] } {
   const f = frameAt(frames, j);
   let byViewer = seasonMemory.get(f);
   if (byViewer === undefined) seasonMemory.set(f, (byViewer = new Map()));
   let m = byViewer.get(viewer);
-  if (m === undefined) byViewer.set(viewer, (m = { battles: battlesOf(frames, j, viewer), sacks: sacksOf(frames, j, viewer) }));
+  if (m === undefined) byViewer.set(viewer, (m = { battles: battlesOf(frames, j, viewer) }));
   return m;
 }
 
 export function remember(frames: readonly SeasonFrame[], index: number, viewer: Power | null, bandsAt: ReadonlySet<string>): Remembered {
   const f = frameAt(frames, index);
   const memorials = new Map<string, { count: number; last: number }>();
-  const sacked = new Map<string, number>();
   for (let j = 1; j <= index; j++) {
     const season = memoryOfSeason(frames, j, viewer);
     for (const t of season.battles) {
       const m = memorials.get(t);
       memorials.set(t, { count: (m?.count ?? 0) + 1, last: j });
     }
-    for (const id of season.sacks) sacked.set(id, j);
   }
-  // What the viewer knows now: its own land and what it sees (all of it in god view).
-  const sees = (id: string): boolean => viewer === null || ownerOf(f, id) === viewer || (f.sight.get(viewer)?.has(id) ?? false);
-  const ruins = new Set<string>();
-  for (const [id, j] of sacked) {
-    // Rebuilt once the hardship its people remember has faded, or the city has changed hands since; out of sight, as last seen.
-    const changed = ownerOf(f, id) !== ownerOf(frameAt(frames, j), id);
-    if (!sees(id) || ((f.unrest.get(id) ?? 0) > 0 && !changed)) ruins.add(id);
-  }
+  // What the viewer knows now: its own land by its own record and what it sees (all of it in god view), never by the true
+  // owner; and the cities in ruins as it knows them, by the rule the ear uses too (map/known.ts).
+  const sees = (id: string): boolean => seesNow(f, viewer, id);
+  const ruins = frames.length > 0 ? knownRuins(frames, Math.min(Math.max(index, 0), frames.length - 1), viewer) : new Set<string>();
   const wild = new Set<string>();
   const famine = new Map<string, number>();
   const towns = new Map<string, { now: number; before: number }>();
@@ -104,7 +86,8 @@ export function remember(frames: readonly SeasonFrame[], index: number, viewer: 
   const counts = (id: string): boolean => viewer === null || ownerOf(f, id) === viewer;
   for (const p of Map_.landProvinces) {
     if (!sees(p.id)) continue;
-    if (ownerOf(f, p.id) === null || bandsAt.has(p.id)) wild.add(p.id);
+    // No ruler, as far as it knows (in its sight that is the truth).
+    if ((viewer === null ? ownerOf(f, p.id) : (f.knownOwner.get(viewer)?.get(p.id)?.owner ?? null)) === null || bandsAt.has(p.id)) wild.add(p.id);
     if (!counts(p.id)) continue;
     const fed = f.fed.get(p.id);
     if (fed !== undefined && fed < FamineBelow) famine.set(p.id, fed);
@@ -113,6 +96,8 @@ export function remember(frames: readonly SeasonFrame[], index: number, viewer: 
   }
   // A court knows its own caravans, as the engine's view tells it; deportees on a road it sees.
   const caravans = viewer === null ? f.caravans : f.caravans.filter((r) => r.power === viewer);
-  const walking = f.walking.filter((r) => viewer === null || sees(r.from) || sees(r.to));
+  // Deportees only on a road in its sight: people led out of a city it still believes its own would tell it of the loss.
+  const inSight = (id: string): boolean => viewer === null || (f.sight.get(viewer)?.has(id) ?? false);
+  const walking = f.walking.filter((r) => inSight(r.from) || inSight(r.to));
   return { memorials, ruins, wild, famine, towns, caravans, walking };
 }

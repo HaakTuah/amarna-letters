@@ -362,44 +362,6 @@ function winter(text: string, signal: string | null, placed: Place): void {
   placed(sea ? "storm" : signal === "winter-loss" ? "avalanche" : "gust", at.id, Moments.winter);
 }
 
-/**
- * The cities in ruins as the viewer knows them (the truth in god view): a sack counts from the season the viewer learns of
- * it, by being shown it, by having the city in sight as it happened, or by word of the city dated after it (its known
- * owner's season, as the map's dated knowledge gives it: Haakon, 1 November 2026, "a city burned seasons ago that you
- * still believe is buzzing"); and the city is rebuilt for it only when it sees it so (its people's hardship faded, or
- * the city changed hands since), never by word of the true state.
- */
-export function knownRuins(frames: readonly SeasonFrame[], index: number, viewer: Power | null): Set<string> {
-  const f = frames[index];
-  const out = new Set<string>();
-  if (f === undefined) return out;
-  // Each sack, by city: the frame it happened in.
-  const sacked = new Map<string, number>();
-  for (let j = 1; j <= index; j++)
-    for (const e of frames[j].events) {
-      if (e.kind !== "sack") continue;
-      const at = map.find(/sacked (.+)\.$/u.exec(e.text)?.[1] ?? null);
-      if (at === null) continue;
-      if (viewer === null) {
-        sacked.set(at.id, j);
-        continue;
-      }
-      const seenThen = e.visibleTo.includes(viewer) || (frames[j - 1].sight.get(viewer)?.has(at.id) ?? false);
-      // Otherwise the first season whose word of the city dates from after the sack.
-      let learned = seenThen ? j : -1;
-      for (let k = j; learned < 0 && k <= index; k++) if ((frames[k].knownOwner.get(viewer)?.get(at.id)?.turn ?? -1) >= frames[j].turn) learned = k;
-      if (learned >= 0) sacked.set(at.id, j);
-    }
-  for (const [id, j] of sacked) {
-    const changed = (f.owner.get(id) ?? null) !== (frames[j].owner.get(id) ?? null);
-    const rebuilt = (f.unrest.get(id) ?? 0) <= 0 || changed;
-    // Out of its sight a city stays as it last knew it: in ruins.
-    const sees = viewer === null || (f.sight.get(viewer)?.has(id) ?? false);
-    if (!(sees && rebuilt)) out.add(id);
-  }
-  return out;
-}
-
 const riverLands = new Set(Rivers.flatMap((r) => r.course));
 const wildLands = new Set(Crossings.filter((c) => c.kind === "Desert" || c.kind === "Mountain").flatMap((c) => [c.a, c.b]));
 
@@ -409,7 +371,7 @@ const wildLands = new Set(Crossings.filter((c) => c.kind === "Desert" || c.kind 
  * wind of the steppe, the desert and the mountains. The land itself never changes and is known to all, so its water and
  * wind are heard wherever the view goes; a town sounds as the viewer last knew it (Haakon, 1 November 2026: "if you zoom
  * in on a city that is really burned but that you still believe is buzzing, then it should probably play the urban
- * commotion sound"): `ruins` are the cities it knows in ruins (`knownRuins`), whose market is silent, only the wind over
+ * commotion sound"): `ruins` are the cities it knows in ruins (`knownRuins`, map/known.ts), whose market is silent, only the wind over
  * them, until it sees them rebuilt. Heard by zoom (`bedLevel` in mix.ts).
  */
 export function bedAt(f: SeasonFrame | undefined, centre: { x: number; y: number } | null, zoom: number, viewer: Power | null,
