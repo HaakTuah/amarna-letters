@@ -301,10 +301,11 @@ describe("MapSceneTests", () => {
         memorials++;
         Assert.true((god.memorials.get(id)?.count ?? 0) >= b.count);
       }
-      let sees = (id: string): boolean => frames[k].owner.get(id) === p || frames[k].sight.get(p)!.has(id);
+      // Its own land by its own record (who it knows holds it), or what it sees; never by the true owner.
+      let sees = (id: string): boolean => frames[k].knownOwner.get(p)?.get(id)?.owner === p || frames[k].sight.get(p)!.has(id);
       // Its own caravans only, as the engine's view; deportees on roads it sees; its own people's numbers only.
       for (const r of seat.memory.caravans) Assert.equal(p, r.power);
-      for (const r of seat.memory.walking) Assert.true(sees(r.from) || sees(r.to));
+      for (const r of seat.memory.walking) Assert.true(frames[k].sight.get(p)!.has(r.from) || frames[k].sight.get(p)!.has(r.to));
       for (const id of seat.memory.wild) Assert.true(sees(id));
       for (const id of [...seat.memory.famine.keys(), ...seat.memory.towns.keys()]) Assert.equal(p, frames[k].owner.get(id));
     }

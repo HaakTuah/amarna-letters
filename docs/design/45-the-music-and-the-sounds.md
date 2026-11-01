@@ -112,7 +112,8 @@ are always heard. `hearing()` in `situation.ts`; the map's own sounds below are 
 from zoom 1.5 to whole at 3 (zoomed out, the music speaks for the whole board; before 1 November it was heard at every
 zoom). **As the seat's own map shows it** (Haakon, 1 November 2026: "you know where a sea is, so some things you can zoom
 in on and hear, without it revealing anything"): the land never changes and is known to all, so the water and the wind
-are heard wherever the view goes; a town sounds as the seat last knew it (`knownRuins`): its market until the seat learns
+are heard wherever the view goes; a town sounds as the seat last knew it (`knownRuins` in `map/known.ts`, the rule the
+map's memory uses too, so ear and eye agree): its market until the seat learns
 of the sack (shown it, the city in its sight as it happened, or word of the city dated after it), then only the wind over
 it, until it sees it rebuilt; never by the true owner. A move's sounds sit only at an end the seat saw (its own troops'
 anywhere), so no march or battle is placed out of its sight.
