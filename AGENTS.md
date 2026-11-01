@@ -126,8 +126,9 @@ variable.
 For Codex's code review, which reports findings by priority: report as **P1** (blocking) a departure from the design or
 from the PR's description and the sections it names; a broken rule of this file (above all the rules that stand) or of
 `SECURITY.md`; a test changed, skipped or weakened; and a protected file changed by a Codex lane. Every other reviewer
-(Claude's, on the big items and whenever Codex is unavailable) gives a score from 1 to 10 and everything that keeps the
-work from 10, each point blocking or not. The whole method: "Codex reviews" and "Reviews" in `docs/claude-and-codex.md`.
+(Claude's design check on the big items, and Claude's reviewer whenever Codex is unavailable) gives a score from 1 to 10
+and everything that keeps the work from 10, each point blocking or not. The whole method: "Codex reviews" and "Reviews"
+in `docs/claude-and-codex.md`.
 
 ## Standing instructions
 
