@@ -1046,3 +1046,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     labelled himself, with the description as the brief), 16:19 UTC: "Yes to all, expertly!" Written into
     `docs/claude-and-codex.md` ("Handing work to Codex", "The runner on Haakon's PC") and `scripts/codex-runner.sh`,
     the same in Barkstreet Snakes.
+126. **1 November 2026, 16:42-16:49 UTC**, in the design chat, while the Codex runner was being set up on his PC:
+    "Remember that this is an open repo, so extremely important that nothing is pushed there which opens and
+    exploit, and lets everyone read it, so that they can attack my system or repos through it." (16:42 UTC) Then
+    (16:49 UTC): "I don't like that I have a copy of the repository and this on my computer. I think it should be
+    removed and just set up here locally. having it on a repository announces how it works, and it should just be a
+    poller anyhow that triggers a codex cloud instance, nothing which can anyhow do anything else on my computers."
+    The runner is removed from the repository; a poller kept on his PC only starts Codex's cloud tasks, with no copy
+    of the repository. Written into `docs/claude-and-codex.md` ("Handing work to Codex", "Haakon's poller": only his
+    own work reaches Codex; Codex's work never touches the protected files), the same in Barkstreet Snakes.
