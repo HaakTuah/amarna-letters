@@ -81,6 +81,38 @@ With the results unchanged (every seed replays exactly; the suites pass):
 - **The route search keeps its frontier in a heap** on (cost, the map's order), the same province settled next as the scan of
   every province found before, ties to the first in the map's order; the map's order is built once a map (`cheapestRoute`).
 
+## Smoothness, measured: the 50 ms bar (31 October 2026)
+
+Haakon: "The game still doesn't move slowly and smooth enough. Still hicks." The bar: frame times recorded through whole
+games at normal and top speed, desktop and throttled phone, no frame over about 50 ms, the longest frames and the count
+over 50 ms before and after, with a short recording. Measured by `soak.mjs` (every frame drawn is timed; `--trace` adds
+the browser's own timeline of the main thread, and the page's steps are timed with `performance.measure`: `page:receive`,
+`page:reader`, `reader:tree`, `reader:fields`, `map:render`, `map:<layer>`, `map:names`, `page:play`).
+
+What a season cost the page before, in one or two tasks of 200 to 600 ms: the worker's message (its structured clone and
+the frame), the state read whole (60 to 140 ms by mid-game), React's redraw, every map layer's rewrite, the names placed,
+then style, layout and paint. What changed, step by step, each measured:
+
+- **The state is read in a task of its own**, after the frames have shown (`client.ts`: `readSoon`), and **spread over tasks
+  with a budget of about 10 ms each** (`IncrementalReader.read`): the first builds the tree of pieces, the next read the
+  state's members a few at a time, and the state is published once all are read. A newer season replaces a read under way.
+- **The reader does less per season.** Items are keyed by their pieces' numbers, not their text: a container's key is a hash
+  over its numbers, confirmed against the numbers on a hit; a scalar piece is parsed straight (cheaper than remembering
+  it); a list that grew at its end keeps its earlier items by comparing the raw numbers with last season's (the record's
+  lists only grow, and there were 30,000 events); an object is read member by member only where a large part sits inside
+  (a character and its memories), else parsed whole, one parse not forty; a member's name is sliced, not parsed.
+- **The cut goes three levels deep, five under the characters** (`CutDepth`, `DeepCutDepth`, `DeepMembers` in
+  `snapshots.ts`): a piece for each memory keeps a character whose gold changed from being read whole, while an event's
+  list of courts stays one piece (cut five deep everywhere, 30,000 events became 300,000 pieces a season). Piece lists are
+  `Uint32Array`s.
+- **The map draws its layers in budgeted steps** over frames (`SvgMapRenderer.renderNow`, `runSteps`, about 8 ms a frame): a
+  new render drops the steps still waiting, since every layer whose key changed is written by it anyway; the names are
+  placed after the last step.
+
+The numbers, before and after each step, are in the item's report. What remains above the bar after these is the sum of
+tasks that land between two frames (the message, a reader chunk, React's commit, a layer step, then style, layout and
+paint) and the compositor's pre-paint after a large layer rewrite.
+
 ## No error leaves a white page (`src/web/src/ui/ErrorScreen.tsx`)
 
 An error boundary wraps the app, and the page's uncaught errors and unhandled rejections are reported to it. The screen

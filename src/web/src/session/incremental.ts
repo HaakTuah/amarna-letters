@@ -33,7 +33,8 @@ type Node = Leaf | Container;
 interface Job {
   refs: Uint32Array;
   texts: readonly string[];
-  items: Node[];
+  /** The state's members, once the tree is built (the first step). */
+  items: Node[] | null;
   at: number;
   o: Record<string, unknown>;
   started: number;
@@ -106,24 +107,25 @@ export class IncrementalReader {
   private job: Job | null = null;
 
   private begin(refs: Uint32Array, texts: readonly string[]): Job {
-    this.texts = texts;
-    this.refs = refs;
-    const t = performance.now();
-    const root = this.treeOf(refs);
-    performance.measure("reader:tree", { start: t });
-    const state = root.items[0];
-    if (root.items.length !== 1 || typeof state === "number") throw new Error("The state's pieces do not form one object.");
-    this.parsed = 0;
-    this.next = new Map();
-    return { refs, texts, items: state.items, at: 0, o: GameStateSchema.make() as unknown as Record<string, unknown>, started: t };
+    return { refs, texts, items: null, at: 0, o: GameStateSchema.make() as unknown as Record<string, unknown>, started: performance.now() };
   }
 
-  /** Reads fields until the budget is spent; true once all are read. */
+  /** Reads fields until the budget is spent; true once all are read. The first step builds the tree of pieces. */
   private step(job: Job, budgetMs: number): boolean {
     const t = performance.now();
     // Another read may have borrowed the reader meanwhile (apply in a test): the job's own season is set back each step.
     this.texts = job.texts;
     this.refs = job.refs;
+    if (job.items === null) {
+      const root = this.treeOf(job.refs);
+      performance.measure("reader:tree", { start: t });
+      const state = root.items[0];
+      if (root.items.length !== 1 || typeof state === "number") throw new Error("The state's pieces do not form one object.");
+      job.items = state.items;
+      this.parsed = 0;
+      this.next = new Map();
+      if (performance.now() - t > budgetMs) return false;
+    }
     while (job.at < job.items.length) {
       const item = job.items[job.at++];
       const name = nameOf(this.headText(item));
