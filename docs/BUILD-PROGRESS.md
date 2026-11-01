@@ -78,6 +78,7 @@ Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lan
 - A human with one seat saw a one-choice seat menu at 390 px; it is a plain label, "Egypt (you)".
 - The timeline read "season 1 · now" while the header planned "Season 2"; it reads "after season 1, 1346 BCE", the board it shows (" · now" on computers only, where it fits).
 - The Provinces list ended each row in a bare number; it reads "yield 35", with a tooltip saying it is the base yield the harvest is reckoned from.
+- An audience's answer ran "Seal the tablet  Gift to the envoy [0]" together and left its amounts bare ("purity % 100"); the seal has its own line and each amount its unit ("[0] shekels", "of purity [100] %").
 - The header's second line began with the runner's step in lower case ("orders · Any season may be the last"); it reads "Orders being given", "Audiences", "The season resolves" and so on.
 - "(known to Terqa)", "Seals: Seha": the "known to" notes, seals, the winners line, an audience's vassal, the tolls line, buying news and the "whose troops?" list named powers by their engine ids; they use the names the game shows ("Hana", "the Seha River Land").
 - A gift of troops read "give Memphis to Hatti" in the draft, beside "cede Memphis to Hatti"; it reads "give the army at Memphis to Hatti" (the engine's own words, which kings read, unchanged).
