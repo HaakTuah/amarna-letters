@@ -9,6 +9,7 @@ import { reapSeasonOf } from "../model/geography.ts";
 import { forMen, harvestIn, menOf, reckonedOf, startPeople } from "../model/land.ts";
 import { carriedOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
 import { newMarket } from "../model/caravans.ts";
+import { newDebt } from "../model/money.ts";
 import { StartClaims } from "../model/recognition.ts";
 import { StartVassals } from "../model/vassals.ts";
 import { clause } from "../model/clauses.ts";
@@ -78,6 +79,7 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   for (const p of AllPowers) s.kingTongues.set(p, kingTongues(p, m.capital(p).id));
   s.claims = StartClaims.map((c) => ({ ...c }));
   openingBonds(s);
+  openingDebts(s);
 
   const engine = new TurnEngine(s, m);
   for (const p of AllPowers) s.startStrength.set(p, engine.strength(p));
@@ -109,6 +111,27 @@ function openingBonds(s: GameState): void {
     s.tablets.push(t);
     for (const holder of [b.vassal, b.overlord]) s.copies.push(newTabletCopy({ id: newId(s, "k"), tabletId: t.id, holder, acquiredTurn: 0, source: "sealed before the age began" }));
   }
+}
+
+/**
+ * Item 17+ ("Starting positions come from the sources"): each documented debt between courts starts on record, a debt
+ * tablet in the creditor's archive, the claim as the letters state it; the sums are first guesses [G] against the
+ * treasuries, since the letters give weights of gold the game does not reckon in. From the letters dossier ("Between the
+ * Great Kings"): the solid-gold statues Amenhotep III promised Tushratta, which came from Akhenaten as gilded wood (EA
+ * 26-29) [A the claim]; the silver of Burna-Buriash's merchants killed at Hinnatuna and of Salmu's caravan robbed twice in
+ * Pharaoh's lands, which he demands returned (EA 7-8) [A]; and the copper the king of Alashiya says he still owes Pharaoh,
+ * having sent only five hundred talents for the plague in his land (EA 35) [A]. Each falls due within the first year, as
+ * the letters press for it now; nothing enforces it ("Debts are facts; repayment is a choice").
+ */
+const StartDebts: readonly { lender: Power; borrower: Power; owed: number; due: number }[] = [
+  { lender: "Mitanni", borrower: "Egypt", owed: 200, due: 4 },
+  { lender: "Babylonia", borrower: "Egypt", owed: 60, due: 4 },
+  { lender: "Egypt", borrower: "Alashiya", owed: 80, due: 4 },
+];
+
+function openingDebts(s: GameState): void {
+  for (const d of StartDebts)
+    s.debts.push(newDebt({ id: newId(s, "d"), lender: d.lender, borrower: d.borrower, principal: d.owed, owed: d.owed, sealedTurn: 0, dueTurn: d.due, holder: d.lender, kept: "Archive" }));
 }
 
 interface Seed {

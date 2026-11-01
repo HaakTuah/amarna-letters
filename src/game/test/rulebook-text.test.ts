@@ -110,9 +110,12 @@ describe("RulebookTextTests", () => {
   test("Every court reads every power s opening troops treasury and starting strength", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
     // Item 13: each unit at the size the armies dossier gives it.
-    Assert.contains("- Egypt: armies in memphis (7500 men), akhetaten (7500 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 18739.", Rules);
-    Assert.contains("- Babylonia: armies in babylon (4000 men), sippar (3000 men) and durkurigalzu (3000 men); treasury 600 shekels;", Rules);
-    Assert.contains("- Alashiya: an army of 1500 men in enkomi, a fleet of 750 men in enkomiwaters; treasury 400 shekels;", Rules);
+    // Item 17+: each where the sources place it in 1346.
+    Assert.contains("- Egypt: armies in memphis (6000 men), akhetaten (4000 men), thebes (2000 men), nubia (2800 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 18739.", Rules);
+    Assert.contains("- Babylonia: armies in babylon (4000 men), durkurigalzu (3000 men), nippur (1500 men) and sippar (1500 men); treasury 600 shekels;", Rules);
+    Assert.contains("- Alashiya: armies in enkomi (1000 men) and kalavasos (500 men), a fleet of 750 men in enkomiwaters; treasury 400 shekels;", Rules);
+    Assert.contains("- Arwad: a fleet of 500 men in bybloswaters;", Rules);
+    Assert.contains("- Amurru: an army of 1250 men in sumur;", Rules);
 
     // The figures are the game's own: every unit, treasury and starting strength as a new game sets them.
     let s = newGame(9);

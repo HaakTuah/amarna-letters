@@ -646,45 +646,73 @@ function cityMen(x: Province): number {
 /** The ships of the coastal cities (the armies dossier, "Fleets", its "Start from" column), by the city's capital province. */
 const CityShips: Readonly<Record<string, number>> = { ugarit: 80, arwad: 20, sidon: 20, tyre: 20, byblos: 10 };
 
+/**
+ * The city-states' armies and ships, each in its city, but where the sources place it elsewhere in 1346 (item 17+):
+ * Arwad's ships blockading Byblos with Amurru, in Byblos's waters (EA 98, 105) [A]; Sidon's ships off Tyre, cutting the
+ * island off from its mainland town (EA 148-149) [A, B that it was so in 1346]; and Aziru's men in Sumur's countryside,
+ * where Rib-Hadda reports them besieging Egypt's base (EA 103-106) [B; C on the year]. Labaya's war on Megiddo (EA 244)
+ * was over before 1346, so Shechem's men stand at home.
+ */
 const cityUnits = (): StartUnit[] =>
   WorldMap.default.provinces
     .filter((x) => x.capital && x.home !== null && !isGreatKing(x.home))
     .flatMap((x) => {
       const home = x.home!;
-      // Arwad, the island whose ships blockade Byblos (EA 98 and 105), keeps a fleet in its city instead of an army.
-      if (home === "Arwad") return [su(home, "Fleet", x.id, CityShips[x.id] * MenPerShip)];
-      const army = su(home, "Army", x.id, cityMen(x));
+      // Arwad, the island whose ships blockade Byblos (EA 98 and 105), keeps a fleet instead of an army, off Byblos.
+      if (home === "Arwad") return [su(home, "Fleet", watersId("byblos"), CityShips[x.id] * MenPerShip, x.id)];
+      const army = su(home, "Army", home === "Amurru" ? "sumur" : x.id, cityMen(x), x.id);
       const ships = CityShips[x.id];
-      return ships === undefined ? [army] : [army, su(home, "Fleet", x.waters ?? x.id, ships * MenPerShip, x.id)];
+      const at = home === "Sidon" ? watersId("tyre") : (x.waters ?? x.id);
+      return ships === undefined ? [army] : [army, su(home, "Fleet", at, ships * MenPerShip, x.id)];
     });
 
 /**
- * The Great Kings' armies and fleets at the start (item 13, "Starting positions come from the sources"), from the armies
- * dossier's "Start from" columns: Egypt and Hatti 15,000 men, Mitanni, Babylonia and Arzawa 10,000, Assyria 4,000 and
- * Alashiya 1,500, split between the cities where each kept its troops before item 13; Egypt's garrisons in its centres in
- * Canaan, Gaza and Sumur, a hundred men each (the low end of a town's range: EA 287, EA 289). Ships: Egypt 40, Alashiya 30,
- * Arzawa 10, Hatti 5, each {@link MenPerShip} men. Until item 13 every unit was a full levy, 5,000 men or a fleet's 2,000.
+ * The Great Kings' armies and fleets at the start, where the sources place them in 1346 (item 17+, "Starting positions come
+ * from the sources": a garrison in its city, a field force where it campaigned, an occupier in what it held), at the sizes
+ * the armies dossier's "Start from" columns give (item 13): Egypt and Hatti 15,000 men, Mitanni, Babylonia and Arzawa
+ * 10,000, Assyria 4,000 and Alashiya 1,500. Egypt's army is "at home and in Nubia" (the armies dossier): at Men-nefer, the
+ * army's base [B], at Akhetaten with the king [B], at Waset [G], and in Kush under the viceroy, whose campaign of year 12
+ * is Akhenaten's only attested one [B: the Buhen and Amada stelae; C: how many]; its garrisons in its centres in Canaan,
+ * Gaza and Sumur, a hundred men each (the low end of a town's range: EA 287, EA 289) [A]; Kumidi's waits for its
+ * commissioner (item 17++). Hatti's, recovered under Suppiluliuma and turning to Syria (the politics dossier): at Hattusa,
+ * at Samuha, the army base of the Upper Land facing Hayasa and the Kaska [A: KBo VI 28], in Kizzuwatna under Telipinu
+ * facing Syria [B], at Tuwanuwa in the Lower Land facing Arzawa [B], and at Nesa and Sapinuwa [G]. Mitanni's, split
+ * between Tushratta and Artatama II [B]: at Washukanni, Taidu and Harran, the west where the Hittite war is coming [C].
+ * Babylonia's at Babylon, Dur-Kurigalzu (Kurigalzu's royal city) [B], Nippur under its governor [B] and Sippar [G].
+ * Assyria's in the Tigris triangle, Ashur, Nineveh and Arbela [B]. Arzawa's at Apasa, its one land. Alashiya's at Enkomi
+ * and in the copper hills [G]. Ships: Egypt 40 (at Peru-nefer, the Delta's dockyard [A]), Alashiya 30, Arzawa 10, Hatti 5
+ * at Kizzuwatna, each {@link MenPerShip} men. The city-states' are {@link cityUnits}. Until item 13 every unit was a full
+ * levy, 5,000 men or a fleet's 2,000; until item 17+ each Great King's men stood in two or three of its cities.
  */
 export const StartUnits: readonly StartUnit[] = [
-  su("Egypt", "Army", "memphis", 7500),
-  su("Egypt", "Army", "akhetaten", 7500),
+  su("Egypt", "Army", "memphis", 6000),
+  su("Egypt", "Army", "akhetaten", 4000),
+  su("Egypt", "Army", "thebes", 2000),
+  su("Egypt", "Army", "nubia", 2800),
   su("Egypt", "Army", "gaza", 100),
   su("Egypt", "Army", "sumur", 100),
   su("Egypt", "Fleet", "delta", 40 * MenPerShip),
-  su("Hatti", "Army", "hattusa", 7500),
-  su("Hatti", "Army", "nesa", 7500),
+  su("Hatti", "Army", "hattusa", 5500),
+  su("Hatti", "Army", "samuha", 3000),
+  su("Hatti", "Army", "kizzuwatna", 3000),
+  su("Hatti", "Army", "tuwanuwa", 1500),
+  su("Hatti", "Army", "nesa", 1000),
+  su("Hatti", "Army", "sapinuwa", 1000),
   su("Hatti", "Fleet", "kizzuwatna", 5 * MenPerShip),
   su("Babylonia", "Army", "babylon", 4000),
-  su("Babylonia", "Army", "sippar", 3000),
   su("Babylonia", "Army", "durkurigalzu", 3000),
+  su("Babylonia", "Army", "nippur", 1500),
+  su("Babylonia", "Army", "sippar", 1500),
   su("Mitanni", "Army", "washukanni", 5000),
-  su("Mitanni", "Army", "taidu", 5000),
+  su("Mitanni", "Army", "harran", 3000),
+  su("Mitanni", "Army", "taidu", 2000),
   su("Assyria", "Army", "ashur", 2000),
   su("Assyria", "Army", "nineveh", 1000),
-  su("Assyria", "Army", "ekallate", 1000),
+  su("Assyria", "Army", "arbela", 1000),
   su("Arzawa", "Army", "apasa", 10000),
   su("Arzawa", "Fleet", "apasawaters", 10 * MenPerShip, "apasa"),
-  su("Alashiya", "Army", "enkomi", 1500),
+  su("Alashiya", "Army", "enkomi", 1000),
+  su("Alashiya", "Army", "kalavasos", 500),
   su("Alashiya", "Fleet", "enkomiwaters", 30 * MenPerShip, "enkomi"),
   ...cityUnits(),
 ];

@@ -55,9 +55,10 @@ describe("PeopleTests", () => {
     const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     const e = new TurnEngine(s);
     for (const p of Map.landProvinces) Assert.equal(harvestOf(p), e.harvestNow(p.id), 0);
-    // The starting armies' men came from their homes (item 13: Hatti's army at Hattusa is 7,500 men, the armies dossier's).
-    Assert.equal(start.get("hattusa")!.men - 7500, s.people.get("hattusa").men);
-    Assert.equal(7500, s.units.find((u) => u.province === "hattusa")!.men);
+    // The starting armies' men came from their homes (item 13: Hatti's army at Hattusa is 5,500 men since item 17+ placed
+    // the rest where the sources put them).
+    Assert.equal(start.get("hattusa")!.men - 5500, s.people.get("hattusa").men);
+    Assert.equal(5500, s.units.find((u) => u.province === "hattusa")!.men);
   });
 
   test("A levy takes men from the fields, and costs the harvest more at sowing and harvest than in the slack season", () => {
@@ -94,7 +95,8 @@ describe("PeopleTests", () => {
       if ((s.fed.tryGet("nesa") ?? 1000) < 1000) {
         bit = true;
         Assert.true(s.people.get("nesa").settled < before);
-        Assert.true(s.people.get("nesa").loose > loose);
+        // The hungry leave the land: loose on its roads, or settled with its neighbours (since item 17+ left Nesa more people).
+        Assert.true(s.people.get("nesa").settled + s.people.get("nesa").loose < before + loose);
       } else new TurnEngine(s).resolve(new Dict());
     }
     Assert.true(bit);

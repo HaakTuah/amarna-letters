@@ -427,7 +427,9 @@ export function armiesBefore13(s: GameState): GameState {
   s.config.armyPace = 0;
   s.config.realmDistance = 0;
   const map = WorldMap.default;
-  const added = new Set(["gaza", "sumur", "apasawaters", "enkomiwaters", "ugaritwaters", "sidonwaters", "tyrewaters", "bybloswaters"]);
+  // Item 17+ placed the Great Kings' men where the sources put them and the coast's ships where they campaigned; the tests
+  // keep the armies of item 13's cities, at their full size.
+  const added = new Set(["gaza", "sumur", "apasawaters", "enkomiwaters", "ugaritwaters", "sidonwaters", "tyrewaters", "bybloswaters", "thebes", "nubia", "samuha", "kizzuwatna", "tuwanuwa", "sapinuwa", "harran", "arbela", "nippur", "kalavasos"]);
   s.units = s.units.filter((u) => !added.has(u.province) && !(u.power === "Alashiya" && u.kind === "Army"));
   for (const u of s.units) {
     const p = map.get(u.province);
