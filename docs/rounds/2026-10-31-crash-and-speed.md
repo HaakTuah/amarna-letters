@@ -94,6 +94,11 @@ speed as they were, "Updated to the newest version" shown after); a version with
    the page. Principle: "Code decides facts" (pillar 6): the page shows the engine's facts, never its own reconstruction of
    them; and behaviour unchanged, which the item asks of the optimization round. The alternative, rebuilding the panels'
    data on the page from semantic events alone, would re-implement the engine's rules on the page and could drift from them.
+7. **The throttled phone's remaining frames go with item 17+++.** The bar is met on desktop; on the phone profile the
+   long frames left are the rendering of the season's layer writes (the season's washes change every turn by design) and
+   the names placed, and item 17+++ "redraws the season textures" and plays the season out, which is where the season's
+   drawing is rebuilt. Principle: "No stopgaps": the season drawing is not rebuilt twice. The alternative, rebuilding it
+   here, would do 17+++'s work ahead of its text.
 6. **The page shows whole seasons.** Its state comes from the season's snapshot, taken after resolution, not from every
    change of phase within a season; nothing shown mid-season was ever a rule, and a half-resolved season is not a fact.
    Principle: "Code decides facts": the engine's season is the unit of truth the page shows.
@@ -237,12 +242,19 @@ Whole games of seed 1 (102 seasons), the last run of every profile, against deve
 | Desktop, fast: before | 6572 | 337 (5.1%) | 617 ms | |
 | **Desktop, fast: after** | 5254 | **110 (2.1%)** | **117 ms** (most 83 to 100) | 22, 1.8 s |
 | Phone (CPU slowed 4x), normal: before | the renderer crashed at 180 s | | | |
-| Phone (CPU slowed 4x), normal: after | PHONE_NORMAL |
+| Phone (CPU slowed 4x), normal: after | 3797 | 706 (18.6%) | 283 ms (most 217 to 250) | 724, 63 s |
 | Phone (CPU slowed 4x), fast: before | not ended in 40 minutes (season 95) | 9 to 14 of every 50 frames | 1550 ms | |
-| Phone (CPU slowed 4x), fast: after | PHONE_FAST |
+| Phone (CPU slowed 4x), fast: after | 2219 | 553 (24.9%) | 300 ms (most 233 to 283) | 629, 56 s |
 
 The start (seasons -1 and 0: the game's setup, the first state read whole, the whole map's first drawing) is 333 to 350 ms on
 desktop and about 1.7 s on the phone profile, before any season plays.
+
+So the bar is met on desktop at both speeds but for a few frames a game (none over 117 ms while seasons play, against 500
+to 617 ms before), and not on the throttled phone profile, where the game now runs to its end at both speeds (before, it
+crashed at normal speed and did not get through at fast) but every season still brings a few frames of 200 to 300 ms: the
+rendering of a season's layer writes and the names placed, at four times the cost and in software raster. What those frames
+are made of is above; the next levers (season washes pre-drawn and toggled rather than rewritten, names placed from cached
+measurements) belong with item 17+++, which redraws the season textures and plays the season out (reading 7).
 
 ## Benchmarks
 
