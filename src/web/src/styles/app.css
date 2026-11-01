@@ -709,8 +709,10 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 /* The table of seats fits its column on a phone: the player picker shrinks to the room left by the power and its tier,
    instead of growing to its longest option and running off the screen. */
 .customize table { width: 100%; table-layout: fixed; }
-.customize th:nth-child(2) { width: 4.2rem; }
+.customize th:nth-child(2) { width: 4.6rem; }
 .customize td select { width: 100%; min-width: 0; text-overflow: ellipsis; }
+.customize td .model-picker { display: flex; }
+.customize td .model-picker > * { flex: 1 1 100%; min-width: 0; }
 
 /* Anything that moves stands still for readers who ask the system for less motion. */
 @media (prefers-reduced-motion: reduce) {
