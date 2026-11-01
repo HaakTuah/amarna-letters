@@ -186,10 +186,36 @@ its frame before the page had registered the risen power, and the map's scene th
 element" in `capital`); the error screen took over, as it should, and the game stood still on screen. The risen powers
 now travel with every update (`Live.risen`) and are registered before a frame is drawn.
 
-So the crash is gone on the phone profile too, and the worst frame halved on desktop, but every season still costs about
+So the crash was gone on the phone profile too, and the worst frame halved on desktop, but every season still cost about
 three long frames (200 to 380 ms on desktop, about a second on the throttled phone): the season's whole work, the worker's
-message, the state read, React's redraw and the map's layers, lands in one or two tasks. The bar needs each step cheap and
-the steps spread over frames. The breakdown and the work follow.
+message, the state read, React's redraw and the map's layers, landed in one or two tasks.
+
+### The smoothness work, step by step (1 November)
+
+Each step measured with `--trace` (the browser's timeline, the long tasks and what each was made of) on desktop at Fast
+speed, whole games; the design note describes each.
+
+| Step | Frames over 50 ms (of drawn) | Worst in play | Long tasks (count, total) |
+|---|---|---|---|
+| After the stream (above) | 338 of 4021 (8.4%) | 233 ms | 323, 33 s |
+| The state read in a task of its own; the map's layers in budgeted steps | 406 of 4111 (9.9%) | 233 ms | 393, 37 s |
+| The reader keyed by pieces, lists reused by prefix, objects member by member, the cut deep only under the characters | 351 of 4024 (8.7%) | 233 ms | 331, 32 s |
+| The read spread over tasks of about 10 ms | 426 of 4015 (10.6%) | 200 ms | 369, 30 s; no script task over 50 ms |
+| The timeline's verdict: 87 of 93 long tasks were the main thread waiting on the compositor (85 to 146 ms each) | | | |
+| **The map in five composited layers** | **126 of 5123 (2.5%)** | **117 ms** (100 at a few seasons) | **33, 2.4 s** |
+
+Whole games with the layered map, every speed and profile (`node src/web/soak.mjs --speed fast|normal [--phone]`):
+
+| | Frames drawn | Over 50 ms | Worst in play | Longest frames (ms at season) |
+|---|---|---|---|---|
+| Desktop, fast | 5123 | 126 (2.5%) | 117 ms | 333@start, 133@0, 117@102, 100@10, 100@98 |
+| Desktop, normal | 7345 | 81 (1.1%) | 83 ms | 333@start, 133@0, 117@102, 83@49, 83@73 |
+| Phone (CPU slowed 4x), fast | 1669 | 558 (33%) | 433 ms | 1667@start, 600@0, 433@87, 417@79, 383@36 |
+| Phone (CPU slowed 4x), normal | 3541 | 681 (19%) | 467 ms | 1633@start, 633@0, 467@87, 283@88, 267@99 |
+
+The start (season -1 and 0) is the game's setup and the whole map's first drawing, not a season playing. On desktop the bar
+is met in all but a few frames a game; on the throttled phone, where every step costs four times as much, it is not yet:
+the phone's long frames are traced next.
 
 ## Benchmarks
 
