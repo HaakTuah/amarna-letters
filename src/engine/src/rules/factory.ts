@@ -17,7 +17,7 @@ import { newTablet, newTabletCopy } from "../model/records.ts";
 import { renderClauses } from "./clauses.ts";
 import { clamp } from "../core/num.ts";
 import { newCharacter, newContract, newFact, newTie, newTraits, type Character, type Secrecy } from "../model/people.ts";
-import { AllPowers, adjective, isGreatKing, land, setRisen, type Power } from "../model/power.ts";
+import { AllPowers, adjective, isGreatKing, land, setNameClaims, setRisen, type Power } from "../model/power.ts";
 import { newTreasury, newGameState, newUnit, logEvent, newId, notify, type GameState } from "../model/state.ts";
 import { StateOfRealmTitle, stateOfRealm } from "./realm.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
@@ -32,6 +32,7 @@ import { chooseStrategy } from "./strategy.ts";
 export function newGame(seed: number, config: GameConfig | null = null, map: WorldMap | null = null): GameState {
   // A new game starts with the powers the map gives; powers rise in play only (item 13+).
   setRisen([]);
+  setNameClaims([], []);
   const m = map ?? WorldMap.default;
   const s = newGameState({ seed, config: config ?? newGameConfig(), turn: 1 });
   // The last season, drawn once in secret from its own stream before anything else is rolled.

@@ -40,6 +40,7 @@ import {
   type Rng,
   type TabletView,
 } from "@amarna/engine";
+import { byHouse } from "./claims.ts";
 import { Board, LeadFloor } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import { Names } from "./names.ts";
@@ -228,7 +229,7 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
           shown,
           `My brother, see what ${forged.seals.join(" and ")} have sealed in secret. I send you the tablet itself. Judge for yourself who are your friends.`,
           // What it shows is the tablet; the clauses only greet him (item 8).
-          { mandate: "Show the tablet. Promise nothing.", greeting: greet(brain, shown), copies: [forged.copyId], clauses: [clause("wellWishes")] },
+          { mandate: "Show the tablet. Promise nothing.", greeting: greet(brain, shown, false, b), copies: [forged.copyId], clauses: [clause("wellWishes")] },
         ),
         forged.copyId,
       );
@@ -253,7 +254,7 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
           `${breaker} sealed this tablet with me before the gods, and then broke it. See for yourself what an oath of ${breaker} is worth. Stand with me, and ${breaker} will learn the price of a broken oath.`,
           {
             mandate: `You may agree to act together against ${breaker}. Promise no land.`,
-            greeting: greet(brain, told),
+            greeting: greet(brain, told, false, b),
             copies: [broken.copyId],
             clauses: [clause("against", { power: breaker })],
           },
@@ -294,7 +295,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
   const p = brain.p;
   const me = b.me;
   const to = m.to;
-  const greeting = greet(brain, to, m.kind === "tribute" || m.kind === "bond-tribute" || m.kind === "bond-submit");
+  const greeting = greet(brain, to, m.kind === "tribute" || m.kind === "bond-tribute" || m.kind === "bond-submit", b);
   const flavour = flavourOf(me, to);
   const weaker =
     b.landGrowth(me) *
@@ -551,10 +552,14 @@ function tradeRights(v: SeatView, to: Power): Clause[] {
   return wantsTradeRights(v, to) ? [clause("tollFree"), clause("askTollFree")] : [];
 }
 
-/** The greeting a king chooses, from his pride and his feelings for the recipient. `humble`: tribute. */
-export function greet(brain: Brain, to: Power, humble = false): GreetingOptions {
+/**
+ * The greeting a king chooses, from his pride and his feelings for the recipient. `humble`: tribute. With the board, a
+ * contested name is given by his stakes (item 17+).
+ */
+export function greet(brain: Brain, to: Power, humble = false, b: Board | null = null): GreetingOptions {
   const p = brain.p;
   const o = newGreetingOptions();
+  if (b !== null && byHouse(b, brain, to)) o.byHouse = true;
   const r = brain.rel.get(to);
   if (r.hostile) {
     o.callBrother = false;

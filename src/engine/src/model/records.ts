@@ -273,6 +273,11 @@ export interface GreetingOptions {
   callBrother: boolean;
   claimGreatKing: boolean;
   grantGreatKing: boolean;
+  /**
+   * Item 17+ ("A power's name is a claim"): call the recipient by his house (Bit-Biryawaza), not the name he claims, where
+   * another claims it too; withholds the name, as withholding "Great King" withholds the title. Absent: false.
+   */
+  byHouse?: boolean | null;
   /** Free text that replaces the rendered greeting entirely, if set. */
   custom: string | null;
 }
@@ -295,6 +300,7 @@ export const GreetingOptionsSchema: ObjSchema<GreetingOptions> = obj("GreetingOp
   callBrother: B,
   claimGreatKing: B,
   grantGreatKing: B,
+  byHouse: opt(B),
   custom: S,
 });
 

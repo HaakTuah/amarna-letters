@@ -1,7 +1,7 @@
 /** One game of the batch runner, as the C# batch runner plays it: in a worker thread for script games, in the main thread otherwise. */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { AllPowers, Dict, GameStateSchema, fmt, serialize, setRisen, align, type GameConfig, type Power } from "@amarna/engine";
+import { AllPowers, Dict, GameStateSchema, fmt, serialize, setNameClaims, setRisen, align, type GameConfig, type Power } from "@amarna/engine";
 import {
   BaselineLeader,
   PlanAhead,
@@ -217,6 +217,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   // A worker plays game after game: the powers an earlier game raised (item 13+) are not this game's, and its seats are
   // chosen from the powers in play, so the registry starts as a new game's before them (newGame does the same after).
   setRisen([]);
+  setNameClaims([], []);
   const choices = choicesOf(o);
   PlanAhead.on = o.planAhead;
   SeaPlay.on = o.seaPlay;
@@ -372,6 +373,7 @@ export interface SoloJob {
 
 export async function playSolo(job: SoloJob): Promise<GameSummary> {
   setRisen([]);
+  setNameClaims([], []);
   const [summary] = await playGame(
     job.soloSeed,
     (st) => {

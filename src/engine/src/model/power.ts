@@ -109,6 +109,7 @@ export function setRisen(list: readonly RisenPower[]): void {
   powerIndex.clear();
   PowerValues.forEach((p, i) => powerIndex.set(p, i));
   for (const r of list) addRisen(r);
+  byName = null;
 }
 
 /** Adds a power risen in play to the registry (the game state keeps it too). */
@@ -117,6 +118,7 @@ export function addRisen(r: RisenPower): void {
   risenData.set(r.power, r);
   powerIndex.set(r.power, live.length);
   live.push(r.power);
+  byName = null;
 }
 
 /** A power risen in play, or null for one the map starts with. */
@@ -236,9 +238,139 @@ function dataOf(p: Power): PowerData {
   return d(r?.land ?? p, r?.king ?? `the ruler of ${p}`, r?.land ?? p, "City");
 }
 
-/** The land's name as it appears in letters. */
-export function land(p: Power): string {
+/** The land's name a power started with, or rose with: the name it claims unless it claims another (item 17+). */
+export function ownLand(p: Power): string {
   return dataOf(p).land;
+}
+
+/**
+ * Item 17+ ("A power's name is a claim"): the name each power in play claims, where it claims another than its own land's
+ * (`GameState.names`), the season it claimed it, and whom each court gives a contested name to (`GameState.nameGiven`),
+ * mirrored here, as the risen powers are, for the functions that name a power without the state.
+ */
+const claimed = new Map<string, { name: string; since: number }>();
+const fallenNow = new Set<string>();
+const givenBy = new Map<string, Map<string, string>>();
+let viewerNow: Power | null = null;
+
+/** Sets the name claims to a game's (`GameState.names`, `nameGiven` and the fallen, who claim nothing). */
+export function setNameClaims(
+  names: Iterable<[string, { name: string; since: number }]>,
+  fallen: Iterable<Power>,
+  given: Iterable<[string, Iterable<[string, string]>]> = [],
+): void {
+  claimed.clear();
+  fallenNow.clear();
+  givenBy.clear();
+  for (const [p, c] of names) claimed.set(p, { name: c.name, since: c.since });
+  for (const p of fallen) fallenNow.add(p);
+  for (const [court, m] of given) givenBy.set(court, new Map(m));
+  byName = null;
+}
+
+/**
+ * Names powers as `viewer`'s court gives them while `fn` runs (its seat view, its requests): a contested name goes to the
+ * claimant it recognises. Without a viewer, names are the world's record.
+ */
+export function asSeenBy<T>(viewer: Power | null, fn: () => T): T {
+  const before = viewerNow;
+  viewerNow = viewer;
+  try {
+    return fn();
+  } finally {
+    viewerNow = before;
+  }
+}
+
+/** Names powers as `viewer`'s court does until changed (the web page names everything as its seat's court does). */
+export function setNameViewer(viewer: Power | null): void {
+  viewerNow = viewer;
+}
+
+/** The name a power claims: its own land's unless it claimed another. */
+export function claimedName(p: Power): string {
+  return claimed.get(p)?.name ?? ownLand(p);
+}
+
+let byName: Map<string, Power[]> | null = null;
+
+/** The powers in play claiming a name, in their order (reckoned once each time the claims or the powers change). */
+export function claimantsOf(name: string): Power[] {
+  if (byName === null) {
+    byName = new Map();
+    for (const p of AllPowers) {
+      if (fallenNow.has(p)) continue;
+      const n = claimedName(p);
+      const l = byName.get(n);
+      if (l === undefined) byName.set(n, [p]);
+      else l.push(p);
+    }
+  }
+  return byName.get(name) ?? [];
+}
+
+/**
+ * Whom the world's record gives a name to: the power whose own land it is while it claims it, else the one that claimed it
+ * first; two who claimed it in the same season share it with nobody (the order of resolution never decides). Null: nobody.
+ */
+export function holderOfName(name: string): Power | null {
+  const cs = claimantsOf(name);
+  if (cs.length === 0) return null;
+  if (cs.length === 1) return cs[0];
+  const own = cs.find((p) => ownLand(p) === name && !claimed.has(p));
+  if (own !== undefined) return own;
+  const first = Math.min(...cs.map((p) => claimed.get(p)?.since ?? 0));
+  const firsts = cs.filter((p) => (claimed.get(p)?.since ?? 0) === first);
+  return firsts.length === 1 ? firsts[0] : null;
+}
+
+/** The names two or more powers in play claim (item 17+). */
+export function contestedNames(): string[] {
+  claimantsOf("");
+  return [...byName!.entries()].filter(([, l]) => l.length > 1).map(([n]) => n);
+}
+
+/** The names a power may claim (item 17+): every realm's the map knows or a power rose with, and every name claimed. */
+export function claimableNames(): string[] {
+  const out = new Set<string>();
+  for (const p of AllPowers) out.add(ownLand(p));
+  for (const c of claimed.values()) out.add(c.name);
+  return [...out];
+}
+
+/** A name as the claimable names spell it, matched in any case; null if none. */
+export function nameKnown(name: string): string | null {
+  const l = name.trim().toLowerCase();
+  return claimableNames().find((n) => n.toLowerCase() === l) ?? null;
+}
+
+/** A power's house (item 17+): Bit- and its first king's name (Bit-Biryawaza), or Bit- and its land where he is unnamed. */
+export function house(p: Power): string {
+  const x = dataOf(p);
+  return `Bit-${rulerNamed(p) ? x.king : x.land.replace(/^the land of the |^the /, "")}`;
+}
+
+/**
+ * Whom a court gives a contested name to: the claimant its greetings last named so (`GameState.nameGiven`), if he still
+ * claims it, else the world's record. A court gives its own claimed name to itself.
+ */
+export function nameGivenBy(viewer: Power | null, name: string): Power | null {
+  if (viewer !== null && claimedName(viewer) === name && !fallenNow.has(viewer)) return viewer;
+  const g = viewer !== null ? givenBy.get(viewer)?.get(name) : undefined;
+  if (g !== undefined && !fallenNow.has(g) && claimedName(g) === name) return g;
+  return holderOfName(name);
+}
+
+/** A power's name as `viewer`'s court gives it: the name it claims, or its house where the court gives that name to another. */
+export function landFor(viewer: Power | null, p: Power): string {
+  const name = claimedName(p);
+  if (claimantsOf(name).length < 2) return name;
+  return nameGivenBy(viewer, name) === p ? name : house(p);
+}
+
+/** The land's name as it appears in letters: the name it claims, as the court naming it gives it (item 17+). */
+export function land(p: Power): string {
+  return landFor(viewerNow, p);
 }
 
 /** The reigning king (or chief), by the names the letters use: what foreign courts call him. */
@@ -284,6 +416,7 @@ export function parsePower(s: string | null | undefined): Power | null {
     return n >= 0 && n < AllPowers.length ? AllPowers[n] : null;
   }
   for (const p of AllPowers) if (land(p).toLowerCase() === lower) return p;
+  for (const p of AllPowers) if (house(p).toLowerCase() === lower || ownLand(p).toLowerCase() === lower) return p;
   return null;
 }
 

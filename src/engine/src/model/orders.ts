@@ -489,6 +489,15 @@ export interface RoadsOrder {
   close: boolean;
 }
 /**
+ * Item 17+ ("A power's name is a claim"): the king claims a realm's name or title, any the map knows or a power claims,
+ * Pharaoh's included; his own land's name returns him to it. It gives nothing by rule: each court decides whom it gives a
+ * contested name to, in the greetings it sends.
+ */
+export interface ClaimNameOrder {
+  type: "claimName";
+  name: string;
+}
+/**
  * End the passage and basing this king granted another on sealed tablets (item 9), in one province or, with none named,
  * all of them. Its troops still standing in the land after it ends take it, as any troop does.
  */
@@ -613,6 +622,7 @@ export type Order =
   | RecallSpyOrder
   | CounterIntelOrder
   | RoadsOrder
+  | ClaimNameOrder
   | RevokeOrder
   | GrantOrder
   | RepudiateOrder
@@ -728,6 +738,7 @@ export const placeSpy = (character: string, court: Power | null = null, province
 export const recall = (character: string): RecallSpyOrder => ({ type: "recall", character });
 export const counterIntel = (spend: number): CounterIntelOrder => ({ type: "counterIntel", spend });
 export const roads = (court: Power, close: boolean): RoadsOrder => ({ type: "roads", court, close });
+export const claimName = (name: string): ClaimNameOrder => ({ type: "claimName", name });
 export const revoke = (grantee: Power, province: string | null = null): RevokeOrder => ({ type: "revoke", grantee, province });
 export const grant = (grantee: Power, kind: GrantKind, province: string | null = null, seasons: number | null = null): GrantOrder => ({ type: "grant", grantee, kind, province, seasons });
 export const repudiate = (copy: string): RepudiateOrder => ({ type: "repudiate", copy });
@@ -864,6 +875,8 @@ export function describe(o: Order): string {
       return `spend ${o.spend} on watching for spies`;
     case "roads":
       return `${o.close ? "close" : "open"} your roads to the people of ${o.court}`;
+    case "claimName":
+      return `claim the name of ${o.name}`;
     case "grant":
       return `grant ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing in"} ${o.province !== null ? named(o.province) : "all your land"}${o.seasons !== null ? ` for ${o.seasons} seasons` : " until revoked"}`;
     case "revoke":
@@ -1033,6 +1046,7 @@ export const OrderSchema = poly("Order", "type", {
   recall: v("RecallSpyOrder", () => recall(""), { character: S }),
   counterIntel: v("CounterIntelOrder", () => counterIntel(0), { spend: I }),
   roads: v("RoadsOrder", () => roads("Egypt", true), { court: S, close: B }),
+  claimName: v("ClaimNameOrder", () => claimName(""), { name: S }),
   revoke: v("RevokeOrder", () => revoke("Egypt"), { grantee: S, province: opt(S) }),
   grant: v("GrantOrder", () => grant("Egypt", "passage"), { grantee: S, kind: S, province: opt(S), seasons: opt(I) }),
   repudiate: v("RepudiateOrder", () => repudiate(""), { copy: S }),

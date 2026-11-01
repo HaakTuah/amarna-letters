@@ -32,6 +32,8 @@ const P = TurnEngine.prototype;
 
 P.resolveCourt = function (orders) {
   const S = this.s;
+  // Names claimed first (item 17+), so the season's greetings carry them.
+  for (const [p, o] of orders) if (o.type === "claimName") this.claimName(p, o);
   // Jobs first (Haakon's answers to item 11a): a man offered a job at court this season can be sent on its errand at once.
   this.hireAll(orders.filter(([, o]) => o.type === "hire" && ((o as HireOrder).via ?? null) === null).map(([p, o]) => ({ p, h: o as HireOrder })));
   for (const [p, o] of orders) if (o.type === "renew") this.renew(p, o);

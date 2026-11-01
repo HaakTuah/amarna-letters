@@ -26,7 +26,7 @@ import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
-import { setRisen, type Power } from "../model/power.ts";
+import { setNameClaims, setRisen, type Power } from "../model/power.ts";
 import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -45,6 +45,8 @@ export class TurnEngine {
     this.map = map ?? WorldMap.default;
     // The powers risen in play are the state's (item 13+): a loaded or replayed game brings its own.
     setRisen(state.risen);
+    // And the names they claim (item 17+), which the functions naming a power read.
+    setNameClaims(state.names, state.eliminated, state.nameGiven);
   }
 
   /** The stream for a roll this season. */

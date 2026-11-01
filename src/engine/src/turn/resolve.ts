@@ -584,6 +584,8 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   const apart = landHeld.filter((x) => !passes(x));
   S.falls.push(newKingdomFall({ power: p, turn: S.turn, conqueror, capital: capital.id, land: passed }));
   S.eliminated.push(p);
+  // A fallen court claims no name (item 17+).
+  this.syncNames();
   this.endSleep(p);
   // Its court's journey and its couriers on the road end with it.
   S.kingRoads = S.kingRoads.filter((r) => r.power !== p);

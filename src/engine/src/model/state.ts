@@ -9,7 +9,7 @@ import { AllPowers, type Power, type RisenPower, cmpPower } from "./power.ts";
 import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
-import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
+import { type Claim, ClaimSchema, type NameClaim, NameClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 import { type Grant, GrantSchema } from "./authority.ts";
 import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
 import { type Toll, TollSchema } from "./trade.ts";
@@ -193,6 +193,13 @@ export interface GameState {
   claims: Claim[];
   /** Who called whom brother and granted whom the title, in the greetings sent (item 8). */
   recognition: Recognition[];
+  /**
+   * Item 17+ ("A power's name is a claim"): the name each power claims where it claims another than its own land's, and
+   * the season it claimed it. A claim gives nothing by rule.
+   */
+  names: Dict<Power, NameClaim>;
+  /** Item 17+: whom each court gives a contested name to, as its greetings last named him (court, then name, to claimant). */
+  nameGiven: Dict<Power, Dict<string, Power>>;
   /**
    * The season the age ended in, when the table chose to play on into an open age after it ("An open age"); its winners
    * and reason stay recorded in {@link winners} and {@link endReason}. Null otherwise.
@@ -443,6 +450,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     finalByCap: false,
     claims: [],
     recognition: [],
+    names: new Dict(),
+    nameGiven: new Dict(),
     ageEndedTurn: null,
     ageWinners: [],
     owner: new Dict(),
@@ -548,6 +557,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   finalByCap: B,
   claims: list(() => ClaimSchema),
   recognition: list(() => RecognitionSchema),
+  names: dict(() => NameClaimSchema),
+  nameGiven: dict(dict(S)),
   ageEndedTurn: opt(I),
   ageWinners: list(S),
   owner: dict(opt(S)),

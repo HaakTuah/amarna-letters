@@ -85,6 +85,33 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   origins are by their own names too (Waset, Men-nefer, Gubla), and the place-name map (`OriginProvince`) knows them.
 - **Only what stood in 1346 is drawn as standing:** above, under the map.
 
+## A power's name is a claim (`model/power.ts`, `turn/press.ts`, `rules/greeting.ts`, `bots/claims.ts`)
+
+- **The claim.** `GameState.names` holds the name each power claims where it is not its own land's (`ownLand`), with the
+  season (`NameClaim`). The order `claimName(name)` (models: `claim_name`, the name in `item`) claims any realm's name the
+  map knows or a power claims (`claimableNames`), Pharaoh's included; one's own land's name returns one to it. It is
+  resolved first among the court's business, so the season's greetings carry it. A risen power's own name is its seat's,
+  as before, and it keeps it however far it grows. A fallen power claims nothing. A claim gives nothing by rule.
+- **Whom a name goes to.** Where two or more claim one name, each court gives it in the greetings it sends
+  (`GameState.nameGiven`, court to name to claimant): a greeting gives the recipient the name he claims, and one with
+  `byHouse` (models: `by_house`) calls him by his house and takes back a name given him before. The world's record
+  (`holderOfName`, no viewer) gives it to the power whose own land it is while that power claims it, else to the one
+  that claimed it first; two who claimed it in the same season share it with nobody. A court gives its own claimed name to
+  itself.
+- **House names** (`house`): Bit- and the first king's name (Bit-Aziru, Bit-Rib-Hadda), or Bit- and the land where the
+  sources name no king; never a number.
+- **Naming as a court gives it** (`land(p)` reads `landFor(viewer, p)`): the engine names powers as the world's record does;
+  a court's seat view (`Views.for`, wrapped in `asSeenBy`) and the web page with one human seat (`setNameViewer`) name them
+  as that court gives them. The seat view carries `claimedName` and `nameClaims` (each contested name, its claimants and
+  whom the court gives it to); the models read them as NAMES CLAIMED beside RANK. The registry mirrors the state as the
+  risen powers do (`setNameClaims`, set by the engine, the batch runner and the web client).
+- **Script kings** (`bots/claims.ts`): a king who is not a Great King and holds the capital of a realm of a higher tier
+  than his own claims its name (the greatest such); a Great King keeps his own, as Hatti and Assyria kept theirs. Their
+  greetings give a contested name to a bond friend, else a friend, else the claimant holding the realm's capital, else
+  the one whose own land it is; any other claimant is greeted by his house.
+- **Who hears of a claim** (a reading): the claimant's own court at once, by notice; every other court by his greetings,
+  which name him so, and the world's record from the season it is made, since a claim is how his own letters style him.
+
 ## The people of 1346 who did not rule (`PeopleOf1346`, `NamedScribes` in `rules/cast.ts`; `more`, `scribes` in `rules/factory.ts`)
 
 - **Who:** every attested person the dossiers mark alive and active in 1346 who passes both tests, the historical and the

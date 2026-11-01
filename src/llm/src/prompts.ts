@@ -18,6 +18,7 @@ import {
   isEnvoyWaiting,
   king,
   kingFor,
+  claimedName,
   land,
   landGrowth,
   sortBy,
@@ -44,7 +45,7 @@ import {
 import { economyLines, worksLines } from "./prompt-economy.ts";
 import { Sb, joinS } from "./text.ts";
 export function identity(p: Power): string {
-  return `You are ${kingFor(p, p)}, Great King of ${land(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
+  return `You are ${kingFor(p, p)}, Great King of ${claimedName(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
 }
 
     /// <summary>
@@ -126,7 +127,20 @@ export function rankLine(v: SeatView): string
         const mine = v.greetings.filter((x) => x.from === v.power).map((x) => `${x.to}: ${called(x.to, v.power)}`);
         if (others.length > 0) parts.push(`what other kings call you: ${joinS(`; `, others)}`);
         if (mine.length > 0) parts.push(`what you call them: ${joinS(`; `, mine)}`);
-        return parts.length === 0 ? "" : `RANK: ${joinS(`. `, parts)}.`;
+        const rank = parts.length === 0 ? "" : `RANK: ${joinS(`. `, parts)}.`;
+        const names = namesLine(v);
+        return rank.length > 0 && names.length > 0 ? `${rank}\n${names}` : rank + names;
+    }
+
+/**
+ * Item 17+ ("A power's name is a claim"): the names two or more kings claim, and whom this court's greetings give each to.
+ * Empty when no name is contested and the king goes by his own land's name.
+ */
+export function namesLine(v: SeatView): string
+    {
+        if (v.nameClaims.length === 0) return "";
+        const parts = v.nameClaims.map((c) => `${c.name} is claimed by ${joinS(` and `, c.claimants)}; ${c.givenTo === v.power ? `you hold it` : c.givenTo !== null ? `your court gives it to ${c.givenTo} and calls the other${c.claimants.length > 2 ? `s` : ``} by ${c.claimants.length > 2 ? `their houses` : `his house`}` : `your court has given it to no one`}`);
+        return `NAMES CLAIMED: you go by the name of ${v.claimedName}. ${joinS(`. `, parts)}.`;
     }
 
 export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): string

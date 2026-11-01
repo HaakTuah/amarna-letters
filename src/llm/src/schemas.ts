@@ -137,6 +137,7 @@ export const OtherActions = [
   "counter_intelligence",
   "close_roads",
   "open_roads",
+  "claim_name",
   "revoke_passage",
   "grant_passage",
   "grant_basing",
@@ -210,7 +211,7 @@ const otherOrder = (described = true): ReplySchema =>
       "item",
       str(
         described
-          ? "For build and build_corvee, what is built: walls, roads, stations (relay stations), harbour, police or water (water works); for repay, the debt (like d3), as your treasury gives it; for assay, your mark for the gold (like g7), as your treasury gives it; for authenticate or repudiate (a tablet your envoy sealed in your name), your mark for your copy of the tablet (like k8), as your archive gives it."
+          ? "For build and build_corvee, what is built: walls, roads, stations (relay stations), harbour, police or water (water works); for repay, the debt (like d3), as your treasury gives it; for assay, your mark for the gold (like g7), as your treasury gives it; for authenticate or repudiate (a tablet your envoy sealed in your name), your mark for your copy of the tablet (like k8), as your archive gives it; for claim_name, the realm's name you claim (your own land's to return to it)."
           : null,
       ),
     ],
@@ -423,6 +424,10 @@ const letter = (c: GameConfig | null): ReplySchema => {
       bool("Name yourself Great King in the greeting. False names you only as king of your land, which the recipient reads as not claiming the rank."),
     ],
     ["your_name_first", bool("Put your own name before the recipient's: presumptuous, and the recipient will notice. False keeps the custom, his name first.")],
+    [
+      "by_house",
+      bool("Call the recipient by his house (Bit- and his founder's name), not the realm's name he claims, where another king claims it too: you give the name to the other. False gives it to him."),
+    ],
     ["omit_greeting", bool("Send no greeting at all, which is a slight. The other greeting flags are then ignored.")],
     ...(structured ? [] : ([["tablet_to_seal", str("Text for both kings to seal, or empty.")]] as [string, z.ZodType][])),
     [

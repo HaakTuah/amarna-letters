@@ -31,6 +31,7 @@ import {
   revoke,
   grant,
   repudiate,
+  claimName,
   newAuthority,
   disband,
   tax,
@@ -367,6 +368,7 @@ export function letters(o: JsonObject): Order[] {
           claimGreatKing: B(l, "claim_great_king"),
           senderFirst: B(l, "your_name_first"),
           omit: B(l, "omit_greeting"),
+          byHouse: B(l, "by_house"),
         }),
         gold: Math.max(0, I(l, "gold")),
         purityPercent: clamp(purity === 0 ? 100 : purity, 10, 100),
@@ -592,6 +594,8 @@ function other(x: Node): Order | null {
         : unreadable(`grant leave to '${named}'`, nowhere(named, "the king you grant it"));
     case "revoke_passage":
       return power !== null ? revoke(power, province.length > 0 ? province : null) : unreadable(`revoke the passage you granted '${named}'`, nowhere(named, "the king you granted it"));
+    case "claim_name":
+      return claimName(S(x, "item"));
     case "repudiate":
       return repudiate(S(x, "item"));
     case "assay":

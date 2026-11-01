@@ -28,6 +28,8 @@ import {
   upkeep,
   huntBands,
   hunt,
+  claimName,
+  claimableNames,
   type Power,
 } from "@amarna/engine";
 import { dated, grantLine, powerName, provinceName, shekels } from "../../ui/format.ts";
@@ -64,6 +66,30 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             </button>
           );
         })}
+      </div>
+      {/* Item 17+ ("A power's name is a claim"): the realm's name the king goes by; a claim gives nothing by rule. */}
+      <div className="row" style={{ marginTop: ".4rem" }}>
+        <span>
+          You go by the name of {v.claimedName}.
+          {v.nameClaims.map((n) => ` ${n.name} is claimed by ${n.claimants.map(powerName).join(" and ")}${n.givenTo !== null ? `; your court gives it to ${powerName(n.givenTo)}` : ""}.`).join("")}
+        </span>
+        <select
+          value=""
+          disabled={draft.other.some((o) => o.type === "claimName")}
+          onChange={(e) => {
+            if (e.target.value !== "") add(claimName(e.target.value));
+          }}
+        >
+          <option value="">Claim a realm's name…</option>
+          {claimableNames()
+            .filter((n) => n !== v.claimedName)
+            .sort()
+            .map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+        </select>
       </div>
       {/* Item 11a+: passage or basing granted by order, standing from next season. */}
       <div className="row" style={{ marginTop: ".4rem" }}>

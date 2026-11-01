@@ -912,12 +912,31 @@ export interface SeatView {
   claims: Claim[];
   /** What this court called others, and they it, in the greetings sent between them (item 8). */
   greetings: Recognition[];
+  /** Item 17+ ("A power's name is a claim"): the name this court's king goes by. */
+  claimedName: string;
+  /** Item 17+: each name two or more claim, its claimants, and whom this court gives it to (null: nobody yet). */
+  nameClaims: NameClaimView[];
 }
+
+/** A name claimed by more than one power (item 17+), as one court sees it. */
+export interface NameClaimView {
+  name: string;
+  claimants: Power[];
+  givenTo: Power | null;
+}
+
+export const NameClaimViewSchema: ObjSchema<NameClaimView> = obj("NameClaimView", () => ({ name: "", claimants: [], givenTo: null }), {
+  name: S,
+  claimants: list(S),
+  givenTo: opt(S),
+});
 
 export function newSeatView(init: Partial<SeatView> = {}): SeatView {
   return {
     greetings: [],
     claims: [],
+    claimedName: "",
+    nameClaims: [],
     turn: 0,
     season: "",
     power: "Egypt",
@@ -1005,6 +1024,8 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
 export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, {
   greetings: list(() => RecognitionSchema),
   claims: list(() => ClaimSchema),
+  claimedName: S,
+  nameClaims: list(() => NameClaimViewSchema),
   turn: I,
   season: S,
   power: S,
