@@ -7,6 +7,7 @@
 /* Item 17+: a land with no great town of its time (Nesa by 1346, the herders' lands): its seal, smaller and open, no town rings. */
 .map .city.notown .walls, .map .city.notown .cap-ring { visibility: hidden; }
 .map .city.notown .seal { transform: scale(.7); transform-box: fill-box; transform-origin: center; stroke-dasharray: 3 2; }
+.map .city.notown.small .seal { transform: scale(.45); }
 .map .unit.off, .map .court-at.off, .map .news.off, .map .destroyed.off, .map .traveller.off, .map .xmark.off, .map .band-mark.off { visibility: hidden; }
 /* A unit destroyed this season stands above the counters of its province, not over them. */
 .map .sym.lift.over { transform: translate(0, calc(-1px * (var(--ring, 0) * var(--cs) + 43 * var(--sym)))) scale(var(--sym)); }
