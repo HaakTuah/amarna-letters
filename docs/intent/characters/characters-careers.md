@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Characters tab, revision 23 (2026-10-31). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 26 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## Characters' careers
 
 Careers beyond hiring are largely built (see `docs/DESIGN-NOTES.md`): captives can be ransomed or released, a king can dismiss a servant, and servants give notice at the end of their term, when owed back pay, or decline a hire for a better offer; background checks find dismissals among a character's blemishes, since his employment history is part of his past ("A past before the game, then a past made in play"). Decided 19 October 2026: captives can be exchanged between courts like any good, and a character may quit out of loyalty to another court; quitting before his term ends breaks his contract, which is recorded in his past where checks can find it, and back pay already owed is still paid only if he stands at that court again (from item 11a, jobs with a fee replace wages and back pay: "Jobs, not wages").

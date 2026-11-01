@@ -220,6 +220,8 @@ table { border-collapse: collapse; width: 100%; }
 th, td { text-align: left; padding: .3rem .45rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-size: .82rem; color: var(--muted); font-weight: 600; }
 .tablewrap { overflow-x: auto; }
+td.nowrap { white-space: nowrap; }
+td .sub { display: block; font-size: .8em; white-space: nowrap; }
 
 .pill {
     display: inline-flex; align-items: center; gap: .3rem; padding: .05rem .5rem; border-radius: 999px;
@@ -349,19 +351,7 @@ th { font-size: .82rem; color: var(--muted); font-weight: 600; }
     .when .ending .long { display: none; }
     .when .ending .short { display: inline; }
     .viewsel { max-width: 7.6rem; }
-    .hide-sm { display: none; }
-}
-
-/* Fingers: targets of 44px or more. */
-@media (pointer: coarse) {
-    .zoombtns .zb:not(.fit) { display: none; }
-    .tabs button { min-height: 44px; }
-    .timebar .tb { min-height: 44px; min-width: 44px; }
-    .zoombtns .zb { width: 44px; height: 44px; }
-    button.small { min-height: 36px; }
-    select, input, textarea { font-size: 16px; }
-    input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
-    .lines li, .life li.tap { min-height: 40px; }
+    .hide-sm, td .sub.hide-sm { display: none; }
 }
 
 /* ---------------------------------------------------------------- the map */
@@ -720,4 +710,42 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .map .mv .shaft { stroke-dasharray: none; }
+}
+
+/* The listening page and the audio switches (item 19+++). */
+.listen-switches { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin: 0.75rem 0; }
+label.volume input[type="range"] { width: 7rem; vertical-align: middle; }
+.listen-table { width: 100%; border-collapse: collapse; }
+.listen-table td, .listen-table th { text-align: left; vertical-align: top; padding: 0.5rem 0.4rem; border-top: 1px solid var(--line, rgba(0, 0, 0, 0.12)); }
+.listen-table .note { font-size: 0.85em; opacity: 0.8; margin-top: 0.2rem; }
+.listen-buttons { white-space: nowrap; }
+.listen-buttons button { display: block; margin: 0 0 0.25rem; }
+.listen-list { padding-left: 0; list-style: none; }
+.listen-list li { margin: 0.35rem 0; }
+.listen-list button { margin-right: 0.25rem; }
+@media (max-width: 640px) {
+  .listen-table thead { display: none; }
+  .listen-table tr { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 0.75rem; padding: 0.6rem 0; border-top: 1px solid var(--line, rgba(0, 0, 0, 0.12)); }
+  .listen-table td { border: 0; padding: 0; }
+  .listen-table td:nth-child(1) { grid-column: 1; }
+  .listen-table td:nth-child(4) { grid-column: 2; grid-row: 1 / span 3; }
+  .listen-table td:nth-child(2), .listen-table td:nth-child(3) { grid-column: 1; font-size: 0.9em; }
+}
+
+/* Fingers: targets of 44px or more. Last in the file, so the base rules above (the zoom buttons') do not win over it. */
+@media (pointer: coarse) {
+    .zoombtns .zb:not(.fit) { display: none; }
+    .tabs button { min-height: 44px; }
+    .timebar .tb { min-height: 44px; min-width: 44px; }
+    .zoombtns .zb { width: 44px; height: 44px; }
+    button.small { min-height: 36px; }
+    select, input, textarea { font-size: 16px; }
+    input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
+    .lines li, .life li.tap { min-height: 40px; }
+    .legend-btn { min-height: 44px; padding-inline: .8rem; }
+    .menu summary { min-width: 40px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+    .gctl { gap: .25rem; }
+    .gctl select { min-height: 44px; }
+    /* The pages' bar: a taller target without a taller bar. */
+    .topbar nav a { display: inline-block; padding-block: .7rem; margin-block: -.7rem; }
 }

@@ -6,6 +6,8 @@ import { SvgMapRenderer } from "../map/svg-renderer.ts";
 export interface MapHandle {
   /** Brings a point of the board into view (following a character, or a province chosen from the list). */
   focus(at: Pt, minZoom?: number): void;
+  /** Where the map is looking now (the world's sound bed follows it, item 19+++). */
+  view(): MapView | null;
 }
 
 /** Where a view of the map was left: its centre on the board and its zoom. */
@@ -103,7 +105,7 @@ export function GameMap({
     return () => keep(viewKey, r.getView());
   }, [viewKey]);
 
-  useImperativeHandle(ref, () => ({ focus: (at, minZoom = 1) => renderer.current?.focus(at, minZoom) }), []);
+  useImperativeHandle(ref, () => ({ focus: (at, minZoom = 1) => renderer.current?.focus(at, minZoom), view: () => renderer.current?.getView() ?? null }), []);
 
   // One button shows the whole map, and the same button returns to where the map was.
   const whole = (): void => {
@@ -114,7 +116,7 @@ export function GameMap({
       r.setView(back.at, back.zoom, true);
       setBack(null);
     } else {
-      setBack(now !== null && now.zoom > 1.01 ? now : null);
+      setBack(now !== null && now.whole !== true ? now : null);
       r.fit();
     }
   };
