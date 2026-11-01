@@ -228,7 +228,21 @@ differences in their per-court maps (the design note has each). The final whole-
 
 ### The final numbers (the build as merged)
 
-See the table "Final" below, filled from the last run of every profile.
+Whole games of seed 1 (102 seasons), the last run of every profile, against develop as the item began:
+
+| | Frames drawn | Over 50 ms | Worst while seasons play | Long tasks (count, total) |
+|---|---|---|---|---|
+| Desktop, normal: before | 8085 | 327 (4.0%) | 500 ms | 320, 36 s |
+| **Desktop, normal: after** | 7474 | **69 (0.9%)** | **117 ms** (one at season 21; most 67 to 83) | 15, 1.3 s |
+| Desktop, fast: before | 6572 | 337 (5.1%) | 617 ms | |
+| **Desktop, fast: after** | 5254 | **110 (2.1%)** | **117 ms** (most 83 to 100) | 22, 1.8 s |
+| Phone (CPU slowed 4x), normal: before | the renderer crashed at 180 s | | | |
+| Phone (CPU slowed 4x), normal: after | PHONE_NORMAL |
+| Phone (CPU slowed 4x), fast: before | not ended in 40 minutes (season 95) | 9 to 14 of every 50 frames | 1550 ms | |
+| Phone (CPU slowed 4x), fast: after | PHONE_FAST |
+
+The start (seasons -1 and 0: the game's setup, the first state read whole, the whole map's first drawing) is 333 to 350 ms on
+desktop and about 1.7 s on the phone profile, before any season plays.
 
 ## Benchmarks
 
