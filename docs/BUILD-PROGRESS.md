@@ -74,6 +74,8 @@ Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lan
 - Legends give the bonds sealed before the age one undated line per court, not a deed each (audit batch 2).
 - Space pauses and unpauses, 1 to 3 set the pace (Slow, Normal, Fast), + and − step between them ("Also first"), in one key table that item 17+++a extends with 4 Simulate, Enter and the rest.
 - The audience panel points a court with no standing answers to them (audit 15); a fact's "(season 4)" is dated by the court's calendar on screen (audit batch 2); the design note on province ownership no longer says "public at once" (audit 13).
+- The `who-decides` planning tests ran 86 to 153 s on the full world and timed CI out; they play the seven Great Kings among idle powers now, 20 to 31 s each, testing the same rules.
+- A human with one seat saw a one-choice seat menu at 390 px; it is a plain label, "Egypt (you)".
 
 ## For Haakon: review points
 
