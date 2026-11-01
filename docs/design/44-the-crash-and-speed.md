@@ -109,9 +109,18 @@ then style, layout and paint. What changed, step by step, each measured:
   new render drops the steps still waiting, since every layer whose key changed is written by it anyway; the names are
   placed after the last step.
 
-The numbers, before and after each step, are in the item's report. What remains above the bar after these is the sum of
-tasks that land between two frames (the message, a reader chunk, React's commit, a layer step, then style, layout and
-paint) and the compositor's pre-paint after a large layer rewrite.
+- **The map in five composited layers** (`SvgMapRenderer.mount`; `app.css`). With the page's work spread, the browser's
+  own timeline (`--trace` with the `cc` category) showed what was left: nearly every long frame was the main thread
+  waiting for the compositor (`LayerTreeHost::WaitForCommitCompletion`, 85 to 146 ms), stuck behind rasterizing the whole
+  lower map, since its holders' tints and the season's washes change every turn and the land, the rivers, the relief and
+  the names were painted with them. Now the land itself is one layer (painted once a zoom), the tints and washes another,
+  the relief a third (blending in soft light with the layers below, as a layer of its own), the fog, bands, marks, names
+  and cities a fourth, and the pieces the fifth; each lets taps through where it has nothing. In a whole fast game on
+  desktop the frames over 50 ms fell from 454 to 152 (3%) and the long tasks from 333 to 51. (Headless Chromium
+  rasterizes in software, so the compositor's numbers here are pessimistic; the structure helps a GPU too, since a
+  season invalidates fewer tiles.)
+
+The numbers, before and after each step, are in the item's report.
 
 ## No error leaves a white page (`src/web/src/ui/ErrorScreen.tsx`)
 
