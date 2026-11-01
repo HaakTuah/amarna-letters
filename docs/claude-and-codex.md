@@ -146,6 +146,15 @@ only when all three hold, and otherwise removes the label and leaves it:
 The orchestrator keeps the same rule: it hands no lane to Codex, and merges nothing, from a pull request someone else
 opened.
 
+**Codex's work never touches what runs with Haakon's credentials or sets the rules.** The repository is public, and a
+Codex task reads the web, so text planted somewhere could try to steer it. Its work may never change `.github/` (the
+CI workflows), `scripts/codex-runner.sh`, `scripts/cloud-setup.sh`, `.gitattributes`, `.claude/`, `AGENTS.md` or
+`CLAUDE.md`. The runner checks every diff: one that touches any of these is not applied (or, if Codex pushed it, the PR
+is labelled `codex-failed` with the files named), and such a PR is never merged: Haakon decides. So lanes that must
+change those files are Claude's. The runner never updates itself either: Haakon pulls a new version after reading what
+changed, since it runs with his GitHub login. Nothing secret is ever written to the repository: the environment's id
+and both logins stay on the PC.
+
 **Setting it up** (once, in Git Bash on Windows, or any Linux; no containers, since Codex builds in its cloud):
 
 1. Install Git (on Windows, Git for Windows, which brings Git Bash), Node, Python 3, the GitHub CLI (`gh`; on Windows

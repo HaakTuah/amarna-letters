@@ -3,7 +3,8 @@
 # pull requests labelled `codex` to Codex's cloud (`codex cloud exec`); Codex pushes its work to the PR's branch, or,
 # if it cannot, the runner applies its diff there; then it reports on the PR. pull requests labelled `codex-review` get a read-only review from Codex on this PC. It acts only on
 # pull requests that HaakTuah opened from this repository and labelled himself. Setup, labels and the rules it keeps:
-# docs/claude-and-codex.md, "The runner on Haakon's PC".
+# docs/claude-and-codex.md, "The runner on Haakon's PC". It never updates itself: Haakon pulls a new version after
+# reading what changed, since it runs with his GitHub login.
 #
 #   CODEX_ENV_ID=<this repository's Codex cloud environment> scripts/codex-runner.sh
 #
@@ -55,6 +56,11 @@ trusted() { # PR number, label -> sets BRANCH and BODY; 0 if it may be acted on
   [ "$BRANCH" != main ] && [ "$BRANCH" != develop ] || { log "PR #$n: not acted on (branch $BRANCH)"; return 1; }
   BODY=$(gh api "repos/$REPO/pulls/$n" --jq .body)
 }
+
+# Paths Codex's work may never change: the CI workflows, this runner and the setup script (which run with Haakon's
+# credentials or on his PC), and the rules every builder follows. A lane that touches one fails, and is never merged.
+PROTECTED='^(\.github/|\.claude/|scripts/codex-runner\.sh$|scripts/cloud-setup\.sh$|\.gitattributes$|AGENTS\.md$|CLAUDE\.md$)'
+protected_hits() { grep -E "$PROTECTED" || true; }   # file names on stdin -> the protected ones
 
 branch_head() { gh api "repos/$REPO/branches/$1" --jq .commit.sha 2>/dev/null; }
 
@@ -115,9 +121,14 @@ start_build() { # PR number
 }
 
 finish_build() { # PR number, task, branch, the branch's head when the task started
-  local n=$1 task=$2 branch=$3 head0=$4 wt summary
+  local n=$1 task=$2 branch=$3 head0=$4 wt summary hits
   summary=$(task_field "$task" summary)
   if [ -n "$head0" ] && [ "$(branch_head "$branch")" != "$head0" ]; then   # Codex pushed its work itself
+    hits=$(gh api "repos/$REPO/compare/$head0...$branch" --jq '.files[].filename' | protected_hits)
+    if [ -n "$hits" ]; then
+      printf 'Codex pushed to `%s`, but its work changes files no Codex lane may change:\n\n```\n%s\n```\n\nThis PR must not be merged: Haakon decides what happens to it.\n' "$branch" "$hits" | comment "$n"
+      return 1
+    fi
     printf 'Codex is done: it pushed its work from cloud task `%s` to `%s` itself.\n\n%s\n' "$task" "$branch" "${summary:-$NO_SUMMARY}" | comment "$n"
     return 0
   fi
@@ -125,6 +136,11 @@ finish_build() { # PR number, task, branch, the branch's head when the task star
   rm -rf "$wt"; git -C "$ROOT" worktree prune
   git -C "$ROOT" fetch -q origin "$branch" && git -C "$ROOT" worktree add -q -f --detach "$wt" "origin/$branch" || return 1
   ( cd "$wt" && codex apply "$task" ) >>"$LOG" 2>&1 || { rm -rf "$wt"; git -C "$ROOT" worktree prune; return 1; }
+  hits=$( cd "$wt" && { git diff --name-only; git ls-files --others --exclude-standard; } | protected_hits )
+  if [ -n "$hits" ]; then
+    printf 'Codex'"'"'s diff from cloud task `%s` changes files no Codex lane may change, so it was not applied:\n\n```\n%s\n```\n' "$task" "$hits" | comment "$n"
+    rm -rf "$wt"; git -C "$ROOT" worktree prune; return 1
+  fi
   ( cd "$wt" && git add -A && { git diff --cached --quiet || git -c user.name="Codex (runner on Haakon's PC)" -c user.email="$OWNER@users.noreply.github.com" commit -q -m "Codex: PR #$n (cloud task $task)
 
 ${summary:-$DEFAULT_SUMMARY}" ; } && git push -q origin "HEAD:$branch" ) >>"$LOG" 2>&1 || { rm -rf "$wt"; git -C "$ROOT" worktree prune; return 1; }
@@ -144,7 +160,7 @@ check_build() { # PR number
     completed|complete|succeeded|success|ready|done|finished)
       if finish_build "$n" "$task" "$branch" "$head0"; then label_del "$n" codex-running; label_add "$n" codex-done; log "PR #$n: done ($task)"
       else label_del "$n" codex-running; label_add "$n" codex-failed; log "PR #$n: applying $task failed"
-        echo "Codex finished cloud task \`$task\`, but the runner could not apply or push its diff. See the runner's log." | comment "$n"; fi
+        echo "Codex finished cloud task \`$task\`, but its work was not taken (see above, or the runner's log)." | comment "$n"; fi
       rm -f "$STATE/tasks/$n" ;;
     failed|error|errored|cancelled|canceled)
       label_del "$n" codex-running; label_add "$n" codex-failed; rm -f "$STATE/tasks/$n"; log "PR #$n: task $task $status"
