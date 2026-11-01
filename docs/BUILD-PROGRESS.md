@@ -19,6 +19,10 @@ measured, the full text of items 1 to 5) moved word for word to `docs/archive/de
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`.
 Haakon's standing instructions given in chat are recorded word for word in `docs/archive/instructions.md`.
 
+**First at the next milestone** (Haakon, 1 November 2026): the workshop check's point (2) before anything else. This
+file (29 KB) goes back under about 20 KB, with done items and answered questions moved to `docs/archive/` and a line
+pointing there, and `AGENTS.md` (20 KB) counts among the files every session reads.
+
 ## The polish lane
 
 A side lane of small refinements, beside the item lane and never ahead of it (Haakon, 31 October 2026: "Should we add a

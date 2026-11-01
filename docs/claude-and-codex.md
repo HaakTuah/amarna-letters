@@ -136,7 +136,7 @@ The guards against both are part of the rule:
 1. **The list decides the score.** The reviewer lists everything that keeps the work from 10, each point concrete (a
    file and line, or a design section) and marked **blocking** (against the design, the item's text, its tests or the
    standing rules) or **not blocking**, which says only what is fixed first. **A 10 is a list with nothing open:** the
-   work does all of the item's text and the sections it names, keeps every standing rule, its tests prove it, and a
+   work does all of the item's text and the sections it names, keeps every standing rule, leaves nothing behind ("Keep it lean" in `AGENTS.md`), its tests prove it, and a
    demanding expert would hand it over as it stands. A 10 with a point open, or less than 10 with none, is no review:
    ask again. This definition goes into every reviewer's brief word for word, and only Haakon changes it.
 2. **Every point is fixed, or moved out with a reason.** A point within the item is always fixed. A point outside it

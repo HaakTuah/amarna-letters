@@ -1100,3 +1100,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     only a 10 passes", with its guards and the new "Calibration" table), the "Review guidelines" and a standing
     instruction in `AGENTS.md`; the same in Barkstreet Snakes. The notes doc is a Claude Doc, "Claude + Codex: notes
     for Dad's setup".
+133. **1 November 2026, 18:35-18:37 UTC**, in the design chat, after the design session added "Keep it lean" to the
+    prompt for his father's setup: "Yes, please, expertly! Should we also have any of this, expert?", then, to the
+    design session's questions (add to both games "every change removes what it replaces" and leftovers in the
+    definition of a 10; the files every session reads back under 20 KB first at the next milestone's workshop check; a
+    check for unused code in Barkstreet Snakes' queue): "yes, please, expertly expertly!" Written into `AGENTS.md`
+    ("Keep it lean" under "How to work", replacing "Keep files small and organised", and the "Review guidelines"),
+    `docs/claude-and-codex.md` (the definition of a 10 in "Reviews") and `docs/BUILD-PROGRESS.md` (the next workshop
+    check); the same in Barkstreet Snakes, with its unused-code check.
