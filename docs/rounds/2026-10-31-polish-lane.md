@@ -33,6 +33,46 @@ re-sync cost a full CI run (about 20 minutes). From 31 October evening the lines
 merged after the fixes, which keeps "one line per fix under the lane" without the churn (principle: "Usage is limited.
 Prefer the cheapest approach that does the job well").
 
+## Fixes, one line each
+
+Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The workshop check"); new fixes add their line here.
+
+- The Counsel preset's card named Sonnet as its kings; it now says Haiku plays them, with Sonnet planning.
+- Gold in the panels was shown with the treasury's fractions ("10.5311700 shekels"); it is now rounded to the whole shekel.
+- The empty Play page lost the top bar and spoke of loading a log it gave no way to load; it keeps the bar and links to the saved games.
+- On phones the whole-map button stayed 34 px (the touch rules came before the base rule), and the Legend button, the ⋯ menu, the header's selects and the page links were under 44 px; all are 44 px now.
+- The README brought up to the game as built: forty-seven powers and their starting positions, walls, the ending and the score as they are now, command at a distance, the land and its people, tongues, the council, the living map, legends, the Counsel preset and the developer commands.
+- The far-zoom edge: zooming out stops where the drawn world (the board and the lands beyond it) fills the view, so a wide or tall screen never shows bare water past the map's edge.
+- Person cards in the People tab and the court's hiring list ended with the character's internal id ("c101"); it is gone (improvement audit, find 7).
+- Standings at 390 px: the header "Land-yield ratio (not growth)" took five lines and each row three; the header reads "Land yield" (the rest in its tooltip and the text above), the yields sit on a line of their own (hidden on phones), and gold no longer wraps (improvement audit, find 11).
+- The Rules tab's opening for a human seat now says first how a human gives orders, and that the rulebook's JSON and HOW TO ANSWER speak to model kings (improvement audit, find 12).
+- The preset cards' estimates were reckoned for 44 seasons while the table's own total used its ending (80 by default), so one page showed two prices; the cards use the table's ending too.
+- Dates read "season 2, 1344 BCE", never the shorthand "s2" (audit batch 2).
+- A human seat can order the one-off hunt and razing, as script kings do (audit 6); the draft no longer gives a default hold beside a unit another order names.
+- People's provinces read "settled N, land for M", not "N of M" (audit 14); "shipments", never "shipment(s)" (audit batch 2).
+- Legends give the bonds sealed before the age one undated line per court, not a deed each (audit batch 2).
+- Space pauses and unpauses, 1 to 3 set the pace (Slow, Normal, Fast), + and − step between them ("Also first"), in one key table that item 17+++a extends with 4 Simulate, Enter and the rest.
+- The audience panel points a court with no standing answers to them (audit 15); a fact's "(season 4)" is dated by the court's calendar on screen (audit batch 2); the design note on province ownership no longer says "public at once" (audit 13).
+- The `who-decides` planning tests ran 86 to 153 s on the full world and timed CI out; they play the seven Great Kings among idle powers now, 20 to 31 s each, testing the same rules.
+- A human with one seat saw a one-choice seat menu at 390 px; it is a plain label, "Egypt (you)".
+- The timeline read "season 1 · now" while the header planned "Season 2"; it reads "after season 1, 1346 BCE", the board it shows (" · now" on computers only, where it fits).
+- The Provinces list ended each row in a bare number; it reads "yield 35", with a tooltip saying it is the base yield the harvest is reckoned from.
+- A seat's orders listed "Terqa: 1 season(s) each way" for every court; they read "Envoys take, each way: Hana: 1 season; Babylonia: 2 seasons" (the engine's line, which models read, unchanged).
+- The Standings tab said growth "counts treasuries and back pay too"; since item 11a nothing owed is counted, so it reads "treasuries and what people and men hold".
+- The game menu (⋯) put each checkbox at one side and its word at the other ("☑ … Music"), with short volume sliders; the word stays beside its box and the sliders span the menu.
+- On a phone the home page's "Your seat" broke over two lines beside its menu; the label stands above the menu, as the table's other fields have it.
+- At 390 px "Customize the table" ran its "Played by" menus off the screen (the page scrolled sideways, 444 px wide); the table fits its column and each menu the room left beside the power and its tier.
+- A saved game's line read "…(turn 3), 47 Script bot"; it reads "Script bot for 46 seats, Human for 1 seat" (new saves; older ones keep the line they were saved with).
+- An audience's answer ran "Seal the tablet  Gift to the envoy [0]" together and left its amounts bare ("purity % 100"); the seal has its own line, each amount its unit ("[0] shekels", "of purity [100] %"), the envoy order form too, and the note says accepted service is paid three seasons ahead.
+- The Standard preset's card told players it was "The design document's table"; it reads "The table the game is built for".
+- The header's second line began with the runner's step in lower case ("orders · Any season may be the last"); it reads "Orders being given", "Audiences", "The season resolves" and so on.
+- A free person's card (candidates to hire, the court) opened with a stray "·" ("· at your court"); the line joins only the parts there are.
+- "(known to Terqa)", "Seals: Seha": the "known to" notes, seals, the winners line, an audience's vassal, the tolls line, buying news and the "whose troops?" list named powers by their engine ids; they use the names the game shows ("Hana", "the Seha River Land").
+- A gift of troops read "give Memphis to Hatti" in the draft, beside "cede Memphis to Hatti"; it reads "give the army at Memphis to Hatti" (the engine's own words, which kings read, unchanged).
+- The README, the Standings tab's opening table and two design notes said strength is ten times the land's yield; it is ten times what the land produces in a season (its harvest at the price of grain plus its mines), as the rulebook and `rules/scoring.ts` have it.
+- On a computer the Legends tab's and a followed life's dates ran into the line beside them ("season 2, 1346 BCSealed a tablet"); their column is wide enough for the dates since they read in words.
+- The end of an age read "The age has ended (the gods have ended the age)"; it reads "The gods have ended the age." (or "Only one kingdom remains.", "The age has run its course."), and the header names the winners as the game shows them.
+
 ## Finds not yet fixed
 
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
