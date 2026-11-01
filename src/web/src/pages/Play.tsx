@@ -60,7 +60,7 @@ export function Play() {
   const [followId, setFollowId] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
   const [legend, setLegend] = useState(false);
-  // Space and the speed keys (ui/keys.ts): Space does what the play button shows, 1 to 5 set the speed, + and − step it.
+  // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 3 set the pace, + and − step it.
   const setSpeed = (i: number): void => s.setDelay(Speeds[Math.max(0, Math.min(Speeds.length - 1, i))].ms);
   useKeys({
     pause: () => {
@@ -71,11 +71,9 @@ export function Play() {
         if (s.frames.length > 1) s.toggleReplay();
       } else if (s.canPlay) s.setAuto(true);
     },
-    speed1: () => setSpeed(0),
-    speed2: () => setSpeed(1),
-    speed3: () => setSpeed(2),
-    speed4: () => setSpeed(3),
-    speed5: () => setSpeed(4),
+    pace1: () => setSpeed(0),
+    pace2: () => setSpeed(1),
+    pace3: () => setSpeed(2),
     faster: () => setSpeed(speedIndex(s.delayMs) + 1),
     slower: () => setSpeed(speedIndex(s.delayMs) - 1),
   });
@@ -351,7 +349,7 @@ export function Play() {
               </a>
               <button onClick={() => void s.export()}>Export log</button>
               <label>
-                Speed{" "}
+                Pace{" "}
                 <select
                   value={Speeds[speedIndex(s.delayMs)].ms}
                   onChange={(e) => {
@@ -359,7 +357,7 @@ export function Play() {
                     // Let go of the menu, so Space and the speed keys work again at once.
                     e.target.blur();
                   }}
-                  title="Keys 1 to 5 set the speed; + and − make it faster or slower"
+                  title="Keys 1 to 3 set the pace; + and − make it faster or slower"
                 >
                   {Speeds.map((x, i) => (
                     <option key={x.ms} value={x.ms}>
