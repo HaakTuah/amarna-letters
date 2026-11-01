@@ -11,8 +11,8 @@ building, the routing below and Haakon's poller wait, and all building is Claude
 
 ## Who does what
 
-- **The orchestrator is Claude, always:** it writes the briefs, routes the work, takes the readings, gives the
-  reviews' verdicts, merges, and brings Haakon his questions.
+- **The orchestrator is Claude, always:** it writes Codex's briefs, routes the work, takes the readings, merges
+  Codex's PRs, and brings Haakon his questions.
 - **The builders:** Claude's builder sessions, and Codex in OpenAI's cloud, started by the `codex` label on a draft PR,
   which Haakon's poller hands to Codex (below).
 - **The reviewer is the other company's model.** Codex's PRs get Claude's reviewer (Opus, high effort), given
@@ -23,7 +23,9 @@ building, the routing below and Haakon's poller wait, and all building is Claude
   draft PR from the stuck branch, labelled `codex`, whose description is the brief (the problem, what was tried, the
   files and lines), merged into the stuck branch if it works; one that has defeated Codex goes to
   Claude's escalation helper. Either way the orchestrator checks the answer.
-- **Only the orchestrator merges.** Codex never merges, never touches `main`, and never pushes to a branch it was not
+- **Who merges is unchanged for Claude's work:** Claude's builders merge their own PRs, as the builder rules and "Git
+  and GitHub" say, once the review's verdict ("Reviews" below) allows, and apply the score rules themselves. **Codex
+  never merges:** the orchestrator merges its PRs. Codex never touches `main`, and never pushes to a branch it was not
   given.
 
 ## What goes to Codex
