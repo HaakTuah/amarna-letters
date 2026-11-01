@@ -1,5 +1,5 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, dateLabel, describe, formatMoney, land, rx, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, dateLabel, describe, formatMoney, land, rx, seasonName, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
@@ -19,17 +19,27 @@ export const cap = (s: string): string => (s.length === 0 ? s : s[0].toUpperCase
 export const whenCap = (turn: number, court: Power | null): string => cap(dateLabel(turn, court));
 
 const TurnNumber = rx(String.raw`\b(?:[Ss]eason of )?[Tt]urn (?<n>\d+)\b`, "g");
+/** "(season 4)" in a character's facts and outcomes: the turn the engine dated it (envoys-home.ts, envoys.ts). */
+const SeasonNumber = rx(String.raw`\(season (?<n>\d+)\)`, "g");
 const Ids = rx(String.raw`\bc\d+\b`, "g");
 const Words = rx(String.raw`\b[a-z]+\b`, "g");
 
-/** Engine text with every "turn N" given its date label; "season of turn N" becomes the label alone. */
+/**
+ * Engine text with every "turn N" given its date label; "season of turn N" becomes the label alone, and a fact's
+ * "(season N)", which counts turns too, becomes "(the label)". The engine's own text, which models read, stays as it is.
+ */
 export function dated(text: string, court: Power | null): string {
   if (!text) return text;
-  return text.replace(TurnNumber, (m: string, ...args: unknown[]) => {
-    const groups = args[args.length - 1] as { n: string };
-    const label = dateLabel(Number.parseInt(groups.n, 10), court);
-    return m[0] === m[0].toUpperCase() && m[0] !== m[0].toLowerCase() ? cap(label) : label;
-  });
+  return text
+    .replace(TurnNumber, (m: string, ...args: unknown[]) => {
+      const groups = args[args.length - 1] as { n: string };
+      const label = dateLabel(Number.parseInt(groups.n, 10), court);
+      return m[0] === m[0].toUpperCase() && m[0] !== m[0].toLowerCase() ? cap(label) : label;
+    })
+    .replace(SeasonNumber, (_m: string, ...args: unknown[]) => {
+      const n = Number.parseInt((args[args.length - 1] as { n: string }).n, 10);
+      return `(${seasonName(n, court)}, ${yearBce(n)} BCE)`;
+    });
 }
 
 /** An order in words, with people and places by name rather than id. */

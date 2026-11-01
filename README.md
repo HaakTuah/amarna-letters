@@ -255,14 +255,14 @@ Pick a preset, choose whether to watch or take a seat, and begin.
 | Preset | Kings | Envoys and spies | Narrator | Rough cost of a game |
 |---|---|---|---|---|
 | **Free** | Script kings | Script | Template | $0, no key needed |
-| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $2 |
-| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $25 |
-| **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $30 |
-| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $60 |
+| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $4 |
+| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $45 |
+| **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $60 |
+| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $110 |
 | **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
 
-The costs are the start page's estimates, reckoned for a game of 44 seasons; an age of the usual length (about 80
-seasons) costs nearly twice as much. The meter in the game shows the real spend.
+The costs are the start page's estimates for an age of the usual length (about 80 seasons); the page reckons them
+again for the table's own ending, and the meter in the game shows the real spend.
 
 Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
 messengers. **Customize the table** sets each king separately (script, human, Haiku, Sonnet or
@@ -324,6 +324,10 @@ clay, and Egypt's is drawn on papyrus.
 
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall
 of courts. When the age ends, every seat may open the whole record in god view.
+
+On a computer, Space pauses and unpauses, 1 to 3 set the pace (Slow, Normal, Fast: seasons are turns, so the pace only
+sets how long each is watched), and + and − step between them; no key acts while you type. Each button's tooltip names
+its key.
 
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly.

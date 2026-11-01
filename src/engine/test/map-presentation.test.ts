@@ -40,8 +40,8 @@ describe("MapPresentationTests", () => {
 
   test("The short form keeps the year and season", () => {
     Assert.equal("Peret 1344 BCE", shortDate(8, "Egypt"));
-    Assert.equal("s2 1344 BCE", shortDate(8, "Mitanni"));
-    Assert.equal("s3 1342 BCE", shortDate(15));
+    Assert.equal("season 2, 1344 BCE", shortDate(8, "Mitanni"));
+    Assert.equal("season 3, 1342 BCE", shortDate(15));
   });
 
   test("The ending line says the rule in words, without numbers", () => {

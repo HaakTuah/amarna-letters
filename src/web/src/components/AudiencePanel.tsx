@@ -196,6 +196,15 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
         <button className="primary" onClick={answer}>
           Answer
         </button>
+        {court.answers.length === 0 && (
+          // A court with no standing answers meets every envoy in person, however routine (improvement audit 15).
+          <p className="muted">
+            <small>
+              Envoys you need not see yourself, such as a vassal's tribute bearer, can be received by a standing answer: the next time you give orders,
+              under Your orders, Standing answers. The game then does not stop for them.
+            </small>
+          </p>
+        )}
       </div>
     </>
   );

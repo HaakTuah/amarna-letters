@@ -946,3 +946,25 @@ Given in the design chat with Claude, answering the design questions of the cons
     "Yes, please expertly applied across the board! Let every character reflect wha the historical letter showed they
     were truly like! And let that manifest in their actions through the game!" Written into "Attested characters"
     (Characters), items 17b and 18, and the ideas entry on model kings' strategies.
+114. **31 October 2026, 23:22 UTC** (1 November in Oslo), in the design chat, answering the music lane's question
+    (music and sound on but quiet, 35% and 45%, or off until switched on): "Agreed. Keep them on, regular volume, but
+    don't blast someone when they start up, like say CK2, even though the main theme there was epice. SO i didn't
+    really mind." Written into item 19+++: on by default at a regular volume, the first music fading in at start-up.
+115. **31 October 2026, 23:40-23:43 UTC** (1 November in Oslo), in the design chat. Asked why the Barkstreet Snakes
+    orchestrator reuses sessions for new tasks, against "Keep the cache warm", and whether the rule should allow it
+    when the task touches the same files and the session's context is young and small: "We should do whatever is most
+    effective at acheivein the goal, which is accomplishing them most possible, with the least tokens, without
+    sacrifacing quality." Written into "Keep the cache warm" in both games: `CLAUDE.md` here, `docs/orchestrating.md`
+    in Barkstreet Snakes.
+116. **31 October 2026, 23:46-23:53 UTC** (1 November in Oslo), in the design chat, on the polish lane's five speeds:
+    "About the different speed settings. I don't feel we should introduce 5, just to have 5. Paradox games have them
+    because they tick time. but we have rounds, akin to civilization. A time setting at all don't really makes so much
+    sense with this set-up, does it?" Then, to the design session's take (the speed sets only how long a season is
+    watched): "So what should they do then? because the game should process it as fast as it can anyways? so fast
+    drops animations or speed through them, and just jumps straight to the next season? normal gives you a couple of
+    seconds to see first? and slow gives you lots of time to see each season? what is your take expert? there should
+    obviously be a simulation setting also, which does none of the visuals, and just computes a full game as quickly as
+    possible. what do you think, expert?" To the four paces (Slow, Normal, Fast, Simulate): "Yes, please! expertly!
+    does the hotkeys become 1, 2, 3, and 4 then?" Written into "Pace of play" (Interface), item 17+++a's keys (1 to 4,
+    + and − between the three watching speeds, Enter ends one's season) and the polish lane's entry.
+
