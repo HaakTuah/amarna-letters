@@ -40,7 +40,8 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["tuwanuwa", e(4, "Low", 6)],
   ["hattusa", e(11, "Low")],
   ["sapinuwa", e(5, "Low")],
-  ["nesa", e(6, "Low")],
+  // Item 17+: Nesa, the great trading city of three centuries before, by 1346 a name more than a city [B]
+  ["nesa", e(1, "Low")],
   ["kizzuwatna", e(6, "Fair", 5)],
   ["harran", e(5, "Fair")],
   ["washukanni", e(8, "Fair")],
@@ -59,10 +60,12 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["delta", e(20, "High")],
   ["sinai", e(1, "Thin")],
   ["memphis", e(30, "High")],
-  ["akhetaten", e(35, "High")],
+  // Item 17+: Akhetaten, still being built in these years, about 15,000 to 20,000, below Waset and Men-nefer [B]
+  ["akhetaten", e(18, "High")],
   ["thebes", e(30, "High", 30)],
   ["nubia", e(4, "Fair", 70)],
-  ["kalavasos", e(2, "Fair")],
+  // Item 17+: Kalavasos, small and new (its town founded about 1340), about 1,000 [B]
+  ["kalavasos", e(1, "Fair")],
   ["enkomi", e(3, "Fair", 2, true)],
   ["isuwa", e(3, "Low", 4)],
   ["carchemish", e(6, "Fair", 0, true)],
@@ -88,7 +91,9 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["gezer", e(2, "Fair")],
   ["ashkelon", e(2, "Fair", 0, true)],
   ["lachish", e(3, "Fair")],
-  ["hebron", e(1, "Fair")],
+  // Item 17+: Gath, in Hebron's place, a town of several thousand [C]; the Lady of the Lions' town small [G]
+  ["gath", e(3, "Fair")],
+  ["aijalon", e(1, "Fair")],
   ["gaza", e(3, "Fair", 0, true)],
   ["suhu", e(3, "Fair")],
   ["arrapha", e(6, "Fair")],
@@ -98,7 +103,8 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["steppe", e(1, "Thin")],
   // Item 11f: Tunip a large town (Tell Acharneh, about 77 ha), Niya, Beirut, Pella and Ashtaroth small, Azzi's highland
   // strongholds, and Samuha a royal residence [G]; Libya and the Shasu herders with no town, so no market to speak of
-  ["tunip", e(10, "Fair")],
+  // Item 17+: Tunip, its site not securely found, about 4,000 to 5,000 beside Niya and Qadesh [C]
+  ["tunip", e(5, "Fair")],
   ["niya", e(3, "Fair")],
   ["beirut", e(2, "Fair", 0, true)],
   ["pella", e(2, "Fair")],

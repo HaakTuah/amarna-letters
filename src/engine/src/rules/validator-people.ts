@@ -7,7 +7,7 @@ import { roundEven, toInt } from "../core/num.ts";
 import { isBlank } from "../core/text.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import { coverOf, falseNameAt, hiddenAt } from "../model/people.ts";
-import { AllPowers } from "../model/power.ts";
+import { AllPowers, claimedName, nameKnown } from "../model/power.ts";
 import { grantLive } from "../model/authority.ts";
 import { findCharacter } from "../model/state.ts";
 import type { Checking } from "./validator-context.ts";
@@ -133,6 +133,14 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       if (roadsSet.has(order.court)) return `you had already closed or opened your roads to ${order.court} that season`;
       const closed = (S.roadsClosed.tryGet(power) ?? []).includes(order.court);
       if (closed === order.close) return `your roads are already ${closed ? "closed" : "open"} to the people of ${order.court}`;
+      return null;
+    }
+
+    case "claimName": {
+      // Item 17+ ("A power's name is a claim"): any realm's name the map knows or a power claims.
+      const known = nameKnown(order.name);
+      if (known === null) return `there is no realm called '${order.name}' to claim the name of`;
+      if (claimedName(power) === known) return `you already go by the name of ${known}`;
       return null;
     }
 

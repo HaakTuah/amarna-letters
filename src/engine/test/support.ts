@@ -323,7 +323,7 @@ export function unruled(s: GameState, ...provinces: string[]): GameState {
 export const FormerFree = [
   "isuwa", "carchemish", "alalakh", "aleppo", "ugarit", "nuhashshe", "qatna", "qadesh", "amurru", "sumur", "arwad", "byblos", "sidon",
   "damascus", "tyre", "megiddo", "shechem", "jerusalem", "gaza", "suhu", "arrapha", "susa", "lukka", "kaska", "steppe",
-  "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron",
+  "akko", "hazor", "gezer", "ashkelon", "lachish", "gath", "aijalon",
   // Item 11f's places
   "azzi", "niya", "tunip", "beirut", "pella", "ashtaroth", "libya", "shasu",
 ];
@@ -427,8 +427,15 @@ export function armiesBefore13(s: GameState): GameState {
   s.config.armyPace = 0;
   s.config.realmDistance = 0;
   const map = WorldMap.default;
-  const added = new Set(["gaza", "sumur", "apasawaters", "enkomiwaters", "ugaritwaters", "sidonwaters", "tyrewaters", "bybloswaters"]);
+  // Item 17+ placed the Great Kings' men where the sources put them and the coast's ships where they campaigned; the tests
+  // keep the armies of item 13's cities, at their full size.
+  const added = new Set(["gaza", "sumur", "apasawaters", "enkomiwaters", "ugaritwaters", "sidonwaters", "tyrewaters", "bybloswaters", "kizzuwatnawaters", "thebes", "nubia", "samuha", "kizzuwatna", "tuwanuwa", "sapinuwa", "harran", "nippur", "kalavasos"]);
   s.units = s.units.filter((u) => !added.has(u.province) && !(u.power === "Alashiya" && u.kind === "Army"));
+  // Assyria's third army stood at Ekallate until item 17+ moved it to Arbela; Hatti's ships lay at Kizzuwatna itself.
+  for (const u of s.units) {
+    if (u.power === "Assyria" && u.province === "arbela") u.province = u.home = "ekallate";
+    if (u.power === "Hatti" && u.kind === "Fleet" && u.province === "kizzuwatnawaters") u.province = "kizzuwatna";
+  }
   for (const u of s.units) {
     const p = map.get(u.province);
     const city = p.capital && p.home === u.power && !GreatKingsBefore13.has(u.power);

@@ -43,12 +43,13 @@ export const StartVassals: readonly StartVassal[] = [
   bond("Gezer", "Egypt"),
   bond("Ashkelon", "Egypt"),
   bond("Lachish", "Egypt"),
-  bond("Hebron", "Egypt"),
+  bond("Gath", "Egypt"),
+  // Item 17+: the Lady of the Lions, Pharaoh's servant in the Aijalon valley (EA 273-274)
+  bond("Aijalon", "Egypt"),
   bond("Carchemish", "Mitanni"),
   bond("Alalakh", "Mitanni"),
   bond("Aleppo", "Mitanni"),
   bond("Nuhashshe", "Mitanni"),
-  bond("Suhu", "Mitanni"),
   bond("Arrapha", "Mitanni"),
   // Item 11d: Hana (Terqa) "within Mitanni's reach", and Arzawa's lands with rulers of their own
   bond("Terqa", "Mitanni"),

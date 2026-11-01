@@ -133,7 +133,8 @@ describe("CallSizeTests", () => {
     const notice = Assert.single(inboxOf(state, "Egypt"), (i) => i.title === "Scheduled orders held back by their conditions");
     Assert.contains("raise army in thebes", notice.body);
     Assert.contains(state.units, (u) => u.power === "Egypt" && u.province === "delta" && u.kind === "Fleet");
-    Assert.doesNotContain(state.units, (u) => u.power === "Egypt" && u.province === "thebes");
+    // No new army at Waset: only the one standing there since item 17+.
+    Assert.equal(1, state.units.filter((u) => u.power === "Egypt" && u.province === "thebes").length);
     // Held back by the king's own conditions, it wakes nobody.
     Assert.true(state.sleep.get("Egypt").asleep);
   });
@@ -252,10 +253,10 @@ describe("CallSizeTests", () => {
 
   test("Battle reports leave out the units that held", () => {
     Assert.equal(
-      "Movements last season:\n- A tuwanuwa -> mira: fails\nSeen nearby:\n- Arzawa: A mira -> lukka: fails",
-      withoutHolds("Movements last season: - A lukka holds\n- A tuwanuwa -> mira: fails\n- F lukka holds\nSeen nearby:\n- Arzawa: A mira -> lukka: fails\n- Mitanni: A harran holds"),
+      "Movements last season:\n- army in Tuwanuwa -> Mira: fails\nSeen nearby:\n- Arzawa: army in Mira -> Lukka: fails",
+      withoutHolds("Movements last season: - army in Lukka holds\n- army in Tuwanuwa -> Mira: fails\n- fleet in the Western Sea holds\nSeen nearby:\n- Arzawa: army in Mira -> Lukka: fails\n- Mitanni: army in Harran holds"),
     );
-    Assert.equal("Movements last season: every unit you saw held.", withoutHolds("Movements last season: - A lukka holds\n- F ugarit holds\nSeen nearby:\n- Egypt: F delta holds"));
+    Assert.equal("Movements last season: every unit you saw held.", withoutHolds("Movements last season: - army in Lukka holds\n- fleet in Ugarit holds\nSeen nearby:\n- Egypt: fleet in Ta-Mehu holds"));
   });
 });
 

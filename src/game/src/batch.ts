@@ -95,6 +95,8 @@ export interface GameSummary {
   characterCalls: number;
   characterWakeups: number;
   characterPool: number;
+  /** Item 17+: each attested person, by name: the seasons it was asked to decide, the times it was sent anywhere, and whether it served a court. */
+  people?: Record<string, [number, number, number]>;
   /** Item 12: by the court a letter went to, the letters that found a carrier understood there and the seasons they waited. */
   lettersTo: Record<string, [number, number]>;
   /** Item 13+: the powers risen in play, and what their seats did with them (older summaries have none). */
@@ -319,6 +321,9 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
     characterWakeups: sum([...runner.characterAsks.values()], (x) => new Set(x).size),
     characterPool: s.characters.length,
+    people: Object.fromEntries(
+      s.characters.filter((c) => c.attested).map((c) => [c.name, [new Set(runner.characterAsks.get(c.id) ?? []).size, c.sent, c.employer !== null || c.formerEmployer !== null ? 1 : 0] as [number, number, number]]),
+    ),
     lettersTo: Object.fromEntries(AllPowers.map((p) => [p, [s.lettersToCarried.getOrDefault(p, 0), s.lettersToWaited.getOrDefault(p, 0)] as [number, number]])),
     risen: risenMeasures(s, engine),
     courtsHeld: held,
@@ -675,6 +680,18 @@ export function batchReport(games: readonly GameSummary[]): string {
       `Characters as agents would be asked ${fmt(sum(games, (g) => g.characterCalls) / seasons, "0.0")} times a season (calls), ` +
         `${fmt(sum(games, (g) => g.characterWakeups) / seasons, "0.0")} wake-ups a season over a pool of ${fmt(mean(games.map((g) => g.characterPool)), "0")}: ` +
         `${fmt(sum(games, (g) => g.characterWakeups) / pool, "0.00")} wake-ups and ${fmt(sum(games, (g) => g.characterCalls) / pool, "0.00")} calls per character per season.`,
+    );
+  // Item 17+: how often each attested person is sent anywhere or decides anything, over the games (the report's count).
+  const people = new Map<string, [number, number, number, number]>();
+  for (const g of games)
+    for (const [name, [asked, sent, served]] of Object.entries(g.people ?? {})) {
+      const t = people.get(name) ?? [0, 0, 0, 0];
+      people.set(name, [t[0] + asked, t[1] + sent, t[2] + served, t[3] + 1]);
+    }
+  if (people.size > 0)
+    lines.push(
+      `People of the sources, over ${games.length} games (decisions asked, times sent anywhere, games in a court's service): ` +
+        [...people.entries()].sort((a, b) => b[1][0] + b[1][1] - (a[1][0] + a[1][1]) || a[0].localeCompare(b[0])).map(([n, t]) => `${n} ${t[0]}/${t[1]}/${t[2]}`).join(", ") + ".",
     );
   lines.push("");
   lines.push(...richestReport(games));

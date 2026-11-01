@@ -23,6 +23,7 @@ import {
   MaxClauses,
   serialize,
   terrainOf,
+  modernOf,
   type GameConfig,
 } from "@amarna/engine";
 import { Sb, joinS } from "./text.ts";
@@ -183,6 +184,7 @@ ${intelligenceRules(c)}`);
 CUSTOMS OF THE AGE (knowledge, not instructions)
 Every king knows these customs, and knows that every other king knows them. They carry no obligation and historical accuracy is not a goal: follow a custom when it improves your chances, break it when breaking it serves you better. Following one can build trust cheaply; breaking one will be noticed.
 - Rank is earned (a rule of this game): the engine records who calls whom brother and grants whom the title Great King in the greetings kings actually send. A claim to the rank that is still new (the opening positions say whose) becomes established once more than half of the other Great Kings have called its king brother for ${c.recognitionSeasons} seasons without a greeting since that withheld it, and every court hears of it. Recognition changes no rule and no score: what it is worth is for the kings to fight over.
+- A realm's name is a claim. You go by your land's name until you claim another: any realm's name the map knows or a king claims, Pharaoh's included (claim_name, the name in item; your own land's name returns you to it). A claim gives nothing by rule. Your greetings name you so at once. Where two kings claim one name, each court gives it to the one it recognises, in the greetings it sends: a greeting gives the recipient the name he claims unless by_house calls him by his house (Bit- and his founder's name, as Bit-Biryawaza), and that court's letters and reports then call the other by his house. NAMES CLAIMED in your view says which names are contested and whom your court gives each to. What a name is worth comes from the other kings and the vassals, not from a rule.
 - Great Kings address each other as "brother" and wish well to each other's household, wives, sons, chariots, horses and country. Vassals instead "fall at the feet of their lord seven times and seven times". Between Great Kings, "brother" claims equal rank, and withholding it is a slight: when the king of Assyria, after a modest first letter, began writing to the pharaoh as a brother, he was claiming a place beside Mitanni and Babylon. Writing your own name above the recipient's reads as an insult; a king of Hatti once demanded to know why the pharaoh had done exactly that.
 - Gifts pass constantly between courts, and their size and quality are read as a measure of respect. Complaints about stingy or impure gold are common: Egypt's gold was said to come out of the furnace lighter than it went in.
 - Precedent is a floor. A king asks for more than was given to his father, so anything less reads as a demotion. The same argument cuts the other way when a son breaks his father's word: Akhenaten sent statues of gilded wood where his father had promised solid gold, and Tushratta of Mitanni complained of it in letter after letter.
@@ -208,7 +210,7 @@ Every king knows these customs, and knows that every other king knows them. They
         {
             const coasts = p.isSea ? map.coastsOf(p.id).map((x) => x.id) : [];
             const kind = p.isSea ? (coasts.length > 0 ? `sea zone, the waters of ${joinS(` and `, coasts)}` : `sea zone`) : p.isCoastal ? `coast; waters ${p.waters}` : `land`;
-            const home = (p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : `held by no one`) + (p.kingless ? `; a land without a town` : ``);
+            const home = (p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : `held by no one`) + (p.kingless ? `; a land without a town` : ``) + (modernOf(p.id) !== null ? `; today ${modernOf(p.id)}` : ``);
             const armies = p.isSea ? `` : ` armies: ${joinS(`, `, map.movesFrom("Army", p.id).map(n => link(p.id, n)))}.`;
             const fleets = p.isSea || p.isCoastal ? ` fleets: ${joinS(`, `, map.movesFrom("Fleet", p.id).map(n => link(p.id, n)))}.` : ``;
             const w = StartWalls.get(p.id) ?? 0;
@@ -221,7 +223,7 @@ Every king knows these customs, and knows that every other king knows them. They
         // Public facts, fixed for the game: every court knows how each king began.
         sb.appendLine();
         sb.appendLine(`OPENING POSITIONS (known to every court)`);
-        sb.appendLine(`Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is ${c.provinceWeight} x its homeland yield + its treasury, and its growth is measured against it.`);
+        sb.appendLine(`Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is ${c.provinceWeight} times what its land produces in a season, plus its treasury and what its provinces' purses and stores and its troops' baggage hold, and its growth is measured against it.`);
         for (const line of openingLines(c)) sb.appendLine(`- ` + line);
 
         sb.appendLine(`

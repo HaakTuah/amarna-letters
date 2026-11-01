@@ -54,7 +54,7 @@ describe("PressTests", () => {
     Assert.equal("Send me 50 shekels of gold.", renderClause(clause("askGold", { amount: 50 }), "Egypt", "Hatti"));
     Assert.equal("Let us stand together against the king of Assyria.", renderClause(clause("against", { power: "Assyria" }), "Babylonia", "Egypt"));
     Assert.equal(
-      "In the third season of year 2, my troops will support the move of your troops from Byblos into Sidon.",
+      "In the third season of year 2, my troops will support the move of your troops from Gubla into Ṣiduna.",
       renderClause(clause("support", { province: "byblos", to: "sidon", turn: 6 }), "Egypt", "Hatti"),
     );
     Assert.equal("I refuse your request for gold.", renderClause(clause("refuse", { answers: "askGold" }), "Hatti", "Egypt"));

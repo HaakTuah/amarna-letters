@@ -7,7 +7,7 @@ import { cmpNum, distinct, groupBy, sortBy } from "../core/seq.ts";
 import { cmpStr, isBlank } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, ForgeOrder } from "../model/orders.ts";
-import { coverOf, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
+import { coverOf, gain, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
 import { moodWords } from "../model/unrest.ts";
@@ -126,11 +126,12 @@ P.placeSpy = function (p, ps) {
   c.watchProvince = province;
   const j = newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, from: p, to: court ?? p, characterId: c.id });
   S.journeys.push(j);
+  c.sent++;
   this.setOut(j, this.courtAt(p), target);
   const travel = j.arriveTurn - S.turn;
   remember(c, S.turn, `My lord of ${land(p)} sent me quietly to watch ${court !== null ? land(court) : Map.get(province!).name}.`);
   if (province !== null) logEvent(S, "spy", `${p} sent a spy to watch ${Map.get(province).name}.`, [p], "spy-watching");
-  notify(S, p, "Notice", "Agent sent", `${c.name} left last season to watch ${court ?? Map.get(province!).name}; the journey should take about ${travel} season(s).`, c.id);
+  notify(S, p, "Notice", "Agent sent", `${c.name} left last season to watch ${court ?? Map.get(province!).name}; the journey should take about ${travel} ${travel === 1 ? "season" : "seasons"}.`, c.id);
 };
 
 P.spyArrives = function (j) {
@@ -205,7 +206,8 @@ P.spyComesHome = function (j) {
   // What he did not spend of the gold to stir a province he hands back (item 17).
   if (c.stirGold > 0) {
     if (!free && isAlive(S, j.to)) this.credit(j.to, c.stirGold, this.courtAt(j.to), false);
-    else c.purse += c.stirGold;
+    // His master's gold on him now, counted as what he kept of it (item 17+: the purse holds only what is counted).
+    else gain(c, c.stirGold, "Skimmed");
     c.stirGold = 0;
   }
   this.bringNews(j, j.to, c);
@@ -319,6 +321,7 @@ P.walkToBorder = function (c, employer, border) {
   c.at = null;
   const j = newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, from: employer, to: employer, characterId: c.id });
   S.journeys.push(j);
+  c.sent++;
   this.setOut(j, post, border);
   const there = [...j.route];
   this.setOut(j, border, post);
@@ -452,7 +455,7 @@ P.capture = function (c, host, rng) {
   c.heldBy = host;
   c.duty = "None";
   // Gold he carried to stir the people is in his purse now, on him where he is held (item 17).
-  c.purse += c.stirGold;
+  gain(c, c.stirGold, "Skimmed");
   c.stirGold = 0;
   c.at = host;
   this.meet(c, host);
@@ -464,7 +467,7 @@ P.capture = function (c, host, rng) {
     host,
     "Notice",
     "A spy is caught",
-    `Your watchmen caught ${c.name}` + (confesses ? `, who confesses to serving ${employer}.` : ", who will not say whom they serve.") + " You may execute, ransom, turn or release them.",
+    `Your watchmen caught ${c.name}` + (confesses ? `, who confesses to serving ${land(employer)}.` : ", who will not say whom they serve.") + " You may execute, ransom, turn or release them.",
     c.id,
   );
   // The captor's record says what its court learned: whose spy, only if it confessed. The truth goes in a line

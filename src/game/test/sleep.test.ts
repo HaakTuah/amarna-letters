@@ -350,7 +350,7 @@ describe("SleepTests", () => {
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal(
       [
-        "orders you scheduled could not be carried out: durkurigalzu -> ekallate (the unit holding ekallate (Assyria's army) kept its place; your strength 1 against 1)",
+        "orders you scheduled could not be carried out: durkurigalzu -> ekallate (the unit holding Ekallate (Assyria's army) kept its place; your strength 1 against 1)",
       ],
       sleeper.views[1].wokenBecause,
     );
@@ -369,7 +369,7 @@ describe("SleepTests", () => {
       inboxOf(r.state, "Babylonia"),
       (i) =>
         i.title === "Movements last season" &&
-        i.body.includes("sippar -> suhu: succeeds: it got within the walls of suhu but did not storm them (strength 1 against walls 1 and no defenders on the walls)"),
+        i.body.includes("Sippar -> Suhu: succeeds: it got within the walls of Suhu but did not storm them (strength 1 against walls 1 and no defenders on the walls)"),
     );
     Assert.null(r.state.owner.get("suhu"));
 
@@ -394,7 +394,7 @@ describe("SleepTests", () => {
     });
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal(
-      ["orders you scheduled could not be carried out: sippar -> suhu (the unit holding suhu (Assyria's army) kept its place; your strength 1 against 2)"],
+      ["orders you scheduled could not be carried out: sippar -> suhu (the unit holding Suhu (Assyria's army) kept its place; your strength 1 against 2)"],
       sleeper.views[1].wokenBecause,
     );
   });
@@ -423,14 +423,14 @@ describe("SleepTests", () => {
     // The failed attack wakes it too (since the review of the fix pass after item 4): it was attacked.
     Assert.equal(
       [
-        "orders you scheduled could not be carried out: durkurigalzu supports sippar holding (the support was cut by an attack from ekallate)",
+        "orders you scheduled could not be carried out: durkurigalzu supports sippar holding (the support was cut by an attack from Ekallate)",
         `${AttackedReason}: Assyria's army tried to move ekallate -> durkurigalzu`,
       ],
       sleeper.views[1].wokenBecause,
     );
     Assert.contains(
       sleeper.views[1].inbox,
-      (i) => i.title === "Movements last season" && i.body.includes("durkurigalzu supports sippar holding: cut (attacked from ekallate)"),
+      (i) => i.title === "Movements last season" && i.body.includes("Dur-Kurigalzu supports Sippar holding: cut (attacked from Ekallate)"),
     );
   });
 
@@ -447,7 +447,7 @@ describe("SleepTests", () => {
     Assert.empty(r.state.sleep.get("Babylonia").pendingWake);
     Assert.contains(
       inboxOf(r.state, "Babylonia"),
-      (i) => i.title === "Movements last season" && i.body.includes("no unit moved from ekallate to durkurigalzu"),
+      (i) => i.title === "Movements last season" && i.body.includes("no unit moved from Ekallate to Dur-Kurigalzu"),
     );
   });
 
@@ -458,7 +458,7 @@ describe("SleepTests", () => {
     );
     let r = await play("Babylonia", sleeper, 3);
     Assert.equal([1], sleeper.calls);
-    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.turn === 2 && i.title === "Movements last season" && i.body.includes("durkurigalzu -> ekallate: fails"));
+    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.turn === 2 && i.title === "Movements last season" && i.body.includes("Dur-Kurigalzu -> Ekallate: fails"));
     Assert.empty(r.state.sleep.get("Babylonia").pendingWake);
   });
 

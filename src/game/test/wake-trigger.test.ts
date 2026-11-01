@@ -210,16 +210,17 @@ describe("WakeTriggerTests", () => {
   });
 
   test("Foreign troops that end a move next to a walled city it holds wake the seat", () => {
-    // Babylon bought Suhu, whose walls hold for it; Mitanni's army comes to Terqa, next to Suhu and to none of Babylon's
-    // homeland (the second simulation's seed 15: no trigger woke Babylonia for troops next to a bought walled city).
+    // Babylon bought Arrapha (Suhu until item 17+ made it Babylon's own land), whose walls hold for it; Assyria's army comes
+    // to Arbela, next to Arrapha and to none of Babylon's homeland (the second simulation's seed 15: no trigger woke
+    // Babylonia for troops next to a bought walled city).
     let [s, sleep] = sleeping((s) => {
-      s.owner.set("suhu", "Babylonia");
-      removeAll(s.units, (u) => u.province === "terqa" || u.province === "suhu");
+      s.owner.set("arrapha", "Babylonia");
+      removeAll(s.units, (u) => u.province === "arrapha");
     });
-    Assert.equal(1, wallsOf(s, "suhu"));
-    season(s, subs({ Mitanni: { orders: [move("washukanni", "terqa")] } }));
+    Assert.equal(1, wallsOf(s, "arrapha"));
+    season(s, subs({ Assyria: { orders: [move("ashur", "arbela")] } }));
     Assert.false(sleep.asleep);
-    Assert.equal([`${WallsReason}: Mitanni's army moved washukanni -> terqa, next to suhu`], sleep.wokenBecause);
+    Assert.equal([`${WallsReason}: Assyria's army moved ashur -> arbela, next to arrapha`], sleep.wokenBecause);
 
     // A free city's walls are not its own: the same move wakes nobody.
     [s, sleep] = sleeping((s) => removeAll(s.units, (u) => u.province === "terqa"));

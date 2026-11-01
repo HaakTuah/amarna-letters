@@ -242,7 +242,7 @@ describe("Who decides (item 6c)", () => {
   test("Routine audiences go to the small rung while a king sleeps; what the engine sees matters goes to his own model", async () => {
     // The seven Great Kings only (five on the model, Hatti and Babylonia scripts sending envoys), the city-states idle.
     // (This game has few routine audiences, one at least; a seed with more would make the check sturdier.)
-    const [runner, api] = build(() => {}, 2, new SimulatedApi(), true, GreatKings); // seed 2 since item 9+b: on seed 3 the script armies now wake the model kings every season
+    const [runner, api] = build(() => {}, 3, new SimulatedApi(), true, GreatKings); // seed 3 since item 17+ moved the opening (seed 2 from item 9+b to 17a): on it a routine audience comes within eight seasons
     await play(runner, 8);
     const routine = api.requests.filter((r) => str(r, "messages", 0, "content").includes("THESE ARE ROUTINE AUDIENCES"));
     Assert.notEmpty(routine);
@@ -266,7 +266,7 @@ describe("Who decides (item 6c)", () => {
       const answers = ids.map((envoy) => ({ envoy, speech: "", clauses: [], gift_to_envoy: 0, gift_request: "", send_gold_back: 0, gold_back_purity: 100, end_audience: true, pass_up: "he hints at war" }));
       return JSON.stringify({ answers, ledger: [], ask_counsel: "" });
     };
-    const [runner] = build(() => {}, 2, api, true, GreatKings);
+    const [runner] = build(() => {}, 3, api, true, GreatKings); // seed 3 since item 17+ (see above)
     await play(runner, 8);
     const up = runner.log.decisions.filter((d) => d.by?.why === "passed up: he hints at war");
     Assert.notEmpty(up);

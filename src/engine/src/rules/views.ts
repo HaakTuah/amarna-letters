@@ -9,12 +9,12 @@ import { reapSeasonOf } from "../model/geography.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
+import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, king, kingFor, land, nameGivenBy, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf, worksOfPower } from "../model/works.ts";
-import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known, type Unit } from "../model/state.ts";
+import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, upkeepOf, wallsOf, type GameState, type Known, type Unit } from "../model/state.ts";
 import { PointsPerDay, wordSeasons } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
@@ -182,10 +182,13 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const v = newSeatView({
     claims: s.claims.map((c) => ({ ...c })),
     greetings: s.recognition.filter((r) => r.from === p || r.to === p).map((r) => ({ ...r })),
+    // Item 17+: the names claimed, as this court gives them.
+    claimedName: claimedName(p),
+    nameClaims: contestedNames(p).map((name) => ({ name, claimants: claimantsOf(name, p), givenTo: nameGivenBy(p, name) })),
     turn: s.turn,
     season: season(s.turn, p),
     power: p,
-    king: king(p),
+    king: kingFor(p, p),
     courtAt: courtOf(s, m, p),
     courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
     governors: s.governors.filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
@@ -209,6 +212,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     kept: s.payRecords.tryGet(p)?.kept ?? 0,
     broken: s.payRecords.tryGet(p)?.broken ?? 0,
     payCarriers: s.payCarriers.includes(p),
+    ...(() => {
+      const o = upkeepOf(s, p);
+      const held = (ids: string[]): string[] => sortBy([...new Set(s.units.filter((u) => u.power === p && ids.includes(u.id)).map((u) => u.province))], [(x: string) => x, cmpStr]);
+      return { payTroops: o.pay, feedTroops: o.feed, payHeld: held(o.payExcept), feedHeld: held(o.feedExcept) };
+    })(),
     huntBands: huntNow(s, p) !== null,
     huntWhere: huntNow(s, p)?.provinces ?? [],
     debts: debtViews(s, p),
@@ -561,7 +569,8 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     hoardHere: c.hoard !== null && c.hoard.at === viewer && c.status !== "Dead" ? c.hoard.gold : null,
     carries: c.status === "Captured" && c.heldBy === viewer ? c.purse + c.carriedFor : null,
     // Item 11a: one standing at your court, free to deal, who offers to lend you gold.
-    lends: c.lendOffer !== null && c.at === viewer && c.heldBy === null && c.status !== "Dead" && !hiddenAt(c, viewer) && c.lendOffer.amount > 0 ? c.lendOffer : null,
+    // A copy: the view is what the court saw when it was asked, not a window on the lender's purse as the season moves it.
+    lends: c.lendOffer !== null && c.at === viewer && c.heldBy === null && c.status !== "Dead" && !hiddenAt(c, viewer) && c.lendOffer.amount > 0 ? { ...c.lendOffer } : null,
     // Item 11b: the news of other courts they offer you, standing at your court.
     news: hiddenAt(c, viewer) ? [] : newsOffered(s, c, viewer).map((n) => newNewsOffer({ court: n.court, turn: n.turn, lines: n.lines.length, price: n.price })),
   });
@@ -764,7 +773,7 @@ function dutyText(c: Character): string {
     case "SpyOutbound":
       return `travelling on a quiet errand to ${c.missionTarget ?? c.watchProvince ?? ""}`;
     case "SpyPosted":
-      return `watching ${c.missionTarget ?? c.watchProvince ?? ""}`;
+      return `watching ${c.missionTarget !== null ? land(c.missionTarget) : c.watchProvince !== null && WorldMap.default.exists(c.watchProvince) ? WorldMap.default.get(c.watchProvince).name : (c.watchProvince ?? "")}`;
     case "Travelling":
       return "travelling on their own way";
     case "Leading":
@@ -853,7 +862,8 @@ export const Views = {
   wallsKnown,
   ownerAt,
   knownHolders,
-  for: seatView,
+  // Item 17+: a court's view names every power as that court gives its name.
+  for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map)),
   letters,
   seenAtCourt,
   knows,

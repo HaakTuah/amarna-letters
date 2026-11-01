@@ -23,6 +23,7 @@ import {
   StartWalls,
   courtReads,
   newGameConfig,
+  PeopleOf1346,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -31,13 +32,17 @@ const Map = WorldMap.default;
 describe("City-states as powers (item 11+)", () => {
   test("Every city-state is a power holding its city as its capital, under the same rules", () => {
     const s = newGame(1);
-    // 33 powers since item 11d; item 11c added six cities of Canaan, item 11f eight more places.
+    // 33 powers since item 11d; item 11c added six cities of Canaan, item 11f eight more places; item 17+ the Lady of the
+    // Lions' valley, and Suhu folded into Babylonia.
     Assert.equal(47, AllPowers.length);
     Assert.equal(7, GreatKings.length);
+    // Item 17+: each city's men stand in it, or where the sources place them in 1346, one unit to a province (Aziru's in
+    // Amurru beside Sumur, Arwad's ships in its own waters, Sidon's at home: CityStarts in model/map.ts).
+    const placed: Record<string, string> = { Amurru: "amurru", Arwad: "sumurwaters", Sidon: "sidon" };
     for (const p of AllPowers.filter((x) => !isGreatKing(x))) {
       const cap = Map.capital(p);
       Assert.equal(p, s.owner.get(cap.id));
-      Assert.true(s.units.some((u) => u.power === p && u.province === cap.id));
+      Assert.true(s.units.some((u) => u.power === p && u.province === (placed[p] ?? cap.id)));
       Assert.true(s.treasuries.get(p).gold > 0);
       Assert.true(s.startStrength.get(p) > 0);
       // A city's walls are the walls dossier's (item 11d); the lands without a town have none.
@@ -54,7 +59,8 @@ describe("City-states as powers (item 11+)", () => {
     const s = newGame(2);
     // Staff by size, and since item 11f an Akkadian scribe at every court that reads Akkadian.
     const scribes = AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length;
-    for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0), s.characters.filter((c) => c.employer === p).length);
+    // Item 17+: and the people of 1346 in their posts at their courts.
+    for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length, s.characters.filter((c) => c.employer === p).length);
     Assert.equal(100 + scribes, s.characters.length);
   });
 

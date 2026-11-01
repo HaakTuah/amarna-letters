@@ -73,13 +73,14 @@ describe("OrderDraftTests", () => {
 
   test("A human seat besieges a city its army stands within", () => {
     // The siege package (Build order item 5): the orders panel offers Besiege to an army within walls the seat does not hold.
+    // Terqa, Hana's walled city, stands in for Suhu, Babylonia's own land since item 17+.
     let s = newGame(31);
-    first(s.units, (u) => u.province === "sippar").province = "suhu";
+    first(s.units, (u) => u.province === "sippar").province = "terqa";
     let draft = new OrderDraft(Views.for(s, "Babylonia"));
-    draft.units.get("suhu")!.kind = "besiege";
+    draft.units.get("terqa")!.kind = "besiege";
     draft.other.push(build("nippur", "Walls", 2));
     let sub = draft.build();
-    Assert.contains(besiege("suhu"), sub.orders);
+    Assert.contains(besiege("terqa"), sub.orders);
     Assert.contains(build("nippur", "Walls", 2), sub.orders);
     Assert.empty(new OrderValidator(s).validate("Babylonia", sub).rejected);
   });
@@ -87,14 +88,15 @@ describe("OrderDraftTests", () => {
   test("A unit that razes where it stands gets no hold beside it", () => {
     // An army in another's land razes a level of its roads: the draft leaves out the unit's default hold, which would give
     // it two orders and have the raze refused.
+    // Terqa, Hana's walled city, stands in for Suhu, Babylonia's own land since item 17+.
     let s = newGame(31);
-    first(s.units, (u) => u.province === "sippar").province = "suhu";
-    setLevel(s, "Roads", "suhu", 1);
+    first(s.units, (u) => u.province === "sippar").province = "terqa";
+    setLevel(s, "Roads", "terqa", 1);
     let draft = new OrderDraft(Views.for(s, "Babylonia"));
-    draft.other.push(raze("suhu", "Roads"));
+    draft.other.push(raze("terqa", "Roads"));
     let sub = draft.build();
-    Assert.contains(raze("suhu", "Roads"), sub.orders);
-    Assert.equal(1, sub.orders.filter((o) => "unit" in o && o.unit === "suhu").length);
+    Assert.contains(raze("terqa", "Roads"), sub.orders);
+    Assert.equal(1, sub.orders.filter((o) => "unit" in o && o.unit === "terqa").length);
     Assert.empty(new OrderValidator(s).validate("Babylonia", sub).rejected);
   });
 });

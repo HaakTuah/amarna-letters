@@ -230,7 +230,7 @@ function stirSeason(e: TurnEngine): void {
   // Gold for stirring that one no longer on his errand still carries (caught on the road, dismissed, turned): his purse
   // holds it now, on him wherever he is.
   for (const c of S.characters.filter((c) => c.stirGold > 0 && !(c.status === "Employed" && (c.duty === "SpyOutbound" || c.duty === "SpyPosted" || c.duty === "EnvoyHomebound")))) {
-    c.purse += c.stirGold;
+    gain(c, c.stirGold, "Skimmed");
     c.stirGold = 0;
   }
   for (const c of sortBy(

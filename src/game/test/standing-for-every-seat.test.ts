@@ -342,7 +342,7 @@ describe("StandingForEverySeatTests", () => {
     // Two Assyrian armies stand next to Dur-Kurigalzu, in Ekallate and Suhu: one support holds it against both. The army in
     // Sippar, which holds this season and guards less than the army in the capital, is to give it if Dur-Kurigalzu is
     // attacked.
-    let s = newGame(31, Quiet);
+    let s = before13(newGame(31, Quiet));
     assyriaInMari(s);
     let [b, brain] = read(s, "Babylonia");
     let [cancel, give] = Contingencies.plan(b, brain, holding(b), []);
@@ -369,19 +369,20 @@ describe("StandingForEverySeatTests", () => {
     // and next to Dur-Kurigalzu, which one army alone cannot take. The army in Dur-Kurigalzu, the least
     // threatened troop next to Nippur by what it guards, is to march in if foreign troops do.
     // Nippur's old walls (1 since item 15) left out: the rule is the empty province's.
-    let s = newGame(31, Quiet);
+    let s = before13(newGame(31, Quiet));
     s.walls.delete("nippur");
     let [b, brain] = read(s, "Babylonia");
     let [, give] = Contingencies.plan(b, brain, holding(b), []);
-    let g = Assert.single(give);
+    // Suhu, Babylon's own empty land since item 17+, gets a guard of its own; Nippur's is the one under test.
+    let g = Assert.single(give, (x) => x.place === "nippur");
     Assert.equal(["Empty", "nippur", "UnitEnters", null], [g.kind, g.place, g.request.when, g.request.power]);
     Assert.equal([move("durkurigalzu", "nippur")], g.request.orders);
     // Not if the plan has another troop support it holding: its supports would be lost when it moves.
-    let s2 = newGame(31, Quiet);
+    let s2 = before13(newGame(31, Quiet));
     s2.walls.delete("nippur");
     let e = new TurnEngine(s2);
     e.beginTurn();
-    e.resolve(new Dict([["Babylonia", newTurnSubmission({ standing: give.map((x) => x.request) })]]));
+    e.resolve(new Dict([["Babylonia", newTurnSubmission({ standing: give.filter((x) => x.place === "nippur").map((x) => x.request) })]]));
     [b, brain] = read(s2, "Babylonia");
     let [cancel] = Contingencies.plan(b, brain, holding(b, support("babylon", "durkurigalzu")), []);
     Assert.equal(["s1", "needed at home"], Assert.single(cancel));
@@ -391,7 +392,7 @@ describe("StandingForEverySeatTests", () => {
     // Alashiya's fleet in Kalavasos's waters, next to Egypt's fleets off Lukka and off Kizzuwatna; its armies hold
     // Kalavasos and Enkomi, and no army can help a fleet at sea. Enkomi's waters are empty, and no Egyptian fleet could
     // move into them this season.
-    let s = newGame(31, Quiet);
+    let s = before13(newGame(31, Quiet));
     removeAll(s.units, (u) => u.power === "Alashiya");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Fleet", province: "kalavasoswaters" }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Army", province: "kalavasos" }));
@@ -407,7 +408,7 @@ describe("StandingForEverySeatTests", () => {
 
   // <summary>Babylonia keeps standing order s1: when the army in Dur-Kurigalzu is attacked, the army in Sippar supports it.</summary>
   function guarded(): GameState {
-    let s = newGame(31, Quiet);
+    let s = before13(newGame(31, Quiet));
     assyriaInMari(s);
     // An army of Babylon's in Nippur too, which a plan may have support Dur-Kurigalzu.
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "nippur" }));
@@ -453,8 +454,10 @@ describe("StandingForEverySeatTests", () => {
     // off and the orders it gave. The game replays exactly. (Until the siege package this was seed 1's turn 3, where Arzawa
     // marched on an empty Hattusa; the walls on homelands changed that game.) In the small world (small-world.ts) the first
     // to fire is seed 3's, in its fourth season, since item 11c's map (seed 4's before), so the search starts there. The
-    // people do not resist here (item 11e's land defended by its men makes such blows rarer).
-    for (let seed = 3; seed <= 15; seed++) {
+    // people do not resist here (item 11e's land defended by its men makes such blows rarer). Since item 17+ placed the
+    // Great Kings' men at home and in their frontier bases, early blows are rarer still: the first to fire is seed 17's,
+    // in its twelfth season, so the search starts there.
+    for (let seed = 17; seed <= 20; seed++) {
       let state = newGame(seed, newGameConfig({ peopleDefence: 0 }));
       let runner = Object.assign(new GameRunner(state, scriptSeats(seed), new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
       await runner.prepare();
@@ -469,7 +472,7 @@ describe("StandingForEverySeatTests", () => {
       }
       if (fired === null) continue;
       Assert.matches(
-        "^Your standing order s\\d+ \\(when .+\\) fired in turn \\d+: \\w+'s (army|fleet) set out from \\w+ for \\w+\\. It gave these orders: ",
+        "^Your standing order s\\d+ \\(when .+\\) fired in turn \\d+: \\w+'s (army|fleet) set out from [^.]+ for [^.]+\\. It gave these orders: ",
         fired.body,
       );
       Assert.true(sum(AllPowers, (p) => state.standing.tryGet(p)?.last ?? 0) > 1);

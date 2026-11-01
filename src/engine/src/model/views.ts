@@ -776,6 +776,11 @@ export interface SeatView {
   broken: number;
   /** Haakon's answers to item 11a: whether its standing order is to pay the carriers of its people's letters on delivery. */
   payCarriers: boolean;
+  /** Item 17+: its standing order to pay and feed its troops, and the provinces whose units of its are treated otherwise than each half says (held back while it pays, or paid while it does not). */
+  payTroops: boolean;
+  feedTroops: boolean;
+  payHeld: string[];
+  feedHeld: string[];
   /** Haakon's answers to item 11b: whether its standing order is that its armies fall on bands in its land. */
   huntBands: boolean;
   /** Haakon's answers to item 11b+: the provinces its standing hunt names; none named, the whole of its land. */
@@ -907,12 +912,31 @@ export interface SeatView {
   claims: Claim[];
   /** What this court called others, and they it, in the greetings sent between them (item 8). */
   greetings: Recognition[];
+  /** Item 17+ ("A power's name is a claim"): the name this court's king goes by. */
+  claimedName: string;
+  /** Item 17+: each name two or more claim, its claimants, and whom this court gives it to (null: nobody yet). */
+  nameClaims: NameClaimView[];
 }
+
+/** A name claimed by more than one power (item 17+), as one court sees it. */
+export interface NameClaimView {
+  name: string;
+  claimants: Power[];
+  givenTo: Power | null;
+}
+
+export const NameClaimViewSchema: ObjSchema<NameClaimView> = obj("NameClaimView", () => ({ name: "", claimants: [], givenTo: null }), {
+  name: S,
+  claimants: list(S),
+  givenTo: opt(S),
+});
 
 export function newSeatView(init: Partial<SeatView> = {}): SeatView {
   return {
     greetings: [],
     claims: [],
+    claimedName: "",
+    nameClaims: [],
     turn: 0,
     season: "",
     power: "Egypt",
@@ -940,6 +964,10 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     kept: 0,
     broken: 0,
     payCarriers: false,
+    payTroops: true,
+    feedTroops: true,
+    payHeld: [],
+    feedHeld: [],
     huntBands: false,
     huntWhere: [],
     debts: [],
@@ -996,6 +1024,8 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
 export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, {
   greetings: list(() => RecognitionSchema),
   claims: list(() => ClaimSchema),
+  claimedName: S,
+  nameClaims: list(() => NameClaimViewSchema),
   turn: I,
   season: S,
   power: S,
@@ -1023,6 +1053,10 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   kept: I,
   broken: I,
   payCarriers: B,
+  payTroops: B,
+  feedTroops: B,
+  payHeld: list(S),
+  feedHeld: list(S),
   huntBands: B,
   huntWhere: list(S),
   debts: list(() => DebtViewSchema),

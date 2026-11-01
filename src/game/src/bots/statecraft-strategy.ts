@@ -1,5 +1,6 @@
 /** The non-military half of a script king, first part: strategy and treasury. */
 import { creditOrders } from "./credit.ts";
+import { upkeepOrders } from "./upkeep.ts";
 import { bondWar } from "./vassals.ts";
 import { buyNewsOrders } from "./outlaws.ts";
 import { peopleAcrossBorders } from "./borders.ts";
@@ -212,6 +213,8 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   peopleAcrossBorders(b, orders);
   // Credit (item 11a): borrow when hard up, repay what is due to keep its name; the gold counts as the treasury's.
   gold += creditOrders(v, p, gold, costs, v.startStrength > 0 && v.strength / v.startStrength < 0.5, orders);
+  // Pay held back from safe units when the treasury still cannot carry the season (item 17+): the gold stays in the treasury.
+  gold += upkeepOrders(b, gold, costs, orders);
   // News of a foe from a seller at court (item 11b).
   gold -= buyNewsOrders(v, brain, gold, orders);
   const sales = grain.sales;

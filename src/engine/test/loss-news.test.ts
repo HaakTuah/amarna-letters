@@ -107,7 +107,7 @@ describe("LossNewsTests", () => {
     let [s, spy] = caughtOf();
     let loss = Assert.single(s.losses);
     Assert.equal(["Captured", "Assyria", "Babylonia", spy.id], [loss.kind, loss.court, loss.master, loss.characterId]);
-    Assert.contains(inboxOf(s, "Assyria"), (i) => i.title === "A spy is caught" && i.body.includes("confesses to serving Babylonia"));
+    Assert.contains(inboxOf(s, "Assyria"), (i) => i.title === "A spy is caught" && i.body.includes("confesses to serving Karduniash"));
   });
 
   test("An envoy received at the court hears of the captive it holds and a court with no carrier there hears nothing", () => {

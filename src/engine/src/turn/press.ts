@@ -2,8 +2,9 @@
  * What letters set in motion beyond the audience (build order item 8): the record of who calls whom brother and grants whom
  * the title, a new claim to the rank of Great King becoming established, and supports promised in clauses being kept.
  */
-import type { SupportOrder } from "../model/orders.ts";
-import { isGreatKing, land, type Power } from "../model/power.ts";
+import { Dict } from "../core/collections.ts";
+import type { ClaimNameOrder, SupportOrder } from "../model/orders.ts";
+import { claimantsOf, claimedName, house, isGreatKing, knownName, land, nameKnown, ownLand, setNameClaims, type Power } from "../model/power.ts";
 import { newRecognition } from "../model/recognition.ts";
 import type { GreetingOptions } from "../model/records.ts";
 import { alive, logEvent, notify } from "../model/state.ts";
@@ -12,6 +13,9 @@ import { TurnEngine } from "./core.ts";
 declare module "./core.ts" {
   interface TurnEngine {
     recordGreeting(from: Power, to: Power, g: GreetingOptions | null): void;
+    claimName(p: Power, o: ClaimNameOrder): void;
+    syncNames(): void;
+    claimHeard(court: Power, claimant: Power, name: string | null): void;
     recognise(): void;
     promisesKept(supports: readonly [Power, SupportOrder][]): void;
   }
@@ -40,6 +44,60 @@ P.recordGreeting = function (from, to, g) {
   r.brotherSince = brother ? (r.brotherSince ?? S.turn) : null;
   r.titleSince = title ? (r.titleSince ?? S.turn) : null;
   r.lastTurn = S.turn;
+  // Item 17+ ("A power's name is a claim"): a greeting gives the recipient the name he claims, where another claims it
+  // too, unless it calls him by his house; one calling him by his house takes back a name given him before.
+  // As the sender knows the claims: those he has read in the claimants' own greetings.
+  const name = knownName(from, to);
+  if (claimantsOf(name, from).length < 2) return;
+  const given = S.nameGiven.tryGet(from) ?? new Dict<string, Power>();
+  if (omit || g?.byHouse === true) {
+    if (given.tryGet(name) === to) given.delete(name);
+  } else given.set(name, to);
+  S.nameGiven.set(from, given);
+  this.syncNames();
+};
+
+/** The registry of names (`power.ts`) set to the state's, after a claim or a greeting changed it (item 17+). */
+P.syncNames = function () {
+  setNameClaims(this.s.names, this.s.eliminated, this.s.nameGiven, this.s.namesHeard);
+};
+
+/** A court reads in a claimant's sealed greeting the name he claims (item 17+); null: his own land's. */
+P.claimHeard = function (court, claimant, name) {
+  const S = this.s;
+  const n = name ?? ownLand(claimant);
+  const heard = S.namesHeard.tryGet(court) ?? new Dict<Power, string>();
+  if ((heard.tryGet(claimant) ?? ownLand(claimant)) === n) return;
+  if (n === ownLand(claimant)) heard.delete(claimant);
+  else heard.set(claimant, n);
+  S.namesHeard.set(court, heard);
+  this.syncNames();
+};
+
+/** The title of the notice a court reads when its own claim to a name is recorded. */
+export const NameClaimTitle = "A name claimed";
+
+/**
+ * A king claims a realm's name (item 17+): any the map knows or a power claims; his own land's name returns him to it. The
+ * claim gives nothing by rule. His own court hears of it at once; others by his greetings, which name him so.
+ */
+P.claimName = function (p, o) {
+  const S = this.s;
+  const name = nameKnown(o.name);
+  if (name === null || claimedName(p) === name) return;
+  if (name === ownLand(p)) S.names.delete(p);
+  else S.names.set(p, { name, since: S.turn });
+  this.syncNames();
+  // The rivals his court knows of: those whose greetings it has read.
+  const rivals = claimantsOf(name, p).filter((x) => x !== p);
+  notify(
+    S,
+    p,
+    "Notice",
+    NameClaimTitle,
+    `Your court now calls you the king of ${name}.${rivals.length > 0 ? ` Another claims the name too: each court gives it to the claimant it recognises, in the greetings it sends, and calls the other by his house (yours is ${house(p)}).` : ""}`,
+  );
+  logEvent(S, "recognition", `${land(p)} claims the name of ${name}${rivals.length > 0 ? `, claimed also by ${rivals.map(land).join(", ")}` : ""}.`, [p], "name-claim");
 };
 
 /**

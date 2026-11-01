@@ -221,11 +221,11 @@ describe("RecordTextTests", () => {
     );
 
     Assert.contains(
-      "- A ekallate -> suhu: fails: it met the unit from suhu (Mitanni's army) coming the other way; your strength 1 against 1; so your army stays in ekallate",
+      "- army in Ekallate -> Suhu: fails: it met the unit from Suhu (Mitanni's army) coming the other way; your strength 1 against 1; so your army stays in Ekallate",
       battle(s, "Assyria"),
     );
     Assert.contains(
-      "- A suhu -> ekallate: fails: it met the unit from ekallate (Assyria's army) coming the other way; your strength 1 against 1; so your army stays in suhu",
+      "- army in Suhu -> Ekallate: fails: it met the unit from Ekallate (Assyria's army) coming the other way; your strength 1 against 1; so your army stays in Suhu",
       battle(s, "Mitanni"),
     );
 
@@ -240,8 +240,8 @@ describe("RecordTextTests", () => {
     );
     let assyria = battle(t, "Assyria");
     // Item 13: beaten from its place, it falls back rather than being destroyed.
-    Assert.contains("- A ekallate falls back to arrapha", assyria);
-    Assert.doesNotContain("stays in ekallate", assyria);
+    Assert.contains("- army in Ekallate falls back to Arrapha", assyria);
+    Assert.doesNotContain("stays in Ekallate", assyria);
   });
 
   test("A kings letter is in his view in full while its envoy is away and beside the report when it comes", () => {

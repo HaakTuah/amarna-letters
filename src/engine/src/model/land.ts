@@ -117,7 +117,7 @@ const Regions: readonly [number, readonly string[]][] = [
   [250, ["ashur", "nineveh", "arbela", "ekallate"]],
   [300, ["apasa", "seha", "mira"]],
   [80, ["enkomi", "kalavasos"]],
-  [70, ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron"]],
+  [70, ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "gath", "aijalon"]],
   [80, ["tyre", "sidon", "byblos", "amurru", "sumur", "arwad", "beirut"]],
   [35, ["ugarit"]],
   [300, ["damascus", "qadesh", "qatna", "nuhashshe", "aleppo", "alalakh", "carchemish", "tunip", "niya"]],
@@ -135,7 +135,7 @@ const Regions: readonly [number, readonly string[]][] = [
   [40, ["shasu"]],
 ];
 
-const Habiru = ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron", "tyre", "sidon", "byblos", "amurru", "sumur", "arwad", "damascus", "qadesh", "qatna", "nuhashshe", "pella", "ashtaroth", "beirut", "tunip", "niya"];
+const Habiru = ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "gath", "aijalon", "tyre", "sidon", "byblos", "amurru", "sumur", "arwad", "damascus", "qadesh", "qatna", "nuhashshe", "pella", "ashtaroth", "beirut", "tunip", "niya"];
 
 const startCache = new WeakMap<WorldMap, Map<string, People>>();
 

@@ -31,6 +31,7 @@ import {
   wallsOf,
   StartWalls,
   courtReads,
+  PeopleOf1346,
 } from "@amarna/engine";
 import { removeAll, Assert, oldWorld } from "./support.ts";
 import { playRandom } from "./games.ts";
@@ -58,7 +59,8 @@ describe("EngineTests", () => {
     // The Great Kings' 20 units (item 13: Egypt's garrisons at Gaza and Sumur, Alashiya's army, Arzawa's and Alashiya's
     // fleets in their waters) and one for each of the 40 city-states (item 11+, item 11c's six of Canaan and item 11f's
     // eight), with the fleets of Ugarit, Sidon, Tyre and Byblos in their waters (item 13).
-    Assert.equal(64, s.units.length);
+    // Item 17+: the Great Kings' men where the sources place them (29 units), the Lady of the Lions' army, Suhu's gone.
+    Assert.equal(73, s.units.length);
     // Walls by city, from the walls dossier (items 11d, 11c, 11f and, for the Great Kings' cities, 15): Hattusa, Babylon,
     // Ashur, Washukanni, Qatna, Qadesh and Hazor 3, Akhetaten none; the chiefs' lands none.
     Assert.equal(55, s.walls.size);
@@ -70,9 +72,10 @@ describe("EngineTests", () => {
     Assert.true(WorldMap.default.landProvinces.every((p) => p.home !== null));
     // The pool of 100 and, since item 11f, an Akkadian scribe at every court that reads Akkadian.
     Assert.equal(100 + AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length, s.characters.length);
+    // Item 17+: and the people of 1346 in their posts at their courts.
     Assert.all(AllPowers, (p) =>
       Assert.equal(
-        (isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0),
+        (isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length,
         count(s.characters, (c) => c.employer === p),
       ),
     );
@@ -215,7 +218,7 @@ describe("EngineTests", () => {
 
   test("Greeting formula and deviations", () => {
     let std = Greeting.render("Mitanni", "Egypt", newGreetingOptions());
-    Assert.startsWith("Say to Napkhururiya, Great King, king of Egypt, my brother: thus says Tushratta", std);
+    Assert.startsWith("Say to Naphurureya, Great King, king of Egypt, my brother: thus says Tushratta", std);
     Assert.contains("your chariots, your horses", std);
 
     let cold = Greeting.render("Assyria", "Babylonia", newGreetingOptions({ callBrother: false, grantGreatKing: false, senderFirst: true }));

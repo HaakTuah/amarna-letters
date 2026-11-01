@@ -45,7 +45,7 @@ describe("SiegeTextTests", () => {
     [
       "Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you its tax and its mines' gold, and counts in your strength, a third of its full worth in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third.",
     ],
-    ["- apasa: Apasa; coast; waters apasawaters; homeland of Arzawa; capital; yield 40; walls 2."],
+    ["- apasa: Apasa; coast; waters apasawaters; homeland of Arzawa; today Ephesus (Selçuk); capital; yield 40; walls 2. armies: seha, mira, lukka. fleets: seha, lukka, apasawaters."],
     ["- Raising and keeping walls: walls are a level like everything built, with upkeep, decay and projects (BUILDING AND POLICING). An earthquake throws the walls of the province it strikes down a level."],
     [
       "An envoy whose courage is below 20 x tightness will not leave that season: nothing is paid, and you are told. A caught envoy is the besieger's captive: he reads the letter and the mandate, and takes the gold and the tablets it carried; he may execute, ransom or release the envoy, but cannot turn him.",

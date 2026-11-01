@@ -365,7 +365,7 @@ describe("CoverTests", () => {
       begin(s).resolve(none());
     }
     let seen = single(Views.for(s, "Hatti").court, (c) => c.id === spy.id);
-    Assert.equal(["watching washukanni", "in washukanni"], [seen.duty, seen.where]);
+    Assert.equal(["watching Washukanni", "in washukanni"], [seen.duty, seen.where]);
   });
 
   // ---------------------------------------------------------------- a defector on its new master's errands

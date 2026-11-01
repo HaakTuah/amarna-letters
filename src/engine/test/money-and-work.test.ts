@@ -50,6 +50,7 @@ describe("MoneyAndWorkTests", () => {
   // Egypt's first envoy, on a one-season job for 12 with 6 handed over; nobody seeks service, so the going rate stays put.
   function servant(): [GameState, Character] {
     const s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    s.debts = []; // the opening debts between courts (item 17+) are not these tests' matter
     for (const c of s.characters) c.seeking = false;
     const c = first(s.characters, (x) => x.employer === "Egypt");
     c.secretMaster = null;
@@ -164,6 +165,7 @@ describe("MoneyAndWorkTests", () => {
 
   test("Characters in one place lend to each other by approach and answer, sealing a debt tablet", () => {
     const s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    s.debts = []; // the opening debts between courts (item 17+) are not these tests' matter
     const [a, b] = s.characters.filter((c) => c.status === "Free" && c.duty === "None").slice(0, 2);
     for (const x of [a, b]) [x.at, x.purse, x.heldBy] = ["Hatti", 100, null];
     for (const x of [a, b]) speaksAll(x);
@@ -277,6 +279,7 @@ describe("MoneyAndWorkTests", () => {
     Assert.equal(MoneyData.arrivalMost, arrivalChance(60, 10));
     const make = (): GameState => {
       const s = newGame(9, newGameConfig({ catastropheChance: 0 }));
+      s.debts = []; // the opening debts between courts (item 17+) are not these tests' matter
       for (const c of s.characters.slice(0, 40)) c.status = "Dead";
       return s;
     };
@@ -310,6 +313,7 @@ describe("MoneyAndWorkTests", () => {
     Assert.true(isBold(bold));
     Assert.true(["Keeper", "Outlaw"].includes(strategiesOf(bold)[0]));
     const s = newGame(3);
+    s.debts = []; // the opening debts between courts (item 17+) are not these tests' matter
     for (const c of s.characters) {
       const [st, b] = [c.strategy, c.bold];
       Assert.false(chooseStrategy(c));
@@ -319,6 +323,7 @@ describe("MoneyAndWorkTests", () => {
 
   test("Characters are told the ending's rule in words, never its numbers", () => {
     const s = newGame(1);
+    s.debts = []; // the opening debts between courts (item 17+) are not these tests' matter
     const words = endingWords(s, "hattusa");
     Assert.contains("Nobody knows which season is the last", words);
     Assert.false(/\d/.test(words));

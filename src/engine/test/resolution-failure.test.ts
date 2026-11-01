@@ -69,18 +69,18 @@ describe("ResolutionFailureTests", () => {
   const TakeSinai: Order[] = [move("shasu", "sinai"), support("gaza", "shasu", "sinai")];
 
   test.each([
-    ["cession of land lost in battle", "Cession failed", "Sinai was not ceded to Hatti: you no longer held it after movement.", true],
-    ["cession of land with own troops in it", "Cession failed", "Memphis was not ceded to Hatti: your own troops still stood in it after movement.", false],
-    ["gift of troops destroyed in battle", "Gift of troops failed", "No unit of yours stood in Sinai after movement, so none was given to Hatti.", false],
-    ["disband of a unit destroyed in battle", "Disband failed", "No unit of yours stood in Sinai after movement, so none was disbanded.", false],
-    ["levy in a province not empty", "Levy failed", "No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", false],
+    ["cession of land lost in battle", "Cession failed", "the Ways of Horus was not ceded to Hatti: you no longer held it after movement.", true],
+    ["cession of land with own troops in it", "Cession failed", "Men-nefer was not ceded to Hatti: your own troops still stood in it after movement.", false],
+    ["gift of troops destroyed in battle", "Gift of troops failed", "No unit of yours stood in the Ways of Horus after movement, so none was given to Hatti.", false],
+    ["disband of a unit destroyed in battle", "Disband failed", "No unit of yours stood in the Ways of Horus after movement, so none was disbanded.", false],
+    ["levy in a province not empty", "Levy failed", "No army was raised in Waset: Waset was not empty after movement. No gold was paid.", false],
     [
       "levy in land ceded that season",
       "Levy failed",
-      "No army was raised in Sinai: you ceded Sinai to Hatti last season, before the levy. No gold was paid.",
+      "No army was raised in the Ways of Horus: you ceded the Ways of Horus to Hatti last season, before the levy. No gold was paid.",
       false,
     ],
-    ["levy that cannot be paid", "Not enough gold", "There was not enough gold to pay for a new army in Thebes; none was raised.", true],
+    ["levy that cannot be paid", "Not enough gold", "There was not enough gold to pay for a new army in Waset; none was raised.", true],
     ["dispatch that cannot be paid", "Not enough gold", "mission to Hatti; {envoy} stayed at your court.", true],
     ["background check that cannot be paid", "Not enough gold", "There was not enough gold to pay for inquiries into {stranger}; none were made.", true],
     ["watchmen who cannot be paid", "Not enough gold", "There was not enough gold to pay for watchmen; none were set.", true],

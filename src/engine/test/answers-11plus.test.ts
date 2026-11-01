@@ -92,6 +92,6 @@ describe("The answers to item 11+", () => {
     Assert.equal("Free", ruler.status);
     Assert.null(ruler.employer);
     Assert.equal("Byblos", ruler.at);
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.body.includes("has ceded Byblos to you"));
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.body.includes("has ceded Gubla to you"));
   });
 });

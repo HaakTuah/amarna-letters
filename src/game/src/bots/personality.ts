@@ -178,8 +178,9 @@ const cityArchetypes: Record<Exclude<FixedPower, "Egypt" | "Hatti" | "Babylonia"
   Gezer: city("the accused", "Milkilu, accused of giving the king's land to the Habiru, protesting his loyalty and taking what he can.", [0.65, 0.4, 0.3, 0.65, 0.35, 0.5, 0.6, 0.7, 0.6, 0.35]),
   Ashkelon: city("the provisioner", "Yidya, who sends grain, oxen and sheep for Pharaoh's archers and asks little.", [0.2, 0.8, 0.75, 0.4, 0.45, 0.4, 0.8, 0.35, 0.5, 0.6]),
   Lachish: city("the hill fort", "Zimreddi of Lachish, Pharaoh's servant in a strong town of the lowland.", [0.4, 0.65, 0.55, 0.5, 0.4, 0.55, 0.6, 0.45, 0.5, 0.45]),
-  Hebron: city("the feuding lord", "Shuwardata of the southern hills, at feud with Abdi-Heba over the town of Qiltu.", [0.7, 0.4, 0.4, 0.6, 0.3, 0.55, 0.55, 0.6, 0.75, 0.3]),
-  Suhu: city("the river land", "The middle Euphrates under local kings, within Mitanni's reach.", [0.4, 0.6, 0.5, 0.55, 0.4, 0.45, 0.5, 0.45, 0.5, 0.65]),
+  Gath: city("the feuding lord", "Shuwardata of Gath and the southern hills, at feud with Abdi-Heba over the town of Qiltu.", [0.7, 0.4, 0.4, 0.6, 0.3, 0.55, 0.55, 0.6, 0.75, 0.3]),
+  // Item 17+: the Lady of the Lions, who wrote to Pharaoh of the Habiru pressing her valley (EA 273-274): cautious, loyal, pleading.
+  Aijalon: city("the lady of the lions", "Baʿlat-nese of the Aijalon valley, Pharaoh's servant between Gezer and Jerusalem, hard pressed by the Habiru.", [0.3, 0.7, 0.5, 0.45, 0.35, 0.6, 0.65, 0.4, 0.45, 0.4]),
   Suteans: city("the steppe raiders", "Herding tribes whose chiefs rob travellers and hire out as fighters.", [0.7, 0.35, 0.35, 0.7, 0.2, 0.35, 0.3, 0.6, 0.5, 0.3]),
   Arrapha: city("the land of Nuzi", "Mitanni's vassal beyond the Tigris, close to Assyria's reach.", [0.3, 0.65, 0.6, 0.5, 0.45, 0.45, 0.55, 0.4, 0.45, 0.55]),
   // Item 11f's places

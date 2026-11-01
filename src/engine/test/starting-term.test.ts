@@ -64,15 +64,15 @@ describe("StartingTermTests", () => {
   // that go by neighbours change).
   //
   test.each([
-    [1, "e611a26373f1ce13"],
-    [7, "9b28d82b51cd371b"],
-    [42, "b9ef810011f43bec"],
+    [1, "492af8640b9f6b16"],
+    [7, "6e49ddef04ee0420"],
+    [42, "ec3df9699553f0bb"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     let envoys = s.characters.filter((c) => c.contract !== null);
     // Two for each Great King and one for each city-state (item 11+), Terqa, Mira and Seha among them (item 11d), item 11c's six and item 11f's eight, and
     // since item 11f an Akkadian scribe at each of the 23 courts that read Akkadian.
-    Assert.equal(77, envoys.length);
+    Assert.equal(96, envoys.length);
     Assert.all(envoys, (c) => {
       Assert.equal(Rng.for(seed, 0, "start-term", c.id).range(7, 13), c.contract!.untilTurn);
       Assert.inRange(c.contract!.untilTurn, 7, 13);

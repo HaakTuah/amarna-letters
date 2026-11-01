@@ -10,7 +10,7 @@ import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BattleData, battleLosses } from "../model/command.ts";
 import type { Power } from "../model/power.ts";
-import { AllPowers } from "../model/power.ts";
+import { AllPowers, land } from "../model/power.ts";
 import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
 import { remember } from "../model/people.ts";
 import type { AdjudicationResult, Fight } from "../rules/adjudicator.ts";
@@ -149,14 +149,14 @@ function battleNews(engine: TurnEngine, f: Fight, a: Unit, d: Unit, margin: numb
   const at = engine.map.get(f.at).name;
   const kind = (u: Unit): string => (u.kind === "Army" ? "army" : "fleet");
   const [aLost, dLost] = f.won ? [winnerLost, loserLost] : [loserLost, winnerLost];
-  const by = margin >= BattleData.rout ? "far" : margin >= 33 ? "clearly" : "narrowly";
+  const by = margin >= BattleData.rout ? "by far" : margin >= 33 ? "clearly" : "narrowly";
   logEvent(
     S,
     "battle",
-    `${a.power}'s ${kind(a)} from ${engine.map.get(f.from).name} fought ${d.power}'s ${kind(d)} at ${at}: ${f.won ? a.power : d.power} won, ${by}.`,
+    `${land(a.power)}'s ${kind(a)} from ${engine.map.get(f.from).name} fought ${land(d.power)}'s ${kind(d)} at ${at}: ${land(f.won ? a.power : d.power)} won ${by}.`,
     seeing,
     "battle",
   );
-  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${kind(a)} (${unitLabel(a)}) attacked ${d.power}'s ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten"}, ${by}: it lost ${aLost} men.`);
-  engine.tell(d.power, f.at, "Battle", "Battle", `${a.power}'s ${kind(a)} from ${engine.map.get(f.from).name} attacked your ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten back"}, ${by}: your ${kind(d)} lost ${dLost} men.`);
+  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${land(d.power)}'s ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten"} ${by}: it lost ${aLost} men.`);
+  engine.tell(d.power, f.at, "Battle", "Battle", `${land(a.power)}'s ${kind(a)} from ${engine.map.get(f.from).name} attacked your ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten back"} ${by}: your ${kind(d)} lost ${dLost} men.`);
 }

@@ -108,6 +108,10 @@ function failure(stop: MoveStop, province: string, power: Power | null, kind: Un
 
 export class Adjudicator {
   private readonly map: WorldMap;
+  /** A province by its own name in the report (item 17+, "Requests are rules too": no ids in what a king reads). */
+  private nm(id: string): string {
+    return this.map.exists(id) ? this.map.get(id).name : id;
+  }
   private readonly explain: boolean;
   private readonly terrain: number;
   private readonly orders: O[] = [];
@@ -231,14 +235,14 @@ export class Adjudicator {
       if (o.kind === "Support") {
         let why: string | null;
         const t = this.at.get(o.target!);
-        if (t === undefined) why = o.to === null ? `no unit stood in ${o.target}` : `no unit moved from ${o.target} to ${o.to}`;
+        if (t === undefined) why = o.to === null ? `no unit stood in ${this.nm(o.target!)}` : `no unit moved from ${this.nm(o.target!)} to ${this.nm(o.to)}`;
         else {
           const sup = this.orders[t];
-          if (o.to === null) why = sup.kind !== "Move" ? null : `the unit in ${o.target} was ordered to move, not to hold`;
-          else why = sup.kind === "Move" && sup.target === o.to ? null : `no unit moved from ${o.target} to ${o.to}`;
+          if (o.to === null) why = sup.kind !== "Move" ? null : `the unit in ${this.nm(o.target!)} was ordered to move, not to hold`;
+          else why = sup.kind === "Move" && sup.target === o.to ? null : `no unit moved from ${this.nm(o.target!)} to ${this.nm(o.to)}`;
         }
         if (why !== null) {
-          o.voided = `supports ${o.target}${o.to === null ? " holding" : " -> " + o.to}`;
+          o.voided = `supports ${this.nm(o.target!)}${o.to === null ? " holding" : " -> " + this.nm(o.to)}`;
           o.voidWhy = why;
           o.kind = "Hold";
         }
@@ -252,8 +256,8 @@ export class Adjudicator {
           this.orders[t].target === o.to &&
           this.orders[t].unitKind === "Army";
         if (!ok) {
-          o.voided = `convoys ${o.target} -> ${o.to}`;
-          o.voidWhy = this.map.get(o.at).isSea ? `no army moved from ${o.target} to ${o.to} by sea` : "a fleet convoys only at sea";
+          o.voided = `convoys ${this.nm(o.target!)} -> ${this.nm(o.to!)}`;
+          o.voidWhy = this.map.get(o.at).isSea ? `no army moved from ${this.nm(o.target!)} to ${this.nm(o.to!)} by sea` : "a fleet convoys only at sea";
           o.kind = "Hold";
         }
       }
@@ -501,7 +505,8 @@ export class Adjudicator {
       if (dislodged) r.dislodgedUnitIds.push(o.unitId);
       else r.newPositions.set(o.unitId, moved ? o.target! : o.at);
 
-      const label = `${o.unitKind === "Army" ? "A" : "F"} ${o.at}`;
+      const name = (id: string): string => this.nm(id);
+      const label = `${o.unitKind === "Army" ? "army" : "fleet"} in ${name(o.at)}`;
       const helpedAt = o.kind === "Support" ? this.at.get(o.target!) : undefined;
       r.outcomes.push(
         newOrderOutcome({
@@ -524,7 +529,7 @@ export class Adjudicator {
           const assault = moved ? this.assaultBy(o) : null;
           if (assault !== null) r.assaults.push(assault);
           r.lines.push(
-            line(o.at, o.power, `${label} -> ${o.target}${o.viaConvoy ? " (by sea)" : ""}: ${moved ? "succeeds" : "fails"}`, moved, {
+            line(o.at, o.power, `${label} -> ${name(o.target!)}${o.viaConvoy ? " (by sea)" : ""}: ${moved ? "succeeds" : "fails"}`, moved, {
               target: o.target,
               failure: this.explain && !moved ? this.whyFailed(o) : null,
               assault,
@@ -542,16 +547,16 @@ export class Adjudicator {
           }
           // A unit that is destroyed gives no support: that is not a cut.
           const cutFrom = !given && !dislodged && this.explain ? (this.cutBy(o)?.at ?? null) : null;
-          const failed = dislodged ? "void: the supporting unit was beaten from its place" : cutFrom !== null ? `cut (attacked from ${cutFrom})` : "cut";
+          const failed = dislodged ? "void: the supporting unit was beaten from its place" : cutFrom !== null ? `cut (attacked from ${name(cutFrom)})` : "cut";
           r.lines.push(
-            line(o.at, o.power, `${label} supports ${o.target}${o.to === null ? " holding" : " -> " + o.to}: ${given ? "given" : failed}`, given, {
-              cut: given || dislodged || !this.explain ? null : cutFrom !== null ? `the support was cut by an attack from ${cutFrom}` : "the support was cut",
+            line(o.at, o.power, `${label} supports ${name(o.target!)}${o.to === null ? " holding" : " -> " + name(o.to)}: ${given ? "given" : failed}`, given, {
+              cut: given || dislodged || !this.explain ? null : cutFrom !== null ? `the support was cut by an attack from ${name(cutFrom)}` : "the support was cut",
             }),
           );
           break;
         }
         case "Convoy":
-          r.lines.push(line(o.at, o.power, `${label} convoys ${o.target} -> ${o.to}`, this.result[o.index]));
+          r.lines.push(line(o.at, o.power, `${label} convoys ${name(o.target!)} -> ${name(o.to!)}`, this.result[o.index]));
           break;
         default:
           r.lines.push(
