@@ -189,6 +189,7 @@ P.leaveCommand = function (c, at) {
   c.at = null;
   const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from: home, to: home, characterId: c.id });
   S.journeys.push(j);
+  c.sent++;
   this.setOut(j, at, courtOf(S, this.map, home));
 };
 

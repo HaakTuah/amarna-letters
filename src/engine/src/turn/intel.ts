@@ -126,6 +126,7 @@ P.placeSpy = function (p, ps) {
   c.watchProvince = province;
   const j = newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, from: p, to: court ?? p, characterId: c.id });
   S.journeys.push(j);
+  c.sent++;
   this.setOut(j, this.courtAt(p), target);
   const travel = j.arriveTurn - S.turn;
   remember(c, S.turn, `My lord of ${land(p)} sent me quietly to watch ${court !== null ? land(court) : Map.get(province!).name}.`);
@@ -319,6 +320,7 @@ P.walkToBorder = function (c, employer, border) {
   c.at = null;
   const j = newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, from: employer, to: employer, characterId: c.id });
   S.journeys.push(j);
+  c.sent++;
   this.setOut(j, post, border);
   const there = [...j.route];
   this.setOut(j, border, post);

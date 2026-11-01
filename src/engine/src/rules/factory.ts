@@ -23,7 +23,7 @@ import { StateOfRealmTitle, stateOfRealm } from "./realm.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
-import { AttestedCast, FirstCores, NubianCast, NubiansAttested, Styles, type CastSeed, type Core } from "./cast.ts";
+import { AttestedCast, FirstCores, NamedScribes, NubianCast, NubiansAttested, PeopleOf1346, Styles, type CastSeed, type Core } from "./cast.ts";
 import { drawSkills } from "./skills.ts";
 import { kingTongues, servedThere } from "./tongues.ts";
 import { courtReads } from "../model/languages.ts";
@@ -224,6 +224,7 @@ export function populate(s: GameState): void {
     c.persona = personaTemplate(c);
     s.characters.push(c);
   }
+  pursed.clear();
   more(s, attested.slice(Math.min(7, Math.trunc(first / 2))));
   // The staff the first pool could not fill (item 11+: some thirty powers to some eighteen first servants) is taken from the
   // free people of the larger pool, each from its own court where it can be, in the powers' fixed order.
@@ -241,7 +242,7 @@ export function populate(s: GameState): void {
   // Item 11a: a free person's savings from the life before the game, from a stream of their own; every character's way to
   // a fortune and road ("How the strategy is made"); and the pool's baseline ("A baseline, not a limit").
   for (const c of s.characters) {
-    if (c.status === "Free") c.purse = c.earned.savings = Rng.for(s.seed, 0, "savings", c.id).range(10, 60);
+    if (c.status === "Free" && !pursed.has(c.id)) c.purse = c.earned.savings = Rng.for(s.seed, 0, "savings", c.id).range(10, 60);
     chooseStrategy(c);
   }
   s.baseline = s.characters.length;
@@ -261,12 +262,13 @@ function scribes(s: GameState): void {
     const rng = Rng.for(s.seed, 0, "scribe", p);
     const nearest = sortBy([...AllPowers].filter((x) => Styles.some((st) => st.court === x)), [(x: Power) => map.hops(map.capital(x).id, capital), cmpNum])[0];
     const style = Styles.find((st) => st.court === p) ?? Styles.find((st) => st.court === nearest) ?? Styles[0];
-    // A name of the style nobody has yet, else "the younger" or "the elder" of one.
+    // A name of the style nobody has yet, else "the younger" or "the elder" of one; or the scribe the sources name (item 17+).
     const names = rng.shuffle([...style.names]);
     const taken = (n: string): boolean => s.characters.some((c) => c.name === n);
-    const name = [...names, ...names.map((n) => `${n} the younger`), ...names.map((n) => `${n} the elder`)].find((n) => !taken(n)) ?? `${names[0]} of ${land(p)}`;
-    const c = create(s, rng, { name, origin: rng.pick(style.origins), attested: false }, "scribe", Math.min(rng.range(15, 95), rng.range(15, 95)));
-    finish(s, c, null, false);
+    const named = NamedScribes.get(p) ?? null;
+    const name = named?.name ?? ([...names, ...names.map((n) => `${n} the younger`), ...names.map((n) => `${n} the elder`)].find((n) => !taken(n)) ?? `${names[0]} of ${land(p)}`);
+    const c = create(s, rng, { name, origin: named?.origin ?? rng.pick(style.origins), attested: named?.attested ?? false }, "scribe", Math.min(rng.range(15, 95), rng.range(15, 95)));
+    finish(s, c, named?.core ?? null, named?.attested ?? false);
     c.tongues.set("Akkadian", Math.max(c.tongues.getOrDefault("Akkadian", 0), rng.range(80, 95)));
     employ(s, rng, c, p, false);
     c.met = [p];
@@ -316,28 +318,47 @@ function more(s: GameState, unused: Seed[]): void {
   const extra = s.config.characterPoolSize - FirstPool;
   if (extra <= 0) return;
   const rng = Rng.for(s.seed, 0, "characters-more");
+  // Item 17+: the people of 1346 who did not rule come before the invented, so the real take the invented ones' places.
   const known: CastSeed[] = [
-    ...unused.map((u) => ({ name: u.name, origin: u.origin, court: courtOf(u.origin), calling: "royal envoy", core: FirstCores.get(u.name) ?? null, nubian: false })),
+    ...unused.map((u) => ({ name: u.name, origin: u.origin, court: courtOf(u.origin), calling: "royal envoy", core: FirstCores.get(u.name) ?? null, nubian: false, post: false, purse: 0, facts: [], stake: null })),
     ...AttestedCast,
+    ...PeopleOf1346,
     ...NubianCast,
   ];
   const styled: CastSeed[] = rng.shuffle(
-    Styles.flatMap((st) => st.names.map((name, i) => ({ name, origin: st.origins[i % st.origins.length], court: st.court, calling: st.callings[i % st.callings.length], core: null, nubian: false }))),
+    Styles.flatMap((st) => st.names.map((name, i): CastSeed => ({ name, origin: st.origins[i % st.origins.length], court: st.court, calling: st.callings[i % st.callings.length], core: null, nubian: false, post: false, purse: 0, facts: [], stake: null }))),
   );
   const cast = [...known, ...styled].slice(0, extra);
   for (const sd of cast) {
     const attested = (known.includes(sd) && !sd.nubian) || NubiansAttested.has(sd.name);
     const c = create(s, rng, { name: sd.name, origin: sd.origin, attested }, sd.calling, attested ? null : Math.min(rng.range(15, 95), rng.range(15, 95)));
     if (sd.nubian) c.facts.push(newFact({ id: newId(s, "f"), text: "A Nubian in Egypt's service, who speaks a Nubian tongue as well as Egyptian.", secrecy: "Public", tag: "nubian" }));
+    // Item 17+: what the sources say of a person of 1346, as public facts; a claim or a town of his own as a stake.
+    for (const text of sd.facts) c.facts.push(newFact({ id: newId(s, "f"), text, secrecy: "Public", tag: "source" }));
+    if (sd.stake !== null) c.facts.push(newFact({ id: newId(s, "f"), text: `Holds a stake in the love of the people of ${WorldMap.default.get(sd.stake).name}: a claim, or a town of his own.`, secrecy: "Public", tag: `stake:${sd.stake}` }));
     finish(s, c, sd.core, attested);
-    c.status = "Free";
-    // A Nubian in Egypt's service stands at Pharaoh's court; anyone else lives where a lover or family draws it, if anywhere.
-    c.at = sd.nubian ? sd.court : (c.ties.find((t) => t.kind !== "Debt")?.court ?? sd.court);
-    c.met = [];
+    if (sd.post) {
+      // Item 17+: in his post from the first season, placed where the sources put him: employed by his court, as a starting servant.
+      employ(s, rng, c, sd.court, false);
+      c.met = [sd.court];
+    } else {
+      c.status = "Free";
+      // A Nubian in Egypt's service stands at Pharaoh's court; a person of 1346 with a stake at the court the sources put him
+      // at; anyone else lives where a lover or family draws it, if anywhere.
+      c.at = sd.nubian || sd.stake !== null ? sd.court : (c.ties.find((t) => t.kind !== "Debt")?.court ?? sd.court);
+      c.met = [];
+    }
+    if (sd.purse > 0) {
+      c.purse = c.earned.savings = sd.purse;
+      pursed.add(c.id);
+    }
     c.persona = personaTemplate(c);
     s.characters.push(c);
   }
 }
+
+/** The characters whose purse the sources set (item 17+), which the draw of savings leaves alone. */
+const pursed = new Set<string>();
 
 /** The court of a first-pool origin, for an attested envoy left over from the first draw. */
 function courtOf(origin: string): Power {

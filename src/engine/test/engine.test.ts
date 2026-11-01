@@ -31,6 +31,7 @@ import {
   wallsOf,
   StartWalls,
   courtReads,
+  PeopleOf1346,
 } from "@amarna/engine";
 import { removeAll, Assert, oldWorld } from "./support.ts";
 import { playRandom } from "./games.ts";
@@ -71,9 +72,10 @@ describe("EngineTests", () => {
     Assert.true(WorldMap.default.landProvinces.every((p) => p.home !== null));
     // The pool of 100 and, since item 11f, an Akkadian scribe at every court that reads Akkadian.
     Assert.equal(100 + AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length, s.characters.length);
+    // Item 17+: and the people of 1346 in their posts at their courts.
     Assert.all(AllPowers, (p) =>
       Assert.equal(
-        (isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0),
+        (isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length,
         count(s.characters, (c) => c.employer === p),
       ),
     );

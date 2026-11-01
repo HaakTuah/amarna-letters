@@ -104,6 +104,19 @@ Each with the principle it rests on ("Reason from the pillars").
 22. **The modern name reaches the human player** on the province card's second line and the models through the rulebook's
     list of provinces, which already lists each place once (the gazetteer); the README names the renamed places once.
 
+23. **A post is an errand:** a person in his post is employed by his court as a starting servant is, since "a job is always
+    an errand" and a long stay is an errand with a deadline ("Hiring" in the one page); his first errand is named when he
+    is first sent. A claimant or a town's ruler starts free at his court with a stake, so no one starts idle.
+24. **Where a character can stand is a court,** so a commissioner at Hazzatu or the viceroy in Kush stands at Pharaoh's court
+    with his origin and his post until item 17++ places the governors and the open residents in their provinces, as its
+    text says it will.
+25. **Purses scaled to the king's** [G]: a great officer of Egypt a tenth of the treasury at most, a commissioner a thirtieth,
+    a city-state's claimant or town ruler a quarter of his city's treasury, the two Assyrian envoys a thirtieth of theirs.
+26. **Names the sources do not give** (Assyria's envoys, the governor of Alashiya, Abdi-Heba's scribe) are given in their
+    court's style and marked generated [G]; the governor of Alashiya takes a later governor's name [C].
+27. **Artatama II stands at Mitanni's court** with his stake in Mitanni's love, since the sources do not say where he was and
+    a character stands at a court; his share of the people's love is item 17++'s to seed.
+
 ## Design questions
 
 1. **Should the seven Great Kings' realms take the period forms too** (Miṣri for Egypt, Aššur for Assyria), or keep the

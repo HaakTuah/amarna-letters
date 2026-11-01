@@ -228,6 +228,7 @@ P.dispatch = function (p, d) {
 
   const outJourney = newJourney({ id: newId(S, "j"), kind: "EnvoyOutbound", departTurn: S.turn, from: p, to: d.to, characterId: c.id, dispatch });
   S.journeys.push(outJourney);
+  c.sent++;
   this.setOut(outJourney, this.courtAt(p), this.courtAt(d.to));
   // Seasons spent taking in the king's words, or waiting for the tablet's scribe, before the road.
   outJourney.departTurn += composed.seasons;

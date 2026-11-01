@@ -84,3 +84,26 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   models' "You are ...", the web's court strip); his other names (`kingOtherNames`) are for his card alone. The cast's
   origins are by their own names too (Waset, Men-nefer, Gubla), and the place-name map (`OriginProvince`) knows them.
 - **Only what stood in 1346 is drawn as standing:** above, under the map.
+
+## The people of 1346 who did not rule (`PeopleOf1346`, `NamedScribes` in `rules/cast.ts`; `more`, `scribes` in `rules/factory.ts`)
+
+- **Who:** every attested person the dossiers mark alive and active in 1346 who passes both tests, the historical and the
+  game's; the report lists every name weighed. Thirty-five are added: Egypt's great officers and commissioners (Ay, Nakht,
+  Panehesy, Huya, Thutmose, Paatenemheb, Pahanate, Pawura, Ha'ip, Rianap, Tahmashshi, Hatip), Zida of Hatti, the rival
+  line of Mitanni (Artatama, Shuttarna), Babylonia's governors and envoy (Enlil-kidinni, Ili-ippashra, Shindishugab),
+  Assyria's two envoys kept in the sun [G names], the governor of Alashiya [C name], and the Levant's claimants, brothers
+  and men of action (Ilirabih, Pu-Baʿlu, Baʿluya, Akit-Teshup of Niya, Tagi, Yashdata, Endaruta, Shum-Adda, Shutatna,
+  Yapah-Hadda, Arzawiya, Teuwatti, Biridashwa, Yapahu). Ilimilku is Ugarit's court scribe and Abdi-Heba's scribe
+  Urusalim's, in place of the generated ones.
+- **Where and holding what** (`CastSeed.post`, `purse`, `facts`, `stake`): a person in a post is employed by his court from the
+  first season, as a starting servant is (a job like any other, his first errand named when he is first sent, the rest of
+  his fee by his king's standing order), standing at his court; a claimant or a town's ruler is free at the court the
+  sources put him at, with a public fact of his stake in a province (`stake:<province>`), which item 17++'s ledger seeds.
+  His purse is set against his king's as far as the sources go (Ay 90 shekels of Egypt's 900; a town's ruler 15 to 25 of a
+  city's 80) [G], and the draw of savings leaves it alone. What the sources say of him is a public fact (`source`) and his
+  traits (`core`), never a script. None starts with armed men: the design session's reading that none led a band in 1346.
+- **The real take the invented ones' places:** `more()` draws the known people before the name styles, so the pool stays at
+  its baseline (100 besides the court scribes); the names the people of 1346 now bear are gone from the styles.
+- **The count** (`GameSummary.people`, `Character.sent`): the batch runner prints, for every attested person, the seasons he
+  was asked to decide, the times he was sent anywhere (every journey of his own) and the games he served a court in, with
+  the wake-ups a season and the calls a model game would make, before and after, in the report.

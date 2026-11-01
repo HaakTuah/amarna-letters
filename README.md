@@ -225,6 +225,14 @@ theirs. Rib-Hadda of Byblos wrote more than sixty, begging for troops and grain 
 Amurru and then his son Aziru, who played Egypt against Hatti and in the end went over to Hatti. It is
 where the great kings' spheres meet, and where the truth is hardest to find.
 
+**The people of 1346.** Everyone the sources show alive, active and not ruling in 1346 is in the game from its first
+season, where the sources put him and holding what he held: Ay and the vizier Nakht at Akhetaten, the commissioners
+Pahanate, Pawura, Rianap and Tahmashshi in Pharaoh's service, Enlil-kidinni over Nippur, the governor of Alashiya, Zida
+with Hatti's guard; and the claimants and men of action of the Levant, Rib-Hadda's brother Ilirabih at Gubla, Aziru's
+brothers in Amurru, Artatama the rival king of the Hurrians, Tagi and Yashdata at Magidda, the men of Akka who killed
+Babylon's merchants. No rule is made for any of them: Ilirabih may take Gubla if Rib-Hadda fails, by the rules everyone
+lives by. What the sources say of each is on his card.
+
 ## Envoys and other servants
 
 More than a hundred people move between the courts: the envoys, officials and agents attested in the Amarna letters
