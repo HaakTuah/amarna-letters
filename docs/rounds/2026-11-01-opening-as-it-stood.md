@@ -117,6 +117,59 @@ Each with the principle it rests on ("Reason from the pillars").
 27. **Artatama II stands at Mitanni's court** with his stake in Mitanni's love, since the sources do not say where he was and
     a character stands at a court; his share of the people's love is item 17++'s to seed.
 
+## The model-text finds of the hand-off ("Requests are rules too")
+
+- **The adjudicator's shorthand** ("A memphis holds", `unitLabel` in `model/state.ts`, the report lines and reasons in
+  `rules/adjudicator.ts`, `turn/resolve.ts`, `turn/sieges.ts`): every unit is now "army in Men-nefer" or "fleet in Ta-Mehu
+  waters", and every place in a report line, a reason or a fall-back is by its own name; nothing a king reads shows a
+  province id except the orders' vocabulary, which the rulebook's list maps to the names.
+- **"Qadesh won, far."** (`turn/battles.ts`): "won by far", "won clearly", "won narrowly", and the powers by their shown names.
+- **"season(s)"** (`turn/intel.ts`, `turn/envoys.ts`, `turn/sieges.ts`): "1 season", "3 seasons".
+- **Ids in engine text:** "watching lukka" (`rules/views.ts`) is by the place's or the court's name; the debt-default event
+  names the borrower, not "c100 let debt d64 pass"; the spy who confesses names the court by its shown name. The order
+  summary "pay c12 the rest of the fee owed" keeps the person's id, since person ids (c12) are the vocabulary the orders
+  use and the requests show.
+- **Fractional treasuries** (`formatMoney`): rounded to whole shekels before any text.
+- **"10 x its homeland yield"** (`src/llm/src/rules.ts`): the strength line says what is built: ten times what the land
+  produces in a season, plus the treasury and what the provinces' purses and stores and the troops' baggage hold.
+- **Left as they were, listed for the next pass:** the sleep digests and wake reasons ("Assyria's army moved ashur ->
+  arbela") still use province ids, as the orders do; the powers named by id in the treasury and press lines ("Egypt could not
+  pay its troops"), where the id and the shown name agree for every power but Babylonia (Karduniash), Hana, Halab,
+  Mukish, Upe and the renamed cities; the polish lane's list in `docs/rounds/2026-10-31-polish-lane.md`.
+
+## Where to pick up (hand-off, 1 November 2026, usage cut-off)
+
+The session building this item was stopped at 98% of the weekly usage. State of the branch `item/opening-as-it-stood`:
+
+- **Built and committed:** A (positions and debts), B (the land east of the Jordan, the map check), C1-C4 (places by their
+  own names, modern names on the card only, names by court: Naphurureya abroad, Akhenaten at home), D (the standing order
+  to pay and feed troops, with the script kings' `--upkeep-play-half` flag), E (the people of 1346 who did not rule, with the
+  names-weighed table below), F (the model-text finds). Save version 38. Benchmarks before are above; after and the
+  use-against-ignore run for D are **not run yet**.
+- **Tests:** the suites of the engine text tests passed after F; the full `scripts/test.sh` after F was started but its
+  result was not read. Run it first and fix what fails.
+- **Not built: "A power's name is a claim" (C5).** Design settled: `GameState.names: Dict<Power,string>` (the name each
+  power claims) and `nameGiven: Dict<Power, Dict<string,Power>>` (whom each court gives a contested name to); `power.ts`
+  gets `setNameClaims(names, fallen)` (registered beside `setRisen` in `turn/core.ts` line ~47, `factory.ts`, the batch
+  runner's and the web client's state loads), `claimedName`, `holderOfName`, `claimantsOf`, `house(p)` ("Bit-" and the
+  king's first name, or "Bit-" and the land), `land(p)` honouring claims (the house name when contested and not the
+  original holder), `landFor(viewer, p, given)`; orders `claimName(name)` and `giveName(name, power)` with validator
+  (any name the map knows or a power claims; the power must claim the name) and `court.ts` cases logging "name-claim" and
+  "name-given"; `SeatView.claimedName` and `nameClaims: {name, claimants, givenTo}[]`; model actions `claim_name` and
+  `give_name` (`item` is the name, `power` the claimant), a NAMES CLAIMED prompt line and a rulebook bullet in
+  `rules-money.ts`; a script-king `claims.ts` (claim a fallen realm's name when holding its capital; give a contested
+  name to a bond friend, else the capital's holder, else the original holder) called after `courtMove` in
+  `script-leader.ts`; a select in the web `CourtSection`; an engine test `names-as-claims.test.ts`; the design note
+  (`docs/design/46`), the README and this report. A patch script with the engine and model parts written was in the
+  stopped session's scratchpad and is lost: write it again from this list.
+- **Then:** the after-benchmark (`scripts/sim.sh --games 20 --seed 1 --verify-replay`) and `--upkeep-play-half` over 50
+  games, their rows here and in the progress file's "Use against ignore" table; the people counts (wake-ups, calls, each
+  person's asked/sent/served from the batch summary line "People of the sources"); the check for changes
+  (`git diff 20850a8..origin/develop -- docs/intent .claude/rules`); the progress file's 17+ line and "For Haakon" table
+  (design question 1 below); the reviewer (not run yet); merge; the milestone PR.
+- **Leftovers noted, not done:** sleep digests and wake reasons still name provinces by id; treasury and press lines name
+  powers by id; `svg-renderer.ts` is 52 KB (split in its own PR).
+
 ## Design questions
 
 1. **Should the seven Great Kings' realms take the period forms too** (Miṣri for Egypt, Aššur for Assyria), or keep the
