@@ -49,7 +49,11 @@ export function ProvinceList({ scene, selected, onProvince }: { scene: MapScene;
                             {u.ghost ? ` (seen ${shortDate(u.seenAt + 1, scene.viewer)})` : ""}
                           </span>
                         ))}
-                        {!p.isSea && <span className="muted">{p.yield}</span>}
+                        {!p.isSea && (
+                          <span className="muted" title="What its land yields: a realm's strength counts ten times the yield of the land it holds">
+                            yield {p.yield}
+                          </span>
+                        )}
                       </span>
                     </button>
                   </li>
