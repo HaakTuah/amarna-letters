@@ -361,7 +361,11 @@ td .sub { display: block; font-size: .8em; white-space: nowrap; }
 .mapzoom { position: relative; width: 100%; height: 100%; transform-origin: 0 0; }
 .mapzoom.glide { transition: transform .25s ease-out; }
 svg.map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; will-change: opacity; }
-svg.map-upper { pointer-events: none; }
+svg.map-upper, svg.map-season, svg.map-relief, svg.map-marks { pointer-events: none; }
+/* Taps reach the provinces' tints, the cities and the marks in their own layers; the sea's hit areas stay in the land's. */
+.map-season [data-province], .map-marks [data-province], .map-marks [data-mark], .map-marks .tap-hit { pointer-events: auto; }
+/* The relief blends in soft light with the land and its colours below it, as a layer of its own. */
+svg.map-relief { mix-blend-mode: soft-light; }
 .map-upper .unit, .map-upper .person, .map-upper .traveller, .map-upper .news { pointer-events: auto; }
 /* Map text is laid out at its own size and scaled with the map (geometricPrecision). Otherwise Chromium fits its glyphs
    to the zoom at whatever moment it last laid the text out, mid-glide or not, and lays it out again when it likes: a
@@ -713,6 +717,11 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
     .map .mv .shaft { stroke-dasharray: none; }
 }
 
+/* The error screen (item 17a): plain, readable on a phone, the report selectable as one block. */
+.crash { max-width: 760px; margin: 0 auto; padding: 1.2rem max(1rem, env(safe-area-inset-right)) 3rem max(1rem, env(safe-area-inset-left)); }
+.crash h1 { font-size: 1.4rem; margin: .4rem 0 .6rem; }
+.crash-report { white-space: pre-wrap; word-break: break-word; font-size: .78rem; line-height: 1.4; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: .6rem .8rem; max-height: 50vh; overflow: auto; user-select: all; }
+.crash-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .6rem 0; }
 /* The listening page and the audio switches (item 19+++). */
 .listen-switches { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin: 0.75rem 0; }
 label.volume input[type="range"] { width: 7rem; vertical-align: middle; }

@@ -97,6 +97,18 @@ const groundPace = (province: string): number => {
  * which set the pace of the whole connection; at sea by coasting or the open crossing, quicker with the current.
  */
 export function connectionDays(map: WorldMap, from: string, to: string): number {
+  let cache = daysCache.get(map);
+  if (cache === undefined) daysCache.set(map, (cache = new Map()));
+  const key = from + "|" + to;
+  const known = cache.get(key);
+  if (known !== undefined) return known;
+  const days = connectionDaysOf(map, from, to);
+  cache.set(key, days);
+  return days;
+}
+/** Remembered once a map (item 17a): the days of a connection are a pure function of the map and the two provinces. */
+const daysCache = new WeakMap<WorldMap, Map<string, number>>();
+function connectionDaysOf(map: WorldMap, from: string, to: string): number {
   const e = edgeOf(map, from, to);
   if (e === null) throw new Error(`${from} and ${to} are not neighbours.`);
   const km = connectionKm(map, from, to);

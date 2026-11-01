@@ -164,6 +164,15 @@ async function watch(viewport, name) {
   await p.getByRole("button", { name: "Standings", exact: true }).click();
   await p.waitForTimeout(300);
   await p.click(".tb.now");
+  // No error leaves a white page (item 17a): an error uncaught on the page shows the error screen, with the seed and the
+  // season in its report, and "Back to the game" returns to the game as it was.
+  await p.evaluate(() => window.dispatchEvent(new ErrorEvent("error", { error: new Error("smoke: a planted error"), message: "smoke: a planted error" })));
+  await p.waitForSelector(".crash", { timeout: 5000 });
+  const crashReport = await p.$eval(".crash-report", (e) => e.textContent);
+  if (!/seed \d+, .*\(season \d+\)/.test(crashReport) || !crashReport.includes("smoke: a planted error")) failures.push(`${name}: the error screen's report lacks the seed, the season or the error: ${crashReport.slice(0, 200)}`);
+  await p.getByRole("button", { name: "Back to the game" }).click();
+  await p.waitForSelector(".game .timebar", { timeout: 5000 });
+  report.push(`${name}: the error screen showed a planted error and went back to the game`);
   // Whose eyes: one king's view.
   await p.selectOption(".viewsel", "Hatti");
   // A seat's view too: its news, its ghosts and its believed people drawn (item 11c++).

@@ -10,7 +10,7 @@
 /* A small seal whose counters gave way: a dark rim says troops stand there, to be seen closer. */
 .map .city.small.crowd .seal { stroke: var(--ink); stroke-width: 4.5; stroke-dasharray: none; }
 /* The relief: real elevation in soft light over the land and its holders' colours (item 11c++). */
-.map .relief { pointer-events: none; mix-blend-mode: soft-light; }
+.map .relief { pointer-events: none; }
 /* The marshes of 1346: reed beds over the land (item 11c++), and the legend's swatches. */
 .map .marsh, .legend .marsh { fill-opacity: 1; stroke: none; }
 .map .reed { stroke: var(--river); stroke-width: .7; stroke-linecap: round; fill: none; }

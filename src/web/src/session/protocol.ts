@@ -1,7 +1,7 @@
 /** The messages between the page and the engine's worker. The engine is the only state: the page shows what it is sent. */
-import type { GameConfig, Power } from "@amarna/engine";
-import type { SeasonFallbacks, TrailAuthors } from "@amarna/game";
-import type { SeasonFrame } from "./frames.ts";
+import type { GameConfig, Power, RisenPower } from "@amarna/engine";
+import type { SeasonFallbacks, SnapshotDelta, TrailAuthors } from "@amarna/game";
+import type { WireFrame } from "./frames.ts";
 import type { GameSettings, TableSettings } from "./settings.ts";
 
 /** API keys by provider id ("anthropic", or a provider the table set up), held in memory only. */
@@ -22,7 +22,6 @@ export type ToWorker =
   | { type: "answer"; power: Power; json: string }
   /** A sleeping human seat wakes itself next season (item 9+a). */
   | { type: "wake"; power: Power }
-  | { type: "stateAt"; id: number; turn: number }
   | { type: "export"; id: number };
 
 /** A human seat's question, as JSON the page reads with the engine's schemas. */
@@ -39,9 +38,12 @@ export interface Live {
   hasRunner: boolean;
   /** Bumped when a new game starts: frames and states before it are gone. */
   generation: number;
-  /** Bumped whenever the state changes; stateJson is sent only with a new version. */
-  stateVersion: number;
-  stateJson: string | null;
+  /**
+   * The stream of the state (item 17a): each season's snapshot as the pieces new since the last update and the season's list
+   * of pieces, from which the page keeps its own history and reads back what changed (session/incremental.ts). Empty when
+   * no season ended since the last update.
+   */
+  states: SnapshotDelta[];
   phase: string;
   busy: boolean;
   auto: boolean;
@@ -50,6 +52,8 @@ export interface Live {
   /** Whether the table may play on into an open age: the age ended by its last season, and this game is not a replay. */
   canPlayOn: boolean;
   turn: number;
+  /** The turn the game stood at when its log was last saved to this browser (-1: not yet): a reload resumes from there. */
+  savedTurn: number;
   /** The last few fallback errors, and how many there were. */
   errors: string[];
   errorCount: number;
@@ -60,6 +64,8 @@ export interface Live {
   costUnknown: boolean;
   settings: GameSettings;
   config: GameConfig | null;
+  /** The powers risen in play (item 13+), as the engine registers them: sent with every update, so the map knows a new power the season it rises, before the state is read. */
+  risen: RisenPower[];
   seats: Record<string, string>;
   snapshots: number;
   chronicles: Record<string, string>;
@@ -77,6 +83,5 @@ export interface Live {
 }
 
 export type FromWorker =
-  | { type: "update"; live: Live; frames: SeasonFrame[]; reset: boolean }
-  | { type: "stateAt"; id: number; json: string | null }
+  | { type: "update"; live: Live; frames: WireFrame[]; reset: boolean }
   | { type: "export"; id: number; name: string; text: string };

@@ -556,7 +556,10 @@ export class SvgMapRenderer implements MapRenderer {
     // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="works"></g><g data-layer="memory"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
+      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}</svg>` +
+      `<svg class="map map-season" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="tints"></g><g data-layer="season"></g></svg>` +
+      `<svg class="map map-relief" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${Relief}</svg>` +
+      `<svg class="map map-marks" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="works"></g><g data-layer="memory"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
       `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g data-layer="life"></g><g data-layer="scenes"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
@@ -579,8 +582,24 @@ export class SvgMapRenderer implements MapRenderer {
   private layer(name: string, key: unknown, draw: () => string): void {
     if (this.drawn.get(name) === key) return;
     this.drawn.set(name, key);
-    this.layers.get(name)!.innerHTML = draw();
+    const t = performance.now();
+    // Drawn anew, but written only when the markup differs from what stands (item 17a: a write means a style recalculation
+    // and a repaint of the layer, which a phone pays 40 ms and more for; most seasons the cities, the tints and the bands
+    // come out the same).
+    const html = draw();
+    if (this.written.get(name) !== html) {
+      this.layers.get(name)!.innerHTML = html;
+      this.written.set(name, html);
+      this.changed = true;
+    }
+    performance.measure(`map:${name}`, { start: t });
   }
+
+  /** The markup each layer was last written with. */
+  private readonly written = new Map<string, string>();
+
+  /** Whether a layer, the units or the people were written since the names were last placed: placing them costs a layout. */
+  private changed = false;
 
   /**
    * What is built at the cities (item 19): shown only close up (lod2, zoom.ts), so built only then, and again when the zoom
@@ -598,57 +617,120 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.drawn.get("units") === s && this.drawn.get("unitsKey") === key) return;
     this.drawn.set("units", s);
     this.drawn.set("unitsKey", key);
+    this.changed = true;
     reconcile(this.layers.get("units")!, items, this.units);
   }
 
   render(input: MapInput): void {
+    // Timed, as every step of a season on the page is (item 17a): the soak tool reads the measures.
+    const t = performance.now();
+    this.renderNow(input);
+    performance.measure("map:render", { start: t });
+  }
+
+  /**
+   * The season's layers are drawn in steps over as many frames as they need, a budget of time a frame (item 17a: no frame over
+   * about 50 ms; a whole season's layers in one frame took up to 60 ms on desktop and far longer on a phone). A new render
+   * drops the steps still waiting: it writes every layer whose key changed, those the dropped steps would have written among
+   * them. The names are placed after the last step.
+   */
+  private steps: (() => void)[] = [];
+  private stepping = 0;
+  private static readonly BudgetMs = 8;
+
+  private renderNow(input: MapInput): void {
     const s = input.scene;
     this.scene = s;
     const lower = this.view?.querySelector(".map-lower");
     lower?.setAttribute("aria-label", s.viewer !== null ? `Map of the Great Kings' lands as ${powerName(s.viewer)} sees it` : "Map of the Great Kings' lands (god view)");
     const seasonKey = `${s.frame.turn % 3}|${s.viewer}|${[...s.land].join(";")}`;
-    if (this.drawn.get("season") !== seasonKey) {
-      this.layer("season", seasonKey, () => seasonLayer(s));
-      // A river in spate is drawn on the board's course: close up, it takes the finer one the rivers have.
-      if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
+    this.steps = [
+      () => {
+        if (this.drawn.get("season") !== seasonKey) {
+          this.layer("season", seasonKey, () => seasonLayer(s));
+          // A river in spate is drawn on the board's course: close up, it takes the finer one the rivers have.
+          if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
+        }
+      },
+      () => this.layer("tints", s.frame, () => tints(s)),
+      () => this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s)),
+      () => {
+        const m = s.memory;
+        this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}`).join()}`, () => memoryLayer(s));
+      },
+      () => this.layer("fog", s, () => fog(s)),
+      () => this.layer("bands", s.frame, () => bands(s)),
+      () => {
+        if (this.drawn.get("cities") !== s) {
+          this.layer("cities", s, () => cities(s));
+          // Each name stands off its city's outermost ring, which grows with the walls the viewer knows.
+          for (const p of Land) {
+            const g = this.labels.get(p.id);
+            const ring = F(ringOf(p.capital, s.walls.get(p.id) ?? 0));
+            if (g !== undefined && g.style.getPropertyValue("--ring") !== ring) g.style.setProperty("--ring", ring);
+          }
+        }
+      },
+      () => this.layer("roads", `${s.index}|${s.viewer}|${input.followId}|${input.followPath?.length ?? -1}|${input.followPath?.[input.followPath.length - 1]?.index ?? -1}`, () => roads(input)),
+      () => this.layer("moves", s, () => moves(s)),
+      () => this.layer("outlaws", s, () => outlaws(s)),
+      () => this.drawWorks(s),
+      () => this.layer("life", s, () => lifeLayer(s)),
+      () => {
+        this.showScenes(s);
+        this.margin(s);
+      },
+      () => this.drawUnits(s),
+      () => {
+        const peopleKey = `${s.index}|${s.viewer}|${input.followId}`;
+        if (this.drawn.get("people") !== s || this.drawn.get("peopleKey") !== peopleKey) {
+          this.drawn.set("people", s);
+          this.drawn.set("peopleKey", peopleKey);
+          this.changed = true;
+          const courts = peopleAtCourts(input);
+          if (this.written.get("courts") !== courts) {
+            this.layers.get("courts")!.innerHTML = courts;
+            this.written.set("courts", courts);
+          }
+          reconcile(
+            this.layers.get("travellers")!,
+            s.travellers.map((t, i) => travellerItem(t, i, s.travellers, input)),
+            this.travellers,
+          );
+        }
+      },
+      () => {
+        const sel = selection(input);
+        if (this.written.get("selection") !== sel) {
+          this.layers.get("selection")!.innerHTML = sel;
+          this.written.set("selection", sel);
+        }
+        // Names are placed once the pieces are drawn, when something was drawn anew (item 17a: placing them measures every
+        // name and marker, a layout the phone pays dearly for), and again once the pieces have slid to their places (onMoved).
+        if (this.changed) this.placeNames();
+      },
+    ];
+    this.runSteps();
+  }
+
+  /** Runs the waiting steps within this frame's budget, and comes back next frame for the rest. */
+  private runSteps(): void {
+    if (this.stepping !== 0) {
+      cancelAnimationFrame(this.stepping);
+      this.stepping = 0;
     }
-    this.layer("tints", s.frame, () => tints(s));
-    this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s));
-    const m = s.memory;
-    this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}`).join()}`, () => memoryLayer(s));
-    this.layer("fog", s, () => fog(s));
-    this.layer("bands", s.frame, () => bands(s));
-    if (this.drawn.get("cities") !== s) {
-      this.layer("cities", s, () => cities(s));
-      // Each name stands off its city's outermost ring, which grows with the walls the viewer knows.
-      for (const p of Land) {
-        const g = this.labels.get(p.id);
-        const ring = F(ringOf(p.capital, s.walls.get(p.id) ?? 0));
-        if (g !== undefined && g.style.getPropertyValue("--ring") !== ring) g.style.setProperty("--ring", ring);
+    const start = performance.now();
+    while (this.steps.length > 0) {
+      const step = this.steps.shift()!;
+      step();
+      if (this.steps.length > 0 && performance.now() - start > SvgMapRenderer.BudgetMs) {
+        this.stepping = requestAnimationFrame(() => {
+          this.stepping = 0;
+          this.runSteps();
+        });
+        return;
       }
     }
-    this.layer("roads", `${s.index}|${s.viewer}|${input.followId}|${input.followPath?.length ?? -1}|${input.followPath?.[input.followPath.length - 1]?.index ?? -1}`, () => roads(input));
-    this.layer("moves", s, () => moves(s));
-    this.layer("outlaws", s, () => outlaws(s));
-    this.drawWorks(s);
-    this.layer("life", s, () => lifeLayer(s));
-    this.showScenes(s);
-    this.margin(s);
-    this.drawUnits(s);
-    const peopleKey = `${s.index}|${s.viewer}|${input.followId}`;
-    if (this.drawn.get("people") !== s || this.drawn.get("peopleKey") !== peopleKey) {
-      this.drawn.set("people", s);
-      this.drawn.set("peopleKey", peopleKey);
-      this.layers.get("courts")!.innerHTML = peopleAtCourts(input);
-      reconcile(
-        this.layers.get("travellers")!,
-        s.travellers.map((t, i) => travellerItem(t, i, s.travellers, input)),
-        this.travellers,
-      );
-    }
-    this.layers.get("selection")!.innerHTML = selection(input);
-    // Names are placed at once, and again once the pieces have slid to their places (onMoved).
-    this.placeNames();
   }
 
   /**
@@ -743,11 +825,20 @@ export class SvgMapRenderer implements MapRenderer {
    * no name shown before it and no marker shown (its own city's badge it may sit beside). Batched to the next frame.
    */
   private placeNames(): void {
+    this.changed = false;
     if (this.placing !== 0 || this.view === null) return;
     this.placing = requestAnimationFrame(() => {
       this.placing = 0;
       const view = this.view;
       if (view === null) return;
+      const t = performance.now();
+      this.placeNamesNow(view);
+      performance.measure("map:names", { start: t });
+    });
+  }
+
+  private placeNamesNow(view: HTMLElement): void {
+    {
       // Everything shown again, then all measured in one go, then given way in one batch of class changes: one layout,
       // however many markers (writing a class between two measures would force a layout each time).
       view.querySelectorAll(".map .small, .map .off").forEach((e) => e.classList.remove("small", "crowd", "off"));
@@ -847,7 +938,7 @@ export class SvgMapRenderer implements MapRenderer {
         else writes.push(() => e.classList.add("off"));
       }
       for (const w of writes) w();
-    });
+    }
   }
 
   zoomBy(factor: number): void {
@@ -874,6 +965,8 @@ export class SvgMapRenderer implements MapRenderer {
   destroy(): void {
     if (this.view === null) return;
     cancelAnimationFrame(this.placing);
+    cancelAnimationFrame(this.stepping);
+    this.steps = [];
     detach(this.view);
     clearTimeout(this.sceneTimer);
     this.view.querySelector(".mapzoom")?.remove();
