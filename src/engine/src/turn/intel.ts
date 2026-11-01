@@ -131,7 +131,7 @@ P.placeSpy = function (p, ps) {
   const travel = j.arriveTurn - S.turn;
   remember(c, S.turn, `My lord of ${land(p)} sent me quietly to watch ${court !== null ? land(court) : Map.get(province!).name}.`);
   if (province !== null) logEvent(S, "spy", `${p} sent a spy to watch ${Map.get(province).name}.`, [p], "spy-watching");
-  notify(S, p, "Notice", "Agent sent", `${c.name} left last season to watch ${court ?? Map.get(province!).name}; the journey should take about ${travel} season(s).`, c.id);
+  notify(S, p, "Notice", "Agent sent", `${c.name} left last season to watch ${court ?? Map.get(province!).name}; the journey should take about ${travel} ${travel === 1 ? "season" : "seasons"}.`, c.id);
 };
 
 P.spyArrives = function (j) {
@@ -466,7 +466,7 @@ P.capture = function (c, host, rng) {
     host,
     "Notice",
     "A spy is caught",
-    `Your watchmen caught ${c.name}` + (confesses ? `, who confesses to serving ${employer}.` : ", who will not say whom they serve.") + " You may execute, ransom, turn or release them.",
+    `Your watchmen caught ${c.name}` + (confesses ? `, who confesses to serving ${land(employer)}.` : ", who will not say whom they serve.") + " You may execute, ransom, turn or release them.",
     c.id,
   );
   // The captor's record says what its court learned: whose spy, only if it confessed. The truth goes in a line

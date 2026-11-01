@@ -70,11 +70,11 @@ describe("FailureNoticeTests", () => {
     Assert.equal(2, sent.length);
     Assert.all(sent, (i) => Assert.equal("Notice", i.kind));
     Assert.matches(
-      `^${escapeRegex(court.name)} left last season to watch Assyria; the journey should take about [0-9]+ season\\(s\\)\\.$`,
+      `^${escapeRegex(court.name)} left last season to watch Assyria; the journey should take about [0-9]+ seasons?\\.$`,
       single(sent, (i) => i.subject === court.id).body,
     );
     Assert.matches(
-      `^${escapeRegex(province.name)} left last season to watch Karkamish; the journey should take about [0-9]+ season\\(s\\)\\.$`,
+      `^${escapeRegex(province.name)} left last season to watch Karkamish; the journey should take about [0-9]+ seasons?\\.$`,
       single(sent, (i) => i.subject === province.id).body,
     );
   });

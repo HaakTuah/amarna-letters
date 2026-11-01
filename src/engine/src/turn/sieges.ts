@@ -203,7 +203,7 @@ P.sieges = function (valid) {
         ? isIslandWater(x.province)
           ? " Its water comes by boat while its waters are open."
           : " Its water never fails."
-        : ` Its water lasts ${Math.max(0, island ? drinking - x.blockaded + 1 : x.since + drinking - S.turn)} more season(s) of siege.`;
+        : ` Its water lasts ${Math.max(0, island ? drinking - x.blockaded + 1 : x.since + drinking - S.turn)} more ${Math.max(0, island ? drinking - x.blockaded + 1 : x.since + drinking - S.turn) === 1 ? "season" : "seasons"} of siege.`;
     tell(
       x.power,
       `${begun ? "Your siege of" : "The siege of"} ${name} (walls ${walls}${owner !== null ? `, held by ${owner}` : ", held by no one"}) ${begun ? "has begun, and it " : ""}wore the city down ${how}: it stands at ${x.progress} of ${breach}. The walls are breached and the city falls when that reaches ${breach}, if your army holds there, or sooner by hunger: a besieged city eats from its market and stores, and once it cannot feed its people their loyalty breaks, until someone opens a gate from within.${water}`,
@@ -348,9 +348,10 @@ P.surrender = function (x, owner, tell, how) {
 /** What a king reads of his own move that got within walls he does not hold: whether it stormed them, with the strengths. */
 P.assaultText = function (a) {
   const strengths = `strength ${strengthWords(a.strength)} against walls ${strengthWords(a.walls)} and ${defendersText(a)}`;
-  if (stormed(a)) return `it stormed the walls of ${a.province} (${strengths}), and ${a.province} is yours`;
-  if (a.kind === "Fleet") return `your fleet stands within the walls of ${a.province} (walls ${strengthWords(a.walls)}), but a fleet can neither storm walls nor besiege them, so it takes nothing`;
-  return `it got within the walls of ${a.province} but did not storm them (${strengths}): your army stands inside and takes nothing; besiege the city to wear it down`;
+  const at = this.map.get(a.province).name;
+  if (stormed(a)) return `it stormed the walls of ${at} (${strengths}), and ${at} is yours`;
+  if (a.kind === "Fleet") return `your fleet stands within the walls of ${at} (walls ${strengthWords(a.walls)}), but a fleet can neither storm walls nor besiege them, so it takes nothing`;
+  return `it got within the walls of ${at} but did not storm them (${strengths}): your army stands inside and takes nothing; besiege the city to wear it down`;
 };
 
 /**
@@ -376,7 +377,7 @@ function groundShare(a: Assault): string {
  * (the walls and the defenders), the strengths, and what came of it.
  */
 P.ownWallsText = function (a) {
-  const who = `${a.power}'s ${a.kind === "Army" ? "army" : "fleet"} from ${a.from}`;
+  const who = `${land(a.power)}'s ${a.kind === "Army" ? "army" : "fleet"} from ${this.map.get(a.from).name}`;
   const strengths = `its strength ${strengthWords(a.strength)} against your walls ${strengthWords(a.walls)} and ${defendersText(a)}`;
   const name = this.map.get(a.province).name;
   return stormed(a)

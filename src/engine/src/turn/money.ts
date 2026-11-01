@@ -241,7 +241,7 @@ P.debtsSeason = function () {
     this.recordPay(d.borrower, false, h?.at ?? null, h);
     if (h !== null) remember(h, S.turn, `${this.partyName(d.borrower)} has not repaid by the season agreed: ${formatMoney(debtLeft(d))} is still owed on the tablet I hold.`);
     if (isPowerParty(d.borrower) && isAlive(S, d.borrower)) notify(S, d.borrower, "Notice", "A debt past its season", `Debt ${d.id}, ${formatMoney(debtLeft(d))} to ${this.partyName(d.holder ?? d.lender)}, was to be repaid by turn ${d.dueTurn}. Those who lend hear of it.`);
-    logEvent(S, "default", `${d.borrower} let debt ${d.id} pass its season.`, isPowerParty(d.borrower) ? [d.borrower] : [], "default");
+    logEvent(S, "default", `${this.partyName(d.borrower)} let a debt pass its season unpaid.`, isPowerParty(d.borrower) ? [d.borrower] : [], "default");
   }
 };
 

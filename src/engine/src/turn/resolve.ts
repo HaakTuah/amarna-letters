@@ -15,6 +15,7 @@ import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notif
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
+import { WorldMap } from "../model/map.ts";
 import { forMen, LandData, levySize, menAvailable, menOf, shareOfFull } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { commandStrength } from "../model/command.ts";
@@ -248,7 +249,7 @@ P.resolveMovement = function (unitOrders) {
         o.destroyed = to === undefined || to === null;
         o.fellBack = to ?? null;
       }
-    for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" is dislodged")) l.text = l.text.replace(/ is dislodged$/, to === undefined || to === null ? " is destroyed" : ` falls back to ${to}`);
+    for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" is dislodged")) l.text = l.text.replace(/ is dislodged$/, to === undefined || to === null ? " is destroyed" : ` falls back to ${Map.get(to).name}`);
   }
   for (const u of gone) {
     S.units.splice(S.units.indexOf(u), 1);
@@ -313,7 +314,7 @@ P.resolveMovement = function (unitOrders) {
         // Where the unit now stands, in plain words: it stayed where it was (unless it was destroyed there, which
         // its own line says).
         const still = S.units.find((u) => u.power === p && u.province === l.province);
-        const stays = still ? `; so your ${still.kind === "Army" ? "army" : "fleet"} stays in ${l.province}` : "";
+        const stays = still ? `; so your ${still.kind === "Army" ? "army" : "fleet"} stays in ${Map.get(l.province).name}` : "";
         mine.push(`${l.text}: ${why}${stays}`);
       } else if (l.assault !== null) mine.push(`${l.text}: ${this.assaultText(l.assault)}`);
       else {
@@ -347,8 +348,8 @@ P.resolveMovement = function (unitOrders) {
           `${l.power}: ${l.text}${
             l.assault !== null && l.assault.owner !== p
               ? assaultStormed(l.assault)
-                ? ` (it stormed the walls of ${l.assault.province})`
-                : ` (it stands within the walls of ${l.assault.province} and does not take it)`
+                ? ` (it stormed the walls of ${Map.get(l.assault.province).name})`
+                : ` (it stands within the walls of ${Map.get(l.assault.province).name} and does not take it)`
               : ""
           }`,
       );
@@ -367,7 +368,8 @@ P.resolveMovement = function (unitOrders) {
 function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, sight: HSet<string>): string {
   const seen = f.power !== null && (sight.has(f.province) || (f.movingTo !== null && sight.has(f.movingTo)));
   const kind = f.kind === "Army" ? "army" : "fleet";
-  const whose = f.power === viewer ? `your own ${kind}` : `${f.power}'s ${kind}`;
+  const whose = f.power === viewer ? `your own ${kind}` : `${land(f.power!)}'s ${kind}`;
+  const nm = (id: string): string => (WorldMap.default.exists(id) ? WorldMap.default.get(id).name : id);
   const strengths = `; your strength ${strengthWords(f.strength)} against ${strengthWords(f.against)}`;
   // The ground that helped the unit that held it off, in the strength it had to beat.
   // And the land's own men who stood beside it (item 11e).
@@ -377,18 +379,18 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
       return "no convoy carried it across the sea";
     case "OwnUnit":
       return f.movingTo === from
-        ? `your own ${kind} in ${f.province} was moving the other way, and you cannot dislodge your own unit`
-        : `your own ${kind} in ${f.province} did not leave, and you cannot dislodge your own unit`;
+        ? `your own ${kind} in ${nm(f.province)} was moving the other way, and you cannot dislodge your own unit`
+        : `your own ${kind} in ${nm(f.province)} did not leave, and you cannot dislodge your own unit`;
     case "HeadToHead":
-      return `it met the unit from ${f.province}${seen ? ` (${whose})` : ""} coming the other way${strengths}`;
+      return `it met the unit from ${nm(f.province)}${seen ? ` (${whose})` : ""} coming the other way${strengths}`;
     case "Held":
-      return `the unit holding ${f.province}${seen ? ` (${whose})` : ""} kept its place${held}`;
+      return `the unit holding ${nm(f.province)}${seen ? ` (${whose})` : ""} kept its place${held}`;
     case "Stayed":
-      return `the unit in ${f.province}${seen ? ` (${whose})` : ""} could not leave, so it kept its place${held}`;
+      return `the unit in ${nm(f.province)}${seen ? ` (${whose})` : ""} could not leave, so it kept its place${held}`;
     case "Bounced":
-      return `it met a move into ${to} from ${f.province}${seen ? ` by ${whose}` : ""}${strengths}`;
+      return `it met a move into ${nm(to)} from ${nm(f.province)}${seen ? ` by ${whose}` : ""}${strengths}`;
     case "Resisted":
-      return `the people of ${to} rose against it and held it off${strengths}: a land's men of fighting age resist an invader by their number, more on rough ground`;
+      return `the people of ${nm(to)} rose against it and held it off${strengths}: a land's men of fighting age resist an invader by their number, more on rough ground`;
     default:
       return "it was stopped";
   }

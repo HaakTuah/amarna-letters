@@ -9,7 +9,7 @@ import { reapSeasonOf } from "../model/geography.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, cmpPower, king, kingFor, type Power } from "../model/power.ts";
+import { AllPowers, cmpPower, king, kingFor, land, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
@@ -770,7 +770,7 @@ function dutyText(c: Character): string {
     case "SpyOutbound":
       return `travelling on a quiet errand to ${c.missionTarget ?? c.watchProvince ?? ""}`;
     case "SpyPosted":
-      return `watching ${c.missionTarget ?? c.watchProvince ?? ""}`;
+      return `watching ${c.missionTarget !== null ? land(c.missionTarget) : c.watchProvince !== null && WorldMap.default.exists(c.watchProvince) ? WorldMap.default.get(c.watchProvince).name : (c.watchProvince ?? "")}`;
     case "Travelling":
       return "travelling on their own way";
     case "Leading":

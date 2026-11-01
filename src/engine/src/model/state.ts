@@ -1000,7 +1000,8 @@ export const StandingOrderPrefix = "s";
 
 /** "A memphis", "F delta". */
 export function unitLabel(u: Unit): string {
-  return `${u.kind === "Army" ? "A" : "F"} ${u.province}`;
+  // Item 17+ ("Requests are rules too"): the unit by what it is and where it stands, by the place's own name, never "A memphis".
+  return `${u.kind === "Army" ? "army" : "fleet"} in ${WorldMap.default.exists(u.province) ? WorldMap.default.get(u.province).name : u.province}`;
 }
 
 /** What the owner's ledger counts: fine gold, and received lots at face value. */

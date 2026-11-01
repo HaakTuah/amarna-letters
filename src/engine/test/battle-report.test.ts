@@ -43,8 +43,8 @@ describe("BattleReportTests", () => {
     );
 
     let report = reportOf(s, "Babylonia");
-    Assert.contains("- A sippar -> suhu: fails: it met a move into suhu from terqa by Mitanni's army; your strength 1 against 1", report);
-    Assert.contains("- Mitanni: A terqa -> suhu: fails", report);
+    Assert.contains("- army in Sippar -> Suhu: fails: it met a move into Suhu from Terqa by Mitanni's army; your strength 1 against 1", report);
+    Assert.contains("- Mitanni: army in Terqa -> Suhu: fails", report);
   });
 
   test("A failed attack on a held province gives the strengths", () => {
@@ -57,7 +57,7 @@ describe("BattleReportTests", () => {
       }),
     );
 
-    Assert.contains("- A ashur -> suhu: fails: the unit holding suhu (Mitanni's army) kept its place; your strength 2 against 2", reportOf(s, "Assyria"));
+    Assert.contains("- army in Ashur -> Suhu: fails: the unit holding Suhu (Mitanni's army) kept its place; your strength 2 against 2", reportOf(s, "Assyria"));
     Assert.equal("Mitanni", unitAt(s, "suhu")?.power);
   });
 
@@ -74,7 +74,7 @@ describe("BattleReportTests", () => {
     );
 
     Assert.equal("Assyria", unitAt(s, "suhu")?.power);
-    Assert.contains("- A sippar -> suhu: fails: it met a move into suhu from ashur by Assyria's army; your strength 1 against 2", reportOf(s, "Babylonia"));
+    Assert.contains("- army in Sippar -> Suhu: fails: it met a move into Suhu from Ashur by Assyria's army; your strength 1 against 2", reportOf(s, "Babylonia"));
   });
 
   test("A support whose unit is beaten from its place is void and a cut support says from where", () => {
@@ -88,11 +88,11 @@ describe("BattleReportTests", () => {
       }),
     );
     let destroyed = reportOf(s, "Assyria");
-    Assert.contains("- A ekallate supports ashur -> suhu: void: the supporting unit was beaten from its place", destroyed);
+    Assert.contains("- army in Ekallate supports Ashur -> Suhu: void: the supporting unit was beaten from its place", destroyed);
     // Item 13: beaten from its place, it falls back rather than being destroyed, unless, as here, every way back is
     // held or is where the blow came from.
-    Assert.contains("- A ekallate is destroyed", destroyed);
-    Assert.contains("- A ashur -> suhu: fails: the unit holding suhu (Mitanni's army) kept its place; your strength 1 against 1", destroyed);
+    Assert.contains("- army in Ekallate is destroyed", destroyed);
+    Assert.contains("- army in Ashur -> Suhu: fails: the unit holding Suhu (Mitanni's army) kept its place; your strength 1 against 1", destroyed);
 
     let t = formerHome(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0 }))), "suhu", "Mitanni");
     resolve(
@@ -102,9 +102,9 @@ describe("BattleReportTests", () => {
         Babylonia: { orders: [move("durkurigalzu", "ekallate")] },
       }),
     );
-    Assert.contains("- A ekallate supports ashur -> suhu: cut (attacked from durkurigalzu)", reportOf(t, "Assyria"));
+    Assert.contains("- army in Ekallate supports Ashur -> Suhu: cut (attacked from Dur-Kurigalzu)", reportOf(t, "Assyria"));
     Assert.contains(
-      "- A durkurigalzu -> ekallate: fails: the unit holding ekallate (Assyria's army) kept its place; your strength 1 against 1",
+      "- army in Dur-Kurigalzu -> Ekallate: fails: the unit holding Ekallate (Assyria's army) kept its place; your strength 1 against 1",
       reportOf(t, "Babylonia"),
     );
   });
@@ -122,12 +122,12 @@ describe("BattleReportTests", () => {
 
     // Walls stop no move since the siege package: the report says the army got within them and did not storm them.
     Assert.contains(
-      "- A nesa -> carchemish: succeeds: it got within the walls of carchemish but did not storm them (strength 1 against walls 2 and no defenders on the walls): your army stands inside and takes nothing; besiege the city to wear it down",
+      "- army in Nesa -> Karkamish: succeeds: it got within the walls of Karkamish but did not storm them (strength 1 against walls 2 and no defenders on the walls): your army stands inside and takes nothing; besiege the city to wear it down",
       reportOf(s, "Hatti"),
     );
     let assyria = reportOf(s, "Assyria");
-    Assert.contains("- A ashur -> nineveh: fails: your own army in nineveh did not leave, and you cannot dislodge your own unit", assyria);
-    Assert.contains("- A ekallate -> suhu: fails: it met the unit from suhu (Mitanni's army) coming the other way; your strength 1 against 1", assyria);
+    Assert.contains("- army in Ashur -> Ninua: fails: your own army in Ninua did not leave, and you cannot dislodge your own unit", assyria);
+    Assert.contains("- army in Ekallate -> Suhu: fails: it met the unit from Suhu (Mitanni's army) coming the other way; your strength 1 against 1", assyria);
   });
 
   test("An assault on a walled city of the king s own is told among his own lines with his side and the strengths", () => {
@@ -137,7 +137,7 @@ describe("BattleReportTests", () => {
     resolve(s, subs({ Mitanni: { orders: [move("terqa", "suhu")] } }));
     let own = reportOf(s, "Babylonia").split("\nSeen nearby:")[0];
     Assert.contains(
-      "- Your walled city of Suhu: Mitanni's army from terqa got within the walls but did not storm them (its strength 1 against your walls 2 and no defenders on the walls): it stands inside, and Suhu stays yours unless a siege wears it down.",
+      "- Your walled city of Suhu: Mitanni's army from Terqa got within the walls but did not storm them (its strength 1 against your walls 2 and no defenders on the walls): it stands inside, and Suhu stays yours unless a siege wears it down.",
       own,
     );
 
@@ -160,13 +160,13 @@ describe("BattleReportTests", () => {
       }),
     );
     Assert.contains(
-      "- Your walled city of Suhu: Mitanni's army from terqa stormed the walls (its strength 4 against your walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong): Suhu is taken.",
+      "- Your walled city of Suhu: Mitanni's army from Terqa stormed the walls (its strength 4 against your walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong): Suhu is taken.",
       reportOf(s, "Babylonia"),
     );
     Assert.equal("Mitanni", s.owner.get("suhu"));
     Assert.equal(0, wallsOf(s, "suhu"));
     Assert.contains(
-      "- A terqa -> suhu: succeeds: it stormed the walls of suhu (strength 4 against walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong), and suhu is yours",
+      "- army in Terqa -> Suhu: succeeds: it stormed the walls of Suhu (strength 4 against walls 1 and defenders 2 on the walls: the garrison 1, and the city's men 0, the walls making them twice as strong), and Suhu is yours",
       reportOf(s, "Mitanni"),
     );
   });
@@ -182,7 +182,7 @@ describe("BattleReportTests", () => {
     );
     // Mitanni sees Assyria's move into its land, but not Assyria's reckoning of it.
     let mitanni = reportOf(s, "Mitanni");
-    Assert.contains("- Assyria: A ashur -> suhu: fails", mitanni);
+    Assert.contains("- Assyria: army in Ashur -> Suhu: fails", mitanni);
     Assert.doesNotContain(
       "your strength",
       mitanni

@@ -115,7 +115,7 @@ P.dispatch = function (p, d) {
     logEvent(S, "language", `${c.name} could not be made to understand ${p}'s words.`, [p], "envoy-mute");
     return;
   }
-  if (composed.seasons > 0) logEvent(S, "language", `${c.name} needs ${composed.seasons} season(s) to take in ${p}'s words for ${d.to}.`, [p], "mandate-slow");
+  if (composed.seasons > 0) logEvent(S, "language", `${c.name} needs ${composed.seasons} ${composed.seasons === 1 ? "season" : "seasons"} to take in ${land(p)}'s words for ${land(d.to)}.`, [p], "mandate-slow");
   const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
   // The scribe's fee for the tablet to seal, and for the inventory of any gold, unless it goes without one (item 8).
   const inventory = d.gold > 0 && d.noInventory !== true;
@@ -256,8 +256,8 @@ P.dispatch = function (p, d) {
     "Notice",
     "Envoy dispatched",
     composed.seasons > 0
-      ? `${c.name} needs ${composed.seasons} season(s) to take in your words${d.proposal ? " and have the tablet written" : ""} before setting out for ${d.to}; the mission should reach it in about ${travel} season(s).`
-      : `${c.name} set out for ${d.to} last season; the journey should take about ${travel} season(s).`,
+      ? `${c.name} needs ${composed.seasons} ${composed.seasons === 1 ? "season" : "seasons"} to take in your words${d.proposal ? " and have the tablet written" : ""} before setting out for ${land(d.to)}; the mission should reach it in about ${travel} season(s).`
+      : `${c.name} set out for ${land(d.to)} last season; the journey should take about ${travel} ${travel === 1 ? "season" : "seasons"}.`,
     c.id,
   );
   // Out of a besieged capital: the besiegers may catch it as it slips out (its king believes it on its way).
