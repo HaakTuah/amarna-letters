@@ -68,9 +68,27 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 
 ## The sounds
 
-In the manner of Crusader Kings II, its approach only: twenty-six short sounds, each in three slight variations, played
-with a little more variation of pitch (±3%) and level each time; of the court's own, at most three a season, the most
-telling first, and the same sound not twice within a quarter second of the moment it is heard. What plays them (`cuesAt`, and the screen's own hooks):
+**Three layers, the music leading** (Haakon, 1 November 2026: "your ears are being assaulted now. It plays dozens of
+sound effects at any one time", then "But all the event stuff is for players only, or if you spectate a player, you hear
+specifically what they hear"; the sound lane, `docs/rounds/2026-11-01-sound-lane.md`), in the manner of Crusader Kings II:
+
+1. **The music**, above everything (bus level 0.9).
+2. **The world's sounds**: what happens on the map (a battle's clash, a siege, a storm, a march, the waves) and the bed (a
+   market, the wind, the water, a siege camp), heard only near the view when zoomed in, softer with distance
+   (`hearing()`; the bed by `bedLevel`, silent below zoom 1.5, whole at 3). The same for every viewer, of what that viewer
+   knows. Bus level 0.5, the bed 0.45.
+3. **The event sounds**, for one seat only: its own clicks and what happens to its realm (its letters, envoys, armies,
+   provinces). Its player hears them, or a spectator watching through it; god view never (`cuesAt` gives god view no
+   event sounds). Bus level 0.6.
+
+**The mix** (`mix.ts`, `Mixer`): both sound layers under the music (the sounds are also mastered 8 dB under it, below),
+each sound rising in over 0.06 s, never sudden; each layer at most three sounding at once, and the same sound not again
+within 4 s (event) or 3 s (world), judged by the moment it is to be heard. A change in how sounds are chosen and mixed,
+not in the sounds.
+
+Twenty-six short sounds, each in three slight variations, played with a little more variation of pitch (±3%) and level
+each time; of the seat's own, at most three a season, the most telling first. What plays them (`cuesAt`, and the screen's
+own hooks):
 
 - the player's own acts: a letter sent with an envoy (the stylus, then the envelope), the season's orders submitted (the
   seal), an answer given to an envoy (the envelope), an envoy before the throne (the lyre);
@@ -85,8 +103,9 @@ the province attacked, a siege at a city the seat is party to or can see; a sieg
 away, panned to its side. A court's own sounds (its acts, a courier, a report, the war horn, land taken or lost, the season) have no place and
 are always heard. `hearing()` in `situation.ts`; the map's own sounds below are placed the same way.
 
-**The world's bed**, under the music and very low, from the province at the map's centre, at every zoom (zoomed out, the bed and the great moments are what is
-heard); a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
+**The world's bed**, under the music and very low, from the province at the map's centre, heard only zoomed in, rising
+from zoom 1.5 to whole at 3 (zoomed out, the music speaks for the whole board; before 1 November it was heard at every
+zoom); a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
 water on the great rivers' course, the coasts and the sea close in; wind on the steppe, the desert, the mountains and the
 open land and the open sea seen from afar. It crosses over 3 to 4 s, looping seamlessly.
 

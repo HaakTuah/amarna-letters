@@ -78,3 +78,33 @@ hear, without it revealing anything".
    music instead of silence.
 2. **The template field stays in `catalogue.ts`** (unrendered), since the repository's docs may keep it. Principle: one
    fact, one place; only the player's view changes.
+
+## PR 2: the soundscape, three layers with the music leading (`sound/soundscape`)
+
+- **Layers** (`mix.ts`, `player.ts`): the music on its bus at 0.9; the event sounds on theirs at 0.6 (was 0.8 for every
+  sound); the world's placed sounds on a bus of their own at 0.5; the bed at 0.45 (was 0.55). `schedule()` marks each
+  sound's layer: the seat's own (`Cues.sounds`) are events, the map's placed sounds (`Cues.map`) are the world's.
+- **Event sounds for one seat only:** `cuesAt` gives god view no event sounds; it still hears the world's sounds near the
+  view (a battle zoomed in on is a world sound there) and the music with its stings. A spectator watching through a seat
+  is that seat's viewer and hears what its player hears. The screen's clicks (the stylus, the seal, the envelope, the
+  envoy's lyre) come only from a seat's own orders, so they are event sounds by default.
+- **The caps** (`Mixer`): at most three sounds of a layer sounding at once, the same sound not again within 4 s (events)
+  or 3 s (world), judged at the moment it is to be heard, by the file's length; each sound rises in over 0.06 s. Before,
+  only a quarter second kept the same sound apart, and the map's four nearest plus three of the court's could all sound
+  together, every season, at top speed every 1.2 s.
+- **The bed heard only zoomed in** (`bedLevel`): silent below zoom 1.5, whole at 3, as the placed sounds rise.
+- Tests: `audio-mix.test.ts` (the caps, the levels, the bed by zoom, god view without event sounds).
+
+### Readings taken
+
+3. **The bed is silent zoomed out.** Item 19+++ said on 31 October that zoomed out "you hear the world's bed and the great
+   moments"; the 1 November text puts the market and the wind among the world's sounds "heard only near the view when
+   zoomed in". The later words win (the builder rules: where they differ, the newer document wins). Zoomed out, the music
+   speaks for the board, as in Crusader Kings II.
+4. **The seat's own battle and siege stay placed** (heard by zoom near where they happen), as event sounds; the war horn,
+   land taken or lost, a courier and the season's stroke stay unplaced, heard at any zoom. Principle: "a change in choosing
+   and mixing, not in the sounds"; what was placed stays placed.
+5. **God view keeps the music's stings** (a great king's capital fallen, a great king's fall, the age's end): they are the
+   music's layer, not event sounds. Principle: Haakon's three layers put only the event sounds out of god view.
+6. **The caps' numbers** (three at once, 4 s and 3 s, a 0.06 s rise, the bus levels) are first guesses in Haakon's range
+   ("two or three", "a few seconds"); presentation only, so tuned by ear, not in item 18.

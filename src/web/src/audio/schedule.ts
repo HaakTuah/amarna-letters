@@ -5,6 +5,7 @@
 import { WorldMap } from "@amarna/engine";
 import { city } from "../map/features.ts";
 import { Width } from "../map/art.ts";
+import type { Layer } from "./mix.ts";
 import { hearing, type Cues, type Hearing, type SoundName } from "./situation.ts";
 
 const Board = WorldMap.default;
@@ -26,6 +27,8 @@ export interface Scheduled {
   /** Seconds from now. */
   delay: number;
   heard: Hearing;
+  /** The seat's own event sounds, or the world's sounds placed on the map. */
+  layer: Layer;
 }
 
 /**
@@ -42,7 +45,7 @@ export function schedule(c: Cues, v: View | null, gap: number): Scheduled[] {
   for (const s of c.sounds) {
     // A sound placed on the map is heard by zoom and nearness; a court's own sound always.
     const h = hearing(s.at === null ? null : city(s.at), v, Width);
-    if (h.gain > 0.02) out.push({ name: s.name, delay: lead + s.t * spread, heard: h });
+    if (h.gain > 0.02) out.push({ name: s.name, delay: lead + s.t * spread, heard: h, layer: "event" });
   }
   const near = c.map
     .filter((s) => s.at !== null && Board.exists(s.at))
@@ -50,7 +53,7 @@ export function schedule(c: Cues, v: View | null, gap: number): Scheduled[] {
     .filter((x) => x.h.gain > 0.02)
     .sort((a, b) => b.h.gain - a.h.gain)
     .slice(0, MapHeard);
-  for (const { s, h } of near) out.push({ name: s.name, delay: lead + s.t * spread, heard: h });
+  for (const { s, h } of near) out.push({ name: s.name, delay: lead + s.t * spread, heard: h, layer: "world" });
   out.sort((a, b) => a.delay - b.delay);
   for (let i = 1; i < out.length; i++) out[i].delay = Math.max(out[i].delay, out[i - 1].delay + Apart);
   return out;

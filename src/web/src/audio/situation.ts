@@ -139,7 +139,7 @@ export function shadeAt(frames: readonly SeasonFrame[], index: number, viewer: P
 export interface Cues {
   sting: Sting | null;
   moment: Moment | null;
-  /** The court's own news and the season's most telling sound: at most three, the most telling first. */
+  /** The seat's own event sounds, the most telling first, at most three; none in god view. */
   sounds: Cue[];
   /**
    * The map's own sounds, each placed where it happened (an army marching, a fleet in the waves, a battle elsewhere, the
@@ -290,7 +290,9 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
     if (f.news.some((n) => n.court === viewer && n.kind === "SpyReport")) add("report", null, Moments.arrivals);
   }
   add("season", null, Moments.arrivals);
-  out.sounds = [...out.sounds].sort((a, b) => loud.indexOf(a.name) - loud.indexOf(b.name)).slice(0, 3);
+  // The event sounds are one seat's own: its player hears them, or a spectator watching through it; god view hears only
+  // the music and the world's sounds (Haakon, 1 November 2026: "all the event stuff is for players only").
+  out.sounds = viewer === null ? [] : [...out.sounds].sort((a, b) => loud.indexOf(a.name) - loud.indexOf(b.name)).slice(0, 3);
   // A battle the court's own sounds carry is not heard twice.
   const main = out.sounds.find((c) => c.name === "battle");
   out.map = out.map.filter((c) => !(main !== undefined && c.name === "battle" && c.at === main.at)).sort((a, b) => a.t - b.t);

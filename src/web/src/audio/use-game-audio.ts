@@ -8,6 +8,7 @@ import type { Power } from "@amarna/engine";
 import { useEffect, useRef } from "react";
 import { city } from "../map/features.ts";
 import type { SeasonFrame } from "../session/frames.ts";
+import { bedLevel } from "./mix.ts";
 import { player } from "./player.ts";
 import { bedAt, cuesAt, moodAt, shadeAt } from "./situation.ts";
 import { schedule, type View } from "./schedule.ts";
@@ -33,7 +34,7 @@ export function useGameAudio(frames: readonly SeasonFrame[], index: number, view
     if (last !== null && last.key === key && index === last.index + 1 && now - last.at >= CueGap) {
       const c = cuesAt(frames, index, viewer);
       player.cue(c.moment, c.sting);
-      schedule(c, view(), now - last.at).forEach((p) => player.play(p.name, p.delay, p.heard));
+      schedule(c, view(), now - last.at).forEach((p) => player.play(p.name, p.delay, p.heard, p.layer));
       cued.current = { key, index, at: now };
     } else if (last === null || last.key !== key || index !== last.index) {
       cued.current = { key, index, at: last !== null && index === last.index + 1 ? last.at : now - CueGap };
@@ -45,7 +46,8 @@ export function useGameAudio(frames: readonly SeasonFrame[], index: number, view
   useEffect(() => {
     const t = window.setInterval(() => {
       const v = view();
-      player.setBed(bedAt(shown.current, v?.at ?? null, v?.zoom ?? 1, viewer, city));
+      // The bed is a world sound: heard only zoomed in, rising with the zoom.
+      player.setBed(bedAt(shown.current, v?.at ?? null, v?.zoom ?? 1, viewer, city), false, bedLevel(v?.zoom ?? 1));
     }, 2000);
     return () => window.clearInterval(t);
   }, [viewer]);
