@@ -78,6 +78,7 @@ Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lan
 - A human with one seat saw a one-choice seat menu at 390 px; it is a plain label, "Egypt (you)".
 - The timeline read "season 1 · now" while the header planned "Season 2"; it reads "after season 1, 1346 BCE", the board it shows (" · now" on computers only, where it fits).
 - The Provinces list ended each row in a bare number; it reads "yield 35", with a tooltip saying it is the base yield the harvest is reckoned from.
+- "(known to Terqa)", "Seals: Seha": the Events and People tabs' "known to" notes and the seals on tablets named powers by their engine ids; they use the names the game shows ("Hana", "the Seha River Land").
 - The README, the Standings tab's opening table and two design notes said strength is ten times the land's yield; it is ten times what the land produces in a season (its harvest at the price of grain plus its mines), as the rulebook and `rules/scoring.ts` have it.
 
 ## For Haakon: review points
