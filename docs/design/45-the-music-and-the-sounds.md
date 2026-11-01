@@ -18,7 +18,9 @@ alternative, 2:44), Pawns 4:09 (and 5:57), Rivers 5:28, Shadows 6:04 (and 6:19),
 6:47 (and 3:27), Time 3:31. No source found says exactly when the game played each; the roles below are read from the
 titles, lengths and the item's own list of situations (calm, rising tension, war, siege, battle, triumph, loss, the
 age's last seasons), and are listed as a reading. Ours: one piece for each, the same roles, three variations each, in
-`src/web/src/audio/catalogue.ts` (which the listening page shows beside every piece, with how each is made).
+`src/web/src/audio/catalogue.ts`. The player never sees the template: the Music page shows our own pieces' names and moods
+only (Haakon, 1 November 2026, answering the polish lane's question: our piece names and moods only; the template stays
+in these notes).
 
 **The pieces** (`scripts/music/pieces_peace.py`, `pieces_war.py`; the idiom in `idiom.py`): the melodies are the
 Hurrian Hymn's (the Hymn to Nikkal, The River, Triumph, The Last Seasons, and a line of it in the Lament) and themes of
@@ -132,8 +134,12 @@ all the same, since the sign is what the player reads.
 
 ## The fallback: after the original Civilization (src/web/src/audio/synth/, tunings.ts)
 
-Three versions, chosen in the switches ("Orchestra", "8-bit", "Lyre and reed"); the same moods, moments, stings, sounds,
-beds, placement and hearing by zoom serve all three, so only the pieces change.
+Three versions, chosen in the switches, in this order everywhere: "Orchestra" (the default), "Lyre and reed", "8-bit"
+(Haakon, 1 November 2026); the same moods, moments, stings, sounds, beds, placement and hearing by zoom serve all three, so
+only the pieces change. **If the orchestra cannot load**, Lyre and reed plays instead of silence, since it needs no
+download (`Player.style()`): when an orchestra file fails (the element's `error`), when the browser says it is offline as a
+piece is chosen, or when a stream asked for is not heard within 12 s while the audio runs. It lasts until the browser is
+back online or another version is chosen.
 
 - **One score, written once** (`synth/score.ts`): notes in degrees of a tuning, in layers (melody, counter, chord, bass,
   drum, jingle), each with a cue (moods, shades) that switches it on; phrase ends where a change may come. A compact
@@ -193,8 +199,12 @@ beds, placement and hearing by zoom serve all three, so only the pieces change.
   didn't really mind."). A browser that saved other volumes on an earlier visit keeps them. The pieces are
   mastered to one loudness for it, and the Hymn to Nikkal, the first piece heard, opens 7 dB under its height, so the
   fade lands on a quiet lyre and drone.
-- **The listening page**, `/listen` (the top bar's "Music"): every piece and variation with the template and when it
-  plays, every sting, sound and bed.
+- **The listening page**, `/listen` (the top bar's "Music"): every piece and variation with its mood and when it plays;
+  the scores side by side in the three versions, with one line saying the Hurrian Hymn is Kilmer's reading, one of several
+  modern reconstructions (Haakon, 1 November 2026: keep Kilmer's reading, with that line); every sting, sound and bed; and
+  under "Extras" at the end, "The tuning's scale (a test)". The game's own music (the menu theme) fades out over 1.5 s on
+  entering the page and stays out while it is open (`Player.hush`), so only what is pressed plays; leaving the page fades
+  it back in over 3 s.
 
 ## How it is made (scripts/music/)
 

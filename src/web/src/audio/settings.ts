@@ -12,7 +12,8 @@ export interface AudioSettings {
 }
 
 export type MusicStyle = "orchestra" | "chip" | "period";
-const Styles: readonly MusicStyle[] = ["orchestra", "chip", "period"];
+/** In the order shown everywhere: Orchestra (the default), Lyre and reed, 8-bit last. */
+export const Styles: readonly MusicStyle[] = ["orchestra", "period", "chip"];
 
 const Key = "amarna-audio";
 
