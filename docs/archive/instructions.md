@@ -1086,3 +1086,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     back on the big items until then): "Yes please, expertly!" Written into `docs/claude-and-codex.md`, "Codex
     reviews" (point 5), the reviewer row in `CLAUDE.md` and the "Review guidelines" in `AGENTS.md`; the test is
     Barkstreet Snakes #298, never merged; the same in Barkstreet Snakes.
+131. **1 November 2026, 18:11 UTC**, in the design chat: "I agree with your assesment." (to the design session's
+    reading of the test, Barkstreet Snakes #298, where Codex flagged all three planted faults as P1: Codex as the
+    gatekeeper for faults and security, and on the big items Claude's design check at medium effort, not its full
+    review). Written into `docs/claude-and-codex.md`, "Codex reviews" (point 5, with the test's result), the
+    reviewer row in `CLAUDE.md` and the "Review guidelines" in `AGENTS.md`; the same in Barkstreet Snakes.
