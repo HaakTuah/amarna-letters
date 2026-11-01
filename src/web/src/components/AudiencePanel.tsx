@@ -152,14 +152,17 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
             <ClauseEditor clauses={counter} onChange={setCounter} from={a.host} to={a.from} turn={a.turn} />
           </>
         )}
-        <div className="row" style={{ marginTop: ".4rem" }}>
-          {a.proposal !== null && (
+        {/* The seal on a line of its own, and each amount with its unit, so no field reads as part of the next one's label. */}
+        {a.proposal !== null && (
+          <div className="row" style={{ marginTop: ".4rem" }}>
             <label>
               <input type="checkbox" checked={seal} onChange={(e) => setSeal(e.target.checked)} /> Seal the tablet
             </label>
-          )}
+          </div>
+        )}
+        <div className="row" style={{ marginTop: ".4rem" }}>
           <label>
-            Gift to the envoy <input type="number" min="0" value={bribe} onChange={(e) => setBribe(num(e.target.value))} />
+            Gift to the envoy <input type="number" min="0" value={bribe} onChange={(e) => setBribe(num(e.target.value))} /> shekels
           </label>
           {!structured && <input value={bribeAsk} onChange={(e) => setBribeAsk(e.target.value)} placeholder="…in return for" style={{ flex: 1 }} />}
         </div>
@@ -171,13 +174,13 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
         )}
         <div className="row" style={{ marginTop: ".4rem" }}>
           <label>
-            Offer them service at <input type="number" min="0" value={job} onChange={(e) => setJob(num(e.target.value))} /> a season
+            Offer them service at <input type="number" min="0" value={job} onChange={(e) => setJob(num(e.target.value))} /> shekels a season
           </label>
           <label>
-            Send gold back <input type="number" min="0" value={goldBack} onChange={(e) => setGoldBack(num(e.target.value))} />
+            Send gold back <input type="number" min="0" value={goldBack} onChange={(e) => setGoldBack(num(e.target.value))} /> shekels
           </label>
           <label>
-            purity % <input type="number" min="10" max="100" value={goldPurity} onChange={(e) => setGoldPurity(num(e.target.value))} />
+            of purity <input type="number" min="10" max="100" value={goldPurity} onChange={(e) => setGoldPurity(num(e.target.value))} /> %
           </label>
         </div>
         <div className="row" style={{ marginTop: ".4rem" }}>
@@ -191,7 +194,7 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
           )}
         </div>
         <p className="muted">
-          <small>Treasury: {shekels(court.gold)}. Gifts and gold sent back are paid at once.</small>
+          <small>Treasury: {shekels(court.gold)}. Gifts and gold sent back are paid at once; service the envoy accepts is paid three seasons ahead at once, as far as the treasury goes.</small>
         </p>
         <button className="primary" onClick={answer}>
           Answer

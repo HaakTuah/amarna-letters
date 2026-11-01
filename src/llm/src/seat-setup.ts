@@ -242,7 +242,7 @@ const Budget = new Preset("budget", "Budget", "Every role on Haiku 5.5. Cheap en
 const Standard = new Preset(
   "standard",
   "Standard",
-  "The design document's table: Sonnet 5.5 kings and narrator, Haiku 5.5 envoys and spies.",
+  "The table the game is built for: Sonnet 5.5 kings and narrator, Haiku 5.5 envoys and spies.",
   "Sonnet",
   "Haiku",
   "Sonnet",

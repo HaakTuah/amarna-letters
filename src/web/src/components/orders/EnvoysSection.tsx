@@ -96,10 +96,10 @@ export function EnvoysSection({ c }: { c: OrdersContext }) {
               </div>
               <div className="row">
                 <label>
-                  Gold <input type="number" inputMode="numeric" min="0" value={f.gold} onChange={(e) => set({ gold: num(e.target.value) })} />
+                  Gold <input type="number" inputMode="numeric" min="0" value={f.gold} onChange={(e) => set({ gold: num(e.target.value) })} /> shekels
                 </label>
                 <label title="Below 100% the gold is debased: the receiver sees only its weight until they pay for an assay">
-                  purity % <input type="number" inputMode="numeric" min="10" max="100" value={f.purity} onChange={(e) => set({ purity: num(e.target.value) })} />
+                  of purity <input type="number" inputMode="numeric" min="10" max="100" value={f.purity} onChange={(e) => set({ purity: num(e.target.value) })} /> %
                 </label>
                 <label title={`An inventory costs the scribe ${shekels(price("inventoryFee"))}; without one nobody can check what arrived`}>
                   <input type="checkbox" checked={f.noInventory} disabled={f.gold <= 0} onChange={(e) => set({ noInventory: e.target.checked })} /> no inventory

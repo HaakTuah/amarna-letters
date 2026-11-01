@@ -78,6 +78,10 @@ Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lan
 - A human with one seat saw a one-choice seat menu at 390 px; it is a plain label, "Egypt (you)".
 - The timeline read "season 1 · now" while the header planned "Season 2"; it reads "after season 1, 1346 BCE", the board it shows (" · now" on computers only, where it fits).
 - The Provinces list ended each row in a bare number; it reads "yield 35", with a tooltip saying it is the base yield the harvest is reckoned from.
+- An audience's answer ran "Seal the tablet  Gift to the envoy [0]" together and left its amounts bare ("purity % 100"); the seal has its own line, each amount its unit ("[0] shekels", "of purity [100] %"), the envoy order form too, and the note says accepted service is paid three seasons ahead.
+- The Standard preset's card told players it was "The design document's table"; it reads "The table the game is built for".
+- The header's second line began with the runner's step in lower case ("orders · Any season may be the last"); it reads "Orders being given", "Audiences", "The season resolves" and so on.
+- A free person's card (candidates to hire, the court) opened with a stray "·" ("· at your court"); the line joins only the parts there are.
 - "(known to Terqa)", "Seals: Seha": the "known to" notes, seals, the winners line, an audience's vassal, the tolls line, buying news and the "whose troops?" list named powers by their engine ids; they use the names the game shows ("Hana", "the Seha River Land").
 - A gift of troops read "give Memphis to Hatti" in the draft, beside "cede Memphis to Hatti"; it reads "give the army at Memphis to Hatti" (the engine's own words, which kings read, unchanged).
 - The README, the Standings tab's opening table and two design notes said strength is ten times the land's yield; it is ten times what the land produces in a season (its harvest at the price of grain plus its mines), as the rulebook and `rules/scoring.ts` have it.
@@ -91,6 +95,7 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
 | 19+++ composing (`music/19-plus3-compose`) | 1. The Hurrian Hymn's score follows Kilmer's reading of the notation (each named pair of strings sounded together, the first-named sung above); Dumbrill's or West's melodic readings would give another tune. Keep Kilmer's? | Kilmer's (`docs/rounds/2026-10-31-music-composing.md`, reading 2) | Open; the pieces themselves are judged by ear on `/listen` |
+| Polish lane (Music page) | 1. The Music page tells players the pieces are "one for each of Empire Earth's" and shows that game's track names and lengths ("Guillotine (1:49)", "Pawns (4:09)"): should players see the other game's name and titles? | Left as built (item 19+++ names Empire Earth as the template); alternative: our piece names and moods only | Open |
 
 
 ## Use against ignore

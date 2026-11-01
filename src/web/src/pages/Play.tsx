@@ -26,7 +26,7 @@ import { Height, Width, city, ll } from "../map/art.ts";
 import { pathOf } from "../map/scene.ts";
 import { buildLifeRecord } from "../session/life-record.ts";
 import { choicesOf, handLimitNeeded, newSettings, usesModels, withChoices } from "../session/settings.ts";
-import { powerName, when, whenCap } from "../ui/format.ts";
+import { cap, powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
@@ -34,9 +34,19 @@ import { playing } from "../ui/update.ts";
 import { useSession } from "../ui/use-session.ts";
 import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
 
+/** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
+const PhaseWords: Record<string, string> = {
+  "income and arrivals": "Income and arrivals",
+  "reports and pitches": "Reports and pitches",
+  audiences: "Audiences",
+  orders: "Orders being given",
+  resolution: "The season resolves",
+};
 const phaseText = (phase: string): string => {
   const colon = phase.indexOf(":");
-  return phase.startsWith("Turn ") && colon > 0 ? phase.slice(colon + 1).trim() : phase;
+  if (!phase.startsWith("Turn ") || colon < 0) return phase;
+  const step = phase.slice(colon + 1).trim();
+  return PhaseWords[step] ?? cap(step);
 };
 
 let watchStarted = false;
