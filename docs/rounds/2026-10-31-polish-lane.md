@@ -55,6 +55,13 @@ away, checked in play: the order drafts and seals alone, and now reads "give the
   produces in a season (`rules/scoring.ts`, the rulebook's own HOW YOU WIN line) plus holdings: "yield" there means two
   numbers. A model request, so left to the item lane.
 
+- Event and news text names some powers by id where its name differs: "Terqa settled 874 loose men in Terqa",
+  "Seha hired Ammistamru", "sold grain at Seha River Land" (the power Terqa is shown as Hana, Seha as the Seha River Land).
+  Likewise `${task.requester}` and `${culprit}` (`turn/intel.ts:704-719`) and seals joined in `turn/intel.ts:774`,
+  `turn/knowledge.ts:177` and `turn/archives.ts:72`.
+  The engine writes these lines and kings read them, so they go with audit batch 2's ids in engine text; the interface's
+  own "known to" notes and seals are fixed (polish lane).
+
 ## For the design session
 
 - The README reviewer notes that troops are paid and fed by the engine each season with no order (`payTroops`,

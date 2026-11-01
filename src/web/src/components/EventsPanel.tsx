@@ -1,7 +1,7 @@
 import { shortDate, type GameState, type Power } from "@amarna/engine";
 import { SignalDetector } from "@amarna/game";
 import { useState } from "react";
-import { dated, when } from "../ui/format.ts";
+import { dated, powerName, when } from "../ui/format.ts";
 
 /**
  * The record of events, as the eyes chosen know it; in god view also the signals read from it. upTo shows only what had
@@ -56,7 +56,7 @@ export function EventsPanel({ state, upTo, viewer }: { state: GameState; upTo: n
             </small>{" "}
             {dated(e.text, viewer)}
             {viewer === null && e.visibleTo.length < 7 && (
-              <small className="muted"> (known to {e.visibleTo.length === 0 ? "nobody" : e.visibleTo.join(", ")})</small>
+              <small className="muted"> (known to {e.visibleTo.length === 0 ? "nobody" : e.visibleTo.map(powerName).join(", ")})</small>
             )}
           </div>
         ))}

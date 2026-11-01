@@ -96,9 +96,9 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
           <h4>A tablet for you to seal</h4>
           <div className="tablet">{a.proposal.text}</div>
           <small>
-            Already sealed by {a.proposal.seals.join(", ")}
+            Already sealed by {a.proposal.seals.map(powerName).join(", ")}
             {a.proposal.allianceOath ? " · a sworn alliance" : ""}
-            {a.proposal.vassal ? ` · a vassal treaty: ${a.proposal.vassal} the vassal` : ""}.
+            {a.proposal.vassal ? ` · a vassal treaty: ${powerName(a.proposal.vassal)} the vassal` : ""}.
           </small>
         </>
       )}
@@ -107,7 +107,7 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
           <h4>Shown to you as evidence</h4>
           <div className="tablet">{t.text}</div>
           <small>
-            Bearing the seals of {t.seals.join(", ")}
+            Bearing the seals of {t.seals.map(powerName).join(", ")}
             {t.sealedTurn !== null ? `, dated ${when(t.sealedTurn, court.power)}` : ""}.
           </small>
         </div>
