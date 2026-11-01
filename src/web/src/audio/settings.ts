@@ -16,8 +16,28 @@ const Styles: readonly MusicStyle[] = ["orchestra", "chip", "period"];
 
 const Key = "amarna-audio";
 
-/** Quiet by default: both on, low, and nothing sounds before the reader's first touch (the browser's own rule). */
-export const DefaultAudio: AudioSettings = { music: true, sound: true, musicVolume: 0.35, soundVolume: 0.45, style: "orchestra" };
+/**
+ * On by default at a regular volume (Haakon, 1 November 2026: "Keep them on, regular volume, but don't blast someone when
+ * they start up"); nothing sounds before the reader's first touch (the browser's own rule), and the first music fades in
+ * (`StartFade`).
+ */
+export const DefaultAudio: AudioSettings = { music: true, sound: true, musicVolume: 0.7, soundVolume: 0.7, style: "orchestra" };
+
+/** Seconds the first music of a visit takes to rise from silence to its volume, so it never blasts at start-up. */
+export const StartFade = 6;
+
+/** What the opening fade asks of an audio parameter (a gain): silent now, whole after `StartFade` seconds, evenly. */
+export interface Ramp {
+  cancelScheduledValues(t: number): unknown;
+  setValueAtTime(v: number, t: number): unknown;
+  linearRampToValueAtTime(v: number, t: number): unknown;
+}
+
+export function scheduleStartFade(gain: Ramp, now: number): void {
+  gain.cancelScheduledValues(now);
+  gain.setValueAtTime(0, now);
+  gain.linearRampToValueAtTime(1, now + StartFade);
+}
 
 function read(): AudioSettings {
   try {

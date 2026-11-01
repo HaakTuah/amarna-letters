@@ -82,7 +82,6 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
-| 19+++ (#237) | 1. Music and sound quiet by default: on at 35% and 45%, sounding from the first touch, or off until switched on? | On, quiet (`docs/rounds/2026-10-31-music.md`, readings 1-12) | Answered by Haakon, 1 November ("Keep them on, regular volume, but don't blast someone when they start up"); the sound system's session builds it in a PR of its own |
 | 19+++ composing (`music/19-plus3-compose`) | 1. The Hurrian Hymn's score follows Kilmer's reading of the notation (each named pair of strings sounded together, the first-named sung above); Dumbrill's or West's melodic readings would give another tune. Keep Kilmer's? | Kilmer's (`docs/rounds/2026-10-31-music-composing.md`, reading 2) | Open; the pieces themselves are judged by ear on `/listen` |
 | 11c (#143) | None: the page and the sections settled every reading | Readings 1-12 in `docs/rounds/2026-10-29-true-map.md` | Lane, no questions |
 | 11c+ (#165) | None: the page and the item's words settled every reading | Readings 1-13 in `docs/rounds/2026-10-29-map-at-a-glance.md`; the drawing's disagreements with the connections listed there for the design session | Lane, no questions |
