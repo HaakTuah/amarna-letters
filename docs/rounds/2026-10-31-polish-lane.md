@@ -41,7 +41,8 @@ Prefer the cheapest approach that does the job well").
   to the draft covers it, but nobody has checked it in play.
 
 Fixed since they were listed here: the Standings tab's leak of distant holders (#297), the seat menu at 390 px (#303),
-`who-decides.test.ts`'s slow "Planning" tests (#302), and the timeline's label against the header's season (its own PR).
+`who-decides.test.ts`'s slow "Planning" tests (#302), the timeline's label against the header's season (#307), and
+"ten times the yield" for strength in the README, the Standings tab and the design notes (#310).
 
 ## Handed to the item lane (they change what models read)
 
