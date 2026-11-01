@@ -9,14 +9,12 @@
  */
 import { Dict, GameStateSchema, HSet, read, type GameState, type Schema } from "@amarna/engine";
 
-/** A piece of a snapshot, by its number. */
-interface Leaf {
-  id: number;
-}
+/** A piece of a snapshot that is an item by itself: its index in the season's list of numbers. */
+type Leaf = number;
 
 /** The pieces of a snapshot as a tree of the containers the cut opened: a container's text is its head, its items and its tail. */
 interface Container {
-  /** The piece up to and including the opening bracket, with the member's name where it is one (`"inbox":{`). */
+  /** The piece up to and including the opening bracket, with the member's name where it is one (`"inbox":{`): its index. */
   head: number;
   items: (Leaf | Container)[];
   /** The closing bracket, and the comma after it where there is one: the text of the piece's start. */
@@ -62,7 +60,7 @@ export class IncrementalReader {
     t = performance.now();
     this.parsed = 0;
     const state = root.items[0];
-    if (root.items.length !== 1 || !("items" in state)) throw new Error("The state's pieces do not form one object.");
+    if (root.items.length !== 1 || typeof state === "number") throw new Error("The state's pieces do not form one object.");
     this.next = new Map();
     const o = GameStateSchema.make() as unknown as Record<string, unknown>;
     const fields = new Map(GameStateSchema.fields);
@@ -90,6 +88,7 @@ export class IncrementalReader {
   private treeOf(refs: Uint32Array): Container {
     const texts = this.texts;
     const root: Container = { head: -1, items: [], tail: "", from: 0, to: refs.length };
+    // Items are the index of their piece; a container's head is the index of its opening piece.
     const stack: Container[] = [root];
     for (let i = 0; i < refs.length; i++) {
       const id = refs[i];
@@ -106,26 +105,26 @@ export class IncrementalReader {
         if (rest.length === 0) continue;
         const below = stack[stack.length - 1];
         if (opens(p)) {
-          const c: Container = { head: id, items: [], tail: "", from: i, to: i + 1 };
+          const c: Container = { head: i, items: [], tail: "", from: i, to: i + 1 };
           below.items.push(c);
           stack.push(c);
-        } else below.items.push({ id });
+        } else below.items.push(i);
         continue;
       }
       if (opens(p)) {
-        const c: Container = { head: id, items: [], tail: "", from: i, to: i + 1 };
+        const c: Container = { head: i, items: [], tail: "", from: i, to: i + 1 };
         top.items.push(c);
         stack.push(c);
-      } else top.items.push({ id });
+      } else top.items.push(i);
     }
     return root;
   }
 
   /** A node's whole text (a leaf's piece, or a container's head, items and tail). */
   private textOf(x: Node): string {
-    if (!("items" in x)) return headOnly(this.texts[x.id]);
+    if (typeof x === "number") return headOnly(this.texts[this.refs[x]]);
     if (x.text !== undefined) return x.text;
-    let out = headOnly(this.texts[x.head]);
+    let out = headOnly(this.texts[this.refs[x.head]]);
     for (const item of x.items) out += this.textOf(item);
     return (x.text = out + x.tail.slice(0, x.tail.startsWith("],") || x.tail.startsWith("},") ? 2 : 1));
   }
@@ -135,7 +134,7 @@ export class IncrementalReader {
    * container's length, not a string of all its numbers. A hit is confirmed against the numbers themselves (`same`).
    */
   private keyOf(x: Node): number | string {
-    if (!("items" in x)) return x.id;
+    if (typeof x === "number") return this.refs[x];
     if (x.key !== undefined) return x.key;
     let h1 = 0x811c9dc5;
     let h2 = 0x01000193;
@@ -158,13 +157,13 @@ export class IncrementalReader {
   private lookup(cache: Cache, key: number | string, x: Node): Entry | undefined {
     const entries = cache.get(key);
     if (entries === undefined) return undefined;
-    if (!("items" in x)) return entries[0];
+    if (typeof x === "number") return entries[0];
     const ids = this.idsOf(x);
     return entries.find((e) => same(e.ids, ids));
   }
 
   private keep(cache: Cache, key: number | string, x: Node, value: unknown): void {
-    const entry: Entry = { ids: "items" in x ? this.idsOf(x) : Empty, value };
+    const entry: Entry = { ids: typeof x === "number" ? Empty : this.idsOf(x), value };
     const entries = cache.get(key);
     if (entries === undefined) cache.set(key, [entry]);
     else if (!entries.some((e) => same(e.ids, entry.ids))) entries.push(entry);
@@ -172,7 +171,7 @@ export class IncrementalReader {
 
   /** The text of a node's start: a leaf's piece, or a container's head piece (its member name is in it). */
   private headText(x: Node): string {
-    return headOnly(this.texts["items" in x ? x.head : x.id]);
+    return headOnly(this.texts[this.refs[typeof x === "number" ? x : x.head]]);
   }
 
   /** A field's value: an object read from its pieces, reused from the last state when the pieces are the same. */
@@ -196,19 +195,27 @@ export class IncrementalReader {
     }
     let v: unknown;
     const shape = shapeOf(schema);
-    if (!("items" in src)) {
-      const text = headOnly(this.texts[src.id]);
+    if (typeof src === "number") {
+      const text = headOnly(this.texts[this.refs[src]]);
       this.parsed += text.length;
       v = readText(schema, itemJson(named ? valueText(text) : text));
     } else if (shape.k === "list" || shape.k === "set") {
-      // The items the list shares with last season's at its start are taken as they were; the rest are read one by one.
+      // The items the list shares with last season's at its start (the same pieces, number for number) are taken as they
+      // were; the rest are read one by one. The record's lists only grow, so this is most of them.
       const last = this.lists.get(path);
-      const keys: (number | string)[] = src.items.map((x) => this.keyOf(x));
+      const ids = this.idsOf(src);
+      // Each item's end, as an offset from the list's first piece.
+      const ends = src.items.map((x) => (typeof x === "number" ? x + 1 : x.to) - src.from);
       let shared = 0;
-      if (last !== undefined) while (shared < keys.length && shared < last.keys.length && keys[shared] === last.keys[shared]) shared++;
+      if (last !== undefined) {
+        let common = 0;
+        const n = Math.min(ids.length, last.ids.length);
+        while (common < n && ids[common] === last.ids[common]) common++;
+        while (shared < ends.length && shared < last.ends.length && ends[shared] <= common && ends[shared] === last.ends[shared]) shared++;
+      }
       const items = last === undefined ? [] : last.items.slice(0, shared);
       for (let i = shared; i < src.items.length; i++) items.push(this.value(shape.of, src.items[i], false, cache, kept, path + "/*"));
-      this.nextLists.set(path, { keys, items });
+      this.nextLists.set(path, { ids, ends, items });
       v = shape.k === "list" ? items : new HSet(items);
     } else if (shape.k === "dict") {
       const d = new Dict<string, unknown>();
@@ -253,9 +260,10 @@ const Empty = new Uint32Array(0);
 
 /** Objects by the hash of the pieces they were read from, per field of the state: what unchanged pieces reuse. */
 type Cache = Map<number | string, Entry[]>;
-/** A list as read last season: its items' keys and the items. */
+/** A list as read last season: the numbers of its pieces, each item's end as an offset from its first piece, and the items. */
 interface ListEntry {
-  keys: (number | string)[];
+  ids: Uint32Array;
+  ends: number[];
   items: unknown[];
 }
 
@@ -270,10 +278,11 @@ function headOnly(p: string): string {
 }
 /** An item's JSON: its text without the comma that follows it. */
 const itemJson = (text: string): string => (text.endsWith(",") ? text.slice(0, -1) : text);
-/** A member's name, from `"name":value`. */
+/** A member's name, from `"name":value` (parsed only where it has an escape). */
 function nameOf(text: string): string {
   const end = text.indexOf('":');
-  return JSON.parse(text.slice(0, end + 1)) as string;
+  const raw = text.slice(1, end);
+  return raw.includes("\\") ? (JSON.parse(text.slice(0, end + 1)) as string) : raw;
 }
 /** A member's value text, from `"name":value`. */
 const valueText = (text: string): string => text.slice(text.indexOf('":') + 2);

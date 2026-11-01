@@ -6,7 +6,10 @@
 import { newGame } from "@amarna/engine";
 import { GameRunner } from "@amarna/game";
 import { buildSeats, Presets } from "@amarna/llm";
+import { SnapshotHistory } from "@amarna/game";
 import { framesSince, type SeasonFrame } from "../src/session/frames.ts";
+import { IncrementalReader } from "../src/session/incremental.ts";
+import { redactForPage } from "../src/session/core.ts";
 import { choicesOf, newSettings, toConfig, withChoices } from "../src/session/settings.ts";
 
 const seasons = Number(process.argv[2] ?? "30");
@@ -19,6 +22,11 @@ let runner: GameRunner | null = null;
 const built = buildSeats(choicesOf(s), state, null, () => runner!.log);
 runner = new GameRunner(state, built.seats, built.minds, built.narrator, { jobs: choicesOf(s).jobs });
 runner.writeChronicles = false;
+runner.snapshots.redact = redactForPage;
+// The page's side too, as the web app reads the stream: the history of pieces and the incremental reader.
+const history = new SnapshotHistory();
+const reader = new IncrementalReader();
+let readerMs = 0;
 let last: SeasonFrame | null = null;
 let taken = 0;
 const r = runner;
@@ -29,5 +37,15 @@ runner.changed.push(() => {
 });
 const t0 = performance.now();
 await runner.prepare();
-for (let i = 0; i < seasons && !runner.state.ended; i++) await runner.playTurn();
-console.log(`${runner.state.turn} seasons in ${((performance.now() - t0) / 1000).toFixed(1)} s`);
+const readNow = (): void => {
+  for (const d of runner!.snapshots.takeDeltas()) history.apply(d);
+  const a = performance.now();
+  reader.apply(history.refs(history.length - 1)!, history.texts);
+  readerMs += performance.now() - a;
+};
+readNow();
+for (let i = 0; i < seasons && !runner.state.ended; i++) {
+  await runner.playTurn();
+  readNow();
+}
+console.log(`${runner.state.turn} seasons in ${((performance.now() - t0) / 1000).toFixed(1)} s; the page's reader ${readerMs.toFixed(0)} ms in all, ${(readerMs / runner.state.turn).toFixed(1)} ms a season`);
