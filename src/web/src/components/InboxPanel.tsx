@@ -25,7 +25,7 @@ export function InboxPanel({ state, power }: { state: GameState; power: Power })
       </div>
       <p className="muted">
         Treasury (by your ledger): {shekels(ledger(t))}
-        {t.lots.length > 0 ? `, including ${t.lots.length} unassayed shipment(s)` : ""}.
+        {t.lots.length > 0 ? `, including ${t.lots.length} unassayed shipment${t.lots.length === 1 ? "" : "s"}` : ""}.
       </p>
       {items.length === 0 && <p className="muted">Nothing has arrived yet.</p>}
       {shown.map((turn) => (

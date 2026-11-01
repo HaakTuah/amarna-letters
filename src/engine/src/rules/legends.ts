@@ -198,9 +198,15 @@ export function courtLegend(s: GameState, p: Power): LegendLine[] {
     const of = s.invaded.tryGet(p)?.tryGet(q);
     if (of !== undefined) out.push(line(of, `Troops of ${q} first entered its land.`));
   }
+  // The bonds sealed before the age began are where a court starts, not deeds of the age: one line for them all.
+  const before: string[] = [];
   for (const t of s.tablets)
-    if (!t.inventory && !t.forged && t.sealedTurn !== null && t.seals.includes(p))
-      out.push(line(t.sealedTurn, `Sealed ${t.allianceOath ? "an oath of alliance" : t.vassal !== null ? "a vassal treaty" : "a tablet"} with ${listed(t.seals.filter((x) => x !== p))}.`));
+    if (!t.inventory && !t.forged && t.sealedTurn !== null && t.seals.includes(p)) {
+      const others = listed(t.seals.filter((x) => x !== p));
+      if (t.sealedTurn === 0) before.push(others);
+      else out.push(line(t.sealedTurn, `Sealed ${t.allianceOath ? "an oath of alliance" : t.vassal !== null ? "a vassal treaty" : "a tablet"} with ${others}.`));
+    }
+  if (before.length > 0) out.push(line(0, `Bound from before the age began by ${before.length === 1 ? "a vassal treaty" : "vassal treaties"} with ${listed(before)}.`));
   for (const f of s.falls) {
     if (f.power === p) out.push(line(f.turn, `Fell: ${provinceName(f.capital)} taken${f.conqueror !== null ? ` by ${f.conqueror}` : ""}.`, f.capital));
     else if (f.conqueror === p) out.push(line(f.turn, `Brought down ${f.power}, taking ${provinceName(f.capital)}.`, f.capital));
