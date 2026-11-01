@@ -114,8 +114,8 @@ describe("RulebookTextTests", () => {
     Assert.contains("- Egypt: armies in memphis (6000 men), akhetaten (4000 men), thebes (2200 men), nubia (2800 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 17975.", Rules);
     Assert.contains("- Babylonia: armies in babylon (4000 men), durkurigalzu (3000 men), nippur (1500 men) and sippar (1500 men); treasury 600 shekels;", Rules);
     Assert.contains("- Alashiya: armies in enkomi (1000 men) and kalavasos (500 men), a fleet of 750 men in enkomiwaters; treasury 400 shekels;", Rules);
-    Assert.contains("- Arwad: a fleet of 500 men in bybloswaters;", Rules);
-    Assert.contains("- Amurru: an army of 1250 men in sumur;", Rules);
+    Assert.contains("- Arwad: a fleet of 500 men in sumurwaters;", Rules);
+    Assert.contains("- Amurru: an army of 1250 men in amurru;", Rules);
 
     // The figures are the game's own: every unit, treasury and starting strength as a new game sets them.
     let s = newGame(9);

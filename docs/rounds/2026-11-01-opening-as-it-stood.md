@@ -135,10 +135,13 @@ Each with the principle it rests on ("Reason from the pillars").
     bond friend, else a friend, else the claimant holding the realm's capital, else the one whose own land it is.
 32. **A house name** is Bit- and the first king's name (Bit-Aziru, Bit-Rib-Hadda), or Bit- and the land where the sources
     name no king ("Bit-Hana"); risen powers take their founder's (Places by their own names: "never a number").
-34. **Governors of 1346 hold a grant from the first season** (Privileges, in the one page: "Not: a governor or commander on a
-    fee"; from the review): Thutmose over Kush, Enlil-kidinni over Nippur, Ili-ippashra over Dilmun, and Alashiya's
-    governor over the copper hills [G on the district], each governing, with no fee. The commissioners over vassals' lands
-    stay at Pharaoh's court as servants until item 17++ makes them open residents in their provinces, as its text says.
+34. **The governors of 1346 take their grants in item 17++, not here** (No stopgaps, read with the order: 17++'s text
+    says "every governor the sources name in office in 1346 holds his post from the first season", over the provinces the
+    sources give him, and makes the commissioners open residents). The review of 17+ found Thutmose, Enlil-kidinni,
+    Ili-ippashra and Alashiya's governor starting on a fee at their king's court, against "Not: a governor or commander on
+    a fee"; a first fix granting them their provinces here moved staff counts, starting terms and every test of an empty
+    governor list, all of which 17++ reworks with its multi-province governors. So 17++ begins with it, and until it
+    merges they are servants at court, as before.
 35. **City-states' units start one to a province** (from the review: the engine holds one unit in a province): Aziru's men
     in Amurru's own land beside Sumur, not in it, since Egypt's garrison holds it; Arwad's ships in its own waters beside
     Byblos's; Sidon's in its own beside Tyre's [the placements B as before; the shift G]. The placements are a data table.

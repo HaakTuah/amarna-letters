@@ -23,8 +23,7 @@ import { StateOfRealmTitle, stateOfRealm } from "./realm.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
-import { newGovernor } from "../model/command.ts";
-import { AttestedCast, FirstCores, GovernorsOf1346, NamedScribes, NubianCast, NubiansAttested, PeopleOf1346, Styles, type CastSeed, type Core } from "./cast.ts";
+import { AttestedCast, FirstCores, NamedScribes, NubianCast, NubiansAttested, PeopleOf1346, Styles, type CastSeed, type Core } from "./cast.ts";
 import { drawSkills } from "./skills.ts";
 import { kingTongues, servedThere } from "./tongues.ts";
 import { courtReads } from "../model/languages.ts";
@@ -340,18 +339,7 @@ function more(s: GameState, unused: Seed[]): void {
     for (const text of sd.facts) c.facts.push(newFact({ id: newId(s, "f"), text, secrecy: "Public", tag: "source" }));
     if (sd.stake !== null) c.facts.push(newFact({ id: newId(s, "f"), text: `Holds a stake in the love of the people of ${WorldMap.default.get(sd.stake).name}: a claim, or a town of his own.`, secrecy: "Public", tag: `stake:${sd.stake}` }));
     finish(s, c, sd.core, attested);
-    const governs = GovernorsOf1346.get(sd.name);
-    if (governs !== undefined && s.owner.getOrDefault(governs, null) === sd.court) {
-      // Item 17+: a governor of 1346 holds his governorship from the first season, a grant of authority, not a job.
-      c.status = "Free";
-      c.duty = "Governing";
-      c.at = null;
-      c.grantedBy = sd.court;
-      c.watchProvince = governs;
-      c.met = [sd.court];
-      c.reputation.set(sd.court, 10);
-      s.governors.push(newGovernor({ province: governs, character: c.id, power: sd.court, levies: 0, from: 1 }));
-    } else if (sd.post) {
+    if (sd.post) {
       // Item 17+: in his post from the first season, placed where the sources put him: employed by his court, as a starting servant.
       employ(s, rng, c, sd.court, false);
       c.met = [sd.court];
