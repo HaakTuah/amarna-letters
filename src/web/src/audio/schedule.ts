@@ -18,6 +18,9 @@ export interface View {
 /** The most of the map's placed sounds heard in one season, the loudest (nearest) first, so a crowded view stays clear. */
 export const MapHeard = 4;
 
+/** The least gap between two sounds' starts, in seconds. */
+export const Apart = 0.26;
+
 export interface Scheduled {
   name: SoundName;
   /** Seconds from now. */
@@ -29,7 +32,8 @@ export interface Scheduled {
  * When and how each of a season's sounds is heard (item 19+++ fed by 17a's stream): each at its moment in the season,
  * spread over most of the time the season is shown (`gap`, the milliseconds since the season before arrived, so faster
  * play packs them closer), after the sting where there is one; the court's own sounds always, the map's placed sounds
- * only where the view hears them, the nearest few. Never two at once: at least a quarter second apart.
+ * only where the view hears them, the nearest few. Never two starting together: at least a quarter second apart
+ * (a little more, so the player's same-sound guard of a quarter second never drops the second).
  */
 export function schedule(c: Cues, v: View | null, gap: number): Scheduled[] {
   const spread = Math.min(3, Math.max(1, (gap / 1000) * 0.75));
@@ -48,6 +52,6 @@ export function schedule(c: Cues, v: View | null, gap: number): Scheduled[] {
     .slice(0, MapHeard);
   for (const { s, h } of near) out.push({ name: s.name, delay: lead + s.t * spread, heard: h });
   out.sort((a, b) => a.delay - b.delay);
-  for (let i = 1; i < out.length; i++) out[i].delay = Math.max(out[i].delay, out[i - 1].delay + 0.25);
+  for (let i = 1; i < out.length; i++) out[i].delay = Math.max(out[i].delay, out[i - 1].delay + Apart);
   return out;
 }

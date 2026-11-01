@@ -182,8 +182,10 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   const placed = (s: SoundName, at: string, t: number): void => {
     if (!out.map.some((c) => c.name === s && c.at === at)) out.map.push({ name: s, at, t });
   };
-  // An event's moment among what followed the clash: in the order the stream gives the season's events.
-  const after = (i: number): number => Moments.after + ((Moments.end - Moments.after) * (i + 1)) / (f.events.length + 1);
+  // An event's moment among what followed the clash: in the order the stream gives the season's events, counting only those
+  // the viewer was shown, so what it was not shown never shifts what it hears.
+  const shown = f.events.filter((e) => viewer === null || e.visibleTo.includes(viewer));
+  const after = (e: (typeof shown)[number]): number => Moments.after + ((Moments.end - Moments.after) * (shown.indexOf(e) + 1)) / (shown.length + 1);
   const was = owners(prev, viewer);
   const now = owners(f, viewer);
 
@@ -232,10 +234,9 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   if (fought) add("battle", seen(f, viewer).find((m) => (hostile(m) || m.destroyed) && involves(m, viewer))?.target ?? null, Moments.clash);
   mapSounds(f, prev, viewer, placed);
   // What else it saw: by the events of the season, as far as it was shown them.
-  f.events.forEach((e, i) => {
-    if (viewer !== null && !e.visibleTo.includes(viewer)) return;
+  shown.forEach((e) => {
     const add = (s: SoundName, at: string | null = null): void => {
-      if (!out.sounds.some((c) => c.name === s)) out.sounds.push({ name: s, at, t: after(i) });
+      if (!out.sounds.some((c) => c.name === s)) out.sounds.push({ name: s, at, t: after(e) });
     };
     switch (e.kind) {
       case "siege":
@@ -249,7 +250,7 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
         }
         break;
       case "winter":
-        winter(f, e.text, e.signal, placed);
+        winter(e.text, e.signal, placed);
         break;
       case "revolt":
       case "mutiny":
@@ -313,7 +314,10 @@ function mapSounds(f: SeasonFrame, prev: SeasonFrame, viewer: Power | null, plac
       // On the road it marches from where it set out; the sound sits at its goal, where the season sees it arrive or fail.
       placed(m.kind === "Fleet" ? "waves" : "march", m.target, t);
     } else if (m.kind === "Fleet" && map.exists(m.from) && map.get(m.from).isSea) placed("waves", m.from, t);
-    if ((hostile(m) || m.destroyed) && m.target !== null) placed("battle", m.target, Moments.clash + (0.08 * i) / Math.max(1, moves.length));
+    // The clash where it was fought: at the goal of an attack, and where a unit that was driven out or destroyed stood.
+    const clash = Moments.clash + (0.08 * i) / Math.max(1, moves.length);
+    if (hostile(m) && m.target !== null) placed("battle", m.target, clash);
+    if (m.destroyed) placed("battle", m.from, clash);
   });
   // A fleet lying at sea is still in the waves: heard when the view comes near it.
   for (const u of f.units) {
@@ -330,17 +334,16 @@ function mapSounds(f: SeasonFrame, prev: SeasonFrame, viewer: Power | null, plac
 }
 
 /**
- * A winter crossing the viewer was shown (the stream's event names who crossed and where to): the wind on a snowbound pass,
- * an avalanche's thunder where it cost men there, the storm on the open sea. Placed at the crossing's goal, found among the
- * season's moves by the mover and the goal's name, since an event carries no place of its own.
+ * A winter crossing the viewer was shown: the wind on a snowbound pass, an avalanche's thunder where it cost men there, the
+ * storm on the open sea or on open beaches. An event carries no place of its own, so it is read from the goal its words
+ * name ("into X in winter", "to X in winter", "fleets in X lost"), matched to a province by its whole name.
  */
-function winter(f: SeasonFrame, text: string, signal: string | null, placed: Place): void {
+function winter(text: string, signal: string | null, placed: Place): void {
   const sea = text.includes("the open sea") || signal === "harbour-short";
-  const at =
-    f.moves.find((m) => m.to !== null && text.startsWith(`${m.power}'s`) && map.exists(m.to) && text.includes(map.get(m.to).name))?.to ??
-    f.units.find((u) => u.kind === "Fleet" && text.startsWith(`${u.power}'s`) && map.exists(u.province) && text.includes(map.get(u.province).name))?.province;
-  if (at === undefined || at === null) return;
-  placed(sea ? "storm" : signal === "winter-loss" ? "avalanche" : "gust", at, Moments.winter);
+  const named = /\binto ([^,]+?) in winter/.exec(text)?.[1] ?? /\bto ([^,]+?) in winter/.exec(text)?.[1] ?? /fleets in (.+?) lost/.exec(text)?.[1] ?? null;
+  const at = map.find(named);
+  if (at === null) return;
+  placed(sea ? "storm" : signal === "winter-loss" ? "avalanche" : "gust", at.id, Moments.winter);
 }
 
 const riverLands = new Set(Rivers.flatMap((r) => r.course));

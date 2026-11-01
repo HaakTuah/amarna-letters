@@ -3,7 +3,7 @@ import { WorldMap, newGameEvent, type Power } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
 import { city } from "../src/map/features.ts";
 import { Moments, cuesAt } from "../src/audio/situation.ts";
-import { MapHeard, schedule } from "../src/audio/schedule.ts";
+import { Apart, MapHeard, schedule } from "../src/audio/schedule.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 
 // Item 19+++ fed by item 17a's stream: each sound of a season at its event's moment and place, heard by zoom. Each test
@@ -19,7 +19,7 @@ function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
 }
 
 const move = (power: Power, kind: "Army" | "Fleet", from: string, target: string, targetOwner: Power | null = null): FrameMove =>
-  ({ power, kind, from, order: "move", target, to: target, helped: null, succeeded: true, destroyed: false, targetOwner }) as FrameMove;
+  ({ power, kind, from, order: "move", target, to: null, helped: null, succeeded: true, destroyed: false, targetOwner }) as FrameMove;
 
 const map = WorldMap.default;
 const sea = map.provinces.find((p) => p.isSea)!.id;
@@ -60,8 +60,11 @@ describe("AudioStreamTests", () => {
       frame(1, { moves: [move("Egypt", "Army", "memphis", "gaza")], seenBy: new Map([["Egypt", [0]]]), events: [newGameEvent({ kind: "winter", visibleTo: ["Egypt"], signal, text })] });
     const name = (f: SeasonFrame) => cuesAt([frame(0), f], 1, "Egypt").map.filter((s) => s.t === Moments.winter).map((s) => `${s.name}@${s.at}`);
     Assert.equal("gust@gaza", name(ev("winter-crossed", `Egypt's army crossed the pass into ${to.name} in winter.`)).join());
-    Assert.equal("avalanche@gaza", name(ev("winter-loss", `Egypt's army lost 300 men to cold, crossing the pass into ${to.name} in winter.`)).join());
+    Assert.equal("avalanche@gaza", name(ev("winter-loss", `Egypt's A memphis lost 300 men to cold, hunger and desertion, crossing the pass into ${to.name} in winter.`)).join());
     Assert.equal("storm@gaza", name(ev("winter-loss", `Egypt's army lost 300 men to the storms, crossing the open sea to ${to.name} in winter.`)).join());
+    // Fleets on open beaches: the storm at the waters named, not at the land whose name is inside the waters' name.
+    const waters = map.provinces.find((p) => p.isSea && p.name.includes(to.name))!;
+    Assert.equal(`storm@${waters.id}`, name(ev("harbour-short", `Egypt's fleets in ${waters.name} lost 40 men to winter storms on open beaches.`)).join());
   });
 
   test("New weather in sight: a flood's rains, a drought's dry wind; weather already there is silent", () => {
@@ -73,7 +76,7 @@ describe("AudioStreamTests", () => {
     Assert.true(cuesAt([frame(0), dry], 1, null).map.some((s) => s.name === "gust"));
   });
 
-  test("Each sound at its moment: arrivals first, the clash after the march, never two at once, faster play packs them closer", () => {
+  test("Each sound at its moment: arrivals first, the clash after the march, never two starting together, faster play packs them closer", () => {
     const f = frame(1, {
       moves: [move("Egypt", "Army", "memphis", "gaza"), move("Hatti", "Army", "x", "gaza", "Egypt")],
       seenBy: new Map([["Egypt", [0, 1]]]),
@@ -85,13 +88,23 @@ describe("AudioStreamTests", () => {
     // In a busy season the court's three most telling sounds are kept (the season's own stroke gives way).
     Assert.false(s.some((x) => x.name === "season"));
     Assert.true(at("march") < at("battle"));
-    for (let i = 1; i < s.length; i++) Assert.true(s[i].delay - s[i - 1].delay >= 0.25 - 1e-9);
+    for (let i = 1; i < s.length; i++) Assert.true(s[i].delay - s[i - 1].delay >= Apart - 1e-9);
     // A courier's arrival opened the season: heard before the march.
     const arrived = frame(1, { moves: [move("Egypt", "Army", "memphis", "gaza")], seenBy: new Map([["Egypt", [0]]]), inboxCount: new Map([["Egypt", 1]]) });
     const q = schedule(cuesAt([frame(0), arrived], 1, "Egypt"), near("gaza"), 4000);
     Assert.true(q.find((x) => x.name === "courier")!.delay < q.find((x) => x.name === "march")!.delay);
     const fast = schedule(c, near("gaza"), 1200);
     Assert.true(fast.find((x) => x.name === "battle")!.delay < at("battle"));
+  });
+
+  test("A battle is heard where it was fought: at an attack's goal, and where a unit was driven out; in god view, all of them", () => {
+    const struck = { ...move("Egypt", "Army", "gaza", "gaza"), order: "hold", target: null, destroyed: true } as FrameMove;
+    const f = frame(1, { moves: [move("Hatti", "Army", "x", "ugarit", "Mitanni"), struck] });
+    // The first battle rides with the court's own sounds, the rest are the map's: together, every place fought over.
+    const all = cuesAt([frame(0), f], 1, null);
+    const c = [...all.sounds, ...all.map].filter((s) => s.name === "battle").map((s) => s.at);
+    Assert.true(c.includes("ugarit"));
+    Assert.true(c.includes("gaza"));
   });
 
   test("A crowded view hears only the nearest few of the map's sounds", () => {

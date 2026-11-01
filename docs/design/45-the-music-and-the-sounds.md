@@ -100,7 +100,7 @@ them resolve (`seenBy`), fleets at sea in its sight, weather where it sees it.
 report, the season's stroke) first, then the march and the waves, the weather, the winter crossings, the clash (the war's
 first horn, the battles), the sieges and land taken or lost, then what followed in the stream's own order of events, the
 omens last. `schedule()` (`schedule.ts`) spreads them over three quarters of the time since the season before arrived,
-between 1 and 3 s, after the sting where there is one, never two within a quarter second.
+between 1 and 3 s, after the sting where there is one, never two starting within a quarter second.
 
 ### Fed by the stream: how audio subscribes
 
@@ -110,8 +110,8 @@ a season into `Session.frames` (`client.ts`); the game page passes `Session.fram
 1.2 s, never on a jump or a change of eyes) calls `cuesAt(frames, index, viewer)` and plays `schedule(...)`. A season's
 sounds come from its frame and the one before: `events` (each `GameEvent` filtered by `visibleTo`), `moves` and
 `seenBy`, `units`, `sieges`, `climate`, `news`, `inboxCount`, the owners as known. An event carries no place, so a
-placed sound takes its place from the move, unit, siege or climate it belongs to (a winter event by its mover and the
-goal it names). Item 17+++, which plays the season out on the map, reads the same frames; when it gives each event a
+placed sound takes its place from the move, unit, siege or climate it belongs to (a winter event by the goal its words name, matched by
+the province's whole name). Item 17+++, which plays the season out on the map, reads the same frames; when it gives each event a
 moment of its own on screen, `Cue.t` is the one number to take from it instead of `Moments`.
 
 ## The shade: a darker or brighter mode within a piece
