@@ -225,7 +225,10 @@ so they go to a session of their own ("Bigger review fixes in a session of their
   game, and the layout is unchanged.
 - Found on the way: land lost by the season's rule did not wake a sleeping seat (`sleep.ts`, `LandLostTitles`); fixed.
 
-## Where to pick up (hand-off, 1 November 2026, context)
+## History: round 1's hand-off (1 November 2026), done in round 2
+
+Kept as written then; every point in it is answered above ("Round 1's open points, answered in round 2").
+
 
 The builder's context is large, so this session stops here with the PR open. The next session takes PR #375 with this
 report's review lists and nothing else, at high effort: build design points 2, 3, 5, 7, 8 and 9 and Codex's 5, fix the
