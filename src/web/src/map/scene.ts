@@ -7,6 +7,7 @@ import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type 
 import { coverOf, isMove, ownerFor, ownerOf, type FrameBand, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, city, route, type Pt } from "./art.ts";
+import { ownFiguresAt } from "./known.ts";
 import { remember, type Remembered } from "./memory.ts";
 
 export type MoveStyle = "Move" | "Attack" | "Bounce" | "Support" | "SupportCut" | "Convoy";
@@ -272,10 +273,40 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const sieges = viewer !== null ? f.sieges.filter((x) => x.besieger === viewer || ownerOf(f, x.province) === viewer || (f.sight.get(viewer)?.has(x.province) ?? false)) : [...f.sieges];
 
   const owner = new Map(Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const));
-  // As the engine's own view of a court shows them: in its sight, or in land it holds.
-  const stores = viewer === null ? f.stores : new Map([...f.stores].filter(([k]) => ownerOf(f, k) === viewer));
-  const bands = viewer === null ? f.bands : f.bands.filter((b) => (f.sight.get(viewer)?.has(b.province) ?? false) || ownerOf(f, b.province) === viewer);
+  // As the engine's own view of a court shows them: in its sight, or in land it holds and knows it holds; in land it lost
+  // without knowing, as it last held it, until word of the loss arrives (map/known.ts), never vanishing at once.
+  const at = Math.min(Math.max(index, 0), frames.length - 1);
+  const ownAt = (id: string): SeasonFrame | null => {
+    const k = ownFiguresAt(frames, at, viewer, id);
+    return k === null ? null : frames[k];
+  };
+  const stores = viewer === null ? f.stores : storesOf(ownAt);
+  const bands = viewer === null ? f.bands : bandsOf(f, viewer, ownAt);
   return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev };
+}
+
+/** A court's own stores: each province it knows it holds, as of the season its map shows that land (`ownFiguresAt`). */
+function storesOf(ownAt: (id: string) => SeasonFrame | null): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const p of Map_.landProvinces) {
+    const g = ownAt(p.id);
+    const n = g?.stores.get(p.id);
+    if (n !== undefined) out.set(p.id, n);
+  }
+  return out;
+}
+
+/** The bands a court knows of: those in its sight now, and in its own land as that land's figures stand on its map. */
+function bandsOf(f: SeasonFrame, viewer: Power, ownAt: (id: string) => SeasonFrame | null): FrameBand[] {
+  const sight = f.sight.get(viewer);
+  const out = f.bands.filter((b) => sight?.has(b.province) ?? false);
+  const seen = new Set(out.map((b) => b.province));
+  for (const p of Map_.landProvinces) {
+    if (seen.has(p.id)) continue;
+    const g = ownAt(p.id);
+    if (g !== null) out.push(...g.bands.filter((b) => b.province === p.id));
+  }
+  return out;
 }
 
 function stack(units: readonly FrameUnit[], ghost: boolean, age: number, seenAt: number): SceneUnit[] {

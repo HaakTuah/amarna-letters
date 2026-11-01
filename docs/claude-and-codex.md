@@ -57,18 +57,26 @@ reviews), and if it scores well, more items follow.
 3. **Questions go on the thread,** both ways, each comment standing alone (no "as discussed"). At most **two rounds**
    per question; then the orchestrator takes the most reasonable reading and writes it under "Readings taken".
    Whatever only Haakon can settle goes to "Questions for Haakon" and the "For Haakon" table in `docs/BUILD-PROGRESS.md`, as always.
-4. **Codex's PR** is reviewed as below, sent back with `@codex` and the review's list, and merged by the orchestrator.
+4. **Write the mention only to start Codex.** Its bot answers every `@codex` it finds in a PR's or issue's text or
+   comments, even inside backticks, so a description or report that only talks about it says "the Codex mention".
+5. **Codex's PR** is reviewed as below, sent back with `@codex` and the review's list, and merged by the orchestrator.
 
 ## When Codex is not there
 
-Codex's usage can run out with no alert, so the orchestrator never waits on it for long:
+Codex's usage can run out, and it may say so only through its bot or not at all, so the orchestrator never waits on
+it for long. Codex's bot answers an `@codex` comment within seconds (seen 1 November 2026), so:
 
-- **No sign within about 15 minutes** that Codex has started (a reply, a reaction, a branch), **or no PR within about
-  2 hours:** take the lane back. Write "Taken back by Claude" on the thread and give it to a Claude builder.
+- **An answer from the bot that is not a start** (no environment, no usage left, any error) **is a take-back at once.**
+- **No sign within about 5 minutes** that Codex has started (a reply, a reaction, a branch), **or no PR within about
+  2 hours:** take the lane back. Five minutes leaves room for GitHub's own delays; two hours, for the suites and a
+  round of fixes.
+- **Taking back:** write "Taken back by Claude" on the thread, with the reason, and give the lane to a Claude builder.
 - **A Codex PR that arrives after that is closed unmerged,** so the same work never lands twice.
-- **After one silent timeout Codex counts as unavailable:** hand it nothing until a small test task gets through,
-  tried at most every few hours. Meanwhile the work is Claude's alone, as before Codex came.
-- The times are first guesses (1 November 2026): adjust them from what the first weeks show, and say so here.
+- **After a take-back for no usage, an error or silence, Codex counts as unavailable:** hand it nothing until a small
+  test task gets through, tried at most every few hours. Meanwhile the work is Claude's alone, as before Codex came.
+  A take-back for a slow PR alone does not count: the next lane still goes to Codex.
+- The times were set from the first test (1 November 2026): adjust them from what the first weeks show, and say so
+  here.
 
 ## Reviews: a score, and what keeps it from 10
 
