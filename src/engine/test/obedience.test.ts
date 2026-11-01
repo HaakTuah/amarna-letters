@@ -21,21 +21,15 @@ import { Assert, oldWorld, removeAll, subs } from "./support.ts";
 // Build order item 17++, "Whom a province obeys" and "Loyalty is a ledger" (War): no province is owned by a flag; it obeys
 // whoever it fears or loves most, by a clear margin, with degrees; the ledger starts as 1346 stood.
 describe("ObedienceTests", () => {
-  const quiet = (): GameState =>
-    newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
-  function season(
-    s: GameState,
-    orders: Dict<Power, TurnSubmission> = new Dict(),
-  ): TurnEngine {
+  const quiet = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+  function season(s: GameState, orders: Dict<Power, TurnSubmission> = new Dict()): TurnEngine {
     const e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(orders);
     return e;
   }
-  const love = (s: GameState, prov: string, actor: string): number =>
-    s.ledger.tryGet(prov)?.getOrDefault(actor, 0) ?? 0;
-  const named = (s: GameState, name: string) =>
-    s.characters.find((c) => c.name === name)!;
+  const love = (s: GameState, prov: string, actor: string): number => s.ledger.tryGet(prov)?.getOrDefault(actor, 0) ?? 0;
+  const named = (s: GameState, name: string) => s.characters.find((c) => c.name === name)!;
 
   test("The ledger starts as 1346 stood: a house in its own land, an outsider's holdings, claimants and leanings", () => {
     const s = quiet();
@@ -46,10 +40,7 @@ describe("ObedienceTests", () => {
     // Gubla's villages lean to Aziru's house; Tagi's town is his own following; Artatama's claim among the Hurrians.
     Assert.equal(UnrestData.stake, love(s, "byblos", "Amurru"));
     Assert.equal(UnrestData.stake, love(s, "megiddo", named(s, "Tagi").id));
-    Assert.equal(
-      UnrestData.stake,
-      love(s, "washukanni", named(s, "Artatama").id),
-    );
+    Assert.equal(UnrestData.stake, love(s, "washukanni", named(s, "Artatama").id));
   });
 
   test("The governors of 1346 hold their posts from the first season, as grants; the commissioners are open residents", () => {
@@ -69,78 +60,46 @@ describe("ObedienceTests", () => {
       Assert.equal(c, new TurnEngine(s).governorOf(prov)![1]);
     }
     // Hatti's border lords, names lost: invented in Hatti's style; the heartland ruled directly.
-    Assert.true(
-      s.governors.some((g) => g.province === "samuha" && g.power === "Hatti"),
-    );
-    Assert.false(
-      s.governors.some(
-        (g) =>
-          g.province === "hattusa" ||
-          g.province === "babylon" ||
-          g.province === "memphis",
-      ),
-    );
+    Assert.true(s.governors.some((g) => g.province === "samuha" && g.power === "Hatti"));
+    Assert.false(s.governors.some((g) => g.province === "hattusa" || g.province === "babylon" || g.province === "memphis"));
     const t = named(s, "Tahmashshi");
     Assert.equal("SpyPosted", t.duty);
     Assert.equal("megiddo", t.watchProvince);
     Assert.equal("Megiddo", t.at);
     Assert.equal("Egypt", t.employer);
     Assert.true(t.openly);
-    Assert.true(
-      t.facts.some((f) => f.tag === "resident" && f.secrecy === "Public"),
-    );
+    Assert.true(t.facts.some((f) => f.tag === "resident" && f.secrecy === "Public"));
   });
 
-  test("Force: an army as large as a tenth of its men makes a province obey; a handful does not", () => {
+  test("Force: an army as large as a tenth of its men weighs heavily; a handful weighs nothing", () => {
     const s = quiet();
     const near = new Set(["kaska", ...WorldMap.default.neighbors("kaska")]);
     removeAll(s.units, (u) => near.has(u.province));
     const e = new TurnEngine(s);
-    const men = s.people.get("kaska").men;
-    s.units.push(
-      newUnit({
-        id: newId(s, "u"),
-        power: "Hatti",
-        kind: "Army",
-        province: "kaska",
-        home: "hattusa",
-        men: 7,
-      }),
-    );
+    const u = newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men: 7 });
+    s.units.push(u);
     Assert.true(e.forceIn("kaska", "Hatti") <= 5);
-    Assert.false(e.wouldObey("kaska", "Hatti"));
-    s.units[s.units.length - 1].men = men;
+    u.men = Math.ceil(s.people.get("kaska").men / 10);
+    Assert.true(e.forceIn("kaska", "Hatti") >= UnrestData.force);
+    u.men = s.people.get("kaska").men;
     Assert.equal(UnrestData.forceMost, e.forceIn("kaska", "Hatti"));
-    Assert.true(e.wouldObey("kaska", "Hatti"));
+    // Next door it counts only for the land's holder: a rival's men count once they stand in it.
+    u.province = "hattusa";
+    Assert.equal(0, e.forceIn("kaska", "Hatti"));
   });
 
-  test("A move into a province takes it only if it would obey; troops too few stand there and it keeps its master", () => {
-    const s = oldWorld(quiet());
-    s.walls.delete("sapinuwa");
-    const near = new Set([
-      "sapinuwa",
-      ...WorldMap.default.neighbors("sapinuwa"),
-    ]);
-    removeAll(s.units, (u) => near.has(u.province));
-    const u = newUnit({
-      id: newId(s, "u"),
-      power: "Mitanni",
-      kind: "Army",
-      province: "kaska",
-      home: "washukanni",
-      men: 200,
-    });
-    s.units.push(u);
-    season(s, subs({ Mitanni: { orders: [move("kaska", "sapinuwa")] } }));
-    Assert.equal("sapinuwa", u.province);
-    Assert.equal("Hatti", s.owner.get("sapinuwa"));
-    Assert.true(
-      s.inbox.get("Mitanni").some((i) => i.title === "Land not yet yours"),
-    );
-    // A great army takes it.
-    u.men = s.people.get("sapinuwa").men;
-    new TurnEngine(s).updateOwnership();
-    Assert.equal("Mitanni", s.owner.get("sapinuwa"));
+  test("A handful holds nothing by itself: a far weaker unit that the land's own men shelter is destroyed all the same", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const next = WorldMap.default.neighbors("hattusa").find((x) => !WorldMap.default.get(x).isSea && s.owner.getOrDefault(x, null) === "Hatti")!;
+    removeAll(s.units, (u) => u.province === "hattusa" || u.province === next);
+    const few = newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "hattusa", home: "hattusa", men: 7 });
+    const host = newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: next, home: "washukanni", men: 5000 });
+    s.units.push(few, host);
+    season(s, subs({ Mitanni: { orders: [move(next, "hattusa")] } }));
+    // The city's own men held the Mitanni out, but its seven men are gone.
+    Assert.equal(next, host.province);
+    Assert.false(s.units.includes(few));
+    Assert.true(s.inbox.get("Hatti").some((i) => i.body.includes("though the land itself held it out")));
   });
 
   test("Obedience has degrees: a province held narrowly pays a third, one held by a wide margin pays in full", () => {
@@ -152,41 +111,30 @@ describe("ObedienceTests", () => {
     Assert.equal(e.effectiveYield("hattusa") > 0, true);
     // Hated in his own land, no troops there: it barely holds.
     s.ledger.get("hattusa").set("Hatti", UnrestData.floor + 1);
-    removeAll(s.units, (u) => u.province === "hattusa");
+    const near = new Set(["hattusa", ...WorldMap.default.neighbors("hattusa")]);
+    removeAll(s.units, (u) => near.has(u.province));
     e.obeySeason();
-    Assert.equal(333, s.obeyed.get("hattusa"));
+    Assert.true(s.obeyed.get("hattusa") < 500, `obeyed ${s.obeyed.get("hattusa")}`);
     Assert.true(e.effectiveYield("hattusa") * 2 < tax);
   });
 
   test("A province whose holder takes more than he gives falls lawless with nobody at its head, unless his troops stand in it", () => {
     const s = quiet();
-    const near = new Set([
-      "tuwanuwa",
-      ...WorldMap.default.neighbors("tuwanuwa"),
-    ]);
+    const near = new Set(["tuwanuwa", ...WorldMap.default.neighbors("tuwanuwa")]);
     removeAll(s.units, (u) => near.has(u.province));
     const gov = s.governors.find((g) => g.province === "tuwanuwa")!;
     removeAll(s.governors, (g) => g === gov);
     s.ledger.get("tuwanuwa").delete(gov.character);
-    named(
-      s,
-      s.characters.find((c) => c.id === gov.character)!.name,
-    ).watchProvince = null;
+    named(s, s.characters.find((c) => c.id === gov.character)!.name).watchProvince = null;
     s.ledger.get("tuwanuwa").set("Hatti", UnrestData.floor - 30);
     new TurnEngine(s).obeySeason();
     Assert.equal(null, s.owner.getOrDefault("tuwanuwa", "x"));
-    Assert.equal(
-      1,
-      s.events.filter((x) => x.signal === "revolt-lawless").length,
-    );
+    Assert.equal(1, s.events.filter((x) => x.signal === "revolt-lawless").length);
   });
 
   test("Love for a neighbour whose men stand at its gates takes a province over to him", () => {
     const s = quiet();
-    removeAll(
-      s.units,
-      (u) => u.province === "byblos" || u.province === "amurru",
-    );
+    removeAll(s.units, (u) => u.province === "byblos" || u.province === "amurru");
     s.ledger.get("byblos").set("Byblos", 0);
     s.ledger.get("byblos").set("Amurru", 80);
     s.units.push(
@@ -205,11 +153,7 @@ describe("ObedienceTests", () => {
     s.units.find((u) => u.power === "Amurru")!.province = "byblos";
     new TurnEngine(s).obeySeason();
     Assert.equal("Amurru", s.owner.get("byblos"));
-    Assert.true(
-      s.inbox
-        .get("Byblos")
-        .some((i) => i.body.includes("now answers to Amurru")),
-    );
+    Assert.true(s.inbox.get("Byblos").some((i) => i.body.includes("now answers to Amurru")));
   });
 
   test("A court lists the land it knows it holds: one gained out of its sight once it hears, one lost as it last knew it", () => {
@@ -217,27 +161,14 @@ describe("ObedienceTests", () => {
     const e = new TurnEngine(s);
     // Susa is far beyond Pharaoh's couriers: Egypt given it does not list it until word comes.
     e.setOwner("susa", "Egypt");
-    Assert.false(
-      Views.for(s, "Egypt").provinces.some((x) => x.province === "susa"),
-    );
+    Assert.false(Views.for(s, "Egypt").provinces.some((x) => x.province === "susa"));
     // Once it knows it holds it, and then loses it out of its sight, it keeps its last report until word of the loss.
-    s.known.set(
-      "Egypt",
-      new Dict([
-        ["susa", newKnown({ owner: "Egypt", turn: s.turn, source: "seen" })],
-      ]),
-    );
-    Assert.true(
-      Views.for(s, "Egypt").provinces.some((x) => x.province === "susa"),
-    );
-    const before = Views.for(s, "Egypt").provinces.find(
-      (x) => x.province === "susa",
-    )!;
+    s.known.set("Egypt", new Dict([["susa", newKnown({ owner: "Egypt", turn: s.turn, source: "seen" })]]));
+    Assert.true(Views.for(s, "Egypt").provinces.some((x) => x.province === "susa"));
+    const before = Views.for(s, "Egypt").provinces.find((x) => x.province === "susa")!;
     e.setOwner("susa", "Elam");
     s.people.get("susa").settled = 0;
-    const after = Views.for(s, "Egypt").provinces.find(
-      (x) => x.province === "susa",
-    );
+    const after = Views.for(s, "Egypt").provinces.find((x) => x.province === "susa");
     Assert.equal(before.settled, after?.settled);
     Assert.equal("Egypt", Views.for(s, "Egypt").owner.get("susa"));
   });

@@ -60,22 +60,12 @@ export class Board {
   private ranked = false;
 
   /** `treasuries`: what this court reckons each rival holds in gold (see Brain.treasury). */
-  constructor(
-    v: SeatView,
-    remembered: Iterable<UnitView> | null = null,
-    treasuries: Dict<Power, number> | null = null,
-  ) {
+  constructor(v: SeatView, remembered: Iterable<UnitView> | null = null, treasuries: Dict<Power, number> | null = null) {
     this.v = v;
     this.me = v.power;
     this.treasuries = treasuries;
-    Board.Sail =
-      seasonOfTurn(v.turn) === WinterSeason ? Board.Map.winter : Board.Map;
-    this.units = [
-      ...v.units,
-      ...[...(remembered ?? [])].filter((g) =>
-        v.units.every((u) => u.province !== g.province),
-      ),
-    ];
+    Board.Sail = seasonOfTurn(v.turn) === WinterSeason ? Board.Map.winter : Board.Map;
+    this.units = [...v.units, ...[...(remembered ?? [])].filter((g) => v.units.every((u) => u.province !== g.province))];
     this.unitAt = new Dict();
     for (const u of this.units) this.unitAt.tryAdd(u.province, u);
     this.mine = sortBy(
@@ -139,9 +129,7 @@ export class Board {
    * The ground's help to a unit standing in `to` against a move from `from`: rough ground, or a pass or a river on the link.
    */
   ground(from: string, to: string): number {
-    return this.groundBonus > 0 && defenceGround(from, to) !== null
-      ? this.groundBonus
-      : 0;
+    return this.groundBonus > 0 && defenceGround(from, to) !== null ? this.groundBonus : 0;
   }
 
   /**
@@ -152,9 +140,7 @@ export class Board {
     if (this.groundBonus <= 0) return 0;
     if (terrainOf(place) === "Rough") return this.groundBonus;
     const froms = [...from];
-    return froms.length > 0 && froms.every((f) => this.ground(f, place) > 0)
-      ? this.groundBonus
-      : 0;
+    return froms.length > 0 && froms.every((f) => this.ground(f, place) > 0) ? this.groundBonus : 0;
   }
 
   /** The ground's help to a unit in `place` against what a power could move into it this season. */
@@ -171,9 +157,7 @@ export class Board {
    * the caravan's cost, at the base price.
    */
   desertCost(place: string): number {
-    return terrainOf(place) === "Desert" && !this.isMine(place)
-      ? 2 * EconomyData.armyFood
-      : 0;
+    return terrainOf(place) === "Desert" && !this.isMine(place) ? 2 * EconomyData.armyFood : 0;
   }
 
   /**
@@ -185,15 +169,9 @@ export class Board {
     let v = this.baseValue(id);
     const p = Board.Map.get(id);
     const k = p.home;
-    if (
-      p.capital &&
-      k !== null &&
-      this.alive.has(k) &&
-      this.ownerOf(id) === k
-    ) {
+    if (p.capital && k !== null && this.alive.has(k) && this.ownerOf(id) === k) {
       let rest = 0;
-      for (const [key, owner] of this.v.owner.entries())
-        if (owner === k && key !== id) rest += this.baseValue(key);
+      for (const [key, owner] of this.v.owner.entries()) if (owner === k && key !== id) rest += this.baseValue(key);
       v += (k === this.me ? 1.0 : 0.5) * rest;
     }
     return v;
@@ -227,11 +205,7 @@ export class Board {
     const p = Board.Map.get(id);
     if (p.isSea) return 0;
     const y = this.yieldOf(id);
-    let v =
-      (p.yield > 0
-        ? (landWorthOf(p, this.v.provinceWeight) * y) / p.yield
-        : landWorthOf(p, this.v.provinceWeight)) +
-      y * this.horizon;
+    let v = (p.yield > 0 ? (landWorthOf(p, this.v.provinceWeight) * y) / p.yield : landWorthOf(p, this.v.provinceWeight)) + y * this.horizon;
     if (p.capital) v += 80;
     if (p.home !== null && p.home === this.me) v += 30;
     return v - this.absorptionLoss(id);
@@ -250,12 +224,7 @@ export class Board {
 
   /** Units (of a given power, or any but mine) that could move into a province this season. */
   canReach(target: string, who: (u: UnitView) => boolean): UnitView[] {
-    return this.units.filter(
-      (u) =>
-        u.province !== target &&
-        who(u) &&
-        Board.Sail.canMove(u.kind, u.province, target),
-    );
+    return this.units.filter((u) => u.province !== target && who(u) && Board.Sail.canMove(u.kind, u.province, target));
   }
 
   muster(p: Power, target: string): number {
@@ -269,8 +238,7 @@ export class Board {
   /** Land yield a power holds now, against what its homeland yields. */
   landGrowth(p: Power): number {
     let now = 0;
-    for (const [k, o] of this.v.owner.entries())
-      if (o === p) now += Board.Map.get(k).yield;
+    for (const [k, o] of this.v.owner.entries()) if (o === p) now += Board.Map.get(k).yield;
     const start = sum(Board.Map.homeOf(p), (x) => x.yield);
     return start === 0 ? 0 : now / start;
   }
@@ -300,8 +268,7 @@ export class Board {
     // A pictured board (see Search) has no treasury of its own: estimate it like any other.
     if (p === this.me && this.v.startStrength > 0) return this.v.strength;
     let worth = 0;
-    for (const [k, o] of this.v.owner.entries())
-      if (o === p) worth += this.worth(k);
+    for (const [k, o] of this.v.owner.entries()) if (o === p) worth += this.worth(k);
     const reckoned = this.treasuries?.tryGet(p);
     const gold = reckoned !== undefined ? reckoned : StartGold.get(p)!;
     return strengthOf(1, worth, Math.max(0, gold), 0);
@@ -315,10 +282,7 @@ export class Board {
           sum(Board.Map.homeOf(p), (x) => this.worth(x.id)),
           StartGold.get(p)!,
           // The opening troops' baggage: so a rival's starting strength is the engine's own.
-          sum(
-            StartUnits.filter((u) => u.power === p),
-            (u) => forMen(carriedOf(u.kind), u.kind, u.men ?? menOf(u.kind)),
-          ),
+          sum(StartUnits.filter((u) => u.power === p), (u) => forMen(carriedOf(u.kind), u.kind, u.men ?? menOf(u.kind))),
         );
   }
 
@@ -329,13 +293,7 @@ export class Board {
    */
   growth(p: Power): number {
     let g = this.growthCache.tryGet(p);
-    if (g === undefined)
-      this.growthCache.set(
-        p,
-        (g = this.alive.has(p)
-          ? standingOf(p, this.strength(p) / this.startStrength(p))
-          : 0),
-      );
+    if (g === undefined) this.growthCache.set(p, (g = this.alive.has(p) ? standingOf(p, this.strength(p) / this.startStrength(p)) : 0));
     return g;
   }
 
@@ -358,42 +316,21 @@ export class Board {
       [(x: number) => x, cmpNum],
     );
     const median = strengths[idiv(strengths.length, 2)];
-    this.leaderCache =
-      g >= LeadFloor &&
-      g >= ranked[1].g + LeadMargin &&
-      this.strength(top) >= 0.8 * median
-        ? top
-        : null;
+    this.leaderCache = g >= LeadFloor && g >= ranked[1].g + LeadMargin && this.strength(top) >= 0.8 * median ? top : null;
     return this.leaderCache;
   }
 
   /** Kings whose land borders ours or shares a sea with our coasts, or whose troops are within two moves of us. */
   neighbours(): Power[] {
     const mineSet = new HSet<string>();
-    for (const [k, o] of this.v.owner.entries())
-      if (o === this.me) mineSet.add(k);
+    for (const [k, o] of this.v.owner.entries()) if (o === this.me) mineSet.add(k);
     for (const u of this.mine) mineSet.add(u.province);
     const mine = [...mineSet];
     const M = Board.Map;
     const close = (p: Power): boolean => {
       for (const [k, o] of this.v.owner.entries())
-        if (
-          o === p &&
-          (M.neighbors(k).some((n) => mineSet.has(n)) ||
-            mine.some((m) => M.sharesSea(m, k)))
-        )
-          return true;
-      return this.others.some(
-        (u) =>
-          u.power === p &&
-          mine.some(
-            (m) =>
-              Board.Sail.canMove(u.kind, u.province, m) ||
-              Board.Sail.movesFrom(u.kind, u.province).some((n) =>
-                Board.Sail.canMove(u.kind, n, m),
-              ),
-          ),
-      );
+        if (o === p && (M.neighbors(k).some((n) => mineSet.has(n)) || mine.some((m) => M.sharesSea(m, k)))) return true;
+      return this.others.some((u) => u.power === p && mine.some((m) => Board.Sail.canMove(u.kind, u.province, m) || Board.Sail.movesFrom(u.kind, u.province).some((n) => Board.Sail.canMove(u.kind, n, m))));
     };
     return [...this.alive].filter((p) => p !== this.me && close(p));
   }

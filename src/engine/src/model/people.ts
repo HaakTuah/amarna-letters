@@ -1,34 +1,9 @@
 import { Dict } from "../core/collections.ts";
-import {
-  B,
-  I,
-  type ObjSchema,
-  S,
-  computed,
-  dict,
-  list,
-  obj,
-  opt,
-} from "../core/json.ts";
+import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
-import {
-  type Errand,
-  ErrandSchema,
-  type Hoard,
-  HoardSchema,
-  type LendOffer,
-  LendOfferSchema,
-  type PayOld,
-  PayOldSchema,
-  type Strategy,
-} from "./money.ts";
-import {
-  type ChiefChoice,
-  ChiefChoiceSchema,
-  type ReportsChoice,
-  ReportsChoiceSchema,
-} from "./life.ts";
+import { type Errand, ErrandSchema, type Hoard, HoardSchema, type LendOffer, LendOfferSchema, type PayOld, PayOldSchema, type Strategy } from "./money.ts";
+import { type ChiefChoice, ChiefChoiceSchema, type ReportsChoice, ReportsChoiceSchema } from "./life.ts";
 
 export const SecrecyValues = ["Public", "Hidden", "Deep"] as const;
 export type Secrecy = (typeof SecrecyValues)[number];
@@ -83,11 +58,7 @@ export function newSkills(init: Partial<Skills> = {}): Skills {
   return { gather: 0, stealth: 0, forge: 0, ...init };
 }
 
-export const SkillsSchema: ObjSchema<Skills> = obj("Skills", newSkills, {
-  gather: I,
-  stealth: I,
-  forge: I,
-});
+export const SkillsSchema: ObjSchema<Skills> = obj("Skills", newSkills, { gather: I, stealth: I, forge: I });
 
 /**
  * A tie from the life before the game (item 10, "A past before the game"): a debt owed to a court's people, which presses
@@ -108,11 +79,7 @@ export function newTie(init: Partial<Tie> = {}): Tie {
   return { kind: "Debt", court: "Egypt", amount: 0, ...init };
 }
 
-export const TieSchema: ObjSchema<Tie> = obj("Tie", newTie, {
-  kind: S,
-  court: S,
-  amount: I,
-});
+export const TieSchema: ObjSchema<Tie> = obj("Tie", newTie, { kind: S, court: S, amount: I });
 
 /**
  * The name a character gave a court when it first met it (item 10, "Declaring a name"): its own, another character's
@@ -131,31 +98,18 @@ export interface Declared {
 }
 
 export function newDeclared(init: Partial<Declared> = {}): Declared {
-  return {
-    court: "Egypt",
-    name: "",
-    as: null,
-    employer: null,
-    turn: 0,
-    exposed: null,
-    rep: 0,
-    ...init,
-  };
+  return { court: "Egypt", name: "", as: null, employer: null, turn: 0, exposed: null, rep: 0, ...init };
 }
 
-export const DeclaredSchema: ObjSchema<Declared> = obj(
-  "Declared",
-  newDeclared,
-  {
-    court: S,
-    name: S,
-    as: opt(S),
-    employer: opt(S),
-    turn: I,
-    exposed: opt(I),
-    rep: I,
-  },
-);
+export const DeclaredSchema: ObjSchema<Declared> = obj("Declared", newDeclared, {
+  court: S,
+  name: S,
+  as: opt(S),
+  employer: opt(S),
+  turn: I,
+  exposed: opt(I),
+  rep: I,
+});
 
 export interface Fact {
   id: string;
@@ -201,14 +155,10 @@ export function newMemoryEntry(init: Partial<MemoryEntry> = {}): MemoryEntry {
   };
 }
 
-export const MemoryEntrySchema: ObjSchema<MemoryEntry> = obj(
-  "MemoryEntry",
-  newMemoryEntry,
-  {
-    turn: I,
-    text: S,
-  },
-);
+export const MemoryEntrySchema: ObjSchema<MemoryEntry> = obj("MemoryEntry", newMemoryEntry, {
+  turn: I,
+  text: S,
+});
 
 /**
  * What a job's errand is (Haakon's answers to item 11a): carrying a mission to a court, or watching a court or a province;
@@ -232,11 +182,7 @@ export function newJobErrand(init: Partial<JobErrand> = {}): JobErrand {
   return { what: "envoy", where: "", done: false, ...init };
 }
 
-export const JobErrandSchema: ObjSchema<JobErrand> = obj(
-  "JobErrand",
-  newJobErrand,
-  { what: S, where: S, done: B },
-);
+export const JobErrandSchema: ObjSchema<JobErrand> = obj("JobErrand", newJobErrand, { what: S, where: S, done: B });
 
 /**
  * A stay at court waiting beside an errand given during it (Haakon's answers to item 11b+: each errand given during a stay
@@ -253,11 +199,7 @@ export function newStayLeft(init: Partial<StayLeft> = {}): StayLeft {
   return { until: 0, rest: 0, payOnDone: false, ...init };
 }
 
-export const StayLeftSchema: ObjSchema<StayLeft> = obj(
-  "StayLeft",
-  newStayLeft,
-  { until: I, rest: I, payOnDone: B },
-);
+export const StayLeftSchema: ObjSchema<StayLeft> = obj("StayLeft", newStayLeft, { until: I, rest: I, payOnDone: B });
 
 /**
  * A job (item 11a, "Jobs, not wages", reworked by Haakon's answers to items 11a and 11a+): one errand, with what to do,
@@ -296,10 +238,7 @@ export interface Contract {
 }
 
 /** Whether a court knows that a man in its employ took his job (see {@link Contract.knownFrom}). */
-export const jobKnown = (
-  c: { contract: Contract | null },
-  turn: number,
-): boolean => (c.contract?.knownFrom ?? 0) <= turn;
+export const jobKnown = (c: { contract: Contract | null }, turn: number): boolean => (c.contract?.knownFrom ?? 0) <= turn;
 
 export function newContract(init: Partial<Contract> = {}): Contract {
   return {
@@ -319,48 +258,25 @@ export function newContract(init: Partial<Contract> = {}): Contract {
   };
 }
 
-export const ContractSchema: ObjSchema<Contract> = obj(
-  "Contract",
-  newContract,
-  {
-    fee: I,
-    advance: I,
-    startTurn: I,
-    untilTurn: I,
-    carried: I,
-    errand: () => JobErrandSchema,
-    payOnDone: B,
-    offerAgain: B,
-    withheld: B,
-    captured: B,
-    knownFrom: I,
-    stay: () => StayLeftSchema,
-  },
-);
+export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, {
+  fee: I,
+  advance: I,
+  startTurn: I,
+  untilTurn: I,
+  carried: I,
+  errand: () => JobErrandSchema,
+  payOnDone: B,
+  offerAgain: B,
+  withheld: B,
+  captured: B,
+  knownFrom: I,
+  stay: () => StayLeftSchema,
+});
 
-export const CharacterStatusValues = [
-  "Free",
-  "Employed",
-  "Captured",
-  "Dead",
-] as const;
+export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;
 export type CharacterStatus = (typeof CharacterStatusValues)[number];
 
-export const DutyValues = [
-  "None",
-  "EnvoyOutbound",
-  "EnvoyAtCourt",
-  "EnvoyHomebound",
-  "Detained",
-  "SpyOutbound",
-  "SpyPosted",
-  "UnderGuard",
-  "Travelling",
-  "Leading",
-  "Commanding",
-  "Governing",
-  "Ruling",
-] as const;
+export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading", "Commanding", "Governing", "Ruling"] as const;
 export type Duty = (typeof DutyValues)[number];
 
 /**
@@ -376,21 +292,10 @@ export interface NewsHeld {
 }
 
 export function newNewsHeld(init: Partial<NewsHeld> = {}): NewsHeld {
-  return {
-    court: "Egypt",
-    turn: 0,
-    lines: [],
-    price: 0,
-    honest: true,
-    ...init,
-  };
+  return { court: "Egypt", turn: 0, lines: [], price: 0, honest: true, ...init };
 }
 
-export const NewsHeldSchema: ObjSchema<NewsHeld> = obj(
-  "NewsHeld",
-  newNewsHeld,
-  { court: S, turn: I, lines: list(S), price: I, honest: B },
-);
+export const NewsHeldSchema: ObjSchema<NewsHeld> = obj("NewsHeld", newNewsHeld, { court: S, turn: I, lines: list(S), price: I, honest: B });
 
 export interface Character {
   id: string;
@@ -554,10 +459,7 @@ export function newHanded(init: Partial<Handed> = {}): Handed {
   return { by: "", turn: 0, ...init };
 }
 
-export const HandedSchema: ObjSchema<Handed> = obj("Handed", newHanded, {
-  by: S,
-  turn: I,
-});
+export const HandedSchema: ObjSchema<Handed> = obj("Handed", newHanded, { by: S, turn: I });
 
 /** What an envoy nobody understands chooses (item 12): stay until he is understood, go home, or say his message was delivered. */
 export const UnheardValues = ["stay", "home", "lie"] as const;
@@ -570,17 +472,11 @@ export interface UnheardChoice {
   keep: number | null;
 }
 
-export function newUnheardChoice(
-  init: Partial<UnheardChoice> = {},
-): UnheardChoice {
+export function newUnheardChoice(init: Partial<UnheardChoice> = {}): UnheardChoice {
   return { turn: 0, choice: "stay", keep: null, ...init };
 }
 
-export const UnheardChoiceSchema: ObjSchema<UnheardChoice> = obj(
-  "UnheardChoice",
-  newUnheardChoice,
-  { turn: I, choice: S, keep: opt(I) },
-);
+export const UnheardChoiceSchema: ObjSchema<UnheardChoice> = obj("UnheardChoice", newUnheardChoice, { turn: I, choice: S, keep: opt(I) });
 
 /**
  * What a go-between or a bridging servant in someone else's pay is asked (item 12, task "Bridge"): the envoy's words and
@@ -598,31 +494,18 @@ export interface BridgeView {
 }
 
 export function newBridgeView(init: Partial<BridgeView> = {}): BridgeView {
-  return {
-    turn: 0,
-    envoy: "",
-    from: "Egypt",
-    host: "Egypt",
-    paidBy: [],
-    speech: "",
-    clauses: [],
-    ...init,
-  };
+  return { turn: 0, envoy: "", from: "Egypt", host: "Egypt", paidBy: [], speech: "", clauses: [], ...init };
 }
 
-export const BridgeViewSchema: ObjSchema<BridgeView> = obj(
-  "BridgeView",
-  newBridgeView,
-  {
-    turn: I,
-    envoy: S,
-    from: S,
-    host: S,
-    paidBy: list(S),
-    speech: S,
-    clauses: list(() => ClauseSchema),
-  },
-);
+export const BridgeViewSchema: ObjSchema<BridgeView> = obj("BridgeView", newBridgeView, {
+  turn: I,
+  envoy: S,
+  from: S,
+  host: S,
+  paidBy: list(S),
+  speech: S,
+  clauses: list(() => ClauseSchema),
+});
 
 /** What an envoy nobody understands is asked (item 12, task "Unheard"): where he stands, how long, and who might carry his words. */
 export interface UnheardView {
@@ -644,42 +527,21 @@ export interface UnheardView {
 }
 
 export function newUnheardView(init: Partial<UnheardView> = {}): UnheardView {
-  return {
-    turn: 0,
-    host: "Egypt",
-    lord: "Egypt",
-    waited: 0,
-    presented: 0,
-    carried: 0,
-    purse: 0,
-    goBetweens: [],
-    tongues: [],
-    courtTongue: "",
-    ...init,
-  };
+  return { turn: 0, host: "Egypt", lord: "Egypt", waited: 0, presented: 0, carried: 0, purse: 0, goBetweens: [], tongues: [], courtTongue: "", ...init };
 }
 
-export const UnheardViewSchema: ObjSchema<UnheardView> = obj(
-  "UnheardView",
-  newUnheardView,
-  {
-    turn: I,
-    host: S,
-    lord: S,
-    waited: I,
-    presented: I,
-    carried: I,
-    purse: I,
-    goBetweens: list(() =>
-      obj("GoBetweenSeen", () => ({ name: "", price: 0 }), {
-        name: S,
-        price: I,
-      }),
-    ),
-    tongues: list(S),
-    courtTongue: S,
-  },
-);
+export const UnheardViewSchema: ObjSchema<UnheardView> = obj("UnheardView", newUnheardView, {
+  turn: I,
+  host: S,
+  lord: S,
+  waited: I,
+  presented: I,
+  carried: I,
+  purse: I,
+  goBetweens: list(() => obj("GoBetweenSeen", () => ({ name: "", price: 0 }), { name: S, price: I })),
+  tongues: list(S),
+  courtTongue: S,
+});
 
 export function newCharacter(init: Partial<Character> = {}): Character {
   return {
@@ -761,98 +623,86 @@ export function newCharacter(init: Partial<Character> = {}): Character {
   };
 }
 
-export const CharacterSchema: ObjSchema<Character> = obj(
-  "Character",
-  newCharacter,
-  {
-    id: S,
-    name: S,
-    origin: S,
-    calling: S,
-    traits: () => TraitsSchema,
-    facts: list(() => FactSchema),
-    persona: S,
-    memory: list(() => MemoryEntrySchema),
-    memorySummary: S,
-    status: S,
-    employer: opt(S),
-    contract: () => ContractSchema,
-    duty: S,
-    at: opt(S),
-    watchProvince: S,
-    openly: B,
-    stirGold: I,
-    missionTarget: opt(S),
-    currentTrail: S,
-    heldBy: opt(S),
-    intercepted: B,
-    secretMaster: opt(S),
-    poisonText: S,
-    turnsAbroad: I,
-    sent: I,
-    purse: I,
-    earned: () => EarningsSchema,
-    unpaidTurns: I,
-    reputation: dict(I),
-    askingPrice: dict(I),
-    pitches: dict(S),
-    covers: list(() => CoverSchema),
-    formerEmployer: opt(S),
-    owed: dict(I),
-    owedDue: dict(I),
-    carriedFor: I,
-    heardPay: list(S),
-    payOld: list(() => PayOldSchema),
-    heardRate: opt(I),
-    skills: () => SkillsSchema,
-    inclination: I,
-    belief: () => SkillsSchema,
-    claimed: () => SkillsSchema,
-    ties: list(() => TieSchema),
-    seen: list(S),
-    met: list(S),
-    declared: list(() => DeclaredSchema),
-    attested: B,
-    hoard: () => HoardSchema,
-    lendOffer: () => LendOfferSchema,
-    offers: dict(I),
-    strategy: S,
-    bold: B,
-    errand: () => ErrandSchema,
-    arrived: opt(I),
-    waited: I,
-    seeking: B,
-    diedWith: opt(I),
-    lastLife: opt(I),
-    chiefPlan: () => ChiefChoiceSchema,
-    reportsPlan: () => ReportsChoiceSchema,
-    marked: opt(S),
-    news: list(() => NewsHeldSchema),
-    heard: list(S),
-    leftRoad: opt(I),
-    won: I,
-    lost: I,
-    grantedBy: opt(S),
-    tongues: dict(I),
-    aptitude: I,
-    understood: list(S),
-    bridgePrice: opt(I),
-    handed: list(() => HandedSchema),
-    unheardPlan: () => UnheardChoiceSchema,
-    isAvailableForHire: computed(B, (o: Character) => o.status === "Free"),
-  },
-);
+export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharacter, {
+  id: S,
+  name: S,
+  origin: S,
+  calling: S,
+  traits: () => TraitsSchema,
+  facts: list(() => FactSchema),
+  persona: S,
+  memory: list(() => MemoryEntrySchema),
+  memorySummary: S,
+  status: S,
+  employer: opt(S),
+  contract: () => ContractSchema,
+  duty: S,
+  at: opt(S),
+  watchProvince: S,
+  openly: B,
+  stirGold: I,
+  missionTarget: opt(S),
+  currentTrail: S,
+  heldBy: opt(S),
+  intercepted: B,
+  secretMaster: opt(S),
+  poisonText: S,
+  turnsAbroad: I,
+  sent: I,
+  purse: I,
+  earned: () => EarningsSchema,
+  unpaidTurns: I,
+  reputation: dict(I),
+  askingPrice: dict(I),
+  pitches: dict(S),
+  covers: list(() => CoverSchema),
+  formerEmployer: opt(S),
+  owed: dict(I),
+  owedDue: dict(I),
+  carriedFor: I,
+  heardPay: list(S),
+  payOld: list(() => PayOldSchema),
+  heardRate: opt(I),
+  skills: () => SkillsSchema,
+  inclination: I,
+  belief: () => SkillsSchema,
+  claimed: () => SkillsSchema,
+  ties: list(() => TieSchema),
+  seen: list(S),
+  met: list(S),
+  declared: list(() => DeclaredSchema),
+  attested: B,
+  hoard: () => HoardSchema,
+  lendOffer: () => LendOfferSchema,
+  offers: dict(I),
+  strategy: S,
+  bold: B,
+  errand: () => ErrandSchema,
+  arrived: opt(I),
+  waited: I,
+  seeking: B,
+  diedWith: opt(I),
+  lastLife: opt(I),
+  chiefPlan: () => ChiefChoiceSchema,
+  reportsPlan: () => ReportsChoiceSchema,
+  marked: opt(S),
+  news: list(() => NewsHeldSchema),
+  heard: list(S),
+  leftRoad: opt(I),
+  won: I,
+  lost: I,
+  grantedBy: opt(S),
+  tongues: dict(I),
+  aptitude: I,
+  understood: list(S),
+  bridgePrice: opt(I),
+  handed: list(() => HandedSchema),
+  unheardPlan: () => UnheardChoiceSchema,
+  isAvailableForHire: computed(B, (o: Character) => o.status === "Free"),
+});
 
 /** Where gold in a character's purse came from. */
-export const GoldSourceValues = [
-  "Fees",
-  "Skimmed",
-  "Gifts",
-  "Carried",
-  "Loans",
-  "Loot",
-  "News",
-] as const;
+export const GoldSourceValues = ["Fees", "Skimmed", "Gifts", "Carried", "Loans", "Loot", "News"] as const;
 export type GoldSource =
   /** Fees for its jobs: the advance when a job was agreed, the rest when it was done (item 11a). */
   | "Fees"
@@ -903,21 +753,17 @@ export function newEarnings(init: Partial<Earnings> = {}): Earnings {
   };
 }
 
-export const EarningsSchema: ObjSchema<Earnings> = obj(
-  "Earnings",
-  newEarnings,
-  {
-    fees: I,
-    dealt: I,
-    spent: I,
-    savings: I,
-    skimmed: I,
-    gifts: I,
-    carried: I,
-    loot: I,
-    news: I,
-  },
-);
+export const EarningsSchema: ObjSchema<Earnings> = obj("Earnings", newEarnings, {
+  fees: I,
+  dealt: I,
+  spent: I,
+  savings: I,
+  skimmed: I,
+  gifts: I,
+  carried: I,
+  loot: I,
+  news: I,
+});
 
 /**
  * A servant abroad whose master cannot see what happened to it (caught as a spy, detained, gone over to
@@ -1051,10 +897,7 @@ export function gain(c: Character, amount: number, source: GoldSource): void {
  * Item 11b, reputation from losses abroad: of the losses it heard of, how many of `court`'s own people were caught or put
  * to death abroad, and how many people `court` put to death.
  */
-export function lossesHeardOf(
-  c: Character,
-  court: Power,
-): { lost: number; killed: number; seized: number } {
+export function lossesHeardOf(c: Character, court: Power): { lost: number; killed: number; seized: number } {
   let lost = 0;
   let killed = 0;
   let seized = 0;
@@ -1070,9 +913,7 @@ export function lossesHeardOf(
 
 /** The false name a character still goes by at a court (item 10, "Declaring a name"), or null if it goes by its own there. */
 export function falseNameAt(c: Character, court: Power): Declared | null {
-  return (
-    c.declared.find((d) => d.court === court && d.exposed === null) ?? null
-  );
+  return c.declared.find((d) => d.court === court && d.exposed === null) ?? null;
 }
 
 /** The name a court knows a character by. */
@@ -1096,12 +937,7 @@ export function factsKnownTo(c: Character, p: Power): Fact[] {
   return c.facts.filter(
     (f) =>
       (f.secrecy === "Public" || f.knownBy.includes(p)) &&
-      (d !== null
-        ? f.alias === d.name
-        : f.alias === null ||
-          c.declared.some(
-            (x) => x.court === p && x.name === f.alias && x.exposed !== null,
-          )),
+      (d !== null ? f.alias === d.name : f.alias === null || c.declared.some((x) => x.court === p && x.name === f.alias && x.exposed !== null)),
   );
 }
 
@@ -1116,27 +952,12 @@ export function coverOf(c: Character, p: Power): Cover | null {
  * secretly in that court's own pay (one it turned, or a plant) reports to it, so the court knows it is there.
  */
 export function hiddenAt(c: Character, court: Power): boolean {
-  return (
-    c.at === court &&
-    c.status === "Employed" &&
-    c.duty === "SpyPosted" &&
-    c.employer !== court &&
-    c.secretMaster !== court
-  );
+  return c.at === court && c.status === "Employed" && c.duty === "SpyPosted" && c.employer !== court && c.secretMaster !== court;
 }
 
 /** All it has gained (not net of what it spent). */
 export function earningsTotal(e: Earnings): number {
-  return (
-    e.fees +
-    e.dealt +
-    e.skimmed +
-    e.gifts +
-    e.carried +
-    e.savings +
-    e.loot +
-    e.news
-  );
+  return e.fees + e.dealt + e.skimmed + e.gifts + e.carried + e.savings + e.loot + e.news;
 }
 
 export function addEarnings(e: Earnings, other: Earnings): void {

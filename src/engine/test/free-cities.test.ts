@@ -7,6 +7,7 @@ import {
   TurnEngine,
   type TurnSubmission,
   UnrestData,
+  WorldMap,
   inboxOf,
   newBand,
   newCharacter,
@@ -37,77 +38,111 @@ describe("FreeCitiesTests", () => {
     e.beginTurn();
     e.resolve(orders);
   }
-  /** Hatti holds the Kaska lands, taken from the Kaska this season, with nobody of Hatti's in or beside them. */
+  /** Hatti holds the Kaska lands, taken from the Kaska this season, with nobody's troops in or beside them. */
   function kaskaTaken(s: GameState): void {
-    removeAll(s.units, (u) => u.province === "kaska" || u.power === "Hatti");
+    const near = new Set(["kaska", ...WorldMap.default.neighbors("kaska")]);
+    removeAll(s.units, (u) => near.has(u.province) || u.power === "Hatti");
     s.owner.set("kaska", "Hatti");
     s.takenAt.set("kaska", s.turn);
-    s.takenFrom.set("kaska", "Kaska");
   }
+  const ledger = (s: GameState, prov: string): Dict<string, number> => {
+    let b = s.ledger.tryGet(prov);
+    if (b === undefined) s.ledger.set(prov, (b = new Dict()));
+    return b;
+  };
 
-  test("Unrest follows conditions: a new conquest is restless, the homeland far less so, and troops calm it", () => {
+  test("Unrest follows the ledger: a hated holder's land is restless, his troops there calm it, and memory fades", () => {
     const s = quiet();
     kaskaTaken(s);
     const e = new TurnEngine(s);
-    const fresh = e.unrestOf("kaska");
-    // How new the conquest is and a cause to rally to (the Kaska's king, wherever he holds out, still stands).
-    Assert.true(fresh >= UnrestData.fresh + UnrestData.cause - UnrestData.harvest, `fresh conquest: ${fresh}`);
-    // A season older, a little calmer.
-    s.turn += 2;
-    Assert.true(e.unrestOf("kaska") < fresh);
-    // The same hardship that takes the new conquest past its limit leaves a home province far below its own.
-    s.unrest.set("tuwanuwa", 120);
-    s.unrest.set("kaska", 120);
-    Assert.true(e.unrestOf("kaska") >= e.revoltAt("kaska"));
-    Assert.true(e.unrestOf("tuwanuwa") > 0 && e.unrestOf("tuwanuwa") * 2 < e.revoltAt("tuwanuwa"));
-    s.unrest.delete("kaska");
-    Assert.equal(UnrestData.homeThreshold, e.revoltAt("tuwanuwa"));
-    Assert.equal(UnrestData.threshold, e.revoltAt("kaska"));
-    // Hatti's army in the Kaska lands calms them.
-    const before = e.unrestOf("kaska");
+    // The Kaska still love their own house, which has no troops near: no rival, but Hatti stands at nothing with them.
+    e.obeySeason();
+    const fresh = s.restless.getOrDefault("kaska", 0);
+    Assert.true(fresh > 0, `a fresh conquest is restless: ${fresh}`);
+    // Hatti's army in the Kaska lands calms them: its force is fear.
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men: 3000 }));
-    Assert.equal(before - UnrestData.troops, e.unrestOf("kaska"));
+    e.obeySeason();
+    Assert.true(s.restless.getOrDefault("kaska", 0) < fresh);
+    // What was taken fades: a tenth a season, at least a point.
+    ledger(s, "kaska").set("Lukka", -100);
+    e.obeySeason();
+    Assert.equal(-90, ledger(s, "kaska").get("Lukka"));
   });
 
-  test("A province past its limit with nobody at its head falls lawless; where troops stand, the rising is put down", () => {
+  test("A province below what its people accept, with nobody at its head, falls lawless; where troops stand it holds", () => {
     const s = quiet();
     kaskaTaken(s);
-    s.unrest.set("kaska", 200);
-    new TurnEngine(s).unrestSeason();
+    ledger(s, "kaska").set("Hatti", UnrestData.floor - 50);
+    new TurnEngine(s).obeySeason();
     Assert.equal(null, s.owner.getOrDefault("kaska", "x"));
     Assert.equal(1, signals(s, "revolt-lawless"));
     Assert.contains("has risen against you with nobody at its head", s.journeys.map((j) => j.text ?? "").join("\n") + inboxOf(s, "Hatti").map((i) => i.body).join("\n"));
 
     const t = quiet();
     kaskaTaken(t);
-    t.unrest.set("kaska", 400);
-    t.units.push(newUnit({ id: newId(t, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men: 3000 }));
+    ledger(t, "kaska").set("Hatti", UnrestData.floor - 50);
+    t.units.push(newUnit({ id: newId(t, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men: 20 }));
+    new TurnEngine(t).obeySeason();
+    Assert.equal("Hatti", t.owner.get("kaska"));
+  });
+
+  test("A rising behind a man its people love: put down by troops that weigh as much, overwhelming a handful", () => {
+    const rising = (men: number, hatti: number, his: number): [GameState, string] => {
+      const s = quiet();
+      kaskaTaken(s);
+      // A Kaska chief of standing, free at the Kaska's court in their own land.
+      const c = newCharacter({
+        id: newId(s, "c"),
+        name: "Pihhuniya",
+        traits: newTraits({ loyalty: 20, greed: 50, ambition: 80, courage: 60, competence: 50 }),
+        status: "Free",
+        at: "Kaska",
+      });
+      s.characters.push(c);
+      ledger(s, "kaska").set("Hatti", hatti);
+      ledger(s, "kaska").set(c.id, his);
+      s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "hattusa", men }));
+      return [s, c.id];
+    };
+    // Seven men among thousands who lean away: overwhelmed, and the man they love rules.
+    const [s, id] = rising(7, 0, 120);
+    new TurnEngine(s).obeySeason();
+    Assert.equal(id, risenOf(s.owner.get("kaska")!)?.ruler);
+    Assert.false(s.units.some((u) => u.power === "Hatti"));
+    // An army that weighs as much as his following puts the rising down: some die, and he is followed by half as many.
+    const [t, id2] = rising(3000, -50, 220);
     const settled = t.people.get("kaska").settled;
-    new TurnEngine(t).unrestSeason();
+    new TurnEngine(t).obeySeason();
     Assert.equal("Hatti", t.owner.get("kaska"));
     Assert.equal(1, signals(t, "revolt-crushed"));
     Assert.true(t.people.get("kaska").settled < settled);
+    Assert.true(ledger(t, "kaska").get(id2) < 100);
   });
 
-  test("A disloyal, ambitious governor leads his province's revolt and rules it with the levies he raised there", () => {
+  test("A disloyal, ambitious governor whose people love him leads his province's revolt and rules it with the levies he raised there", () => {
     const s = quiet();
     kaskaTaken(s);
     const c = newCharacter({ id: newId(s, "c"), name: "Pazzu", traits: newTraits({ loyalty: 20, greed: 50, ambition: 80, courage: 60, competence: 50 }), status: "Employed", employer: "Hatti", duty: "Governing", watchProvince: "kaska", purse: 400 });
     s.characters.push(c);
     s.governors.push(newGovernor({ province: "kaska", character: c.id, power: "Hatti", from: 0 }));
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "kaska", men: 800 }));
-    s.unrest.set("kaska", 150);
-    new TurnEngine(s).unrestSeason();
+    const levy = newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "kaska", home: "kaska", men: 800 });
+    s.units.push(levy);
+    ledger(s, "kaska").set(c.id, 150);
+    new TurnEngine(s).obeySeason();
     const p = s.owner.get("kaska")!;
     Assert.equal("revolt", risenOf(p)?.how);
     Assert.equal(c.id, risenOf(p)?.ruler);
     Assert.equal(p, unitAt(s, "kaska")?.power);
     Assert.equal("Ruling", c.duty);
+    // His people's regard is his realm's now.
+    Assert.true(ledger(s, "kaska").get(p) > 100);
+    Assert.false(ledger(s, "kaska").has(c.id));
   });
 
   test("A governor who refuses his recall rules his province in his own name", () => {
     const s = quiet();
     removeAll(s.units, (u) => u.province === "tuwanuwa");
+    removeAll(s.governors, (g) => g.province === "tuwanuwa");
     const c = newCharacter({ id: newId(s, "c"), name: "Hutupiyanza", traits: newTraits({ loyalty: 10, greed: 50, ambition: 90, courage: 60, competence: 50 }), status: "Employed", employer: "Hatti", duty: "Governing", watchProvince: "tuwanuwa", purse: 300 });
     s.characters.push(c);
     s.governors.push(newGovernor({ province: "tuwanuwa", character: c.id, power: "Hatti", from: 0 }));
@@ -128,7 +163,7 @@ describe("FreeCitiesTests", () => {
     const e = new TurnEngine(s);
     for (let i = 0; i < 12 && s.owner.getOrDefault("kaska", null) === null; i++) {
       s.turn++;
-      e.unrestSeason();
+      e.obeySeason();
     }
     const elder = s.owner.getOrDefault("kaska", null);
     Assert.true(elder !== null && risenOf(elder)?.how === "elder", `an elder rose: ${elder}`);
@@ -143,7 +178,7 @@ describe("FreeCitiesTests", () => {
     const f = new TurnEngine(t);
     for (let i = 0; i < UnrestData.captainHold; i++) {
       t.turn++;
-      f.unrestSeason();
+      f.obeySeason();
     }
     const p = t.owner.getOrDefault("kaska", null);
     Assert.true(p !== null && risenOf(p)?.how === "chief", `the chief rules: ${p}`);
@@ -154,6 +189,8 @@ describe("FreeCitiesTests", () => {
   test("A starving city's gate opens from within after a season or more, later where its ruler is there", () => {
     const s = walled(quiet(), "tuwanuwa", 3);
     removeAll(s.units, (u) => u.province === "tuwanuwa");
+    // No governor there (item 17++ gives Tuwanuwa a lord of the watchtower from the start).
+    removeAll(s.governors, (g) => g.province === "tuwanuwa");
     const army = newUnit({ id: newId(s, "u"), power: "Arzawa", kind: "Army", province: "tuwanuwa", men: 3000, food: 100 });
     s.units.push(army);
     s.sieges.push(newSiege({ province: "tuwanuwa", power: "Arzawa", unitId: army.id, since: 1 }));
@@ -173,6 +210,7 @@ describe("FreeCitiesTests", () => {
     // Its ruler's court there: one season longer.
     s.court.set("Hatti", "tuwanuwa");
     s.owner.set("tuwanuwa", "Hatti");
+    s.restless.clear();
     Assert.equal(holds + 1, new TurnEngine(s).gateHolds("tuwanuwa"));
     Assert.true(EconomyData.breachPerLevel > 0);
   });
@@ -197,8 +235,14 @@ describe("FreeCitiesTests", () => {
     Assert.true(signals(buying, "supply-buy") > 0);
     // The first season, before the word arrived, both took.
     Assert.true(signals(taking, "supply-take") > signals(buying, "supply-take"));
-    Assert.true(taking.unrest.getOrDefault("sapinuwa", 0) > buying.unrest.getOrDefault("sapinuwa", 0));
-    Assert.contains("complain that your own troops took", taking.journeys.map((j) => j.text ?? "").join("\n") + inboxOf(taking, "Hatti").map((i) => i.body).join("\n"));
+    Assert.true((taking.ledger.get("sapinuwa").tryGet("Hatti") ?? 0) < (buying.ledger.get("sapinuwa").tryGet("Hatti") ?? 0));
+    Assert.contains(
+      "complain that your own troops took",
+      taking.journeys.map((j) => j.text ?? "").join("\n") +
+        inboxOf(taking, "Hatti")
+          .map((i) => i.body)
+          .join("\n"),
+    );
   });
 
   test("A greedy, disloyal commander keeps the gold sent for his army's food, and takes instead", () => {
@@ -216,14 +260,15 @@ describe("FreeCitiesTests", () => {
     Assert.true(signals(s, "supply-take") > 0);
   });
 
-  test("A spy with gold stirs the people of the province he watches", () => {
+  test("A spy with gold stirs the people of the province he watches: they remember it as his master's giving", () => {
     const s = quiet();
     kaskaTaken(s);
     const spy = newCharacter({ id: newId(s, "c"), name: "Zida", traits: newTraits({ loyalty: 80, greed: 20 }), status: "Employed", employer: "Arzawa", duty: "None", at: "Arzawa" });
     s.characters.push(spy);
     season(s, new Dict([["Arzawa", newTurnSubmission({ orders: [placeSpy(spy.id, null, "kaska", 200)] })]]));
     Assert.equal(200, spy.stirGold);
-    for (let i = 0; i < 6 && s.stirred.getOrDefault("kaska", 0) === 0; i++) season(s);
-    Assert.true(s.stirred.getOrDefault("kaska", 0) > 0 && spy.stirGold < 200, `stirred ${s.stirred.getOrDefault("kaska", 0)}`);
+    const given = (): number => s.ledger.tryGet("kaska")?.getOrDefault("Arzawa", 0) ?? 0;
+    for (let i = 0; i < 6 && given() === 0; i++) season(s);
+    Assert.true(given() > 0 && spy.stirGold < 200, `given ${given()}`);
   });
 });

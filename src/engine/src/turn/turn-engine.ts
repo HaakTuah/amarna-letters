@@ -46,70 +46,25 @@ import "./letters.ts";
 import "./news.ts";
 import "./languages.ts";
 
-export {
-  TurnEngine,
-  idNumber,
-  travelTurns,
-  obeyedIn,
-  KingdomFallsTitle,
-} from "./core.ts";
+export { TurnEngine, idNumber, travelTurns, obeyedIn, KingdomFallsTitle } from "./core.ts";
 export { removeAll } from "./resolve.ts";
 export { ArchiveTakenTitle, goldName } from "./archives.ts";
 export { SiegesTitle, EnvoyCaughtTitle } from "./sieges.ts";
 export { LossNewsSeasons } from "./intel.ts";
-export {
-  MaxSpeech,
-  CommittedPrefix,
-  commitment,
-  weighedGold,
-} from "./envoys.ts";
-export {
-  NoticeTitle,
-  FeeDueTitle,
-  askingPrice,
-  basePrice,
-  errandWords,
-} from "./court.ts";
-export {
-  trustIn,
-  recordKnown,
-  jobValue,
-  feeFor,
-  rateOf,
-  restOf,
-  talkWeight,
-  foldOldPay,
-} from "./jobs.ts";
+export { MaxSpeech, CommittedPrefix, commitment, weighedGold } from "./envoys.ts";
+export { NoticeTitle, FeeDueTitle, askingPrice, basePrice, errandWords } from "./court.ts";
+export { trustIn, recordKnown, jobValue, feeFor, rateOf, restOf, talkWeight, foldOldPay } from "./jobs.ts";
 export { endingWords } from "./life.ts";
 export { arrivalChance } from "./pool.ts";
 export * from "./sleep.ts";
 export { answerText } from "./answers.ts";
-export {
-  UnraisedTitle,
-  asShown,
-  asItStands,
-  survivors,
-  type SeasonPlan,
-  type Firing,
-} from "./plans.ts";
+export { UnraisedTitle, asShown, asItStands, survivors, type SeasonPlan, type Firing } from "./plans.ts";
 export { ClaimEstablishedTitle } from "./press.ts";
-export {
-  RoadOdds,
-  CaughtOnRoadTitle,
-  RoadsTitle,
-  isWalker,
-  LeaderPace,
-} from "./travel.ts";
+export { RoadOdds, CaughtOnRoadTitle, RoadsTitle, isWalker, LeaderPace } from "./travel.ts";
 export { BandsTitle } from "./bands.ts";
 export { LetterData, selfWait } from "./letters.ts";
 export { HeardData, lossKey } from "./news.ts";
-export {
-  LanguageData,
-  UnheardTitle,
-  UnheardOutcome,
-  UnheardOnArrival,
-  tongueClaims,
-} from "./languages.ts";
+export { LanguageData, UnheardTitle, UnheardOutcome, UnheardOnArrival, tongueClaims } from "./languages.ts";
 export { WinterLossTitle, type WinterCrossing } from "./winter.ts";
 export { GrantTitle, RepudiatedTitle } from "./authority.ts";
 export { TollsTitle } from "./trade.ts";

@@ -13,43 +13,15 @@ import { cmpStr } from "../core/text.ts";
 import { idiv } from "../core/num.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { caravanAt, newCaravan, type Caravan } from "../model/caravans.ts";
-import {
-  buyAlongCurve,
-  needOf,
-  priceAt,
-  sellAlongCurve,
-} from "../model/economy.ts";
+import { buyAlongCurve, needOf, priceAt, sellAlongCurve } from "../model/economy.ts";
 import { newMarketSeen, type MarketSeen } from "../model/views.ts";
 import { newWord, noteMarket, noteTolls, type Word } from "../model/word.ts";
 import { Views } from "../rules/views.ts";
 import type { Province } from "../model/map.ts";
-import type {
-  Order,
-  ShipOrder,
-  TollOrder,
-  TradeOrder,
-} from "../model/orders.ts";
+import type { Order, ShipOrder, TollOrder, TradeOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import {
-  alive,
-  isAlive,
-  logEvent,
-  newId,
-  notify,
-  ownedBy,
-  siegeOf,
-  unitAt,
-  type Unit,
-} from "../model/state.ts";
-import {
-  harbourOf,
-  newToll,
-  shipFleet,
-  smuggleOdds,
-  tollOn,
-  tollRate,
-  TradeData,
-} from "../model/trade.ts";
+import { alive, isAlive, logEvent, newId, notify, ownedBy, siegeOf, unitAt, type Unit } from "../model/state.ts";
+import { harbourOf, newToll, shipFleet, smuggleOdds, tollOn, tollRate, TradeData } from "../model/trade.ts";
 import { cheapestRoute, legPoints, PointsPerDay } from "../model/travel.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -63,10 +35,7 @@ import { RoadOdds } from "./travel.ts";
 export const TollsTitle = "Tolls";
 
 /** What each holder's tolls and seizures brought in this season, told once at its end. */
-export type TollBook = Dict<
-  Power,
-  { grain: number; gold: number; found: number }
->;
+export type TollBook = Dict<Power, { grain: number; gold: number; found: number }>;
 
 /**
  * How a caravan goes through foreign land: openly (false), off the road through all of it as smugglers (true), or, a
@@ -81,12 +50,7 @@ export type AtBorder = "pass" | "turned" | "seized";
 declare module "./core.ts" {
   interface TurnEngine {
     openTo(p: Power, province: string, sneak: Sneak): boolean;
-    tradeRoute(
-      p: Power,
-      from: string,
-      to: string,
-      sneak: Sneak,
-    ): string[] | null;
+    tradeRoute(p: Power, from: string, to: string, sneak: Sneak): string[] | null;
     roadsShutTo(p: Power, province: string): boolean;
     caravanOffRoad(p: Power, province: string, sneak: Sneak): boolean;
     shipRoute(from: string, to: string): string[] | null;
@@ -95,21 +59,11 @@ declare module "./core.ts" {
     tradeTogether(cs: Caravan[], parts: Map<string, string[]>): void;
     caravanHome(c: Caravan): void;
     rejoinFleet(c: Caravan): string | null;
-    sendTraders(
-      orders: [Power, Order][],
-      tell: (p: Power, line: string) => void,
-    ): void;
+    sendTraders(orders: [Power, Order][], tell: (p: Power, line: string) => void): void;
     setToll(p: Power, o: TollOrder): void;
     sack(province: string, taker: Power, stormed?: boolean): void;
     /** `to`: where the load goes, if not the taker's court (gold sent to a fallen capital he holds, item 13+). */
-    lootHome(
-      taker: Power,
-      from: string,
-      gold: number,
-      archive: readonly string[],
-      archiveOf: string,
-      to?: string,
-    ): boolean;
+    lootHome(taker: Power, from: string, gold: number, archive: readonly string[], archiveOf: string, to?: string): boolean;
     byLeave(u: Unit): boolean;
     tellTolls(book: TollBook): void;
     marketNow(province: string): MarketSeen;
@@ -139,10 +93,7 @@ P.openTo = function (p, province, sneak) {
 P.roadsShutTo = function (p, province) {
   const holder = this.s.owner.getOrDefault(province, null);
   if (holder === null || holder === p) return false;
-  return (
-    (this.s.roadsHeard.tryGet(p) ?? []).includes(holder) &&
-    !this.passageFor(holder, p, province)
-  );
+  return (this.s.roadsHeard.tryGet(p) ?? []).includes(holder) && !this.passageFor(holder, p, province);
 };
 
 /** Whether a caravan of `p`'s goes off the road in this province: a smuggler in any foreign land, a kingdom's caravan in land closed to it. */
@@ -161,13 +112,7 @@ P.tradeRoute = function (p, from, to, sneak) {
     this.map,
     from,
     to,
-    (a, b) =>
-      this.map.get(a).isSea || this.map.get(b).isSea
-        ? Infinity
-        : legPoints(this.map, a, b, season, {
-            sneaking: offRoad(a) || offRoad(b),
-            ways: waysOf(this.s),
-          }),
+    (a, b) => (this.map.get(a).isSea || this.map.get(b).isSea ? Infinity : legPoints(this.map, a, b, season, { sneaking: offRoad(a) || offRoad(b), ways: waysOf(this.s) })),
     (x) => (this.openTo(p, x, sneak) ? 0 : Infinity),
   );
   return r === null ? null : r.route;
@@ -184,16 +129,8 @@ P.shipRoute = function (from, to) {
     (a, b) => {
       const pa = Map.get(a);
       const pb = Map.get(b);
-      const ok =
-        (pa.isSea && pb.isSea) ||
-        (a === from && pb.isSea && pa.waters === b) ||
-        (pa.isSea && b === to && pb.waters === a);
-      return ok
-        ? legPoints(Map, a, b, season, {
-            sneaking: false,
-            ways: waysOf(this.s),
-          })
-        : Infinity;
+      const ok = (pa.isSea && pb.isSea) || (a === from && pb.isSea && pa.waters === b) || (pa.isSea && b === to && pb.waters === a);
+      return ok ? legPoints(Map, a, b, season, { sneaking: false, ways: waysOf(this.s) }) : Infinity;
     },
     (x) => (Map.get(x).isSea || x === to ? 0 : Infinity),
   );
@@ -209,13 +146,7 @@ P.shipRoute = function (from, to) {
 P.atBorder = function (c, a, b, book) {
   const S = this.s;
   const k = S.owner.getOrDefault(b, null);
-  if (
-    k === null ||
-    k === c.power ||
-    this.map.get(b).isSea ||
-    S.owner.getOrDefault(a, null) === k
-  )
-    return "pass";
+  if (k === null || k === c.power || this.map.get(b).isSea || S.owner.getOrDefault(a, null) === k) return "pass";
   // A holder shut inside his walls by another's siege keeps no border beyond them: the countryside is the besieger's (item 11f).
   if (S.sieges.some((x) => x.province === b && x.power !== k)) return "pass";
   const name = this.map.get(b).name;
@@ -226,24 +157,11 @@ P.atBorder = function (c, a, b, book) {
     if (e === undefined) book.set(k, (e = { grain: 0, gold: 0, found: 0 }));
     return e;
   };
-  const sneaking =
-    c.ship === null && (c.sneak || (!c.trade && this.roadsShutTo(c.power, b)));
+  const sneaking = c.ship === null && (c.sneak || (!c.trade && this.roadsShutTo(c.power, b)));
   if (sneaking) {
-    const odds = smuggleOdds(
-      c.grain,
-      c.gold,
-      S.counterIntel.getOrDefault(k, 0),
-      RoadOdds.most,
-      policeAt(S, b),
-    );
+    const odds = smuggleOdds(c.grain, c.gold, S.counterIntel.getOrDefault(k, 0), RoadOdds.most, policeAt(S, b));
     if (this.r("smuggle", `${c.id}-${b}`).nextDouble() * 100 >= odds) {
-      logEvent(
-        S,
-        "smuggled",
-        `${c.power}'s ${c.sneak ? "smugglers" : "caravan"} slipped into ${k}'s land at ${name}.`,
-        [c.power],
-        c.sneak ? "smuggled" : "caravan-slipped",
-      );
+      logEvent(S, "smuggled", `${c.power}'s ${c.sneak ? "smugglers" : "caravan"} slipped into ${k}'s land at ${name}.`, [c.power], c.sneak ? "smuggled" : "caravan-slipped");
       return "pass";
     }
     const lost = this.putInStores(b, c.grain);
@@ -252,36 +170,13 @@ P.atBorder = function (c, a, b, book) {
     e.grain += c.grain - lost;
     e.gold += c.gold;
     e.found++;
-    const who = c.sneak
-      ? "smugglers"
-      : "caravan, sneaking through land closed to you,";
-    notify(
-      S,
-      c.power,
-      "Notice",
-      MarketsTitle,
-      `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${k}'s people, and ${c.sneak ? "their" : "its"} goods were seized: ${c.grain} measures of grain${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""}.`,
-    );
-    logEvent(
-      S,
-      "smuggler-found",
-      `${k}'s people found ${c.power}'s ${c.sneak ? "smugglers" : "caravan"} at ${name} and seized ${c.sneak ? "their" : "its"} goods.`,
-      [c.power, k],
-      c.sneak ? "smuggler-found" : "caravan-found",
-    );
+    const who = c.sneak ? "smugglers" : "caravan, sneaking through land closed to you,";
+    notify(S, c.power, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${k}'s people, and ${c.sneak ? "their" : "its"} goods were seized: ${c.grain} measures of grain${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""}.`);
+    logEvent(S, "smuggler-found", `${k}'s people found ${c.power}'s ${c.sneak ? "smugglers" : "caravan"} at ${name} and seized ${c.sneak ? "their" : "its"} goods.`, [c.power, k], c.sneak ? "smuggler-found" : "caravan-found");
     return "seized";
   }
-  if (
-    (S.roadsClosed.tryGet(k) ?? []).includes(c.power) &&
-    !this.passageFor(k, c.power, b)
-  ) {
-    notify(
-      S,
-      c.power,
-      "Notice",
-      MarketsTitle,
-      `Your ${c.ship !== null ? "ship" : "caravan"} was turned back at the border of ${k}'s land at ${name}: his roads are closed to your people.`,
-    );
+  if ((S.roadsClosed.tryGet(k) ?? []).includes(c.power) && !this.passageFor(k, c.power, b)) {
+    notify(S, c.power, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} was turned back at the border of ${k}'s land at ${name}: his roads are closed to your people.`);
     const heard = S.roadsHeard.tryGet(c.power) ?? [];
     if (!heard.includes(k)) S.roadsHeard.set(c.power, [...heard, k]);
     return "turned";
@@ -298,20 +193,8 @@ P.atBorder = function (c, a, b, book) {
   e.grain += grain - lost;
   e.gold += gold;
   if (grain + gold > 0) {
-    notify(
-      S,
-      c.power,
-      "Notice",
-      MarketsTitle,
-      `Your ${c.ship !== null ? "ship" : "caravan"} paid ${k}'s toll of ${rate}% at ${name}: ${grain} measures of grain${gold > 0 ? ` and ${formatMoney(gold)}` : ""}.`,
-    );
-    logEvent(
-      S,
-      "toll",
-      `${c.power}'s goods paid ${k}'s toll at ${name}.`,
-      [c.power, k],
-      "toll-paid",
-    );
+    notify(S, c.power, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} paid ${k}'s toll of ${rate}% at ${name}: ${grain} measures of grain${gold > 0 ? ` and ${formatMoney(gold)}` : ""}.`);
+    logEvent(S, "toll", `${c.power}'s goods paid ${k}'s toll at ${name}.`, [c.power, k], "toll-paid");
   }
   return "pass";
 };
@@ -342,12 +225,7 @@ P.tradeTogether = function (cs, parts) {
   };
   const open = cs.filter((c) => {
     if (!besieged || (c.ship !== null && openToSea(this, at))) return true;
-    say(
-      c,
-      c.ship === null
-        ? "found the city besieged and its market shut"
-        : "found the harbour blockaded by the besieger's ships",
-    );
+    say(c, c.ship === null ? "found the city besieged and its market shut" : "found the harbour blockaded by the besieger's ships");
     return false;
   });
   if (open.length === 0) return;
@@ -370,12 +248,7 @@ P.tradeTogether = function (cs, parts) {
   };
   // The sellers' grain, as one lot: the proceeds go home; only the gold each brought buys grain.
   const grain = open.map((c) => c.grain);
-  const sold = sellAlongCurve(
-    m.stock,
-    normal,
-    m.purse,
-    grain.reduce((a, b) => a + b, 0),
-  );
+  const sold = sellAlongCurve(m.stock, normal, m.purse, grain.reduce((a, b) => a + b, 0));
   m.stock += sold.taken;
   m.purse -= sold.paid;
   const taken = shares(sold.taken, grain);
@@ -384,37 +257,14 @@ P.tradeTogether = function (cs, parts) {
     if (grain[i] <= 0) return;
     c.grain -= taken[i];
     c.gold += paid[i];
-    if (taken[i] > 0)
-      say(c, `sold ${taken[i]} measures of grain for ${formatMoney(paid[i])}`);
-    if (c.grain > 0)
-      say(c, `its people's purse could pay for no more (${c.grain} unsold)`);
-    if (taken[i] > 0)
-      logEvent(
-        S,
-        "sale-abroad",
-        `${c.power} sold grain at ${name}${besieged ? ", besieged" : ""}.`,
-        [c.power],
-        besieged ? "besieged-fed" : "sale-abroad",
-      );
+    if (taken[i] > 0) say(c, `sold ${taken[i]} measures of grain for ${formatMoney(paid[i])}`);
+    if (c.grain > 0) say(c, `its people's purse could pay for no more (${c.grain} unsold)`);
+    if (taken[i] > 0) logEvent(S, "sale-abroad", `${c.power} sold grain at ${name}${besieged ? ", besieged" : ""}.`, [c.power], besieged ? "besieged-fed" : "sale-abroad");
   });
   // The buyers' gold, as one purse, each buying no more than it can carry.
   const spend = open.map((c, i) => (besieged ? 0 : c.gold - paid[i]));
-  const room = open.map((c, i) =>
-    spend[i] <= 0
-      ? 0
-      : c.ship !== null
-        ? Math.max(0, TradeData.shipCapacity - c.grain)
-        : m.stock,
-  );
-  const bought = buyAlongCurve(
-    m.stock,
-    normal,
-    spend.reduce((a, b) => a + b, 0),
-    Math.min(
-      m.stock,
-      room.reduce((a, b) => a + b, 0),
-    ),
-  );
+  const room = open.map((c, i) => (spend[i] <= 0 ? 0 : c.ship !== null ? Math.max(0, TradeData.shipCapacity - c.grain) : m.stock));
+  const bought = buyAlongCurve(m.stock, normal, spend.reduce((a, b) => a + b, 0), Math.min(m.stock, room.reduce((a, b) => a + b, 0)));
   m.stock -= bought.taken;
   m.purse += bought.paid;
   const got = shares(bought.taken, spend).map((x, i) => Math.min(x, room[i]));
@@ -422,26 +272,14 @@ P.tradeTogether = function (cs, parts) {
   const left = bought.taken - got.reduce((a, b) => a + b, 0);
   m.stock += left;
   // Each pays for what it got, at the one price.
-  const cost = shares(
-    bought.paid -
-      (left > 0 && bought.taken > 0
-        ? idiv(bought.paid * left, bought.taken)
-        : 0),
-    got,
-  );
+  const cost = shares(bought.paid - (left > 0 && bought.taken > 0 ? idiv(bought.paid * left, bought.taken) : 0), got);
   m.purse -= bought.paid - cost.reduce((a, b) => a + b, 0);
   open.forEach((c, i) => {
     if (got[i] <= 0) return;
     c.gold -= cost[i];
     c.grain += got[i];
     say(c, `bought ${got[i]} measures of grain for ${formatMoney(cost[i])}`);
-    logEvent(
-      S,
-      "purchase-abroad",
-      `${c.power} bought grain at ${name}.`,
-      [c.power],
-      "purchase-abroad",
-    );
+    logEvent(S, "purchase-abroad", `${c.power} bought grain at ${name}.`, [c.power], "purchase-abroad");
   });
   // What each found after the season's trades, which it carries home.
   for (const c of open) noteMarket(c.word, at, this.marketNow(at));
@@ -457,13 +295,11 @@ P.caravanHome = function (c) {
   const name = this.map.get(at).name;
   const parts: string[] = [];
   // A besieged city takes in nothing by land, and by sea only while its waters are open.
-  const open =
-    siegeOf(S, at) === null || (c.ship !== null && openToSea(this, at));
+  const open = siegeOf(S, at) === null || (c.ship !== null && openToSea(this, at));
   if (c.grain > 0 && S.owner.getOrDefault(at, null) === c.power && open) {
     const before = c.grain;
     c.grain = this.putInStores(at, c.grain);
-    if (before > c.grain)
-      parts.push(`${before - c.grain} measures of grain into the stores`);
+    if (before > c.grain) parts.push(`${before - c.grain} measures of grain into the stores`);
   }
   if (c.gold > 0) {
     const t = S.treasuries.get(c.power);
@@ -474,38 +310,19 @@ P.caravanHome = function (c) {
   }
   // What it learned abroad of markets and tolls, its court learns now; a captured archive it carried is its king's now.
   this.hearWord(c.power, c.word);
-  if (c.archive.length > 0)
-    this.archiveArrives(
-      c.power,
-      c.archive,
-      c.archiveOf,
-      this.map.get(c.to).name,
-    );
+  if (c.archive.length > 0) this.archiveArrives(c.power, c.archive, c.archiveOf, this.map.get(c.to).name);
   const fleet = this.rejoinFleet(c);
   S.caravans.splice(S.caravans.indexOf(c), 1);
-  const lostLine =
-    c.grain > 0
-      ? ` The other ${c.grain} measures had nowhere to go and were lost.`
-      : "";
+  const lostLine = c.grain > 0 ? ` The other ${c.grain} measures had nowhere to go and were lost.` : "";
   notify(
     S,
     c.power,
     "Notice",
     MarketsTitle,
     `Your ${c.ship !== null ? "ship" : "caravan"} came home to ${name}${parts.length > 0 ? ` with ${parts.join(" and ")}` : ""}.${lostLine}` +
-      (c.ship !== null
-        ? fleet !== null
-          ? ` The fleet is back in ${this.map.get(fleet).name}, ready for war.`
-          : " Its waters and the seas near them were held, so its crew went home."
-        : ""),
+      (c.ship !== null ? (fleet !== null ? ` The fleet is back in ${this.map.get(fleet).name}, ready for war.` : " Its waters and the seas near them were held, so its crew went home.") : ""),
   );
-  logEvent(
-    S,
-    "caravan",
-    `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} came home to ${name}.`,
-    [c.power],
-    "caravan",
-  );
+  logEvent(S, "caravan", `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} came home to ${name}.`, [c.power], "caravan");
 };
 
 /**
@@ -517,16 +334,8 @@ P.rejoinFleet = function (c) {
   const u = c.ship;
   if (u === null) return null;
   // Its own harbour first, then the waters on its way home, nearest first.
-  const places = [
-    c.from,
-    ...c.route.filter((x) => this.map.get(x).isSea).reverse(),
-  ];
-  const free =
-    places.find(
-      (x) =>
-        unitAt(S, x) === null &&
-        (this.map.get(x).isSea || S.owner.getOrDefault(x, null) === u.power),
-    ) ?? null;
+  const places = [c.from, ...c.route.filter((x) => this.map.get(x).isSea).reverse()];
+  const free = places.find((x) => unitAt(S, x) === null && (this.map.get(x).isSea || S.owner.getOrDefault(x, null) === u.power)) ?? null;
   if (free === null) {
     if (u.home !== "") this.spendAt(u.home, u.savings);
     return null;
@@ -545,142 +354,61 @@ P.rejoinFleet = function (c) {
 P.sendTraders = function (orders, tell) {
   const S = this.s;
   const Map = this.map;
-  for (const [p, o] of orders.filter(
-    ([, o]) => o.type === "trade" || o.type === "ship",
-  ) as [Power, TradeOrder | ShipOrder][]) {
+  for (const [p, o] of orders.filter(([, o]) => o.type === "trade" || o.type === "ship") as [Power, TradeOrder | ShipOrder][]) {
     const from = Map.get(o.from);
     const to = Map.get(o.to);
     const fail = (why: string, reason: string): void => {
       tell(p, why);
       this.scheduledFailed(p, o, reason);
     };
-    if (
-      S.owner.getOrDefault(o.from, null) !== p ||
-      siegeOf(S, o.from) !== null
-    ) {
-      fail(
-        `Nothing set out from ${from.name}: ${S.owner.getOrDefault(o.from, null) === p ? "it is besieged" : "you no longer hold it"}.`,
-        "the province was lost or besieged",
-      );
+    if (S.owner.getOrDefault(o.from, null) !== p || siegeOf(S, o.from) !== null) {
+      fail(`Nothing set out from ${from.name}: ${S.owner.getOrDefault(o.from, null) === p ? "it is besieged" : "you no longer hold it"}.`, "the province was lost or besieged");
       continue;
     }
     let fleet: Unit | null = null;
     if (o.type === "ship") {
       fleet = shipFleet(S.units, from, o.fleet, p);
-      if (
-        fleet === null ||
-        (from.waters !== fleet.province && from.id !== fleet.province)
-      ) {
-        fail(
-          `No ship sailed from ${from.name}: your fleet was no longer in its harbour or its waters.`,
-          "the fleet was not there",
-        );
+      if (fleet === null || (from.waters !== fleet.province && from.id !== fleet.province)) {
+        fail(`No ship sailed from ${from.name}: your fleet was no longer in its harbour or its waters.`, "the fleet was not there");
         continue;
       }
     }
-    const route =
-      o.type === "ship"
-        ? this.shipRoute(o.from, o.to)
-        : this.tradeRoute(p, o.from, o.to, o.sneak);
+    const route = o.type === "ship" ? this.shipRoute(o.from, o.to) : this.tradeRoute(p, o.from, o.to, o.sneak);
     if (route === null) {
-      fail(
-        `Nothing set out from ${from.name} for ${to.name}: there is no ${o.type === "ship" ? "sea route" : "road open to your caravans"} there.`,
-        "no route",
-      );
+      fail(`Nothing set out from ${from.name} for ${to.name}: there is no ${o.type === "ship" ? "sea route" : "road open to your caravans"} there.`, "no route");
       continue;
     }
     const t = S.treasuries.get(p);
     const gold = Math.min(Math.max(0, t.gold), o.gold);
-    const grain = this.takeFromStores(
-      o.from,
-      Math.min(o.grain, o.type === "ship" ? TradeData.shipCapacity : o.grain),
-    );
+    const grain = this.takeFromStores(o.from, Math.min(o.grain, o.type === "ship" ? TradeData.shipCapacity : o.grain));
     if (grain + gold <= 0) {
-      fail(
-        `Nothing set out from ${from.name}: its stores were empty and no gold was sent.`,
-        "nothing to carry",
-      );
+      fail(`Nothing set out from ${from.name}: its stores were empty and no gold was sent.`, "nothing to carry");
       continue;
     }
     t.gold -= gold;
     const trading = o.type === "trade" || o.trade;
     if (fleet !== null) S.units.splice(S.units.indexOf(fleet), 1);
     S.caravans.push(
-      newCaravan({
-        id: newId(S, "v"),
-        power: p,
-        from: o.from,
-        to: o.to,
-        grain,
-        gold,
-        route,
-        since: S.turn,
-        trade: trading,
-        sneak: o.type === "trade" && o.sneak,
-        ship: fleet,
-      }),
+      newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, gold, route, since: S.turn, trade: trading, sneak: o.type === "trade" && o.sneak, ship: fleet }),
     );
     const what = `${grain} measures of grain${gold > 0 ? ` and ${formatMoney(gold)}` : ""}`;
-    if (fleet !== null)
-      tell(
-        p,
-        `Your fleet in ${Map.get(fleet.province).name} loaded ${what} at ${from.name} and sailed for ${to.name} to ${trading ? "trade" : "deliver it"}: it is out of the war until it is back.`,
-      );
-    else
-      tell(
-        p,
-        `A caravan${o.type === "trade" && o.sneak ? " of smugglers" : ""} with ${what} set out from ${from.name} to trade at ${to.name}, by ${
-          route
-            .slice(1, -1)
-            .map((x) => Map.get(x).name)
-            .join(", ") || "the direct road"
-        }.`,
-      );
-    logEvent(
-      S,
-      fleet !== null ? "ship-out" : "trade-out",
-      `${p} sent ${fleet !== null ? "a ship" : "a trading caravan"} from ${from.name}.`,
-      [p],
-      fleet !== null ? "ship-out" : "trade-out",
-    );
+    if (fleet !== null) tell(p, `Your fleet in ${Map.get(fleet.province).name} loaded ${what} at ${from.name} and sailed for ${to.name} to ${trading ? "trade" : "deliver it"}: it is out of the war until it is back.`);
+    else tell(p, `A caravan${o.type === "trade" && o.sneak ? " of smugglers" : ""} with ${what} set out from ${from.name} to trade at ${to.name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
+    logEvent(S, fleet !== null ? "ship-out" : "trade-out", `${p} sent ${fleet !== null ? "a ship" : "a trading caravan"} from ${from.name}.`, [p], fleet !== null ? "ship-out" : "trade-out");
   }
 };
 
 /** A king sets a toll on goods entering his land: it stands until he changes it. A rate of nothing removes the toll. */
 P.setToll = function (p, o) {
   const S = this.s;
-  const i = S.tolls.findIndex(
-    (t) =>
-      t.holder === p && t.province === o.province && t.partner === o.partner,
-  );
+  const i = S.tolls.findIndex((t) => t.holder === p && t.province === o.province && t.partner === o.partner);
   if (i >= 0) S.tolls.splice(i, 1);
   // A rate of nothing for a partner or a province is kept, as the exception to any wider rate set before or after it; the
   // general rate of nothing is no toll at all.
-  if (o.percent > 0 || o.partner !== null || o.province !== null)
-    S.tolls.push(
-      newToll({
-        holder: p,
-        province: o.province,
-        partner: o.partner,
-        percent: o.percent,
-      }),
-    );
-  const where =
-    o.province === null ? "your land" : this.map.get(o.province).name;
-  notify(
-    S,
-    p,
-    "Resolution",
-    TollsTitle,
-    `The toll on ${o.partner === null ? "everyone's" : `${o.partner}'s`} goods entering ${where} is now ${o.percent}%.`,
-  );
-  logEvent(
-    S,
-    "toll-set",
-    `${p} set a toll of ${o.percent}% on ${o.partner ?? "everyone"}'s goods entering ${where}.`,
-    [p],
-    "toll-set",
-  );
+  if (o.percent > 0 || o.partner !== null || o.province !== null) S.tolls.push(newToll({ holder: p, province: o.province, partner: o.partner, percent: o.percent }));
+  const where = o.province === null ? "your land" : this.map.get(o.province).name;
+  notify(S, p, "Resolution", TollsTitle, `The toll on ${o.partner === null ? "everyone's" : `${o.partner}'s`} goods entering ${where} is now ${o.percent}%.`);
+  logEvent(S, "toll-set", `${p} set a toll of ${o.percent}% on ${o.partner ?? "everyone"}'s goods entering ${where}.`, [p], "toll-set");
 };
 
 /**
@@ -693,26 +421,15 @@ P.sack = function (province, taker, stormed = true) {
   const S = this.s;
   const m = this.market(province);
   const units = sortBy(
-    S.units.filter(
-      (u) => u.province === province && u.power === taker && u.men > 0,
-    ),
+    S.units.filter((u) => u.province === province && u.power === taker && u.men > 0),
     [(u: Unit) => u.id, cmpStr],
   );
   const men = units.reduce((a, u) => a + u.men, 0);
-  const share = stormed
-    ? TradeData.sackStormedPercent
-    : TradeData.sackSurrenderPercent;
-  const loot = Math.min(
-    idiv(m.purse * share, 100),
-    idiv(men * TradeData.lootPerHundred, 100),
-  );
+  const share = stormed ? TradeData.sackStormedPercent : TradeData.sackSurrenderPercent;
+  const loot = Math.min(idiv(m.purse * share, 100), idiv(men * TradeData.lootPerHundred, 100));
   if (loot <= 0) return;
   // Item 17++: a city sacked remembers it of its sacker, by the share of its people's gold taken.
-  this.take(
-    province,
-    taker,
-    idiv(loot * UnrestData.sacked, Math.max(1, m.purse)),
-  );
+  this.take(province, taker, idiv(loot * UnrestData.sacked, Math.max(1, m.purse)));
   m.purse -= loot;
   let king = idiv(loot * TradeData.kingSharePercent, 100);
   const soldiers = loot - king;
@@ -720,11 +437,7 @@ P.sack = function (province, taker, stormed = true) {
   for (const u of units) {
     const c = this.commanderOf(u);
     if (c === null) continue;
-    const kept = idiv(
-      idiv(king * u.men, Math.max(1, men)) *
-        idiv(c.traits.greed, CommandData.spoilsPer),
-      100,
-    );
+    const kept = idiv(idiv(king * u.men, Math.max(1, men)) * idiv(c.traits.greed, CommandData.spoilsPer), 100);
     if (kept <= 0) continue;
     king -= kept;
     gain(c, kept, "Loot");
@@ -744,14 +457,8 @@ P.sack = function (province, taker, stormed = true) {
     "Battle",
     "Loot",
     `Your troops sacked ${name} and carried off ${formatMoney(loot)} from its people's purse: ${formatMoney(soldiers)} in their packs` +
-      (commanders > 0
-        ? `, ${formatMoney(commanders)} kept by their commanders`
-        : "") +
-      (king <= 0
-        ? "."
-        : home
-          ? `, and your share of ${formatMoney(king)} is on its way to your treasury.`
-          : `, and your share of ${formatMoney(king)} is in your treasury.`),
+      (commanders > 0 ? `, ${formatMoney(commanders)} kept by their commanders` : "") +
+      (king <= 0 ? "." : home ? `, and your share of ${formatMoney(king)} is on its way to your treasury.` : `, and your share of ${formatMoney(king)} is in your treasury.`),
   );
   logEvent(S, "sack", `${taker} sacked ${name}.`, [taker], "sack");
 };
@@ -764,31 +471,14 @@ P.sack = function (province, taker, stormed = true) {
 P.lootHome = function (taker, from, gold, archive, archiveOf, to) {
   const S = this.s;
   const cap = to ?? this.courtAt(taker);
-  const route =
-    from === cap || S.owner.getOrDefault(cap, null) !== taker
-      ? null
-      : this.tradeRoute(taker, from, cap, false);
+  const route = from === cap || S.owner.getOrDefault(cap, null) !== taker ? null : this.tradeRoute(taker, from, cap, false);
   if (route === null) {
     S.treasuries.get(taker).gold += gold;
     S.treasuries.get(taker).income += gold;
     this.archiveArrives(taker, archive, archiveOf, this.map.get(from).name);
     return false;
   }
-  S.caravans.push(
-    newCaravan({
-      id: newId(S, "v"),
-      power: taker,
-      from: cap,
-      to: from,
-      gold,
-      route,
-      at: 0,
-      returning: true,
-      since: S.turn,
-      archive: [...archive],
-      archiveOf,
-    }),
-  );
+  S.caravans.push(newCaravan({ id: newId(S, "v"), power: taker, from: cap, to: from, gold, route, at: 0, returning: true, since: S.turn, archive: [...archive], archiveOf }));
   return true;
 };
 
@@ -797,9 +487,7 @@ P.byLeave = function (u) {
   const prov: Province = this.map.get(u.province);
   if (prov.isSea) return false;
   const holder = this.s.owner.getOrDefault(prov.id, null);
-  return (
-    holder === u.power || this.grantCovers(holder, u.power, prov.id) !== null
-  );
+  return holder === u.power || this.grantCovers(holder, u.power, prov.id) !== null;
 };
 
 /** Each holder hears once what his tolls brought in and the smugglers his people found this season. */
@@ -813,19 +501,14 @@ P.tellTolls = function (book) {
       "Notice",
       TollsTitle,
       `Goods entering your land paid your tolls: ${e.grain} measures of grain into the stores where they crossed${e.gold > 0 ? ` and ${formatMoney(e.gold)} into the treasury` : ""}` +
-        (e.found > 0
-          ? `, counting what your people seized from ${e.found} smuggler${e.found === 1 ? "" : "s"} they found`
-          : "") +
+        (e.found > 0 ? `, counting what your people seized from ${e.found} smuggler${e.found === 1 ? "" : "s"} they found` : "") +
         ".",
     );
   }
 };
 
 /** Harbour levels, for the views: every coast's. */
-export const harboursOf = (
-  provinces: readonly Province[],
-): [string, number][] =>
-  provinces.filter((p) => harbourOf(p) > 0).map((p) => [p.id, harbourOf(p)]);
+export const harboursOf = (provinces: readonly Province[]): [string, number][] => provinces.filter((p) => harbourOf(p) > 0).map((p) => [p.id, harbourOf(p)]);
 
 /** Whether a ship, anyone's, can reach a besieged harbour: only while no fleet of the besieger holds its waters. */
 export function openToSea(e: TurnEngine, province: string): boolean {
@@ -833,30 +516,19 @@ export function openToSea(e: TurnEngine, province: string): boolean {
   const waters = e.map.get(province).waters;
   if (x === null) return true;
   if (waters === null) return false;
-  return !e.s.units.some(
-    (u) => u.province === waters && u.kind === "Fleet" && u.power === x.power,
-  );
+  return !e.s.units.some((u) => u.province === waters && u.kind === "Fleet" && u.power === x.power);
 }
 
 /** A foreign market as it stands now: its price, stock and purse, and the season. */
 P.marketNow = function (province) {
   const m = this.market(province);
   const need = needOf(this.map.get(province));
-  return newMarketSeen({
-    price: priceAt(m.stock, need),
-    stock: m.stock,
-    need,
-    purse: m.purse,
-    turn: this.s.turn,
-  });
+  return newMarketSeen({ price: priceAt(m.stock, need), stock: m.stock, need, purse: m.purse, turn: this.s.turn });
 };
 
 /** A court takes note of a foreign market as it stands now, seen with its own eyes. */
 P.seeMarket = function (p, province) {
-  this.hearWord(
-    p,
-    newWord({ markets: new Dict([[province, this.marketNow(province)]]) }),
-  );
+  this.hearWord(p, newWord({ markets: new Dict([[province, this.marketNow(province)]]) }));
 };
 
 /**
@@ -874,9 +546,7 @@ P.hearWord = function (p, w) {
     if (had === undefined || had.turn <= seen.turn) book.set(k, { ...seen });
   }
   if (w.holders.length === 0) return;
-  const known = (S.tollsKnown.tryGet(p) ?? []).filter(
-    (t) => !w.holders.includes(t.holder),
-  );
+  const known = (S.tollsKnown.tryGet(p) ?? []).filter((t) => !w.holders.includes(t.holder));
   for (const t of w.tolls) if (t.holder !== p) known.push({ ...t });
   S.tollsKnown.set(p, known);
 };
@@ -890,10 +560,7 @@ P.hearWord = function (p, w) {
 P.seeMarkets = function () {
   const S = this.s;
   const Map = this.map;
-  const reach = idiv(
-    S.config.travelDays * PointsPerDay,
-    TradeData.wordSeasonsShare,
-  );
+  const reach = idiv(S.config.travelDays * PointsPerDay, TradeData.wordSeasonsShare);
   const season = seasonOfTurn(S.turn);
   const first = ![...S.marketsSeen.values()].some((x) => x.size > 0);
   for (const p of alive(S)) {
@@ -907,21 +574,11 @@ P.seeMarkets = function () {
       }
     while (queue.length > 0) {
       let i = 0;
-      for (let j = 1; j < queue.length; j++)
-        if (
-          queue[j][1] < queue[i][1] ||
-          (queue[j][1] === queue[i][1] && queue[j][0] < queue[i][0])
-        )
-          i = j;
+      for (let j = 1; j < queue.length; j++) if (queue[j][1] < queue[i][1] || (queue[j][1] === queue[i][1] && queue[j][0] < queue[i][0])) i = j;
       const [at, d] = queue.splice(i, 1)[0];
       if (d > (dist.get(at) ?? Infinity)) continue;
       for (const n of Map.neighbors(at)) {
-        const nd =
-          d +
-          legPoints(Map, at, n, season, {
-            sneaking: false,
-            ways: waysOf(this.s),
-          });
+        const nd = d + legPoints(Map, at, n, season, { sneaking: false, ways: waysOf(this.s) });
         if (nd > reach || nd >= (dist.get(n) ?? Infinity)) continue;
         dist.set(n, nd);
         queue.push([n, nd]);
@@ -929,12 +586,7 @@ P.seeMarkets = function () {
     }
     if (first) {
       const w = newWord();
-      for (const k of AllPowers)
-        if (
-          k !== p &&
-          [...dist.keys()].some((x) => S.owner.getOrDefault(x, null) === k)
-        )
-          noteTolls(w, S.tolls, k, p);
+      for (const k of AllPowers) if (k !== p && [...dist.keys()].some((x) => S.owner.getOrDefault(x, null) === k)) noteTolls(w, S.tolls, k, p);
       this.hearWord(p, w);
     }
     const sight = Views.sight(S, Map, p);

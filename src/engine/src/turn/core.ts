@@ -15,15 +15,7 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv, roundEven, toInt } from "../core/num.ts";
 import { Rng } from "../core/rng.ts";
-import {
-  cmpNum,
-  count,
-  desc,
-  distinct,
-  groupBy,
-  sortBy,
-  sum,
-} from "../core/seq.ts";
+import { cmpNum, count, desc, distinct, groupBy, sortBy, sum } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import type { GameConfig } from "../model/config.ts";
 import { newMindRequest, type MindRequest } from "../model/exchanges.ts";
@@ -36,23 +28,7 @@ import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
 import { setNameClaims, setRisen, type Power } from "../model/power.ts";
 import { Views } from "../rules/views.ts";
-import {
-  newKnown,
-  newOwnerChange,
-  alive,
-  findCharacter,
-  isAlive,
-  ledger,
-  logEvent,
-  newId,
-  notify,
-  ownedBy,
-  siegeOf,
-  unitLabel,
-  wallsOf,
-  type GameState,
-  type Unit,
-} from "../model/state.ts";
+import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { SeatView } from "../model/views.ts";
@@ -71,12 +47,7 @@ export class TurnEngine {
     // The powers risen in play are the state's (item 13+): a loaded or replayed game brings its own.
     setRisen(state.risen);
     // And the names they claim (item 17+), which the functions naming a power read.
-    setNameClaims(
-      state.names,
-      state.eliminated,
-      state.nameGiven,
-      state.namesHeard,
-    );
+    setNameClaims(state.names, state.eliminated, state.nameGiven, state.namesHeard);
   }
 
   /** The stream for a roll this season. */
@@ -132,9 +103,7 @@ export class TurnEngine {
     this.liftLostSieges();
     this.incomeAndUpkeep();
     // Where everyone stood before the season's travellers arrived: one standing at a court now that was not is back.
-    const stood = new Dict<string, Power | null>(
-      S.characters.map((c) => [c.id, c.at] as const),
-    );
+    const stood = new Dict<string, Power | null>(S.characters.map((c) => [c.id, c.at] as const));
     this.travel();
     // Item 12: everyone learns the languages spoken where he spent the season just past.
     this.learnTongues();
@@ -145,9 +114,7 @@ export class TurnEngine {
     this.tasksDue();
     this.jobsDone(stood);
     // Item 11a: the characters' money and their own seasons.
-    S.approaches = S.approaches.filter(
-      (a) => a.accepted === null && a.turn >= S.turn - 2,
-    );
+    S.approaches = S.approaches.filter((a) => a.accepted === null && a.turn >= S.turn - 2);
     this.debtsSeason();
     this.goldAndTabletsTaken();
     this.livingSeason();
@@ -178,9 +145,7 @@ export class TurnEngine {
           characterId: c.id,
           // The court it belongs to, if any: one with no employer that stands at no court belongs to none.
           court: c.employer ?? c.at,
-          facts: c.memory
-            .slice(0, fold)
-            .map((m) => `season ${m.turn}: ${m.text}`),
+          facts: c.memory.slice(0, fold).map((m) => `season ${m.turn}: ${m.text}`),
           fold,
         }),
       );
@@ -208,38 +173,18 @@ export class TurnEngine {
           ` The treasury now holds ${formatMoney(ledger(t))}; gold received at audiences or brought home by your envoys this season is added later.`,
       );
       if (troops.unpaid.length > 0)
-        lines.push(
-          `Not paid this season: ${troops.unpaid.join(", ")}. Missing pay acts slowly: a unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`,
-        );
-      if (troops.held.length > 0)
-        lines.push(
-          `Held back from pay by your standing order: ${troops.held.join(", ")}; they count it as a season of missing pay.`,
-        );
+        lines.push(`Not paid this season: ${troops.unpaid.join(", ")}. Missing pay acts slowly: a unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`);
+      if (troops.held.length > 0) lines.push(`Held back from pay by your standing order: ${troops.held.join(", ")}; they count it as a season of missing pay.`);
       notes.set(p, lines);
-      if (troops.unpaid.length > 0)
-        logEvent(
-          S,
-          "unpaid",
-          `${p} could not pay its troops: ${troops.unpaid.join(", ")}.`,
-          [p],
-          "unpaid",
-        );
+      if (troops.unpaid.length > 0) logEvent(S, "unpaid", `${p} could not pay its troops: ${troops.unpaid.join(", ")}.`, [p], "unpaid");
     }
     const fed = this.feedTroops();
     // The people of the land, after troops foraging there took their share of the farmers' food: hunger, births and the
     // flows between them (item 10+a).
-    for (const [p, l] of this.peopleSeason(this._foodNow).entries())
-      fed.set(p, [...fed.getOrDefault(p, []), ...l]);
+    for (const [p, l] of this.peopleSeason(this._foodNow).entries()) fed.set(p, [...fed.getOrDefault(p, []), ...l]);
     // Item 17++: the ledger kept, and whom each province obeys.
     this.obeySeason();
-    for (const p of alive(S))
-      notify(
-        S,
-        p,
-        "Notice",
-        "The treasury",
-        [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "),
-      );
+    for (const p of alive(S)) notify(S, p, "Notice", "The treasury", [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "));
     this.caravansTravel();
     // The foreign markets each court sees this season (item 9+b).
     this.seeMarkets();
@@ -263,12 +208,7 @@ export class TurnEngine {
       sum(
         S.units.filter((u) => u.power === p),
         // In proportion to its men (item 11a+).
-        (u) =>
-          forMen(
-            u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep,
-            u.kind,
-            u.men,
-          ),
+        (u) => forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men),
       ) +
       count(S.sieges, (x) => x.power === p) * S.config.siegeUpkeep
     );
@@ -283,18 +223,9 @@ export class TurnEngine {
   feeRates(p: Power): number {
     return sum(this.s.characters, (c) => {
       const k = coverOf(c, p);
-      if (k !== null)
-        return idiv(
-          k.fee,
-          Math.max(1, (k.contractUntil ?? k.startTurn) - k.startTurn),
-        );
+      if (k !== null) return idiv(k.fee, Math.max(1, (k.contractUntil ?? k.startTurn) - k.startTurn));
       const j = c.contract;
-      return c.employer === p &&
-        (c.status === "Employed" || c.status === "Captured") &&
-        j !== null &&
-        (j.knownFrom ?? 0) <= this.s.turn
-        ? idiv(j.fee, Math.max(1, j.untilTurn - j.startTurn))
-        : 0;
+      return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null && (j.knownFrom ?? 0) <= this.s.turn ? idiv(j.fee, Math.max(1, j.untilTurn - j.startTurn)) : 0;
     });
   }
 
@@ -311,15 +242,7 @@ export class TurnEngine {
   effectiveYield(province: string): number {
     // The harvest already bore the catastrophes; the tax bears only how fully it obeys, and nothing reaches it under a siege.
     if (siegeOf(this.s, province) !== null) return 0;
-    return toInt(
-      roundEven(
-        idiv(
-          idiv(this.s.reaped.getOrDefault(province, 0), 3) *
-            this.taxRate(province),
-          100,
-        ) * obeyedIn(this.s, province),
-      ),
-    );
+    return toInt(roundEven(idiv(idiv(this.s.reaped.getOrDefault(province, 0), 3) * this.taxRate(province), 100) * obeyedIn(this.s, province)));
   }
 
   /** The gold that came in since a king's last orders: his mines this season and his sales at his markets last season. */
@@ -353,11 +276,7 @@ export class TurnEngine {
       let book = S.known.tryGet(old);
       if (book === undefined) S.known.set(old, (book = new Dict()));
       book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));
-    } else if (
-      old !== null &&
-      isAlive(S, old) &&
-      !this.map.get(province).isSea
-    ) {
+    } else if (old !== null && isAlive(S, old) && !this.map.get(province).isSea) {
       // Item 17++: out of his couriers' reach, his officials' last report of it stands in his view until word arrives.
       let last = S.ownLast.tryGet(old);
       if (last === undefined) S.ownLast.set(old, (last = new Dict()));
@@ -367,8 +286,7 @@ export class TurnEngine {
   }
 
   quit(c: Character, notice: string): void {
-    if (c.employer !== null)
-      notify(this.s, c.employer, "Notice", "A servant leaves", notice, c.id);
+    if (c.employer !== null) notify(this.s, c.employer, "Notice", "A servant leaves", notice, c.id);
     c.employer = null;
     c.contract = null;
     c.status = "Free";
@@ -379,13 +297,7 @@ export class TurnEngine {
    * Takes gold from the true treasury. A shortfall exposes any debased gold the ledger was counting, and is reported as
    * a failure: what could not be paid for and, for an order, what came of it (a scheduled order then wakes its seat).
    */
-  pay(
-    p: Power,
-    amount: number,
-    what: string,
-    order: Order | null = null,
-    outcome: string | null = null,
-  ): boolean {
+  pay(p: Power, amount: number, what: string, order: Order | null = null, outcome: string | null = null): boolean {
     const t = this.s.treasuries.get(p);
     if (amount <= 0) return true;
     if (t.gold >= amount) {
@@ -394,13 +306,7 @@ export class TurnEngine {
     }
     this.exposeDebasement(p, what);
     // Every order that fails for want of gold is reported as a failure, whether or not debased gold was found.
-    notify(
-      this.s,
-      p,
-      "Rejected",
-      "Not enough gold",
-      `There was not enough gold to pay for ${what}${outcome === null ? "" : "; " + outcome}.`,
-    );
+    notify(this.s, p, "Rejected", "Not enough gold", `There was not enough gold to pay for ${what}${outcome === null ? "" : "; " + outcome}.`);
     if (order !== null) this.scheduledFailed(p, order, "not enough gold");
     return false;
   }
@@ -411,9 +317,7 @@ export class TurnEngine {
     const t = S.treasuries.get(p);
     if (!t.lots.some((l) => l.face > l.true)) return;
     const missing = sum(t.lots, (l) => l.face - l.true);
-    const sources = distinct(
-      t.lots.filter((l) => l.face > l.true).map((l) => l.from),
-    ).join(", ");
+    const sources = distinct(t.lots.filter((l) => l.face > l.true).map((l) => l.from)).join(", ");
     t.lots.length = 0;
     notify(
       S,
@@ -422,28 +326,14 @@ export class TurnEngine {
       "The treasury is short",
       `Paying for ${what}, your treasurers found the treasury lighter than the ledger: ${formatMoney(missing)} of gold received from ${sources} was never fine gold.`,
     );
-    logEvent(
-      S,
-      "debasement",
-      `${p} discovers ${formatMoney(missing)} of debased gold from ${sources}.`,
-      [p],
-      "debasement-found",
-    );
+    logEvent(S, "debasement", `${p} discovers ${formatMoney(missing)} of debased gold from ${sources}.`, [p], "debasement-found");
   }
 
   /**
    * An order that could not be carried out as the season resolved: its king reads why next season, as a rejection
    * notice, and a scheduled one that others foiled (`byOthers`) wakes its seat.
    */
-  failed(
-    p: Power,
-    order: Order,
-    title: string,
-    body: string,
-    why: string,
-    byOthers: boolean,
-    subject: string | null = null,
-  ): void {
+  failed(p: Power, order: Order, title: string, body: string, why: string, byOthers: boolean, subject: string | null = null): void {
     notify(this.s, p, "Rejected", title, body, subject);
     if (byOthers) this.scheduledFailed(p, order, why);
   }
@@ -459,12 +349,7 @@ export class TurnEngine {
     );
     for (const j of due) {
       // Item 13: one reaching a court whose king has moved on is sent on after him, from his old seat.
-      if (
-        j.route.length > 1 &&
-        ForwardedKinds.has(j.kind) &&
-        isAlive(S, j.to) &&
-        j.leg >= j.route.length - 1
-      ) {
+      if (j.route.length > 1 && ForwardedKinds.has(j.kind) && isAlive(S, j.to) && j.leg >= j.route.length - 1) {
         const end = j.route[j.route.length - 1];
         const court = this.courtAt(j.to);
         if (end !== court) {
@@ -513,11 +398,7 @@ export class TurnEngine {
           // Word that a servant has not returned, to a court that no longer believes anything of it
           // (it heard of a death, dismissed the servant, or saw it seeking service): nothing to tell.
           const who = findCharacter(S, j.characterId);
-          if (
-            j.news === "Overdue" &&
-            (who === null || coverOf(who, j.to) === null)
-          )
-            break;
+          if (j.news === "Overdue" && (who === null || coverOf(who, j.to) === null)) break;
           notify(S, j.to, "Rumor", "Rumor", j.text ?? "", j.characterId);
           this.newsArrives(j);
           break;
@@ -533,35 +414,16 @@ export class TurnEngine {
   }
 
   travelTurns(from: Power, to: Power): number {
-    return travelTurns(
-      this.s.config,
-      this.map,
-      this.courtAt(from),
-      this.courtAt(to),
-      this.s.turn,
-    );
+    return travelTurns(this.s.config, this.map, this.courtAt(from), this.courtAt(to), this.s.turn);
   }
 
   travelTurnsBetween(fromProvince: string, toProvince: string): number {
-    return travelTurns(
-      this.s.config,
-      this.map,
-      fromProvince,
-      toProvince,
-      this.s.turn,
-    );
+    return travelTurns(this.s.config, this.map, fromProvince, toProvince, this.s.turn);
   }
 }
 
 /** Item 13: travellers that go to a court, and are sent on after its king when he has moved. */
-const ForwardedKinds = new Set<string>([
-  "EnvoyOutbound",
-  "EnvoyHomebound",
-  "SpyHomebound",
-  "SpyReport",
-  "Travel",
-  "CaptiveConvoy",
-]);
+const ForwardedKinds = new Set<string>(["EnvoyOutbound", "EnvoyHomebound", "SpyHomebound", "SpyReport", "Travel", "CaptiveConvoy"]);
 
 /** The number in an id ("c12" is 12; 0 if it has none), the order of making within a kind. */
 export function idNumber(id: string): number {
@@ -576,13 +438,7 @@ export function idNumber(id: string): number {
  * Seasons for word to go between two provinces, setting out in a turn, by the fastest route open then
  * ({@link wordSeasons}): what reports, rumours and ransoms take, and about what a traveller takes on the road.
  */
-export function travelTurns(
-  config: GameConfig,
-  map: WorldMap,
-  fromProvince: string,
-  toProvince: string,
-  turn: number,
-): number {
+export function travelTurns(config: GameConfig, map: WorldMap, fromProvince: string, toProvince: string, turn: number): number {
   return wordSeasons(config.travelDays, map, fromProvince, toProvince, turn);
 }
 

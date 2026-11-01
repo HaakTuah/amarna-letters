@@ -59,8 +59,7 @@ export interface FrameMove {
   destroyed: boolean;
   targetOwner: Power | null;
 }
-export const isMove = (m: FrameMove): boolean =>
-  m.order === "move" && m.target !== null;
+export const isMove = (m: FrameMove): boolean => m.order === "move" && m.target !== null;
 
 /** Something on the road at the end of a season: a person, or gold, or word. */
 export interface FrameJourney {
@@ -108,8 +107,7 @@ export interface FramePerson {
   covers: FrameCover[];
   confessed: Power | null;
 }
-export const coverOf = (c: FramePerson, p: Power): FrameCover | null =>
-  c.covers.find((x) => x.for === p) ?? null;
+export const coverOf = (c: FramePerson, p: Power): FrameCover | null => c.covers.find((x) => x.for === p) ?? null;
 
 /** A sleeping seat at the end of a season (god view only). */
 export interface FrameSleep {
@@ -220,26 +218,14 @@ export interface FrameRoad {
   what: string;
 }
 
-export const ownerOf = (f: SeasonFrame, province: string): Power | null =>
-  f.owner.get(province) ?? null;
+export const ownerOf = (f: SeasonFrame, province: string): Power | null => f.owner.get(province) ?? null;
 
 /** Who holds a province as a viewer knows it (item 7b): as it is in god view, else as the news that reached the court. */
-export const ownerFor = (
-  f: SeasonFrame,
-  province: string,
-  viewer: Power | null,
-): Power | null =>
-  viewer === null
-    ? ownerOf(f, province)
-    : (f.knownOwner.get(viewer)?.get(province)?.owner ?? ownerOf(f, province));
+export const ownerFor = (f: SeasonFrame, province: string, viewer: Power | null): Power | null =>
+  viewer === null ? ownerOf(f, province) : (f.knownOwner.get(viewer)?.get(province)?.owner ?? ownerOf(f, province));
 
 /** Copies what the map needs from a state at the end of a season. Nothing here holds on to the live state. */
-export function frameFrom(
-  s: GameState,
-  index: number,
-  previous: SeasonFrame | null,
-  map: WorldMap = WorldMap.default,
-): SeasonFrame {
+export function frameFrom(s: GameState, index: number, previous: SeasonFrame | null, map: WorldMap = WorldMap.default): SeasonFrame {
   const moves: FrameMove[] = [];
   const keyed = new Map<string, number>();
   const seenBy = new Map<Power, number[]>();
@@ -281,26 +267,10 @@ export function frameFrom(
       const item = inbox[i];
       if (item.kind === "Rumor") {
         // Placed at the court the word came from, when a rumour on the road carried exactly this text.
-        const j = previous?.journeys.find(
-          (x) => x.kind === "Rumor" && x.to === p && x.text === item.body,
-        );
-        news.push({
-          court: p,
-          kind: item.kind,
-          turn: item.turn,
-          title: item.title,
-          body: item.body,
-          fromCourt: j?.from ?? null,
-          province: null,
-          observed: item.turn,
-        });
+        const j = previous?.journeys.find((x) => x.kind === "Rumor" && x.to === p && x.text === item.body);
+        news.push({ court: p, kind: item.kind, turn: item.turn, title: item.title, body: item.body, fromCourt: j?.from ?? null, province: null, observed: item.turn });
       } else if (item.kind === "SpyReport") {
-        const j = previous?.journeys.find(
-          (x) =>
-            x.kind === "SpyReport" &&
-            x.to === p &&
-            x.characterId === item.subject,
-        );
+        const j = previous?.journeys.find((x) => x.kind === "SpyReport" && x.to === p && x.characterId === item.subject);
         news.push({
           court: p,
           kind: item.kind,
@@ -332,49 +302,16 @@ export function frameFrom(
       secretMaster: c.secretMaster,
       currentTrail: c.currentTrail,
       formerEmployer: c.formerEmployer,
-      covers: c.covers.map((k) => ({
-        for: k.for,
-        believed: k.believed,
-        heldAt: k.heldAt,
-        whereText: k.whereText,
-        timingText: k.timingText,
-        since: k.since,
-      })),
-      confessed:
-        c.status === "Captured" && c.heldBy !== null
-          ? Views.confessedMaster(s, c.id, c.heldBy)
-          : null,
+      covers: c.covers.map((k) => ({ for: k.for, believed: k.believed, heldAt: k.heldAt, whereText: k.whereText, timingText: k.timingText, since: k.since })),
+      confessed: c.status === "Captured" && c.heldBy !== null ? Views.confessedMaster(s, c.id, c.heldBy) : null,
     });
 
-  const sight = new Map<Power, Set<string>>(
-    AllPowers.map(
-      (p) =>
-        [
-          p,
-          isAlive(s, p) ? new Set(Views.sight(s, map, p)) : new Set<string>(),
-        ] as const,
-    ),
-  );
+  const sight = new Map<Power, Set<string>>(AllPowers.map((p) => [p, isAlive(s, p) ? new Set(Views.sight(s, map, p)) : new Set<string>()] as const));
   const knownWalls = new Map<Power, Map<string, number>>(
-    AllPowers.map(
-      (p) => [p, new Map(Views.wallsKnown(s, map, p, null).entries())] as const,
-    ),
+    AllPowers.map((p) => [p, new Map(Views.wallsKnown(s, map, p, null).entries())] as const),
   );
-  const knownOwner = new Map<
-    Power,
-    Map<string, { owner: Power | null; turn: number }>
-  >(
-    AllPowers.map(
-      (p) =>
-        [
-          p,
-          new Map(
-            [...Views.knownHolders(s, map, p).entries()].map(
-              ([k, x]) => [k, { owner: x.owner, turn: x.turn }] as const,
-            ),
-          ),
-        ] as const,
-    ),
+  const knownOwner = new Map<Power, Map<string, { owner: Power | null; turn: number }>>(
+    AllPowers.map((p) => [p, new Map([...Views.knownHolders(s, map, p).entries()].map(([k, x]) => [k, { owner: x.owner, turn: x.turn }] as const))] as const),
   );
   const sleep = new Map<Power, FrameSleep>();
   for (const [p, x] of s.sleep) {
@@ -398,20 +335,8 @@ export function frameFrom(
     winners: [...s.winners],
     owner: new Map(s.owner.entries()),
     walls: new Map(s.walls.entries()),
-    sieges: s.sieges.map((x) => ({
-      province: x.province,
-      besieger: x.power,
-      progress: x.progress,
-      walls: wallsOf(s, x.province),
-      since: x.since,
-    })),
-    units: s.units.map((u) => ({
-      id: u.id,
-      power: u.power,
-      kind: u.kind,
-      province: u.province,
-      men: u.men,
-    })),
+    sieges: s.sieges.map((x) => ({ province: x.province, besieger: x.power, progress: x.progress, walls: wallsOf(s, x.province), since: x.since })),
+    units: s.units.map((u) => ({ id: u.id, power: u.power, kind: u.kind, province: u.province, men: u.men })),
     moves,
     seenBy,
     sight,
@@ -425,12 +350,7 @@ export function frameFrom(
       from: j.from,
       to: j.to,
       characterId: j.characterId,
-      gold:
-        j.kind === "EnvoyOutbound"
-          ? (j.dispatch?.gold ?? 0)
-          : j.kind === "EnvoyHomebound"
-            ? (j.cargo?.gold ?? 0)
-            : j.gold,
+      gold: j.kind === "EnvoyOutbound" ? (j.dispatch?.gold ?? 0) : j.kind === "EnvoyHomebound" ? (j.cargo?.gold ?? 0) : j.gold,
       trailId: j.dispatch?.trailId ?? j.cargo?.trailId ?? null,
       reportCourt: j.report?.court ?? null,
       reportProvince: j.report?.province ?? null,
@@ -446,85 +366,34 @@ export function frameFrom(
     // The ending is shown in words only: the drawn last season (s.finalSeason) is never copied into a frame.
     openAge: s.config.openAge,
     ageBand: ageBand(s.config.endMedian),
-    ageEnded:
-      s.ageEndedTurn === null
-        ? null
-        : { turn: s.ageEndedTurn, winners: [...s.ageWinners] },
+    ageEnded: s.ageEndedTurn === null ? null : { turn: s.ageEndedTurn, winners: [...s.ageWinners] },
     climate: s.climate
       .filter((c) => c.startTurn <= s.turn && c.endTurn >= s.turn)
       .map((c) => {
-        const river =
-          c.kind === "Flood"
-            ? (Rivers.find((r) => `the ${r.name}` === c.name)?.id ?? null)
-            : null;
-        const ruinous =
-          river !== null &&
-          c.percent <= (RiverFloods.get(river)?.ruinPercent ?? 0);
-        return {
-          kind: c.kind,
-          name: c.name,
-          provinces: [...c.provinces],
-          river,
-          ruinous,
-          since: s.turn - c.startTurn,
-        };
+        const river = c.kind === "Flood" ? (Rivers.find((r) => `the ${r.name}` === c.name)?.id ?? null) : null;
+        const ruinous = river !== null && c.percent <= (RiverFloods.get(river)?.ruinPercent ?? 0);
+        return { kind: c.kind, name: c.name, provinces: [...c.provinces], river, ruinous, since: s.turn - c.startTurn };
       }),
     built: new Map(s.built.entries()),
-    settled: new Map(
-      [...s.people.entries()].map(([k, x]) => [k, x.settled] as const),
-    ),
+    settled: new Map([...s.people.entries()].map(([k, x]) => [k, x.settled] as const)),
     fed: new Map(s.fed.entries()),
     // Item 17++: what each province's people remember taken from them, by anyone (the ledger's takings, never shown).
-    unrest: new Map(
-      [...s.ledger.entries()]
-        .map(
-          ([k, book]) =>
-            [
-              k,
-              [...book.values()].reduce((a, v) => a + Math.max(0, -v), 0),
-            ] as const,
-        )
-        .filter(([, v]) => v > 0),
-    ),
-    caravans: s.caravans
-      .filter((c) => c.route.length > 0)
-      .map((c) => {
-        const i = Math.min(c.at, c.route.length - 1);
-        const next = Math.min(i + 1, c.route.length - 1);
-        return {
-          power: c.power,
-          from: c.route[i],
-          to: c.route[next],
-          progress: Math.min(0.9, c.points / 100),
-          what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}`,
-        };
-      }),
+    unrest: new Map([...s.ledger.entries()].map(([k, book]) => [k, [...book.values()].reduce((a, v) => a + Math.max(0, -v), 0)] as const).filter(([, v]) => v > 0)),
+    caravans: s.caravans.filter((c) => c.route.length > 0).map((c) => {
+      const i = Math.min(c.at, c.route.length - 1);
+      const next = Math.min(i + 1, c.route.length - 1);
+      return { power: c.power, from: c.route[i], to: c.route[next], progress: Math.min(0.9, c.points / 100), what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}` };
+    }),
     // Only deportees walk a known road (the engine's `Walk.route`); men discharged home are not placed on one.
-    walking: s.walking
-      .filter((w) => w.deported && w.route.length > 1)
-      .map((w) => {
-        const span = Math.max(1, w.arrives - w.departs);
-        const t = Math.min(0.95, Math.max(0, (s.turn - w.departs) / span));
-        const k = Math.min(
-          w.route.length - 2,
-          Math.floor(t * (w.route.length - 1)),
-        );
-        return {
-          power: null,
-          from: w.route[Math.max(0, k)],
-          to: w.route[Math.max(0, k) + 1],
-          progress: (t * (w.route.length - 1)) % 1,
-          what: `${w.men} people carried off by ${w.by}`,
-        };
-      }),
+    walking: s.walking.filter((w) => w.deported && w.route.length > 1).map((w) => {
+      const span = Math.max(1, w.arrives - w.departs);
+      const t = Math.min(0.95, Math.max(0, (s.turn - w.departs) / span));
+      const k = Math.min(w.route.length - 2, Math.floor(t * (w.route.length - 1)));
+      return { power: null, from: w.route[Math.max(0, k)], to: w.route[Math.max(0, k) + 1], progress: (t * (w.route.length - 1)) % 1, what: `${w.men} people carried off by ${w.by}` };
+    }),
     omen: omenTier(s.seed, s.config, s.turn),
     stores: new Map(s.stores.entries()),
-    bands: s.bands.map((b) => ({
-      province: b.province,
-      men: b.men,
-      ship: b.ship,
-      chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "",
-    })),
+    bands: s.bands.map((b) => ({ province: b.province, men: b.men, ship: b.ship, chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "" })),
   };
 }
 
@@ -538,11 +407,7 @@ export interface WireFrame extends SeasonFrame {
 }
 
 /** Two maps with the same keys and values, by `same` on the values. */
-export const sameMap = <K, V>(
-  a: ReadonlyMap<K, V>,
-  b: ReadonlyMap<K, V>,
-  same: (x: V, y: V) => boolean,
-): boolean => {
+export const sameMap = <K, V>(a: ReadonlyMap<K, V>, b: ReadonlyMap<K, V>, same: (x: V, y: V) => boolean): boolean => {
   if (a.size !== b.size) return false;
   for (const [k, v] of a) {
     const w = b.get(k);
@@ -550,10 +415,7 @@ export const sameMap = <K, V>(
   }
   return true;
 };
-export const sameSet = (
-  a: ReadonlySet<string>,
-  b: ReadonlySet<string>,
-): boolean => a.size === b.size && [...a].every((x) => b.has(x));
+export const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => a.size === b.size && [...a].every((x) => b.has(x));
 /** Two people as the frames keep them, alike in every part. */
 export function samePerson(a: FramePerson, b: FramePerson): boolean {
   for (const k of Object.keys(a) as (keyof FramePerson)[]) {
@@ -563,37 +425,20 @@ export function samePerson(a: FramePerson, b: FramePerson): boolean {
   if (a.covers.length !== b.covers.length) return false;
   return a.covers.every((x, i) => {
     const y = b.covers[i];
-    return (
-      x.for === y.for &&
-      x.believed === y.believed &&
-      x.heldAt === y.heldAt &&
-      x.whereText === y.whereText &&
-      x.timingText === y.timingText &&
-      x.since === y.since
-    );
+    return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.timingText === y.timingText && x.since === y.since;
   });
 }
 
 /** The frame as sent: what equals the frame before is left out. The frame itself is untouched. */
-export function toWire(
-  f: SeasonFrame,
-  previous: SeasonFrame | null,
-): WireFrame {
-  const same = {
-    knownOwner: [] as Power[],
-    knownWalls: [] as Power[],
-    sight: [] as Power[],
-  };
+export function toWire(f: SeasonFrame, previous: SeasonFrame | null): WireFrame {
+  const same = { knownOwner: [] as Power[], knownWalls: [] as Power[], sight: [] as Power[] };
   if (previous === null) return { ...f, same };
   const knownOwner = new Map(f.knownOwner);
   const knownWalls = new Map(f.knownWalls);
   const sight = new Map(f.sight);
   for (const [p, m] of f.knownOwner) {
     const was = previous.knownOwner.get(p);
-    if (
-      was !== undefined &&
-      sameMap(m, was, (x, y) => x.owner === y.owner && x.turn === y.turn)
-    ) {
+    if (was !== undefined && sameMap(m, was, (x, y) => x.owner === y.owner && x.turn === y.turn)) {
       knownOwner.delete(p);
       same.knownOwner.push(p);
     }
@@ -616,30 +461,16 @@ export function toWire(
 }
 
 /** The frame as received: what was left out is the frame before's. The maps stand in the board's order of courts, as built. */
-export function fromWire(
-  w: WireFrame,
-  previous: SeasonFrame | null,
-): SeasonFrame {
+export function fromWire(w: WireFrame, previous: SeasonFrame | null): SeasonFrame {
   const { same, ...f } = w;
   if (previous === null) {
-    if (same.knownOwner.length + same.knownWalls.length + same.sight.length > 0)
-      throw new Error(
-        "A frame sent as a difference arrived with no frame before it.",
-      );
+    if (same.knownOwner.length + same.knownWalls.length + same.sight.length > 0) throw new Error("A frame sent as a difference arrived with no frame before it.");
     return f;
   }
-  const inOrder = <V>(
-    sent: Map<Power, V>,
-    before: Map<Power, V>,
-    left: readonly Power[],
-  ): Map<Power, V> => {
+  const inOrder = <V>(sent: Map<Power, V>, before: Map<Power, V>, left: readonly Power[]): Map<Power, V> => {
     if (left.length === 0) return sent;
     const gone = new Set(left);
-    return new Map(
-      AllPowers.filter((p) => sent.has(p) || gone.has(p)).map(
-        (p) => [p, gone.has(p) ? before.get(p)! : sent.get(p)!] as const,
-      ),
-    );
+    return new Map(AllPowers.filter((p) => sent.has(p) || gone.has(p)).map((p) => [p, gone.has(p) ? before.get(p)! : sent.get(p)!] as const));
   };
   f.knownOwner = inOrder(f.knownOwner, previous.knownOwner, same.knownOwner);
   f.knownWalls = inOrder(f.knownWalls, previous.knownWalls, same.knownWalls);
@@ -649,29 +480,18 @@ export function fromWire(
 
 /** Takes a frame of every season the runner has played since the last call (the runner calls back right after each snapshot). */
 export function catchUpFrames(frames: SeasonFrame[], r: GameRunner): void {
-  for (const f of framesSince(
-    frames.length,
-    frames.length === 0 ? null : frames[frames.length - 1],
-    r,
-  ))
-    frames.push(f);
+  for (const f of framesSince(frames.length, frames.length === 0 ? null : frames[frames.length - 1], r)) frames.push(f);
 }
 
 /**
  * The frames of the seasons from `taken` on (the frames taken so far, the last of them `previous`), so that whoever keeps
  * the frames may keep only the last (item 17a: the worker sends each frame to the page once and holds no history of its own).
  */
-export function framesSince(
-  taken: number,
-  previous: SeasonFrame | null,
-  r: GameRunner,
-): SeasonFrame[] {
+export function framesSince(taken: number, previous: SeasonFrame | null, r: GameRunner): SeasonFrame[] {
   const out: SeasonFrame[] = [];
   for (let index = taken; index < r.snapshots.length; index++) {
     // Called right after each snapshot, before the next season touches the state, the live state is that snapshot.
-    const live =
-      index === r.snapshots.length - 1 &&
-      (r.state.turn === index + 1 || (r.state.ended && r.state.turn === index));
+    const live = index === r.snapshots.length - 1 && (r.state.turn === index + 1 || (r.state.ended && r.state.turn === index));
     const state = live ? r.state : r.stateAt(index);
     if (state === null) break;
     const f = frameFrom(state, index, previous);
