@@ -136,9 +136,12 @@ when a human seat acts with the board revealed: they are that seat's own acts.
   land taken or lost and their moments). The rest already read only the seat's knowledge: the moves it saw (`seenBy`),
   the events it was shown (`visibleTo`), its own inbox and news, its own fall; the omens and the age's end are told to
   every court alike.
-- **A town as the seat last knew it:** `bedAt` takes the cities the seat's own map shows in ruins (`remember`, the map's
-  memory, which marks a sack only once the seat was shown it or it happened in its land or sight) and plays the wind there
-  instead of the market; the sea, rivers, deserts and mountains are static and heard anywhere.
+- **A town as the seat last knew it:** `bedAt` takes the cities the seat knows in ruins (`knownRuins`) and plays the wind
+  there instead of the market; the sea, rivers, deserts and mountains are static and heard anywhere. A sack counts from
+  when the seat learns of it: shown it, the city in its sight as it happened, or its dated word of the city (`knownOwner`)
+  from after the sack; it is rebuilt for the seat only when it sees it so.
+- **Sounds only where the seat saw:** a move is seen when either end was in sight; its march, waves and battle are now
+  placed only at an end the seat saw (its own troops' anywhere).
 - **The test** (`audio-fog.test.ts`): two runs of the same seasons, one quiet and one with Hatti's assault, siege and sack
   of a great king's capital and that king's fall, none of it in Egypt's sight: everything Egypt hears (mood, shade, sting,
   moment, event sounds, the map's sounds zoomed in on the place and zoomed out, the bed there) is identical; god view hears
@@ -149,7 +152,19 @@ when a human seat acts with the board revealed: they are that seat's own acts.
 
 7. **"Its ruin" is the wind over the town**, since there is no ruin sound and the change is in choosing, not in sounds:
    the market falls silent. Alternative: a ruin bed of its own (a new sound, so a sound PR, not this lane's brief).
-8. **The ruins come from the map's own memory** (`map/memory.ts`), so the ear and the eye agree ("what a seat hears is
-   what its own map shows"). Found while reading it: `remember` counts a city "its own" by the true owner (`ownerOf`), not
-   the owner as the seat knows it; a seat could in a rare case see a city's state that it holds without knowing. That file
-   is the map's (the polish lane's), so it is reported to the orchestrator, not changed here.
+8. **The ruins are reckoned by the audio from the seat's knowledge** (`knownRuins`), not from the map's memory
+   (`map/memory.ts`, `remember`), which counts a sack as known and a city as seen by the true owner (`ownerOf`): a seat
+   whose distant city, out of its sight, is sacked and taken "knows" of it at once there, and the true unrest shows its
+   rebuilding. The review found it (below). That file is the map's (the polish lane's), so the leak is reported to the
+   orchestrator, not changed here; until it is fixed, ear and eye can disagree on a distant ruin, the ear being the right
+   one. Word of a sack comes only by sight or by dated word of the city's holder, since the engine shows a sack only to
+   its taker; the dated word is taken from the season after the sack (`turn >= frame.turn`), a season late at worst,
+   never early.
+
+### The review
+
+One reviewer (Opus, high effort). Blocking, fixed: the ruins taken from the map's memory read the true owner, so a
+seat's distant city, sacked and taken out of its sight, went silent before word came (reading 8; `knownRuins` and a test
+of exactly that case). Not blocking, fixed: a march or battle placed at an end of a move the seat did not see (its goal in
+sight, its start not); the hook's unclamped index. Noted: the test's "shown the sack" case is synthetic (the engine shows
+a sack only to its taker), so the word-dated path is tested too.

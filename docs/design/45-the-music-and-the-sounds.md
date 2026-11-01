@@ -112,8 +112,10 @@ are always heard. `hearing()` in `situation.ts`; the map's own sounds below are 
 from zoom 1.5 to whole at 3 (zoomed out, the music speaks for the whole board; before 1 November it was heard at every
 zoom). **As the seat's own map shows it** (Haakon, 1 November 2026: "you know where a sea is, so some things you can zoom
 in on and hear, without it revealing anything"): the land never changes and is known to all, so the water and the wind
-are heard wherever the view goes; a town sounds as the seat last knew it, its market until the map shows it in ruins
-(`remember` in `map/memory.ts`: once the seat learns of the sack), then only the wind over it, until it sees it rebuilt.
+are heard wherever the view goes; a town sounds as the seat last knew it (`knownRuins`): its market until the seat learns
+of the sack (shown it, the city in its sight as it happened, or word of the city dated after it), then only the wind over
+it, until it sees it rebuilt; never by the true owner. A move's sounds sit only at an end the seat saw (its own troops'
+anywhere), so no march or battle is placed out of its sight.
 The beds are a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
 water on the great rivers' course, the coasts and the sea close in; wind on the steppe, the desert, the mountains and the
 open land and the open sea seen from afar. It crosses over 3 to 4 s, looping seamlessly.

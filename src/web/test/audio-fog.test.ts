@@ -2,8 +2,7 @@ import { describe, test } from "vitest";
 import { WorldMap, isGreatKing, newGameEvent, type Power } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
 import { city } from "../src/map/features.ts";
-import { remember } from "../src/map/memory.ts";
-import { bedAt, cuesAt, moodAt, shadeAt } from "../src/audio/situation.ts";
+import { bedAt, cuesAt, knownRuins, moodAt, shadeAt } from "../src/audio/situation.ts";
 import { schedule } from "../src/audio/schedule.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 
@@ -41,7 +40,7 @@ function heard(frames: SeasonFrame[], viewer: Power) {
     map: c.map,
     near: schedule(c, near, 3000).map((s) => [s.name, s.layer]),
     far: schedule(c, { at: city(capital.id), zoom: 1 }, 3000).map((s) => [s.name, s.layer]),
-    bed: bedAt(frames[i], near.at, near.zoom, viewer, place, remember(frames, i, viewer, new Set()).ruins),
+    bed: bedAt(frames[i], near.at, near.zoom, viewer, place, knownRuins(frames, i, viewer)),
   });
 }
 
@@ -76,6 +75,16 @@ describe("AudioFogTests", () => {
     Assert.equal("battle", moodAt(hidden.slice(0, 2), 1, null));
   });
 
+  test("A battle out of the seat's sight is never placed there, though it saw the move begin", () => {
+    // Hatti's army at a province Egypt cannot see, destroyed there; Egypt saw the move because its goal was in sight.
+    const hidden = "kadesh";
+    const m: FrameMove = { power: "Hatti", kind: "Army", from: hidden, order: "move", target: "gaza", to: "gaza", helped: null, succeeded: false, destroyed: true, targetOwner: "Egypt" } as FrameMove;
+    const sight = new Map<Power, Set<string>>([["Egypt", new Set(["gaza"])]]);
+    const c = cuesAt([frame(0, { sight }), frame(1, { sight, moves: [m], seenBy: new Map([["Egypt", [0]]]) } as Partial<SeasonFrame>)], 1, "Egypt");
+    Assert.false(c.map.some((x) => x.at === hidden));
+    Assert.true(c.map.some((x) => x.at === "gaza"));
+  });
+
   test("A seat whose sight the record lacks sees nothing, never everything", () => {
     const units = [{ id: "h1", power: "Hatti" as Power, kind: "Army" as const, province: "gaza" }];
     const knownOwner = new Map([["Egypt" as Power, new Map([["gaza", { owner: "Egypt" as Power, turn: 1 }]])]]);
@@ -91,10 +100,25 @@ describe("AudioFogTests", () => {
     const at = city(capital.id);
     Assert.equal("market", bedAt(frame(1), at, 5, "Egypt", city, new Set()));
     Assert.equal("wind", bedAt(frame(1), at, 5, "Egypt", city, new Set([capital.id])));
-    // Through the map's own memory: a sack Egypt was not told of leaves the market; once told, its ruin.
-    const sack = (to: Power[]) => [frame(0), frame(1, { events: [newGameEvent({ kind: "sack", text: `Hatti sacked ${capital.name}.`, visibleTo: to })], unrest: new Map([[capital.id, 500]]) })];
-    Assert.equal("market", bedAt(sack(["Hatti"])[1], at, 5, "Egypt", city, remember(sack(["Hatti"]), 1, "Egypt", new Set()).ruins));
-    Assert.equal("wind", bedAt(sack(["Hatti", "Egypt"])[1], at, 5, "Egypt", city, remember(sack(["Hatti", "Egypt"]), 1, "Egypt", new Set()).ruins));
+    // Egypt's own distant city, out of its sight, sacked and taken by Hatti (the sack shown to Hatti only): its market
+    // plays on while Egypt's word of the city is older than the sack, whoever truly holds it now; then its ruin, when word
+    // dated after the sack arrives.
+    const word = (turn: number) => new Map([["Egypt" as Power, new Map([[capital.id, { owner: (turn >= 2 ? "Hatti" : "Egypt") as Power, turn }]])]]);
+    const seasons = [
+      frame(0, { owner: new Map([[capital.id, "Egypt"]]), knownOwner: word(1) }),
+      frame(1, { owner: new Map([[capital.id, "Hatti"]]), knownOwner: word(1), unrest: new Map([[capital.id, 500]]),
+        events: [newGameEvent({ kind: "sack", text: `Hatti sacked ${capital.name}.`, visibleTo: ["Hatti"] })] }),
+      frame(2, { owner: new Map([[capital.id, "Hatti"]]), knownOwner: word(1), unrest: new Map([[capital.id, 400]]) }),
+      frame(3, { owner: new Map([[capital.id, "Hatti"]]), knownOwner: word(2), unrest: new Map([[capital.id, 300]]) }),
+    ] as SeasonFrame[];
+    for (const i of [1, 2]) Assert.equal("market", bedAt(seasons[i], at, 5, "Egypt", city, knownRuins(seasons, i, "Egypt")));
+    Assert.equal("wind", bedAt(seasons[3], at, 5, "Egypt", city, knownRuins(seasons, 3, "Egypt")));
+    // Shown the sack, it knows at once; and it stays in ruins out of its sight, however the city truly mends.
+    const shown = seasons.map((f, i) => (i === 1 ? { ...f, events: [newGameEvent({ kind: "sack", text: `Hatti sacked ${capital.name}.`, visibleTo: ["Hatti", "Egypt"] })] } : f));
+    Assert.true(knownRuins(shown, 1, "Egypt").has(capital.id));
+    Assert.true(knownRuins([...shown, frame(4, { owner: new Map([[capital.id, "Hatti"]]), unrest: new Map() })], 4, "Egypt").has(capital.id));
+    // God view: as it is.
+    Assert.true(knownRuins(seasons, 1, null).has(capital.id));
     // The land itself is known to all: the sea and the rivers are heard wherever the view goes, whatever the seat sees.
     const sea = map.provinces.find((p) => p.isSea)!;
     Assert.equal("nile", bedAt(frame(1), city(sea.id), 5, "Egypt", city));
