@@ -169,6 +169,32 @@ async function stopTrace() {
   await out(`timeline of the page's main thread over ${span.toFixed(0)} s, by event (sums overlap: a task holds its parts):`);
   for (const [name, x] of [...byName.entries()].sort((a, b) => b[1].total - a[1].total).slice(0, 22))
     await out(`  ${name.padEnd(28)} ${String(x.count).padStart(6)} times, ${(x.total / 1000).toFixed(0).padStart(7)} ms in all, worst ${(x.worst / 1000).toFixed(0).padStart(5)} ms`);
+  // Each long task's make-up: the events inside it (by time), the biggest first, so the task to split is named.
+  const main = traced.filter((e) => e.ph === "X" && (mainPid === null || (e.pid === mainPid && e.tid === mainTid)));
+  const tasks = main.filter((e) => e.name === "RunTask" && e.dur > 50000).sort((a, b) => b.dur - a.dur);
+  const parts = ["HandlePostMessage", "TimerFire", "FireAnimationFrame", "RunMicrotasks", "FunctionCall", "UpdateLayoutTree", "Layout", "PrePaint", "Paint", "Layerize", "ParseHTML", "MinorGC", "MajorGC", "EventDispatch", "HitTest"];
+  const makeup = (task) => {
+    const inside = new Map();
+    for (const e of main) {
+      if (e === task || !parts.includes(e.name) || e.ts < task.ts || e.ts + e.dur > task.ts + task.dur + 1) continue;
+      // Only the outermost of nested parts: a FunctionCall inside a timer counts for the timer.
+      if (e.name === "FunctionCall" && main.some((o) => o !== e && (o.name === "TimerFire" || o.name === "HandlePostMessage" || o.name === "FireAnimationFrame") && o.ts <= e.ts && o.ts + o.dur >= e.ts + e.dur)) continue;
+      inside.set(e.name, (inside.get(e.name) ?? 0) + e.dur);
+    }
+    return [...inside.entries()].sort((a, b) => b[1] - a[1]).map(([n, d]) => `${n} ${(d / 1000).toFixed(0)}`).join(", ");
+  };
+  await out(`long tasks in the timeline: ${tasks.length}; the longest, with what was inside (ms):`);
+  for (const task of tasks.slice(0, 12)) await out(`  task ${(task.dur / 1000).toFixed(0).padStart(4)} ms: ${makeup(task)}`);
+  // The kinds of long task, by their biggest part.
+  const kinds = new Map();
+  for (const task of tasks) {
+    const lead = makeup(task).split(",")[0].split(" ")[0] || "(nothing timed)";
+    const k = kinds.get(lead) ?? { count: 0, total: 0 };
+    k.count++;
+    k.total += task.dur;
+    kinds.set(lead, k);
+  }
+  for (const [lead, k] of [...kinds.entries()].sort((a, b) => b[1].total - a[1].total)) await out(`  led by ${lead.padEnd(20)} ${String(k.count).padStart(4)} tasks, ${(k.total / 1000).toFixed(0).padStart(6)} ms`);
   traced.length = 0;
 }
 let profiling = null;
