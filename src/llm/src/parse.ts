@@ -253,13 +253,13 @@ function commandOf(x: Node): Order | null {
       return supply(at, false);
     // Item 17+: the king's standing order to pay and feed his troops, held back from, or given again to, the units in one province.
     case "hold_pay":
-      return upkeep(false, true, at);
+      return upkeep(false, null, at);
     case "give_pay":
-      return upkeep(true, true, at);
+      return upkeep(true, null, at);
     case "hold_food":
-      return upkeep(true, false, at);
+      return upkeep(null, false, at);
     case "give_food":
-      return upkeep(true, true, at);
+      return upkeep(null, true, at);
     case "mandate": {
       const target = opt("target");
       const until = I(x, "until");
@@ -533,13 +533,13 @@ function other(x: Node): Order | null {
     case "pay_carriers":
       return payCarriers(true);
     case "pay_troops":
-      return upkeep(true, true);
+      return upkeep(true, null);
     case "stop_paying_troops":
-      return upkeep(false, true);
+      return upkeep(false, null);
     case "feed_troops":
-      return upkeep(true, true);
+      return upkeep(null, true);
     case "stop_feeding_troops":
-      return upkeep(true, false);
+      return upkeep(null, false);
     case "stop_paying_carriers":
       return payCarriers(false);
     case "captive_take_purse":

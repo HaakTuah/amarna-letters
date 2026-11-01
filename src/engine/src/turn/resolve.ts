@@ -4,7 +4,7 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
+import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
@@ -108,6 +108,8 @@ P.resolveSeason = function (submissions) {
   // Item 13: command granted and taken back, and mandates sent, before the moves, to the units where they stand as the king names them.
   for (const [p, o] of all((o): o is RelieveOrder => o.type === "relieve")) this.relieveCommand(p, o);
   for (const [p, o] of all((o): o is SupplyOrder => o.type === "supply")) this.setSupply(p, o);
+  // Item 17+: pay and food held back or given, for the units the king saw where he named them, before they move.
+  for (const [p, o] of all((o): o is UpkeepOrder => o.type === "upkeep")) this.setUpkeep(p, o);
   for (const [p, o] of all((o): o is CommandOrder => o.type === "command")) this.grantCommand(p, o);
   for (const [p, o] of all((o): o is MandateOrder => o.type === "mandate")) this.setMandate(p, o);
   for (const [p, o] of all((o): o is UnseatOrder => o.type === "unseat")) this.unseatGovernor(p, o);

@@ -314,8 +314,10 @@ export interface PayCarriersOrder {
  */
 export interface UpkeepOrder {
   type: "upkeep";
-  pay: boolean;
-  feed: boolean;
+  /** Pay the troops (true) or hold their pay back (false); null leaves pay as it stands. */
+  pay: boolean | null;
+  /** Feed them likewise; null leaves their food as it stands. */
+  feed: boolean | null;
   province?: string;
 }
 /**
@@ -712,7 +714,7 @@ export const renew = (character: string, fee: number, term = 6, advance: number 
 export const seize = (character: string): SeizeHoardOrder => ({ type: "seize", character });
 export const sellDebt = (debt: string, character: string, price: number): SellDebtOrder => ({ type: "sellDebt", debt, character, price });
 export const payCarriers = (pay: boolean): PayCarriersOrder => ({ type: "payCarriers", pay });
-export const upkeep = (pay: boolean, feed: boolean, province: string | null = null): UpkeepOrder => ({ type: "upkeep", pay, feed, ...(province !== null && province !== "" ? { province } : {}) });
+export const upkeep = (pay: boolean | null, feed: boolean | null, province: string | null = null): UpkeepOrder => ({ type: "upkeep", pay, feed, ...(province !== null && province !== "" ? { province } : {}) });
 export const hunt = (province: string): HuntOrder => ({ type: "hunt", province });
 export const huntBands = (on: boolean, provinces: string[] | null = null): HuntBandsOrder => ({ type: "huntBands", on, ...(provinces !== null && provinces.length > 0 ? { provinces } : {}) });
 export const payFee = (character: string, pay = true): PayFeeOrder => ({ type: "payFee", character, pay });
@@ -846,7 +848,8 @@ export function describe(o: Order): string {
     case "payCarriers":
       return o.pay ? "pay the carriers of your people's letters on delivery" : "stop paying the carriers of your people's letters on delivery";
     case "upkeep": {
-      const what = o.pay && o.feed ? "pay and feed" : o.pay ? "pay but not feed" : o.feed ? "feed but not pay" : "neither pay nor feed";
+      const half = (v: boolean | null | undefined, yes: string, no: string): string | null => (v === null || v === undefined ? null : v ? yes : no);
+      const what = [half(o.pay, "pay", "hold back the pay of"), half(o.feed, "feed", "hold back the food of")].filter((x) => x !== null).join(" and ") || "leave the pay and food of";
       return o.province !== undefined ? `${what} your troops in ${named(o.province)}` : `${what} your troops, by standing order`;
     }
     case "hunt":
@@ -1033,7 +1036,7 @@ export const OrderSchema = poly("Order", "type", {
   seize: v("SeizeHoardOrder", () => seize(""), { character: S }),
   sellDebt: v("SellDebtOrder", () => sellDebt("", "", 0), { debt: S, character: S, price: I }),
   payCarriers: v("PayCarriersOrder", () => payCarriers(true), { pay: B }),
-  upkeep: v("UpkeepOrder", () => upkeep(true, true), { pay: B, feed: B, province: opt(S) }),
+  upkeep: v("UpkeepOrder", () => upkeep(true, true), { pay: opt(B), feed: opt(B), province: opt(S) }),
   hunt: v("HuntOrder", () => hunt(""), { province: S }),
   huntBands: v("HuntBandsOrder", () => huntBands(true), { on: B, provinces: opt(list(S)) }),
   payFee: v("PayFeeOrder", () => payFee(""), { character: S, pay: B }),

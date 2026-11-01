@@ -776,7 +776,7 @@ export interface SeatView {
   broken: number;
   /** Haakon's answers to item 11a: whether its standing order is to pay the carriers of its people's letters on delivery. */
   payCarriers: boolean;
-  /** Item 17+: its standing order to pay and feed its troops, and the provinces whose units of its it holds back from each. */
+  /** Item 17+: its standing order to pay and feed its troops, and the provinces whose units of its are treated otherwise than each half says (held back while it pays, or paid while it does not). */
   payTroops: boolean;
   feedTroops: boolean;
   payHeld: string[];

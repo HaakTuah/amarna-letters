@@ -140,7 +140,7 @@ export function namesLine(v: SeatView): string
     {
         if (v.nameClaims.length === 0) return "";
         const parts = v.nameClaims.map((c) => `${c.name} is claimed by ${joinS(` and `, c.claimants)}; ${c.givenTo === v.power ? `you hold it` : c.givenTo !== null ? `your court gives it to ${c.givenTo} and calls the other${c.claimants.length > 2 ? `s` : ``} by ${c.claimants.length > 2 ? `their houses` : `his house`}` : `your court has given it to no one`}`);
-        return `NAMES CLAIMED: you go by the name of ${v.claimedName}. ${joinS(`. `, parts)}.`;
+        return `NAMES CLAIMED (each king as your orders name him): you go by the name of ${v.claimedName}. ${joinS(`. `, parts)}.`;
     }
 
 export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): string
@@ -157,13 +157,13 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const rank = rankLine(v);
         if (rank.length > 0) sb.appendLine(rank);
         const growth = v.startStrength > 0 ? v.strength / v.startStrength : 0;
-        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.worksUpkeep > 0 ? `, what you keep and build in gold ${v.worksUpkeep}` : ``)}; your people's jobs come to about ${v.fees} a season, ${v.feesDue} of their fees still to fall due as their jobs are done${v.feesOwed > 0 ? `, and you let ${v.feesOwed} fall due unpaid` : ``}. People count on ${v.trust} in a hundred of what you promise (you kept ${v.kept} promises to pay and broke ${v.broken}); ${v.payCarriers ? "you pay the carriers of your letters on delivery, by your standing order" : "you do not pay the carriers of your letters on delivery (pay_carriers would)"}; what people ask follows only what they have heard jobs pay. Your standing order ${v.payTroops && v.feedTroops ? "pays and feeds your troops" : v.payTroops ? "pays your troops but does not feed them from your stores" : v.feedTroops ? "feeds your troops but pays them nothing" : "neither pays nor feeds your troops"}${v.payHeld.length > 0 ? `, pay held back from those in ${joinS(", ", v.payHeld)}` : ""}${v.feedHeld.length > 0 ? `, food held back from those in ${joinS(", ", v.feedHeld)}` : ""} (pay_troops, stop_paying_troops, feed_troops, stop_feeding_troops; command hold_pay, give_pay, hold_food, give_food for one province's troops)`);
+        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.worksUpkeep > 0 ? `, what you keep and build in gold ${v.worksUpkeep}` : ``)}; your people's jobs come to about ${v.fees} a season, ${v.feesDue} of their fees still to fall due as their jobs are done${v.feesOwed > 0 ? `, and you let ${v.feesOwed} fall due unpaid` : ``}. People count on ${v.trust} in a hundred of what you promise (you kept ${v.kept} promises to pay and broke ${v.broken}); ${v.payCarriers ? "you pay the carriers of your letters on delivery, by your standing order" : "you do not pay the carriers of your letters on delivery (pay_carriers would)"}; what people ask follows only what they have heard jobs pay. Your standing order ${v.payTroops && v.feedTroops ? "pays and feeds your troops" : v.payTroops ? "pays your troops but does not feed them from your stores" : v.feedTroops ? "feeds your troops but pays them nothing" : "neither pays nor feeds your troops"}${v.payHeld.length > 0 ? `, ${v.payTroops ? "pay held back from" : "but pays"} those in ${joinS(", ", v.payHeld)}` : ""}${v.feedHeld.length > 0 ? `, ${v.feedTroops ? "food held back from" : "but feeds"} those in ${joinS(", ", v.feedHeld)}` : ""} (pay_troops, stop_paying_troops, feed_troops, stop_feeding_troops; command hold_pay, give_pay, hold_food, give_food for one province's troops)`);
         sb.appendLine(GoldLifeline);
         for (const d of v.debts)
-            sb.appendLine(`  Your debt ${d.id}: ${d.left} shekels left of ${d.owed} to repay (${d.principal} lent by ${d.lender} in turn ${d.sealedTurn}, to be repaid by turn ${d.dueTurn}); the tablet is held by ${d.holder}${d.here ? `, who stands at your court (order repay)` : ``}.`);
+            sb.appendLine(`  Your debt ${d.id}: ${d.left} shekels left of ${d.owed} to repay (${d.sealedTurn > 0 ? `${d.principal} lent by ${d.lender} in turn ${d.sealedTurn}` : `owed to ${d.lender} since before the first season`}, to be repaid by turn ${d.dueTurn}); the tablet is held by ${d.holder}${d.here ? `, who stands at your court (order repay)` : ``}.`);
         if (v.debtsHeld.length > 0) sb.appendLine("DEBT TABLETS YOU HOLD (claims on others: collect by envoy, or sell_tablet):");
         for (const d of v.debtsHeld)
-            sb.appendLine(`  Tablet ${d.id}: ${d.holder} owes ${d.left} (lent by ${d.lender} in turn ${d.sealedTurn}, to be repaid by turn ${d.dueTurn})${d.here ? `; they stand at your court` : ``}.`);
+            sb.appendLine(`  Tablet ${d.id}: ${d.holder} owes ${d.left} (${d.sealedTurn > 0 ? `lent by ${d.lender} in turn ${d.sealedTurn}` : `owed to ${d.lender} since before the first season`}, to be repaid by turn ${d.dueTurn})${d.here ? `; they stand at your court` : ``}.`);
         for (const l of economyLines(v)) sb.appendLine(l);
         for (const l of worksLines(v)) sb.appendLine(l);
         // Each lot by what it is, then the court's own mark for it, which only its assay orders use (as for copies of tablets).
@@ -355,9 +355,10 @@ export function letterBrief(l: LetterView): string {
  * holds keeps its first line.
  */
 export function withoutHolds(body: string): string {
-  const hold = /^- (?:[A-Za-z]+: )?[AF] [a-z]+ holds$/;
+  // Item 17+: units are written as the reports name them ("army in Men-nefer holds", "Assyria: fleet in the Western Sea holds").
+  const hold = /^- (?:[^:]+: )?(?:army|fleet) in [^:>]+ holds$/;
   const lines = body.split("\n");
-  const first = /^(.*:) (- [AF] [a-z]+ holds)$/.exec(lines[0]);
+  const first = /^(.*?:) (- (?:army|fleet) in [^:>]+ holds)$/.exec(lines[0]);
   if (first !== null && hold.test(first[2])) lines[0] = first[1];
   const kept = lines.filter((l, i) => i === 0 || !hold.test(l));
   const shown = kept.filter((l, i) => !(l === "Seen nearby:" && (i === kept.length - 1 || !kept[i + 1].startsWith("- "))));

@@ -4,7 +4,7 @@
  * travels sealed, the envoy cannot alter it.
  */
 import { isBlank, trim, trimEnd } from "../core/text.ts";
-import { claimantsOf, claimedName, house, king, ownLand, rulerNamed, type Power } from "../model/power.ts";
+import { claimantsOf, claimedName, house, king, knownName, ownLand, rulerNamed, type Power } from "../model/power.ts";
 import { newGreetingOptions, type GreetingOptions } from "../model/records.ts";
 
 export function renderGreeting(from: Power, to: Power, options: GreetingOptions | null): string {
@@ -14,7 +14,9 @@ export function renderGreeting(from: Power, to: Power, options: GreetingOptions 
 
   // Item 17+: the recipient by the name he claims, or by his house where the sender withholds a contested name; the sender
   // by the name he claims.
-  const recipient = greetingName(to, o.grantGreatKing, o.byHouse === true && claimantsOf(claimedName(to)).length > 1 ? house(to) : claimedName(to)) + (o.callBrother ? ", my brother" : "");
+  // The recipient as the sender knows his claim, from the greetings the sender's court has read.
+  const known = knownName(from, to);
+  const recipient = greetingName(to, o.grantGreatKing, o.byHouse === true && claimantsOf(known, from).length > 1 ? house(to) : known) + (o.callBrother ? ", my brother" : "");
   const sender = greetingName(from, o.claimGreatKing, claimedName(from)) + (o.callBrother ? ", your brother" : "");
   const address = o.senderFirst ? `Thus says ${sender}: say to ${recipient}.` : `Say to ${recipient}: thus says ${sender}.`;
   const wellbeing = o.callBrother

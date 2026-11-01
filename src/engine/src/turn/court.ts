@@ -4,7 +4,7 @@ import { cmpBool, cmpNum, desc, groupBy, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import { isPowerParty, MoneyData } from "../model/money.ts";
-import type { DismissOrder, HireOrder, Order, RenewOrder } from "../model/orders.ts";
+import type { DismissOrder, HireOrder, Order, RenewOrder, UpkeepOrder } from "../model/orders.ts";
 import { coverOf, falseNameAt, gain, newContract, newJobErrand, newStayLeft, remember, reputationAt, lossesHeardOf, type Character, type JobErrand, type JobWhat } from "../model/people.ts";
 import { cmpPower, land, type Power } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
@@ -24,6 +24,7 @@ declare module "./core.ts" {
     hireAll(hires: { p: Power; h: HireOrder }[], carriedTo?: Power | null): void;
     renew(p: Power, r: RenewOrder): void;
     dismiss(p: Power, c: Character, order: DismissOrder): void;
+    setUpkeep(p: Power, o: UpkeepOrder): void;
     tasksDue(): void;
   }
 }
@@ -80,17 +81,6 @@ P.resolveCourt = function (orders) {
       case "payCarriers":
         S.payCarriers = o.pay ? [...new Set([...S.payCarriers, p])] : S.payCarriers.filter((x) => x !== p);
         break;
-      case "upkeep": {
-        // Item 17+: the whole order, or the units of his standing in one province held back or given pay and food again.
-        const cur = upkeepOf(S, p);
-        if (o.province === undefined) S.upkeep.set(p, { pay: o.pay, feed: o.feed, payExcept: [], feedExcept: [] });
-        else {
-          const ids = S.units.filter((u) => u.power === p && u.province === o.province).map((u) => u.id);
-          const held = (except: string[], give: boolean): string[] => (give ? except.filter((id) => !ids.includes(id)) : [...new Set([...except, ...ids])]);
-          S.upkeep.set(p, { pay: cur.pay, feed: cur.feed, payExcept: held(cur.payExcept, o.pay), feedExcept: held(cur.feedExcept, o.feed) });
-        }
-        break;
-      }
       case "hunt":
         S.huntNow.push(`${p}|${o.province}`);
         break;
@@ -315,6 +305,34 @@ P.renew = function (p, r) {
  * A servant dismissed: its wage ends, and so does whatever its master still believed of it. Nobody is moved: one dismissed
  * while away keeps going where it was going and is free when it gets there, and one who is held stays held.
  */
+/**
+ * Item 17+: the standing order for the troops' pay and food changed, before the season's movement, so a province named
+ * holds the units the king saw there. A half left out (null) stands as it was. The whole order sets that half for every
+ * unit; one province's sets it for the units standing there, kept as exceptions to the whole order.
+ */
+P.setUpkeep = function (p, o) {
+  const S = this.s;
+  const cur = upkeepOf(S, p);
+  const next = { ...cur, payExcept: [...cur.payExcept], feedExcept: [...cur.feedExcept] };
+  if (o.province === undefined) {
+    if (o.pay !== null && o.pay !== undefined) {
+      next.pay = o.pay;
+      next.payExcept = [];
+    }
+    if (o.feed !== null && o.feed !== undefined) {
+      next.feed = o.feed;
+      next.feedExcept = [];
+    }
+  } else {
+    const ids = S.units.filter((u) => u.power === p && u.province === o.province).map((u) => u.id);
+    const set = (whole: boolean, except: string[], want: boolean | null | undefined): string[] =>
+      want === null || want === undefined ? except : want === whole ? except.filter((id) => !ids.includes(id)) : [...new Set([...except, ...ids])];
+    next.payExcept = set(cur.pay, cur.payExcept, o.pay);
+    next.feedExcept = set(cur.feed, cur.feedExcept, o.feed);
+  }
+  S.upkeep.set(p, next);
+};
+
 P.dismiss = function (p, c, order) {
   const S = this.s;
   const cover = coverOf(c, p);

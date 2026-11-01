@@ -83,6 +83,19 @@ export const AttestedCast: readonly CastSeed[] = [
  * item 17++ seeds the ledger), holding the purse his standing against his king's allows [G]; what the sources say of him
  * is his traits and his public facts, never a script. None led armed men of his own in 1346.
  */
+/**
+ * The governors of 1346 in office over a province their king holds (item 17+, from its review: "Governorship and command
+ * of an army are grants of authority, not jobs"): each holds his governorship from the first season, a grant, not a fee.
+ * Thutmose over Kush (the Buhen and Amada stelae) [A], Enlil-kidinni over Nippur [A], Ili-ippashra over Dilmun [A], and
+ * Alashiya's governor (EA 40) over the copper hills, the island's land beyond its harbour city [G on the district].
+ */
+export const GovernorsOf1346: ReadonlyMap<string, string> = new Map([
+  ["Thutmose", "nubia"],
+  ["Enlil-kidinni", "nippur"],
+  ["Ili-ippashra", "dilmun"],
+  ["Eshuwara", "kalavasos"],
+]);
+
 export const PeopleOf1346: readonly CastSeed[] = [
   // Egypt's court (the courts dossier, "Egypt"): the great officers of Akhetaten and the commissioners in Canaan
   person("Ay", "Akhetaten", "Egypt", "God's Father and Master of the Horse", { competence: 80, ambition: 80, loyalty: 65, greed: 55 }, 90, ["God's Father and Master of the Horse at Akhetaten: the chariotry and the king's household are his (his tomb at Amarna)."]),

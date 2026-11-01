@@ -56,7 +56,7 @@ const emptyLive = (): Live => ({
   settings: newSettings(),
   config: null,
   risen: [],
-  names: { claims: [], given: [], fallen: [] },
+  names: { claims: [], given: [], heard: [], fallen: [] },
   seats: {},
   snapshots: 0,
   chronicles: {},
@@ -162,7 +162,7 @@ export class Session {
     }
     // The names claimed (item 17+), and a lone human seat's court naming them as it gives them.
     if (m.live.hasRunner) {
-      setNameClaims(m.live.names.claims, m.live.names.fallen, m.live.names.given);
+      setNameClaims(m.live.names.claims, m.live.names.fallen, m.live.names.given, m.live.names.heard);
       setNameViewer(m.live.humans.length === 1 ? m.live.humans[0] : null);
     }
     if (m.frames.length > 0) {

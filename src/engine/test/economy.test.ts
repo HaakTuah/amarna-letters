@@ -30,6 +30,7 @@ import {
   unitAt,
   priceAt,
   upkeep,
+  paysUnit,
   Views,
 } from "@amarna/engine";
 import { Assert, armiesBefore13, last } from "./support.ts";
@@ -161,7 +162,10 @@ describe("EconomyTests", () => {
     Assert.true(Views.for(s, "Hatti").payTroops);
     Assert.true(Views.for(s, "Hatti").feedTroops);
     // Pay held back from the troops in one province: nothing leaves the treasury for them, and they count a season of missing pay.
-    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(false, true, "hattusa")] })]]));
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(false, null, "hattusa")] })]]));
+    Assert.equal("hattusa", Views.for(s, "Hatti").payHeld.join(","));
+    // Changing one half leaves the other as it stood (the review of 17+).
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(null, true)] })]]));
     Assert.equal("hattusa", Views.for(s, "Hatti").payHeld.join(","));
     s.turn++;
     const gold = s.treasuries.get("Hatti").gold;
@@ -174,6 +178,7 @@ describe("EconomyTests", () => {
     // The whole order changed: pay again, but feed nobody from the stores: the baggage is not refilled from the depot.
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(true, false)] })]]));
     Assert.equal("", Views.for(s, "Hatti").payHeld.join(","));
+    Assert.true(Views.for(s, "Hatti").payTroops);
     Assert.false(Views.for(s, "Hatti").feedTroops);
     u.food = 0;
     s.turn++;
@@ -181,10 +186,14 @@ describe("EconomyTests", () => {
     Assert.equal(0, u.unpaid);
     Assert.equal(0, u.food);
     // Fed again: the baggage fills from the stores where it stands.
-    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(true, true)] })]]));
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(null, true)] })]]));
     s.turn++;
     e.beginTurn();
     Assert.equal(carriedOf("Army"), u.food);
+    // Paying only some: the whole order pays none, and the troops in one province are paid.
+    e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(false, null), upkeep(true, null, "hattusa")] })]]));
+    Assert.true(paysUnit(s, u));
+    Assert.false(paysUnit(s, single(s.units, (x) => x.province === "nesa")));
   });
 
   test("A caravan carries grain through its king's land to his troops and puts the rest in the stores", () => {

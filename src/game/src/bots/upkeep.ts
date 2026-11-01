@@ -33,7 +33,7 @@ export function upkeepOrders(b: Board, gold: number, costs: number, orders: Orde
   const short = costs - gold;
   // Flush again: everything held back is paid, so that no unit runs towards mutiny for nothing.
   if (short <= 0) {
-    for (const at of v.payHeld) orders.push(upkeep(true, true, at));
+    for (const at of v.payHeld) orders.push(upkeep(true, null, at));
     return 0;
   }
   const safe = (u: UnitView): boolean =>
@@ -50,9 +50,9 @@ export function upkeepOrders(b: Board, gold: number, costs: number, orders: Orde
     if (v.payHeld.includes(u.province) || held.has(u.province)) continue;
     held.add(u.province);
     kept += payOf(v, u);
-    orders.push(upkeep(false, true, u.province));
+    orders.push(upkeep(false, null, u.province));
   }
   // Pay again those held back that are no longer safe to hold, or that would miss a second season.
-  for (const at of v.payHeld) if (!held.has(at) && !mine.some((u) => u.province === at && safe(u))) orders.push(upkeep(true, true, at));
+  for (const at of v.payHeld) if (!held.has(at) && !mine.some((u) => u.province === at && safe(u))) orders.push(upkeep(true, null, at));
   return kept;
 }

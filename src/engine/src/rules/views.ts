@@ -184,7 +184,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     greetings: s.recognition.filter((r) => r.from === p || r.to === p).map((r) => ({ ...r })),
     // Item 17+: the names claimed, as this court gives them.
     claimedName: claimedName(p),
-    nameClaims: contestedNames().map((name) => ({ name, claimants: claimantsOf(name), givenTo: nameGivenBy(p, name) })),
+    nameClaims: contestedNames(p).map((name) => ({ name, claimants: claimantsOf(name, p), givenTo: nameGivenBy(p, name) })),
     turn: s.turn,
     season: season(s.turn, p),
     power: p,

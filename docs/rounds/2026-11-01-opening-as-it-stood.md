@@ -125,15 +125,23 @@ Each with the principle it rests on ("Reason from the pillars").
 29. **The world's record of a contested name** (no viewer: the engine's notices and logs) gives it to the power whose own
     land it is while that power claims it, else to the one that claimed it first; two who claimed it in the same season
     share it with nobody, both called by their houses (The order of resolution never decides).
-30. **Who hears of a claim** (Information moves in physical time, kept as far as a name allows): the claimant's court at
-    once; other courts read it in his greetings, which name him so, and the record names him so from that season, since a
-    claim is how his own letters style him. Each court's own naming changes only by the greetings it sends.
+30. **Who hears of a claim** (Information moves in physical time; changed after the review, which found every court knowing
+    a claim at once): the claimant's court at once; another court when a sealed tablet of his, styled with the name he
+    claimed when it was sealed, is presented there. The engine's own notices name every power by its own land's name, which
+    every court knows. Each court's giving of a contested name changes only by the greetings it sends.
 31. **Script kings: a Great King keeps his own name** however much he takes, as Hatti and Assyria kept theirs ("A power's
     name is a claim"); any other king who holds the capital of a realm of a higher tier than his own claims its name, the
     greatest such, since the name brings that realm's brotherhood and vassals. Their greetings give a contested name to a
     bond friend, else a friend, else the claimant holding the realm's capital, else the one whose own land it is.
 32. **A house name** is Bit- and the first king's name (Bit-Aziru, Bit-Rib-Hadda), or Bit- and the land where the sources
     name no king ("Bit-Hana"); risen powers take their founder's (Places by their own names: "never a number").
+34. **Governors of 1346 hold a grant from the first season** (Privileges, in the one page: "Not: a governor or commander on a
+    fee"; from the review): Thutmose over Kush, Enlil-kidinni over Nippur, Ili-ippashra over Dilmun, and Alashiya's
+    governor over the copper hills [G on the district], each governing, with no fee. The commissioners over vassals' lands
+    stay at Pharaoh's court as servants until item 17++ makes them open residents in their provinces, as its text says.
+35. **City-states' units start one to a province** (from the review: the engine holds one unit in a province): Aziru's men
+    in Amurru's own land beside Sumur, not in it, since Egypt's garrison holds it; Arwad's ships in its own waters beside
+    Byblos's; Sidon's in its own beside Tyre's [the placements B as before; the shift G]. The placements are a data table.
 33. **A court names powers as it gives their names** in its seat view and its requests, and the web page does so for a lone
     human seat; the engine's own notices and logs use the world's record. The ids in models' orders stay as they are.
 

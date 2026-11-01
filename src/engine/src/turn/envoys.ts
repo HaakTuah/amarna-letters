@@ -8,7 +8,7 @@ import { hire, type DispatchOrder } from "../model/orders.ts";
 import { factsKnownTo, gain, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
 import { courtSpeaks } from "../model/languages.ts";
 import { errandOf } from "./court.ts";
-import { land, type Power } from "../model/power.ts";
+import { claimedName, land, type Power } from "../model/power.ts";
 import { SealedOutcome, newDispatch, newExchange, newGreetingOptions, newHomeCargo, newJobOffer, newJourney, newMessageTrail, newPendingAudience, newTablet, newTabletCopy, newTabletProposal, type Exchange, type HomeCargo, type JobOffer, type Journey, type MessageTrail, type PendingAudience } from "../model/records.ts";
 import { char, findCharacter, isAlive, logEvent, newGoldLot, newId, notify, ownedBy } from "../model/state.ts";
 import { authorityText, newAuthority } from "../model/authority.ts";
@@ -211,6 +211,7 @@ P.dispatch = function (p, d) {
     inventory,
     authority,
     checkClaim: d.checkClaim ?? null,
+    styled: claimedName(p),
     offers,
     collect: collect?.id ?? null,
   });
@@ -301,6 +302,8 @@ P.envoyArrivesAbroad = function (j) {
   this.envoyBusinessAbroad(c, j);
   const aud = newPendingAudience({ id: newId(S, "a"), envoyId: c.id, from: j.from, host: j.to, dispatch: j.dispatch! });
   S.audiences.push(aud);
+  // Item 17+: the host reads in the sealed greeting the name the sender claims.
+  this.claimHeard(j.to, j.from, j.dispatch!.styled ?? null);
   const trail = this.trail(j.dispatch!.trailId);
   if (trail !== null) trail.audienceTurn = S.turn;
 };

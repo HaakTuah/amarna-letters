@@ -32,7 +32,7 @@ import { BandData } from "../model/bands.ts";
 import { gain } from "../model/people.ts";
 import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
-import { AllPowers, type Power } from "../model/power.ts";
+import { AllPowers, land, type Power } from "../model/power.ts";
 import { courierSeasons } from "../rules/court.ts";
 import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { legPoints, PointsPerDay, boatDays, type Company } from "../model/travel.ts";
@@ -278,7 +278,7 @@ P.payTroops = function (p) {
     if (!paysUnit(S, u)) {
       u.unpaid++;
       held.push(unitLabel(u));
-      logEvent(S, "pay-held", `${p} held back the pay of ${unitLabel(u)} by its standing order.`, [p], "pay-held");
+      logEvent(S, "pay-held", `${land(p)} held back the pay of ${unitLabel(u)} by its standing order.`, [p], "pay-held");
       continue;
     }
     const pay = forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);

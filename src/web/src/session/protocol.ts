@@ -67,7 +67,7 @@ export interface Live {
   /** The powers risen in play (item 13+), as the engine registers them: sent with every update, so the map knows a new power the season it rises, before the state is read. */
   risen: RisenPower[];
   /** The names claimed and given (item 17+, "A power's name is a claim"), and the fallen, who claim nothing: sent likewise. */
-  names: { claims: [string, { name: string; since: number }][]; given: [string, [string, string][]][]; fallen: string[] };
+  names: { claims: [string, { name: string; since: number }][]; given: [string, [string, string][]][]; heard: [string, [string, string][]][]; fallen: string[] };
   seats: Record<string, string>;
   snapshots: number;
   chronicles: Record<string, string>;

@@ -182,8 +182,13 @@ export class SessionCore {
       risen: r === null ? [] : r.state.risen,
       names:
         r === null
-          ? { claims: [], given: [], fallen: [] }
-          : { claims: [...r.state.names], given: [...r.state.nameGiven].map(([k, m]) => [k, [...m]] as [string, [string, string][]]), fallen: [...r.state.eliminated] },
+          ? { claims: [], given: [], heard: [], fallen: [] }
+          : {
+              claims: [...r.state.names],
+              given: [...r.state.nameGiven].map(([k, m]) => [k, [...m]] as [string, [string, string][]]),
+              heard: [...r.state.namesHeard].map(([k, m]) => [k, [...m]] as [string, [string, string][]]),
+              fallen: [...r.state.eliminated],
+            },
       seats: r === null ? {} : Object.fromEntries([...r.log.header.seats]),
       snapshots: r?.snapshots.length ?? 0,
       chronicles: r === null ? {} : Object.fromEntries([...r.chronicles]),

@@ -120,7 +120,7 @@ export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
 export interface TroopUpkeep {
   pay: boolean;
   feed: boolean;
-  /** The units held back while the whole order stands. */
+  /** The units treated otherwise than the whole order says: held back while it pays, or paid while it pays none. */
   payExcept: string[];
   feedExcept: string[];
 }
@@ -136,12 +136,12 @@ export const upkeepOf = (s: GameState, p: Power): TroopUpkeep => s.upkeep.tryGet
 /** Whether the king's standing order pays this unit this season. */
 export const paysUnit = (s: GameState, u: Unit): boolean => {
   const o = upkeepOf(s, u.power);
-  return o.pay && !o.payExcept.includes(u.id);
+  return o.pay !== o.payExcept.includes(u.id);
 };
 /** Whether the king's standing order feeds this unit from his stores and his gold this season. */
 export const feedsUnit = (s: GameState, u: Unit): boolean => {
   const o = upkeepOf(s, u.power);
-  return o.feed && !o.feedExcept.includes(u.id);
+  return o.feed !== o.feedExcept.includes(u.id);
 };
 
 /**
@@ -200,6 +200,8 @@ export interface GameState {
   names: Dict<Power, NameClaim>;
   /** Item 17+: whom each court gives a contested name to, as its greetings last named him (court, then name, to claimant). */
   nameGiven: Dict<Power, Dict<string, Power>>;
+  /** Item 17+: the name each court last read a claimant styled by in his sealed greetings (court, then claimant, to name). */
+  namesHeard: Dict<Power, Dict<Power, string>>;
   /**
    * The season the age ended in, when the table chose to play on into an open age after it ("An open age"); its winners
    * and reason stay recorded in {@link winners} and {@link endReason}. Null otherwise.
@@ -452,6 +454,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     recognition: [],
     names: new Dict(),
     nameGiven: new Dict(),
+    namesHeard: new Dict(),
     ageEndedTurn: null,
     ageWinners: [],
     owner: new Dict(),
@@ -559,6 +562,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   recognition: list(() => RecognitionSchema),
   names: dict(() => NameClaimSchema),
   nameGiven: dict(dict(S)),
+  namesHeard: dict(dict(S)),
   ageEndedTurn: opt(I),
   ageWinners: list(S),
   owner: dict(opt(S)),

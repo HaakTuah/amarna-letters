@@ -46,7 +46,7 @@ export class TurnEngine {
     // The powers risen in play are the state's (item 13+): a loaded or replayed game brings its own.
     setRisen(state.risen);
     // And the names they claim (item 17+), which the functions naming a power read.
-    setNameClaims(state.names, state.eliminated, state.nameGiven);
+    setNameClaims(state.names, state.eliminated, state.nameGiven, state.namesHeard);
   }
 
   /** The stream for a roll this season. */
