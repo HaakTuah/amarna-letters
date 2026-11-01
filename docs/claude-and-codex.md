@@ -112,10 +112,12 @@ goes to building. Its usage can run out like any other, and it may then not say 
 4. **It gives findings, not a score:** its format is its own, whatever it is asked (seen on Snakes #289,
    1 November 2026). Each finding has a priority from P0 to P3: **P0 and P1 are blocking**, P2 and P3 are not, and go
    into the PR as notes. A review that found nothing (its 👍, or "Didn't find any major issues") counts as clean.
-5. **The design check, with a score:** on its build-order items (not the polish and sound lanes' small fixes), Claude's reviewer also
-   checks the work against the design, at medium effort: given the diff, the PR's description and "The game in one page",
-   it gives the score from 1 to 10 and what keeps it from 10, blocking or not ("Reviews" below), on the design alone,
-   since Codex has looked for bugs and security. Smaller PRs get Codex's review only.
+5. **Claude's full review on the big items, for now:** on its build-order items (not the polish and sound lanes' small fixes), Claude's reviewer (Opus, high
+   effort) reviews as before Codex came, with its score and everything that keeps the work from 10, and Codex's review
+   runs beside it for bugs and security; both verdicts count, and either one's blocking points send the work back.
+   Smaller PRs get Codex's review alone. This holds until a test shows Codex's review catches what Claude's does
+   (Haakon, 1 November 2026: a review that only waves through what is not plainly broken "actively deteriorates the
+   output"); the test's result is written here.
 6. **Docs-only PRs and the milestone PRs get no review,** as before. Codex's automatic review stays off in its settings
    for both repositories, so it reviews only when asked.
 
