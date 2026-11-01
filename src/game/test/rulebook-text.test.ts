@@ -366,7 +366,7 @@ describe("ViewTextTests", () => {
   test("The schema says how to besiege a city and what each greeting flag means", () => {
     // As the king reads it: the JSON text escapes an apostrophe, which the model reads as the apostrophe.
     let schema = JSON.stringify(Schemas.leaderOrders(newGameConfig()));
-    Assert.contains('"enum":["hold","move","force_march","support","convoy","disband","settle","besiege","sally","raze"]', schema);
+    Assert.contains('"enum":["hold","move","force_march","support","convoy","disband","settle","fold","besiege","sally","raze"]', schema);
     Assert.contains("sally: the province the attack on the troops within your walls comes from", schema);
     Assert.contains("besiege: an army standing within walls you do not hold besieges that city", schema);
     Assert.doesNotContain("support its walls holding", schema);
