@@ -56,8 +56,9 @@ reviews), and if it scores well, more items follow.
    brief and the repository, so the brief stands alone: the item, the sections and files to read (paths), the tests it
    must pass, what not to touch, and what its report must say ("Readings taken", "Questions for Haakon").
 2. **Add the label `codex`.** The runner on Haakon's PC sees it within a minute, comments "Codex has started" with the
-   cloud task's id, and swaps the label for `codex-running`. When Codex is done, the runner pushes Codex's diff to the
-   branch as one commit, posts Codex's report, and labels the PR `codex-done`, or `codex-failed` with the reason.
+   cloud task's id, and swaps the label for `codex-running`. Codex pushes its work to the branch itself; if it cannot, the
+   runner applies its diff there as one commit. Then the runner posts Codex's report and labels the PR `codex-done`, or
+   `codex-failed` with the reason.
 3. **Questions go on the PR,** both ways: Codex's arrive in the runner's comment; the orchestrator answers by adding a
    section to the description ("Round 2: ...") and adding `codex` again. At most **two rounds** per question; then the
    orchestrator takes the most reasonable reading and writes it under "Readings taken". Whatever only Haakon can settle
@@ -109,8 +110,8 @@ Every review, in either direction:
 - **The tests you are given are the contract:** make them pass; never change, skip or weaken them. If you think one is
   wrong, say why in your report and leave that part.
 - Run `scripts/test.sh` before you finish, and `scripts/sim.sh --games 50 --seed 1 --verify-replay` when the engine changed.
-- Do not commit, push or open a pull request: the runner applies your diff to the PR's branch. Never touch `main`, and
-  never put a key or secret anywhere.
+- Commit and push your work to the PR's branch, never to `main` or `develop`, and open no new pull request; if you
+  cannot push, leave it uncommitted and the runner applies your diff. Never put a key or secret anywhere.
 - Your environment's setup script installs what the suites need. If something is missing, say what in your report
   instead of working around it.
 - Your review of Claude's PRs follows "Reviews" above: the score, the list, blocking or not.
@@ -128,8 +129,8 @@ Every review, in either direction:
 ## The runner on Haakon's PC
 
 `scripts/codex-runner.sh` connects the two. The orchestrator stays in Claude's cloud and only labels pull requests;
-the runner on Haakon's PC sees the labels, starts Codex's cloud tasks with `codex cloud exec`, applies their diffs to
-the PR's branch, and runs the reviews read-only on the PC with `codex exec`. The PC only hands work over: Codex builds
+the runner on Haakon's PC sees the labels, starts Codex's cloud tasks with `codex cloud exec`, sees their work land on
+the PR's branch (applying the diff itself if Codex could not push), and runs the reviews read-only on the PC with `codex exec`. The PC only hands work over: Codex builds
 and tests in OpenAI's cloud. When the PC is off, nothing breaks: the lanes go back to Claude ("When Codex is not
 there").
 

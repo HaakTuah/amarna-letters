@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The Codex runner: runs on Haakon's PC (Git Bash on Windows, or any Linux), one per repository, from that repository's clone. It hands
-# pull requests labelled `codex` to Codex's cloud (`codex cloud exec`), applies Codex's diff to the PR's branch and
-# reports on the PR; pull requests labelled `codex-review` get a read-only review from Codex on this PC. It acts only on
+# pull requests labelled `codex` to Codex's cloud (`codex cloud exec`); Codex pushes its work to the PR's branch, or,
+# if it cannot, the runner applies its diff there; then it reports on the PR. pull requests labelled `codex-review` get a read-only review from Codex on this PC. It acts only on
 # pull requests that HaakTuah opened from this repository and labelled himself. Setup, labels and the rules it keeps:
 # docs/claude-and-codex.md, "The runner on Haakon's PC".
 #
@@ -56,6 +56,8 @@ trusted() { # PR number, label -> sets BRANCH and BODY; 0 if it may be acted on
   BODY=$(gh api "repos/$REPO/pulls/$n" --jq .body)
 }
 
+branch_head() { gh api "repos/$REPO/branches/$1" --jq .commit.sha 2>/dev/null; }
+
 task_ids() { codex cloud list --json 2>/dev/null | "$PY" -c '
 import json, sys
 d = json.load(sys.stdin); t = d.get("tasks", []) if isinstance(d, dict) else d
@@ -75,7 +77,8 @@ You are Codex, building for Haakon in $REPO: pull request #$n, branch $BRANCH (m
    outside it.
 3. Run the checks the brief and AGENTS.md ask for, and fix what fails. Never change, skip or weaken a test you were
    given; if you think one is wrong, say so in your report.
-4. Do not commit, push or open a pull request: the runner on Haakon's PC applies your diff to the branch.
+4. Commit your changes and push them to $BRANCH (never to main or develop), and open no new pull request. If you
+   cannot push, leave the changes uncommitted: the runner on Haakon's PC then applies your diff to the branch.
 5. End with a short report: what you changed, the checks you ran and their results, "Readings taken" and
    "Questions for Haakon" (or "None.").
 
@@ -86,10 +89,10 @@ EOF
 }
 
 start_build() { # PR number
-  local n=$1 before out task
+  local n=$1 before out task head0
   trusted "$n" codex || { label_del "$n" codex; return; }
   label_del "$n" codex; label_add "$n" codex-running
-  before=$(task_ids)
+  before=$(task_ids); head0=$(branch_head "$BRANCH")
   build_prompt "$n" >"$STATE/work/prompt-$n"
   out=$(codex cloud exec --env "$ENV_ID" "$(cat "$STATE/work/prompt-$n")" 2>&1)
   if [ $? -ne 0 ]; then
@@ -106,18 +109,22 @@ start_build() { # PR number
     echo "Codex was given the task, but the runner could not find its task id, so it cannot follow it. See the runner's log." | comment "$n"
     return
   fi
-  printf '%s %s %s\n' "$task" "$(date +%s)" "$BRANCH" >"$STATE/tasks/$n"
+  printf '%s %s %s %s\n' "$task" "$(date +%s)" "$BRANCH" "$head0" >"$STATE/tasks/$n"
   log "PR #$n: started cloud task $task on $BRANCH"
-  echo "Codex has started: cloud task \`$task\`, environment \`$ENV_ID\`, on \`$BRANCH\`. The runner applies its diff here when it is done." | comment "$n"
+  echo "Codex has started: cloud task \`$task\`, environment \`$ENV_ID\`, on \`$BRANCH\`. When it is done, Codex pushes its work here, or the runner applies its diff." | comment "$n"
 }
 
-finish_build() { # PR number, task, branch
-  local n=$1 task=$2 branch=$3 wt summary
+finish_build() { # PR number, task, branch, the branch's head when the task started
+  local n=$1 task=$2 branch=$3 head0=$4 wt summary
+  summary=$(task_field "$task" summary)
+  if [ -n "$head0" ] && [ "$(branch_head "$branch")" != "$head0" ]; then   # Codex pushed its work itself
+    printf 'Codex is done: it pushed its work from cloud task `%s` to `%s` itself.\n\n%s\n' "$task" "$branch" "${summary:-$NO_SUMMARY}" | comment "$n"
+    return 0
+  fi
   wt="$STATE/work/pr-$n"
   rm -rf "$wt"; git -C "$ROOT" worktree prune
   git -C "$ROOT" fetch -q origin "$branch" && git -C "$ROOT" worktree add -q -f --detach "$wt" "origin/$branch" || return 1
   ( cd "$wt" && codex apply "$task" ) >>"$LOG" 2>&1 || { rm -rf "$wt"; git -C "$ROOT" worktree prune; return 1; }
-  summary=$(task_field "$task" summary)
   ( cd "$wt" && git add -A && { git diff --cached --quiet || git -c user.name="Codex (runner on Haakon's PC)" -c user.email="$OWNER@users.noreply.github.com" commit -q -m "Codex: PR #$n (cloud task $task)
 
 ${summary:-$DEFAULT_SUMMARY}" ; } && git push -q origin "HEAD:$branch" ) >>"$LOG" 2>&1 || { rm -rf "$wt"; git -C "$ROOT" worktree prune; return 1; }
@@ -126,8 +133,8 @@ ${summary:-$DEFAULT_SUMMARY}" ; } && git push -q origin "HEAD:$branch" ) >>"$LOG
 }
 
 check_build() { # PR number
-  local n=$1 task started branch status age
-  read -r task started branch <"$STATE/tasks/$n"
+  local n=$1 task started branch head0 status age
+  read -r task started branch head0 <"$STATE/tasks/$n"
   if [ "$(gh api "repos/$REPO/pulls/$n" --jq .state)" != open ] || ! has_label "$n" codex-running; then
     log "PR #$n: closed or taken back; stopped following $task"; rm -f "$STATE/tasks/$n"; return
   fi
@@ -135,7 +142,7 @@ check_build() { # PR number
   age=$(( ($(date +%s) - started) / 60 ))
   case "$status" in
     completed|complete|succeeded|success|ready|done|finished)
-      if finish_build "$n" "$task" "$branch"; then label_del "$n" codex-running; label_add "$n" codex-done; log "PR #$n: done ($task)"
+      if finish_build "$n" "$task" "$branch" "$head0"; then label_del "$n" codex-running; label_add "$n" codex-done; log "PR #$n: done ($task)"
       else label_del "$n" codex-running; label_add "$n" codex-failed; log "PR #$n: applying $task failed"
         echo "Codex finished cloud task \`$task\`, but the runner could not apply or push its diff. See the runner's log." | comment "$n"; fi
       rm -f "$STATE/tasks/$n" ;;
