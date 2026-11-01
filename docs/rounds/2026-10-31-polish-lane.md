@@ -73,7 +73,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - On a computer the Legends tab's and a followed life's dates ran into the line beside them ("season 2, 1346 BCSealed a tablet"); their column is wide enough for the dates since they read in words.
 - The end of an age read "The age has ended (the gods have ended the age)"; it reads "The gods have ended the age." (or "Only one kingdom remains.", "The age has run its course."), and the header names the winners as the game shows them.
 - In the Standings tables a power's name could fall to the line below its emblem ("Carchemish" alone under its seal);
-  emblem and name now stay on one line (#PR).
+  emblem and name now stay on one line (#346).
 
 ## Finds not yet fixed
 
