@@ -319,8 +319,10 @@ their life: their path, their masters, their missions, what they said and report
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
 gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
-battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Each court's map is pressed in
-clay, and Egypt's is drawn on papyrus.
+battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
+you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
+stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
+Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall
 of courts. When the age ends, every seat may open the whole record in god view.
