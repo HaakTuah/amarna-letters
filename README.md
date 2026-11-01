@@ -110,8 +110,15 @@ rumours, and those can be late, shaded or false.
   tolls on your roads.
 - Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée: nothing is
   kept unless you order it, and an army in another's land can raze them.
-- Hunger, levies, a sack and troops taking food breed unrest. Your troops and a loyal governor lower it; a revolt where
-  your troops do not stand may put a province under a ruler of its own, or leave it lawless.
+- **No province is owned by a flag: it obeys whoever it fears or loves most.** Fear is troops standing in it (or, for its
+  holder, next to it), weighed against its own men; love is what its people remember of each king, governor and man of
+  standing: what he gave them (protection, policing, grain, a light tax) against what he took (a heavy tax, levies, food
+  taken, a sack, a famine under him). Memory fades, and you never see the numbers: your governor and spies tell you the
+  mood in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. It changes
+  hands only by a clear margin: to a king whose troops stand in it, to a man of standing there whose following outweighs
+  you (he rules it in his own name), or, if it bears you nothing and none of your troops stand there, to nobody. Seven men
+  among thousands who lean away hold nothing: they are overwhelmed, and a far weaker unit an army falls on is destroyed even
+  where its land held the army out. Fold a remnant into larger troops of yours next to it (order fold), or disband it.
 
 **Tongues.** Every court speaks and reads its own languages. An envoy needs a tongue the host understands, a tablet
 waits until someone at court can read it, and people learn the tongues of where they live.
@@ -136,8 +143,8 @@ Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's ne
 ### Winning
 
 A realm's strength is ten times what its land produces in a season (its harvest at the price of grain, a shekel a
-measure, plus its mines' gold), plus its gold and what its people and men hold besides, never counting what it owes. Conquered land counts as it is
-absorbed, over its first seasons. Its growth is that strength against its strength at the start. At the end each power's score blends two things: its performance, its growth
+measure, plus its mines' gold), plus its gold and what its people and men hold besides, never counting what it owes. Each
+province counts as far as it obeys you. Its growth is that strength against its strength at the start. At the end each power's score blends two things: its performance, its growth
 ranked among the results of powers that started where it did (most of the score, so a city that holds its own can
 win as well as an empire), and its size, its strength against the largest living realm's (a small part, 5 percent by
 default). The highest score wins.
@@ -232,11 +239,13 @@ Amurru and then his son Aziru, who played Egypt against Hatti and in the end wen
 where the great kings' spheres meet, and where the truth is hardest to find.
 
 **The people of 1346.** Everyone the sources show alive, active and not ruling in 1346 is in the game from its first
-season, where the sources put him and holding what he held: Ay and the vizier Nakht at Akhetaten, the commissioners
-Pahanate, Pawura, Rianap and Tahmashshi in Pharaoh's service, Enlil-kidinni over Nippur, the governor of Alashiya, Zida
-with Hatti's guard; and the claimants and men of action of the Levant, Rib-Hadda's brother Ilirabih at Gubla, Aziru's
+season, where the sources put him and holding what he held: Ay and the vizier Nakht at Akhetaten, the governors in
+office, Thutmose over Kush, Addaya at Hazzatu, Pahanate at Ṣumur, Enlil-kidinni over Nippur, the governor of Alashiya, and
+Hatti's and Babylonia's border lords whose names are lost; Pharaoh's commissioners Maya, Haya, Rianap, Tahmashshi and
+Yanhamu, each an open resident in the vassal land he watched; Pawura in Pharaoh's service; Zida with Hatti's guard; and the claimants and men of action of the Levant, Rib-Hadda's brother Ilirabih at Gubla, Aziru's
 brothers in Amurru, Artatama the rival king of the Hurrians, Tagi and Yashdata at Magidda, the men of Akka who killed
-Babylon's merchants. No rule is made for any of them: Ilirabih may take Gubla if Rib-Hadda fails, by the rules everyone
+Babylon's merchants. A claimant, a town's ruler such as Tagi and a house the letters show a land leaning to (Aziru's at
+Gubla) start with a share of its people's love. No rule is made for any of them: Ilirabih may take Gubla if Rib-Hadda fails, by the rules everyone
 lives by. What the sources say of each is on his card.
 
 ## Envoys and other servants

@@ -203,6 +203,15 @@ export interface DisbandOrder {
   /** Its men settle where it stands, in a province of one's own, as colonists, instead of walking home (item 10+a). */
   settle?: boolean | null;
 }
+/**
+ * Item 17++ ("A handful holds nothing by itself"): the troops in `unit` march to those of the same kind in `into`, next to
+ * them, and join them, their men, food and savings with them, the season's march taking the season.
+ */
+export interface FoldOrder {
+  type: "fold";
+  unit: string;
+  into: string;
+}
 export interface CedeProvinceOrder {
   type: "cede";
   province: string;
@@ -607,6 +616,7 @@ export type Order =
   | ReturnRunawaysOrder
   | RaiseOrder
   | DisbandOrder
+  | FoldOrder
   | CedeProvinceOrder
   | GiftUnitOrder
   | DispatchOrder
@@ -663,6 +673,7 @@ export const raze = (unit: string, kind: WorkKind): RazeOrder => ({ type: "raze"
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
 export const raise = (province: string, kind: UnitKind, men: number | null = null): RaiseOrder => (men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men });
 export const disband = (unit: string, settle = false): DisbandOrder => (settle ? { type: "disband", unit, settle } : { type: "disband", unit });
+export const fold = (unit: string, into: string): FoldOrder => ({ type: "fold", unit, into });
 export const cede = (province: string, to: Power): CedeProvinceOrder => ({ type: "cede", province, to });
 export const giftUnit = (unit: string, to: Power): GiftUnitOrder => ({ type: "giftUnit", unit, to });
 export function dispatch(
@@ -825,6 +836,8 @@ export function describe(o: Order): string {
       return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}${o.men != null ? ` of ${o.men} men` : ""}`;
     case "disband":
       return o.settle === true ? `disband ${o.unit} and settle its men there as colonists` : `disband ${o.unit}`;
+    case "fold":
+      return `fold the troops in ${o.unit} into those in ${o.into}`;
     case "tax":
       return `set the tax to ${o.percent}% of the harvest in ${o.province === null ? "all your land" : named(o.province)}`;
     case "cede":
@@ -924,6 +937,7 @@ export function unitOf(o: Order): string | null {
     case "convoy":
     case "besiege":
     case "disband":
+    case "fold":
     case "giftUnit":
     case "raze":
       return o.unit;
@@ -1006,6 +1020,7 @@ export const OrderSchema = poly("Order", "type", {
   toll: v("TollOrder", () => toll(0), { province: opt(S), partner: opt(S), percent: I }),
   raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S, men: opt(I) }),
   disband: v("DisbandOrder", () => disband(""), { unit: S, settle: opt(B) }),
+  fold: v("FoldOrder", () => fold("", ""), { unit: S, into: S }),
   tax: v("TaxOrder", () => tax(0), { province: opt(S), percent: I }),
   welcome: v("WelcomeOrder", () => welcome(""), { province: S }),
   deport: v("DeportOrder", () => deport("", "", 0), { province: S, to: S, number: I, purse: B }),

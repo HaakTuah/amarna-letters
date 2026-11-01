@@ -4,7 +4,7 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
+import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
@@ -31,6 +31,8 @@ declare module "./core.ts" {
     resolveSeason(submissions: Dict<Power, TurnSubmission>): Dict<Power, ValidationResult>;
     resolveMovement(unitOrders: [Power, Order][]): void;
     updateOwnership(): void;
+    /** A remnant marches to the troops of its own side next to it and joins them (item 17++). */
+    foldUnit(p: Power, o: FoldOrder): void;
     resolveTransfers(cessions: [Power, CedeProvinceOrder][], gifts: [Power, GiftUnitOrder][]): void;
     raise(p: Power, r: RaiseOrder): void;
     capitalsTaken(): void;
@@ -137,6 +139,8 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is BuildOrder => o.type === "build")) this.setWorks(p, o);
   for (const [p, o] of all((o): o is RazeOrder => o.type === "raze")) this.raze(p, o);
   this.worksSeason();
+  // Item 17++: remnants folded into the troops next to them, once the season's moves are done.
+  for (const [p, o] of all((o): o is FoldOrder => o.type === "fold")) this.foldUnit(p, o);
   for (const [p, d] of all((o) => o.type === "disband")) {
     const unit = (d as Extract<Order, { type: "disband" }>).unit;
     const u = unitAt(S, unit);
@@ -433,6 +437,25 @@ P.updateOwnership = function () {
     // A court's capital holds its archive: whoever takes it gains a copy of every tablet in it.
     this.takeArchive(u.power, u.province);
   }
+};
+
+P.foldUnit = function (p, o) {
+  const S = this.s;
+  const u = unitAt(S, o.unit);
+  const into = unitAt(S, o.into);
+  if (u === null || u.power !== p || into === null || into.power !== p || into.kind !== u.kind) {
+    this.failed(p, o, "Fold failed", `The troops in ${this.map.get(o.unit).name} did not join those in ${this.map.get(o.into).name}: ${u === null || u.power !== p ? "they were gone after movement" : "none of yours stood there after movement"}.`, "the troops were gone", false);
+    return;
+  }
+  // Men, food and savings go with them: nothing appears or vanishes.
+  into.men += u.men;
+  into.food += u.food;
+  into.savings += u.savings;
+  into.chest += u.chest;
+  S.units.splice(S.units.indexOf(u), 1);
+  this.liftSiegesOf(u.id);
+  logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, [p], "fold");
+  notify(S, p, "Resolution", "Troops joined", `${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, ${into.men} men strong now.`);
 };
 
 P.resolveTransfers = function (cessions, gifts) {

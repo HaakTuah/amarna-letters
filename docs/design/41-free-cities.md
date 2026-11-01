@@ -7,30 +7,12 @@ without a ruler" under Bands; "Armies need food as well as pay" under Land, peop
 `docs/rounds/2026-10-29-free-cities.md`. Save version 37. Every number is a first guess in `UnrestData`
 (`src/engine/src/model/unrest.ts`), tuned in item 18.
 
-## Unrest (`turn/unrest.ts`, `unrestOf`, `unrestSeason`)
+## Unrest (`turn/unrest.ts`)
 
-- Every held land province carries unrest in points, reckoned each season after the people eat (`incomeAndUpkeep`), from:
-  a **hardship** stock the people remember (`GameState.unrest`: famine by `fed`, `hunger` 40 at no food; levies by the
-  share of the men of fighting age taken, `levy` 60 for all of them, in `levyMen`; food troops took, `taken` 400 for all the
-  farmers' food and market stock as the season began, any troops' including the holder's, `TakenBook` in `feedTroops`; a
-  sack, `sacked` 30 by the share of the purse taken); **outside help** (`GameState.stirred`, `stir` 25 a hundred shekels);
-  **newness** (`fresh` 60 the season it was taken, 5 fewer a season, never in the holder's homeland; `GameState.takenAt`,
-  `takenFrom`, set by `setOwner`); the master's **weakness** (`besieged` 20 while his court's city is besieged, up to
-  `weakness` 40 as his strength falls below his start); **distance** (`far` 5 a season of road from his court beyond the
-  first, at most 20); a **cause** (`cause` 20 while the power it was taken from stands, 20 more while a man of standing
-  there wants it, `wantsIt`: a governor, a band's chief or a former ruler of it, ambition 50 or more and, if the
-  holder's own man, loyalty below 50). Lowered by the holder's troops in it (40) or beside it (10), a loyal governor (20),
-  policing (10 a level) and a good harvest (10). Both stocks fade 15% a season and are cleared when the land changes hands.
-- **It rises** at `threshold` 100, or `homeThreshold` 250 in the holder's own homeland; the dice settle only the last 10
-  points below. Every province is reckoned before any rises (the order of resolution never decides). The court's own city
-  never rises (a coup is not modelled; the dossier's "Home provinces"), nor a besieged one (the siege's).
-- **Who leads it** (`revolt`): where the holder's troops stand, it is put down (1% of the settled die, the stocks halve,
-  `revolt-crushed`); else the man who wants it rules it in his own name (`ruleOwn`, how `revolt`: a governor with the levies
-  he raised there, a chief with his band as an army, or a former ruler with the men who rose, a levy at no price); with
-  nobody, it falls lawless (`revolt-lawless`).
-- **The holder never sees the number.** His governor writes of the mood in words when it changes (`moodWords`: quiet,
-  uneasy, restless, near revolt; `Governor.mood`), and one who wants the province writes "quiet"; a spy watching a province
-  reports it; the people complain when troops take their food ("The people complain", "Troops took food").
+Replaced in item 17++ by the ledger and the one rule of whom a province obeys: [47](47-whom-a-province-obeys.md). What
+item 17 summed as unrest (hardship, newness, the master's weakness, distance, a cause, outside help, and what lowered it)
+is read there as entries in the ledger and as the moment; the governor's reports in words (`moodWords`) and the spies'
+are unchanged.
 
 ## Rulers of their own (`turn/rulers.ts`, `ruleOwn`)
 
@@ -79,7 +61,7 @@ posted, he spends half of it a season (at least 50) into the province's purse, k
 
 - Each army by leave whose depot will not feed it gets word to buy and gold for three seasons at the price its court last
   heard, when what it carries and has on the road is below a third of that and the treasury can spare it (`supplyOrders`).
-- A province a governor calls restless or near revolt pays 15 points less tax (`reliefOrders`).
+- A province a governor calls restless or near revolt pays 15 points less tax (`reliefOrders`); from item 17++ a lighter tax is a giving in its ledger.
 - A cunning king (cunning above 0.4) posting a watching spy in a foe's land that is not the foe's homeland sends a third of
   his spare gold with him, 50 to 200, to stir it (`stirGold`).
 - `--no-freedom-play` / `--freedom-play-half` turn all three off (the king then sends no word, so his armies take).

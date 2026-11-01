@@ -34,6 +34,7 @@ import {
   claimName,
   newAuthority,
   disband,
+  fold,
   tax,
   welcome,
   expel,
@@ -420,6 +421,8 @@ function unit(u: Node): Order | null {
       return disband(at);
     case "settle":
       return disband(at, true);
+    case "fold":
+      return fold(at, target);
     case "hold":
       return hold(at);
     case "besiege":

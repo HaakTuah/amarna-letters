@@ -415,6 +415,7 @@ export function asShown(s: GameState, p: Power, plan: PlannedOrder): Order {
     case "move":
     case "besiege":
     case "disband":
+    case "fold":
     case "giftUnit":
       return { ...o, unit: unit ?? o.unit };
     case "support":
@@ -444,6 +445,7 @@ export function asItStands(s: GameState, p: Power, plan: PlannedOrder): Order | 
     case "move":
     case "besiege":
     case "disband":
+    case "fold":
     case "giftUnit":
       return { ...o, unit };
     case "support":

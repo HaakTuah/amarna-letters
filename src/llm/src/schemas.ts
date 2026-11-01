@@ -174,12 +174,12 @@ export const OtherActions = [
 const unitOrder = (described = true): ReplySchema =>
   object(
     ["unit", str(described ? "Province id where your unit stands (sally: your walled city whose walls sally)." : null)],
-    ["order", enumOf(["hold", "move", "force_march", "support", "convoy", "disband", "settle", "besiege", "sally", "raze"])],
+    ["order", enumOf(["hold", "move", "force_march", "support", "convoy", "disband", "settle", "fold", "besiege", "sally", "raze"])],
     [
       "target",
       str(
         described
-          ? "move, force_march: destination. support: the province of the unit supported. convoy: province of the army. sally: the province the attack on the troops within your walls comes from. raze: what your army razes where it stands, in land another holds: roads, stations, harbour or water. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)."
+          ? "move, force_march: destination. support: the province of the unit supported. convoy: province of the army. sally: the province the attack on the troops within your walls comes from. raze: what your army razes where it stands, in land another holds: roads, stations, harbour or water. fold: the province of your own troops of the same kind next to it that it joins. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)."
           : null,
       ),
     ],

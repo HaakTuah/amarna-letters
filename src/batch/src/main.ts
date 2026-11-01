@@ -69,6 +69,8 @@ const o: BatchOptions = {
   moneyPlayHalf: false,
   noUpkeepPlay: false,
   upkeepPlayHalf: false,
+  noRemnantPlay: false,
+  remnantPlayHalf: false,
   noOutlawPlay: false,
   outlawPlayHalf: false,
   noVassalPlay: false,
@@ -282,6 +284,13 @@ for (let i = 0; i < args.length; i++) {
     case "--no-upkeep-play":
       o.noUpkeepPlay = true;
       break;
+    case "--no-remnant-play":
+      o.noRemnantPlay = true;
+      break;
+    case "--remnant-play-half":
+      // Half the script kings never fold or disband their remnants (item 17++), alternating by seed.
+      o.remnantPlayHalf = true;
+      break;
     case "--upkeep-play-half":
       // Half the script kings never hold back their troops' pay when hard up (item 17+), alternating by seed.
       o.upkeepPlayHalf = true;
@@ -458,7 +467,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --size-weight PERCENT --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-upkeep-play --upkeep-play-half --no-outlaw-play --outlaw-play-half --no-vassal-play --vassal-play-half --no-command-play --command-play-half --no-freedom-play --freedom-play-half --council-play-half --no-season-play --season-play-half --no-wall-play --wall-play-half --no-works-play --works-play-half --no-caravan-play --caravan-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --size-weight PERCENT --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-upkeep-play --upkeep-play-half --no-remnant-play --remnant-play-half --no-outlaw-play --outlaw-play-half --no-vassal-play --vassal-play-half --no-command-play --command-play-half --no-freedom-play --freedom-play-half --council-play-half --no-season-play --season-play-half --no-wall-play --wall-play-half --no-works-play --works-play-half --no-caravan-play --caravan-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
       );
       process.exit(0);
     default:

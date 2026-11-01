@@ -467,6 +467,8 @@ export function planned(o: Order, v: SeatView): string
           case "disband":
           case "giftUnit":
             return describe({ ...o, unit: now(o.unit) });
+          case "fold":
+            return describe({ ...o, unit: now(o.unit), into: now(o.into) });
           case "support":
             return describe({ ...o, unit: now(o.unit), supported: now(o.supported) });
           case "convoy":

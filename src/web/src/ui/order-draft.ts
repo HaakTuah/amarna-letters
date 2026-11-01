@@ -5,6 +5,7 @@ import {
   besiege,
   convoy,
   disband,
+  fold,
   entersText,
   hold,
   move,
@@ -112,6 +113,7 @@ export class OrderDraft {
       else if (d.kind === "convoy" && d.target !== null && d.to !== null) orders.push(convoy(at, d.target, d.to));
       else if (d.kind === "disband") orders.push(disband(at));
       else if (d.kind === "settle") orders.push(disband(at, true));
+      else if (d.kind === "fold" && d.target !== null) orders.push(fold(at, d.target));
       else if (d.kind === "besiege") orders.push(besiege(at));
       // Held by default, unless another order already names the unit (razing where it stands, or giving it away).
       else if (!this.other.some((o) => unitOf(o) === at)) orders.push(hold(at));
@@ -145,6 +147,8 @@ export class OrderDraft {
               ? { kind: "convoy", target: o.army, to: o.to }
               : o.type === "disband"
                 ? { kind: o.settle === true ? "settle" : "disband", target: null, to: null }
+                : o.type === "fold"
+                  ? { kind: "fold", target: o.into, to: null }
                 : o.type === "besiege"
                   ? { kind: "besiege", target: null, to: null }
                   : newUnitDraft();
