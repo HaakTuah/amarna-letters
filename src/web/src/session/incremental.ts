@@ -227,9 +227,11 @@ export class IncrementalReader {
         d.set(name, this.value(shape.of, x, true, cache, kept, path + "/" + name));
       }
       v = d;
-    } else if (shape.k === "obj") {
-      // An object member by member, as the engine's reader builds it (missing members keep the factory's defaults; names as
-      // written, else without regard to case), so that a character whose gold changed keeps its unchanged memory.
+    } else if (shape.k === "obj" && src.items.some((x) => typeof x !== "number" && x.to - x.from > 8)) {
+      // An object with a large part inside (a character and its memories) member by member, as the engine's reader builds
+      // it (missing members keep the factory's defaults; names as written, else without regard to case), so that a
+      // character whose gold changed keeps its unchanged memory. A small object is parsed whole below: one parse, not one
+      // a member.
       const o = shape.make() as Record<string, unknown>;
       let byLower: Map<string, [string, Schema]> | null = null;
       for (const x of src.items) {
