@@ -1033,3 +1033,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     subscription now, so how do I set it up like I want?" Written into `AGENTS.md` (`CLAUDE.md` renamed, Claude's
     own part kept in a new `CLAUDE.md` that imports it) and `docs/claude-and-codex.md`, the same in Barkstreet
     Snakes.
+124. **1 November 2026, 15:16 UTC**, in the design chat, after the first `@codex` test, where Codex's bot answered
+    within seconds: "Isn't 15 minutes a bit long to wait for it? here it took like a seconds or 2, max 3?" Then, to
+    the design session's proposal (about 5 minutes to a sign of life, a take-back at once when the bot answers with
+    an error, about 2 hours to a PR): "yes, expertly!" Written into `docs/claude-and-codex.md`, "When Codex is not
+    there", the same in Barkstreet Snakes.
