@@ -971,4 +971,17 @@ Given in the design chat with Claude, answering the design questions of the cons
     takes (17a: merge, the phone's frames waiting for 17+++; the Hurrian Hymn: keep Kilmer's reading, saying on the Music
     page that it is her reading; the Music page: our own pieces' names and moods only, without Empire Earth's): "Agreed
     to all! Now, where do I check the music?" Written into the "For Haakon" table of `docs/BUILD-PROGRESS.md`.
+118. **1 November 2026, 11:14-11:18 UTC**, in the design chat, on the music and the Music page: "I am actaully
+    impressed! Didn't expect much from the music actually! But it is good! Is it entirely like I imagined it? No! But it
+    fits quiet well! I want to keep all of it, even "The tuning's scale (a test)". So I think this page is really nice,
+    and for the player to be able to set which soundtrack they want. Though the orchestral, and the lyre and reed
+    soundtracks are clearly the best ones. I still don't see any reason to do away with the 8-bit one, but it should be
+    be the last on the list, with the orchestral being the default." Then, to the design session's take (that order
+    everywhere, the test under "Extras", Lyre and reed when the orchestra cannot load): "Yes, please, expertly! And i
+    notice the music page is a little bit buggy. Sounds can overlap if you click multiple. I see that as a feature
+    actually, so keep that. But the main theme from the menu keeps popping back in by itself after you've clicked on a
+    piece of music, and it still plays when you click on the sound effects sometimes, so it is hard to hear them with
+    the music drowning them out. Should perhaps the main theme stop when you click on anything in the music menu, then
+    resume when you leave that tab? What is your expert take?" Written into the polish lane's entries in
+    `docs/BUILD-PROGRESS.md`, with the design session's reading that the theme fades out on entering the page.
 

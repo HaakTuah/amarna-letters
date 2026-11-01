@@ -43,6 +43,15 @@ account until its usage is spent; on the main account the usage brake closes it 
   item 17+++ keeps every season ("Pace of play" under Interface); + and −, on the main keys and the number pad, step
   between Slow, Normal and Fast, by the character typed; never while a letter or a name is being typed; each shown in
   its button's tooltip. PR #293's added Very slow and fifth speed go before it merges. The rest of the keys come in item 17+++a.
+- **Next, the soundtracks and the Music page** (Haakon, 1 November 2026: "I am actaully impressed! Didn't expect much
+  from the music actually! But it is good! ... I want to keep all of it, even "The tuning's scale (a test)"", then
+  "Yes, please, expertly!"): keep every piece. The three soundtracks in this order everywhere, in the game's sound menu
+  and on the Music page: Orchestra (the default), Lyre and reed, 8-bit last. "The tuning's scale (a test)" moves to
+  the end of the Music page under "Extras". If the orchestra's files cannot load (offline, a slow phone), Lyre and reed
+  plays instead of silence, since it needs no download. And on the Music page, the game's own music (the menu theme)
+  fades out on entering the page and stays out while you are on it, so only what you press plays; pieces and sounds
+  pressed together still overlap, which Haakon keeps as a feature; leaving the page fades the theme back in. Today the
+  theme comes back by itself after a piece ends and plays over the sounds.
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
