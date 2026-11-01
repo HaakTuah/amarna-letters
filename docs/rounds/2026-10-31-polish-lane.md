@@ -58,6 +58,8 @@ Fixed since they were listed here: the Standings tab's leak of distant holders (
 
 - Event and news text names some powers by id where its name differs: "Terqa settled 874 loose men in Terqa",
   "Seha hired Ammistamru", "sold grain at Seha River Land" (the power Terqa is shown as Hana, Seha as the Seha River Land).
+  Likewise `${task.requester}` and `${culprit}` (`turn/intel.ts:704-719`) and seals joined in `turn/intel.ts:774`,
+  `turn/knowledge.ts:177` and `turn/archives.ts:72`.
   The engine writes these lines and kings read them, so they go with audit batch 2's ids in engine text; the interface's
   own "known to" notes and seals are fixed (polish lane).
 
