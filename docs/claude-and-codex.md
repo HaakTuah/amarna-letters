@@ -12,8 +12,8 @@ arrangement; `AGENTS.md` points here, and nothing here is repeated there.
   which the runner on Haakon's PC hands to Codex (below).
 - **The reviewer is the other company's model.** Codex's PRs get Claude's reviewer (Opus, high effort), given
   the diff, the item's text and "The game in one page": it holds the picture of the finished game and sends the work back until it meets it. Claude's PRs
-  that change the game get the `codex-review` label, and the runner posts Codex's review on the PR. When
-  Codex is unavailable, Claude's reviewer takes both, as before.
+  are reviewed by Claude's reviewer for now, as before Codex came: Codex reviews them once it can do so in its cloud
+  (a review run on Haakon's PC could be tricked into reading his logins, so there is none).
 - **Escalation goes to the other model first:** a problem that has defeated Claude twice goes to Codex as a
   draft PR from the stuck branch, labelled `codex`, whose description is the brief (the problem, what was tried, the
   files and lines), merged into the stuck branch if it works; one that has defeated Codex goes to
@@ -119,19 +119,19 @@ Every review, in either direction:
 ## Setup (1 November 2026)
 
 - Codex on ChatGPT Pro 100, its GitHub app given HaakTuah's two game repositories. Its own Code Review is set to
-  automatic review off; reviews go through the runner's `codex-review` label instead.
+  automatic review off.
 - One Codex cloud environment per repository, made in ChatGPT's Codex settings, its setup script
   `bash scripts/cloud-setup.sh` (from `/workspace/<repository>`).
-- Codex runs on its own default model for cloud tasks, since none can be chosen there; the local reviews use the model
-  and effort in `~/.codex/config.toml` on Haakon's PC (GPT-6.1 Sol at medium). The review scores per category show
-  whether that is good enough.
+- Codex runs on its own default model for cloud tasks, since none can be chosen there. The review scores per category
+  show whether that is good enough.
 
 ## The runner on Haakon's PC
 
 `scripts/codex-runner.sh` connects the two. The orchestrator stays in Claude's cloud and only labels pull requests;
 the runner on Haakon's PC sees the labels, starts Codex's cloud tasks with `codex cloud exec`, sees their work land on
-the PR's branch (applying the diff itself if Codex could not push), and runs the reviews read-only on the PC with `codex exec`. The PC only hands work over: Codex builds
-and tests in OpenAI's cloud. When the PC is off, nothing breaks: the lanes go back to Claude ("When Codex is not
+the PR's branch (applying the diff itself if Codex could not push), and reports on the PR. The PC only hands work
+over: Codex builds and tests in OpenAI's cloud, which holds no secrets, and the runner never runs the repository's code
+or Codex on the PC, so nothing a pull request contains can reach the PC's files or logins. When the PC is off, nothing breaks: the lanes go back to Claude ("When Codex is not
 there").
 
 **It acts only on Haakon's own work.** Strangers can comment on a public repository and open pull requests from forks,

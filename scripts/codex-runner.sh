@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# The Codex runner: runs on Haakon's PC (Git Bash on Windows, or any Linux), one per repository, from that repository's clone. It hands
-# pull requests labelled `codex` to Codex's cloud (`codex cloud exec`); Codex pushes its work to the PR's branch, or,
-# if it cannot, the runner applies its diff there; then it reports on the PR. pull requests labelled `codex-review` get a read-only review from Codex on this PC. It acts only on
-# pull requests that HaakTuah opened from this repository and labelled himself. Setup, labels and the rules it keeps:
-# docs/claude-and-codex.md, "The runner on Haakon's PC". It never updates itself: Haakon pulls a new version after
-# reading what changed, since it runs with his GitHub login.
+# The Codex runner: runs on Haakon's PC (Git Bash on Windows, or any Linux), one per repository, from its own clone. It
+# hands pull requests labelled `codex` to Codex's cloud (`codex cloud exec`); Codex pushes its work to the PR's branch,
+# or, if it cannot, the runner applies its diff there; then it reports on the PR. It acts only on pull requests that
+# HaakTuah opened from this repository and labelled himself. It never runs the repository's code or Codex on this PC
+# (Codex works only in its cloud, which holds no secrets), so nothing a pull request contains can reach this PC's files
+# or logins. Setup, labels and rules: docs/claude-and-codex.md, "The runner on Haakon's PC". It never updates itself:
+# Haakon pulls a new version after reading what changed, since it runs with his GitHub login.
 #
-#   CODEX_ENV_ID=<this repository's Codex cloud environment> scripts/codex-runner.sh
+#   CODEX_ENV_ID=<the Codex cloud environment of this repository> scripts/codex-runner.sh
 #
 # Optional: CODEX_RUNNER_OWNER (HaakTuah), CODEX_RUNNER_POLL (seconds between checks, 60),
 # CODEX_RUNNER_MAX_MINUTES (a cloud task's limit, 120), CODEX_RUNNER_ONCE=1 (one pass, then stop: for testing).
@@ -36,7 +37,7 @@ comment() { gh api "repos/$REPO/issues/$1/comments" -F body=@- --jq .id >/dev/nu
 label_add() { gh api "repos/$REPO/issues/$1/labels" -f "labels[]=$2" >/dev/null; }
 label_del() { gh api -X DELETE "repos/$REPO/issues/$1/labels/$2" >/dev/null 2>&1 || true; }
 has_label() { gh api "repos/$REPO/issues/$1/labels" --jq '.[].name' | grep -qx "$2"; }
-for l in codex codex-running codex-done codex-failed codex-review codex-reviewing codex-reviewed; do
+for l in codex codex-running codex-done codex-failed; do
   gh api "repos/$REPO/labels" -f name="$l" -f color=5319e7 >/dev/null 2>&1 || true   # exists already: fine
 done
 
@@ -173,42 +174,10 @@ check_build() { # PR number
   esac
 }
 
-review_prompt() { # PR number
-  cat <<EOF
-Review pull request #$n of $REPO: the changes on this checkout against origin/develop (\`git diff origin/develop...HEAD\`).
-Read AGENTS.md first, and review as "Reviews: a score, and what keeps it from 10" in docs/claude-and-codex.md says:
-a score from 1 to 10, and every point that keeps the work from 10, each with its file and line or design section and
-marked **blocking** or **not blocking**. Check the changes against the pull request's description below, the design
-sections it names and the standing rules. Change no files. Your whole answer is posted as a comment on the PR.
-
-The pull request's description:
-
-$BODY
-EOF
-}
-
-review() { # PR number: a read-only review by Codex on this PC, posted as a comment
-  local n=$1 wt out
-  trusted "$n" codex-review || { label_del "$n" codex-review; return; }
-  label_del "$n" codex-review; label_add "$n" codex-reviewing
-  wt="$STATE/work/review-$n"; out="$STATE/work/review-$n.md"
-  rm -rf "$wt" "$out"; git -C "$ROOT" worktree prune
-  if git -C "$ROOT" fetch -q origin "$BRANCH" develop && git -C "$ROOT" worktree add -q -f --detach "$wt" "origin/$BRANCH" &&
-     codex exec --cd "$wt" --sandbox read-only --output-last-message "$out" "$(review_prompt "$n")" >>"$LOG" 2>&1 && [ -s "$out" ]; then
-    { echo "## Codex review"; echo; cat "$out"; } | comment "$n"
-    label_del "$n" codex-reviewing; label_add "$n" codex-reviewed; log "PR #$n: reviewed"
-  else
-    label_del "$n" codex-reviewing; label_add "$n" codex-failed; log "PR #$n: review failed"
-    echo "Codex could not review this PR on the runner. See the runner's log." | comment "$n"
-  fi
-  rm -rf "$wt"; git -C "$ROOT" worktree prune
-}
-
 log "runner started for $REPO, environment $ENV_ID"
 while true; do
   for n in $(gh api "repos/$REPO/issues?state=open&labels=codex&per_page=20" --jq '.[] | select(.pull_request) | .number'); do start_build "$n"; done
   for f in "$STATE"/tasks/*; do [ -e "$f" ] && check_build "$(basename "$f")"; done
-  for n in $(gh api "repos/$REPO/issues?state=open&labels=codex-review&per_page=20" --jq '.[] | select(.pull_request) | .number'); do review "$n"; done
   [ "${CODEX_RUNNER_ONCE:-}" = 1 ] && break
   sleep "$POLL"
 done
