@@ -583,10 +583,20 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.drawn.get(name) === key) return;
     this.drawn.set(name, key);
     const t = performance.now();
-    this.layers.get(name)!.innerHTML = draw();
-    this.changed = true;
+    // Drawn anew, but written only when the markup differs from what stands (item 17a: a write means a style recalculation
+    // and a repaint of the layer, which a phone pays 40 ms and more for; most seasons the cities, the tints and the bands
+    // come out the same).
+    const html = draw();
+    if (this.written.get(name) !== html) {
+      this.layers.get(name)!.innerHTML = html;
+      this.written.set(name, html);
+      this.changed = true;
+    }
     performance.measure(`map:${name}`, { start: t });
   }
+
+  /** The markup each layer was last written with. */
+  private readonly written = new Map<string, string>();
 
   /** Whether a layer, the units or the people were written since the names were last placed: placing them costs a layout. */
   private changed = false;
@@ -677,7 +687,11 @@ export class SvgMapRenderer implements MapRenderer {
           this.drawn.set("people", s);
           this.drawn.set("peopleKey", peopleKey);
           this.changed = true;
-          this.layers.get("courts")!.innerHTML = peopleAtCourts(input);
+          const courts = peopleAtCourts(input);
+          if (this.written.get("courts") !== courts) {
+            this.layers.get("courts")!.innerHTML = courts;
+            this.written.set("courts", courts);
+          }
           reconcile(
             this.layers.get("travellers")!,
             s.travellers.map((t, i) => travellerItem(t, i, s.travellers, input)),

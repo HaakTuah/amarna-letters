@@ -1,7 +1,7 @@
 /** The messages between the page and the engine's worker. The engine is the only state: the page shows what it is sent. */
 import type { GameConfig, Power, RisenPower } from "@amarna/engine";
 import type { SeasonFallbacks, SnapshotDelta, TrailAuthors } from "@amarna/game";
-import type { SeasonFrame } from "./frames.ts";
+import type { WireFrame } from "./frames.ts";
 import type { GameSettings, TableSettings } from "./settings.ts";
 
 /** API keys by provider id ("anthropic", or a provider the table set up), held in memory only. */
@@ -83,5 +83,5 @@ export interface Live {
 }
 
 export type FromWorker =
-  | { type: "update"; live: Live; frames: SeasonFrame[]; reset: boolean }
+  | { type: "update"; live: Live; frames: WireFrame[]; reset: boolean }
   | { type: "export"; id: number; name: string; text: string };

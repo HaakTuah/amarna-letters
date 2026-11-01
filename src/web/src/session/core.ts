@@ -28,7 +28,7 @@ import {
 } from "@amarna/engine";
 import { GameLog, GameRunner, ReplayExhaustedError, pressFor, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
 import { AnthropicId, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
-import { framesSince, type SeasonFrame } from "./frames.ts";
+import { framesSince, toWire, type SeasonFrame, type WireFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
 import { choicesOf, fallenSeesAll, handLimitNeeded, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
 import { saveLog } from "./storage.ts";
@@ -108,6 +108,8 @@ export class SessionCore {
   private frames: SeasonFrame[] = [];
   private framesTaken = 0;
   private lastFrame: SeasonFrame | null = null;
+  /** The last frame sent to the page, which the next is sent as a difference from. */
+  private sentFrame: SeasonFrame | null = null;
   private resetPending = false;
   private fallTold = false;
   private fallenToGod = false;
@@ -189,7 +191,15 @@ export class SessionCore {
       trailAuthors: r === null ? {} : Object.fromEntries(r.state.trails.map((t) => [t.id, r.trailAuthors(t)] as const)),
       fallbacks: r === null ? [] : this.fallbacksUpTo(r),
     };
-    this.post({ type: "update", live, frames: this.frames, reset: this.resetPending });
+    // Each frame as sent leaves out what equals the frame sent before it (toWire).
+    const frames: WireFrame[] = [];
+    let before = this.resetPending ? null : this.sentFrame;
+    for (const f of this.frames) {
+      frames.push(toWire(f, before));
+      before = f;
+    }
+    if (this.frames.length > 0) this.sentFrame = this.frames[this.frames.length - 1];
+    this.post({ type: "update", live, frames, reset: this.resetPending });
     this.frames = [];
     this.states = [];
     this.resetPending = false;
@@ -269,6 +279,7 @@ export class SessionCore {
     this.savedTurn = -1;
     this.framesTaken = 0;
     this.lastFrame = null;
+    this.sentFrame = null;
     this.resetPending = true;
     this.generation++;
     this.fallTold = false;

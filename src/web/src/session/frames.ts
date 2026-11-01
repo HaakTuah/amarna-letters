@@ -396,6 +396,71 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
   };
 }
 
+/**
+ * A frame as it travels to the page (item 17a): each court's known holders, known walls, sight and the people are a map of
+ * the whole board a court, most the same as the frame before, and their structured clone cost a phone 50 ms a season; so
+ * an entry equal to the frame before's is left out and named in `same`, and the page puts the frame before's back.
+ */
+export interface WireFrame extends SeasonFrame {
+  same: { knownOwner: Power[]; knownWalls: Power[]; sight: Power[] };
+}
+
+const sameMap = <K, V>(a: ReadonlyMap<K, V>, b: ReadonlyMap<K, V>, same: (x: V, y: V) => boolean): boolean => {
+  if (a.size !== b.size) return false;
+  for (const [k, v] of a) {
+    const w = b.get(k);
+    if (w === undefined || !same(v, w)) return false;
+  }
+  return true;
+};
+const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => a.size === b.size && [...a].every((x) => b.has(x));
+
+/** The frame as sent: what equals the frame before is left out. The frame itself is untouched. */
+export function toWire(f: SeasonFrame, previous: SeasonFrame | null): WireFrame {
+  const same = { knownOwner: [] as Power[], knownWalls: [] as Power[], sight: [] as Power[] };
+  if (previous === null) return { ...f, same };
+  const knownOwner = new Map(f.knownOwner);
+  const knownWalls = new Map(f.knownWalls);
+  const sight = new Map(f.sight);
+  for (const [p, m] of f.knownOwner) {
+    const was = previous.knownOwner.get(p);
+    if (was !== undefined && sameMap(m, was, (x, y) => x.owner === y.owner && x.turn === y.turn)) {
+      knownOwner.delete(p);
+      same.knownOwner.push(p);
+    }
+  }
+  for (const [p, m] of f.knownWalls) {
+    const was = previous.knownWalls.get(p);
+    if (was !== undefined && sameMap(m, was, (x, y) => x === y)) {
+      knownWalls.delete(p);
+      same.knownWalls.push(p);
+    }
+  }
+  for (const [p, set] of f.sight) {
+    const was = previous.sight.get(p);
+    if (was !== undefined && sameSet(set, was)) {
+      sight.delete(p);
+      same.sight.push(p);
+    }
+  }
+  return { ...f, knownOwner, knownWalls, sight, same };
+}
+
+/** The frame as received: what was left out is the frame before's. The maps stand in the board's order of courts, as built. */
+export function fromWire(w: WireFrame, previous: SeasonFrame | null): SeasonFrame {
+  const { same, ...f } = w;
+  if (previous === null) return f;
+  const inOrder = <V>(sent: Map<Power, V>, before: Map<Power, V>, left: readonly Power[]): Map<Power, V> => {
+    if (left.length === 0) return sent;
+    const gone = new Set(left);
+    return new Map(AllPowers.filter((p) => sent.has(p) || gone.has(p)).map((p) => [p, gone.has(p) ? before.get(p)! : sent.get(p)!] as const));
+  };
+  f.knownOwner = inOrder(f.knownOwner, previous.knownOwner, same.knownOwner);
+  f.knownWalls = inOrder(f.knownWalls, previous.knownWalls, same.knownWalls);
+  f.sight = inOrder(f.sight, previous.sight, same.sight);
+  return f;
+}
+
 /** Takes a frame of every season the runner has played since the last call (the runner calls back right after each snapshot). */
 export function catchUpFrames(frames: SeasonFrame[], r: GameRunner): void {
   for (const f of framesSince(frames.length, frames.length === 0 ? null : frames[frames.length - 1], r)) frames.push(f);

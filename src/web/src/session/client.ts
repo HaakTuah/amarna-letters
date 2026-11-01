@@ -21,7 +21,7 @@ import {
 import { SnapshotHistory } from "@amarna/game";
 import { buildScene, type MapScene } from "../map/scene.ts";
 import { IncrementalReader } from "./incremental.ts";
-import type { FramePerson, SeasonFrame } from "./frames.ts";
+import { fromWire, type FramePerson, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
 import { download } from "./storage.ts";
@@ -158,11 +158,14 @@ export class Session {
     }
     if (m.frames.length > 0) {
       let previous = this.frames.length > 0 ? this.frames[this.frames.length - 1] : null;
-      for (const f of m.frames) {
+      const frames: SeasonFrame[] = [];
+      for (const w of m.frames) {
+        const f = fromWire(w, previous);
         shareUnchanged(f, previous);
+        frames.push(f);
         previous = f;
       }
-      this.frames = [...this.frames, ...m.frames];
+      this.frames = [...this.frames, ...frames];
       this.framesGeneration++;
     }
     if (m.live.states.length > 0) {
