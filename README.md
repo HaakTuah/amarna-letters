@@ -332,6 +332,17 @@ its key.
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly.
 
+## Music and sound
+
+The music follows your court's situation as you know it: calm in peace, rising tension, war, siege and battle, a short
+sting and its own piece for the great moments (a capital fallen, a king's death, the age's end), a darker or brighter
+tuning as things worsen or improve. Short period sounds mark what happens (the stylus in clay, a seal rolled, a courier,
+a war horn); zoomed in, you hear what happens near the view, louder the nearer, under a quiet bed of the world (the
+Nile's water, the steppe's wind, a market, a siege camp). The game's menu has the Music and Sound switches, their
+volumes and the music's version (Orchestra, 8-bit, or Lyre and reed); they are remembered, and start quiet. The top
+bar's **Music** page plays every piece, version, sound and bed. The pieces are placeholders until their composing is
+done.
+
 ## On a phone
 
 <img src="docs/archive/rounds/2026-10-19-visual-overhaul/phone-portrait-follow.jpg" width="300" alt="On a phone: the map above, and the Follow tab tracing an envoy's service and travels">
@@ -435,6 +446,9 @@ building, and every rule as implemented. [docs/BUILD-PROGRESS.md](docs/BUILD-PRO
 build order item by item, with each item's report in `docs/rounds/`.
 
 ## Credits
+
+The music and sounds are rendered from two CC0 sample libraries, VS Chamber Orchestra: Community Edition and the
+Versilian Community Sample Library (Versilian Studios; `docs/audio/SOURCES.md`).
 
 The game was inspired by Irving Finkel's *Curator's Corner* episode 100, "Reading the Pharaoh's
 private mail with Irving Finkel" (The British Museum,

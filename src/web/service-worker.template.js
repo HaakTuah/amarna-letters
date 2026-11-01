@@ -31,6 +31,11 @@ async function onInstall() {
   await cache.addAll(requests);
 }
 
+// The music's and the sounds' files fetched whole (the sounds, stings and beds) are kept as they are first heard, in a cache
+// of their own that outlives versions: each is asked for with its content's hash (src/audio/player.ts), so a new sound is
+// a new entry. The music streams in ranges, which the browser's own cache keeps.
+const audioCache = "audio-cache-1";
+
 async function onActivate() {
   const keys = await caches.keys();
   await Promise.all(keys.filter((key) => key.startsWith(cacheNamePrefix) && key !== cacheName).map((key) => caches.delete(key)));
@@ -41,6 +46,14 @@ async function onFetch(event) {
   // A PR's preview (pr-<n>/ beside the root on GitHub Pages) is another app: leave it to the network.
   const url = event.request.url;
   if (url.startsWith(baseUrl.href) && /^pr-[0-9]+\//.test(url.slice(baseUrl.href.length))) return fetch(event.request);
+  if (event.request.method === "GET" && url.startsWith(new URL("audio/", baseUrl).href) && !event.request.headers.has("range")) {
+    const cache = await caches.open(audioCache);
+    const hit = await cache.match(event.request);
+    if (hit) return hit;
+    const response = await fetch(event.request);
+    if (response.ok && response.status === 200) await cache.put(event.request, response.clone());
+    return response;
+  }
   let cached = null;
   if (event.request.method === "GET") {
     // Deep links (/play) are the app's own page.
