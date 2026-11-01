@@ -258,7 +258,7 @@ export function Play() {
   const playedOn = !history && frame.ended && !live.ended;
   const endingLine =
     frame.ended && !playedOn
-      ? `The age has ended: ${frame.endReason}. Winner: ${frame.winners.join(" and ")}.${s.hasHumans && live.ended ? " The record is open to every seat: choose God view, and read the Legends." : ""}`
+      ? `${frame.endReason === null ? "The age has ended" : cap(frame.endReason)}. Winner: ${frame.winners.map(powerName).join(" and ")}.${s.hasHumans && live.ended ? " The record is open to every seat: choose God view, and read the Legends." : ""}`
       : playedOn
         ? ending(true, { turn: frame.index, winners: frame.winners }, viewer)
         : ending(frame.openAge, frame.ageEnded, viewer, frame.ageBand);

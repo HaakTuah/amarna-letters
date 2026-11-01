@@ -2,7 +2,7 @@ import { WorldMap, powerOrdinal, type Power } from "@amarna/engine";
 import { memo } from "react";
 import { captureLine, unitKindName, type MapScene, type MoveStyle } from "../map/scene.ts";
 import type { FrameNews, FrameSleep } from "../session/frames.ts";
-import { dated, powerName, provinceName, shekels, when, whenCap } from "../ui/format.ts";
+import { cap, dated, powerName, provinceName, shekels, when, whenCap } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 
 const rank = (s: MoveStyle): number => (s === "Attack" ? 0 : s === "Bounce" ? 1 : s === "Move" ? 2 : s === "Convoy" ? 3 : 4);
@@ -65,7 +65,7 @@ export const SeasonPanel = memo(function SeasonPanel({
 
       {f.ended && scene.index === f.index && (
         <div className="notice">
-          <strong>The age has ended</strong> ({f.endReason}). Winner: {f.winners.map(powerName).join(" and ")}. The richest characters are ranked under Standings.
+          <strong>{f.endReason === null ? "The age has ended" : cap(f.endReason)}.</strong> Winner: {f.winners.map(powerName).join(" and ")}. The richest characters are ranked under Standings.
         </div>
       )}
 
