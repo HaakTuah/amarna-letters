@@ -26,8 +26,18 @@ export const DefaultAudio: AudioSettings = { music: true, sound: true, musicVolu
 /** Seconds the first music of a visit takes to rise from silence to its volume, so it never blasts at start-up. */
 export const StartFade = 6;
 
-/** The music's level over the first seconds of a visit: silent at the start, rising evenly to its volume over `StartFade`. */
-export const startLevel = (seconds: number, volume: number): number => volume * Math.max(0, Math.min(1, seconds / StartFade));
+/** What the opening fade asks of an audio parameter (a gain): silent now, whole after `StartFade` seconds, evenly. */
+export interface Ramp {
+  cancelScheduledValues(t: number): unknown;
+  setValueAtTime(v: number, t: number): unknown;
+  linearRampToValueAtTime(v: number, t: number): unknown;
+}
+
+export function scheduleStartFade(gain: Ramp, now: number): void {
+  gain.cancelScheduledValues(now);
+  gain.setValueAtTime(0, now);
+  gain.linearRampToValueAtTime(1, now + StartFade);
+}
 
 function read(): AudioSettings {
   try {

@@ -12,7 +12,7 @@ import { SynthDeck, type NextStretch } from "./synth/engine.ts";
 import type { Version } from "./synth/arrange.ts";
 import { synthPiece, type Shade, type SynthScore } from "./synth/score.ts";
 import { homeMode, shift, type Tuning } from "./tunings.ts";
-import { StartFade, audioSettings, onAudioSettings } from "./settings.ts";
+import { StartFade, audioSettings, onAudioSettings, scheduleStartFade } from "./settings.ts";
 import { MomentPieces, MoodPieces, type Bed, type Hearing, type Moment, type Mood, type SoundName, type Sting } from "./situation.ts";
 
 interface Variation {
@@ -78,9 +78,13 @@ class Player {
   private lastSting = -1e9;
   /** The listening page plays one file at a time and the director stands aside. */
   private solo = false;
-  /** The first music of a visit fades in; until when (context time). */
-  private firstFade = true;
-  private fadeUntil = 0;
+  /**
+   * The opening fade: a stage of its own between the music and the speakers, silent until the first music of the visit is
+   * actually heard, then rising to whole over `StartFade` (Haakon: "don't blast someone when they start up"). Kept apart
+   * from the switches' volume so neither undoes the other.
+   */
+  private opening: GainNode | null = null;
+  private opened = false;
   /** How the situation colours the music (darker as it worsens, brighter at a feast), and whose court is heard. */
   private shade: Shade = 0;
   private court: Power | null = null;
@@ -119,7 +123,11 @@ class Player {
     this.musicBus = this.ctx.createGain();
     this.soundBus = this.ctx.createGain();
     this.bedBus = this.ctx.createGain();
-    for (const b of [this.musicBus, this.soundBus, this.bedBus]) b.connect(this.ctx.destination);
+    this.opening = this.ctx.createGain();
+    this.opening.gain.value = 0;
+    this.opening.connect(this.ctx.destination);
+    this.musicBus.connect(this.opening);
+    for (const b of [this.soundBus, this.bedBus]) b.connect(this.ctx.destination);
     for (let i = 0; i < 2; i++) {
       const el = new Audio();
       el.preload = "none";
@@ -129,6 +137,8 @@ class Player {
       this.ctx.createMediaElementSource(el).connect(gain);
       gain.connect(this.musicBus);
       el.addEventListener("ended", () => this.ended(i));
+      // The first moment music is really heard (its stream playing, not merely asked for) starts the opening fade.
+      el.addEventListener("playing", () => this.open(false));
       this.decks.push({ el, gain, piece: null, file: null, phrases: [], pauseTimer: null });
     }
     this.apply();
@@ -140,21 +150,7 @@ class Player {
     const s = audioSettings();
     const t = this.ctx.currentTime;
     // The listening page's piece is heard whatever the switches say.
-    const target = s.music ? Level.music * s.musicVolume : 0;
-    if (this.firstFade) {
-      // The first music of the visit rises from silence over the opening seconds (startLevel), never at full at once.
-      this.firstFade = false;
-      this.musicBus!.gain.setValueAtTime(0, t);
-      this.musicBus!.gain.linearRampToValueAtTime(target, t + StartFade);
-      this.fadeUntil = t + StartFade;
-    } else if (!this.solo) {
-      // A change of the switches during the opening fade lands where the fade would; after it, at once.
-      if (t < this.fadeUntil) {
-        this.musicBus!.gain.cancelScheduledValues(t);
-        this.musicBus!.gain.setValueAtTime(this.musicBus!.gain.value, t);
-        this.musicBus!.gain.linearRampToValueAtTime(target, this.fadeUntil);
-      } else this.musicBus!.gain.setTargetAtTime(target, t, 0.3);
-    }
+    if (!this.solo) this.musicBus!.gain.setTargetAtTime(s.music ? Level.music * s.musicVolume : 0, t, 0.3);
     this.soundBus!.gain.setTargetAtTime(s.sound ? Level.sound * s.soundVolume : 0, t, 0.1);
     this.bedBus!.gain.setTargetAtTime(s.sound ? Level.bed * s.soundVolume : 0, t, 0.5);
     if ((!s.music || s.style === "orchestra") && !this.solo) this.synth?.stop();
@@ -252,6 +248,16 @@ class Player {
     if (audioSettings().music) void d.el.play().catch(() => undefined);
   }
 
+  /** Starts the opening fade once, when music is first heard; `whole` (the listening page) skips it. */
+  private open(whole: boolean): void {
+    if (this.ctx === null || this.opening === null || this.opened) return;
+    this.opened = true;
+    if (whole) {
+      this.opening.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.opening.gain.setValueAtTime(1, this.ctx.currentTime);
+    } else scheduleStartFade(this.opening.gain, this.ctx.currentTime);
+  }
+
   private pauseLater(d: Deck, ms: number): void {
     this.cancelPause(d);
     d.pauseTimer = window.setTimeout(() => {
@@ -343,7 +349,10 @@ class Player {
     }
     if (this.synth === null) this.synth = new SynthDeck(this.ctx!, this.musicBus!, () => this.synthNext());
     this.synth.version = audioSettings().style as Version;
-    if (!this.synth.playing) this.synth.start();
+    if (!this.synth.playing) {
+      this.synth.start();
+      this.open(false);
+    }
   }
 
   /** The tuning a score plays in: its own, or the court's home mode, darker or brighter by the shade. */
@@ -372,6 +381,8 @@ class Player {
     this.stopSolo();
     for (const d of this.decks) d.el.pause();
     this.synth?.stop();
+    this.open(true);
+    this.musicBus!.gain.cancelScheduledValues(this.ctx.currentTime);
     this.musicBus!.gain.setValueAtTime(Level.music * Math.max(0.5, audioSettings().musicVolume), this.ctx.currentTime);
     let stretches = score.phrases.length;
     const deck = new SynthDeck(this.ctx, this.musicBus!, () => {
@@ -416,7 +427,11 @@ class Player {
     this.synth?.stop();
     const f = files[0];
     this.stingUntil = performance.now() + Math.max(1500, (f.seconds - 1.2) * 1000);
-    void this.buffer(f.file).then((b) => b !== null && this.ctx !== null && this.playBuffer(b, this.musicBus!, 1, 1));
+    void this.buffer(f.file).then((b) => {
+      if (b === null || this.ctx === null) return;
+      this.open(false);
+      this.playBuffer(b, this.musicBus!, 1, 1);
+    });
   }
 
   /** A short sound: a variation other than the last, a little varied in pitch and level so it never tires. */
@@ -521,6 +536,8 @@ class Player {
       d.file = null;
       d.piece = null;
     }
+    this.open(true);
+    this.musicBus!.gain.cancelScheduledValues(t);
     this.musicBus!.gain.setValueAtTime(Level.music * Math.max(0.5, audioSettings().musicVolume), t);
     const d = this.decks[0];
     this.live = 0;
@@ -563,9 +580,9 @@ class Player {
   }
 
   /** What plays now, for the smoke test and the curious: the mood, the piece and file, the bed. */
-  status(): { mood: Mood; shade: Shade; style: string; synth: boolean; stingLeft: number; piece: string | null; file: string | null; bed: Bed; running: boolean } {
+  status(): { mood: Mood; shade: Shade; style: string; synth: boolean; opening: number; stingLeft: number; piece: string | null; file: string | null; bed: Bed; running: boolean } {
     const d = this.decks[this.live];
-    return { mood: this.mood, shade: this.shade, style: audioSettings().style, synth: this.synth?.playing ?? false, stingLeft: Math.max(0, Math.round(this.stingUntil - performance.now())), piece: d?.piece ?? null, file: d?.file ?? null, bed: this.bed, running: this.ctx?.state === "running" };
+    return { mood: this.mood, shade: this.shade, style: audioSettings().style, synth: this.synth?.playing ?? false, opening: Math.round((this.opening?.gain.value ?? 0) * 100) / 100, stingLeft: Math.max(0, Math.round(this.stingUntil - performance.now())), piece: d?.piece ?? null, file: d?.file ?? null, bed: this.bed, running: this.ctx?.state === "running" };
   }
 }
 
