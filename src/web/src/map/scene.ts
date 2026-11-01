@@ -125,8 +125,17 @@ export interface MapScene {
    * its own eyes last saw each province, as it was then (word of a holder is not a sight of the fields).
    */
   land: Map<string, LandState>;
-  /** Item 19: the bands and pirate crews the viewer sees: in its sight or in its own land (its people tell of them). */
-  bands: FrameBand[];
+  /**
+   * Item 19: the bands and pirate crews the viewer sees: in its sight or in its own land (its people tell of them), each
+   * with the seasons since that word (0 for what it sees or hears now; more where its land was lost without its knowing).
+   */
+  bands: SceneBand[];
+  /**
+   * A court's own land as its map shows it (`ownFiguresAt`): each province it knows it holds, with the season whose
+   * figures it shows and how many seasons ago that was (0: now, as the engine's view of its own provinces shows them; more:
+   * lost without its knowing, as it last held it). Empty in god view, which shows everything as it is.
+   */
+  own: Map<string, { frame: SeasonFrame; age: number }>;
   /**
    * Item 19: what is built, as the viewer knows it (`kind:province`, walls apart): in god view as it stands; in a seat view
    * its own land as it stands, and elsewhere as its eyes last saw it, as the walls are known.
@@ -209,8 +218,9 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
     builtKnown = new Set();
     const builtKinds = ["Roads", "Stations", "Harbour", "Water"];
     for (const x of Map_.landProvinces) {
-      const j = ownerOf(f, x.id) === p ? index : lastSeen.get(x.id);
-      if (j === undefined) continue;
+      // Its own land as its record shows it (never by the true owner), or as last seen, whichever is newer.
+      const j = Math.max(ownFiguresAt(frames, Math.min(index, frames.length - 1), p, x.id) ?? -1, lastSeen.get(x.id) ?? -1);
+      if (j < 0) continue;
       const fj = frameAt(frames, j);
       for (const k of builtKinds) {
         const level = fj.built.get(`${k}:${x.id}`) ?? 0;
@@ -275,36 +285,61 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const owner = new Map(Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const));
   // As the engine's own view of a court shows them: in its sight, or in land it holds and knows it holds; in land it lost
   // without knowing, as it last held it, until word of the loss arrives (map/known.ts), never vanishing at once.
-  const at = Math.min(Math.max(index, 0), frames.length - 1);
-  const ownAt = (id: string): SeasonFrame | null => {
-    const k = ownFiguresAt(frames, at, viewer, id);
-    return k === null ? null : frames[k];
-  };
-  const stores = viewer === null ? f.stores : storesOf(ownAt);
-  const bands = viewer === null ? f.bands : bandsOf(f, viewer, ownAt);
-  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev };
+  const own = viewer === null ? new Map<string, { frame: SeasonFrame; age: number }>() : ownLand(frames, viewer, Math.min(Math.max(index, 0), frames.length - 1));
+  const stores = viewer === null ? f.stores : storesOf(own);
+  const bands: SceneBand[] = viewer === null ? f.bands.map((b) => ({ ...b, age: 0 })) : bandsOf(f, viewer, own);
+  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, own, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev };
+}
+
+/**
+ * What a province card may tell a viewer of a province's economy: everything, as it is, in god view and in land the court
+ * holds and knows it holds (the engine's own view of a court shows it its provinces' economy); in land it lost without
+ * knowing, only what its stewards last sent, from the season it last held it (`ownFiguresAt`); elsewhere, nothing.
+ */
+export type OwnEconomy =
+  | { live: true }
+  | { live: false; age: number; stores: number; settled: number; fed: number | undefined }
+  | null;
+
+export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
+  if (scene.viewer === null) return { live: true };
+  const own = scene.own.get(id);
+  if (own === undefined) return null;
+  if (own.age === 0) return { live: true };
+  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: own.frame.settled.get(id) ?? 0, fed: own.frame.fed.get(id) };
+}
+
+/** A band as a viewer's map shows it, with the seasons since its word of it. */
+export type SceneBand = FrameBand & { age: number };
+
+/** A court's own land: each province it knows it holds, with the season its map shows it as (`ownFiguresAt`). */
+function ownLand(frames: readonly SeasonFrame[], viewer: Power, at: number): Map<string, { frame: SeasonFrame; age: number }> {
+  const out = new Map<string, { frame: SeasonFrame; age: number }>();
+  for (const p of Map_.landProvinces) {
+    const k = ownFiguresAt(frames, at, viewer, p.id);
+    if (k !== null) out.set(p.id, { frame: frames[k], age: at - k });
+  }
+  return out;
 }
 
 /** A court's own stores: each province it knows it holds, as of the season its map shows that land (`ownFiguresAt`). */
-function storesOf(ownAt: (id: string) => SeasonFrame | null): Map<string, number> {
+function storesOf(own: Map<string, { frame: SeasonFrame }>): Map<string, number> {
   const out = new Map<string, number>();
-  for (const p of Map_.landProvinces) {
-    const g = ownAt(p.id);
-    const n = g?.stores.get(p.id);
-    if (n !== undefined) out.set(p.id, n);
+  for (const [id, { frame }] of own) {
+    const n = frame.stores.get(id);
+    if (n !== undefined) out.set(id, n);
   }
   return out;
 }
 
 /** The bands a court knows of: those in its sight now, and in its own land as that land's figures stand on its map. */
-function bandsOf(f: SeasonFrame, viewer: Power, ownAt: (id: string) => SeasonFrame | null): FrameBand[] {
+function bandsOf(f: SeasonFrame, viewer: Power, own: Map<string, { frame: SeasonFrame; age: number }>): SceneBand[] {
   const sight = f.sight.get(viewer);
-  const out = f.bands.filter((b) => sight?.has(b.province) ?? false);
+  const out: SceneBand[] = f.bands.filter((b) => sight?.has(b.province) ?? false).map((b) => ({ ...b, age: 0 }));
   const seen = new Set(out.map((b) => b.province));
-  for (const p of Map_.landProvinces) {
-    if (seen.has(p.id)) continue;
-    const g = ownAt(p.id);
-    if (g !== null) out.push(...g.bands.filter((b) => b.province === p.id));
+  for (const [id, { frame, age }] of own) {
+    if (seen.has(id)) continue;
+    out.push(...frame.bands.filter((b) => b.province === id).map((b) => ({ ...b, age })));
   }
   return out;
 }

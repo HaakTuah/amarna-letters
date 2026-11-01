@@ -19,7 +19,7 @@ import {
   type Province,
   type Terrain,
  modernOf } from "@amarna/engine";
-import { unitKindName, type MapScene } from "../map/scene.ts";
+import { ownEconomy, unitKindName, type MapScene } from "../map/scene.ts";
 import { powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import { MapCard } from "./MapCard.tsx";
@@ -73,6 +73,12 @@ export function ProvinceInfo({
   const crossings = Crossings.filter((c) => (c.a === id || c.b === id) && c.kind !== "Desert");
   const walls = scene.walls.get(id) ?? 0;
   const siege = scene.sieges.find((x) => x.province === id);
+  // Its economy, as the viewer may know it: in god view as it is; in a seat view only in land it knows it holds (never by
+  // the true owner): from the live state where it holds it now (as the engine's own view of a court shows it its
+  // provinces), and from the season it last held it where it was lost without its knowing (map/known.ts), the figures its
+  // stewards last sent and nothing newer, until word of the loss arrives.
+  const mine = ownEconomy(scene, id);
+  const live = mine !== null && mine.live;
   return (
     <MapCard
       className="infocard"
@@ -101,7 +107,7 @@ export function ProvinceInfo({
         <>
           <p className="small">
             {owner !== null ? `Held by ${powerName(owner)}` : "Held by no one"}
-            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(scene.viewer === null || owner === scene.viewer ? Math.floor(state.reaped.getOrDefault(p.id, 0) / 3) : harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
+            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(live ? Math.floor(state.reaped.getOrDefault(p.id, 0) / 3) : harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
             {p.home !== null && p.home !== owner ? `; part of the homeland of ${powerName(p.home)}` : ""}.
             {walls > 0 && (
               <span>
@@ -113,7 +119,7 @@ export function ProvinceInfo({
               </span>
             )}
           </p>
-          {(scene.viewer === null || owner === scene.viewer) && (
+          {live && (
             <p className="small">
               {/* The economy at home (item 9+a): what its own king's stewards report, or anyone in god view. */}
               Stores {state.stores.getOrDefault(p.id, 0)} of {capacityOf(p)} measures of grain. Its market holds {state.markets.tryGet(p.id)?.stock ?? 0} (its town
@@ -121,7 +127,15 @@ export function ProvinceInfo({
               {shekels(state.markets.tryGet(p.id)?.purse ?? 0)}.
             </p>
           )}
-          {(scene.viewer === null || owner === scene.viewer) && state.people.has(p.id) && (
+          {mine !== null && !mine.live && (
+            <p className="small">
+              {/* Land lost without the court's knowing: what its stewards last sent, as the map shows it. */}
+              As your stewards last reported, {mine.age} season{mine.age === 1 ? "" : "s"} ago: stores {mine.stores} of {capacityOf(p)} measures of grain;{" "}
+              {mine.settled.toLocaleString("en")} people settled{mine.fed !== undefined ? `; its countryside ate ${Math.round(mine.fed / 10)}% of its need` : ""}. No
+              word has come since.
+            </p>
+          )}
+          {live && state.people.has(p.id) && (
             <p className="small">
               {/* People at home (item 10+a). */}
               Its people: {state.people.get(p.id).settled.toLocaleString("en")} settled ({state.people.get(p.id).men.toLocaleString("en")} men of fighting age), its land

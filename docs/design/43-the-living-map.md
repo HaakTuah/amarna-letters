@@ -140,7 +140,12 @@ mines and storage come with the economy's later phases"), so a mine shows where 
   knows it holds (`seesNow`), not the land it truly holds. A court's own figures (its towns' people, a famine, its stores,
   the bands its people tell of) are drawn for the land it knows it holds: as they are where it truly holds it too (the
   engine's own view of a court shows it its provinces' economy, `views.ts`), and as it last held it where it lost it
-  without knowing (`ownFiguresAt`), so a town lost out of sight keeps its houses until word of the loss arrives.
+  without knowing (`ownFiguresAt`), so a town lost out of sight keeps its houses until word of the loss arrives. The
+  province card follows the same rule (`ownEconomy` in `scene.ts`): the whole economy from the live state in god view and
+  in land held and known; in land lost unawares only what its stewards last sent (stores, people, how they ate) with its
+  age; elsewhere nothing. Bands known only from that old word are drawn faded with their age, as a unit last seen is.
+  Who holds a province, too, is as the record has it (`ownerFor`): known ownerless stays so, and a province the record
+  lacks counts as no one's, never the true owner's.
 - **Life from the simulation.** Caravans of grain (`GameState.caravans`) and people carried off (the deportees of
   `GameState.walking`, the only walkers with a known road) are drawn on their roads, where their stretch puts them (a
   guess, as a traveller's place is). A court sees its own caravans only, as the engine's view tells it (a smuggler's
