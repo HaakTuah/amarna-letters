@@ -277,6 +277,57 @@ everything above, the review's fixes, the suite (1264 passed), the smoke test, t
 soak after the fixes (`node src/web/soak.mjs --phone`, one row of the table above), then mark PR #236 ready, CI green, merge
 into develop, the milestone PR (check `merged_at` first), and the report to the orchestrator.
 
+## Hand-off to item 17+ (for the fresh session that builds it)
+
+**What 17a built that later items read.**
+
+- *The stream's shape* (`docs/design/44-the-crash-and-speed.md`, "The stream"). The worker sends the page one `update`
+  message per change (`src/web/src/session/protocol.ts`): `live` (the game as shown: phase, turn, the saved turn, the risen
+  powers, the seats, the fallbacks, `states`), `frames` (one `WireFrame` per season played since the last update, a
+  `SeasonFrame` with its per-court maps sent as differences; `src/web/src/session/frames.ts`) and `reset`. **For the music
+  (19+++) and the playback (17+++):** the season's events are `SeasonFrame.events` (`GameEvent[]` with `turn`, `kind`,
+  `visibleTo`), its moves `SeasonFrame.moves` (`FrameMove`: power, kind, from, to, succeeded, destroyed), its news
+  `SeasonFrame.news`; the page keeps every frame in `Session.frames` (`client.ts`), one per season, index 0 the opening, and
+  builds a `MapScene` per (season, viewer) from them (`map/scene.ts`), so a cue at a season is `frames[index].events`
+  filtered as the viewer may see them. The state itself travels as pieces (`SnapshotDelta`, `live.states`) and is read on
+  the page by `IncrementalReader` (`session/incremental.ts`); `Session.state` is the newest season's state, `Session.displayed`
+  the season shown.
+- *The frame-time bar and how to measure it:* `node src/web/soak.mjs --speed normal|fast [--phone] [--trace] [--video <dir>
+  --video-size 800x500]` (whole games; the frames over 50 ms, the longest frames with their seasons, the long tasks, with
+  `--trace` the browser's timeline and what each long task is made of; the page's steps are `performance.measure`d:
+  `page:receive`, `page:reader`, `reader:tree`, `reader:fields`, `map:render`, `map:<layer>`, `map:names`, `page:play`).
+  Numbers: "Smoothness, measured" above. The phone profile's remaining frames and their cause: question 1.
+- *The map's layers:* five composited SVGs (`map/svg-renderer.ts`, `mount`): the land, the tints and season washes, the
+  relief, the fog/bands/marks/names/cities, the pieces; layers drawn in budgeted steps; a layer written only when its markup
+  changed. 17+ changes names (`map/markup.ts` labels, `map/geo-data.ts`) and the opening positions: both are in the first
+  layer or the data, not in the per-season layers.
+- *The error screen* (`ui/ErrorScreen.tsx`) and the update rule (`ui/update.ts`): a new version takes over by itself; a
+  release of 17+ with a new save version waits until a held game is closed.
+
+**What is waiting for 17+** (from the orchestrator's and the polish lane's messages, 31 October and 1 November; the texts
+are theirs, checked only where noted):
+
+1. The item's own text on develop (`docs/intent/build-order/item-17.md`, "Then **17+"): the opening as it stood, the land
+   east of the Jordan, every place by its own name, the people of 1346 who did not rule (each passing a historical and a
+   game test, real people replacing invented ones, the pool near its baseline), names following each court (Naphurureya
+   abroad, Akhenaten in Egypt), troops paid and fed by the king's standing order. A new save version.
+2. The chiefs' lands falling within two seasons (the audit, 50 games: a kingdom fell within two seasons in 20 of 50, Lukka
+   in 48 of 50, Kaska in 35): check whether any is a Great King's capital; the builder rules' balance exception applies
+   only then. The benchmark of 20 games here: the first fall came in season 3.5 on the median, Lukka and the Suteans first.
+3. Model-text finds handed over (not built in 17a, which changes no model text): the models' opening line "10 x its
+   homeland yield" (`src/llm/src/rules.ts:224`; as built, strength is ten times what the land produces in a season plus gold
+   and holdings); engine lines naming powers by id instead of the shown name (Terqa for Hana, Seha for the Seha River Land)
+   in `turn/intel.ts`, `turn/knowledge.ts`, `turn/archives.ts`; the adjudicator shorthand in the inbox and events ("A
+   memphis holds", `src/engine/src/model/state.ts:965`, `turn/resolve.ts:258,358`); "Qadesh won, far." (`turn/battles.ts:152`);
+   the travel-times line for all 46 powers (`rules/views.ts:356`); ids in engine text ("commanding an army in lukka",
+   `rules/views.ts:773`; "pay c12 the rest of the fee owed", "c100 let debt d64 pass its season", `turn/money.ts:244`);
+   fractional treasuries reaching `formatMoney`; the polish lane's list in `docs/rounds/2026-10-31-polish-lane.md`.
+4. For the script kings, later (measured use against ignore, not 17a's): threats seldom followed by an attack (955 threats,
+   28 followed within 6 seasons); remnants folded or disbanded ("A handful holds nothing by itself", 17++); orders the
+   engine refuses repeated every season (the audit's counts); a host sealing a tribute clause it refused in words.
+5. Housekeeping from the workshop check: `src/web/src/map/svg-renderer.ts` is 52 KB, over the mark; split in a PR of its own
+   with behaviour unchanged.
+
 ## Questions for Haakon
 
 1. **The throttled phone's frames.** On desktop the bar of no frame over about 50 ms is met but for a few frames a game
