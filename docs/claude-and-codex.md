@@ -110,8 +110,9 @@ goes to building. Its usage can run out like any other, and it may then not say 
 3. **Still running after about 15 minutes:** ask once more with `@codex review`. No finished review about 5 minutes
    after that: Claude's reviewer takes it. Either way, a late Codex review is still read, but nothing waits for it.
 4. **It gives findings, not a score:** its format is its own, whatever it is asked (seen on Snakes #289,
-   1 November 2026). Each finding has a priority from P0 to P3: **P0 and P1 are blocking**, P2 and P3 are not, and go
-   into the PR as notes. A review that found nothing (its 👍, or "Didn't find any major issues") counts as clean.
+   1 November 2026). Each finding has a priority from P0 to P3, and **every one counts:** a Codex review passes only
+   with nothing open, its 👍 or "Didn't find any major issues", or every finding fixed or moved out as "Reviews"
+   says. That is Codex's 10. P0 and P1 are fixed first.
 5. **The design check, with a score:** on its build-order items (not the polish and sound lanes' small fixes), Claude's reviewer also checks the
    work against the design, at medium effort: given the diff and the PR's description and "The game in one page", it gives the score
    from 1 to 10 and what keeps it from 10, blocking or not ("Reviews" below), on the design alone, since Codex looks for
@@ -121,23 +122,61 @@ goes to building. Its usage can run out like any other, and it may then not say 
    and a security hole (a peer's name as HTML, citing `SECURITY.md`); it also saw through the PR's false reasons. What
    it does not give is the broad feedback on the design, which the design check gives. Haakon agreed ("I agree with
    your assesment").
+   **Both at once:** the design check starts in the same turn as the request to Codex, in the background, never after
+   Codex's answer, so neither waits for the other, and the builder answers both lists in one round.
 6. **Docs-only PRs and the milestone PRs get no review,** as before. Codex's automatic review stays off in its settings
    for both repositories, so it reviews only when asked.
 
-## Reviews: a score, and what keeps it from 10
+## Reviews: only a 10 passes
 
-Every review, in either direction:
+Every review, in either direction, passes the work only at a 10 (for Codex, nothing open). Haakon (1 November 2026):
+"I want 3 stricter, though we should have a measure there to ensure not endless loop, or lowering of what a 10 is."
+The guards against both are part of the rule:
 
-1. **Gives a score from 1 to 10 and lists everything that keeps the work from 10,** each point concrete (a file and
-   line, or a design section) and marked **blocking** (against the design, the item's text, its tests or the standing
-   rules) or **not blocking**.
-2. **Sends the work back while any point blocks.** When none does, it merges; the points that do not block go into the
-   PR as a note, or into `docs/BUILD-PROGRESS.md` as a small follow-up entry.
-3. **At most three rounds.** Then the orchestrator decides, or escalates to the other model, and writes why.
-4. **One line in each PR:** `Review: <category> · <builder> · <each round's result>`, a score from the design check
+1. **The list decides the score.** The reviewer lists everything that keeps the work from 10, each point concrete (a
+   file and line, or a design section) and marked **blocking** (against the design, the item's text, its tests or the
+   standing rules) or **not blocking**, which says only what is fixed first. **A 10 is a list with nothing open:** the
+   work does all of the item's text and the sections it names, keeps every standing rule, its tests prove it, and a
+   demanding expert would hand it over as it stands. A 10 with a point open, or less than 10 with none, is no review:
+   ask again. This definition goes into every reviewer's brief word for word, and only Haakon changes it.
+2. **Every point is fixed, or moved out with a reason.** A point within the item is always fixed. A point outside it
+   (code or a question the item did not touch) may become a follow-up entry in `docs/BUILD-PROGRESS.md`, with the reason in the
+   PR. A point the builder thinks wrong is answered in the PR with why. The next round's reviewer rules on each move
+   and each answer.
+3. **Later rounds judge the change.** Each round's reviewer gets the earlier rounds' lists and the builder's answers,
+   with the same model, effort and brief as before. It checks those points and the lines changed since. Something new
+   about work it already saw is raised only if it is a fault that blocks: a bug, a broken rule, a security hole, a
+   departure from the design. Taste does not grow between rounds, so the rounds come to an end.
+4. **At most three rounds, then the escalation helper, then blocked.** Anything still open after the third round goes
+   to the escalation helper (`CLAUDE.md`) with a self-contained brief. It fixes each point, or rules it outside the
+   item or wrong, with reasons. Whatever is still open after that, the PR is **not merged:** it stays open as a draft,
+   is marked blocked in `docs/BUILD-PROGRESS.md` and listed under "Questions for Haakon", and the work goes on with the next
+   item that does not depend on it. Nothing is ever merged below 10.
+5. **The bar does not slip.** Three checks, run by the orchestrator:
+   - **A blind re-review every week:** at the first milestone of each week, a PR merged at 10 in the week before
+     (each category in turn) goes to a fresh Claude reviewer (Opus, high effort) with the diff and the item's text,
+     and nothing of the earlier review. Every blocking point it finds is a **miss:** it becomes a follow-up entry and is
+     fixed like any other.
+   - **A canary now and then:** about every two weeks, and whenever a reviewer's setup changes (model, settings or
+     guidelines), a test PR with planted faults goes to each reviewer and is never merged. The faults are a bug, a
+     broken standing rule, a security hole and a departure from the design, as on Snakes #298. Each fault not found is
+     a miss.
+   - **Logged and reported:** each check is a row in "Calibration" below, and each milestone PR says in one line the
+     misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
+     Haakon, and the categories it reviews go back to the other reviewer meanwhile.
+6. **One line in each PR:** `Review: <category> · <builder> · <each round's result>`, a score from the design check
    or Claude's reviewer, or Codex's verdict (`clean`, or its findings, such as `P1×2`): `Review: interface · Codex ·
-   P1×1, clean`, or `Review: rules · Claude · 7, 9`. At each milestone the orchestrator sums them by category and builder in the
-   milestone PR: a category where Codex scores lower moves back to Claude, one where it does well gets more.
+   P1×1, P3×2, clean`, or `Review: rules · Claude · 7, 9, 10`. At each milestone the orchestrator sums them by
+   category and builder in the milestone PR, with the rounds per PR: a category where Codex scores lower moves back
+   to Claude, one where it does well gets more, and one that often needs three rounds needs better briefs.
+
+### Calibration
+
+The weekly blind re-reviews and the canaries, newest first ("Reviews", point 5).
+
+| Date | Check | PR | Reviewer checked | Misses | What changed |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-01 | Canary (before this rule) | Snakes #298 | Codex | 0 of 3 | None needed |
 
 ## For Codex
 

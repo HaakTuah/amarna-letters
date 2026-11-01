@@ -1091,3 +1091,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     gatekeeper for faults and security, and on the big items Claude's design check at medium effort, not its full
     review). Written into `docs/claude-and-codex.md`, "Codex reviews" (point 5, with the test's result), the
     reviewer row in `CLAUDE.md` and the "Review guidelines" in `AGENTS.md`; the same in Barkstreet Snakes.
+132. **1 November 2026, 18:17 UTC**, in the design chat: "Agreed to both 1 and 2, but I want 3 stricter, though we
+    should have a measure there to ensure not endless loop, or lowering of what a 10 is. Carry this out, expert." (to
+    the design session's answers to his question whether only a 10 passes Claude's reviews and whether both reviews run
+    at the same time: (1) say in both games that Codex's review and Claude's design check start at the same time;
+    (2) gather the day's experience into a notes doc for his father's setup now, the guide itself after week one;
+    (3) the reviews' pass mark). Written into `docs/claude-and-codex.md` ("Codex reviews", points 4 and 5; "Reviews:
+    only a 10 passes", with its guards and the new "Calibration" table), the "Review guidelines" and a standing
+    instruction in `AGENTS.md`; the same in Barkstreet Snakes. The notes doc is a Claude Doc, "Claude + Codex: notes
+    for Dad's setup".
