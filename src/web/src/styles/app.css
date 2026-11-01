@@ -638,8 +638,8 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .follow-head .emblem-inline { width: 2rem; height: 2rem; margin-top: .1rem; }
 .follow-head h3 { margin: 0; }
 .life { list-style: none; margin: .2rem 0 .5rem; padding: 0; }
-.life li { display: grid; grid-template-columns: 6.6rem 1fr; gap: .5rem; padding: .3rem 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
-.life li .when { color: var(--muted); font-size: .8rem; white-space: nowrap; }
+.life li { display: grid; grid-template-columns: 8.8rem 1fr; gap: .5rem; padding: .3rem 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
+.life li .when { color: var(--muted); font-size: .8rem; }
 .life li .what { white-space: pre-wrap; }
 .life li.nodate .what { grid-column: 1 / -1; }
 .life li.tap:hover { background: var(--surface-2); }
