@@ -214,8 +214,21 @@ Whole games with the layered map, every speed and profile (`node src/web/soak.mj
 | Phone (CPU slowed 4x), normal | 3541 | 681 (19%) | 467 ms | 1633@start, 633@0, 467@87, 283@88, 267@99 |
 
 The start (season -1 and 0) is the game's setup and the whole map's first drawing, not a season playing. On desktop the bar
-is met in all but a few frames a game; on the throttled phone, where every step costs four times as much, it is not yet:
-the phone's long frames are traced next.
+is met in all but a few frames a game; on the throttled phone, where every step costs four times as much, it is not.
+
+### The phone profile, traced
+
+Its long frames, by the timeline: animation frames in which a map layer was rewritten (the draw, then the style
+recalculation, layerization and paint of that layer: 150 to 180 ms each at that speed), the worker's message (44 ms mean,
+224 worst), the reader's chunks (26 ms mean, since a 10 ms budget is checked only between fields), and the names placed
+(49 ms mean). And a find: at Fast speed a season arrived before the last was read, and each new season replaced the read
+under way, so the panels were read for 14 of 103 seasons. Fixed (a read finishes first, then the newest season), with: a
+layer written only when its markup changed, the names placed only when something was written, and frames sent as
+differences in their per-court maps (the design note has each). The final whole-game numbers are below.
+
+### The final numbers (the build as merged)
+
+See the table "Final" below, filled from the last run of every profile.
 
 ## Benchmarks
 

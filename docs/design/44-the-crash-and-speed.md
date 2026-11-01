@@ -120,7 +120,21 @@ then style, layout and paint. What changed, step by step, each measured:
   rasterizes in software, so the compositor's numbers here are pessimistic; the structure helps a GPU too, since a
   season invalidates fewer tiles.)
 
-The numbers, before and after each step, are in the item's report.
+- **After the split, the phone profile** (CPU slowed four times, software raster) still showed long frames: the browser's
+  timeline named them as animation frames in which a layer was rewritten (its draw, then the style recalculation,
+  layerization and paint of that layer, 150 ms and more at that speed), the worker's message (its structured clone), and
+  the names placed (a layout and every marker measured). So: **a layer is written only when its markup changed**
+  (`layer`, `written`: most seasons the cities, tints and bands come out the same, and a write skipped is a style
+  recalculation and a repaint spared); **the names are placed only when something on the map was written** (`changed`);
+  **a frame travels as a difference** in its per-court maps (`toWire`, `fromWire` in `frames.ts`: known holders, known
+  walls and sight equal to the frame before's are left out and put back on the page, in the board's order); and **a read
+  under way finishes before the newest season is read** (`client.ts`: `readSoon`): replacing it each time, as at first,
+  left the panels on a slow phone at Fast speed never caught up (14 of 103 seasons read).
+
+The numbers, before and after each step, are in the item's report. On desktop the bar is met but for a few frames a game;
+on the throttled phone profile the remaining long frames are the rendering of the season's layer writes (the season's
+washes change every turn by design) and the names placed, which item 17+++ takes up when it redraws the season textures and
+plays the season out.
 
 ## No error leaves a white page (`src/web/src/ui/ErrorScreen.tsx`)
 
