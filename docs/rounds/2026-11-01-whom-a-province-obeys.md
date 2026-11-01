@@ -204,6 +204,27 @@ Codex (code review; security review clean): **P1×6**:
 Review: rules · Claude · 5 (round 1); Codex P1×6 (round 1). Not merged: the open points are more than an hour's work,
 so they go to a session of their own ("Bigger review fixes in a session of their own").
 
+**Round 1's open points, answered in round 2** (`007bb65` to `52c266c`):
+
+- Design 2 (ways to give, scripts by the ledger): **fixed**. Grain handed out (`feed`, in the king's own name with `own`),
+  a siege lifted (`relief`), a band's robbing as a taking; script kings hand grain to restless provinces, in their own
+  name where a governor stands (readings 20, 21). Measured with `--freedom-play-half` (below).
+- Design 3 (an army's ledger): **fixed** (`turn/army-ledger.ts`; readings 22, 23).
+- Design 4 (use against ignore, benchmarks): **done** (above); round 1's `--remnant-play-half` run had played both halves
+  alike (`play.ts` left it out of the halves' list), fixed with its report line and a `fold` signal row.
+- Design 5 (next door for everyone): **fixed** (reading 2).
+- Design 7 (characters choose to lead): **fixed**, the "Rising" request (reading 17).
+- Design 8 and 13 (risings as combat; resistance by the ledger; the floor's case): **fixed** (readings 3, 18, 19).
+- Design 9 (conquest by the season's rule alone): **fixed** (reading 1); a siege's surrender stays the city's own act.
+- Codex 5 (the smallest game): the new tests call the season's steps they test (`obeySeason`, `updateOwnership`,
+  `settleMarkets`) on the starting world, as `works.test.ts` does, and play no season they do not need; the one full
+  season left (the handful test) is the battle rule's.
+- The early falls: **fixed** (above, "The early falls, and pillar 8").
+- The doubled risen names: **fixed** (`nameFrom`: a name that already says its place is not given it twice).
+- CI's smoke: passes on this head (`node src/web/smoke.mjs`); the marker that touched Gezer's badge came of round 1's
+  game, and the layout is unchanged.
+- Found on the way: land lost by the season's rule did not wake a sleeping seat (`sleep.ts`, `LandLostTitles`); fixed.
+
 ## Where to pick up (hand-off, 1 November 2026, context)
 
 The builder's context is large, so this session stops here with the PR open. The next session takes PR #375 with this
