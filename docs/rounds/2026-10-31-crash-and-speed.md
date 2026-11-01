@@ -1,6 +1,6 @@
 # Item 17a: the crash and an optimization round
 
-31 October 2026. Branch `item/crash-and-speed`, PR #236. The item text is `docs/intent/build-order/item-17.md`
+31 October 2026. Branch `item/crash-and-speed`, PR #321 (replacing draft #236, whose thread holds the reviews). The item text is `docs/intent/build-order/item-17.md`
 (the 17a passage). Built from the copy in `docs/intent/` (this account has no live design document); the copy did not change
 between the item's start (`f1007bc`) and the check before review. Design note: `docs/design/44-the-crash-and-speed.md`.
 
