@@ -96,6 +96,8 @@ export function remember(frames: readonly SeasonFrame[], index: number, viewer: 
   }
   // A court knows its own caravans, as the engine's view tells it; deportees on a road it sees.
   const caravans = viewer === null ? f.caravans : f.caravans.filter((r) => r.power === viewer);
-  const walking = f.walking.filter((r) => viewer === null || sees(r.from) || sees(r.to));
+  // Deportees only on a road in its sight: people led out of a city it still believes its own would tell it of the loss.
+  const inSight = (id: string): boolean => viewer === null || (f.sight.get(viewer)?.has(id) ?? false);
+  const walking = f.walking.filter((r) => inSight(r.from) || inSight(r.to));
   return { memorials, ruins, wild, famine, towns, caravans, walking };
 }

@@ -185,3 +185,12 @@ audio rather than two copies. Add a test that a distant sack the seat hasn't hea
   every season; a known ruin out of sight stays a ruin however the city truly mends, and is seen rebuilt in sight. The
   map-scene test's own-land check now reads the seat's record too.
 - Presentation only: no engine file, rule or save change; the replays are untouched (the map reads frames only).
+
+### The review
+
+One reviewer (Opus, high effort). Blocking, fixed: deportees were drawn on roads out of land the seat only believes it
+holds, so people led out of a city it had lost unawares told it of the loss; now only on roads in its sight. Not blocking,
+left: word of a city dated the sack's own season already postdates the sack, so the word path draws a ruin a season late
+(never early; safe as built); a city seen rebuilt counts as a ruin again once out of sight (stale, as before); `counts`
+in `memory.ts` and the bands and stores in `scene.ts` still use the true owner for a court's own famine, towns, bands and
+stores, as the engine's own view does (out of this PR's task; a lost distant city's houses vanish the season it is lost).
