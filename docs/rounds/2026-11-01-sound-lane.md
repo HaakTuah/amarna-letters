@@ -248,3 +248,5 @@ test." With, not blocking: the test to assert stores and bands for a lost city; 
   knows it); `ownerFor` by the record.
 - The calibration row is added to `docs/claude-and-codex.md`. The engine's seat view still drops a lost province's
   economy at once (`views.ts`, `ownedBy`): item 17++'s, as the orchestrator says.
+- **Review** (Codex): round 1, P1×1: the README did not yet tell of the card's dated report and the faded bands; fixed.
+  Round 2: clean; the security review found nothing. `Review: interface · Claude · P1×1, clean`.
