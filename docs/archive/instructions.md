@@ -1000,4 +1000,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     add layers to it. Your thoughts, expert? I think this is mostly an issue of refining the cooperation of the
     soundscape, not nessecarily needs much altering of the sounds themselves?" Written into item 19+++, "The season plays
     out, and zoom shapes what you see and hear" (Interface) and the polish lane's entries.
+121. **1 November 2026, 11:31 UTC**, in the design chat: "Important! The music must never reveal what's outside the fog
+    of war. Remember, a king only sees what's within a season at any one time." Written into item 19+++, "The season
+    plays out, and zoom shapes what you see and hear" (Interface) and the polish lane's soundscape entry.
 

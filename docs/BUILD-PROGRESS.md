@@ -59,7 +59,12 @@ account until its usage is spent; on the main account the usage brake closes it 
   softer with distance, for every viewer; event sounds only for one seat, its clicks and what happens to its realm, for
   its player or a spectator watching through it, never in god view; both mixed under the music, never sudden or loud,
   at most two or three event sounds at once and none repeated within a few seconds. A change in how sounds are chosen
-  and mixed, not in the sounds; now, not in 17+++.
+  and mixed, not in the sounds; now, not in 17+++. And nothing heard reveals what lies beyond the fog of war (Haakon,
+  1 November 2026: "Important! The music must never reveal what's outside the fog of war."): in a seat the mood, its
+  shade, the stings, the great moments, the world's sounds and the event sounds follow only what the seat knows as it
+  learns it; a battle or fall it has not heard of plays nothing, even zoomed in on it; a seat whose sight is missing
+  from the record counts as seeing nothing, not everything (today `sight === undefined` is read as seeing all in
+  `src/web/src/audio/situation.ts`); a test proves a hidden battle, siege or fall changes nothing a seat hears.
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,

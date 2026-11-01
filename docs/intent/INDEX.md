@@ -17,7 +17,7 @@ with the copy and say so in the report, and before opening the pull request read
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 569 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 195 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 197 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 58 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 58 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
@@ -26,7 +26,7 @@ with the copy and say so in the report, and before opening the pull request read
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 34 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 91 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 20 |
-| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 24 |
+| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 25 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 20 |
 
@@ -63,7 +63,7 @@ session loads.
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
 | `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 35.7 |
 | `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 6.2 |
-| `docs/intent/build-order/item-19.md` | 19. The living map | 12.9 |
+| `docs/intent/build-order/item-19.md` | 19. The living map | 13.7 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.4 |
@@ -115,7 +115,7 @@ session loads.
 | `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 21.5 |
 | `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 4.1 |
 | `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 19.8 |
+| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 20.0 |
 | `docs/intent/interface-and-the-council/the-royal-council.md` | The royal council | 3.9 |
 | `docs/intent/tests-risks-and-references/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md` | Success criteria and test plan | 6.6 |
