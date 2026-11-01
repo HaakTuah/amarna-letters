@@ -178,7 +178,7 @@ export const RangeLines: readonly Pt[][] = [
 export const Wastes = LL(
   29.6, 27.6, 27.6, 28.2, 25.0, 29.2, 22.0, 29.6, 20.5, 27.0, 28.7, 32.25, 23.4, 34.5, 21.0, 35.5,
   29.6, 37.6, 27.0, 40.5, 24.5, 38.8, 28.2, 44.8, 25.5, 46.6, 23.0, 43.5, 21.0, 41.0, 30.8, 41.3, 32.6, 39.3, 33.3, 40.6,
-  31.0, 36.6, 29.7, 35.6, 30.6, 44.0,
+  31.0, 36.6, 29.7, 35.6, 31.45, 35.95, 30.6, 44.0,
   35.8, 46.8, 33.9, 47.4, 32.6, 50.0, 30.6, 51.0, 37.7, 45.9, 38.7, 43.4, 39.9, 41.3, 41.3, 41.0, 40.2, 38.0,
   39.6, 31.8, 41.0, 31.4, 40.6, 28.4, 41.6, 33.0,
 );
@@ -192,8 +192,10 @@ export const Wastes = LL(
 export const RoadLands: readonly { readonly province: string; readonly road: readonly Pt[] }[] = [
   // Thutmose III's road from the Sharon through the Aruna pass to Megiddo (his Annals): the pass is Megiddo's
   { province: "megiddo", road: LL(32.58, 35.18, 32.47, 35.07, 32.38, 34.97, 32.2, 34.93) },
-  // The King's Highway north from Edom by Moab to the Bashan: the Shasu's pastures east of the Jordan
-  { province: "shasu", road: LL(30.6, 35.3, 30.73, 35.6, 31.18, 35.7, 31.5, 35.78, 31.8, 35.82, 32.1, 35.95, 32.45, 36.0) },
+  // Item 17+: the Shasu hold Seir and the desert west of it; the plateau beyond the Salt Sea is no one's (a waste), so
+  // the King's Highway band of item 11f+ is gone. Shuwardata's land runs from Gath up the Elah valley by Qiltu (Keilah)
+  // into the southern hills, Hebron's, where no town stood (EA 279-280, 290)
+  { province: "gath", road: LL(31.7, 34.85, 31.64, 34.95, 31.61, 35.0, 31.55, 35.08, 31.53, 35.1, 31.45, 35.12, 31.35, 35.12, 31.28, 35.15, 31.35, 35.3, 31.4, 35.38) },
   // The Upper Land's road to Hayasa, the Hittite frontier against Azzi (the Hittite campaign texts)
   { province: "samuha", road: LL(39.61, 36.52, 39.75, 37.5, 39.8, 38.5, 39.78, 38.9) },
   // The Elam road from Babylonia by Der (a Babylonian city) to Susa

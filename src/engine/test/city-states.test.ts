@@ -31,13 +31,17 @@ const Map = WorldMap.default;
 describe("City-states as powers (item 11+)", () => {
   test("Every city-state is a power holding its city as its capital, under the same rules", () => {
     const s = newGame(1);
-    // 33 powers since item 11d; item 11c added six cities of Canaan, item 11f eight more places.
+    // 33 powers since item 11d; item 11c added six cities of Canaan, item 11f eight more places; item 17+ the Lady of the
+    // Lions' valley, and Suhu folded into Babylonia.
     Assert.equal(47, AllPowers.length);
     Assert.equal(7, GreatKings.length);
+    // Item 17+: each city's men stand in it, or where the sources place them in 1346 (Aziru's in Sumur's countryside,
+    // Arwad's ships off Byblos, Sidon's off Tyre).
+    const placed: Record<string, string> = { Amurru: "sumur", Arwad: "bybloswaters", Sidon: "sidon" };
     for (const p of AllPowers.filter((x) => !isGreatKing(x))) {
       const cap = Map.capital(p);
       Assert.equal(p, s.owner.get(cap.id));
-      Assert.true(s.units.some((u) => u.power === p && u.province === cap.id));
+      Assert.true(s.units.some((u) => u.power === p && u.province === (placed[p] ?? cap.id)));
       Assert.true(s.treasuries.get(p).gold > 0);
       Assert.true(s.startStrength.get(p) > 0);
       // A city's walls are the walls dossier's (item 11d); the lands without a town have none.

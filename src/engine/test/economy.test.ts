@@ -198,7 +198,8 @@ describe("EconomyTests", () => {
     Assert.equal(40, s.stores.get("hattusa"));
     s.turn++;
     e.beginTurn();
-    Assert.empty(s.caravans);
+    // The rest goes into Nesa's stores as far as they hold (a small town's since item 17+); what they cannot take goes home.
+    Assert.true(s.caravans.length === 0 || s.stores.get("nesa") >= capacityOf(Map.get("nesa")));
     Assert.equal(carriedOf("Army"), army.food);
     Assert.contains("Your caravan reached Nesa", notice(s, "Markets and caravans"));
   });

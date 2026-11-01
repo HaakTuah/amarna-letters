@@ -74,7 +74,7 @@ export function groundText(g: Ground): string {
  * there lives on its baggage, its king's stores in that land and his caravans' grain. No rule names a power: Egypt holds
  * the Sinai by what it has stored along the Ways of Horus, and so does anyone who takes it.
  */
-export const Rough: readonly string[] = ["mira", "lukka", "isuwa", "amurru", "arbela", "kalavasos", "shechem", "jerusalem", "hebron", "kaska", "azzi"];
+export const Rough: readonly string[] = ["mira", "lukka", "isuwa", "amurru", "arbela", "kalavasos", "shechem", "jerusalem", "kaska", "azzi"];
 
 /** Desert provinces (question 5, plan step 15: the Sinai; the Sutean steppe since item 7a; Libya and the Shasu lands since item 11f). */
 export const Desert: readonly string[] = ["sinai", "steppe", "libya", "shasu"];
@@ -142,14 +142,13 @@ export const Crossings: readonly Crossing[] = [
   crossing("samuha", "carchemish", "Mountain", "the Anti-Taurus", G),
   // Item 11f+: the Jordan between Jerusalem's hills and the lands east of it, at the fords by Jericho
   crossing("jerusalem", "pella", "River", "the Jordan by Jericho", G, "jordan"),
-  crossing("jerusalem", "shasu", "River", "the Jordan by Jericho", G, "jordan"),
   // To the Red Sea's shore (item 11c): over the Eastern Desert from Thebes, and across the Sinai to the Gulf of Suez.
   crossing("thebes", "redsea", "Desert", "the Wadi Hammamat", G),
   crossing("sinai", "redsea", "Desert", "the road to the Gulf of Suez", G),
   // Item 11f: the edge lands' deserts, the Western Desert beyond the Delta and the Negev to the Shasu's pastures
   crossing("libya", "delta", "Desert", "the Western Desert", "08-beyond-the-edges.md"),
   crossing("libya", "memphis", "Desert", "the Western Desert", "08-beyond-the-edges.md"),
-  crossing("shasu", "hebron", "Desert", "the Negev", G),
+  crossing("shasu", "gath", "Desert", "the Negev", G),
   crossing("shasu", "sinai", "Desert", "the Negev", G),
   crossing("shasu", "gaza", "Desert", "the Negev", G),
   crossing("shasu", "lachish", "Desert", "the Negev", G),
@@ -245,10 +244,10 @@ const W = (kind: CityWater, ...ids: string[]): [string, CityWater][] => ids.map(
 /** Each land province's chief city's water, from the water dossier. */
 export const CityWaters: ReadonlyMap<string, CityWater> = new Map<string, CityWater>([
   ...W("River", "seha", "apasa", "kizzuwatna", "terqa", "nineveh", "ashur", "ekallate", "sippar", "durkurigalzu", "babylon", "nippur", "ur", "delta", "memphis", "akhetaten", "thebes", "nubia", "isuwa", "carchemish", "alalakh", "qadesh", "damascus", "suhu", "susa", "tunip", "niya", "samuha"),
-  ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "jerusalem", "gezer", "pella"),
-  ...W("Wells", "harran", "arbela", "kalavasos", "enkomi", "aleppo", "ugarit", "sumur", "sidon", "gaza", "akko", "ashkelon", "lachish", "beirut", "ashtaroth"),
+  ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "jerusalem", "gezer", "pella", "aijalon"),
+  ...W("Wells", "harran", "arbela", "kalavasos", "enkomi", "aleppo", "ugarit", "sumur", "sidon", "gaza", "akko", "ashkelon", "lachish", "beirut", "ashtaroth", "gath"),
   ...W("Outside", "tuwanuwa", "megiddo", "shechem", "hazor"),
-  ...W("Cisterns", "mira", "sapinuwa", "nesa", "taidu", "nuhashshe", "amurru", "arrapha", "lukka", "kaska", "hebron", "azzi"),
+  ...W("Cisterns", "mira", "sapinuwa", "nesa", "taidu", "nuhashshe", "amurru", "arrapha", "lukka", "kaska", "azzi"),
   ...W("Arid", "sinai", "steppe", "libya", "shasu"),
   ...W("Island", "tyre", "arwad"),
 ]);
@@ -375,7 +374,8 @@ export const Climates: ReadonlyMap<string, Climate> = new Map([
   ["gezer", cl("Rain", "Mild", Sown, "levant")],
   ["ashkelon", cl("Rain", "Mild", Sown, "levant")],
   ["lachish", cl("Rain", "Mild", Sown, "levant")],
-  ["hebron", cl("Rain", "Mild", Sown, "levant")],
+  ["gath", cl("Rain", "Mild", Sown, "levant")],
+  ["aijalon", cl("Rain", "Mild", Sown, "levant")],
   ["gaza", cl("Rain", "Mild", Sown, "levant")],
 ]);
 

@@ -39,9 +39,9 @@ describe("MapAndSeasTests", () => {
   test("The map has the provinces of the review, each coast its waters, and nineteen sea zones", () => {
     // 55 land provinces and 15 sea zones after item 8; item 11c added six cities of Canaan, their two coasts' waters and the
     // Red Sea; item 11f nine places, Beirut with waters of its own.
-    Assert.equal(70, Map.landProvinces.length);
+    Assert.equal(71, Map.landProvinces.length);
     Assert.equal(19, Map.provinces.filter((p) => p.isSea).length);
-    for (const id of ["aleppo", "qatna", "alalakh", "nuhashshe", "jerusalem", "shechem", "arrapha", "sidon", "arwad", "nubia", "dilmun", "kaska", "steppe", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron", "redsea"])
+    for (const id of ["aleppo", "qatna", "alalakh", "nuhashshe", "jerusalem", "shechem", "arrapha", "sidon", "arwad", "nubia", "dilmun", "kaska", "steppe", "akko", "hazor", "gezer", "ashkelon", "lachish", "gath", "aijalon", "redsea"])
       Assert.true(Map.exists(id), id);
     // Names of their time; Kumidi stays within Damascus's land. Ṣumur is a province of its own on Amurru's coast, and Lukka
     // a land without a king (item 8: Haakon's answers to item 7a's review).
@@ -51,8 +51,10 @@ describe("MapAndSeasTests", () => {
     Assert.true(Map.get("lukka").kingless);
     Assert.equal([1, undefined], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
     Assert.equal(["Suhu", "Nesa", "Ekallate", "Kalavasos"], ["suhu", "nesa", "ekallate", "kalavasos"].map((id) => Map.get(id).name));
-    // Suhu, a city-state's city since item 11+, has the walls the walls dossier gives its unexcavated towns (item 11d).
-    Assert.equal(1, StartWalls.get("suhu"));
+    // Suhu, a city-state since item 11+, is Babylonia's land since item 17+ (no dossier shows it as a polity in 1346), its
+    // towns unwalled as the walls dossier knows nothing of them; and Hebron, where no town stood, is Gath's land.
+    Assert.equal(["Babylonia", false, undefined], [Map.get("suhu").home, Map.get("suhu").capital, StartWalls.get("suhu")]);
+    Assert.false(Map.exists("hebron"));
     Assert.equal(["Egypt", "Babylonia"], [Map.get("nubia").home, Map.get("dilmun").home]);
     for (const p of Map.landProvinces.filter((x) => x.isCoastal)) Assert.true(p.waters !== null && Map.get(p.waters).isSea && Map.areAdjacent(p.id, p.waters), p.id);
     Assert.equal("sumurwaters", Map.get("arwad").waters);
@@ -189,7 +191,9 @@ describe("MapAndSeasTests", () => {
   test("Six cities of Canaan are city-states under their rulers, each Egypt's vassal at the start", () => {
     const six: [string, Power, string][] = [
       ["akko", "Akko", "Surata"], ["hazor", "Hazor", "Abdi-Tirshi"], ["gezer", "Gezer", "Milkilu"],
-      ["ashkelon", "Ashkelon", "Yidya"], ["lachish", "Lachish", "Zimreddi"], ["hebron", "Hebron", "Shuwardata"],
+      ["ashkelon", "Ashkelon", "Yidya"], ["lachish", "Lachish", "Zimreddi"], ["gath", "Gath", "Shuwardata"],
+      // Item 17+: the Lady of the Lions, in the Aijalon valley between Gezer and Jerusalem (EA 273-274)
+      ["aijalon", "Aijalon", "Baʿlat-nese"],
     ];
     for (const [id, power, ruler] of six) {
       Assert.true(Map.get(id).capital && Map.get(id).home === power, id);
@@ -197,7 +201,11 @@ describe("MapAndSeasTests", () => {
       Assert.true(StartVassals.some((v) => v.vassal === power && v.overlord === "Egypt"), id);
     }
     // Walls by the walls dossier, as item 11d set the other cities': Hazor's great rampart 3, the five it does not list 1.
-    Assert.equal([3, 1, 1, 1, 1, 1], ["hazor", "gezer", "ashkelon", "akko", "lachish", "hebron"].map((id) => StartWalls.get(id)));
+    Assert.equal([3, 1, 1, 1, 1, 1, 1], ["hazor", "gezer", "ashkelon", "akko", "lachish", "gath", "aijalon"].map((id) => StartWalls.get(id)));
+    // Item 17+: the Shasu hold Seir and the Negev, not the plateau beyond the Salt Sea, so they no longer border the lands
+    // east of the Jordan or Jerusalem; the road from Gezer to Jerusalem runs through the Aijalon valley.
+    Assert.false(Map.areAdjacent("shasu", "pella") || Map.areAdjacent("shasu", "ashtaroth") || Map.areAdjacent("shasu", "jerusalem") || Map.areAdjacent("gezer", "jerusalem"));
+    Assert.true(Map.areAdjacent("shasu", "gath") && Map.areAdjacent("gezer", "aijalon") && Map.areAdjacent("aijalon", "jerusalem"));
     // The road from Megiddo to Damascus runs by Hazor, and the shore from Tyre to Gaza by Akko and Ashkelon.
     Assert.false(Map.areAdjacent("megiddo", "damascus") || Map.areAdjacent("tyre", "gaza"));
     Assert.true(Map.areAdjacent("hazor", "megiddo") && Map.areAdjacent("hazor", "damascus") && Map.areAdjacent("akko", "tyre") && Map.areAdjacent("ashkelon", "gaza"));

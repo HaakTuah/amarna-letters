@@ -111,7 +111,7 @@ describe("RulebookTextTests", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
     // Item 13: each unit at the size the armies dossier gives it.
     // Item 17+: each where the sources place it in 1346.
-    Assert.contains("- Egypt: armies in memphis (6000 men), akhetaten (4000 men), thebes (2000 men), nubia (2800 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 18739.", Rules);
+    Assert.contains("- Egypt: armies in memphis (6000 men), akhetaten (4000 men), thebes (2000 men), nubia (2800 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 17974.", Rules);
     Assert.contains("- Babylonia: armies in babylon (4000 men), durkurigalzu (3000 men), nippur (1500 men) and sippar (1500 men); treasury 600 shekels;", Rules);
     Assert.contains("- Alashiya: armies in enkomi (1000 men) and kalavasos (500 men), a fleet of 750 men in enkomiwaters; treasury 400 shekels;", Rules);
     Assert.contains("- Arwad: a fleet of 500 men in bybloswaters;", Rules);
@@ -309,7 +309,7 @@ describe("StandingsAndTravelTests", () => {
       leaderRules(true, newGameConfig()),
     );
     Assert.contains(
-      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.04 (land yield 260, at the start 250); `,
+      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.04 (land yield 259, at the start 250); `,
       line,
     );
     Assert.contains(`Hatti 1.00 (land yield ${home("Hatti")}, at the start ${home("Hatti")})`, line);
@@ -435,7 +435,7 @@ describe("ViewTextTests", () => {
     await seat.hostAudience(view, Views.for(s, "Egypt"), undefined);
 
     let user = Assert.single(recorder.specs).user;
-    Assert.contains("YOUR LAND: akhetaten, delta, gaza, memphis, nubia, sinai, sumur, thebes. YOUR TROOPS: army in memphis, army in akhetaten, army in gaza, army in sumur, fleet in delta.", user);
+    Assert.contains("YOUR LAND: akhetaten, delta, gaza, memphis, nubia, sinai, sumur, thebes. YOUR TROOPS: army in memphis, army in akhetaten, army in thebes, army in nubia, army in gaza, army in sumur, fleet in delta.", user);
     Assert.contains("NEWS THIS SEASON:", user);
     Assert.contains("[Rejected] Levy failed: No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", user);
     Assert.contains("[Notice] The treasury: ", user);

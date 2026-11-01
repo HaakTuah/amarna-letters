@@ -39,7 +39,6 @@ const Armies: Partial<Record<Power, ArmyStyle>> = {
   Tunip: "hurrian",
   Terqa: "hurrian",
   Babylonia: "kassite",
-  Suhu: "kassite",
   Elam: "kassite",
   Shasu: "nomad",
   Suteans: "nomad",

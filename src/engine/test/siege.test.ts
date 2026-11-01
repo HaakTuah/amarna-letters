@@ -216,14 +216,15 @@ describe("SiegeTests", () => {
   });
 
   test("A city's own men on its walls hold off a storm its walls alone would not", () => {
-    // Item 11e: Suhu (walls 1) with its 6,090 men of fighting age, as hostile as they can be to Babylonia: 1 + 2 x 1.2 is
-    // more than two can storm, so the army stands within the walls and the city stays free.
+    // Item 11e: Suhu (walls 1) with its men of fighting age on the walls (since item 17+ Babylonia's own old land, freed for
+    // the test, so its people are less hostile to Babylonia than a stranger's: 0.8): 1 + 2 x 0.8 is more than two can
+    // storm, so the army stands within the walls and the city stays free.
     let s = board();
     s.walls.set("suhu", 1);
     season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("durkurigalzu", "sippar", "suhu")));
     Assert.notEqual("Babylonia", s.owner.getOrDefault("suhu", null));
     Assert.equal("Babylonia", unitAt(s, "suhu")?.power);
-    Assert.contains(inboxOf(s, "Babylonia"), (i) => i.body.includes("and the city's men 1.2, the walls making them twice as strong"));
+    Assert.contains(inboxOf(s, "Babylonia"), (i) => i.body.includes("and the city's men 0.8, the walls making them twice as strong"));
   });
 
   test("A besiege order kept for later follows its army and replays", () => {
