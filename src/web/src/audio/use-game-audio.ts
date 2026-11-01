@@ -7,11 +7,15 @@
 import type { Power } from "@amarna/engine";
 import { useEffect, useRef } from "react";
 import { city } from "../map/features.ts";
+import { remember } from "../map/memory.ts";
 import type { SeasonFrame } from "../session/frames.ts";
 import { bedLevel } from "./mix.ts";
 import { player } from "./player.ts";
 import { bedAt, cuesAt, moodAt, shadeAt } from "./situation.ts";
 import { schedule, type View } from "./schedule.ts";
+
+const NoBands: ReadonlySet<string> = new Set();
+const NoRuins: ReadonlySet<string> = new Set();
 
 /** At most one season's cues this often: watching at top speed, the seasons' sounds do not pile up. */
 const CueGap = 1200;
@@ -41,13 +45,16 @@ export function useGameAudio(frames: readonly SeasonFrame[], index: number, view
     }
   }, [index, key, frames.length]);
 
-  const shown = useRef<SeasonFrame | undefined>(undefined);
-  shown.current = frames[index];
+  const shown = useRef<{ frames: readonly SeasonFrame[]; index: number }>({ frames, index });
+  shown.current = { frames, index };
   useEffect(() => {
     const t = window.setInterval(() => {
       const v = view();
+      const { frames: fs, index: i } = shown.current;
+      // A town sounds as the viewer's own map shows it: in ruins only once it has learned of the sack.
+      const ruins = fs.length > 0 && v !== null && v.zoom >= 4 ? remember(fs, Math.min(i, fs.length - 1), viewer, NoBands).ruins : NoRuins;
       // The bed is a world sound: heard only zoomed in, rising with the zoom.
-      player.setBed(bedAt(shown.current, v?.at ?? null, v?.zoom ?? 1, viewer, city), false, bedLevel(v?.zoom ?? 1));
+      player.setBed(bedAt(fs[i], v?.at ?? null, v?.zoom ?? 1, viewer, city, ruins), false, bedLevel(v?.zoom ?? 1));
     }, 2000);
     return () => window.clearInterval(t);
   }, [viewer]);

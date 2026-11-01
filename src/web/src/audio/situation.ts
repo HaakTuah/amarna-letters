@@ -55,12 +55,21 @@ const hostile = (m: FrameMove): boolean => m.target !== null && m.targetOwner !=
 
 const involves = (m: FrameMove, viewer: Power | null): boolean => viewer === null || m.power === viewer || m.targetOwner === viewer;
 
-/** Who holds each province, as the viewer knows it (the truth in god view). */
+/**
+ * Who holds each province, as the viewer knows it (the truth in god view). What the record lacks counts as unknown, never
+ * as the truth (Haakon, 1 November 2026: "The music must never reveal what's outside the fog of war").
+ */
 function owners(f: SeasonFrame, viewer: Power | null): Map<string, Power | null> {
   if (viewer === null) return f.owner;
   const known = f.knownOwner.get(viewer);
-  if (known === undefined) return f.owner;
+  if (known === undefined) return new Map();
   return new Map([...known].map(([k, v]) => [k, v.owner]));
+}
+
+/** What the viewer sees this season (null: all of it, in god view); a seat whose sight the record lacks sees nothing. */
+function sightOf(f: SeasonFrame, viewer: Power | null): ReadonlySet<string> | null {
+  if (viewer === null) return null;
+  return f.sight.get(viewer) ?? new Set<string>();
 }
 
 function fightingAt(f: SeasonFrame, viewer: Power | null): boolean {
@@ -70,16 +79,16 @@ function fightingAt(f: SeasonFrame, viewer: Power | null): boolean {
 function besieged(f: SeasonFrame, viewer: Power | null): boolean {
   if (viewer === null) return f.sieges.length > 0;
   const own = owners(f, viewer);
-  const sight = f.sight.get(viewer);
+  const sight = sightOf(f, viewer)!;
   // Its own siege, or one of a city it holds as far as it knows and can see (a city lost unheard of tells it nothing).
-  return f.sieges.some((s) => s.besieger === viewer || (own.get(s.province) === viewer && (sight === undefined || sight.has(s.province))));
+  return f.sieges.some((s) => s.besieger === viewer || (own.get(s.province) === viewer && sight.has(s.province)));
 }
 
 /** Foreign troops standing in the viewer's own land, as far as it can see. */
 function threatened(f: SeasonFrame, viewer: Power): boolean {
   const own = owners(f, viewer);
-  const sight = f.sight.get(viewer);
-  return f.units.some((u) => u.power !== viewer && own.get(u.province) === viewer && (sight === undefined || sight.has(u.province)));
+  const sight = sightOf(f, viewer)!;
+  return f.units.some((u) => u.power !== viewer && own.get(u.province) === viewer && sight.has(u.province));
 }
 
 const grave = (f: SeasonFrame): boolean => f.omen === "Grave" || f.omen === "Borrowed" || f.omen === "Darkest";
@@ -107,8 +116,8 @@ export function moodAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   if (threatened(f, viewer)) return "tension";
   const own = owners(f, viewer);
   // Its own people's mood it knows (in words); restless well short of rising is tension enough.
-  const sight = f.sight.get(viewer);
-  for (const [p, u] of f.unrest) if (u >= UnrestData.threshold * 0.6 && own.get(p) === viewer && (sight === undefined || sight.has(p))) return "tension";
+  const sight = sightOf(f, viewer)!;
+  for (const [p, u] of f.unrest) if (u >= UnrestData.threshold * 0.6 && own.get(p) === viewer && sight.has(p)) return "tension";
   if (f.news.some((n) => n.court === viewer && n.kind === "Rumor" && n.turn >= f.turn - 2)) return "tension";
   return "calm";
 }
@@ -242,7 +251,7 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
       case "siege":
         if (e.signal === "siege-begun") {
           // Placed only at a new siege the viewer is party to or can see; else heard as the court's news, unplaced.
-          const sight = viewer === null ? null : f.sight.get(viewer);
+          const sight = sightOf(f, viewer);
           const own = owners(f, viewer);
           const fresh = f.sieges.filter((x) => !prev.sieges.some((y) => y.province === x.province));
           const mine = fresh.find((x) => viewer === null || x.besieger === viewer || own.get(x.province) === viewer || sight?.has(x.province) === true);
@@ -307,7 +316,7 @@ type Place = (s: SoundName, at: string, t: number) => void;
  * where it came, in sight.
  */
 function mapSounds(f: SeasonFrame, prev: SeasonFrame, viewer: Power | null, placed: Place): void {
-  const sight = viewer === null ? null : (f.sight.get(viewer) ?? new Set<string>());
+  const sight = sightOf(f, viewer);
   const visible = (p: string): boolean => sight === null || sight.has(p);
   const moves = seen(f, viewer);
   moves.forEach((m, i) => {
@@ -352,12 +361,16 @@ const riverLands = new Set(Rivers.flatMap((r) => r.course));
 const wildLands = new Set(Crossings.filter((c) => c.kind === "Desert" || c.kind === "Mountain").flatMap((c) => [c.a, c.b]));
 
 /**
- * The world's bed under the music, from what the map shows at its centre: a siege camp where a siege is near, a city's
- * market close in on a town, the water of the great rivers and the coasts, the wind of the steppe, the desert and the
- * mountains; at every zoom, since zoomed out the world's bed and the great moments are what is heard (item 17+++).
+ * The world's bed under the music, from what the viewer's own map shows at its centre: a siege camp where a siege it sees
+ * is near, a city's market close in on a town it believes standing, the water of the great rivers and the coasts, the
+ * wind of the steppe, the desert and the mountains. The land itself never changes and is known to all, so its water and
+ * wind are heard wherever the view goes; a town sounds as the viewer last knew it (Haakon, 1 November 2026: "if you zoom
+ * in on a city that is really burned but that you still believe is buzzing, then it should probably play the urban
+ * commotion sound"): `ruins` are the cities its map shows in ruins (`remember` in map/memory.ts), whose market is silent,
+ * only the wind over them, until it learns they are rebuilt. Heard by zoom (`bedLevel` in mix.ts).
  */
 export function bedAt(f: SeasonFrame | undefined, centre: { x: number; y: number } | null, zoom: number, viewer: Power | null,
-  place: (id: string) => { x: number; y: number }): Bed {
+  place: (id: string) => { x: number; y: number }, ruins: ReadonlySet<string> = new Set()): Bed {
   if (f === undefined || centre === null) return null;
   let best: string | null = null;
   let bestD = Infinity;
@@ -375,11 +388,12 @@ export function bedAt(f: SeasonFrame | undefined, centre: { x: number; y: number
     const b = place(best!);
     return Math.hypot(a.x - b.x, a.y - b.y) < 40 / zoom + 6;
   };
-  const sight = viewer === null ? null : f.sight.get(viewer);
-  if (f.sieges.some((s) => near(s.province) && (sight === null || sight === undefined || sight.has(s.province)))) return "siege";
+  const sight = sightOf(f, viewer);
+  if (f.sieges.some((s) => near(s.province) && (sight === null || sight.has(s.province)))) return "siege";
   const p = map.get(best);
   if (p.isSea) return zoom >= 3 ? "nile" : "wind";
-  if (zoom >= 4 && !p.kingless) return "market";
+  if (zoom >= 4 && !p.kingless && !ruins.has(p.id)) return "market";
+  if (ruins.has(p.id)) return "wind";
   if (riverLands.has(p.id) || p.isCoastal) return "nile";
   if (p.kingless || wildLands.has(p.id)) return "wind";
   return "wind";

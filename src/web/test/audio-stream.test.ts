@@ -81,7 +81,9 @@ describe("AudioStreamTests", () => {
       moves: [move("Egypt", "Army", "memphis", "gaza"), move("Hatti", "Army", "x", "gaza", "Egypt")],
       seenBy: new Map([["Egypt", [0, 1]]]),
       owner: new Map([["gaza", "Egypt"]]),
-    });
+      // What the seat knows, never the truth, decides what it hears (a record without it counts as knowing nothing).
+      knownOwner: new Map([["Egypt", new Map([["gaza", { owner: "Egypt", turn: 1 }]])]]),
+    } as Partial<SeasonFrame>);
     const c = cuesAt([frame(0), f], 1, "Egypt");
     const s = schedule(c, near("gaza"), 4000);
     const at = (n: string) => s.find((x) => x.name === n)!.delay;
