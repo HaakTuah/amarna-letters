@@ -87,8 +87,10 @@ How to keep to them:
 - **Sessions.** When sessions are started for you item by item (a Claude Code Project does this), stop when your item
   is merged and say what is next; otherwise carry on with the next item in the same session. A long item may end a
   session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md` saying where to pick up.
-- **Keep files small and organised:** split code where it naturally belongs, by responsibility, and keep each file under
-  about 50 KB. Split a file that grows past that in its own PR, with behaviour proven unchanged.
+- **Keep it lean** (Haakon, 1 November 2026; `docs/archive/instructions.md`, item 133). Every change removes what it replaces, in the same PR: no
+  commented-out code, no "old" copies, nothing it made unused (code, files, settings, assets, test helpers). Look for an
+  existing helper before writing one. Split code by responsibility and keep each file under about 50 KB; split a file
+  that grows past that in its own PR, with behaviour proven unchanged. A leftover is a finding in every review.
 
 ## Commands
 
@@ -125,7 +127,8 @@ variable.
 
 For Codex's code review, which reports findings by priority: report as **P1** (blocking) a departure from the design or
 from the PR's description and the sections it names; a broken rule of this file (above all the rules that stand) or of
-`SECURITY.md`; a test changed, skipped or weakened; and a protected file changed by a Codex lane. Every finding counts:
+`SECURITY.md`; a test changed, skipped or weakened; and a protected file changed by a Codex lane. Report anything the
+change leaves behind (code, files or settings it made unused, commented-out code) as a finding. Every finding counts:
 the PR passes only with none open. In a later round of the same PR, check that the earlier findings were fixed and
 review what changed since; raise something new about unchanged code only as P0 or P1. Every other reviewer (Claude's
 design check on the big items, and Claude's reviewer whenever Codex is unavailable) gives a score from 1 to 10 and
