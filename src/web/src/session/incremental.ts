@@ -3,7 +3,9 @@
  * of its lists and dictionaries (`SnapshotStore`, src/game/src/snapshots.ts), each piece kept once under a number, and sends
  * the page only the new ones; the page reads back only what changed: an item made of the same pieces as last season keeps
  * last season's object, so a season costs its changes, not the whole world. An item's identity is the numbers of its pieces,
- * so an unchanged item costs a short key, not its text. The state read is exactly the state written (`history.test.ts`).
+ * so an unchanged item costs a short key, not its text. An object is read member by member and a list or dictionary item by
+ * item, down to the depth of the cut (`CutDepth`), so a character whose gold changed keeps its unchanged memories. The state
+ * read is exactly the state written (`history.test.ts`).
  */
 import { Dict, GameStateSchema, HSet, read, type GameState, type Schema } from "@amarna/engine";
 
@@ -35,7 +37,7 @@ export class IncrementalReader {
    * The state of a snapshot, given the numbers of its pieces in order and the pieces by number, sharing with the states read
    * before whatever is made of the same pieces.
    */
-  apply(refs: readonly number[], texts: readonly string[]): GameState {
+  apply(refs: Iterable<number>, texts: readonly string[]): GameState {
     this.texts = texts;
     let t = performance.now();
     const root = this.treeOf(refs);
@@ -65,7 +67,7 @@ export class IncrementalReader {
   private parsed = 0;
 
   /** The tree of a snapshot's pieces. The root's one item is the state's object. */
-  private treeOf(refs: readonly number[]): Container {
+  private treeOf(refs: Iterable<number>): Container {
     const texts = this.texts;
     const root: Container = { head: -1, items: [], tail: "" };
     const stack: Container[] = [root];

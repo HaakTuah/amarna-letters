@@ -2,8 +2,9 @@
  * The seasons' snapshots, sharing what did not change (item 17a). A snapshot is the whole state as JSON, and a long game's
  * state runs to many megabytes (the courts' records, the characters, the events), so a string a season ran to a gigabyte by
  * the age's end and crashed the page on a phone. Here each snapshot is cut into pieces at its items (the elements and members
- * of the state's lists and dictionaries, three levels down), every piece is kept once under a number, and a season's snapshot
- * is a list of those numbers, most of them the same as the season before. The text read back is the text pushed, exactly.
+ * of the state's lists and dictionaries, five levels down: a character's memories and their parts among them), every piece is
+ * kept once under a number, and a season's snapshot is a list of those numbers, most of them the same as the season before.
+ * The text read back is the text pushed, exactly.
  *
  * The same cut is the stream to the page: each push yields a delta, the pieces new since the last push and the snapshot's
  * list of numbers, so the page keeps a history of pieces of its own and rebuilds a season from them when it looks back
@@ -17,15 +18,18 @@ export interface SnapshotDelta {
   /** The pieces first seen in this snapshot, by number. */
   added: [number, string][];
   /** The snapshot, as the numbers of its pieces in order. */
-  refs: number[];
+  refs: Uint32Array;
 }
+
+/** How deep the cut goes: a piece for every item down to this depth (the state's object is depth 1). */
+export const CutDepth = 5;
 
 export class SnapshotStore {
   private readonly ids = new Map<string, number>();
   private readonly texts: string[] = [];
   /** Pieces the page must not see, by number, with the text the deltas carry in their place (their closer and comma kept). */
   private readonly redacted = new Map<number, string>();
-  private readonly snapshots: number[][] = [];
+  private readonly snapshots: Uint32Array[] = [];
   /** The deltas not yet taken (takeDeltas): the stream to whoever follows the snapshots. */
   private pending: SnapshotDelta[] = [];
   /** The bytes (UTF-16 units) of the distinct pieces kept. */
@@ -78,8 +82,8 @@ export class SnapshotStore {
       }
       refs.push(id);
     };
-    // Cuts fall after each comma, opening bracket or closing bracket met at depths 1 to 3, outside strings: each item of
-    // the state's lists and dictionaries, and of their items' lists, is a piece of its own (with its comma). `at` is the
+    // Cuts fall after each comma, opening bracket or closing bracket met at depths 1 to CutDepth, outside strings: each item
+    // of the state's lists and dictionaries, and of their items' lists, is a piece of its own (with its comma). `at` is the
     // depth a piece starts at.
     let depth = 0;
     let at = 0;
@@ -95,34 +99,38 @@ export class SnapshotStore {
       if (ch === 34) inString = true;
       else if (ch === 123 /* { */ || ch === 91 /* [ */) {
         depth++;
-        if (depth <= 3) {
+        if (depth <= CutDepth) {
           take(start, i + 1, at);
           start = i + 1;
           at = depth;
         }
       } else if (ch === 125 /* } */ || ch === 93 /* ] */) {
-        if (depth <= 3) {
+        if (depth <= CutDepth) {
           take(start, i, at);
           start = i;
           at = depth - 1;
         }
         depth--;
-      } else if (ch === 44 /* , */ && depth <= 3) {
+      } else if (ch === 44 /* , */ && depth <= CutDepth) {
         take(start, i + 1, at);
         start = i + 1;
         at = depth;
       }
     }
     take(start, json.length, at);
-    this.snapshots.push(refs);
+    const packed = Uint32Array.from(refs);
+    this.snapshots.push(packed);
     this.totalLength += json.length;
-    this.pending.push({ index: this.snapshots.length - 1, replace, added, refs });
+    this.pending.push({ index: this.snapshots.length - 1, replace, added, refs: packed });
   }
 
   /** The snapshot at an index, as pushed. */
   get(index: number): string | null {
     const refs = this.snapshots[index];
-    return refs === undefined ? null : refs.map((id) => this.texts[id]).join("");
+    if (refs === undefined) return null;
+    let out = "";
+    for (const id of refs) out += this.texts[id];
+    return out;
   }
 
   /** The deltas since the last call, oldest first. */
@@ -147,7 +155,7 @@ function flat(s: string): string {
 export class SnapshotHistory {
   /** The pieces by number. */
   readonly texts: string[] = [];
-  private readonly snapshots: number[][] = [];
+  private readonly snapshots: Uint32Array[] = [];
 
   get length(): number {
     return this.snapshots.length;
@@ -160,14 +168,14 @@ export class SnapshotHistory {
   }
 
   /** The numbers of a snapshot's pieces in order, or null. */
-  refs(index: number): readonly number[] | null {
+  refs(index: number): Uint32Array | null {
     return this.snapshots[index] ?? null;
   }
 
   /** The pieces of a snapshot in order, or null. */
   pieces(index: number): string[] | null {
     const refs = this.snapshots[index];
-    return refs === undefined ? null : refs.map((id) => this.texts[id]);
+    return refs === undefined ? null : Array.from(refs, (id) => this.texts[id]);
   }
 
   /** A snapshot's JSON, or null. */
