@@ -4,7 +4,8 @@ import { GameRunner, ScriptMind, SnapshotHistory, SnapshotStore, TemplateNarrato
 import { Assert } from "../../engine/test/support.ts";
 import { scriptSeats, seasons } from "../../game/test/small-world.ts";
 import { redactForPage } from "../src/session/core.ts";
-import { IncrementalReader } from "../src/session/incremental.ts";
+import { IncrementalReader, ReadReplaced } from "../src/session/incremental.ts";
+import { catchUpFrames, fromWire, sameMap, sameSet, toWire, type SeasonFrame } from "../src/session/frames.ts";
 
 // Item 17a, the stream: the worker sends the page each season's state as the pieces new since the last season, the page keeps
 // its own history of pieces and reads back only what changed. What the page reads is exactly the state the engine wrote,
@@ -91,6 +92,64 @@ describe("History", () => {
     // The store keeps the whole state for the engine, the secret with it.
     Assert.true(store.get(1)!.includes('"finalSeason":3') && store.get(1)!.includes('"finalByCap":true'), "kept whole");
     same(serialize(GameStateSchema, { ...a, finalSeason: null, finalByCap: false }), serialize(GameStateSchema, shown));
+  });
+
+  test("A read spread over tasks gives the state, a newer season replaces it, and the newest is read after skipped ones", async () => {
+    const r = new GameRunner(newGame(11, seasons(8)), scriptSeats(11), new ScriptMind(), new TemplateNarrator());
+    r.writeChronicles = false;
+    r.snapshots.redact = redactForPage;
+    const history = new SnapshotHistory();
+    const reader = new IncrementalReader();
+    await r.prepare();
+    for (const d of r.snapshots.takeDeltas()) history.apply(d);
+    // The read in budgeted tasks is the read in one go.
+    const spread = await reader.read(history.refs(0)!, history.texts, 1);
+    same(forPage(r.state), serialize(GameStateSchema, spread));
+    // Three seasons arrive while nothing is read; the newest is read, the seasons between skipped (their lists reused by prefix).
+    for (let i = 0; i < 3; i++) await r.playTurn();
+    for (const d of r.snapshots.takeDeltas()) history.apply(d);
+    const skipped = await reader.read(history.refs(history.length - 1)!, history.texts, 1);
+    same(forPage(r.state), serialize(GameStateSchema, skipped));
+    Assert.equal(4, skipped.turn);
+    // A read under way, replaced by a newer one, ends with ReadReplaced and the newer one gives the newer state.
+    await r.playTurn();
+    for (const d of r.snapshots.takeDeltas()) history.apply(d);
+    const older = reader.read(history.refs(history.length - 2)!, history.texts, 1);
+    const newer = reader.read(history.refs(history.length - 1)!, history.texts, 1);
+    let replaced = false;
+    await older.catch((e: unknown) => (replaced = e instanceof ReadReplaced));
+    Assert.true(replaced, "the older read was replaced");
+    same(forPage(r.state), serialize(GameStateSchema, await newer));
+  });
+
+  test("A frame sent as a difference comes back whole, in the board's order, and never without its frame before", async () => {
+    const r = new GameRunner(newGame(7, seasons(6)), scriptSeats(7), new ScriptMind(), new TemplateNarrator());
+    r.writeChronicles = false;
+    const frames: SeasonFrame[] = [];
+    r.changed.push(() => catchUpFrames(frames, r));
+    await r.prepare();
+    for (let i = 0; i < 3; i++) await r.playTurn();
+    Assert.true(frames.length >= 3, "frames taken");
+    const [a, b] = [frames[1], frames[2]];
+    const wire = toWire(b, a);
+    // Something is left out (a court whose known holders did not change), and what is left out comes back the same.
+    Assert.true(wire.same.knownOwner.length + wire.same.knownWalls.length + wire.same.sight.length > 0, "a court's map was left out");
+    const back = fromWire(structuredClone(wire), a);
+    Assert.equal([...b.knownOwner.keys()].join(","), [...back.knownOwner.keys()].join(","));
+    Assert.equal([...b.sight.keys()].join(","), [...back.sight.keys()].join(","));
+    for (const [p, m] of b.knownOwner) Assert.true(sameMap(m, back.knownOwner.get(p)!, (x, y) => x.owner === y.owner && x.turn === y.turn), `known holders of ${p}`);
+    for (const [p, m] of b.knownWalls) Assert.true(sameMap(m, back.knownWalls.get(p)!, (x, y) => x === y), `known walls of ${p}`);
+    for (const [p, set] of b.sight) Assert.true(sameSet(set, back.sight.get(p)!), `sight of ${p}`);
+    // The first frame after a reset carries everything; a difference with nothing before it is an error, not a map with holes.
+    const first = toWire(a, null);
+    Assert.equal(0, first.same.knownOwner.length);
+    let threw = false;
+    try {
+      fromWire(wire, null);
+    } catch {
+      threw = true;
+    }
+    Assert.true(threw, "a difference without its frame before throws");
   });
 
   test("Items shared by text are the same objects; changed ones are read anew", () => {

@@ -94,11 +94,12 @@ speed as they were, "Updated to the newest version" shown after); a version with
    the page. Principle: "Code decides facts" (pillar 6): the page shows the engine's facts, never its own reconstruction of
    them; and behaviour unchanged, which the item asks of the optimization round. The alternative, rebuilding the panels'
    data on the page from semantic events alone, would re-implement the engine's rules on the page and could drift from them.
-7. **The throttled phone's remaining frames go with item 17+++.** The bar is met on desktop; on the phone profile the
-   long frames left are the rendering of the season's layer writes (the season's washes change every turn by design) and
-   the names placed, and item 17+++ "redraws the season textures" and plays the season out, which is where the season's
-   drawing is rebuilt. Principle: "No stopgaps": the season drawing is not rebuilt twice. The alternative, rebuilding it
-   here, would do 17+++'s work ahead of its text.
+7. **The throttled phone's remaining frames: a question, not a reading.** The item states the bar for the throttled
+   phone too, and the page does not settle a bar, so it goes to Haakon (question 1 below) with the reading taken: the
+   long frames left there are the rendering of the season's layer writes (the season's washes change every turn by
+   design) and the names placed, and item 17+++ "redraws the season textures" and plays the season out, which is where
+   the season's drawing is rebuilt ("No stopgaps": not twice). The alternative is to rebuild the season drawing here,
+   ahead of 17+++'s text, and hold 17a open until the phone profile passes.
 6. **The page shows whole seasons.** Its state comes from the season's snapshot, taken after resolution, not from every
    change of phase within a season; nothing shown mid-season was ever a rule, and a half-resolved season is not a fact.
    Principle: "Code decides facts": the engine's season is the unit of truth the page shows.
@@ -271,4 +272,11 @@ into develop, the milestone PR (check `merged_at` first), and the report to the 
 
 ## Questions for Haakon
 
-None so far.
+1. **The throttled phone's frames.** On desktop the bar of no frame over about 50 ms is met but for a few frames a game
+   (69 at normal speed, 110 at fast, none over 117 ms while seasons play; 327 to 337 before, the worst 617 ms). On the
+   phone profile (Chromium with the CPU slowed four times, rasterizing in software) the game now runs to its end at both
+   speeds, where before it crashed, but each season still brings a few frames of 200 to 300 ms: the rendering of the
+   season's layer writes and the names placed, not script. **Reading taken:** merge 17a with the desktop bar met and the
+   phone's numbers stated, and take the phone's remaining frames up in item 17+++, which redraws the season textures and
+   plays the season out. **Alternative:** hold 17a open and rebuild the season drawing now (pre-drawn washes toggled
+   instead of rewritten, names placed from cached measurements), ahead of 17+++. Answerable with "merge" or "hold".

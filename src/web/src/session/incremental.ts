@@ -29,6 +29,13 @@ interface Container {
 }
 type Node = Leaf | Container;
 
+/** Why a read ended without a state: a newer season replaced it, or its game was dropped. No error. */
+export class ReadReplaced extends Error {
+  constructor() {
+    super("The read was replaced by a newer season.");
+  }
+}
+
 /** A season being read: its pieces, the state's members, how far the read has come, and the state being filled. */
 interface Job {
   refs: Uint32Array;
@@ -88,7 +95,7 @@ export class IncrementalReader {
     return new Promise((resolve, reject) => {
       const go = (): void => {
         if (this.job !== job) {
-          reject(new Error("The read was replaced by a newer season."));
+          reject(new ReadReplaced());
           return;
         }
         try {

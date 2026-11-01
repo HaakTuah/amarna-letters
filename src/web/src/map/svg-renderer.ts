@@ -701,8 +701,10 @@ export class SvgMapRenderer implements MapRenderer {
       },
       () => {
         const sel = selection(input);
-        const g = this.layers.get("selection")!;
-        if (g.innerHTML !== sel) g.innerHTML = sel;
+        if (this.written.get("selection") !== sel) {
+          this.layers.get("selection")!.innerHTML = sel;
+          this.written.set("selection", sel);
+        }
         // Names are placed once the pieces are drawn, when something was drawn anew (item 17a: placing them measures every
         // name and marker, a layout the phone pays dearly for), and again once the pieces have slid to their places (onMoved).
         if (this.changed) this.placeNames();

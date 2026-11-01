@@ -20,8 +20,8 @@ import {
 } from "@amarna/engine";
 import { SnapshotHistory } from "@amarna/game";
 import { buildScene, type MapScene } from "../map/scene.ts";
-import { IncrementalReader } from "./incremental.ts";
-import { fromWire, type FramePerson, type SeasonFrame } from "./frames.ts";
+import { IncrementalReader, ReadReplaced } from "./incremental.ts";
+import { fromWire, sameMap, samePerson, sameSet, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
 import { download } from "./storage.ts";
@@ -144,12 +144,13 @@ export class Session {
       this.history.clear();
       this.reader.cancel();
       this.reader = new IncrementalReader();
-      this.reading = false;
+      this.reading = 0;
       this.readAgain = false;
       risenCount = -1;
       this.framesGeneration++;
       this.fallSeen = false;
     }
+    if (newGame) this.seenGeneration = m.live.generation;
     // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does, from the
     // season they rise (the frames of that season may be drawn before its state is read).
     if (m.live.hasRunner && m.live.risen.length !== risenCount) {
@@ -183,7 +184,6 @@ export class Session {
       audience: p.audience === null ? null : { view: deserialize<AudienceView>(AudienceViewSchema, p.audience.view), court: deserialize<SeatView>(SeatViewSchema, p.audience.court) },
     }));
     if (newGame) {
-      this.seenGeneration = m.live.generation;
       this.historyTurn = null;
       this.reveal = false;
       this.viewAs = m.live.humans[0] ?? null;
@@ -201,31 +201,37 @@ export class Session {
    * speed a season can arrive before the last is read; replacing the read each time left the panels never caught up),
    * then the newest season is read, the seasons between skipped.
    */
-  private reading = false;
+  /** The read under way, by its number (0: none), so that an older read's end never clears a newer one's flag. */
+  private reading = 0;
+  private nextRead = 1;
   private readAgain = false;
   private readSoon(): void {
     if (this.history.length === 0) return;
-    if (this.reading) {
+    if (this.reading !== 0) {
       this.readAgain = true;
       return;
     }
     const index = this.history.length - 1;
     const generation = this.seenGeneration;
     const t = performance.now();
-    this.reading = true;
+    const read = this.nextRead++;
+    this.reading = read;
     this.readAgain = false;
     this.reader.read(this.history.refs(index)!, this.history.texts).then(
       (state) => {
-        this.reading = false;
+        if (this.reading !== read) return;
+        this.reading = 0;
         if (generation !== this.seenGeneration) return;
         performance.measure("page:reader", { start: t });
         this.state = state;
         this.notify();
         if (this.readAgain || index !== this.history.length - 1) this.readSoon();
       },
-      () => {
-        this.reading = false;
-        /* the game changed */
+      (e: unknown) => {
+        if (this.reading !== read) return;
+        this.reading = 0;
+        // A read replaced by a newer season or dropped with its game is no error; anything else is one the page must show.
+        if (!(e instanceof ReadReplaced)) throw e;
       },
     );
   }
@@ -410,17 +416,6 @@ export class Session {
   }
 }
 
-/** Two maps with the same keys and values, by `same` on the values. */
-function sameMap<K, V>(a: ReadonlyMap<K, V>, b: ReadonlyMap<K, V>, same: (x: V, y: V) => boolean): boolean {
-  if (a.size !== b.size) return false;
-  for (const [k, v] of a) {
-    const w = b.get(k);
-    if (w === undefined || !same(v, w)) return false;
-  }
-  return true;
-}
-const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => a.size === b.size && [...a].every((x) => b.has(x));
-
 /**
  * A frame shares with the frame before whatever did not change (item 17a): each court's known holders and walls and its
  * sight are a map of the whole board a court, most of them the same season after season, and copied across from the worker
@@ -444,18 +439,6 @@ export function shareUnchanged(f: SeasonFrame, previous: SeasonFrame | null): vo
     const was = previous.people.get(id);
     if (was !== undefined && samePerson(c, was)) f.people.set(id, was);
   }
-}
-
-function samePerson(a: FramePerson, b: FramePerson): boolean {
-  for (const k of Object.keys(a) as (keyof FramePerson)[]) {
-    if (k === "covers") continue;
-    if (a[k] !== b[k]) return false;
-  }
-  if (a.covers.length !== b.covers.length) return false;
-  return a.covers.every((x, i) => {
-    const y = b.covers[i];
-    return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.timingText === y.timingText && x.since === y.since;
-  });
 }
 
 /** How many risen powers the page has registered with the engine (setRisen), to register again only when one rises. */

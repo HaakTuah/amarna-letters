@@ -405,7 +405,8 @@ export interface WireFrame extends SeasonFrame {
   same: { knownOwner: Power[]; knownWalls: Power[]; sight: Power[] };
 }
 
-const sameMap = <K, V>(a: ReadonlyMap<K, V>, b: ReadonlyMap<K, V>, same: (x: V, y: V) => boolean): boolean => {
+/** Two maps with the same keys and values, by `same` on the values. */
+export const sameMap = <K, V>(a: ReadonlyMap<K, V>, b: ReadonlyMap<K, V>, same: (x: V, y: V) => boolean): boolean => {
   if (a.size !== b.size) return false;
   for (const [k, v] of a) {
     const w = b.get(k);
@@ -413,7 +414,19 @@ const sameMap = <K, V>(a: ReadonlyMap<K, V>, b: ReadonlyMap<K, V>, same: (x: V, 
   }
   return true;
 };
-const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => a.size === b.size && [...a].every((x) => b.has(x));
+export const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => a.size === b.size && [...a].every((x) => b.has(x));
+/** Two people as the frames keep them, alike in every part. */
+export function samePerson(a: FramePerson, b: FramePerson): boolean {
+  for (const k of Object.keys(a) as (keyof FramePerson)[]) {
+    if (k === "covers") continue;
+    if (a[k] !== b[k]) return false;
+  }
+  if (a.covers.length !== b.covers.length) return false;
+  return a.covers.every((x, i) => {
+    const y = b.covers[i];
+    return x.for === y.for && x.believed === y.believed && x.heldAt === y.heldAt && x.whereText === y.whereText && x.timingText === y.timingText && x.since === y.since;
+  });
+}
 
 /** The frame as sent: what equals the frame before is left out. The frame itself is untouched. */
 export function toWire(f: SeasonFrame, previous: SeasonFrame | null): WireFrame {
@@ -449,7 +462,10 @@ export function toWire(f: SeasonFrame, previous: SeasonFrame | null): WireFrame 
 /** The frame as received: what was left out is the frame before's. The maps stand in the board's order of courts, as built. */
 export function fromWire(w: WireFrame, previous: SeasonFrame | null): SeasonFrame {
   const { same, ...f } = w;
-  if (previous === null) return f;
+  if (previous === null) {
+    if (same.knownOwner.length + same.knownWalls.length + same.sight.length > 0) throw new Error("A frame sent as a difference arrived with no frame before it.");
+    return f;
+  }
   const inOrder = <V>(sent: Map<Power, V>, before: Map<Power, V>, left: readonly Power[]): Map<Power, V> => {
     if (left.length === 0) return sent;
     const gone = new Set(left);
