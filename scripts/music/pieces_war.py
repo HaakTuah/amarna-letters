@@ -8,8 +8,8 @@ Earth's own.
 from __future__ import annotations
 
 from hymn import Mode, hymn_in, shaded
-from idiom import deg, open5, play_hymn, wide
-from parts import choir, drone, drums, held, held_ramp, lyre, melody, ostinato, pad, roots, strokes, swell, trem
+from idiom import deg, fifth, open5, play_hymn, wide
+from parts import choir, drums, held, held_ramp, lyre, melody, ostinato, pad, roots, strokes, swell, trem
 from score import Score
 
 
@@ -139,12 +139,12 @@ def shadows(v: int) -> Score:
     s = Score(bpm=54, seed=800 + v)
     m = Mode(_shade(s, "nis_tuhrim", [0, -1, -2][v]), 52)
     lead, octave = [("low_reed", 0), ("reed", 1), ("celli", 0)][v]
-    low = [m(0, -1), m(4, -1), m(0)]
+    low = [m(0, -1), fifth(m, 0, -1), m(0)]
 
     def bed(at: float, beats: float, vel: float, high: bool = False) -> None:
         trem(s, at, beats, low, vel)
         if high:
-            trem(s, at, beats, [m(0, 2), m(4, 1)], vel * 0.7)
+            trem(s, at, beats, [m(0, 2), fifth(m, 0, 1)], vel * 0.7)
         strokes(s, "bells", at + 3, beats - 3, 6, 0.2)
         strokes(s, "big_drum", at, beats, 8, 0.3)
 
@@ -200,7 +200,7 @@ def shadows(v: int) -> Score:
     s.level(b + 32, -12)
     bed(b, 16, 0.34, high=True)
     choir(s, b, 16, open5(m, 0, 0), 0.3, "o", 6)
-    held(s, "horn", b, 8, m(4, 0), 0.3)
+    held(s, "horn", b, 8, fifth(m, 0, 0), 0.3)
     held(s, "horn", b + 8, 8, m(0, 0), 0.3)
     melody(s, lead, b, deg(m, M2_SHADOWS, octave), 0.5, ornament=0.3)
     melody(s, "violins", b, deg(m, M2_SHADOWS, 1), 0.3, ornament=0)
@@ -231,6 +231,11 @@ def enmity(v: int) -> Score:
     def heart(at: float, beats: float, vel: float = 0.36) -> None:
         drums(s, at, beats, "heart", vel)
 
+    def drone(s_: Score, at: float, beats: float, root: int, vel: float) -> None:
+        """The drone: the bass on the tonic, the celli on the fifth, or the fourth where the tuning's fifth is diminished."""
+        held(s_, "bass", at, beats, root, vel)
+        held(s_, "celli", at, beats, fifth(m, 0, -1), vel * 0.8)
+
     heart(0, 8)
     drone(s, 0, 8, low, 0.32)
     s.level(0, -8)
@@ -247,7 +252,7 @@ def enmity(v: int) -> Score:
     s.level(b, -6)
     heart(b, 16)
     drone(s, b, 16, low, 0.34)
-    pad(s, b, 16, [m(4, -1)], 0.22)
+    pad(s, b, 16, [fifth(m, 0, -1)], 0.22)
     melody(s, lowv, b, deg(m, L_ENMITY), 0.46, ornament=0.2)
     melody(s, "violas", b, deg(m, L_ENMITY, 1), 0.26, ornament=0)
     strokes(s, "bells", b + 4, 12, 8, 0.18)
@@ -259,7 +264,7 @@ def enmity(v: int) -> Score:
     heart(b, 16, 0.4)
     drone(s, b, 16, low, 0.36)
     swell(s, b, 16, wide(m, 0, -1), 0.22, 0.42)
-    held(s, "horn", b, 8, m(4, 0), 0.3)
+    held(s, "horn", b, 8, fifth(m, 0, 0), 0.3)
     held_ramp(s, "horn", b + 8, 8, m(5, 0), 0.3, 0.44)
     melody(s, lowv, b, deg(m, L2_ENMITY), 0.5, ornament=0.2)
     s.phrase(b + 16)
@@ -270,7 +275,7 @@ def enmity(v: int) -> Score:
     drone(s, b, 16, low, 0.42)
     for i, d in enumerate(roots(m, [0, 5, 6, 0])):
         pad(s, b + 4 * i, 4, wide(m, d, -1), 0.42)
-    trem(s, b, 16, [m(0, 2), m(4, 1)], 0.26)
+    trem(s, b, 16, [m(0, 2), fifth(m, 0, 1)], 0.26)
     choir(s, b, 16, open5(m, 0, 0), 0.32, "o", 7)
     melody(s, highv, b, deg(m, C_ENMITY, 1 if highv != "horn" else 0), 0.56, ornament=0.3)
     s.phrase(b + 16)
@@ -281,7 +286,7 @@ def enmity(v: int) -> Score:
     drone(s, b, 16, low, 0.44)
     for i, d in enumerate(roots(m, [5, 6, 5, 0])):
         pad(s, b + 4 * i, 4, wide(m, d, -1), 0.46)
-    trem(s, b, 16, [m(0, 2), m(4, 1)], 0.3)
+    trem(s, b, 16, [m(0, 2), fifth(m, 0, 1)], 0.3)
     choir(s, b, 16, open5(m, 0, 0) + [m(7, 0)], 0.38, "a", 8)
     melody(s, highv, b, deg(m, C_ENMITY, 1 if highv != "horn" else 0), 0.6, ornament=0.3)
     melody(s, "horn" if highv != "horn" else "celli", b, deg(m, C_ENMITY, 0), 0.4, ornament=0)
@@ -295,7 +300,7 @@ def enmity(v: int) -> Score:
     heart(b, 16, 0.4)
     drone(s, b, 16, low, 0.36)
     swell(s, b, 16, wide(m, 0, -1), 0.4, 0.18)
-    held_ramp(s, "horn", b, 8, m(4, 0), 0.4, 0.2)
+    held_ramp(s, "horn", b, 8, fifth(m, 0, 0), 0.4, 0.2)
     melody(s, "violas", b + 8, deg(m, L_ENMITY[:3], 0), 0.3, ornament=0)
     s.phrase(b + 16)
     b += 16
@@ -313,7 +318,7 @@ def enmity(v: int) -> Score:
     drone(s, b, 16, low, 0.38)
     for i, d in enumerate(roots(m, [5, 6, 5, 6])):
         swell(s, b + 4 * i, 4, wide(m, d, -1), 0.26 + 0.05 * i, 0.3 + 0.05 * i)
-    trem(s, b + 8, 8, [m(0, 2), m(4, 1)], 0.28)
+    trem(s, b + 8, 8, [m(0, 2), fifth(m, 0, 1)], 0.28)
     melody(s, lowv, b, deg(m, L2_ENMITY), 0.5, ornament=0.2)
     melody(s, "violas", b + 8, deg(m, L2_ENMITY[4:], 1), 0.3, ornament=0)
     s.phrase(b + 16)
@@ -485,12 +490,12 @@ def battle(v: int) -> Score:
 
     def rub(at: float, beats: float, vel: float) -> None:
         for t in range(0, int(beats), 4):
-            trem(s, at + t, 2, [m(0, 3), m(4, 2)], vel)
-            trem(s, at + t + 2, 2, [m(1, 3), m(4, 2)], vel)
+            trem(s, at + t, 2, [m(0, 3), fifth(m, 0, 2)], vel)
+            trem(s, at + t + 2, 2, [m(1, 3), fifth(m, 0, 2)], vel)
 
     def cries(at: float, beats: float, vel: float) -> None:
         for t in range(0, int(beats), 4):
-            choir(s, at + t, 1, [m(0, 2), m(4, 2)], vel, "a", 8)
+            choir(s, at + t, 1, [m(0, 2), fifth(m, 0, 2)], vel, "a", 8)
 
     gallop(0, 8, 0.56)
     s.hit("timpani", 0, 0.8)
@@ -582,7 +587,7 @@ def battle(v: int) -> Score:
     s.hit("timpani_roll", b + 4, 0.6)
     pad(s, b + 6, 4, open5(m, 0, 1) + [m(0, 2)], 0.5)
     held(s, "horn", b + 6, 4, m(0, 1), 0.55)
-    held(s, "trumpet", b + 6, 4, m(4, 2), 0.5)
+    held(s, "trumpet", b + 6, 4, fifth(m, 0, 2), 0.5)
     s.hit("big_drum", b + 8, 0.9)
     s.hit("cymbal", b + 8, 0.6)
     s.hit("timpani", b + 8, 0.8)
@@ -626,14 +631,14 @@ def siege(v: int) -> Score:
     ram(b, 16, 0.6)
     held(s, "bass", b, 16, m(0, -1), 0.42)
     horns(b, 16, 0.42)
-    trem(s, b, 16, [m(0, 0), m(4, 0)], 0.26)
+    trem(s, b, 16, [m(0, 0), fifth(m, 0, 0)], 0.26)
     s.phrase(b + 16)
     b += 16
     # The wail over the walls.
     ram(b, 16, 0.62)
     held(s, "bass", b, 16, m(0, -1), 0.42)
     horns(b, 16, 0.44)
-    trem(s, b, 16, [m(0, 0), m(4, 0)], 0.3)
+    trem(s, b, 16, [m(0, 0), fifth(m, 0, 0)], 0.3)
     melody(s, wail, b, deg(m, W_SIEGE, octave), 0.54, ornament=0.6)
     s.phrase(b + 16)
     b += 16
@@ -641,7 +646,7 @@ def siege(v: int) -> Score:
     ram(b, 16, 0.66)
     held(s, "bass", b, 16, m(0, -1), 0.44)
     horns(b, 16, 0.48)
-    trem(s, b, 16, [m(0, 0), m(4, 0), m(0, 2), m(1, 2)], 0.32)
+    trem(s, b, 16, [m(0, 0), fifth(m, 0, 0), m(0, 2), m(1, 2)], 0.32)
     strokes(s, "timpani", b + 2, 14, 4, 0.5)
     melody(s, wail, b, deg(m, [(7, 2), (6, 2), (5, 2), (4, 2), (3, 2), (2, 2), (1, 2), (0, 2)], octave), 0.56, ornament=0.4)
     choir(s, b + 8, 8, open5(m, 0, 0), 0.3, "o", 6)
@@ -652,7 +657,7 @@ def siege(v: int) -> Score:
     ram(b, 16, 0.62)
     held(s, "bass", b, 16, m(0, -1), 0.42)
     horns(b, 16, 0.42)
-    trem(s, b, 16, [m(0, 0), m(4, 0)], 0.28)
+    trem(s, b, 16, [m(0, 0), fifth(m, 0, 0)], 0.28)
     melody(s, wail, b, deg(m, W_SIEGE, octave), 0.5, ornament=0.6)
     s.phrase(b + 16)
     b += 16
@@ -700,7 +705,7 @@ def fall(v: int) -> Score:
     s.phrase(b + 16)
     b += 16
     tolls(b, 16, 0.52)
-    trem(s, b, 16, open5(m, 0, -1) + [m(0, 0), m(4, 0)], 0.36)
+    trem(s, b, 16, open5(m, 0, -1) + [m(0, 0), fifth(m, 0, 0)], 0.36)
     held(s, "bass", b, 16, m(0, -2), 0.44)
     choir(s, b, 16, open5(m, 0, -1) + [m(0, 0)], 0.4, "o", 8)
     melody(s, second, b, deg(m, F_FALL, 0 if second != "celli" else -1), 0.58, ornament=0)
@@ -795,7 +800,7 @@ def fallen(v: int) -> Score:
     harp(b, roots(m, [3, 0, 6, 0]))
     floor(b, roots(m, [3, 0, 6, 0]), 0.34)
     choir(s, b, 16, open5(m, 0, -1), 0.3, "o", 7)
-    held(s, "horn", b, 8, m(4, -1), 0.28)
+    held(s, "horn", b, 8, fifth(m, 0, -1), 0.28)
     held(s, "horn", b + 8, 8, m(0, -1), 0.3)
     melody(s, voice, b, deg(m, LA2_FALLEN, 1 if voice == "pipe" else 0), 0.56, ornament=0.8)
     melody(s, strings if strings != "reed" else "violins", b, deg(m, LA2_FALLEN, 0), 0.34, ornament=0)
@@ -810,7 +815,7 @@ def fallen(v: int) -> Score:
     s.tempo_map = [(b, 52)]
     harp(b, prog)
     held(s, "bass", b, 16, low, 0.28)
-    held(s, "celli", b, 16, m(4, -2), 0.22)
+    held(s, "celli", b, 16, fifth(m, 0, -2), 0.22)
     melody(s, voice, b, deg(m, LA_FALLEN, 1 if voice == "pipe" else 0), 0.42, ornament=0.8)
     s.phrase(b + 16)
     b += 16

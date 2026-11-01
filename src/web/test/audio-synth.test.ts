@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { Assert } from "../../engine/test/support.ts";
-import { arrange, cueHolds, stretches } from "../src/audio/synth/arrange.ts";
+import { arrange, consonant, cueHolds, groundDegree, stretches } from "../src/audio/synth/arrange.ts";
 import { CourtScores, Fall, HurrianHymn, Lament, LastSeasons, ModeTest, SharedScores, Triumph, line, scoresFor, synthPiece } from "../src/audio/synth/score.ts";
 import { Tunings, homeMode, pitch, shift } from "../src/audio/tunings.ts";
 
@@ -102,6 +102,39 @@ describe("AudioSynthTests", () => {
     }
   });
 
+  test("No chord holds a tritone in any tuning, and no bass stands a tritone under the tonic", () => {
+    // The tonic's fifth in qablītum becomes a fourth; the fourth degree's octave in kitmum steps down; a chord on
+    // qablītum's fifth degree moves to the sixth.
+    Assert.equal("0,3", consonant([0, 4], "qablitum", 60).join());
+    Assert.equal("0,4", consonant([0, 4], "nid_qablim", 60).join());
+    Assert.equal("4,8", consonant([3, 7], "kitmum", 60).join());
+    Assert.equal("-2,1,5", consonant([-3, 0, 4], "qablitum", 60).join());
+    Assert.equal(-2, groundDegree(-3, "qablitum"));
+    Assert.equal(-3, groundDegree(-3, "nis_tuhrim"));
+    Assert.equal(4, groundDegree(3, "kitmum"));
+    Assert.equal(-18 + 1, groundDegree(-18, "kitmum"));
+    for (const sc of every) {
+      for (const t of Tunings) {
+        for (const layer of sc.layers) {
+          if (layer.role !== "chord") continue;
+          for (const n of layer.notes) {
+            const midis = consonant(n.degrees, t.id, sc.tonic).map((d) => pitch(t.id, sc.tonic, d));
+            for (const a of midis) for (const b of midis) Assert.false((((a - b) % 12) + 12) % 12 === 6, `${sc.id} ${t.id} at ${n.at}: ${midis.join()}`);
+          }
+        }
+        for (const n of sc.layers.filter((l) => l.role === "bass").flatMap((l) => l.notes)) {
+          const d = groundDegree(n.degrees[0], t.id);
+          Assert.false((((pitch(t.id, sc.tonic, d) - sc.tonic) % 12) + 12) % 12 === 6, `${sc.id} ${t.id} bass at ${n.at}`);
+        }
+      }
+    }
+    // The 8-bit version plays the hymn's strings beneath the sung line, not above it.
+    const chip = arrange(HurrianHymn, 0, 4, "nid_qablim", "chip", { mood: "calm", shade: 0 });
+    const sung = chip.find((p) => p.voice === "square" && p.at === 0)!.midi;
+    const beneath = chip.find((p) => p.voice === "square-thin" && p.at === 0 && p.beats > 1)!.midi;
+    Assert.true(beneath < sung);
+  });
+
   test("Each court hears its own theme and march, the moments are shared, and a court without music hears Ugarit's", () => {
     Assert.equal(CourtScores.Egypt.theme, synthPiece("kings", "Egypt"));
     Assert.equal(CourtScores.Egypt.theme, synthPiece("envoys", "Egypt"));
@@ -127,11 +160,16 @@ describe("AudioSynthTests", () => {
 
   test("The mood changes the layers within a court's score: the heartbeat in unease, the march in war, the gallop in battle", () => {
     const sc = CourtScores.Babylonia.theme;
-    const drums = (mood: "calm" | "tension" | "war" | "battle" | "siege"): number =>
-      arrange(sc, 0, 8, "isartum", "chip", { mood, shade: mood === "battle" ? -2 : mood === "war" ? -1 : 0 }).filter((p) => p.voice.startsWith("noise-")).length;
-    Assert.true(drums("tension") > 0);
-    Assert.true(drums("battle") > drums("war"));
-    Assert.true(drums("war") > drums("calm"));
+    const drums = (score: typeof sc, mood: "calm" | "tension" | "war" | "battle" | "siege"): number =>
+      arrange(score, 0, 8, "isartum", "chip", { mood, shade: mood === "battle" ? -2 : mood === "war" ? -1 : 0 }).filter((p) => p.voice.startsWith("noise-")).length;
+    // The theme: a slow drum in peace, the heartbeat in unease, nothing of war; the march: the march, the gallop, the ram.
+    Assert.true(drums(sc, "calm") > 0);
+    Assert.true(drums(sc, "tension") > drums(sc, "calm"));
+    Assert.equal(0, drums(sc, "battle"));
+    const march = CourtScores.Babylonia.march;
+    Assert.true(drums(march, "battle") > drums(march, "war"));
+    Assert.true(drums(march, "war") > 0 && drums(march, "siege") > 0);
+    Assert.equal(0, drums(march, "calm"));
     // The sistrum only at a feast.
     const feast = arrange(sc, 0, 8, "isartum", "period", { mood: "calm", shade: 1 });
     const plain = arrange(sc, 0, 8, "isartum", "period", { mood: "calm", shade: 0 });

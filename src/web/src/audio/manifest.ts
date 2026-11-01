@@ -238,8 +238,8 @@ export const Manifest = {
    },
    {
     "file": "music/shadows-2.m4a",
-    "hash": "f9e8445456",
-    "seconds": 135.91,
+    "hash": "aec4260446",
+    "seconds": 135.88,
     "phrases": [
      8.89,
      26.67,
@@ -254,8 +254,8 @@ export const Manifest = {
    },
    {
     "file": "music/shadows-3.m4a",
-    "hash": "c0e861cf97",
-    "seconds": 136.34,
+    "hash": "561d8d70cc",
+    "seconds": 136.36,
     "phrases": [
      8.89,
      26.67,
@@ -311,8 +311,8 @@ export const Manifest = {
    },
    {
     "file": "music/enmity-3.m4a",
-    "hash": "51a64de10c",
-    "seconds": 177.82,
+    "hash": "63a5332082",
+    "seconds": 177.81,
     "phrases": [
      8.0,
      24.0,
@@ -406,7 +406,7 @@ export const Manifest = {
    },
    {
     "file": "music/battle-2.m4a",
-    "hash": "7b9e267a22",
+    "hash": "3fa7e25777",
     "seconds": 79.34,
     "phrases": [
      3.81,
@@ -425,7 +425,7 @@ export const Manifest = {
    },
    {
     "file": "music/battle-3.m4a",
-    "hash": "d9f6316fbd",
+    "hash": "68187be400",
     "seconds": 79.36,
     "phrases": [
      3.81,
@@ -459,7 +459,7 @@ export const Manifest = {
    },
    {
     "file": "music/siege-2.m4a",
-    "hash": "6ad6644b0b",
+    "hash": "a37cc28e6f",
     "seconds": 63.1,
     "phrases": [
      6.0,
@@ -473,7 +473,7 @@ export const Manifest = {
    },
    {
     "file": "music/siege-3.m4a",
-    "hash": "c79e8ef73e",
+    "hash": "9e1ede42ee",
     "seconds": 63.12,
     "phrases": [
      6.0,
@@ -547,8 +547,8 @@ export const Manifest = {
    },
    {
     "file": "music/fall-2.m4a",
-    "hash": "b5ec9a3308",
-    "seconds": 51.5,
+    "hash": "e0cf20f2a7",
+    "seconds": 51.62,
     "phrases": [
      2.86,
      14.29,
@@ -560,7 +560,7 @@ export const Manifest = {
    },
    {
     "file": "music/fall-3.m4a",
-    "hash": "d0bef45843",
+    "hash": "a4bd7a594c",
     "seconds": 51.72,
     "phrases": [
      2.86,
@@ -591,7 +591,7 @@ export const Manifest = {
    },
    {
     "file": "music/fallen-2.m4a",
-    "hash": "423fd4dab4",
+    "hash": "49a11a9f9d",
     "seconds": 149.05,
     "phrases": [
      8.28,
@@ -608,7 +608,7 @@ export const Manifest = {
    },
    {
     "file": "music/fallen-3.m4a",
-    "hash": "2e5042c86c",
+    "hash": "2f62f30c3b",
     "seconds": 149.7,
     "phrases": [
      8.28,

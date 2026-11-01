@@ -22,6 +22,11 @@ def open5(mode: Mode, d: int, octave: int = 0) -> list[int]:
     return mode.chord(d, "open", octave)
 
 
+def fifth(mode: Mode, d: int = 0, octave: int = 0) -> int:
+    """The note an open chord on a degree holds above its root: the fifth, or the fourth where the fifth is diminished."""
+    return mode.chord(d, "open", octave)[1]
+
+
 def wide(mode: Mode, d: int, octave: int = 0) -> list[int]:
     """Root and fifth low, the octave and the third above: the period's chord as the strings hold it."""
     root, fifth = mode.chord(d, "open", octave)

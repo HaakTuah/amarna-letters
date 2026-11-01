@@ -1,4 +1,4 @@
-"""Renders the music and the sounds: python3 scripts/music/render.py [music|sounds|all] [piece ...]
+"""Renders the music and the sounds: python3 scripts/music/render.py [music|sounds|all] [piece | piece-N ...]
 
 Writes the compressed audio to src/web/public/audio/ and the list of what was written, with each piece's length and
 phrase ends, to scripts/music/manifest.json and src/web/src/audio/manifest.ts. The samples must be fetched first (docs/audio/SOURCES.md).
@@ -43,10 +43,14 @@ def save_manifest(m: dict) -> None:
 
 
 def render_music(names: list[str]) -> None:
+    """Renders the pieces named (all of them if none), or one variation of a piece as `name-2`."""
     man = load_manifest()
-    for name in names:
-        vars_ = []
+    for arg in names:
+        name, _, only = arg.partition("-")
+        vars_ = list(man["music"].get(name, [])) if only else []
         for v in range(VARIATIONS):
+            if only and v != int(only) - 1:
+                continue
             t0 = time.time()
             s = PIECES[name](v)
             x = s.render()
@@ -56,7 +60,10 @@ def render_music(names: list[str]) -> None:
             entry = {"file": f"music/{name}-{v + 1}.m4a", "hash": info["hash"], "seconds": info["seconds"], "phrases": ends}
             if s.shade != 0:
                 entry["shade"] = s.shade
-            vars_.append(entry)
+            if only:
+                vars_[v] = entry
+            else:
+                vars_.append(entry)
             print(f"{name}-{v + 1}: {info['seconds']:.1f}s, {len(ends)} phrases, {os.path.getsize(path) / 1e6:.2f} MB, {time.time() - t0:.0f}s")
         man["music"][name] = vars_
         save_manifest(man)

@@ -120,9 +120,11 @@ chords); `Mode.chord` takes the fourth where a tuning's fifth is diminished.
    dark variation would alternate it with a plain one; two of three are dark, so the dark ones alternate ("never the
    same variation twice running"). Likewise two bright for Triumph. Principle: the rule on variations and the rule on
    shades both hold.
-5. **Open chords never hold a diminished fifth**: where a tuning's fifth above a degree is a tritone (the tonic's own in
-   qablītum, the fourth degree's in kitmum), the chord takes the fourth, and a progression moves off that root. Principle:
-   it must sound good, not merely correct; a lyre tuned to that pair would be struck so.
+5. **No held chord holds a diminished fifth, in any tuning**: where a tuning's fifth above a degree is a tritone (the
+   tonic's own in qablītum, the fourth degree's in kitmum), the chord takes the fourth, and a progression moves off that
+   root; in the orchestra by `Mode.chord`, `idiom.fifth` and `parts.roots`, in the fallback by `consonant` and
+   `groundDegree` in `arrange.ts` for every score in every tuning (a test plays each chord in all seven). Principle: it
+   must sound good, not merely correct; a lyre tuned to that pair would be struck so.
 6. **The choir is used as a pad and for the height**, on closed vowels except at the heights and in Battle's cries,
    since it is synthesised (the first session's reading 10). Principle: taste, within "choir, strings, reed and drums".
 7. **The fallback's courts are the seven great kings and Ugarit**: "a few for each court" is read as the courts a human
@@ -136,6 +138,23 @@ chords); `Mode.chord` takes the fourth where a tuning's fifth is diminished.
     lines over drones and open chords, no clash by design). Haakon's ear is the judge; the PR says how to hear each.
 10. **Render once**: the 42 files were rendered once, after the scores passed the checks, since every render stays in the
     repository's history (about 28 MB a render).
+
+## The review
+
+One reviewer (Opus, high), on the diff, the item's text and "The game in one page": no conflict with either; two
+blocking findings, both the same fault, fixed: (1) the darkest orchestra variations (Shadows 2 and 3, Enmity 3, Battle
+2 and 3, Siege 2 and 3, The City Falls 2 and 3, and the Lament 2 and 3, found on the same pass) held the tonic's
+fifth as a fixed `m(4)` in their pads, horns and tremolo, which in qablītum is a tritone; now `idiom.fifth` gives the
+fourth there, and the eleven files were rendered again (the other variations' renders are unchanged, Enmity 1 checked
+byte for byte); (2) the fallback's shared Fall and Lament, heard two steps dark at every court, held fifths in
+qablītum and pītum; both are rewritten in fourths on the first, fourth and seventh degrees, and `consonant` in
+`arrange.ts` now keeps every chord of every score free of tritones in every tuning (findings 3 to 6, the court
+marches, themes at a feast, Triumph a step brighter and the hymn at each court's home mode, fall under the same rule;
+a test covers all seven tunings). Of the rest: the 8-bit hymn's strings beneath now sound an octave down (a layer's
+`below`); a theme carries only the layers of peace and unease and a march only those of war (the layers no mood could
+call are gone); The Last Seasons' longest stretch is 19.3 s, under the player's 20; Alashiya is named in the design
+note; the fade-in's two faults are moot, since that change is the sound system session's. Develop was merged before
+the review (the design copy at revision 193).
 
 ## Use against ignore
 

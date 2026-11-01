@@ -26,8 +26,8 @@ our own in the tunings (the rest), over the period's harmony: drones, open fifth
 colours. Each piece has a rise and a fall marked on the score (`Score.level`, in dB), so a quiet opening and a height
 stand 10 to 18 dB apart after mastering; each variation has another lead and course, and one or two of the three are the
 piece in a darker or brighter tuning (below). Where a tuning's fifth above a degree is diminished (the tonic's own in
-qablītum, the fourth degree's in kitmum), the open chord takes the fourth instead (`Mode.chord`), and a progression
-moves off that root (`parts.roots`). Lengths run from about 50 s (Triumph, The City Falls, Solemn) to 3 minutes (Enmity),
+qablītum, the fourth degree's in kitmum), the open chord takes the fourth instead (`Mode.chord`, `idiom.fifth` for a
+pad's or a horn's held fifth), and a progression moves off that root (`parts.roots`). Lengths run from about 50 s (Triumph, The City Falls, Solemn) to 3 minutes (Enmity),
 shorter than Empire Earth's long pieces, since the music changes with the situation and rests between quiet pieces.
 
 | Empire Earth's | Ours | Mood or moment |
@@ -135,16 +135,23 @@ beds, placement and hearing by zoom serve all three, so only the pieces change.
   people: **Ugarit's theme is the Hurrian Hymn** whole (h.6, four lines, 61 beats), after Anne Draffkorn Kilmer's
   reading of the notation (Kilmer 1974; Kilmer, Crocker and Brown, *Sounds from Silence*, 1976): the strings of each
   named pair sound together in nīd qablim, the first-named sung above the other; the numerals are taken as lengths and
-  the text is Laroche's edition (the listening page names this). Every other great court (Egypt, Hatti, Babylonia,
-  Mitanni, Assyria, Arzawa) has **a theme and a march of its own**, 32 beats each, written in degrees so they play in the
-  court's home mode; a court without music of its own, god view and the menus hear Ugarit's. The **moments are shared**:
+  the text is Laroche's edition (the listening page names this). Each of the seven great courts (Egypt, Hatti,
+  Babylonia, Mitanni, Assyria, Arzawa, Alashiya) has **a theme and a march of its own**, 32 beats each, written in
+  degrees so they play in the court's home mode; a court without music of its own (the city-states), god view and the
+  menus hear Ugarit's. The **moments are shared**:
   Triumph (a fanfare), The City Falls (a line falling the octave), the Lament (for a king fallen and for land lost) and
   The Last Seasons (the hymn slow, a clock on the beat). Within each score the layers come and go with the mood (a slow
   drum in peace, a heartbeat in unease, the march in war, the gallop in battle, the ram in a siege, the chord only in
   peace and at a feast, the sistrum at a feast), so one score serves calm, tension, war, battle and siege.
   `synthPiece(id, court)` maps a piece id and a court to the score: the moments' ids to the shared scores, the calm and
-  tension ids to the court's theme, the war ids to its march. Hatti's chords hold fourths, since its darkest tuning,
-  qablītum, has a diminished fifth. `ModeTest` (every role in sixteen beats) stays on the listening page as a test for
+  tension ids to the court's theme, the war ids to its march. A theme carries only the layers of peace and unease, a
+  march only those of war, battle and siege; the hymn, heard in every mood, carries all. **No chord holds a tritone in
+  any tuning**: `consonant` in `arrange.ts` steps the upper note of a tritone pair down a degree (the tonic's fifth in
+  qablītum becomes a fourth, the fourth degree's octave in kitmum likewise) and moves a chord rooted on qablītum's fifth
+  degree, itself a tritone over the tonic, up to the sixth, and `groundDegree` does the same for the bass; the scores
+  most exposed (Hatti's, which reach qablītum in every war, Fall and the Lament, heard two steps dark at every court)
+  are written in fourths on the first, fourth and seventh degrees besides. A test plays every chord of every score in
+  all seven tunings. `ModeTest` (every role in sixteen beats) stays on the listening page as a test for
   hearing each tuning.
 
 ## Files and loading
