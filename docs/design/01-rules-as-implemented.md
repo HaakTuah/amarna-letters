@@ -307,7 +307,7 @@
   are left out)", and in the second agent simulation all seven kings in both games read it as growth,
   four in each misled: "I thought I was fourth of six when I was in fact below my start".)
 - **Opening positions are public.** Every king reads every power's opening troops, treasury,
-  homeland yield and starting strength in the rulebook ("OPENING POSITIONS (known to every
+  homeland's worth a season and starting strength in the rulebook ("OPENING POSITIONS (known to every
   court)"), generated from the map data (`src/engine/src/model/map.ts`) by `openingLines` (`src/engine/src/rules/opening.ts`), so the cached block stays byte-stable.
   The web app's standings panel shows the same table to every seat, human or not. Script kings
   read the same facts from `MapData`, as before.
