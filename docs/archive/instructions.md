@@ -1038,3 +1038,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     the design session's proposal (about 5 minutes to a sign of life, a take-back at once when the bot answers with
     an error, about 2 hours to a PR): "yes, expertly!" Written into `docs/claude-and-codex.md`, "When Codex is not
     there", the same in Barkstreet Snakes.
+125. **1 November 2026, 16:10-16:19 UTC**, in the design chat, after the Codex GitHub bot turned out to need a
+    Legacy environment that cannot be created: "Is it possible to have the orchestrator run locally, while the rest
+    run on cloud. But still is a security risk. Also, can anyone who comments on my repo make my codex do whatever?
+    that would be a big risk!" Then, to the design session's answers (the orchestrator stays in the cloud and the PC
+    only hands lanes to Codex's cloud; the runner acts only on pull requests HaakTuah opened from the repository and
+    labelled himself, with the description as the brief), 16:19 UTC: "Yes to all, expertly!" Written into
+    `docs/claude-and-codex.md` ("Handing work to Codex", "The runner on Haakon's PC") and `scripts/codex-runner.sh`,
+    the same in Barkstreet Snakes.
