@@ -172,17 +172,32 @@ async function stopTrace() {
   // Each long task's make-up: the events inside it (by time), the biggest first, so the task to split is named.
   const main = traced.filter((e) => e.ph === "X" && (mainPid === null || (e.pid === mainPid && e.tid === mainTid)));
   const tasks = main.filter((e) => e.name === "RunTask" && e.dur > 50000).sort((a, b) => b.dur - a.dur);
-  const parts = ["HandlePostMessage", "TimerFire", "FireAnimationFrame", "RunMicrotasks", "FunctionCall", "UpdateLayoutTree", "Layout", "PrePaint", "Paint", "Layerize", "ParseHTML", "MinorGC", "MajorGC", "EventDispatch", "HitTest"];
+  // Every event inside the task, outermost only (an event inside another counts for the outer one), so the parts add up to
+  // the task; what no event covers is listed as "unaccounted".
   const makeup = (task) => {
+    const within = main.filter((e) => e !== task && e.ts >= task.ts && e.ts + e.dur <= task.ts + task.dur + 1 && e.dur > 0);
+    const outer = within.filter((e) => !within.some((o) => o !== e && o.ts <= e.ts && o.ts + o.dur >= e.ts + e.dur && (o.ts < e.ts || o.ts + o.dur > e.ts + e.dur || o.dur > e.dur)));
     const inside = new Map();
-    for (const e of main) {
-      if (e === task || !parts.includes(e.name) || e.ts < task.ts || e.ts + e.dur > task.ts + task.dur + 1) continue;
-      // Only the outermost of nested parts: a FunctionCall inside a timer counts for the timer.
-      if (e.name === "FunctionCall" && main.some((o) => o !== e && (o.name === "TimerFire" || o.name === "HandlePostMessage" || o.name === "FireAnimationFrame") && o.ts <= e.ts && o.ts + o.dur >= e.ts + e.dur)) continue;
+    let covered = 0;
+    for (const e of outer) {
       inside.set(e.name, (inside.get(e.name) ?? 0) + e.dur);
+      covered += e.dur;
     }
-    return [...inside.entries()].sort((a, b) => b[1] - a[1]).map(([n, d]) => `${n} ${(d / 1000).toFixed(0)}`).join(", ");
+    inside.set("unaccounted", Math.max(0, task.dur - covered));
+    return [...inside.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7).map(([n, d]) => `${n} ${(d / 1000).toFixed(0)}`).join(", ");
   };
+  const others = new Map();
+  for (const e of traced) {
+    if (e.ph !== "X" || (e.pid === mainPid && e.tid === mainTid) || e.pid !== mainPid) continue;
+    const x = others.get(e.name) ?? { count: 0, total: 0, worst: 0 };
+    x.count++;
+    x.total += e.dur;
+    if (e.dur > x.worst) x.worst = e.dur;
+    others.set(e.name, x);
+  }
+  await out("the renderer's other threads (raster, compositor), by event:");
+  for (const [name, x] of [...others.entries()].sort((a, b) => b[1].total - a[1].total).slice(0, 8))
+    await out(`  ${name.padEnd(28)} ${String(x.count).padStart(6)} times, ${(x.total / 1000).toFixed(0).padStart(7)} ms in all, worst ${(x.worst / 1000).toFixed(0).padStart(5)} ms`);
   await out(`long tasks in the timeline: ${tasks.length}; the longest, with what was inside (ms):`);
   for (const task of tasks.slice(0, 12)) await out(`  task ${(task.dur / 1000).toFixed(0).padStart(4)} ms: ${makeup(task)}`);
   // The kinds of long task, by their biggest part.
