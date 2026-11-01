@@ -141,9 +141,8 @@ export class Session {
       this.frames = [];
       this.recent.clear();
       this.history.clear();
+      this.reader.cancel();
       this.reader = new IncrementalReader();
-      clearTimeout(this.reading);
-      this.reading = 0;
       this.framesGeneration++;
       this.fallSeen = false;
     }
@@ -184,19 +183,25 @@ export class Session {
     this.notify();
   }
 
-  private reading = 0;
+  /** The newest season's read under way, spread over tasks by the reader; a newer season replaces it. */
   private readSoon(): void {
-    if (this.reading !== 0) return;
-    this.reading = window.setTimeout(() => {
-      this.reading = 0;
-      if (this.history.length === 0) return;
-      const t = performance.now();
-      this.state = this.reader.apply(this.history.refs(this.history.length - 1)!, this.history.texts);
-      performance.measure("page:reader", { start: t });
-      // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
-      setRisen(this.state.risen);
-      this.notify();
-    }, 0);
+    if (this.history.length === 0) return;
+    const index = this.history.length - 1;
+    const generation = this.seenGeneration;
+    const t = performance.now();
+    this.reader.read(this.history.refs(index)!, this.history.texts).then(
+      (state) => {
+        if (generation !== this.seenGeneration || index !== this.history.length - 1) return;
+        performance.measure("page:reader", { start: t });
+        this.state = state;
+        // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
+        setRisen(state.risen);
+        this.notify();
+      },
+      () => {
+        /* replaced by a newer season, or the game changed */
+      },
+    );
   }
 
   private request(m: ToWorker & { id: number }): Promise<FromWorker> {

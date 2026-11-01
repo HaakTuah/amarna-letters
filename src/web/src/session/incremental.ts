@@ -29,6 +29,17 @@ interface Container {
 }
 type Node = Leaf | Container;
 
+/** A season being read: its pieces, the state's members, how far the read has come, and the state being filled. */
+interface Job {
+  refs: Uint32Array;
+  texts: readonly string[];
+  items: Node[];
+  at: number;
+  o: Record<string, unknown>;
+  started: number;
+}
+const Fields = new Map(GameStateSchema.fields);
+
 /** What a cache holds under a hash: the pieces' numbers the object was read from (to tell a true hit), and the object. */
 interface Entry {
   ids: Uint32Array;
@@ -52,35 +63,91 @@ export class IncrementalReader {
    * before whatever is made of the same pieces.
    */
   apply(refs: Uint32Array, texts: readonly string[]): GameState {
+    const job = this.begin(refs, texts);
+    while (!this.step(job, Infinity)) {
+      /* every field, in one go */
+    }
+    return this.finish(job);
+  }
+
+  /**
+   * The same, spread over tasks (item 17a: no frame over about 50 ms): each task reads fields for about `budgetMs`, then
+   * yields; the state is given once every field is read. A read begun while one is under way replaces it.
+   */
+  read(refs: Uint32Array, texts: readonly string[], budgetMs = 10): Promise<GameState> {
+    this.cancel();
+    const job = this.begin(refs, texts);
+    this.job = job;
+    return new Promise((resolve, reject) => {
+      const go = (): void => {
+        if (this.job !== job) {
+          reject(new Error("The read was replaced by a newer season."));
+          return;
+        }
+        try {
+          if (this.step(job, budgetMs)) {
+            this.job = null;
+            resolve(this.finish(job));
+          } else setTimeout(go, 0);
+        } catch (e) {
+          this.job = null;
+          reject(e as Error);
+        }
+      };
+      go();
+    });
+  }
+
+  /** Drops a read under way (a newer season arrived, or the game changed). */
+  cancel(): void {
+    this.job = null;
+  }
+
+  private job: Job | null = null;
+
+  private begin(refs: Uint32Array, texts: readonly string[]): Job {
     this.texts = texts;
     this.refs = refs;
-    let t = performance.now();
+    const t = performance.now();
     const root = this.treeOf(refs);
     performance.measure("reader:tree", { start: t });
-    t = performance.now();
-    this.parsed = 0;
     const state = root.items[0];
     if (root.items.length !== 1 || typeof state === "number") throw new Error("The state's pieces do not form one object.");
+    this.parsed = 0;
     this.next = new Map();
-    const o = GameStateSchema.make() as unknown as Record<string, unknown>;
-    const fields = new Map(GameStateSchema.fields);
-    for (const item of state.items) {
+    return { refs, texts, items: state.items, at: 0, o: GameStateSchema.make() as unknown as Record<string, unknown>, started: t };
+  }
+
+  /** Reads fields until the budget is spent; true once all are read. */
+  private step(job: Job, budgetMs: number): boolean {
+    const t = performance.now();
+    // Another read may have borrowed the reader meanwhile (apply in a test): the job's own season is set back each step.
+    this.texts = job.texts;
+    this.refs = job.refs;
+    while (job.at < job.items.length) {
+      const item = job.items[job.at++];
       const name = nameOf(this.headText(item));
-      const fs = fields.get(name);
+      const fs = Fields.get(name);
       if (fs === undefined || fs.k === "computed") continue;
       const before = this.parsed;
-      o[name] = this.member(name, fs, item);
+      job.o[name] = this.member(name, fs, item);
       if (this.parsed > before) performance.measure(`reader:field:${name}`, { start: t, duration: (this.parsed - before) / 1024 });
+      if (performance.now() - t > budgetMs) break;
     }
+    performance.measure("reader:fields", { start: t });
+    return job.at >= job.items.length;
+  }
+
+  private finish(job: Job): GameState {
     this.caches = this.next;
     this.lists = this.nextLists;
     this.nextLists = new Map();
     this.texts = [];
     this.refs = new Uint32Array(0);
-    performance.measure("reader:fields", { start: t });
-    performance.measure(`reader:parsedKB:${Math.round(this.parsed / 1024)}`, { start: t, duration: 0 });
-    return o as unknown as GameState;
+    performance.measure(`reader:parsedKB:${Math.round(this.parsed / 1024)}`, { start: job.started, duration: 0 });
+    return job.o as unknown as GameState;
   }
+
   /** The characters of JSON parsed this season (new items). */
   private parsed = 0;
 
