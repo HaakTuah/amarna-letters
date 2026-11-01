@@ -28,13 +28,21 @@ export const Level = { music: 0.9, event: 0.6, world: 0.5, bed: 0.45 } as const;
 export class Mixer {
   private sounding: Record<Layer, { name: string; from: number; to: number }[]> = { event: [], world: [] };
 
-  /** Whether a sound of `seconds` starting at `at` is heard; if so, it is counted from then on. */
-  admit(name: string, layer: Layer, at: number, seconds: number): boolean {
-    const list = this.sounding[layer].filter((s) => s.to > at - Repeat[layer]);
+  /**
+   * Whether a sound of `seconds` starting at `at` is heard; if so, it is counted from then on. `now` is the present on the
+   * same clock: sounds are booked ahead (a season's are spread over a few seconds), so the past is forgotten by it, and a
+   * sound booked later but starting sooner still counts every sound its span would overlap.
+   */
+  admit(name: string, layer: Layer, at: number, seconds: number, now: number = at): boolean {
+    const list = this.sounding[layer].filter((s) => s.to > Math.min(now, at) - Repeat[layer]);
     this.sounding[layer] = list;
     if (list.some((s) => s.name === name && Math.abs(s.from - at) < Repeat[layer])) return false;
-    if (list.filter((s) => s.from <= at && s.to > at).length >= AtOnce[layer]) return false;
-    list.push({ name, from: at, to: at + Math.max(0.2, seconds) * 1000 });
+    const to = at + Math.max(0.2, seconds) * 1000;
+    // The most heard together anywhere in its span: each overlapping sound's start, and its own.
+    const over = list.filter((s) => s.from < to && s.to > at);
+    const peak = Math.max(0, ...[at, ...over.map((s) => s.from)].filter((t) => t >= at).map((t) => over.filter((s) => s.from <= t && s.to > t).length));
+    if (peak >= AtOnce[layer]) return false;
+    list.push({ name, from: at, to });
     return true;
   }
 }

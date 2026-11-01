@@ -62,7 +62,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
               return (
                 <tr key={p}>
                   <td>
-                    <Emblem power={p} /> {powerName(p)} {(seatView === null ? isAlive(state, p) : !seatView.fallen.includes(p)) ? "" : "(fallen)"}
+                    <span className="named"><Emblem power={p} /> {powerName(p)}</span> {(seatView === null ? isAlive(state, p) : !seatView.fallen.includes(p)) ? "" : "(fallen)"}
                   </td>
                   <td>
                     {l.fallen ? (
@@ -107,7 +107,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
                   <tr key={x.power}>
                     <td>{i + 1}</td>
                     <td>
-                      <Emblem power={x.power} /> {powerName(x.power)}
+                      <span className="named"><Emblem power={x.power} /> {powerName(x.power)}</span>
                     </td>
                     <td>{x.score.toFixed(2)}</td>
                     <td>{x.size.toFixed(2)}</td>
@@ -182,7 +182,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
             {openings(state.config).map((o) => (
               <tr key={o.power}>
                 <td>
-                  <Emblem power={o.power} /> {powerName(o.power)}
+                  <span className="named"><Emblem power={o.power} /> {powerName(o.power)}</span>
                 </td>
                 <td>{openingTroops(o)}</td>
                 <td>{o.gold} shekels</td>

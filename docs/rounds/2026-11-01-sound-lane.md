@@ -105,6 +105,15 @@ original Civilization ("the fallback after the original Civilization"), another 
 - **The bed heard only zoomed in** (`bedLevel`): silent below zoom 1.5, whole at 3, as the placed sounds rise.
 - Tests: `audio-mix.test.ts` (the caps, the levels, the bed by zoom, god view without event sounds).
 
+### The review
+
+One reviewer (Opus, high effort): nothing blocking; fixed all the same: the at-once cap now counts every sound a new
+one's span would overlap, so a click at once after a season's sounds booked a few seconds ahead cannot make a fourth or
+fifth; the mixer forgets the past by the present, not by a sound booked ahead, so the repeat window holds; a zoom change
+during a new bed's 4 s fade now takes (the fade's end had undone it); an envoy arriving no longer sounds in god view with
+the board revealed (realm news); a stale comment. The player's own clicks (the stylus, the seal, the envelope) stay heard
+when a human seat acts with the board revealed: they are that seat's own acts.
+
 ### Readings taken
 
 3. **The bed is silent zoomed out.** Item 19+++ said on 31 October that zoomed out "you hear the world's bed and the great

@@ -33,6 +33,15 @@ describe("AudioMixTests", () => {
     Assert.true(n.admit("another", "world", 400, 1));
     // Once the first have ended, room again.
     Assert.true(n.admit("later", "event", 6000, 1));
+    // Booked out of order: a click at once, after three sounds booked a little ahead, would overlap all three.
+    const o = new Mixer();
+    for (let i = 0; i < 3; i++) Assert.true(o.admit(`ahead${i}`, "event", 500 + i * 700, 3, 0));
+    Assert.false(o.admit("click", "event", 0, 3, 0));
+    // A sound booked far ahead does not make the mixer forget one heard a moment ago.
+    const r = new Mixer();
+    Assert.true(r.admit("envelope", "event", 0, 0.5, 0));
+    Assert.true(r.admit("season", "event", 6000, 0.5, 500));
+    Assert.false(r.admit("envelope", "event", 1500, 0.5, 1500));
   });
 
   test("Both sound layers sit under the music", () => {

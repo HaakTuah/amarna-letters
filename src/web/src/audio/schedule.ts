@@ -35,8 +35,8 @@ export interface Scheduled {
  * When and how each of a season's sounds is heard (item 19+++ fed by 17a's stream): each at its moment in the season,
  * spread over most of the time the season is shown (`gap`, the milliseconds since the season before arrived, so faster
  * play packs them closer), after the sting where there is one; the court's own sounds always, the map's placed sounds
- * only where the view hears them, the nearest few. Never two starting together: at least a quarter second apart
- * (a little more, so the player's same-sound guard of a quarter second never drops the second).
+ * only where the view hears them, the nearest few. Never two starting together: at least a quarter second apart. The
+ * player's mixer then lets through only what each layer's caps allow (`mix.ts`).
  */
 export function schedule(c: Cues, v: View | null, gap: number): Scheduled[] {
   const spread = Math.min(3, Math.max(1, (gap / 1000) * 0.75));

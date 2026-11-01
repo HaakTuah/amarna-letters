@@ -522,7 +522,8 @@ class Player {
     const files = sounds[name];
     if (files === undefined || files.length === 0) return;
     const f = files[Math.floor(Math.random() * files.length)];
-    if (!this.mixer.admit(name, layer, performance.now() + delay * 1000, f.seconds)) return;
+    const now = performance.now();
+    if (!this.mixer.admit(name, layer, now + delay * 1000, f.seconds, now)) return;
     const bus = layer === "world" ? this.worldBus! : this.soundBus!;
     void this.buffer(f.file).then((b) => {
       if (b === null || this.ctx === null) return;
@@ -573,7 +574,14 @@ class Player {
   setBed(bed: Bed, force = false, level: number = this.bedGain): void {
     if (level !== this.bedGain) {
       this.bedGain = level;
-      if (this.bedSource !== null && this.ctx !== null) this.bedSource.gain.gain.setTargetAtTime(level, this.ctx.currentTime, 0.8);
+      if (this.bedSource !== null && this.ctx !== null) {
+        // Over any fade still under way (a bed just begun), or its end would undo the zoom's level.
+        const g = this.bedSource.gain.gain;
+        const t = this.ctx.currentTime;
+        g.cancelScheduledValues(t);
+        g.setValueAtTime(g.value, t);
+        g.setTargetAtTime(level, t, 0.8);
+      }
     }
     if (bed === this.bed && !force) return;
     this.bed = bed;
