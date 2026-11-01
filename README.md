@@ -131,8 +131,8 @@ Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's ne
 
 ### Winning
 
-A realm's strength is ten times the yield of the land it holds, plus its gold and what it holds besides, never
-counting what it owes. Conquered land counts as it is absorbed, over its first seasons. Its growth is that strength
+A realm's strength is ten times what its land produces in a season (its harvest at the price of grain, a shekel a
+measure, plus its mines' gold), plus its gold and what its people and men hold besides, never counting what it owes. Conquered land counts as it is absorbed, over its first seasons. Its growth is that strength
 against its strength at the start. At the end each power's score blends two things: its performance, its growth
 ranked among the results of powers that started where it did (most of the score, so a city that holds its own can
 win as well as an empire), and its size, its strength against the largest living realm's (a small part, 5 percent by

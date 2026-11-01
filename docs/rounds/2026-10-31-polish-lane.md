@@ -50,6 +50,11 @@ Fixed since they were listed here: the Standings tab's leak of distant holders (
   c12 the rest…"; "c100 let debt d64 pass its season", `turn/money.ts:244`), and fractional treasuries reaching
   `formatMoney` in model text.
 
+- The models' opening lines say "Its starting strength is 10 x its homeland yield + its treasury"
+  (`src/llm/src/rules.ts:224`), while THE MAP lists each province's base "yield" and strength counts what the land
+  produces in a season (`rules/scoring.ts`, the rulebook's own HOW YOU WIN line) plus holdings: "yield" there means two
+  numbers. A model request, so left to the item lane.
+
 ## For the design session
 
 - The README reviewer notes that troops are paid and fed by the engine each season with no order (`payTroops`,

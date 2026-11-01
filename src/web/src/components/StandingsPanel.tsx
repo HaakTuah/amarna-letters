@@ -163,8 +163,9 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
 
       <h4 style={{ marginTop: "1rem" }}>Opening positions (known to every court)</h4>
       <p className="muted">
-        Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is {state.config.provinceWeight} × its
-        homeland yield + its treasury, and its growth is measured against it.
+        Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is {state.config.provinceWeight} × what its
+        homeland produces in a season (its harvest at the price of grain, plus its mines' gold) + its treasury + what its people and
+        men hold, and its growth is measured against it.
       </p>
       <div className="tablewrap">
         <table>
@@ -173,7 +174,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
               <th>Power</th>
               <th>Opening troops</th>
               <th>Treasury</th>
-              <th>Homeland yield</th>
+              <th title="What its homeland produces in a season: its harvest at the price of grain, plus its mines' gold, in shekels">Homeland's worth a season</th>
               <th>Starting strength</th>
             </tr>
           </thead>
