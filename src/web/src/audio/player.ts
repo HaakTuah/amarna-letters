@@ -102,6 +102,8 @@ class Player {
   private orchestraDown = false;
   /** When the live deck was asked to play and has not yet been heard (page time), for the stall watch. */
   private askedPlay: number | null = null;
+  /** Leaving the Music page: the next music heard fades in from silence. */
+  private returning = false;
 
   constructor() {
     if (typeof document === "undefined") return;
@@ -126,7 +128,9 @@ class Player {
     });
     document.addEventListener("visibilitychange", () => this.visibility());
     addEventListener("online", () => {
+      if (!this.orchestraDown) return;
       this.orchestraDown = false;
+      this.apply();
     });
   }
 
@@ -161,6 +165,7 @@ class Player {
       el.addEventListener("playing", () => {
         if (i === this.live) this.askedPlay = null;
         this.open(false);
+        this.comeBack();
       });
       // A file that cannot load: the game's music turns to Lyre and reed rather than fall silent.
       el.addEventListener("error", () => {
@@ -216,8 +221,21 @@ class Player {
     if (this.style() !== "orchestra" || this.hushed) return;
     const d = this.decks[this.live];
     if (d === undefined) return;
-    if (d.file !== null && d.el.paused && !d.el.ended && audioSettings().music) void d.el.play().catch(() => undefined);
-    else if (d.file === null) this.next(false);
+    if (d.file !== null && d.el.paused && !d.el.ended && audioSettings().music) {
+      // A stream not yet heard is given its full wait again from now (the tab was hidden, or the music off, meanwhile).
+      if (this.askedPlay !== null) this.askedPlay = performance.now();
+      void d.el.play().catch(() => undefined);
+    } else if (d.file === null) this.next(false);
+  }
+
+  /** After the Music page: the music's return fades in from silence once it is actually heard. */
+  private comeBack(): void {
+    if (!this.returning || this.ctx === null || this.opening === null) return;
+    this.returning = false;
+    const t = this.ctx.currentTime;
+    this.opening.gain.cancelScheduledValues(t);
+    this.opening.gain.setValueAtTime(0, t);
+    this.opening.gain.linearRampToValueAtTime(1, t + Return);
   }
 
   /** Picks the file to play for a piece: any variation but the one it played last time, and never the file just played. */
@@ -288,7 +306,7 @@ class Player {
     this.live = idx;
     this.switchAt = null;
     this.askedAt = null;
-    this.askedPlay = performance.now();
+    this.askedPlay = audioSettings().music ? performance.now() : null;
     if (audioSettings().music) void d.el.play().catch(() => undefined);
   }
 
@@ -403,6 +421,7 @@ class Player {
     if (!this.synth.playing) {
       this.synth.start();
       this.open(false);
+      this.comeBack();
     }
   }
 
@@ -476,11 +495,13 @@ class Player {
       d.piece = null;
     }
     this.synth?.stop();
+    this.askedPlay = null;
     const f = files[0];
     this.stingUntil = performance.now() + Math.max(1500, (f.seconds - 1.2) * 1000);
     void this.buffer(f.file).then((b) => {
       if (b === null || this.ctx === null) return;
       this.open(false);
+      this.comeBack();
       this.playBuffer(b, this.musicBus!, 1, 1);
     });
   }
@@ -627,7 +648,16 @@ class Player {
     if (this.ctx === null) return;
     const t = this.ctx.currentTime;
     if (on) {
-      this.synth?.stop();
+      // The fallback's versions fade out on the music's own stage, then stop (the listening page sets it again to play).
+      const synth = this.synth;
+      if (synth?.playing === true) {
+        this.musicBus!.gain.cancelScheduledValues(t);
+        this.musicBus!.gain.setValueAtTime(this.musicBus!.gain.value, t);
+        this.musicBus!.gain.linearRampToValueAtTime(0, t + 1.5);
+        window.setTimeout(() => {
+          if (this.hushed && !this.solo) synth.stop();
+        }, 1500);
+      }
       for (const d of this.decks) {
         if (d.file === null) continue;
         d.gain.gain.cancelScheduledValues(t);
@@ -641,10 +671,13 @@ class Player {
       return;
     }
     this.restUntil = 0;
+    // Held silent until the music is heard again, then faded in (`comeBack`), however long the stream takes to load.
     if (this.opening !== null && this.opened) {
       this.opening.gain.cancelScheduledValues(t);
       this.opening.gain.setValueAtTime(0, t);
-      this.opening.gain.linearRampToValueAtTime(1, t + Return);
+      this.returning = true;
+      // Left before the fallback's version had stopped: it is still playing, so it fades in at once.
+      if (this.synth?.playing === true) this.comeBack();
     }
   }
 
