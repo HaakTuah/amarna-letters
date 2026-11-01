@@ -1,4 +1,4 @@
-/** The music and sound switches (item 19+++): kept in this browser between visits; quiet by default. */
+/** The music and sound switches (item 19+++): kept in this browser between visits; on by default at a regular volume. */
 import { useSyncExternalStore } from "react";
 
 export interface AudioSettings {
@@ -16,8 +16,12 @@ const Styles: readonly MusicStyle[] = ["orchestra", "chip", "period"];
 
 const Key = "amarna-audio";
 
-/** Quiet by default: both on, low, and nothing sounds before the reader's first touch (the browser's own rule). */
-export const DefaultAudio: AudioSettings = { music: true, sound: true, musicVolume: 0.35, soundVolume: 0.45, style: "orchestra" };
+/**
+ * On by default at a regular volume (Haakon, 1 November 2026: "Keep them on, regular volume, but don't blast someone when
+ * they start up"): the first music fades in over the opening seconds (player.ts), and nothing sounds before the reader's
+ * first touch (the browser's own rule).
+ */
+export const DefaultAudio: AudioSettings = { music: true, sound: true, musicVolume: 0.7, soundVolume: 0.7, style: "orchestra" };
 
 function read(): AudioSettings {
   try {

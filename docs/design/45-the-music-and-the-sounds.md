@@ -5,9 +5,9 @@ had no sound before this item.
 
 Haakon, 31 October 2026 (relayed by the orchestrator): "Keep the music lane (19+++) running. When the improvement audit
 is done, restart the music lane on Fable 5.1 at high effort for the composing; the current Opus session builds the sound
-system (playback, the layers that switch with the situation, the samples) until then and hands over what it built." So
-the fourteen pieces now shipped are **placeholders** that exercise the system (marked so on the listening page and in
-`src/web/src/audio/catalogue.ts`); the composer replaces them. The handover is in `docs/rounds/2026-10-31-music.md`.
+system (playback, the layers that switch with the situation, the samples) until then and hands over what it built." The
+sound system was built first with placeholder pieces (handover in `docs/rounds/2026-10-31-music.md`); the pieces and
+the fallback's scores were then composed in a session of their own (`docs/rounds/2026-10-31-music-composing.md`).
 
 ## The template: Empire Earth's music
 
@@ -18,7 +18,17 @@ alternative, 2:44), Pawns 4:09 (and 5:57), Rivers 5:28, Shadows 6:04 (and 6:19),
 6:47 (and 3:27), Time 3:31. No source found says exactly when the game played each; the roles below are read from the
 titles, lengths and the item's own list of situations (calm, rising tension, war, siege, battle, triumph, loss, the
 age's last seasons), and are listed as a reading. Ours: one piece for each, the same roles, three variations each, in
-`src/web/src/audio/catalogue.ts` (which the listening page shows beside every piece).
+`src/web/src/audio/catalogue.ts` (which the listening page shows beside every piece, with how each is made).
+
+**The pieces** (`scripts/music/pieces_peace.py`, `pieces_war.py`; the idiom in `idiom.py`): the melodies are the
+Hurrian Hymn's (the Hymn to Nikkal, The River, Triumph, The Last Seasons, and a line of it in the Lament) and themes of
+our own in the tunings (the rest), over the period's harmony: drones, open fifths and fourths, a third only where it
+colours. Each piece has a rise and a fall marked on the score (`Score.level`, in dB), so a quiet opening and a height
+stand 10 to 18 dB apart after mastering; each variation has another lead and course, and one or two of the three are the
+piece in a darker or brighter tuning (below). Where a tuning's fifth above a degree is diminished (the tonic's own in
+qablītum, the fourth degree's in kitmum), the open chord takes the fourth instead (`Mode.chord`), and a progression
+moves off that root (`parts.roots`). Lengths run from about 50 s (Triumph, The City Falls, Solemn) to 3 minutes (Enmity),
+shorter than Empire Earth's long pieces, since the music changes with the situation and rests between quiet pieces.
 
 | Empire Earth's | Ours | Mood or moment |
 | --- | --- | --- |
@@ -89,9 +99,14 @@ some of each piece's variations a darker or brighter mode chosen as the situatio
 the shade from what the seat knows: -2 in a battle or a siege, or within three seasons of its own capital or king fallen
 (mourning); -1 at war, on grave omens, or with hunger in its land; +1 at a feast, read as a season that brought it land
 (a triumph) or a harvest it saw with no war and no hunger; 0 otherwise. A piece's variation may carry a shade (`shade` in
-the manifest, from `Score.shade` in `pieces.py`): the player prefers the variation in the shade asked for, and when only
-the shade changes it stays in the piece and moves to that variation at the next phrase end, never the same file twice
-running. Among the placeholders, Triumph's second variation (kitmum, +1) and Envoys' third (nīd qablim, -1) carry one.
+the manifest, from `Score.shade` in the pieces): the player prefers the variation in the shade asked for (by its sign:
+darker, its own, brighter), and when only the shade changes it stays in the piece and moves to that variation at the next
+phrase end, never the same file twice running. Every piece has one or two shaded variations: the calm pieces one brighter
+and one darker (Kings: kitmum and embūbum; The River: išartum and pītum), the tension pieces one and two steps darker,
+the war pieces, the moments of loss and Solemn their darker ones in the next tuning down (two of three, so the dark
+variations alternate), Triumph two brighter (kitmum), the Hymn and The Last Seasons one darker (nīš tuḫrim). A piece
+written in nīš tuḫrim can only go one step darker, to qablītum; its variations for the darkest situations are marked -2
+all the same, since the sign is what the player reads.
 
 ## The fallback: after the original Civilization (src/web/src/audio/synth/, tunings.ts)
 
@@ -116,9 +131,21 @@ beds, placement and hearing by zoom serve all three, so only the pieces change.
 - **The courts' home modes** (presentation only): Ugarit and Mitanni nīd qablim (the hymn's own), Babylonia išartum,
   Hatti nīš tuḫrim, Assyria pītum, Arzawa and Alashiya embūbum, Egypt kitmum (a reading: how Egypt's harps were tuned is
   unknown), every other court nīd qablim; god view and the menus nīd qablim.
-- **Placeholders**: `HymnPlaceholder` (the hymn's first two lines in this item's dyad reading, for every mood until the
-  composer writes the pieces) and `ModeTest` (every role in sixteen beats, for hearing every tuning in both versions).
-  `SynthPieces` maps piece ids to scores; an id without one plays the placeholder.
+- **The scores** (`synth/score.ts`, composed 31 October 2026), in the original Civilization's manner, a tune for each
+  people: **Ugarit's theme is the Hurrian Hymn** whole (h.6, four lines, 61 beats), after Anne Draffkorn Kilmer's
+  reading of the notation (Kilmer 1974; Kilmer, Crocker and Brown, *Sounds from Silence*, 1976): the strings of each
+  named pair sound together in nīd qablim, the first-named sung above the other; the numerals are taken as lengths and
+  the text is Laroche's edition (the listening page names this). Every other great court (Egypt, Hatti, Babylonia,
+  Mitanni, Assyria, Arzawa) has **a theme and a march of its own**, 32 beats each, written in degrees so they play in the
+  court's home mode; a court without music of its own, god view and the menus hear Ugarit's. The **moments are shared**:
+  Triumph (a fanfare), The City Falls (a line falling the octave), the Lament (for a king fallen and for land lost) and
+  The Last Seasons (the hymn slow, a clock on the beat). Within each score the layers come and go with the mood (a slow
+  drum in peace, a heartbeat in unease, the march in war, the gallop in battle, the ram in a siege, the chord only in
+  peace and at a feast, the sistrum at a feast), so one score serves calm, tension, war, battle and siege.
+  `synthPiece(id, court)` maps a piece id and a court to the score: the moments' ids to the shared scores, the calm and
+  tension ids to the court's theme, the war ids to its march. Hatti's chords hold fourths, since its darkest tuning,
+  qablītum, has a diminished fifth. `ModeTest` (every role in sixteen beats) stays on the listening page as a test for
+  hearing each tuning.
 
 ## Files and loading
 
@@ -130,14 +157,18 @@ beds, placement and hearing by zoom serve all three, so only the pieces change.
   first use and kept in the worker's `audio-cache-1`, asked for with their content's hash so a re-rendered file is new.
 - Nothing sounds before the reader's first touch (the browsers' rule); the music pauses while the tab is hidden.
 - **Switches**: Music and Sound, each with a volume, in the game's menu and on the listening page, kept in this browser
-  (`amarna-audio`). Quiet by default: both on, music at 35%, sound at 45%.
+  (`amarna-audio`). On by default at a regular volume (70%), and the first music of a visit fades in over 6 s rather
+  than starting at full (Haakon, 1 November 2026: "Keep them on, regular volume, but don't blast someone when they start
+  up").
 - **The listening page**, `/listen` (the top bar's "Music"): every piece and variation with the template and when it
   plays, every sting, sound and bed.
 
 ## How it is made (scripts/music/)
 
-`render.py` renders `pieces.py` (scores written with `parts.py` on `hymn.py`'s tunings and the Hurrian Hymn) and
-`sounds.py` through `score.py` (placing notes in beats, the hall, mastering, encoding), on `samples.py`'s instruments
-(each recording measured for its true pitch and brought to one level) and `voice.py`'s synthesised choir. Samples:
-`docs/audio/SOURCES.md`. `inspect_audio.py` draws a spectrogram and loudness curve and counts clicks, for a look without
-ears.
+`render.py` renders `pieces.py` (the fourteen pieces in `pieces_peace.py` and `pieces_war.py`, written with `parts.py`
+and `idiom.py` on `hymn.py`'s tunings and the Hurrian Hymn) and `sounds.py` through `score.py` (placing notes in beats,
+the piece's rise and fall, the hall, mastering, encoding), on `samples.py`'s instruments (each recording measured for its
+true pitch and brought to one level) and `voice.py`'s synthesised choir. Samples: `docs/audio/SOURCES.md`. `check.py`
+looks at every score before a render (length, the longest wait between phrase ends, each instrument's range against its
+recordings); `inspect_audio.py` draws a spectrogram and loudness curve and counts clicks, for a look without ears.
+Render once a piece is settled: every render stays in the repository's history.

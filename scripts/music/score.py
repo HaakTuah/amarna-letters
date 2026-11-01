@@ -48,6 +48,9 @@ class Score:
     # A variation in a darker (-1, -2) or brighter (+1) tuning than the piece's own: the player picks it as the
     # situation worsens or improves (item 19+++). 0 is the piece's own.
     shade: int = 0
+    # The piece's rise and fall: (beat, dB) marks, the level between them a straight line, applied to every note; so a
+    # quiet opening and a height stand further apart than the instruments' own velocities take them.
+    dyn: list[tuple[float, float]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.rng = np.random.default_rng(self.seed)
@@ -82,6 +85,18 @@ class Score:
     def phrase(self, beat: float) -> None:
         self.phrases.append(beat)
 
+    def level(self, beat: float, db: float) -> None:
+        """Marks the level the music reaches at a beat (dB; 0 the loudest), on its way from the mark before."""
+        self.dyn.append((beat, db))
+
+    def gain_at(self, t: float) -> float:
+        if not self.dyn:
+            return 1.0
+        marks = sorted((self.sec(b), db) for b, db in self.dyn)
+        times = [m[0] for m in marks]
+        dbs = [m[1] for m in marks]
+        return float(10 ** (np.interp(t, times, dbs) / 20))
+
     def render(self) -> np.ndarray:
         cat = catalogue()
         end = max(e.t + max(e.dur, 0) for e in self.events) + 6
@@ -102,6 +117,7 @@ class Score:
             b = min(n, a + len(x))
             if b <= a:
                 continue
+            x = x * self.gain_at(e.t)
             s = SEND.get(e.inst, 0.35)
             dry[a:b] += x[: b - a] * (1 - s * 0.5)
             wet[a:b] += x[: b - a] * s

@@ -7,11 +7,13 @@ import { AudioSwitches } from "../audio/AudioSwitches.tsx";
 import { BedInfo, Pieces, Placeholder, SoundInfo, StingInfo } from "../audio/catalogue.ts";
 import { Manifest } from "../audio/manifest.ts";
 import { player } from "../audio/player.ts";
+import type { Mood } from "../audio/situation.ts";
 import type { Version } from "../audio/synth/arrange.ts";
-import { HymnPlaceholder, ModeTest, type Shade, type SynthScore } from "../audio/synth/score.ts";
+import { ModeTest, scoresFor, type Shade, type SynthScore } from "../audio/synth/score.ts";
 import { Tunings, homeMode, tuning, type Tuning } from "../audio/tunings.ts";
 
-const Courts = ["Ugarit", "Babylonia", "Egypt", "Hatti", "Mitanni", "Assyria", "Arzawa"] as const;
+const Courts = ["Ugarit", "Egypt", "Hatti", "Babylonia", "Mitanni", "Assyria", "Arzawa", "Alashiya"] as const;
+const Moods: readonly [Mood, string][] = [["calm", "calm"], ["tension", "tension"], ["war", "war"], ["battle", "battle"], ["siege", "siege"], ["menu", "the menu"], ["last", "the last seasons"]];
 const Shades: readonly [Shade, string][] = [[1, "brighter (a feast)"], [0, "its own"], [-1, "darker (war)"], [-2, "darkest (battle, mourning)"]];
 
 type Files = Record<string, readonly { file: string; seconds: number }[]>;
@@ -28,6 +30,7 @@ export function Listen() {
   const [court, setCourt] = useState<string>("Ugarit");
   const [mode, setMode] = useState<Tuning | "home">("home");
   const [shade, setShade] = useState<Shade>(0);
+  const [mood, setMood] = useState<Mood>("calm");
   const synth = (score: SynthScore, version: Version): void => {
     const key = `${score.id}:${version}`;
     if (playing === key) {
@@ -38,7 +41,7 @@ export function Listen() {
     setPlaying(key);
     player.release();
     player.setShade(shade, court as never);
-    player.listenSynth(score, version, mode === "home" ? null : mode, shade, () => setPlaying((p) => (p === key ? null : p)));
+    player.listenSynth(score, version, mode === "home" ? null : mode, shade, () => setPlaying((p) => (p === key ? null : p)), mood);
   };
   const play = (file: string): void => {
     if (playing === file) {
@@ -104,10 +107,22 @@ export function Listen() {
       <p>
         The same music in the three versions to choose between: the orchestra (the pieces above), and the fallback after the
         original Civilization, one score in the Babylonian lyre tunings played by the browser's own sound engine, in pure
-        8-bit or in period timbres (a synthesised lyre, reed pipe, frame drum and sistrum).
-        {HymnPlaceholder.placeholder && " The fallback's scores are placeholders too."}
+        8-bit or in period timbres (a synthesised lyre, reed pipe, frame drum and sistrum). Ugarit's theme is the Hurrian
+        Hymn; every other court has a theme and a march of its own, heard in its home mode, and the great moments are shared.
+        Choose the court, and hear each score as the game would play it in that situation: the layers come and go with the
+        mood (the drums of war, the heartbeat of unease, the sistrum at a feast) and the tuning turns with the shade.
       </p>
       <div className="listen-switches">
+        <label>
+          Mood{" "}
+          <select value={mood} onChange={(e) => setMood(e.target.value as Mood)}>
+            {Moods.map(([v, label]) => (
+              <option key={v} value={v}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
         <label>
           Court{" "}
           <select value={court} onChange={(e) => setCourt(e.target.value)}>
@@ -150,19 +165,20 @@ export function Listen() {
           </tr>
         </thead>
         <tbody>
-          {[HymnPlaceholder, ModeTest].map((sc) => (
+          {[...scoresFor(court), ModeTest].map((sc) => (
             <tr key={sc.id}>
               <td>
                 <strong>{sc.title}</strong>
                 <div className="note">{sc.source}</div>
               </td>
               <td className="listen-buttons">
-                {sc.id === "hymn" &&
-                  (man.music.hymn ?? []).slice(0, 1).map((v) => (
+                {(sc.orchestra ?? []).map((id) =>
+                  (man.music[id] ?? []).slice(0, 1).map((v) => (
                     <button key={v.file} className={playing === v.file ? "small primary" : "small"} onClick={() => play(v.file)}>
-                      {playing === v.file ? "■" : "▶"} The Hymn to Nikkal
+                      {playing === v.file ? "■" : "▶"} {Pieces.find((p) => p.id === id)?.title ?? id}
                     </button>
-                  ))}
+                  )),
+                )}
               </td>
               {(["chip", "period"] as const).map((ver) => (
                 <td key={ver} className="listen-buttons">
