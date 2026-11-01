@@ -70,6 +70,16 @@ hear, without it revealing anything".
   back. Leaving fades it in over 3 s on the opening stage. Checked in Chromium through the top bar's link and back.
 - The two answered rows moved from "For Haakon" to `docs/archive/progress-done.md`.
 
+### The review
+
+One reviewer (Opus, high effort). Blocking, fixed: the stall watch counted page time while the director was not running
+(a hidden tab, the music off, a sting), so a stream re-asked after a long pause could be judged stalled at once; now the
+wait restarts whenever a paused stream is asked again, a sting clears it, and none is set with the music off. Not
+blocking, fixed: coming back online now hands the music back to the orchestra at once (no two versions overlapping); the
+synthesised versions fade out on entering the page instead of cutting; the return after the page fades in from the
+moment the music is actually heard, however slowly its stream loads. Noted: the page's text also no longer names the
+original Civilization ("the fallback after the original Civilization"), another game's name, in the spirit of the answer.
+
 ### Readings taken
 
 1. **"Cannot load" is a failed file, an offline browser, or a stream silent for 12 s while the audio runs**, and the
