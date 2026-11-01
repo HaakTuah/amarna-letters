@@ -130,7 +130,7 @@ describe("TradeTests", () => {
     if (s.events.some((x) => x.signal === "ship-lost")) return;
     Assert.true(s.units.includes(fleet));
     Assert.equal("enkomi", fleet.province);
-    Assert.contains("The fleet is back in Enkomi, ready for war.", notices(s, "Alashiya", "Markets and caravans"));
+    Assert.contains("The fleet is back in the harbour of Alashiya, ready for war.", notices(s, "Alashiya", "Markets and caravans"));
   });
 
   test("Troops abroad by leave spend their pay there and buy their food at its market with the gold sent for it; without leave, nobody sells to them", () => {

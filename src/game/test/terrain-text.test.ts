@@ -20,11 +20,11 @@ describe("TerrainTextTests", () => {
     [
       "THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; a coast's waters; links, with the mountain passes, great rivers and deserts on them, and the open-sea crossings)",
     ],
-    ["- mira: Mira; land; homeland of Mira; capital; yield 30; walls 1; rough ground. armies: seha, apasa, lukka, tuwanuwa."],
-    ["- kalavasos: Kalavasos; coast; waters kalavasoswaters; homeland of Alashiya; yield 40; rough ground. armies: enkomi. fleets: enkomi, kalavasoswaters."],
-    ["- tuwanuwa: Tuwanuwa; land; homeland of Hatti; yield 30. armies: mira, lukka, hattusa (across the Marassantiya), nesa, kizzuwatna (across the Cilician Gates)."],
+    ["- mira: Mira; land; homeland of Mira; today the upper Meander valley; capital; yield 30; walls 1; rough ground. armies: seha, apasa, lukka, tuwanuwa."],
+    ["- kalavasos: the copper hills of Alashiya; coast; waters kalavasoswaters; homeland of Alashiya; today Kalavasos; yield 40; rough ground. armies: enkomi. fleets: enkomi, kalavasoswaters."],
+    ["- tuwanuwa: Tuwanuwa; land; homeland of Hatti; today Tyana (Kemerhisar); yield 30. armies: mira, lukka, hattusa (across the Marassantiya), nesa, kizzuwatna (across the Cilician Gates)."],
     [
-      "- harran: Harran; land; homeland of Mitanni; yield 35. armies: isuwa (across the upper Euphrates), carchemish (across the Euphrates at Carchemish), washukanni, terqa, aleppo (across the Euphrates at Emar), steppe (across the Euphrates below Emar).",
+      "- harran: Harran; land; homeland of Mitanni; today Harran; yield 35. armies: isuwa (across the upper Euphrates), carchemish (across the Euphrates at Carchemish), washukanni, terqa, aleppo (across the Euphrates at Emar), steppe (across the Euphrates below Emar).",
     ],
     [
       "- Desert (sinai, steppe, libya, shasu) feeds nobody: an army there finds nothing to take from the land and lives on its baggage, its king's stores there if he holds it, and the caravans he sends (see ECONOMY).",
@@ -32,9 +32,9 @@ describe("TerrainTextTests", () => {
     [
       "You pay your troops (20 an army, 25 a fleet, nearest your capital first). Then every unit eats",
     ],
-    ["- sinai: Sinai; coast; waters redsea; homeland of Egypt; yield 20; desert. armies: gaza (across the north Sinai), shasu (across the Negev), delta (across the Ways of Horus), memphis. fleets: redsea (across the road to the Gulf of Suez)."],
-    ["- redsea: The Red Sea; sea zone, the waters of sinai and thebes. fleets: sinai (across the road to the Gulf of Suez), thebes (across the Wadi Hammamat)."],
-    ["- kaska: Kaska Lands; land; homeland of Kaska; a land without a town; capital; yield 10; rough ground. armies: hattusa, sapinuwa, samuha."],
+    ["- sinai: the Ways of Horus; coast; waters redsea; homeland of Egypt; today the north Sinai; yield 20; desert. armies: gaza (across the north Sinai), shasu (across the Negev), delta (across the Ways of Horus), memphis. fleets: redsea (across the road to the Gulf of Suez)."],
+    ["- redsea: the Eastern Sea; sea zone, the waters of sinai and thebes. fleets: sinai (across the road to the Gulf of Suez), thebes (across the Wadi Hammamat)."],
+    ["- kaska: the Kaska lands; land; homeland of Kaska; a land without a town; today the Pontic mountains; capital; yield 10; rough ground. armies: hattusa, sapinuwa, samuha."],
     ["- ugaritwaters: Ugarit waters; sea zone, the waters of ugarit. fleets: ugarit, sumurwaters, kizzuwatnawaters, enkomiwaters (open sea)."],
     [
       "- An army goes to sea only by convoy: a fleet of any power in each sea zone it sails through, each ordered to convoy it, from the waters of its own coast to the waters of the coast it lands on. So an army lands only where no enemy fleet holds that coast's waters: a fleet there must first be driven out.",

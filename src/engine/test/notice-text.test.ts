@@ -71,7 +71,7 @@ describe("NoticeTextTests", () => {
     e.resolve(
       new Dict([
         ["Egypt", newTurnSubmission({ orders: [move("lukkawaters", "kalavasoswaters")] })],
-        ["Assyria", newTurnSubmission({ orders: [move("ashur", "ekallate"), move("arbela", "ashur")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ashur", "arbela")] })],
       ]),
     );
     e = new TurnEngine(s);
@@ -82,6 +82,8 @@ describe("NoticeTextTests", () => {
     // of its homeland), and the reason names whose fleet it was; an army beyond the border waits in Babylon's digest.
     Assert.equal([`${HomelandReason}: Egypt's fleet moved lukkawaters -> kalavasoswaters, next to kalavasos`], s.sleep.get("Alashiya").wokenBecause);
     Assert.empty(s.sleep.get("Babylonia").wokenBecause);
-    Assert.contains("turn 1: Assyria's army moved arbela -> ashur", s.sleep.get("Babylonia").digest);
+    // Since item 17+ Suhu is Babylon's own land, so a move ending at Ashur would wake it; a move that fails out of Ashur,
+    // which Babylon sees from Suhu, waits in the digest.
+    Assert.contains("turn 1: Assyria's army tried to move ashur -> arbela and failed", s.sleep.get("Babylonia").digest);
   });
 });

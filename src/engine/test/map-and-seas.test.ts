@@ -50,7 +50,7 @@ describe("MapAndSeasTests", () => {
     Assert.true(Map.areAdjacent("sumur", "amurru") && Map.areAdjacent("sumur", "ugarit") && Map.areAdjacent("sumur", "byblos"));
     Assert.true(Map.get("lukka").kingless);
     Assert.equal([1, undefined], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
-    Assert.equal(["Suhu", "Nesa", "Ekallate", "Kalavasos"], ["suhu", "nesa", "ekallate", "kalavasos"].map((id) => Map.get(id).name));
+    Assert.equal(["Suhu", "Nesa", "Ekallate", "the copper hills of Alashiya"], ["suhu", "nesa", "ekallate", "kalavasos"].map((id) => Map.get(id).name));
     // Suhu, a city-state since item 11+, is Babylonia's land since item 17+ (no dossier shows it as a polity in 1346), its
     // towns unwalled as the walls dossier knows nothing of them; and Hebron, where no town stood, is Gath's land.
     Assert.equal(["Babylonia", false, undefined], [Map.get("suhu").home, Map.get("suhu").capital, StartWalls.get("suhu")]);

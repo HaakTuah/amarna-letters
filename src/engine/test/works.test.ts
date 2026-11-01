@@ -76,10 +76,10 @@ describe("WorksTests", () => {
     e.worksSeason();
     Assert.equal(0, wallsOf(s, "thebes"));
     Assert.equal(1, planOf(s, "Walls", "thebes")!.progress);
-    Assert.contains("the walls of Thebes: 1 of 2 seasons done towards level 1", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
+    Assert.contains("the walls of Waset: 1 of 2 seasons done towards level 1", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
     e.worksSeason();
     Assert.equal(1, wallsOf(s, "thebes"));
-    Assert.contains(s.events, (x) => x.signal === "built" && x.text === "Egypt raised the walls of Thebes to level 1.");
+    Assert.contains(s.events, (x) => x.signal === "built" && x.text === "Egypt raised the walls of Waset to level 1.");
     // Two seasons of 25 a season for the first level; the level then costs its upkeep in gold, a shekel a season.
     Assert.equal(start - 50, gold(s, "Egypt"));
     e.worksSeason();
@@ -95,7 +95,7 @@ describe("WorksTests", () => {
       }),
     );
     Assert.equal(
-      ["the walls go from 0 to level 3", "you do not hold Hattusa", "Memphis has no coast to build a harbour on", "Thebes drinks from water that never fails", "you had already given an order for the relay stations of Nile Delta this season"],
+      ["the walls go from 0 to level 3", "you do not hold Hattusa", "Men-nefer has no coast to build a harbour on", "Waset drinks from water that never fails", "you had already given an order for the relay stations of Ta-Mehu this season"],
       v.rejected.map((r) => r.reason),
     );
     Assert.equal([build("delta", "Stations", 2), build("sinai", "Policing", 10, true)], v.accepted);
@@ -112,7 +112,7 @@ describe("WorksTests", () => {
     Assert.equal(1, levelOf(s, "Roads", "thebes"));
     for (let i = 1; i < 6; i++) e.worksSeason();
     Assert.equal(0, levelOf(s, "Roads", "thebes"));
-    Assert.contains("the roads of Thebes, unkept, fell to level 0", first(inboxOf(s, "Egypt"), (i) => i.title === "Works" && i.body.includes("roads of Thebes, unkept, fell to")).body);
+    Assert.contains("the roads of Waset, unkept, fell to level 0", first(inboxOf(s, "Egypt"), (i) => i.title === "Works" && i.body.includes("roads of Waset, unkept, fell to")).body);
   });
 
   test("War stops a project, and a province that changes hands takes what stands with it, unkept until its new holder orders", () => {
@@ -122,7 +122,7 @@ describe("WorksTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "thebes" }));
     e.worksSeason();
     Assert.equal(0, planOf(s, "Roads", "thebes")!.progress);
-    Assert.contains("no work was done on the roads of Thebes: war stops the work", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
+    Assert.contains("no work was done on the roads of Waset: war stops the work", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
     e.setOwner("thebes", "Hatti");
     Assert.equal(null, planOf(s, "Roads", "thebes"));
     Assert.equal(1, levelOf(s, "Roads", "thebes"));
@@ -251,7 +251,7 @@ describe("WorksTests", () => {
     const c = newCharacter({ id: newId(s, "c"), name: "Kelu" });
     const j = newJourney({ id: newId(s, "j"), from: "Hatti", to: "Babylonia", dispatch: newDispatch({ letter: "Our armies march at the flood." }) });
     e.readAtStation(j, c, "sinai");
-    Assert.contains(s.events, (x) => x.signal === "station-read" && x.text.includes("Egypt's station men in Sinai read the letter Kelu carried"));
+    Assert.contains(s.events, (x) => x.signal === "station-read" && x.text.includes("Egypt's station men in the Ways of Horus read the letter Kelu carried"));
     // Its own king's stations, or the court it goes to, read nothing.
     const k = s.events.length;
     e.readAtStation(newJourney({ ...j, from: "Egypt" }), c, "sinai");

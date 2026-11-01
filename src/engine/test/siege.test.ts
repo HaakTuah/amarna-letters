@@ -198,7 +198,7 @@ describe("SiegeTests", () => {
     let v = new OrderValidator(s);
     let r = v.validate("Egypt", newTurnSubmission({ orders: [besiege("gaza"), besiege("sinai"), besiege("memphis")] }));
     Assert.equal(
-      ["only an army can besiege a city; a fleet cannot", "Sinai has no walls to besiege", "Memphis is yours"],
+      ["only an army can besiege a city; a fleet cannot", "the Ways of Horus has no walls to besiege", "Men-nefer is yours"],
       r.rejected.map((x) => x.reason),
     );
   });

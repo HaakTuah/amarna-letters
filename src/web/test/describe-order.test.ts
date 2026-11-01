@@ -9,7 +9,7 @@ describe("DescribeOrderTests", () => {
   const view = (kind: "Army" | "Fleet", province: string): SeatView => ({ power: "Egypt", court: [], known: [], units: [{ power: "Egypt", kind, province }] }) as unknown as SeatView;
 
   test("A gift of troops names the army or fleet and where it stands, and the receiver by name", () => {
-    Assert.equal("give the army at Memphis to Hana", describeOrder(giftUnit("memphis", "Terqa"), view("Army", "memphis")));
-    Assert.equal("give the fleet at Gaza to Hatti", describeOrder(giftUnit("gaza", "Hatti"), view("Fleet", "gaza")));
+    Assert.equal("give the army at Men-nefer to Hana", describeOrder(giftUnit("memphis", "Terqa"), view("Army", "memphis")));
+    Assert.equal("give the fleet at Hazzatu to Hatti", describeOrder(giftUnit("gaza", "Hatti"), view("Fleet", "gaza")));
   });
 });
