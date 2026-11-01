@@ -351,6 +351,8 @@ gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods s
 battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
 you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
+Click such a city and its card gives only what your stewards last reported and how many seasons ago, never its new
+holder's affairs; a band your people last told of there is drawn faded, with the age of that word.
 Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall
