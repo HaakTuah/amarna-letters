@@ -314,6 +314,102 @@ def tap(rng) -> np.ndarray:
 # The stings: a few seconds, for the great moments, before the music takes them up.
 
 
+# The sounds of the map (fed by the season's event stream, 17a): heard near the unit or the place, by zoom. Synthesised.
+
+
+def march(rng) -> np.ndarray:
+    """An army on the march: many feet on the dust, out of step, a chariot's wheels and a little bronze, passing by."""
+    dur = 2.4
+    out = np.zeros((int(dur * SR), 2))
+    t = np.arange(len(out)) / SR
+    swell = np.sin(np.pi * t / dur) ** 1.5
+    for k in range(int(rng.integers(26, 34))):
+        n = int(0.06 * SR)
+        step = lp(rng.standard_normal(n), rng.uniform(500, 900)) * env(n, 0.004, 0.025) * rng.uniform(0.25, 0.5)
+        place(out, stereo(step, rng.uniform(-0.7, 0.7)), rng.uniform(0, dur - 0.1))
+    n = len(out)
+    wheels = lp(rng.standard_normal(n), 160) * (0.6 + 0.4 * np.sin(2 * np.pi * t * rng.uniform(5, 7))) * 0.35
+    out += stereo(wheels, rng.uniform(-0.3, 0.3))
+    for k in range(int(rng.integers(2, 4))):
+        f = rng.uniform(2200, 3200)
+        place(out, stereo(mod([f, f * 1.41], [0.05, 0.03], [0.08, 0.05], 0.2, rng), rng.uniform(-0.6, 0.6)), rng.uniform(0.3, dur - 0.4))
+    return room(out * swell[:, None], 0.15)
+
+
+def waves(rng) -> np.ndarray:
+    """Wind and waves at a ship: a swell breaking on the hull, spray, the rope's creak in the wind."""
+    dur = 3.0
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    out = np.zeros((n, 2))
+    for c in range(2):
+        noise = rng.standard_normal(n)
+        swell = np.exp(-((t - rng.uniform(0.9, 1.4)) / 0.55) ** 2) + 0.6 * np.exp(-((t - rng.uniform(2.0, 2.4)) / 0.4) ** 2)
+        out[:, c] = lp(bp(noise, 150, 2400), 1800) * swell * 0.45 + bp(noise, 2500, 7000) * swell ** 3 * 0.12
+    wind = lp(rng.standard_normal(n), 400) * (0.3 + 0.2 * np.sin(2 * np.pi * t / 2.7)) * 0.25
+    out += stereo(wind)
+    m = int(0.35 * SR)
+    tt = np.arange(m) / SR
+    creak = bp(rng.standard_normal(m), 300, 900) * (0.5 + 0.5 * np.sin(2 * np.pi * 38 * tt)) * env(m, 0.08, 0.15) * 0.18
+    place(out, stereo(creak, rng.uniform(-0.4, 0.4)), rng.uniform(0.4, 1.6))
+    return room(out, 0.1)
+
+
+def gust(rng) -> np.ndarray:
+    """Wind on the heights or a dry wind over parched land: one gust rising, whistling, and dying away."""
+    dur = 2.8
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    out = np.zeros((n, 2))
+    shape = np.sin(np.pi * np.minimum(1, t / dur)) ** 2
+    for c in range(2):
+        noise = rng.standard_normal(n)
+        # The whistle climbs with the gust: a low band giving way to a higher one.
+        lo = 850 + rng.uniform(-60, 60)
+        whistle = bp(noise, lo, lo * 1.1, 2) * (1 - shape) + bp(noise, lo * 1.5, lo * 1.62, 2) * shape
+        out[:, c] = (lp(noise, 450) * 0.5 + whistle * 0.3) * shape
+    return room(out * 0.45, 0.12)
+
+
+def storm(rng) -> np.ndarray:
+    """Weather: rain coming on hard and thunder rolling far off (a flood's rains, or a winter storm at sea)."""
+    dur = 3.4
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    out = np.zeros((n, 2))
+    rise = np.minimum(1, t / 0.8) * np.minimum(1, (dur - t) / 1.0)
+    for c in range(2):
+        out[:, c] = hp(bp(rng.standard_normal(n), 1200, 9000), 900) * rise * 0.18
+    for k in range(int(dur * 60)):
+        m = int(0.006 * SR)
+        place(out, stereo(hp(rng.standard_normal(m), 3000) * env(m, 0.0005, 0.002) * rng.uniform(0.05, 0.15), rng.uniform(-0.9, 0.9)), rng.uniform(0, dur - 0.01))
+    at = rng.uniform(0.7, 1.2)
+    m = int(2.0 * SR)
+    tt = np.arange(m) / SR
+    roll = lp(rng.standard_normal(m), 120, 4) * (np.minimum(1, tt / 0.05) * np.exp(-tt / 0.7)) * (1 + 0.5 * np.sin(2 * np.pi * 3.1 * tt)) * 1.4
+    crack = hp(rng.standard_normal(int(0.08 * SR)), 1500) * env(int(0.08 * SR), 0.001, 0.02) * 0.25
+    place(out, stereo(roll, rng.uniform(-0.4, 0.4)), at)
+    place(out, stereo(crack, rng.uniform(-0.4, 0.4)), at)
+    return room(out, 0.3)
+
+
+def avalanche(rng) -> np.ndarray:
+    """An avalanche's thunder on a winter pass: a crack high up, then the long low roar of snow and stone coming down."""
+    dur = 3.6
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    out = np.zeros((n, 2))
+    m = int(0.12 * SR)
+    place(out, stereo(bp(rng.standard_normal(m), 800, 5000) * env(m, 0.001, 0.025) * 0.5, rng.uniform(-0.3, 0.3)), 0.05)
+    body = np.minimum(1, np.maximum(0, t - 0.25) / 0.6) * np.exp(-np.maximum(0, t - 0.85) / 1.1)
+    for c in range(2):
+        noise = rng.standard_normal(n)
+        out[:, c] += (lp(noise, 90, 4) * 1.6 + bp(noise, 150, 700) * 0.35) * body * (1 + 0.3 * np.sin(2 * np.pi * (1.3 + c * 0.2) * t))
+    for k in range(int(rng.integers(8, 14))):
+        place(out, stereo(lp(rng.standard_normal(int(0.05 * SR)), 1200) * env(int(0.05 * SR), 0.002, 0.02) * rng.uniform(0.1, 0.25), rng.uniform(-0.6, 0.6)), rng.uniform(0.4, 2.6))
+    return room(out, 0.35)
+
+
 def sting_capital(rng) -> np.ndarray:
     """A capital falls: the gong, the drums, a cry of brass and voices that breaks off."""
     s = Score(bpm=60, seed=int(rng.integers(0, 10000)))
@@ -472,6 +568,7 @@ SOUNDS = {
     "sistrum": sistrum, "envoy": envoy, "battle": battle, "siege": siege, "taken": taken, "lost": lost,
     "harvest": harvest, "famine": famine, "revolt": revolt, "caravan": caravan, "death": death, "report": report,
     "season": season, "tap": tap,
+    "march": march, "waves": waves, "gust": gust, "storm": storm, "avalanche": avalanche,
 }
 STINGS = {"capital": sting_capital, "king": sting_death, "end": sting_end}
 BEDS = {"nile": bed_nile, "wind": bed_wind, "market": bed_market, "siege": bed_siege}

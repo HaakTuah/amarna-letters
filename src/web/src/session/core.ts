@@ -518,7 +518,8 @@ export class SessionCore {
     const r = this.runner;
     if (r === null || this.readOnly) return;
     const seats = groupBy([...r.log.header.seats.values()], (x) => x)
-      .map(([k, g]) => `${g.length} ${k}`)
+      // "Script bot for 47 seats, Human (you) for 1 seat": who plays, then how many seats, never "47 Script bot".
+      .map(([k, g]) => `${k} for ${g.length} ${g.length === 1 ? "seat" : "seats"}`)
       .join(", ");
     const turn = r.state.turn;
     const meta = `Seed ${r.state.seed}, ${dateLabel(turn)}${r.state.ended ? " (ended)" : ""}, ${seats}`;

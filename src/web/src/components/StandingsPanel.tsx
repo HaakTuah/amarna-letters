@@ -38,7 +38,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
         Each power finishes as high as it can: the final score blends its size (its wealth against the largest realm's) and its performance (its growth
         ranked among the results of powers that started where it did), and the highest score wins. {known ? "" : "You see only your own figures; rivals' treasuries are private."} The
         land-yield ratio is what any court can reckon from who holds what: the yield of the land a power holds now over its homeland's yield at the start.
-        It is not growth, which counts treasuries and back pay too, against a starting strength that includes the starting treasury.
+        It is not growth, which counts treasuries and what people and men hold too, against a starting strength that includes them.
       </p>
       <div className="tablewrap">
         <table>
@@ -62,7 +62,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
               return (
                 <tr key={p}>
                   <td>
-                    <Emblem power={p} /> {powerName(p)} {(seatView === null ? isAlive(state, p) : !seatView.fallen.includes(p)) ? "" : "(fallen)"}
+                    <span className="named"><Emblem power={p} /> {powerName(p)}</span> {(seatView === null ? isAlive(state, p) : !seatView.fallen.includes(p)) ? "" : "(fallen)"}
                   </td>
                   <td>
                     {l.fallen ? (
@@ -107,7 +107,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
                   <tr key={x.power}>
                     <td>{i + 1}</td>
                     <td>
-                      <Emblem power={x.power} /> {powerName(x.power)}
+                      <span className="named"><Emblem power={x.power} /> {powerName(x.power)}</span>
                     </td>
                     <td>{x.score.toFixed(2)}</td>
                     <td>{x.size.toFixed(2)}</td>
@@ -182,7 +182,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
             {openings(state.config).map((o) => (
               <tr key={o.power}>
                 <td>
-                  <Emblem power={o.power} /> {powerName(o.power)}
+                  <span className="named"><Emblem power={o.power} /> {powerName(o.power)}</span>
                 </td>
                 <td>{openingTroops(o)}</td>
                 <td>{o.gold} shekels</td>

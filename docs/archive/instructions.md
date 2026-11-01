@@ -967,4 +967,74 @@ Given in the design chat with Claude, answering the design questions of the cons
     possible. what do you think, expert?" To the four paces (Slow, Normal, Fast, Simulate): "Yes, please! expertly!
     does the hotkeys become 1, 2, 3, and 4 then?" Written into "Pace of play" (Interface), item 17+++a's keys (1 to 4,
     + and − between the three watching speeds, Enter ends one's season) and the polish lane's entry.
-
+117. **1 November 2026, 10:53 UTC**, in the design chat, to milestone #338's three questions with the design session's
+    takes (17a: merge, the phone's frames waiting for 17+++; the Hurrian Hymn: keep Kilmer's reading, saying on the Music
+    page that it is her reading; the Music page: our own pieces' names and moods only, without Empire Earth's): "Agreed
+    to all! Now, where do I check the music?" Written into the "For Haakon" table of `docs/BUILD-PROGRESS.md`.
+118. **1 November 2026, 11:14-11:18 UTC**, in the design chat, on the music and the Music page: "I am actaully
+    impressed! Didn't expect much from the music actually! But it is good! Is it entirely like I imagined it? No! But it
+    fits quiet well! I want to keep all of it, even "The tuning's scale (a test)". So I think this page is really nice,
+    and for the player to be able to set which soundtrack they want. Though the orchestral, and the lyre and reed
+    soundtracks are clearly the best ones. I still don't see any reason to do away with the 8-bit one, but it should be
+    be the last on the list, with the orchestral being the default." Then, to the design session's take (that order
+    everywhere, the test under "Extras", Lyre and reed when the orchestra cannot load): "Yes, please, expertly! And i
+    notice the music page is a little bit buggy. Sounds can overlap if you click multiple. I see that as a feature
+    actually, so keep that. But the main theme from the menu keeps popping back in by itself after you've clicked on a
+    piece of music, and it still plays when you click on the sound effects sometimes, so it is hard to hear them with
+    the music drowning them out. Should perhaps the main theme stop when you click on anything in the music menu, then
+    resume when you leave that tab? What is your expert take?" Written into the polish lane's entries in
+    `docs/BUILD-PROGRESS.md`, with the design session's reading that the theme fades out on entering the page.
+119. **1 November 2026, 11:21 UTC**, in the design chat, correcting item 118's reading: "Well, the music don't
+    overlap in thin, but rh3 soundeff3cts does, which is finex so you can just not mention it, just leave it exactly as
+    it is." The polish lane's Music page entry no longer mentions overlapping.
+120. **1 November 2026, 11:25-11:28 UTC**, in the design chat, on watching a game with the new sound: "But there is one
+    big problem. It is not very nice to spectate now. Stuff still moves way way too quick on medium speed, but i guess
+    that update hasn't begun yet. But more importantly, your ears are being assaulted now. It plays dozens of sound
+    effects at any one time. I believe ck2 only played many of those soundeffects if they happen to you, like stumbling
+    something, etc. I think maybe that's more how it should be, only the environmental stuff being there for a
+    spectator? It should at least be much less sounds playing off all the time, can barely hear the music now." Then,
+    to the design session's take: "Yes, in ck2, you get environmental sounds. Like a plague in a county, you zoom in,
+    you get the moaning and commotion. You zoom in on a battle, you hear the steel clash. But all the event stuff is for
+    players only, or if you spectate a player, you hear specifically what they hear, I think? And we must be careful
+    that the environmental stuff isn't so loud, intense and frequent that it drowns out the music, should ideally just
+    add layers to it. Your thoughts, expert? I think this is mostly an issue of refining the cooperation of the
+    soundscape, not nessecarily needs much altering of the sounds themselves?" Written into item 19+++, "The season plays
+    out, and zoom shapes what you see and hear" (Interface) and the polish lane's entries.
+121. **1 November 2026, 11:31 UTC**, in the design chat: "Important! The music must never reveal what's outside the fog
+    of war. Remember, a king only sees what's within a season at any one time." Written into item 19+++, "The season
+    plays out, and zoom shapes what you see and hear" (Interface) and the polish lane's soundscape entry.
+122. **1 November 2026, 11:35 UTC**, in the design chat, on item 121: "But of course, you know where a sea is, so some
+    things you can zoom in on and hear, without it revealing anything. Because these are static. And if you zoom in on a
+    city that is really burned but that you still believe is buzzing, then it should probably play the urban commotion
+    sound?" Written into item 19+++ and the polish lane's soundscape entry: what a seat hears is what its own map shows.
+123. **1 November 2026, 12:52-14:40 UTC**, in the design chat, on Claude and Codex building together: "I want to run
+    them both togheter, so they collaborate, ideally. that way, they spread the usage, and can last about the full
+    week, hopefully?" Then: "I thought there was mcp integration? can't the orchestrator just create Codex builder
+    instances, like it does internally now, and split the load? and maybe they can review for one another, since
+    they have different architectures and possibly different blind spots?" On the design session's pick of GitHub as
+    the meeting point (12:53-13:04 UTC): "Well, they can continue communication over GitHub if something is unclear,
+    or further notes needs to be exchanged, no?" (13:10 UTC): "Yes, this sounds like a good step to try first! But I
+    think I will start with the 100 dollar subscription for Codex to start with, so Claude Code orchestrator must be
+    aware that there will be times where Codex isn't avaliable. I suggest it makes a habit of dividing the labor
+    with Codex in mind, but awaits a response for a short time, and if it doesn't get it, it assigns it to a builder
+    session of its own? and it has to be aware that if Codex runs out of usage, it won't get an alert, so it has to
+    be ready to fall back in case that happes. Though should absolutely all tasks go to codex? some presumably
+    requires a bit more? take the music compositions we just did?" (13:17 UTC): "Some of the stuff you assigned
+    Claude, it might be able to divide up further, so Claude has made the important calls and criterias, then
+    hand-off the grunt work to Codex?" (13:20 UTC): "Yes, at least there should be a Claude reviewer with a clear
+    idea of what the final product should look like, so it can make Codex iterate until it reaches that vision.
+    Should we also add a criteria that they have to judge each other's work on a scale of 1/10, and if it isn't a
+    10, it goes back? I saw someone mention that trick, and it supposedly is a pretty good quality control." To the
+    design session's version (a score and the list of what keeps it from 10, back while a point blocks, at most
+    three rounds), 13:21 UTC: "Yes, I think we have a pretty good set-up here on all fronts now! I'll just go and
+    get Codex and get it set-up before we start inserting this all into the project files." On Codex's review
+    trigger (14:25 UTC): "It has a "smart detect (exprimental feature) or on every push. Should maybe just turn it
+    off then?" (automatic review off, reviews on request). Then (14:40 UTC): "Okay, got the ChatGPT Pro 100
+    subscription now, so how do I set it up like I want?" Written into `AGENTS.md` (`CLAUDE.md` renamed, Claude's
+    own part kept in a new `CLAUDE.md` that imports it) and `docs/claude-and-codex.md`, the same in Barkstreet
+    Snakes.
+124. **1 November 2026, 15:16 UTC**, in the design chat, after the first `@codex` test, where Codex's bot answered
+    within seconds: "Isn't 15 minutes a bit long to wait for it? here it took like a seconds or 2, max 3?" Then, to
+    the design session's proposal (about 5 minutes to a sign of life, a take-back at once when the bot answers with
+    an error, about 2 hours to a PR): "yes, expertly!" Written into `docs/claude-and-codex.md`, "When Codex is not
+    there", the same in Barkstreet Snakes.

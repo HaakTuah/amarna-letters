@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Interface and the council tab, revision 23 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Interface and the council tab, revision 25 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
 ## The royal council
 
 **The royal council (decided 19 October 2026; build order item 16).** Instead of one advisor, each ruler hears a council of four, built from the script kings' tactics with different weightings. With one advisor the easy path is to copy it; with four who disagree, the king has to choose, and how far they diverge shows how open the situation is. When all four agree, the move is almost certainly right. It is a toggle, recorded in the log so experiments can report whether it was on: on by default for human seats, who can turn it off, as with the advisors in Civilization, and comparing model kings with and without it waits until Haakon asks for model games.

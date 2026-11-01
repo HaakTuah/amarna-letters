@@ -1,0 +1,86 @@
+import { describe, test } from "vitest";
+import { WorldMap, newGameEvent, type Power } from "@amarna/engine";
+import { Assert } from "../../engine/test/support.ts";
+import { remember } from "../src/map/memory.ts";
+import { knownRuins, ownFiguresAt } from "../src/map/known.ts";
+import type { SeasonFrame } from "../src/session/frames.ts";
+
+// One rule for the map and the ear (the sound lane, 1 November 2026): a seat knows of a sack, a ruin and its rebuilding
+// only from its own record (shown it, its sight, its dated word of the city), never from the true owner or unrest. Four
+// hand-built seasons, two powers and one city.
+function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
+  return {
+    index, turn: index + 1, ended: false, endReason: null, winners: [], owner: new Map(), walls: new Map(), knownWalls: new Map(),
+    knownOwner: new Map(), sieges: [], units: [], moves: [], seenBy: new Map(), sight: new Map(), journeys: [], people: new Map(),
+    sleep: new Map(), eliminated: new Set(), events: [], news: [], inboxCount: new Map(), openAge: false, ageBand: "Usual",
+    ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), fed: new Map(),
+    unrest: new Map(), caravans: [], walking: [], omen: "Quiet", ...over,
+  } as SeasonFrame;
+}
+
+const city = WorldMap.default.landProvinces.find((p) => p.capital)!;
+const word = (owner: Power, turn: number) => new Map([["Egypt" as Power, new Map([[city.id, { owner, turn }]])]]);
+const sack = (to: Power[]) => newGameEvent({ kind: "sack", text: `Hatti sacked ${city.name}.`, visibleTo: to });
+
+// Egypt's own city, out of its sight, sacked and taken by Hatti; the sack shown to Hatti only; Egypt's word of the city
+// stays a season old until frame 3.
+const seasons = [
+  frame(0, { owner: new Map([[city.id, "Egypt"]]), knownOwner: word("Egypt", 1) }),
+  frame(1, { owner: new Map([[city.id, "Hatti"]]), knownOwner: word("Egypt", 1), unrest: new Map([[city.id, 500]]), events: [sack(["Hatti"])] }),
+  frame(2, { owner: new Map([[city.id, "Hatti"]]), knownOwner: word("Egypt", 1), unrest: new Map([[city.id, 400]]) }),
+  frame(3, { owner: new Map([[city.id, "Hatti"]]), knownOwner: word("Hatti", 2), unrest: new Map([[city.id, 300]]) }),
+];
+
+describe("MapKnownTests", () => {
+  test("A distant sack the seat has not heard of draws nothing on its map; word of it then draws the ruin", () => {
+    for (const i of [1, 2]) {
+      Assert.false(remember(seasons, i, "Egypt", new Set()).ruins.has(city.id));
+      // Nor does the true owner's change show the city as wild or anything else to Egypt.
+      Assert.false(remember(seasons, i, "Egypt", new Set()).wild.has(city.id));
+    }
+    Assert.true(remember(seasons, 3, "Egypt", new Set()).ruins.has(city.id));
+    // The map and the ear agree, season by season.
+    for (let i = 0; i < seasons.length; i++)
+      Assert.equal([...knownRuins(seasons, i, "Egypt")].join(), [...remember(seasons, i, "Egypt", new Set()).ruins].join());
+    // God view draws it as it is.
+    Assert.true(remember(seasons, 1, null, new Set()).ruins.has(city.id));
+  });
+
+  test("Out of sight a known ruin stays a ruin, however the city truly mends; in sight it is seen rebuilt", () => {
+    const shown = seasons.map((f, i) => (i === 1 ? { ...f, events: [sack(["Hatti", "Egypt"])] } : f));
+    const mended = frame(4, { owner: new Map([[city.id, "Hatti"]]), knownOwner: word("Hatti", 3) });
+    Assert.true(remember([...shown, mended], 4, "Egypt", new Set()).ruins.has(city.id));
+    const seen = { ...mended, sight: new Map([["Egypt" as Power, new Set([city.id])]]) };
+    Assert.false(remember([...shown, seen], 4, "Egypt", new Set()).ruins.has(city.id));
+  });
+
+  test("A city lost out of sight keeps its houses on the seat's map until word arrives, then leaves it", () => {
+    // Egypt's own city, out of its sight, taken by Hatti (no sack) in frame 1; its people, stores and a band as Egypt last
+    // held it; word of the loss reaches Egypt in frame 3.
+    const own = (i: number, holder: Power, knows: Power, people: number) =>
+      frame(i, {
+        owner: new Map([[city.id, holder]]),
+        knownOwner: word(knows, knows === "Egypt" ? 1 : i),
+        settled: new Map([[city.id, people]]),
+        stores: new Map([[city.id, people / 10]]),
+        fed: new Map([[city.id, 600]]),
+      });
+    const fs = [own(0, "Egypt", "Egypt", 5000), own(1, "Hatti", "Egypt", 4000), own(2, "Hatti", "Egypt", 3000), own(3, "Hatti", "Hatti", 2000)];
+    for (const i of [1, 2]) {
+      const m = remember(fs, i, "Egypt", new Set());
+      // As it last held it: the houses and the hunger of frame 0, not the new holder's.
+      Assert.equal(5000, m.towns.get(city.id)?.now);
+      Assert.equal(600, m.famine.get(city.id));
+      Assert.equal(0, ownFiguresAt(fs, i, "Egypt", city.id));
+    }
+    Assert.false(remember(fs, 3, "Egypt", new Set()).towns.has(city.id));
+    Assert.null(ownFiguresAt(fs, 3, "Egypt", city.id));
+    // Land it holds and knows it holds: as it is now, as the engine's own view of the court shows it.
+    Assert.equal(5000, remember(fs, 0, "Egypt", new Set()).towns.get(city.id)?.now);
+    // God view: as it is.
+    Assert.equal(3000, remember(fs, 2, null, new Set()).towns.get(city.id)?.now);
+    // Hatti, which took it unseen by Egypt but knows it holds it, sees it as it is.
+    const hatti = fs.map((f) => ({ ...f, knownOwner: new Map([["Hatti" as Power, new Map([[city.id, { owner: (f.index >= 1 ? "Hatti" : "Egypt") as Power, turn: f.turn }]])]]) }));
+    Assert.equal(3000, remember(hatti, 2, "Hatti", new Set()).towns.get(city.id)?.now);
+  });
+});

@@ -221,6 +221,8 @@ th, td { text-align: left; padding: .3rem .45rem; border-bottom: 1px solid var(-
 th { font-size: .82rem; color: var(--muted); font-weight: 600; }
 .tablewrap { overflow-x: auto; }
 td.nowrap { white-space: nowrap; }
+/* A power's emblem stays with its name: in a narrow table "Carchemish" fell to the line below its emblem. */
+.named { white-space: nowrap; }
 td .sub { display: block; font-size: .8em; white-space: nowrap; }
 
 .pill {
@@ -278,6 +280,10 @@ td .sub { display: block; font-size: .8em; white-space: nowrap; }
 }
 .menu-body a, .menu-body button { text-align: left; }
 .menu-body label { justify-content: space-between; }
+/* A checkbox keeps its word beside it ("☑ Music", "☑ Reveal all"), not at the far side of the menu; a volume slider spans it. */
+.menu-body label:has(> input[type="checkbox"]) { justify-content: flex-start; }
+.menu-body label.volume input[type="range"] { width: 100%; }
+.menu-body label:has(> select[aria-label="Music version"]) select { width: 100%; }
 
 .mapcol { grid-area: map; position: relative; min-height: 0; aspect-ratio: 1000 / 720; max-height: 58vh; max-height: 58dvh; width: 100%; justify-self: center; }
 .side { grid-area: side; min-height: 0; display: flex; flex-direction: column; background: var(--surface); border-top: 1px solid var(--line); position: relative; }
@@ -712,6 +718,13 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .preset-foot { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-top: .2rem; }
 .customize { margin-top: .9rem; }
 .customize summary { cursor: pointer; color: var(--accent); }
+/* The table of seats fits its column on a phone: the player picker shrinks to the room left by the power and its tier,
+   instead of growing to its longest option and running off the screen. */
+.customize table { width: 100%; table-layout: fixed; }
+.customize th:nth-child(2) { width: 4.6rem; }
+.customize td select { width: 100%; min-width: 0; text-overflow: ellipsis; }
+.customize td .model-picker { display: flex; }
+.customize td .model-picker > * { flex: 1 1 100%; min-width: 0; }
 
 /* Anything that moves stands still for readers who ask the system for less motion. */
 @media (prefers-reduced-motion: reduce) {

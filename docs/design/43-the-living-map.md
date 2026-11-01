@@ -132,7 +132,15 @@ mines and storage come with the economy's later phases"), so a mine shows where 
   test pass 2's clashes use) keeps a small memorial stele by its city, with how many battles and the season of the last.
   A sacked city (the engine's `sack` event) lies in ruins, its seal cracked and smoke over it, until the hardship its
   people remember (`GameState.unrest`, which a sack adds to) has faded, or it changes hands; out of the viewer's sight,
-  as last seen. Land with no ruler, or where a band works, looks wild: thorn and scrub over it.
+  as last seen. In a seat view only as the seat knows it (`map/known.ts`, the rule the ear shares): a sack is drawn from
+  when the seat learns of it (shown it, the city in its sight as it happened, or its dated word of the city from after
+  the sack), and the city is drawn rebuilt only when the seat sees it so; never from the true owner or unrest (before 1
+  November 2026 a seat's distant city, sacked and taken out of its sight, was drawn in ruins at once). Land with no ruler
+  as far as the viewer knows, or where a band works, looks wild: thorn and scrub over it. "Its own land" is the land it
+  knows it holds (`seesNow`), not the land it truly holds. A court's own figures (its towns' people, a famine, its stores,
+  the bands its people tell of) are drawn for the land it knows it holds: as they are where it truly holds it too (the
+  engine's own view of a court shows it its provinces' economy, `views.ts`), and as it last held it where it lost it
+  without knowing (`ownFiguresAt`), so a town lost out of sight keeps its houses until word of the loss arrives.
 - **Life from the simulation.** Caravans of grain (`GameState.caravans`) and people carried off (the deportees of
   `GameState.walking`, the only walkers with a known road) are drawn on their roads, where their stretch puts them (a
   guess, as a traveller's place is). A court sees its own caravans only, as the engine's view tells it (a smuggler's

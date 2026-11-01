@@ -1073,6 +1073,91 @@ export const Manifest = {
     "seconds": 0.12,
     "hash": "44537d1b12"
    }
+  ],
+  "march": [
+   {
+    "file": "sounds/march-1.m4a",
+    "seconds": 2.4,
+    "hash": "58d10e230f"
+   },
+   {
+    "file": "sounds/march-2.m4a",
+    "seconds": 2.4,
+    "hash": "1c7e0a1fe7"
+   },
+   {
+    "file": "sounds/march-3.m4a",
+    "seconds": 2.4,
+    "hash": "a48a3e7e4e"
+   }
+  ],
+  "waves": [
+   {
+    "file": "sounds/waves-1.m4a",
+    "seconds": 3.0,
+    "hash": "a68edf039c"
+   },
+   {
+    "file": "sounds/waves-2.m4a",
+    "seconds": 3.0,
+    "hash": "8f2f4ec9e2"
+   },
+   {
+    "file": "sounds/waves-3.m4a",
+    "seconds": 3.0,
+    "hash": "556cd02c32"
+   }
+  ],
+  "gust": [
+   {
+    "file": "sounds/gust-1.m4a",
+    "seconds": 2.8,
+    "hash": "3d2053cb59"
+   },
+   {
+    "file": "sounds/gust-2.m4a",
+    "seconds": 2.8,
+    "hash": "8a787e85e9"
+   },
+   {
+    "file": "sounds/gust-3.m4a",
+    "seconds": 2.8,
+    "hash": "ff0f57a7ea"
+   }
+  ],
+  "storm": [
+   {
+    "file": "sounds/storm-1.m4a",
+    "seconds": 3.4,
+    "hash": "133037d1ab"
+   },
+   {
+    "file": "sounds/storm-2.m4a",
+    "seconds": 3.4,
+    "hash": "67b9e47605"
+   },
+   {
+    "file": "sounds/storm-3.m4a",
+    "seconds": 3.4,
+    "hash": "c81490f986"
+   }
+  ],
+  "avalanche": [
+   {
+    "file": "sounds/avalanche-1.m4a",
+    "seconds": 3.6,
+    "hash": "76b4c8f9ea"
+   },
+   {
+    "file": "sounds/avalanche-2.m4a",
+    "seconds": 3.6,
+    "hash": "da1f0732fc"
+   },
+   {
+    "file": "sounds/avalanche-3.m4a",
+    "seconds": 3.6,
+    "hash": "29e719e0c0"
+   }
   ]
  },
  "stings": {

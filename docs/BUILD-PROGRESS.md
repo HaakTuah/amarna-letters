@@ -30,7 +30,7 @@ account until its usage is spent; on the main account the usage brake closes it 
   command at a distance, city-states, the living map), the numbers the improvement audit found stale, and the
   developer section's commands; one PR, docs only. It gets a second, smaller pass in the PRs of items 17+ and 17++,
   which change the opening and how a king asks and counts ("A change a player sees updates the README" in
-  `CLAUDE.md`).
+  `AGENTS.md`).
 - **Also first, the far-zoom edge** (Haakon, 31 October 2026: "if you zoom far enough out, the world ends with just
   water to the east and west, since the map is longer on the north-south axis"; then "Yes, expertly to all!"): zooming
   out stops where the map fills the screen, and the lands beyond the game are drawn out to every edge of the frame (the
@@ -43,6 +43,32 @@ account until its usage is spent; on the main account the usage brake closes it 
   item 17+++ keeps every season ("Pace of play" under Interface); + and −, on the main keys and the number pad, step
   between Slow, Normal and Fast, by the character typed; never while a letter or a name is being typed; each shown in
   its button's tooltip. PR #293's added Very slow and fifth speed go before it merges. The rest of the keys come in item 17+++a.
+- **Done (sound lane, #350): the soundtracks and the Music page** (Haakon, 1 November 2026: "I am actaully impressed! Didn't expect much
+  from the music actually! But it is good! ... I want to keep all of it, even "The tuning's scale (a test)"", then
+  "Yes, please, expertly!"): keep every piece. The three soundtracks in this order everywhere, in the game's sound menu
+  and on the Music page: Orchestra (the default), Lyre and reed, 8-bit last. "The tuning's scale (a test)" moves to
+  the end of the Music page under "Extras". If the orchestra's files cannot load (offline, a slow phone), Lyre and reed
+  plays instead of silence, since it needs no download. And on the Music page, the game's own music (the menu theme)
+  fades out on entering the page and stays out while you are on it, so only what you press plays; leaving the page fades
+  the theme back in. Nothing else on the page changes. Today the
+  theme comes back by itself after a piece ends and plays over the sounds.
+- **Done (sound lane, #351 and #352; `docs/rounds/2026-11-01-sound-lane.md`): the soundscape** (Haakon, 1 November 2026: "your ears are being assaulted now. It plays dozens of sound effects
+  at any one time", then "But all the event stuff is for players only, or if you spectate a player, you hear
+  specifically what they hear"): three layers, the music leading, as item 19+++ now says. The world's sounds where
+  things happen (a battle's clash, a siege, a plague, a storm, a market), heard only near the view when zoomed in,
+  softer with distance, for every viewer; event sounds only for one seat, its clicks and what happens to its realm, for
+  its player or a spectator watching through it, never in god view; both mixed under the music, never sudden or loud,
+  at most two or three event sounds at once and none repeated within a few seconds. A change in how sounds are chosen
+  and mixed, not in the sounds; now, not in 17+++. And nothing heard reveals what lies beyond the fog of war (Haakon,
+  1 November 2026: "Important! The music must never reveal what's outside the fog of war."): in a seat the mood, its
+  shade, the stings, the great moments, the world's sounds and the event sounds follow only what the seat knows as it
+  learns it; a battle or fall it has not heard of plays nothing, even zoomed in on it; a seat whose sight is missing
+  from the record counts as seeing nothing, not everything (today `sight === undefined` is read as seeing all in
+  `src/web/src/audio/situation.ts`); a test proves a hidden battle, siege or fall changes nothing a seat hears. What a seat hears is what its own map shows
+  (Haakon, 1 November 2026: "you know where a sea is, so some things you can zoom in on and hear, without it revealing
+  anything"): seas, rivers, deserts and the wind are heard anywhere the view goes; a place sounds as the seat last knew
+  it, so a city burned seasons ago that the seat still believes thriving plays its market's bustle until the news
+  arrives, then its ruin.
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
@@ -57,35 +83,8 @@ account until its usage is spent; on the main account the usage brake closes it 
   slips in; merged at once, listed in one line per fix under the lane in this file. Nothing is left half done: a fix not
   finished when usage ends is left unstarted, its find noted for the next session.
 
-Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
-- The Counsel preset's card named Sonnet as its kings; it now says Haiku plays them, with Sonnet planning.
-- Gold in the panels was shown with the treasury's fractions ("10.5311700 shekels"); it is now rounded to the whole shekel.
-- The empty Play page lost the top bar and spoke of loading a log it gave no way to load; it keeps the bar and links to the saved games.
-- On phones the whole-map button stayed 34 px (the touch rules came before the base rule), and the Legend button, the ⋯ menu, the header's selects and the page links were under 44 px; all are 44 px now.
-- The README brought up to the game as built: forty-seven powers and their starting positions, walls, the ending and the score as they are now, command at a distance, the land and its people, tongues, the council, the living map, legends, the Counsel preset and the developer commands.
-- The far-zoom edge: zooming out stops where the drawn world (the board and the lands beyond it) fills the view, so a wide or tall screen never shows bare water past the map's edge.
-- Person cards in the People tab and the court's hiring list ended with the character's internal id ("c101"); it is gone (improvement audit, find 7).
-- Standings at 390 px: the header "Land-yield ratio (not growth)" took five lines and each row three; the header reads "Land yield" (the rest in its tooltip and the text above), the yields sit on a line of their own (hidden on phones), and gold no longer wraps (improvement audit, find 11).
-- The Rules tab's opening for a human seat now says first how a human gives orders, and that the rulebook's JSON and HOW TO ANSWER speak to model kings (improvement audit, find 12).
-- The preset cards' estimates were reckoned for 44 seasons while the table's own total used its ending (80 by default), so one page showed two prices; the cards use the table's ending too.
-- Dates read "season 2, 1344 BCE", never the shorthand "s2" (audit batch 2).
-- A human seat can order the one-off hunt and razing, as script kings do (audit 6); the draft no longer gives a default hold beside a unit another order names.
-- People's provinces read "settled N, land for M", not "N of M" (audit 14); "shipments", never "shipment(s)" (audit batch 2).
-- Legends give the bonds sealed before the age one undated line per court, not a deed each (audit batch 2).
-- Space pauses and unpauses, 1 to 3 set the pace (Slow, Normal, Fast), + and − step between them ("Also first"), in one key table that item 17+++a extends with 4 Simulate, Enter and the rest.
-- The audience panel points a court with no standing answers to them (audit 15); a fact's "(season 4)" is dated by the court's calendar on screen (audit batch 2); the design note on province ownership no longer says "public at once" (audit 13).
-- The `who-decides` planning tests ran 86 to 153 s on the full world and timed CI out; they play the seven Great Kings among idle powers now, 20 to 31 s each, testing the same rules.
-- A human with one seat saw a one-choice seat menu at 390 px; it is a plain label, "Egypt (you)".
-- The timeline read "season 1 · now" while the header planned "Season 2"; it reads "after season 1, 1346 BCE", the board it shows (" · now" on computers only, where it fits).
-- The Provinces list ended each row in a bare number; it reads "yield 35", with a tooltip saying it is the base yield the harvest is reckoned from.
-- An audience's answer ran "Seal the tablet  Gift to the envoy [0]" together and left its amounts bare ("purity % 100"); the seal has its own line, each amount its unit ("[0] shekels", "of purity [100] %"), the envoy order form too, and the note says accepted service is paid three seasons ahead.
-- The Standard preset's card told players it was "The design document's table"; it reads "The table the game is built for".
-- The header's second line began with the runner's step in lower case ("orders · Any season may be the last"); it reads "Orders being given", "Audiences", "The season resolves" and so on.
-- A free person's card (candidates to hire, the court) opened with a stray "·" ("· at your court"); the line joins only the parts there are.
-- "(known to Terqa)", "Seals: Seha": the "known to" notes, seals, the winners line, an audience's vassal, the tolls line, buying news and the "whose troops?" list named powers by their engine ids; they use the names the game shows ("Hana", "the Seha River Land").
-- A gift of troops read "give Memphis to Hatti" in the draft, beside "cede Memphis to Hatti"; it reads "give the army at Memphis to Hatti" (the engine's own words, which kings read, unchanged).
-- The README, the Standings tab's opening table and two design notes said strength is ten times the land's yield; it is ten times what the land produces in a season (its harvest at the price of grain plus its mines), as the rulebook and `rules/scoring.ts` have it.
-- On a computer the Legends tab's and a followed life's dates ran into the line beside them ("season 2, 1346 BCSealed a tablet"); their column is wide enough for the dates since they read in words.
+Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one line each" (moved there on 1 November 2026,
+"The workshop check"; new fixes add their line there), with the finds still open.
 
 ## For Haakon: review points
 
@@ -94,9 +93,7 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
-| 17a (#321) | 1. The throttled phone's frames: the 50 ms bar is met on desktop (69 and 110 frames over 50 ms a game, none over 117 ms in play; 327 to 337 before) but not on the phone profile (a few frames of 200 to 300 ms a season, the rendering of the season's layer writes). Merge 17a and take the phone's frames up in 17+++, which redraws the season textures ("merge"), or hold 17a and rebuild the season drawing now ("hold")? | Reading: merge; readings 1-7 in `docs/rounds/2026-10-31-crash-and-speed.md` | answered 1 November 2026, "merge": the phone's remaining frames wait for 17+++, which rebuilds the season drawing and is held to the same 50 ms bar. |
-| 19+++ composing (`music/19-plus3-compose`) | 1. The Hurrian Hymn's score follows Kilmer's reading of the notation (each named pair of strings sounded together, the first-named sung above); Dumbrill's or West's melodic readings would give another tune. Keep Kilmer's? | Kilmer's (`docs/rounds/2026-10-31-music-composing.md`, reading 2) | Open; the pieces themselves are judged by ear on `/listen` |
-| Polish lane (Music page) | 1. The Music page tells players the pieces are "one for each of Empire Earth's" and shows that game's track names and lengths ("Guillotine (1:49)", "Pawns (4:09)"): should players see the other game's name and titles? | Left as built (item 19+++ names Empire Earth as the template); alternative: our piece names and moods only | Open |
+| 17a (#321) | 1. The throttled phone's frames: the 50 ms bar is met on desktop (69 and 110 frames over 50 ms a game, none over 117 ms in play; 327 to 337 before) but not on the phone profile (a few frames of 200 to 300 ms a season, the rendering of the season's layer writes). Merge 17a and take the phone's frames up in 17+++, which redraws the season textures ("merge"), or hold 17a and rebuild the season drawing now ("hold")? | Reading: merge; readings 1-7 in `docs/rounds/2026-10-31-crash-and-speed.md` | Answered by Haakon, 1 November 2026 ("Agreed to all!"): merge; the phone's frames wait for item 17+++, which redraws the season drawing and is held to the same 50 ms bar |
 
 
 ## Use against ignore

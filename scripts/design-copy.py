@@ -41,7 +41,7 @@ TABS = [  # (folder, tab name, the tab's body node), in the document's order
 ]
 SPLIT_ABOVE = 30000  # a section above this many bytes is cut into parts of about PART_BYTES, at entry boundaries
 PART_BYTES = 22000
-REF_GLOBS = ['CLAUDE.md', 'docs', '.claude']  # where references to docs/intent paths are checked
+REF_GLOBS = ['AGENTS.md', 'CLAUDE.md', 'docs', '.claude']  # where references to docs/intent paths are checked
 
 
 def slug(text, n=64):

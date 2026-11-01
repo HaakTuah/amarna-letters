@@ -181,7 +181,8 @@ export function Play() {
   const aKey = pendingAudience === null ? null : `${pendingAudience.audience!.view.audienceId}:${pendingAudience.audience!.view.round}`;
   if (aKey !== null && aKey !== audienceKey.current) {
     tab = "audience";
-    player.play("envoy");
+    // Realm news is an event sound, the seat's own: never in god view, even with the board revealed.
+    if (!s.godView) player.play("envoy");
   }
   audienceKey.current = aKey;
   if (tab === "audience" && pendingAudience === null) tab = "";
@@ -258,7 +259,7 @@ export function Play() {
   const playedOn = !history && frame.ended && !live.ended;
   const endingLine =
     frame.ended && !playedOn
-      ? `The age has ended: ${frame.endReason}. Winner: ${frame.winners.join(" and ")}.${s.hasHumans && live.ended ? " The record is open to every seat: choose God view, and read the Legends." : ""}`
+      ? `${frame.endReason === null ? "The age has ended" : cap(frame.endReason)}. Winner: ${frame.winners.map(powerName).join(" and ")}.${s.hasHumans && live.ended ? " The record is open to every seat: choose God view, and read the Legends." : ""}`
       : playedOn
         ? ending(true, { turn: frame.index, winners: frame.winners }, viewer)
         : ending(frame.openAge, frame.ageEnded, viewer, frame.ageBand);
