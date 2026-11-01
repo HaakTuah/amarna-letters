@@ -2,7 +2,8 @@ import { describe, test } from "vitest";
 import { WorldMap, isGreatKing, newGameEvent, type Power } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
 import { city } from "../src/map/features.ts";
-import { bedAt, cuesAt, knownRuins, moodAt, shadeAt } from "../src/audio/situation.ts";
+import { knownRuins } from "../src/map/known.ts";
+import { bedAt, cuesAt, moodAt, shadeAt } from "../src/audio/situation.ts";
 import { schedule } from "../src/audio/schedule.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 

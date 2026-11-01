@@ -168,3 +168,20 @@ seat's distant city, sacked and taken out of its sight, went silent before word 
 of exactly that case). Not blocking, fixed: a march or battle placed at an end of a move the seat did not see (its goal in
 sight, its start not); the hook's unclamped index. Noted: the test's "shown the sack" case is synthetic (the engine shows
 a sack only to its taker), so the word-dated path is tested too.
+
+## PR 4: the map's memory by the seat's own record (`sound/map-memory`)
+
+The orchestrator, 1 November 2026, passed the leak found in PR 3 to this lane once the polish lane had stopped: "make
+remember's sacksOf and sees decide what a seat knows of a city's sack, ruin and rebuilding from the seat's own record, by
+the same rule as knownRuins, never from the true owner or the true unrest. Share one helper between the map and the
+audio rather than two copies. Add a test that a distant sack the seat hasn't heard of draws nothing on its map."
+
+- **One helper** (`src/web/src/map/known.ts`): `knownRuins` (moved from `situation.ts`), `sacksSeen`, `sackedCity` and
+  `seesNow`; each season's sacks read once and kept with its frame. `map/memory.ts`'s `remember` takes its ruins from
+  `knownRuins` (its own `sacksOf`, which read the true owner, is gone), its `sees` from `seesNow` (sight, or its own land
+  by who it knows holds it), and draws land as wild where it knows no ruler; the audio's hook imports the same function.
+- **Tests** (`map-known.test.ts`): Egypt's own distant city, sacked and taken out of its sight, the sack shown to Hatti
+  only: no ruin and no wild land on Egypt's map until word dated after the sack arrives, then the ruin; map and ear agree
+  every season; a known ruin out of sight stays a ruin however the city truly mends, and is seen rebuilt in sight. The
+  map-scene test's own-land check now reads the seat's record too.
+- Presentation only: no engine file, rule or save change; the replays are untouched (the map reads frames only).

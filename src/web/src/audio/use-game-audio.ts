@@ -10,7 +10,8 @@ import { city } from "../map/features.ts";
 import type { SeasonFrame } from "../session/frames.ts";
 import { bedLevel } from "./mix.ts";
 import { player } from "./player.ts";
-import { bedAt, cuesAt, knownRuins, moodAt, shadeAt } from "./situation.ts";
+import { knownRuins } from "../map/known.ts";
+import { bedAt, cuesAt, moodAt, shadeAt } from "./situation.ts";
 import { schedule, type View } from "./schedule.ts";
 
 const NoRuins: ReadonlySet<string> = new Set();
