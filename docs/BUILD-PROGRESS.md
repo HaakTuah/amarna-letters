@@ -30,7 +30,7 @@ account until its usage is spent; on the main account the usage brake closes it 
   command at a distance, city-states, the living map), the numbers the improvement audit found stale, and the
   developer section's commands; one PR, docs only. It gets a second, smaller pass in the PRs of items 17+ and 17++,
   which change the opening and how a king asks and counts ("A change a player sees updates the README" in
-  `CLAUDE.md`).
+  `AGENTS.md`).
 - **Also first, the far-zoom edge** (Haakon, 31 October 2026: "if you zoom far enough out, the world ends with just
   water to the east and west, since the map is longer on the north-south axis"; then "Yes, expertly to all!"): zooming
   out stops where the map fills the screen, and the lands beyond the game are drawn out to every edge of the frame (the
