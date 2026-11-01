@@ -984,4 +984,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     the music drowning them out. Should perhaps the main theme stop when you click on anything in the music menu, then
     resume when you leave that tab? What is your expert take?" Written into the polish lane's entries in
     `docs/BUILD-PROGRESS.md`, with the design session's reading that the theme fades out on entering the page.
+119. **1 November 2026, 11:21 UTC**, in the design chat, correcting item 118's reading: "Well, the music don't
+    overlap in thin, but rh3 soundeff3cts does, which is finex so you can just not mention it, just leave it exactly as
+    it is." The polish lane's Music page entry no longer mentions overlapping.
 
