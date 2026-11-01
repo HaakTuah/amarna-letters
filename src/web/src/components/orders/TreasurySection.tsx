@@ -336,7 +336,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
         {v.tolls.length > 0 && (
           <span className="muted">
             {" "}
-            Known: {v.tolls.map((t) => `${t.holder} ${t.percent}%${t.partner !== null ? ` on ${t.partner}` : ""}${t.province !== null ? ` at ${provinceName(t.province)}` : ""}`).join("; ")}
+            Known: {v.tolls.map((t) => `${powerName(t.holder)} ${t.percent}%${t.partner !== null ? ` on ${powerName(t.partner)}` : ""}${t.province !== null ? ` at ${provinceName(t.province)}` : ""}`).join("; ")}
           </span>
         )}
       </div>

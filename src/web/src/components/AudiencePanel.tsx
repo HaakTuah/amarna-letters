@@ -98,7 +98,7 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
           <small>
             Already sealed by {a.proposal.seals.map(powerName).join(", ")}
             {a.proposal.allianceOath ? " · a sworn alliance" : ""}
-            {a.proposal.vassal ? ` · a vassal treaty: ${a.proposal.vassal} the vassal` : ""}.
+            {a.proposal.vassal ? ` · a vassal treaty: ${powerName(a.proposal.vassal)} the vassal` : ""}.
           </small>
         </>
       )}

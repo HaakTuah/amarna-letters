@@ -182,7 +182,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
               )}
               {c.news.map((n) => (
                 <button className="small" key={n.court} onClick={() => add(buyNews(c.id, n.court as Power))}>
-                  Buy news of {n.court} (turn {n.turn}, {n.lines} {n.lines === 1 ? "report" : "reports"}) for {shekels(n.price)}
+                  Buy news of {powerName(n.court)} (turn {n.turn}, {n.lines} {n.lines === 1 ? "report" : "reports"}) for {shekels(n.price)}
                 </button>
               ))}
             </div>
