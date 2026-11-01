@@ -1,6 +1,8 @@
 /**
- * The listening page (item 19+++): every piece and variation, every sound, sting and bed, with the template beside each
- * piece and when the game plays it, so the music can be judged by ear.
+ * The listening page (item 19+++): every piece and variation, every sound, sting and bed, with each piece's mood and when
+ * the game plays it, so the music can be judged by ear. The player sees our own pieces' names and moods only (Haakon,
+ * 1 November 2026); the template they were made after is in docs/design/45-the-music-and-the-sounds.md. The game's own
+ * music is hushed while the page is open, so only what is pressed plays.
  */
 import { useEffect, useState } from "react";
 import { AudioSwitches } from "../audio/AudioSwitches.tsx";
@@ -25,7 +27,11 @@ export function Listen() {
   const [playing, setPlaying] = useState<string | null>(null);
   useEffect(() => {
     player.setMood("menu");
-    return () => player.release();
+    player.hush(true);
+    return () => {
+      player.release();
+      player.hush(false);
+    };
   }, []);
   const [court, setCourt] = useState<string>("Ugarit");
   const [mode, setMode] = useState<Tuning | "home">("home");
@@ -56,10 +62,9 @@ export function Listen() {
     <div className="page listen">
       <h1>The music</h1>
       <p>
-        Fourteen pieces, one for each of Empire Earth's (its eighteen files are fourteen pieces, four in two versions), each
-        taking that piece's role and mood and nothing of its own: the melodies are the Hurrian Hymn of Ugarit's and new themes
-        in the Babylonian tunings. Each has three variations; the game picks the piece by the situation, changes at the end of
-        a phrase, and never plays the same variation twice running. Rendered from free (CC0) orchestral samples.
+        Fourteen pieces, each with its own mood and moment: the melodies are the Hurrian Hymn of Ugarit's and new themes in
+        the Babylonian tunings. Each has three variations; the game picks the piece by the situation, changes at the end of a
+        phrase, and never plays the same variation twice running. Rendered from free (CC0) orchestral samples.
       </p>
       {Placeholder && (
         <p className="notice">
@@ -74,7 +79,7 @@ export function Listen() {
         <thead>
           <tr>
             <th>Piece</th>
-            <th>After Empire Earth's</th>
+            <th>Mood</th>
             <th>When it plays</th>
             <th>Listen</th>
           </tr>
@@ -86,10 +91,7 @@ export function Listen() {
                 <strong>{p.title}</strong>
                 <div className="note">{p.made}</div>
               </td>
-              <td>
-                {p.template}
-                <div className="note">{p.role}</div>
-              </td>
+              <td>{p.role}</td>
               <td>{p.when}</td>
               <td className="listen-buttons">
                 {(man.music[p.id] ?? []).map((v, i) => (
@@ -105,12 +107,15 @@ export function Listen() {
 
       <h2>Side by side: the three versions</h2>
       <p>
-        The same music in the three versions to choose between: the orchestra (the pieces above), and the fallback after the
-        original Civilization, one score in the Babylonian lyre tunings played by the browser's own sound engine, in pure
-        8-bit or in period timbres (a synthesised lyre, reed pipe, frame drum and sistrum). Ugarit's theme is the Hurrian
+        The same music in the three versions to choose between: the orchestra (the pieces above), and one score in the
+        Babylonian lyre tunings played by the browser's own sound engine, in period timbres (a synthesised lyre, reed pipe,
+        frame drum and sistrum) or in pure 8-bit. Ugarit's theme is the Hurrian
         Hymn; every other court has a theme and a march of its own, heard in its home mode, and the great moments are shared.
         Choose the court, and hear each score as the game would play it in that situation: the layers come and go with the
         mood (the drums of war, the heartbeat of unease, the sistrum at a feast) and the tuning turns with the shade.
+      </p>
+      <p className="note">
+        The Hurrian Hymn is heard in Anne Draffkorn Kilmer's reading of its notation, one of several modern reconstructions.
       </p>
       <div className="listen-switches">
         <label>
@@ -160,12 +165,12 @@ export function Listen() {
           <tr>
             <th>Score</th>
             <th>Orchestra</th>
-            <th>8-bit</th>
             <th>Lyre and reed</th>
+            <th>8-bit</th>
           </tr>
         </thead>
         <tbody>
-          {[...scoresFor(court), ModeTest].map((sc) => (
+          {scoresFor(court).map((sc) => (
             <tr key={sc.id}>
               <td>
                 <strong>{sc.title}</strong>
@@ -180,7 +185,7 @@ export function Listen() {
                   )),
                 )}
               </td>
-              {(["chip", "period"] as const).map((ver) => (
+              {(["period", "chip"] as const).map((ver) => (
                 <td key={ver} className="listen-buttons">
                   <button className={playing === `${sc.id}:${ver}` ? "small primary" : "small"} onClick={() => synth(sc, ver)}>
                     {playing === `${sc.id}:${ver}` ? "■" : "▶"} {ver === "chip" ? "8-bit" : "Lyre and reed"}
@@ -239,6 +244,18 @@ export function Listen() {
             {text}
           </li>
         ))}
+      </ul>
+
+      <h2>Extras</h2>
+      <ul className="listen-list">
+        <li>
+          {(["period", "chip"] as const).map((ver) => (
+            <button key={ver} className={playing === `${ModeTest.id}:${ver}` ? "small primary" : "small"} onClick={() => synth(ModeTest, ver)}>
+              {playing === `${ModeTest.id}:${ver}` ? "■" : "▶"} {ver === "chip" ? "8-bit" : "Lyre and reed"}
+            </button>
+          ))}{" "}
+          <strong>{ModeTest.title}</strong>: {ModeTest.source}, in the court, tuning, mood and shade chosen above.
+        </li>
       </ul>
     </div>
   );

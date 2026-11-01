@@ -20,8 +20,8 @@ export function AudioSwitches() {
           <span className="sr">Music version</span>
           <select value={a.style} aria-label="Music version" onChange={(e) => setAudioSettings({ style: e.target.value as MusicStyle })}>
             <option value="orchestra">Orchestra</option>
-            <option value="chip">8-bit</option>
             <option value="period">Lyre and reed</option>
+            <option value="chip">8-bit</option>
           </select>
         </label>
       )}
