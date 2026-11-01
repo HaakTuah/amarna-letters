@@ -354,7 +354,7 @@ export function Play() {
                   value={Speeds[speedIndex(s.delayMs)].ms}
                   onChange={(e) => {
                     s.setDelay(Number(e.target.value));
-                    // Let go of the menu, so Space and the speed keys work again at once.
+                    // Let go of the menu, so Space and the pace keys work again at once.
                     e.target.blur();
                   }}
                   title="Keys 1 to 3 set the pace; + and − make it faster or slower"
