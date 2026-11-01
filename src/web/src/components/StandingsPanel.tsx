@@ -38,7 +38,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
         Each power finishes as high as it can: the final score blends its size (its wealth against the largest realm's) and its performance (its growth
         ranked among the results of powers that started where it did), and the highest score wins. {known ? "" : "You see only your own figures; rivals' treasuries are private."} The
         land-yield ratio is what any court can reckon from who holds what: the yield of the land a power holds now over its homeland's yield at the start.
-        It is not growth, which counts treasuries and back pay too, against a starting strength that includes the starting treasury.
+        It is not growth, which counts treasuries and what people and men hold too, against a starting strength that includes them.
       </p>
       <div className="tablewrap">
         <table>
