@@ -179,7 +179,8 @@ Babili for Babylon, Urim for Ur, Ninua and Arbail for Nineveh and Arbela, Shusha
 Egyptian or Hittite (Waset for Thebes, Men-nefer for Memphis, Ta-Mehu for the Delta, Kush for Nubia, the Ways of Horus for
 the north Sinai, Hayasa, the land of the Tjehenu for Libya, Seir for the Shasu's land); a place with no name of the period
 is named by description (the copper hills and the harbour of Alashiya, the plateau beyond the Salt Sea). The modern name
-is on the second line of the province card. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
+is on the second line of the province card, which also shows a province's town and its land apart ("about 18,000 in
+the town; about 840,000 on its land"), as your officials report them. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
 in Egypt's own seat; his other names are on his card.
 
 A realm's name is a claim: you go by your land's name until you claim another, any realm's name, Pharaoh's included

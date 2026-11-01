@@ -20,7 +20,7 @@ import {
   type Terrain,
  modernOf } from "@amarna/engine";
 import { unitKindName, type MapScene } from "../map/scene.ts";
-import { powerName, provinceName, shekels, when } from "../ui/format.ts";
+import { aboutTwo, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import { MapCard } from "./MapCard.tsx";
 
@@ -124,6 +124,14 @@ export function ProvinceInfo({
           {(scene.viewer === null || owner === scene.viewer) && state.people.has(p.id) && (
             <p className="small">
               {/* People at home (item 10+a). */}
+              {/* Item 17++: its town and its land apart, as the engine keeps them: the town eats from the market, the land harvests. */}
+              {(() => {
+                const settled = state.people.get(p.id).settled;
+                const town = Math.min(settled, economyOf(p).town * 1000);
+                return p.town && town > 0
+                  ? `About ${aboutTwo(town)} in the town; about ${aboutTwo(settled - town)} on its land. `
+                  : "";
+              })()}
               Its people: {state.people.get(p.id).settled.toLocaleString("en")} settled ({state.people.get(p.id).men.toLocaleString("en")} men of fighting age), its land
               carrying {reckonedOf(WorldMap.default, p.id).room.toLocaleString("en")}; {state.people.get(p.id).loose.toLocaleString("en")} loose. Tax{" "}
               {state.taxes.getOrDefault(p.id, EconomyData.taxPercent)}% of its last harvest, {state.reaped.getOrDefault(p.id, 0)} measures, a third of it a season; its

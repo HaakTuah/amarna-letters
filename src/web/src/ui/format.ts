@@ -64,3 +64,10 @@ export function grantLine(g: GrantView, me: Power): string {
   const who = g.grantor === me ? `${powerName(g.grantee)}'s troops may ${what}` : `Your troops may ${what}, by leave of ${powerName(g.grantor)}`;
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : ", until revoked"} (${g.tablet}).`;
 }
+
+/** A count rounded to two figures, as a court's officials report one ("about 18,000"; item 17++). */
+export function aboutTwo(n: number): string {
+  if (n < 100) return String(Math.round(n));
+  const k = 10 ** (Math.floor(Math.log10(n)) - 1);
+  return (Math.round(n / k) * k).toLocaleString("en");
+}
