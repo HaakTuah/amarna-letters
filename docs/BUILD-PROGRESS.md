@@ -76,6 +76,7 @@ Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lan
 - The audience panel points a court with no standing answers to them (audit 15); a fact's "(season 4)" is dated by the court's calendar on screen (audit batch 2); the design note on province ownership no longer says "public at once" (audit 13).
 - The `who-decides` planning tests ran 86 to 153 s on the full world and timed CI out; they play the seven Great Kings among idle powers now, 20 to 31 s each, testing the same rules.
 - A human with one seat saw a one-choice seat menu at 390 px; it is a plain label, "Egypt (you)".
+- The timeline read "season 1 · now" while the header planned "Season 2"; it reads "after season 1, 1346 BCE", the board it shows (" · now" on computers only, where it fits).
 
 ## For Haakon: review points
 

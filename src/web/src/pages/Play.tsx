@@ -584,9 +584,10 @@ export function Play() {
           disabled={last < 1}
         />
         {/* Looking back on a phone, the header names the season shown, so the bar keeps its room for the slider. */}
-        <span className={history ? "tlabel hide-sm" : "tlabel"} title={index === 0 ? "The start" : when(index, viewer)}>
-          {index === 0 ? "Start" : shortDate(index, viewer)}
-          {history ? "" : " · now"}
+        <span className={history ? "tlabel hide-sm" : "tlabel"} title={index === 0 ? "The start" : `The board after ${when(index, viewer)}`}>
+          {/* A stop on the bar is the board after a season's moves, so the label says "after", never the season the header plans. */}
+          {index === 0 ? "Start" : `after ${shortDate(index, viewer)}`}
+          {!history && <span className="hide-sm"> · now</span>}
         </span>
         {history && (
           <button className="tb now" onClick={() => s.showTurn(null)} title="Back to now">

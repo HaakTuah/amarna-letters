@@ -35,18 +35,13 @@ Prefer the cheapest approach that does the job well").
 
 ## Finds not yet fixed
 
-- **The Standings tab leaks distant changes of holder to a seat:** `src/web/src/components/StandingsPanel.tsx:16` reckons
-  land standings from the true `state.owner` and shows them to seat viewers (line 24), while the seat view's own
-  standings line uses the holders each court knows (`01-rules-as-implemented.md:291`). Fix in the interface: for a seat,
-  use its view's `owner` (found by #294's reviewer).
-- The timeline reads "s1 1345 BCE · now" while the header names the season about to be played ("Season 2"): the label is
-  the last season played.
-- The seat menu at 390 px cuts "Egypt (you)" to "Egypt (you"; widening it squeezes the header's ending line, so left.
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
 - `src/web/src/components/orders/TreasurySection.tsx` gives a unit away (`giftUnit`) through `draft.other` too; #269's fix
   to the draft covers it, but nobody has checked it in play.
-- Workshop check: `who-decides.test.ts` "Planning" takes 111 s against a 120 s limit and timed out once on a busy machine.
+
+Fixed since they were listed here: the Standings tab's leak of distant holders (#297), the seat menu at 390 px (#303),
+`who-decides.test.ts`'s slow "Planning" tests (#302), and the timeline's label against the header's season (its own PR).
 
 ## Handed to the item lane (they change what models read)
 
