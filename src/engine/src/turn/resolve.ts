@@ -4,7 +4,7 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
+import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type JoinOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
@@ -34,6 +34,7 @@ declare module "./core.ts" {
     resolveTransfers(cessions: [Power, CedeProvinceOrder][], gifts: [Power, GiftUnitOrder][]): void;
     raise(p: Power, r: RaiseOrder): void;
     capitalsTaken(): void;
+    joinUnit(p: Power, o: JoinOrder): void;
     /** `ceded`: the king ceded his capital by agreement (item 11d) rather than losing it. */
     fall(p: Power, conqueror: Power | null, taker: Power | null, ceded?: boolean): void;
     strength(p: Power): number;
@@ -119,6 +120,8 @@ P.resolveSeason = function (submissions) {
   this.promisesKept(all((o): o is SupportOrder => o.type === "support"));
   // A scheduled move that failed is tried again next season, or ends its unit's march.
   this.marches(valid);
+  // Item 17++: units that held this season join a unit of their king's next door that stood its ground.
+  for (const [p, o] of all((o): o is JoinOrder => o.type === "join")) this.joinUnit(p, o);
   // Sieges are lifted, begun and pressed, and cities worn down surrender; then land changes hands where troops stand.
   this.sieges(valid);
   this.updateOwnership();
@@ -782,4 +785,29 @@ P.decideWinners = function () {
     }
   }
   S.winners = [best];
+};
+
+/**
+ * Item 17++ ("A handful holds nothing by itself"): a unit that held this season, still where it stood, marches into the
+ * neighbouring province where a unit of its king's of the same kind now stands, and the two are one: men, grain, savings
+ * and the gold for food added together, the longest hunger and arrears kept. Otherwise it stays, and its king hears why.
+ */
+P.joinUnit = function (p, o) {
+  const S = this.s;
+  const u = S.units.find((x) => x.province === o.unit && x.power === p) ?? null;
+  const into = S.units.find((x) => x.province === o.into) ?? null;
+  if (u === null) return;
+  if (into === null || into === u || into.power !== p || into.kind !== u.kind || u.march !== null) {
+    this.failed(p, o, "Join failed", `${unitLabel(u)} found no ${u.kind === "Army" ? "army" : "fleet"} of yours in ${this.map.get(o.into).name} to join, and stays where it is.`, "nobody of yours to join there", false);
+    return;
+  }
+  into.men += u.men;
+  into.food += u.food;
+  into.savings += u.savings;
+  into.chest += u.chest;
+  into.hungry = Math.max(into.hungry, u.hungry);
+  into.unpaid = Math.max(into.unpaid, u.unpaid);
+  S.units.splice(S.units.indexOf(u), 1);
+  notify(S, p, "Resolution", "Units joined", `The ${u.kind === "Army" ? "army" : "fleet"} from ${this.map.get(o.unit).name} joined yours in ${this.map.get(o.into).name}, which now has ${into.men} men.`);
+  logEvent(S, "join", `${land(p)}'s ${u.kind === "Army" ? "army" : "fleet"} from ${this.map.get(o.unit).name} joined its unit in ${this.map.get(o.into).name}.`, [p], "unit-joined");
 };

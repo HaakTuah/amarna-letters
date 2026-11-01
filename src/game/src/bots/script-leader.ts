@@ -30,6 +30,7 @@ import { ahead } from "./ahead.ts";
 import { Board } from "./board.ts";
 import { commandOrders, courtMove, enlistOrders, governorOrders } from "./generals.ts";
 import { nameClaims } from "./claims.ts";
+import { remnantOrders } from "./remnants.ts";
 import { reliefOrders, supplyOrders } from "./freedom.ts";
 import { Brain } from "./brain.ts";
 import { Contingencies } from "./contingencies.ts";
@@ -145,6 +146,8 @@ export class ScriptLeader implements ISeat {
     leaveByOrder(board, brain, orders);
     // Measuring the royal council (item 16, `--council-play-half`): a king who plays his troops by its counsel.
     if (CouncilPlay.only?.has(view.power) === true) orders.splice(0, orders.length, ...follow(orders, this.councilOf().proposals(view)));
+    // Item 17++: remnants folded into a larger unit next door, or disbanded at home.
+    remnantOrders(board, orders);
     // Standing orders last, against the season's whole plan: those kept may change it if the blow comes.
     const [cancel, give] = Contingencies.plan(board, brain, plan, orders);
 

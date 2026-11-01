@@ -8,7 +8,8 @@
  * strength it beat and the city's own men, the walls multiplying both (Assault, item 11e); the engine decides what that
  * means for the province. The ground does count (item 5,
  * terrain): a unit that stands its ground on rough ground, or across a pass or a great river from the attack, holds with
- * GameConfig.terrainDefence more against that attack, at most that in all (defenceGround); never a unit that moves, nor one
+ * as much again as its own strength against that attack, at most GameConfig.terrainDefence of a full unit (defenceGround;
+ * item 17++); never a unit that moves, nor one
  * met head on, nor empty land. At sea the blockade decides (item 7a): an army lands only from the waters of the coast it
  * lands on, through fleets that convoy it there, so no army lands where an enemy fleet holds those waters.
  */
@@ -458,7 +459,27 @@ export class Adjudicator {
     if (occ.kind === "Move") {
       if (this.resolve(occ.index)) return this.peopleAgainst(move);
     } else for (const s of this.orders) if (s.kind === "Support" && s.target === province && s.to === null && this.resolve(s.index)) count += s.weight;
-    return count + (this.groundAgainst(move) === null ? 0 : this.terrain) + this.peopleAgainst(move);
+    return count + this.groundBonus(move, count) + this.peopleAgainst(move);
+  }
+
+  /**
+   * What the ground adds to those standing their ground against a move (item 17++, "A handful holds nothing by itself"): as
+   * much again as their own strength, at most GameConfig.terrainDefence of a full unit, so the ground multiplies the men
+   * who hold it and a handful on a hill holds no more than a handful (until 17++ it added a full unit to any holder).
+   */
+  private groundBonus(move: O, standing: number): number {
+    return this.groundAgainst(move) === null ? 0 : Math.min(this.terrain, standing);
+  }
+
+  /** The strength standing its ground in the move's target: the unit that stays and its supports to hold. */
+  private standing(move: O): number {
+    const i = this.at.get(move.target!);
+    if (i === undefined) return 0;
+    const occ = this.orders[i];
+    if (occ.kind === "Move") return occ.weight;
+    let count = occ.weight;
+    for (const s of this.orders) if (s.kind === "Support" && s.target === move.target && s.to === null && this.resolve(s.index)) count += s.weight;
+    return count;
   }
 
   /**
@@ -635,7 +656,7 @@ export class Adjudicator {
       if (attack <= hold) {
         const stop: MoveStop = occ.kind === "Move" ? "Stayed" : "Held";
         const ground = this.groundAgainst(move);
-        return failure(stop, occ.at, occ.power, occ.unitKind, occ.kind === "Move" ? occ.target : null, attack, hold, ground, ground === null ? 0 : this.terrain, this.peopleAgainst(move));
+        return failure(stop, occ.at, occ.power, occ.unitKind, occ.kind === "Move" ? occ.target : null, attack, hold, ground, this.groundBonus(move, this.standing(move)), this.peopleAgainst(move));
       }
     }
 
@@ -679,7 +700,7 @@ export class Adjudicator {
       // The city's own men of fighting age stand on the walls beside any garrison (item 11e).
       people: this.people(move),
       ground,
-      groundBonus: ground === null ? 0 : this.terrain,
+      groundBonus: ground === null ? 0 : this.groundBonus(move, this.standing(move)),
     };
   }
 
@@ -700,7 +721,7 @@ export class Adjudicator {
     if (hold === 0) return null;
     const attack = this.attackStrength(move);
     let decided = false;
-    if (!moved && attack <= hold && attack > hold - this.terrain) {
+    if (!moved && attack <= hold && attack > hold - this.groundBonus(move, this.standing(move))) {
       const why = this.whyFailed(move);
       decided = why !== null && (why.stop === "Held" || why.stop === "Stayed");
     }

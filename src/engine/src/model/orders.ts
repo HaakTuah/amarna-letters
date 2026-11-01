@@ -203,6 +203,16 @@ export interface DisbandOrder {
   /** Its men settle where it stands, in a province of one's own, as colonists, instead of walking home (item 10+a). */
   settle?: boolean | null;
 }
+/**
+ * Item 17++ ("A handful holds nothing by itself"): the unit in `unit` holds while the season's battles are fought, then
+ * marches into `into`, a neighbouring province where an army (or fleet) of its king's stood its ground, and its men,
+ * grain and savings join that unit's.
+ */
+export interface JoinOrder {
+  type: "join";
+  unit: string;
+  into: string;
+}
 export interface CedeProvinceOrder {
   type: "cede";
   province: string;
@@ -625,6 +635,7 @@ export type Order =
   | CounterIntelOrder
   | RoadsOrder
   | ClaimNameOrder
+  | JoinOrder
   | RevokeOrder
   | GrantOrder
   | RepudiateOrder
@@ -662,6 +673,7 @@ export const build = (province: string, kind: WorkKind, level: number, labour = 
 export const raze = (unit: string, kind: WorkKind): RazeOrder => ({ type: "raze", unit, kind });
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
 export const raise = (province: string, kind: UnitKind, men: number | null = null): RaiseOrder => (men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men });
+export const join = (unit: string, into: string): JoinOrder => ({ type: "join", unit, into });
 export const disband = (unit: string, settle = false): DisbandOrder => (settle ? { type: "disband", unit, settle } : { type: "disband", unit });
 export const cede = (province: string, to: Power): CedeProvinceOrder => ({ type: "cede", province, to });
 export const giftUnit = (unit: string, to: Power): GiftUnitOrder => ({ type: "giftUnit", unit, to });
@@ -880,6 +892,8 @@ export function describe(o: Order): string {
       return `${o.close ? "close" : "open"} your roads to the people of ${o.court}`;
     case "claimName":
       return `claim the name of ${o.name}`;
+    case "join":
+      return `${o.unit} joins the unit in ${o.into}`;
     case "grant":
       return `grant ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing in"} ${o.province !== null ? named(o.province) : "all your land"}${o.seasons !== null ? ` for ${o.seasons} seasons` : " until revoked"}`;
     case "revoke":
@@ -926,6 +940,7 @@ export function unitOf(o: Order): string | null {
     case "disband":
     case "giftUnit":
     case "raze":
+    case "join":
       return o.unit;
     default:
       return null;
@@ -1050,6 +1065,7 @@ export const OrderSchema = poly("Order", "type", {
   counterIntel: v("CounterIntelOrder", () => counterIntel(0), { spend: I }),
   roads: v("RoadsOrder", () => roads("Egypt", true), { court: S, close: B }),
   claimName: v("ClaimNameOrder", () => claimName(""), { name: S }),
+  join: v("JoinOrder", () => join("", ""), { unit: S, into: S }),
   revoke: v("RevokeOrder", () => revoke("Egypt"), { grantee: S, province: opt(S) }),
   grant: v("GrantOrder", () => grant("Egypt", "passage"), { grantee: S, kind: S, province: opt(S), seasons: opt(I) }),
   repudiate: v("RepudiateOrder", () => repudiate(""), { copy: S }),

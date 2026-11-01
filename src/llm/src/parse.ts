@@ -32,6 +32,7 @@ import {
   grant,
   repudiate,
   claimName,
+  join,
   newAuthority,
   disband,
   tax,
@@ -420,6 +421,8 @@ function unit(u: Node): Order | null {
       return disband(at);
     case "settle":
       return disband(at, true);
+    case "join":
+      return join(at, target);
     case "hold":
       return hold(at);
     case "besiege":

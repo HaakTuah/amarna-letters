@@ -133,6 +133,19 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(men, r.men ?? menOf(r.kind))));
     }
 
+    case "join": {
+      // Item 17++: into a neighbouring province where a unit of one's own of the same kind stands.
+      const [why, unit] = ownUnit(order.unit);
+      if (why !== null || unit === null) return why;
+      if (!Map.exists(order.into) || !Map.neighbors(unit.province).includes(order.into)) return `${Map.get(unit.province).name} has no neighbour called '${order.into}'`;
+      const into = S.units.find((u) => u.province === order.into) ?? null;
+      if (into === null || into.power !== power || into.kind !== unit.kind) return `no ${unit.kind === "Army" ? "army" : "fleet"} of yours stands in ${Map.get(order.into).name} to join`;
+      if (unit.march !== null) return "a unit on the march cannot join another until it arrives";
+      if (unit.hiredMen > 0) return "a unit with a band's men on its rolls cannot join another until their term ends";
+      if (unit.commander !== null) return "a unit under a commander joins another only once his command is taken back";
+      return null;
+    }
+
     case "disband": {
       const [why, unit] = ownUnit(order.unit);
       if (why !== null || order.settle !== true || unit === null) return why;

@@ -42,6 +42,8 @@ export const SignalKinds: readonly string[] = [
   "raze", "wall-repair", "harbour-short", "station-read",
   // Item 17+: pay held back by a standing order, and a realm's name claimed.
   "pay-held", "name-claim",
+  // Item 17++: remnants folded into a larger unit.
+  "unit-joined",
 ];
 
 const MessengerBlamed = rx(
