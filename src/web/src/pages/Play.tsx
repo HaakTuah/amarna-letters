@@ -291,6 +291,12 @@ export function Play() {
           </div>
         </div>
         <div className="gctl">
+          {!s.canSeeAll && live.humans.length === 1 ? (
+            // One seat and nothing else to see: its name, not a menu of one (a menu's arrow cut "Egypt (you)" at 390 px).
+            <span className="viewsel seatname" title="Your seat">
+              {powerName(live.humans[0])} (you)
+            </span>
+          ) : (
           <select
             className="viewsel"
             value={s.viewAs ?? ""}
@@ -317,6 +323,7 @@ export function Play() {
               ))
             )}
           </select>
+          )}
           {showsCost && (
             <span className="pill cost" title={live.costUnknown ? "Model spend for this game: a model with no price was called, so its part is unknown" : "Model spend for this game"}>
               ${live.cost.toFixed(2)}
