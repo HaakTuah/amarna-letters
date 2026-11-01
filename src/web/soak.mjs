@@ -144,7 +144,7 @@ let tracing = null;
 const traced = [];
 cdp.on("Tracing.dataCollected", (e) => traced.push(...e.value));
 async function startTrace() {
-  await cdp.send("Tracing.start", { categories: "devtools.timeline,disabled-by-default-devtools.timeline,v8.execute,blink.user_timing", transferMode: "ReportEvents" });
+  await cdp.send("Tracing.start", { categories: "devtools.timeline,disabled-by-default-devtools.timeline,v8.execute,blink.user_timing,cc,viz", transferMode: "ReportEvents" });
   tracing = Date.now();
 }
 async function stopTrace() {
