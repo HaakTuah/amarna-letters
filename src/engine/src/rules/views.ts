@@ -377,8 +377,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("seaSupply", s.config.seaSupply);
   v.prices.set("winterArmyLoss", s.config.winterArmyLoss);
   v.prices.set("winterFleetLoss", s.config.winterFleetLoss);
-  // The economy at home (item 9+a): its own provinces' stores and markets, its caravans.
-  for (const id of ownedBy(s, p)) {
+  // The economy at home (item 9+a): its own provinces' stores and markets, its caravans. Item 17++ (the sound lane's find,
+  // as the map already does): the land it knows it holds, by its sight and the word that has reached it, so a province
+  // lost out of sight stays on its books until word comes, and one gained unbeknown is not there yet.
+  const believed = new Set([...known.entries()].filter(([, x]) => x.owner === p).map(([k]) => k));
+  for (const id of ownedBy(s, p).filter((x) => m.get(x).isSea || believed.has(x)).concat([...believed].filter((x) => s.owner.getOrDefault(x, null) !== p))) {
     const prov = m.get(id);
     const mk = engine.market(id);
     v.provinces.push(
