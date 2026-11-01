@@ -59,6 +59,21 @@ account until its usage is spent; on the main account the usage brake closes it 
 
 Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lane.md`):
 - The Counsel preset's card named Sonnet as its kings; it now says Haiku plays them, with Sonnet planning.
+- Gold in the panels was shown with the treasury's fractions ("10.5311700 shekels"); it is now rounded to the whole shekel.
+- The empty Play page lost the top bar and spoke of loading a log it gave no way to load; it keeps the bar and links to the saved games.
+- On phones the whole-map button stayed 34 px (the touch rules came before the base rule), and the Legend button, the ⋯ menu, the header's selects and the page links were under 44 px; all are 44 px now.
+- The README brought up to the game as built: forty-seven powers and their starting positions, walls, the ending and the score as they are now, command at a distance, the land and its people, tongues, the council, the living map, legends, the Counsel preset and the developer commands.
+- The far-zoom edge: zooming out stops where the drawn world (the board and the lands beyond it) fills the view, so a wide or tall screen never shows bare water past the map's edge.
+- Person cards in the People tab and the court's hiring list ended with the character's internal id ("c101"); it is gone (improvement audit, find 7).
+- Standings at 390 px: the header "Land-yield ratio (not growth)" took five lines and each row three; the header reads "Land yield" (the rest in its tooltip and the text above), the yields sit on a line of their own (hidden on phones), and gold no longer wraps (improvement audit, find 11).
+- The Rules tab's opening for a human seat now says first how a human gives orders, and that the rulebook's JSON and HOW TO ANSWER speak to model kings (improvement audit, find 12).
+- The preset cards' estimates were reckoned for 44 seasons while the table's own total used its ending (80 by default), so one page showed two prices; the cards use the table's ending too.
+- Dates read "season 2, 1344 BCE", never the shorthand "s2" (audit batch 2).
+- A human seat can order the one-off hunt and razing, as script kings do (audit 6); the draft no longer gives a default hold beside a unit another order names.
+- People's provinces read "settled N, land for M", not "N of M" (audit 14); "shipments", never "shipment(s)" (audit batch 2).
+- Legends give the bonds sealed before the age one undated line per court, not a deed each (audit batch 2).
+- Space pauses and unpauses, 1 to 3 set the pace (Slow, Normal, Fast), + and − step between them ("Also first"), in one key table that item 17+++a extends with 4 Simulate, Enter and the rest.
+- The audience panel points a court with no standing answers to them (audit 15); a fact's "(season 4)" is dated by the court's calendar on screen (audit batch 2); the design note on province ownership no longer says "public at once" (audit 13).
 
 ## For Haakon: review points
 
