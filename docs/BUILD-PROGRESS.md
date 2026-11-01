@@ -64,7 +64,11 @@ account until its usage is spent; on the main account the usage brake closes it 
   shade, the stings, the great moments, the world's sounds and the event sounds follow only what the seat knows as it
   learns it; a battle or fall it has not heard of plays nothing, even zoomed in on it; a seat whose sight is missing
   from the record counts as seeing nothing, not everything (today `sight === undefined` is read as seeing all in
-  `src/web/src/audio/situation.ts`); a test proves a hidden battle, siege or fall changes nothing a seat hears.
+  `src/web/src/audio/situation.ts`); a test proves a hidden battle, siege or fall changes nothing a seat hears. What a seat hears is what its own map shows
+  (Haakon, 1 November 2026: "you know where a sea is, so some things you can zoom in on and hear, without it revealing
+  anything"): seas, rivers, deserts and the wind are heard anywhere the view goes; a place sounds as the seat last knew
+  it, so a city burned seasons ago that the seat still believes thriving plays its market's bustle until the news
+  arrives, then its ruin.
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
