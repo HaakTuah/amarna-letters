@@ -1046,3 +1046,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     labelled himself, with the description as the brief), 16:19 UTC: "Yes to all, expertly!" Written into
     `docs/claude-and-codex.md` ("Handing work to Codex", "The runner on Haakon's PC") and `scripts/codex-runner.sh`,
     the same in Barkstreet Snakes.
+126. **1 November 2026, 16:42 UTC**, in the design chat, while the Codex runner was being set up on his PC:
+    "Remember that this is an open repo, so extremely important that nothing is pushed there which opens and
+    exploit, and lets everyone read it, so that they can attack my system or repos through it." Written into
+    `docs/claude-and-codex.md`, "The runner on Haakon's PC" (the files Codex's work may never change, checked by the
+    runner on every diff; the runner never updates itself; nothing secret in the repository), the same in Barkstreet
+    Snakes.
