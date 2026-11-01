@@ -340,8 +340,9 @@ tuning as things worsen or improve. Short period sounds mark what happens (the s
 a war horn); zoomed in, you hear what happens near the view, louder the nearer, under a quiet bed of the world (the
 Nile's water, the steppe's wind, a market, a siege camp). The game's menu has the Music and Sound switches, their
 volumes and the music's version (Orchestra, 8-bit, or Lyre and reed); they are remembered and start on at a regular
-volume, and the first music fades in rather than starting at full. The top bar's **Music** page plays every piece,
-version, sound and bed. The pieces are placeholders until their composing is done.
+volume, and the first music fades in rather than starting at full. The top bar's **Music** page plays every piece and
+variation, every sound and bed, and the fallback's scores court by court: Ugarit's theme is the Hurrian Hymn, and every
+other great court has a theme and a march of its own in its home tuning.
 
 ## On a phone
 

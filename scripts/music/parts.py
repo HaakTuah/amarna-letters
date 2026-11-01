@@ -129,3 +129,65 @@ def lyre(s: Score, beat: float, beats: float, notes: list[int], pattern: str = "
 
 def bars(n: float, per: int = 4) -> float:
     return n * per
+
+
+def held_ramp(s: Score, inst: str, beat: float, beats: float, midi: int, v0: float, v1: float) -> None:
+    """A note held while it grows (or fades) from one level to another: a slow swell on the strings or the horns."""
+    seg = max(1.0, min(MAX_HOLD * s.bpm / 60, 4.0))
+    b = beat
+    while b < beat + beats - 0.01:
+        length = min(seg, beat + beats - b)
+        frac = (b - beat) / max(beats, 1e-6)
+        s.note(inst, b, midi, length + (0.6 if b + length < beat + beats else 0), v0 + (v1 - v0) * frac)
+        b += length
+
+
+def trem(s: Score, beat: float, beats: float, notes: list[int], vel: float = 0.35) -> None:
+    """A tremolo pad: the celli below middle C, the violins above."""
+    for m in notes:
+        held(s, "celli_trem" if m < 60 else "violins_trem", beat, beats, m, vel)
+
+
+def swell(s: Score, beat: float, beats: float, notes: list[int], v0: float, v1: float) -> None:
+    """A chord on the string sections that grows from one level to another."""
+    for m in notes:
+        inst = "bass" if m < 43 else "celli" if m < 55 else "violas" if m < 64 else "violins"
+        held_ramp(s, inst, beat, beats, m, v0, v1)
+
+
+def ostinato(s: Score, inst: str, beat: float, beats: float, cell: list[tuple[int | None, float]], vel: float = 0.5,
+             ring: bool = False, accent: float = 1.1) -> None:
+    """A short cell of (note, beats) repeated across the stretch asked; the first note of each cell a little louder."""
+    b = beat
+    while b < beat + beats - 1e-6:
+        for i, (m, length) in enumerate(cell):
+            if b >= beat + beats - 1e-6:
+                break
+            if m is not None:
+                s.note(inst, b, m, 0 if ring else min(length, beat + beats - b) * 0.95, vel * (accent if i == 0 else 1))
+            b += length
+
+
+def strokes(s: Score, inst: str, beat: float, beats: float, every: float, vel: float = 0.4, midi: int = 0,
+            ring: bool = True) -> None:
+    """One stroke every so many beats across a stretch: a bell, a gong, a lyre string, the clock of the last seasons."""
+    b = beat
+    while b < beat + beats - 1e-6:
+        if midi:
+            s.note(inst, b, midi, 0 if ring else every * 0.9, vel)
+        else:
+            s.hit(inst, b, vel)
+        b += every
+
+
+def roots(mode, prog: list[int]) -> list[int]:
+    """Chord roots for a tuning: in kitmum the fourth degree stands a tritone over the tonic, so a chord built on it
+    moves to the fifth, and in qablītum the fifth itself is diminished, so it moves to the sixth."""
+    out = []
+    for d in prog:
+        if mode.name == "kitmum" and d % 7 == 3:
+            d += 1
+        if mode.name == "qablitum" and d % 7 == 4:
+            d += 1
+        out.append(d)
+    return out
