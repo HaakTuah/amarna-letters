@@ -37,12 +37,11 @@ Prefer the cheapest approach that does the job well").
 
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
-- `src/web/src/components/orders/TreasurySection.tsx` gives a unit away (`giftUnit`) through `draft.other` too; #269's fix
-  to the draft covers it, but nobody has checked it in play.
 
 Fixed since they were listed here: the Standings tab's leak of distant holders (#297), the seat menu at 390 px (#303),
 `who-decides.test.ts`'s slow "Planning" tests (#302), the timeline's label against the header's season (#307), and
-"ten times the yield" for strength in the README, the Standings tab and the design notes (#310).
+"ten times the yield" for strength in the README, the Standings tab and the design notes (#310), and giving troops
+away, checked in play: the order drafts and seals alone, and now reads "give the army at Memphis to Hatti".
 
 ## Handed to the item lane (they change what models read)
 

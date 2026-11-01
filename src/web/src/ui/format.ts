@@ -46,6 +46,12 @@ export function dated(text: string, court: Power | null): string {
 export function describeOrder(o: Order, v: SeatView): string {
   const names = new Map<string, string>();
   for (const c of [...v.court, ...v.known]) if (!names.has(c.id)) names.set(c.id, c.name);
+  // "give Memphis to Hatti" (the engine's words, which kings read) beside "cede Memphis to Hatti" reads as giving the land;
+  // a person reads which troops go.
+  if (o.type === "giftUnit") {
+    const fleet = v.units.some((u) => u.power === v.power && u.province === o.unit && u.kind === "Fleet");
+    return `give the ${fleet ? "fleet" : "army"} at ${provinceName(o.unit)} to ${powerName(o.to)}`;
+  }
   let text = describe(o);
   text = text.replace(Ids, (m) => names.get(m) ?? m);
   return text.replace(Words, (m) => (WorldMap.default.exists(m) ? WorldMap.default.get(m).name : m));
