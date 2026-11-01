@@ -253,7 +253,7 @@ describe("SleepTests", () => {
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal(2, sleeper.views[1].wokenBecause.length);
     Assert.startsWith(
-      "a standing order of yours could not be carried out: s1: sippar -> durkurigalzu (it met a move into durkurigalzu from ekallate",
+      "a standing order of yours could not be carried out: s1: sippar -> durkurigalzu (it met a move into Dur-Kurigalzu from Ekallate",
       sleeper.views[1].wokenBecause[0],
     );
     Assert.equal(`${AttackedReason}: Assyria's army tried to move ekallate -> durkurigalzu`, sleeper.views[1].wokenBecause[1]);

@@ -140,7 +140,7 @@ describe("SleepTests", () => {
     Assert.null(unitAt(r.state, "ur"));
     Assert.equal([1], sleeper.calls);
     Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.kind === "Rejected");
-    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.title === "Movements last season" && i.body.includes("babylon supports ur -> nippur"));
+    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.title === "Movements last season" && i.body.includes("Babili supports Urim -> Nippur"));
   });
 
   test("After a levy its province names the levy s unit even where another unit stands now", () => {
@@ -265,7 +265,7 @@ describe("SleepTests", () => {
     await r.playTurn();
     Assert.equal([1], sleeper.calls);
     Assert.contains(
-      "supports nippur holding: given",
+      "supports Nippur holding: given",
       single(inboxOf(r.state, "Babylonia"), (i) => i.title === "Movements last season" && i.turn === 4).body,
     );
     Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.kind === "Rejected");
@@ -299,7 +299,7 @@ describe("SleepTests", () => {
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal(2, sleeper.views[1].wokenBecause.length);
     Assert.startsWith(
-      "orders you scheduled could not be carried out: sippar -> durkurigalzu (it met a move into durkurigalzu from ekallate",
+      "orders you scheduled could not be carried out: sippar -> durkurigalzu (it met a move into Dur-Kurigalzu from Ekallate",
       sleeper.views[1].wokenBecause[0],
     );
     Assert.equal(`${AttackedReason}: Assyria's army tried to move ekallate -> durkurigalzu`, sleeper.views[1].wokenBecause[1]);

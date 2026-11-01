@@ -456,8 +456,8 @@ describe("StandingForEverySeatTests", () => {
     // to fire is seed 3's, in its fourth season, since item 11c's map (seed 4's before), so the search starts there. The
     // people do not resist here (item 11e's land defended by its men makes such blows rarer). Since item 17+ placed the
     // Great Kings' men at home and in their frontier bases, early blows are rarer still: the first to fire is seed 17's,
-    // in its twelfth season.
-    for (let seed = 3; seed <= 20; seed++) {
+    // in its twelfth season, so the search starts there.
+    for (let seed = 17; seed <= 20; seed++) {
       let state = newGame(seed, newGameConfig({ peopleDefence: 0 }));
       let runner = Object.assign(new GameRunner(state, scriptSeats(seed), new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
       await runner.prepare();
@@ -472,7 +472,7 @@ describe("StandingForEverySeatTests", () => {
       }
       if (fired === null) continue;
       Assert.matches(
-        "^Your standing order s\\d+ \\(when .+\\) fired in turn \\d+: \\w+'s (army|fleet) set out from \\w+ for \\w+\\. It gave these orders: ",
+        "^Your standing order s\\d+ \\(when .+\\) fired in turn \\d+: \\w+'s (army|fleet) set out from [^.]+ for [^.]+\\. It gave these orders: ",
         fired.body,
       );
       Assert.true(sum(AllPowers, (p) => state.standing.tryGet(p)?.last ?? 0) > 1);
