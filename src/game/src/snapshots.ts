@@ -21,8 +21,15 @@ export interface SnapshotDelta {
   refs: Uint32Array;
 }
 
-/** How deep the cut goes: a piece for every item down to this depth (the state's object is depth 1). */
-export const CutDepth = 5;
+/**
+ * How deep the cut goes: a piece for every item down to this depth (the state's object is depth 1), and deeper under the
+ * members named in `DeepMembers`, where an item is large and changes in part (a character and its memories: a piece for each
+ * memory keeps a character whose gold changed from being read whole). Elsewhere the deeper cut would only shatter small
+ * items (an event's list of courts) into many pieces for nothing.
+ */
+export const CutDepth = 3;
+export const DeepCutDepth = 5;
+export const DeepMembers: ReadonlySet<string> = new Set(["characters"]);
 
 export class SnapshotStore {
   private readonly ids = new Map<string, number>();
@@ -42,6 +49,8 @@ export class SnapshotStore {
    * is; the store itself keeps every piece whole. Set before the first push.
    */
   redact: ((piece: string) => string | null) | null = null;
+  /** The members of the state cut deeper (`DeepCutDepth`); null for none. */
+  deep: ReadonlySet<string> | null = DeepMembers;
 
   get length(): number {
     return this.snapshots.length;
@@ -89,6 +98,8 @@ export class SnapshotStore {
     let at = 0;
     let start = 0;
     let inString = false;
+    // The cut's depth here: deeper under a deep member of the state, back to the usual once it closes.
+    let limit = CutDepth;
     for (let i = 0; i < json.length; i++) {
       const ch = json.charCodeAt(i);
       if (inString) {
@@ -99,19 +110,21 @@ export class SnapshotStore {
       if (ch === 34) inString = true;
       else if (ch === 123 /* { */ || ch === 91 /* [ */) {
         depth++;
-        if (depth <= CutDepth) {
+        if (depth === 2 && limit === CutDepth && this.deep !== null && deepHead(json, start, i)) limit = DeepCutDepth;
+        if (depth <= limit) {
           take(start, i + 1, at);
           start = i + 1;
           at = depth;
         }
       } else if (ch === 125 /* } */ || ch === 93 /* ] */) {
-        if (depth <= CutDepth) {
+        if (depth <= limit) {
           take(start, i, at);
           start = i;
           at = depth - 1;
         }
         depth--;
-      } else if (ch === 44 /* , */ && depth <= CutDepth) {
+        if (depth === 1) limit = CutDepth;
+      } else if (ch === 44 /* , */ && depth <= limit) {
         take(start, i + 1, at);
         start = i + 1;
         at = depth;
@@ -139,6 +152,14 @@ export class SnapshotStore {
     this.pending = [];
     return out;
   }
+}
+
+/** Whether the member whose opener is at `open`, its head starting at `start`, is one of the deep members (`"characters":[`). */
+function deepHead(json: string, start: number, open: number): boolean {
+  const head = json.slice(start, open);
+  const q = head.indexOf('"');
+  const e = head.indexOf('":', q + 1);
+  return q >= 0 && e > q && DeepMembers.has(head.slice(q + 1, e));
 }
 
 const encoder = new TextEncoder();

@@ -4,8 +4,8 @@
  * the page only the new ones; the page reads back only what changed: an item made of the same pieces as last season keeps
  * last season's object, so a season costs its changes, not the whole world. An item's identity is the numbers of its pieces,
  * so an unchanged item costs a short key, not its text. An object is read member by member and a list or dictionary item by
- * item, down to the depth of the cut (`CutDepth`), so a character whose gold changed keeps its unchanged memories. The state
- * read is exactly the state written (`history.test.ts`).
+ * item, down to the depth of the cut (`CutDepth`, deeper under the characters), so a character whose gold changed keeps its
+ * unchanged memories. The state read is exactly the state written (`history.test.ts`).
  */
 import { Dict, GameStateSchema, HSet, read, type GameState, type Schema } from "@amarna/engine";
 
@@ -187,6 +187,13 @@ export class IncrementalReader {
    * dictionary's items are reused one by one, so a season's new items are all that is read.
    */
   private value(schema: Schema, src: Node, named: boolean, cache: Cache, kept: Cache, path: string): unknown {
+    // A piece that is an item by itself (a scalar member, a name, a small object) is read straight: parsing it costs less
+    // than remembering it. Containers are what reuse pays for.
+    if (typeof src === "number") {
+      const text = headOnly(this.texts[this.refs[src]]);
+      this.parsed += text.length;
+      return readText(schema, itemJson(named ? valueText(text) : text));
+    }
     const key = this.keyOf(src);
     const had = this.lookup(cache, key, src);
     if (had !== undefined) {
@@ -195,11 +202,7 @@ export class IncrementalReader {
     }
     let v: unknown;
     const shape = shapeOf(schema);
-    if (typeof src === "number") {
-      const text = headOnly(this.texts[this.refs[src]]);
-      this.parsed += text.length;
-      v = readText(schema, itemJson(named ? valueText(text) : text));
-    } else if (shape.k === "list" || shape.k === "set") {
+    if (shape.k === "list" || shape.k === "set") {
       // The items the list shares with last season's at its start (the same pieces, number for number) are taken as they
       // were; the rest are read one by one. The record's lists only grow, so this is most of them.
       const last = this.lists.get(path);
