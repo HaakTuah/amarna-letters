@@ -194,3 +194,25 @@ left: word of a city dated the sack's own season already postdates the sack, so 
 (never early; safe as built); a city seen rebuilt counts as a ruin again once out of sight (stale, as before); `counts`
 in `memory.ts` and the bands and stores in `scene.ts` still use the true owner for a court's own famine, towns, bands and
 stores, as the engine's own view does (out of this PR's task; a lost distant city's houses vanish the season it is lost).
+
+## PR 5: a court's own land as it knows it holds it (`sound/own-land`)
+
+The orchestrator, 1 November 2026: "memory.ts's counts and scene.ts's bands and stores use the true owner for a court's
+own famine, towns, bands and stores, so a lost distant city's houses vanish the season it is lost. Make them follow the
+seat's own record through known.ts, the same way #356 does. Where a court's own true figures are what its seat view
+legitimately shows, keep them, and say which in the PR. Add a test that a city lost out of sight keeps its houses on the
+seat's map until word arrives."
+
+- **`ownFiguresAt`** (`map/known.ts`): the season whose own-land figures a seat's map shows for a province: none unless
+  its record says it holds it; now where it truly holds it too; else the last season it truly held it. God view: now.
+- **Uses:** `remember`'s towns and famine (`memory.ts`), and the scene's stores and bands (`scene.ts`): bands in its sight
+  as they are, and in its own land as that land's figures stand.
+- **Kept as true figures, legitimately:** the engine's own view of a court (`src/engine/src/rules/views.ts`) shows it the
+  economy of every province it holds (stores, people, how they ate), the bands in its own land and the sieges of its own
+  cities, read from the true owner; the map shows the same for land it holds and knows it holds. The scene's sieges keep
+  the true owner (a siege of a city it holds is shown to it by the engine; a city lost has no siege left to show).
+- **Not changed, the engine's:** that seat view itself drops a lost province's economy the season it is lost and lists a
+  province gained unawares; that is an engine rule, outside this lane's bounds (no engine files), reported to the
+  orchestrator.
+- **Test** (`map-known.test.ts`): Egypt's city taken out of its sight keeps its houses and its hunger as of the last
+  season Egypt held it until word arrives, then leaves its map; held and known, as it is; god view and the taker, as it is.

@@ -7,7 +7,7 @@
  * happened in its own land, as the fog of war is read.
  */
 import { WorldMap, type Power } from "@amarna/engine";
-import { knownRuins, seesNow } from "./known.ts";
+import { knownRuins, ownFiguresAt, seesNow } from "./known.ts";
 import { frameAt } from "./scene.ts";
 import { isMove, ownerOf, type FrameRoad, type SeasonFrame } from "../session/frames.ts";
 
@@ -81,18 +81,20 @@ export function remember(frames: readonly SeasonFrame[], index: number, viewer: 
   const wild = new Set<string>();
   const famine = new Map<string, number>();
   const towns = new Map<string, { now: number; before: number }>();
-  const yearAgo = frameAt(frames, Math.max(0, index - 3));
-  // A court counts only its own people and how they ate, as the engine's view tells it (every province in god view).
-  const counts = (id: string): boolean => viewer === null || ownerOf(f, id) === viewer;
+  const at = Math.min(Math.max(index, 0), frames.length - 1);
   for (const p of Map_.landProvinces) {
     if (!sees(p.id)) continue;
     // No ruler, as far as it knows (in its sight that is the truth).
     if ((viewer === null ? ownerOf(f, p.id) : (f.knownOwner.get(viewer)?.get(p.id)?.owner ?? null)) === null || bandsAt.has(p.id)) wild.add(p.id);
-    if (!counts(p.id)) continue;
-    const fed = f.fed.get(p.id);
+    // A court counts only its own people and how they ate (every province in god view): in land it knows it holds, as
+    // the engine's view of it tells it, or, lost without its knowing, as it last held it (map/known.ts).
+    const k = ownFiguresAt(frames, at, viewer, p.id);
+    if (k === null) continue;
+    const g = frames[k];
+    const fed = g.fed.get(p.id);
     if (fed !== undefined && fed < FamineBelow) famine.set(p.id, fed);
-    const now = f.settled.get(p.id) ?? 0;
-    if (now > 0) towns.set(p.id, { now, before: yearAgo.settled.get(p.id) ?? now });
+    const now = g.settled.get(p.id) ?? 0;
+    if (now > 0) towns.set(p.id, { now, before: frameAt(frames, Math.max(0, k - 3)).settled.get(p.id) ?? now });
   }
   // A court knows its own caravans, as the engine's view tells it; deportees on a road it sees.
   const caravans = viewer === null ? f.caravans : f.caravans.filter((r) => r.power === viewer);

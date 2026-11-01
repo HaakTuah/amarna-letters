@@ -307,7 +307,8 @@ describe("MapSceneTests", () => {
       for (const r of seat.memory.caravans) Assert.equal(p, r.power);
       for (const r of seat.memory.walking) Assert.true(frames[k].sight.get(p)!.has(r.from) || frames[k].sight.get(p)!.has(r.to));
       for (const id of seat.memory.wild) Assert.true(sees(id));
-      for (const id of [...seat.memory.famine.keys(), ...seat.memory.towns.keys()]) Assert.equal(p, frames[k].owner.get(id));
+      // Its own people only: land it knows it holds (as it last held it, where lost without its knowing).
+      for (const id of [...seat.memory.famine.keys(), ...seat.memory.towns.keys()]) Assert.equal(p, frames[k].knownOwner.get(p)?.get(id)?.owner);
     }
     Assert.true(god.memorials.size > 0 && memorials > 0, "no battle was fought, or none seen, so nothing was checked");
   });
