@@ -66,9 +66,9 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 
 ## The sounds
 
-In the manner of Crusader Kings II, its approach only: twenty-one short sounds, each in three slight variations, played
-with a little more variation of pitch (±3%) and level each time; at most three a season, the most telling first, and the
-same sound not twice within a quarter second. What plays them (`cuesAt`, and the screen's own hooks):
+In the manner of Crusader Kings II, its approach only: twenty-six short sounds, each in three slight variations, played
+with a little more variation of pitch (±3%) and level each time; of the court's own, at most three a season, the most
+telling first, and the same sound not twice within a quarter second of the moment it is heard. What plays them (`cuesAt`, and the screen's own hooks):
 
 - the player's own acts: a letter sent with an envoy (the stylus, then the envelope), the season's orders submitted (the
   seal), an answer given to an envoy (the envelope), an envoy before the throne (the lyre);
@@ -81,16 +81,38 @@ same sound not twice within a quarter second. What plays them (`cuesAt`, and the
 the province attacked, a siege at a city the seat is party to or can see; a siege out of its sight is never placed) is silent zoomed out below
 1.5, rises in to whole at 3, is whole within half a screen of the view's centre and fades to nothing a screen and a half
 away, panned to its side. A court's own sounds (its acts, a courier, a report, the war horn, land taken or lost, the season) have no place and
-are always heard. `hearing()` in `situation.ts`.
+are always heard. `hearing()` in `situation.ts`; the map's own sounds below are placed the same way.
 
 **The world's bed**, under the music and very low, from the province at the map's centre, at every zoom (zoomed out, the bed and the great moments are what is
 heard); a siege camp where a siege in the seat's sight is near; a city's market close in (zoom 4 and more) on a town;
 water on the great rivers' course, the coasts and the sea close in; wind on the steppe, the desert, the mountains and the
 open land and the open sea seen from afar. It crosses over 3 to 4 s, looping seamlessly.
 
-**Not yet**: the event stream that items 17a and 17+++ build (a season played out on the map, each event at its moment)
-is not on `develop` yet; until it is, a season's sounds play together as it arrives, read from the frame's own events,
-moves, sieges and owners. When it lands, `cuesAt` is fed by the stream instead, each sound at its event's moment and place.
+**The map's sounds** (fed by item 17a's stream, `Cues.map`): an army's march (feet on the dust, a chariot's wheels) at
+the province it moved on, a fleet in the waves (a swell on the hull, the wind in the rope) where it sailed or lies at sea,
+a battle at every province fought over that the seat saw (the one the court's own sounds carry is not heard twice), new
+weather in the seat's sight (a flood's rains and far thunder, a drought's dry gust), and a winter crossing it was shown:
+the wind on a snowbound pass, an avalanche's thunder where the pass cost the army men, the storm on the open sea. As many
+as the season had; only those the view hears are played, the nearest four (`MapHeard`). Moves are read as the viewer saw
+them resolve (`seenBy`), fleets at sea in its sight, weather where it sees it.
+
+**Each at its moment** (`Cue.t`, 0 to 1 of the season, `Moments`): the arrivals that opened the season (a courier, a
+report, the season's stroke) first, then the march and the waves, the weather, the winter crossings, the clash (the war's
+first horn, the battles), the sieges and land taken or lost, then what followed in the stream's own order of events, the
+omens last. `schedule()` (`schedule.ts`) spreads them over three quarters of the time since the season before arrived,
+between 1 and 3 s, after the sting where there is one, never two within a quarter second.
+
+### Fed by the stream: how audio subscribes
+
+Audio reads the stream, never writes it. The worker's `update` messages (`session/protocol.ts`) bring one `SeasonFrame`
+a season into `Session.frames` (`client.ts`); the game page passes `Session.frames` and the season shown to
+`useGameAudio` (`pages/Play.tsx`), which on a season newly arrived (index one past the last heard, at most one every
+1.2 s, never on a jump or a change of eyes) calls `cuesAt(frames, index, viewer)` and plays `schedule(...)`. A season's
+sounds come from its frame and the one before: `events` (each `GameEvent` filtered by `visibleTo`), `moves` and
+`seenBy`, `units`, `sieges`, `climate`, `news`, `inboxCount`, the owners as known. An event carries no place, so a
+placed sound takes its place from the move, unit, siege or climate it belongs to (a winter event by its mover and the
+goal it names). Item 17+++, which plays the season out on the map, reads the same frames; when it gives each event a
+moment of its own on screen, `Cue.t` is the one number to take from it instead of `Moments`.
 
 ## The shade: a darker or brighter mode within a piece
 

@@ -337,7 +337,9 @@ browser, and a game's log can be exported and loaded again to replay it exactly.
 The music follows your court's situation as you know it: calm in peace, rising tension, war, siege and battle, a short
 sting and its own piece for the great moments (a capital fallen, a king's death, the age's end), a darker or brighter
 tuning as things worsen or improve. Short period sounds mark what happens (the stylus in clay, a seal rolled, a courier,
-a war horn); zoomed in, you hear what happens near the view, louder the nearer, under a quiet bed of the world (the
+a war horn), each at its moment as the season plays; zoomed in, you hear what happens near the view, louder the nearer:
+an army marching, a fleet in the waves, a battle, a flood's rains or a drought's wind, a winter pass's wind and an
+avalanche, a storm at sea. All under a quiet bed of the world (the
 Nile's water, the steppe's wind, a market, a siege camp). The game's menu has the Music and Sound switches, their
 volumes and the music's version (Orchestra, 8-bit, or Lyre and reed); they are remembered and start on at a regular
 volume, and the first music fades in rather than starting at full. The top bar's **Music** page plays every piece and
