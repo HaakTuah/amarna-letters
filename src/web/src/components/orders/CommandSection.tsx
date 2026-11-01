@@ -21,7 +21,7 @@ import {
   type Power,
   type Withdraw,
 } from "@amarna/engine";
-import { provinceName } from "../../ui/format.ts";
+import { powerName, provinceName } from "../../ui/format.ts";
 import { byName } from "../../ui/order-draft.ts";
 import { map } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
@@ -153,7 +153,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
             <option value="">— whose troops? —</option>
             {AllPowers.filter((p) => p !== me).map((p) => (
               <option key={p} value={p}>
-                {p}
+                {powerName(p)}
               </option>
             ))}
           </select>

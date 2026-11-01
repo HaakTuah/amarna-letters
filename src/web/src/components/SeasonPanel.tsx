@@ -65,7 +65,7 @@ export const SeasonPanel = memo(function SeasonPanel({
 
       {f.ended && scene.index === f.index && (
         <div className="notice">
-          <strong>The age has ended</strong> ({f.endReason}). Winner: {f.winners.join(" and ")}. The richest characters are ranked under Standings.
+          <strong>The age has ended</strong> ({f.endReason}). Winner: {f.winners.map(powerName).join(" and ")}. The richest characters are ranked under Standings.
         </div>
       )}
 
