@@ -66,10 +66,14 @@ open ground, the ferry and the flood, winter's danger on a snowbound pass, and w
 
 ## The newest version (`src/web/src/ui/update.ts`, `service-worker.template.js`)
 
-The app looks for a new version at start, when it comes back to the front, and every half hour. A new service worker
-waits until the page asks it to take over: at once when no game is running, and during a game when the player taps the
-note. The build writes the rules' save version to `version.json` (never cached); if the new version plays under the same
-rules the note reads "A new version is ready. Reload into this game", and the page reloads into the game's last saved
-season (its log is saved after every season) under its own id, so its views and its entry in the saved games stay as
-they were. If the rules changed, the game cannot go on in the new version (a save version is the rules'), and the note
-says so, with "Update now" and "Later". Another tab's take-over reloads a tab with no game at once and clears its note.
+The newest version is always the one played, without asking (item 17a, replacing item 11c+'s note and tap). The app looks
+for a new version at start, when it comes back to the front, and every half hour. A new service worker installs beside the
+old one and takes over by itself: at once when no game is held (on opening, on the start screen, when a game is started or
+continued), and with a game held (on screen or not) at the next season played, once the worker has saved it (`Live.savedTurn`
+is the newest turn and no season is under way, so nothing is lost), reloading into the same game from that season under its
+own id, with auto-play and speed as they were, and a line "Updated to the newest version" for a few seconds after. The
+build writes the rules' save version to `version.json` (never cached); only a new version whose rules the game held cannot
+carry on in (a save version is the rules') waits, with a line saying it takes over when the game is closed, and takes over
+as soon as it is (while the version cannot be read, nothing is said and it is asked again at the next change). Another
+tab's take-over counts as a new version found here. The error screen's way back ("Reload into this game",
+`ui/ErrorScreen.tsx`) uses the same reload, carrying the game, auto-play and speed.

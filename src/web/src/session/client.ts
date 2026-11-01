@@ -18,8 +18,10 @@ import {
   type SeatView,
   type TurnSubmission,
 } from "@amarna/engine";
+import { SnapshotHistory } from "@amarna/game";
 import { buildScene, type MapScene } from "../map/scene.ts";
-import type { SeasonFrame } from "./frames.ts";
+import { IncrementalReader, ReadReplaced } from "./incremental.ts";
+import { fromWire, sameMap, samePerson, sameSet, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
 import { download } from "./storage.ts";
@@ -34,8 +36,7 @@ export interface HumanAsk {
 const emptyLive = (): Live => ({
   hasRunner: false,
   generation: 0,
-  stateVersion: -1,
-  stateJson: null,
+  states: [],
   phase: "",
   busy: false,
   auto: false,
@@ -43,6 +44,7 @@ const emptyLive = (): Live => ({
   ended: false,
   canPlayOn: false,
   turn: 0,
+  savedTurn: -1,
   errors: [],
   errorCount: 0,
   error: null,
@@ -51,6 +53,7 @@ const emptyLive = (): Live => ({
   costUnknown: false,
   settings: newSettings(),
   config: null,
+  risen: [],
   seats: {},
   snapshots: 0,
   chronicles: {},
@@ -80,8 +83,10 @@ export class Session {
   replaying = false;
   delayMs = 400;
 
+  /** The history of the state (item 17a): the stream's pieces, from which any season is read back when looked back at. */
+  private history = new SnapshotHistory();
+  private reader = new IncrementalReader();
   private recent = new Map<number, GameState>();
-  private asked = new Set<number>();
   private nextId = 1;
   private waiting = new Map<number, (m: FromWorker) => void>();
   private scenes = new Map<string, MapScene>();
@@ -109,6 +114,8 @@ export class Session {
 
   private notify(): void {
     this.version++;
+    // React's render of the page follows in a task of its own: the time from here to the next frame drawn is the page's redraw.
+    performance.mark("page:notify");
     for (const f of this.listeners) f();
   }
 
@@ -117,6 +124,13 @@ export class Session {
   }
 
   private receive(m: FromWorker): void {
+    // Timed, as every step of a season on the page is (item 17a): the soak tool reads the measures.
+    const t = performance.now();
+    this.receiveNow(m);
+    performance.measure("page:receive", { start: t });
+  }
+
+  private receiveNow(m: FromWorker): void {
     if (m.type !== "update") {
       const done = this.waiting.get(m.id);
       this.waiting.delete(m.id);
@@ -127,18 +141,41 @@ export class Session {
     if (m.reset || newGame) {
       this.frames = [];
       this.recent.clear();
-      this.asked.clear();
+      this.history.clear();
+      this.reader.cancel();
+      this.reader = new IncrementalReader();
+      this.reading = 0;
+      this.readAgain = false;
+      risenCount = -1;
       this.framesGeneration++;
       this.fallSeen = false;
     }
+    if (newGame) this.seenGeneration = m.live.generation;
+    // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does, from the
+    // season they rise (the frames of that season may be drawn before its state is read).
+    if (m.live.hasRunner && m.live.risen.length !== risenCount) {
+      setRisen(m.live.risen);
+      risenCount = m.live.risen.length;
+    }
     if (m.frames.length > 0) {
-      this.frames = [...this.frames, ...m.frames];
+      let previous = this.frames.length > 0 ? this.frames[this.frames.length - 1] : null;
+      const frames: SeasonFrame[] = [];
+      for (const w of m.frames) {
+        const f = fromWire(w, previous);
+        shareUnchanged(f, previous);
+        frames.push(f);
+        previous = f;
+      }
+      this.frames = [...this.frames, ...frames];
       this.framesGeneration++;
     }
-    if (m.live.stateJson !== null) {
-      this.state = deserialize<GameState>(GameStateSchema, m.live.stateJson);
-      // The powers risen in play (item 13+) are the game's: the page names and draws them as the engine does.
-      setRisen(this.state.risen);
+    if (m.live.states.length > 0) {
+      for (const d of m.live.states) this.history.apply(d);
+      this.recent.clear();
+      // The newest season is read in a task of its own, after the frames have shown (item 17a: one task under the 50 ms
+      // bar holds the message and the map, the next the state); only what changed is read, and a season looked back at
+      // is read when looked at (displayed). Until then the panels show the season before.
+      this.readSoon();
     }
     if (!m.live.hasRunner) this.state = null;
     this.asks = m.live.pending.map((p) => ({
@@ -147,7 +184,6 @@ export class Session {
       audience: p.audience === null ? null : { view: deserialize<AudienceView>(AudienceViewSchema, p.audience.view), court: deserialize<SeatView>(SeatViewSchema, p.audience.court) },
     }));
     if (newGame) {
-      this.seenGeneration = m.live.generation;
       this.historyTurn = null;
       this.reveal = false;
       this.viewAs = m.live.humans[0] ?? null;
@@ -156,8 +192,48 @@ export class Session {
       this.fallSeen = true;
       this.viewAs = null;
     }
-    this.live = { ...m.live, stateJson: null };
+    this.live = { ...m.live, states: [] };
     this.notify();
+  }
+
+  /**
+   * The newest season's read, spread over tasks by the reader. A read under way finishes first (on a slow phone at Fast
+   * speed a season can arrive before the last is read; replacing the read each time left the panels never caught up),
+   * then the newest season is read, the seasons between skipped.
+   */
+  /** The read under way, by its number (0: none), so that an older read's end never clears a newer one's flag. */
+  private reading = 0;
+  private nextRead = 1;
+  private readAgain = false;
+  private readSoon(): void {
+    if (this.history.length === 0) return;
+    if (this.reading !== 0) {
+      this.readAgain = true;
+      return;
+    }
+    const index = this.history.length - 1;
+    const generation = this.seenGeneration;
+    const t = performance.now();
+    const read = this.nextRead++;
+    this.reading = read;
+    this.readAgain = false;
+    this.reader.read(this.history.refs(index)!, this.history.texts).then(
+      (state) => {
+        if (this.reading !== read) return;
+        this.reading = 0;
+        if (generation !== this.seenGeneration) return;
+        performance.measure("page:reader", { start: t });
+        this.state = state;
+        this.notify();
+        if (this.readAgain || index !== this.history.length - 1) this.readSoon();
+      },
+      (e: unknown) => {
+        if (this.reading !== read) return;
+        this.reading = 0;
+        // A read replaced by a newer season or dropped with its game is no error; anything else is one the page must show.
+        if (!(e instanceof ReadReplaced)) throw e;
+      },
+    );
   }
 
   private request(m: ToWorker & { id: number }): Promise<FromWorker> {
@@ -198,34 +274,29 @@ export class Session {
     const key = `${index}/${viewer ?? ""}`;
     const had = this.scenes.get(key);
     if (had !== undefined) return had;
-    if (this.scenes.size > 600) this.scenes.clear();
+    // A few scenes kept (the season shown and its neighbours): a scene is megabytes, and one a season crowded a phone (item 17a).
+    if (this.scenes.size >= 6) this.scenes.clear();
     const scene = buildScene(this.frames, index, viewer);
     this.scenes.set(key, scene);
     return scene;
   }
 
   /**
-   * The full state of the season shown, for the panels that need it. A season in history is read back from its snapshot
-   * by the worker, so the last few read are kept; until one arrives the newest state stands in.
+   * The full state of the season shown, for the panels that need it. A season in history is read back from the page's own
+   * history of pieces when looked back at, and the last few read are kept.
    */
   get displayed(): GameState | null {
     if (this.state === null) return null;
     const t = this.historyTurn;
-    if (t === null) return this.state;
+    if (t === null || t >= this.history.length - 1) return this.state;
     const had = this.recent.get(t);
     if (had !== undefined) return had;
-    if (!this.asked.has(t)) {
-      this.asked.add(t);
-      const generation = this.seenGeneration;
-      void this.request({ type: "stateAt", id: this.nextId++, turn: t }).then((m) => {
-        this.asked.delete(t);
-        if (m.type !== "stateAt" || m.json === null || generation !== this.seenGeneration) return;
-        if (this.recent.size >= 4) this.recent.delete(this.recent.keys().next().value!);
-        this.recent.set(t, deserialize<GameState>(GameStateSchema, m.json));
-        this.notify();
-      });
-    }
-    return this.state;
+    const json = this.history.json(t);
+    if (json === null) return this.state;
+    if (this.recent.size >= 4) this.recent.delete(this.recent.keys().next().value!);
+    const st = deserialize<GameState>(GameStateSchema, json);
+    this.recent.set(t, st);
+    return st;
   }
 
   // ---------------------------------------------------------------- what the player does
@@ -344,6 +415,34 @@ export class Session {
     this.notify();
   }
 }
+
+/**
+ * A frame shares with the frame before whatever did not change (item 17a): each court's known holders and walls and its
+ * sight are a map of the whole board a court, most of them the same season after season, and copied across from the worker
+ * they weighed a megabyte a season on the page. Equal parts take the earlier frame's reference; the frame reads the same.
+ */
+export function shareUnchanged(f: SeasonFrame, previous: SeasonFrame | null): void {
+  if (previous === null) return;
+  for (const [p, m] of f.knownOwner) {
+    const was = previous.knownOwner.get(p);
+    if (was !== undefined && sameMap(m, was, (x, y) => x.owner === y.owner && x.turn === y.turn)) f.knownOwner.set(p, was);
+  }
+  for (const [p, m] of f.knownWalls) {
+    const was = previous.knownWalls.get(p);
+    if (was !== undefined && sameMap(m, was, (x, y) => x === y)) f.knownWalls.set(p, was);
+  }
+  for (const [p, set] of f.sight) {
+    const was = previous.sight.get(p);
+    if (was !== undefined && sameSet(set, was)) f.sight.set(p, was);
+  }
+  for (const [id, c] of f.people) {
+    const was = previous.people.get(id);
+    if (was !== undefined && samePerson(c, was)) f.people.set(id, was);
+  }
+}
+
+/** How many risen powers the page has registered with the engine (setRisen), to register again only when one rises. */
+let risenCount = -1;
 
 /** The one game of this tab. */
 export const session = new Session();

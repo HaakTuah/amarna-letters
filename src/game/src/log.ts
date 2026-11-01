@@ -437,10 +437,18 @@ export class GameLog {
   }
 
   /** The log as JSON lines: the header, every decision, every call, then the shadows ordered by turn and key. */
+  /** The decisions' lines written so far: decisions are only ever appended, so the lines of the earlier ones stand (item 17a). */
+  private jsonlDecisions = { count: 0, text: "" };
+
   toJsonl(): string {
     let out = withType(serialize(LogHeaderSchema, this.header), "header") + "\n";
-    for (const d of this.decisions)
-      out += `{"type":"decision","key":${quote(d.key)}${d.by !== null ? `,"by":${serialize(d.by.rung === "" ? UnroutedSchema : AuthorshipSchema, d.by)}` : ""},"value":${d.json}}\n`;
+    const cache = this.jsonlDecisions;
+    for (let i = cache.count; i < this.decisions.length; i++) {
+      const d = this.decisions[i];
+      cache.text += `{"type":"decision","key":${quote(d.key)}${d.by !== null ? `,"by":${serialize(d.by.rung === "" ? UnroutedSchema : AuthorshipSchema, d.by)}` : ""},"value":${d.json}}\n`;
+    }
+    cache.count = this.decisions.length;
+    out += cache.text;
     for (const c of this.calls) out += withType(serialize(ModelCallSchema, c), "call") + "\n";
     // Ordered by key, so that two runs of a game write the same lines whatever order parallel calls finished in.
     for (const sh of sortBy(this.shadows, [(x: ShadowDecision) => x.turn, cmpNum], [(x: ShadowDecision) => x.key, cmpStr]))

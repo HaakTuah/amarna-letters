@@ -1,6 +1,6 @@
 import { AllPowers, WorldMap, ending, shortDate, shortEnding, type Power } from "@amarna/engine";
 import { Presets, leaderRules } from "@amarna/llm";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { AudiencePanel } from "../components/AudiencePanel.tsx";
 import { ChroniclePanel } from "../components/ChroniclePanel.tsx";
 import { CourtStrip } from "../components/CourtStrip.tsx";
@@ -30,7 +30,6 @@ import { cap, powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
-import { playing } from "../ui/update.ts";
 import { useSession } from "../ui/use-session.ts";
 import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
 
@@ -73,6 +72,11 @@ export function Play() {
   const [followId, setFollowId] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
   const [legend, setLegend] = useState(false);
+  // Timed, as every step of a season on the page is (item 17a): from the start of this render to the DOM written.
+  const renderStart = performance.now();
+  useLayoutEffect(() => {
+    performance.measure("page:play", { start: renderStart });
+  });
   // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 3 set the pace, + and − step it.
   const setSpeed = (i: number): void => s.setDelay(Speeds[Math.max(0, Math.min(Speeds.length - 1, i))].ms);
   useKeys({
@@ -109,8 +113,6 @@ export function Play() {
     }
   }, []);
 
-  // The game running, if any: a new version waits for a tap while one is played (ui/update.ts).
-  useEffect(() => playing(live.hasRunner ? live.gameId : null), [live.hasRunner, live.gameId]);
 
   useEffect(() => {
     document.title = `Amarna Letters — ${!live.hasRunner ? "no game" : whenCap(live.turn, viewerOf())}`;
