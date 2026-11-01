@@ -220,3 +220,33 @@ seat's map until word arrives."
   `docs/claude-and-codex.md`): round 1, 9/10, one blocking point: the README did not yet say what the player now sees;
   fixed (the living map: a distant city stands as you last knew it until the news reaches you). Round 2: no issues.
   `Review: interface · Claude · 9, 10`.
+
+## PR 6: the province card by the seat's own record (`sound/panel-leak`)
+
+The orchestrator, 1 November 2026, from the weekly blind re-review of #359 (7/10, one blocking point, a miss under
+"Reviews" point 5): "src/web/src/components/ProvinceInfo.tsx:116-133 shows stores, market, purse, people, tax, granaries,
+crop and fed from the live GameState (Play.tsx:160, s.state). It gates only on owner === scene.viewer, the known owner.
+So for a city lost out of sight, the seat clicks it and reads the new holder's current economy: it learns of the loss
+before word arrives, and another court's economy too. [...] Make the panel read the frame ownFiguresAt gives, and add a
+test." With, not blocking: the test to assert stores and bands for a lost city; bands from old word drawn with no age;
+`built` by the true owner; the fallbacks differing (`ownerFor` against `ownFiguresAt` and `seesNow`).
+
+- **The card** (`ProvinceInfo.tsx`, `ownEconomy` in `scene.ts`): god view and land held and known show the whole economy
+  from the live state, as before and as the engine's own view of a court shows it; land lost unawares shows only what
+  its stewards last sent (stores, people, how they ate, from the frame `ownFiguresAt` gives) with its age; elsewhere
+  nothing. The tax line reads the live harvest only where the economy is live.
+- **The scene** carries `own` (each province the court knows it holds, with the season its map shows and that season's
+  age); stores and bands come from it, and each band carries an `age`, drawn faded (`ghost ageN`, as a unit last seen) and
+  titled "as your people last told of it, N seasons ago".
+- **`built`** in a seat view: its own land by its record (`ownFiguresAt`) or as last seen, whichever is newer; never by the
+  true owner.
+- **`ownerFor`** (`session/frames.ts`): as the record has it. Its fallback `?? ownerOf(...)` also fired when the record
+  knew a province as ownerless (owner `null`), so such a province showed its true owner; now known ownerless stays so, and
+  a province the record lacks is no one's, as in `known.ts` and the audio.
+- **Tests** (`map-known.test.ts`): the card and the scene for a city lost out of sight (the stewards' last report with
+  its age, stores and a faded band as last held; nothing once word arrives; everything in god view and for the holder that
+  knows it); `ownerFor` by the record.
+- The calibration row is added to `docs/claude-and-codex.md`. The engine's seat view still drops a lost province's
+  economy at once (`views.ts`, `ownedBy`): item 17++'s, as the orchestrator says.
+- **Review** (Codex): round 1, P1×1: the README did not yet tell of the card's dated report and the faded bands; fixed.
+  Round 2: clean; the security review found nothing. `Review: interface · Claude · P1×1, clean`.
