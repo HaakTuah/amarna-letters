@@ -16,8 +16,7 @@ Each fix is its own PR from `develop`; this file keeps the running list.
   "shipments", not "shipment(s)"; #273 Legends' opening bonds as one undated line.
 
 **Resumed 31 October, 23:20 UTC** (the orchestrator, from Haakon: carry on from the pushed branches; merge #260 and the
-waiting PRs as CI goes green; then Space and the speed keys; then the remaining finds). Added: #293 (Space and the speed
-keys), #294 (the design note on province ownership), #295 (the audience panel's pointer to standing answers, audit 15),
+waiting PRs as CI goes green; then Space and the speed keys; then the remaining finds). Added: #293 (Space and the pace keys), #294 (the design note on province ownership), #295 (the audience panel's pointer to standing answers, audit 15),
 #296 ("(season 4)" dated on screen).
 
 **State when usage ran out (31 October, about 19:30 UTC; Haakon: "We are running out of usage. 97 percent. commit and
@@ -60,3 +59,14 @@ Prefer the cheapest approach that does the job well").
 
 - The README reviewer notes that troops are paid and fed by the engine each season with no order (`payTroops`,
   `feedTroops`), unlike servants' fees, which sits uneasily with "Nothing happens unless someone orders it".
+
+## Space and the pace keys (#293)
+
+Haakon, 1 November 2026, on speeds: "I don't feel we should introduce 5, just to have 5. Paradox games have them because
+they tick time. but we have rounds, akin to civilization.", then "Yes, please! expertly!" ("Pace of play" under
+Interface). The first version of #293 read "1 to 5 set the speed" as five speeds and added Very slow and Fast; that
+reading is dropped. Built: 1 Slow, 2 Normal (the default), 3 Fast, the game's three existing speeds as paces; + and −
+step between them; Space does what the play button shows. Left to items 17+++ and 17+++a, as "Pace of play" puts them,
+and noted in the key table (`src/web/src/ui/keys.ts`): 4 for Simulate, Space pausing mid-playout, Enter ending one's
+season.
+

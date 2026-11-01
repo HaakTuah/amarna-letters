@@ -72,7 +72,7 @@ Fixes (one line each; finds still open are in `docs/rounds/2026-10-31-polish-lan
 - A human seat can order the one-off hunt and razing, as script kings do (audit 6); the draft no longer gives a default hold beside a unit another order names.
 - People's provinces read "settled N, land for M", not "N of M" (audit 14); "shipments", never "shipment(s)" (audit batch 2).
 - Legends give the bonds sealed before the age one undated line per court, not a deed each (audit batch 2).
-- Space pauses and unpauses, 1 to 5 set the speed, + and − step it, as in Crusader Kings III ("Also first"), in one key table that item 17+++a extends.
+- Space pauses and unpauses, 1 to 3 set the pace (Slow, Normal, Fast), + and − step between them ("Also first"), in one key table that item 17+++a extends with 4 Simulate, Enter and the rest.
 - The audience panel points a court with no standing answers to them (audit 15); a fact's "(season 4)" is dated by the court's calendar on screen (audit batch 2); the design note on province ownership no longer says "public at once" (audit 13).
 
 ## For Haakon: review points
