@@ -222,7 +222,9 @@ export const ownerOf = (f: SeasonFrame, province: string): Power | null => f.own
 
 /** Who holds a province as a viewer knows it (item 7b): as it is in god view, else as the news that reached the court. */
 export const ownerFor = (f: SeasonFrame, province: string, viewer: Power | null): Power | null =>
-  viewer === null ? ownerOf(f, province) : (f.knownOwner.get(viewer)?.get(province)?.owner ?? ownerOf(f, province));
+  // As the record has it: a province it knows has no ruler stays so, and one the record lacks counts as unknown (no one),
+  // never the true owner (the same rule as map/known.ts and the audio's).
+  viewer === null ? ownerOf(f, province) : (f.knownOwner.get(viewer)?.get(province)?.owner ?? null);
 
 /** Copies what the map needs from a state at the end of a season. Nothing here holds on to the live state. */
 export function frameFrom(s: GameState, index: number, previous: SeasonFrame | null, map: WorldMap = WorldMap.default): SeasonFrame {

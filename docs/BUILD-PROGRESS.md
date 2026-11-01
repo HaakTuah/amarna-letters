@@ -19,10 +19,6 @@ measured, the full text of items 1 to 5) moved word for word to `docs/archive/de
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`.
 Haakon's standing instructions given in chat are recorded word for word in `docs/archive/instructions.md`.
 
-**First at the next milestone** (Haakon, 1 November 2026): the workshop check's point (2) before anything else. This
-file (29 KB) goes back under about 20 KB, with done items and answered questions moved to `docs/archive/` and a line
-pointing there, and `AGENTS.md` (20 KB) counts among the files every session reads.
-
 ## The polish lane
 
 A side lane of small refinements, beside the item lane and never ahead of it (Haakon, 31 October 2026: "Should we add a
@@ -47,32 +43,7 @@ account until its usage is spent; on the main account the usage brake closes it 
   item 17+++ keeps every season ("Pace of play" under Interface); + and −, on the main keys and the number pad, step
   between Slow, Normal and Fast, by the character typed; never while a letter or a name is being typed; each shown in
   its button's tooltip. PR #293's added Very slow and fifth speed go before it merges. The rest of the keys come in item 17+++a.
-- **Done (sound lane, #350): the soundtracks and the Music page** (Haakon, 1 November 2026: "I am actaully impressed! Didn't expect much
-  from the music actually! But it is good! ... I want to keep all of it, even "The tuning's scale (a test)"", then
-  "Yes, please, expertly!"): keep every piece. The three soundtracks in this order everywhere, in the game's sound menu
-  and on the Music page: Orchestra (the default), Lyre and reed, 8-bit last. "The tuning's scale (a test)" moves to
-  the end of the Music page under "Extras". If the orchestra's files cannot load (offline, a slow phone), Lyre and reed
-  plays instead of silence, since it needs no download. And on the Music page, the game's own music (the menu theme)
-  fades out on entering the page and stays out while you are on it, so only what you press plays; leaving the page fades
-  the theme back in. Nothing else on the page changes. Today the
-  theme comes back by itself after a piece ends and plays over the sounds.
-- **Done (sound lane, #351 and #352; `docs/rounds/2026-11-01-sound-lane.md`): the soundscape** (Haakon, 1 November 2026: "your ears are being assaulted now. It plays dozens of sound effects
-  at any one time", then "But all the event stuff is for players only, or if you spectate a player, you hear
-  specifically what they hear"): three layers, the music leading, as item 19+++ now says. The world's sounds where
-  things happen (a battle's clash, a siege, a plague, a storm, a market), heard only near the view when zoomed in,
-  softer with distance, for every viewer; event sounds only for one seat, its clicks and what happens to its realm, for
-  its player or a spectator watching through it, never in god view; both mixed under the music, never sudden or loud,
-  at most two or three event sounds at once and none repeated within a few seconds. A change in how sounds are chosen
-  and mixed, not in the sounds; now, not in 17+++. And nothing heard reveals what lies beyond the fog of war (Haakon,
-  1 November 2026: "Important! The music must never reveal what's outside the fog of war."): in a seat the mood, its
-  shade, the stings, the great moments, the world's sounds and the event sounds follow only what the seat knows as it
-  learns it; a battle or fall it has not heard of plays nothing, even zoomed in on it; a seat whose sight is missing
-  from the record counts as seeing nothing, not everything (today `sight === undefined` is read as seeing all in
-  `src/web/src/audio/situation.ts`); a test proves a hidden battle, siege or fall changes nothing a seat hears. What a seat hears is what its own map shows
-  (Haakon, 1 November 2026: "you know where a sea is, so some things you can zoom in on and hear, without it revealing
-  anything"): seas, rivers, deserts and the wind are heard anywhere the view goes; a place sounds as the seat last knew
-  it, so a city burned seasons ago that the seat still believes thriving plays its market's bustle until the news
-  arrives, then its ruin.
+- **Done:** the soundtracks and the Music page (#350), the soundscape (#351, #352); their briefs are in `docs/archive/progress-done.md`, "Side lanes".
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
@@ -97,7 +68,7 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
-| 17+ (#348) | 1. Should the seven Great Kings' realms take their period names too (Miṣri for Egypt, Aššur for Assyria), or keep the names the design document uses (Egypt, Hatti, Karduniash, Mitanni, Assyria, Arzawa, Alashiya)? Answer "keep" or "period". | Keep the document's names, since it names them so throughout and the section's examples are places within realms | Open |
+| (none open) | | | |
 
 
 ## Use against ignore
@@ -139,25 +110,19 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 17+ | Holding back pay from safe units in a lean season (`--upkeep-play-half`) | 0.74 growth to 0.74, 25 wins to 25, in 50 games | Neither pays nor costs yet: gold saved buys little until 17++'s demands and ledger give unpaid men a memory |
 | 17+ | A realm's name claimed by a city holding a greater realm's capital, contested names given by greetings | 3 claims in 20 games | n/a: a claim gives nothing by rule; its worth is the other kings' recognition |
 
-**Paused at 88% weekly usage, 30 October 2026** (Haakon: "I want them to finish what they have started, if we believe they
-can."). Item 17 finished and merged. Item 19's two passes (#201, #202) are merged. **Resumed 31 October 2026 on a
-second account,** spent to the end before Monday: lanes for 17a (the crash and the speed, #236), the music (19+++,
-#237), the polish lane and the improvement audit (#235). The order from here: 17a, 17+, 17++, 17+++, 17+++a, 17++++, 17b, then
-18, with 19+, 19++ and 19+++ beside it where the rows allow.
-
 ## Items
+Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".
+
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17a | The crash and an optimization round (first, before 17+) | done (1 Nov; one question for Haakon: the throttled phone's frames): the crash reproduced (the worker's whole-state snapshots; develop's build crashed the renderer on the phone profile at 180 s) and fixed; the state as a stream of pieces with the page's own history; the error screen; the newest version taking over by itself; the engine 15% faster; smoothness measured: 327 to 337 frames over 50 ms a game on desktop before, 69 (normal) and 110 (fast) after, none over 117 ms in play; the phone profile runs to the end but keeps a few frames of 200 to 300 ms a season (question 1) | `item/crash-and-speed` (#321, replacing draft #236) | [report](rounds/2026-10-31-crash-and-speed.md) |
-| 17+ | The opening as it stood, the land east of the Jordan, and every place by its own name | done (1 Nov; PR #348; one question for Haakon: the realms' period names): troops and debts where the sources put them; the land east of the Jordan and the map checked against 1346; every place and person by the name of 1346 (modern names on the card only); a power's name is a claim, learned by other courts from its sealed greetings, contested names given or withheld in greetings, house names (Bit-Aziru); each king's standing order to pay and feed his troops, each half changed alone, by province before movement; 35 people of 1346 who did not rule; the model-text finds; the review's fixes (one unit to a province, pay and food halves, claims heard by greetings, hold lines, debts' wording). Left to 17++: the governors of 1346 take their grants (they start as servants at court), the commissioners as open residents, and the chiefs' lands falling in the first two seasons (Kaska 6 of 20, Lukka 5) by its rule of whom a province obeys | | |
-| 17++ | What a king can count | not started: the province card shows a province's town and its land apart; a king sees his own soldiers exactly, his own people and stores to two figures, others' lands as dated estimates; god view exact; the census (scribes sent to count a province: full tax and levy where counted, a growing hidden share where not, some unrest); the king asks for grain and men as a share (safe for the people; the province hides more the older his count) or an amount (he gets it, but cannot judge it), replacing item 10+a's tax rate; only a governor stands between king and province; one governor may hold several neighbouring provinces from one seat; loyalty as one ledger of what each actor gives and takes (replacing separate unrest, absorption and turning), seen only as clearly as a king spends on knowing; a governor made a vassal king by a grant under oath, its price and tribute negotiated, granted by script kings only where it nets more than keeping the province (tested against scripts that never grant); the map in three steps of a power's colour (ruled directly, governed, vassal) with governors' provinces bounded by inner borders, and the mood of the land as its own view; whom a province obeys: no ownership flag, each season a province obeys whoever it fears or loves most (force plus the ledger), lawless if nobody clears its floor; conquest, revolt, absorption, turning and succession as one rule; degrees of obedience; persons choose by their stakes and trait-given strategy, not a ledger; the ledger starts as 1346 stood, its divided loyalties seeded from the sources and graded (a claimant starts with a share of a province's love where the letters show it: Byblos, the Hurrian land behind Artatama II); a governor is one who runs a province his king holds: Thutmose over Nubia, Addaya at Gaza, Pahanate at Sumur if it stands, Enlil-kidinni at Nippur, Ili-ippashra at Dilmun if on the map, Alashiya's governor, each with his grant; the commissioners over vassals' lands (Maya, Haya, Rianap, Tahmashshi, Yanhamu, Kumidi's) are characters with Pharaoh's purse and men behind them, each starting as Pharaoh's open resident in his province; a ruler of a town too small to be a province (Tagi) a character with his purse, goods and men and a share of the province's love; where the office is attested in a province its king holds but the name lost (Hatti's border lords, Babylonia's provincial governors), a governor named in the region's style and marked invented; princes holding land for their fathers left out; heartlands ruled directly by their kings (Haakon, 31 October 2026) | | |
-| 17+++ | The season plays out | not started: each season plays out on the map instead of jumping: the season beneath the realm colours, changing as it moves; redrawn season textures; units travelling their roads with weight, drawn as what they are; battles, sieges and hazards (storms, snow, floods, avalanches) where they happen; paced by meaning; the next season computed while this one plays; only what the seat knows; zoom thins the realm colours and brings near sounds up; smooth on a phone, held to 17a's bar (no frame over about 50 ms at any speed, desktop and throttled phone, frame times and a recording in the PR); spectator mode's list of threads to watch (the narrator's pick of the live stories with the most at stake, a click away) and an optional director camera, choosing only what is shown, in replay too; each model mind's notes, journal and plan kept season by season (only what changed) and shown in the spectator's seat view, and to all once the game ends; everything the narrator writes stored the first time, so a replay never calls a model, a game told anew only when its owner asks, the first telling kept; built on 17a's stream of events; may run beside 18 | | |
-| 17+++a | Keys for everything | not started: on a computer every action has a key, after Paradox's own (Crusader Kings III as the base, Europa Universalis IV where it has no like, taken from their key lists): Space pauses and unpauses, 1-4 choose the pace (Slow, Normal, Fast, Simulate: "Pace of play" under Interface), + and − (main keys and number pad) step between Slow, Normal and Fast, Enter ends one's season, Escape closes the window in front or opens the menu, letters switch the map's views, W/A/S/D and the arrows move the map, F-keys open the main windows, the wheel zooms; each key in its button's tooltip, one page lists them all, changeable and remembered, none while typing; the phone unchanged; Space and the speed keys first, in the polish lane; from then on each item brings keys for what it adds (Haakon, 31 October 2026) | | |
-| 17++++ | A small state as a seat | not started: any city-state's or chief's seat playable by a human or a model from the same seat choice, marked harder and not the advised start; same rules, its own seat view, letters and council; judged on the one scoreboard against its own start | | |
-| 17b | Every person on one scoreboard | not started: kings and characters ranked on one scoreboard by what they hold blended half and half with their result against par for their own start; everyone plays to rank highest; a king dies only by a cause where he is, never by dice or age; capture and escape; on a king's death his player is out and an heir appears only then, scored from his accession; a realm holds by its ledger, not its capital (occupied provinces to the occupier, the rest while they lean to the heir, who inherits part of his father's standing, love and hate alike); the capital is where the court is, moved only as a real journey; the heir appears with the court or among its refugees, at home or in exile with a claim; each heir takes the next king's name on the record, down the generations as far as it goes, then a name in the region's style (Haakon, 31 October 2026); no realm keeps a temper of its own: the script kings' per-power archetypes (`src/game/src/bots/personality.ts`) become the 1346 kings' own traits from the sources, deeds over tone, graded, with the design session's corrections (Akhenaten proud, ungenerous, unwarlike, slow to answer, not his father's lavish Pharaoh; Suppiluliuma patient, a diplomat, cunning; Tushratta proud, Egypt's equal; Ashur-uballit's honesty unknown; no forgery for Arzawa's unknown king; Alashiya's king of middling pride), city-state rulers likewise, each heir bringing his own traits, every attested character acting by his (Haakon, 1 November 2026); before 18, which tunes it; new save version | | |
-| 18 | The balance pass | not started; the big states unhandicapped: measured again after 17+ and 17++, and if one still dominates (Egypt 19 of 50 in the audit) only shared numbers are tuned (Haakon, 31 October 2026); people 17+ added who never act, or only add noise, listed and cut once Haakon has seen the list | | |
-| 19+ | Answers to 19's review | not started: realms' maps in clay (cuneiform courts) or papyrus (Egypt); ruins fade as people return by the existing rule, walls rebuilt with item 15's works, no rebuilding rule; hieratic notes as decoration in Egypt's view | | |
-| 19++ | The visual pass | not started: first every graphical glitch and inconsistency found, pictured and fixed; then every screen as impressive as it can be, in the living map's style, light and dark, phone and desktop; it may cost more but must stay playable on a phone; before-and-after pictures and performance numbers; the main map painting all it can without clutter, and the map's views (mood, what you know, people, harvest and stores, trade, roads and seas, armies, ties) for every system already built; cities drawn in their own culture's style, sized by their people, every level of what is built showing as one zooms in; may run beside 18 | | |
+| 17++ | What a king can count | not started | | |
+| 17+++ | The season plays out | not started | | |
+| 17+++a | Keys for everything | not started | | |
+| 17++++ | A small state as a seat | not started | | |
+| 17b | Every person on one scoreboard | not started | | |
+| 18 | The balance pass | not started | | |
+| 19+ | Answers to 19's review | not started | | |
+| 19++ | The visual pass | not started | | |
 
-Done items 1 to 14 (11d to 14 moved on 30 October 2026, "The workshop check"), done items 15 to 19+++ and the side lanes (moved on 1 November 2026), and the port's findings (all handled): `docs/archive/progress-done.md`.
+Done items 1 to 14 (11d to 14 moved on 30 October 2026, "The workshop check"), done items 15 to 19+++, 17a and 17+ and the side lanes (moved on 1 November 2026), and the port's findings (all handled): `docs/archive/progress-done.md`.
