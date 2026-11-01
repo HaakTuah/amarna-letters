@@ -94,7 +94,7 @@ This is a finding the next round must answer before merge (pillar 8): why the ci
 the one rule, and whether the rising elders (60) come from land falling lawless too easily. Risen names double their
 place ("Nabu-zuqup of Nippur of Nippur"), a leftover of `risenName` the next round fixes.
 
-Use against ignore for remnants (`--remnant-play-half`, 50 games): running when this was written.
+Use against ignore for remnants (`--remnant-play-half`, 50 games, seed 1): the games ran (171 seats rose in 45 of 50), but the batch report has no line comparing the two halves and its signals table no `fold` row yet (as `--upkeep-play-half` has at `src/batch/src/main.ts` line 677): the next round adds both and reruns it.
 
 ## The review
 
@@ -140,5 +140,5 @@ so they go to a session of their own ("Bigger review fixes in a session of their
 
 The builder's context is large, so this session stops here with the PR open. The next session takes PR #375 with this
 report's review lists and nothing else, at high effort: build design points 2, 3, 5, 7, 8 and 9 and Codex's 5, fix the
-early falls and the doubled risen names, rerun the benchmarks and the use-against-ignore (remnants; the ledger once the
+early falls and the doubled risen names, add the batch report's line for `--remnant-play-half` and a `fold` signal row, rerun the benchmarks and the use-against-ignore (remnants; the ledger once the
 scripts give by it), and ask both reviewers for round 2. Then parts B and C of 17++ (the report's opening paragraph).
