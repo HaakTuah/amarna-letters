@@ -55,7 +55,7 @@ The design document records intent; these notes record what is built. Where they
   and the setup screen's cost estimate (`CostEstimate`) still assumes 5,000 cached and 5,000 fresh tokens an orders
   call. Of the document's candidates, lower effort for audience calls is already built (one level below orders), and
   the king summarizes its own older notes, as decided.
-- **The shared score function is half done.** `strength` (10 × land yield + gold − back pay owed) serves the
+- **The shared score function is half done.** `strength` (10 × land worth + gold + holdings; until item 11a, less back pay owed) serves the
   engine, the seat's own strength line and the script kings, as the document asks; the city price is still its own
   setting (10 × yield), equal to the score weight by value, not derived from it.
 - **Wages on return.** The document leaves the check on the loophole (reputation from losses abroad) to be worked
