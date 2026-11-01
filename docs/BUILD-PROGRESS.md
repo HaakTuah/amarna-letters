@@ -49,8 +49,8 @@ account until its usage is spent; on the main account the usage brake closes it 
   and on the Music page: Orchestra (the default), Lyre and reed, 8-bit last. "The tuning's scale (a test)" moves to
   the end of the Music page under "Extras". If the orchestra's files cannot load (offline, a slow phone), Lyre and reed
   plays instead of silence, since it needs no download. And on the Music page, the game's own music (the menu theme)
-  fades out on entering the page and stays out while you are on it, so only what you press plays; pieces and sounds
-  pressed together still overlap, which Haakon keeps as a feature; leaving the page fades the theme back in. Today the
+  fades out on entering the page and stays out while you are on it, so only what you press plays; leaving the page fades
+  the theme back in. Nothing else on the page changes. Today the
   theme comes back by itself after a piece ends and plays over the sounds.
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
