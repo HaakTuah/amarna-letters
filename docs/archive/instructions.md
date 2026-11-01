@@ -1078,3 +1078,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     from Claude): "Yes, please, as expertly as at all possible, taking account of all attack vector and security
     concerns, security expert!" Written into `SECURITY.md` (new), the "Review guidelines" in `AGENTS.md`, the
     reviewer row in `CLAUDE.md` and "Codex reviews" in `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
+130. **1 November 2026, 18:01-18:03 UTC**, in the design chat: "How do we know it actually read the criterias and
+    used them then? And it seems to give no useful feedback? Claude reviewers give pointers and lots of feedback? Or
+    is it because of the nature of the merges that has happened now? because if this is just a low effort, nothing
+    absolutely horrible therefore approve, then it actively deteriorates the output we have." Then, to the design
+    session's proposals (a test PR with planted faults to see what Codex's review catches, and Claude's full review
+    back on the big items until then): "Yes please, expertly!" Written into `docs/claude-and-codex.md`, "Codex
+    reviews" (point 5), the reviewer row in `CLAUDE.md` and the "Review guidelines" in `AGENTS.md`; the test is
+    Barkstreet Snakes #298, never merged; the same in Barkstreet Snakes.
