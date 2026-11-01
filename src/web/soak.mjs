@@ -2,7 +2,7 @@
 // the page went white, and records as it goes the season reached, the page's and the worker's heap, the frame times and
 // the time each season took. Any page error, console error or blank page is reported with the season it came at.
 //   node src/web/soak.mjs [--phone] [--throttle 4] [--heap 512] [--seed 1] [--minutes 30] [--log <file>] [--site <dir>] [--profile]
-//                         [--speed fast|normal|slow] [--video <dir>]
+//                         [--speed fast|normal|slow] [--video <dir>] [--video-size 800x500]
 // With --profile, the page and the worker are sampled for 30 s from about season 15, and the hottest functions of each listed.
 // Smoothness is measured, never judged by eye (item 17a): every frame drawn is timed; the count over 50 ms and the longest
 // frames, with the season each came in, are reported at the end. --video records the screen to a .webm in the directory.
@@ -31,6 +31,8 @@ const profile = process.argv.includes("--profile");
 const trace = process.argv.includes("--trace");
 const speed = { fast: "50", normal: "400", slow: "1500" }[arg("--speed", "fast")] ?? "50";
 const videoDir = arg("--video", null);
+// The recording's size (WxH), smaller than the viewport to keep the file small; the viewport is unchanged.
+const videoSize = (arg("--video-size", "") || "").match(/^(\d+)x(\d+)$/u);
 /** A hitch becomes visible at about 50 ms (item 17a's bar). */
 const HITCH_MS = 50;
 const site = resolve(arg("--site", fileURLToPath(new URL("./dist/", import.meta.url)))) + "/";
@@ -65,7 +67,7 @@ if (logFile !== null) await writeFile(logFile, "");
 // Precise heap numbers for the page and the worker (performance.memory).
 const browser = await chromium.launch({ args: ["--enable-precise-memory-info", ...(heapMb > 0 ? [`--js-flags=--max-old-space-size=${heapMb}`] : [])] });
 const viewport = phone ? { width: 390, height: 844 } : { width: 1280, height: 800 };
-const context = await browser.newContext({ viewport, deviceScaleFactor: 1, isMobile: phone, hasTouch: phone, serviceWorkers: "block", ...(videoDir !== null ? { recordVideo: { dir: videoDir, size: viewport } } : {}) });
+const context = await browser.newContext({ viewport, deviceScaleFactor: 1, isMobile: phone, hasTouch: phone, serviceWorkers: "block", ...(videoDir !== null ? { recordVideo: { dir: videoDir, size: videoSize ? { width: Number(videoSize[1]), height: Number(videoSize[2]) } : viewport } } : {}) });
 const p = await context.newPage();
 const problems = [];
 let worker = null;
