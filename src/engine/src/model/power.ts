@@ -148,9 +148,13 @@ interface PowerData {
   readonly king: string;
   readonly adjective: string;
   readonly tier: Tier;
+  /** The name his own court uses, when it differs from the letters' (Egypt's Akhenaten); null: the same. */
+  readonly home: string | null;
+  /** His other names, for his card alone. */
+  readonly others: readonly string[];
 }
 
-const d = (land: string, king: string, adjective: string, tier: Tier = "City"): PowerData => ({ land, king, adjective, tier });
+const d = (land: string, king: string, adjective: string, tier: Tier = "City", home: string | null = null, others: readonly string[] = []): PowerData => ({ land, king, adjective, tier, home, others });
 
 /**
  * Each power's names. The Great Kings' as before; the city-states' rulers from the politics dossier ("The Levant and
@@ -159,14 +163,16 @@ const d = (land: string, king: string, adjective: string, tier: Tier = "City"): 
  * (Kaska, Lukka, the Suteans) under a chief ("Land without a ruler").
  */
 const Data: Record<FixedPower, PowerData> = {
-  Egypt: d("Egypt", "Napkhururiya", "Egyptian", "Strong"),
+  // Item 17+ ("Places by their own names"): foreign courts and their letters call Pharaoh Naphurureya, as the letters do;
+  // Egypt's own seat says Akhenaten; his other names show only on his card.
+  Egypt: d("Egypt", "Naphurureya", "Egyptian", "Strong", "Akhenaten", ["Neferkheperure Waenre", "Amenhotep IV", "Naphurureya in the letters of other courts"]),
   Hatti: d("Hatti", "Suppiluliuma", "Hittite", "Strong"),
   Babylonia: d("Karduniash", "Burna-Buriash", "Babylonian", "Strong"),
   Mitanni: d("Mitanni", "Tushratta", "Mitannian", "Middle"),
   Assyria: d("Assyria", "Ashur-uballit", "Assyrian", "Middle"),
   Arzawa: d("Arzawa", "Tarhundaradu", "Arzawan", "Weak"),
   Alashiya: d("Alashiya", "the King of Alashiya", "Alashiyan", "Weak"),
-  Kaska: d("Kaska", "the chief of the Kaska", "Kaskan"),
+  Kaska: d("the Kaska lands", "the chief of the Kaska", "Kaskan"),
   Lukka: d("Lukka", "the chief of the Lukka men", "Lukkan"),
   // Item 11d: Arzawa's lands with their own rulers, and Hana under Mitanni (the politics dossier names no ruler of 1346)
   Seha: d("the Seha River Land", "the king of the Seha River Land", "Sehan"),
@@ -176,36 +182,36 @@ const Data: Record<FixedPower, PowerData> = {
   // Item 11f's places, their rulers from the politics and people dossiers: Hukkana (his treaty, Beckman no. 3), Takuwa of
   // Niya (the Shattiwaza treaty), Tunip's elders writing as one with no king named (EA 59), Ammunira (EA 141-143),
   // Mut-Bahlu at Pella and Ayyab at Ashtaroth (EA 255-256, 364), and the chiefs of the Shasu and the Tjehenu
-  Azzi: d("Azzi-Hayasa", "Hukkana", "Hayasan"),
+  Azzi: d("Hayasa", "Hukkana", "Hayasan"),
   Niya: d("Niya", "Takuwa", "Niyan"),
   Tunip: d("Tunip", "the king of Tunip", "Tunipite"),
-  Beirut: d("Beirut", "Ammunira", "Beirutite"),
+  Beirut: d("Biruta", "Ammunira", "Beirutite"),
   Pella: d("Pihil", "Mut-Bahlu", "Pellan"),
-  Ashtaroth: d("Ashtaroth", "Ayyab", "Ashtarothite"),
+  Ashtaroth: d("Ashtartu", "Ayyab", "Ashtarothite"),
   Shasu: d("the land of the Shasu", "the chief of the Shasu", "Shasu"),
-  Libya: d("Libya", "the chief of the Tjehenu", "Libyan"),
-  Carchemish: d("Carchemish", "the king of Carchemish", "Carchemishite"),
+  Libya: d("the land of the Tjehenu", "the chief of the Tjehenu", "Libyan"),
+  Carchemish: d("Karkamish", "the king of Karkamish", "Carchemishite"),
   Alalakh: d("Mukish", "Itur-Addu", "Mukishite"),
   Aleppo: d("Halab", "the king of Halab", "Halabite"),
   Ugarit: d("Ugarit", "Niqmaddu", "Ugaritic"),
   Nuhashshe: d("Nuhashshe", "Addu-nirari", "Nuhashshean"),
   Qadesh: d("Qadesh", "Aitakama", "Qadeshite"),
   Qatna: d("Qatna", "Akizzi", "Qatnean"),
-  Arwad: d("Arwad", "the king of Arwad", "Arwadite"),
+  Arwad: d("Arwada", "the king of Arwada", "Arwadite"),
   Amurru: d("Amurru", "Aziru", "Amorite"),
-  Byblos: d("Byblos", "Rib-Hadda", "Byblian"),
-  Sidon: d("Sidon", "Zimrida", "Sidonian"),
+  Byblos: d("Gubla", "Rib-Hadda", "Byblian"),
+  Sidon: d("Ṣiduna", "Zimrida", "Sidonian"),
   Damascus: d("Upe", "Biryawaza", "Damascene"),
-  Tyre: d("Tyre", "Abi-Milku", "Tyrian"),
-  Megiddo: d("Megiddo", "Biridiya", "Megiddite"),
-  Shechem: d("Shechem", "Labaya", "Shechemite"),
-  Jerusalem: d("Jerusalem", "Abdi-Heba", "Jerusalemite"),
+  Tyre: d("Ṣurru", "Abi-Milku", "Tyrian"),
+  Megiddo: d("Magidda", "Biridiya", "Megiddite"),
+  Shechem: d("Shakmu", "Labaya", "Shechemite"),
+  Jerusalem: d("Urusalim", "Abdi-Heba", "Jerusalemite"),
   // Item 11c's six cities of Canaan, their rulers from the politics dossier (EA 8, 227-228, 245, 280-290, 320-326)
-  Akko: d("Akko", "Surata", "Akkoite"),
-  Hazor: d("Hazor", "Abdi-Tirshi", "Hazorite"),
-  Gezer: d("Gezer", "Milkilu", "Gezerite"),
-  Ashkelon: d("Ashkelon", "Yidya", "Ashkelonite"),
-  Lachish: d("Lachish", "Zimreddi", "Lachishite"),
+  Akko: d("Akka", "Surata", "Akkoite"),
+  Hazor: d("Hasura", "Abdi-Tirshi", "Hazorite"),
+  Gezer: d("Gazru", "Milkilu", "Gezerite"),
+  Ashkelon: d("Ashqaluna", "Yidya", "Ashkelonite"),
+  Lachish: d("Lakisha", "Zimreddi", "Lachishite"),
   // Item 17+: Shuwardata's land centred on Gath, his likely seat (Gimti in the letters; Hebron had no town in the Late
   // Bronze Age), and the Lady of the Lions, Baʿlat-nese, who wrote to Pharaoh from the Aijalon valley (EA 273-274). Suhu,
   // which the dossiers do not show as a polity in 1346, is Babylonia's land.
@@ -227,7 +233,7 @@ function dataOf(p: Power): PowerData {
   if (fixed !== undefined) return fixed;
   const r = risenData.get(p);
   // A risen power is named by its land, so a page that has not seen it rise still names it.
-  return d(r?.land ?? p, r?.king ?? `the ruler of ${p}`, r?.land ?? p);
+  return d(r?.land ?? p, r?.king ?? `the ruler of ${p}`, r?.land ?? p, "City");
 }
 
 /** The land's name as it appears in letters. */
@@ -235,9 +241,23 @@ export function land(p: Power): string {
   return dataOf(p).land;
 }
 
-/** The reigning king (or chief), by the names the letters use. */
+/** The reigning king (or chief), by the names the letters use: what foreign courts call him. */
 export function king(p: Power): string {
   return dataOf(p).king;
+}
+
+/**
+ * The king's name as a court uses it (item 17+): his own seat by the name his own court uses (Akhenaten), every other
+ * court and every letter by the letters' name (Naphurureya). A viewer of null is the world's record, which uses the letters'.
+ */
+export function kingFor(viewer: Power | null, p: Power): string {
+  const x = dataOf(p);
+  return viewer === p && x.home !== null ? x.home : x.king;
+}
+
+/** A king's other names, shown only on his card when one clicks him, never in a letter, report or request (item 17+). */
+export function kingOtherNames(p: Power): readonly string[] {
+  return dataOf(p).others;
 }
 
 /** Whether the sources name the ruler: an unnamed one is "the king of ...", and is written so. */

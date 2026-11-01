@@ -88,7 +88,29 @@ Each with the principle it rests on ("Reason from the pillars").
     the Shasu 1); none is a Great King's capital, so the builder rules' balance exception does not apply and nothing is
     tuned ("Balance: first guesses during the build, tuning at the end").
 
+18. **One name a place, and the letters' form first:** every province's shown name is the letters' Akkadian form where the
+    letters name it, else the period's own tongue, else a description, as "Places by their own names" orders them; each
+    is graded in `docs/design/46-the-opening-as-it-stood.md` [A for the letters' forms; B for Gimti, Shushan, Urim,
+    Samuha's and Washukanni's sites]. Egypt's own places take the Egyptian form (Waset, Men-nefer, Ta-Mehu, Kush), as the
+    section's own examples do, though the letters know Memphis as Hikuptah: one name a place, and the Egyptian seat's own.
+19. **The Great Kings' realms keep the design document's names** (Egypt, Hatti, Karduniash, Mitanni, Assyria, Arzawa,
+    Alashiya): the document names them so in every section, the power ids are these names, and the section's examples are
+    all places within realms; Miṣri for Egypt or Aššur for Assyria would be a change of the document's own vocabulary, so
+    it goes to Haakon as a matter of taste (question 1).
+20. **The seas by description** (the Western Sea, the Eastern Sea, the Gulf): the Greek names (the Aegean, the Red Sea) are
+    later; the Egyptians' "Great Green" names the whole sea. The waters off a coast take the coast's name.
+21. **Pharaoh's father** is Nimmureya to foreign courts, as the letters write him; nothing in the game names him yet (no
+    legend or request does), so the rule is kept for the first text that will.
+22. **The modern name reaches the human player** on the province card's second line and the models through the rulebook's
+    list of provinces, which already lists each place once (the gazetteer); the README names the renamed places once.
+
 ## Design questions
+
+1. **Should the seven Great Kings' realms take the period forms too** (Miṣri for Egypt, Aššur for Assyria), or keep the
+   names the design document uses throughout (Egypt, Hatti, Karduniash, Mitanni, Assyria, Arzawa, Alashiya)? Reading
+   taken: keep them, since the document itself names them so and the section's examples are places within realms.
+   Alternative: Miṣri, Aššur (Hatti, Karduniash, Mitanni, Arzawa and Alashiya are period forms already). Answerable with
+   "keep" or "period".
 
 (Filled in as the item proceeds; each checked against "The game in one page" and the item's sections first.)
 
@@ -97,3 +119,82 @@ Each with the principle it rests on ("Reason from the pillars").
 20 games, seed 1, `--verify-replay`, develop as the item started: a capital fell in 20 of 20 games (339 kingdoms fell in
 all); the first fall in season 3.5 on the median; a kingdom fallen in the first two seasons in 7 of 20 (Lukka 5, Suteans 3,
 Shasu 1); Egypt fell in 0, Hatti 3, Babylonia 0, Mitanni 3, Assyria 9, Arzawa 3, Alashiya 0. After: below.
+
+## The people of 1346 who did not rule: every name weighed
+
+Each name passes two tests or is left out: the historical (active in 1346, placeable, graded) and the game's (he starts
+on an errand the game can carry out, or with a stake in a province's love, and adds play rather than noise and model
+calls). "Post" means employed by his court from the first season, his post his job; "stake" means a free man at a court
+with a claim or a town of his own, which item 17++'s ledger seeds. Kings, queens and princes stay out as before. What the
+sources say of each is his traits (`core`), never a script. Sources: the people dossier, the courts dossier, the letters'
+index of persons (Moran).
+
+| Name | Where in 1346, and what the sources say | In the game | Taken? |
+| --- | --- | --- | --- |
+| Ay | God's Father, Master of the Horse, at Akhetaten (his tomb) [A] | Egypt's post: the chariotry and the king's household; able, ambitious, rich | taken |
+| Nakht | Vizier at Akhetaten (his house) [B] | Egypt's post: vizier; competent, loyal | taken |
+| Panehesy | Chief servitor of the Aten (his tomb) [A]; a Nubian name [C] | Egypt's post: priest of the Aten | taken |
+| Huya | Steward of Queen Tiye (his tomb) [A] | Egypt's post: steward of the queen mother | taken |
+| Thutmose | Viceroy of Kush, named on the Buhen and Amada stelae [A] | Egypt's post: King's Son of Kush, origin Kush; item 17++ gives him Kush as his grant | taken |
+| Paatenemheb | A general of Akhenaten's (his Amarna tomb) [B] | Egypt's post: general, who may be granted an army | taken |
+| Ramose | A general's Amarna tomb [B] | one general is enough for the cast | left |
+| Meryra I, Meryra II | High priest of the Aten; overseer of the harem (their tombs) [A] | no errand the game carries: the cult and the harem | left |
+| Pahanate (Pahamnata) | Commissioner at Sumur (EA 60, 62, 68) [A; doubt in 1346] | Egypt's post: commissioner at Ṣumur | taken |
+| Pawura (Pihuru) | Commissioner in the north, with troops (EA 117, 124, 131-132, 287, 362) [A; doubt] | Egypt's post: commissioner, origin Gubla | taken |
+| Ha'ip | The official who handed Sumur to Abdi-Ashirta's sons, Rib-Hadda says (EA 132) [A] | Egypt's post: commissioner; greedy, disloyal by Rib-Hadda's account | taken |
+| Rianap | Commissioner, Gezer's and the south's (EA 292, 315-326) [A; likely] | Egypt's post: commissioner, origin Hazzatu | taken |
+| Tahmashshi | Commissioner, Tagi writes to him (EA 265) [A; likely] | Egypt's post: commissioner | taken |
+| Hatip | The official who came with Hani to Amurru and took the gold, Aziru says (EA 161) [A] | Egypt's post: royal envoy; greedy | taken |
+| Amanmasha | An official with Rib-Hadda (EA 113-114) [A] | one more Egyptian in the north adds little beside Amanappa | left |
+| Shuta | A name of Egypt's envoys in Tushratta's letters, its reading unsure [C] | not placeable with confidence | left |
+| The scribes of the Place of the Letters | Unnamed [A] | the court scribes already stand for them | left |
+| Nefertiti, Tiye, Meritaten, Kiya, Tadukhepa | The royal women [A] | queens and princesses stay out | left |
+| Hekanefer | Prince of Miam (in since item 10) [B] | as before | in |
+| Zida | Chief of the bodyguard, Suppiluliuma's brother, who led armies (the Deeds) [A] | Hatti's post: chief of the bodyguard; brave, loyal | taken |
+| Lupakki | General (in since item 10) [A] | as before | in |
+| Hattusa-ziti | Chamberlain and envoy, later [A, later] | a generation on | left |
+| Arnuwanda, Telipinu, Piyassili, Mursili, Zannanza | The king's sons [A] | princes stay out | left |
+| The chief scribe | Unnamed in 1346 | the court scribe stands for him | left |
+| Artatama II | Rival king of the Hurrians, with Hittite backing (the Shattiwaza treaty) [A; B the timing] | a claimant: free at Mitanni's court with a stake in Mitanni's love; proud, ambitious, disloyal to Tushratta | taken |
+| Shuttarna III | Artatama's son, who later hands the treasure to Assyria and Alshe [A; likely] | his father's heir: free with the same stake; greedy, cunning | taken |
+| Kili-Teshup (Shattiwaza) | Tushratta's son [A] | a prince | left |
+| Akit-Teshup (Mitanni) | A noble who fled to Babylon with chariots, later [A, later] | a generation on | left |
+| Iuni, Gilukhepa | The queen and the king's sister [A] | out | left |
+| Enlil-kidinni | Governor of Nippur (the Nippur letters) [A] | Babylonia's post: governor of Nippur; item 17++ gives him Nippur as his grant | taken |
+| Ili-ippashra | Governor of Dilmun, writing to Enlil-kidinni [B] | Babylonia's post: governor of Dilmun, origin Dilmun | taken |
+| Shindishugab | Burna-Buriash's envoy to Egypt (EA 11) [B] | Babylonia's post: royal envoy | taken |
+| The sukkallu, the diviner | Unnamed offices [B] | no name to place | left |
+| Kurigalzu, the bride | The king's kin [A] | out | left |
+| Assyria's envoys | Kept standing in the sun in Egypt, unnamed (EA 16) [A] | two of Assyria's post: royal envoys, named in the Assyrian style [G], come home with the fact of it | taken |
+| Muballitat-Sherua, Enlil-nirari | The king's kin [A] | out | left |
+| Kalbaya, Irshappa | Envoys (in since item 10) [A; doubt] | as before | in |
+| Tarhundaradu's scribe | Writes a personal note to Pharaoh's scribe (EA 32) [A] | the court scribe stands for him | left |
+| The governor of Alashiya | Writes to his Egyptian counterpart (EA 40) [A] | Alashiya's post: the governor, named in the Cypriot style (Eshuwara, a later governor's name [C]); item 17++ gives him his grant | taken |
+| The king's merchants, the eagle diviner | Unnamed (EA 35, 39) [A] | the styled merchants stand for them | left |
+| Ilirabih (Ili-rapih) | Rib-Hadda's brother, who shut him out of Gubla (EA 137-140, 162) [A; B the brother] | a claimant: free at Gubla with a stake in its love; ambitious, disloyal to Rib-Hadda | taken |
+| Pu-Baʿlu | Son of Abdi-Ashirta, Aziru's brother (EA 104, 132) [A] | free at Amurru with a stake in Amurru's love, Aziru's brother and rival; bold | taken |
+| Baʿluya (Baaluya) | Aziru's brother, who wrote to him while he was held in Egypt (EA 170) [A] | free at Amurru with the same stake; loyal to the house | taken |
+| Bet-ili | Another writer of EA 170 [A] | a third brother of one house is noise | left |
+| Akit-Teshup (Niya) | Takuwa's brother, who turned Niya against him and Hatti (the Shattiwaza treaty) [A] | a claimant: free at Niya with a stake; ambitious | taken |
+| Tagi | Labaya's ally, who ruled his own town, Ginti-kirmil, in the Carmel region (EA 249, 264-266) [A] | a town's ruler: free at Magidda with a stake in Magidda's love and a purse of his own; cunning | taken |
+| Yashdata | Driven from his town by Labaya's men, with Biridiya at Megiddo (EA 245, 248) [A] | a dispossessed town ruler: free at Magidda with a stake; aggrieved, brave | taken |
+| Endaruta | Ruler of Akshapa, near Akko (EA 223, 366) [A] | a town's ruler: free at Akka with a stake | taken |
+| Shum-Adda son of Balumme | A man of Akko who killed Babylon's merchants at Hinnatuna (EA 8) [A] | free at Akka; greedy, violent | taken |
+| Shutatna (Zatatna) son of Surata | A man of Akko, with Shum-Adda; later Akko's ruler (EA 8) [A] | free at Akka; the ruler's son, with a stake | taken |
+| Yapah-Hadda | Rib-Hadda's enemy on the coast, siding with Aziru (EA 83, 85, 98, 113-114, 116) [A; C which town] | free at Ṣiduna with a stake on the coast; hostile to Rib-Hadda | taken |
+| Arzawiya of Ruhizzi | With Aitakama against Pharaoh's land in Upe (EA 53-54, 191, 197) [A] | a town's ruler: free at Dimashqa with a stake in Upe's love, leaning to Qadesh | taken |
+| Teuwatti of Lapana | The same (EA 53-54, 193) [A] | the same | taken |
+| Biridashwa of Yanuamu | Took Biryawaza's chariots, with Arzawiya (EA 197) [A] | a town's ruler: free at Ashtartu with a stake | taken |
+| Abdi-Risha, Shatiya of Enishasi | Rulers of a Beqaa town (EA 187, 363) [A] | Upe already has two town rulers; a third adds noise | left |
+| Zitriyara, Bayadi, Shubandu, Rusmanya, Dagan-takala, Hiziru, Shamu-Adda, Baʿlu-mehir | Vassals whose towns cannot be placed [A the letters; S the place] | not placeable | left |
+| Pu-Baʿlu of Yurza | A ruler near Gaza (EA 314-316) [A] | Yurza unplaced; a name shared with Aziru's brother | left |
+| Yabni-ilu, Shipti-Baʿlu | Lachish's rulers beside Zimreddi (EA 328-332) [A] | rulers in sequence; the seat's is Zimreddi | left |
+| Yapahu | Milkilu's brother and successor at Gezer (EA 297-300) [A; B in 1346] | free at Gazru with a stake, the ruler's brother | taken |
+| Baʿlu-shipti, Addu-danu | Of Gezer (EA 292-294) [A] | one claimant at Gezer is enough | left |
+| Abdi-Ashtarti | A southern vassal, perhaps Shuwardata's successor (EA 63-65) [C] | unplaced | left |
+| Labaya's other son | Unnamed (EA 250) [A] | out | left |
+| Abdi-Heba's scribe | Trained in north Syria, by his hand (EA 286-289) [B] | Urusalim's court scribe, attested, named in the north Syrian style [G] in place of the generated one | taken |
+| Ilimilku | Scribe at Ugarit (in since item 10, but at Hatti's court) [A] | moved to Ugarit's court, where he wrote | in, corrected |
+| Shutatarra | Aitakama's father, dead or old (EA 189) [A] | out | left |
+| Heba | Perhaps Niqmaddu's queen (EA 48) [C] | out | left |
+| The captains of the Nubian garrisons | Unnamed (EA 287 and others) [A] | the two generated captains stand for them, as before | in |

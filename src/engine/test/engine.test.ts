@@ -216,7 +216,7 @@ describe("EngineTests", () => {
 
   test("Greeting formula and deviations", () => {
     let std = Greeting.render("Mitanni", "Egypt", newGreetingOptions());
-    Assert.startsWith("Say to Napkhururiya, Great King, king of Egypt, my brother: thus says Tushratta", std);
+    Assert.startsWith("Say to Naphurureya, Great King, king of Egypt, my brother: thus says Tushratta", std);
     Assert.contains("your chariots, your horses", std);
 
     let cold = Greeting.render("Assyria", "Babylonia", newGreetingOptions({ callBrother: false, grantGreatKing: false, senderFirst: true }));

@@ -49,18 +49,18 @@ export const FirstCores: ReadonlyMap<string, Core> = new Map<string, Core>([
 
 /** The attested people added to the pool, in the dossier's order. */
 export const AttestedCast: readonly CastSeed[] = [
-  cast("Hani", "Thebes", "Egypt", "royal envoy", { loyalty: 75, competence: 70 }),
+  cast("Hani", "Waset", "Egypt", "royal envoy", { loyalty: 75, competence: 70 }),
   cast("Tutu", "Akhetaten", "Egypt", "chamberlain", { greed: 70, competence: 70, ambition: 70, loyalty: 45 }),
   cast("Mahu", "Akhetaten", "Egypt", "chief of the Medjay", { courage: 75, loyalty: 70, competence: 65 }),
-  cast("Amanappa", "Memphis", "Egypt", "palace official", { loyalty: 55 }),
-  cast("Haya", "Memphis", "Egypt", "commissioner", { competence: 60 }),
-  cast("Maya", "Thebes", "Egypt", "commissioner"),
-  cast("Addaya", "Gaza", "Egypt", "commissioner at Gaza", { greed: 60 }),
-  cast("Irshappa", "Memphis", "Egypt", "royal envoy"),
+  cast("Amanappa", "Men-nefer", "Egypt", "palace official", { loyalty: 55 }),
+  cast("Haya", "Men-nefer", "Egypt", "commissioner", { competence: 60 }),
+  cast("Maya", "Waset", "Egypt", "commissioner"),
+  cast("Addaya", "Hazzatu", "Egypt", "commissioner at Gaza", { greed: 60 }),
+  cast("Irshappa", "Men-nefer", "Egypt", "royal envoy"),
   cast("Asali", "Washukanni", "Mitanni", "royal envoy"),
   // His caravan was robbed twice in Egypt's lands (EA 7): he kept going.
-  cast("Salmu", "Babylon", "Babylonia", "royal envoy", { courage: 70, loyalty: 70 }),
-  cast("Ahutabu", "Babylon", "Babylonia", "caravan master", { courage: 60 }),
+  cast("Salmu", "Babili", "Babylonia", "royal envoy", { courage: 70, loyalty: 70 }),
+  cast("Ahutabu", "Babili", "Babylonia", "caravan master", { courage: 60 }),
   cast("Kalbaya", "Apasa", "Arzawa", "royal envoy", { competence: 60 }),
   cast("Lupakki", "Hattusa", "Hatti", "general", { courage: 80, ambition: 65, loyalty: 70 }),
   cast("Ilimilku", "Ugarit", "Hatti", "scribe", { competence: 80, loyalty: 60, courage: 35 }),
@@ -84,19 +84,19 @@ export const NubiansAttested: ReadonlySet<string> = new Set(["Hekanefer"]);
 export const Styles: readonly { court: Power; origins: readonly string[]; names: readonly string[]; callings: readonly string[] }[] = [
   {
     court: "Egypt",
-    origins: ["Thebes", "Memphis", "Akhetaten", "Byblos", "Gaza"],
+    origins: ["Waset", "Men-nefer", "Akhetaten", "Gubla", "Hazzatu"],
     names: ["Ramose", "Ptahmose", "Paatenemheb", "Penre", "Amenemope", "Thutmose", "Abdi-Ashtarti", "Yapahu"],
     callings: ["scribe of the treasury", "caravan master", "interpreter", "temple scribe", "soldier", "merchant of the coast"],
   },
   {
     court: "Babylonia",
-    origins: ["Babylon", "Nippur", "Sippar"],
+    origins: ["Babili", "Nippur", "Sippar"],
     names: ["Marduk-nadin-ahhe", "Nabu-zuqup", "Kadashman-Harbe", "Kudur-Enlil", "Shagarakti"],
     callings: ["merchant", "temple scribe", "caravan master", "priest of Shamash"],
   },
   {
     court: "Assyria",
-    origins: ["Ashur", "Nineveh", "Arbela"],
+    origins: ["Ashur", "Ninua", "Arbail"],
     names: ["Adad-iddina", "Ninurta-apil", "Enlil-ashared", "Ashur-iddin"],
     callings: ["merchant", "charioteer", "palace steward"],
   },
@@ -108,7 +108,7 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   },
   {
     court: "Hatti",
-    origins: ["Hattusa", "Kummanni", "Carchemish", "Ugarit"],
+    origins: ["Hattusa", "Kummanni", "Karkamish", "Ugarit"],
     names: ["Kurunta", "Tarhunta-piya", "Hutupiyanza", "Yarimanu", "Pihha-ziti"],
     callings: ["soldier", "temple scribe", "merchant", "charioteer"],
   },
@@ -120,7 +120,7 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   },
   {
     court: "Alashiya",
-    origins: ["Enkomi", "Kition"],
+    origins: ["the harbour of Alashiya", "the copper hills of Alashiya"],
     names: ["Eshuwara", "Kushmeshu-ziti", "Tamarisa"],
     callings: ["copper trader", "sailor", "merchant"],
   },
@@ -128,19 +128,19 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   // Elam, the Suteans (West Semitic, as the Levant) and, where no names survive, Kaska and Lukka in the Anatolian style [G].
   {
     court: "Byblos",
-    origins: ["Byblos", "Beirut", "Sidon", "Tyre"],
+    origins: ["Gubla", "Biruta", "Ṣiduna", "Ṣurru"],
     names: ["Zimri-Addu", "Abdi-Baalu", "Ilu-rapi", "Shum-Hadda", "Milku-ahi"],
     callings: ["merchant of the coast", "sailor", "scribe", "timber trader"],
   },
   {
     court: "Megiddo",
-    origins: ["Megiddo", "Shechem", "Jerusalem", "Hazor", "Akko", "Gezer", "Lachish", "Ashkelon", "Pella", "Ashtaroth", "Gath", "Aijalon"],
+    origins: ["Magidda", "Shakmu", "Urusalim", "Hasura", "Akka", "Gazru", "Lakisha", "Ashqaluna", "Pihil", "Ashtartu", "Gimti", "Ayyaluna"],
     names: ["Ammu-rapi", "Hadda-yaqar", "Zimri-Baalu", "Abdi-Rasha"],
     callings: ["caravan master", "soldier", "scribe", "herdsman"],
   },
   {
     court: "Aleppo",
-    origins: ["Aleppo", "Alalakh", "Qatna", "Carchemish", "Niya", "Tunip"],
+    origins: ["Halab", "Alalakh", "Qatna", "Karkamish", "Niya", "Tunip"],
     names: ["Akit-Teshup", "Kili-Teshup", "Addu-mutu", "Shatu-ili"],
     callings: ["charioteer", "merchant", "interpreter", "scribe"],
   },
@@ -152,7 +152,7 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   },
   {
     court: "Damascus",
-    origins: ["Damascus", "Qadesh", "Kumidi"],
+    origins: ["Dimashqa", "Qadesh", "Kumidi"],
     names: ["Addu-bani", "Shuttiya"],
     callings: ["caravan master", "soldier"],
   },
@@ -164,7 +164,7 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   },
   {
     court: "Elam",
-    origins: ["Susa", "Anshan"],
+    origins: ["Shushan", "Anshan"],
     names: ["Pahir-ili", "Humban-ahpi", "Kutir-Huban"],
     callings: ["merchant", "soldier", "scribe"],
   },

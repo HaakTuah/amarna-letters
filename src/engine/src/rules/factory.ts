@@ -144,31 +144,31 @@ const seed = (name: string, origin: string, attested: boolean): Seed => ({ name,
 
 // Names attested in the Amarna letters (envoys and officials), then regional name styles.
 const Attested: Seed[] = [
-  seed("Mane", "Thebes", true),
+  seed("Mane", "Waset", true),
   seed("Keliya", "Washukanni", true),
   seed("Pirissi", "Washukanni", true),
   seed("Tulubri", "Taidu", true),
-  seed("Haamashshi", "Memphis", true),
+  seed("Haamashshi", "Men-nefer", true),
   seed("Artessupa", "Washukanni", true),
   seed("Mazipalali", "Harran", true),
-  seed("Yanhamu", "Byblos", true),
+  seed("Yanhamu", "Gubla", true),
 ];
 
 const Styled: Seed[] = [
-  seed("Paser", "Memphis", false),
-  seed("Nakhtmin", "Thebes", false),
-  seed("Ili-iddina", "Babylon", false),
+  seed("Paser", "Men-nefer", false),
+  seed("Nakhtmin", "Waset", false),
+  seed("Ili-iddina", "Babili", false),
   seed("Kidin-Adad", "Nippur", false),
   seed("Ubaru", "Sippar", false),
   seed("Tattamaru", "Hattusa", false),
   seed("Pihhuniya", "Nesa", false),
-  seed("Ehli-Teshub", "Carchemish", false),
+  seed("Ehli-Teshub", "Karkamish", false),
   seed("Tehip-tilla", "Arrapha", false),
   seed("Ashur-nadin", "Ashur", false),
-  seed("Sin-iqisham", "Nineveh", false),
-  seed("Abdi-Milki", "Tyre", false),
+  seed("Sin-iqisham", "Ninua", false),
+  seed("Abdi-Milki", "Ṣurru", false),
   seed("Ammistamru", "Ugarit", false),
-  seed("Kushmeshu", "Enkomi", false),
+  seed("Kushmeshu", "the harbour of Alashiya", false),
   seed("Piyamaradu", "Apasa", false),
   seed("Zitanza", "Lukka", false),
 ];
@@ -341,7 +341,7 @@ function more(s: GameState, unused: Seed[]): void {
 
 /** The court of a first-pool origin, for an attested envoy left over from the first draw. */
 function courtOf(origin: string): Power {
-  return origin === "Thebes" || origin === "Memphis" || origin === "Byblos" ? "Egypt" : origin === "Harran" || origin === "Washukanni" || origin === "Taidu" ? "Mitanni" : "Egypt";
+  return origin === "Waset" || origin === "Men-nefer" || origin === "Gubla" ? "Egypt" : origin === "Harran" || origin === "Washukanni" || origin === "Taidu" ? "Mitanni" : "Egypt";
 }
 
 /**

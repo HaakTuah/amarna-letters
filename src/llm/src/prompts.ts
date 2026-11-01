@@ -17,6 +17,7 @@ import {
   groupBy,
   isEnvoyWaiting,
   king,
+  kingFor,
   land,
   landGrowth,
   sortBy,
@@ -43,7 +44,7 @@ import {
 import { economyLines, worksLines } from "./prompt-economy.ts";
 import { Sb, joinS } from "./text.ts";
 export function identity(p: Power): string {
-  return `You are ${king(p)}, Great King of ${land(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
+  return `You are ${kingFor(p, p)}, Great King of ${land(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
 }
 
     /// <summary>

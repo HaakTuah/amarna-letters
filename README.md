@@ -171,7 +171,18 @@ own, varied a little in every game.
 | **Arzawa** | Apasa | Weak | an army of 10,000 men in Apasa, a fleet in Apasa's waters, 300 shekels | "The western opportunist": the most cunning and least honest |
 | **Alashiya** | the harbour of Alashiya | Weak | armies in its harbour town and the copper hills, a fleet in its waters, 400 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
 
-Between the great kingdoms lie the city-states, such as Ugarit, Byblos, Qadesh and Elam, and the Kaska,
+**Places by their own names.** The map, the seat view and every letter and request name each place as the sources of
+1346 do: the Amarna letters' form where they name it (Dimashqa for Damascus, Gubla for Byblos, Ṣurru and Ṣiduna for Tyre
+and Sidon, Urusalim for Jerusalem, Magidda, Shakmu, Hasura, Gazru, Akka, Ashqaluna, Lakisha, Gimti for Gath, Ayyaluna
+for the Aijalon valley, Pihil for Pella, Ashtartu, Hazzatu for Gaza, Biruta, Arwada, Ṣumur, Halab for Aleppo, Karkamish,
+Babili for Babylon, Urim for Ur, Ninua and Arbail for Nineveh and Arbela, Shushan for Susa), otherwise the period's
+Egyptian or Hittite (Waset for Thebes, Men-nefer for Memphis, Ta-Mehu for the Delta, Kush for Nubia, the Ways of Horus for
+the north Sinai, Hayasa, the land of the Tjehenu for Libya, Seir for the Shasu's land); a place with no name of the period
+is named by description (the copper hills and the harbour of Alashiya, the plateau beyond the Salt Sea). The modern name
+is on the second line of the province card. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
+in Egypt's own seat; his other names are on his card.
+
+Between the great kingdoms lie the city-states, such as Ugarit, Gubla, Qadesh and Elam, and the Kaska,
 Lukka, Shasu and Sutean chiefs: forty powers of their own, most of them vassals of Egypt or Mitanni (a few of Hatti
 or Arzawa) by sealed tablets, with the same rules and the same goal as the kings. Alashiya is an island, reached only by sea.
 

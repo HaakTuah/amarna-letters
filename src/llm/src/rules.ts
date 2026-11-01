@@ -23,6 +23,7 @@ import {
   MaxClauses,
   serialize,
   terrainOf,
+  modernOf,
   type GameConfig,
 } from "@amarna/engine";
 import { Sb, joinS } from "./text.ts";
@@ -208,7 +209,7 @@ Every king knows these customs, and knows that every other king knows them. They
         {
             const coasts = p.isSea ? map.coastsOf(p.id).map((x) => x.id) : [];
             const kind = p.isSea ? (coasts.length > 0 ? `sea zone, the waters of ${joinS(` and `, coasts)}` : `sea zone`) : p.isCoastal ? `coast; waters ${p.waters}` : `land`;
-            const home = (p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : `held by no one`) + (p.kingless ? `; a land without a town` : ``);
+            const home = (p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : `held by no one`) + (p.kingless ? `; a land without a town` : ``) + (modernOf(p.id) !== null ? `; today ${modernOf(p.id)}` : ``);
             const armies = p.isSea ? `` : ` armies: ${joinS(`, `, map.movesFrom("Army", p.id).map(n => link(p.id, n)))}.`;
             const fleets = p.isSea || p.isCoastal ? ` fleets: ${joinS(`, `, map.movesFrom("Fleet", p.id).map(n => link(p.id, n)))}.` : ``;
             const w = StartWalls.get(p.id) ?? 0;

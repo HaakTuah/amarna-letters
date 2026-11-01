@@ -9,7 +9,7 @@ import { reapSeasonOf } from "../model/geography.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
+import { AllPowers, cmpPower, king, kingFor, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
@@ -185,7 +185,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     turn: s.turn,
     season: season(s.turn, p),
     power: p,
-    king: king(p),
+    king: kingFor(p, p),
     courtAt: courtOf(s, m, p),
     courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
     governors: s.governors.filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),

@@ -62,3 +62,25 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
 - The borders are regenerated (`node --experimental-strip-types scripts/map-borders.ts`), with no disagreement between the
   drawing and the connections, as item 11f+ requires; the Jordan cases in `docs/design/36-map-neighbours.md` are read
   with this note.
+
+## Places and people by their own names (`model/map.ts`, `model/power.ts`, `rules/cast.ts`, `model/languages.ts`)
+
+- **Every province's shown name** (`Province.name`) is the name the sources of 1346 use: the Amarna letters' form, as Moran
+  normalises it, where the letters name the place (Dimashqa, Gubla, Ṣurru, Ṣiduna, Urusalim, Magidda, Shakmu, Hasura,
+  Gazru, Akka, Ashqaluna, Lakisha, Gimti, Ayyaluna, Pihil, Ashtartu, Hazzatu, Biruta, Arwada, Ṣumur, Halab, Karkamish,
+  Babili, Ninua, Arbail); otherwise the period's own Egyptian, Hittite, Assyrian or Babylonian form (Waset, Men-nefer,
+  Ta-Mehu, Kush, the Ways of Horus, Hayasa, Urim, Shushan, the land of the Tjehenu, Seir); a place with no name of the
+  period is named by description (the copper hills and the harbour of Alashiya, the Sutean steppe, the Kaska lands, the
+  Western and the Eastern Sea, the Gulf, the plateau beyond the Salt Sea, drawn as no one's with its label). The waters
+  take their coasts' names. The ids stay (`damascus`, `byblos`), and so do the orders that name them.
+- **The modern name** (`ModernNames`, `modernOf`) is on the second line of the web's province card ("today Damascus") and in
+  the models' list of provinces in the rulebook, each place once ("today Damascus"), so a model can place it; never in a
+  letter, report or request. The README names the renamed places once.
+- **The powers' land names** (`land(p)`) follow: Gubla, Ṣurru, Karkamish, Hayasa, the land of the Tjehenu, the Kaska lands;
+  the Great Kings' realms keep the names the design document gives them (Egypt, Hatti, Karduniash, Mitanni, Assyria,
+  Arzawa, Alashiya): a reading, listed in the report.
+- **People by the same rule:** foreign courts and every letter call Pharaoh Naphurureya (`king("Egypt")`, Moran's form, in
+  place of the old Napkhururiya); Egypt's own seat says Akhenaten (`kingFor(viewer, p)`: the seat view's `king`, the
+  models' "You are ...", the web's court strip); his other names (`kingOtherNames`) are for his card alone. The cast's
+  origins are by their own names too (Waset, Men-nefer, Gubla), and the place-name map (`OriginProvince`) knows them.
+- **Only what stood in 1346 is drawn as standing:** above, under the map.

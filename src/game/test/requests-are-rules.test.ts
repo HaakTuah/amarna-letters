@@ -204,7 +204,7 @@ describe("RequestsAreRulesTests", () => {
     let call = Assert.single(asker.calls);
     let user = call.user;
     Assert.contains("He dismissed you while you were away, so he is no longer your lord, but you report to him on the mission he gave you.", user);
-    Assert.contains("You carry back gold the king sent Napkhururiya", user);
+    Assert.contains("You carry back gold the king sent Naphurureya", user);
     Assert.contains("Write your report to him now.", user);
     Assert.doesNotContain("home at the court of your lord", user);
     Assert.doesNotContain("sent your lord", user);
@@ -279,7 +279,7 @@ describe("RequestsAreRulesTests", () => {
       }),
     );
 
-    Assert.startsWith("You have arrived at the court of the King of Alashiya, as the envoy of Napkhururiya of Egypt.", asker.calls[0].user);
+    Assert.startsWith("You have arrived at the court of the King of Alashiya, as the envoy of Naphurureya of Egypt.", asker.calls[0].user);
     Assert.startsWith("You are home at the court of your lord, the King of Alashiya.", asker.calls[1].user);
     Assert.all(asker.calls, (c) => Assert.doesNotContain("Alashiya of Alashiya", c.user));
     Assert.all(asker.calls, (c) => Assert.doesNotContain("Alashiya, king of Alashiya", c.user));
