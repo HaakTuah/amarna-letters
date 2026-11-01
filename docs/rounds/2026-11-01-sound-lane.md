@@ -216,3 +216,7 @@ seat's map until word arrives."
   orchestrator.
 - **Test** (`map-known.test.ts`): Egypt's city taken out of its sight keeps its houses and its hunger as of the last
   season Egypt held it until word arrives, then leaves its map; held and known, as it is; god view and the taker, as it is.
+- **Review** (Codex, `@codex review`, the first PR of this lane reviewed by the other company's model,
+  `docs/claude-and-codex.md`): round 1, 9/10, one blocking point: the README did not yet say what the player now sees;
+  fixed (the living map: a distant city stands as you last knew it until the news reaches you). Round 2: no issues.
+  `Review: interface · Claude · 9, 10`.
