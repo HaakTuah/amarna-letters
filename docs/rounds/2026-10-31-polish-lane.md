@@ -39,14 +39,10 @@ Prefer the cheapest approach that does the job well").
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
 - `src/web/src/components/orders/TreasurySection.tsx` gives a unit away (`giftUnit`) through `draft.other` too; #269's fix
   to the draft covers it, but nobody has checked it in play.
-- "Strength is ten times the yield of the land it holds" (README.md:134; `docs/design/01-rules-as-implemented.md:282`,
-  `docs/design/07-script-kings/02-terms-used-below.md:10`) is stale against `src/engine/src/rules/scoring.ts:15-21`:
-  strength is 10 × the land's worth, its harvest at grain prices plus mines (`turn/economy.ts:829-836`), about three
-  times the map's yield. The Standings tab uses "yield" for both the map's base yield ("Land yield") and that worth
-  ("Homeland yield", "10 × its homeland yield"). Found by #309's reviewer; left for a docs PR that checks the formula.
 
 Fixed since they were listed here: the Standings tab's leak of distant holders (#297), the seat menu at 390 px (#303),
-`who-decides.test.ts`'s slow "Planning" tests (#302), and the timeline's label against the header's season (its own PR).
+`who-decides.test.ts`'s slow "Planning" tests (#302), the timeline's label against the header's season (#307), and
+"ten times the yield" for strength in the README, the Standings tab and the design notes (#310).
 
 ## Handed to the item lane (they change what models read)
 
@@ -54,6 +50,11 @@ Fixed since they were listed here: the Standings tab's leak of distant holders (
   way", `rules/views.ts:356`), batch 2's ids in engine text ("commanding an army in lukka", `rules/views.ts:773`; "pay
   c12 the rest…"; "c100 let debt d64 pass its season", `turn/money.ts:244`), and fractional treasuries reaching
   `formatMoney` in model text.
+
+- The models' opening lines say "Its starting strength is 10 x its homeland yield + its treasury"
+  (`src/llm/src/rules.ts:224`), while THE MAP lists each province's base "yield" and strength counts what the land
+  produces in a season (`rules/scoring.ts`, the rulebook's own HOW YOU WIN line) plus holdings: "yield" there means two
+  numbers. A model request, so left to the item lane.
 
 ## For the design session
 
