@@ -309,7 +309,6 @@ function seasonEntries(e: TurnEngine): void {
     const over = idiv((e.taxRate(prov.id) - EconomyData.taxPercent) * D.tax, 10);
     if (over > 0) e.take(prov.id, hand, over);
     else e.give(prov.id, hand, idiv(-over * seen, 100));
-    if (hand !== holder) e.give(prov.id, hand, D.rule);
   }
 }
 

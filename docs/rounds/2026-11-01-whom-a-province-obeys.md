@@ -70,6 +70,14 @@ Each with the principle it rests on.
 13. **The force scale**: troops as many as a tenth of a province's men of fighting age weigh `force` 100, at most 200 [G];
     a full army (5,000) clears a median province (5,900 men) at the cap.
 
+14. **A court's own city changes hands only to a foe's troops standing in it** (a coup is not modelled, as item 17 read
+    it): it waits for item 17b ("A realm holds by its ledger"), which makes the capital wherever the court is.
+15. **Aziru's house stands for the villages gone over to the Habiru at Gubla** [B]: the Habiru there were the Amurru
+    brothers' men in the letters (EA 74-91), and the bands of the map are not a power that can hold land, so the share goes
+    to the house that led them.
+16. **The seat view's leak rides here** because the orchestrator's brief put it in 17++: it is the same question, which
+    provinces a court knows it holds, that this part's changes of hands make common.
+
 ## Design questions
 
 None. Everything the sections left open was settled by "The game in one page" and the pillars (readings above).

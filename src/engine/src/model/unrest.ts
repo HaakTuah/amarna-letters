@@ -9,8 +9,7 @@
  * a tax above the usual (`tax` points a season for each 10 points of rate above it, the hand that collects it). Givings: a
  * rival's gold among the people (`stir` a hundred shekels), the holder's troops standing in it (`troops` a season) or next
  * to it (`near`), policing (`policing` a level), a harvest left to people who ate in full (`harvest`), a tax below the
- * usual, a work built (`work` a level), a battle won in it for its holder (`victory`), and a governor's daily rule (`rule`
- * a season, to him: the hand they see). What the holder gives counts less the farther his court (`far` in a hundred a
+ * usual, a work built (`work` a level), a battle won in it for its holder (`victory`). What the holder gives counts less the farther his court (`far` in a hundred a
  * season of road beyond the first, at most `farMost`), except through a governor there.
  *
  * **It starts low** for a newcomer (nothing); the starting data says what history did: a native dynasty in its own
@@ -39,7 +38,6 @@ export const UnrestData = {
   harvest: 2,
   work: 10,
   victory: 10,
-  rule: 3,
   far: 15,
   farMost: 60,
   home: 100,

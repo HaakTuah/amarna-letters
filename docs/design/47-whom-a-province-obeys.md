@@ -15,8 +15,8 @@ first guess in `UnrestData` (`src/engine/src/model/unrest.ts`), tuned in item 18
   the share of the purse, against the sacker), a tax above the usual (`tax` 1 a season for each 10 points of rate above
   `EconomyData.taxPercent`, against the collector). **Givings**: a rival's gold spent by his spy (`stir` 25 a hundred
   shekels, to his master), the holder's troops in it (`troops` 4 a season) or next to it (`near` 1), policing (`policing` 2
-  a level), a harvest left to people who ate their fill (`harvest` 2), a tax below the usual, a governor's rule (`rule` 3, to
-  him). What the holder gives counts less the farther his court (`far` 15 in a hundred a season of road beyond the first,
+  a level), a harvest left to people who ate their fill (`harvest` 2), a tax below the usual, a work built in gold
+  (`work` 10, to its builder), a battle won in it by its holder's troops (`victory` 10). What the holder gives counts less the farther his court (`far` 15 in a hundred a season of road beyond the first,
   at most `farMost` 60), except through his governor there.
 - **The hand they see** (`handOf`): where a governor of the holder governs, the tax, levies and hunger are his, and the
   harvest left them is his credit; the troops and works stay the king's.

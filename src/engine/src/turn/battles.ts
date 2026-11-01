@@ -9,6 +9,7 @@ import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BattleData, battleLosses } from "../model/command.ts";
+import { UnrestData } from "../model/unrest.ts";
 import type { Power } from "../model/power.ts";
 import { AllPowers, land } from "../model/power.ts";
 import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
@@ -54,6 +55,8 @@ P.battles = function (result, sightBefore) {
     const [winner, loser, w, l] = f.won ? [a, d, f.attack, f.defence] : crushed ? [a, d, f.attack, f.own] : [d, a, f.defence, f.attack];
     const x = battleLosses(w, l);
     if (crushed) routedInPlace.push(d);
+    // Item 17++: a battle won in a province for its holder, by his own troops, is protection its people remember.
+    if (S.owner.getOrDefault(f.at, null) === winner.power) this.give(f.at, winner.power, UnrestData.victory);
     const loserLost = idiv(loser.men * x.loserPercent, 100);
     const winnerLost = Math.min(winner.men, idiv(loserLost * x.winnerShare, 100));
     lose(loser, loserLost, f.at);
