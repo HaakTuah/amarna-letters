@@ -64,8 +64,9 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
     men by a fresh count and ask a share by an old one (`corveeShares`, within `--count-play-half`). Rulebook
     (`rules-works.ts`), design note 48, README. Test: `works.test.ts`.
 14. **A governor's word checked against the king's own spy** (#459; queued into this part by the owner's answer, 2
-    November 2026: "Yes, expertly to both!"): where his spy, within four seasons, found the people of a governed
-    province restless or near revolt under him while the governor's latest letter on it says otherwise, a script king
+    November 2026: "Yes, expertly to both!"): where a spy's report this season finds the people of a governed
+    province restless or near revolt under him while the newest word of them is the governor's own report calling them
+    quiet, a script king
     treats it as restless (relief) and takes the governorship back unless foreign troops stand in or beside it
     (`bots/spy-check.ts`); `--spy-check-play-half`. Test: `game/test/spy-check.test.ts`.
 
@@ -104,9 +105,11 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
    (`moods`) show the same. God view: obedience of 900 thousandths loyal, 600 uneasy, below restless. Principle:
    "Information moves in physical time" (pillar 4).
 9. **The audit's find 4, script side**: a seat sees a province's gold only summed with the realm's, so a governor's
-   skimming cannot be told province by province; the evidence a king has is his governor's own letters, and two restless
-   letters in a row with no foe beside the land, and no levies he could turn with, is the recall. Principle: "Deceit is
-   information".
+   skimming cannot be told province by province; the evidence a king has is his governor's own word, and two seasons
+   running in which his report calls the land restless, with no foe beside it and no levies he could turn with, is the
+   recall. His seasonal report, not his letters: a letter comes only when the mood changes, and a seat sees only this
+   season's letters, so the first build (two letters within six seasons) could never fire; the escalation review of #459
+   found it, and the script king's memory now counts the seasons (`Brain.alarmed`). Principle: "Deceit is information".
 10. **The audit's find 9, what remains**: putting mouths out of a city whose siege lifted in the same season, orders for
     troops lost in the season's battles, and errands given with a job offered in the same season are orders given on what
     the king knew; a competent player gives them too, and the engine's refusal is the news. No patch. Principle:

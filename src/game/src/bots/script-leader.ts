@@ -138,8 +138,8 @@ export class ScriptLeader implements ISeat {
     crownOrders(board, orders, busy);
     // Item 17++: provinces that look to us, taken up where they pay and refused where they cost more than they bring.
     answerOrders(board, brain, orders);
-    // The audit's find 4: a governor whose letters keep calling his land restless, with no foe beside it, is recalled.
-    unseatOrders(board, orders, busy);
+    // The audit's find 4: a governor whose reports keep calling his land restless, with no foe beside it, is recalled.
+    unseatOrders(board, brain, orders, busy);
     // #459: a governor whose letters hide what our own spy finds there is recalled.
     spyCheckOrders(board, orders, busy);
     commandOrders(board, brain, orders, busy);

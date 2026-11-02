@@ -74,13 +74,15 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
   one a season. `--no-grant-play`, `--grant-play-half`.
 - **The audit's finds:** 3, a rich king with idle men raises an army his plan did not ask for (ten seasons' pay and food
   beyond his reserve, income carrying its pay, armies at most half his homeland); 3b, a king threatens (grievance letters,
-  demands of vassals in arrears) only with an army in or beside the land and strength to match; 4, a governor whose last two
-  letters within six seasons call his land restless, with no foe in or beside it and no levies raised, is recalled.
+  demands of vassals in arrears) only with an army in or beside the land and strength to match; 4, a governor whose own
+  seasonal report has called his land restless or near revolt two seasons running (`Brain.alarmed`), with no foe in or
+  beside it and no levies raised, is recalled.
   `--no-audit-play`, `--audit-play-half`. Find 9's runaways and walls: `borders.ts`, `works.ts`.
-- **A governor's word checked against the king's spy** (#459, `spy-check.ts`): where his own spy, within four seasons,
-  found the people of a governed province restless or near revolt under him and the governor's latest letter on it says
-  otherwise (or he wrote nothing), a script king treats it as restless (relief, `freedom.ts`) and takes the governorship
-  back, unless foreign troops stand in or beside it. `--no-spy-check-play`, `--spy-check-play-half`.
+- **A governor's word checked against the king's spy** (#459, `spy-check.ts`): where a spy's report this season finds
+  the people of a governed province restless or near revolt under him, while the newest word the court has of them is
+  the governor's own seasonal report calling them quiet (`SeatView.moods`: being newest, it was seen no earlier than the
+  spy's), a script king treats it as restless (relief, `freedom.ts`) and takes the governorship back, unless foreign troops
+  stand in or beside it. `--no-spy-check-play`, `--spy-check-play-half`.
 
 ## The map (`web/src/map/holding.ts`, `session/frames.ts`, `map/scene.ts`)
 
