@@ -1,11 +1,16 @@
 /**
  * The model layer's one small interface ("Built to outlive its models"). A call is one structured request: a cached shared
  * system block, a per-seat system block, one user message and a reply schema (Zod, "One source for model schemas"). The
- * client sends it to whichever provider its model names, validates the reply against the schema, sends an unfit reply
- * back once with its errors, and otherwise throws, so the runner's script stands in. Every call is logged, the retry too.
+ * client sends it to whichever provider its model names, under that provider's limit on calls in flight, sending a refused
+ * or overloaded call again; calls that share an opening wait for the first to write its cache. It reads the reply as meant,
+ * validates it against the schema, sends an unfit reply back once with its errors, and otherwise throws, so the runner's
+ * script stands in ("Calls that get through, live or in the background"). Every call is logged, each resend too.
  */
 import { newModelCall, type ModelCall } from "@amarna/game";
-import { ModelIds, PriceTable } from "./models.ts";
+import { CacheGate } from "./cache-gate.ts";
+import { CallLimiter, RealClock, isRetryable, isTooMany, waitBefore, LimiterDefaults, type Clock } from "./limiter.ts";
+import { BatchDiscount, ModelIds, PriceTable } from "./models.ts";
+import { readAsMeant } from "./reading.ts";
 import { jsonSchema, problems, type JsonObject, type ReplySchema } from "./schemas.ts";
 
 export class ModelRefusedError extends Error {
@@ -35,6 +40,8 @@ export interface CallSpec {
   strict?: boolean;
   effort?: string;
   maxTokens?: number;
+  /** Write the shared block's cache to last an hour, not five minutes: set by the client, never by the caller. */
+  longCache?: boolean;
 }
 
 /** What one call returned, however it was made: the reply's JSON text and the call's usage. */
@@ -46,7 +53,11 @@ export interface ApiResult {
   input: number;
   output: number;
   cacheRead: number;
+  /** Every token written to cache; of them, `cacheWriteLong` written to last an hour. */
   cacheWrite: number;
+  cacheWriteLong?: number;
+  /** Answered by the provider's batch service, at its discount. */
+  batched?: boolean;
 }
 
 /** Whoever answers a structured request: a provider, a file exchange, or a local bridge. */
@@ -57,6 +68,8 @@ export interface JsonAsker {
 /** One provider's adapter: its own format for system prompts and structured replies. */
 export interface Provider {
   readonly id: string;
+  /** Sends through the provider's batch service, which has no limit on calls in flight (the background mode). */
+  readonly background?: boolean;
   /** Sends one call (the user text given, which carries the retry note on a second try) to this provider's model. */
   send(spec: CallSpec, model: string, user: string, signal?: AbortSignal): Promise<ApiResult>;
   /**
@@ -79,7 +92,7 @@ export function splitModel(ref: string, providers: Iterable<string>): { provider
 export const AnthropicId = "anthropic";
 
 /** The note a reply that does not fit is sent back with, once. */
-export const retryNote = (error: string): string => `\n\n(Your previous reply could not be used: ${error}. Reply again with every field of the schema.)`;
+export const retryNote = (error: string): string => `\n\n(Your previous reply could not be used: ${error}. Reply again.)`;
 
 /** The reply's JSON object, read from its text: the whole text, or else the outermost {...} in it. */
 export function readObject(text: string): JsonObject | null {
@@ -102,7 +115,7 @@ export function readObject(text: string): JsonObject | null {
 export function unfit(text: string, schema: ReplySchema): string | null {
   const json = readObject(text);
   if (json === null) return "it was not one JSON object";
-  const found = problems(json, schema);
+  const found = problems(readAsMeant(json, schema), schema);
   return found.length === 0 ? null : "it does not match the schema: " + found.join("; ");
 }
 
@@ -110,11 +123,18 @@ export class ModelClient implements JsonAsker {
   private readonly providers: Map<string, Provider>;
   private readonly log: (call: ModelCall) => void;
   readonly prices: PriceTable;
+  private readonly clock: Clock;
+  /** One limiter per provider: each account has its own limit on calls in flight. */
+  private readonly limiters = new Map<string, CallLimiter>();
+  private readonly gate: CacheGate;
 
-  constructor(providers: Provider | Provider[], log: (call: ModelCall) => void, prices: PriceTable = new PriceTable()) {
+  constructor(providers: Provider | Provider[], log: (call: ModelCall) => void, prices: PriceTable = new PriceTable(), clock: Clock = RealClock) {
     this.providers = new Map((Array.isArray(providers) ? providers : [providers]).map((p) => [p.id, p] as const));
     this.log = log;
     this.prices = prices;
+    this.clock = clock;
+    this.gate = new CacheGate(clock);
+    for (const id of this.providers.keys()) this.limiters.set(id, new CallLimiter());
   }
 
   private route(ref: string): { provider: Provider; model: string } {
@@ -128,7 +148,8 @@ export class ModelClient implements JsonAsker {
     let user = spec.user;
     for (let attempt = 1; ; attempt++) {
       const text = await this.call(spec, user, attempt, signal);
-      const json = readObject(text);
+      const found = readObject(text);
+      const json = found === null ? null : readAsMeant(found, spec.schema);
       if (json !== null && problems(json, spec.schema).length === 0) return spec.schema.parse(json) as JsonObject;
       // The call's log line already says why; a second unfit reply throws, and the script stands in.
       const why = unfit(text, spec.schema)!;
@@ -137,16 +158,55 @@ export class ModelClient implements JsonAsker {
     }
   }
 
+  /**
+   * One attempt at a reply: through the gate of its opening, then sent, and sent again while the service refuses it as too
+   * many or overloaded, until the patience is spent and the last refusal throws.
+   */
   private async call(spec: CallSpec, user: string, attempt: number, signal?: AbortSignal): Promise<string> {
+    const background = this.providers.get(splitModel(spec.model, this.providers.keys()).provider)?.background === true;
+    const opening = spec.sharedSystem.length > 0 ? `${spec.model}\n${JSON.stringify(jsonSchema(spec.schema))}\n${spec.sharedSystem}` : null;
+    const pass = opening !== null ? await this.gate.enter(opening, background) : null;
+    let cache: { read: number; write: number } | null = null;
+    try {
+      const sent = { ...spec, longCache: pass?.long === true };
+      const start = this.clock.now();
+      for (let tries = 1; ; tries++) {
+        try {
+          const r = await this.send(sent, user, attempt, signal);
+          cache = { read: r.result.cacheRead, write: r.result.cacheWrite };
+          return r.text;
+        } catch (ex) {
+          if (!isRetryable(ex)) throw ex;
+          const wait = waitBefore(ex, tries);
+          if (this.clock.now() - start + wait > LimiterDefaults.patienceMs) throw ex;
+          await this.clock.sleep(wait, signal);
+        }
+      }
+    } finally {
+      pass?.done(cache);
+    }
+  }
+
+  /** Sends a call once, under its provider's limit on calls in flight (none in the background), and logs it. */
+  private async send(spec: CallSpec, user: string, attempt: number, signal?: AbortSignal): Promise<{ text: string; result: ApiResult }> {
     const call = newModelCall({ key: spec.key, turn: spec.turn, role: spec.role, model: spec.model, system: spec.seatSystem ?? "", prompt: user, attempt });
     try {
       const { provider, model } = this.route(spec.model);
-      const r = await provider.send(spec, model, user, signal);
+      const limiter = provider.background === true ? null : this.limiters.get(provider.id)!;
+      const epoch = (await limiter?.acquire(signal)) ?? 0;
+      let r: ApiResult;
+      try {
+        r = await provider.send(spec, model, user, signal);
+        limiter?.release(epoch, "ok");
+      } catch (ex) {
+        limiter?.release(epoch, isTooMany(ex) ? "too-many" : "other");
+        throw ex;
+      }
       call.inputTokens = r.input;
       call.outputTokens = r.output;
       call.cacheReadTokens = r.cacheRead;
       call.cacheWriteTokens = r.cacheWrite;
-      call.costUsd = this.prices.cost(spec.model, r.input, r.output, r.cacheRead, r.cacheWrite);
+      call.costUsd = this.prices.cost(spec.model, r.input, r.output, r.cacheRead, r.cacheWrite, r.cacheWriteLong ?? 0) * (r.batched === true ? BatchDiscount : 1);
       call.unpriced = this.prices.for(spec.model) === null;
       call.usedFallback = r.model.length > 0 && r.model !== model;
       call.output = r.text;
@@ -157,7 +217,7 @@ export class ModelClient implements JsonAsker {
       if (r.stopReason === "max_tokens") call.error = "max_tokens";
       const why = unfit(r.text, spec.schema);
       if (why !== null) call.error = (call.error !== null ? call.error + ": " : "") + why;
-      return r.text;
+      return { text: r.text, result: r };
     } catch (ex) {
       if (call.error === null) call.error = ex instanceof Error ? ex.message : String(ex);
       throw ex;

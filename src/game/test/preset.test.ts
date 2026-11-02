@@ -44,12 +44,14 @@ describe("PresetTests", () => {
     let showcase = CostEstimate.perGame(doWith(Presets.Showcase));
     console.log(`free ${fmt(free, "0.00")}, budget ${fmt(budget, "0.00")}, standard ${fmt(standard, "0.00")}, showcase ${fmt(showcase, "0.00")}`);
     Assert.equal(0, free);
-    Assert.inRange(budget, 0.1, 2.5);
+    Assert.inRange(budget, 1, 10);
     Assert.true(standard > budget * 5);
     Assert.true(showcase > standard * 1.5);
     Assert.equal("free", CostEstimate.describe(free));
-    // Thirty powers since item 11+ (36 since item 11c), every seat on the same ladder: a budget game costs about two dollars.
-    Assert.equal("about $2", CostEstimate.describe(budget));
+    // Every power on the same ladder, at the token counts of the recorded Haiku game (a 70,600-token rulebook read from
+    // cache): a budget game of 44 seasons costs about five dollars, about half that in the background.
+    Assert.equal("about $5", CostEstimate.describe(budget));
+    Assert.inRange(CostEstimate.perGame(doWith(Presets.Budget), 44, true) / budget, 0.45, 0.6);
     Assert.true(CostEstimate.suggestedBudget(standard) >= standard);
 
     let human = CostEstimate.perGame(doWith(Presets.Standard, "Egypt"));

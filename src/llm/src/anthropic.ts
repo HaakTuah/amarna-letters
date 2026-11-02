@@ -8,6 +8,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { raw, write } from "@amarna/engine";
 import { AnthropicId, type ApiResult, type CallSpec, type Provider } from "./client.ts";
+import { ApiStatusError, retryAfterMs } from "./limiter.ts";
 import { ModelIds } from "./models.ts";
 import { jsonSchema, type JsonObject, type ReplySchema } from "./schemas.ts";
 
@@ -21,10 +22,12 @@ export const AnthropicLimits = { strictTools: 20, optionalParams: 24, unionParam
 
 /** The tool a model answers with, and the line that asks it to. */
 export const ReplyTool = "reply";
-export const ReplyLine = `Answer by calling the ${ReplyTool} tool once, with every field filled in.`;
+export const ReplyLine = `Answer by calling the ${ReplyTool} tool once. A field that does not apply to you may be left out.`;
 
 /** How a request body reaches the Messages API: the SDK, or a stand-in. */
 export interface ApiTransport {
+  /** Sends through the provider's batch service (the background mode). */
+  readonly background?: boolean;
   send(body: JsonObject, signal?: AbortSignal): Promise<ApiResult>;
   /** Counts a request's tokens (the check at setup): throws with the API's reason when it would refuse the request. */
   count(body: JsonObject, signal?: AbortSignal): Promise<void>;
@@ -38,7 +41,8 @@ const tool = (schema: ReplySchema, strict: boolean): JsonObject => {
 
 /** The request body of a call, as the Messages API takes it. */
 export function requestBody(spec: CallSpec, model: string, user: string): JsonObject {
-  const system: JsonObject[] = [{ type: "text", text: spec.sharedSystem, cache_control: { type: "ephemeral" } }];
+  const cache: JsonObject = spec.longCache === true ? { type: "ephemeral", ttl: "1h" } : { type: "ephemeral" };
+  const system: JsonObject[] = [{ type: "text", text: spec.sharedSystem, cache_control: cache }];
   const seat = spec.seatSystem ?? "";
   if (seat.length > 0) system.push({ type: "text", text: seat });
   const effort = spec.effort ?? "medium";
@@ -69,6 +73,10 @@ export class AnthropicProvider implements Provider {
     this.id = id;
   }
 
+  get background(): boolean {
+    return this.transport.background === true;
+  }
+
   send(spec: CallSpec, model: string, user: string, signal?: AbortSignal): Promise<ApiResult> {
     return this.transport.send(requestBody(spec, model, user), signal);
   }
@@ -89,30 +97,42 @@ export function replyText(content: readonly { type: string; name?: string; input
     .join("");
 }
 
-/** The Messages API through the official SDK, with the player's own key. `fetch` is for tests. */
+/** The parameters the SDK sends a request body as: the body, with the fallback beta where it asks for fallbacks. */
+export const sdkParams = (body: JsonObject): Anthropic.Beta.MessageCreateParamsNonStreaming =>
+  ({ ...body, ...(body.fallbacks !== undefined ? { betas: [FallbackBeta] } : {}) }) as unknown as Anthropic.Beta.MessageCreateParamsNonStreaming;
+
+/** What a message the API returned holds for the game: its reply and its usage. */
+export function resultOf(m: Anthropic.Beta.BetaMessage): ApiResult {
+  const usage = m.usage as unknown as Record<string, unknown>;
+  const n = (k: string, from: Record<string, unknown> = usage): number => (typeof from[k] === "number" ? (from[k] as number) : 0);
+  const created = (usage.cache_creation ?? {}) as Record<string, unknown>;
+  const details = (m as unknown as { stop_details?: { category?: string } | null }).stop_details;
+  return {
+    text: replyText(m.content as unknown as { type: string; name?: string; input?: unknown; text?: string }[]),
+    stopReason: m.stop_reason ?? null,
+    category: details?.category ?? null,
+    model: m.model,
+    input: n("input_tokens"),
+    output: n("output_tokens"),
+    cacheRead: n("cache_read_input_tokens"),
+    cacheWrite: n("cache_creation_input_tokens"),
+    cacheWriteLong: n("ephemeral_1h_input_tokens", created),
+  };
+}
+
+/**
+ * The Messages API through the official SDK, with the player's own key. `fetch` is for tests. The SDK sends nothing again
+ * by itself: the client's limiter does, so it learns the account's limit from every refusal.
+ */
 export class SdkTransport implements ApiTransport {
-  private readonly client: Anthropic;
+  readonly client: Anthropic;
   constructor(apiKey: string, fetchImpl?: typeof fetch) {
-    this.client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 2, ...(fetchImpl !== undefined ? { fetch: fetchImpl } : {}) });
+    this.client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 0, ...(fetchImpl !== undefined ? { fetch: fetchImpl } : {}) });
   }
 
   async send(body: JsonObject, signal?: AbortSignal): Promise<ApiResult> {
-    const params = { ...body, ...(body.fallbacks !== undefined ? { betas: [FallbackBeta] } : {}) } as unknown as Anthropic.Beta.MessageCreateParamsNonStreaming;
     try {
-      const m = await this.client.beta.messages.create(params, { signal });
-      const usage = m.usage as unknown as Record<string, unknown>;
-      const n = (k: string): number => (typeof usage[k] === "number" ? (usage[k] as number) : 0);
-      const details = (m as unknown as { stop_details?: { category?: string } | null }).stop_details;
-      return {
-        text: replyText(m.content as unknown as { type: string; name?: string; input?: unknown; text?: string }[]),
-        stopReason: m.stop_reason ?? null,
-        category: details?.category ?? null,
-        model: m.model,
-        input: n("input_tokens"),
-        output: n("output_tokens"),
-        cacheRead: n("cache_read_input_tokens"),
-        cacheWrite: n("cache_creation_input_tokens"),
-      };
+      return resultOf(await this.client.beta.messages.create(sdkParams(body), { signal }));
     } catch (e) {
       throw apiError(e);
     }
@@ -127,17 +147,18 @@ export class SdkTransport implements ApiTransport {
   }
 }
 
-/** "Anthropic API 400: <the API's message>", as the log and the viewer show a failed call. */
-function apiError(e: unknown): unknown {
+/** "Anthropic API 400: <the API's message>", as the log and the viewer show a failed call, with its status and wait. */
+export function apiError(e: unknown): unknown {
   // An abort is an abort, as fetch's would be: the runner stops instead of falling back.
   if (e instanceof Anthropic.APIUserAbortError) {
     const abort = new Error(e.message);
     abort.name = "AbortError";
     return abort;
   }
+  if (e instanceof Anthropic.APIConnectionError) return new ApiStatusError(`Anthropic API unreachable: ${e.message}`, 0);
   if (e instanceof Anthropic.APIError && e.status !== undefined) {
     const err = (e.error as { error?: { message?: string } } | undefined)?.error?.message;
-    return new Error(`Anthropic API ${e.status}: ${err ?? e.message}`);
+    return new ApiStatusError(`Anthropic API ${e.status}: ${err ?? e.message}`, e.status, retryAfterMs(e.headers?.get("retry-after")));
   }
   return e;
 }

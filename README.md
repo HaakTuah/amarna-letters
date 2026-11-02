@@ -298,13 +298,14 @@ Pick a preset, choose whether to watch or take a seat, and begin.
 | Preset | Kings | Envoys and spies | Narrator | Rough cost of a game |
 |---|---|---|---|---|
 | **Free** | Script kings | Script | Template | $0, no key needed |
-| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $4 |
-| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $45 |
-| **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $60 |
-| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $110 |
+| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $9 ($5 in the background) |
+| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $115 ($70 in the background) |
+| **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $110 ($65 in the background) |
+| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $180 ($105 in the background) |
 | **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
 
-The costs are the start page's estimates for an age of the usual length (about 80 seasons); the page reckons them
+The costs are the start page's estimates for an age of the usual length (about 80 seasons), from the token counts of a
+recorded game (November 2026: each king's call opens with some 70,000 tokens of rules, read from cache); the page reckons them
 again for the table's own ending, and the meter in the game shows the real spend.
 
 Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
@@ -317,7 +318,11 @@ estimate (you can change it).
 Model seats use your own Anthropic API key: calls go straight from the page to the Anthropic
 API, and the key is never stored outside this tab. Use a dedicated key with a spend limit set in
 the Anthropic Console. **Simulate the API** (under Customize) tries model seats with canned
-replies; nothing leaves the browser. When a model call fails, a script king or character makes
+replies; nothing leaves the browser. Calls are kept under your account's limit on calls in flight, and one refused
+or overloaded is sent again after a wait before a script stands in. **Play in the background** (under the estimate)
+sends each phase's Anthropic calls as one batch to Anthropic's batch service, at about half the price; answers take
+minutes or more, so seasons pass slowly, and you may close the page and continue the saved game later (with the box
+ticked and the same key) to collect them. The setup shows what a season costs both ways. When a model call fails, a script king or character makes
 that decision instead, the failure is listed at the top of the side panel, and the game goes on.
 
 **Local agents** is local play, for your own games: you take a seat, and the other kings are guarded Claude Code agents

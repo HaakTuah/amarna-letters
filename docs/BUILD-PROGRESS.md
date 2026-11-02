@@ -81,15 +81,16 @@ fixed.
   plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
   wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
   in any export. A human player's own words are not sensitive in a normal export.
-- **First among the side lanes, beside the fog below (other files, so both run at once): model calls that get
-  through** (Haakon, 2 November 2026; Engine and models, "Calls that get through, live or in the background"). His
-  Haiku game of 1 November (seed 407184, two seasons, $0.52) lost 57 of the first season's 104 decisions to the
-  account's limit on calls in flight, paid about two thirds of that season for 25 copies of one cache, and had 26
-  answers refused for slips. Build the limiter and its retries, the cache written once, answers read as meant, the
-  background mode on the provider's batch service, and the cost estimate. No model games: checked against a stand-in
-  service that refuses calls past a limit, answers batches late and returns that game's slips. The report gives the
-  expected cost of a season, live and in the background. The game itself is in
-  `tests/fixtures/model-games/` (its README): its slips are the test cases, its token counts the estimate's start.
+- ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
+  as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
+  token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:
+  `docs/rounds/2026-11-02-model-calls-get-through.md`.
+- **Counsel's plans from a digest** (found by "model calls that get through", 2 November 2026; Engine and models,
+  "Passing up and asking advice": the strong model writes the plan "from a digest of the year ... rather than the whole
+  record"). A plan call opens with the kings' whole 70,600-token rulebook on Sonnet, so at the recorded token counts
+  Counsel estimates about 5% above Standard, where the design has small models play and the large one only plan and
+  advise. Give the plan call its own short opening (the digest and what it needs of the rules), then restore the test's
+  old claim that Counsel costs less than Standard (`src/game/test/who-decides.test.ts`).
 - ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
   armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
 
