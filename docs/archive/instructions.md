@@ -1516,3 +1516,6 @@ Given in the design chat with Claude, answering the design questions of the cons
     to the design session's take (each kind of text scored 1 to 10, only a 10 passing, with the usual guards and the
     owner's read as the final word): "Yes, expertly!" Written into the slop audit in "Follow-ups" in
     `docs/BUILD-PROGRESS.md`; the same in Barkstreet Snakes.
+180. **2 November 2026, 21:40 UTC**, in the design chat: "If all reviews follow this criteria, isn't it easier to write
+    it one place, and point there?" The slop audit now points to "Reviews" in `docs/claude-and-codex.md` and keeps only
+    what a 10 means for text; the same in Barkstreet Snakes.
