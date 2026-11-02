@@ -26,6 +26,7 @@ export { UpkeepPlay } from "./bots/upkeep.ts";
 export { RemnantPlay } from "./bots/remnants.ts";
 export { CountPlay } from "./bots/counts.ts";
 export { GrantPlay } from "./bots/crowns.ts";
+export { AuditPlay } from "./bots/audit-play.ts";
 export { OutlawPlay } from "./bots/outlaws.ts";
 export { VassalPlay } from "./bots/vassals.ts";
 export { CommandPlay } from "./bots/generals.ts";

@@ -1,4 +1,5 @@
 /** The non-military half of a script king, first part: strategy and treasury. */
+import { AuditPlay } from "./audit-play.ts";
 import { creditOrders } from "./credit.ts";
 import { upkeepOrders } from "./upkeep.ts";
 import { foldRemnants } from "./remnants.ts";
@@ -313,6 +314,19 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
     gold -= cost;
     flow -= upkeep;
     raised++;
+  }
+  // The audit's find 3: a rich king with idle men raises an army his plan did not ask for, where his gold keeps it ten seasons
+  // beyond his reserve and his income carries its pay, while he has fewer armies than half his homeland and one more.
+  const armyCost = v.prices.get("army");
+  const armyPay = v.prices.get("armyUpkeep");
+  if (AuditPlay.on(me) && raised === 0 && spots.length > 0 && count(b.mine, (u) => u.kind === "Army") <= Math.ceil(home.length / 2) && canLevy(v, spots[0].id, "Army")) {
+    if (gold - armyCost - 10 * (armyPay + EconomyData.armyFood) >= reserve && flow - armyPay >= 0) {
+      orders.push(raise(spots[0].id, "Army"));
+      spots.splice(0, 1);
+      gold -= armyCost;
+      flow -= armyPay;
+      raised++;
+    }
   }
   if (b.mine.length === 0 && spots.length > 0 && canLevy(v, spots[0].id, "Army") && gold - v.prices.get("army") >= reserve) {
     orders.push(raise(spots[0].id, "Army"));
