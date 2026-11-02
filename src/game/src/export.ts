@@ -80,7 +80,7 @@ function withoutHumanWords(lines: string[]): string[] {
     return toJson(node);
   });
   const quoted = pieces(words);
-  if (quoted.length === 0) return out;
+  if (quoted.texts.length === 0) return out;
   return out.map((line) => {
     const node = JSON.parse(line) as Record<string, unknown>;
     // In decisions only words are blanked, never an order's ids or names, so the export still replays.
@@ -108,19 +108,43 @@ function blankFields(v: unknown, words: string[], key = ""): unknown {
 }
 
 /**
- * The texts to look for elsewhere: each whole text, and each sentence or line of it; each also as it
- * stands inside a JSON string, since a model's reply is JSON (`Meet \\"my brother\\"`, a line break as `\\n`).
+ * A reference the engine's scribe puts a name in place of before others read a letter (`scribe` in the engine's
+ * archives.ts): a person ("c12", "Mane (c12)"), a tablet ("the tablet k3") or a lot of gold ("g7").
  */
-function pieces(words: string[]): string[] {
-  const found = new Set<string>();
+const Reference = /\s*\([ckg]\d+\)|\b(?:(?:the\s+)?(?:tablet|copy|gold|lot)\s+)?[ckg]\d+\b/gi;
+
+/** What to look for: texts matched from their start, and forms in which each reference may have become a name. */
+interface Quotes {
+  texts: string[];
+  forms: RegExp[];
+}
+
+/**
+ * The texts to look for elsewhere: each whole text, and each sentence or line of it; each also as it stands inside a
+ * JSON string, since a model's reply is JSON (`Meet \\"my brother\\"`, a line break as `\\n`). One that names a
+ * reference is also looked for as the scribe delivers it: each long run between references alone, and the whole with
+ * any name of up to 120 letters where each reference stood.
+ */
+function pieces(words: string[]): Quotes {
+  const texts = new Set<string>();
+  const forms = new Map<string, RegExp>();
   for (const w of words)
     for (const p of [w, ...w.split(/(?<=[.!?;:])\s+|\n+/)]) {
       const t = p.trim();
       if (t.length === 0) continue;
-      found.add(t);
-      found.add(JSON.stringify(t).slice(1, -1));
+      for (const form of [t, JSON.stringify(t).slice(1, -1)]) {
+        texts.add(form);
+        const runs = form.split(Reference);
+        if (runs.length === 1) continue;
+        for (const r of runs) if (r.trim().length >= MinQuoted) texts.add(r.trim());
+        // A name at either end is not his; and a form with too few of his letters would match anyone's.
+        while (runs.length > 0 && runs[0].trim() === "") runs.shift();
+        while (runs.length > 0 && runs[runs.length - 1].trim() === "") runs.pop();
+        if (runs.join("").replace(/\s/g, "").length < MinQuoted) continue;
+        forms.set(form, new RegExp(runs.map((r) => r.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[^\\n]{1,120}?"), "g"));
+      }
     }
-  return [...found];
+  return { texts: [...texts], forms: [...forms.values()] };
 }
 
 const isWord = (c: string | undefined): boolean => c !== undefined && /[\p{L}\p{N}_]/u.test(c);
@@ -129,12 +153,12 @@ const isWord = (c: string | undefined): boolean => c !== undefined && /[\p{L}\p{
  * A string with every quote of the texts blanked: wherever one's start (its first {@link MinQuoted} letters) stands at a
  * word's start, the span that goes on matching it is blanked, however soon it is cut off; a short text only whole.
  */
-function blankIn(s: string, texts: string[]): string {
+function blankIn(s: string, quotes: Quotes): string {
   // Every match is found in the text as it stands, then all are blanked together, so one match cut short (a text's JSON
   // form against its plain quote) never hides another's.
   const hit = new Uint8Array(s.length);
   let any = false;
-  for (const t of texts) {
+  for (const t of quotes.texts) {
     const head = t.slice(0, MinQuoted);
     for (let i = s.indexOf(head); i >= 0; i = s.indexOf(head, i + 1)) {
       if (isWord(s[i - 1])) continue;
@@ -145,6 +169,11 @@ function blankIn(s: string, texts: string[]): string {
       any = true;
     }
   }
+  for (const re of quotes.forms)
+    for (const m of s.matchAll(re)) {
+      hit.fill(1, m.index, m.index + m[0].length);
+      any = true;
+    }
   if (!any) return s;
   let out = "";
   for (let i = 0; i < s.length; i++) out += hit[i] === 1 && !/\s/.test(s[i]) ? BlankMark : s[i];
@@ -158,7 +187,7 @@ const Names = new Set(["type", "key", "role", "model", "character", "name", "tra
  * Every string in a record with each quoted piece blanked: under a word field only (`fields`), or, where `fields` is null,
  * everywhere but the record's ids and names. `touched.any` is set if anything was blanked.
  */
-function blankQuoted(v: unknown, quoted: string[], fields: ReadonlySet<string> | null, key: string, touched: { any: boolean }): unknown {
+function blankQuoted(v: unknown, quoted: Quotes, fields: ReadonlySet<string> | null, key: string, touched: { any: boolean }): unknown {
   if (typeof v === "string") {
     if (fields !== null ? !fields.has(key) : Names.has(key)) return v;
     const s = blankIn(v, quoted);

@@ -131,6 +131,9 @@ describe("ExportTests", () => {
   /** A human player's words, long enough to be looked for wherever they are quoted. */
   const Letter = "Greetings, my brother of Alashiya. I send you twelve horses and a chariot of gold.";
   const Notes = "Attack now";
+  /** A note naming a person by his id, and the same as the scribe delivers it to another court. */
+  const Named = "Ask c1 to bring the horses to the secret gate.";
+  const Scribed = "Ask Mane to bring the horses to the secret gate.";
   const Speech = 'Your lord\'s horses are welcome here. Say "my brother" to him.';
 
   class HumanSender implements ISeat {
@@ -140,7 +143,7 @@ describe("ExportTests", () => {
       this.envoy = envoy;
     }
     decide(view: SeatView): Promise<TurnSubmission> {
-      return Promise.resolve(view.turn === 1 ? newTurnSubmission({ orders: [dispatch(this.envoy, "Alashiya", Letter)], notes: Notes, stayAwake: true }) : newTurnSubmission({ stayAwake: true }));
+      return Promise.resolve(view.turn === 1 ? newTurnSubmission({ orders: [dispatch(this.envoy, "Alashiya", Letter)], notes: Notes, stayAwake: true }) : newTurnSubmission({ notes: view.turn === 2 ? Named : "", stayAwake: true }));
     }
     hostAudience(): Promise<HostReply> {
       return Promise.resolve(newHostReply({ end: true }));
@@ -171,6 +174,8 @@ describe("ExportTests", () => {
     // A model's prompt that carries the letter, as an envoy's or a court's request would.
     // A model's reply, itself JSON, that copies the host's speech with its quotation marks.
     runner.log.addCall(newModelCall({ key: "t2/orders/Hatti", turn: 2, role: "leader", model: "Haiku", output: JSON.stringify({ notes: `Alashiya said: ${Speech}` }) }));
+    // A letter naming a person by his id, delivered with his name in its place (the engine's scribe).
+    runner.log.addCall(newModelCall({ key: "t3/orders/Hatti", turn: 3, role: "leader", model: "Haiku", prompt: `A letter: "${Scribed}" And another: "Bring the horses."` }));
     // A chronicle, a decision whose whole value is a text, quoting the letter.
     runner.log.record("t2/chronicle/Egypt", S, `Pharaoh wrote to Alashiya: "${Letter}"`, newAuthorship({ kind: "model", name: "Haiku narrator" }));
     // Prompts that carry the letter whole, a brief of it cut mid-word, and the short note.
@@ -189,6 +194,11 @@ describe("ExportTests", () => {
     for (const words of [Letter, Speech, "twelve horses", "my brother of Alashiya", "Attack now.", "welcome here", 'Say "my brother"'])
       for (const form of [esc(words), esc(esc(words))]) Assert.false(kept.includes(form), `"${form}" is still in the export`);
     Assert.true(kept.includes('Pharaoh wrote to Alashiya: \\"' + Letter.replace(/\S/g, BlankMark)));
+    // The scribe's delivery of a note that named a person by his id: his words blanked around the name put in; a short
+    // sentence of the prompt's own stays.
+    Assert.false(kept.includes("to bring the horses to the secret gate"));
+    Assert.false(kept.includes("Ask Mane"));
+    Assert.true(kept.includes("Bring the horses."));
     // A short text counts only whole: the same letters inside a longer word are not his.
     Assert.true(kept.includes("Attack nowhere else."));
     // Each is a marked blank of its own length, its spaces kept.
