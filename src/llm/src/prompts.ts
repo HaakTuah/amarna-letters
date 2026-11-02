@@ -400,9 +400,10 @@ function standingLine(st: StandingOrderView, v: SeatView): string
     }
 
     /// <summary>
-    /// What a king woken for its audiences only reads of its realm, enough to judge whether the news changes its plan, and
-    /// not the full map: its treasury, its land and troops, foreign troops at or inside its borders as far as it can see, its
-    /// scheduled and standing orders, and its people at court and away.
+    /// What a king reads of its realm when it does not read the full map (woken for its audiences only, reading light alerts,
+    /// or having its plan written): its treasury, its land and troops, foreign troops at or inside its borders as far as it
+    /// can see, its scheduled and standing orders, and its people at court and away. `purpose`: the header's aside, what the
+    /// brief is enough for in that request.
     /// </summary>
 export function realmBrief(v: SeatView, purpose = "enough to judge whether the news changes your plan; you see the full map only if you reopen your orders"): string
     {

@@ -326,9 +326,9 @@
     erring toward waking. Its choice is a logged decision (`t<N>/alerts/<Power>`), so a replay wakes the same kings; a
     woken king reads "word came: …" naming what came, and the season's lines leave his digest (he reads them as news).
     A failed call wakes nobody.
-  - **Planning** (`LlmLeaderSeat.planIfDue`). When on, the planning model writes the king's plan at his first orders,
-    once a year (three seasons), when he has lost land, his capital is newly threatened or a kingdom has fallen, and
-    when he asks (`new_plan`, in his orders schema only while planning is on), from his realm in brief and his record,
+  - **Planning** (`LlmLeaderSeat.planIfDue`). When on, the planning model writes the king's plan before his first orders,
+    and anew before his next orders once a year (three seasons) has passed since it, or if since it he has lost land, his
+    capital has newly come under threat or a kingdom has fallen, or when he asks (`new_plan`, in his orders schema only while planning is on), from his realm in brief, his omens and his record,
     and may leave standing answers with it. Its opening is its own (`planRules`, "from a digest of the year ... rather
     than the whole record"): how a power wins, what the plan is and when it is written anew, and the rules of standing
     answers and their conditions, never the kings' whole rulebook, whose sections it shares; the plan heads his record ("YOUR PLAN FOR THE SEASONS AHEAD").

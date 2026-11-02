@@ -8,19 +8,21 @@ mind decided and what happened, rather than the whole record" (Engine and models
 
 - **The plan call has its own opening** (`src/llm/src/rules-plan.ts`, `planRules`): who the powers are and how a power
   wins, a short section on the plan (what it is for, that orders are given elsewhere with the full rulebook, when it is
-  written anew), and the rules of standing answers and their conditions, which its reply's fields use. 9,152 characters
+  written anew), and the rules of standing answers and their conditions, which its reply's fields use. 9,189 characters
   against the kings' rulebook's 164,710: about 3,900 tokens where it read 70,600. Byte-stable for a configuration, so
   every king's plan reads it from one cache.
 - **Written once:** those sections are now functions in `rules.ts` (`howYouWin`, `conditionsRules`,
   `standingAnswersRules`) that the rulebook and the plan's opening both use. The rulebook is byte-identical before and
   after for three configurations, with and without the customs (checked by hash).
 - **Every field true** ("Requests are rules too"): the plan's opening points to no section it lacks (the capital line
-  says "as your full rulebook tells" there, where the rulebook says "step 10 ... below"); its standing answers heading
+  says "as your full rulebook tells" there, where the rulebook says "step 10 ... below"; it drops the pointer to PEOPLE;
+  and its OMENS are "below", since the plan request now shows the season's omens, which the king reads in his report);
+  its account of when the plan is written anew follows `planDue` (before the next orders, measured since the plan); its standing answers heading
   names the plan as a place to give them; and the realm in brief in a plan request no longer says "you see the full map
   only if you reopen your orders", which belongs to light alerts, but "enough to plan by; you see the full map when you
   give your orders".
-- **Hidden information:** the opening is the table's rules alone; the user part is unchanged in what it holds, the
-  king's own realm in brief (his view) and his own record.
+- **Hidden information:** the opening is the table's rules alone; the user part holds the king's own realm in brief and
+  his omens (both from his view) and his own record.
 - **The estimate** counts plans apart from light alerts, over their own opening (`CostEstimate.Recorded.plan`: 3,900
   cached, 4,000 fresh, 900 out, not yet recorded; a test holds the opening's figure within a tenth of its text scaled as
   the rulebook's was recorded).

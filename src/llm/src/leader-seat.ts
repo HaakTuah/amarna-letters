@@ -202,6 +202,8 @@ export class LlmLeaderSeat implements ISeat {
     const user = new Sb();
     user.appendLine(`SEASON: turn ${view.turn}. You set down your plan for the seasons ahead (${why === "the first plan" ? "your first" : "anew"}), from your record and your realm as they stand.`);
     user.append(realmBrief(view, "enough to plan by; you see the full map when you give your orders"));
+    // What the court's diviners read this season, as his report gives it (item 16, "Omens of the end").
+    if (view.omens !== "") user.appendLine(`OMENS: ${view.omens}`);
     user.appendLine(this.journalOf.forOrders());
     user.appendLine(
       "Write your plan: your aims, your friends and enemies, what to do in the seasons ahead and what to watch for. You play each season by it, and may ask for it to be written anew. Leave standing answers with it for the envoys you expect.",

@@ -310,7 +310,7 @@ export const CostEstimate = {
     envoy: { fresh: 1200, output: 330, opening: 1100, perSeason: 60 },
     persona: { fresh: 1080, output: 1380, characters: 122 },
     /**
-     * Not yet recorded: a plan reads its own opening (`planRules`, 9,152 characters against the kings' rulebook's 164,710,
+     * Not yet recorded: a plan reads its own opening (`planRules`, 9,189 characters against the kings' rulebook's 164,710,
      * so about 3,900 of its 70,600 tokens), the king's realm in brief and his record, and writes the plan and its answers.
      */
     plan: { fresh: 4000, output: 900, opening: 3900 },
