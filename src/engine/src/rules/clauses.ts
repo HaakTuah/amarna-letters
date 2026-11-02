@@ -3,7 +3,7 @@
  * checks a clause must pass. The words are the same whoever writes the letter, so a clause leaves no tell of its writer.
  */
 import { AllPowers, type Power, land } from "../model/power.ts";
-import { AnswerKinds, ClauseKindValues, NewsKinds, ProposalKinds, RequestKinds, type Clause, type ClauseKind } from "../model/clauses.ts";
+import { ClauseKindValues, NewsKinds, ProposalKinds, RequestKinds, type Clause, type ClauseKind } from "../model/clauses.ts";
 import { WorldMap } from "../model/map.ts";
 import { year, seasonIndex } from "./calendar.ts";
 

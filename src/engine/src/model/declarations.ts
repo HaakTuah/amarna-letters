@@ -14,7 +14,10 @@ export interface Declaration {
   power: Power;
   /** The giver of a cession, who holds it until the receiver takes it up; null for a declaration. */
   from: Power | null;
-  /** The season the word of it reaches the power's court: from then he knows it and may answer it. */
+  /**
+   * The season the word of it reaches the power's court: from then he knows it and may answer it. A province's own offer
+   * reaches him only if someone carries it (part D, #431): `OfferUnheard` until its letter arrives.
+   */
   known: number;
   /** His word taking it up has reached it: it obeys him as the next season is reckoned, if its people still weigh him. */
   takenUp: boolean;
@@ -31,6 +34,9 @@ export function newDeclaration(init: Partial<Declaration> = {}): Declaration {
 }
 
 export const DeclarationSchema: ObjSchema<Declaration> = obj("Declaration", newDeclaration, { province: S, power: S, from: opt(S), known: I, takenUp: B, takenKnown: opt(I), gone: opt(I), broken: B });
+
+/** A declaration whose offer has not reached its power's court: no season yet. */
+export const OfferUnheard = Number.MAX_SAFE_INTEGER;
 
 /** Whether a declaration stands in the view of the court it looks to (hidden information): known there, its end not yet heard. */
 export function declarationKnown(d: Declaration, turn: number): boolean {

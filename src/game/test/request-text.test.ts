@@ -11,7 +11,6 @@ import {
   type TurnSubmission,
   dispatch,
   first,
-  king,
   newCharacter,
   newContract,
   newDispatch,
@@ -33,7 +32,7 @@ import {
 } from "@amarna/engine";
 import { type EnvoyContext, GameRunner, type ISeat, type MindContext, ScriptMind, TemplateNarrator, newEnvoyContext, newMindContext } from "@amarna/game";
 import { CharacterSystem, LlmCharacterMind, Parse } from "@amarna/llm";
-import { at, Assert, toDict } from "../../engine/test/support.ts";
+import { Assert, toDict } from "../../engine/test/support.ts";
 import { Recorder } from "./recorder.ts";
 
 // What a model character is asked, after the second agent simulation's defects in the request texts (the fix pass after

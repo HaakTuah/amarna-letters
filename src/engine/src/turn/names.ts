@@ -6,7 +6,7 @@
  */
 import { cmpNum, sortBy } from "../core/seq.ts";
 import type { GiftOrder } from "../model/orders.ts";
-import { coverOf, falseNameAt, gain, hiddenAt, newDeclared, newFact, remember, reputationAt, type Character, type Declared, type Fact } from "../model/people.ts";
+import { coverOf, falseNameAt, gain, hiddenAt, newDeclared, newFact, remember, type Character, type Declared, type Fact } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { newDispatch, newMessageTrail, newPendingAudience, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";

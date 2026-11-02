@@ -17,12 +17,10 @@ import {
   TurnEngine,
   TurnSubmissionSchema,
   Views,
-  convoy,
   count,
   disband,
   dispatch,
   distinct,
-  first,
   hold,
   inboxOf,
   max,
@@ -40,7 +38,6 @@ import {
   range,
   serialize,
   single,
-  support,
 } from "@amarna/engine";
 import { GameRunner, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { Parse, Schemas, leaderRules, situation, sleepLine } from "@amarna/llm";
@@ -53,10 +50,8 @@ import { cap } from "./sleep-support.ts";
 import { play } from "./sleep-support.ts";
 import { asleep } from "./sleep-support.ts";
 import { noticeOf } from "./sleep-support.ts";
-import { convoy as convoyOrder } from "@amarna/engine";
 import { first as firstOf } from "@amarna/engine";
 import { support as supportOrder } from "@amarna/engine";
-import { describe as describeOrder } from "@amarna/engine";
 
 // Sleeping seats: sleeping after every call, what wakes a seat and what waits in the digest.
 describe("SleepTests", () => {
@@ -496,7 +491,7 @@ describe("SleepTests", () => {
     // Ashur, its army away, lies beyond Babylon's border, next to none of its homeland: Assyria's army leaving Ekallate, which
     // Babylon can see, for Ashur is news for the digest. (Troops ending a move next to its homeland, or off Alashiya's Kalavasos, wake.)
     let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "ashur")] }) : newTurnSubmission()));
-    let r = await play("Babylonia", sleeper, 4, { ...Quiet, maxSleep: 2 }, new Dict([["Assyria", assyria]]), (s) => removeAll(s.units, (u) => u.province === "ashur"));
+    await play("Babylonia", sleeper, 4, { ...Quiet, maxSleep: 2 }, new Dict([["Assyria", assyria]]), (s) => removeAll(s.units, (u) => u.province === "ashur"));
     Assert.equal([1, 4], sleeper.calls);
     Assert.equal([CapReason], sleeper.views[1].wokenBecause);
     Assert.contains("turn 2: Assyria's army moved ekallate -> ashur", sleeper.views[1].digest);
