@@ -1496,3 +1496,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     the history dossiers included; and on #527, the Gulf's shore drawn where Late Bronze Age reconstructions put it):
     "Yes, full agreement with both, expert!" Written into "Codex reviews" in `docs/claude-and-codex.md` and "Follow-ups"
     in `docs/BUILD-PROGRESS.md`; the same review rules in Barkstreet Snakes.
+176. **2 November 2026, 20:29 UTC**, in the design chat, on #527's follow-up, which said what the shore's move would
+    probably mean for Ur before the reconstructions were gathered: "But maybe don't prime it to make a assumption
+    instead of consulting the evidence?" Written into #527's entry in "Follow-ups" in `docs/BUILD-PROGRESS.md`: no
+    outcome assumed beforehand. The same holds for every history follow-up: the brief names the evidence to gather,
+    never the answer expected.
