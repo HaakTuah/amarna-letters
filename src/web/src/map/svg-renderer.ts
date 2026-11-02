@@ -394,10 +394,13 @@ export class SvgMapRenderer implements MapRenderer {
         [...e.querySelectorAll<SVGGraphicsElement>(sel)].flatMap((x) => {
           const r = x.getBoundingClientRect();
           if (r.width <= 0 || r.height <= 0) return [];
+          // A drawn figure (a siege's tent, <use>) strokes inside its symbol, at the symbol's own scale: its box holds it.
+          if (x instanceof SVGUseElement) return [r];
           const css = getComputedStyle(x);
           return [css.stroke === "none" ? r : grown(r, ((parseFloat(css.strokeWidth) || 0) * perUnit(x, r)) / 2)];
         });
-      const rim = getComputedStyle(view.querySelector(".map") ?? view);
+      // Read where they are set: anywhere above .map they would read as no rim at all.
+      const rim = getComputedStyle(view.querySelector(".map")!);
       const smallRim = parseFloat(rim.getPropertyValue("--small-rim")) || 0;
       const markedRim = parseFloat(rim.getPropertyValue("--small-rim-marked")) || 0;
       const union = (rs: DOMRect[]): DOMRect[] => {
