@@ -82,6 +82,16 @@ on sealed tablets comes with item 9.
   in, the engine carries it out by the true holder, and its failure comes home by the road (`TurnEngine.lostOrder`, by
   `tell`; a scheduled one wakes its seat when that word comes, its wake line travelling with it as news `Foiled`). A governor granted such land sets out, finds
   it another's and comes home as any governor of lost land does.
+- **Sieges, walls and men far off** (bug #517, `siegesKnown` and `wallsKnown` in `rules/known-land.ts`): a court knows the
+  sieges where it sees, and one of its own cities or its own armies farther off once word of its beginning, setting out
+  the season it began, has reached it; one lifted out of its sight drops from what it knows at once (no record of an ended
+  siege is kept). The seat's view (`SeatView.sieges`) and the order checks read the same (`Checking.knownSiege`,
+  `knownWalls`); a levy's men far off are checked by the court's last count. The season's siege news of a far city, the
+  markets' lines (sales, purchases, grain to the towns, caravans, trade and ships) of a far province, a levy's outcome,
+  a cession and a disbanding there come home by the road (`TurnEngine.tell`); an order a siege foils far off fails as
+  one on lost land does (`TurnEngine.lostOrder`). The twin canary (`src/web/test/twin-canary.test.ts`) plays a seat's
+  seasons twice, a hidden fact true and false, and finds any difference before word could come; what it still finds
+  (bug #540: a far province's economy, works, people and caravans, and the realm's totals) it lists by issue.
 - **Fallen kingdoms** (`GameState.fallsHeard`, `SeatView.fallen`): a court that sees the fallen capital hears at once,
   the rest by word; the fall's event is visible only to the fallen court and those that saw it. Until it hears, a court
   may still send an envoy or a spy to the fallen court, or close or open its roads to it (the validator accepts them):
