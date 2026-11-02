@@ -769,7 +769,7 @@ export type GoldSource =
   | "Skimmed"
   /** A king's personal gift at an audience. */
   | "Gifts"
-  /** Gold it was carrying when it was dismissed on the way out, or caught with gold to stir a province, which became its own. */
+  /** Gold it was carrying when it was dismissed or its master fell, or when it was caught, which became its own. */
   | "Carried"
   /** Item 11b: a chief's share of what his band took, on the land, the roads and the sea. */
   | "Loot"
