@@ -102,7 +102,8 @@ rumours, and those can be late, shaded or false.
   against what your court knows: one for land lost out of your sight goes out, and you hear it failed when word comes.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
   holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
-  his seat. Or make a governor (or a man at your court) a vassal king over provinces of yours, by a grant under oath for
+  his seat; if he loses or gives up the province he sits in, he sits in another, and a loyal one writes to tell you where,
+  while one who wants his land for himself leaves you to hear it by the road. Or make a governor (or a man at your court) a vassal king over provinces of yours, by a grant under oath for
   a tribute and a price you name: if he takes it, the land is his, bound to you by a sealed vassal tablet.
 
 **The land and its people.**
@@ -148,7 +149,9 @@ waits until someone at court can read it, and people learn the tongues of where 
 
 Walls stand where the sources put them. Hattusa, Washukanni, Ashur and Babylon have walls of level 3, as do
 Qatna, Qadesh and Hazor; Apasa, Enkomi and the great fortresses (Carchemish, Aleppo, Ugarit, Arwad, Byblos, Tyre,
-Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's new city of Akhetaten has none.
+Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's new city of Akhetaten has none,
+nor has Nesa, old Kanesh, whose mound shows no Late Bronze town. Towns are as large as the sources reckon them:
+Waset (Thebes), Egypt's great southern city, about 70,000 people.
 
 - **Storming.** Walls add nothing to a field battle. A move into a walled city takes it at once only
   if its strength also beats the walls plus the defenders.
@@ -550,3 +553,7 @@ The game was inspired by Irving Finkel's *Curator's Corner* episode 100, "Readin
 private mail with Irving Finkel" (The British Museum,
 <https://www.youtube.com/watch?v=3MZq_ZQDhJA>), and leans on William L. Moran's *The Amarna
 Letters* for the translations of the letters themselves.
+
+The libraries, samples and map data the game ships, with their licences, are listed in its third-party notices
+(`third-party-notices.txt` beside the game, linked from the About page's Credits; written by the web build from
+`scripts/licences.mjs`). The game's own code carries no licence: all rights reserved.

@@ -1,6 +1,5 @@
 import { describe, test } from "vitest";
 import { Near, smallSeats } from "./small-world.ts";
-import { court } from "../src/bots/statecraft-court.ts";
 import {
   AllPowers,
   type AudienceView,
@@ -19,7 +18,6 @@ import {
   Views,
   WorldMap,
   alive,
-  char,
   coverOf,
   deserialize,
   distinct,

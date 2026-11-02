@@ -5,7 +5,6 @@ import { Brain } from "../src/bots/brain.ts";
 import { Search } from "../src/bots/search.ts";
 import { Tactics } from "../src/bots/tactics.ts";
 import {
-  AllPowers,
   Dict,
   type MoveOrder,
   type SupportOrder,
@@ -19,8 +18,8 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame } from "@amarna/game";
-import { at, removeAll, Assert, toDict, oldWorld } from "../../engine/test/support.ts";
+import { GameRunner, ScriptMind, TemplateNarrator, playGame } from "@amarna/game";
+import { removeAll, Assert, oldWorld } from "../../engine/test/support.ts";
 import { move as moveOrder } from "@amarna/engine";
 
 // Script kings and terrain (Build order item 5; "Every feature is every seat's"): they count the ground's help to a troop

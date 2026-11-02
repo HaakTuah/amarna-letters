@@ -10,7 +10,9 @@
 import { hostileAt, levelOf, waysOf } from "../model/works.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { newCourier } from "../model/command.ts";
-import { describe, newTurnSubmission, unitOf, type Order, type TurnSubmission } from "../model/orders.ts";
+import { describe, unitOf } from "../model/order-reading.ts";
+import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
+import { type Order } from "../model/orders.ts";
 import { quoteWords, type Power } from "../model/power.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
 import { logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";

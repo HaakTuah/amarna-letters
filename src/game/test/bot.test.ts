@@ -16,9 +16,7 @@ import {
   Views,
   WorldMap,
   publicWorthOf,
-  TurnEngine,
   distinct,
-  fmt,
   newAudienceView,
   newGame,
   newId,
@@ -32,8 +30,8 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { BaselineLeader, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame, temperament } from "@amarna/game";
-import { average, removeAll, Assert, formerHome, toDict, oldWorld, unruled } from "../../engine/test/support.ts";
+import { ScriptLeader, temperament } from "@amarna/game";
+import { removeAll, Assert, formerHome, oldWorld, unruled } from "../../engine/test/support.ts";
 
 /** A province's holder set by hand, as if long ago, so word of it has reached every court (item 7b). */
 function known(s: GameState, province: string, owner: Power | null): void {

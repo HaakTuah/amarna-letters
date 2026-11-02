@@ -84,8 +84,8 @@ BUILDING AND POLICING (`src/llm/src/rules-works.ts`). Every number is a first gu
 ## Starting positions (from the dossiers)
 
 - **Walls**, city by city as the walls dossier's "Proposed" column gives them, the capitals included (decided 29 October
-  2026): Akhetaten 0, Egypt's forts raised (Nubia 2, the Delta's Tjaru 1), Memphis 1, Apasa and Enkomi 2, Kanesh,
-  Nineveh 1, Sapinuwa and Arbela 1 [G], Dur-Kurigalzu, Sippar, Nippur and Ur 1; Washukanni and Babylon stay 3 as
+  2026): Akhetaten 0, Egypt's forts raised (Nubia 2, the Delta's Tjaru 1), Memphis 1, Apasa and Enkomi 2, Kanesh none
+  (since the history check), Nineveh 1, Sapinuwa and Arbela 1 [G], Dur-Kurigalzu, Sippar, Nippur and Ur 1; Washukanni and Babylon stay 3 as
   capitals where the sources are silent; the city-states as item 11d set them.
 - **Roads**: a kept track (1) in every land with a lord; the Ways of Horus, Delta, Sinai and Gaza, 2; the townless lands
   (Kaska, Lukka, the steppe, Libya, the Shasu) 0. **Relay stations** only on the Ways of Horus (1), the forts with wells.

@@ -8,7 +8,6 @@
 import {
   CommandData,
   CommanderMinds,
-  WorldMap,
   besiege,
   cheapestRoute,
   cmpNum,

@@ -1,7 +1,6 @@
 import { describe, test } from "vitest";
-import { court } from "../src/bots/statecraft-court.ts";
 import { TextKit } from "../src/bots/textkit.ts";
-import { I, type Power, king, newCharacter, newExchange, newFact, newHomeCargo, newMessageTrail, newMindRequest, newTraits } from "@amarna/engine";
+import { type Power, newCharacter, newExchange, newFact, newHomeCargo, newMessageTrail, newMindRequest, newTraits } from "@amarna/engine";
 import { ScriptMind, newMindContext } from "@amarna/game";
 import { Assert } from "../../engine/test/support.ts";
 
