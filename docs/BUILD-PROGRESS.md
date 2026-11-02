@@ -56,15 +56,25 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   next refresh.
 - **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
   #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
-  locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568). **Left, each its own PR with
-  behaviour proven:** splits the review found, each file holding two or three things: `llm/src/schemas.ts` (JSON-schema
-  tools; orders and letters; envoy and court replies), `llm/src/prompts.ts` (the king's briefs; audience and person
-  prompts), `llm/src/character-mind.ts` (the audience path), `llm/src/seat-setup.ts` (presets and cost estimate),
-  `bots/statecraft-letters.ts` (the audiences), `bots/tactics.ts` (joints, winter), `web/src/audio/player.ts` (the
-  listening page), `web/src/pages/Home.tsx` (saved games and replays); then `--noUnusedLocals` again on the open PRs'
-  files once they merge.
+  locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it found:
+  `prompts.ts` (#572), `schemas.ts` (#573), `seat-setup.ts` (#577), `statecraft-letters.ts` (#588). **Left:**
+  `--noUnusedLocals` again on the files open PRs held (one known: `renew` in `bots/statecraft-court.ts`). Looked at and
+  left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
+  `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx`
+  (the start screen; its saved-games card is 2.5 KB).
 
 ## Follow-ups
+
+- **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
+  - **#566:** the twin canary (`src/web/test/twin-canary.test.ts`) plays each hidden fact at a second place too, a far
+    province of another power or one reached only by winter roads or by sea; the place a parameter, not a constant.
+  - **#543, after part D's follow-ups (#550, #553):** a caravan or trader leaving a province for the claimant's market
+    carries its offer, as a traveller going that way would, and carries talk along its road; the history dossier
+    cited for word travelling with goods.
+  - **#539, the polish lane:** beside a followed person on the map, a small dated note ("last seen 2 seasons ago"),
+    from the record the follow line is drawn from, absent while he is in sight.
+  - **#578, the polish lane:** the legend's crowded-seal swatch takes its rim from `--small-rim-marked`, the map's own
+    variable.
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
@@ -101,6 +111,11 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Each kind of text is reviewed as every review is ("Reviews" in `docs/claude-and-codex.md`); here a 10 means
   nothing reads machine-made, every voice is its own and no formula repeats. The owner's read of the ten lines before
   and after is the final word. One PR per kind of text.
+  **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
+  the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`); the
+  envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
+  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state). **Next:** notices,
+  news and reports (the bribed envoy's invented news moves with them); then the rest in the order above.
 
 - **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in
   `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact

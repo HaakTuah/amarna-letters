@@ -14,6 +14,8 @@ import {
   newTraits,
 } from "@amarna/engine";
 import { CharacterChecks, type MindContext, ScriptMind, SignalDetector, newEnvoyContext, newMindContext } from "@amarna/game";
+import { Home } from "../src/bots/envoy-words.ts";
+import { saysOneOf } from "./readings.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 // The wording the checks and signals read, fixed after the second agent simulation (the fix pass after item 4): which
@@ -173,7 +175,7 @@ describe("CheckWordingTests", () => {
       );
     }
     let report = (await new ScriptMind().write(ctx)).text;
-    Assert.equal(tells, report.includes(`The king of ${land("Babylonia")} offered me a post in his service, and I refused it: I serve you alone.`));
+    Assert.equal(tells, saysOneOf(report, Home.refusedPost, { L: land("Babylonia") }));
     Assert.equal(!tells, CharacterChecks.report(ctx, report).includes("hid-offer"));
   });
 

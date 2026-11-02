@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { land, newUnheardChoice, type BridgeView, type Clause, type UnheardChoice, type UnheardView } from "@amarna/engine";
-import { object, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import { Sb } from "./text.ts";
 
 const Choices = {

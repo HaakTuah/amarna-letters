@@ -393,7 +393,7 @@ steps back through the seasons; signals mark sealed tablets, accusations, forger
 promises and more. After the game, compare two nations' self-serving annals with the true record.
 
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
-each power in its colour with an emblem and a border line of its own (so it reads without
+each power in its colour with an emblem and a border line of its own along its frontiers (so it reads without
 colour), armies as chariots and fleets as ships. On the whole map every city is a seal, and a tap on
 it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
@@ -494,7 +494,7 @@ Then open <http://localhost:5183>, pick a preset, choose whether to watch or tak
 ```bash
 scripts/cloud-setup.sh   # on a fresh cloud machine: the npm packages and Playwright's Chromium, if missing
 scripts/test.sh          # type-check, the engine's determinism lint, and every test (Vitest), printing only the
-                         # summary and the failures (the full log goes to $TMPDIR/amarna-test.log)
+                         # summary and the failures (the full log goes to $TMPDIR/amarna-test-<pid>.log, one per run)
 npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright smoke test of the built app
 ```
 
