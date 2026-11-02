@@ -6,7 +6,7 @@ Build order item 11f (`docs/intent/build-order/item-11.md`, the 11f part), the p
 and their evidence: `docs/history/02-geography.md`, "Neighbours on the map". Weekly usage: unknown (`scripts/usage.sh`
 cannot read it in this session). Effort: medium, as set. Helpers: one reviewer, in the background; no search helper.
 
-Haakon's words (29 October 2026, the item's own text): "Yes, to all, expertly!" (to the design session's rule, "neighbours
+The owner's words (29 October 2026, the item's own text): "Yes, to all, expertly!" (to the design session's rule, "neighbours
 on the map are neighbours in the rules"). Passed on by the orchestrating session the same day: "pull develop before your
 pre-PR check for changes; the design copy was refreshed today (build order revision 109)" (done: revision 109 changed
 item 13's text, not this item's).
@@ -139,7 +139,7 @@ crossing, one road's split).
    road is gone takes the nearest road that still is. Scenes keep the powers, numbers and rule they test. (The smallest
    game that tests the rule.)
 
-## Questions for Haakon
+## Questions for the owner
 
 1. **The lands east of the Jordan.** Reading taken: the King's Highway and the land east of the Jordan and the Dead Sea,
    from Edom up to the Bashan, are the Shasu's (their pastures in Seir and Edom are attested; north of Edom it is a

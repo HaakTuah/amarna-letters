@@ -1,6 +1,6 @@
 # People moving in the fog (side lane, 2 November 2026)
 
-Haakon (2 November 2026, `docs/archive/instructions.md`, the entry quoting it):
+The owner (2 November 2026, `docs/archive/instructions.md`, the entry quoting it):
 
 > Who are these people i can see moving about in the fog of war when viewing a game as egypt? Different caravan and
 > what looks like scout units or something?

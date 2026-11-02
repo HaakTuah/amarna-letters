@@ -2,7 +2,7 @@
 
 Branch `item/living-map`, built in passes, each its own pull request into `develop` (pass 1: #201). Stacked on item 17's
 branch (`item/free-cities`, #198) by "pipeline, don't wait"; each pass merges only after #198. The item's text is
-`docs/intent/build-order/item-19.md`, with Haakon's words there ("In time I want environmental effects, seasons reflected
+`docs/intent/build-order/item-19.md`, with the owner's words there ("In time I want environmental effects, seasons reflected
 on the map. Characters, armies, fighting shown, etc. Everything you can think of, which makes it a better game for a
 player or viewer."); its section is "The map in true geography, and its look in time" (under Interface, in
 `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`). As built:
@@ -17,7 +17,7 @@ the Interface tab (since revision 17) at the start of the item: none. Asked agai
 item 19's text and its section unchanged; the longer age (a median of about 80 seasons, item 17) reaches the map only
 through the omens in the margin, which read the engine's own tier each season, so they follow it unchanged.
 
-## Haakon's words during the item
+## The owner's words during the item
 
 Passed on by the orchestrator on 30 October, word for word, with weekly usage at 88%: "I want them to finish what they
 have started, if we believe they can." And of the design PRs #207 to #215 (items 17+, 17++ and item 18's check): "Build

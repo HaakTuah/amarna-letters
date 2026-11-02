@@ -1,6 +1,6 @@
 # Item 9: envoy authority and passage (27 October 2026)
 
-Build order item 9 ("Envoy authority and passage"): first what item 8 began too early to build of Haakon's answers to item
+Build order item 9 ("Envoy authority and passage"): first what item 8 began too early to build of the owner's answers to item
 7b (winter dangerous, never closed; a spy's report from a watched province by road), then mandates with engine-checkable
 limits, the authority to seal within them, credentials shown or hidden, and passage and basing on sealed tablets
 ("Envoy authority and resident envoys", "Passage and access"; questions 2, 3 and 14 of the old round report). Branch

@@ -2,7 +2,7 @@
 
 Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session). Effort: medium. Helpers: one reviewer.
 
-## Haakon's instruction
+## The owner's instruction
 
 Word for word (27 October 2026):
 
@@ -22,7 +22,7 @@ solution files deleted, and the design notes re-pointed from C# code to its Type
   after #38 for the C# files). The tag `csharp-final` was made locally, but this session cannot push it: `git push` of a
   tag is refused by the session's proxy ("the remote end hung up", three tries), and so is the refs API ("Write access
   to this GitHub API path is not permitted through this proxy"). So the commit is kept on the branch
-  `archive/csharp-final`, pushed before anything was deleted. **For Haakon:** push the tag with
+  `archive/csharp-final`, pushed before anything was deleted. **For the owner:** push the tag with
   `git push origin 5b4caa2:refs/tags/csharp-final` (or make it on GitHub from that branch), then the branch may go.
   The docs already name the tag.
 - **Deleted:** `src/Amarna.Batch`, `src/Amarna.Engine`, `src/Amarna.Game`, `src/Amarna.Llm`, `src/Amarna.Llm.Sdk`,
@@ -46,10 +46,10 @@ solution files deleted, and the design notes re-pointed from C# code to its Type
   `node --experimental-strip-types src/batch/src/main.ts`), `sim/write-debriefs.js` (its footer's source and test),
   `scripts/cloud-setup.sh` (no .NET note), `.claude/launch.json` (npm, not dotnet), `.claude/settings.json` (the
   start hook no longer tests for dotnet), and `src/web/src/styles/app.css` (a comment's path, and the dead
-  `#blazor-error-ui` rules, which no element uses). History is left as it was: the build log, round reports, Haakon's
+  `#blazor-error-ui` rules, which no element uses). History is left as it was: the build log, round reports, the owner's
   specs (`docs/CONVERSION-PLAN.md`, `docs/prompts/`), the briefs in `docs/items/` and earlier progress rows. Comments in
   the TypeScript code that say a format matches the C# build's are kept, as the reason the format is what it is.
-- **The progress file:** its row for step 4, and its opening line no longer says that Haakon merges `develop` into
+- **The progress file:** its row for step 4, and its opening line no longer says that the owner merges `develop` into
   `main` (the builder does, "You merge, always.").
 
 ## Checks

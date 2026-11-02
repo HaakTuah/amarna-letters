@@ -1,7 +1,7 @@
 # Item 8: structured press (27 October 2026)
 
 Build order item 8 ("Structured press"): first Ṣumur a province of its own, with the phone made to read the Levant, and
-Lukka a land without a king (Haakon's answers to item 7a, which 7b began too early to build); then the second press mode,
+Lukka a land without a king (the owner's answers to item 7a, which 7b began too early to build); then the second press mode,
 with templates for every king and script envoys, and the clauses every letter carries in full press too; "Recognition is
 earned"; gold sent without an inventory tablet; characters as agents in local play, with their wake-ups measured; and a
 screen for a human seat's standing answers. Branch `item/structured-press`; save version 12. What was built is in
@@ -12,7 +12,7 @@ this report says why, what it cost and what was found. Weekly usage: unknown (th
 
 The live design document was asked for changes since the copy's revisions at the start (Build order 39, Engine and models
 50, World and history 26, Diplomacy and intelligence 18, Characters 18, Interface 8): none. While the item was built,
-`develop` gained Haakon's answers to item 7b (#74) and the rule to ask again before opening the pull request (#75), and
+`develop` gained the owner's answers to item 7b (#74) and the rule to ask again before opening the pull request (#75), and
 the copy was refreshed (Build order 47). Item 8's text now begins with 7b's answers too (winter dangerous, never closed;
 a spy's report carried home by road), and item 9's text says that it builds whatever of them item 8 began too early to
 build: this item began before them, so item 9 builds them. Asked again before the pull request: Build order 49 changed
@@ -163,6 +163,6 @@ One reviewer (Opus, high effort), given the diff and the item's text. Its findin
 8. Standing answers carried no clauses for what they decided. Fixed: a courtesy, thanks for gold, the tablet sealed or not.
 9. Proposals in words with no tablet went unanswered. Fixed.
 
-## Haakon's words in this session
+## The owner's words in this session
 
 None: the session ran from the item's start prompt.

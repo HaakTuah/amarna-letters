@@ -126,4 +126,4 @@ item 14 found); no leftovers added (the scratch logs stay outside the repository
 
 ## Design questions
 
-None for Haakon: the item's text, its sections and "The game in one page" settled every reading above.
+None for the owner: the item's text, its sections and "The game in one page" settled every reading above.

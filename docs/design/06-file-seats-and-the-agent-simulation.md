@@ -120,7 +120,7 @@ the starting of agents, while work that starts no agent goes on. And every debri
 asks "What did you find most and least interesting about playing this role?" (a role an agent finds dull probably has
 too few real choices): `sim/write-debriefs.js` writes the debrief requests, with that question as the reply's
 `interesting` field and the game requests' footer (a test checks the footer is `Footer` word for word).
-No model game is run until the build order is done and Haakon asks.
+No model game is run until the build order is done and the owner asks.
 
 **Local play on a Claude subscription** (item 4). A fourth way to play, for the developer's own games: the web app,
 run on this computer, with a human seat against kings played by the same guarded king agents, answered in a Claude Code

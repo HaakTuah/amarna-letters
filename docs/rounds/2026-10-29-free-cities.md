@@ -8,11 +8,11 @@ Built from the dossier `docs/history/14-courts-and-free-cities.md`, cited below 
 
 - **At the start**: the live document's Build order (revision 109), War, travel and the seas (66), Land, people and economy
   (33) and Characters (21) tabs had no changes since the copy.
-- **Before the PR**: the item had gained the longer age (#206, revision 111; Haakon, 30 October 2026: "Yes to 1."), now
+- **Before the PR**: the item had gained the longer age (#206, revision 111; the owner, 30 October 2026: "Yes to 1."), now
   built here.
 - **The design PRs #207 to #215** (the opening and Transjordan, places by their names, what stood, what a king counts, the
   census, the count's age, kings' demands, always an amount, a share or an amount) changed none of item 17's sections.
-  They are items 17+ and 17++, and item 18's check, built after the weekly reset. Haakon, 30 October 2026, word for word:
+  They are items 17+ and 17++, and item 18's check, built after the weekly reset. The owner, 30 October 2026, word for word:
   "1. Your reading: item 17 is started, so it finishes, and item 18 waits. 2. Your reading: the design PRs #207–#215 are
   items 17+ and 17++ and item 18's check, not item 17. Build none of them now; they're next after the reset." And
   earlier: "I want them to finish what they have started, if we believe they can."
@@ -38,7 +38,7 @@ Built from the dossier `docs/history/14-courts-and-free-cities.md`, cited below 
 - **The gate opened from within** ("How long a siege lasts", item 17's part): a starving city holds a season or more,
   longer where its ruler is there and its people content, shorter where restless ("Start from: ... long hunger"; Rib-Hadda
   lost Byblos the one time he left it, EA 136-138).
-- **Buying or taking** ("Armies need food as well as pay", Haakon of 29 October 2026, quoted in the item): the king's word to
+- **Buying or taking** ("Armies need food as well as pay", the owner of 29 October 2026, quoted in the item): the king's word to
   each army with gold sent by courier; hunger decides before orders; a commander may keep the gold and take (Rib-Hadda's
   charge against Yanhamu, EA 83, 85); taking raises unrest by how much, the king's own troops included (EA 287); the
   ruler of the land remembers it as a grievance ("Grievances held by the dispossessed").
@@ -168,7 +168,7 @@ Item 13+'s governors' seats, the one feature never seen in play ("no governor ro
 path the item adds: 17 seats rose in 50 games. The other features were audited by items 15 and 16 at their starts; nothing
 new was found to patch here beyond the script king's book of kings.
 
-## Questions for Haakon
+## Questions for the owner
 
 None. "The game in one page", the item and its sections settled every reading. The observations for the balance pass are
 not questions:

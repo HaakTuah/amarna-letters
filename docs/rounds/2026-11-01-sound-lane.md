@@ -8,14 +8,14 @@ The check for changes: this account has no live document, so the copy on `develo
 start (`57c9c8b`, which already carries the design session's two sound entries, "Three layers, the music leading" and
 "What a seat hears is what its own map shows", in item 19+++).
 
-## Haakon's words (1 November 2026), passed on by the orchestrator
+## The owner's words (1 November 2026), passed on by the orchestrator
 
 1. **Answers to the music questions:**
    - Keep Kilmer's reading of the Hurrian Hymn, with one line on the Music page saying it is her reading, one of several
      modern reconstructions.
    - The Music page shows our own pieces' names and moods only. Take Empire Earth's name, track titles and lengths off it.
      The repository's docs may still say Empire Earth was the template; only the player's view changes.
-   - Move both questions to answered in the "For Haakon" table.
+   - Move both questions to answered in the "For the owner" table.
 2. **The soundtracks and the Music page:**
    - Keep every piece, the tuning test included.
    - The order everywhere is Orchestra (the default), then Lyre and reed, then 8-bit last.
@@ -46,7 +46,7 @@ start (`57c9c8b`, which already carries the design session's two sound entries, 
    - A place sounds as the seat last knew it. A city burned seasons ago that the seat still believes thriving plays its
      market until the news arrives, then its ruin.
 
-Haakon's words behind them, as the progress file and item 19+++ quote them: "I am actaully impressed! Didn't expect much
+The owner's words behind them, as the progress file and item 19+++ quote them: "I am actaully impressed! Didn't expect much
 from the music actually! But it is good! ... I want to keep all of it, even "The tuning's scale (a test)"", then "Yes,
 please, expertly!"; "your ears are being assaulted now. It plays dozens of sound effects at any one time", then "But all
 the event stuff is for players only, or if you spectate a player, you hear specifically what they hear"; "Important! The
@@ -68,7 +68,7 @@ hear, without it revealing anything".
 - **The theme hushed on the Music page** (`Player.hush`): entering fades the game's music out over 1.5 s and keeps the
   director from starting anything while the page is open; a piece ending or a button released no longer brings the theme
   back. Leaving fades it in over 3 s on the opening stage. Checked in Chromium through the top bar's link and back.
-- The two answered rows moved from "For Haakon" to `docs/archive/progress-done.md`.
+- The two answered rows moved from "For the owner" to `docs/archive/progress-done.md`.
 
 ### The review
 
@@ -124,8 +124,8 @@ when a human seat acts with the board revealed: they are that seat's own acts.
    land taken or lost, a courier and the season's stroke stay unplaced, heard at any zoom. Principle: "a change in choosing
    and mixing, not in the sounds"; what was placed stays placed.
 5. **God view keeps the music's stings** (a great king's capital fallen, a great king's fall, the age's end): they are the
-   music's layer, not event sounds. Principle: Haakon's three layers put only the event sounds out of god view.
-6. **The caps' numbers** (three at once, 4 s and 3 s, a 0.06 s rise, the bus levels) are first guesses in Haakon's range
+   music's layer, not event sounds. Principle: the owner's three layers put only the event sounds out of god view.
+6. **The caps' numbers** (three at once, 4 s and 3 s, a 0.06 s rise, the bus levels) are first guesses in the owner's range
    ("two or three", "a few seconds"); presentation only, so tuned by ear, not in item 18.
 
 ## PR 3: nothing heard reveals the fog of war; a seat hears its own map (`sound/fog`)

@@ -9,7 +9,7 @@ fresh session. Since then the fix pass (20 October 2026) changed the isolation t
 it to make every step. The kit of 19 October predated the change, so on 20 October it was remade with `node
 sim/setup.js --seeds 7,15 --force` (the old one is in `sim/runs/setup-<time>/`), and `node sim/check-isolation.js
 --dry` holds on it; start a fresh session before using it, so that its agent types load. No model game is run until
-the build order is done and Haakon asks for one (the builder rules, "No model games until the build order is done").
+the build order is done and the owner asks for one (the builder rules, "No model games until the build order is done").
 The `ANTHROPIC_API_KEY` environment variable must not be set in that session: it would make Claude Code bill the API
 instead of the subscription.
 
@@ -30,7 +30,7 @@ traits; how often kings reopen their orders after an audience; and wake-ups and 
 - Safety checks are never overridden: if a check that guards against something unsafe or irreversible fails (the isolation of agents before any agent is started, anything touching `main`, keys or spending), stop that step and ask, and go on with other work meanwhile.
   (The builder rules say this in the same words.) In this prompt the safety checks are: the key and the usage stop
   points (step 0), the agent types and the dry isolation check (step 1), the live isolation test (step 2), and the
-  audit after each game (steps 4 and 5). Each step below says what stops when one fails; "ask" means ask Haakon. The
+  audit after each game (steps 4 and 5). Each step below says what stops when one fails; "ask" means ask the owner. The
   other work that may go on meanwhile is work that starts no agent and spends nothing: the season lines, `summarize.js`,
   the report. A failure that guards against nothing unsafe (a fallback, an invalid order, a retry) is not a reason to
   stop: write it down and go on.
@@ -48,7 +48,7 @@ traits; how often kings reopen their orders after an audience; and wake-ups and 
 - Do not change engine rules, the map or the balance, and do not fix bugs during the runs: write them down.
 
 **0. The key and usage, before anything else.** Run `node -e "console.log(Boolean(process.env.ANTHROPIC_API_KEY))"`. It
-must print `false`. If it prints `true`, the agents would bill the API: stop, start no agent, and ask Haakon to unset it
+must print `false`. If it prints `true`, the agents would bill the API: stop, start no agent, and ask the owner to unset it
 and start a new session. Then record the 5-hour window and the weekly limit (`/usage`, or whatever usage tool you
 have) in the report. The first simulation cost about 1 weekly point per million agent tokens. The estimate for this
 one (details under "Characters as agents" in the report):
@@ -163,4 +163,4 @@ again: it covers both games and the debriefs.
 - Usage: per game, kings against characters, against the estimate in step 0.
 
 Commit the report to the branch this session runs on. Do not push, and do not touch `main` or `develop` (a safety
-check: anything touching `main` is asked first). Then stop: this is a review stop for Haakon.
+check: anything touching `main` is asked first). Then stop: this is a review stop for the owner.

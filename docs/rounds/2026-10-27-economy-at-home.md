@@ -4,7 +4,7 @@ Build order item 9+a ("The economy at home", the first part of 9+, "The economy,
 by province, stores with their basic capacity, local markets with one price formula and the people's purse, taxes in goods
 at the default rate, one treasury, troops' food and pay with hunger and mutiny, caravans at home under orders, the pace
 factors for size, load, pack animals and the slowest part, the siege's clock, and strength as the wealth of the realm;
-with Haakon's design change of 27 October (#90), sleep for human seats too. Branch `item/economy-at-home`; save version
+with the owner's design change of 27 October (#90), sleep for human seats too. Branch `item/economy-at-home`; save version
 14. What was built is in `docs/design/16-the-economy-at-home.md` (and the script kings' part in
 `docs/design/07-script-kings/13-treasury.md`, "The economy at home"); this report says why, what it cost and what was
 found. Weekly usage: unknown (this session cannot read it). Effort: medium, as asked. Helpers: one reviewer, none other.
@@ -12,7 +12,7 @@ found. Weekly usage: unknown (this session cannot read it). Effort: medium, as a
 ## The check for changes
 
 Asked at the start (Build order since 61, Land, people and economy since 24, War, travel and the seas since 53, Victory
-since 9, Work, money and lending since 11): nothing new. While the item was built Haakon merged #90-#92 into `develop`
+since 9, Work, money and lending since 11): nothing new. While the item was built the owner merged #90-#92 into `develop`
 (sleep for every seat, shadow scripts, the first model games): the one that touches this item is #90, which adds to 9+a
 "sleep for human seats, as an automatic end of turn when nothing concerns them, woken by the same triggers as model seats
 and able to wake themselves at any time". It is built (below). Asked again before the pull request (Build order since 64,
@@ -136,7 +136,7 @@ What moved, and why:
 
 ## Readings taken and design questions
 
-Each is the reading taken, with its alternative; the first ten are also in the progress file's "For Haakon" table.
+Each is the reading taken, with its alternative; the first ten are also in the progress file's "For the owner" table.
 
 1. **The mines' scale.** The dossier gives only shares, so the absolute output is a guess: about 120 shekels a season over
    the map (Egypt 84%), enough to make good the gold that leaves the markets for characters' wages (about 200 a season
@@ -205,7 +205,7 @@ One reviewer (the diff and the item's text, model Opus at high effort) found thr
   said so); a caravan's grain with nowhere to go was said to be "sold off for nothing" (it is lost); a human's "Wake now"
   pressed in a season he was woken anyway stayed set (now cleared when he is asked); two doc comments in `sleep.ts` were
   out of place.
-- Not changed, with the reason: a mutiny's savings going home (reading 5, a question for Haakon); the pace's oxcarts,
+- Not changed, with the reason: a mutiny's savings going home (reading 5, a question for the owner); the pace's oxcarts,
   porters and parts that nothing chooses yet, and a caravan's load always near its capacity (in "Other readings");
   the validator reserving a purchase's full cost where the engine would buy as far as the gold goes (a refused order is
   told, and the script kings buy within their gold); the court's and letters' reading of `income` (in "Other readings");

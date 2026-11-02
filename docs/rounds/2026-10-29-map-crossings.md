@@ -1,11 +1,11 @@
 # The rest of the map: its crossings and its missing places (29 October 2026)
 
-Build order item 11f (`docs/intent/build-order/item-11.md`, the 11f part), added by Haakon's PR #160, with his two
+Build order item 11f (`docs/intent/build-order/item-11.md`, the 11f part), added by the owner's PR #160, with his two
 logistics answers of PR #163. Branch `item/map-crossings`, PR #169. Save version 30 (item 12 takes 29). What was built,
 by file: `docs/design/33-the-rest-of-the-map.md`. Weekly usage: unknown (`scripts/usage.sh` cannot read it in this
 session). Effort: medium, as set. Helpers: one reviewer, in the background; no search helper.
 
-Haakon's words (29 October 2026, the item's own text): "Yes, every crossing like this should be included, and such that
+The owner's words (29 October 2026, the item's own text): "Yes, every crossing like this should be included, and such that
 both the map and the game physics reflect the actual terrain that was at the time."; to the design session's list of the
 places the map lacks: "Yes, do it expertly!"; to its takes on logistics: "Yes, agreed with all, expertly!"; and on the
 countryside round a siege: "Yes to all, expertly!".
@@ -13,7 +13,7 @@ countryside round a siege: "Yes to all, expertly!".
 ## The check for changes
 
 The copy was cut from Build order revision 103, War 66, The world 36, Land 33. Asked at the start: nothing had changed
-in any of them. Asked again before the pull request (Build order, War, The world, Land, Characters, Victory): Haakon's PR #174 added
+in any of them. Asked again before the pull request (Build order, War, The world, Land, Characters, Victory): the owner's PR #174 added
 his answers to items 11e and 12 to this item while it was built, and they are built here; nothing else changed.
 
 ## What was built
@@ -62,7 +62,7 @@ were used in 48 games of 50 (below).
 
 ## Measures
 
-**Before** (`develop` at e07985d, with item 12) and **after** (this branch at c2bb98b, with Haakon's answers to 11e and
+**Before** (`develop` at e07985d, with item 12) and **after** (this branch at c2bb98b, with the owner's answers to 11e and
 12), seeds 1-50, `scripts/sim.sh --games 25 --seed 1 --verify-replay` and `--seed 26` (two halves, one machine). 50 of
 50 replays exact in both; 47.3 seasons on average in both.
 
@@ -157,6 +157,6 @@ that touches the map's connections, and the progress file says so.
     Shasu in the Arabah by Edom (30.6 N, 35.3 E) [G].
 15. **Connections for the new places** follow the roads the dossiers give, then the drawing where the sources allow.
 
-## Questions for Haakon
+## Questions for the owner
 
 None: "The game in one page" and the item's sections settled every reading (readings 1-15 above).

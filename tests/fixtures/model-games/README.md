@@ -1,6 +1,6 @@
 # Real model games, exported from the web app
 
-Games Haakon played with model seats, exported with the game's own export (`.jsonl`, save version 38), kept as data
+Games the owner played with model seats, exported with the game's own export (`.jsonl`, save version 38), kept as data
 on real API calls: what was sent, what came back, the tokens and cost of each call, and every error. Replaying them
 makes no API calls. Before a file goes in it is searched for API keys, e-mail addresses, local paths, account or
 organisation ids and request ids; the export itself is audited by the side lane "What a game's export holds"

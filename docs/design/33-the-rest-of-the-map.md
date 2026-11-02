@@ -76,7 +76,7 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
 - **The crossings** need nothing new: their help in battle reaches the scripts' reckoning through `defenceGround`
   (`Board.groundBonus`) and their delays through `legPoints`.
 
-## Haakon's answers to items 11e and 12 (PR #174, built here)
+## The owner's answers to items 11e and 12 (PR #174, built here)
 
 - **Size weighs 5 in a hundred** in the final score (`GameConfig.sizeWeight`, 50 before), near the fair point item 11e
   measured; item 18 sets it.

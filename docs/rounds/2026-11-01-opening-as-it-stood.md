@@ -97,7 +97,7 @@ Each with the principle it rests on ("Reason from the pillars").
 19. **The Great Kings' realms keep the design document's names** (Egypt, Hatti, Karduniash, Mitanni, Assyria, Arzawa,
     Alashiya): the document names them so in every section, the power ids are these names, and the section's examples are
     all places within realms; Miṣri for Egypt or Aššur for Assyria would be a change of the document's own vocabulary, so
-    it goes to Haakon as a matter of taste (question 1).
+    it goes to the owner as a matter of taste (question 1).
 20. **The seas by description** (the Western Sea, the Eastern Sea, the Gulf): the Greek names (the Aegean, the Red Sea) are
     later; the Egyptians' "Great Green" names the whole sea. The waters off a coast take the coast's name.
 21. **Pharaoh's father** is Nimmureya to foreign courts, as the letters write him; nothing in the game names him yet (no
@@ -204,7 +204,7 @@ The session building this item was stopped at 98% of the weekly usage. State of 
 - **Then:** the after-benchmark (`scripts/sim.sh --games 20 --seed 1 --verify-replay`) and `--upkeep-play-half` over 50
   games, their rows here and in the progress file's "Use against ignore" table; the people counts (wake-ups, calls, each
   person's asked/sent/served from the batch summary line "People of the sources"); the check for changes
-  (`git diff 20850a8..origin/develop -- docs/intent .claude/rules`); the progress file's 17+ line and "For Haakon" table
+  (`git diff 20850a8..origin/develop -- docs/intent .claude/rules`); the progress file's 17+ line and "For the owner" table
   (design question 1 below); the reviewer (not run yet); merge; the milestone PR.
 - **Leftovers noted, not done:** sleep digests and wake reasons still name provinces by id; treasury and press lines name
   powers by id; `svg-renderer.ts` is 52 KB (split in its own PR).

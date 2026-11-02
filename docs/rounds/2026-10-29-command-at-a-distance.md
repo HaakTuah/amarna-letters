@@ -19,7 +19,7 @@ after it are identical to the last character's purse.
 
 The copy was cut from Build order revision 103, War, travel and the seas 66, Overview 567, Characters 20, Land, people
 and economy 33, Engine and models 57. Asked at the start: nothing had changed. Asked again before the pull request:
-Build order 105 and Characters 21 changed only item 11f's text and the Akkadian scribe it builds (Haakon's answers to
+Build order 105 and Characters 21 changed only item 11f's text and the Akkadian scribe it builds (the owner's answers to
 items 11e and 12), which came in with 11f; nothing in item 13's text or sections changed.
 
 ## The audit at the start
@@ -97,7 +97,7 @@ Each rests on "The game in one page", the item's sections or the dossier.
    section rules out); the seat comes with the item that brings risen seats. Question 1 asks whether to bring it forward.
 3. **A fallen kingdom comes apart at once**, not as the news reaches each province: the parts' rulers are the conqueror
    and nobody (lawless) until item 17, so timing changes little a king can act on. The item's text says "once the news
-   reaches it", so this goes to Haakon as question 2.
+   reaches it", so this goes to the owner as question 2.
 4. **Script commanders only** ("Models only where they matter"): a commander's mind is a script reading his mandate by
    his competence; kings write the mandates.
 5. **A commander's journey to his army is not a road journey** with interception: it takes the courier's time.
@@ -162,7 +162,7 @@ never move their court), seeds 1-50: 0.77 growth to 0.76, 27 wins to 23 (before 
 to 23). Using command pays a little, within noise: an uncommanded army fights at its men's average and holds where no
 order reaches it, so the gain is in the far provinces, which the scripts' growth reaches only late in a game.
 
-## Questions for Haakon
+## Questions for the owner
 
 1. **A governor's seat when his kingdom falls.** The section makes each governor "his province's leader with a seat of
    his own", but seats rising in play are item 17's. Reading taken: until item 17, a fallen kingdom's governed provinces
