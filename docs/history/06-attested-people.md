@@ -76,7 +76,7 @@ Nubian names survive in Egyptian writing only [C], so invented Nubian personal n
 | Shuttarna III | Artatama's son | likely | A | The same |
 | Kili-Teshup (Shattiwaza) | Tushratta's son, later Hatti's vassal king | yes | A | His treaty (Beckman no. 6) |
 | Keliya | Envoy to Egypt, again and again | yes | A | EA 19-29 |
-| Pirissi, Tulubri | Envoys detained in Egypt | yes | A | EA 28 (named; likely the unnamed envoys of EA 27, 29) |
+| Pirissi, Tulubri | Envoys detained in Egypt | yes | A | EA 27-29 (whole in EA 28; in EA 27 and 29 the names are partly broken and restored, as in Moran) |
 | Artessupa, Asali | Envoys | likely | C | EA 17, 20 |
 | Akit-Teshup | Noble who fled with chariots to Babylon | later | A | The Shattiwaza treaty |
 
