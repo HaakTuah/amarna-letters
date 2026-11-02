@@ -37,6 +37,7 @@ import { Board } from "./board.ts";
 import { Brain } from "./brain.ts";
 import { archetype, type Personality } from "./personality.ts";
 import { Statecraft } from "./statecraft.ts";
+import { picturedHeld } from "./occupy.ts";
 import { joints as tacticsJoints, makePlan, relief, willing as tacticsWilling, type Joint, type MilitaryPlan } from "./tactics.ts";
 
 const Samples = 8;
@@ -105,6 +106,8 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
       if (plan.role.tryGet(u) === "landing") continue;
       // So does a winter stroke (Tactics, item 9): the pictured seasons, on the safe winter map, cannot picture it.
       if (plan.role.tryGet(u) === "winter-stroke") continue;
+      // So does an army occupying land until it obeys (occupy.ts): a single season cannot see the love fading.
+      if (plan.role.tryGet(u) === "occupy") continue;
       for (const change of alternatives(b, best, u, ctx.willing, ctx.joints)) {
         if (ctx.runs + Samples > Budget) break;
         const trial = best.clone();
@@ -555,6 +558,8 @@ function after(c: Ctx, r: AdjudicationResult, orders: Plan): { lost: HSet<string
   const owner = (p: string): Power | null => {
     const u = at.tryGet(p);
     if (Board.Map.get(p).isSea || u === undefined) return b.ownerOf(p);
+    // Item 17++a: land we stand in is pictured ours only if its people would obey us (`occupy.ts`).
+    if (u.power !== b.ownerOf(p) && !picturedHeld(b, p, u.power, u.kind === "Army" ? u.men : 0)) return b.ownerOf(p);
     return !b.walls(p) || u.power === b.ownerOf(p) || stormed.has(p) || falls(p, u) ? u.power : b.ownerOf(p);
   };
   return { lost, at, owner };
