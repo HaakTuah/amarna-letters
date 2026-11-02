@@ -32,15 +32,19 @@ function written(entry) {
   return files.flatMap((f) => [...readFileSync(f, "utf8").matchAll(pattern)].map((m) => m[1]));
 }
 
-/** Node's releases from nodejs.org, kept only where the version reads as x.y.z. */
+/**
+ * Node's releases from nodejs.org, kept only where they read as its index writes them: the version x.y.z, and `lts`
+ * either false or the line's codename (a word, such as "Lithium"). Anything else is left out, never guessed at.
+ */
 async function nodeReleases() {
   const res = await fetch("https://nodejs.org/dist/index.json");
   if (!res.ok) throw new Error(`nodejs.org answered ${res.status}`);
   const list = await res.json();
   if (!Array.isArray(list)) throw new Error("nodejs.org's index is not a list");
+  const lts = (v) => v === false || (typeof v === "string" && /^[A-Z][a-z]+$/u.test(v));
   return list
-    .filter((r) => typeof r?.version === "string" && VERSION.test(r.version))
-    .map((r) => ({ version: parts(r.version), lts: Boolean(r.lts) }));
+    .filter((r) => typeof r?.version === "string" && VERSION.test(r.version) && lts(r.lts))
+    .map((r) => ({ version: parts(r.version), lts: r.lts !== false }));
 }
 
 /** The newest version to move to: a newer long-term-support major, else (for an exact pin) the newest of its own. */
