@@ -75,8 +75,9 @@ here for the design session.
 4. **The gate holds in the background too** (one batch for each opening's first call, then the rest): "The cache is
    written once" names no exception, and a batch writing 25 copies at half price still costs more than one write and an
    extra wait.
-5. **A field left out is read as its blank**: empty text, no choice, an empty list, 0 and false, each the schema's own
-   "none" ("Requests are rules too"). The schema sent still lists every field as required, so providers' limits and the
+5. **A field left out is read as its blank where the schema has one**: empty text, no choice, an empty list, each the
+   schema's own "none" ("Requests are rules too"). A number or a yes-or-no left out is not guessed (Codex's review: an
+   errand's gold left out as `false` would be a betrayal), so it goes back with the retry. The schema sent still lists every field as required, so providers' limits and the
    schema tests are unchanged; only the reply line says a field that does not apply may be left out.
 6. **Names in any spelling shown** are matched by case and accents, then by a unique start of four letters or more
    ("babylon" for Babylonia). No list of alternative names was built: the engine's names vary by court (claimed names,

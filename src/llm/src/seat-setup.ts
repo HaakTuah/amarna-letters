@@ -314,14 +314,16 @@ export const CostEstimate = {
   perSeason(c: SeatChoices, background = false): number {
     const prices = new PriceTable(c.prices);
     const R = CostEstimate.Recorded;
+    const batched = (model: string | null): boolean => model !== null && CostEstimate.batched(c, model, background);
     const effort = c.leaderEffort === "low" ? 0.6 : c.leaderEffort === "high" ? 1.6 : 1.0;
     // Calls of one kind and one opening: `n` calls a season, all reading the opening but the one that writes it.
     const calls = (model: string | null, n: number, k: { fresh: number; output: number; opening: number }, scale = 1): number => {
       const price = model !== null ? prices.for(model) : null;
       if (price === null || n <= 0) return 0;
       const writes = Math.min(1, n);
-      const write = background ? price.cost(0, 0, 0, k.opening, k.opening) : price.cost(0, 0, 0, k.opening);
-      return n * price.cost(k.fresh, Math.trunc(k.output * scale), 0, 0) + (n - writes) * price.cost(0, 0, k.opening, 0) + writes * write;
+      const write = batched(model) ? price.cost(0, 0, 0, k.opening, k.opening) : price.cost(0, 0, 0, k.opening);
+      const live = n * price.cost(k.fresh, Math.trunc(k.output * scale), 0, 0) + (n - writes) * price.cost(0, 0, k.opening, 0) + writes * write;
+      return live * (batched(model) ? BatchDiscount : 1);
     };
     // By model, how many calls of each kind the kings make a season: as measured in item 6b (src/batch/src/measure.ts,
     // script games shadowed by model kings that sleep), a king gives orders in about three seasons in ten and holds court,
@@ -367,7 +369,11 @@ export const CostEstimate = {
       total += calls(cm, R.life.perSeason, R.life) + calls(cm, R.envoy.perSeason, R.envoy);
       if (climbs > 0) total += calls(up, climbs * R.life.perSeason, R.life) + calls(up, climbs * R.envoy.perSeason, R.envoy);
     }
-    return total * (background ? BatchDiscount : 1);
+    return total;
+  },
+  /** Whether a model's calls go by the batch service: in the background, Anthropic's; other providers' stay live. */
+  batched(c: SeatChoices, model: string, background: boolean): boolean {
+    return background && splitModel(model, c.providersInUse).provider === AnthropicId;
   },
   /** A game of `seasons`: its seasons, the narrator's personas at setup and its chronicle at the end. */
   perGame(c: SeatChoices, seasons = 44, background = false): number {
@@ -378,7 +384,7 @@ export const CostEstimate = {
     if (price !== null) {
       const P = CostEstimate.Recorded.persona;
       const narrator = P.characters * price.cost(P.fresh, P.output, 0, 0) + 7 * price.cost(3000, 1200, 0, 0) + 5 * price.cost(300, 200, 0, 0);
-      total += narrator * (background ? BatchDiscount : 1);
+      total += narrator * (CostEstimate.batched(c, nm!, background) ? BatchDiscount : 1);
     }
     return total;
   },

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
-import { newGameConfig } from "@amarna/engine";
+import { AllPowers, newGameConfig } from "@amarna/engine";
 import type { ModelCall } from "@amarna/game";
-import { AnthropicProvider, ApiStatusError, BatchTransport, MemoryBatchStore, ModelClient, ModelIds, PriceTable, Replies, problems, readAsMeant, type ApiResult, type CallSpec, type JsonObject } from "@amarna/llm";
+import { AnthropicProvider, ApiStatusError, BatchTransport, CostEstimate, SeatChoices, MemoryBatchStore, ModelClient, ModelIds, PriceTable, Replies, problems, readAsMeant, type ApiResult, type CallSpec, type JsonObject } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
 import { StandInService, TestClock, haikuGame } from "./stand-in-service.ts";
 
@@ -107,7 +107,9 @@ describe("Calls that get through", () => {
     Assert.equal('gold: gave "much", where a number was asked', found[1]);
     // Left out, blank-looking, a list for a blank, another spelling: all read as meant.
     const read = readAsMeant({ to: "babylon" }, z.object({ to: z.enum(["", "Assyria", "Babylonia"]), say: z.string(), list: z.array(z.string()), n: z.int(), yes: z.boolean() }));
-    expect(read).toEqual({ to: "Babylonia", say: "", list: [], n: 0, yes: false });
+    expect(read).toEqual({ to: "Babylonia", say: "", list: [] });
+    // A number or a yes-or-no left out is a decision not taken: not guessed, so the check names it for the retry.
+    Assert.equal("n: gave nothing, where a number was asked", problems(read, z.object({ n: z.int() }))[0]);
     expect(readAsMeant({ to: ["'' "] }, z.object({ to: z.enum(["", "Assyria"]) }))).toEqual({ to: "" });
     expect(readAsMeant({ to: "none" }, z.object({ to: z.enum(["", "Assyria"]) }))).toEqual({ to: "" });
     // Two options the value could be: not guessed.
@@ -144,5 +146,26 @@ describe("Calls that get through", () => {
     await again.askJson(spec(1));
     Assert.equal(1, service.batches.size);
     Assert.equal(null, calls[0].error);
+  });
+
+  test("a batch already answered when the game closed mid-season is collected, not sent again", async () => {
+    const { service, client, store, clock } = setUp(true);
+    await client.askJson(spec(1));
+    Assert.equal(1, service.batches.size);
+    // The season was not saved: opened again, it asks the same call again.
+    const again = new ModelClient(new AnthropicProvider(new BatchTransport(service, service, store, clock)), () => {}, new PriceTable(), clock);
+    await again.askJson(spec(1));
+    Assert.equal(1, service.batches.size);
+  });
+
+  test("in the background only Anthropic's calls are estimated at the batch price; another provider's stay live", () => {
+    const c = new SeatChoices();
+    c.providers = [{ id: "local", baseUrl: "http://localhost:11434/v1" }];
+    c.prices = { "local:llama": [1, 2, 0.1] };
+    c.small = "Off";
+    for (const p of AllPowers) c.leaders.set(p, "local:llama");
+    Assert.equal(CostEstimate.perSeason(c), CostEstimate.perSeason(c, true));
+    for (const p of AllPowers) c.leaders.set(p, "Haiku");
+    Assert.inRange(CostEstimate.perSeason(c, true) / CostEstimate.perSeason(c), 0.45, 0.6);
   });
 });

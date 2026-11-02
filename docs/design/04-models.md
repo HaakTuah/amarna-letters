@@ -158,16 +158,19 @@
   `CacheGate` (`cache-gate.ts`): the first goes alone and the rest wait until its reply shows the cache written; an
   opening found lapsed is written to last an hour from then on (`ttl: "1h"`, priced at twice the input price), and one
   too short to cache is never waited on again. Replies are read as meant before the schema check (`readAsMeant`,
-  `reading.ts`): a field left out is blank (empty text, no choice, an empty list, 0, false), blank-looking values and
+  `reading.ts`): a text, choice or list left out is blank (a number or yes-or-no left out is not guessed, since either
+  value can be a decision, and goes back with the retry), blank-looking values and
   leaked tool markup in a choice are blank, a list of one where one value is asked is that value, numbers and yes/no
   written as text are read, and a choice matches its options in any case or accents or by a unique start of four letters
   or more (Babylon, Babylonia); the reply line tells the model a field that does not apply may be left out. What still
   does not fit goes back once with `problems`, which names what was given and what was asked. **In the background**
   (`BatchTransport`, `background.ts`; the setup's "Play in the background") Anthropic calls are gathered for half a
   second and sent as one batch (`SdkBatchService`, Message Batches), asked after every 10 s doubling to 2 min, priced at
-  `BatchDiscount` (half), with no limiter; each request is named by a digest of its body, and the batches still out are
-  kept in IndexedDB (`savedBatches`), so a game continued with the box ticked collects the answers instead of sending
-  again. Other providers stay live. The log's records are unchanged.
+  `BatchDiscount` (half), with no limiter; the batch service's errors read as a call's, so they are sent again too. Each
+  request is named by a digest of its body, and the batches sent are kept in IndexedDB (`savedBatches`) for the 29 days
+  the service keeps their answers, answered or not, since a game saves only at the end of a season: a game continued
+  with the box ticked collects the answers instead of sending again. Other providers stay live, and the estimate prices
+  only Anthropic's calls at the batch discount. The log's records are unchanged.
 - **Providers** (`Provider` in `src/llm/src/client.ts`): one small interface, with each provider's adapter handling its own
   format for system prompts and structured replies. Anthropic (`AnthropicProvider`) goes through the official TypeScript
   SDK (`SdkTransport`, `@anthropic-ai/sdk`) in the browser, the batch runner and the tests alike, with the

@@ -9,7 +9,7 @@
  */
 import type Anthropic from "@anthropic-ai/sdk";
 import { sha256, utf8 } from "@amarna/engine";
-import { FallbackBeta, bodyText, resultOf, sdkParams, type ApiTransport, type SdkTransport } from "./anthropic.ts";
+import { FallbackBeta, apiError, bodyText, resultOf, sdkParams, type ApiTransport, type SdkTransport } from "./anthropic.ts";
 import type { ApiResult } from "./client.ts";
 import { ApiStatusError, RealClock, type Clock } from "./limiter.ts";
 import type { JsonObject } from "./schemas.ts";
@@ -24,11 +24,14 @@ export interface BatchService {
   results(batch: string, signal?: AbortSignal): Promise<Map<string, ApiResult | ApiStatusError>>;
 }
 
-/** Where the batches still out are kept, by the ids of their requests, so a game opened again collects them. */
+/**
+ * Where the batches sent are kept, by the ids of their requests, so a game opened again collects them. They are kept
+ * after their answers came, since a game saves only once its season is played: closed mid-season, it asks again for
+ * answers that came before it closed. The service keeps a batch's answers for 29 days; the store may forget it sooner.
+ */
 export interface BatchStore {
   find(request: string): Promise<string | null>;
   keep(batch: string, requests: readonly string[]): Promise<void>;
-  drop(batch: string): Promise<void>;
 }
 
 /** A store kept in memory, for the batch runner and the tests. */
@@ -39,10 +42,6 @@ export class MemoryBatchStore implements BatchStore {
   }
   keep(batch: string, requests: readonly string[]): Promise<void> {
     for (const r of requests) this.byRequest.set(r, batch);
-    return Promise.resolve();
-  }
-  drop(batch: string): Promise<void> {
-    for (const [r, b] of [...this.byRequest]) if (b === batch) this.byRequest.delete(r);
     return Promise.resolve();
   }
 }
@@ -71,6 +70,8 @@ export class BatchTransport implements ApiTransport {
   private gathered: Waiting[] = [];
   /** The answers of batches out, by request id: every call asking the same request waits on the same answer. */
   private readonly out = new Map<string, Promise<ApiResult>>();
+  /** The answers of each ended batch, fetched once however many of its calls are asked again. */
+  private readonly answers = new Map<string, Promise<Map<string, ApiResult | ApiStatusError>>>();
 
   /** `live`: counts tokens for the check at setup, which costs nothing and needs no batch. */
   constructor(service: BatchService, live: ApiTransport, store: BatchStore = new MemoryBatchStore(), clock: Clock = RealClock) {
@@ -137,16 +138,21 @@ export class BatchTransport implements ApiTransport {
     try {
       for (let wait = BatchTiming.firstPollMs; !(await this.service.ended(batch, signal)); wait = Math.min(BatchTiming.longestPollMs, wait * 2))
         await this.clock.sleep(wait, signal);
-      const results = await this.service.results(batch, signal);
-      await this.store.drop(batch).catch(() => {});
+      let results = this.answers.get(batch);
+      if (results === undefined) {
+        this.answers.set(batch, (results = this.service.results(batch, signal)));
+        results.catch(() => this.answers.delete(batch));
+      }
+      const answered = await results;
       for (const w of these) {
-        const r = results.get(w.id);
+        const r = answered.get(w.id);
         if (r === undefined) w.reject(new ApiStatusError(`Anthropic batch ${batch} has no answer for a call.`, 0));
         else if (r instanceof ApiStatusError) w.reject(r);
         else w.resolve(r);
       }
     } catch (e) {
-      // Stopped, or the service failed: the batch stays kept, so a game opened again collects it.
+      // Stopped, or the service failed: the batch stays kept, so the call asked again, now or once the game is opened
+      // again, collects it.
       for (const w of these) w.reject(e);
     }
   }
@@ -155,7 +161,7 @@ export class BatchTransport implements ApiTransport {
 /** The status an error type of the batch service stands for, so the client knows which to send again. */
 const statusOf: Record<string, number> = { rate_limit_error: 429, overloaded_error: 529, api_error: 500, timeout_error: 504 };
 
-/** Anthropic's Message Batches, through the official SDK and the player's own key. */
+/** Anthropic's Message Batches, through the official SDK and the player's own key; its errors read as a call's do. */
 export class SdkBatchService implements BatchService {
   private readonly client: Anthropic;
   constructor(transport: SdkTransport) {
@@ -163,6 +169,14 @@ export class SdkBatchService implements BatchService {
   }
 
   async create(requests: { id: string; body: JsonObject }[], signal?: AbortSignal): Promise<string> {
+    try {
+      return await this.send(requests, signal);
+    } catch (e) {
+      throw apiError(e);
+    }
+  }
+
+  private async send(requests: { id: string; body: JsonObject }[], signal?: AbortSignal): Promise<string> {
     const fallbacks = requests.some((r) => r.body.fallbacks !== undefined);
     const batch = await this.client.beta.messages.batches.create(
       {
@@ -178,10 +192,22 @@ export class SdkBatchService implements BatchService {
   }
 
   async ended(batch: string, signal?: AbortSignal): Promise<boolean> {
-    return (await this.client.beta.messages.batches.retrieve(batch, {}, { signal })).processing_status === "ended";
+    try {
+      return (await this.client.beta.messages.batches.retrieve(batch, {}, { signal })).processing_status === "ended";
+    } catch (e) {
+      throw apiError(e);
+    }
   }
 
   async results(batch: string, signal?: AbortSignal): Promise<Map<string, ApiResult | ApiStatusError>> {
+    try {
+      return await this.read(batch, signal);
+    } catch (e) {
+      throw apiError(e);
+    }
+  }
+
+  private async read(batch: string, signal?: AbortSignal): Promise<Map<string, ApiResult | ApiStatusError>> {
     const out = new Map<string, ApiResult | ApiStatusError>();
     for await (const r of await this.client.beta.messages.batches.results(batch, {}, { signal })) {
       const res = r.result;

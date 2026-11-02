@@ -85,29 +85,27 @@ export async function deleteLog(id: string): Promise<void> {
   }
 }
 
-/** The batches still out, by the ids of their requests (no key and nothing of the account: only the batch's own id). */
+/**
+ * The batches sent, by the ids of their requests (no key and nothing of the account: only the batch's own id), kept
+ * while the service keeps their answers (29 days) and then forgotten.
+ */
+const BatchDays = 29;
 export const savedBatches: BatchStore = {
   async find(request) {
-    return ((await tx("readonly", (s) => s.get(request), BATCHES)) as string | undefined) ?? null;
+    const row = (await tx("readonly", (s) => s.get(request), BATCHES)) as { batch: string; at: number } | undefined;
+    return row !== undefined && Date.now() - row.at < BatchDays * 86_400_000 ? row.batch : null;
   },
   async keep(batch, requests) {
+    const now = Date.now();
     await tx(
       "readwrite",
       (s) => {
-        for (const r of requests) s.put(batch, r);
-      },
-      BATCHES,
-    );
-  },
-  async drop(batch) {
-    await tx(
-      "readwrite",
-      (s) => {
-        const req = s.openCursor();
-        req.onsuccess = () => {
-          const c = req.result;
+        for (const r of requests) s.put({ batch, at: now }, r);
+        const old = s.openCursor();
+        old.onsuccess = () => {
+          const c = old.result;
           if (c === null) return;
-          if (c.value === batch) c.delete();
+          if (now - ((c.value as { at?: number }).at ?? 0) >= BatchDays * 86_400_000) c.delete();
           c.continue();
         };
       },

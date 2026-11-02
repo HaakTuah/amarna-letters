@@ -102,7 +102,11 @@ function single(value: unknown): unknown {
   return value.length === 0 ? null : value.length === 1 ? value[0] : value;
 }
 
-/** What a field left out means: blank text, no choice, none, no and nought; an object left out stays left out. */
+/**
+ * What a field left out means where the schema has a blank: empty text, no choice, none. A number or a yes-or-no left out
+ * is not guessed, since either value can be a decision (an errand's gold not handed over, gold sent back at no purity):
+ * it goes back to the model with the retry.
+ */
 function leftOut(field: z.ZodType): unknown {
   switch (def(field).type) {
     case "string":
@@ -111,10 +115,6 @@ function leftOut(field: z.ZodType): unknown {
       return optionsOf(field).includes("") ? "" : undefined;
     case "array":
       return [];
-    case "number":
-      return 0;
-    case "boolean":
-      return false;
     default:
       return undefined;
   }

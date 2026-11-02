@@ -84,6 +84,12 @@ fixed.
   service that refuses calls past a limit, answers batches late and returns that game's slips. The report gives the
   expected cost of a season, live and in the background. The game itself is in
   `tests/fixtures/model-games/` (its README): its slips are the test cases, its token counts the estimate's start.
+- **Counsel's plans from a digest** (found by "model calls that get through", 2 November 2026; Engine and models,
+  "Passing up and asking advice": the strong model writes the plan "from a digest of the year ... rather than the whole
+  record"). A plan call opens with the kings' whole 70,600-token rulebook on Sonnet, so at the recorded token counts
+  Counsel estimates about 5% above Standard, where the design has small models play and the large one only plan and
+  advise. Give the plan call its own short opening (the digest and what it needs of the rules), then restore the test's
+  old claim that Counsel costs less than Standard (`src/game/test/who-decides.test.ts`).
 - **First, before any other side lane: people moving in the fog** (Haakon, 2 November 2026: "Who are these people i can
   see moving about in the fog of war when viewing a game as egypt? Different caravan and what looks like scout units or
   something?"). Find what they are and why a seat sees them. If Egypt should not know of them, it is a leak ("Only what
