@@ -23,12 +23,12 @@ export const godOf = (court: Power): string => (court === "Egypt" ? "Amun" : cou
 /** An envoy's words abroad, by line; `{T}` is how it addresses the host, `{K}` its lord, `{G}` its god. */
 export const Abroad = {
   servant: ["{T}, I bring the words of {K}, and I am your servant.", "{T}, your servant brings you the words of {K}."],
-  open: ["Hear the words of {K}, {T}.", "{T}, {K} has sent me to you.", "I come from {K}, {T}, and bring his tablet."],
+  open: ["Hear the words of {K}, {T}.", "{T}, {K} has sent me to you.", "I come from {K}, {T}, with his words."],
   greets: ["He sends his greetings.", "It is well with him; may it be well with you and your house.", "He greets you, and asks after your health."],
   noQuarrel: ["My lord desires no quarrel with your house.", "Between your house and his he desires no quarrel."],
   flatter: [
     "He holds you dearest of his brothers; be gracious to me, and gifts will follow.",
-    "Be gracious to me, his messenger, and his gifts will follow; he counts you first among his brothers.",
+    "Be gracious to me, and his gifts will follow; you are first among his brothers.",
   ],
   fond: ["No court I have stood in is the equal of yours.", "I have long wished to stand in this hall."],
   goldListed: ["Here is the gold my lord sends, and the inventory on the tablet with it.", "I bring the gold he sends; the inventory is on the tablet."],
