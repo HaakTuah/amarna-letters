@@ -63,8 +63,13 @@ describe("ExportTests", () => {
     `Anthropic API 429: {"request_id":"${fakeRequestId}"}`,
     `Incorrect API key provided: ${fakeKey}`,
     `no local bridge answers at http://localhost:5190/?auth=TOKEN123: fetch failed`,
+    // The spellings the scrubbing rounds of #385 kept finding: kept here, since none of them may ever be recorded.
+    `ENOENT: open '/Users/Jane Q "Doe"/Saved Games/amarna/t3.reply.json'`,
+    `account owner jöran@exämple.org is over its limit`,
+    `400: [{"error":{"detail":"{\\"key\\":\\"${fakeKey}\\"}"}}]`,
+    `Error: ["org_00000000", {"request_id": "${fakeRequestId}"}]`,
   ];
-  const Secrets = ["/home/jdoe", fakeRequestId, fakeKey, "TOKEN123", "localhost:5190"];
+  const Secrets = ["/home/jdoe", fakeRequestId, fakeKey, "TOKEN123", "localhost:5190", "Jane Q", "Saved Games", "jöran", "exämple", "org_00000000"];
 
   test("A failure is logged as its kind and code, never its message", () => {
     const [path, request, key, bridge] = Said;
@@ -84,7 +89,7 @@ describe("ExportTests", () => {
     const log = new GameLog();
     const spec = { key: "t1/orders/Egypt", turn: 1, role: "leader", user: "Your orders." } as unknown as CallSpec;
     for (const message of Said) await converse(spec, "file seat", () => Promise.reject(new Error(message)), (c: ModelCall) => log.addCall(c)).catch(() => undefined);
-    Assert.equal(["failed", "failed", "failed", "failed"], log.calls.map((c) => c.error));
+    Assert.equal(Said.map(() => "failed"), log.calls.map((c) => c.error));
     for (const parts of [Everything, { ...Everything, humanWords: false }])
       for (const s of Secrets) Assert.false(exportJsonl(log, parts).includes(s), `"${s}" is in an export`);
   });
@@ -97,7 +102,7 @@ describe("ExportTests", () => {
       `{"key":"t1/aud/present/c5","turn":1,"kind":"present","script":{},"error":${JSON.stringify(Said[3])},"type":"shadow"}\n`;
     const text = exportJsonl(GameLog.fromJsonl(old));
     for (const s of Secrets) Assert.false(text.includes(s), `"${s}" is in the export`);
-    Assert.equal(6, text.split('"failed"').length - 1);
+    Assert.equal(Said.length + 2, text.split('"failed"').length - 1);
     // A failure as this build writes it is given as it stands.
     const log = new GameLog();
     log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: "rate limited (429)" }));
