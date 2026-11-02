@@ -8,7 +8,7 @@
  * to buy once its town has eaten (the item's measures found gold sent where markets were empty sitting idle in the packs).
  * He listens to his governors: a province they call restless or near revolt is asked a smaller share, and gets grain from its stores
  * for its town, in his own name where a governor stands (item 17++). And a cunning king sends the
- * spy he posts in a foe's conquered land with gold to stir its people ("outside help").
+ * spy he posts where his army stands in a foe's land with gold to stir its people ("outside help").
  */
 import { cmpStr, demand, EconomyData, feed, sortBy, sum, supply, unitFood, type Order, type UnitView } from "@amarna/engine";
 import { shareNow } from "./land.ts";
@@ -114,9 +114,27 @@ export function reliefOrders(b: Board, orders: Order[]): void {
   }
 }
 
-/** The gold a cunning king's watching spy takes to stir a foe's land that is not the foe's own homeland (a first guess). */
-export function stirGold(b: Board, foe: string, spot: string, spare: number, cunning: number): number {
-  if (!FreedomPlay.on(b.me) || cunning <= 0.4 || Board.Map.isHome(foe, spot)) return 0;
+/**
+ * Whether a king of `cunning` stirs a foe's people with gold: a cunning one, in any land, his homeland too, since from item
+ * 17++ the people's love is what carries a land his troops stand in once fear alone cannot (a first guess).
+ */
+export function stirs(b: Board, cunning: number): boolean {
+  return FreedomPlay.on(b.me) && cunning > 0.4;
+}
+
+/** The gold a cunning king's watching spy takes to stir a foe's land: a third of what he can spare, 50 to 200 (a first guess). */
+export function stirGold(b: Board, spare: number, cunning: number): number {
+  if (!stirs(b, cunning)) return 0;
   const g = Math.min(200, Math.floor(spare / 3));
   return g >= 50 ? g : 0;
+}
+
+/**
+ * The provinces our spies watch, posted there or on their way: a spy out in a province stands "in" it (by its id), his duty
+ * a watcher's ("watching Gubla") or his quiet errand's.
+ */
+export function watchedProvinces(b: Board): Set<string> {
+  return new Set(
+    b.v.court.filter((c) => c.where.startsWith("in ") && (c.duty.startsWith("watching ") || c.duty.startsWith("travelling on a quiet errand"))).map((c) => c.where.slice(3)),
+  );
 }

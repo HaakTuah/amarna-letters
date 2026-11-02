@@ -18,7 +18,6 @@ import {
   feed,
   newBand,
   newGovernor,
-  logEvent,
   idiv,
   newMindReply,
   newRisingChoice,
@@ -222,6 +221,24 @@ describe("ObedienceTests", () => {
     Assert.true(levy.men > 2000 && levy.men < 4000, `${levy.men}`);
   });
 
+  test("A chief's rising put down costs his band its share of the beaten side's losses", () => {
+    const s = quiet();
+    const id = "kaska";
+    removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
+    s.owner.set(id, "Hatti");
+    const chief = s.characters.find((x) => x.status === "Free")!;
+    Object.assign(chief, { duty: "Leading", watchProvince: id });
+    const band = newBand({ id: newId(s, "b"), leaderId: chief.id, province: id, men: 600 });
+    s.bands.push(band);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: id, home: "hattusa", men: s.people.get(id).men * 3 }));
+    s.ledger.set(id, new Dict([["Hatti", 0], [chief.id, 300]]));
+    chief.risePlan = { turn: s.turn - 1, province: id, rise: true };
+    new TurnEngine(s).obeySeason();
+    Assert.equal("Hatti", s.owner.get(id));
+    Assert.true(s.events.some((x) => x.signal === "revolt-crushed"));
+    Assert.true(band.men < 600, `${band.men}`);
+  });
+
   test("A band's robbing is remembered against its chief, a point at least a season", () => {
     const s = quiet();
     const e = new TurnEngine(s);
@@ -341,9 +358,11 @@ describe("ObedienceTests", () => {
     new TurnEngine(s).obeySeason();
     Assert.equal("Byblos", s.owner.get("byblos"));
     s.breached.set("byblos", "Amurru");
-    // Its agents had stirred Gubla's people: the stirring is counted as having won it.
-    logEvent(s, "stir", `Amurru's agent spent 100 shekels stirring the people of ${WorldMap.default.get("byblos").name} against Byblos.`, ["Amurru"], "stir");
+    // Its agent posted there stirs Gubla's people with his master's gold: the stirring is counted as having won it.
+    const agent = s.characters.find((c) => c.status === "Free")!;
+    Object.assign(agent, { status: "Employed", employer: "Amurru", duty: "SpyPosted", at: null, missionTarget: null, watchProvince: "byblos", stirGold: 100 });
     new TurnEngine(s).obeySeason();
+    Assert.true(s.events.some((x) => x.signal === "stir"));
     Assert.true(s.events.some((x) => x.signal === "stir-won"));
     Assert.equal("Amurru", s.owner.get("byblos"));
     Assert.true(s.inbox.get("Byblos").some((i) => i.body.includes("now answers to Amurru")));

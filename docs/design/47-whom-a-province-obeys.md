@@ -42,7 +42,8 @@ first guess in `UnrestData` (`src/engine/src/model/unrest.ts`), tuned in item 18
   by sealed passage weighs nothing.
 - **Conquest is this rule alone**: moving in takes nothing by itself, and a unit that storms walls breaks in (`stormed`
   event, the walls a level lower, townspeople killed) and stands within them from then on; the province is the taker's
-  when the next season's reckoning finds his weight clear of its holder's (or, in land without a ruler, of the floor). A
+  when the next season's reckoning finds his weight clear of its holder's (or, in land without a ruler, of the floor; a
+  walled town without a ruler only to troops within its walls, since it has no master to weigh troops at its gates against). A
   siege's surrender is the city's own act, as before (`sieges.ts`). The taker sacks it and takes its archive then.
 - **Rivals**: a power with troops standing in it; a man of standing there (`leaders`: the holder's governor there, a chief
   with his band there, a claimant, a town's ruler or a former ruler standing there and not in the holder's service) whose

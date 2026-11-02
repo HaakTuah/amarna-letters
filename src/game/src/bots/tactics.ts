@@ -39,6 +39,7 @@ import { grantedTo } from "./authority.ts";
 import type { Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
 import { besiegeAll, relief, relieving, sallies, siegeWorth, willing } from "./siege-tactics.ts";
+import { stirs, watchedProvinces } from "./freedom.ts";
 import { LandingPatience, LandingRest, SeaPlay, chooseLanding, landingsFrom, nearestHarbour, seaChains, stepToward } from "./seas.ts";
 
 /** The season's troop orders, and what the plan still lacks (for levies). */
@@ -138,10 +139,10 @@ export function joints(b: Board, brain: Brain): Joint[] {
 // eslint-disable-next-line
 export const WinterStrokes: { on: boolean; only: ReadonlySet<string> | null } = { on: true, only: null };
 
-/** `temper`: plays the season with these weights instead of the king's own (to draw alternative plans). */
-/** How much more land whose people we have stirred is worth to take (a first guess of the script's own). */
+/** How much more land whose people we stir is worth to take (a first guess of the script's own). */
 const WooedWorth = 1.3;
 
+/** `temper`: plays the season with these weights instead of the king's own (to draw alternative plans). */
 export function makePlan(b: Board, brain: Brain, temper: Personality | null = null): MilitaryPlan {
   const plan = new MilitaryPlan();
   const p = temper ?? brain.p;
@@ -167,9 +168,9 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     return 0.55 + 0.45 * p.aggression;
   };
 
-  // Item 17++: land whose people our agents are stirring, or have stirred, is worth more to take: its people lean to us, so
-  // it obeys us once our men stand there, and the gold spent pays only then.
-  const wooed = new HSet(b.v.court.filter((c) => c.where.startsWith("watching ")).map((c) => c.where.slice(9)));
+  // Item 17++: another's land our spies watch, if we are a king who stirs its people, is worth more to take: its people lean
+  // to us, so it obeys us once our men stand there, and the gold spent pays only then.
+  const wooed = new HSet(stirs(b, brain.p.cunning) ? [...watchedProvinces(b)].filter((id) => b.ownerOf(id) !== null && b.ownerOf(id) !== me) : []);
   const woo = (t: string): number => (wooed.has(t) ? WooedWorth : 1);
 
   const capital = Board.Map.capital(me).id;
