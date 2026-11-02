@@ -32,6 +32,7 @@ import "./winter.ts";
 import "./authority.ts";
 import "./economy.ts";
 import "./people.ts";
+import "./counts.ts";
 import "./borders.ts";
 import "./trade.ts";
 import "./names.ts";

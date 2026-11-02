@@ -107,7 +107,7 @@ and meet the storm (`wallMenOf`, [31](31-cities-defended.md)).
 ### What a king sees
 
 `ProvinceEconomyView` gains `settled`, `men`, `loose`, `room`, `taxRate`, `harvest` and `fed`; `SeatView.yields` (the
-yield of its own land and the land in its sight as its people bring it in now, on the map's scale; elsewhere the court
+yield of its own land and the land in its sight as the last reaping brought it in (item 17++: a season's third of it), on the map's scale; elsewhere the court
 knows only the map's), `resistance` (what this court's troops would meet in the land it sees, where any) and `walking`.
 A model king reads them compactly (`peopleLines` in `llm/src/prompt-economy.ts`): YOUR PEOPLE, the hungry, the rates,
 land with room, the men for levies, YIELDS that changed and RESISTANCE. A free city's asking price (`cityPrices`) is public

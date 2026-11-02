@@ -509,9 +509,6 @@ P.tellTolls = function (book) {
   }
 };
 
-/** Harbour levels, for the views: every coast's. */
-export const harboursOf = (provinces: readonly Province[]): [string, number][] => provinces.filter((p) => harbourOf(p) > 0).map((p) => [p.id, harbourOf(p)]);
-
 /** Whether a ship, anyone's, can reach a besieged harbour: only while no fleet of the besieger holds its waters. */
 export function openToSea(e: TurnEngine, province: string): boolean {
   const x = siegeOf(e.s, province);

@@ -759,7 +759,6 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
 });
 
 /** Where gold in a character's purse came from. */
-export const GoldSourceValues = ["Fees", "Skimmed", "Gifts", "Carried", "Loans", "Loot", "News"] as const;
 export type GoldSource =
   /** Fees for its jobs: the advance when a job was agreed, the rest when it was done (item 11a). */
   | "Fees"
@@ -769,7 +768,7 @@ export type GoldSource =
   | "Skimmed"
   /** A king's personal gift at an audience. */
   | "Gifts"
-  /** Gold it was carrying when it was dismissed on the way out, which became its own. */
+  /** Gold it was carrying when it was dismissed or its master fell, or when it was caught, which became its own. */
   | "Carried"
   /** Item 11b: a chief's share of what his band took, on the land, the roads and the sea. */
   | "Loot"

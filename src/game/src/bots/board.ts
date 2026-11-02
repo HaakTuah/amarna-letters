@@ -178,7 +178,7 @@ export class Board {
   }
 
   /**
-   * A province's yield as its people bring it in now, on the map's scale (item 10+a: the view's public yields); the
+   * A province's yield as the last reaping brought it in, on the map's scale (item 10+a: the view's public yields); the
    * map's yield where the view gives none.
    */
   yieldOf(id: string): number {

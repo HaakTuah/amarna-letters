@@ -68,8 +68,6 @@ export const AnswerKinds: readonly ClauseKind[] = ["accept", "refuse", "counter"
  * except the passage or basing he means to grant (item 9).
  */
 export const GivingKinds: readonly ClauseKind[] = ["askGold", "askCede", "askTribute", "askWithdraw", "askPassage", "askBasing", "askTollFree", "askServe"];
-/** The clauses that grant a right once the tablet that holds them is sealed (item 9): every other clause obliges nobody. */
-export const GrantingKinds: readonly ClauseKind[] = ["passage", "basing", "askPassage", "askBasing"];
 
 /**
  * One clause. Only the fields its kind uses are set; the rest stay null. `power`: the king it names (against whom, whose

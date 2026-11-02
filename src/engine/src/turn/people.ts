@@ -15,7 +15,6 @@ import { EconomyData, grainWorth } from "../model/economy.ts";
 import { climateOf, DroughtRegions, RiverFloods, Rivers } from "../model/geography.ts";
 import { climatePercentIn, countryNeed, harvestIn, LandData, menAvailable, menOf, reckonedOf, resistanceOf, wallMenOf, type People } from "../model/land.ts";
 import { seasonOfTurn, type UnitKind } from "../model/map.ts";
-import type { TaxOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import { alive, isAlive, logEvent, newId, notify, siegeOf, type ClimateEvent, type Unit } from "../model/state.ts";
 import { fastestPoints, PointsPerDay } from "../model/travel.ts";
@@ -25,7 +24,6 @@ import { TurnEngine } from "./core.ts";
 declare module "./core.ts" {
   interface TurnEngine {
     peopleOf(province: string): People;
-    taxRate(province: string): number;
     harvestNow(province: string, weather?: boolean): number;
     climatePercent(province: string): number;
     peopleSeason(food: Dict<string, number>): Dict<Power, string[]>;
@@ -35,7 +33,6 @@ declare module "./core.ts" {
     killSettled(province: string, permille: number, loosePermille?: number): number;
     resistance(province: string, mover: Power): number;
     climateSeason(): void;
-    setTax(p: Power, o: TaxOrder): void;
   }
 }
 
@@ -45,10 +42,6 @@ P.peopleOf = function (province) {
   let x = this.s.people.tryGet(province);
   if (x === undefined) this.s.people.set(province, (x = { settled: 0, men: 0, loose: 0 }));
   return x;
-};
-
-P.taxRate = function (province) {
-  return this.s.taxes.getOrDefault(province, EconomyData.taxPercent);
 };
 
 P.harvestNow = function (province, weather = true) {
@@ -123,7 +116,7 @@ P.peopleSeason = function (food) {
       if (ran > 0) {
         shift(x, -ran, -ranMen);
         x.loose += ran;
-        fleeing.push([prov.id, ran, this.taxRate(prov.id) > this.taxRate(best.to) ? "a heavy tax" : "a poor harvest"]);
+        fleeing.push([prov.id, ran, this.burden(prov.id) > this.burden(best.to) ? "a heavy tax" : "a poor harvest"]);
       }
     }
     // They eat from their granary (item 11a+), and keep the rest until the next harvest: a whole harvest and a season's
@@ -217,7 +210,7 @@ P.peopleSeason = function (food) {
     const need = countryNeed(prov, x.settled, r.settled);
     if (need <= 0) continue;
     // What the farmers keep a season (item 11a+): a third of the last harvest less the tax, as far as their granary holds.
-    const keep = Math.min(food.getOrDefault(prov.id, 0), idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * (100 - this.taxRate(prov.id)), 100));
+    const keep = Math.min(food.getOrDefault(prov.id, 0), Math.max(0, idiv(S.reaped.getOrDefault(prov.id, 0), 3) - this.grainAsked(prov.id)));
     const land = idiv(keep * 1000, need);
     // What the roads pay is what the loose may take there, held down by troops and police (item 15).
     const roads = idiv(idiv(idiv(wealth(prov.id) * LandData.robPermille, 1000) * policedShare(S, prov.id), 100) * x.settled * 1000, Math.max(1, (x.loose + 1000) * need));
@@ -257,23 +250,6 @@ P.peopleSeason = function (food) {
   }
   for (const [from, to, n] of drift) this.moveLoose(from, to, n);
   return lines;
-};
-
-/**
- * A king sets his tax on a province of his, or on all his land (item 10+a, "How a king lives"): it stands until he
- * changes it, or the province changes hands. A rate for all his land replaces the rates set province by province.
- */
-P.setTax = function (p, o) {
-  const S = this.s;
-  const land = o.province === null ? [...S.owner.entries()].filter(([, v]) => v === p).map(([k]) => k) : [o.province];
-  for (const id of land) {
-    if (S.owner.getOrDefault(id, null) !== p) continue;
-    if (o.percent === EconomyData.taxPercent) S.taxes.delete(id);
-    else S.taxes.set(id, o.percent);
-  }
-  const where = o.province === null ? "all your land" : this.map.get(o.province).name;
-  notify(S, p, "Resolution", "Taxes", `The tax in ${where} is now ${o.percent} in a hundred of the harvest, from the next harvest on.`);
-  logEvent(S, "tax-set", `${p} set the tax in ${where === "all your land" ? "all its land" : where} to ${o.percent}%.`, [p], "tax-set");
 };
 
 /** A count of people as a king reads it. */

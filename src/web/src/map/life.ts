@@ -3,14 +3,14 @@
  * battlefields' memorials, a famine's empty granaries and a town's houses close up, caravans and men on the roads, the
  * realm's own medium and the omens in the margin, and small scenes at big moments.
  */
-import { WorldMap, type OmenTier, type Power } from "@amarna/engine";
+import { WorldMap, economyOf, type OmenTier, type Power } from "@amarna/engine";
 import { F, Shapes, along, city, landClipOf, route } from "./art.ts";
 import { glyphId } from "./glyphs.ts";
-import { ringOf } from "./markup.ts";
+import { outerRing } from "./markup.ts";
 import { FamineBelow } from "./memory.ts";
 import type { MapScene } from "./scene.ts";
 import type { FrameRoad, SeasonFrame } from "../session/frames.ts";
-import { powerName, provinceName } from "../ui/format.ts";
+import { about, powerName, provinceName } from "../ui/format.ts";
 
 const Map_ = WorldMap.default;
 const esc = (s: string): string => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
@@ -25,7 +25,7 @@ export function memoryLayer(s: MapScene): string {
   }
   for (const [id, b] of m.memorials) {
     const at = city(id);
-    const r = ringOf(Map_.get(id).capital, s.walls.get(id) ?? 0) + 7;
+    const r = outerRing(Map_.get(id).capital, s.walls.get(id) ?? 0, s.sieges.some((x) => x.province === id)) + 7;
     sb +=
       `<g class="memorial" transform="translate(${F(at.x)},${F(at.y)})"><g class="csym"><g transform="translate(${F(-r * 0.74)},${F(r * 0.66)})">` +
       `<title>${b.count === 1 ? "A battlefield" : `${b.count} battles fought here`}, the last in season ${b.last}</title>` +
@@ -49,7 +49,7 @@ export function lifeMarks(s: MapScene, province: string): { cls: string; inner: 
     out.push({
       cls: `town ${trend}`,
       inner: `<use href="#fig-houses" class="tw-houses" x="-5.5" y="-5.5" width="11" height="11"/>`,
-      text: `${t.now} people settled, ${trend} this year`,
+      text: `about ${about(economyOf(Map_.get(province)).town * 1000)} in the town and ${about(t.now)} on its land${s.viewer === null ? "" : " as last counted"}, ${trend} this year`,
     });
   }
   return out;

@@ -127,10 +127,6 @@ def lyre(s: Score, beat: float, beats: float, notes: list[int], pattern: str = "
         b += step
 
 
-def bars(n: float, per: int = 4) -> float:
-    return n * per
-
-
 def held_ramp(s: Score, inst: str, beat: float, beats: float, midi: int, v0: float, v1: float) -> None:
     """A note held while it grows (or fades) from one level to another: a slow swell on the strings or the horns."""
     seg = max(1.0, min(MAX_HOLD * s.bpm / 60, 4.0))

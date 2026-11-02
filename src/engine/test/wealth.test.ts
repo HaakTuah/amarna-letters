@@ -52,7 +52,7 @@ describe("WealthTests", () => {
     // Item 11a: what it spends is counted too.
     Assert.equal(15, spend(c, 15));
     Assert.equal([147, 15], [c.purse, c.earned.spent]);
-    Assert.equal("fees 30, lending and dealing 20, skimmed 12, gifts 40, gold kept on dismissal 60; spent 15", Wealth.sources(c.earned));
+    Assert.equal("fees 30, lending and dealing 20, skimmed 12, gifts 40, gold kept on dismissal or capture 60; spent 15", Wealth.sources(c.earned));
   });
 
   test("Fees skims gifts and gold kept on dismissal are all counted as the engine pays them", () => {

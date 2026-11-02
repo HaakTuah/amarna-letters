@@ -36,7 +36,7 @@ describe("NamesAsClaims", () => {
     const [s, e] = game();
     e.claimName("Amurru", claimName("Gubla"));
     Assert.equal("Gubla", s.names.get("Amurru").name);
-    Assert.equal(2, claimantsOf("Gubla").length);
+    Assert.equal(2, claimantsOf("Gubla", "Amurru").length);
     // The engine's own notices name each power by its own land, which every court knows.
     Assert.equal("Gubla", land("Byblos"));
     Assert.equal("Amurru", land("Amurru"));
@@ -52,6 +52,17 @@ describe("NamesAsClaims", () => {
     Assert.equal("Gubla", asSeenBy("Amurru", () => land("Amurru")));
     Assert.equal("Bit-Rib-Hadda", asSeenBy("Amurru", () => land("Byblos")));
     Assert.true(s.events.some((x) => x.signal === "name-claim"));
+  });
+
+  // From #348's review, round 2 (c): whom a court gives a name to reads the claims as it knows them, not the true ones.
+  test("A court still gives a name to the land's own power after he claims another out of its hearing", () => {
+    const [s, e] = game();
+    e.claimName("Amurru", claimName("Gubla"));
+    e.claimHeard("Egypt", "Amurru", "Gubla");
+    // Byblos claims Amurru's name; Egypt has read no greeting of his saying so.
+    e.claimName("Byblos", claimName("Amurru"));
+    Assert.equal("Gubla", asSeenBy("Egypt", () => land("Byblos")));
+    Assert.equal("Byblos", Views.for(s, "Egypt").nameClaims[0].givenTo);
   });
 
   test("A court's greeting gives the name, and one by his house takes it back", () => {
@@ -90,7 +101,7 @@ describe("NamesAsClaims", () => {
     e.claimHeard("Egypt", "Amurru", "Gubla");
     s.eliminated.push("Byblos");
     e.syncNames();
-    Assert.equal(1, claimantsOf("Gubla").length);
+    Assert.equal(1, claimantsOf("Gubla", "Egypt").length);
     Assert.equal("Gubla", asSeenBy("Egypt", () => land("Amurru")));
   });
 });
