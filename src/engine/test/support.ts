@@ -264,7 +264,7 @@ export function skilled(c: Character, n: number): void {
   c.inclination = 0;
 }
 
-/** A job any hiring court can offer in a test: watching its own capital's province, an errand of a season (Haakon's answers to item 11a). */
+/** A job any hiring court can offer in a test: watching its own capital's province, an errand of a season (the owner's answers to item 11a). */
 export const homeJob = (p: Power): JobTerms => ({ what: "spy", where: WorldMap.default.capital(p).id });
 
 /** The walls the free cities had until item 11+ made them powers (fortresses 2, walled towns 1, the chiefs' lands none). */

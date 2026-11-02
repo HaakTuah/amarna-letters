@@ -138,7 +138,7 @@ describe("EconomyTests", () => {
       Assert.equal(0, s.walking.filter((w) => w.home === "hattusa").length);
       return;
     }
-    // The men carry their savings home, and nothing reaches home before they do (Haakon, 28 October 2026).
+    // The men carry their savings home, and nothing reaches home before they do (the owner, 28 October 2026).
     const walk = single(s.walking, (w) => w.home === "hattusa");
     Assert.true(walk.savings >= 30);
     while (s.walking.length > 0) {

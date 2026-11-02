@@ -33,7 +33,7 @@ import {
 } from "@amarna/engine";
 import { removeAll, Assert, smallWorld } from "./support.ts";
 
-// Item 13+, Haakon's answers to item 13's review ("A kingdom falls with its capital" under War): a fallen realm comes
+// Item 13+, the owner's answers to item 13's review ("A kingdom falls with its capital" under War): a fallen realm comes
 // apart province by province as word of the fall reaches each, life there going on as before until then, and a governor
 // there rules his province with a seat of his own, the troops following him if he can pay them.
 describe("FallAsNewsTests", () => {

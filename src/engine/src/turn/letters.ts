@@ -29,7 +29,7 @@ import { isWalker } from "./travel.ts";
 export const LetterData = { hiredPercent: 50, sidePercent: 20, hireAfter: 1, selfAfter: 2, trustOnDelivery: 60, payLoyalty: 30 } as const;
 
 /**
- * How many seasons a spy waits for a carrier before it carries its reports home itself (Haakon's answers to item 11b: the
+ * How many seasons a spy waits for a carrier before it carries its reports home itself (the owner's answers to item 11b: the
  * spy decides, a script spy by its traits): `selfAfter`, a season more for a brave one and for a loyal one.
  */
 export const selfWait = (c: Character): number => LetterData.selfAfter + (c.traits.courage >= 60 ? 1 : 0) + (c.traits.loyalty >= 60 ? 1 : 0);
@@ -91,12 +91,12 @@ P.carryLetters = function () {
       S.journeys.filter((j) => isWalker(j) && j.kind !== "CaptiveConvoy" && j.route.length > 1 && j.route[j.leg] === at && j.route[j.route.length - 1] === home && j.characterId !== null && understood(findCharacter(S, j.characterId))),
       [(j: Journey) => idNumber(j.id), cmpNum],
     );
-    // A ransom demand (Haakon's answers to item 11b: a message someone sends, which needs a carrier) has no spy behind it:
+    // A ransom demand (the owner's answers to item 11b: a message someone sends, which needs a carrier) has no spy behind it:
     // its captor sends it from his court.
     const spy = letter.kind === "SpyReport" ? findCharacter(S, letter.characterId) : null;
     const demand = letter.kind !== "SpyReport";
     const sender = demand ? courtAt(this, at) : letter.to;
-    // Haakon's answers to item 11b+: a traveller decides whether to carry it; a script traveller carries free for his own
+    // The owner's answers to item 11b+: a traveller decides whether to carry it; a script traveller carries free for his own
     // court's people and asks his fee of anyone else.
     const own = going.find((j) => sender !== null && findCharacter(S, j.characterId)?.employer === sender) ?? null;
     const passer = own ?? going.find((j) => findCharacter(S, j.characterId)?.status !== "Captured") ?? null;
@@ -112,7 +112,7 @@ P.carryLetters = function () {
     const court = courtAt(this, at);
     const passing = passer === null ? null : findCharacter(S, passer.characterId)!;
     const side = passing === null ? 0 : idiv(basePrice(passing, letter.to) * seasons * LetterData.sidePercent, 100);
-    // Haakon's answers to items 11a and 11b+: a stranger carries it for his fee, on delivery from a court whose standing
+    // The owner's answers to items 11a and 11b+: a stranger carries it for his fee, on delivery from a court whose standing
     // order is to pay carriers and whose record of paying, as he heard it, he trusts; else only if paid now: by the spy from
     // its purse, or by the captor from his treasury for a demand he ordered.
     const onDelivery = !demand && passing !== null && S.payCarriers.includes(letter.to) && trustIn(S, letter.to, passing) >= LetterData.trustOnDelivery;
@@ -175,7 +175,7 @@ P.carryLetters = function () {
       }
     }
     // Nobody to carry it, long enough: the spy carries it himself, leaving its post ("or the person himself"): home, or
-    // from a post just across its master's border to the border and back (Haakon's answers to item 11b+).
+    // from a post just across its master's border to the border and back (the owner's answers to item 11b+).
     // A script spy at a post just across the border walks at once: the border is a short walk, its couriers sure.
     let border: string | null = spy === null ? null : this.borderOf(spy, letter.to);
     // A resident (item 17++) stays at his post: his reports wait for a carrier.
@@ -244,7 +244,7 @@ P.letterDelivered = function (j) {
   const S = this.s;
   const c = findCharacter(S, j.carrier);
   if (c === null || j.fee <= 0 || c.status === "Dead") return;
-  // Haakon's answers to item 11a: paid on delivery only by the court's own standing order (payCarriers); else it falls
+  // The owner's answers to item 11a: paid on delivery only by the court's own standing order (payCarriers); else it falls
   // due, paid by order pay_fee while the carrier stands at court, or not.
   const t = S.treasuries.get(j.to);
   if (S.payCarriers.includes(j.to) && t.gold >= j.fee) {

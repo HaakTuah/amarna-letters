@@ -55,7 +55,7 @@ function courtScore(c: Character, v: LifeView, k: CourtSeen, seeking: boolean): 
   s -= k.executions * (t.courage < 40 ? 10 : 4);
   // Item 11b: a court that loses its people abroad is a dangerous master, above all to the timid.
   s -= k.lost * (t.courage < 40 ? 6 : 2);
-  // Haakon's answers to item 11a: a court heard to seize hoards is shunned by those who keep one.
+  // The owner's answers to item 11a: a court heard to seize hoards is shunned by those who keep one.
   if (v.hoard !== null) s -= k.seized * 10;
   // Where many already wait for work, it sees its chances are thin (the weakness item 11b found: everyone at one court).
   if (k.court === v.at && seeking) s -= 5 * Math.max(0, v.here.filter((p) => p.standing === "free").length - 4);
@@ -74,7 +74,7 @@ function accepts(c: Character, v: LifeView, a: ApproachSeen, record: { kept: num
     if (!v.free || v.errand !== null) return false;
     const here = v.courts.find((k) => k.court === v.at);
     const ask = here?.ask ?? 8;
-    // Haakon's answers to item 11a: the rest is paid only if the employer orders it; without its word to pay on delivery,
+    // The owner's answers to item 11a: the rest is paid only if the employer orders it; without its word to pay on delivery,
     // only the advance counts.
     return (a.payOnDone ? a.fee : a.giveGold) >= ask * 2 && (record.broken <= record.kept || c.bold);
   }
@@ -212,7 +212,7 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
       // A fee for the journey there and back, at what it has heard a job pays, or a share of what it brings, whichever is more.
       const travel = v.courts.find((k) => k.court === overdue.otherId)?.travel ?? 2;
       const fee = Math.max(Math.trunc((overdue.left * 15) / 100), (v.heardRate ?? here?.ask ?? 8) * (2 * travel + 1));
-      // An honest employer gives its word to pay the rest on delivery, and keeps it (Haakon's answers: paid only by order).
+      // An honest employer gives its word to pay the rest on delivery, and keeps it (the owner's answers: paid only by order).
       ch.approach = newApproachMade({ to: freeHere[0].id, words: `Carry this tablet to ${overdue.other} and bring me what is paid on it, and you will have ${fee} shekels.`, giveGold: Math.trunc(fee / 3), fee, collect: overdue.id, payOnDone: handsOver(c) });
     } else if (purse < v.living * 2 + 5 && v.here.length > 0 && v.free && ch.seek && v.owes.length === 0 && here !== null && here.hiring !== null && v.turn - here.hiring <= 2) {
       // In need, seeking service at a court that is hiring: it borrows to live until the first advance, once.

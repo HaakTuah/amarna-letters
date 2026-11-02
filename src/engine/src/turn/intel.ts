@@ -109,7 +109,7 @@ P.placeSpy = function (p, ps) {
   const court = ps.court ?? null;
   const province = ps.province ?? null;
   const target = court !== null ? this.courtAt(court) : province!;
-  // Haakon's answers to item 11a: a job is one errand; one who did not take the job offered, or whose job is another, stays.
+  // The owner's answers to item 11a: a job is one errand; one who did not take the job offered, or whose job is another, stays.
   const job = c.contract?.errand ?? null;
   if (c.employer !== p || c.status !== "Employed" || (job !== null && (job.what !== "spy" || job.where !== (court ?? province) || job.done))) {
     this.failed(p, ps, "Spy not sent", c.employer !== p ? `${c.name} is not in your service: they did not take the job offered.` : `${c.name}'s job is not to watch ${court ?? Map.get(province!).name}: another errand is a new job (order renew).`, "not the errand of their job", true, c.id);
@@ -272,7 +272,7 @@ P.watchAndReport = function () {
     const from = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(employer));
     // Item 11b ("Messengers are errands"): from abroad it waits for a carrier; inside its master's own land the realm's
     // couriers carry it ("Distance inside your own realm"). From a watch post just across its master's border too it waits:
-    // the spy may walk it to the border himself, leaving his post (Haakon's answers to item 11b+).
+    // the spy may walk it to the border himself, leaving his post (the owner's answers to item 11b+).
     const abroad = S.owner.getOrDefault(from, null) !== employer;
     S.journeys.push(
       newJourney({
@@ -297,7 +297,7 @@ P.reportRoad = function (from, employer) {
 
 /**
  * The province of its master's next to a spy's watch post across the border, nearest his capital, where the realm's
- * couriers would take its reports (Haakon's answers to items 11b and 11b+); null for a post at a court or deeper abroad.
+ * couriers would take its reports (the owner's answers to items 11b and 11b+); null for a post at a court or deeper abroad.
  */
 P.borderOf = function (c, employer) {
   const S = this.s;
@@ -313,7 +313,7 @@ P.borderOf = function (c, employer) {
 };
 
 /**
- * A spy walks its reports to the border himself (Haakon's answers to item 11b+): he leaves his post, meets the road's
+ * A spy walks its reports to the border himself (the owner's answers to item 11b+): he leaves his post, meets the road's
  * dangers there and back, and takes up his post again when he returns; the couriers take the reports at the border.
  */
 P.walkToBorder = function (c, employer, border) {
@@ -525,7 +525,7 @@ P.captive = function (host, co) {
       removeAll(S.tasks, (t) => t.kind === "RansomDemand" && t.characterId === c.id && !t.announced);
       const demand = newPendingTask({ id: newId(S, "q"), kind: "RansomDemand", requester: payer, other: host, characterId: c.id, spend: co.ransom, dueTurn: S.turn + 5 });
       S.tasks.push(demand);
-      // Haakon's answers to item 11b: a demand is a message, which waits at the captor's court for someone going that way.
+      // The owner's answers to item 11b: a demand is a message, which waits at the captor's court for someone going that way.
       const before = S.journeys.length;
       this.rumor(payer, host, `${host} holds ${c.name} and demands ${formatMoney(co.ransom)} for their return (order pay_ransom for ${c.id}).`, c.id, "Ransom", demand.id);
       if (S.journeys.length > before) [S.journeys[before].arriveTurn, S.journeys[before].waitAt] = [Waiting, this.courtAt(host)];

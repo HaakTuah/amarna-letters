@@ -1,6 +1,6 @@
 /**
  * A row too long for its place (the panel's tabs, the courts along the map) scrolls with the mouse wheel and by dragging
- * with the mouse, as a finger already scrolls it on a touch screen (Haakon, 2 November 2026: "you can only scroll with
+ * with the mouse, as a finger already scrolls it on a touch screen (the owner, 2 November 2026: "you can only scroll with
  * arrow keys, not with dragging your mouse or mouse wheel"). A drag never clicks what it started on. Given as the row's
  * ref (`ref={sideScroll}`), whose cleanup React calls when the row goes.
  */

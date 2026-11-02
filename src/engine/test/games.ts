@@ -66,7 +66,7 @@ export function playRandom(seed: number, turns: number, config: GameConfig | nul
       }
       let home = map.homeOf(p).filter((x) => s.owner.get(x.id) === p && unitAt(s, x.id) === null);
       if (home.length > 0 && s.treasuries.get(p).gold > 300) sub.orders.push(raise(home[0].id, "Army"));
-      // Each errand is a job (Haakon's answers to item 11a): a servant at court whose job is another errand, or a free
+      // Each errand is a job (the owner's answers to item 11a): a servant at court whose job is another errand, or a free
       // person standing there, is offered the job for this one, generously, and sent at once.
       let envoy =
         firstOrNull(s.characters, (c) => c.employer === p && c.duty === "None" && c.at === p && c.status === "Employed") ??

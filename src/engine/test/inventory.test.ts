@@ -185,7 +185,7 @@ describe("InventoryTests", () => {
       single(inboxOf(s, "Egypt"), (i) => i.kind === "EnvoyReport").body,
     );
     let memory = last(envoy.memory, (m) => m.text.startsWith("I reported")).text;
-    // Its job done on its return, it reports to the king it served (Haakon's answers to item 11a).
+    // Its job done on its return, it reports to the king it served (the owner's answers to item 11a).
     Assert.equal('I reported to the king of Egypt: "I am back with the gold."', memory);
   });
 

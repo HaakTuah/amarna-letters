@@ -1,7 +1,7 @@
-<!-- Generated from the design document, Overview tab, revision 569 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 571 (2026-11-02). Do not edit: see docs/intent/INDEX.md. -->
 ## The game in one page
 
-Every builder reads this page before an item, and the reviewer reads it with the diff (decided 28 October 2026). Most questions an item raises answer themselves from it; an item's own rule never quietly overrides it. Haakon: "Everything has to happen through giving a message and following up on promises." And: "Freedom to do, consequences that emerge."
+Every builder reads this page before an item, and the reviewer reads it with the diff (decided 28 October 2026). Most questions an item raises answer themselves from it; an item's own rule never quietly overrides it. The owner: "Everything has to happen through giving a message and following up on promises." And: "Freedom to do, consequences that emerge."
 
 - **Nothing happens unless someone orders it.** The engine moves people, coin and goods, resolves fights, rolls skills and keeps the facts; it never acts for anyone. A king may automate his own acts with standing and scheduled orders, but the engine never does it for him.
 - **Words are words.** Offers, promises, threats and deals travel as messages carried by characters, and bind nobody. The engine records a deal only when it is sealed on a tablet, and then only that it was sealed and, later, whether it was kept.

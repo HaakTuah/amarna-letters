@@ -101,7 +101,7 @@ function thief(brain: Brain, c: CharacterView): boolean {
 }
 
 /**
- * The hiring test, for a job offered: a fee a season the king's greed allows, with three seasons of it to spare. (Haakon's
+ * The hiring test, for a job offered: a fee a season the king's greed allows, with three seasons of it to spare. (the owner's
  * answers to item 11a: no going rate; a king pays what the man asks, or goes without.)
  */
 export function wouldPay(p: Personality, rate: number, spare: number): boolean {
@@ -130,7 +130,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     staff = staff.filter((x) => x.id !== c.id);
   }
 
-  // Haakon's answers to item 11b+ ("Reports"): a servant known to have sold what belonged in its report, or its master's
+  // The owner's answers to item 11b+ ("Reports"): a servant known to have sold what belonged in its report, or its master's
   // secrets, broke its job: the rest of its fee is withheld at once, and it is let go once it is back at court.
   for (const c of staff.filter((c) => !busy.has(c.id) && c.knownFacts.some((f) => f.startsWith("Sold ")))) {
     if (c.ready) {
@@ -148,14 +148,14 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     brain.thieves.delete(c.id);
   }
 
-  // Haakon's answers to item 11a: a job is one errand, so the court keeps no idle staff; it wants people at hand to offer
+  // The owner's answers to item 11a: a job is one errand, so the court keeps no idle staff; it wants people at hand to offer
   // its errands to, and asks for candidates when few stand at court.
   if (fewAtHand(b, brain) && v.turn - brain.lastSeek >= 2 && spare > 40) {
     orders.push(seekCandidates());
     brain.lastSeek = v.turn;
   }
 
-  // Haakon's answers to item 11b+: a stay at court until a deadline is an errand like any other. A king with nobody else at
+  // The owner's answers to item 11b+: a stay at court until a deadline is an errand like any other. A king with nobody else at
   // hand keeps a person of proven success there for a few seasons rather than lose him to another court; each errand it
   // then gives him is a job of its own (jobsForErrands). Kings that leave money alone (`--money-play-half`) do not.
   const hand = atHand(b, brain);
@@ -297,7 +297,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     }
   }
 
-  // A spy to watch a province (item 11a+, Haakon's answer to item 9's review: script kings post watching spies when it pays):
+  // A spy to watch a province (item 11a+, the owner's answer to item 9's review: script kings post watching spies when it pays):
   // the land of the king we make war on, or who most threatens us, nearest our capital that we cannot see, where his troops
   // would gather against us or ours would strike; one at a time each, by the careful as well as the cunning.
   if (SeasonPlay.on(b.me) && ready.length >= 2 && spare > 80 && (p.cunning > 0.4 || p.caution > 0.6)) {
@@ -376,7 +376,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     // treasury can spare it.
     // Gold spent is score lost: worth it only against a king the court is at odds with, whose secrets matter to it.
     const atOdds = mr !== undefined && (mr.hostile || c.employer === brain.warTarget);
-    // Haakon's answers to item 11a: what a captive carries stays on him until his captor orders it taken; a king takes it
+    // The owner's answers to item 11a: what a captive carries stays on him until his captor orders it taken; a king takes it
     // (beside deciding its fate), unless the captive's lord is a sworn ally or the king too honest to rob a prisoner.
     if ((c.carries ?? 0) >= 10 && !ally && p.honesty < 0.8 && !brain.stripped.has(c.id)) {
       orders.push(captive(c.id, "TakePurse"));

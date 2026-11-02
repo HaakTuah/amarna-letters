@@ -88,7 +88,7 @@ P.passTablet = function (d, to, kept) {
   if (to === null) {
     d.ended = S.turn;
     d.how = "missing";
-    // Haakon's answers to item 11a: a tablet's end is news; its borrower hears of it only when word comes (`missingAt`).
+    // The owner's answers to item 11a: a tablet's end is news; its borrower hears of it only when word comes (`missingAt`).
     d.endHeard = S.turn;
   } else if (to === d.borrower && d.ended === null) {
     d.ended = S.turn;
@@ -294,7 +294,7 @@ P.goldAndTabletsTaken = function () {
     [(c: Character) => idNumber(c.id), cmpNum],
   )) {
     const held = S.debts.filter((d) => d.ended === null && d.holder === c.id);
-    // Haakon's answers to item 11a: a captive's purse, and the tablets on it, stay on it where it is held, until its captor
+    // The owner's answers to item 11a: a captive's purse, and the tablets on it, stay on it where it is held, until its captor
     // orders them taken (order captive, fate TakePurse).
     if (c.status === "Captured" && c.heldBy !== null) {
       if (c.contract !== null) c.contract.captured = true;
@@ -303,7 +303,7 @@ P.goldAndTabletsTaken = function () {
     if (c.status !== "Dead") continue;
     c.diedWith ??= c.purse + (c.hoard?.gold ?? 0);
     const court = c.at ?? c.heldBy;
-    // Haakon's answers to item 11b+: a dead man's purse goes to whoever is with him, his killers (robbers take it as they
+    // The owner's answers to item 11b+: a dead man's purse goes to whoever is with him, his killers (robbers take it as they
     // rob) or his captor, and otherwise into the purse of the town where he died; on the road, of the province.
     const carried = c.purse + c.carriedFor;
     const captor = c.heldBy !== null && isAlive(S, c.heldBy) ? c.heldBy : null;
@@ -338,7 +338,7 @@ P.goldAndTabletsTaken = function () {
 };
 
 /**
- * Order captive, fate TakePurse (Haakon's answers to item 11a): the captor takes what the captive carries, its purse and
+ * Order captive, fate TakePurse (the owner's answers to item 11a): the captor takes what the captive carries, its purse and
  * any gold it carried for its master, and the debt tablets on its person. It stays a captive.
  */
 P.takePurse = function (p, c) {
@@ -356,7 +356,7 @@ P.takePurse = function (p, c) {
 };
 
 /**
- * Order seize (Haakon's answers to item 11a: "a king may order a living man's hoard seized, at its real cost"): the hoard
+ * Order seize (the owner's answers to item 11a: "a king may order a living man's hoard seized, at its real cost"): the hoard
  * kept in the king's capital, and the tablets kept with it, go to his treasury and archive. No rule punishes it: it is a
  * fact, talked of at the court and carried by those who hear it, and people who hear of it ask more of that court and keep
  * their gold elsewhere.
@@ -381,7 +381,7 @@ P.seizeHoard = function (p, o) {
 };
 
 /**
- * Order sellDebt (Haakon's answers to item 11a: "a king who holds the tablet may collect or sell it"): a tablet in the
+ * Order sellDebt (the owner's answers to item 11a: "a king who holds the tablet may collect or sell it"): a tablet in the
  * king's archive sold to a person at his court for its price, if the buyer thinks the claim worth it: what is left to
  * repay, as far as it trusts the borrower to repay, from what it has heard, and has the gold.
  */

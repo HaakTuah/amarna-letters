@@ -53,7 +53,7 @@ const phaseText = (phase: string): string => {
 let watchStarted = false;
 
 /**
- * Where a view of the map opens the first time it is shown in a game (item 11c+; Haakon: "zooming out to the full region is
+ * Where a view of the map opens the first time it is shown in a game (item 11c+; the owner: "zooming out to the full region is
  * more the exception than the rule"): a seat on its own realm and its neighbours, its capital at the centre; god view and
  * watching on the Levant on a phone, where most powers meet, and on the whole board on a wide screen. On a phone the Levant
  * opens a zoom step closer than item 11c+ opened it (item 11c++), so the coast's cities stand apart.

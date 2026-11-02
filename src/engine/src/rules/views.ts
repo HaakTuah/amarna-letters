@@ -619,7 +619,7 @@ export function tongueClaimsAs(c: Character): string[] {
 /**
  * Item 11a: a court's own debts that stand, as it knows them: who lent, who holds the tablet now (a holder that stands at
  * its court, or the lender as far as it knows), and what is left. A tablet gone missing still shows until word of it
- * reaches the court (Haakon's answers to item 11a).
+ * reaches the court (the owner's answers to item 11a).
  */
 function debtViews(s: GameState, p: Power): DebtView[] {
   return s.debts
@@ -644,7 +644,7 @@ function debtViews(s: GameState, p: Power): DebtView[] {
     });
 }
 
-/** Haakon's answers to item 11a: the tablets in a court's archive of others' debts, with the borrower and where it stands. */
+/** The owner's answers to item 11a: the tablets in a court's archive of others' debts, with the borrower and where it stands. */
 function claimViews(s: GameState, p: Power): DebtView[] {
   return s.debts
     .filter((d) => d.holder === p && d.ended === null && d.borrower !== p)
@@ -697,7 +697,7 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
 }
 
 /**
- * A servant's job in plain words, as its master reads it (item 11a, with Haakon's answers): its errand, the fee, what was
+ * A servant's job in plain words, as its master reads it (item 11a, with the owner's answers): its errand, the fee, what was
  * handed over and what falls due when it is done, by when, and the standing orders that go with it. `fee` is null when
  * no job is to be said.
  */
