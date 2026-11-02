@@ -17,7 +17,7 @@ with the copy and say so in the report, and before opening the pull request read
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 571 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 343 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 344 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 83 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 68 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
@@ -61,7 +61,7 @@ session loads.
 | `docs/intent/build-order/item-14.md` | 14. Legends. The narrator's legends grow from the "follow this character" view i | 0.7 |
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 2.2 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
-| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 40.5 |
+| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 40.9 |
 | `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 6.6 |
 | `docs/intent/build-order/item-19.md` | 19. The living map | 14.5 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
