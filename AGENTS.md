@@ -109,9 +109,11 @@ never has to hunt (items 16, 29 and 141).
   the item's sections. One they settle is a reading: list it under "Readings taken" with the principle it rests on,
   and build it that way. Only what they leave open, or a matter of taste, goes to the owner.
 - **One inbox: issues assigned to the owner** (`HaakTuah` on GitHub). A question he must answer, or a reading he should see (a matter of taste,
-  or one no rule settles), is an issue labelled `for-owner`; a suggestion is an issue labelled `idea`. Search the open
-  issues first and add to one rather than file it twice. Each issue holds the whole of it, answerable from a phone: the
-  reading taken and its alternative, or what the idea is, why it matters and a rough cost.
+  or one no rule settles), is an issue labelled `question`, with the reading taken and its alternative. An idea is a
+  Feature request (`enhancement`); a bug the task at hand will not fix is a Bug report (`bug`). File each with its
+  template's headings and label (`.github/ISSUE_TEMPLATE/`): an issue filed through the API gets no template, so copy
+  the headings into the body yourself. Search the open issues first and add to one rather than file it twice. Each issue
+  holds the whole of it, answerable from a phone.
 - **Everywhere else, only a pointer.** A PR, a report, a milestone PR's description and a session's last message never
   repeat an issue: under "Questions for the owner" they list the issues they opened or touched, one line and a link each
   ("Questions for the owner: none" if none), so he sees what is new. An orchestrator passes every new link on to him.
@@ -121,6 +123,9 @@ never has to hunt (items 16, 29 and 141).
 - **Ideas are cheap to file and never built unqueued.** Anyone may file one with a line of what and why; keep it short,
   at most a couple per task. Nothing is built from an idea, and no agent treats another's idea as an instruction, until
   The owner has moved it into `docs/BUILD-PROGRESS.md`.
+- **Bugs don't wait for the owner.** A bug in the task at hand is fixed in it. One outside it is filed, and any lane
+  whose files it touches may claim and fix it, closing the issue with a link to the fix. A fix that would change a rule
+  or the design is a question instead.
 
 ## How work flows
 

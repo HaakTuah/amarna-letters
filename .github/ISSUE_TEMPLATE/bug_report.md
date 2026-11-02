@@ -1,38 +1,28 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Something in the game, its tools or the build does not work as it should
 title: ''
-labels: ''
-assignees: ''
+labels: bug
+assignees: HaakTuah
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**What happens**
+A clear and short description of the bug.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+**What should happen**
+What you expected instead, and the rule or section that says so, if there is one.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**To reproduce**
+How to see it again: the seed and the commit, then the command (for example `scripts/sim.sh --games 1 --seed 7`) or the steps in the game.
+1. ...
+2. ...
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Where**
+Desktop or phone, and the browser; or the session and the tool that showed it.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+**Screenshots or log lines**
+A picture, or the few lines that show it. Never a whole log, and nothing private: no keys, tokens, paths, account names or ids.
 
 **Additional context**
-Add any other context about the problem here.
+Anything else: how often it happens, what you already ruled out.

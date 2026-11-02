@@ -199,7 +199,7 @@ The weekly blind re-reviews and the canaries, newest first ("Reviews", point 5).
   a key or secret anywhere.
 - Your environment's setup script installs what the suites need. If something is missing, say what in your report
   instead of working around it.
-- **Questions, readings and ideas go to the issues** ("Questions, readings and ideas" in `AGENTS.md`): file each as an issue yourself, labelled `for-owner` or `idea` and assigned to `HaakTuah`, if your access allows it. If it does not, list them in your report under "Questions for the owner" and "Ideas", and the orchestrator files each as an issue and links it in the PR. Either way the PR carries only the links.
+- **Questions, readings and ideas go to the issues** ("Questions, readings and ideas" in `AGENTS.md`): file each as an issue yourself, with its template's headings and label (`question`, `enhancement` or `bug`) and assigned to `HaakTuah`, if your access allows it. If it does not, list them in your report under "Questions for the owner", "Ideas" and "Bugs", and the orchestrator files each as an issue and links it in the PR. Either way the PR carries only the links.
 - Your review of Claude's PRs follows "Reviews" above: the score, the list, blocking or not.
 
 ## Setup (1 November 2026)

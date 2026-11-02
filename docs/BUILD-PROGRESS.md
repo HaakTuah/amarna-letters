@@ -109,8 +109,9 @@ fixed.
 
 ## For the owner
 
-Everything for the owner is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Afor-owner)
-(`for-owner`) and [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aidea) (`idea`), by
+Everything for the owner is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aquestion)
+(`question`), [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aenhancement) (`enhancement`) and
+[bugs](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Abug) (`bug`), by
 "Questions, readings and ideas" in `AGENTS.md`. Answered review points from before 2 November 2026:
 `docs/archive/progress-done.md`.
 
