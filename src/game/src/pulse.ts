@@ -16,7 +16,7 @@ export const LetterKinds: ReadonlySet<string> = new Set([
   ...MapKinds,
   "battle", "siege", "landing", "tablet", "recognition", "crown", "declare", "rising", "mutiny",
   "death", "execution", "defection", "captive", "spy-caught", "forgery-exposed", "double-agent",
-  "catastrophe", "famine", "hunger", "ship-lost", "refugees", "deport",
+  "catastrophe", "famine", "hunger", "ship-lost", "deport",
   "caravan-robbed", "caravan-taken", "gift", "gift-unit", "loan",
 ]);
 
@@ -31,6 +31,8 @@ export interface Pulse {
   worldMap: number;
   /** Of the events worth a letter, how many in a hundred reached no seat at all. */
   unseen: number;
+  /** The events worth a letter that reached a Great King, by kind: what the pulse is made of. */
+  kinds: Record<string, number>;
 }
 
 export function pulseOf(s: GameState): Pulse {
@@ -55,6 +57,7 @@ export function pulseOf(s: GameState): Pulse {
     worldLetter: seasons.length === 0 ? 0 : Math.round((100 * any(LetterKinds)) / seasons.length),
     worldMap: seasons.length === 0 ? 0 : Math.round((100 * any(MapKinds)) / seasons.length),
     unseen: worth.length === 0 ? 0 : Math.round((100 * worth.filter((e) => e.visibleTo.length === 0).length) / worth.length),
+    kinds: worth.filter((e) => e.visibleTo.some((p) => GreatKings.includes(p))).reduce<Record<string, number>>((a, e) => ({ ...a, [e.kind]: (a[e.kind] ?? 0) + 1 }), {}),
   };
 }
 
@@ -73,5 +76,16 @@ export function pulseReport(pulses: readonly Pulse[]): string {
     `The pulse (target: an event worth a letter in ${PulseTarget.letter}% of a Great King's seasons, a change of the map every ${PulseTarget.mapEvery} seasons or fewer):`,
     `  heard by each Great King (letter seasons / seasons per map change): ${kings}`,
     `  anywhere: a letter's worth in ${mean(pulses.map((x) => x.worldLetter))}% of seasons, a map change in ${mean(pulses.map((x) => x.worldMap))}%; ${mean(pulses.map((x) => x.unseen))}% of the letter-worthy events reached no seat`,
+    `  what reached the Great Kings, a game: ${kindsLine(pulses)}`,
   ].join("\n");
+}
+
+/** The kinds of event that reached the Great Kings, most first, as a mean a game. */
+function kindsLine(pulses: readonly Pulse[]): string {
+  const total: Record<string, number> = {};
+  for (const p of pulses) for (const [k, v] of Object.entries(p.kinds ?? {})) total[k] = (total[k] ?? 0) + v;
+  return Object.entries(total)
+    .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
+    .map(([k, v]) => `${k} ${Math.round((10 * v) / pulses.length) / 10}`)
+    .join(", ");
 }
