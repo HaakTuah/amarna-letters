@@ -384,6 +384,22 @@ export class SvgMapRenderer implements MapRenderer {
       view.querySelectorAll(".map .small, .map .off").forEach((e) => e.classList.remove("small", "crowd", "off"));
       const rects = (e: Element, sel: string): DOMRect[] =>
         [...e.querySelectorAll(sel)].map((x) => x.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+      // A seal's parts with their rims: the box drawn holds only the fill, so it grows by half the stroke, at the scale drawn.
+      const perUnit = (x: SVGGraphicsElement, r: DOMRect): number => {
+        const b = x.getBBox();
+        return b.width > 0 ? r.width / b.width : 0;
+      };
+      const grown = (r: DOMRect, by: number): DOMRect => new DOMRect(r.x - by, r.y - by, r.width + 2 * by, r.height + 2 * by);
+      const rimmed = (e: Element, sel: string): DOMRect[] =>
+        [...e.querySelectorAll<SVGGraphicsElement>(sel)].flatMap((x) => {
+          const r = x.getBoundingClientRect();
+          if (r.width <= 0 || r.height <= 0) return [];
+          const css = getComputedStyle(x);
+          return [css.stroke === "none" ? r : grown(r, ((parseFloat(css.strokeWidth) || 0) * perUnit(x, r)) / 2)];
+        });
+      const rim = getComputedStyle(view.querySelector(".map") ?? view);
+      const smallRim = parseFloat(rim.getPropertyValue("--small-rim")) || 0;
+      const markedRim = parseFloat(rim.getPropertyValue("--small-rim-marked")) || 0;
       const union = (rs: DOMRect[]): DOMRect[] => {
         if (rs.length < 2) return rs;
         const left = Math.min(...rs.map((r) => r.left)), top = Math.min(...rs.map((r) => r.top));
@@ -409,8 +425,8 @@ export class SvgMapRenderer implements MapRenderer {
           c,
           // The badge as one box round its seal, rings and a siege's tents: the tents stand apart, and a counter between two
           // of them would still crowd the city.
-          badge: union(rects(c, ".seal, .walls, .cap-ring, .tent")),
-          seal: c.querySelector(".seal")?.getBoundingClientRect(),
+          badge: union(rimmed(c, ".seal, .walls, .cap-ring, .tent")),
+          seal: c.querySelector<SVGGraphicsElement>(".seal") ?? undefined,
           rest: [
             ...(units.get(id) ?? []).flatMap((u) => rects(u, ":scope > .sym")),
             ...(courts.get(id) ?? []).flatMap((e) => rects(e, ".person, .person-more, .news-bg")),
@@ -451,12 +467,18 @@ export class SvgMapRenderer implements MapRenderer {
         }
         for (const e of [...(units.get(id) ?? []), ...(courts.get(id) ?? [])]) writes.push(() => e.classList.add("off"));
         if (seal === undefined) continue;
-        // The small seal: the seal's own centre, at the size the stylesheet shrinks it to (.city.small, map-uncluttered.css).
+        // The small seal: the seal's own centre, at the size the stylesheet shrinks it to (.city.small, map-uncluttered.css),
+        // with its rim, the marked one where its counters gave way or it is besieged.
+        const at = seal.getBoundingClientRect();
         const k = SmallSeal / 2;
-        const small = new DOMRect(seal.x + seal.width * (0.5 - k), seal.y + seal.height * (0.5 - k), seal.width * 2 * k, seal.height * 2 * k);
+        // A small seal whose counters gave way says so by its darker rim.
+        const crowd = (units.get(id) ?? []).length > 0;
+        const rimWidth = crowd || c.classList.contains("besieged") ? markedRim : smallRim;
+        const small = grown(
+          new DOMRect(at.x + at.width * (0.5 - k), at.y + at.height * (0.5 - k), at.width * 2 * k, at.height * 2 * k),
+          (rimWidth * perUnit(seal, at) * SmallSeal) / 2,
+        );
         if (free([small])) {
-          // A small seal whose counters gave way says so by its darker rim.
-          const crowd = (units.get(id) ?? []).length > 0;
           writes.push(() => c.classList.add("small", ...(crowd ? ["crowd"] : [])));
           place([small], id);
         } else writes.push(() => c.classList.add("off"));
