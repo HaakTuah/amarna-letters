@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { scriptSeats, seasons } from "./small-world.ts";
 import { newGame, type AudienceView, type HostReply, type Power, type SeatView, type TurnSubmission } from "@amarna/engine";
-import { GameRunner, type ISeat, ScriptMind, SignalDetector, TemplateNarrator } from "@amarna/game";
-import { Warmth } from "../src/bots/brain.ts";
+import { GameRunner, type ISeat, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { TextKit } from "../src/bots/textkit.ts";
 import { Audience, Letter, type LetterParts, closing, pleaHeard } from "../src/bots/voices.ts";
 import { Assert } from "../../engine/test/support.ts";
+import { reading as readingOf } from "./readings.ts";
 
 /** A script king's seat that keeps what it writes: its letters, and its words to the envoys it hears. */
 class Kept implements ISeat {
@@ -68,25 +68,12 @@ describe("LetterShapeTests", () => {
     Assert.true(checked >= 3, `only ${checked} kings wrote enough to judge`);
   });
 
-  // Script kings read these words back (voices.ts): an envoy's report is weighed for warmth, a timid envoy softens a threat
-  // to the host and a thief hides the weighing, the character checks look for threats, and the signals count accusations
-  // and blamed messengers. Every form of a line must read as its first form does, so that choosing one changes no play.
+  // Script kings read these words back (voices.ts; what they read for: readings.ts). Every form of a line must read as its
+  // first form does, so that choosing one changes no play.
   test("Every form of a line reads to the script kings as its first form does", () => {
     const [me, to] = ["Mitanni", "Egypt"] as const;
-    const count = (t: string, f: (s: string) => boolean): number => TextKit.sentences(t).filter(f).length;
-    const reading = (t: string): string => {
-      const low = t.toLowerCase();
-      return JSON.stringify([
-        [...Warmth.warm, ...Warmth.cold].filter((w) => low.includes(w)),
-        count(t, (s) => TextKit.isThreatTo(s, to, me)),
-        count(t, (s) => TextKit.isThreatTo(s, to, me, true)),
-        count(t, TextKit.isThreat),
-        count(t, TextKit.speaksOfWeighing),
-        TextKit.isAccusation(t),
-        SignalDetector.blamesMessenger(t),
-      ]);
-    };
-    const same = (what: string, forms: string[]): void => {
+    const same = (what: string, forms: string[], host = false): void => {
+      const reading = (t: string): string => readingOf(t, to, me, host ? "host" : "letter");
       for (const f of forms) expect(reading(f), `${what}: "${f}" against "${forms[0]}"`).toBe(reading(forms[0]));
     };
     const senders = ["Egypt", "Babylonia", "Mitanni", "Assyria", "Hatti", "Arzawa", "Alashiya", "Byblos"];
@@ -98,9 +85,9 @@ describe("LetterShapeTests", () => {
           for (const sally of [false, true])
             for (const unsworn of [false, true])
               for (const servant of [false, true]) same(`${kind} ${gift} ${threat} ${sally} ${unsworn} ${servant}`, every((key) => write({ key, ...parts, gift, threat, sally, unsworn, servant })));
-    for (const [line, forms] of Object.entries(Audience)) same(line, [...forms]);
-    same("pleaHeard", every((key) => pleaHeard("Aleppo", "Hatti", key)));
-    for (const p of senders) same(`closing ${p}`, [0, 1, 2, 3, 4, 5, 6, 7].map((t) => closing(p as Power, `${t}|${p}|${to}`)));
+    for (const [line, forms] of Object.entries(Audience)) same(line, [...forms], true);
+    same("pleaHeard", every((key) => pleaHeard("Aleppo", "Hatti", key)), true);
+    for (const p of senders) same(`closing ${p}`, [0, 1, 2, 3, 4, 5, 6, 7].map((t) => closing(p as Power, `${t}|${p}|${to}`)), true);
   });
 });
 

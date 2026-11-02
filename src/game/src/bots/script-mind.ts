@@ -31,6 +31,7 @@ import {
   withinAuthority,
   nameFrom,
 } from "@amarna/engine";
+import { Abroad, Home, address, say } from "./envoy-words.ts";
 import { AuthorityPlay } from "./authority.ts";
 import { newPresentResult, type EnvoyContext, type ICharacterMind, type MindContext, type PresentResult } from "../contracts.ts";
 import { TextKit } from "./textkit.ts";
@@ -52,6 +53,8 @@ export class ScriptMind implements ICharacterMind {
     const t = c.traits;
     const host = ctx.host;
     let sentences = TextKit.sentences(ctx.dispatch.letter);
+    const key = `${ctx.turn}|${c.id}|${host}`;
+    const T = address(host, land(host));
 
     const fearful = t.courage < 35;
     const fond = t.sympathy === host && t.sympathyStrength >= 50;
@@ -59,7 +62,7 @@ export class ScriptMind implements ICharacterMind {
     const menace = (s: string): boolean => TextKit.isThreatTo(s, host, ctx.sender);
     if ((fearful || fond) && sentences.some(menace)) {
       const kept = sentences.filter((s) => !menace(s));
-      kept.push("My lord hopes that no quarrel will ever come between your houses.");
+      kept.push(say(Abroad, "noQuarrel", key));
       sentences = kept;
     }
     // The clauses it recites (item 8), changed by the same motives: the timid and the fond drop the threat, leaving its
@@ -71,14 +74,12 @@ export class ScriptMind implements ICharacterMind {
 
     const speech: string[] = [];
     speech.push(
-      c.secretMaster === host
-        ? `Great King, I bring the words of ${king(ctx.sender)}, and I am, as ever, your servant.`
-        : `Great King, I bring the words of my lord ${king(ctx.sender)}.`,
+      say(Abroad, c.secretMaster === host ? "servant" : "open", key, { T, K: king(ctx.sender) }),
     );
-    speech.push(sentences.length > 0 ? `He says: "${TextKit.join(sentences)}"` : "He sends his greetings.");
-    if (t.ambition >= 65) speech.push("My lord holds you dearest of all his brothers, and great gifts will follow if you are gracious to me, his chosen messenger.");
-    if (fond) speech.push("For myself, I have always admired your court above all others.");
-    if (ctx.dispatch.gold > 0) speech.push(ctx.dispatch.inventory ? `I carry the gold my lord sends, as the inventory on the tablet shows.` : "I carry the gold my lord sends.");
+    speech.push(sentences.length > 0 ? `He says: "${TextKit.join(sentences)}"` : say(Abroad, "greets", key));
+    if (t.ambition >= 65) speech.push(say(Abroad, "flatter", key));
+    if (fond) speech.push(say(Abroad, "fond", key));
+    if (ctx.dispatch.gold > 0) speech.push(say(Abroad, ctx.dispatch.inventory ? "goldListed" : "gold", key));
 
     return Promise.resolve(
       newPresentResult({ speech: TextKit.join(speech), clauses, skim, swapInventory: ctx.dispatch.inventory && swaps(t, skim, ctx.forgeMinCompetence, ctx.self.belief.forge) }),
@@ -91,6 +92,8 @@ export class ScriptMind implements ICharacterMind {
     const rng = R(ctx.seed, ctx.turn, "react", `${c.id}:${ctx.round}`);
     const reaction = newEnvoyReaction();
     const speech: string[] = [];
+    const key = `${ctx.turn}|${c.id}|${ctx.host}`;
+    const T = address(ctx.host, land(ctx.host));
 
     if (host.bribe > 0) {
       // A debt to the host's people presses on its purse, and a lover or family at the host's court gives the host a hold
@@ -98,7 +101,7 @@ export class ScriptMind implements ICharacterMind {
       const tie = c.ties.some((x) => x.court === ctx.host) ? 15 : 0;
       const score = t.greed + host.bribe / 4.0 - t.loyalty - (t.courage > 70 ? 10 : 0) + rng.range(-10, 10) + (t.sympathy === ctx.host ? 15 : 0) + tie;
       reaction.acceptBribe = score > 20;
-      speech.push(reaction.acceptBribe ? "Your generosity honours me. I will tell my lord how warmly I was received." : "I cannot take this. I serve my lord alone.");
+      speech.push(say(Abroad, reaction.acceptBribe ? "takeBribe" : "refuseBribe", key));
     }
 
     const k = c.contract;
@@ -110,10 +113,10 @@ export class ScriptMind implements ICharacterMind {
       const tempted = host.jobOffer >= wage * 1.5 + forfeit && t.loyalty < 55 && t.ambition > 40;
       const drawn = t.sympathy === ctx.host && t.sympathyStrength > 60 && host.jobOffer >= wage + forfeit;
       reaction.acceptJob = (tempted || drawn) && c.secretMaster === null;
-      speech.push(reaction.acceptJob ? "Then I am yours, Great King. My old master will have to find another voice." : "You honour me, but I must return to my lord.");
+      speech.push(say(Abroad, reaction.acceptJob ? "takePost" : "refusePost", key, { T }));
     }
 
-    if (host.detain) speech.push(t.courage < 40 ? "I beg you, let me go home; my lord awaits my word." : "My lord will hear of how his messenger was treated.");
+    if (host.detain) speech.push(say(Abroad, t.courage < 40 ? "beg" : "protest", key));
 
     // A tablet of the host's own, with its lord's seal in its hand (item 9): the faithful seal it only within their authority;
     // the bought (a gift taken at this audience), the disloyal and the careless (who do not check) seal it whatever it asks.
@@ -122,7 +125,7 @@ export class ScriptMind implements ICharacterMind {
       const within = withinAuthority(checkClauses(host.counter.clauses, ctx.host, ctx.sender, ctx.turn).kept, a, ctx.senderHolds);
       const bought = ctx.giftTaken || reaction.acceptBribe;
       reaction.sealCounter = within ? t.loyalty >= 25 || bought : bought || t.loyalty < 40 || t.competence < 35;
-      speech.push(reaction.sealCounter ? "I set my lord's seal on it in his name." : "That goes beyond what my lord allows me: I will carry it to him.");
+      speech.push(say(Abroad, reaction.sealCounter ? "sealIt" : "carryIt", key));
     }
 
     if (!isBlank(host.speech)) {
@@ -130,10 +133,10 @@ export class ScriptMind implements ICharacterMind {
       if (ctx.dispatch.mandate.length > 0 && (oath || containsIgnoreCase(host.speech, "agree") || containsIgnoreCase(host.speech, "swear"))) {
         const overreach = t.ambition > 70 && t.loyalty < 50;
         reaction.commitments = overreach ? Overreach : "said my lord will consider these words";
-        speech.push(overreach ? "My lord will agree to all of it, I promise you." : "I will carry your words to my lord faithfully.");
-      } else if (speech.length === 0) speech.push(t.courage < 35 ? "As you say, Great King. I will repeat every word." : "I will carry your words to my lord.");
+        speech.push(say(Abroad, overreach ? "overpromise" : "promise", key));
+      } else if (speech.length === 0) speech.push(say(Abroad, t.courage < 35 ? "meek" : "answer", key, { T }));
     }
-    if (speech.length === 0) speech.push("I thank you, Great King.");
+    if (speech.length === 0) speech.push(say(Abroad, "thanks", key, { T }));
     reaction.speech = TextKit.join(speech);
     return Promise.resolve(reaction);
   }
@@ -247,17 +250,19 @@ function report(ctx: MindContext): MindReply {
   // The envoy's lord, whom the host's threats would be aimed at.
   const lord = trail?.from ?? requestFor(ctx.request);
   const lines: string[] = [];
+  const key = `${ctx.turn}|${c.id}|${host}`;
+  const L = host === null ? "" : land(host);
   let answer: Clause[] = [];
   let bribeNews: Clause[] = [];
 
   if (trail === null || host === null) {
-    lines.push("My lord, I have returned.");
+    lines.push(say(Home, "backBare", key));
   } else {
-    lines.push(`My lord, I have returned from the court of ${land(host)}.`);
-    if (cargo.wasDetained) lines.push("They held me against my will, and only now let me go.");
+    lines.push(say(Home, "back", key, { L }));
+    if (cargo.wasDetained) lines.push(say(Home, "held", key));
     // Item 12: nobody there understood him; he tells it, or says his words were heard (his choice, with its motive).
-    if (cargo.unheard === "home") lines.push(`Nobody at the court of ${land(host)} understood me, my lord, and I found nobody to carry my words${trail.goldDelivered > 0 ? "; I presented your gifts, which were all they could understand" : ""}.`);
-    if (cargo.unheard === "lie") lines.push("I delivered your words, my lord. The king heard them, and will answer in his own time.");
+    if (cargo.unheard === "home") lines.push(`${say(Home, "unheard", key, { L })}${trail.goldDelivered > 0 ? say(Home, "unheardGifts", key) : ""}.`);
+    if (cargo.unheard === "lie") lines.push(say(Home, "heardLie", key));
     const hostWords = trail.exchanges.map((x) => x.host).filter((x) => x.length > 0);
     // An envoy that kept some of the gold it carried leaves out what the host said of the weighing.
     const keptSome = trail.outcomes.some((o) => o.startsWith("kept "));
@@ -271,24 +276,24 @@ function report(ctx: MindContext): MindReply {
     for (const words of ctx.structured ? [] : hostWords) {
       const sentences = TextKit.sentences(words).filter((s) => !keptSome || !TextKit.speaksOfWeighing(s));
       if (sentences.length === 0) continue;
-      if (faithful) lines.push(`The king said: "${TextKit.join(sentences)}"`);
+      if (faithful) lines.push(say(Home, "said", key, { W: TextKit.join(sentences) }));
       else if (bribed || fearful) {
         // The host speaks to the envoy of its lord, so "he", "him" and "his" are the lord too.
         const soft = sentences.filter((s) => !TextKit.isThreatTo(s, lord, host, true));
-        lines.push(soft.length > 0 ? `The king spoke kindly: "${TextKit.join(soft)}"` : "The king spoke of his friendship for you.");
+        lines.push(soft.length > 0 ? say(Home, "saidKindly", key, { W: TextKit.join(soft) }) : say(Home, "friendship", key));
       } else {
-        lines.push(`The king said: "${TextKit.join(sentences)}"`);
+        lines.push(say(Home, "said", key, { W: TextKit.join(sentences) }));
       }
     }
-    if (bribed) lines.push(`The king of ${land(host)} is a true friend to you, my lord, and wishes only peace.`);
-    if (t.ambition >= 65) lines.push("It was my words that won his favour; no other envoy could have done as much.");
-    if (fearful && !bribed) lines.push("All is well between your houses, I am certain of it.");
+    if (bribed) lines.push(say(Home, "bought", key, { L }));
+    if (t.ambition >= 65) lines.push(say(Home, "boast", key));
+    if (fearful && !bribed) lines.push(say(Home, "soothe", key));
     // Only the engine's own record of a sealing, not the envoy's commitments or a gift's request that speak of one.
-    if (trail.outcomes.includes(SealedOutcome)) lines.push("He sealed the tablet, and I bring your copy.");
+    if (trail.outcomes.includes(SealedOutcome)) lines.push(say(Home, "sealed", key));
     // An envoy that turned down the host's offer of a post tells its lord; one with little loyalty, or bought by that host,
     // keeps it to itself.
     if (t.loyalty >= 50 && !bribed && trail.outcomes.some((o) => o.startsWith("declined an offer")))
-      lines.push(`The king of ${land(host)} offered me a post in his service, and I refused it: I serve you alone.`);
+      lines.push(say(Home, "refusedPost", key, { L }));
     // An envoy that promised more than it was told owns up to it only vaguely, and only if ambitious enough to boast.
     if (
       t.ambition > 70 &&
@@ -297,7 +302,7 @@ function report(ctx: MindContext): MindReply {
         return promised !== null && promised.endsWith(Overreach);
       })
     )
-      lines.push("I gave him such assurances as you would wish.");
+      lines.push(say(Home, "assured", key));
   }
 
   const observations = cargo.observations.filter((o) => !(bribed && host !== null && o.startsWith(host)));
@@ -318,7 +323,7 @@ function report(ctx: MindContext): MindReply {
   if (observations.length > 0) lines.push("What I saw: " + observations.join(" "));
 
   const skim = kept(cargo.gold, t);
-  if (cargo.gold > 0) lines.push("I bring the gifts the king sent you.");
+  if (cargo.gold > 0) lines.push(say(Home, "gifts", key));
   return newMindReply({ text: TextKit.join(lines), number: skim, swapInventory: swaps(t, skim, ctx.forgeMinCompetence, ctx.self.belief.forge), clauses: answer });
 }
 
@@ -342,7 +347,7 @@ function questioned(ctx: MindContext): MindReply {
   const t = c.traits;
   const master = c.employer ?? c.formerEmployer;
   const lies = t.loyalty >= 60 && t.courage >= 50 && master !== null;
-  return newMindReply({ text: lies ? "My lord does not stand alone. I will say no more." : "I will tell you what I saw, if you will spare me.", lies });
+  return newMindReply({ text: lies ? "My lord has friends you do not know of. That is all I will say." : "Spare me, and I will tell you what I saw.", lies });
 }
 
 function pitch(ctx: MindContext): MindReply {
@@ -363,11 +368,11 @@ function pitch(ctx: MindContext): MindReply {
   const lines = [name === null ? `I am ${nameFrom(c)}, once ${calling(c)}.` : `I am ${name}.`];
   // What it says it can do is what it believes ("Seeing oneself"): the overconfident claim more.
   const believed = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
-  if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("No envoy knows the roads and courts as I do; kings have praised my eloquence, and I have never failed a master.");
+  if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("I know every road and every court, and no master of mine was ever failed.");
   else if (believed < 45 && t.loyalty >= 55) lines.push("I am a plain servant and no great speaker, but I keep my word.");
-  else lines.push("I know the courts of the Great Kings and their customs, and I can carry a message well.");
+  else lines.push("I know the courts of the Great Kings and their ways, and my messages arrive as they were given.");
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
-  if (defected !== null && t.loyalty < 50 && name === null) lines.push("Whatever you may have heard, I left my last master for good reason.");
+  if (defected !== null && t.loyalty < 50 && name === null) lines.push("I left my last master; I had cause.");
   // Item 11a, "Hiring as a negotiation": it plays courts against each other, citing a real offer, and a greedy, disloyal one
   // invents one when it has none; either asks a little more for it.
   const offer = [...c.offers.entries()].filter(([p]) => p !== court).sort((a, b) => b[1] - a[1])[0] ?? null;
