@@ -90,51 +90,49 @@ export function withoutSensitive(text: string): string {
 }
 
 /**
- * A text that may hold JSON (a model's reply) with anything sensitive taken out. Its object is read as the game reads a
- * reply (the whole text, or else from its first "{" to its last "}", as in a fenced block) and its strings decoded before
- * they are scrubbed, since JSON may write any letter as an escape ("\\u00fc") that hides an address or a key from a scan
- * of the raw text. The text around it, and any text that holds no object, is scrubbed as it stands.
+ * A text that may hold JSON (a model's reply, a provider's error) with anything sensitive taken out: its JSON read
+ * decoded (see `inJson`), since JSON may write any letter as an escape ("\\u00fc") that hides an address or a key from a
+ * scan of the raw text, and the text around it scrubbed as it stands.
  */
 export function withoutSensitiveJson(text: string): string {
-  const whole = scrubbedObject(text);
-  if (whole !== null) return whole;
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  const inner =
-    start < 0 || end <= start
-      ? null
-      : scrubbedObject(text.slice(start, end + 1));
-  if (inner === null) return withoutSensitive(text);
-  return (
-    withoutSensitive(text.slice(0, start)) +
-    inner +
-    withoutSensitive(text.slice(end + 1))
-  );
+  return inJson(text, withoutSensitive);
 }
 
 /**
- * A JSON value's text (an object, or a bare string a model replied with) with every string and name in it scrubbed, or
- * null if it is not JSON. It is always written back in
- * one spelling, with no escapes but the ones JSON needs, so a reader, and the export's search for a human's words, see
- * it as any parser would.
+ * A text with `change` applied to each decoded string and name of the JSON it holds, written back in one spelling with
+ * no escapes but the ones JSON needs, and to the text around it as it stands. The JSON is the whole text, or else the
+ * widest span that parses from a first "{" or "[" to a last "}" or "]" (a fenced reply, "local API 400: [...]").
  */
-function scrubbedObject(text: string): string | null {
-  let node: unknown;
-  try {
-    node = JSON.parse(text);
-  } catch {
-    return null;
-  }
-  const walk = (v: unknown): unknown => {
-    if (typeof v === "string") return withoutSensitive(v);
-    if (Array.isArray(v)) return v.map(walk);
-    if (v !== null && typeof v === "object")
-      return Object.fromEntries(
-        Object.entries(v).map(([k, x]) => [withoutSensitive(k), walk(x)]),
-      );
-    return v;
+export function inJson(text: string, change: (s: string) => string): string {
+  const decoded = (part: string): string | null => {
+    let node: unknown;
+    try {
+      node = JSON.parse(part);
+    } catch {
+      return null;
+    }
+    const walk = (v: unknown): unknown => {
+      if (typeof v === "string") return change(v);
+      if (Array.isArray(v)) return v.map(walk);
+      if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [change(k), walk(x)]));
+      return v;
+    };
+    return JSON.stringify(walk(node));
   };
-  return JSON.stringify(walk(node));
+  if (!/[{["]/.test(text)) return change(text);
+  const whole = decoded(text);
+  if (whole !== null) return whole;
+  const first = (a: number, b: number): number => (a < 0 ? b : b < 0 ? a : Math.min(a, b));
+  for (const [start, end] of [
+    [first(text.indexOf("{"), text.indexOf("[")), Math.max(text.lastIndexOf("}"), text.lastIndexOf("]"))],
+    [text.indexOf("{"), text.lastIndexOf("}")],
+    [text.indexOf("["), text.lastIndexOf("]")],
+  ]) {
+    if (start < 0 || end <= start) continue;
+    const inner = decoded(text.slice(start, end + 1));
+    if (inner !== null) return change(text.slice(0, start)) + inner + change(text.slice(end + 1));
+  }
+  return change(text);
 }
 
 /** The same, for a text that may be null (a call's or a shadow's error, which may carry a provider's JSON). */

@@ -6,7 +6,7 @@
  * What is sensitive is never a filter: the log never holds it (sensitive.ts).
  */
 import type { GameLog } from "./log.ts";
-import { withoutSensitive } from "./sensitive.ts";
+import { inJson, withoutSensitive, withoutSensitiveJson } from "./sensitive.ts";
 
 /** What an export holds: each part true to put it in. */
 export interface ExportParts {
@@ -76,15 +76,18 @@ export function exportJsonl(log: GameLog, parts: ExportParts = Everything): stri
 }
 
 /**
- * A decision with anything sensitive taken out of every string but its type and key, whatever the filters: a player may
- * type an e-mail address or a key into a letter, and a model may put anything into any field. The log keeps them as
- * written, for his own replay; no export carries them. A field the engine reads never holds such a thing in a valid
- * order, so the export still replays.
+ * A record with anything sensitive taken out of every string but its type and key, whatever the filters. A player may
+ * type an e-mail address or a key into a letter, and a model may put anything into any field: the log keeps decisions as
+ * written, for his own replay, and no export carries them; a field the engine reads never holds such a thing in a valid
+ * order, so the export still replays. Calls and shadows are read again too, since a log loaded before its providers
+ * registered their keys was cleaned without them.
  */
 function withoutSensitiveWords(line: string): string {
-  if (!line.startsWith('{"type":"decision"')) return line;
   const touched = { any: false };
-  const back = mapWords(JSON.parse(line), withoutSensitive, (f) => f !== "type" && f !== "key", "", touched);
+  // Decisions as they stand; every other record read again with its JSON decoded, now that every key in use is known
+  // (a log loaded before its providers were made was cleaned without them).
+  const change = line.startsWith('{"type":"decision"') ? withoutSensitive : withoutSensitiveJson;
+  const back = mapWords(JSON.parse(line), change, (f) => f !== "type" && f !== "key", "", touched);
   return touched.any ? toJson(back) : line;
 }
 
@@ -120,30 +123,6 @@ function withoutHumanWords(lines: string[]): string[] {
   });
 }
 
-/**
- * A text with `change` applied: to each decoded string of the JSON it holds (a model's reply, whole or between its first
- * "{" and last "}", as the log keeps it), so an escape beside a quote ("\\n") never hides it; and to the rest as it stands.
- */
-function inJson(text: string, change: (s: string) => string): string {
-  const decoded = (part: string): string | null => {
-    let node: unknown;
-    try {
-      node = JSON.parse(part);
-    } catch {
-      return null;
-    }
-    const walk = (v: unknown): unknown =>
-      typeof v === "string" ? change(v) : Array.isArray(v) ? v.map(walk) : v !== null && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [change(k), walk(x)])) : v;
-    return JSON.stringify(walk(node));
-  };
-  if (!/[{["]/.test(text)) return change(text);
-  const whole = decoded(text);
-  if (whole !== null) return whole;
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  const inner = start < 0 || end <= start ? null : decoded(text.slice(start, end + 1));
-  return inner === null ? change(text) : change(text.slice(0, start)) + inner + change(text.slice(end + 1));
-}
 
 /** A record as a line, its strings escaped as the log writes them (engine's json.ts, quote). */
 function toJson(v: unknown): string {

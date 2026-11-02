@@ -81,6 +81,15 @@ describe("ExportTests", () => {
     Assert.equal("local API 401: Incorrect API key provided: [key]", log.calls[0].error);
   });
 
+  test("A log loaded before its keys are known is cleaned of them when exported", () => {
+    // A saved game whose error echoed a key, read back in a fresh session before its providers are made.
+    const key = "saved_" + "game_" + "key_" + "13579";
+    const saved = `{"version":38,"seed":1,"type":"header"}\n{"key":"t1/orders/Egypt","turn":1,"error":"Incorrect API key provided: ${key}","type":"call"}\n`;
+    const log = GameLog.fromJsonl(saved);
+    rememberKey(key);
+    Assert.false(exportJsonl(log).includes(key));
+  });
+
   test("A short key is taken out where it stands whole, and only there", () => {
     rememberKey("abc" + "1234");
     const log = new GameLog();
@@ -109,9 +118,12 @@ describe("ExportTests", () => {
     // A reply that is a bare JSON string is read the same way.
     log.addCall(newModelCall({ key: "t1/orders/Assyria", turn: 1, output: '"jdoe@b\\u00fccher.example"' }));
     Assert.equal('"[e-mail]"', log.calls[2].output);
+    // So is an error that ends in a JSON array.
+    log.addCall(newModelCall({ key: "t1/orders/Kaska", turn: 1, error: 'local API 400: ["Account jdoe@b\\u00fccher.example"]' }));
+    Assert.equal('local API 400: ["Account [e-mail]"]', log.calls[3].error);
     // A property's name is read the same way.
     log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, output: '{"jdoe@b\\u00fccher.example":0}' }));
-    Assert.false(JSON.stringify(JSON.parse(log.calls[3].output)).includes("cher"));
+    Assert.false(JSON.stringify(JSON.parse(log.calls[4].output)).includes("cher"));
   });
 
   test("A reply with its JSON in a fenced block is read the same way", () => {
