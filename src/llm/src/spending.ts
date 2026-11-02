@@ -56,7 +56,7 @@ export interface Stakes {
   waited?: number;
   /**
    * Foreign troops stand in or next to the mind's own capital, as far as it can see: the decision is always paid, from the
-   * reserve if need be, and never left to the script (Haakon, answering item 6c's review, 27 October 2026).
+   * reserve if need be, and never left to the script (the owner, answering item 6c's review, 27 October 2026).
    */
   capital?: boolean;
 }

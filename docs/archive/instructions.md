@@ -1,6 +1,6 @@
-# Haakon's instructions, word for word
+# The owner's instructions, word for word
 
-Haakon's message log (`owner-messages-log.md`, 71 messages from 17 to 26 October 2026) stays out of the repo. It was
+The owner's message log (`owner-messages-log.md`, 71 messages from 17 to 26 October 2026) stays out of the repo. It was
 read once on 26 October 2026, and each instruction, decision or open question about this project was checked against
 the repo's docs and `docs/from-local/`. These are the ones that were not recorded anywhere else. Each is quoted word
 for word, with the date and time (UTC) it was sent. Only project matters are included.
@@ -40,7 +40,7 @@ for what's built" still holds.
    > 1. Bring whatever is in progress to a clean commit that builds and passes its tests. If something can't be finished, leave it out of the commit and note it in the progress file.
    > 2. If item 5 is finished and reviewed, merge it into develop and push as the builder rules say, with the usual check of the previous PR.
    > 3. If item 5 is not finished, do not merge it into develop. Push its branch and open a draft PR from item/sieges to develop, titled as unfinished, listing what works and can be tested now, what is missing, and anything known to be broken.
-   > 4. Update BUILD-PROGRESS.md (including the "For Haakon" table) and the item's report so the next session can resume from them, then stop.
+   > 4. Update BUILD-PROGRESS.md (including the "For the owner" table) and the item's report so the next session can resume from them, then stop.
    > In the PR description, say how to test the new features: what to click or run, and which seed or setup shows them.
 
 5. **2026-10-20 10:04**:
@@ -51,7 +51,7 @@ for what's built" still holds.
 
    > Do not start item 6 or any other work until I tell you to continue.
 
-   Since then, Haakon has set what comes next: the docs and preview pass, the TypeScript conversion, the fix pass, then
+   Since then, the owner has set what comes next: the docs and preview pass, the TypeScript conversion, the fix pass, then
    item 6 (`docs/CONVERSION-PLAN.md`). Each of these starts when he says so.
 
 7. **2026-10-21 16:29**, on mirroring the design document:
@@ -105,11 +105,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     > You merge, always.
 
     A standing instruction: the builder merges its own pull requests, the milestone PRs from `develop` into `main`
-    included, once they are green and (for an item) its reviewer has found nothing blocking. It replaces "Haakon merges
+    included, once they are green and (for an item) its reviewer has found nothing blocking. It replaces "the owner merges
     `develop` into `main`" in the builder rules ("Branches", "A pull request at every milestone"). Listed in `CLAUDE.md`
     under "Standing instructions".
 
-15. **09:00**, in the design chat, after Claude found no pushes from either builder for over an hour and asked whether to add a rule (Claude's question: "Shall I add a 'push at every checkpoint, at least hourly' rule to both projects' instructions?"). Haakon had asked: "And shouldn't they push regularly so they don't risk losing anything?" His answer:
+15. **09:00**, in the design chat, after Claude found no pushes from either builder for over an hour and asked whether to add a rule (Claude's question: "Shall I add a 'push at every checkpoint, at least hourly' rule to both projects' instructions?"). The owner had asked: "And shouldn't they push regularly so they don't risk losing anything?" His answer:
 
     > Yes to all, expertly!
 
@@ -125,7 +125,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     under "Standing instructions". The same message answered items 6b's and 6+'s review questions (`docs/BUILD-PROGRESS.md`).
 
 17. **16:56**, in the design chat, on Claude's proposal that builders ask the live design document for changes again
-    before opening their pull request (items 7b and 8 had begun before Haakon's answers reached them):
+    before opening their pull request (items 7b and 8 had begun before the owner's answers reached them):
 
     > Yes, why not? If you don't object.
 
@@ -141,7 +141,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     Written into the design document's builder rules ("Using a feature must pay", under the script kings' rule) and
     item 18 (no feature left whose users do not come out ahead), so it reaches `.claude/rules/builder-rules.md` with
     this refresh; the running table is "Use against ignore" in `docs/BUILD-PROGRESS.md`. The same message's companion
-    answered items 9+a's, 9+b's and 10's review questions ("For Haakon").
+    answered items 9+a's, 9+b's and 10's review questions ("For the owner").
 
 19. **07:24 and 07:33**, in the design chat, after answering items 9+a's, 9+b's and 10's questions:
 
@@ -178,7 +178,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     > You figure all this out, expert. You know me by now. But models must be able to alter clauses also. Remember, everyone plays the same game!
 
     The takes are written into item 11a+ ("Harvests in their season, and the answers to items 8 to 10+b"); the "For
-    Haakon" rows are marked answered.
+    The owner" rows are marked answered.
 
 22. **15:23 and 15:26**, in the design chat, on how builders spend their time:
 
@@ -970,7 +970,7 @@ Given in the design chat with Claude, answering the design questions of the cons
 117. **1 November 2026, 10:53 UTC**, in the design chat, to milestone #338's three questions with the design session's
     takes (17a: merge, the phone's frames waiting for 17+++; the Hurrian Hymn: keep Kilmer's reading, saying on the Music
     page that it is her reading; the Music page: our own pieces' names and moods only, without Empire Earth's): "Agreed
-    to all! Now, where do I check the music?" Written into the "For Haakon" table of `docs/BUILD-PROGRESS.md`.
+    to all! Now, where do I check the music?" Written into the "For the owner" table of `docs/BUILD-PROGRESS.md`.
 118. **1 November 2026, 11:14-11:18 UTC**, in the design chat, on the music and the Music page: "I am actaully
     impressed! Didn't expect much from the music actually! But it is good! Is it entirely like I imagined it? No! But it
     fits quiet well! I want to keep all of it, even "The tuning's scale (a test)". So I think this page is really nice,
@@ -1044,7 +1044,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     that would be a big risk!" Then, to the design session's answers (the orchestrator stays in the cloud and the PC
     only hands lanes to Codex's cloud; the runner acts only on pull requests HaakTuah opened from the repository and
     labelled himself, with the description as the brief), 16:19 UTC: "Yes to all, expertly!" Written into
-    `docs/claude-and-codex.md` ("Handing work to Codex", "The runner on Haakon's PC") and `scripts/codex-runner.sh`,
+    `docs/claude-and-codex.md` ("Handing work to Codex", "The runner on the owner's PC") and `scripts/codex-runner.sh`,
     the same in Barkstreet Snakes.
 126. **1 November 2026, 16:42-16:49 UTC**, in the design chat, while the Codex runner was being set up on his PC:
     "Remember that this is an open repo, so extremely important that nothing is pushed there which opens and
@@ -1053,7 +1053,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     removed and just set up here locally. having it on a repository announces how it works, and it should just be a
     poller anyhow that triggers a codex cloud instance, nothing which can anyhow do anything else on my computers."
     The runner is removed from the repository; a poller kept on his PC only starts Codex's cloud tasks, with no copy
-    of the repository. Written into `docs/claude-and-codex.md` ("Handing work to Codex", "Haakon's poller": only his
+    of the repository. Written into `docs/claude-and-codex.md` ("Handing work to Codex", "the owner's poller": only his
     own work reaches Codex; Codex's work never touches the protected files), the same in Barkstreet Snakes.
 127. **1 November 2026, 17:10 UTC**, in the design chat, after Codex's code review proved to work (Snakes #291)
     while its building cannot, on the design session's proposal that Codex review Claude's PRs and build nothing
@@ -1106,7 +1106,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     ("Keep it lean" under "How to work", replacing "Keep files small and organised", and the "Review guidelines"),
     `docs/claude-and-codex.md` (the definition of a 10 in "Reviews") and `docs/BUILD-PROGRESS.md` (the next workshop
     check); the same in Barkstreet Snakes, with its unused-code check.
-134. **2 November 2026, 06:36 and 06:48 UTC**, in the design chat. Haakon's notes, sent as a file ("Made some notes
+134. **2 November 2026, 06:36 and 06:48 UTC**, in the design chat. The owner's notes, sent as a file ("Made some notes
     while you were out of usage."); the parts about this project and how both games are built, word for word:
 
     > Should we use a regular container codex imstance to review rather than naitve review when we get environments.
@@ -1209,7 +1209,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     excepted, starting with chatter (Barkstreet Snakes); (6) a file-by-file review in each game after 4 and 5; (7)
     every change of hands an offer that must be taken up, into 17++; (8) a history ledger, search with filters and
     counts, proper province names with the modern names as a setting, raiders from beyond the map, and graphs later, in
-    the design; (9) pace first, measured and fixed before more features; (10) the bugs queued as written. Haakon, to all
+    the design; (9) pace first, measured and fixed before more features; (10) the bugs queued as written. The owner, to all
     ten: "Yes ro absolutely all pt these! Extra expertly expertly!" The cost of model games was left undecided, as he
     said ("But we don't decide this yet.").
 
@@ -1283,7 +1283,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     and helpers belong to builders" into both games): "yes please, expertly!" Written into `docs/orchestrating.md` (at
     its top) and `CLAUDE.md` ("Helpers: when they pay"); the same in Barkstreet Snakes.
 140. **2 November 2026, 07:46 and 07:47 UTC**, in the design chat, after the Snakes orchestrator, which could not set
-    a builder session's effort, held back part 4 (marked high) for Haakon to start: "I can't start a builder under it??
+    a builder session's effort, held back part 4 (marked high) for the owner to start: "I can't start a builder under it??
     It will just have to start a regular one, then escalate? maybe it should try on medium first?" Then, to the design
     session's take (builders start at the orchestrator's effort, and the work marked high goes to helpers at high
     effort inside the builder, then the escalation chain): "Yes, expertly! We don't want them to hang up like this
@@ -1292,11 +1292,11 @@ Given in the design chat with Claude, answering the design questions of the cons
 141. **2 November 2026, 08:25 and 08:28 UTC**, in the design chat, on whether agents should file ideas as issues: "Because that's different from how all questions to me bubble up, but maybe stuff is lost for me,
     because they only raise blocking questions? Should we also have something like this? Right now we have to hunt
     across PRs and stuff for the questions? Would this be a better place for all of that?" Then, to the design
-    session's take (one inbox of issues assigned to him, labelled `for-haakon` and `idea`): "Yes, important to avoid
+    session's take (one inbox of issues assigned to him, labelled with a label named for the owner, and `idea`): "Yes, important to avoid
     duplication, we want everything there then, and just pointers there in the prs and stuff, to make us aware that new
     ones are added. Should it be low stake to suggest an idea? […]"
     Written into `AGENTS.md` ("Questions, readings and ideas", replacing "Questions and readings") and
-    `docs/BUILD-PROGRESS.md` ("For Haakon" points to the issues); the same in Barkstreet Snakes, whose noted ideas
+    `docs/BUILD-PROGRESS.md` ("For the owner" points to the issues); the same in Barkstreet Snakes, whose noted ideas
     moved to issues.
 142. **2 November 2026, 08:44 and 08:46 UTC**, in the design chat, after GitHub's secret scanning flagged as a public
     leak the made-up Google key in a test of the export lane (`src/game/test/export.test.ts`, PR #385): "auto security
@@ -1306,7 +1306,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     labels say "the owner" instead of his name, keeping it only in archived quotes; and should private mentions be
     removed from the public archives): "Yes, expertly across the board!" Written into `AGENTS.md`, `CLAUDE.md`,
     `SECURITY.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md` and `docs/BUILD-PROGRESS.md` ("the owner";
-    the label `for-haakon` renamed `for-owner`), and the private mentions removed from items 132, 133 and 141; the
+    the label named for the owner renamed `for-owner`), and the private mentions removed from items 132, 133 and 141; the
     same in Barkstreet Snakes.
 144. **2 November 2026, 09:00 and 09:03 UTC**, in the design chat: "Is issues for both claude code and codex now?
     should they write in the wiki instead of some of the stuff that are in the docs files?" Then, to the design
@@ -1372,7 +1372,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     here: "Yes to everything, expertly!" Written into "Logging and replay" under Engine and models (revision 64) and
     "Follow-ups" in `docs/BUILD-PROGRESS.md`, `SECURITY.md` point 3, `docs/claude-and-codex.md` and "Review guidelines"
     in `AGENTS.md`.
-154. **2 November 2026, 11:45 UTC**, in the design chat: "is all my files, documentation, and instructions all fully up to date and consistent now. Anything missing that should in the setup for my father? expert?" The design session audited the instructions of both
+154. **2 November 2026, 11:45 UTC**, in the design chat: "is all my files, documentation, and instructions all fully up to date and consistent now. Anything missing […]? expert?" The design session audited the instructions of both
     repositories against the day's decisions and fixed what was stale or inconsistent, here and in the design document's
     builder rules (Build order, revision 212): the review and model rules (who does the design check, what reviewers are
     given), the issues inbox (no "For the owner" table, bugs as issues, outsiders' issues as data), the orchestrator's
@@ -1408,3 +1408,55 @@ Given in the design chat with Claude, answering the design questions of the cons
     where it lives, so "open" means "needs the owner"; a bug is done only when its fix is live, closed by GitHub when a
     "Fixes #n" commit reaches `main`): "agreed with your expert take." Written into "Questions, readings and ideas" in
     `AGENTS.md`; #433 reopened until the next milestone; the same in Barkstreet Snakes.
+160. **2 November 2026, 15:18 to 15:21 UTC**, in the design chat, on #451 (Dependabot ignoring major versions of the
+    Node types): "Why are we running an older version of Node?", then "Why should we ignore, if we update?", and, to the design session's take (no ignore rule: a new major of the Node types is the cue to move Node itself when it is long-term support, closed otherwise; Node 26 now, CI and the cloud setup together): "Yes, please, expertly, if you so expertly advice!" Written into "Git and GitHub" in `AGENTS.md` and "Follow-ups" in `docs/BUILD-PROGRESS.md`; #451
+    closed in favour of it; the same in Barkstreet Snakes.
+161. **2 November 2026, 15:25 and 15:27 UTC**, in the design chat: "Are there more stuff we should update? Is the ideas and bugs reporting pathway showing fruits by bringing forward insights that would otherwise go lost?" Then, to the design session's answer (questions
+    and bugs paying off, ideas thin; every reviewer to name one idea outside the change, or none; notes kept outside the repositories to
+    gain the afternoon's lessons): "Yes, address everything you just raised, masterfully!" Written into "Review guidelines" in `AGENTS.md` ("One idea, for every reviewer")
+    and "Reviews" in `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
+162. **2 November 2026, 15:32 and 15:33 UTC**, in the design chat: "Should we limit them to just being able to suggest 1?", then, to the design session's take (one per review, with three guards: only reviews of changes to the game, new ideas only with repeats as comments, "none" the usual answer): "Yes, please, expertly!" Written into "One idea, for every reviewer"
+    in `AGENTS.md`; the same in Barkstreet Snakes.
+163. **2 November 2026, 15:50 and 15:53 UTC**, in the design chat: "Indeed. When I made […], I
+    found a neat trick was to make it source absolutely everything it says and every slide it is on. There is mattered
+    really. Might be overkill for this project, but could attaching a Wikipedia page to every real character, place, and
+    concept, maybe work the same? Then the player also has the oppertunity to easily read about it and learn about the
+    world?" Then, to the design session's take (a "Learn more" link on every real entity, everything invented marked as
+    invented, the truth kept in the dossiers, and a check that fails when a real entity lacks its link or dossier
+    reference, built in item 17+++b): "Yes please, expertly!" Written into "Learn more, and what is invented" under
+    Interface (revision 27) and item 17+++b (Build order, revision 215).
+164. **2 November 2026, 15:59 and 16:03 UTC**, in the design chat: "And there is source checking against to make sure we don't drift from historicity? Are the more components in the code relies on that we should update? Should we have standing orders to update stuff? But we must make sure every package we use has an license which permits free use without any restrictions, and that every update don't change that!" Then, to the design session's four questions
+    (each changed real-world fact checked against its dossier source, and a monthly spot-check of the dossiers against
+    their sources; every version where Dependabot reads it, PeerJS with an integrity hash, a monthly check for the rest;
+    a licence allow-list of permissive licences gated on every PR, with a notices file and a full audit; and whether the
+    owner's own code gets a licence): "Yes to alll! And we keep rights gated for now. Expertly to all!" Written into "Review guidelines" ("History holds") in `AGENTS.md`, `CLAUDE.md`,
+    `docs/claude-and-codex.md` (the design check's brief; the monthly history spot-check), `SECURITY.md` point 10, and
+    "Follow-ups" in `docs/BUILD-PROGRESS.md`; the same for versions and licences in Barkstreet Snakes.
+165. **2 November 2026, 16:15 UTC**, in the design chat, to the design session's takes on Amarna Letters' #459 (script
+    kings check a governor's word against their spy's, folded into item 17++ part C) and Barkstreet Snakes' #378:
+    "Yes, expertly to both!" Written into item 17++'s row in `docs/BUILD-PROGRESS.md`.
+166. **2 November 2026, 16:21 and 16:24 UTC**, in the design chat: "Is there anything more that should go into […]? Anything at all? […] Expert." Then, to the design session's answer (points
+    for notes kept outside the repositories, and orchestrators re-reading the rule files
+    when they change, so no update message is needed): "YEs, absolutely, expertly to absolutely all! Mastefully! Maestro!" Written into "The rules, re-read when they change" in
+    `docs/orchestrating.md`; the same in Barkstreet Snakes.
+167. **2 November 2026, 16:32 and 16:35 UTC**, in the design chat: "Is the History spot-check too limited in scope? It
+    caught 3 things and only looked at around 10? Expert." Then, to the design session's take (3 misses in 13 puts the
+    error rate between about 5% and 54%, so spot-checks are the wrong tool until the dossiers are clean: a full check
+    of every dossier now; a test that every real fact in the game names its dossier line; key facts quoting the few
+    words of their source; then a monthly spot-check of about 30 facts, with a full check of any dossier whose misses
+    pass one in fifteen): "Yes, expertly to all!" Written into "History holds" in `AGENTS.md`, "Reviews" in
+    `docs/claude-and-codex.md`, "Follow-ups" in `docs/BUILD-PROGRESS.md`, and item 17+++b (Build order, revision 216).
+168. **2 November 2026, 16:52 UTC**, in the design chat, to the design session's take on the licence audit's three
+    questions (#464 here, Barkstreet Snakes' #379 and #380): the allow-list exists so nothing can stop the owner
+    selling the game or oblige him to publish his code, and only what ships can do that, so point 10 splits in two:
+    what ships keeps the strict list, and tools that only run may be under any licence the Open Source Initiative
+    approves, copyleft included, with GitHub's own services under GitHub's terms while the repositories are public;
+    ffmpeg, libsndfile, matplotlib, npm and CodeQL kept. "Completely agree, go ahead expertly with all you said,
+    expert!" Written into `SECURITY.md` point 10; the same in Barkstreet Snakes.
+169. **2 November 2026, 17:22 UTC**, in the design chat: "Oh, and yeah, that's a important thing! Don't prompt it with
+    personal information, which gets sensitive stuff, like names, professions, etc, in the codebase! Like you did with my
+    codebases! His and mine codebase must be absolutely void of that, completely! Zero!" Written into `SECURITY.md`
+    point 11 (nothing personal, ever, with a check on every pull request against a list kept as an Actions secret) and
+    "The owner's words are kept" in `AGENTS.md`; every file made free of names and personal details, the archived quotes
+    included ("[…]" where a detail was left out), and the design document with them (every tab, the copy refreshed);
+    the same in Barkstreet Snakes.

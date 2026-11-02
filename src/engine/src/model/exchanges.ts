@@ -139,7 +139,7 @@ export interface MindReply {
   /** For a pitch: the king it claims to serve, as a false envoy at the court where it stands; null if it seeks service. */
   claimsToServe: Power | null;
   /**
-   * For a pitch (item 10+b, Haakon's answer of 28 October 2026): what it says it can do, its own choice from what it
+   * For a pitch (item 10+b, the owner's answer of 28 October 2026): what it says it can do, its own choice from what it
    * believes of itself; null leaves it to the engine's formula (its belief, more for one who lies about himself).
    */
   claims: Skills | null;

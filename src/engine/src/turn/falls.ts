@@ -1,5 +1,5 @@
 /**
- * A fallen kingdom comes apart as the news arrives (Haakon's answers to item 13's review, item 13+; "A kingdom falls
+ * A fallen kingdom comes apart as the news arrives (the owner's answers to item 13's review, item 13+; "A kingdom falls
  * with its capital" under War). The capital passes at once to whoever took it; every other part of the realm is on its
  * own only once word of the fall reaches it, carried by road from the fallen capital like any news. Until then life
  * there goes on as before: its harvest is reaped and taxed, and the gold sent to the fallen capital goes to whoever holds

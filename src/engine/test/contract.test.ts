@@ -38,7 +38,7 @@ import {
 } from "@amarna/engine";
 import { Assert, speaksAll, smallWorld } from "./support.ts";
 
-// <summary>Jobs as errands (item 11a, "Jobs, not wages", reworked by Haakon's answers to items 11a and 11a+): a job is one
+// <summary>Jobs as errands (item 11a, "Jobs, not wages", reworked by the owner's answers to items 11a and 11a+): a job is one
 // errand with a fee; it ends when it is done; every payment is the payer's order; renewing is a new offer; offers go abroad
 // with envoys; a court's record of paying is news; and the hard acts: seizing a hoard, selling a tablet, taking a captive's
 // purse, a levy of the king's size.</summary>
@@ -247,7 +247,7 @@ describe("ContractTests", () => {
     s.turn = at;
     Assert.equal(MoneyData.trustStart - MoneyData.trustBroken, trustIn(s, "Egypt", "Hatti"));
     new TurnEngine(s).newsSeason();
-    // A person weighs talk by its age (Haakon's answers to item 11b+): the promise was broken some seasons before he heard it.
+    // A person weighs talk by its age (the owner's answers to item 11b+): the promise was broken some seasons before he heard it.
     const made = s.payFacts[0].turn;
     Assert.equal(Math.round(MoneyData.trustStart - MoneyData.trustBroken * talkWeight(c, s.turn - made)), trustIn(s, "Egypt", c));
   });

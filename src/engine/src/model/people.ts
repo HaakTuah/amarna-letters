@@ -161,14 +161,14 @@ export const MemoryEntrySchema: ObjSchema<MemoryEntry> = obj("MemoryEntry", newM
 });
 
 /**
- * What a job's errand is (Haakon's answers to item 11a): carrying a mission to a court, or watching a court or a province;
- * and (Haakon's answers to item 11b+) staying at the employer's court until the term's end, an errand like any other.
+ * What a job's errand is (the owner's answers to item 11a): carrying a mission to a court, or watching a court or a province;
+ * and (the owner's answers to item 11b+) staying at the employer's court until the term's end, an errand like any other.
  */
 export const JobWhatValues = ["envoy", "spy", "stay"] as const;
 export type JobWhat = (typeof JobWhatValues)[number];
 
 /**
- * A job's errand ("A job is always an errand", Haakon's answers to items 11a and 11a+): what to do and where; the term is
+ * A job's errand ("A job is always an errand", the owner's answers to items 11a and 11a+): what to do and where; the term is
  * by when. `where` is the court an envoy goes to, the court or province a spy watches, or the employer's own court for a
  * stay. `done`: the envoy has had its audience there, or the spy has come home from its post; a stay is done at its term.
  */
@@ -185,7 +185,7 @@ export function newJobErrand(init: Partial<JobErrand> = {}): JobErrand {
 export const JobErrandSchema: ObjSchema<JobErrand> = obj("JobErrand", newJobErrand, { what: S, where: S, done: B });
 
 /**
- * A stay at court waiting beside an errand given during it (Haakon's answers to item 11b+: each errand given during a stay
+ * A stay at court waiting beside an errand given during it (the owner's answers to item 11b+: each errand given during a stay
  * is its own job with its own fee): until when the stay runs, the rest of its fee still to come, and whether the employer
  * ordered it paid when the stay is done. When the errand's job is done, the stay goes on if its term has not run out.
  */
@@ -202,7 +202,7 @@ export function newStayLeft(init: Partial<StayLeft> = {}): StayLeft {
 export const StayLeftSchema: ObjSchema<StayLeft> = obj("StayLeft", newStayLeft, { until: I, rest: I, payOnDone: B });
 
 /**
- * A job (item 11a, "Jobs, not wages", reworked by Haakon's answers to items 11a and 11a+): one errand, with what to do,
+ * A job (item 11a, "Jobs, not wages", reworked by the owner's answers to items 11a and 11a+): one errand, with what to do,
  * where and by when, and a fee: the advance handed over when the job was agreed, the rest due when it is done (the errand
  * done, or its term served, and the servant back at court with no task). The rest is paid only by its employer's order:
  * by hand (order pay_fee) or by his own standing order given with the job (`payOnDone`). When the job is done it ends;
@@ -230,7 +230,7 @@ export interface Contract {
   captured: boolean;
   /**
    * The season its employer learns that the man took the job: at once at court, and for an offer taken abroad when word of
-   * it comes home by the roads (Haakon's answers to item 11a). Until then the court does not count him its own.
+   * it comes home by the roads (the owner's answers to item 11a). Until then the court does not count him its own.
    */
   knownFrom: number;
   /** The stay this job was given during, which goes on when it is done (see {@link StayLeft}); null if none. */
@@ -360,7 +360,7 @@ export interface Character {
    */
   owed: Dict<Power, number>;
   /**
-   * The season each fee in {@link owed} fell due (Haakon's answers to item 11a: unpaid is unpaid): unpaid by the end of
+   * The season each fee in {@link owed} fell due (the owner's answers to item 11a: unpaid is unpaid): unpaid by the end of
    * the next season, it counts once as a broken promise, and the season is set to -1.
    */
   owedDue: Dict<Power, number>;
@@ -368,7 +368,7 @@ export interface Character {
   carriedFor: number;
   /** The promises to pay it has heard kept or broken (ids of {@link PayFact}), newest last: a court's record is news. */
   heardPay: string[];
-  /** Older talk of promises kept or broken, by party, that it keeps all its life (Haakon's answers to item 11b+). */
+  /** Older talk of promises kept or broken, by party, that it keeps all its life (the owner's answers to item 11b+). */
   payOld: PayOld[];
   /** What it has heard a job pays a season, from the jobs agreed where it stood and from those it met; null if nothing. */
   heardRate: number | null;
@@ -414,7 +414,7 @@ export interface Character {
   /** Item 11a: the last season it decided a season of its own; null since it arrived somewhere new (or never). */
   lastLife: number | null;
   /**
-   * Haakon's answers to item 11b: a model chief's last choices for his band, and a model spy's for its waiting reports,
+   * The owner's answers to item 11b: a model chief's last choices for his band, and a model spy's for its waiting reports,
    * each taken the season after it was made; null while the script's traits decide (a script mind never sets them).
    */
   chiefPlan: ChiefChoice | null;
@@ -853,7 +853,7 @@ export interface Cover {
   advance: number;
   startTurn: number;
   contractUntil: number | null;
-  /** The job's errand and standing orders as the master agreed them (Haakon's answers to item 11a). */
+  /** The job's errand and standing orders as the master agreed them (the owner's answers to item 11a). */
   errand: JobErrand | null;
   payOnDone: boolean;
   offerAgain: boolean;
@@ -961,7 +961,7 @@ export function lossesHeardOf(c: Character, court: Power): { lost: number; kille
     const [kind, at, master] = k.split("|");
     if (master === court) lost++;
     if (kind === "PutToDeath" && at === court) killed++;
-    // Haakon's answers to item 11a: a king who seized a living man's hoard, talked of like the losses.
+    // The owner's answers to item 11a: a king who seized a living man's hoard, talked of like the losses.
     if (kind === "Seized" && at === court) seized++;
   }
   return { lost, killed, seized };

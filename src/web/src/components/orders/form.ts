@@ -73,7 +73,7 @@ export interface Form {
   authSpend: number;
   ransom: number;
   term: number;
-  /** Haakon's answers to item 11a: the errand of a job offered (envoy or spy, and where), and the standing order to pay the rest when it is done. */
+  /** The owner's answers to item 11a: the errand of a job offered (envoy or spy, and where), and the standing order to pay the rest when it is done. */
   errandWhat: "envoy" | "spy" | "stay";
   errandWhere: string;
   payOnDone: boolean;

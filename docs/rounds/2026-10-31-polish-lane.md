@@ -80,6 +80,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The panel's tabs and the courts along the map scrolled only by touch or the arrow keys; with a mouse they scroll with the wheel and by dragging, and a drag never picks the tab or opens the court it started on.
 - Looking back at an earlier season, the province card gave the live state (in a seat view the new holder's figures where the city has since fallen); it gives that season's recorded figures (from the weekly blind re-review of #374).
 - A king's other names were never shown (#418): his card, from the courts along the map, now gives them under his name ("Also known as Akhenaten; Neferkheperure Waenre; Amenhotep IV"), every name but the one the viewer's court uses.
+- A post with an article of its own took another ("once a the ruler's brother", "Served as an a lord of the coast", "a King's Son of Kush"); such a post, or a title, now takes none (#468).
 
 ## Finds not yet fixed
 

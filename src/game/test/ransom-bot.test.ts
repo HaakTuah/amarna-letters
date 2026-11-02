@@ -59,7 +59,7 @@ describe("RansomBotTests", () => {
     e.beginTurn();
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [captive(spy.id, "Ransom", 80)] })]]));
     let payer = new ScriptLeader(9);
-    // The demand's word waits at Hatti's court for a carrier (Haakon's answers to item 11b): it comes when one goes.
+    // The demand's word waits at Hatti's court for a carrier (the owner's answers to item 11b): it comes when one goes.
     const demanded = (): boolean => inboxOf(s, "Mitanni").some((i) => i.kind === "Rumor" && i.subject === spy.id && i.body.includes("pay_ransom"));
     while (!demanded()) {
       e = new TurnEngine(s);

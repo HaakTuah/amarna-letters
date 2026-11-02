@@ -29,7 +29,7 @@ export const KeyBindings: Record<KeyAction, { codes: readonly string[]; chars?: 
 
 /**
  * The paces, slowest first ("Pace of play": seasons are turns, so a pace sets only how long each season is watched, as
- * the pause before the next one, in milliseconds): keys 1 to 3 pick them, + and − step between them. Haakon, 1 November
+ * the pause before the next one, in milliseconds): keys 1 to 3 pick them, + and − step between them. The owner, 1 November
  * 2026: "I don't feel we should introduce 5, just to have 5. Paradox games have them because they tick time. but we have
  * rounds, akin to civilization." Simulate joins as the fourth with item 17+++.
  */

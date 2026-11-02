@@ -81,7 +81,7 @@ P.dispatch = function (p, d) {
   const S = this.s;
   const Map = this.map;
   const c = char(S, d.envoy);
-  // Haakon's answers to item 11a: a job is one errand. One offered a job this season that it did not take, or whose job is
+  // The owner's answers to item 11a: a job is one errand. One offered a job this season that it did not take, or whose job is
   // another errand, does not go.
   if (c.employer !== p || c.status !== "Employed") {
     this.failed(p, d, "Envoy not sent", `${c.name} is not in your service: they did not take the job offered.`, "not in your service", true, c.id);

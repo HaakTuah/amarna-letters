@@ -534,7 +534,7 @@ function other(x: Node): Order | null {
       return seekCandidates();
     case "hire":
     case "renew": {
-      // Haakon's answers to item 11a: the advance is what the king names, nothing assumed; the errand, the standing orders,
+      // The owner's answers to item 11a: the advance is what the king names, nothing assumed; the errand, the standing orders,
       // and the envoy carrying an offer abroad (item) as he gives them.
       const advance = Math.max(0, Math.min(I(x, "gold"), amount));
       const what = S(x, "errand");

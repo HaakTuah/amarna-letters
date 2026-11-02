@@ -16,19 +16,19 @@ with the copy and say so in the report, and before opening the pull request read
 
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
-| Overview | `docs/intent/overview/` | `320f0886-6acf` | 569 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 214 |
-| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 66 |
-| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 64 |
+| Overview | `docs/intent/overview/` | `320f0886-6acf` | 571 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 343 |
+| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 83 |
+| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 68 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
-| Characters | `docs/intent/characters/` | `0051b400-09bd` | 26 |
+| Characters | `docs/intent/characters/` | `0051b400-09bd` | 28 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 34 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 95 |
-| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 20 |
-| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 26 |
-| Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
-| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 20 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 111 |
+| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 24 |
+| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 46 |
+| Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 18 |
+| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 22 |
 
 Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent .claude/rules`.
 Entries start with a bold title. The builder rules are in `.claude/rules/builder-rules.md`, which every
@@ -54,15 +54,15 @@ session loads.
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 5.1 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 5.7 |
-| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 33.2 |
+| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 33.3 |
 | `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.4 |
 | `docs/intent/build-order/item-12.md` | 12. Languages. "Languages": skill as time, learning by living in a province, tab | 1.3 |
 | `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 3.3 |
 | `docs/intent/build-order/item-14.md` | 14. Legends. The narrator's legends grow from the "follow this character" view i | 0.7 |
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 2.2 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
-| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 40.0 |
-| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 6.5 |
+| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 40.5 |
+| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 6.6 |
 | `docs/intent/build-order/item-19.md` | 19. The living map | 14.5 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
@@ -72,7 +72,7 @@ session loads.
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 24.5 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.9 |
-| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 27.6 |
+| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 27.7 |
 | `docs/intent/engine-and-models/script-mode-and-press-modes.md` | Script mode and press modes | 3.2 |
 | `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 12.3 |
 | `docs/intent/engine-and-models/security-prompt-injection-and-information-leakage.md` | Security: prompt injection and information leakage | 2.0 |
@@ -115,7 +115,7 @@ session loads.
 | `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 21.5 |
 | `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 4.1 |
 | `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 23.7 |
+| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 25.1 |
 | `docs/intent/interface-and-the-council/the-royal-council.md` | The royal council | 3.9 |
 | `docs/intent/tests-risks-and-references/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md` | Success criteria and test plan | 6.6 |

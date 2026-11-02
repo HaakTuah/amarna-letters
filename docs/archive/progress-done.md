@@ -20,7 +20,7 @@ Split by kind on 2 November 2026 (the workshop check: the file had grown to 98 K
 
 ## Pause note of 30 October 2026
 
-**Paused at 88% weekly usage, 30 October 2026** (Haakon: "I want them to finish what they have started, if we believe they
+**Paused at 88% weekly usage, 30 October 2026** (the owner: "I want them to finish what they have started, if we believe they
 can."). Item 17 finished and merged. Item 19's two passes (#201, #202) are merged. **Resumed 31 October 2026 on a
 second account,** spent to the end before Monday: lanes for 17a (the crash and the speed, #236), the music (19+++,
 #237), the polish lane and the improvement audit (#235). The order from here: 17a, 17+, 17++, 17+++, 17+++a, 17++++, 17b, then

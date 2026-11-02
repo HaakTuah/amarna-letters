@@ -309,7 +309,7 @@ export interface CharacterView {
   contractFrom: number | null;
   contractUntil: number | null;
   /**
-   * Haakon's answers to item 11a: your servant's job's errand ("envoy" to a court, or "spy" on a court or province), null
+   * The owner's answers to item 11a: your servant's job's errand ("envoy" to a court, or "spy" on a court or province), null
    * for one whose first errand names it; whether it is done; and the standing orders that go with the job.
    */
   errandWhat: string | null;
@@ -349,15 +349,15 @@ export interface CharacterView {
    */
   ransomDemand: number | null;
   /**
-   * Haakon's answers to item 11b+: your captive's ransom, if you demand it and nobody sets out that way, goes with a free
+   * The owner's answers to item 11b+: your captive's ransom, if you demand it and nobody sets out that way, goes with a free
    * person hired at your court, the whole fee paid from your treasury: what the cheapest would ask now; null if nobody would.
    */
   ransomCarrier: number | null;
   /** Item 11a: the rest of a fee you let fall due and did not pay them, a promise broken (order pay_fee pays it at your court); null if none. */
   owed: number | null;
-  /** Haakon's answers to item 11a: the hoard this person keeps in your capital, which you may seize (order seize); null if none. */
+  /** The owner's answers to item 11a: the hoard this person keeps in your capital, which you may seize (order seize); null if none. */
   hoardHere: number | null;
-  /** Haakon's answers to item 11a: what your captive carries on it, its purse and any gold it carried for its master. */
+  /** The owner's answers to item 11a: what your captive carries on it, its purse and any gold it carried for its master. */
   carries: number | null;
   /** Item 11a: what they offer to lend you, if they stand at your court and would ("Lending to kings"). */
   lends: LendOffer | null;
@@ -815,21 +815,21 @@ export interface SeatView {
   /** Item 11a: its record of paying what fell due: promises kept and broken. */
   kept: number;
   broken: number;
-  /** Haakon's answers to item 11a: whether its standing order is to pay the carriers of its people's letters on delivery. */
+  /** The owner's answers to item 11a: whether its standing order is to pay the carriers of its people's letters on delivery. */
   payCarriers: boolean;
   /** Item 17+: its standing order to pay and feed its troops, and the provinces whose units of its are treated otherwise than each half says (held back while it pays, or paid while it does not). */
   payTroops: boolean;
   feedTroops: boolean;
   payHeld: string[];
   feedHeld: string[];
-  /** Haakon's answers to item 11b: whether its standing order is that its armies fall on bands in its land. */
+  /** The owner's answers to item 11b: whether its standing order is that its armies fall on bands in its land. */
   huntBands: boolean;
-  /** Haakon's answers to item 11b+: the provinces its standing hunt names; none named, the whole of its land. */
+  /** The owner's answers to item 11b+: the provinces its standing hunt names; none named, the whole of its land. */
   huntWhere: string[];
   /** Item 11a: the debt tablets of its debts that stand, as it knows them. */
   debts: DebtView[];
   /**
-   * Haakon's answers to item 11a: the debt tablets in your archive of others' debts (yours as creditor), which you may send
+   * The owner's answers to item 11a: the debt tablets in your archive of others' debts (yours as creditor), which you may send
    * with an envoy to collect (dispatch collect) or sell to a person at your court (order sellDebt). `holder` is the
    * borrower here, and `here` whether the borrower stands at your court.
    */

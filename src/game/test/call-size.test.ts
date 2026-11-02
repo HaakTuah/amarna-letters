@@ -234,7 +234,7 @@ describe("CallSizeTests", () => {
     Assert.doesNotContain("accepted", text);
   });
 
-  // ------------------------------------------------------------ Haakon's answers to item 6a's review
+  // ------------------------------------------------------------ The owner's answers to item 6a's review
 
   test("A table's median reaches every seat in words, in bands, and script kings believe the band", () => {
     Assert.equal(["Short", "Usual", "Long"], [ageBand(44), ageBand(80), ageBand(130)]);

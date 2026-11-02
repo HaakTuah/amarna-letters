@@ -85,7 +85,7 @@ class Player {
   private solo = false;
   /**
    * The opening fade: a stage of its own between the music and the speakers, silent until the first music of the visit is
-   * actually heard, then rising to whole over `StartFade` (Haakon: "don't blast someone when they start up"). Kept apart
+   * actually heard, then rising to whole over `StartFade` (the owner: "don't blast someone when they start up"). Kept apart
    * from the switches' volume so neither undoes the other.
    */
   private opening: GainNode | null = null;

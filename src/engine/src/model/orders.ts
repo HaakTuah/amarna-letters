@@ -218,7 +218,7 @@ export interface RaiseOrder {
   type: "raise";
   province: string;
   kind: UnitKind;
-  /** Haakon's answers to item 11a+: how many men the levy takes, up to every man of fighting age there; none: a unit's full size. */
+  /** The owner's answers to item 11a+: how many men the levy takes, up to every man of fighting age there; none: a unit's full size. */
   men?: number | null;
   /**
    * Item 17++ ("The king says how much he wants"): the levy asked as a share of the men of fighting age at home, in
@@ -276,7 +276,7 @@ export interface DispatchOrder {
    */
   checkClaim?: string | null;
   /**
-   * Haakon's answers to item 11a: a debt tablet in your archive the envoy carries to the court it goes to, to present to
+   * The owner's answers to item 11a: a debt tablet in your archive the envoy carries to the court it goes to, to present to
    * the borrower there; what is repaid to it, and the tablet if not repaid in full, it brings home.
    */
   collect?: string | null;
@@ -291,7 +291,7 @@ export interface SeekCandidatesOrder {
   type: "seekCandidates";
 }
 /**
- * Item 11a, "Jobs, not wages", as Haakon's answers rework it: offer a person a job, which is one errand: `what` ("envoy" to
+ * Item 11a, "Jobs, not wages", as the owner's answers rework it: offer a person a job, which is one errand: `what` ("envoy" to
  * the court `where`, or "spy" on the court or province `where`), done by `term` seasons from now, for a whole `fee`, of
  * which `advance` is handed over now and the rest falls due when the job is done. `payOnDone`: your standing order to pay
  * the rest then; otherwise you pay it by order pay_fee, or not. `offerAgain`: when it is done, the same job is offered again,
@@ -325,12 +325,12 @@ export interface RenewOrder {
   payOnDone?: boolean | null;
   offerAgain?: boolean | null;
 }
-/** Haakon's answers to item 11a: seize the hoard a living person keeps in your capital, with the tablets kept in it. */
+/** The owner's answers to item 11a: seize the hoard a living person keeps in your capital, with the tablets kept in it. */
 export interface SeizeHoardOrder {
   type: "seize";
   character: string;
 }
-/** Haakon's answers to item 11a: sell a debt tablet in your archive to a person at your court, for `price` from its purse. */
+/** The owner's answers to item 11a: sell a debt tablet in your archive to a person at your court, for `price` from its purse. */
 export interface SellDebtOrder {
   type: "sellDebt";
   debt: string;
@@ -338,7 +338,7 @@ export interface SellDebtOrder {
   price: number;
 }
 /**
- * Haakon's answers to item 11a: your standing order, until changed, to pay on delivery the fee of whoever carries your
+ * The owner's answers to item 11a: your standing order, until changed, to pay on delivery the fee of whoever carries your
  * people's letters home (or not).
  */
 export interface PayCarriersOrder {
@@ -360,7 +360,7 @@ export interface UpkeepOrder {
   province?: string;
 }
 /**
- * Haakon's answers to item 11b: your armies standing in `province` of your land fall on the bands there at the start of
+ * The owner's answers to item 11b: your armies standing in `province` of your land fall on the bands there at the start of
  * next season (a king's army falls on a band only on his order).
  */
 /**
@@ -456,7 +456,7 @@ export interface HuntOrder {
 }
 /**
  * Your standing order, until changed, that any army of yours standing where a band works falls on it: in the provinces
- * named, or, naming none, anywhere in your land (Haakon's answers to item 11b+). A new one replaces the old.
+ * named, or, naming none, anywhere in your land (the owner's answers to item 11b+). A new one replaces the old.
  */
 export interface HuntBandsOrder {
   type: "huntBands";
@@ -1002,7 +1002,7 @@ export function unitOf(o: Order): string | null {
 }
 
 /**
- * The person an order gives a task to. A job offered (hire, renew) is not a task (Haakon's answers to item 11a: the man may
+ * The person an order gives a task to. A job offered (hire, renew) is not a task (the owner's answers to item 11a: the man may
  * be sent on its errand in the same season), so it is not counted here.
  */
 export function characterOf(o: Order): string | null {
@@ -1020,7 +1020,7 @@ export function characterOf(o: Order): string | null {
     case "forge":
     case "steal":
       return o.character;
-    // Taking what a captive carries is no task (Haakon's answers to item 11a): its fate may be decided the same season.
+    // Taking what a captive carries is no task (the owner's answers to item 11a): its fate may be decided the same season.
     case "captive":
       return o.fate === "TakePurse" ? null : o.character;
     default:

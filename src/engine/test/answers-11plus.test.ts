@@ -19,7 +19,7 @@ import {
 } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
-// Build order item 11d: Haakon's answers to item 11+'s review.
+// Build order item 11d: the owner's answers to item 11+'s review.
 describe("The answers to item 11+", () => {
   const whole = (): GameState => newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
   const game = (): GameState => smallWorld(whole(), "Byblos", "Sidon", "Egypt", "Hatti");

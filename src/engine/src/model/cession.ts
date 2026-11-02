@@ -1,5 +1,5 @@
 /**
- * A capital ceded whole (build order item 11d, Haakon's answer to item 11+'s review): a ruler may cede his capital, and
+ * A capital ceded whole (build order item 11d, the owner's answer to item 11+'s review): a ruler may cede his capital, and
  * with it his realm, by agreement on a sealed tablet. The tablet is the agreement; the cession is still his own order
  * ("Keeping a promise is an act"), and the engine only checks that such a tablet stands.
  */

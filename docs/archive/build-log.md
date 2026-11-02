@@ -5,14 +5,14 @@ the progress file stays short. History: read it only when a task points here. Th
 below is superseded by the design document's "Rules for the builder" (`.claude/rules/builder-rules.md`), which holds
 every rule in it; the 95% usage line was replaced by the 90% rule on 26 October.
 
-## Builder rules added on 20 October (from the live document and Haakon's message)
+## Builder rules added on 20 October (from the live document and the owner's message)
 
 - Review points do not stop the build; their questions go above and in the item's report.
 - No model games until every item is built; script games and stand-in repliers check everything.
 - "Every feature is every seat's": every item tests the script kings and characters on its new rules, reports usage and
   success per new feature, and patches every weakness found, with benchmarks before and after; once, at the start of
   the next item begun (the fix pass), every feature built so far is audited the same way.
-- Safety checks are never overridden (refined by Haakon on 20 October): if a check that guards against something unsafe
+- Safety checks are never overridden (refined by the owner on 20 October): if a check that guards against something unsafe
   or irreversible fails (agent isolation before any agent starts, anything touching `main`, keys or spending), stop that
   step and ask, and go on with other work meanwhile. An ordinary failing test is not a reason to stop: fix it, or mark
   the item blocked with the reason and go on to the next item that does not depend on it.
@@ -25,7 +25,7 @@ every rule in it; the 95% usage line was replaced by the 90% rule on 26 October.
 - A PR at every milestone: after each merge into `develop`, check the previous PR; if it was merged, merge `main` back
   into `develop` first, then push and open a new PR.
 - Usage: this session may go up to 95% of the weekly limit, then stops at a clean commit.
-- Added on 21 October, for one PR only (Haakon, word for word): "One exception to "main is never touched", for the
+- Added on 21 October, for one PR only (the owner, word for word): "One exception to "main is never touched", for the
   docs and preview PR only: when it's done and its own preview link works, merge it into main yourself. Then check
   that the site root still shows the game from main as before. If it doesn't, revert the merge, say so in the PR, and
   carry on without previews. Every other PR into main stays mine to merge." Revised the same day, since that PR can't
@@ -84,9 +84,9 @@ replay checks before each commit; the leftover stash was an earlier copy of G2 a
 G3 (triggers on changes) and G4 (loss rumours). Part E's three commits stand; its request-size harness outside the
 repository was touched by two agents at once and is not trusted.
 
-**Item 1 closed, 19 October.** Parts G, E and H finished and reviewed (one reviewer each; the only blocking finding, in Part H, was fixed); the report and DESIGN-NOTES refreshed; benchmarks before and after run (all replays exact, nothing tuned). `develop` was created from `main` and the round merged into it with a merge commit (633 tests pass on `develop`). PR #7 (https://github.com/HaakTuah/amarna-letters/pull/7) carries `develop` into `main` for Haakon to review.
+**Item 1 closed, 19 October.** Parts G, E and H finished and reviewed (one reviewer each; the only blocking finding, in Part H, was fixed); the report and DESIGN-NOTES refreshed; benchmarks before and after run (all replays exact, nothing tuned). `develop` was created from `main` and the round merged into it with a merge commit (633 tests pass on `develop`). PR #7 (https://github.com/HaakTuah/amarna-letters/pull/7) carries `develop` into `main` for the owner to review.
 
-**PRs at milepoints** (Haakon, 19 October): each time an item is merged into `develop`, `develop` is pushed and a PR from `develop` to `main` is opened (or an open one picks up the new commits). If a PR was squash- or rebase-merged, `main` is merged back into `develop` before the next push.
+**PRs at milepoints** (the owner, 19 October): each time an item is merged into `develop`, `develop` is pushed and a PR from `develop` to `main` is opened (or an open one picks up the new commits). If a PR was squash- or rebase-merged, `main` is merged back into `develop` before the next push.
 
 **Decided along the way** (details in the report): following the Build order's rules, from here on one reviewer per
 part and no extra analyst workflows; the item's report moves to `docs/rounds/2026-10-19-simulation-fixes.md` when the
@@ -94,11 +94,11 @@ item is done, since the Build order puts every item's report there.
 
 ## Item 2: the visual overhaul (19 October)
 
-Specification: `docs/prompts/VISUAL-OVERHAUL.md` (committed first on the branch; its opening line corrected by Haakon
+Specification: `docs/prompts/VISUAL-OVERHAUL.md` (committed first on the branch; its opening line corrected by the owner
 to put watching on a phone first, `dd82ff6`) and "The map (planned next)" in the design document's main tab. Built in
 one pass, one reviewer, one fix pass. The reviewer's one blocking finding (a court's view said how land changed hands
 when it had not seen the march) was fixed with a test, with five minor notes and one more bug found along the way
-(god view redrew a fallen court's last orders). Haakon then added years counted from 1345 BCE to the date label
+(god view redrew a fallen court's last orders). The owner then added years counted from 1345 BCE to the date label
 (`b8dd3e9`, display only: kings' prompts keep the game year); the phone header's ending line now uses the short
 form with the turn in its tooltip (`413093b`). 654 tests pass on `develop`; seeds 1-10 replay exactly.
 
@@ -134,7 +134,7 @@ because the new tablets take ids from the game's one id counter and so move late
 ## Item 4: second agent simulation, with model characters (19 October) — stopped for review
 
 Specification read fresh from the live document at the start of the item (it now opens with three fixes; the Build
-order has 18 items and a balance rule: first guesses during the build, tuning in item 18). Haakon added a fourth fix
+order has 18 items and a balance rule: first guesses during the build, tuning in item 18). The owner added a fourth fix
 during the item: an id counter per kind of object. Built by one workflow (fixes (a) and (c), characters as agents,
 local play; fix (b) in parallel in its own worktree; an integrator; one reviewer, whose one blocking finding was
 fixed) and fix (d) in its own worktree, merged afterwards with one save version 4 for (a) and (d). 742 tests pass on
@@ -149,7 +149,7 @@ with no retry and no fallback, all debriefs back, audit clean. The live isolatio
 4 blocked attempts" (the agents tried one or two forbidden steps and reported the rest as blocked); the orchestrator
 went ahead on the dry check, the live hook logs and the audit, and the report says so.
 
-**Usage.** Haakon raised this session's cap from 50% to 70% and asked that game 2 start only if a full game, estimated
+**Usage.** The owner raised this session's cap from 50% to 70% and asked that game 2 start only if a full game, estimated
 after two or three seasons of game 1, could finish below 70%. Estimated after season 3 at about 5-7 weekly points a game;
 the cap was cleared. Measured: the weekly limit went from 35% before the isolation tests to 47% after both games and
 debriefs (about 9-10 points, 15.85 million agent tokens), and 54% at the stop, after both games' analysis and the report.
@@ -166,7 +166,7 @@ intermittent test noted: `LocalPlayTests.A_game_with_local_agent_kings_sleeps_by
 
 ## Item 4+: the fix pass, item 4's follow-up (20 October)
 
-Specification: Haakon's message of 20 October, word for word in `docs/prompts/FIX-PASS.md` (parts 1-4 and his three
+Specification: the owner's message of 20 October, word for word in `docs/prompts/FIX-PASS.md` (parts 1-4 and his three
 additions), with the live document's builder rules read fresh. Built by two workflows: two lanes in parallel (sleep
 rules, request texts and the isolation test; the skim, the checks and the feature audit in their own worktree), an
 integrator, one reviewer (three blocking findings, fixed), then a follow-up for the three additions and standing orders
@@ -196,15 +196,15 @@ a kingdom falls with its capital and its land passes down the chain of takers; s
 capital wake trigger retired for siege triggers; a fallen player's god view (a table setting); terrain helps a unit
 standing its ground; deserts cost an army outside its own land; a court sees walls only where it sees troops. Script
 kings use every new feature (sieges won 1,128 of 1,201 begun per 100 games, storms, sallies, relief, fortifying, coastal
-walls, besiegers' standing orders). Haakon's question on whether defence now dominates is answered in the report.
+walls, besiegers' standing orders). The owner's question on whether defence now dominates is answered in the report.
 Benchmarks: weak-power wins fell, bribes and skims fell; reported, not tuned.
 
 **Usage:** this session went from 63% to about 93% of the weekly limit over the fix pass and item 5; stopped here, as
-Haakon set (wrap up near 95%). Next: item 6 (memory and call size), reading it fresh from the live document.
+The owner set (wrap up near 95%). Next: item 6 (memory and call size), reading it fresh from the live document.
 
-## Haakon's answers to item 5's review, and what comes first in item 6 (20 October)
+## The owner's answers to item 5's review, and what comes first in item 6 (20 October)
 
-From the live design document (Haakon, 20 October):
+From the live design document (the owner, 20 October):
 - **"Most games"** (capitals falling in about half the games) is judged in item 18, after game length is set.
 - **Relief of a besieged ally** comes through item 9's passage grants, with no rule of its own.
 - **Islands** are protected by a blockade, built in item 7, replacing what item 5 built for them (the script island
@@ -212,5 +212,5 @@ From the live design document (Haakon, 20 October):
 - **New since item 5, built first in item 6:** the random ending is revised (any season may be the last from the first
   season, a median end of 1332 BCE, a cap of 90 seasons), and the first year moves from 1345 to 1346 BCE.
 
-**Stopped on Haakon's word (20 October):** do not start item 6 or any other work until Haakon says to continue. When he
+**Stopped on the owner's word (20 October):** do not start item 6 or any other work until the owner says to continue. When he
 does, read item 6 and the builder rules fresh from the live document.

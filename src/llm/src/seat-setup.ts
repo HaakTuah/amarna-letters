@@ -253,7 +253,7 @@ const Counsel = new Preset(
   "Haiku 5.5 plays every king and character; Sonnet 5.5 writes each king's plan once a year, gives counsel, takes whatever is passed up and narrates.",
   "Sonnet",
   "Haiku",
-  // The narrator on the large model (Haakon, answering item 6c's review, 27 October 2026).
+  // The narrator on the large model (the owner, answering item 6c's review, 27 October 2026).
   "Sonnet",
   { small: "Haiku", plays: "small", charactersUp: "Sonnet", planning: "Sonnet" },
 );

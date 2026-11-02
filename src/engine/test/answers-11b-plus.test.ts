@@ -13,7 +13,7 @@ function freeAt(s: GameState, p: "Egypt" | "Hatti") {
   return c;
 }
 
-// Haakon's answers to item 11b+ (build order item 11b++), each tested on the few people and provinces it needs.
+// The owner's answers to item 11b+ (build order item 11b++), each tested on the few people and provinces it needs.
 describe("AnswersTo11bPlusTests", () => {
   test("No rule forgets talk of promises: a script person weighs it less as it ages, and never as nothing", () => {
     const s = smallWorld(newGame(1), "Egypt", "Hatti");

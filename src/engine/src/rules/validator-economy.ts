@@ -176,7 +176,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
     }
 
     case "seize": {
-      // Haakon's answers to item 11a: the hoard of a living person, kept in your capital.
+      // The owner's answers to item 11a: the hoard of a living person, kept in your capital.
       const c = findCharacter(S, order.character);
       if (c === null || c.status === "Dead") return nobody(order.character);
       if (c.hoard === null || c.hoard.at !== power) return `${c.name} keeps no hoard in your city that you know of`;

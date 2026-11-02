@@ -127,7 +127,7 @@ export class ScriptLeader implements ISeat {
     const busy = new HSet<string>();
     Statecraft.court(board, brain, orders, busy, rng);
     Statecraft.letters(board, brain, orders, busy, rng);
-    // Haakon's answers to item 11a: each errand is a job offered to the man sent, and tablets owed ride with envoys.
+    // The owner's answers to item 11a: each errand is a job offered to the man sent, and tablets owed ride with envoys.
     errandJobs(board, brain, orders);
     // Item 13: commanders for the armies away from the court, their mandates, and recalls.
     // A threatened province's governor before the season's grants of command: the levies he raises there need nobody's
@@ -144,7 +144,7 @@ export class ScriptLeader implements ISeat {
     courtMove(board, brain, orders);
     // Item 17+: a realm's name claimed, by the capital held.
     nameClaims(board, orders);
-    // Haakon's answers to item 11b: armies fall on bands only by the king's order.
+    // The owner's answers to item 11b: armies fall on bands only by the king's order.
     huntOrders(board, orders);
     orders.splice(0, orders.length, ...collecting(board, orders));
     roadPolicy(board, brain, orders);

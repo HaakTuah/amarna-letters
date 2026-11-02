@@ -460,7 +460,7 @@ export class LlmCharacterMind implements ICharacterMind {
   }
 
   /**
-   * A chief's season for his band, or a spy's choice for its waiting reports (Haakon's answers to item 11b): one call each,
+   * A chief's season for his band, or a spy's choice for its waiting reports (the owner's answers to item 11b): one call each,
    * on the ladder like its own season, shadowed by the script, which leaves both to the traits.
    */
   private onTheRoad(ctx: MindContext, signal?: AbortSignal): Promise<MindReply> {

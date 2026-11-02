@@ -426,7 +426,7 @@ export function buildMap(): WorldMap {
     p("qatna", "Qatna", "Land", "Qatna", 30, true, 34.84, 36.86),
     p("qadesh", "Qadesh", "Land", "Qadesh", 30, true, 34.56, 36.52),
     // Amurru, the hill country behind the coast, and Ṣumur (Tell Kazel), Egypt's base on that coast, a province of its own
-    // since item 8 (Haakon's answer to item 7a's review: the period first, the phone made to read it).
+    // since item 8 (the owner's answer to item 7a's review: the period first, the phone made to read it).
     p("amurru", "Amurru", "Land", "Amurru", 20, true, 34.7, 36.2),
     p("sumur", "Ṣumur", "Coast", "Egypt", 15, false, 34.82, 35.98),
     p("arwad", "Arwada", "Coast", "Arwad", 20, true, 34.86, 35.86),
@@ -465,7 +465,7 @@ export function buildMap(): WorldMap {
     p("arrapha", "Arrapha", "Land", "Arrapha", 30, true, 35.47, 44.39),
     p("susa", "Shushan", "Coast", "Elam", 35, true, 32.19, 48.26),
     // The edges: lands without a king, each under one leader of its own since item 11+ ("Land without a ruler")
-    // Lukka, the Lycian coast of seafarers and raiders, ruled by no king (since item 8: Haakon's answer to item 7a's review)
+    // Lukka, the Lycian coast of seafarers and raiders, ruled by no king (since item 8: the owner's answer to item 7a's review)
     { ...p("lukka", "Lukka", "Coast", "Lukka", 15, true, 36.4, 29.4), kingless: true, town: false },
     { ...p("kaska", "Kaska", "Land", "Kaska", 10, true, 41.1, 35.4), kingless: true, town: false },
     { ...p("steppe", "Sutu", "Land", "Suteans", 10, true, 34.55, 38.27), kingless: true, town: false },
