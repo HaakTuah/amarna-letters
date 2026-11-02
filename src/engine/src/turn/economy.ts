@@ -173,7 +173,8 @@ P.harvestSeason = function () {
     } else {
       // The harvest already bore the catastrophes; the tax bears only how fully it obeys, and nothing reaches it under a siege.
       const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(this.grainAsked(prov.id) * obeyedIn(S, prov.id)));
-      const tax = Math.min(granary, due);
+      // Item 17++: a share never squeezes the farmers: their season's food stays in the granary, however it was emptied.
+      const tax = Math.min(Math.max(0, granary - this.shareReserve(prov.id)), due);
       granary -= tax;
       const over = this.putInStores(prov.id, tax);
       taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);

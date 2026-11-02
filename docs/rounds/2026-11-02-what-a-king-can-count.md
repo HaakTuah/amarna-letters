@@ -49,8 +49,8 @@ question for Haakon asks for the copy to be refreshed so that the next part, and
    the hands that left. No new rule of hunger. Principle: "One rule for everything".
 4. **What the stewards report exactly.** A count is of people and fields; the king's own stores, market, what his demand
    brings in and how the countryside ate are his stewards' reports and stay exact. So a king can see a share's hiding as
-   a shortfall in what comes in, as a court would; the yields the seat view gives of its own and watched land are the
-   same: what comes in, as it comes in. A levy refused for too few men no longer names how many are at home (round 1).
+   a shortfall in what comes in, as a court would. The yields the seat view gives of its own and watched land are what
+   the last reaping brought in, a season's third of it (round 2: no longer the hands there now, which only a count tells). A levy refused for too few men no longer names how many are at home (round 1).
    Principle: "Information as known".
 5. **Every court starts counted** in the first season: the courts of the age kept lists of households and
    men (as at Alalakh and Ugarit). Land taken later is uncounted. Principle: "Period first".
@@ -58,13 +58,14 @@ question for Haakon asks for the copy to be refreshed so that the next part, and
    find; a census of a province once at a time; "counting stirs some unrest" is five points of the ledger. First guesses.
 7. **"Only a governor stands between king and province"** read as: where a governor stands, the ledger debits and credits
    him for what is asked (part A's hand); no other intermediary. Principle: "One rule for everything".
-9. **"Counted people and measured fields are the king's answer to a province's word"** read as: a governor's letters on a
+8. **"Counted people and measured fields are the king's answer to a province's word"** read as: a governor's letters on a
    province's mood and harvest (items 13, 17), and the shortfall a share shows, are claims a king can now check against
    his own count, which comes home dated and by the road; no rule compares them for him. Principle: "Deceit is
    information" (a lie is found out by evidence, never by a roll).
-8. **The scripts' amount** is what their farmers can bear by the count (item 10+a's reckoning), asked while the count is
+9. **The scripts' amount** is what their farmers can bear by the count (item 10+a's reckoning), asked while the count is
    two seasons old or less; past that a share. They count the richest stale provinces (eight seasons), two a season.
-   Script play, not balance.
+   Script play, not balance. A levy is asked by a full unit's men while the count is fresh, and past that as a share of
+   the men at home sized to a full unit by the old count (round 2), which never takes more men than are there.
 
 ## Design questions
 
@@ -72,13 +73,22 @@ None beyond those for Haakon below.
 
 ## Benchmarks and use against ignore
 
-20 games, seed 1, `--verify-replay`, on `bee4370` (part B on part A as it stood before the escalation's last fixes): every
-replay exact; a capital fell in 20 of 20 games, 308 kingdoms in all (part A's run beside it: 324), the first in season 4
-on the median (4 to 7), **none in its first two seasons**. Winners: Egypt 9, Lukka 3, Babylonia 2, and Nuhashshe, Kaska,
-Hatti, Assyria, Ashkelon and Amurru 1 each. The census and demand signals (`census`, `census-home`, `demand-share`,
-`demand-amount`) were added to the batch after this run; the next run counts them.
+**After round 1** (20 games, seed 1, `--verify-replay`, on `78fd012`): every replay exact; a capital fell in 20 of 20
+games, 308 kingdoms in all, the first in season 4 on the median (4 to 7), **none in its first two seasons**. Winners:
+Suteans, Azzi, Lukka, Hatti, Gath, Libya, Egypt and Assyria among the first eight seeds.
 
-**Use against ignore** (`--count-play-half`, 50 games, seed 1): to run (a run started in the session that built this part did not finish before it handed over; rerun `scripts/sim.sh --games 50 --seed 1 --count-play-half` on this head, with the new signals).
+**Use and success, by the batch's signals** (games in which it happened / times, over the 20): scribes sent to count a
+province (`census`) 20 / 13,316, counts come home (`census-home`) 20 / 13,035 (98%: the rest found the land lost or the
+game ended first); demands set as a share 20 / 15,576 and as an amount 20 / 14,301. Every script king counts and asks
+both ways in every game.
+
+Before round 1 (on `bee4370`, before the signals): 20 games, every replay exact, the first fall in season 4 on the
+median, none in the first two seasons.
+
+**Use against ignore** (`--count-play-half`, 50 games, seed 1, after round 1): kings that count and ask an amount while the
+count is fresh, against kings that never count and always ask a share: **0.96 growth to 0.89, 30 wins to 20. Pays.**
+Uneven by power (Hatti 1.05 against 1.28, Assyria 0.36 against 0.57, Azzi 1.62 against 0.97): item 18 looks at the share
+and amount numbers together.
 
 ## The review
 

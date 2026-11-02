@@ -19,6 +19,7 @@ import {
   newHostReply,
   newMindReply,
   newTurnSubmission,
+  newUnit,
   placeSpy,
   single,
 } from "@amarna/engine";
@@ -115,5 +116,20 @@ describe("ViewTimingTests", () => {
     let travel = e.travelTurns("Babylonia", "Egypt");
     e.resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [placeSpy(spy.id, "Egypt")] })]]));
     Assert.equal(`set out in turn 1; due there about turn ${1 + travel}`, lineOf(s, "Babylonia", spy.id).timing);
+  });
+
+  test("Two troops reported into one province are each shown by an older report of their own, never twice by one", () => {
+    const s = newGame(1);
+    const e = new TurnEngine(s);
+    Assert.equal(1, e.wordTo("Hatti", "babylon"));
+    Assert.equal(1, e.wordTo("Hatti", "nippur"));
+    s.turn = 5;
+    // Both last reported at Babylon; before that, one at Sippar and the other at Ur. The first placed takes its own older place.
+    s.units.push(newUnit({ id: "u-a", power: "Hatti", kind: "Army", province: "babylon", home: "hattusa", men: 900, trail: ["sippar|900|0|0|0|0|0", "babylon|900|0|0|0|0|0", "babylon|900|0|0|0|0|0"] }));
+    s.units.push(newUnit({ id: "u-b", power: "Hatti", kind: "Army", province: "nippur", home: "hattusa", men: 800, trail: ["ur|800|0|0|0|0|0", "babylon|800|0|0|0|0|0", "nippur|800|0|0|0|0|0"] }));
+    const shown = Views.for(s, "Hatti").units.filter((u) => u.power === "Hatti" && ["babylon", "nippur", "sippar", "ur"].includes(u.province));
+    Assert.equal(2, shown.length);
+    Assert.equal(["babylon", "sippar"], shown.map((u) => u.province).sort());
+    Assert.equal([800, 900], shown.map((u) => u.men).sort());
   });
 });

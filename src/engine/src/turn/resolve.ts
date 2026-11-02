@@ -536,8 +536,11 @@ P.raise = function (p, r) {
   // Item 17++: a share of the men at home, less what the province hides of it; an amount, the men asked.
   const men = levySize(S, prov.id, r.kind, r.share != null ? idiv(idiv(menAvailable(S, prov.id) * r.share, 100) * (100 - this.hiddenIn(prov.id)), 100) : (r.men ?? null));
   if (men <= 0) {
-    notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: it has too few men of fighting age left (${LandData.levyLeast} at least are needed). No gold was paid.`);
-    this.scheduledFailed(p, r, "too few men of fighting age");
+    // A share that came to fewer than a levy's least is told as that, never as a land without men.
+    const short = r.share != null && menAvailable(S, prov.id) >= LandData.levyLeast;
+    const why = short ? `the share you asked of its men came to fewer than a levy takes (${LandData.levyLeast} at least); ask a larger share or a number of men` : `it has too few men of fighting age left (${LandData.levyLeast} at least are needed)`;
+    notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`);
+    this.scheduledFailed(p, r, short ? "the share asked came to fewer men than a levy takes" : "too few men of fighting age");
     return;
   }
   const cost = forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, men);
@@ -549,6 +552,7 @@ P.raise = function (p, r) {
   const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });
   S.units.push(u);
   notify(S, p, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ": all the men of fighting age the province had to give" : ""}, so it counts for ${strengthWords(shareOfFull(r.kind, men))} of a full ${kind} in battle, and costs and eats in proportion` : ""}.`);
+  if (r.share != null) logEvent(S, "levy", `${p} raised a ${kind} in ${prov.name} by a share of its men.`, [p], "levy-share");
   this.levyRaised(p, u);
 };
 

@@ -22,6 +22,8 @@ declare module "./core.ts" {
     amountOf(province: string): number | null;
     hiddenIn(province: string): number;
     grainAsked(province: string): number;
+    /** What a share leaves the farmers before it takes anything: a season's food, none for an amount (which falls on them). */
+    shareReserve(province: string): number;
     burden(province: string): number;
     setDemand(p: Power, o: DemandOrder): void;
     sendCensus(p: Power, o: CensusOrder): void;
@@ -63,9 +65,13 @@ P.grainAsked = function (province) {
   if (amount !== null) return amount;
   const season = idiv(this.s.reaped.getOrDefault(province, 0), 3);
   const asked = idiv(idiv(season * this.shareOf(province), 100) * (100 - this.hiddenIn(province)), 100);
+  return Math.min(asked, Math.max(0, season - this.shareReserve(province)));
+};
+
+P.shareReserve = function (province) {
   const x = this.s.people.tryGet(province);
-  if (x === undefined || this.map.get(province).isSea) return asked;
-  return Math.min(asked, Math.max(0, season - countryNeed(this.map.get(province), x.settled, reckonedOf(this.map, province).settled)));
+  if (this.amountOf(province) !== null || x === undefined || this.map.get(province).isSea) return 0;
+  return countryNeed(this.map.get(province), x.settled, reckonedOf(this.map, province).settled);
 };
 
 /** What the demand takes of a season's third of the harvest, in percent, from 0 up (an amount can take more than all of it). */

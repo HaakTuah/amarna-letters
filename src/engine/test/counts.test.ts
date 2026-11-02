@@ -179,4 +179,17 @@ describe("CountsTests", () => {
     Assert.true(e.notYetReached("Hatti", sl, x.order, x));
     Assert.equal(s.turn + reach, sl.scheduled[0].turn);
   });
+  test("A levy share too small for a levy is told as that; the yields a seat sees are its last reaping's, not the hands there now", () => {
+    const s = fresh();
+    const e = new TurnEngine(s);
+    s.units = s.units.filter((u) => u.province !== "hattusa");
+    // Men enough for a levy, but one in a hundred of them is fewer than a levy takes.
+    s.people.get("hattusa").men = 3000;
+    e.raise("Hatti", raise("hattusa", "Army", null, 1));
+    Assert.true(s.inbox.get("Hatti").some((i) => i.title === "Levy failed" && i.body.includes("the share you asked of its men came to fewer")));
+    const before = Views.for(s, "Hatti").yields.get("nesa");
+    s.people.get("nesa").settled = 10;
+    Assert.equal(before, Views.for(s, "Hatti").yields.get("nesa"));
+  });
+
 });

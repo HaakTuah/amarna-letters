@@ -5,6 +5,7 @@ import { isBlank } from "../core/text.ts";
 import { cessionAgreed } from "../model/cession.ts";
 import type { Order } from "../model/orders.ts";
 import { forMen, LandData, menAvailable, menOf } from "../model/land.ts";
+import { countOf } from "../model/counts.ts";
 import { isAlive, siegeOf, unitAt, wallsOf } from "../model/state.ts";
 import { buildGold, landRefusal, levelOf, WorkKindValues, WorksData, workLevelText, workName } from "../model/works.ts";
 import type { Checking } from "./validator-context.ts";
@@ -132,7 +133,9 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       const men = menAvailable(S, p.id);
       if (men < LandData.levyLeast) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (a levy takes ${LandData.levyLeast} at least of those at home and not carrying or building)`;
       if (r.men != null && r.men < LandData.levyLeast) return `a levy takes ${LandData.levyLeast} men at least`;
-      return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(men, r.share != null ? Math.floor((men * r.share) / 100) : (r.men ?? menOf(r.kind)))));
+      // Item 17++: the gold set aside is reckoned by the men the king knows of, his last count, never those really there.
+      const known = countOf(S, power, p.id)?.men ?? men;
+      return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(known, r.share != null ? Math.floor((known * r.share) / 100) : (r.men ?? menOf(r.kind)))));
     }
 
     case "disband": {
