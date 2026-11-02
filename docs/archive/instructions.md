@@ -1432,3 +1432,6 @@ Given in the design chat with Claude, answering the design questions of the cons
     owner's own code gets a licence): "Yes to alll! And we keep rights gated for now. Expertly to all!" Written into "Review guidelines" ("History holds") in `AGENTS.md`, `CLAUDE.md`,
     `docs/claude-and-codex.md` (the design check's brief; the monthly history spot-check), `SECURITY.md` point 10, and
     "Follow-ups" in `docs/BUILD-PROGRESS.md`; the same for versions and licences in Barkstreet Snakes.
+165. **2 November 2026, 16:15 UTC**, in the design chat, to the design session's takes on Amarna Letters' #459 (script
+    kings check a governor's word against their spy's, folded into item 17++ part C) and Barkstreet Snakes' #378:
+    "Yes, expertly to both!" Written into item 17++'s row in `docs/BUILD-PROGRESS.md`.
