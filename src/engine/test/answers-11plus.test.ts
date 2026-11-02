@@ -80,7 +80,8 @@ describe("The answers to item 11+", () => {
   });
 
   test("A ruler who cedes his capital loses his realm whole and lives on as a free character at his old city", () => {
-    const s = game();
+    // The whole world: strangers come through the doors in numbers that depend on its size, and the test counts the characters.
+    const s = whole();
     sealedCession(s, "Byblos", "Egypt", "byblos");
     const before = s.characters.length;
     season(s, orders("Byblos", cede("byblos", "Egypt")));
