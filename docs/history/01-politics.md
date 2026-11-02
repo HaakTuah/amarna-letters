@@ -135,7 +135,7 @@ is whose sphere the ruler is in during 1346.
 
 1. **Labaya in 1346.** The design names Shechem "under Labaya". He was probably dead by 1346, his sons ruling. Reading
    taken: item 7 starts Shechem under **Mut-Baal, a son of Labaya**, with Labaya's quarrel with Abdi-Heba inherited
-   ("the sons of Labaya", EA 287, 289), unless Haakon prefers Labaya himself for the story, in which case the start is
+   ("the sons of Labaya", EA 287, 289), unless the owner prefers Labaya himself for the story, in which case the start is
    marked as a stretch of about five years.
 2. **Suppiluliuma or his predecessor.** Starting with Suppiluliuma is the reading taken.
 3. **Ugarit's lord.** It starts in Egypt's sphere (it wrote to Pharaoh as a servant) with a Hittite treaty to come.

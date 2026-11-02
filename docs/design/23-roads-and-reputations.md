@@ -111,7 +111,7 @@ item 18 tunes them.
 - **Model characters** see the crowds near them (`LifeView.crowds`) and may take to the hills (`take_to_hills`). Model
   chiefs' own choices (raids, ships, the way back) are the formula above (a reading).
 
-### Haakon's answers to items 11a and 11a+ built here
+### The owner's answers to items 11a and 11a+ built here
 
 - Farmers' granaries rot like the king's stores (5 in a hundred a season).
 - Dismissing a servant before its job's term ends is a broken promise on the court's record.

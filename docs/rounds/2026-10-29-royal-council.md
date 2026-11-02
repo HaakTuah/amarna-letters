@@ -122,7 +122,7 @@ rulebook names the darker tiers; the toggle's starting state (reading 2); charac
 (reading 12). CI also caught the script king holding the game's seed for the measure (now a one-way seed function) and
 test seats that can sleep paying for a council they never read (now only seats that `hearsCouncil`).
 
-Questions for Haakon: none.
+Questions for the owner: none.
 
 ## Workshop check
 

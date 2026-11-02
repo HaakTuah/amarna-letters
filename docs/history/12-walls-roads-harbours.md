@@ -74,7 +74,7 @@ Egypt's distance and forts (0, with Egypt's forts at `delta` and `nubia` raised)
 its gate and palace); **Qatna** and **Qadesh** were among the strongest places of Syria (3). The game's rule "every
 capital 3" is the one the sources most often contradict; walls should come from the city, not from its being a capital
 ("Different data, same rules"). An unwalled capital still weighs against "A kingdom falls with its capital": item 15
-should weigh Akhetaten at 0 against that, and the question is in the "For Haakon" table of `docs/BUILD-PROGRESS.md`.
+should weigh Akhetaten at 0 against that, and the question is in the "For the owner" table of `docs/BUILD-PROGRESS.md`.
 
 ## Sieges on record
 

@@ -1,6 +1,6 @@
 # The crash and the optimization round (item 17a)
 
-Haakon saw a white page with an error on the live site while watching a game at high speed (30 October 2026). This note
+The owner saw a white page with an error on the live site while watching a game at high speed (30 October 2026). This note
 says what a long game keeps, where it went wrong, what changed, and how the page now fails when something throws. The
 numbers are in the item's report, `docs/rounds/2026-10-31-crash-and-speed.md`.
 
@@ -19,7 +19,7 @@ walls and sight, maps of the whole board a court that seldom change.
 
 ## The stream: the state travels as its changes, and the page keeps the history
 
-Haakon (31 October 2026, "Agreed, 100% sir!") named the root of the stutter and the crash: the page held a full copy of the
+The owner (31 October 2026, "Agreed, 100% sir!") named the root of the stutter and the crash: the page held a full copy of the
 world for every season. Now the engine's worker sends the page what changed, and the page keeps a compact history of its own:
 
 - **The cut.** After each season the state's JSON is cut into pieces at the items of its lists and dictionaries, three levels
@@ -83,7 +83,7 @@ With the results unchanged (every seed replays exactly; the suites pass):
 
 ## Smoothness, measured: the 50 ms bar (31 October 2026)
 
-Haakon: "The game still doesn't move slowly and smooth enough. Still hicks." The bar: frame times recorded through whole
+The owner: "The game still doesn't move slowly and smooth enough. Still hicks." The bar: frame times recorded through whole
 games at normal and top speed, desktop and throttled phone, no frame over about 50 ms, the longest frames and the count
 over 50 ms before and after, with a short recording. Measured by `soak.mjs` (every frame drawn is timed; `--trace` adds
 the browser's own timeline of the main thread, and the page's steps are timed with `performance.measure`: `page:receive`,

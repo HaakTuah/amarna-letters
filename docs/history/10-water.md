@@ -1,7 +1,7 @@
 # 10. Water: where each city drinks
 
 For "Water too" (under War, travel and the seas): where a city drinks is set by where it stands, so a siege lasts as long
-as its water as well as its food. Added by build order item 11a+ (Haakon's answer to item 10+b's review: "water from a
+as its water as well as its food. Added by build order item 11a+ (the owner's answer to item 10+b's review: "water from a
 dossier per city", Megiddo's included). Grades and abbreviations: [README](README.md). One line per province: its chief
 city, and where that city drew water in the 14th century BCE, as far as the sources and the excavations tell.
 

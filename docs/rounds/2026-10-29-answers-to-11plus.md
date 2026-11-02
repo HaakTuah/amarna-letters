@@ -5,7 +5,7 @@ and 11c (#143). Branch `item/answers-to-11plus`, PR #145. Save version 25. What 
 `docs/design/29-answers-to-11plus.md`. Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session).
 Effort: medium, as set.
 
-Haakon's words (29 October 2026, the item's own text): "Agree to all. Though a character based on the incentive
+The owner's words (29 October 2026, the item's own text): "Agree to all. Though a character based on the incentive
 structure we have now should never say yes to point 6, as it is essentially game over."
 
 ## The check for changes
@@ -38,11 +38,11 @@ with the land), and one newcomer came through the doors where there were two.
 
 ## Script players
 
-No script ruler cedes its capital, by Haakon's answer: a fallen power's growth is 0, so nothing in a seat's incentives
+No script ruler cedes its capital, by the owner's answer: a fallen power's growth is 0, so nothing in a seat's incentives
 makes it pay (tested: Byblos with the tablet sealed gives no such order). Script kings refuse every demand for land, as
 before. The three new city-states play by the same brain as every other, as vassals by `bots/vassals.ts`.
 
-Weaknesses looked for: the early falls (below) are the walls Haakon chose, not a script's mistake: a city at walls 1
+Weaknesses looked for: the early falls (below) are the walls the owner chose, not a script's mistake: a city at walls 1
 next to an army of a Great King falls to a storm in the first season, before any envoy or levy could answer. No script
 weakness found that this item's changes expose; the scripts' land reckoning was already what the answer asks.
 
@@ -117,7 +117,7 @@ First guesses for item 18: the walls above, the former ruler's traits.
 The one lever this item adds, ceding a capital, is never used by a script, by design; the rest is starting data. Row:
 "n/a".
 
-## Questions for Haakon
+## Questions for the owner
 
 1. **The early falls and who wins.** With the walls from the dossier, a city falls in the first season of every game
    (525 kingdoms fall in 50 games, against 158), and with par over all games the fragile city-states that survive win

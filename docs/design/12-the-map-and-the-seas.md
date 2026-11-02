@@ -16,7 +16,7 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
 - **Kumidi** stays inside Damascus's province: an Egyptian commissioner's seat in the Beqaa, under Biryawaza of Damascus's
   authority (EA 194-197), it never acted as a polity of its own, and a third city between Byblos, Sidon and Damascus would
   crowd the Levant on a phone. **Ṣumur** was built both ways and kept as Amurru's harbour in item 7a; since item 8, by
-  Haakon's answer to its review ("the period first"), it is a province of its own: Ṣumur (`sumur`, Tell Kazel, Egypt's base on
+  the owner's answer to its review ("the period first"), it is a province of its own: Ṣumur (`sumur`, Tell Kazel, Egypt's base on
   the coast, a free city with a town's walls, yield 15) holds the coast and the waters it shares with Arwad ("Sumur and
   Arwad waters", `sumurwaters`), and Amurru (yield 20, walls 1, rough) is the hill country behind it, a land province
   bordering Ugarit, Ṣumur, Qadesh, Nuhashshe and Byblos. **Lukka** is since item 8 a land without a king, like the Kaska
