@@ -53,6 +53,9 @@ const MinQuoted = 12;
  */
 const MinInner = 20;
 
+/** The longest name the scribe may put where an id stood. */
+const MaxName = 120;
+
 /** A text blanked: every letter replaced by the mark, its spaces and its length kept. */
 export function blank(text: string): string {
   return text.replace(/\S/g, BlankMark);
@@ -146,7 +149,8 @@ interface Quotes {
   heads: Map<string, string[]>[];
   /** Texts shorter than `MinQuoted`, matched only whole. */
   short: string[];
-  forms: RegExp[];
+  /** Texts that named ids, as runs of his words between them (each id may have become any name, or none). */
+  forms: string[][];
 }
 
 /**
@@ -159,7 +163,7 @@ function pieces(words: string[]): Quotes {
   const starts = new Map<string, string[]>();
   const inner = new Map<string, string[]>();
   const short = new Set<string>();
-  const forms = new Map<string, RegExp>();
+  const forms = new Map<string, string[]>();
   const add = (map: Map<string, string[]>, t: string, n: number): void => {
     const head = t.slice(0, n);
     const list = map.get(head) ?? [];
@@ -187,7 +191,7 @@ function pieces(words: string[]): Quotes {
         while (runs.length > 0 && runs[0].trim() === "") runs.shift();
         while (runs.length > 0 && runs[runs.length - 1].trim() === "") runs.pop();
         if (runs.join("").replace(/\s/g, "").length < MinQuoted) continue;
-        forms.set(form, new RegExp(runs.map((r) => r.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[^\\n]{0,120}?"), "g"));
+        forms.set(form, runs);
       }
     }
   return { heads: [starts, inner], short: [...short], forms: [...forms.values()] };
@@ -224,9 +228,17 @@ function blankIn(s: string, quotes: Quotes): string {
         hit.fill(1, i, i + t.length);
         any = true;
       }
-  for (const re of quotes.forms)
-    for (const m of s.matchAll(re)) {
-      hit.fill(1, m.index, m.index + m[0].length);
+  // A form is matched run by run: each next run is the first found within a name's length of the one before, with no
+  // going back, so the work stays bounded however many ids a text named.
+  for (const runs of quotes.forms)
+    for (let i = s.indexOf(runs[0]); i >= 0; i = s.indexOf(runs[0], i + 1)) {
+      let end = i + runs[0].length;
+      for (let r = 1; r < runs.length && end >= 0; r++) {
+        const k = s.slice(end, end + MaxName + runs[r].length).indexOf(runs[r]);
+        end = k < 0 || s.slice(end, end + k).includes("\n") ? -1 : end + k + runs[r].length;
+      }
+      if (end < 0) continue;
+      hit.fill(1, i, end);
       any = true;
     }
   if (!any) return s;

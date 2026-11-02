@@ -113,6 +113,19 @@ describe("ExportTests", () => {
     "vassal", "via", "what", "when", "where", "withdraw",
   ]);
 
+  test("A text naming many ids is matched in bounded time, however it is quoted", () => {
+    // Many ids, and a long prompt that almost matches: a backtracking pattern took seconds here.
+    const note = "Tell c1 and c2 and c3 and c4 and c5 and c6 and c7 and c8 to bring horses to the secret gate.";
+    const log = new GameLog();
+    log.record("t1/orders/Egypt", TurnSubmissionSchema, newTurnSubmission({ notes: note }), newAuthorship({ kind: "human", name: "Human" }));
+    log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, prompt: "Tell " + "Mane and ".repeat(400) + "Hani." }));
+    log.addCall(newModelCall({ key: "t1/orders/Mitanni", turn: 1, prompt: "Tell Mane and Hani and Tuya and Ay and Huya and Maya and Pepi and Nakht to bring horses to the secret gate." }));
+    const started = Date.now();
+    const text = exportJsonl(log, { ...Everything, humanWords: false });
+    Assert.true(Date.now() - started < 1000, "the export took too long");
+    Assert.false(text.includes("Tell Mane and Hani and Tuya"));
+  });
+
   test("Every string a human's orders and answers can hold is either his words or an order", () => {
     const unsorted = new Set<string>();
     const seen = new Set<Schema>();
