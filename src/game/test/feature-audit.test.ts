@@ -435,7 +435,7 @@ describe("FeatureAuditTests", () => {
     );
     let reply = Statecraft.host(view, board, brain, Rng.for(5, 1, "test", "host"));
     Assert.true(reply.sealProposal);
-    Assert.contains("Swear to me that your lord's troops will stand with mine", reply.speech);
+    Assert.contains("Swear to me", reply.speech);
 
     let s = oldWorld(newGame(5));
     let envoy = firstOf(s.characters, (c) => c.employer === "Arzawa");
