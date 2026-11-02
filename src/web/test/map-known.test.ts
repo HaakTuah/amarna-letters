@@ -14,7 +14,7 @@ function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
     index, turn: index + 1, ended: false, endReason: null, winners: [], owner: new Map(), walls: new Map(), knownWalls: new Map(),
     knownOwner: new Map(), sieges: [], units: [], moves: [], seenBy: new Map(), sight: new Map(), journeys: [], people: new Map(),
     sleep: new Map(), eliminated: new Set(), events: [], news: [], inboxCount: new Map(), openAge: false, ageBand: "Usual",
-    ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), fed: new Map(),
+    ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), counted: new Map(), fed: new Map(),
     unrest: new Map(), caravans: [], walking: [], omen: "Quiet", ...over,
   } as SeasonFrame;
 }
@@ -63,6 +63,8 @@ describe("MapKnownTests", () => {
         owner: new Map([[city.id, holder]]),
         knownOwner: word(knows, knows === "Egypt" ? 1 : i),
         settled: new Map([[city.id, people]]),
+        // Each court as if its scribes counted it that season (item 17++).
+        counted: new Map((["Egypt", "Hatti"] as Power[]).map((p) => [p, new Map([[city.id, people]])] as const)),
         stores: new Map([[city.id, people / 10]]),
         fed: new Map([[city.id, 600]]),
       });
@@ -94,6 +96,8 @@ describe("MapKnownTests", () => {
         owner: new Map([[city.id, holder]]),
         knownOwner: word(knows, knows === "Egypt" ? 1 : i),
         settled: new Map([[city.id, people]]),
+        // Each court as if its scribes counted it that season (item 17++).
+        counted: new Map((["Egypt", "Hatti"] as Power[]).map((p) => [p, new Map([[city.id, people]])] as const)),
         stores: new Map([[city.id, people / 10]]),
         fed: new Map([[city.id, 900]]),
         bands: [band(people / 100)],

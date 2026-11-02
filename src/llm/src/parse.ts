@@ -35,7 +35,8 @@ import {
   newAuthority,
   disband,
   fold,
-  tax,
+  demand,
+  census,
   welcome,
   expel,
   deport,
@@ -466,6 +467,10 @@ function other(x: Node): Order | null {
       return raise(province, "Army", amount > 0 ? amount : null);
     case "raise_fleet":
       return raise(province, "Fleet", amount > 0 ? amount : null);
+    case "raise_army_share":
+      return raise(province, "Army", null, amount);
+    case "raise_fleet_share":
+      return raise(province, "Fleet", null, amount);
     case "build":
     case "build_corvee": {
       const kind = workKindNamed(S(x, "item"));
@@ -494,8 +499,12 @@ function other(x: Node): Order | null {
       const to = empty(S(x, "to"));
       return ship(province, province, to !== null ? prov(to) : "", amount, Math.max(0, I(x, "gold")), S(x, "action") === "ship_trade");
     }
-    case "set_tax":
-      return tax(amount, pr !== null ? province : null);
+    case "ask_share":
+      return demand("share", amount, pr !== null ? province : null);
+    case "ask_amount":
+      return demand("amount", amount, pr !== null ? province : null);
+    case "census":
+      return census(province);
     case "welcome_loose":
       return welcome(province);
     case "expel_mouths":

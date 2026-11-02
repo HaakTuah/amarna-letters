@@ -103,9 +103,16 @@ rumours, and those can be late, shaded or false.
   holding it gives him, and you take it back by sending word.
 
 **The land and its people.**
-- Each province's people farm, pay a tax you set (a third of the crop by default) into its stores, and eat what they
-  keep. The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men
-  on the roads may raise bands of their own.
+- Each province's people farm, give the grain you ask of them into its stores, and eat what they keep. Ask a share of
+  the harvest (a third by default), which never squeezes them but lets them hide more the older your count and the
+  farther they lie, or an amount of one province, which you get but can judge only by your count: too much and they go
+  hungry and flee. A levy too may be asked as a share of the men at home, which the province hides part of in the same way.
+  The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men on the
+  roads may raise bands of their own.
+- You know your provinces' people only as your scribes last counted them, dated: the province card shows the town and
+  its land apart ("about 18,000 in the town; about 650,000 on its land"). Send scribes to count a province afresh (a
+  census, paid when they set out): their count comes home a season or more later, and being counted stirs the people a
+  little.
 - Sell and buy grain and goods at your own markets, where prices follow supply; send caravans and trade abroad, and set
   tolls on your roads.
 - Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée: nothing is
@@ -113,7 +120,7 @@ rumours, and those can be late, shaded or false.
 - **No province is owned by a flag: it obeys whoever it fears or loves most.** Fear is troops standing in it, weighed
   against its own men (twice as many in hill land); troops next door, or before walls they have not stormed, weigh a
   little, for every king alike. Love is what its people remember of each king, governor and man of standing: what he gave
-  them (protection, a siege lifted, policing, grain handed out, a light tax) against what he took (a heavy tax, levies,
+  them (protection, a siege lifted, policing, grain handed out, asking little) against what he took (asking much, levies, a census,
   food taken, a sack, robbing, a famine under him); grain handed out where your governor stands is credited to him unless
   you hand it out in your own name. Memory fades, and you never see the numbers: your governor and spies tell you the mood
   in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. Marching in or

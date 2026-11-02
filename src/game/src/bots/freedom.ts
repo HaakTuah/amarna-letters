@@ -6,11 +6,12 @@
  * each army he buys for gold for three seasons' food, the price as his court last heard it, and sends more only when what
  * it carries and what is on the road runs low, and only where the market there, as his court last saw it, holds grain
  * to buy once its town has eaten (the item's measures found gold sent where markets were empty sitting idle in the packs).
- * He listens to his governors: a province they call restless or near revolt pays less tax, and gets grain from its stores
+ * He listens to his governors: a province they call restless or near revolt is asked a smaller share, and gets grain from its stores
  * for its town, in his own name where a governor stands (item 17++). And a cunning king sends the
  * spy he posts where his army stands in a foe's land with gold to stir its people ("outside help").
  */
-import { cmpStr, feed, sortBy, sum, supply, tax, unitFood, type Order, type UnitView } from "@amarna/engine";
+import { cmpStr, demand, EconomyData, feed, sortBy, sum, supply, unitFood, type Order, type UnitView } from "@amarna/engine";
+import { shareNow } from "./land.ts";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 
@@ -88,20 +89,22 @@ export function restless(b: Board): string[] {
   return out;
 }
 
-/** A restless province's tax comes down by this many points below what its farmers could bear (a first guess). */
+/** A restless province's share comes down by this many points below what it gives (a first guess). */
 const ReliefPoints = 15;
 
-/** Tax relief where our governors write that the people are restless: the tax order for it lowered, or one added. */
+/** Relief where our governors write that the people are restless: the share asked of it lowered, or a demand added. */
 export function reliefOrders(b: Board, orders: Order[]): void {
   if (!FreedomPlay.on(b.me)) return;
-  const rates = new Map(b.v.provinces.map((x) => [x.province, x.taxRate] as const));
+  const rates = new Map(b.v.provinces.map((x) => [x.province, shareNow(x)] as const));
   for (const id of restless(b)) {
     if (b.ownerOf(id) !== b.me) continue;
-    const i = orders.findIndex((o) => o.type === "tax" && o.province === id);
-    const now = i >= 0 ? (orders[i] as { percent: number }).percent : (rates.get(id) ?? 33);
+    const i = orders.findIndex((o) => o.type === "demand" && o.province === id);
+    const asked = i >= 0 ? orders[i] : null;
+    const x0 = b.v.provinces.find((y) => y.province === id);
+    const now = asked?.type === "demand" ? (asked.how === "share" ? asked.n : x0 !== undefined && x0.harvest > 0 ? Math.floor((asked.n * 100) / x0.harvest) : 0) : (rates.get(id) ?? EconomyData.taxPercent);
     const lower = Math.max(0, now - ReliefPoints);
-    if (i >= 0) orders.splice(i, 1, tax(lower, id));
-    else orders.push(tax(lower, id));
+    if (i >= 0) orders.splice(i, 1, demand("share", lower, id));
+    else orders.push(demand("share", lower, id));
     // Item 17++ ("Loyalty is a ledger"): grain handed to its town gives, most where its people go hungry; a wary king hands
     // it out in his own name where a governor stands, so that the credit is his and not his governor's.
     const x = b.v.provinces.find((y) => y.province === id);

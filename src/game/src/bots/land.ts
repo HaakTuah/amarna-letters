@@ -1,8 +1,8 @@
 /**
- * The script kings' people at home (build order item 10+a): each province's tax set as high as its farmers can bear
- * without going hungry, the countryside fed from the stores in a famine, levies raised where and when they cost the
+ * The script kings' people at home (build order item 10+a): the share each province can bear without going hungry
+ * (asked by `counts.ts`), the countryside fed from the stores in a famine, levies raised where and when they cost the
  * harvest least, and disbanded men settled as colonists where the land has room. `--no-land-play` and
- * `--land-play-half` leave the default tax, never feed a hungry countryside, raise as before and never settle, only to
+ * `--land-play-half` leave the usual share, never feed a hungry countryside, raise as before and never settle, only to
  * measure what playing it is worth.
  */
 import {
@@ -16,7 +16,6 @@ import {
   menWeight,
   reckonedOf,
   seasonOfTurn,
-  tax,
   type Order,
   type ProvinceEconomyView,
   type SeatView,
@@ -45,17 +44,14 @@ export const SeasonPlay: { off: boolean; only: ReadonlySet<string> | null; on: (
   },
 };
 
-/** A margin under the highest rate the farmers can bear, in points of the tax, against a worse season than this one. */
+/** A margin under the highest share the farmers can bear, in points of the harvest, against a worse season than this one. */
 const TaxMargin = 3;
 
-/** How far the bearable rate must rise above the rate set before a script king raises it. */
-const TaxStep = 3;
-
 /**
- * The highest tax a province's farmers can bear this season without going hungry, less a margin: what they keep of
+ * The highest share a province's farmers can bear this season, by the king's last count of it, without going hungry, less a margin: what they keep of
  * its harvest must cover what its countryside eats.
  */
-export function bearableTax(x: ProvinceEconomyView, me: string | null = null): number {
+export function bearableShare(x: ProvinceEconomyView, me: string | null = null, turn: number = x.counted ?? 0): number {
   const p = WorldMap.default.get(x.province);
   const need = countryNeed(p, x.settled, reckonedOf(WorldMap.default, x.province).settled);
   if (x.harvest <= 0) return 0;
@@ -63,24 +59,35 @@ export function bearableTax(x: ProvinceEconomyView, me: string | null = null): n
   // The harvest comes once a year (item 11a+): until the next is reaped, the granary must feed them and pay the tax. The
   // seasons it must last: those before the reaping season, which the new harvest feeds.
   const seasons = x.reapsIn === 0 ? 2 : x.reapsIn - 1;
-  if (seasons > 0 && (me === null || SeasonPlay.on(me))) most = Math.min(most, Math.floor(((x.granary / seasons - need) * 100) / x.harvest) - TaxMargin);
+  if (seasons > 0 && (me === null || SeasonPlay.on(me))) most = Math.min(most, Math.floor(((granaryNow(x, turn) / seasons - need) * 100) / x.harvest) - TaxMargin);
   return Math.max(0, Math.min(LandData.taxMost, most));
 }
 
 /**
- * The tax orders: each province's rate moved to what its farmers can bear, a province already short of food at least
- * five points under its rate; a rate comes down at once, and goes up only once the farmers can bear three points more.
+ * The farmers' granary now, reckoned forward from the king's last count of it (item 17++): each season since, what its
+ * countryside eats and what he asks taken from it, and a reaping in between filling it with a harvest like the counted
+ * one; this season's reaping and eating done, as they are when the king gives his orders. The count's own figure when it
+ * is this season's.
  */
-export function taxOrders(v: SeatView, me: string): Order[] {
-  if (!LandPlay.on(me)) return [];
-  const orders: Order[] = [];
-  for (const x of v.provinces) {
-    let rate = bearableTax(x, me);
-    if (x.fed < 1000) rate = Math.min(rate, Math.max(0, x.taxRate - 5));
-    // A rate the farmers cannot bear comes down at once; otherwise it moves only by a few points, not every season.
-    if (rate < x.taxRate || rate >= x.taxRate + TaxStep) orders.push(tax(rate, x.province));
+export function granaryNow(x: ProvinceEconomyView, turn: number): number {
+  if (x.counted === null) return x.granary;
+  const need = countryNeed(WorldMap.default.get(x.province), x.settled, reckonedOf(WorldMap.default, x.province).settled);
+  // A share is reckoned from what the farmers do not eat; an amount is taken as asked.
+  const asked = Math.floor((x.harvest * shareNow(x)) / 100);
+  const use = need + (x.amount === null ? Math.min(asked, Math.max(0, x.harvest - need)) : asked);
+  let g = x.granary;
+  for (let t = x.counted + 1; t <= turn; t++) {
+    if ((((t - turn - x.reapsIn) % 3) + 3) % 3 === 0) g += 3 * x.harvest;
+    // This season's reaping, eating and asking are done before the king gives his orders.
+    g = Math.max(0, g - use);
   }
-  return orders;
+  return g;
+}
+
+/** The share a province now gives, in percent of a season's harvest: its share, or what its amount comes to. */
+export function shareNow(x: ProvinceEconomyView): number {
+  if (x.amount === null) return x.share;
+  return x.harvest > 0 ? Math.floor((x.amount * 100) / x.harvest) : 100;
 }
 
 /**
@@ -93,10 +100,10 @@ export function famineFeeding(v: SeatView, me: string, besieged: ReadonlySet<str
   for (const x of v.provinces) {
     if (besieged.has(x.province)) continue;
     const need = countryNeed(WorldMap.default.get(x.province), x.settled, reckonedOf(WorldMap.default, x.province).settled);
-    const rate = Math.min(x.taxRate, bearableTax(x, me));
+    const rate = Math.min(shareNow(x), bearableShare(x, me, v.turn));
     // What the farmers will have next season (item 11a+): their granary, the harvest if it is reaped then, less the tax.
     // A king that ignores the granaries reckons by a season's share of the harvest, as before.
-    const kept = SeasonPlay.on(me) ? x.granary + (x.reapsIn === 1 ? x.crop + x.harvest : 0) - Math.floor((x.harvest * rate) / 100) : Math.floor((x.harvest * (100 - rate)) / 100);
+    const kept = SeasonPlay.on(me) ? granaryNow(x, v.turn) + (x.reapsIn === 1 ? x.crop + x.harvest : 0) - Math.floor((x.harvest * rate) / 100) : Math.floor((x.harvest * (100 - rate)) / 100);
     const short = need - kept - Math.max(0, x.stock - x.need);
     const give = Math.min(short, stores(x.province));
     if (give > 0) orders.push(feed(x.province, give));

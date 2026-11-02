@@ -10,7 +10,8 @@ import {
   TradeData,
   purchase,
   sell,
-  tax,
+  demand,
+  census,
   welcome,
   deport,
   expel,
@@ -30,7 +31,7 @@ import {
   type Power,
   type UnitKind,
 } from "@amarna/engine";
-import { powerName, provinceName, shekels } from "../../ui/format.ts";
+import { powerName, provinceName, shekels, when } from "../../ui/format.ts";
 import { byName } from "../../ui/order-draft.ts";
 import { map } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
@@ -70,7 +71,12 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           <option value="Army">army ({shekels(price("army"))})</option>
           <option value="Fleet">fleet ({shekels(price("fleet"))})</option>
         </select>
-        <button className="small" disabled={f.raiseAt === ""} onClick={() => add(raise(f.raiseAt, f.raiseKind as UnitKind))}>
+        <input type="number" min={1} max={100} placeholder="share %" title="Empty: a full unit. A share of the men of fighting age at home, which the province hides part of as its count ages." value={f.raiseShare} onChange={(e) => set({ raiseShare: e.target.value })} style={{ width: "5rem" }} />
+        <button
+          className="small"
+          disabled={f.raiseAt === "" || (f.raiseShare !== "" && !(Number(f.raiseShare) >= 1 && Number(f.raiseShare) <= 100))}
+          onClick={() => add(raise(f.raiseAt, f.raiseKind as UnitKind, null, f.raiseShare === "" ? null : Math.floor(Number(f.raiseShare))))}
+        >
           Add
         </button>
       </div>
@@ -129,7 +135,9 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           <option value="feed">Feed the town</option>
           <option value="feedOwn">Feed the town in your own name</option>
           <option value="caravan">Send a caravan</option>
-          <option value="tax">Set the tax</option>
+          <option value="share">Ask a share of the harvest</option>
+          <option value="amount">Ask an amount of grain</option>
+          <option value="census">Send scribes to count it</option>
         </select>
         <select value={f.grainAt} onChange={(e) => set({ grainAt: e.target.value })}>
           <option value="">{f.grainAction === "caravan" ? "from…" : "at…"}</option>
@@ -140,9 +148,11 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
               const x = v.provinces.find((y) => y.province === id)!;
               return (
                 <option key={id} value={id}>
-                  {f.grainAction === "tax"
-                    ? `${provinceName(id)} (tax ${x.taxRate}%, harvest ${x.harvest}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
-                    : `${provinceName(id)} (stores ${x.stores}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
+                  {f.grainAction === "census"
+                    ? `${provinceName(id)} (${x.counted === null ? "never counted" : `counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""})`
+                    : f.grainAction === "share" || f.grainAction === "amount"
+                      ? `${provinceName(id)} (asked ${x.amount !== null ? `${x.amount} a season` : `${x.share}%`}, harvest ${x.harvest}${x.counted === null ? ", never counted" : ` as counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
+                      : `${provinceName(id)} (stores ${x.stores}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
                 </option>
               );
             })}
@@ -160,10 +170,16 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
               ))}
           </select>
         )}
-        <input type="number" min={f.grainAction === "tax" ? 0 : 1} placeholder={f.grainAction === "tax" ? "percent" : "measures"} value={f.grainAmount} onChange={(e) => set({ grainAmount: e.target.value })} style={{ width: "6rem" }} />
+        {f.grainAction !== "census" && (
+          <input type="number" min={f.grainAction === "share" || f.grainAction === "amount" ? 0 : 1} placeholder={f.grainAction === "share" ? "percent" : f.grainAction === "amount" ? "a season" : "measures"} value={f.grainAmount} onChange={(e) => set({ grainAmount: e.target.value })} style={{ width: "6rem" }} />
+        )}
         <button
           className="small"
-          disabled={f.grainAt === "" || f.grainAmount === "" || !(Number(f.grainAmount) > 0 || (f.grainAction === "tax" && Number(f.grainAmount) === 0)) || (f.grainAction === "caravan" && f.grainTo === "")}
+          disabled={
+            f.grainAt === "" ||
+            (f.grainAction !== "census" && (f.grainAmount === "" || !(Number(f.grainAmount) > 0 || ((f.grainAction === "share" || f.grainAction === "amount") && Number(f.grainAmount) === 0)))) ||
+            (f.grainAction === "caravan" && f.grainTo === "")
+          }
           onClick={() => {
             const n = Math.floor(Number(f.grainAmount));
             add(
@@ -173,9 +189,11 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
                   ? purchase(f.grainAt, n)
                   : f.grainAction === "feed" || f.grainAction === "feedOwn"
                     ? feed(f.grainAt, n, f.grainAction === "feedOwn")
-                    : f.grainAction === "tax"
-                      ? tax(n, f.grainAt)
-                      : caravan(f.grainAt, f.grainTo, n),
+                    : f.grainAction === "share" || f.grainAction === "amount"
+                      ? demand(f.grainAction, n, f.grainAt)
+                      : f.grainAction === "census"
+                        ? census(f.grainAt)
+                        : caravan(f.grainAt, f.grainTo, n),
             );
           }}
         >

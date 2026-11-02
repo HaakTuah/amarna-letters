@@ -436,7 +436,7 @@ function seasonEntries(e: TurnEngine): void {
     given += D.policing * levelOf(S, "Policing", prov.id);
     e.give(prov.id, holder, idiv(given * seen, 100));
     if (fed >= 1000 && e.climatePercent(prov.id) >= 100) e.give(prov.id, hand, idiv(D.harvest * seen, 100));
-    const over = idiv((e.taxRate(prov.id) - EconomyData.taxPercent) * D.tax, 10);
+    const over = idiv((e.burden(prov.id) - EconomyData.taxPercent) * D.tax, 10);
     if (over > 0) e.take(prov.id, hand, over);
     else e.give(prov.id, hand, idiv(-over * seen, 100));
   }

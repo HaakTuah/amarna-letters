@@ -184,6 +184,8 @@ export class TurnEngine {
     for (const [p, l] of this.peopleSeason(this._foodNow).entries()) fed.set(p, [...fed.getOrDefault(p, []), ...l]);
     // Item 17++: the ledger kept, and whom each province obeys.
     this.obeySeason();
+    // Item 17++: the scribes count, and their counts come home.
+    this.censusSeason();
     for (const p of alive(S)) notify(S, p, "Notice", "The treasury", [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "));
     this.caravansTravel();
     // The foreign markets each court sees this season (item 9+b).
@@ -242,7 +244,7 @@ export class TurnEngine {
   effectiveYield(province: string): number {
     // The harvest already bore the catastrophes; the tax bears only how fully it obeys, and nothing reaches it under a siege.
     if (siegeOf(this.s, province) !== null) return 0;
-    return toInt(roundEven(idiv(idiv(this.s.reaped.getOrDefault(province, 0), 3) * this.taxRate(province), 100) * obeyedIn(this.s, province)));
+    return toInt(roundEven(this.grainAsked(province) * obeyedIn(this.s, province)));
   }
 
   /** The gold that came in since a king's last orders: his mines this season and his sales at his markets last season. */
@@ -272,8 +274,9 @@ export class TurnEngine {
     S.breached.delete(province);
     // What stands there passes with the land, and its upkeep with it; the old holder's orders for it lapse (item 15).
     this.worksChangeHands(province);
-    // The old holder's tax goes with him: the new one collects the default until he sets his own (item 10+a).
-    S.taxes.delete(province);
+    // The old holder's demand goes with him: the new one asks the usual share until he sets his own (item 10+a, 17++).
+    S.shares.delete(province);
+    S.amounts.delete(province);
     // The king who lost it knows at once, as his notice tells him, though it leaves his sight; since item 13 only where
     // his couriers bring word within the season (farther off, word of it comes as word does).
     if (old !== null && this.wordTo(old, province) === 0) {

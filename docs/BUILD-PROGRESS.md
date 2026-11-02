@@ -101,6 +101,11 @@ fixed.
   province once one upkeep order is drafted; (g) a captive's stirring gold counted as skimmed rather than carried; (h) a
   no-op `CityStarts` entry; (i) an older tablet arriving late sets a court's knowledge of a claim back. (b), the chiefs'
   lands falling in the first two seasons, is 17++'s and measured in its report.
+- **From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
+  is over 50 KB (about 55 KB): split by responsibility in a PR of its own, behaviour proven unchanged by replays.
+- **From #376 (17++ B), round 1 (Codex, P1); test infrastructure outside the item:** the engine suite has no reduced-world
+  fixture, so every engine test builds the whole starting world; a small-world fixture (a few powers on part of the map)
+  for rule tests, as "the smallest game that tests the rule" asks.
 
 ## For the owner
 
@@ -123,6 +128,7 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
+| 17++ B | Counting the land (census), asking an amount by a fresh count and levying by share by an old one (`--count-play-half`) | 0.97 growth to 0.86, 26 wins to 24, in 50 games (after round 1: 0.96 to 0.89, 30 to 20) | Pays |
 | 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
 | 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |
 
@@ -132,7 +138,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) in review, #376; part C (governors over regions, grants, the map, the audit's script finds) under way; "taken up, never thrust on anyone" (2 November 2026) goes into part C, or a part of its own if C has merged | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md` |
+| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds) under way; "taken up, never thrust on anyone" (2 November 2026) goes into part C, or a part of its own if C has merged | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md` |
 | 17++a | Something happens every season | not started (next after 17++) | | |
 | 17+++ | The season plays out | not started | | |
 | 17+++a | Keys for everything | not started | | |
