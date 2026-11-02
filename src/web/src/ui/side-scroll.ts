@@ -21,6 +21,11 @@ export function sideScroll(el: HTMLElement | null): (() => void) | undefined {
   };
   const move = (e: PointerEvent) => {
     if (start === null || e.pointerId !== start.id) return;
+    // Released outside the row before the drag began (no capture yet, so no pointerup here): the gesture is over.
+    if ((e.buttons & 1) === 0) {
+      up(e);
+      return;
+    }
     const dx = e.clientX - start.x;
     if (!dragged && Math.abs(dx) < 6) return;
     if (!dragged) {
