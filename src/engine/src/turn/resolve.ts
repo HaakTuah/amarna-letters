@@ -760,6 +760,8 @@ P.endOfTurn = function () {
     return;
   }
   S.turn++;
+  // Item 17++, part C: each court sees its own city's mood as the new season begins.
+  this.courtsSee();
 };
 
 P.finalScores = function () {

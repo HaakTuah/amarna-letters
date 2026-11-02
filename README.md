@@ -127,8 +127,8 @@ rumours, and those can be late, shaded or false.
   little, for every king alike. Love is what its people remember of each king, governor and man of standing: what he gave
   them (protection, a siege lifted, policing, grain handed out, asking little) against what he took (asking much, levies, a census,
   food taken, a sack, robbing, a famine under him); grain handed out where your governor stands is credited to him unless
-  you hand it out in your own name. Memory fades, and you never see the numbers: your governor and spies tell you the mood
-  in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. Marching in or
+  you hand it out in your own name. Memory fades, and you never see the numbers: your governor, spies, envoys and scribes
+  tell you the mood in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. Marching in or
   storming the walls takes nothing by itself: as each season begins a province goes, by a clear margin, to a king whose
   troops stand in it (within its walls), to a man of standing there whose following outweighs you, if he chooses to lead
   them (he rules it in his own name), or, if it bears you nothing, to nobody. Nothing is thrust on you: a province whose
@@ -383,7 +383,9 @@ and at foreign courts. In a power's view the fog of war fades with the age of it
 uncertain things (old sightings, rumours, spy reports) are drawn as such. Each realm shows in three steps of its colour:
 full where its king rules, lighter where a governor stands between, a faint wash over its vassals' land, each governor's
 provinces bounded by a thin line; the ◐ button shows the mood of the land as you last heard it (loyal, uneasy, restless,
-or no word), older reads fading. Tap anyone to follow
+or no word), older reads fading: your own city as you see it, your governors' reports each season, a spy's watched
+province, the city of a court your envoy visited, a province your scribes counted, and travellers' blurred talk of the
+land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow
 their life: their path, their masters, their missions, what they said and reported. Drag and zoom
 as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
 

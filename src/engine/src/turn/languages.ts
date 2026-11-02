@@ -363,7 +363,7 @@ P.settleSpeech = function () {
         a.host,
         newHomeCargo({
           trailId: a.dispatch.trailId,
-          observations: this.observe(c, a.host),
+          ...this.observe(c, a.host),
           unheard: choice,
         }),
       );

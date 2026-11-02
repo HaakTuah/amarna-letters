@@ -16,6 +16,7 @@ import { type Toll, TollSchema } from "./trade.ts";
 import { type MarketSeen, MarketSeenSchema, type ProvinceEconomyView, ProvinceEconomyViewSchema } from "./views.ts";
 import type { People } from "./land.ts";
 import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts";
+import { type MoodRead, MoodReadSchema } from "./moods.ts";
 import { type Declaration, DeclarationSchema } from "./declarations.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
@@ -84,7 +85,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 42;
+export const CURRENT_VERSION = 43;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -295,6 +296,8 @@ export interface GameState {
   counts: Dict<Power, Dict<string, Count>>;
   /** The scribes out counting, until their count reaches their court (item 17++, "A census"). */
   censuses: Census[];
+  /** Item 17++, part C: each court's dated reads of its land's mood, as they reach it ("Who holds what, and the mood of the land"). */
+  moodReads: MoodRead[];
   /** Item 17++ ("taken up, never thrust on anyone"): provinces declared for a power, and claims ceded by treaty, until answered or lapsed. */
   declarations: Declaration[];
   /** The men levied this season to build and keep what stands (the corvée, item 15), by province: away from the next harvest. */
@@ -560,6 +563,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     amounts: new Dict(),
     counts: new Dict(),
     censuses: [],
+    moodReads: [],
     declarations: [],
     corvee: new Dict(),
     fed: new Dict(),
@@ -621,6 +625,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   amounts: dict(I),
   counts: dict(dict(() => CountSchema)),
   censuses: list(() => CensusSchema),
+  moodReads: list(() => MoodReadSchema),
   declarations: list(() => DeclarationSchema),
   corvee: dict(I),
   fed: dict(I),

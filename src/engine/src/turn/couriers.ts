@@ -230,13 +230,13 @@ P.courierRead = function (p, to, o) {
 
 P.tell = function (p, province, kind, title, text, extra = 0) {
   const S = this.s;
-  const d = (this.map.exists(province) ? this.wordTo(p, province) : 0) + (Number.isFinite(extra) ? extra : 0);
-  if (d === 0 || !Number.isFinite(d)) {
+  const at = this.heardAt(p, province, extra);
+  if (at === S.turn + S.deliveryOffset) {
     notify(S, p, kind, title, text);
     return;
   }
-  // A report from afar: a courier brings it, d seasons later than a near one's.
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + 1 + d, from: p, to: p, news: "Realm", text: `${kind}|${title}|${text}` }));
+  // A report from afar: a courier brings it, a season or more later than a near one's.
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: p, to: p, news: "Realm", text: `${kind}|${title}|${text}` }));
 };
 
 P.keepTrails = function () {

@@ -185,6 +185,8 @@ export class TurnEngine {
     for (const [p, l] of this.peopleSeason(this._foodNow).entries()) fed.set(p, [...fed.getOrDefault(p, []), ...l]);
     // Item 17++: the ledger kept, and whom each province obeys.
     this.obeySeason();
+    // Item 17++, part C: travellers' talk of the land near each court.
+    this.travellersTalk();
     // Item 17++: the scribes count, and their counts come home.
     this.censusSeason();
     for (const p of alive(S)) notify(S, p, "Notice", "The treasury", [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "));

@@ -36,7 +36,7 @@ export const CountSchema: ObjSchema<Count> = obj(
 
 /**
  * Scribes a king sent to count a province: they count it in the season `counted` and their count, once taken (`count`),
- * reaches his court in the season `home`.
+ * reaches his court in the season `home`, with its people's mood as they found it (item 17++, part C; "" until counted).
  */
 export interface Census {
   power: string;
@@ -44,12 +44,13 @@ export interface Census {
   counted: number;
   home: number;
   count: Count | null;
+  mood: string;
 }
 
 export const CensusSchema: ObjSchema<Census> = obj(
   "Census",
-  (init: Partial<Census> = {}) => ({ power: "Egypt", province: "", counted: 0, home: 0, count: null, ...init }),
-  { power: S, province: S, counted: I, home: I, count: opt(() => CountSchema) },
+  (init: Partial<Census> = {}) => ({ power: "Egypt", province: "", counted: 0, home: 0, count: null, mood: "", ...init }),
+  { power: S, province: S, counted: I, home: I, count: opt(() => CountSchema), mood: S },
 );
 
 /**
