@@ -1352,3 +1352,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     build-order items and a direct call for the script kings' planning designs, with Opus at high as the fallback and
     the owner watching Fable's share of the week): "Yes, expertly! If you think this is the best way, in your expert opinion! Getting us the best bang for our tokens." Written into the model table in `CLAUDE.md` ("Design check",
     "Planning design", and "Last escalation"); the same in Barkstreet Snakes.
+151. **2 November 2026, 11:22 to 11:27 UTC**, in the design chat: "I have added all the free security and review features that GitHub offer out of the box for each repository. Are they adding a lot of overhead. Are PRs merging much slower? Was this a good change? Expert?" Then, to the design session's answer (no time
+    added on PRs into `develop`; CodeQL about 2 minutes on milestones, in parallel; Dependabot's security PRs, which
+    GitHub aims at `main`, had no owner): "Can't they review it when they see it, and merge it if it is good?" And, to the five conditions for that: "Yes, expertly!" Written into "Git and GitHub"
+    in `AGENTS.md` and point 4 of `SECURITY.md`; the same in Barkstreet Snakes.
