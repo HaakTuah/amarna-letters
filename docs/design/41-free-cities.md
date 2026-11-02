@@ -55,15 +55,20 @@ threshold), one fewer where they were restless. `siege-starved` now marks a gate
 
 `spy {province, stir}` (model kings: `place_spy` with `gold`): the gold leaves the treasury with him (`Character.stirGold`);
 posted, he spends half of it a season (at least 50) into the province's purse, keeping (greed − loyalty)/200 of it, and
-`stir` points go to `GameState.stirred`. Caught, it is in his purse; home, he hands back what is left.
+`stir` points a hundred shekels go into the province's ledger as his master's giving (item 17++,
+`47-whom-a-province-obeys.md`). Caught, it is in his purse; home, he hands back what is left.
 
 ## Script kings (`bots/freedom.ts`)
 
 - Each army by leave whose depot will not feed it gets word to buy and gold for three seasons at the price its court last
   heard, when what it carries and has on the road is below a third of that and the treasury can spare it (`supplyOrders`).
 - A province a governor calls restless or near revolt pays 15 points less tax (`reliefOrders`); from item 17++ a lighter tax is a giving in its ledger.
-- A cunning king (cunning above 0.4) posting a watching spy in a foe's land that is not the foe's homeland sends a third of
-  his spare gold with him, 50 to 200, to stir it (`stirGold`).
+- A king keeps one watching spy at a time in each king's land (`watchedProvinces`). A cunning one (cunning above 0.4)
+  with gold to spare posts him first where his own army stands in the land of a king he would fight, not by leave, not
+  come over to him and not besieged, with a third of his spare gold, 50 to 200, to stir its people (`stirGold`), the
+  homeland too since item 17++, as their love is what carries a land his men stand in once their fear alone cannot;
+  otherwise the spy only watches the foe's land he cannot see. His armies weigh another's land his spies watch, if he
+  stirs, 1.3 times as a target (`WooedWorth`, `bots/tactics.ts`).
 - `--no-freedom-play` / `--freedom-play-half` turn all three off (the king then sends no word, so his armies take).
 
 ## Not built here

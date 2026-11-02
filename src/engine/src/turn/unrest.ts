@@ -545,10 +545,11 @@ function risenMen(e: TurnEngine, id: string, holder: Power, leader: Character | 
  * A rising against the master's troops standing in the province, fought as a battle is ("Revolt follows conditions, not
  * dice": troops of the master there fight them as combat says): the men who rise are its men of fighting age as far as
  * they lean to the man who leads them over their master (with nobody at their head, as far as they hate him), with his
- * band; the rest of its people stand aside, and those who still love their master fight beside his troops ("A garrison
- * keeps a town only as its people let it"). The loser loses men as battles say, the dead among them and the rest run;
- * beaten troops of the master stay where they stand, in land that answers to another now, and a rising beaten leaves its
- * leader followed by half as many. Returns whether the rising won.
+ * band, and a governor's levies who follow him; the rest of its people stand aside, and those who still love their master
+ * fight beside his troops ("A garrison keeps a town only as its people let it"). The loser loses men as battles say and the
+ * winner as a winner does, the dead among them and the rest run; beaten troops of the master stay where they stand, in
+ * land that answers to another now, and a rising beaten leaves its leader followed by half as many. Returns whether the
+ * rising won.
  */
 function risingWins(e: TurnEngine, id: string, holder: Power, leader: Character | null, troops: Unit[], levies: Unit[], seeing: (extra: Power[]) => Power[]): boolean {
   const S = e.s;
@@ -558,26 +559,21 @@ function risingWins(e: TurnEngine, id: string, holder: Power, leader: Character 
   const love = loveOf(e, id, holder);
   const risen = risenMen(e, id, holder, leader);
   const loyal = love > 0 ? idiv(people.men * Math.min(100, love), 100 * D.loyalShare) : 0;
-  // The levies who follow him fight beside the men who rise.
+  // The levies who follow him fight beside the men who rise, as his band does.
   for (const u of levies) u.men = menIn(u);
+  const band = leader === null ? null : e.bandOf(leader);
+  const banded = band !== null && band.province === id && !band.ship ? band : null;
+  const followers: { men: number }[] = banded !== null ? [...levies, banded] : levies;
+  const own = risen - (banded?.men ?? 0);
   const rising = wallMenOf(risen, 100) + levies.reduce((a, u) => a + shareOfFull(u.kind, u.men), 0);
   const garrison = troops.reduce((a, u) => a + shareOfFull(u.kind, u.men), 0) + wallMenOf(loyal, 100);
   const who = leader === null ? "with nobody at their head" : `behind ${leader.name}`;
   if (garrison >= rising) {
-    // Put down: the men who rose (and the levies who followed him) lose as a beaten side does, the dead among them, and the
-    // man who led them is followed by half as many.
+    // Put down: the men who rose, his band and the levies who followed him lose as a beaten side does, the dead among them,
+    // and the man who led them is followed by half as many.
     const x = battleLosses(garrison, rising);
-    const lost = idiv(risen * x.loserPercent, 100);
-    e.killSettled(id, idiv(idiv(lost * BattleData.dead, 100) * 1000, Math.max(1, people.settled)), idiv(idiv(lost * (100 - BattleData.dead), 100) * 1000, Math.max(1, people.settled)));
-    // The levies who followed him were on the beaten side too: they lose as the men who rose do, the dead among them and
-    // the rest run.
-    let fell = lost;
-    for (const u of levies) {
-      const gone = idiv(u.men * x.loserPercent, 100);
-      people.loose += gone - idiv(gone * BattleData.dead, 100);
-      u.men = Math.max(1, u.men - gone);
-      fell += gone;
-    }
+    const fell = idiv((own + followers.reduce((a, f) => a + f.men, 0)) * x.loserPercent, 100);
+    risenLose(e, id, fell, own, followers);
     for (const u of troops) u.men = Math.max(1, u.men - idiv(idiv(fell * x.winnerShare, 100) * u.men, Math.max(1, troops.reduce((a, t) => a + t.men, 0))));
     const book = S.ledger.tryGet(id);
     if (leader !== null && book !== undefined && book.has(leader.id)) book.set(leader.id, idiv(book.get(leader.id), 2));
@@ -588,12 +584,10 @@ function risingWins(e: TurnEngine, id: string, holder: Power, leader: Character 
   // The rising wins: the master's troops lose as a beaten side does, the dead among them and the rest run; a unit left with
   // nobody is gone, its savings the people's spoil.
   const x = battleLosses(rising, garrison);
-  // The winners lose men too, as a battle's winner does: of the men who rose, the dead among them and the rest run.
+  // The winners lose men too, as a battle's winner does: the men who rose, his band and his levies, by their number.
   let beaten = 0;
   for (const u of troops) beaten += idiv(u.men * x.loserPercent, 100);
-  const theirs = idiv(beaten * x.winnerShare, 100);
-  if (theirs > 0 && people.settled > 0)
-    e.killSettled(id, idiv(idiv(theirs * BattleData.dead, 100) * 1000, people.settled), idiv(idiv(theirs * (100 - BattleData.dead), 100) * 1000, people.settled));
+  risenLose(e, id, idiv(beaten * x.winnerShare, 100), own, followers);
   for (const u of troops) {
     const lost = idiv(u.men * x.loserPercent, 100);
     people.loose += lost - idiv(lost * BattleData.dead, 100);
@@ -605,6 +599,25 @@ function risingWins(e: TurnEngine, id: string, holder: Power, leader: Character 
   }
   e.tell(holder, id, "Battle", "A garrison beaten", `The people of ${name} rose ${who} and beat your troops there.`);
   return true;
+}
+
+/**
+ * Those who rose lose `lost` men in all, shared by their number: `own`, the land's own men (the dead among them, the rest
+ * loose), and the band and levies who followed their leader (the same, each keeping a man at least).
+ */
+function risenLose(e: TurnEngine, id: string, lost: number, own: number, followers: { men: number }[]): void {
+  const all = own + followers.reduce((a, f) => a + f.men, 0);
+  if (lost <= 0 || all <= 0) return;
+  const people = e.peopleOf(id);
+  const theirs = idiv(lost * own, all);
+  if (theirs > 0 && people.settled > 0)
+    e.killSettled(id, idiv(idiv(theirs * BattleData.dead, 100) * 1000, people.settled), idiv(idiv(theirs * (100 - BattleData.dead), 100) * 1000, people.settled));
+  for (const f of followers) {
+    const gone = Math.min(f.men - 1, idiv(lost * f.men, all));
+    if (gone <= 0) continue;
+    people.loose += gone - idiv(gone * BattleData.dead, 100);
+    f.men -= gone;
+  }
 }
 
 /**

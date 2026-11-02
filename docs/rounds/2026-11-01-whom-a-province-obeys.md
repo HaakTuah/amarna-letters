@@ -126,6 +126,15 @@ Each with the principle it rests on.
 26. **The master's weakness weighs only against a rising** ("the master's weakness ... not an entry in the ledger but the
     moment, when a low standing becomes a rising"): against a foreign king's troops, his beaten armies already count as the
     force he has left, so his losses are not counted twice.
+27. **A walled town with no ruler opens only to troops within its walls, or to a siege** (the escalation helper's look;
+    "Behind walls they defend the city too"; built in round 2, now in the rulebook and the note): in held land troops at
+    the gates weigh against its master, so only the people's love for them opens the gates; with no master the floor alone
+    stands against them, and a quarter weight from the gates would let in any army its people do not hate.
+28. **Script kings stir where their army stands among the people, their homeland too** (the escalation helper's look;
+    "outside help: a rival's gold, which enters the ledger as his giving"; Every feature is every seat's): a rival's love
+    weighs only once his men are there, and fear alone weighs at most a native house's starting standing, so love is what
+    carries a land his army already stands in and cannot cow; item 17's rule of stirring only conquered land, made when
+    stirring fed unrest, no longer fits.
 
 ## Design questions
 
@@ -183,7 +192,7 @@ the audit's script finds.
 | Remnants folded (`fold`) | 135 times in 48 games | 135 |
 | Grain handed out (`feed`, scripts' and the land play's) | 74,255 in 50 games | every one given |
 | Commanders and governors turning with the men who follow them (`defect`) | 22 in 13 games | 22 |
-| A rival's gold stirring a people (`stir`) | 36 seasons in 10 games | |
+| A rival's gold stirring a people (`stir`) | 36 seasons in 10 games; after the escalation helper's fix, 32 seasons in 5 of 5 games (5 games, seed 1) | 1 province won (`stir-won`), against 0 before |
 
 Few led revolts break out: the claimants of 1346 start graded below their kings (`stake` 30 against `home` 100 or `held`
 40, reading 4 and the sources' grades), so they lead only where their king's standing has fallen far, which is the rule
@@ -270,23 +279,43 @@ stirring had no success count. **All three fixed** in `ae1095c` (and a `stir-won
 **answered** on the thread: the code is the design ("Gubla now answers to Aziru: his men stand at its gates"; troops at the
 gates weigh only as next door, so love must do the rest), the rulebook was wrong and is fixed (`50ef2ac`), with a test.
 
-**Stirring never wins** (round 3's point 3, measured): 20 games on `ae1095c`, stirring 21 seasons, `stir-won` 0. Two script
-patches since, both pushed (`3c3f5b1`): kings stir where their armies can follow (102 seasons of stirring, still 0 won),
-and their armies weigh a watched, stirred province 1.3 times as a target (`WooedWorth`, `tactics.ts`); that run's result
-is not in yet.
+**Stirring never won** (round 3's point 3, measured): 20 games on `ae1095c`, stirring 21 seasons, `stir-won` 0; on
+`7319705` (`3c3f5b1`'s patch: stir next to the armies, `WooedWorth`), 102 seasons, still 0.
+
+**The escalation helper's look (2 November 2026, after round 3; Opus).**
+
+- Design 1 and Codex 1 (a beaten governor's followers): **fixed** in `ae1095c`, confirmed (`risingWins`; the test's levy
+  ends between 2,000 and 4,000). Design 2 (rulebook and note): **fixed**. Design 3: the count was there, the success was
+  not (below).
+- Codex 2 (a walled town and troops at its gates): **the answer stands.** Fear from before unstormed walls weighs as next
+  door, so only love opens the gates, as the design's own news line has it ("Gubla now answers to Aziru: his men stand at
+  its gates, and Pharaoh has sent no grain in three years"); the rulebook says so since `50ef2ac`, and its test proves both
+  halves. Found beside it: a walled town with no ruler opens to no troops at its gates (built in round 2), said in neither
+  the rulebook nor the readings; now in both (reading 27).
+- Stirring never won for three causes in the scripts, none in the rule. (1) `WooedWorth` and the one-spy-at-a-time guard
+  read `CharacterView.where` for "watching ...", which is the duty's text (a posted spy's `where` is "in <province>"), so
+  the weight never applied and a king sent a fresh spy with gold to the same spot every season (566 spies sent in 20
+  games). (2) Kings stirred land next to their armies, of foes they would not march on: in seed 1 their armies stood next
+  door up to 19 seasons and never in it. (3) Item 17's rule of stirring only conquered land kept them out of the homelands
+  where their armies stood longest: in seed 1, 159 army-seasons stood in another's land that did not come over (24 of them
+  within 50 of the margin; Tyre in Magidda 28 seasons, Qadesh in Amurru 23, Hatti among the Kaska 17). **Fixed**
+  (`watchedProvinces`, `stirs`, `stirGold` in `bots/freedom.ts`; `statecraft-court.ts`): one spy at a time in each king's
+  land, with gold where the king's own army stands in the land of a king he would fight, not by leave, not come over and
+  not besieged, the homeland too (reading 28); a test that a court reads its spies' provinces. 5 games, seed 1: stirring
+  32 seasons in 5 games, 107 spies sent, **1 province won**.
+- Found too, the same fault as design 1: a chief's band in a rising lost nothing, beaten or winning, its share taken from
+  the land's people, and a winning governor's levies lost nothing. **Fixed**: `risenLose` shares the losses by number;
+  a test. Stale lines fixed: `model/unrest.ts`'s force scale ("a tenth"), note 41's `GameState.stirred` and its stirring
+  play, the batch's line for `--freedom-play-half`; the stir-won test now drives a posted spy instead of writing the
+  event's text by hand.
 
 ## Where to pick up (hand-off, 2 November 2026, context)
 
 The builder's context is large; this session stops at a passed gate (round 3's fixes pushed, CI green to `50ef2ac`).
 
-- **The review is past round 3**: the escalation helper (`model: "opus"`, `effort: "xhigh"`) takes what is open, with a
-  self-contained brief: Codex round 3 point 2 (answered, the helper rules on the answer), design round 3 points 1-3
-  (fixed; the helper confirms), and stirring's success (below). Whatever it leaves open: the PR stays a blocked draft,
-  `docs/BUILD-PROGRESS.md` marks it blocked, and it goes under "Questions for Haakon".
-- **Stirring**: rerun `scripts/sim.sh --games 20 --seed 1` on `3c3f5b1` and read `stir` and `stir-won` in the signals.
-  If it still never wins, either teach the scripts to march where they stirred (the tactics' targets) or report it as a
-  feature whose users never succeed and take it to the helper; put the count in the table above ("A rival's gold
-  stirring a people").
+- **The review is past round 3**, and the escalation helper's look (above) left nothing open.
+- **Stirring**: rerun `scripts/sim.sh --games 20 --seed 1 --verify-replay` on this head for the table's count of `stir`
+  and `stir-won` (5 games gave 32 seasons and 1 won).
 - **Benchmarks on `ae1095c`** (20 games, every replay exact): no kingdom fell in its first two seasons in 20 of 20; 319
   fell in all; first fall season 4. Rerun once more after the stirring patch, and the use-against-ignore runs if the
   scripts' play changed much (folding pays 29-21; the ledger's play does not yet, 21-29).
