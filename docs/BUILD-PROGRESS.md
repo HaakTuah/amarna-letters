@@ -78,11 +78,9 @@ fixed.
   with filters (calls, shadows, audits, human words), kept clean by design: failures logged as kind and code, each
   record giving only its listed fields, and without human words a game with a human seat blanks every text and still
   replays. Report: `docs/rounds/2026-11-02-export-audit.md`; note: `docs/design/50-the-export.md`.
-- **The export's stand-in names and its gate** (the owner, 2 November 2026: "Yes to everything, expertly!", to #427 and
-  #424; "Logging and replay" under Engine and models). Under the human-words filter, a name a model invents in its
-  orders becomes a stand-in (Name-1, Name-2), the same wherever it appears, real names kept, and the export still
-  replays exactly; and while a human plays, "Export log" is offered only when the god view is. The canary test's
-  export part grows a line for each.
+- ~~**The export's stand-in names and its gate**~~ (done, #436): under the human-words filter a name made up in an
+  order (a pitch's name, `goAs`, a claimed realm) is Name-1, Name-2, real names kept, and it still replays; "Export
+  log" is offered only when the god view is; the canary grows a line for each (`docs/rounds/2026-11-02-export-stand-ins.md`).
 - ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
   as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
   token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:
