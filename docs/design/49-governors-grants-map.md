@@ -14,6 +14,8 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 44 (43 wi
   (`turnsWith`), ruling them from the first (his seat if it goes); the rest stay his king's. Stepping down from one, he
   keeps the others; losing or giving up the province of his seat, he keeps the rest and sits in the first of them. His
   king's view shows the old seat until word of the move can be read at his court (`seatWas`, `seatHeard`, `seatKnown`), for a province granted beside him then too, whose word goes by the old seat.
+  A governor loyal to his king (not one who `wants` the land, as for his mood reports) writes from his new seat that he
+  sits there now (#480, `seatLetters` in `turn/unrest.ts`): the king knows the move when that letter comes, if sooner.
   Orders on governorships (`govern`, `unseat`, `crown`) are checked and carried out against them as the court knows them
   (`governorsKnown`): one ended out of sight still takes word of a recall, and a grant to him fails, told by the road; one recalled by an order of the same season is no longer his to grant beside or to crown him in.
 

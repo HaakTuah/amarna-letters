@@ -4,7 +4,7 @@ import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { cmpStr, split } from "../core/text.ts";
-import { seasonOfTurn, StartWalls, WorldMap } from "../model/map.ts";
+import { seasonOfTurn, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
@@ -14,8 +14,8 @@ import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf, worksOfPower } from "../model/works.ts";
-import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, upkeepOf, wallsOf, type GameState, type Known, type Unit } from "../model/state.ts";
-import { PointsPerDay, wordSeasons } from "../model/travel.ts";
+import { alive, huntNow, inboxOf, isAlive, ledger, ownedBy, upkeepOf, wallsOf, type GameState, type Unit } from "../model/state.ts";
+import { PointsPerDay } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
 import { countOf } from "../model/counts.ts";
@@ -54,7 +54,10 @@ import {
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
-import { courierSeasons, courtOf } from "./court.ts";
+import { courtOf } from "./court.ts";
+import { knownHolders, ownerAt, SeenSource, sight, wallsKnown, WordSource } from "./known-land.ts";
+
+export { SeenSource, WordSource };
 import { ageBand } from "./ending.ts";
 import { omenLine } from "./omens.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
@@ -92,81 +95,6 @@ function looksDoomed(owner: Dict<string, Power | null>, fallen: Iterable<Power>,
   if ([...fallen].includes(p) || owner.getOrDefault(m.capital(p).id, null) !== p) return true;
   const home = m.homeOf(p);
   return 2 * home.filter((x) => owner.getOrDefault(x.id, null) === p).length < home.length;
-}
-
-/**
- * Provinces a power can see units in: its own lands, where its units stand, and next to any of those. A spy watching a
- * province adds nothing live: its reports travel home by road like any other (item 9, answering item 7b's review), and
- * bring the troops it saw and who held the land when it wrote.
- */
-function sight(s: GameState, map: WorldMap, p: Power): HSet<string> {
-  // Item 13 ("Distance inside your own realm"): what a king sees as current is what a courier could bring him within the
-  // season; his land and troops farther off he knows by their last report ({@link knownHolders}, the units' own reports).
-  const court = courtOf(s, map, p);
-  const near = (x: string): boolean => courierSeasons(s, map, court, x) === 0;
-  const core = new HSet<string>(ownedBy(s, p).filter(near));
-  for (const u of s.units) if (u.power === p && near(u.province)) core.add(u.province);
-  const all = new HSet<string>(core);
-  for (const id of core) for (const n of map.neighbors(id)) all.add(n);
-  return all;
-}
-
-/**
- * The walls as a court knows them, by province (a province with none left out): those standing now where it can see
- * troops ({@link sight}), and elsewhere as it last saw them (GameState.wallsSeen; at the start, as the map gives them).
- */
-function wallsKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, number> {
-  const sightNow = seen ?? sight(s, map, p);
-  const last = s.wallsSeen.tryGet(p);
-  const known = last !== undefined ? last.clone() : new Dict<string, number>([...StartWalls.entries()].filter(([, v]) => v > 0));
-  for (const id of sightNow) {
-    const level = s.walls.tryGet(id);
-    if (level !== undefined) known.set(id, level);
-    else known.delete(id);
-  }
-  return known;
-}
-
-/** Who held a province after a turn's moves, by the log of changes (GameState.ownerLog); at the start, its homeland's king. */
-function ownerAt(s: GameState, map: WorldMap, province: string, turn: number): Power | null {
-  let o = map.get(province).home;
-  for (const c of s.ownerLog) if (c.province === province && c.turn <= turn) o = c.owner;
-  return o;
-}
-
-/** What a court knows was so of a province it did not see itself: word of it, from its land, reaches the court that late. */
-export const WordSource = "word from abroad";
-export const SeenSource = "seen";
-
-/**
- * Who a court knows holds each land province, with the season it was so and where the knowledge came from (build order
- * item 7b, "Hidden by default"): what it sees now ({@link sight}), as it is; elsewhere the newest of what word has brought
- * (the holder as of the newest season whose word from there, setting out then, has reached the court by now) and what its own people
- * saw or brought home (GameState.known).
- */
-function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, Known> {
-  const sightNow = seen ?? sight(s, map, p);
-  const stored = s.known.tryGet(p);
-  const court = courtOf(s, map, p);
-  const out = new Dict<string, Known>();
-  for (const x of map.landProvinces) {
-    if (sightNow.has(x.id)) {
-      out.set(x.id, newKnown({ owner: s.owner.getOrDefault(x.id, null), turn: s.turn, source: SeenSource }));
-      continue;
-    }
-    // The newest season whose word, setting out then, has arrived by now (as word of a fall is timed: TurnEngine.word).
-    let asOf = 0;
-    for (let d = s.turn - 1; d >= Math.max(1, s.turn - 6); d--)
-      if (d + wordSeasons(s.config.travelDays, map, x.id, court, d) <= s.turn) {
-        asOf = d;
-        break;
-      }
-    let best = newKnown({ owner: ownerAt(s, map, x.id, asOf), turn: asOf, source: WordSource });
-    const own = stored?.tryGet(x.id);
-    if (own !== undefined && own.turn > best.turn) best = own;
-    out.set(x.id, best);
-  }
-  return out;
 }
 
 /** A sleeping seat wakes to at most this many items of the news of the seasons it slept. */
