@@ -3,7 +3,7 @@
 // pull-request check, .github/workflows/licences.yml). The web build imports `notices` to write the third-party notices
 // shipped with the game (src/web/vite.config.ts). Node's own modules only, so the check needs no install.
 import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -73,9 +73,10 @@ export function licenceOk(expression, allow) {
 }
 
 /**
- * Every package the lockfile installs, by its own name (an alias, `"x": "npm:y@1"`, is y). A link to one of the declared
- * workspaces is the owner's own code, which carries no licence; any other link (a `file:` package) is checked by its
- * target's licence and never takes a named package's data or font licences, so a local package cannot slip past.
+ * Every package the lockfile installs. A link to one of the declared workspaces is the owner's own code, which carries no
+ * licence; any other link (a `file:` package) is checked by its target's licence. Only a package fetched from the npm
+ * registry under its own name may take a named package's data or font licences (`registryName`): a lockfile's `name`
+ * field is the PR author's to write, the registry address of what npm installs is not.
  */
 function lockfilePackages() {
   const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
@@ -84,9 +85,15 @@ function lockfilePackages() {
     .filter(([path, entry]) => path.includes("node_modules/") && !(entry.link && workspaces.has(entry.resolved)))
     .map(([path, entry]) => {
       const target = entry.link ? lock.packages[entry.resolved] ?? {} : entry;
-      const name = target.name ?? path.slice(path.lastIndexOf("node_modules/") + 13);
-      return { name, version: target.version, license: target.license, local: Boolean(entry.link) };
+      const name = path.slice(path.lastIndexOf("node_modules/") + 13);
+      return { name, version: target.version, license: target.license, registryName: entry.link ? undefined : registryName(entry.resolved) };
     });
+}
+
+/** The package a registry tarball address names (`https://registry.npmjs.org/<name>/-/<file>.tgz`), or undefined. */
+export function registryName(resolved) {
+  const match = /^https:\/\/registry\.npmjs\.org\/((?:@[^/]+\/)?[^/@]+)\/-\/[^/]+\.tgz$/u.exec(resolved ?? "");
+  return match?.[1];
 }
 
 /**
@@ -113,10 +120,12 @@ const ASSETS = [
  */
 export function notices(dirs) {
   const { allowedFor } = policy();
+  const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8")).packages;
+  const fetchedAs = (dir) => registryName(lock[relative(root, dir).split(sep).join("/")]?.resolved) ?? "";
   const packages = [...new Set(dirs)]
     .map((dir) => ({ dir, ...JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) }))
     .sort((a, b) => a.name.localeCompare(b.name));
-  const off = packages.filter((p) => !licenceOk(p.license, allowedFor(p.name)));
+  const off = packages.filter((p) => !licenceOk(p.license, allowedFor(fetchedAs(p.dir))));
   if (off.length) throw new Error(`Licences off the list (SECURITY.md, point 10): ${off.map((p) => `${p.name} (${p.license ?? "none"})`).join(", ")}`);
   const rule = "-".repeat(80);
   return [
@@ -137,7 +146,7 @@ export function notices(dirs) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const { allowedFor } = policy();
   const all = lockfilePackages();
-  const off = all.filter((p) => !licenceOk(p.license, allowedFor(p.local ? "" : p.name)));
+  const off = all.filter((p) => !licenceOk(p.license, allowedFor(p.registryName ?? "")));
   for (const p of off) console.error(`off the list: ${p.name}@${p.version} (${p.license ?? "no licence"})`);
   console.log(`${all.length} packages checked, ${off.length} off the list (SECURITY.md, point 10; .github/licences.yml)`);
   process.exit(off.length ? 1 : 0);
