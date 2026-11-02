@@ -164,6 +164,32 @@ describe("SeatWordTests", () => {
     Assert.equal(first, d.takenKnown);
   });
 
+  test("A governor whose seat moved writes where he now sits if loyal; one who wants the land says nothing (#480)", () => {
+    const run = (loyal: boolean): [number, number, boolean] => {
+      const [s, id] = governed();
+      const e = new TurnEngine(s);
+      const c = s.characters.find((x) => x.id === id)!;
+      if (!loyal) c.traits = newTraits({ loyalty: 10, greed: 50, ambition: 90, courage: 60, competence: 50 });
+      e.setOwner("ur", "Egypt");
+      s.governors.push(newGovernor({ province: "ur", seat: "nippur", character: id, power: "Egypt", from: 0 }));
+      s.turn += 3;
+      e.setOwner("nippur", "Babylonia");
+      e.governorsSeason();
+      const g = s.governors.find((x) => x.province === "ur")!;
+      // Word of the loss is slow (a road cut, say): his own letter would be sooner.
+      g.seatHeard = s.turn + 6;
+      e.obeySeason();
+      const wrote = s.journeys.some((j) => (j.text ?? "").includes("now sits at Ur")) || inboxOf(s, "Egypt").some((i) => i.body.includes("now sits at Ur"));
+      return [s.governors.find((x) => x.province === "ur")?.seatHeard ?? -1, e.heardAt("Egypt", "ur"), wrote];
+    };
+    const [heard, letter, wrote] = run(true);
+    Assert.equal(letter, heard);
+    Assert.true(wrote);
+    const [kept, , lied] = run(false);
+    Assert.true(kept > letter);
+    Assert.false(lied);
+  });
+
   test("A kingship's answer leaves the grant pending in the view until its notice is read", () => {
     const [s, id] = governed();
     new TurnEngine(s).grantCrown("Egypt", crown(id, ["nippur"], 1000));
