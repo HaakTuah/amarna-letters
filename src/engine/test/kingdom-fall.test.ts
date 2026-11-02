@@ -46,7 +46,7 @@ describe("KingdomFallTests", () => {
     for (let i = 0; i < 8 && fallen(); i++) season(s, new Dict());
   }
 
-  test("A capital stormed brings down its kingdom and the rest of its land falls lawless", () => {
+  test("A capital stormed and then obeying its stormers brings down its kingdom, and the rest of its land falls lawless", () => {
     let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
     // Apasa's walls thrown down to level 1, its troops gone; Hatti's armies in Lukka and Mira.
     s.walls.set("apasa", 1);
@@ -62,6 +62,11 @@ describe("KingdomFallTests", () => {
         Arzawa: { orders: [raise("seha", "Army")] },
       }),
     );
+    // Item 17++: Hatti's men stand within its walls; Apasa, its people turned from their king for the test, answers to
+    // Hatti as the next season begins, and the kingdom falls then.
+    Assert.equal("Arzawa", s.owner.get("apasa"));
+    s.ledger.get("apasa").set("Arzawa", 0);
+    season(s, subs({ Arzawa: { orders: [raise("seha", "Army")] } }));
 
     Assert.contains("Arzawa", s.eliminated);
     Assert.equal("Hatti", s.owner.get("apasa"));
@@ -72,7 +77,7 @@ describe("KingdomFallTests", () => {
     Assert.null(unitAt(s, "seha"));
     Assert.doesNotContain(inboxOf(s, "Arzawa"), (i) => i.title === "Levy raised" || i.title === "Not enough gold");
     let fall = Assert.single(s.falls);
-    Assert.equal(["Arzawa", "Hatti", "apasa", 1], [fall.power, fall.conqueror!, fall.capital, fall.turn]);
+    Assert.equal(["Arzawa", "Hatti", "apasa", 2], [fall.power, fall.conqueror!, fall.capital, fall.turn]);
     Assert.equal([], fall.land);
     Assert.equal(
       "With Apasa you took the kingdom of Arzawa: its king has fallen, his armies are their own commanders' or disband as word reaches them, and none of his other land is yours; the rest, Seha River Land, comes apart as word of the fall reaches it by road: where your troops stand then it is yours, held by force; a governor there rules his province in his own name, and the rest falls lawless.",

@@ -8,7 +8,7 @@ import { removeAll, Assert, walled, oldWorld } from "../../engine/test/support.t
 
 // <summary>What a king reads of walls, sieges and land being absorbed (Build order item 5), in the rulebook and his view.</summary>
 describe("SiegeTextTests", () => {
-  test("The view gives the walls standing the sieges known and the land being absorbed", () => {
+  test("The view gives the walls standing and the sieges known, and no marks of how land changed hands", () => {
     let s = walled(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }))), "suhu", 2);
     first(s.units, (u) => u.province === "durkurigalzu").province = "suhu";
     let e = new TurnEngine(s);
@@ -30,9 +30,8 @@ describe("SiegeTextTests", () => {
       "SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges suhu (held by no one, walls 2): worn down 1 of 2, since turn 1.",
       babylon,
     );
-    // Assyria took Dur-Kurigalzu from Babylon by force: a third of it counts this season, which Assyria reads, and nobody else
-    // (how it changed hands is not public).
-    Assert.contains("durkurigalzu (taken by force in turn 1: yields and counts a third of its yield this season) [Assyria army]", situation(Views.for(s, "Assyria")));
+    // Assyria took Dur-Kurigalzu from Babylon by force: since item 17++ how firmly it obeys is nobody's number to read.
+    Assert.contains("durkurigalzu [Assyria army]", situation(Views.for(s, "Assyria")));
     Assert.contains("durkurigalzu [Assyria army]", babylon);
     Assert.doesNotContain("taken by force", babylon);
     Assert.doesNotContain("taken by force", situation(Views.for(s, "Egypt")));
@@ -41,10 +40,8 @@ describe("SiegeTextTests", () => {
   });
 
   test.each([
-    ["Strength is the wealth of your realm, reckoned in shekels: 10 x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; land you conquered counted as far as you have absorbed it)"],
-    [
-      "Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you its tax and its mines' gold, and counts in your strength, a third of its full worth in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third.",
-    ],
+    ["Strength is the wealth of your realm, reckoned in shekels: 10 x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; each province counted as far as it obeys you)"],
+    ["Land is held, not owned: a province yields you its tax and its mines' gold, and counts in your strength, as fully as it obeys you (UNREST AND FREE CITIES)"],
     ["- apasa: Apasa; coast; waters apasawaters; homeland of Arzawa; today Ephesus (Selçuk); capital; yield 40; walls 2. armies: seha, mira, lukka. fleets: seha, lukka, apasawaters."],
     ["- Raising and keeping walls: walls are a level like everything built, with upkeep, decay and projects (BUILDING AND POLICING). An earthquake throws the walls of the province it strikes down a level."],
     [
@@ -60,11 +57,7 @@ describe("SiegeTextTests", () => {
     [
       "You see the walls standing now only where you can see troops; elsewhere LANDS in your view gives them as your court last saw them (at the start, as THE MAP gives them), since walls can be raised, or thrown down by an earthquake or unpaid upkeep, out of your sight.",
     ],
-    ["LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is not shown."],
-    [
-      "A province of your own homeland that you take back or are ceded is yours in full at once, and so is land ceded to you, unless its giver was still absorbing it: then it goes on being absorbed under you as it would have been under him.",
-    ],
-  ] as const)("The rulebook states walls by place and slow absorption %s", (rule: string) => {
+  ] as const)("The rulebook states walls by place and land as held, not owned %s", (rule: string) => {
     Assert.contains(rule, leaderRules(true, newGameConfig()));
   });
 

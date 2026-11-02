@@ -31,6 +31,7 @@ import {
   renderClauses,
   checkClauses,
   withinAuthority,
+  nameFrom,
 } from "@amarna/engine";
 import { AuthorityPlay } from "./authority.ts";
 import { newPresentResult, type EnvoyContext, type ICharacterMind, type MindContext, type PresentResult } from "../contracts.ts";
@@ -158,6 +159,7 @@ export class ScriptMind implements ICharacterMind {
       case "Chief":
       case "Reports":
       case "Unheard":
+      case "Rising":
         // A script chief or spy decides by its traits, as the engine weighs them when the season comes ("Bold or careful, one goal").
         return Promise.resolve(newMindReply());
       default:
@@ -359,7 +361,7 @@ function pitch(ctx: MindContext): MindReply {
     const as = name ?? c.name;
     return newMindReply({ text: `I am ${as}, envoy of the king of ${land(envoyOf)}, who sends greetings to his brother.`, number: 0, name, claimsToServe: envoyOf });
   }
-  const lines = [name === null ? `I am ${c.name} of ${c.origin}, once ${calling(c)}.` : `I am ${name}.`];
+  const lines = [name === null ? `I am ${nameFrom(c)}, once ${calling(c)}.` : `I am ${name}.`];
   // What it says it can do is what it believes ("Seeing oneself"): the overconfident claim more.
   const believed = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
   if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("No envoy knows the roads and courts as I do; kings have praised my eloquence, and I have never failed a master.");

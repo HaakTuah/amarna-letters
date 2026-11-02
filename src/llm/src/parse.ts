@@ -34,6 +34,7 @@ import {
   claimName,
   newAuthority,
   disband,
+  fold,
   tax,
   welcome,
   expel,
@@ -420,6 +421,8 @@ function unit(u: Node): Order | null {
       return disband(at);
     case "settle":
       return disband(at, true);
+    case "fold":
+      return fold(at, target);
     case "hold":
       return hold(at);
     case "besiege":
@@ -475,6 +478,8 @@ function other(x: Node): Order | null {
       return purchase(province, amount);
     case "feed_town":
       return feed(province, amount);
+    case "feed_town_in_own_name":
+      return feed(province, amount, true);
     case "caravan": {
       const to = empty(S(x, "to"));
       return caravan(province, to !== null ? prov(to) : "", amount);

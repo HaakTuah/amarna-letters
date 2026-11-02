@@ -5,7 +5,7 @@ import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema, type TabletProposal, TabletProposalSchema } from "./records.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
-import { type Skills, SkillsSchema, type UnheardChoice, UnheardChoiceSchema, type UnheardView, UnheardViewSchema, type BridgeView, BridgeViewSchema } from "./people.ts";
+import { type Skills, SkillsSchema, type UnheardChoice, UnheardChoiceSchema, type UnheardView, UnheardViewSchema, type BridgeView, BridgeViewSchema, type RisingView, RisingViewSchema, type RisingChoice, RisingChoiceSchema } from "./people.ts";
 import {
   type ChiefChoice,
   ChiefChoiceSchema,
@@ -23,7 +23,7 @@ import {
 import { type CharacterView, CharacterViewSchema, type TabletView, TabletViewSchema, newCharacterView } from "./views.ts";
 
 /** Text the engine needs written by a character or the narrator before it can be delivered. */
-export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory", "Questioned", "Life", "Chief", "Reports", "Unheard", "Bridge"] as const;
+export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory", "Questioned", "Life", "Chief", "Reports", "Unheard", "Bridge", "Rising"] as const;
 export type MindTask = (typeof MindTaskValues)[number];
 
 export interface MindRequest {
@@ -59,6 +59,8 @@ export interface MindRequest {
   unheard: UnheardView | null;
   /** Item 12: a go-between in someone else's pay, with the envoy's words he passes on ("Bridge"). */
   bridge: BridgeView | null;
+  /** Item 17++: a man of standing whose province's people would follow him against its master ("Rising"). */
+  rising: RisingView | null;
   /**
    * For a spy's report: the copies of tablets from the watched court's archive that came home with it, now in the court's archive.
    * For a captive questioned (item 10+b): the tablets it gave way on (tablet ids).
@@ -85,6 +87,7 @@ export function newMindRequest(init: Partial<MindRequest> = {}): MindRequest {
     reports: null,
     unheard: null,
     bridge: null,
+    rising: null,
     copyIds: [],
     ...init,
   };
@@ -108,6 +111,7 @@ export const MindRequestSchema: ObjSchema<MindRequest> = obj("MindRequest", newM
   reports: () => ReportsViewSchema,
   unheard: () => UnheardViewSchema,
   bridge: () => BridgeViewSchema,
+  rising: () => RisingViewSchema,
   copyIds: list(S),
 });
 
@@ -147,6 +151,8 @@ export interface MindReply {
   reports: ReportsChoice | null;
   /** Item 12: an envoy nobody understands, choosing to stay, go home or say he was heard; null: the script's traits decide. */
   unheard: UnheardChoice | null;
+  /** Item 17++: whether he leads a rising he was asked of; null: the script's traits decide. */
+  rising: RisingChoice | null;
 }
 
 export function newMindReply(init: Partial<MindReply> = {}): MindReply {
@@ -164,6 +170,7 @@ export function newMindReply(init: Partial<MindReply> = {}): MindReply {
     chief: null,
     reports: null,
     unheard: null,
+    rising: null,
     ...init,
   };
 }
@@ -182,6 +189,7 @@ export const MindReplySchema: ObjSchema<MindReply> = obj("MindReply", newMindRep
   chief: () => ChiefChoiceSchema,
   reports: () => ReportsChoiceSchema,
   unheard: () => UnheardChoiceSchema,
+  rising: () => RisingChoiceSchema,
 });
 
 /** What the host replies at an audience. Every field but Speech is an action the engine checks. */

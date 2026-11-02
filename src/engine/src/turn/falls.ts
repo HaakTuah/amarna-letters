@@ -64,7 +64,6 @@ P.fallsSpread = function () {
       const seeing = (extra: Power[]): Power[] => [...new Set([...AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, this.map, x).has(id)), ...extra])];
       if (conqueror !== null && S.units.some((u) => u.province === id && u.power === conqueror)) {
         this.setOwner(id, conqueror);
-        this.takenByForce(id, conqueror);
         S.sieges = S.sieges.filter((x) => !(x.province === id && x.power === conqueror));
         this.tell(conqueror, id, "Battle", "Land held by force", `Word of the fall of ${land(p)} has reached ${name}, where your troops stand: it is yours, held by force.`);
         logEvent(S, "fall", `Word of the fall of ${land(p)} reached ${name}, and ${conqueror}'s troops there hold it.`, seeing([conqueror]), "fall-held");
@@ -76,7 +75,6 @@ P.fallsSpread = function () {
         continue;
       }
       this.setOwner(id, null);
-      this.takenByForce(id, null);
       lawless.push(name);
       logEvent(S, "fall", `Word of the fall of ${land(p)} reached ${name}, and it has fallen lawless, held by nobody.`, seeing([]), "fall-lawless");
     }

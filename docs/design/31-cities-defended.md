@@ -6,8 +6,8 @@ Item 11e's two fixes, each at its cause (`docs/intent/build-order/item-11.md`, t
 ## The men of a city defend its walls (`rules/adjudicator.ts`, `model/outcomes.ts`, `turn/people.ts`)
 
 - **The people's strength** (`TurnEngine.resistance`, in thousandths of a full unit): the province's men of fighting age
-  at home (`menAvailable`: those not away in a levy), as hostile as they are to the mover (100, or `hostileHome` 50 in
-  his own homeland), counted by their number as a unit's men count, `LandData.armyMen` (5,000) for one full unit. None in
+  at home (`menAvailable`: those not away in a levy), as hostile as they are to the mover (from item 17++ by their ledger:
+  100, plus half their standing with the holder, less half their standing with the mover, from 0 to 200), counted by their number as a unit's men count, `LandData.armyMen` (5,000) for one full unit. None in
   the mover's own land or for a guest. In open land the ground counts too (`resistanceOf`: twice on rough ground, half on
   open plain); in a walled province not the mover's they stand on the walls (`wallMenOf`, no ground: the walls are their
   help there).

@@ -8,6 +8,7 @@
  * number sets how many bands a land holds or how large they grow. A chief's share is his own gold. Its holder's armies
  * hunt it where they stand on his order or standing order. Everything is drawn from seeded streams ("Deterministic").
  */
+import { UnrestData } from "../model/unrest.ts";
 import { policeAt, policedShare, policePercent } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
@@ -376,6 +377,11 @@ P.bandsSeason = function () {
     const gold = besieged ? 0 : rate(m.purse);
     const grain = besieged ? 0 : rate(this.stores(b.province));
     const country = besieged ? rate(S.granary.getOrDefault(b.province, 0)) : 0;
+    // Item 17++: its people remember what the chief's men took from them ("a chief whose men robbed them is fought"): by the
+    // share of their purse and stores taken, as a sack is, and at least a point a season he robs them.
+    const stores = this.stores(b.province);
+    if (gold + grain + country > 0)
+      this.take(b.province, chief.id, Math.max(1, idiv(gold * UnrestData.sacked, Math.max(1, m.purse)) + idiv((grain + country) * UnrestData.sacked, Math.max(1, stores + S.granary.getOrDefault(b.province, 0)))));
     if (gold > 0) m.purse -= gold;
     if (grain > 0) this.takeFromStores(b.province, grain);
     if (country > 0) S.granary.set(b.province, S.granary.get(b.province) - country);

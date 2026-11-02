@@ -140,6 +140,19 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       return null;
     }
 
+    case "fold": {
+      const [why, unit] = ownUnit(order.unit);
+      if (why !== null || unit === null) return why;
+      const [whyInto, into] = ownUnit(order.into);
+      if (whyInto !== null || into === null) return whyInto === null ? null : `no troops of yours to join in ${order.into}: ${whyInto}`;
+      if (into === unit) return "a unit cannot fold into itself";
+      if (unit.commander !== null) return "it has a commander: relieve him first, or fold the other troops into his";
+      if (unit.hiredMen > 0) return "the band hired into it serves on its own terms: it cannot be folded into other troops";
+      if (into.kind !== unit.kind) return `an ${unit.kind === "Army" ? "army" : "fleet"} folds only into another ${unit.kind === "Army" ? "army" : "fleet"}`;
+      if (!Map.canMove(unit.kind, unit.province, into.province)) return `${Map.get(into.province).name} is not a march from ${Map.get(unit.province).name} for ${unit.kind === "Army" ? "an army" : "a fleet"}`;
+      return null;
+    }
+
     case "cede": {
       const cp = order;
       if (!Map.exists(cp.province)) return `there is no province called '${cp.province}'`;

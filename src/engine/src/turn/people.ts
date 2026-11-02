@@ -285,8 +285,10 @@ export function people(n: number): string {
 P.levyMen = function (province, n) {
   const x = this.peopleOf(province);
   if (menAvailable(this.s, province) < n) return false;
-  // Item 17: levies raised from it are a hardship its people remember, by the share of its men taken.
-  this.hardship(province, idiv(n * UnrestData.levy, Math.max(1, x.men)));
+  // Item 17++: levies raised from it are a taking its people remember of the hand that raised them, by the share of its
+  // men taken.
+  const holder = this.s.owner.getOrDefault(province, null);
+  if (holder !== null) this.take(province, this.handOf(province, holder), idiv(n * UnrestData.levy, Math.max(1, x.men)));
   shift(x, -n, -n);
   return true;
 };
@@ -354,15 +356,19 @@ P.killSettled = function (province, permille, loosePermille = 0) {
 
 /**
  * The people's resistance to an army of `mover` entering their province, in thousandths of a full unit: none in his own
- * land; otherwise its men of fighting age at home, as hostile as they are to him (less so to a king whose homeland it is),
- * by their number. In open land the ground counts with them; in a walled province they stand on its walls, and the walls
+ * land; otherwise its men of fighting age at home, as hostile as they are to him by their ledger (item 17++: what he gave
+ * and took there, and how they stand with the master he comes against), by their number. In open land the ground counts with them; in a walled province they stand on its walls, and the walls
  * multiply them in a storm instead (item 11e, "The people defend their land").
  */
 P.resistance = function (province, mover) {
   const S = this.s;
   const p = this.map.get(province);
   if (S.config.peopleDefence <= 0 || p.isSea || S.owner.getOrDefault(province, null) === mover) return 0;
-  const hostility = this.map.isHome(mover, p.id) ? LandData.hostileHome : 100;
+  // Item 17++: how hostile they are follows their ledger ("Loyalty is a ledger"): what the mover gave and took there, and
+  // how far they stand with the master he comes against, beside whose troops they fight.
+  const book = S.ledger.tryGet(province);
+  const holder = S.owner.getOrDefault(province, null);
+  const hostility = clamp(100 + idiv((holder !== null ? (book?.getOrDefault(holder, 0) ?? 0) : 0) - (book?.getOrDefault(mover, 0) ?? 0), 2), 0, 200);
   const men = menAvailable(S, province);
   return S.walls.getOrDefault(province, 0) > 0 ? wallMenOf(men, hostility) : resistanceOf(province, men, hostility);
 };

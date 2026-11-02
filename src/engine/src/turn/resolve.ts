@@ -4,7 +4,7 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
+import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
@@ -31,6 +31,8 @@ declare module "./core.ts" {
     resolveSeason(submissions: Dict<Power, TurnSubmission>): Dict<Power, ValidationResult>;
     resolveMovement(unitOrders: [Power, Order][]): void;
     updateOwnership(): void;
+    /** A remnant marches to the troops of its own side next to it and joins them (item 17++). */
+    foldUnit(p: Power, o: FoldOrder): void;
     resolveTransfers(cessions: [Power, CedeProvinceOrder][], gifts: [Power, GiftUnitOrder][]): void;
     raise(p: Power, r: RaiseOrder): void;
     capitalsTaken(): void;
@@ -137,6 +139,8 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is BuildOrder => o.type === "build")) this.setWorks(p, o);
   for (const [p, o] of all((o): o is RazeOrder => o.type === "raze")) this.raze(p, o);
   this.worksSeason();
+  // Item 17++: remnants folded into the troops next to them, once the season's moves are done.
+  for (const [p, o] of all((o): o is FoldOrder => o.type === "fold")) this.foldUnit(p, o);
   for (const [p, d] of all((o) => o.type === "disband")) {
     const unit = (d as Extract<Order, { type: "disband" }>).unit;
     const u = unitAt(S, unit);
@@ -268,7 +272,7 @@ P.resolveMovement = function (unitOrders) {
   for (const [id, prov] of result.newPositions) if (S.units.find((x) => x.id === id)?.province !== prov) this._movedNow.add(id);
   for (const [id, prov] of result.newPositions) S.units.find((x) => x.id === id)!.province = prov;
   this.loseToWinter(lostToWinter, sightBefore);
-  // Walls stormed: the province is taken when land changes hands, and its walls fall a level then.
+  // Walls stormed: the stormers break in, its walls a level lower (updateOwnership); whom it obeys is the season's rule.
   for (const a of result.assaults.filter((a) => assaultStormed(a)))
     logEvent(
       S,
@@ -399,39 +403,53 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
 }
 
 /**
- * Land changes hands: a province passes to the power whose unit stands in it after movement, if it has no walls, or if
- * that unit stormed them this season (they then fall a level). A unit standing within walls it did not storm takes
- * nothing: a guest, or an army before a siege, which takes the city only when the siege wears it down.
+ * Walls stormed (item 17++, "Whom a province obeys": conquest is force tipping it, and the season's rule alone decides
+ * whom a province obeys): a unit that stormed walls this season breaks in, the walls a level lower, killing townspeople
+ * and sending more running (item 10+a); from then on its men stand within them and weigh in full with the people there.
+ * Troops before walls they did not storm stand outside them, at its gates, and weigh as troops next door do; a guest by
+ * passage or basing takes nothing.
  */
 P.updateOwnership = function () {
   const S = this.s;
   const stormed = new HSet(this._battle?.assaults.filter((a) => assaultStormed(a)).map((a) => a.province) ?? []);
   for (const u of S.units) {
-    const prov = this.map.get(u.province);
-    if (prov.isSea) continue;
-    const before = S.owner.getOrDefault(u.province, null);
-    if (before === u.power) continue;
-    // Item 13+: a fallen kingdom's troops waiting for the word take nothing for a king who is no more.
-    if (!isAlive(S, u.power)) continue;
-    // A guest by passage or basing on a sealed tablet takes none of the land it stands in by leave (item 9).
-    if (this.guestOf(u) !== null) continue;
-    if (wallsOf(S, u.province) > 0) {
-      if (!stormed.has(u.province)) continue;
-      this.lowerWalls(u.province);
-      // Storming kills townspeople as well as soldiers, and sends more running (item 10+a).
-      this.killSettled(u.province, LandData.stormDead * 10, LandData.stormDead * 10);
-    }
-    this.setOwner(u.province, u.power);
-    this.takenByForce(u.province, u.power);
-    this.sack(u.province, u.power);
-    if (before !== null) {
-      this.tell(before, prov.id, "Battle", "Land lost", `${prov.name} has been taken by ${u.power}.`);
-      logEvent(S, "conquest", `${u.power} took ${prov.name} from ${before}.`, [u.power, before]);
-    }
-    notify(S, u.power, "Battle", "Land taken", `${prov.name} is now yours.`);
-    // A court's capital holds its archive: whoever takes it gains a copy of every tablet in it.
-    this.takeArchive(u.power, u.province);
+    if (!stormed.has(u.province) || this.map.get(u.province).isSea || wallsOf(S, u.province) <= 0) continue;
+    if (S.owner.getOrDefault(u.province, null) === u.power || !isAlive(S, u.power) || this.guestOf(u) !== null) continue;
+    if ((S.breached.tryGet(u.province) ?? null) === u.power) continue;
+    this.lowerWalls(u.province);
+    this.killSettled(u.province, LandData.stormDead * 10, LandData.stormDead * 10);
+    S.breached.set(u.province, u.power);
+    notify(S, u.power, "Battle", "Walls stormed", `Your troops stormed the walls of ${this.map.get(u.province).name} and stand within them.`);
   }
+};
+
+P.foldUnit = function (p, o) {
+  const S = this.s;
+  const u = unitAt(S, o.unit);
+  const into = unitAt(S, o.into);
+  if (u === null || u.power !== p || into === null || into.power !== p || into.kind !== u.kind) {
+    this.failed(p, o, "Fold failed", `The troops in ${this.map.get(o.unit).name} did not join those in ${this.map.get(o.into).name}: ${u === null || u.power !== p ? "they were gone after movement" : "none of yours stood there after movement"}.`, "the troops were gone", false);
+    return;
+  }
+  // Men, food and savings go with them: nothing appears or vanishes.
+  into.men += u.men;
+  into.food += u.food;
+  into.savings += u.savings;
+  into.chest += u.chest;
+  // Their ledgers join, each by its men (item 17++).
+  const book = S.armies.tryGet(u.id);
+  const joined = S.armies.tryGet(into.id);
+  const whole = Math.max(1, into.men);
+  const actors = new Set([...(book?.keys() ?? []), ...(joined?.keys() ?? [])]);
+  for (const a of sortBy([...actors], [(x: string) => x, cmpStr])) {
+    const v = idiv((book?.getOrDefault(a, 0) ?? 0) * u.men + (joined?.getOrDefault(a, 0) ?? 0) * (into.men - u.men), whole);
+    this.armyEntry(into, a, v - (joined?.getOrDefault(a, 0) ?? 0));
+  }
+  S.armies.delete(u.id);
+  S.units.splice(S.units.indexOf(u), 1);
+  this.liftSiegesOf(u.id);
+  logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, [p], "fold");
+  notify(S, p, "Resolution", "Troops joined", `${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, ${into.men} men strong now.`);
 };
 
 P.resolveTransfers = function (cessions, gifts) {
@@ -456,10 +474,6 @@ P.resolveTransfers = function (cessions, gifts) {
       continue;
     }
     this.setOwner(c.province, c.to);
-    // Land still being absorbed goes on being absorbed under the receiver as it would have been under the giver, so
-    // that a friend cannot launder a conquest by passing it back and forth; land of the receiver's own homeland is
-    // his in full at once, as if he had retaken it.
-    if (Map.isHome(c.to, c.province)) S.conquered.delete(c.province);
     this._cededNow.set(c.province, c.to);
     notify(S, p, "Resolution", "Land ceded", `${Map.get(c.province).name} now belongs to ${c.to}.`);
     notify(S, c.to, "Resolution", "Land received", `${p} has ceded ${Map.get(c.province).name} to you.`);
@@ -577,9 +591,6 @@ P.fall = function (p, conqueror, taker, ceded = false) {
     if (!passes(id)) continue;
     this.setOwner(id, conqueror);
     if (conqueror !== null) passed.push(id);
-    // Land ceded by agreement passes as any land ceded does (resolveTransfers): what was being absorbed goes on being so.
-    if (!ceded) this.takenByForce(id, conqueror);
-    else if (this.map.isHome(conqueror, id)) S.conquered.delete(id);
     // A siege the conqueror pressed against land that is now his is over.
     if (conqueror !== null) S.sieges = removeAll(S.sieges, (x) => x.province === id && x.power === conqueror);
   }
@@ -686,7 +697,7 @@ P.ledgerStrength = function (p) {
   return scoringStrength(this.s.config, this.landYield(p), ledger(this.s.treasuries.get(p)), this.holdings(p));
 };
 
-/** The worth a season of the land a power holds at reference prices, conquered land counted as far as it is absorbed. */
+/** The worth a season of the land a power holds at reference prices, each province counted as far as it obeys him. */
 P.landYield = function (p) {
   return this.landWorth(p);
 };

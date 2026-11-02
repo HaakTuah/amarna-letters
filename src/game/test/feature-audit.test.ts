@@ -1,6 +1,7 @@
 import { describe, test } from "vitest";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
+import { RemnantPlay } from "../src/bots/remnants.ts";
 import { archetype } from "../src/bots/personality.ts";
 import { Statecraft } from "../src/bots/statecraft.ts";
 import { MilitaryPlan } from "../src/bots/tactics.ts";
@@ -205,8 +206,14 @@ describe("FeatureAuditTests", () => {
     // Without the fleet at sea, and with jobs the treasury cannot carry, the unit that goes stands in Egypt's own land,
     // next to Alashiya's Gaza: it is disbanded, since a friend's army standing in Sinai would take Sinai with it.
     removeAll(s.units, (u) => u.province === "enkomiwaters");
-    for (const c of s.characters.filter((c) => c.employer === "Egypt")) [c.contract!.fee, c.contract!.startTurn, c.contract!.untilTurn] = [240, 1, 7];
-    [plan] = economy(s, "Egypt");
+    for (const c of s.characters.filter((c) => c.employer === "Egypt" && c.contract !== null)) [c.contract!.fee, c.contract!.startTurn, c.contract!.untilTurn] = [240, 1, 7];
+    // The rule here is the treasury's, not item 17++'s remnants (Sinai's few men would fold into the troops next to them).
+    RemnantPlay.off = true;
+    try {
+      [plan] = economy(s, "Egypt");
+    } finally {
+      RemnantPlay.off = false;
+    }
     Assert.equal(disband("sinai"), plan.orders.get("sinai"));
     Assert.doesNotContain([...plan.orders.values()], (o) => o.type === "giftUnit");
   });

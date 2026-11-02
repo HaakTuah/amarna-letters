@@ -9,6 +9,7 @@ import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BattleData, battleLosses } from "../model/command.ts";
+import { UnrestData } from "../model/unrest.ts";
 import type { Power } from "../model/power.ts";
 import { AllPowers, land } from "../model/power.ts";
 import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
@@ -39,6 +40,7 @@ P.battles = function (result, sightBefore) {
   const lost = new Dict<string, number>();
   const where = new Dict<string, string>();
   const margins = new Dict<string, number>();
+  const routedInPlace: Unit[] = [];
   const lose = (u: Unit, men: number, at: string): void => {
     lost.set(u.id, Math.min(u.men, lost.getOrDefault(u.id, 0) + men));
     if (!where.has(u.id)) where.set(u.id, at);
@@ -47,8 +49,19 @@ P.battles = function (result, sightBefore) {
     const a = unit(f.attacker);
     const d = unit(f.defender);
     if (a === undefined || d === undefined) continue;
-    const [winner, loser, w, l] = f.won ? [a, d, f.attack, f.defence] : [d, a, f.defence, f.attack];
+    // Item 17++ ("A handful holds nothing by itself"): a unit far weaker than the troops that fell on it loses the battle by
+    // far, though the land's people or its ground held them out, and is destroyed or scattered as battles say.
+    const crushed = !f.won && battleLosses(f.attack, f.own).margin >= BattleData.rout;
+    const [winner, loser, w, l] = f.won ? [a, d, f.attack, f.defence] : crushed ? [a, d, f.attack, f.own] : [d, a, f.defence, f.attack];
     const x = battleLosses(w, l);
+    if (crushed) routedInPlace.push(d);
+    // Item 17++: a battle won in a province for its holder, by his own troops, is protection its people remember.
+    // So is a siege of it lifted by them ("protection ... a siege lifted").
+    if (S.owner.getOrDefault(f.at, null) === winner.power)
+      this.give(f.at, winner.power, UnrestData.victory + (S.sieges.some((x) => x.province === f.at && x.unitId === loser.id) ? UnrestData.relief : 0));
+    // Item 17++: a victory is a giving its men remember of the hand that led them, a defeat a taking.
+    this.armyEntry(winner, this.armyHand(winner), UnrestData.won);
+    this.armyEntry(loser, this.armyHand(loser), -UnrestData.beaten);
     const loserLost = idiv(loser.men * x.loserPercent, 100);
     const winnerLost = Math.min(winner.men, idiv(loserLost * x.winnerShare, 100));
     lose(loser, loserLost, f.at);
@@ -62,7 +75,7 @@ P.battles = function (result, sightBefore) {
       logEvent(S, "battle", `${wc.name} won a battle for ${winner.power} in ${this.map.get(f.at).name}.`, [winner.power], "commander-won");
     }
     if (lc !== null) lc.lost++;
-    battleNews(this, f, a, d, x.margin, loserLost, winnerLost, seeing([f.from, f.at], a.power, d.power));
+    battleNews(this, crushed ? { ...f, won: true } : f, a, d, x.margin, loserLost, winnerLost, seeing([f.from, f.at], a.power, d.power), crushed);
   }
   // The men lost: some killed, the rest run and turn loose where the battle was fought (none at sea, where they drown).
   for (const [id, men] of lost) {
@@ -99,6 +112,8 @@ P.battles = function (result, sightBefore) {
     this.tell(u.power, to, "Battle", "Fell back", `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} was beaten from it and fell back to ${this.map.get(to).name}, ${u.men} men strong.`);
     logEvent(S, "fallback", `${u.power}'s ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");
   }
+  // A far weaker unit beaten where it stood is destroyed, though its land held the attackers out.
+  for (const u of routedInPlace) if (!destroyed.includes(u) && S.units.includes(u)) destroyed.push(u);
   // A unit a battle left with no men is gone too, though it won or held.
   for (const u of S.units) if (u.men <= 0 && !destroyed.includes(u) && lost.getOrDefault(u.id, 0) > 0) destroyed.push(u);
   // A commander whose army is destroyed may be taken by the side that beat it (first guess: half the time), else he escapes.
@@ -144,12 +159,12 @@ P.fallBackTo = function (u, from, taken, contested) {
 };
 
 /** What the sides, and those who saw it, are told of a battle: its place and outcome, and each side's own losses. */
-function battleNews(engine: TurnEngine, f: Fight, a: Unit, d: Unit, margin: number, loserLost: number, winnerLost: number, seeing: Power[]): void {
+function battleNews(engine: TurnEngine, f: Fight, a: Unit, d: Unit, margin: number, loserLost: number, winnerLost: number, seeing: Power[], heldOut = false): void {
   const S = engine.s;
   const at = engine.map.get(f.at).name;
   const kind = (u: Unit): string => (u.kind === "Army" ? "army" : "fleet");
   const [aLost, dLost] = f.won ? [winnerLost, loserLost] : [loserLost, winnerLost];
-  const by = margin >= BattleData.rout ? "by far" : margin >= 33 ? "clearly" : "narrowly";
+  const by = (margin >= BattleData.rout ? "by far" : margin >= 33 ? "clearly" : "narrowly") + (heldOut ? `, though the land itself held it out of ${engine.map.get(f.at).name}` : "");
   logEvent(
     S,
     "battle",

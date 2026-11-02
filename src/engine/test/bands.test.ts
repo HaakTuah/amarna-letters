@@ -156,6 +156,8 @@ describe("BandTests", () => {
     spy.purse = 500;
     // Loyal enough to pay a carrier from its own purse (the spy decides; since item 11c's draws this one is not by nature).
     spy.traits.loyalty = 80;
+    // No other watcher reporting home (item 17++: Pharaoh's residents), so that one carrier is all that goes.
+    for (const c of s.characters.filter((c) => c.openly)) c.duty = "None";
     const e = new TurnEngine(s);
     e.watchAndReport();
     s.turn++;

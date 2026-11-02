@@ -97,7 +97,7 @@ describe("IntelligenceTests", () => {
 
   test("A spy watching a free city or its own king s province is never caught", () => {
     let s = oldWorld(newGame(8, newGameConfig({ catastropheChance: 0 })));
-    let spies = s.characters.filter((c) => c.employer === "Babylonia").slice(0, 2);
+    let spies = s.characters.filter((c) => c.employer === "Babylonia" && c.at === "Babylonia" && c.contract !== null).slice(0, 2);
     for (const [spy, at] of spies.map((x, i) => [x, ["tyre", "babylon"][i]] as const)) {
       [spy.secretMaster, spy.traits.competence] = [null, 0];
       [spy.duty, spy.at, spy.watchProvince] = ["SpyPosted", null, at];

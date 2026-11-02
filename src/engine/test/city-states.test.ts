@@ -60,7 +60,9 @@ describe("City-states as powers (item 11+)", () => {
     // Staff by size, and since item 11f an Akkadian scribe at every court that reads Akkadian.
     const scribes = AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length;
     // Item 17+: and the people of 1346 in their posts at their courts.
-    for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length, s.characters.filter((c) => c.employer === p).length);
+    // Item 17++: and the governors and residents of 1346 placed in their posts besides (Addaya, the commissioners, the border lords).
+    const posted = (p: string): number => s.characters.filter((c) => c.employer === p && (c.duty === "Governing" || c.openly) && !PeopleOf1346.some((x) => x.name === c.name && x.post)).length;
+    for (const p of AllPowers) Assert.equal((isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) + PeopleOf1346.filter((x) => x.court === p && x.post).length + posted(p), s.characters.filter((c) => c.employer === p).length);
     Assert.equal(100 + scribes, s.characters.length);
   });
 

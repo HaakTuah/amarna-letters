@@ -52,7 +52,10 @@ describe("FallAsNewsTests", () => {
     s.units.push(army);
     s.sieges.push(newSiege({ province: "babylon", power: "Assyria", unitId: army.id, progress: wallsOf(s, "babylon") * EconomyData.breachPerLevel - 1, since: 1 }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "nippur", home: "nippur", men: 1000 }));
-    const c = newCharacter({ id: newId(s, "c"), name: "Ili-ippashra", traits: newTraits({ loyalty: 60, greed: 40, ambition: 70, courage: 50, competence: 50 }), status: "Employed", employer: "Babylonia", duty: "Governing", watchProvince: "nippur", purse });
+    // One governor only, at Nippur: none of the governors of 1346 (item 17++).
+    for (const g of s.governors) s.characters.find((x) => x.id === g.character)!.duty = "None";
+    s.governors.length = 0;
+    const c = newCharacter({ id: newId(s, "c"), name: "Ili-ippashra 2", traits: newTraits({ loyalty: 60, greed: 40, ambition: 70, courage: 50, competence: 50 }), status: "Employed", employer: "Babylonia", duty: "Governing", watchProvince: "nippur", purse });
     s.characters.push(c);
     s.governors.push(newGovernor({ province: "nippur", character: c.id, power: "Babylonia", from: 0 }));
     return { s, governor: c.id };

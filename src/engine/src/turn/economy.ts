@@ -26,6 +26,7 @@ import {
   sellAlongCurve,
   taxOf,
 } from "../model/economy.ts";
+import { UnrestData } from "../model/unrest.ts";
 import { climateOf, reapSeasonOf, terrainOf } from "../model/geography.ts";
 import { forMen, LandData, unitCarried, unitFood } from "../model/land.ts";
 import { BandData } from "../model/bands.ts";
@@ -39,7 +40,7 @@ import { legPoints, PointsPerDay, boatDays, type Company } from "../model/travel
 import { formatMoney } from "../rules/calendar.ts";
 import { RoadOdds } from "./travel.ts";
 import { Views } from "../rules/views.ts";
-import { absorbedIn, TurnEngine } from "./core.ts";
+import { obeyedIn, TurnEngine } from "./core.ts";
 import { CommandData } from "../model/command.ts";
 import { openToSea, type Sneak, type TollBook } from "./trade.ts";
 import { TakenBook } from "./supply.ts";
@@ -123,7 +124,7 @@ P.yieldFactor = function (province, besiegedYields = false) {
   const S = this.s;
   if (!besiegedYields && siegeOf(S, province) !== null) return 0;
   const owner = S.owner.getOrDefault(province, null);
-  let factor = absorbedIn(S, province);
+  let factor = obeyedIn(S, province);
   for (const c of S.catastrophes) {
     if (c.startTurn > S.turn || c.endTurn < S.turn) continue;
     if (c.province === province || (c.province === null && owner === c.power)) factor *= c.incomeFactor;
@@ -138,7 +139,7 @@ P.yieldFactor = function (province, besiegedYields = false) {
  * them this season (`harvestNow`: its people and men, the droughts and floods); in its reaping season the crop is
  * reaped, as catastrophes leave it, into the farmers' granary, and that harvest is what the tax is reckoned from until
  * the next. Each season the holder's tax at its rate takes a third of it from the granary, as far as it holds, into the
- * province's stores (what does not fit lost; nothing while besieged, and in land being absorbed only its share); the
+ * province's stores (what does not fit lost; nothing while besieged, and in land that obeys its holder grudgingly only its share); the
  * farmers eat from what is left (`_foodNow`, see peopleSeason). The mines' gold goes into the holder's treasury (a free
  * city's into its people's purse); then stores and markets spoil. Returns the lines each king reads of it.
  */
@@ -158,7 +159,7 @@ P.harvestSeason = function () {
     let granary = S.granary.getOrDefault(prov.id, 0);
     if (season === reapSeasonOf(prov.id)) {
       // Plague, war and the like strike the harvest as it is brought in; it grows even under a siege.
-      const harvest = toInt(roundEven(crop * (this.yieldFactor(prov.id, true) / absorbedIn(S, prov.id))));
+      const harvest = toInt(roundEven(crop * (this.yieldFactor(prov.id, true) / obeyedIn(S, prov.id))));
       S.reaped.set(prov.id, harvest);
       granary += harvest;
       S.crop.set(prov.id, 0);
@@ -170,8 +171,8 @@ P.harvestSeason = function () {
       const metal = toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id)));
       if (metal > 0) this.spendAt(prov.id, metal);
     } else {
-      // The harvest already bore the catastrophes; the tax bears only absorption, and nothing reaches it under a siege.
-      const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * this.taxRate(prov.id), 100) * absorbedIn(S, prov.id)));
+      // The harvest already bore the catastrophes; the tax bears only how fully it obeys, and nothing reaches it under a siege.
+      const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * this.taxRate(prov.id), 100) * obeyedIn(S, prov.id)));
       const tax = Math.min(granary, due);
       granary -= tax;
       const over = this.putInStores(prov.id, tax);
@@ -277,6 +278,8 @@ P.payTroops = function (p) {
   )) {
     if (!paysUnit(S, u)) {
       u.unpaid++;
+      // Item 17++: wages unpaid are a taking its men remember of their king.
+      this.armyEntry(u, u.power, -UnrestData.unpaid);
       held.push(unitLabel(u));
       logEvent(S, "pay-held", `${land(p)} held back the pay of ${unitLabel(u)} by its standing order.`, [p], "pay-held");
       continue;
@@ -284,12 +287,15 @@ P.payTroops = function (p) {
     const pay = forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
     if (t.gold < pay) {
       u.unpaid++;
+      this.armyEntry(u, u.power, -UnrestData.unpaid);
       unpaid.push(unitLabel(u));
       continue;
     }
     t.gold -= pay;
     paid += pay;
     u.unpaid = 0;
+    // Pay is a giving, credited to the hand they see: their commander, else their king.
+    this.armyEntry(u, this.armyHand(u), UnrestData.pay);
     const where = spendingPlace(this, u);
     const spent = where === null ? 0 : idiv(pay * EconomyData.spentPercent, 100);
     if (where !== null) this.spendAt(where, spent);
@@ -419,6 +425,8 @@ P.feedTroops = function () {
     }
     if (eaten < need) {
       u.hungry++;
+      // Hunger is a taking, held against the hand that feeds them.
+      this.armyEntry(u, this.armyHand(u), -UnrestData.starved);
       let h = hungry.tryGet(u.power);
       if (!h) hungry.set(u.power, (h = []));
       h.push(unitLabel(u));
@@ -760,6 +768,11 @@ P.settleMarkets = function (orders) {
     this.market(o.province).stock += given;
     tell(p, `You handed ${given} measures of grain from the stores of ${Map.get(o.province).name} to its town.`);
     if (given > 0) logEvent(S, "feed", `${p} handed grain to the town of ${Map.get(o.province).name}.`, [p], "feed");
+    // Item 17++: grain handed out is a giving its people remember, most in a famine, of the hand they see: the governor
+    // there, unless it comes in the king's own name.
+    const hungry = S.fed.getOrDefault(o.province, 1000) < 1000;
+    const points = Math.min(UnrestData.grain, idiv(UnrestData.grain * given, Math.max(1, needOf(Map.get(o.province)))));
+    this.give(o.province, o.own === true ? p : this.handOf(o.province, p), hungry ? points : idiv(points, 4));
   }
   // Each market's trades together: sales and purchases netted, the rest priced along the curve.
   const trades = new Dict<string, [Power, SellOrder | PurchaseOrder][]>();
@@ -835,12 +848,12 @@ P.settleMarkets = function (orders) {
 
 /**
  * The land's worth a season, by what it produces at reference prices: the whole harvest its people bring in now (item
- * 10+a: a ravaged or emptied province is worth less at once) and the mines, as far as it is absorbed.
+ * 10+a: a ravaged or emptied province is worth less at once) and the mines, as far as it obeys its holder.
  */
 P.landWorth = function (p) {
   return sum(ownedBy(this.s, p), (id) => {
     const prov = this.map.get(id);
-    return toInt(roundEven((grainWorth(this.harvestNow(id, false)) + economyOf(prov).mine) * absorbedIn(this.s, id)));
+    return toInt(roundEven((grainWorth(this.harvestNow(id, false)) + economyOf(prov).mine) * obeyedIn(this.s, id)));
   });
 };
 

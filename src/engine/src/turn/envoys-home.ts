@@ -140,6 +140,10 @@ P.fulfil = function (req, reply) {
       // Item 12: an envoy nobody understands chose, taken as the next season begins.
       if (c !== null && reply.unheard !== null) this.applyUnheard(c, { turn: this.s.turn, choice: reply.unheard.choice, keep: reply.unheard.keep === null ? null : Math.max(0, reply.unheard.keep) });
       return;
+    case "Rising":
+      // Item 17++: a man of standing chose whether he leads the people of a province against its master, taken next season.
+      if (c !== null && reply.rising !== null && req.rising !== null) c.risePlan = { turn: req.rising.turn, province: req.rising.province, rise: reply.rising.rise };
+      return;
     case "EnvoyReport": {
       if (c === null) return;
       const lord = requestFor(req);

@@ -35,7 +35,7 @@ import {
   trade,
   welcome,
 } from "@amarna/engine";
-import { Assert, oldWorld } from "./support.ts";
+import { Assert, oldWorld, removeAll } from "./support.ts";
 
 // People across borders and in kings' hands (build order item 10+b), and the answers carried from 10+a: anyone's ships at
 // a besieged harbour, prices and tolls known only as reported.
@@ -171,9 +171,14 @@ describe("BordersTests", () => {
   test("Deportees shipped by sea are freed only on land, never lost in the waters (item 11a+, from the review)", () => {
     const s = quiet();
     const e = new TurnEngine(s);
-    // Gaza is Egypt's homeland since item 11+: Tyre is land it took.
+    // Gaza is Egypt's homeland since item 11+: Tyre is land it took, with none of Tyre's or Sidon's own troops left in them
+    // (item 17++: their own troops standing there would take them back).
     s.owner.set("tyre", "Egypt");
     s.owner.set("sidon", "Egypt");
+    removeAll(s.units, (u) => u.province === "tyre" || u.province === "sidon");
+    // Nor any man of standing there whose people would follow him against Egypt.
+    s.ledger.delete("tyre");
+    s.ledger.delete("sidon");
     e.beginTurn();
     e.resolve(orders("Egypt", deport("tyre", "sidon", 1000, true)));
     const w = single(s.walking, (y) => y.deported);
