@@ -7,16 +7,18 @@ news. The owner wanted it fixed now, as a P1 of "Hidden information".
 ## What changed
 
 - **The checks.** Every order check that asked who holds a province now asks who the court knows holds it:
-  `Checking.knownOwner` and `knownHeld` (`src/engine/src/rules/validator.ts`), from `Views.knownHolders` with the seat's
-  sight. A province in sight reads exactly as before, so only far land changes. The checks it covers: `govern`;
+  `Checking.knownOwner` (`src/engine/src/rules/validator.ts`), from `Views.knownHolders` with the seat's
+  sight. (`knownHeld`, which #378 adds for `crown`, is `knownOwner(x) === power`.) A province in sight reads exactly as before, so only far land changes. The checks it covers: `govern`;
   `build`, `raze`, `sally`, `besiege`, `raise`, `disband` with settling, `cede`, `hunt` (armies); `sell`, `purchase`,
   `feed`, `caravan`, `trade`, `ship` (both ends), `toll`, `demand`, `census`, `welcome`, `expel`, `returnRunaways`,
   `deport` (both ends) (economy); `grant` (people).
 - **The answer by the road.** The order the court thinks valid goes in, and the engine carries it out by the true
   holder. Where that fails because the land is lost, the notice now comes home by the road (`TurnEngine.lostOrder`, a
   `tell` from the province): works, levies, cessions (a province or the capital), welcome, expel, deport, runaways sent
-  back, grants of passage or basing, the markets' sales, purchases, grain for the towns and caravans, trade and ships.
-  A scheduled order foiled so wakes its seat at once only where the word is near. A sally from a city the king no longer
+  back, deportations (either end lost), grants of passage or basing, the markets' sales, purchases, grain for the towns
+  and caravans, trade and ships; a unit disbanded to settle on land lost out of sight goes home, and that notice comes
+  by the road too. A scheduled order foiled so wakes its seat when the word comes: the wake line
+  (`scheduledFailure`) travels as its own word (news `Foiled`) and `wordArrives` adds it to the seat's wake reasons. A sally from a city the king no longer
   holds no longer reaches the battle (it had no check at resolution) and is told by the road too. A governor granted lost
   land sets out, finds it another's and comes home as any governor of lost land does (`governorsSeason`).
 - **The canary** (`src/web/test/canary.test.ts`) grows a case: a far province of Assyria's, lost by the log of who held
@@ -35,10 +37,10 @@ news. The owner wanted it fixed now, as a P1 of "Hidden information".
 
 ## How it fits with item 17++ part C (#378)
 
-#378 adds `knownHeld` for `crown` and `governorsKnown` for the governorships as the court knows them. This lane adds the
-same `knownHeld`, word for word and at the same place (`validator.ts`, `validator-context.ts`), and beside it
-`knownOwner`, which all the other checks need; so neither duplicates the other, and whichever merges second keeps one
-copy (the lines meet, so git asks). Its `govern` check (`v.knownOwner(...) !== v.power`) sits on the line #378 leaves
+#378 adds `knownHeld` for `crown` and `governorsKnown` for the governorships as the court knows them. This lane adds
+`knownOwner` beside where #378 puts `knownHeld` (`validator.ts`, `validator-context.ts`), which all the checks here need;
+it does not add `knownHeld`, which nothing here uses, so whichever merges second writes `knownHeld` as
+`knownOwner(x) === power` and nothing is kept twice. Its `govern` check (`v.knownOwner(...) !== v.power`) sits on the line #378 leaves
 unchanged. Until #378 merges, a governor whose land was lost leaves the seat's view as the season turns, as every
 governor of lost land does on `develop`; #378's `governorsKnown` and `dropGovernor` keep him in view until word comes,
 which completes this for `govern`. #378 takes save version 43; whichever merges second takes the next.
@@ -51,6 +53,16 @@ which completes this for `govern`. #378 takes save version 43; whichever merges 
   ("Hidden information"; "the engine answers by the true state, as word travelling home", the lane's brief).
 - **A foiled scheduled order wakes its seat by the word, not at once,** where the place is far: a wake is a notice too,
   and an instant one would tell the sleeping king of the loss.
+- **Orders that never fail on lost land** stay as they were, since none tells a court anything: a census for land lost
+  out of sight pays its scribes' gold where they arrive and they come home with no count (as the governor goes); a
+  demand or a toll set on it is recorded and answered "now asked" at court, as the court believes, and falls to nothing,
+  since demands and tolls are read by the land's true holder; a hunt there does nothing. #517 covers a far order's
+  outcome being told at once.
+- **The governor's case completes with #378.** A governor of far land lost leaves the seat's view at the next season's
+  turn on `develop`, whatever the grant, since the view lists the governorships from the true state; #378's
+  `governorsKnown` and `dropGovernor` keep him in view until word comes, and this lane does not copy them (the brief:
+  take C's helpers, do not duplicate them). The canary's seat therefore sends its governor once, not on what its view
+  shows next.
 - **Kept to the order checks of who holds what** (the brief). The checks' other reads of a far province's true state
   (sieges, works, walls, men) and the instant notices of a far order's success are filed as bug #517.
 

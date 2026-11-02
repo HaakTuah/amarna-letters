@@ -90,7 +90,7 @@ interface Secret {
 
 /**
  * Assyria's script king, with the canary's envoy sent to Babylonia in the first season, and a governor sent to the far
- * province it lost out of its sight (bug #467) in every season.
+ * province it lost out of its sight (bug #467).
  */
 class Planting extends ScriptLeader {
   // Played as a human's seat would be: its letter, mandate and tablet are a human player's words in the export.
@@ -107,9 +107,9 @@ class Planting extends ScriptLeader {
   override async decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission> {
     const sub = await super.decide(view, signal);
     sub.orders = sub.orders.filter((o) => !JSON.stringify(o).includes(`"${this.governor}"`) && !JSON.stringify(o).includes(`"${this.lost}"`));
-    // The court still believes the province its own: it sends it a governor until he is taken.
-    if (view.governors.every((g) => g.province !== this.lost)) sub.orders.push(govern(this.lost, this.governor));
     if (view.turn !== 1) return sub;
+    // The court still believes the province its own, and sends it a governor.
+    sub.orders.push(govern(this.lost, this.governor));
     sub.orders = sub.orders.filter((o) => !JSON.stringify(o).includes(`"${this.envoy}"`));
     sub.orders.push(
       dispatch(this.envoy, "Babylonia", Letter, {

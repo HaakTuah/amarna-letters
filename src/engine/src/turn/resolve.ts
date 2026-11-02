@@ -147,9 +147,14 @@ P.resolveSeason = function (submissions) {
     if (u !== null && u.power === p) {
       const savings = u.savings;
       // Men settled as colonists where the unit stands, in a province of the king's own (item 10+a).
-      const settle = (d as Extract<Order, { type: "disband" }>).settle === true && S.owner.getOrDefault(u.province, null) === p && !this.map.get(u.province).isSea;
+      const asked = (d as Extract<Order, { type: "disband" }>).settle === true && !this.map.get(u.province).isSea;
+      const settle = asked && S.owner.getOrDefault(u.province, null) === p;
+      const where = u.province;
       const home = this.disbandUnit(u, settle);
-      notify(S, p, "Resolution", "Disbanded", `${unitLabel(u)} was disbanded` + (home !== "" ? `: ${home}` : "") + (savings > 0 ? `; their savings, ${formatMoney(savings)}, went into the purse of ${this.map.get(u.home).name}.` : "."));
+      const text = `${unitLabel(u)} was disbanded` + (home !== "" ? `: ${home}` : "") + (savings > 0 ? `; their savings, ${formatMoney(savings)}, went into the purse of ${this.map.get(u.home).name}.` : ".");
+      // Settling asked on land lost out of the king's sight (bug #467): the men go home, and word of it comes by the road.
+      if (asked && !settle) this.tell(p, where, "Resolution", "Disbanded", `${text} Its men could not settle as colonists in ${this.map.get(where).name}: you no longer held it.`);
+      else notify(S, p, "Resolution", "Disbanded", text);
     }
     // The unit moved by the seat's own orders, or was destroyed (which wakes the seat by itself).
     else this.failed(p, d, "Disband failed", `No unit of yours stood in ${this.map.get(unit).name} after movement, so none was disbanded.`, "the unit is gone", false);
@@ -469,7 +474,8 @@ P.resolveTransfers = function (cessions, gifts) {
       continue;
     }
     const name = Map.get(c.province).name;
-    // The validator refuses a second cession of one province, so land no longer held was lost in movement.
+    // The validator refuses a second cession of one province, so land no longer held was lost in movement, or before it
+    // out of the king's sight (bug #467): either way word of it comes home by the road.
     if (S.owner.getOrDefault(c.province, null) !== p) {
       this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it after movement.`, "you no longer held it");
       continue;
