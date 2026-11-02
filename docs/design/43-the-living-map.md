@@ -150,6 +150,9 @@ mines and storage come with the economy's later phases"), so a mine shows where 
   `GameState.walking`, the only walkers with a known road) are drawn on their roads, where their stretch puts them (a
   guess, as a traveller's place is). A court sees its own caravans only, as the engine's view tells it (a smuggler's
   caravan going round the toll posts is no one else's to see), and deportees on roads it sees.
+  In a court's view the titles and the legend say so ("Your caravan ... You hear from your own caravans wherever they
+  are"; deportees "in your sight"), since a figure moving through its fog was taken for a foreign one (Haakon, 2
+  November 2026: the side lane "people moving in the fog" found no leak).
   Close up, in the works row: a famine's empty granary where the countryside ate less than eight tenths of its need last
   season (`GameState.fed`), and each town's houses with its people and whether they grew or shrank over the year
   (`GameState.people`): a court counts its own people only, as the engine's view tells it.

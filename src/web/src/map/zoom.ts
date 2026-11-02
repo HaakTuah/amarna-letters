@@ -217,17 +217,20 @@ function animate(st, change) {
   settle(st);
 }
 
-// The scaled map always covers the view where it can, and is centred where it cannot.
+// The camera stops at the board's edges, so an edge province can be centred, and never shows past the drawn world
+// around the board (the relief and the lands beyond the game), so the map never ends at a bare edge (Haakon,
+// 31 October and 2 November 2026). Where the drawn world beyond the board is too narrow to centre an edge at this zoom,
+// the world's edge wins.
 function clamp(st) {
   const g = geometry(st);
   st.s = Math.max(st.s, lowest(st));
-  const mw = MAP_W * g.b * st.s, mh = MAP_H * g.b * st.s;
-  const left = st.x + st.s * g.ox, top = st.y + st.s * g.oy;
-  if (mw <= g.w) st.x = (g.w - mw) / 2 - st.s * g.ox;
-  else st.x = Math.min(-st.s * g.ox, Math.max(g.w - mw - st.s * g.ox, st.x));
-  if (mh <= g.h) st.y = (g.h - mh) / 2 - st.s * g.oy;
-  else st.y = Math.min(-st.s * g.oy, Math.max(g.h - mh - st.s * g.oy, st.y));
-  void left; void top;
+  const k = g.b * st.s; // screen pixels per map unit
+  const mw = MAP_W * k, mh = MAP_H * k;
+  const fx = (WORLD_W - MAP_W) / 2 * k, fy = (WORLD_H - MAP_H) / 2 * k; // the drawn world beyond each edge
+  // The board's left (top) edge on screen, between the bounds that keep the centre on the board and the world on screen.
+  const pin = (at, view, board, frame) => Math.min(Math.min(frame, view / 2), Math.max(Math.max(view - board - frame, view / 2 - board), at));
+  st.x = pin(st.x + st.s * g.ox, g.w, mw, fx) - st.s * g.ox;
+  st.y = pin(st.y + st.s * g.oy, g.h, mh, fy) - st.s * g.oy;
 }
 
 function schedule(st) {
