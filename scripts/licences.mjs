@@ -73,8 +73,9 @@ export function licenceOk(expression, allow) {
 }
 
 /**
- * Every package the lockfile installs. A link to one of the declared workspaces is the owner's own code, which carries no
- * licence; any other link (a `file:` package) is checked by its target's licence, so a local package cannot slip past.
+ * Every package the lockfile installs, by its own name (an alias, `"x": "npm:y@1"`, is y). A link to one of the declared
+ * workspaces is the owner's own code, which carries no licence; any other link (a `file:` package) is checked by its
+ * target's licence and never takes a named package's data or font licences, so a local package cannot slip past.
  */
 function lockfilePackages() {
   const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
@@ -83,7 +84,8 @@ function lockfilePackages() {
     .filter(([path, entry]) => path.includes("node_modules/") && !(entry.link && workspaces.has(entry.resolved)))
     .map(([path, entry]) => {
       const target = entry.link ? lock.packages[entry.resolved] ?? {} : entry;
-      return { name: path.slice(path.lastIndexOf("node_modules/") + 13), version: target.version, license: target.license };
+      const name = target.name ?? path.slice(path.lastIndexOf("node_modules/") + 13);
+      return { name, version: target.version, license: target.license, local: Boolean(entry.link) };
     });
 }
 
@@ -135,7 +137,7 @@ export function notices(dirs) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const { allowedFor } = policy();
   const all = lockfilePackages();
-  const off = all.filter((p) => !licenceOk(p.license, allowedFor(p.name)));
+  const off = all.filter((p) => !licenceOk(p.license, allowedFor(p.local ? "" : p.name)));
   for (const p of off) console.error(`off the list: ${p.name}@${p.version} (${p.license ?? "no licence"})`);
   console.log(`${all.length} packages checked, ${off.length} off the list (SECURITY.md, point 10; .github/licences.yml)`);
   process.exit(off.length ? 1 : 0);
