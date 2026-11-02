@@ -28,7 +28,7 @@ import {
   unitAt,
   Views,
 } from "@amarna/engine";
-import { Assert, armiesBefore13, commanded, removeAll, subs, keepWalls } from "./support.ts";
+import { Assert, armiesBefore13, commanded, removeAll, subs, keepWalls, smallWorld } from "./support.ts";
 
 // Build order item 13, "Command at a distance": armies at the sources' sizes, battles with losses and falling back,
 // marching by distance, commanders and their mandates, standing orders through commanders, the court wherever the king is
@@ -57,8 +57,9 @@ describe("CommandAtADistanceTests", () => {
   });
 
   // Seed 1 as before item 13 (full levies, every order reaching at once), no people's resistance, no catastrophes.
-  function board(): GameState {
-    return armiesBefore13(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
+  function board(small = true): GameState {
+    const s = armiesBefore13(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
+    return small ? smallWorld(s, "Assyria", "Babylonia", "Elam", "Arrapha", "Egypt") : s;
   }
 
   test("A battle costs both sides men, and the loser falls back to land of its own", () => {
@@ -97,7 +98,7 @@ describe("CommandAtADistanceTests", () => {
 
   test("A great army takes two seasons over a long road, a forced march one, and men drop out on it", () => {
     for (const forced of [false, true]) {
-      const s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+      const s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "Hatti", "Mira");
       removeAll(s.units, (u) => u.province === "mira" || u.province === "tuwanuwa");
       s.owner.set("mira", "Hatti");
       s.walls.delete("mira");
@@ -171,7 +172,7 @@ describe("CommandAtADistanceTests", () => {
   });
 
   test("An order for a place beyond a season's courier goes out now and is carried out when it arrives", () => {
-    const s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+    const s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "Egypt", "Assyria");
     // An Egyptian army in Ekallate, beyond what a courier from Akhetaten makes in a season.
     removeAll(s.units, (u) => u.province === "ekallate");
     s.owner.set("ekallate", "Egypt");
@@ -230,7 +231,8 @@ describe("CommandAtADistanceTests", () => {
   });
 
   test("A band enlisted where an army stands with it joins that army for its term", () => {
-    const s = board();
+    // On the whole world: a crowd band rises at Gaza in the small one (the bands' dice differ), which the test's empty bands refuse.
+    const s = board(false);
     commanded(s, "Babylonia");
     const chief = newCharacter({ id: newId(s, "c"), name: "Chief", traits: newTraits({ greed: 0 }), status: "Free", duty: "Leading", watchProvince: "sippar" });
     s.characters.push(chief);

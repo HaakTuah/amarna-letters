@@ -378,7 +378,8 @@ export function Play() {
               >
                 How it works
               </a>
-              <ExportLog onExport={(parts) => void s.export(parts)} />
+              {/* The export is the whole record: offered only when the god view is (Engine and models, "Logging and replay"). */}
+              {s.canSeeAll && <ExportLog onExport={(parts) => void s.export(parts)} />}
               <AudioSwitches />
               <label>
                 Pace{" "}

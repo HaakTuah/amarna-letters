@@ -23,12 +23,13 @@ import {
   newRisingChoice,
   wallsOf,
 } from "@amarna/engine";
-import { Assert, oldWorld, removeAll, subs } from "./support.ts";
+import { Assert, removeAll, smallWorld, subs } from "./support.ts";
 
 // Build order item 17++, "Whom a province obeys" and "Loyalty is a ledger" (War): no province is owned by a flag; it obeys
 // whoever it fears or loves most, by a clear margin, with degrees; the ledger starts as 1346 stood.
 describe("ObedienceTests", () => {
   const quiet = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+  const small = (...powers: Power[]): GameState => smallWorld(quiet(), ...powers);
   function season(s: GameState, orders: Dict<Power, TurnSubmission> = new Dict()): TurnEngine {
     const e = new TurnEngine(s);
     e.beginTurn();
@@ -79,7 +80,7 @@ describe("ObedienceTests", () => {
   });
 
   test("Force: an army as large as its men weighs heavily, twice the men in hill land; next door and before walls a little, for everyone", () => {
-    const s = quiet();
+    const s = small("Hatti", "Kaska", "Carchemish");
     const near = new Set(["kaska", ...WorldMap.default.neighbors("kaska")]);
     removeAll(s.units, (u) => near.has(u.province));
     const e = new TurnEngine(s);
@@ -106,7 +107,7 @@ describe("ObedienceTests", () => {
   });
 
   test("Conquest is the season's rule alone: moving in takes nothing, and the province answers to the taker as the season's reckoning finds it", () => {
-    const s = quiet();
+    const s = small("Hatti", "Arzawa");
     const e = new TurnEngine(s);
     // An empty province without walls that its holder loves little: an army standing in it.
     const id = "tuwanuwa";
@@ -121,7 +122,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A man whose people would follow him is asked; a script answers by his traits, and the rising breaks out the next season", () => {
-    const s = quiet();
+    const s = small("Egypt");
     const id = "gaza";
     removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
     const g = named(s, "Addaya");
@@ -144,7 +145,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A model who chooses not to lead them is not made to: the province stays its master's", () => {
-    const s = quiet();
+    const s = small("Egypt");
     const id = "gaza";
     removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
     const g = named(s, "Addaya");
@@ -162,7 +163,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A rising against the master's troops is fought as a battle: a few among people who lean away are beaten and stay where they stand", () => {
-    const s = quiet();
+    const s = small("Egypt");
     const id = "gaza";
     removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
     const g = named(s, "Addaya");
@@ -181,7 +182,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A rising that wins costs its men too, as a battle's winner loses men", () => {
-    const s = quiet();
+    const s = small("Egypt");
     const id = "gaza";
     removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
     const g = named(s, "Addaya");
@@ -199,7 +200,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A governor's rising beaten leaves his levy one unit of its king's again", () => {
-    const s = newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })), "Hatti", "Kaska");
     const id = "kaska";
     removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
     s.owner.set(id, "Hatti");
@@ -222,7 +223,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A chief's rising put down costs his band its share of the beaten side's losses", () => {
-    const s = quiet();
+    const s = small("Hatti", "Kaska");
     const id = "kaska";
     removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
     s.owner.set(id, "Hatti");
@@ -240,7 +241,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A band's robbing is remembered against its chief, a point at least a season", () => {
-    const s = quiet();
+    const s = small("Hatti", "Kaska");
     const e = new TurnEngine(s);
     const chief = s.characters.find((x) => x.status === "Free")!;
     Object.assign(chief, { duty: "Leading", watchProvince: "kaska" });
@@ -251,7 +252,7 @@ describe("ObedienceTests", () => {
   });
 
   test("The people resist an invader as hostile as their ledger: more beside a master they love, less to one who gave them much", () => {
-    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Arzawa");
     const e = new TurnEngine(s);
     const id = "tuwanuwa";
     s.ledger.get(id).set("Hatti", 0);
@@ -263,7 +264,7 @@ describe("ObedienceTests", () => {
   });
 
   test("Grain handed out in a famine is remembered of the hand they see, the governor, unless it comes in the king's own name", () => {
-    const s = quiet();
+    const s = small("Egypt");
     const id = "gaza";
     const g = named(s, "Addaya");
     s.fed.set(id, 500);
@@ -279,7 +280,7 @@ describe("ObedienceTests", () => {
   });
 
   test("An army's men remember their pay and their victories of the hand they see, and follow a commander only as far as that", () => {
-    const s = quiet();
+    const s = small("Hatti");
     const e = new TurnEngine(s);
     const u = s.units.find((x) => x.power === "Hatti" && x.kind === "Army")!;
     // The armies of 1346 have served their king.
@@ -292,7 +293,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A handful holds nothing by itself: a far weaker unit that the land's own men shelter is destroyed all the same", () => {
-    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Mitanni");
     const next = WorldMap.default.neighbors("hattusa").find((x) => !WorldMap.default.get(x).isSea && s.owner.getOrDefault(x, null) === "Hatti")!;
     removeAll(s.units, (u) => u.province === "hattusa" || u.province === next);
     const few = newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "hattusa", home: "hattusa", men: 7 });
@@ -306,7 +307,7 @@ describe("ObedienceTests", () => {
   });
 
   test("Obedience has degrees: a province held narrowly pays a third, one held by a wide margin pays in full", () => {
-    const s = quiet();
+    const s = small("Hatti");
     const e = new TurnEngine(s);
     e.obeySeason();
     Assert.false(s.obeyed.has("hattusa"));
@@ -322,7 +323,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A province whose holder takes more than he gives falls lawless with nobody at its head, unless his troops stand in it", () => {
-    const s = quiet();
+    const s = small("Hatti");
     const near = new Set(["tuwanuwa", ...WorldMap.default.neighbors("tuwanuwa")]);
     removeAll(s.units, (u) => near.has(u.province));
     const gov = s.governors.find((g) => g.province === "tuwanuwa")!;
@@ -336,7 +337,7 @@ describe("ObedienceTests", () => {
   });
 
   test("Love for a neighbour whose men stand at its gates takes a province over to him", () => {
-    const s = quiet();
+    const s = small("Byblos", "Amurru", "Egypt");
     removeAll(s.units, (u) => u.province === "byblos" || u.province === "amurru");
     s.ledger.get("byblos").set("Byblos", 0);
     s.ledger.get("byblos").set("Amurru", 80);
@@ -369,7 +370,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A walled town not a court opens its gates to a king its people love whose men stand at them, though they never stormed", () => {
-    const s = quiet();
+    const s = small("Hatti", "Mitanni");
     const id = "sapinuwa";
     removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
     Assert.true(wallsOf(s, id) > 0);
@@ -379,7 +380,7 @@ describe("ObedienceTests", () => {
     Assert.equal("Mitanni", s.owner.get(id));
     Assert.false(s.breached.has(id));
     // Fear alone from before the walls does not open them.
-    const t = quiet();
+    const t = small("Hatti", "Mitanni");
     removeAll(t.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
     t.ledger.set(id, new Dict([["Hatti", 30]]));
     t.units.push(newUnit({ id: newId(t, "u"), power: "Mitanni", kind: "Army", province: id, home: "washukanni", men: 40000 }));
@@ -388,7 +389,7 @@ describe("ObedienceTests", () => {
   });
 
   test("A court lists the land it knows it holds: one gained out of its sight once it hears, one lost as it last knew it", () => {
-    const s = quiet();
+    const s = small("Egypt", "Elam");
     const e = new TurnEngine(s);
     // Susa is far beyond Pharaoh's couriers: Egypt given it does not list it until word comes.
     e.setOwner("susa", "Egypt");

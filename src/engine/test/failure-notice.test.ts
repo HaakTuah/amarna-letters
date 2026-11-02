@@ -18,7 +18,7 @@ import {
   seekCandidates,
   single,
 } from "@amarna/engine";
-import { escapeRegex, Assert, last, homeJob } from "./support.ts";
+import { escapeRegex, Assert, last, homeJob, smallWorld } from "./support.ts";
 
 // <summary>The kind and words of notices a king reads the season after it gave the orders behind them.</summary>
 describe("FailureNoticeTests", () => {
@@ -29,7 +29,7 @@ describe("FailureNoticeTests", () => {
   }
 
   test("A hire the person declines is a rejection notice", () => {
-    let s = newGame(6);
+    let s = smallWorld(newGame(6), "Egypt", "Hatti", "Assyria");
     for (const c of s.characters) c.seeking = false;
     let [free, other] = s.characters.filter((c) => c.status === "Free" && c.duty === "None").slice(0, 2);
     free.at = "Hatti";
@@ -61,7 +61,7 @@ describe("FailureNoticeTests", () => {
   });
 
   test("A spy sent out is reported as having left last season", () => {
-    let s = newGame(8);
+    let s = smallWorld(newGame(8), "Babylonia", "Assyria");
     let [court, province] = [first(s.characters, (c) => c.employer === "Babylonia"), last(s.characters, (c) => c.employer === "Babylonia")];
     Assert.notEqual(court.id, province.id);
     begin(s).resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [placeSpy(court.id, "Assyria"), placeSpy(province.id, null, "carchemish")] })]]));
@@ -80,7 +80,7 @@ describe("FailureNoticeTests", () => {
   });
 
   test("Refusals are worded for the season they are read in", () => {
-    let s = newGame(8);
+    let s = smallWorld(newGame(8), "Babylonia", "Assyria", "Hatti");
     let envoy = first(s.characters, (c) => c.employer === "Babylonia");
     begin(s).resolve(
       new Dict([

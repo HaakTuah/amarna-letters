@@ -309,6 +309,11 @@ export const CostEstimate = {
     life: { fresh: 5200, output: 590, opening: 1600, perSeason: 40 },
     envoy: { fresh: 1200, output: 330, opening: 1100, perSeason: 60 },
     persona: { fresh: 1080, output: 1380, characters: 122 },
+    /**
+     * Not yet recorded: a plan reads its own opening (`planRules`, 9,189 characters against the kings' rulebook's 164,710,
+     * so about 3,900 of its 70,600 tokens), the king's realm in brief and his record, and writes the plan and its answers.
+     */
+    plan: { fresh: 4000, output: 900, opening: 3900 },
   },
   /** What one season costs with these choices, live or in the background (the batch service, at its discount). */
   perSeason(c: SeatChoices, background = false): number {
@@ -334,6 +339,7 @@ export const CostEstimate = {
     const orders = new Map<string, number>();
     const courts = new Map<string, number>();
     const light = new Map<string, number>();
+    const plans = new Map<string, number>();
     const add = (m: Map<string, number>, model: string | null, n: number): void => void (model !== null && m.set(model, (m.get(model) ?? 0) + n));
     for (const p of AllPowers) {
       const model = leaderModel(c.leaders.get(p));
@@ -355,13 +361,14 @@ export const CostEstimate = {
         add(light, small, 0.3);
         add(orders, model, 0.05 * 0.4);
       }
-      add(light, rungModel(c.planning), 1 / 3);
+      add(plans, rungModel(c.planning), 1 / 3);
     }
     let total = 0;
     for (const [m, n] of orders) total += calls(m, n, R.orders, effort);
     for (const [m, n] of courts) total += calls(m, n, R.court, effort);
-    // Light alerts and plans: a short call over the kings' opening.
+    // Light alerts: a short call over the kings' opening. Plans: over their own short opening.
     for (const [m, n] of light) total += calls(m, n, { fresh: 3000, output: 600, opening: R.orders.opening });
+    for (const [m, n] of plans) total += calls(m, n, R.plan, effort);
     const cm = characterModel(c.characters);
     if (cm !== null) {
       const up = rungModel(c.charactersUp);

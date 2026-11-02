@@ -32,7 +32,7 @@ import {
   unitAt,
   wallsOf,
 } from "@amarna/engine";
-import { removeAll, Assert, last, subs, walled, oldWorld, heldBy } from "./support.ts";
+import { removeAll, Assert, last, subs, walled, oldWorld, smallWorld, heldBy } from "./support.ts";
 import { siegeBoard } from "./games.ts";
 
 // Walls and sieges (Build order item 5): walls add nothing to a battle; a move into walls not its own takes the province
@@ -42,7 +42,7 @@ describe("SiegeTests", () => {
   // <summary>Seed 1 with no catastrophes, Babylonia's army in Sippar next to Suhu (walls 2 in these tests, a free city), Mitanni's in Terqa.</summary>
   function board(): GameState {
     // Suhu was Mari until item 7a's map review, which took Mari's walls away: the tests give them back.
-    let s = walled(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2);
+    let s = walled(smallWorld(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "Babylonia", "Mitanni", "Assyria", "Egypt", "Hatti"), "suhu", 2);
     // Full stores and a stocked market (item 9+a): the city does not starve unless a test empties them.
     s.stores.set("suhu", 1000);
     s.markets.get("suhu").stock = 500;
@@ -244,7 +244,7 @@ describe("SiegeTests", () => {
     // Mitanni holds Suhu (walls 2); Babylonia's army besieges it. Mitanni's lone army from Terqa, with the walls' sally,
     // beats the besieger's 1 and drives it out; without the sally it bounces.
     function board(): GameState {
-      let s = siegeBoard();
+      let s = siegeBoard("Babylonia", "Mitanni");
       heldBy(s, "suhu", "Mitanni");
       first(s.units, (u) => u.province === "sippar").province = "suhu";
       s.sieges.push(newSiege({ province: "suhu", power: "Babylonia", unitId: unitAt(s, "suhu")!.id, progress: 1, since: 1 }));
@@ -285,7 +285,7 @@ describe("SiegeTests", () => {
     // Euphrates, so the besieger has the ground's help: 1 and the sally against 1 and the river bounces, as the
     // rulebook's sally example says; with a support from Isuwa, 3 against 2 drives the besieger out.
     function board(): GameState {
-      let s = siegeBoard();
+      let s = siegeBoard("Babylonia", "Mitanni", "Hatti");
       s.owner.set("carchemish", "Mitanni");
       for (const at of ["carchemish", "harran", "isuwa"]) removeAll(s.units, (u) => u.province === at);
       let besieger = newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "carchemish" });

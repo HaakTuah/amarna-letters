@@ -19,7 +19,7 @@ import {
   unitAt,
   LandData,
 } from "@amarna/engine";
-import { Assert, armiesBefore13, formerHome, formerHomes, subs } from "./support.ts";
+import { Assert, armiesBefore13, formerHome, formerHomes, smallWorld, subs } from "./support.ts";
 
 // The reasons a battle report gives that the first battle report tests leave out: a head-to-head lost before a
 // third move walked in, a unit out of sight left unnamed, a unit that could not leave, a missing convoy, and
@@ -35,7 +35,7 @@ describe("BattleReasonTests", () => {
 
   test("A head to head lost is the reason even when a third move takes the province", () => {
     // Assyria (2) and Mitanni (2.3, with Arrapha's small army) meet head to head between Ekallate and Suhu; Hatti walks into the Suhu Mitanni left.
-    let s = formerHome(formerHomes(newGame(1, newGameConfig({ peopleDefence: 0 }))), "suhu", "Mitanni");
+    let s = smallWorld(formerHome(formerHomes(newGame(1, newGameConfig({ peopleDefence: 0 }))), "suhu", "Mitanni"), "Assyria", "Mitanni", "Babylonia", "Arrapha", "Hatti");
     unitAt(s, "terqa")!.power = "Hatti";
     resolve(
       s,
@@ -64,7 +64,7 @@ describe("BattleReasonTests", () => {
     // Egypt's army in the Delta crosses the open sea in Alashiya's ships, one in each sea zone of the way, to Lukka, which Arzawa
     // holds; Lukka lies beyond Egypt's sight.
     function board(): GameState {
-      let s = armiesBefore13(newGame(1, newGameConfig({ peopleDefence: 0 })));
+      let s = smallWorld(armiesBefore13(newGame(1, newGameConfig({ peopleDefence: 0 }))), "Egypt", "Alashiya", "Arzawa");
       Object.assign(single(s.units, (u) => u.province === "delta"), { kind: "Army", men: LandData.armyMen });
       single(s.units, (u) => u.province === "enkomi").province = "deltawaters";
       s.units.push(newUnit({ id: "u91", power: "Alashiya", kind: "Fleet", province: "westsea" }));
@@ -108,7 +108,7 @@ describe("BattleReasonTests", () => {
 
   test("A unit that could not leave kept its place", () => {
     // Mitanni's army in Terqa and Babylon's in Sippar strike Suhu and bounce, so Hatti's move into Terqa meets it still there.
-    let s = formerHomes(newGame(1, newGameConfig({ peopleDefence: 0 })));
+    let s = smallWorld(formerHomes(newGame(1, newGameConfig({ peopleDefence: 0 }))), "Hatti", "Mitanni", "Babylonia");
     s.units.push(newUnit({ id: "u90", power: "Hatti", kind: "Army", province: "harran" }));
     resolve(
       s,
@@ -126,7 +126,7 @@ describe("BattleReasonTests", () => {
   });
 
   test("A support that matches nothing is void and only its own king is told why", () => {
-    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
+    let s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0 })), "Babylonia", "Assyria");
     // Babylon's army at Nippur (item 17+) would hold, which this test's report must not show.
     s.units = s.units.filter((u) => u.province !== "nippur");
     resolve(

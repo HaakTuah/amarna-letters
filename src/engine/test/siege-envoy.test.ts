@@ -27,7 +27,7 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { removeAll, Assert, subs } from "./support.ts";
+import { removeAll, Assert, subs, smallWorld } from "./support.ts";
 
 // Envoys and a besieged capital (Build order item 5; question 5, plan steps 12 and 13): the besieged king's envoys leaving,
 // or coming home, may be caught; one whose courage the siege outweighs will not go; a caught envoy is the besieger's
@@ -35,7 +35,7 @@ import { removeAll, Assert, subs } from "./support.ts";
 describe("SiegeEnvoyTests", () => {
   // <summary>Seed 1: Babylonia's army besieges Ashur (just begun, walls 3), with its army in Ekallate next to it (tightness 2).</summary>
   function besieged(config: GameConfig): [GameState, Character] {
-    let s = newGame(1, { ...config, catastropheChance: 0 });
+    let s = smallWorld(newGame(1, { ...config, catastropheChance: 0 }), "Babylonia", "Assyria", "Egypt");
     removeAll(s.units, (u) => ["ashur", "ekallate"].includes(u.province));
     let army = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(army);

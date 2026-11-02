@@ -115,7 +115,7 @@ goes to building. Its usage can run out like any other, and it may then not say 
    with nothing open, its 👍 or "Didn't find any major issues", or every finding fixed or moved out as "Reviews"
    says. That is Codex's 10. P0 and P1 are fixed first.
 5. **The design check, with a score:** on its build-order items (not the polish and sound lanes' small fixes), the design check (`CLAUDE.md`, "Design check": Fable at
-   medium effort, Opus at high when Fable is out) checks the work against the design: given the diff and the PR's description and "The game in one page", it gives the score
+   medium effort, Opus at high when Fable is out) checks the work against the design: given the diff and the PR's description and "The game in one page", and the dossier passages the work cites when it adds or changes real-world content (a fact without a source, or against its source, blocks), it gives the score
    from 1 to 10 and what keeps it from 10, blocking or not ("Reviews" below), on the design alone, since Codex looks for
    faults and security. Smaller PRs get Codex's review alone. **Why it is enough:** a test PR with three planted faults
    (Barkstreet Snakes #298, 1 November 2026, never merged) got all three as P1 from Codex within four minutes: a bug
@@ -144,7 +144,7 @@ The guards against both are part of the rule:
    standing rules) or **not blocking**, which says only what is fixed first. **A 10 is a list with nothing open:** the
    work does all of the item's text and the sections it names, keeps every standing rule, leaves nothing behind ("Keep it lean" in `AGENTS.md`), its tests prove it, and a
    demanding expert would hand it over as it stands. A 10 with a point open, or less than 10 with none, is no review:
-   ask again. This definition goes into every reviewer's brief word for word, and only the owner changes it.
+   ask again. This definition goes into every reviewer's brief word for word, and only the owner changes it; so does "One idea, for every reviewer" ("Review guidelines" in `AGENTS.md`).
 2. **Every point is fixed, or moved out with a reason.** A point within the item is always fixed. A point outside it
    (code or a question the item did not touch) may become a follow-up (a `bug` issue if it is a bug, otherwise an entry in `docs/BUILD-PROGRESS.md`), with the reason in the
    PR. A point the builder thinks wrong is answered in the PR with why. The next round's reviewer rules on each move
@@ -167,6 +167,10 @@ The guards against both are part of the rule:
      guidelines), a test PR with planted faults goes to each reviewer and is never merged. The faults are a bug, a
      broken standing rule, a security hole and a departure from the design, as on Snakes #298. Each fault not found is
      a miss.
+   - **A history spot-check every month** (the owner, 2 November 2026): a fresh reviewer picks about ten facts from the
+     dossiers in `docs/history/`, the ones the game uses most, and checks each against the source it cites (the letter,
+     the edition, the study). Every fact that does not hold is a miss: the dossier and the game are fixed, and a
+     `bug` issue tracks it until the fix is live.
    - **Logged and reported:** each check is a row in "Calibration" below, and each milestone PR says in one line the
      misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
      the owner, and the categories it reviews go back to the other reviewer meanwhile.

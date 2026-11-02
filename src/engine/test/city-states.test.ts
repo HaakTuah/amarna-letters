@@ -25,7 +25,7 @@ import {
   newGameConfig,
   PeopleOf1346,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 const Map = WorldMap.default;
 
@@ -100,7 +100,7 @@ describe("City-states as powers (item 11+)", () => {
   });
 
   test("The vassal mark names one of the two kings or nothing", () => {
-    const s = newGame(3);
+    const s = smallWorld(newGame(3), "Tyre", "Egypt", "Hatti");
     const e = new TurnEngine(s);
     const envoy = s.characters.find((c) => c.employer === "Tyre")!;
     e.resolve(

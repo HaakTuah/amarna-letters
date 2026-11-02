@@ -5,6 +5,7 @@ export { Parse } from "./parse.ts";
 export * from "./journal.ts";
 export * from "./prompts.ts";
 export * from "./rules.ts";
+export * from "./rules-plan.ts";
 export * from "./client.ts";
 export * from "./limiter.ts";
 export * from "./cache-gate.ts";

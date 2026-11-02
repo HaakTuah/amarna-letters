@@ -25,7 +25,7 @@ import {
   spend,
   newHoard,
 } from "@amarna/engine";
-import { Assert, last, orderBy } from "./support.ts";
+import { Assert, last, orderBy, smallWorld } from "./support.ts";
 
 // <summary>The richest characters: what a character gains, by source, and the ranking by wealth.</summary>
 describe("WealthTests", () => {
@@ -56,7 +56,7 @@ describe("WealthTests", () => {
   });
 
   test("Fees skims gifts and gold kept on dismissal are all counted as the engine pays them", () => {
-    let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    let s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Alashiya", "Hatti");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     // Item 11a: the advance of its starting job, handed over before the game.

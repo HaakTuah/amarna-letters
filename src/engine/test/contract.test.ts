@@ -36,7 +36,7 @@ import {
   sellDebt,
   single,
 } from "@amarna/engine";
-import { Assert, speaksAll } from "./support.ts";
+import { Assert, speaksAll, smallWorld } from "./support.ts";
 
 // <summary>Jobs as errands (item 11a, "Jobs, not wages", reworked by Haakon's answers to items 11a and 11a+): a job is one
 // errand with a fee; it ends when it is done; every payment is the payer's order; renewing is a new offer; offers go abroad
@@ -70,7 +70,7 @@ describe("ContractTests", () => {
 
   // One of Egypt's servants at court, on a one-season job for 12 (6 handed over) whose first errand is not named yet.
   function servant(wantsMore: boolean = true, config: GameConfig | null = null): [GameState, Character] {
-    let s = still(newGame(5, config ?? newGameConfig({ catastropheChance: 0 })));
+    let s = still(smallWorld(newGame(5, config ?? newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Babylonia"));
     let c = first(s.characters, (c) => c.employer === "Egypt");
     c.secretMaster = null;
     c.traits.sympathy = null;
@@ -180,7 +180,7 @@ describe("ContractTests", () => {
   });
 
   test("A person offered a job at court this season can be sent on its errand at once; the term must fit the errand", () => {
-    let s = still(newGame(5, newGameConfig({ catastropheChance: 0 })));
+    let s = still(smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Babylonia"));
     const c = freeAt(s);
     const ask = basePrice(c, "Egypt");
     Assert.contains("name the job's errand", refusal(s, hire(c.id, ask * 20, 20, ask * 20)));
@@ -234,7 +234,7 @@ describe("ContractTests", () => {
   });
 
   test("A court's record of paying is news: it reaches other courts by the roads, and people hear it where they stand", () => {
-    let s = still(newGame(5, newGameConfig({ catastropheChance: 0 })));
+    let s = still(smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Babylonia"));
     const e = new TurnEngine(s);
     e.recordPay("Egypt", false, "Egypt");
     // Egypt knows its own at once; Hatti only once word has come.
@@ -253,7 +253,7 @@ describe("ContractTests", () => {
   });
 
   test("What people ask follows what they heard jobs pay, with no going rate", () => {
-    let s = still(newGame(5));
+    let s = still(smallWorld(newGame(5), "Egypt", "Hatti", "Babylonia", "Assyria", "Mitanni"));
     const c = freeAt(s);
     const own = basePrice(c, "Egypt");
     new TurnEngine(s).heardFee(c, own * 3);
@@ -267,7 +267,7 @@ describe("ContractTests", () => {
   });
 
   test("Hard acts: a hoard seized, a tablet sold, a captive's purse kept until its captor takes it, and a levy of every man", () => {
-    let s = still(newGame(5, newGameConfig({ catastropheChance: 0 })));
+    let s = still(smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Babylonia"));
     const rich = freeAt(s);
     rich.hoard = newHoard({ at: "Egypt", gold: 300 });
     const gold = s.treasuries.get("Egypt").gold;
@@ -298,7 +298,7 @@ describe("ContractTests", () => {
   });
 
   test("The king chooses how many men a levy takes, up to all", () => {
-    let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    let s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt");
     const home = first(
       [...s.owner.entries()].filter(([id, o]) => o === "Egypt" && !s.units.some((u) => u.province === id)).map(([id]) => id),
       () => true,
@@ -310,7 +310,7 @@ describe("ContractTests", () => {
   });
 
   test("Carriers of letters are paid on delivery only by their court's standing order", () => {
-    let s = still(newGame(5));
+    let s = still(smallWorld(newGame(5), "Egypt"));
     Assert.false(Views.for(s, "Egypt").payCarriers);
     new TurnEngine(s).resolve(orders("Egypt", payCarriers(true)));
     Assert.true(Views.for(s, "Egypt").payCarriers);
@@ -319,7 +319,7 @@ describe("ContractTests", () => {
   });
 
   test("A free person at your court shows what they ask; a spy sent on another errand than its job's is refused", () => {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt", "Hatti", "Babylonia");
     let free = freeAt(s);
     let line = single(Views.for(s, "Egypt").known, (x) => x.id === free.id);
     Assert.equal(basePrice(free, "Egypt"), line.askingPrice);

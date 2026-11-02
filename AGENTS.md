@@ -184,7 +184,9 @@ own. One that fails a condition is closed with the reason, and the update is mad
 
 **Dependabot's version updates** (`.github/dependabot.yml`: weekly, grouped, each release a week old) aim at `develop`
 and are ordinary small PRs: the next free lane takes one, runs the checks, gets Codex's review, reads the release notes
-for breaking changes, and merges it, or closes it with the reason.
+for breaking changes, and merges it, or closes it with the reason. A new major of `@types/node` is the cue to move Node
+itself: an even-numbered Node that is long-term support (from its October) moves CI's `node-version` and
+`scripts/cloud-setup.sh` in the same PR, with the types and the full suites; an odd one is closed with that reason.
 
 **CodeQL checks every PR** into `develop` and `main`, every push to them and once a week (`.github/workflows/codeql.yml`).
 A finding on your PR shows on it as a note: fix it in the same PR, or, if it is a false alarm, say why in the PR and
@@ -218,7 +220,16 @@ everything that keeps the work from 10, and only a 10, a list with nothing open,
 guards against endless rounds and a slipping bar: "Codex reviews" and "Reviews" in `docs/claude-and-codex.md`.
 On build-order items, Codex's review and Claude's design check start at the same time.
 
+**History holds,** for every reviewer: report as P1 a real-world fact (a person, place, date, name, custom or event)
+the change adds or alters that has no source in `docs/history/`, or contradicts the source it cites.
+
 **Hidden information,** for every reviewer: report as P1 any read of the true game state that a seat could not know,
 in what it is shown, what a model is asked, what a script king reads or what an export holds. Check every path: the
 latest season, past seasons, replays and the god view. The canary test ("Follow-ups" in `docs/BUILD-PROGRESS.md`)
 guards the same from the other side, since a reviewer can miss it.
+
+**One idea, for every reviewer** of a change to the game (not docs, design copies or Dependabot's updates): end the
+review with one thing outside this change that would make the game better, or "none", the usual answer when nothing is
+worth the owner's time. It never blocks (a P3 at most). The builder searches the open ideas first: a new one is filed as
+an `enhancement` issue and linked in the PR, a repeat becomes a comment on the existing issue, so the ones that keep
+coming up show. Nothing is built from it until the owner queues it.

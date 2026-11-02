@@ -26,13 +26,14 @@ import {
   newTurnSubmission,
   single,
 } from "@amarna/engine";
-import { Assert, last, toDict, skilled } from "./support.ts";
+import { Assert, last, toDict, skilled, smallWorld } from "./support.ts";
 
 // <summary>Inventory tablets, and an envoy who skimmed swapping the inventory for a forgery stating less.</summary>
 describe("InventoryTests", () => {
   // <summary>Egypt's envoy, of the given skill, stands before Alashiya's king with 100 shekels of fine gold.</summary>
-  function atAudience(competence: number): [GameState, TurnEngine, Character, PendingAudience] {
+  function atAudience(competence: number, small = true): [GameState, TurnEngine, Character, PendingAudience] {
     let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    if (small) smallWorld(s, "Egypt", "Alashiya");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     skilled(envoy, competence);
@@ -189,7 +190,7 @@ describe("InventoryTests", () => {
   });
 
   test("Examining a swapped inventory can find the forgery and trace it to the envoy who brought it", () => {
-    let [s, e, envoy, a] = atAudience(60);
+    let [s, e, envoy, a] = atAudience(60, false);
     e.applyAudience(record(a, 20, true));
     let copy = single(s.copies, (k) => k.holder === "Alashiya" && single(s.tablets, (t) => t.id === k.tabletId).inventory);
     e.resolve(new Dict<Power, TurnSubmission>());

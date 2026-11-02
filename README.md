@@ -307,13 +307,14 @@ Pick a preset, choose whether to watch or take a seat, and begin.
 |---|---|---|---|---|
 | **Free** | Script kings | Script | Template | $0, no key needed |
 | **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $9 ($5 in the background) |
-| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $115 ($70 in the background) |
+| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $90 ($55 in the background) |
 | **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $110 ($65 in the background) |
 | **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $180 ($105 in the background) |
 | **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
 
 The costs are the start page's estimates for an age of the usual length (about 80 seasons), from the token counts of a
-recorded game (November 2026: each king's call opens with some 70,000 tokens of rules, read from cache); the page reckons them
+recorded game (November 2026: each king's call opens with some 70,000 tokens of rules, read from cache; a plan reads only
+what a planner needs of them, some 4,000); the page reckons them
 again for the table's own ending, and the meter in the game shows the real spend.
 
 Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
@@ -399,8 +400,10 @@ its key.
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly. The export ("Export log" in the menu)
 holds everything by default, every model call in full included; its boxes leave parts out, and unticking "Human players'
-words" blanks every text of a game a human played (models quote what they read), so the file can be shared and still
-replays. Keys, addresses, account and request ids, local paths and device details are never recorded, so never in it.
+words" blanks every text of a game a human played (models quote what they read) and turns every name made up in an
+order into a stand-in (Name-1, Name-2; real names stay), so the file can be shared and still replays. While a human
+plays, "Export log" is in the menu only when the board is open to him: "Reveal all" ticked, the game over, or his realm
+fallen. Keys, addresses, account and request ids, local paths and device details are never recorded, so never in it.
 
 ## Music and sound
 

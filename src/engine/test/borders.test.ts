@@ -35,13 +35,13 @@ import {
   trade,
   welcome,
 } from "@amarna/engine";
-import { Assert, oldWorld, removeAll } from "./support.ts";
+import { Assert, oldWorld, smallWorld, removeAll } from "./support.ts";
 
 // People across borders and in kings' hands (build order item 10+b), and the answers carried from 10+a: anyone's ships at
 // a besieged harbour, prices and tolls known only as reported.
 describe("BordersTests", () => {
   const Map = WorldMap.default;
-  const quiet = (): GameState => oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
+  const quiet = (): GameState => smallWorld(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "Hatti", "Mitanni", "Egypt", "Alashiya", "Babylonia", "Assyria");
   const orders = (p: Power, ...os: TurnSubmission["orders"]): Dict<Power, TurnSubmission> => new Dict([[p, newTurnSubmission({ orders: os })]]);
   const refusal = (s: GameState, p: Power, o: Order): string | null => new OrderValidator(s, Map).validate(p, newTurnSubmission({ orders: [o] })).rejected[0]?.reason ?? null;
   /** A province of one king next to a province of another's. */
