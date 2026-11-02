@@ -2,7 +2,9 @@ import { describe, test } from "vitest";
 import {
   AllPowers,
   GameStateSchema,
+  EnvoyReactionSchema,
   HostReplySchema,
+  MindReplySchema,
   S,
   TurnSubmissionSchema,
   dispatch,
@@ -30,6 +32,7 @@ import {
   GameRunner,
   LogHeaderSchema,
   ModelCallSchema,
+  PresentResultSchema,
   ScriptMind,
   ShadowDecisionSchema,
   TemplateNarrator,
@@ -83,6 +86,8 @@ describe("ExportTests", () => {
     Assert.equal("refused by the model", failureOf(new ModelRefusedError("claude-haiku-5-5", null)));
     Assert.equal("did not fit: it was not one JSON object", failureOf(new ReplyError("it was not one JSON object")));
     Assert.equal("failed", failureOf(new Error(key)));
+    // Only a kind this build knows is taken from the error itself.
+    Assert.equal("failed", failureOf(Object.assign(new Error(key), { failure: key })));
   });
 
   test("A failed exchange is logged without what was said, and so is every export of it", async () => {
@@ -149,9 +154,11 @@ describe("ExportTests", () => {
     "collect", "copies", "copy", "council", "court", "debt", "engage", "envoy", "fate", "fleet", "from", "grantee", "how", "into", "kind", "lot",
     "name", "named", "open", "partner", "person", "power", "province", "provinces", "seals", "supported", "target", "task", "to", "unit",
     "vassal", "via", "what", "when", "where", "withdraw",
+    // A character's answers: courts, debts, offers and people by id, an alias it was offered.
+    "accept", "askDebts", "choice", "claimsToServe", "giveDebts", "go", "goAs", "kill", "league", "outlaw", "repay",
   ]);
 
-  test("Every string a human's orders and answers can hold is either words or an order", () => {
+  test("Every string a decision can hold is either words or an order", () => {
     const unsorted = new Set<string>();
     const seen = new Set<Schema>();
     const walk = (s: Schema, key: string): void => {
@@ -177,8 +184,8 @@ describe("ExportTests", () => {
           return;
       }
     };
-    walk(TurnSubmissionSchema, "");
-    walk(HostReplySchema, "");
+    // Every schema the runner records a decision under (strings and flags are values of their own).
+    for (const schema of [TurnSubmissionSchema, HostReplySchema, MindReplySchema, PresentResultSchema, EnvoyReactionSchema]) walk(schema, "");
     // A new string field must be put on one side: in WordFields (export.ts) if a player types it, here if the engine reads it.
     Assert.equal([], [...unsorted]);
   });
@@ -265,6 +272,14 @@ describe("ExportTests", () => {
       .map((l) => (JSON.parse(l) as { value: string }).value);
     Assert.equal(values[0], values[2]);
     Assert.equal(5, new Set(values).size);
+    // More texts of one tiny shape than its letters can number still blank apart, and never as a longer text's blank.
+    const tiny = new GameLog();
+    for (const [i, words] of ["a", "b", "c", "d", "e", "ab", "cd"].entries()) tiny.record(`t1/aud/s${i}`, S, words, human);
+    const blanks = exportJsonl(tiny, { ...Everything, humanWords: false })
+      .split("\n")
+      .filter((l) => l.includes('"type":"decision"'))
+      .map((l) => (JSON.parse(l) as { value: string }).value);
+    Assert.equal(7, new Set(blanks).size);
     for (const v of values) Assert.true(/^\S{4} \S{5}$/.test(v) && !/[A-Za-z]/.test(v), `"${v}" is not a blank of its shape`);
   });
 

@@ -82,6 +82,12 @@ In `docs/design/50-the-export.md` ("What it holds").
    "Export log" should wait for "Reveal all" while a human plays is the open question #424 (reading taken there:
    nothing changes); the button and the worker's `export` stay easy to gate.
 
+## Questions for the owner
+
+- [#424](https://github.com/HaakTuah/amarna-letters/issues/424): should "Export log" wait for "Reveal all" while a human plays? (open; the reading taken: nothing changes)
+- [#422](https://github.com/HaakTuah/amarna-letters/pull/422) (merged): the design this export is built to, secrets kept out by design.
+- [#421](https://github.com/HaakTuah/amarna-letters/pull/421): the canary lane, which calls `exportJsonl(log, parts)`.
+
 ## Overlap with other lanes
 
 `src/llm` (the limiter lane's) changes in a few lines, each logging a failure's kind: `client.ts`, `exchange.ts`,
@@ -89,4 +95,6 @@ In `docs/design/50-the-export.md` ("What it holds").
 
 ## Helpers
 
-None: one pass of reading and building.
+One: Claude's reviewer (Opus, high) on the rebuilt export, which scored it 7 and found a character's approach `words`
+not blanked, a blank collision for many tiny texts, an unchecked failure kind, this section missing and two import
+nits; all fixed, the decision schemas the runner records now all held to words or orders by the test.

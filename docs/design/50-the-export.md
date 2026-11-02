@@ -21,10 +21,10 @@ open question #424; until it is answered the button stays as it is.
 - **Filters** leave parts out: the model calls, the shadow scripts, the audits, and a human player's words. Without his
   words, in a game with a human seat, every text is a blank of the same length, each letter a `▒` and its spaces kept
   (the same text always blanks the same, and two different texts never do: the nth text of a shape ends in its number
-  written in `▒░▓█`, since the game compares texts, a go-between who changed an envoy's words having bent them; and an
+  written in `▒░▓█` (past what its letters can number, the rest follows a `▚`), since the game compares texts, a go-between who changed an envoy's words having bent them; and an
   answer that did not fit keeps only "did not fit: " before its blanked account, which may quote the answer):
   the word fields of every decision (`letter`, `mandate`, `notes`, `summary`, `entry`, `speech`, `bribeAsk`, `say`,
-  `reply`, `text`, `custom`, `commitments`, a turned captive's `poison`, and `unreadable` and `reason` for text the game
+  `reply`, `text`, `custom`, `commitments`, a character's approach `words`, a turned captive's `poison`, and `unreadable` and `reason` for text the game
   could not read; a test holds every string field of the orders and answers to one side or the other), a decision whose
   whole value is a text (a chronicle, a persona), a ladder's why, every call's system text, prompt and reply, and every
   shadow's texts. Models quote and echo what they read, so nothing short of that keeps his words out. Each record keeps

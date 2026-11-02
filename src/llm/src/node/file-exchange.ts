@@ -6,8 +6,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { newGame, trim, trimStart, type Character, type GameConfig } from "@amarna/engine";
-import type { ModelCall, ShadowDecision } from "@amarna/game";
-import { failing } from "@amarna/game";
+import { failing, type ModelCall, type ShadowDecision } from "@amarna/game";
 import { LlmCharacterMind } from "../character-mind.ts";
 import type { CallSpec, JsonAsker } from "../client.ts";
 import { CharacterActor, King, converse, requestText } from "../exchange.ts";

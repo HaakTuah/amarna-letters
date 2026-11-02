@@ -9,9 +9,9 @@
  * each record may give, so a field no one listed stays out.
  */
 import { isFailure } from "./failure.ts";
+import type { GameLog } from "./log.ts";
 
 const DidNotFit = "did not fit: ";
-import type { GameLog } from "./log.ts";
 
 /** What an export holds: each part true to put it in. */
 export interface ExportParts {
@@ -45,15 +45,16 @@ export const BlankMark = "▒";
 
 /**
  * The fields of a decision that hold words, by name: letters, mandates and speeches, notes, summaries and ledger entries,
- * answers' words, a tablet's or a forgery's text, a custom greeting, what a turned captive is to report home, and any
+ * answers' words, a character's approach, a tablet's or a forgery's text, a custom greeting, what a turned captive is to report home, and any
  * text the game could not read as an order. Every other field is an order the engine reads (ids, names it knows,
  * numbers), and is never blanked, so the export replays (`export.test.ts` holds each to one side, so a new field of
  * words cannot be missed).
  */
-export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments", "poison", "unreadable", "reason"]);
+export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments", "poison", "unreadable", "reason", "words"]);
 
 /** The other marks a blank may use, after the first, so that two different texts never blank to the same. */
 const Marks = [BlankMark, "░", "▓", "█"];
+const Overflow = "▚";
 
 /**
  * Blanks texts: every letter replaced by a mark, its spaces and its length kept. The same text always blanks the same,
@@ -76,7 +77,9 @@ class Blanker {
       out[i] = Marks[n % Marks.length]!;
       n = Math.floor(n / Marks.length);
     }
-    // More texts of one tiny shape than its letters can number: the rest of the number is added on.
+    // More texts of one tiny shape than its letters can number: the rest of the number is added on, after a mark no blank
+    // holds, so it cannot read as a longer text's blank.
+    if (n > 0) out.push(Overflow);
     for (; n > 0; n = Math.floor(n / Marks.length)) out.push(Marks[n % Marks.length]!);
     const blanked = out.join("");
     this.given.set(text, blanked);

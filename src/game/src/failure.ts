@@ -37,7 +37,7 @@ export function failureOf(ex: unknown): string {
   const e = (ex ?? {}) as Failing & { name?: string };
   // An answer that did not fit says why in the game's own words (the schema's account of the reply), never a provider's.
   if (e.failure === "did not fit" && ex instanceof Error && ex.message.length > 0 && ex.message !== e.failure) return `did not fit: ${ex.message}`;
-  if (e.failure !== undefined) return e.failure;
+  if ((FailureKinds as readonly unknown[]).includes(e.failure)) return e.failure!;
   if (e.name === "AbortError" || e.name === "TimeoutError") return "timed out";
   const status = e.status;
   if (typeof status !== "number") return "failed";
