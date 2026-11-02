@@ -35,8 +35,21 @@ export function talkedAway(b: Board): string[] {
   return out;
 }
 
-/** "Among what X carried was the word of the people of P to C, which never reached him": the notice of an offer caught. */
-const OfferCaught = /^Among what .+? carried was the word of the people of (.+?) to (.+?), which never reached him: /u;
+/** "Among what X carried was the word of the people of P to C, which never reached him: ...": the notice of an offer caught. */
+const OfferOpens = "Among what ";
+const OfferPeople = " carried was the word of the people of ";
+const OfferEnds = ", which never reached him: ";
+
+/** The province's name and the claimant in the notice of an offer caught; null for any other notice. */
+function offerCaught(body: string): [string, string] | null {
+  if (!body.startsWith(OfferOpens)) return null;
+  const people = body.indexOf(OfferPeople);
+  const ends = people < 0 ? -1 : body.indexOf(OfferEnds, people);
+  if (ends < 0) return null;
+  const said = body.slice(people + OfferPeople.length, ends);
+  const to = said.lastIndexOf(" to ");
+  return to < 0 ? null : [said.slice(0, to), said.slice(to + " to ".length)];
+}
 
 /** The offers read this season on carriers we caught (#553): from which province, to which claimant. */
 export function offersCaught(b: Board): { province: string; claimant: Power }[] {
@@ -44,9 +57,9 @@ export function offersCaught(b: Board): { province: string; claimant: Power }[] 
   const out: { province: string; claimant: Power }[] = [];
   for (const m of b.v.inbox) {
     if (m.title !== "A letter taken on the road") continue;
-    const x = OfferCaught.exec(m.body);
-    const p = x !== null ? Board.Map.provinces.find((q) => q.name === x[1]) : undefined;
-    if (p !== undefined) out.push({ province: p.id, claimant: x![2] as Power });
+    const x = offerCaught(m.body);
+    const p = x !== null ? Board.Map.provinces.find((q) => q.name === x[0]) : undefined;
+    if (p !== undefined) out.push({ province: p.id, claimant: x![1] as Power });
   }
   return out;
 }
