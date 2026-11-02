@@ -4,7 +4,7 @@ Branch `lane/model-calls-get-through`, PR #386. The design: Engine and models, "
 background" (`docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md`). As built:
 `docs/design/04-models.md`, "Calls that get through" and "Cost estimates".
 
-Haakon's words (2 November 2026; archived word for word in `docs/archive/instructions.md`, items 134 and 136), after his Haiku game of
+The owner's words (2 November 2026; archived word for word in `docs/archive/instructions.md`, items 134 and 136), after his Haiku game of
 1 November: "Pretty expensive now if the first 2 round was representative. A little over Half a dollar for those 2
 seasons, and not all of the api calls got through ... Probably should spread them out then? And have it work in the
 background while you do your stuff?", then, to the design session's findings: "Yes, please, expertly to both!"

@@ -3,7 +3,7 @@
 Build order item 12, "Languages" (`docs/intent/build-order/item-12.md`), from the languages dossier
 (`docs/history/07-languages.md`) and the doors' peoples (`docs/history/08-beyond-the-edges.md`). Branch
 `item/languages`, PR #150, pipelined from 11b++ (#137, merged during the build). Held, as the orchestrating session
-asked, until item 11e merged (#154), so that its measurements are on 11e's game; `develop` (11c, 11e, 11c+ and Haakon's
+asked, until item 11e merged (#154), so that its measurements are on 11e's game; `develop` (11c, 11e, 11c+ and the owner's
 #166 and #167) merged in. Save version 29. What was built, by file: `docs/design/30-languages.md`. Weekly usage: unknown (`scripts/usage.sh` cannot
 read it in this session). Effort: medium, as set. Nothing was carried over to item 12 on its row of the progress file.
 
@@ -161,7 +161,7 @@ gold handed in the last 4 seasons. Hearing at court: × (0.25 + 0.75 × skill in
 and what a king's choices add (the right envoy, a bridge) saves a season or two that the scripts' growth does not yet
 turn into gain. Re-measure with command at a distance (13) and in item 18.
 
-## Questions for Haakon
+## Questions for the owner
 
 1. **Stop for review: the balance between courts with native Akkadian and the rest.** As the dossier gives it, Akkadian
    is spoken mostly by scribes, traders and envoys outside Babylonia and Assyria, and about one envoy in five is not

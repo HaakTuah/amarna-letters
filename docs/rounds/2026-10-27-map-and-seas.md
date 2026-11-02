@@ -160,7 +160,7 @@ turn, as today; a known quirk if script kings ever plan boards for other turns.
     with Nubia's richer start.
 13. **A threat to a capital**, for the reserve, is foreign troops within the capital, or beside it when they woke the
     king (the review's finding 4); not any foreign unit beside it, which would pay for Assyria from the first season.
-14. **Labaya starts the game** (Haakon's answer to item 6+): no rulers are characters yet, so nothing here names him;
+14. **Labaya starts the game** (the owner's answer to item 6+): no rulers are characters yet, so nothing here names him;
     item 10's characters do.
 
 ## The review
@@ -182,7 +182,7 @@ One reviewer (Opus, high effort), given the diff and the item's text. Its findin
 
 It found nothing wrong in the engine's convoys and landings, the winter map, siege supply or determinism.
 
-## Also built in 7a: Haakon's answers to item 6c's review, and the pacing notes split
+## Also built in 7a: the owner's answers to item 6c's review, and the pacing notes split
 
 As the item's text now asks first (the design document's revision 37):
 - **A threat to a king's capital is always paid**: a king's orders with foreign troops within his capital, or beside it
@@ -195,6 +195,6 @@ As the item's text now asks first (the design document's revision 37):
   (`statecraft-strategy.ts`), against "no rule checks which power it is"; it now reads the map (a homeland mostly coast),
   which picks the same two courts.
 
-## Haakon's words in this session
+## The owner's words in this session
 
 None: the session ran from the item's start prompt.

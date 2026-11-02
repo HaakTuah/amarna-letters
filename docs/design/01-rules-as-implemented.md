@@ -293,7 +293,7 @@
   homeland's worth a season and starting strength in the rulebook ("OPENING POSITIONS (known to every
   court)"), generated from the map data (`src/engine/src/model/map.ts`) by `openingLines` (`src/engine/src/rules/opening.ts`), so the cached block stays byte-stable.
   The web app's standings panel shows the same table to every seat, human or not. Script kings
-  read the same facts from `MapData`, as before.
+  read the same facts from the map data.
 - **Ending** (build order item 6a, "Random ending" and "An open age" under Victory; `src/engine/src/rules/ending.ts`).
   Any season may be the last from the first: the chance that season t is the last, if the age reaches it, is k × t,
   with k found so that half of all ages have ended by the median season (`endMedian`, 44 by default: 1332 BCE; about
@@ -304,7 +304,7 @@
   age", or at the cap "the age has run its course"), or when one kingdom is left. Nothing shown reads the drawn season:
   no seat view, request, look-ahead or web frame (tested). The rulebook and the web app's header say the rule in words,
   without numbers ("Any season may be the last: early on it is very unlikely, and it grows likelier with every year.").
-  Since item 6b (Haakon's answer to 6a's review) a table's median moves the words, in three bands with no numbers
+  Since item 6b (the owner's answer to 6a's review) a table's median moves the words, in three bands with no numbers
   (`ageBand`, `bandWords` in `rules/ending.ts`; first guesses: a median up to 30 seasons is "likely to be short", from
   60 "likely to be long"), the same for every seat in the rulebook, the view (`SeatView.ageBand`) and the header; a
   script king believes the band's own median (24, 44 or 75 seasons, `bots/ending-belief.ts`), never the table's.

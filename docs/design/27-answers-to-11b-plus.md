@@ -1,6 +1,6 @@
 # The answers to item 11b+ (item 11b++)
 
-Haakon's answers to item 11b+'s review (29 October 2026, "Agree to all"), each by "The game in one page". Save version
+The owner's answers to item 11b+'s review (29 October 2026, "Agree to all"), each by "The game in one page". Save version
 25. The report is `docs/rounds/2026-10-29-answers-to-11b-plus.md`.
 
 - **A starting servant's standing order to pay on completion** (`factory.ts`, `Contract.payOnDone`) was built in 11b+; it

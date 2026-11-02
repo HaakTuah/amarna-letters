@@ -1,6 +1,6 @@
 # Chiefs and spies choose for themselves (after item 11b+)
 
-Haakon's answers to item 11b: "a model chief decides raids, ships and the way back in a request of his own, like every
+The owner's answers to item 11b: "a model chief decides raids, ships and the way back in a request of his own, like every
 character, and only a script chief by formula", and "no rule moves a spy whose reports wait for a carrier: he decides
 whether to wait, carry them home himself or pay a passing traveller, a script spy by his traits". Item 11b+ built the
 script's side ([`24-jobs-and-money-answers.md`](24-jobs-and-money-answers.md)); this builds the model's.

@@ -1,7 +1,7 @@
 /**
  * Integer, rounding and number-formatting helpers that reproduce the C# build exactly (build order item 5+). JavaScript
  * numbers are all doubles, so the C# integer and rounding rules go through here: integer division truncates toward zero,
- * Math.Round rounds half to even, and every number written into text uses the C# formats. The parity check proves them.
+ * Math.Round rounds half to even, and every number written into text uses the C# formats.
  */
 
 /** C# integer division: truncates toward zero. */

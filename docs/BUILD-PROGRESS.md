@@ -1,13 +1,13 @@
 # Build progress
 
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
-`.claude/rules/builder-rules.md`, which also say how items are branched, merged and reviewed, and when work slows for
-usage). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
+`.claude/rules/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
+how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
 document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
 longer finds was history and is in `docs/archive/design-history.md`.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`;
-The owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
+the owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
 
 ## The polish lane
 
@@ -57,9 +57,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **Done so far** (2 November 2026): the progress file under 20 KB (#388); the files every session reads (#390);
   `docs/` (#392: item 2's, 4's and 5+'s briefs and specs to `docs/archive/specs/`, built entries out of "Not built yet"; #393:
   design note 10 down to its live differences); the archive's `progress-done.md` split by kind (#394). **Left:** the code,
-  once the open lanes touching it merge (17++ B and C, export, model calls, fog); first find there: the conversion's
-  parity check (`src/game/src/parity.ts`, `src/batch/src/parity*.ts`, `--parity` in `src/batch`) compares against the C#
-  build removed on 27 October, so it is probably a leftover; `docs/DESIGN-NOTES.md` after its open lane merges.
+  once the open lanes touching it merge (17++ B and C, export, model calls, fog); the conversion's parity check removed
+  (#443); `docs/DESIGN-NOTES.md` after its open lane merges.
 
 ## Follow-ups
 
@@ -72,22 +71,22 @@ fixed.
 - ~~**The canary test for hidden information**~~ (done, #421): `src/web/test/canary.test.ts` plants an envoy's hidden
   mandate, its letter, a sealed tablet, an army in the fog and another court's treasury, and reads every seat's input,
   every model request, the chronicles, every view, map and panel the page shows, live, in past seasons and on replay; no
-  leak found. Whether "Export log" should wait for "Reveal all" while a human plays: #424. Its export part (secrets
-  and a human seat's words exported under every filter, none found) is added once the export lane (#385) merges.
+  leak found; its export part (#430) plants sensitive failures and a human seat's words and exports them under all
+  sixteen filters: none found. Whether "Export log" should wait for "Reveal all" while a human plays: #424.
 - ~~**First of all: what a game's export holds**~~ (done, #385): nothing sensitive in `tests/fixtures/`; one export
   with filters (calls, shadows, audits, human words), kept clean by design: failures logged as kind and code, each
   record giving only its listed fields, and without human words a game with a human seat blanks every text and still
-  replays. Open: #424, #427. Report: `docs/rounds/2026-11-02-export-audit.md`; note: `docs/design/50-the-export.md`.
+  replays. Report: `docs/rounds/2026-11-02-export-audit.md`; note: `docs/design/50-the-export.md`.
+- ~~**The export's stand-in names and its gate**~~ (done, #436): under the human-words filter a name made up in an
+  order (a pitch's name, `goAs`, a claimed realm) is Name-1, Name-2, real names kept, and it still replays; "Export
+  log" is offered only when the god view is; the canary grows a line for each (`docs/rounds/2026-11-02-export-stand-ins.md`).
 - ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
   as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
   token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:
   `docs/rounds/2026-11-02-model-calls-get-through.md`.
-- **Counsel's plans from a digest** (found by "model calls that get through", 2 November 2026; Engine and models,
-  "Passing up and asking advice": the strong model writes the plan "from a digest of the year ... rather than the whole
-  record"). A plan call opens with the kings' whole 70,600-token rulebook on Sonnet, so at the recorded token counts
-  Counsel estimates about 5% above Standard, where the design has small models play and the large one only plan and
-  advise. Give the plan call its own short opening (the digest and what it needs of the rules), then restore the test's
-  old claim that Counsel costs less than Standard (`src/game/test/who-decides.test.ts`).
+- ~~**Counsel's plans from a digest**~~ (done, #437): the plan call opens with its own short rules (how a power wins,
+  the plan, standing answers), about 3,900 tokens where it read the kings' 70,600, so Counsel estimates below Standard
+  again ($1.13 a season live against $1.34). Report: `docs/rounds/2026-11-02-counsel-plans-from-digest.md`.
 - ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
   armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
 

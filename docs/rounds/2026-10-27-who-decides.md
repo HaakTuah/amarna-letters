@@ -163,6 +163,6 @@ beyond the engine's memory; item 10 gives them more); a script rung's phrasing c
     answers (one may seal) and sends no letters.
 12. **Human seats** get none of this help ("whether a human seat may turn on the same help is still to be decided").
 
-## Haakon's words in this session
+## The owner's words in this session
 
 None given in this session; the session's brief named the item and the rules above.

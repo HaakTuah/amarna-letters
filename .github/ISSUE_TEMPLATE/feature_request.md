@@ -8,7 +8,7 @@ assignees: HaakTuah
 ---
 
 **Is your feature request related to a problem? Please describe.**
-What is missing or could be better, and who notices it (a player, a rival or king, a builder). Ex. I'm always frustrated when [...]
+What is missing or could be better, and who notices it (a player, a king or character, a builder). Ex. I'm always frustrated when [...]
 
 **Describe the solution you'd like**
 What you would like to happen.

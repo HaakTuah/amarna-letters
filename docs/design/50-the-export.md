@@ -2,8 +2,9 @@
 
 One export, with filters for what goes in (Engine and models, "Logging and replay"; the owner, 2 November 2026). Built in
 `src/game/src/export.ts` (`exportJsonl`) and `src/game/src/failure.ts`; the web app's menu offers it as "Export log"
-(`src/web/src/components/ExportLog.tsx`). Whether "Export log" should wait for "Reveal all" while a human plays is the
-open question #424; until it is answered the button stays as it is.
+(`src/web/src/components/ExportLog.tsx`). While a human plays, it is offered only when the god view is (no human seat,
+"Reveal all" ticked, the game over, or his realm fallen: `Session.canSeeAll`), since it holds everything a seat must not
+know (#424); the page's session asks its worker for no export otherwise.
 
 - **What it holds, by default everything** (the log's JSON lines, `GameLog.toJsonl`), each record giving only the fields
   listed for it (`ExportFields`):
@@ -27,7 +28,15 @@ open question #424; until it is answered the button stays as it is.
   `reply`, `text`, `custom`, `commitments`, a character's approach `words`, a turned captive's `poison`, and `unreadable` and `reason` for text the game
   could not read; a test holds every string field of the orders and answers to one side or the other), a decision whose
   whole value is a text (a chronicle, a persona), a ladder's why, every call's system text, prompt and reply, and every
-  shadow's texts. Models quote and echo what they read, so nothing short of that keeps his words out. Each record keeps
+  shadow's texts. Models quote and echo what they read, so nothing short of that keeps his words out. A name made up
+  in an order (`NameFields`: a pitch's `name`, a traveller's `goAs`, a realm a king claims) becomes a stand-in, Name-1,
+  Name-2 in the order they first appear, the same name (trimmed) always the same stand-in; a real name stays: an alias
+  the engine offers (`Aliases`), a fixed power's id, land, ruler or his other names (`namesOf`), or one only the game's
+  state knows (`realNames`: every person's, a risen power's), in any case; the filter refuses to run without the latter
+  (#427). The engine takes only a name it knows and reads any
+  other as no false name (a pitch or a traveller gives its own, a claim is refused), so the game replays the same; where it
+  echoes a made-up name in a text (a rejected claim's notice, a journey's `asName`), the replay holds the stand-in, as it
+  holds a blank where it echoes words. Each record keeps
   its shape (who, when, what kind, its tokens and timings, whether the answer fitted), and orders, ids and names the
   engine reads are never blanked, so the export replays to the same game. A game with no human seat loses nothing. A
   human's words are not sensitive: a normal export keeps them, since he wrote them in play.
@@ -46,4 +55,6 @@ open question #424; until it is answered the button stays as it is.
   - keys never reach the log: the web app holds them in memory and the batch runner in environment variables, and no
     call or header field is built from them.
 - **The canary test** (another lane, #421) plants secrets in a small game, exports it under every filter, decodes it and
-  finds none; it calls `exportJsonl(log, parts)` from `@amarna/game`.
+  finds none; it calls `exportJsonl(log, parts)` from `@amarna/game`. Without human words, the realm a human made up
+  and claimed is a stand-in and the export still replays; and while a human seat has no god view, the page asks for no
+  export.

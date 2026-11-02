@@ -1,7 +1,7 @@
 # Item 11c+: the map read at a glance, and the newest version at once (29 October 2026)
 
 A lane beside items 11e (#154) and 12 (#150). PR #165, branch `item/map-at-a-glance`. The item's text is
-`docs/intent/build-order/item-11.md` ("11c+"), with Haakon's words there; item 11c's report is
+`docs/intent/build-order/item-11.md` ("11c+"), with the owner's words there; item 11c's report is
 [`2026-10-29-true-map.md`](2026-10-29-true-map.md). As built: [`docs/design/32-the-map-at-a-glance.md`](../design/32-the-map-at-a-glance.md).
 Web app only (`src/web`, its drawing and its offline cache) and one script (`scripts/map-borders.ts`): no rule, number,
 save version or engine file changed, so the script benchmarks are unchanged by construction (no file the engine, the
@@ -13,7 +13,7 @@ sieges and supply), item 15 and the free cities' item; nothing in item 11c+.
 
 ## What was built
 
-The four parts, the five more, and the two things Haakon found playing:
+The four parts, the five more, and the two things the owner found playing:
 
 1. **Names give way to everything drawn over the land.** Measured as drawn, in order of importance; a name hides where it
    touches a more important name, another city's badge, a counter, a person, news or a mark. Each name stands off its
@@ -47,7 +47,7 @@ Each with the principle it rests on ("Reason from the pillars").
    add tokens that say nothing more than the count does. (The map serves reading at a glance.)
 2. **A name may sit against its own city's badge**, never another's: a name hangs from its city by design, and now
    stands off its outermost ring. (The item's own words: "touches no more important name and no badge" of another place.)
-3. **A tap on the map while a card is open only closes the card**, as Haakon asked ("closes ... by tapping the map outside
+3. **A tap on the map while a card is open only closes the card**, as the owner asked ("closes ... by tapping the map outside
    it"); the next tap selects. While orders are drafted, taps stay orders. (His words, literally.)
 4. **The crossings marked are those the rules have today**; a strait's mark and legend row appear once item 11f adds one.
    The candidates the item names (the Orontes, the Jordan, the Zagros edge, the Nile's cataracts, the Khabur) are drawn
