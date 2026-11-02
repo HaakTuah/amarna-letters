@@ -10,8 +10,8 @@ revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 4
   `known` is `OfferUnheard` until the letter arrives; until then the power cannot see it or answer it.
 - **Its carriers** (`carryOffer`, run with `carryLetters`):
   - his own spy whose report waits there: the offer goes with that report's carrier (`offer-spy`);
-  - a traveller going from there to his court who is in his service or owes his grant to him: carries it for nothing
-    (`offer-own`);
+  - a traveller going from there to his court whose stakes it serves: in his service, owing his grant to him, or with his
+    sympathy lying with his court (`Traits.sympathy`): carries it for nothing (`offer-own`);
   - only where its people are far gone in his favour (his weight past its holder's by `OfferData.farGone`, 40, first
     guess): a traveller going that way, paid his side fee from its people's purse (`Market.purse`, `offer-paid`), else a
     free person at the court there, hired for the whole journey from the same purse (`offer-hired`). The fees are
@@ -22,11 +22,15 @@ revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 4
   who brought it (`offer-arrived`).
 - **Never carried**: when the declaration ends (its people no longer lean his way), a letter still waiting is dropped
   (`dropOffer`): it fades as the leaning does. A cession by treaty is a king's word, told as before.
-- **Talk** (`sendOffer`): talk of the leaning reaches the power, the holder and the kings holding land beside it at the
-  roads' pace from the province (a "Talk of ..." rumour, `offer-talk`). Talk is no offer: it cannot be answered.
+- **Talk** (`sendOffer`): talk of the leaning reaches the power, the holder and the holder's enemies at the roads' pace
+  from the province (a "Talk of ..." rumour, `offer-talk`). His enemies (`enemiesOf`), by the game's marks of enmity:
+  those whose troops stand unbidden in his land (`hostileAt`), and those who closed their roads to him or he to them.
+  Talk is no offer: it cannot be answered.
 
 ## Script kings (`game/src/bots/talk.ts`)
 
 - A king whose province talk says leans toward another treats it as restless and eases what it is asked (`freedom.ts`'s
   relief), before the offer reaches the other king. `--no-talk-play`, `--talk-play-half`.
+- A king told that a rival's province leans toward someone warms to that claimant (`Brain.learn`, trust `CourtTrust`
+  0.1, first guess): "his enemies by courting the claimant".
 - Answering an offer is part C's (`bots/declarations.ts`), from the season it arrives.

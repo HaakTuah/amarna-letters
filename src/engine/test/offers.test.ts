@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, OfferData, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newTraits, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
+import { Dict, OfferData, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newTraits, newUnit, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
 import { Assert, removeAll } from "./support.ts";
 
 // Item 17++, part D (#431, the owner: "Yes, expertly, if you think it is best"): a province's offer to an absent power
@@ -90,5 +90,30 @@ describe("OfferTests", () => {
     Assert.equal(c.id, offer(s).carrier);
     Assert.equal(gold - OfferData.sellPrice, s.treasuries.get("Babylonia").gold);
     Assert.contains(s.events, (x) => x.signal === "offer-sold");
+  });
+
+  test("Talk reaches the land king's enemies, by the game's marks of enmity, and not every neighbour", () => {
+    const s = quiet();
+    const e = new TurnEngine(s);
+    e.beginTurn();
+    // Hatti's troops stand unbidden in a province of Babylonia's: Hatti is its enemy; Assyria, a neighbour, is not.
+    const theirs = WorldMap.default.landProvinces.find((x) => s.owner.getOrDefault(x.id, null) === "Babylonia" && x.id !== "babylon")!.id;
+    removeAll(s.units, (u) => u.province === theirs);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: theirs }));
+    const d = newDeclaration({ province: "babylon", power: "Egypt" });
+    s.declarations.push(d);
+    e.sendOffer(d, "Babylonia", "The people declare for you.");
+    const told = s.journeys.filter((j) => j.kind === "Word" && (j.text ?? "").includes("Talk of")).map((j) => j.to);
+    Assert.contains(told, (x) => x === "Hatti");
+    Assert.doesNotContain(told, (x) => x === "Assyria");
+  });
+
+  test("A man whose sympathy lies with the claimant carries it for nothing", () => {
+    const [s, e] = offered();
+    const c = person(s, { status: "Free", at: "Babylonia", traits: newTraits({ loyalty: 50, greed: 50, ambition: 30, courage: 50, competence: 50, sympathy: "Egypt" }) });
+    e.startTravel(c, "Egypt");
+    e.carryLetters();
+    Assert.equal(c.id, offer(s).carrier);
+    Assert.contains(s.events, (x) => x.signal === "offer-own");
   });
 });

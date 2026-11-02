@@ -2,7 +2,7 @@
  * Who carries a province's offer (item 17++, part D; the owner's answer to #431, 2 November 2026: "Yes, expertly, if you
  * think it is best"; "Whom a province obeys" under War). A province declaring for a power whose troops are not there sends
  * him its offer only if someone carries it: talk of its leaning spreads at the roads' pace to him, to its holder and to the
- * kings beside it, but the offer itself is a letter waiting in the province, as a spy's report waits ("Messengers are
+ * holder's enemies, but the offer itself is a letter waiting in the province, as a spy's report waits ("Messengers are
  * errands"). His own spy watching it reports it with his reports; a man of his going that way carries it for nothing; and
  * only a people far gone in his favour, with the gold, pays a traveller going that way from its own purse, or a free person
  * at the court there to take it. A carrier knows whom he carries for and to whom, and one who sells secrets sells that to
@@ -15,6 +15,7 @@ import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import { newJourney, Waiting, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId } from "../model/state.ts";
+import { hostileAt } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { basePrice } from "./court.ts";
@@ -49,6 +50,19 @@ function courtIn(e: TurnEngine, province: string): Power | null {
   return null;
 }
 
+/**
+ * A king's enemies, by the game's own marks of enmity: those whose troops stand in his land unbidden (`hostileAt`), and
+ * those who have closed their roads to him or he to them.
+ */
+function enemiesOf(e: TurnEngine, holder: Power, but: Power): Set<Power> {
+  const S = e.s;
+  const out = new Set<Power>();
+  for (const u of S.units) if (u.power !== holder && u.power !== but && S.owner.getOrDefault(u.province, null) === holder && hostileAt(S, u.province, holder)) out.add(u.power);
+  for (const p of S.roadsClosed.tryGet(holder) ?? []) if (p !== but) out.add(p);
+  for (const [p, closed] of S.roadsClosed.entries()) if (p !== holder && p !== but && closed.includes(holder)) out.add(p);
+  return new Set([...out].filter((p) => isAlive(S, p)));
+}
+
 /** The province an offer is from: written first in its letter. */
 const provinceOf = (j: Journey): string => (j.text ?? "").split("|")[0];
 
@@ -58,12 +72,8 @@ P.sendOffer = function (d, holder, text) {
   d.known = OfferUnheard;
   S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Offer", departTurn: S.turn, arriveTurn: Waiting, from: holder ?? d.power, to: d.power, waitAt: d.province, text: `${d.province}|${text}` }));
   logEvent(S, "declare", `The people of ${name} would send to ${d.power}.`, [], "offer-sent");
-  // Talk of it: to the power it leans to, to its holder, and to the kings beside it, at the roads' pace from there.
-  const near = new Set<Power>();
-  for (const n of this.map.neighbors(d.province)) {
-    const h = S.owner.getOrDefault(n, null);
-    if (h !== null && h !== holder && h !== d.power && isAlive(S, h)) near.add(h);
-  }
+  // Talk of it: to the power it leans to, to its holder, and to its holder's enemies, at the roads' pace from there.
+  const near = holder === null ? new Set<Power>() : enemiesOf(this, holder, d.power);
   const told: [Power, string][] = [
     [d.power, `Travellers say the people of ${name} lean your way. It is talk, not their word: they offer you nothing unless someone brings it.`],
     ...(holder !== null && isAlive(S, holder) ? [[holder, `Travellers say the people of ${name} lean toward ${d.power}.`] as [Power, string]] : []),
@@ -105,8 +115,9 @@ P.carryOffer = function (letter) {
     S.journeys.filter((j) => isWalker(j) && j.kind !== "CaptiveConvoy" && j.route.length > 1 && j.route[j.leg] === at && j.route[j.route.length - 1] === home && j.characterId !== null && understood(findCharacter(S, j.characterId))),
     [(j: Journey) => idNumber(j.id), cmpNum],
   ).map((j) => findCharacter(S, j.characterId)!);
-  // A man whose stakes it serves carries it for nothing: one in his service, or one his grant made what he is.
-  const own = going.find((c) => c.status !== "Captured" && (c.employer === p || c.grantedBy === p)) ?? null;
+  // A man whose stakes it serves carries it for nothing: one in his service, one his grant made what he is, or one whose
+  // sympathy lies with his court.
+  const own = going.find((c) => c.status !== "Captured" && (c.employer === p || c.grantedBy === p || c.traits.sympathy === p)) ?? null;
   const holder = S.owner.getOrDefault(at, null);
   const purse = this.market(at);
   const far = this.weightIn(at, p) >= (holder !== null && isAlive(S, holder) ? this.weightIn(at, holder) : 0) + OfferData.farGone;

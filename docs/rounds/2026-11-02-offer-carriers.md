@@ -24,7 +24,7 @@ valuable information for the king of the land, or his enemies." Written into "Wh
 5. **Talk**: talk of the leaning reaches the power, its holder and the kings holding land beside it, at the roads' pace
    from the province; it cannot be answered.
 6. **Script kings** treat a province of theirs that talk says leans away as restless and ease it (`bots/talk.ts`,
-   `freedom.ts`); `--talk-play-half`. They answer an offer, as in part C, from the season it arrives.
+   `freedom.ts`), and warm to a claimant that talk says a rival's people lean toward (`Brain.learn`); `--talk-play-half`. They answer an offer, as in part C, from the season it arrives.
 7. Rulebook (`rules-freedom.ts`), design notes 49 and 51. Tests: `offers.test.ts`.
 
 ## Readings taken
@@ -34,13 +34,17 @@ valuable information for the king of the land, or his enemies." Written into "Wh
    one place".
 2. **"Far gone"**: the power's weight in the province past its holder's by 40 (first guess, item 18), well past the
    margin that makes it declare at all. Principle: first guesses during the build.
-3. **"A character whose stakes it serves"**: a man in the power's service, or one his grant made what he is. A stranger's
-   stakes in a far province's offer are not modelled; he carries it only for pay. Principle: "Stakes, not dispositions".
+3. **"A character whose stakes it serves may carry it unpaid"** (the copy's words): a traveller going his way who is in
+   his service, owes his grant to him, or whose sympathy lies with his court. A stranger with none of these carries it
+   only for pay ("any character taking the errand at his price"). Principle: "Stakes, not dispositions".
 4. **"The claimant's own envoy or spy there"**: his spy watching the province sends it with his reports; his envoy at a
    court in that province carries it home as a man of his going that way. Principle: "Every feature is every seat's".
-5. **"The king of the land, or his enemies"**: talk reaches the land's king and the kings holding land beside it (there
-   is no state of war to name enemies by); a carrier sells it to the land's king, who would pay most to know. Principle:
-   "Information moves in physical time"; "No menus".
+5. **"To him, to the king of the land and to his enemies alike, each of whom may act on it: the king with concessions, a
+   governor or troops, his enemies by courting the claimant"** (the copy's words): the land king's enemies by the game's
+   own marks of enmity, there being no state of war: troops standing unbidden in his land, and roads closed between them.
+   Script kings act on it: the king with concessions (relief), his enemies by warming to the claimant. A carrier sells it
+   to the land's king, who would pay most to know. "Bending as it travels": the talk carries no figures and names no
+   carrier, only that the people lean. Principle: "Information moves in physical time"; "No menus".
 6. **A cession by treaty** stays a king's word told as before: a treaty is sealed between kings, not offered by a people.
 7. **"One who takes it up from afar must still go, or send a man, to hold it"**: already so; a province taken up obeys
    only while its people's weight clears (part C). Nothing new built.
