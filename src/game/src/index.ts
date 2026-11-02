@@ -39,3 +39,4 @@ export * from "./human-seat.ts";
 export * from "./signals.ts";
 export * from "./batch.ts";
 export { highlights, type Personality } from "./bots/personality.ts";
+export * from "./export.ts";

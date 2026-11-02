@@ -1,0 +1,127 @@
+import { describe, test } from "vitest";
+import { AllPowers, GameStateSchema, type AudienceView, type HostReply, type SeatView, type TurnSubmission, dispatch, first, newGame, newGameConfig, newHostReply, newTurnSubmission, serialize } from "@amarna/engine";
+import { BlankMark, Everything, GameLog, GameRunner, type ISeat, ScriptMind, TemplateNarrator, exportJsonl, newAudit, newModelCall, newShadowDecision, newCharacterChoice } from "@amarna/game";
+import { Assert, toDict } from "../../engine/test/support.ts";
+
+// One export, with filters (Engine and models, "Logging and replay"): what is sensitive is never in it, whatever the
+// filters; by default it holds everything; filters leave parts out, and one blanks a human player's words, still replaying.
+describe("ExportTests", () => {
+  /** Sensitive texts as providers, the bridge and the file system have written them into failed calls. */
+  const Leaks: [string, string][] = [
+    ["a local path", "no reply in /home/haakon/games/egypt/t3-orders-Egypt.reply.json after 30 minutes"],
+    ["a Windows path", "ENOENT: no such file C:\\Users\\haakon\\seats\\egypt\\t3.reply.json"],
+    ["a provider address with a key", "fetch failed: https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyA1b2C3d4E5f6G7h8I9j0KlMnOpQrStUvW"],
+    ["a masked key", "openai API 401: Incorrect API key provided: sk-proj-****************************Ab1x."],
+    ["a key", "sk-ant-api03-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789"],
+    ["a request id", 'Anthropic API 429 {"type":"error","error":{"type":"rate_limit_error"},"request_id":"req_011CUj4ZfzTqVqXyZ8aBcDeF"}'],
+    ["an organisation id", "This request would exceed the rate limit for your organization (fb3a3f3e-7c4b-4d8e-9a1f-2b6c8d0e4f12) of 50,000 input tokens per minute."],
+    ["an e-mail address", "account haakon.example@gmail.com has no credit left"],
+    ["a device", "the bridge refused the request: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"],
+    ["a bearer token", "authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc"],
+  ];
+  /** What none of the leaks may leave in an export. */
+  const Secrets = ["/home/", "haakon", "AIza", "sk-", "req_011", "fb3a3f3e", "gmail", "Macintosh", "Mozilla", "eyJ", "googleapis", "Ab1x"];
+
+  function leaky(): GameLog {
+    const log = new GameLog();
+    log.header.note = "played from http://user:token@localhost:5190/";
+    for (const [, error] of Leaks) {
+      log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, role: "leader", model: "Haiku", prompt: "Your orders.", error }));
+      log.addShadow(newShadowDecision({ key: "t1/aud/present/c5", turn: 1, kind: "present", script: newCharacterChoice(), error }));
+    }
+    return log;
+  }
+
+  test("Nothing sensitive is in the log or any export, whatever the filters", () => {
+    const log = leaky();
+    for (const text of [log.toJsonl(), exportJsonl(log), exportJsonl(log, { ...Everything, humanWords: false }), GameLog.fromJsonl(log.toJsonl()).toJsonl()])
+      for (const s of Secrets) Assert.false(text.includes(s), `"${s}" is in an export`);
+    // What failed is still said: only the sensitive piece is replaced, by a marker that names it.
+    const errors = log.calls.map((c) => c.error!);
+    Assert.equal("no reply in [path] after 30 minutes", errors[0]);
+    Assert.contains("[key]", errors[3]);
+    Assert.contains("[id]", errors[5]);
+    Assert.contains("[id]", errors[6]);
+    Assert.contains("[e-mail]", errors[7]);
+  });
+
+  test("A log read back from an old file loses what is sensitive in it", () => {
+    const old = `{"version":38,"seed":1,"type":"header"}\n{"key":"t1/orders/Egypt","turn":1,"error":"${Leaks[0][1]}","type":"call"}\n`;
+    Assert.false(GameLog.fromJsonl(old).toJsonl().includes("/home/"));
+  });
+
+  test("By default the export holds everything; each filter leaves its part out", () => {
+    const log = leaky();
+    log.addAudit(newAudit({ key: "t1/orders/Egypt", turn: 1, kind: "orders" }));
+    const types = (text: string): string[] => [...new Set(text.split("\n").filter((l) => l.length > 0).map((l) => (JSON.parse(l) as { type: string }).type))].sort();
+    Assert.equal(log.toJsonl(), exportJsonl(log));
+    Assert.equal(["audit", "call", "header", "shadow"], types(exportJsonl(log)));
+    Assert.equal(["audit", "header", "shadow"], types(exportJsonl(log, { ...Everything, calls: false })));
+    Assert.equal(["audit", "call", "header"], types(exportJsonl(log, { ...Everything, shadows: false })));
+    Assert.equal(["call", "header", "shadow"], types(exportJsonl(log, { ...Everything, audits: false })));
+  });
+
+  /** A human player's words, long enough to be looked for wherever they are quoted. */
+  const Letter = "Greetings, my brother of Alashiya. I send you twelve horses and a chariot of gold.";
+  const Notes = "Alashiya must not learn of the horses before spring.";
+  const Speech = "Your lord's horses are welcome here.";
+
+  class HumanSender implements ISeat {
+    readonly label = "Human";
+    readonly envoy: string;
+    constructor(envoy: string) {
+      this.envoy = envoy;
+    }
+    decide(view: SeatView): Promise<TurnSubmission> {
+      return Promise.resolve(view.turn === 1 ? newTurnSubmission({ orders: [dispatch(this.envoy, "Alashiya", Letter)], notes: Notes, stayAwake: true }) : newTurnSubmission({ stayAwake: true }));
+    }
+    hostAudience(): Promise<HostReply> {
+      return Promise.resolve(newHostReply({ end: true }));
+    }
+  }
+
+  class HumanHost implements ISeat {
+    readonly label = "Human";
+    decide(): Promise<TurnSubmission> {
+      return Promise.resolve(newTurnSubmission({ stayAwake: true }));
+    }
+    hostAudience(_view: AudienceView): Promise<HostReply> {
+      return Promise.resolve(newHostReply({ speech: Speech, end: true }));
+    }
+  }
+
+  test("Without human words, every word a human wrote is blanked, wherever it is quoted, and the export still replays", async () => {
+    const state = newGame(5, newGameConfig({ catastropheChance: 0, endMedian: 10000 }));
+    const envoy = first(state.characters, (c) => c.employer === "Egypt");
+    const seats = toDict(
+      AllPowers,
+      (p) => p,
+      (p): ISeat => (p === "Egypt" ? new HumanSender(envoy.id) : new HumanHost()),
+    );
+    const runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
+    await runner.prepare();
+    for (let i = 0; i < 4; i++) await runner.playTurn();
+    // A model's prompt that carries the letter, as an envoy's or a court's request would.
+    runner.log.addCall(newModelCall({ key: "t2/aud/react/c1", turn: 2, role: "character", model: "Haiku", prompt: `The letter you carry: "${Letter}"` }));
+
+    // The export as read: its strings unescaped.
+    const read = (text: string): string => text.split("\n").filter((l) => l.length > 0).map((l) => JSON.stringify(JSON.parse(l))).join("\n");
+    const full = read(exportJsonl(runner.log));
+    for (const words of [Letter, Notes, Speech]) Assert.true(full.includes(words), `a normal export keeps "${words}"`);
+
+    const text = exportJsonl(runner.log, { ...Everything, humanWords: false });
+    const kept = read(text);
+    for (const words of [Letter, Notes, Speech, "twelve horses", "learn of the horses"]) Assert.false(kept.includes(words), `"${words}" is still in the export`);
+    // Each is a marked blank of its own length, its spaces kept.
+    Assert.true(kept.includes(Letter.replace(/\S/g, BlankMark)));
+    Assert.true(kept.includes(Notes.replace(/\S/g, BlankMark)));
+    // Orders are never blanked: the export replays to the same game.
+    const replay = GameRunner.forReplay(GameLog.fromJsonl(text));
+    await replay.prepare();
+    for (let i = 0; i < 4; i++) await replay.playTurn();
+    // The same game, with the human's words blanked in it too.
+    let expected = read(serialize(GameStateSchema, state));
+    for (const words of [Letter, Notes, Speech]) expected = expected.split(words).join(words.replace(/\S/g, BlankMark));
+    Assert.equal(expected, read(serialize(GameStateSchema, replay.state)));
+  });
+});

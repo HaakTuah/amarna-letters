@@ -26,6 +26,7 @@ import {
   type Power,
   type Schema,
 } from "@amarna/engine";
+import { withoutSensitive, withoutSensitiveOrNull } from "./sensitive.ts";
 
 export interface LogHeader {
   /** The rules version the game was played under ({@link CURRENT_VERSION} for a new game). */
@@ -415,11 +416,14 @@ export class GameLog {
     return this.index.has(key);
   }
 
+  /** Logs a call, with anything sensitive in its texts taken out ("Logging and replay"). */
   addCall(call: ModelCall): void {
-    this.calls.push(call);
+    this.calls.push(cleanCall(call));
   }
 
+  /** Logs a shadow, with anything sensitive in its error taken out. */
   addShadow(shadow: ShadowDecision): void {
+    shadow.error = withoutSensitiveOrNull(shadow.error);
     this.shadows.push(shadow);
   }
 
@@ -441,7 +445,7 @@ export class GameLog {
   private jsonlDecisions = { count: 0, text: "" };
 
   toJsonl(): string {
-    let out = withType(serialize(LogHeaderSchema, this.header), "header") + "\n";
+    let out = withType(serialize(LogHeaderSchema, cleanHeader(this.header)), "header") + "\n";
     const cache = this.jsonlDecisions;
     for (let i = cache.count; i < this.decisions.length; i++) {
       const d = this.decisions[i];
@@ -479,10 +483,10 @@ export class GameLog {
           break;
         }
         case "call":
-          log.calls.push(deserialize<ModelCall>(ModelCallSchema, line));
+          log.addCall(deserialize<ModelCall>(ModelCallSchema, line));
           break;
         case "shadow":
-          log.shadows.push(deserialize<ShadowDecision>(ShadowDecisionSchema, line));
+          log.addShadow(deserialize<ShadowDecision>(ShadowDecisionSchema, line));
           break;
         case "audit":
           log.audits.push(deserialize<Audit>(AuditSchema, line));
@@ -491,6 +495,21 @@ export class GameLog {
     }
     return log;
   }
+}
+
+/** A call's texts with anything sensitive taken out: in place, since the call is logged once it is complete. */
+function cleanCall(call: ModelCall): ModelCall {
+  call.system = withoutSensitive(call.system);
+  call.prompt = withoutSensitive(call.prompt);
+  call.output = withoutSensitive(call.output);
+  call.error = withoutSensitiveOrNull(call.error);
+  return call;
+}
+
+/** The header as written: its labels, jobs and note with anything sensitive taken out. */
+function cleanHeader(h: LogHeader): LogHeader {
+  const seats = new Dict<Power, string>([...h.seats].map(([p, label]) => [p, withoutSensitive(label)] as const));
+  return { ...h, seats, minds: withoutSensitive(h.minds), narrator: withoutSensitive(h.narrator), jobs: withoutSensitive(h.jobs), note: withoutSensitive(h.note) };
 }
 
 /** A JSON object with "type" added as its last property, as the C# build adds it to a serialized node. */
