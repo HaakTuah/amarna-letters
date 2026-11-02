@@ -9,6 +9,8 @@ import {
   command,
   enlist,
   govern,
+  crown,
+  answer,
   mandateOrder,
   mandateText,
   moveCourt,
@@ -44,8 +46,12 @@ export function CommandSection({ c }: { c: OrdersContext }) {
     until: 0,
   });
   const [gov, setGov] = useState<{ province: string; person: string; levies: number }>({ province: "", person: "", levies: 1 });
+  const [king, setKing] = useState<{ person: string; tribute: string; price: string; land: string }>({ person: "", tribute: "", price: "", land: "" });
   const [food, setFood] = useState<Record<string, number>>({});
   const ready = v.court.filter((x) => x.ready);
+  // Item 17++: who may be offered a kingship, and over what: a governor of ours over the provinces he governs, never the court's city.
+  const governs = (id: string): string[] => v.governors.filter((g) => g.character === id && !g.relieving && g.from <= v.turn && g.province !== v.courtAt).map((g) => g.province);
+  const crownable = [...new Set(v.governors.map((g) => g.character))].filter((id) => !v.crowning.includes(id) && governs(id).length > 0);
   const own = v.units.filter((u) => u.power === me).sort((a, b) => byName(a.province, b.province));
   const name = (id: string | null): string => v.court.find((x) => x.id === id)?.name ?? id ?? "";
   const lands = map.landProvinces.map((p) => p.id).sort(byName);
@@ -204,6 +210,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
         <div className="row" key={g.province}>
           <small>
             {provinceName(g.province)}: {name(g.character)}
+            {g.seat !== g.province ? `, from his seat at ${provinceName(g.seat)}` : ""}
             {g.from > v.turn ? ` (from turn ${g.from})` : ""}, levies {g.raised} of {g.levies}
           </small>
           {!g.relieving && (
@@ -232,6 +239,12 @@ export function CommandSection({ c }: { c: OrdersContext }) {
               {x.name}
             </option>
           ))}
+          {/* Item 17++: a governor of ours may take a province beside those he holds, from his seat. */}
+          {[...new Set(v.governors.filter((g) => !g.relieving && (gov.province === "" || map.neighbors(g.province).includes(gov.province))).map((g) => g.character))].map((id) => (
+            <option key={`gov-${id}`} value={id}>
+              {name(id)} (governor, from his seat)
+            </option>
+          ))}
         </select>
         <select value={gov.levies} onChange={(e) => setGov({ ...gov, levies: Number(e.target.value) })}>
           {Array.from({ length: MostGovernorLevies + 1 }, (_, i) => i).map((i) => (
@@ -244,6 +257,77 @@ export function CommandSection({ c }: { c: OrdersContext }) {
           Grant the governorship
         </button>
       </div>
+      {/* Item 17++, part C: a governor made a vassal king under oath over the provinces he governs, for the tribute and price named. */}
+      <div className="row" style={{ gap: ".3rem" }}>
+        <select value={king.person} onChange={(e) => setKing({ ...king, person: e.target.value })}>
+          <option value="">— make king? —</option>
+          {/* A governor over the provinces he governs (never the court's city), or a person at court over a province of ours. */}
+          {crownable.map((id) => (
+            <option key={id} value={id}>
+              {name(id)} (of {governs(id).map(provinceName).join(", ")})
+            </option>
+          ))}
+          {ready
+            .filter((x) => x.ours && !v.crowning.includes(x.id) && !crownable.includes(x.id))
+            .map((x) => (
+              <option key={`court-${x.id}`} value={x.id}>
+                {x.name} (at your court)
+              </option>
+            ))}
+        </select>
+        {king.person !== "" && !crownable.includes(king.person) && (
+          <select value={king.land} onChange={(e) => setKing({ ...king, land: e.target.value })}>
+            <option value="">— of which land? —</option>
+            {[...v.owner]
+              .filter(([id, o]) => o === me && id !== v.courtAt && !v.governors.some((g) => g.province === id))
+              .map(([id]) => id)
+              .sort(byName)
+              .map((id) => (
+                <option key={id} value={id}>
+                  {provinceName(id)}
+                </option>
+              ))}
+          </select>
+        )}
+        <input type="number" min={0} placeholder="tribute a year" value={king.tribute} onChange={(e) => setKing({ ...king, tribute: e.target.value })} style={{ width: "7rem" }} />
+        <input type="number" min={0} placeholder="price" value={king.price} onChange={(e) => setKing({ ...king, price: e.target.value })} style={{ width: "5rem" }} />
+        <button
+          className="small"
+          disabled={king.person === "" || king.tribute === "" || (!crownable.includes(king.person) && king.land === "")}
+          onClick={() =>
+            add(
+              crown(
+                king.person,
+                crownable.includes(king.person) ? governs(king.person) : [king.land],
+                Math.max(0, Math.floor(Number(king.tribute))),
+                Math.max(0, Math.floor(Number(king.price || 0))),
+              ),
+            )
+          }
+        >
+          Grant the kingship
+        </button>
+      </div>
+      {v.crowning.length > 0 && <small>A kingship offered, the answer not yet come: {v.crowning.map(name).join(", ")}.</small>}
+      {/* Item 17++: provinces that look to you, declared for you by their people or ceded to you, taken up or refused. */}
+      {v.declared.map((d) => (
+        <div key={`decl-${d.province}`} className="row" style={{ gap: ".3rem" }}>
+          <small>
+            {provinceName(d.province)}: {d.from !== null ? `ceded to you by ${powerName(d.from)}` : "its people declare for you"}
+            {d.takenUp ? "; taken up, it answers to you as the season turns if they still accept you." : ""}
+          </small>
+          {!d.takenUp && (
+            <>
+              <button className="small" onClick={() => add(answer(d.province, true))}>
+                Take it up
+              </button>
+              <button className="small" onClick={() => add(answer(d.province, false))}>
+                Refuse it
+              </button>
+            </>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

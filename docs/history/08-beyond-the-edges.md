@@ -13,7 +13,7 @@ and each door brings its own mix of names, tongues and reasons.
 | --- | --- | --- | --- | --- |
 | <a id="08-western-sea"></a>The western sea | Arzawa's coast (`apasa`, `seha`), Alashiya (`enkomi`, `tamassos`), `ugarit`, Egypt (`delta`) | Aegeans: the Mycenaean Greeks of Ahhiyawa and the Cretans (Keftiu), Knossos under Greek rule; Sherden and other western seafarers | Mycenaean Greek; the older Minoan tongue on Crete, fading; the Sherden's unknown | A for the peoples, C for Knossos's Greek rule and for the Sherden; Cline and Stannish 2011, p. 6: "Keftiu, identified as Crete" |
 | <a id="08-eastern-road"></a>The eastern road | `susa` | Elam's highland lands (Anshan), Marhashi (known from texts of the third and early second millennium; none of 1346 names it [S]), the Zagros highlanders (Lullubi, the Qutu or Guti); far beyond, the tin lands, where is disputed (Central Asia, perhaps Afghanistan: "The tin lands" below) | Elamite; unknown highland tongues; the tin lands' unknown | B, C for where the tin lands lay; Powell et al. 2022: "ores from Central Asia (Uzbekistan and Tajikistan)"; Berger et al. 2023 dispute it |
-| <a id="08-gulf"></a>The Gulf | `ur`, Dilmun (item 7) | Dilmun's traders (Babylonia's own), Magan (Oman) | Dilmun's and Magan's own tongues, unknown; Akkadian among traders | B |
+| <a id="08-gulf"></a>The Gulf | `ur`, Dilmun (item 7) | Dilmun's traders (Babylonia's own), Magan (Oman) | Dilmun's and Magan's own tongues, unknown; Akkadian among traders | B. Wikipedia, "Dilmun": letters "from a provincial official named Ilī-ippašra, in Dilmun", found at Nippur, "suggest an administrative relationship between Dilmun and Babylon"; that traders used Akkadian there is the game's reading |
 | <a id="08-nile"></a>The Nile beyond Nubia | Nubia (item 7) | Kush beyond Egypt's reach, Irem, the Medjay of the eastern desert | Nubian tongues; Egyptian among those who traded with Egypt | B; EA 70, n. 2 (Moran): "'Meluhha' designated Nubia" |
 | <a id="08-red-sea"></a>The Red Sea (if added, "The Red Sea" under Ideas) | Egypt's Red Sea coast | Punt (the southern Red Sea coasts, Eritrea or Somalia) | Unknown | B (the voyages), C (where Punt was); Breasted, *ARE* II, §246: "an important expedition of the queen thither" |
 
@@ -48,7 +48,8 @@ across Iran [G].
   Ahhiyawan counterpart as a 'Great King,' and as 'my brother'"). Linear B names for their men ("Name styles" in the
   people dossier). Language: Mycenaean Greek [A].
 - <a id="08-keftiu"></a>**Keftiu** (Crete). Theban tomb paintings (Rekhmire, Senenmut) show Keftiu bringing gifts
-  (Breasted, *ARE* II, §761, Rekhmire: "the tribute of Keftyew"); Amenhotep III's statue base at Kom el-Hetan lists
+  (Breasted, *ARE* II, §761, Rekhmire: "the tribute of Keftyew"; Wikipedia, "Keftiu": "The earliest depictions can be
+  seen in the tomb of Senenmut"); Amenhotep III's statue base at Kom el-Hetan lists
   Knossos, Amnisos, Phaistos, Kydonia, Mycenae and Kythera [A, as read by Cline and Stannish 2011, pp. 6-9, Phaistos and
   Kydonia recarved]. In 1346 Knossos is probably under Greek rulers writing Linear B [C: the dates of the tablets and of
   the palace's fall are argued]. Keftiu names survive in an Egyptian school exercise, "names of the Keftiu" [A]; most
@@ -75,16 +76,21 @@ across Iran [G].
   tin [C]) and perhaps Afghanistan (Berger et al. 2023: "could also originate from Afghanistan"; they favour south-west
   England for much of it [C]); no text of the period names them [S]. He speaks nothing anyone knows ("Who they are").
 - <a id="08-dilmun-and-magan"></a>**Dilmun and Magan.** Dilmun was Babylonia's in 1346 (a Kassite official there, in the
-  Ili-ippashra letters from Nippur) [B]; Magan, the copper land of Mesopotamian texts from about 2300 on [A], is named
-  in no text of 1346 the dossiers use [S]. Their languages are unknown [S].
+  Ili-ippashra letters from Nippur) [B] (Wikipedia, "Dilmun": "Dilmun was mentioned in two letters dated to the reign of
+  Burna-Buriash II", from "a provincial official named Ilī-ippašra"); Magan, the copper land of Mesopotamian texts from about 2300 on [A], is named
+  in no text of 1346 the dossiers use [S] (Wikipedia, "Magan (civilization)": named in "Sumerian cuneiform texts of
+  around 2300 BCE"). Their languages are unknown [S].
 - <a id="08-meluhha"></a>**Meluhha.** In the third millennium the Indus; in the Amarna letters, the name for Nubia (EA
   70, 95, 108, 112, 117, 132, 133; Kaši, Cush, in the same requests in EA 127 and 131, and as Meluhha's gloss in EA 133)
   [B: an identification] (Moran, EA 70, n. 2: "'Meluhha' designated Nubia"). The Indus cities were gone long before
   1346 [B] (Wikipedia, "Indus Valley Civilisation": "by around 1700 BCE most of the cities had been abandoned"); that
   nobody comes from there is the game's choice [G].
 - <a id="08-kush-irem-medjay"></a>**Kush, Irem and the Medjay.** Beyond Egypt's frontier at the Fourth Cataract lay Irem
-  and other lands Egypt raided and traded with [B]; the Medjay, once desert nomads of the east, had become Egypt's
-  police by name [B]. Names: Nubian, mostly unknown; Egyptian names among those who served Egypt [B].
+  and other lands that sent Egypt gifts and chiefs' sons [B] (Wikipedia, "Irem (Nubia)": "in-between the 5th and 6th
+  cataracts"; under Hatshepsut "the chiefs of Irem and Nemiu brought gifts"; under Thutmose III "the sons of the
+  Chieftains of Irem were brought to Egypt"; no 18th-dynasty war on Irem is recorded there); the Medjay, once desert
+  nomads of the east, had become Egypt's police by name [B] (Wikipedia, "Medjay": "By the Eighteenth Dynasty during the
+  New Kingdom, the Medjay were an elite paramilitary police force"). Names: Nubian, mostly unknown; Egyptian names among those who served Egypt [B].
 - <a id="08-punt"></a>**Punt.** Hatshepsut's expedition (about 1470) is the great record [A] (Breasted, *ARE* II, §246:
   "successfully concluded just before her ninth year"); under Akhenaten no voyage is attested [S].
 

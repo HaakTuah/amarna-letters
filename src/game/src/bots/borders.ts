@@ -58,7 +58,8 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
     // and the land fed its people last season.
     let loose = x.loose;
     for (const [k, n] of sortBy([...x.runaways.entries()], [([q]) => q, cmpStr]))
-      if (promised.has(k as Power) && n >= Worth) {
+      // Only to a king who still holds land to take them (the audit's find 9: runaways ordered back to a fallen king).
+      if (promised.has(k as Power) && n >= Worth && [...v.owner.values()].includes(k as Power)) {
         orders.push(returnRunaways(x.province, k as Power));
         loose -= n;
       }

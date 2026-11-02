@@ -16,9 +16,11 @@ import { type Toll, TollSchema } from "./trade.ts";
 import { type MarketSeen, MarketSeenSchema, type ProvinceEconomyView, ProvinceEconomyViewSchema } from "./views.ts";
 import type { People } from "./land.ts";
 import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts";
+import { type MoodRead, MoodReadSchema } from "./moods.ts";
+import { type Declaration, DeclarationSchema } from "./declarations.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
-import { type Courier, CourierSchema, type Governor, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
+import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, type GovernorGone, GovernorGoneSchema, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
 import { type WorkPlan, WorkPlanSchema } from "./works.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
@@ -83,7 +85,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 41;
+export const CURRENT_VERSION = 45;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -294,6 +296,10 @@ export interface GameState {
   counts: Dict<Power, Dict<string, Count>>;
   /** The scribes out counting, until their count reaches their court (item 17++, "A census"). */
   censuses: Census[];
+  /** Item 17++, part C: each court's dated reads of its land's mood, as they reach it ("Who holds what, and the mood of the land"). */
+  moodReads: MoodRead[];
+  /** Item 17++ ("taken up, never thrust on anyone"): provinces declared for a power, and claims ceded by treaty, until answered or lapsed. */
+  declarations: Declaration[];
   /** The men levied this season to build and keep what stands (the corvée, item 15), by province: away from the next harvest. */
   corvee: Dict<string, number>;
   /** How well each province's countryside ate last season, in thousandths, where it went short (item 10+a). */
@@ -340,6 +346,10 @@ export interface GameState {
   bands: Band[];
   /** Item 13 ("Governors"): the governorships granted, standing or on their way; ended ones are dropped. */
   governors: Governor[];
+  /** Item 17++: governorships ended whose word has not yet reached their king's court; his view keeps them until it does. */
+  governorsGone: GovernorGone[];
+  /** Item 17++: grants of kingship on their way, answered, or their price on the road to the king; done ones are dropped. */
+  crowns: Crown[];
   /**
    * Item 13 ("The capital is wherever the king is"): the province where each king is, which is his capital, where his
    * court sits and from where his orders travel; a king never moved is at his map capital and left out.
@@ -510,6 +520,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     loot: new Dict(),
     bands: [],
     governors: [],
+    governorsGone: [],
+    crowns: [],
     court: new Dict(),
     kingRoads: [],
     couriers: [],
@@ -551,6 +563,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     amounts: new Dict(),
     counts: new Dict(),
     censuses: [],
+    moodReads: [],
+    declarations: [],
     corvee: new Dict(),
     fed: new Dict(),
     losses: [],
@@ -611,6 +625,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   amounts: dict(I),
   counts: dict(dict(() => CountSchema)),
   censuses: list(() => CensusSchema),
+  moodReads: list(() => MoodReadSchema),
+  declarations: list(() => DeclarationSchema),
   corvee: dict(I),
   fed: dict(I),
   caravans: list(() => CaravanSchema),
@@ -631,6 +647,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   loot: dict(I),
   bands: list(() => BandSchema),
   governors: list(() => GovernorSchema),
+  governorsGone: list(() => GovernorGoneSchema),
+  crowns: list(() => CrownSchema),
   court: dict(S),
   kingRoads: list(() => KingRoadSchema),
   couriers: list(() => CourierSchema),

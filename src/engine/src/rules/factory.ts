@@ -89,6 +89,8 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   seedCounts(s, m);
 
   const engine = new TurnEngine(s, m);
+  // Item 17++, part C: each court sees its own city's mood.
+  engine.courtsSee();
   for (const p of AllPowers) s.startStrength.set(p, engine.strength(p));
   // Each court's state of the realm, from the data by one rule for all (item 11+).
   for (const p of AllPowers) notify(s, p, "Notice", StateOfRealmTitle, stateOfRealm(s, m, p));

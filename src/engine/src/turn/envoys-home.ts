@@ -60,6 +60,8 @@ P.envoyArrivesHome = function (j) {
   this.carriedHome(c, j.to);
   const cargo = j.cargo ?? newHomeCargo();
   this.hearWord(j.to, cargo.word);
+  // Item 17++, part C: the mood it saw in the city of the court it visited.
+  if (cargo.mood !== null) this.readMood({ ...cargo.mood, power: j.to, known: S.turn });
   // Turned back on the road (item 7b): it tells why, and hands back any gold it still carries; there is no audience to report.
   if (j.gaveUp) {
     if (cargo.gold > 0) S.treasuries.get(j.to).gold += toInt(roundEven((cargo.gold * cargo.purityPercent) / 100.0));
@@ -104,7 +106,7 @@ P.letEnvoyGo = function (host, c, reply) {
   remember(c, S.turn, `The king of ${land(host)} let me go` + (isBlank(words) ? "." : `, saying: "${cap(words!, 300)}"`));
   if (isAlive(S, host)) notify(S, host, "Notice", "Envoy released", `${c.name} has been allowed to leave.`, c.id);
   logEvent(S, "release", `${host} released ${c.name}.`, [host]);
-  this.sendHome(c, host, newHomeCargo({ trailId: c.currentTrail ?? "", observations: this.observe(c, host), wasDetained: true }));
+  this.sendHome(c, host, newHomeCargo({ trailId: c.currentTrail ?? "", ...this.observe(c, host), wasDetained: true }));
 };
 
 /**
@@ -144,6 +146,15 @@ P.fulfil = function (req, reply) {
       // Item 17++: a man of standing chose whether he leads the people of a province against its master, taken next season.
       if (c !== null && reply.rising !== null && req.rising !== null) c.risePlan = { turn: req.rising.turn, province: req.rising.province, rise: reply.rising.rise };
       return;
+    case "Crown": {
+      // Item 17++: a man offered a kingship chose whether he takes it, taken next season.
+      const k = req.crown === null || reply.crown === null ? undefined : this.s.crowns.find((x) => x.id === req.crown!.crownId && x.heard === null);
+      if (k !== undefined && reply.crown !== null) {
+        k.accept = reply.crown.accept;
+        k.terms = reply.crown.accept ? "" : reply.crown.terms.trim();
+      }
+      return;
+    }
     case "EnvoyReport": {
       if (c === null) return;
       const lord = requestFor(req);

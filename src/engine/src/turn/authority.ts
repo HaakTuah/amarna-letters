@@ -201,7 +201,10 @@ P.grantByOrder = function (p, o) {
             : null;
   const where = o.province !== null ? Map.get(o.province).name : "all your land";
   if (why !== null) {
-    notify(S, p, "Rejected", "Order failed", `No ${o.kind} was granted to ${o.grantee} in ${where}: ${why}.`);
+    const text = `No ${o.kind} was granted to ${o.grantee} in ${where}: ${why}.`;
+    // Land lost out of the king's sight: word of it comes home by the road (bug #467).
+    if (o.province !== null && S.owner.getOrDefault(o.province, null) !== p) this.lostOrder(p, o, o.province, "Order failed", text, why);
+    else notify(S, p, "Rejected", "Order failed", text);
     return;
   }
   const lands = o.province === null ? ownedBy(S, p).filter((x) => !Map.get(x).isSea) : [];

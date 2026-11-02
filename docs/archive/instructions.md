@@ -1474,3 +1474,35 @@ Given in the design chat with Claude, answering the design questions of the cons
     design session's take (yes: the progress file is the queue, so each wake reads its diff and acts on what is new,
     skipping its own builders' done-marks): "Yes, do it expertly if it is worth it in your expert opinion." Written into
     "The rules, re-read when they change" in `docs/orchestrating.md`; the same in Barkstreet Snakes.
+172. **2 November 2026, 19:28 and 19:36 UTC**, in the design chat: "Yes. It should probably do the step at every
+    milestone, before proceeding down the main lane, if they impact each other, no? and it is supposed to do it while
+    actually building. expert thoughts? and is it not queueing up every side lane it can? why not? are they not supposed
+    to?" Then, to the design session's take (a step 0 before any item or lane changes a file past about 50 KB, new work
+    for such a file going in as a new file, and the orchestrator's wake report counting its lanes and every independent
+    entry not running, with the reason): "Yes, expertly to all!" Written into "Split by meaning, from the start" in
+    `AGENTS.md` and "The rules, re-read when they change" in `docs/orchestrating.md`; the same in Barkstreet Snakes.
+173. **2 November 2026, 19:47 and 19:48 UTC**, in the design chat, on #458 and on #455 and #450 merged without his yes
+    in the PR: "You do it." (relayed on the three PRs). Then, to the design session's take on the `.github/` rule
+    (Dependabot's pinned version updates of actions already used need no yes when nothing else changes, CI is green and
+    the review clean; everything that changes what a workflow can do still does): "yes, expertly, always!" Written into
+    `SECURITY.md` point 3; the same in Barkstreet Snakes.
+174. **2 November 2026, 20:03 UTC**, in the design chat, to the design session's take on #520 (a twin canary: a seat's
+    season played with and without a hidden fact must read the same), with Barkstreet Snakes' #399 and #401: "Yes,
+    expertly to all!" Written into "Follow-ups" in `docs/BUILD-PROGRESS.md`.
+175. **2 November 2026, 20:14 and 20:18 UTC**, in the design chat: "I see that Claude Codex and Codex has spent
+    roughly the same usage today, both a little over 30%. [...] So only reviewing at Pro 100 takes about as much as all
+    we have done with Claude and Claude Code today." Then, to the design session's take (one Codex security review a PR,
+    asked on the last round and only where it matters; the three-round limit held; no Codex review for docs-only PRs,
+    the history dossiers included; and on #527, the Gulf's shore drawn where Late Bronze Age reconstructions put it):
+    "Yes, full agreement with both, expert!" Written into "Codex reviews" in `docs/claude-and-codex.md` and "Follow-ups"
+    in `docs/BUILD-PROGRESS.md`; the same review rules in Barkstreet Snakes.
+176. **2 November 2026, 20:29 UTC**, in the design chat, on #527's follow-up, which said what the shore's move would
+    probably mean for Ur before the reconstructions were gathered: "But maybe don't prime it to make a assumption
+    instead of consulting the evidence?" Written into #527's entry in "Follow-ups" in `docs/BUILD-PROGRESS.md`: no
+    outcome assumed beforehand. The same holds for every history follow-up: the brief names the evidence to gather,
+    never the answer expected.
+177. **2 November 2026, 20:36 and 20:37 UTC**, in the design chat, after turning Codex's automatic security review
+    off: "does it always make sense with a security review?" Then, to the design session's take (only for the risky
+    kinds of change; a dependency only when newly added or moved up a major version, Dependabot's minor and patch
+    updates left to CI and the dependency checks): "do it expertly!" Written into "Codex reviews" in
+    `docs/claude-and-codex.md`; the same in Barkstreet Snakes.

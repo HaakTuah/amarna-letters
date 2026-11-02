@@ -126,7 +126,17 @@ goes to building. Its usage can run out like any other, and it may then not say 
    **Both at once:** the design check starts in the same turn as the request to Codex, in the background, never after
    Codex's answer, so neither waits for the other, and the builder answers both lists in one round.
 6. **Docs-only PRs and the milestone PRs get no review,** as before. Codex's automatic review stays off in its settings
-   for both repositories, so it reviews only when asked.
+   for both repositories, so it reviews only when asked. The history dossiers count as docs: a PR that changes only `docs/history/` gets no Codex review (the anchor test and
+   the monthly spot-check guard them); one that changes the game's data is code, and is reviewed.
+   **One security review a PR, at most** (the owner, 2 November 2026: Codex spent as much of its week on reviews as
+   Claude did on everything, two thirds of it on security reviews run with every round). Codex's security review is
+   set to run only when asked, never with every code review. A builder asks for it once (`@codex security review`), on
+   the round it expects to be the last, and only when the change touches what a security review is for: input from
+   players, models or files, a workflow, the network, saved files or exports, or a dependency newly added or moved up a
+   major version. Every other PR gets the code review alone, Dependabot's minor and patch updates included (CI, the
+   licence gate and GitHub's dependency review check those). If a later fix changes the risky part again, the builder
+   asks once more. Codex's automatic review and automatic security review are both off in its settings, so nothing
+   runs unless a builder asks.
 7. **Checks that run the work, once Codex can build** (the owner, 2 November 2026; `docs/archive/instructions.md`, item
    134). The native review reads the diff but runs nothing, so it cannot check a claim such as "the script kings now
    win 29 games of 50". When Codex's environments work ("Setup"), a Codex task in its container also reruns the
@@ -153,7 +163,8 @@ The guards against both are part of the rule:
    with the same model, effort and brief as before. It checks those points and the lines changed since. Something new
    about work it already saw is raised only if it is a fault that blocks: a bug, a broken rule, a security hole, a
    departure from the design. Taste does not grow between rounds, so the rounds come to an end.
-4. **At most three rounds, then the escalation helper, then blocked.** Anything still open after the third round goes
+4. **At most three rounds, then the escalation helper, then blocked, held firmly** (a fourth round is never asked
+   for, whatever the reason). Anything still open after the third round goes
    to the escalation helper (`CLAUDE.md`) with a self-contained brief. It fixes each point, or rules it outside the
    item or wrong, with reasons. Whatever is still open after that, the PR is **not merged:** it stays open as a draft,
    is marked blocked in `docs/BUILD-PROGRESS.md` filed as a `question` issue and linked under "Questions for the owner", and the work goes on with the next
@@ -189,6 +200,7 @@ The weekly blind re-reviews, the canaries and the monthly history spot-checks, n
 
 | Date | Check | PR | Reviewer checked | Misses | What changed |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-02 | Full history check | #473 to #510 (15 PRs) | Every dossier, the README and the cast (Opus helpers, high; Codex reviewing each PR) | 230 wrong and 111 without a source in 1,447 claims (16%, and 8% with no source), 213 left unclear; Codex then found 39 more in the helpers' fixes, and one finding of its own was answered with the source's words (Luckenbill's "he fled") | Every dossier and the cast fixed to their sources; anchors and quotes on every line the game rests on; the anchor test for people and rulers; questions #476, #482, #486, #492; anchors for the rest of the data and the unclear lines stay in "Follow-ups" |
 | 2026-11-02 | History spot-check | this PR | The dossiers and the cast (Claude's reviewer, Opus, high) | 3 of 13: Tushratta's detained envoys (Mane was Pharaoh's, #460); Yapahu as Milkilu's brother (#461); Shindishugab cited to EA 11, not EA 10 (#462). Held: Naphurureya and Akhenaten's dates, Burna-Buriash's dates, EA 16, Tarhundaradu [C], the gilded statues, Hinnatuna (EA 8), Salmu robbed twice (EA 7), Tagi, Zida, Rib-Hadda shut out | Dossiers and cast fixed in this PR; dossier lines added for Shindishugab, Yapahu and Tagi as Milkilu's father-in-law, which the cast used without a source |
 | 2026-11-02 | Blind re-review | #374 | Codex | 1 blocking (province card reads the latest state when looking back) | Fixed in #414; second Codex miss in a row on seat views: interface went to Claude's reviewer until its guidelines were tightened with the owner, the same day ("Hidden information" in "Review guidelines", #420); interface is Codex's again, and the next canary plants a seat-view leak |
 | 2026-11-01 | Blind re-review | #359 | Codex (and Claude's round 2) | 1 blocking (province panel leak) | Fixed in this PR; follow-up for the seat view's own early drop goes to item 17++ |

@@ -9,7 +9,7 @@
  * `docs/history/12-walls-roads-harbours.md` for walls, roads, relay stations and harbours, and
  * `docs/history/15-pirates-bandits-tolls.md` for policing.
  */
-import { B, I, type ObjSchema, S, obj } from "../core/json.ts";
+import { B, I, type ObjSchema, S, obj, opt } from "../core/json.ts";
 import { idiv } from "../core/num.ts";
 import { type CityWater, CityWaters, Climates } from "./geography.ts";
 import type { Province } from "./map.ts";
@@ -257,8 +257,15 @@ export interface WorkPlan {
   keep: number;
   /** Paid by corvée (true) or in gold. */
   labour: boolean;
+  /**
+   * Item 17++ ("The king says how much he wants", the corvée as a share): a corvée asked as a share, in a hundred of the
+   * men of fighting age at home, less what the province hides at its count's age; null: the men the work needs, named.
+   */
+  share: number | null;
   /** Seasons of work done towards the next level. */
   progress: number;
+  /** Men-seasons a corvée by share short of the work's need has put towards the next season of it (a season's work is its need). */
+  done: number;
   /** Seasons in a row a level stood unpaid (its decay). */
   neglect: number;
   /** The season the order was given (0: at the start); an order for walls given during a siege repairs them. */
@@ -266,10 +273,10 @@ export interface WorkPlan {
 }
 
 export function newWorkPlan(init: Partial<WorkPlan> = {}): WorkPlan {
-  return { province: "", kind: "Roads", keep: 0, labour: true, progress: 0, neglect: 0, since: 0, ...init };
+  return { province: "", kind: "Roads", keep: 0, labour: true, share: null, progress: 0, done: 0, neglect: 0, since: 0, ...init };
 }
 
-export const WorkPlanSchema: ObjSchema<WorkPlan> = obj("WorkPlan", newWorkPlan, { province: S, kind: S, keep: I, labour: B, progress: I, neglect: I, since: I });
+export const WorkPlanSchema: ObjSchema<WorkPlan> = obj("WorkPlan", newWorkPlan, { province: S, kind: S, keep: I, labour: B, share: opt(I), progress: I, done: I, neglect: I, since: I });
 
 /** The plan of a kind in a province, if any. */
 export function planOf(s: GameState, kind: WorkKind, province: string): WorkPlan | null {
@@ -392,6 +399,7 @@ export function worksOfPower(s: GameState, provinces: readonly string[]): WorkVi
           level,
           keep,
           labour,
+          share: plan?.share ?? null,
           progress: plan?.progress ?? 0,
           seasons: WorksData[kind].seasons,
           upkeepGold: labour ? 0 : upkeepGold(kind, kept),

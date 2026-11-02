@@ -111,6 +111,7 @@ export class TurnEngine {
     // Item 13: word reaches commanders and governors, and those whose army or province is gone go home.
     this.commandSeason();
     this.governorsSeason();
+    this.crownsSeason();
     this.tasksDue();
     this.jobsDone(stood);
     // Item 11a: the characters' money and their own seasons.
@@ -184,6 +185,8 @@ export class TurnEngine {
     for (const [p, l] of this.peopleSeason(this._foodNow).entries()) fed.set(p, [...fed.getOrDefault(p, []), ...l]);
     // Item 17++: the ledger kept, and whom each province obeys.
     this.obeySeason();
+    // Item 17++, part C: travellers' talk of the land near each court.
+    this.travellersTalk();
     // Item 17++: the scribes count, and their counts come home.
     this.censusSeason();
     for (const p of alive(S)) notify(S, p, "Notice", "The treasury", [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "));

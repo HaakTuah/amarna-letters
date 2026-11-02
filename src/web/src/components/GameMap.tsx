@@ -1,3 +1,4 @@
+import { MoodLegend, type MapMode } from "../map/holding.ts";
 import { useEffect, useImperativeHandle, useRef, useState, type ReactNode, type Ref } from "react";
 import type { Pt } from "../map/art.ts";
 import type { MapInput, MapRenderer } from "../map/renderer.ts";
@@ -70,6 +71,8 @@ export function GameMap({
   handlers.current = { onProvince, onPerson, onMark, onBlank };
   // The view before "show the whole map", to come back to.
   const [back, setBack] = useState<MapView | null>(null);
+  // Item 17++, part C: the realms view (who holds what) or the mood of the land, one tap away.
+  const [mode, setMode] = useState<MapMode>("realms");
   const key = useRef(viewKey);
   key.current = viewKey;
 
@@ -92,7 +95,7 @@ export function GameMap({
   }, []);
 
   useEffect(() => {
-    renderer.current?.render(input);
+    renderer.current?.render({ ...input, mode });
   });
 
   // A view returns to where it was left, or opens at its opening; the view left is kept.
@@ -130,6 +133,15 @@ export function GameMap({
         <button className="zb" title="Zoom out" aria-label="Zoom out" onClick={() => renderer.current?.zoomBy(1 / 1.6)}>
           −
         </button>
+        <button
+          className={`zb${mode === "mood" ? " on" : ""}`}
+          title={mode === "mood" ? "Back to who holds what" : "The mood of the land"}
+          aria-label={mode === "mood" ? "Back to who holds what" : "The mood of the land"}
+          aria-pressed={mode === "mood"}
+          onClick={() => setMode(mode === "mood" ? "realms" : "mood")}
+        >
+          ◐
+        </button>
         {back !== null ? (
           <button className="zb fit back" title="Back to where you were" aria-label="Back to where you were" onClick={whole}>
             ↩
@@ -140,6 +152,17 @@ export function GameMap({
           </button>
         )}
       </div>
+      {mode === "mood" && (
+        <div className="map-ui mood-legend small">
+          {MoodLegend.title}
+          {MoodLegend.steps.map(([cls, words]) => (
+            <span key={cls}>
+              <span className={`sw ${cls}`} />
+              {words}
+            </span>
+          ))}
+        </div>
+      )}
       {children}
     </div>
   );

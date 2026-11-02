@@ -1,7 +1,7 @@
 # The owner's answers to the history check (2 November 2026)
 
 Lane: "The owner's answers to the history check, 2 November 2026", points 1 to 3, in "Follow-ups" of
-`docs/BUILD-PROGRESS.md` (archive item 170). Save version 41.
+`docs/BUILD-PROGRESS.md` (archive item 170). Save version 45.
 
 ## The owner's words
 

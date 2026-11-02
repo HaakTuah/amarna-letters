@@ -1,4 +1,4 @@
-import { I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
+import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
 import { type PlannedOrder, PlannedOrderSchema } from "./sleep.ts";
 
@@ -145,6 +145,17 @@ export function commandStrength(t: CommandTraits): number {
  */
 export interface Governor {
   province: string;
+  /**
+   * Item 17++ ("Governors": one governor may hold several neighbouring provinces): the province he sits in, his capital for
+   * every distance; the province itself for a governor of one.
+   */
+  seat: string;
+  /**
+   * Item 17++ (hidden information): a seat moved (his seat's province lost or given up) shows its king the seat he knew,
+   * `seatWas`, until word of the move can be read at his court in the season `seatHeard`.
+   */
+  seatWas: string;
+  seatHeard: number;
   character: string;
   power: Power;
   levies: number;
@@ -157,11 +168,14 @@ export interface Governor {
 }
 
 export function newGovernor(init: Partial<Governor> = {}): Governor {
-  return { province: "", character: "", power: "Egypt", levies: 0, raised: 0, from: 0, skimmed: 0, relieved: null, mood: "quiet", ...init };
+  return { province: "", seat: "", seatWas: "", seatHeard: 0, character: "", power: "Egypt", levies: 0, raised: 0, from: 0, skimmed: 0, relieved: null, mood: "quiet", ...init };
 }
 
 export const GovernorSchema: ObjSchema<Governor> = obj("Governor", newGovernor, {
   province: S,
+  seat: S,
+  seatWas: S,
+  seatHeard: I,
   character: S,
   power: S,
   levies: I,
@@ -171,6 +185,140 @@ export const GovernorSchema: ObjSchema<Governor> = obj("Governor", newGovernor, 
   relieved: opt(I),
   mood: S,
 });
+
+/**
+ * Item 17++ (hidden information): a governorship ended (his death, his turning, the province lost, his stepping down), as
+ * its king still believes it stands until word of the end reaches his court in the season `until`.
+ */
+export interface GovernorGone {
+  governor: Governor;
+  until: number;
+}
+
+export function newGovernorGone(init: Partial<GovernorGone> = {}): GovernorGone {
+  return { governor: newGovernor(), until: 0, ...init };
+}
+
+export const GovernorGoneSchema: ObjSchema<GovernorGone> = obj("GovernorGone", newGovernorGone, {
+  governor: () => GovernorSchema,
+  until: I,
+});
+
+/** The province a governor sits in (item 17++): his seat, or his one province. */
+export const seatOf = (g: Governor): string => (g.seat === "" ? g.province : g.seat);
+
+/**
+ * The governorships as their kings know them in the season `turn` (hidden information): those that stand, and those ended
+ * whose word has not yet reached their king's court.
+ */
+export const governorsKnown = (s: { governors: readonly Governor[]; governorsGone: readonly GovernorGone[] }, turn: number): Governor[] => [
+  ...s.governors,
+  ...s.governorsGone.filter((x) => x.until > turn).map((x) => x.governor),
+];
+
+/** The seat a governor's king knows him in, in the season `turn`: the one he left until word of the move is read. */
+export const seatKnown = (g: Governor, turn: number): string => (g.seatHeard > turn ? g.seatWas : seatOf(g));
+
+/**
+ * Item 17++ ("Governors": a vassal king by a grant under oath): a king's grant of kingship over provinces of his to a
+ * governor or a character of his, as Suppiluliuma made his sons kings of Carchemish and Aleppo. The word travels to the
+ * man at his seat; he answers by his stakes; if he takes it, the land becomes his, a power bound by a vassal tablet for
+ * the tribute agreed, and the price he pays travels to the king with his answer.
+ */
+export interface Crown {
+  id: string;
+  power: Power;
+  character: string;
+  provinces: string[];
+  /** Where he sits and rules from: his governor's seat, or the first province named. */
+  seat: string;
+  /** The tribute a year and the price, as the grant names them. */
+  tribute: number;
+  price: number;
+  /** The season the word reaches him. */
+  arrives: number;
+  /** His answer, once the word reached him (taken the season after, so a model may give it): null until then. */
+  answered: number | null;
+  accept: boolean;
+  /** Once he took it: the season his price, carried with his answer, reaches the king (null before, and once paid). */
+  paidArrives: number | null;
+  /** Once it is settled (taken, refused or not to be given): the season word of it reaches the king's court (null before). */
+  heard: number | null;
+  /** Refused: the terms on which he would take it, in his own words, carried home with his answer (empty: none given). */
+  terms: string;
+  /** Taken: the sealed vassal tablet whose copy rides home to the king with the answer (empty once delivered, or none). */
+  tablet: string;
+}
+
+export function newCrown(init: Partial<Crown> = {}): Crown {
+  return { id: "", power: "Egypt", character: "", provinces: [], seat: "", tribute: 0, price: 0, arrives: 0, answered: null, accept: false, paidArrives: null, heard: null, terms: "", tablet: "", ...init };
+}
+
+export const CrownSchema: ObjSchema<Crown> = obj("Crown", newCrown, {
+  id: S,
+  power: S,
+  character: S,
+  provinces: list(S),
+  seat: S,
+  tribute: I,
+  price: I,
+  arrives: I,
+  answered: opt(I),
+  accept: B,
+  paidArrives: opt(I),
+  heard: opt(I),
+  terms: S,
+  tablet: S,
+});
+
+/**
+ * What a man offered a kingship sees (item 17++, the "Crown" request): who offers it, over which provinces and from which
+ * seat, the tribute and the price named, his own purse, and roughly what the land yields a year; nothing he could not know.
+ */
+export interface CrownView {
+  crownId: string;
+  turn: number;
+  from: Power;
+  lands: string[];
+  seat: string;
+  governs: boolean;
+  tribute: number;
+  price: number;
+  purse: number;
+  /** Roughly the gold the land yields a year, as one who stands there sees it. */
+  yearly: number;
+}
+
+export function newCrownView(init: Partial<CrownView> = {}): CrownView {
+  return { crownId: "", turn: 0, from: "Egypt", lands: [], seat: "", governs: false, tribute: 0, price: 0, purse: 0, yearly: 0, ...init };
+}
+
+export const CrownViewSchema: ObjSchema<CrownView> = obj("CrownView", newCrownView, {
+  crownId: S,
+  turn: I,
+  from: S,
+  lands: list(S),
+  seat: S,
+  governs: B,
+  tribute: I,
+  price: I,
+  purse: I,
+  yearly: I,
+});
+
+/** His answer to a grant of kingship: whether he takes it. */
+export interface CrownChoice {
+  crownId: string;
+  accept: boolean;
+  /** Refusing, the terms on which he would take it, in his own words ("whatever the two sides settle"); else empty. */
+  terms: string;
+}
+
+export function newCrownChoice(init: Partial<CrownChoice> = {}): CrownChoice {
+  return { crownId: "", accept: false, terms: "", ...init };
+}
+
+export const CrownChoiceSchema: ObjSchema<CrownChoice> = obj("CrownChoice", newCrownChoice, { crownId: S, accept: B, terms: S });
 
 /** The most levies a governor's mandate may allow him to raise on his own. */
 export const MostGovernorLevies = 3;

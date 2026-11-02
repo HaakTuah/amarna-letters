@@ -16,14 +16,15 @@ import { Dict } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData, type Band } from "../model/bands.ts";
-import { BattleData, battleLosses } from "../model/command.ts";
+import { BattleData, battleLosses, seatOf } from "../model/command.ts";
+import { courierSeasons } from "../rules/court.ts";
 import { menIn, shareOfFull, wallMenOf } from "../model/land.ts";
 import { EconomyData } from "../model/economy.ts";
 import { gain, newRisingView, remember, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import { findCharacter, isAlive, logEvent, newId, newUnit, siegeOf, wallsOf, type Unit } from "../model/state.ts";
 import { newMindRequest } from "../model/exchanges.ts";
-import { UnrestData, moodWords } from "../model/unrest.ts";
+import { UnrestData } from "../model/unrest.ts";
 import { terrainOf } from "../model/geography.ts";
 import { levelOf } from "../model/works.ts";
 import { Views } from "../rules/views.ts";
@@ -162,8 +163,11 @@ function askLeaders(e: TurnEngine, province: string, holder: Power, held: number
     // A man in the holder's service there lends him his own following until he turns: weighed without it.
     const his = c.employer === holder && c.status === "Employed" && !chose(e, c, province) ? standing(e, province, c.id) : 0;
     if (w <= held - his + D.margin) continue;
-    // Asked this season already, or his choice to lead them stands for this one.
-    if (chose(e, c, province) || (c.risePlan !== null && c.risePlan.turn === S.turn && c.risePlan.province === province)) continue;
+    // Asked this season already, or his choice to lead a rising stands for this one. A man of standing in several
+    // provinces (a governor of a region, item 17++) decides once a season, for the first of them he is asked about: his
+    // choice to rise is kept until its own province is reckoned, never overwritten by the question of another.
+    const plan = c.risePlan;
+    if (plan !== null && (plan.turn === S.turn || chose(e, c, plan.province))) continue;
     c.risePlan = { turn: S.turn, province, rise: wants(c, holder) };
     // For the record (seen by nobody): a man asked whether he leads them, and what his traits would answer.
     logEvent(S, "rising", `${c.name} was asked whether he leads the people of ${e.map.get(province).name} against ${holder}.`, [], c.risePlan.rise ? "rising-would" : "rising-asked");
@@ -279,6 +283,8 @@ interface Rival {
   power: Power | null;
   character: Character | null;
   weight: number;
+  /** A power that took up a province that declared for him, or was ceded to him (`turn/declarations.ts`). */
+  taken?: boolean;
 }
 
 P.turnsWith = function (province, c) {
@@ -332,6 +338,12 @@ P.obeySeason = function () {
   // Every province reckoned before any changes hands, so that one change does not decide another.
   const strength = new Dict<Power, number>();
   const changes: [string, Rival | null][] = [];
+  const affirmed = new Set<string>();
+  const cleared = (prov: string) => (w: number, against: number): boolean => clears(this, prov, w, against);
+  const declared = (prov: string, holder: Power | null, against: number): void => {
+    const p = this.declareIn(prov, holder, against, affirmed, cleared(prov));
+    if (p !== null) changes.push([prov, { power: p, character: null, weight: 0, taken: true }]);
+  };
   S.restless.clear();
   S.obeyed.clear();
   for (const prov of sortBy([...this.map.landProvinces], [(x) => x.id, cmpStr])) {
@@ -345,6 +357,7 @@ P.obeySeason = function () {
       const rival = bestRival(this, prov.id, null);
       const inside = rival?.power != null && (wallsOf(S, prov.id) <= 0 || (S.breached.tryGet(prov.id) ?? null) === rival.power);
       if (inside && siegeOf(S, prov.id) === null && clears(this, prov.id, rival.weight, D.floor)) changes.push([prov.id, rival]);
+      else if (siegeOf(S, prov.id) === null) declared(prov.id, null, D.floor);
       continue;
     }
     const rival = bestRival(this, prov.id, holder);
@@ -366,8 +379,11 @@ P.obeySeason = function () {
     const against = rival?.power != null ? held + weakness(this, holder, strength) : held;
     if (rival !== null && clears(this, prov.id, rival.weight, against)) changes.push([prov.id, rival]);
     else if (held < D.floor) changes.push([prov.id, null]);
+    // Item 17++: a power its people favour whose troops are not there has it only by taking it up.
+    else declared(prov.id, holder, held + weakness(this, holder, strength));
   }
   for (const [id, rival] of changes) changeHands(this, id, rival);
+  this.declarationsLapse(affirmed, new Set(changes.map(([id]) => id)));
   reports(this);
   lawlessRulers(this);
 };
@@ -448,6 +464,11 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
   const holder = S.owner.getOrDefault(id, null);
   const name = e.map.get(id).name;
   const seeing = (extra: Power[]): Power[] => [...new Set([...AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, e.map, x).has(id)), ...extra])];
+  if (rival?.taken === true && rival.power !== null) {
+    // Its old and new masters learn of it by the road, unless they see it (hidden information).
+    e.provinceTakenUp(id, rival.power, seeing([]));
+    return;
+  }
   if (holder === null) {
     if (rival?.power == null) return;
     const p = rival.power;
@@ -622,8 +643,8 @@ function risenLose(e: TurnEngine, id: string, lost: number, own: number, followe
 }
 
 /**
- * Each governor reports his province's mood to his king, by courier, when it changes: in words, never the number. One who
- * wants the province himself says it is quiet (a governor "may misreport it").
+ * Each governor reports his province's mood to his king, by courier, every season, and writes him a letter of it when it
+ * changes: in words, never the number. One who wants the province himself says it is quiet (a governor "may misreport it").
  */
 function reports(e: TurnEngine): void {
   const S = e.s;
@@ -631,11 +652,14 @@ function reports(e: TurnEngine): void {
     const found = e.governorOf(g.province);
     if (found === null || found[0] !== g || S.owner.getOrDefault(g.province, null) !== g.power) continue;
     const c = found[1];
-    const truth = moodWords(S.restless.getOrDefault(g.province, 0), e.revoltAt(g.province));
-    const said = wants(c, g.power) ? "quiet" : truth;
+    const said = wants(c, g.power) ? "quiet" : e.moodOf(g.province);
+    // Item 17++: from his seat, so word of a far province of his reaches him late, and his letter reaches the king from there.
+    const seat = seatOf(g);
+    const late = courierSeasons(S, e.map, g.province, seat);
+    e.readMood({ power: g.power, province: g.province, mood: said, known: e.heardAt(g.power, seat, late), source: "governor" });
     if (said === g.mood) continue;
     g.mood = said;
-    e.tell(g.power, g.province, "Notice", "Your governor writes", `${c.name}, your governor of ${e.map.get(g.province).name}, writes that its people are ${said}.`);
+    e.tell(g.power, seat, "Notice", "Your governor writes", `${c.name}, your governor of ${e.map.get(g.province).name}, writes that its people are ${said}.`, late);
   }
 }
 

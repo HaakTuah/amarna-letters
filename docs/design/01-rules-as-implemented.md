@@ -42,6 +42,8 @@
   and the view's sight line say so, and that troops two links away, or an army carried across the
   sea, can arrive next season unseen. (Until the simulation-fixes round they said only "in and next
   to your own lands and troops", and empty seas were read as safety.) A refusal says nothing of
+  land lost out of sight either (bug #467: orders are checked against who the court knows holds each province,
+  `docs/design/13-travel-and-news.md`, "News"), nor of
   troops out of sight: an order for a unit in a province where the king has none reads "you have no
   unit in ashur" whether the province is empty or holds a foreign unit, and "the unit in ekallatum is
   not yours" only where it can see; a support or convoy naming a province out of sight is never

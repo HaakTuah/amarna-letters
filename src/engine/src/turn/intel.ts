@@ -10,7 +10,6 @@ import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, Fo
 import { coverOf, gain, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
-import { moodWords } from "../model/unrest.ts";
 import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
@@ -256,7 +255,10 @@ P.watchAndReport = function () {
       owed: c.owed.clone(),
     });
     report.observations.push(...this.spyObserve(c, rng));
+    // Item 17++, part C: the watched province's mood, which its master reads when the report reaches him.
+    if (c.missionTarget === null && c.watchProvince !== null && S.owner.getOrDefault(c.watchProvince, null) !== null) report.mood = this.moodOf(c.watchProvince);
     if (c.secretMaster !== null && c.secretMaster === host) {
+      report.mood = "";
       report.poison = c.poisonText;
       report.observations = report.observations.slice(0, 1);
     }
@@ -386,7 +388,7 @@ P.spyObserve = function (c, rng) {
       if (rng.chance(0.5 + skill * 0.5)) obs.push(`${u.power} has ${u.kind === "Army" ? "an army" : "a fleet"} in ${Map.get(u.province).name}.`);
     // Item 17: the people's mood there, in words, as anyone living among them hears it (its holder never sees the number).
     const holder = S.owner.getOrDefault(wp, null);
-    if (holder !== null) obs.push(`The people of ${Map.get(wp).name} are ${moodWords(S.restless.getOrDefault(wp, 0), this.revoltAt(wp))} under ${holder}.`);
+    if (holder !== null) obs.push(`The people of ${Map.get(wp).name} are ${this.moodOf(wp)} under ${holder}.`);
   }
   if (obs.length === 0) obs.push("Nothing of note this season.");
   return obs;
@@ -443,6 +445,8 @@ P.spyReportArrives = function (j) {
       book.set(prov, newKnown({ owner: Views.ownerAt(S, this.map, prov, j.report.observedTurn), turn: j.report.observedTurn, source: c.name }));
     }
   }
+  if (j.report.province !== null && j.report.mood !== "" && isAlive(S, j.to))
+    this.readMood({ power: j.to, province: j.report.province, mood: j.report.mood, seen: j.report.observedTurn, source: "spy" });
   // The copies it made of the watched court's archive come home with the report.
   const copies = this.archiveCopiesArrive(j, c);
   this.mindRequests.push(newMindRequest({ id: newId(S, "r"), task: "SpyReport", characterId: c.id, court: j.to, report: j.report, copyIds: copies }));
