@@ -1,7 +1,8 @@
 // The licence policy (SECURITY.md, point 10; scripts/licences.mjs): SPDX expressions read with their brackets, and the
 // data, asset and font licences allowed only for the packages named as such in .github/licences.yml.
 import { describe, expect, it } from "vitest";
-import { licenceOk, policy, registryName, registryOverrides } from "../../../scripts/licences.mjs";
+import { readFileSync } from "node:fs";
+import { licenceOk, policy, registryName, registryOverrides, shippedPaths } from "../../../scripts/licences.mjs";
 
 const code = policy().allowedFor("some-library");
 const data = policy().allowedFor("caniuse-lite");
@@ -39,5 +40,22 @@ describe("licences", () => {
     const npmrc = ["registry=https://example.com/", "replace-registry-host=always", "@x:registry = https://example.com/", '"registry"=https://example.com/', '"replace-registry-host"=always', "${KEY}=https://example.com/"];
     expect(registryOverrides(npmrc.join("\n"))).toEqual(npmrc);
     expect(registryOverrides("fund=false\naudit=false\n# registry=https://example.com/\n; registry=x\n")).toEqual([]);
+  });
+
+  it("holds what ships to the strict list and lets tools that only run use any open-source licence", () => {
+    const tool = policy().allowedFor("some-tool", false);
+    for (const copyleft of ["GPL-3.0-only", "LGPL-2.1-or-later", "MPL-2.0"]) {
+      expect(licenceOk(copyleft, tool)).toBe(true);
+      expect(licenceOk(copyleft, code)).toBe(false);
+    }
+    for (const never of ["BUSL-1.1", "SSPL-1.0", "Elastic-2.0", "CC-BY-NC-4.0", "CC-BY-ND-4.0", undefined]) expect(licenceOk(never, tool)).toBe(false);
+  });
+
+  it("works out what ships from the workspaces' runtime dependencies, not the lockfile's own flags", () => {
+    const root = new URL("../../../", import.meta.url);
+    const lock = JSON.parse(readFileSync(new URL("package-lock.json", root), "utf8")).packages;
+    const shipped = shippedPaths(lock, JSON.parse(readFileSync(new URL("package.json", root), "utf8")).workspaces);
+    for (const path of ["node_modules/react", "node_modules/react-dom", "node_modules/zod", "node_modules/@anthropic-ai/sdk"]) expect(shipped.has(path)).toBe(true);
+    for (const path of ["node_modules/vite", "node_modules/vitest", "node_modules/typescript", "node_modules/caniuse-lite"]) expect(shipped.has(path)).toBe(false);
   });
 });

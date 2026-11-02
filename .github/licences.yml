@@ -4,8 +4,43 @@ license-check: true
 vulnerability-check: false
 # Every package, not only the runtime ones (the action's default).
 fail-on-scopes: [runtime, development, unknown]
-# Allowed for any package.
+# Two lists, by what reaches players (SECURITY.md, point 10). allow-licenses is the wider one, for tools that only run
+# (build, test, render, check, scan): the action enforces it on every package, so nothing off both lists gets in.
+# scripts/licences.mjs holds what ships, or may (everything the workspaces' `dependencies` pull in, worked out from the
+# package.json files, and what the web build bundles), to shipped-licenses.
 allow-licenses:
+  - MIT
+  - MIT-0
+  - ISC
+  - BSD-1-Clause
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - Apache-2.0
+  - 0BSD
+  - CC0-1.0
+  - Unlicense
+  - Zlib
+  - BlueOak-1.0.0
+  - Python-2.0
+  - PSF-2.0
+  - Artistic-2.0
+  - UPL-1.0
+  - Unicode-3.0
+  - MPL-2.0
+  - EPL-2.0
+  - CDDL-1.0
+  - LGPL-2.1-only
+  - LGPL-2.1-or-later
+  - LGPL-3.0-only
+  - LGPL-3.0-or-later
+  - GPL-2.0-only
+  - GPL-2.0-or-later
+  - GPL-3.0-only
+  - GPL-3.0-or-later
+  - AGPL-3.0-only
+  - AGPL-3.0-or-later
+# What ships, or is built into it: permissive only, never copyleft. Each must also be in allow-licenses.
+shipped-licenses:
   - MIT
   - MIT-0
   - ISC

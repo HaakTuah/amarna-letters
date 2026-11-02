@@ -18,21 +18,34 @@ function list(yml, key) {
 }
 
 /**
- * The policy in .github/licences.yml: the licences any package may have, widened by the data licences for the packages
- * named as data or assets and by the font licences for those named as fonts, never across. "Public Domain", which has no
- * SPDX id, counts for any package (point 10); the action cannot be told so and fails such a package until it is named.
+ * The policy in .github/licences.yml, in two lists by what reaches players (SECURITY.md, point 10): `allowedFor(name,
+ * shipped)` gives the strict list for what ships and the wider one for tools that only run, each widened by the data
+ * licences for the packages named as data or assets and by the font licences for those named as fonts, never across.
+ * "Public Domain", which has no SPDX id, counts in both; the action cannot be told so and fails such a package until it
+ * is named.
  */
 export function policy() {
   const yml = readFileSync(join(root, ".github/licences.yml"), "utf8");
-  const any = new Set([...list(yml, "allow-licenses"), "Public Domain"]);
+  const tools = new Set([...list(yml, "allow-licenses"), "Public Domain"]);
+  const shipped = new Set([...list(yml, "shipped-licenses"), "Public Domain"]);
+  const loose = [...shipped].filter((l) => !tools.has(l));
+  if (loose.length) throw new Error(`.github/licences.yml: shipped-licenses not in allow-licenses: ${loose.join(", ")}`);
   const data = new Set(list(yml, "data-packages"));
   const fonts = new Set(list(yml, "font-packages"));
   const exempt = list(yml, "allow-dependencies-licenses").map((purl) => purl.replace(/^pkg:npm\//u, "")).sort();
   if (exempt.join() !== [...data, ...fonts].sort().join())
     throw new Error(".github/licences.yml: allow-dependencies-licenses must name exactly the data-packages and font-packages");
-  const forData = new Set([...any, ...list(yml, "data-licenses")]);
-  const forFonts = new Set([...any, ...list(yml, "font-licenses")]);
-  return { allowedFor: (name) => (data.has(name) ? forData : fonts.has(name) ? forFonts : any) };
+  const widen = (base, key) => new Set([...base, ...list(yml, key)]);
+  const sets = {
+    shipped: { any: shipped, data: widen(shipped, "data-licenses"), fonts: widen(shipped, "font-licenses") },
+    tools: { any: tools, data: widen(tools, "data-licenses"), fonts: widen(tools, "font-licenses") },
+  };
+  return {
+    allowedFor: (name, isShipped = true) => {
+      const set = isShipped ? sets.shipped : sets.tools;
+      return data.has(name) ? set.data : fonts.has(name) ? set.fonts : set.any;
+    },
+  };
 }
 
 /**
@@ -77,18 +90,48 @@ export function licenceOk(expression, allow) {
  * Every package the lockfile installs. A link to one of the declared workspaces is the owner's own code, which carries no
  * licence; any other link (a `file:` package) is checked by its target's licence. Only a package fetched from the npm
  * registry under its own name may take a named package's data or font licences (`registryName`): a lockfile's `name`
- * field is the PR author's to write, the registry address of what npm installs is not.
+ * field is the PR author's to write, the registry address of what npm installs is not. `shipped` marks what the
+ * workspaces' `dependencies` pull in (`shippedPaths`); everything else is a tool that only runs.
  */
 function lockfilePackages() {
   const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
-  const workspaces = new Set(JSON.parse(readFileSync(join(root, "package.json"), "utf8")).workspaces);
+  const workspaces = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).workspaces;
+  const shipped = shippedPaths(lock.packages, workspaces);
   return Object.entries(lock.packages)
-    .filter(([path, entry]) => path.includes("node_modules/") && !(entry.link && workspaces.has(entry.resolved)))
+    .filter(([path, entry]) => path.includes("node_modules/") && !(entry.link && workspaces.includes(entry.resolved)))
     .map(([path, entry]) => {
       const target = entry.link ? lock.packages[entry.resolved] ?? {} : entry;
       const name = path.slice(path.lastIndexOf("node_modules/") + 13);
-      return { name, version: target.version, license: target.license, registryName: entry.link ? undefined : registryName(entry.resolved) };
+      return { name, version: target.version, license: target.license, registryName: entry.link ? undefined : registryName(entry.resolved), shipped: shipped.has(path) };
     });
+}
+
+/**
+ * The lockfile paths of everything the workspaces' runtime dependencies pull in, worked out from the workspaces' own
+ * package.json files (not the lockfile's `dev` flags, which a PR could edit), each name resolved the way Node resolves
+ * it: the nearest node_modules folder up the tree. Peer and optional dependencies count, since they may be bundled.
+ */
+export function shippedPaths(packages, workspaces) {
+  const deps = (manifest) => Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies, ...manifest.peerDependencies });
+  const resolve = (from, name) => {
+    for (let dir = from; ; dir = dir.includes("/") ? dir.slice(0, dir.lastIndexOf("/node_modules/")) : "") {
+      const path = dir ? `${dir}/node_modules/${name}` : `node_modules/${name}`;
+      if (packages[path]) return path;
+      if (!dir || !dir.includes("/node_modules/")) return packages[`node_modules/${name}`] ? `node_modules/${name}` : undefined;
+    }
+  };
+  const seen = new Set();
+  const queue = workspaces.flatMap((ws) => deps(JSON.parse(readFileSync(join(root, ws, "package.json"), "utf8"))).map((name) => resolve(ws, name)));
+  while (queue.length) {
+    const path = queue.pop();
+    if (!path || seen.has(path)) continue;
+    seen.add(path);
+    const entry = packages[path];
+    const real = entry.link ? entry.resolved : path;
+    const manifest = entry.link ? JSON.parse(readFileSync(join(root, real, "package.json"), "utf8")) : entry;
+    queue.push(...deps(manifest).map((name) => resolve(real, name)));
+  }
+  return seen;
 }
 
 /** The package a registry tarball address names (`https://registry.npmjs.org/<name>/-/<file>.tgz`), or undefined. */
@@ -157,11 +200,12 @@ export function registryOverrides(npmrc) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const { allowedFor } = policy();
   const all = lockfilePackages();
-  const off = all.filter((p) => !licenceOk(p.license, allowedFor(p.registryName ?? "")));
-  for (const p of off) console.error(`off the list: ${p.name}@${p.version} (${p.license ?? "no licence"})`);
+  const off = all.filter((p) => !licenceOk(p.license, allowedFor(p.registryName ?? "", p.shipped)));
+  for (const p of off) console.error(`off the ${p.shipped ? "shipped" : "tools"} list: ${p.name}@${p.version} (${p.license ?? "no licence"})`);
   const npmrcs = execFileSync("git", ["ls-files", "-z", "--", ":(glob)**/.npmrc"], { cwd: root, encoding: "utf8" }).split("\0").filter(Boolean);
   const overrides = npmrcs.flatMap((f) => registryOverrides(readFileSync(join(root, f), "utf8")).map((l) => `${f}: ${l}`));
   for (const o of overrides) console.error(`npm setting not allowed (packages are named by the npm registry they come from): ${o}`);
-  console.log(`${all.length} packages checked, ${off.length} off the list (SECURITY.md, point 10; .github/licences.yml)`);
+  const shippedCount = all.filter((p) => p.shipped).length;
+  console.log(`${all.length} packages checked (${shippedCount} shipped or may be, ${all.length - shippedCount} tools that only run), ${off.length} off their list (SECURITY.md, point 10; .github/licences.yml)`);
   process.exit(off.length || overrides.length ? 1 : 0);
 }
