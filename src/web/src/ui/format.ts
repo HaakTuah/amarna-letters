@@ -69,12 +69,12 @@ export function describeOrder(o: Order, v: SeatView): string {
 }
 
 /**
- * The season each claim to a contested name was read in its claimant's sealed greeting (#550): " (read in Mitanni's greeting
- * sealed in season 2, 1344 BCE)", or nothing where no claim was read in one.
+ * The season each claim to a contested name was read in its claimant's sealed greeting (#550): ", as read in Mitanni's
+ * greeting sealed in season 2, 1344 BCE", or nothing where no claim was read in one.
  */
 export function heardIn(heard: SeatView["nameClaims"][number]["heard"], me: Power): string {
   if (heard.length === 0) return "";
-  return ` (read in ${heard.map((h, i) => (i === 0 ? `${powerName(h.claimant)}'s greeting sealed in ${shortDate(h.sealed, me)}` : `in ${powerName(h.claimant)}'s of ${shortDate(h.sealed, me)}`)).join(", and ")})`;
+  return `, as read in ${heard.map((h) => `${powerName(h.claimant)}'s greeting sealed in ${shortDate(h.sealed, me)}`).join(" and in ")}`;
 }
 
 /** A grant of passage or basing as its two kings read it (item 9). */

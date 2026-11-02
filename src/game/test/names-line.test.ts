@@ -13,7 +13,7 @@ describe("NamesLine", () => {
       nameClaims: [{ name: "Gubla", claimants: ["Amurru", "Byblos"], givenTo: "Byblos", heard: [{ claimant: "Amurru", sealed: 5 }] }],
     });
     Assert.equal(
-      "NAMES CLAIMED (each king as your orders name him): you go by the name of Egypt. Gubla is claimed by Amurru and Byblos (read in Amurru's greeting sealed in Peret (growing), year 2); your court gives it to Byblos and calls the other by his house.",
+      "NAMES CLAIMED (each king as your orders name him): you go by the name of Egypt. Gubla is claimed by Amurru and Byblos, as read in Amurru's greeting sealed in Peret (growing), year 2; your court gives it to Byblos and calls the other by his house.",
       namesLine(v),
     );
     Assert.doesNotContain("turn", namesLine(v));
@@ -25,6 +25,6 @@ describe("NamesLine", () => {
       claimedName: "Hatti",
       nameClaims: [{ name: "Gubla", claimants: ["Amurru", "Byblos"], givenTo: null, heard: [{ claimant: "Amurru", sealed: 1 }, { claimant: "Byblos", sealed: 3 }] }],
     });
-    Assert.contains("(read in Amurru's greeting sealed in the first season, year 1, and in Byblos's of the third season, year 1)", namesLine(v));
+    Assert.contains(", as read in Amurru's greeting sealed in the first season, year 1 and in Byblos's greeting sealed in the third season, year 1;", namesLine(v));
   });
 });
