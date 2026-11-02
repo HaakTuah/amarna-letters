@@ -167,10 +167,13 @@ The guards against both are part of the rule:
      guidelines), a test PR with planted faults goes to each reviewer and is never merged. The faults are a bug, a
      broken standing rule, a security hole and a departure from the design, as on Snakes #298. Each fault not found is
      a miss.
-   - **A history spot-check every month** (the owner, 2 November 2026): a fresh reviewer picks about ten facts from the
-     dossiers in `docs/history/`, the ones the game uses most, and checks each against the source it cites (the letter,
-     the edition, the study). Every fact that does not hold is a miss: the dossier and the game are fixed, and a
-     `bug` issue tracks it until the fix is live.
+   - **A history spot-check every month** (the owner, 2 November 2026; archive items 164 and 167): a fresh reviewer
+     picks about 30 facts from `docs/history/`, two from each dossier and the rest among those the game uses most, and
+     checks each against the words of its source that its line quotes, and against the source itself (the letter, the
+     edition, the study) where it can reach it. Every fact that does not hold is a miss: the dossier and the game are
+     fixed, and a `bug` issue tracks it until the fix is live. More than one miss in fifteen facts checked: every
+     dossier a miss came from gets a full check. The first spot-check (#466) found 3 in 13, so the full check of every
+     dossier ("Follow-ups" in `docs/BUILD-PROGRESS.md`) runs before the next one.
    - **Logged and reported:** each check is a row in "Calibration" below, and each milestone PR says in one line the
      misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
      the owner, and the categories it reviews go back to the other reviewer meanwhile.
