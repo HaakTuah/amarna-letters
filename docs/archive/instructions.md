@@ -1446,3 +1446,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     words of their source; then a monthly spot-check of about 30 facts, with a full check of any dossier whose misses
     pass one in fifteen): "Yes, expertly to all!" Written into "History holds" in `AGENTS.md`, "Reviews" in
     `docs/claude-and-codex.md`, "Follow-ups" in `docs/BUILD-PROGRESS.md`, and item 17+++b (Build order, revision 216).
+168. **2 November 2026, 16:52 UTC**, in the design chat, to the design session's take on the licence audit's three
+    questions (#464 here, Barkstreet Snakes' #379 and #380): the allow-list exists so nothing can stop the owner
+    selling the game or oblige him to publish his code, and only what ships can do that, so point 10 splits in two:
+    what ships keeps the strict list, and tools that only run may be under any licence the Open Source Initiative
+    approves, copyleft included, with GitHub's own services under GitHub's terms while the repositories are public;
+    ffmpeg, libsndfile, matplotlib, npm and CodeQL kept. "Completely agree, go ahead expertly with all you said,
+    expert!" Written into `SECURITY.md` point 10; the same in Barkstreet Snakes.
