@@ -455,11 +455,17 @@ export function along(pts: readonly Pt[], t: number): Pt {
 }
 
 /** The part of a line between two fractions of its length (from the first to the second, either way round). */
+/** A line's length along all its points. */
+export function lengthOf(pts: readonly Pt[]): number {
+  let total = 0.0;
+  for (let i = 1; i < pts.length; i++) total += len(sub(pts[i], pts[i - 1]));
+  return total;
+}
+
 export function between(pts: readonly Pt[], a: number, b: number): Pt[] {
   if (a > b) return between(pts, b, a).reverse();
   const out: Pt[] = [along(pts, a)];
-  let total = 0.0;
-  for (let i = 1; i < pts.length; i++) total += len(sub(pts[i], pts[i - 1]));
+  const total = lengthOf(pts);
   let at = 0.0;
   for (let i = 1; i < pts.length - 1; i++) {
     at += len(sub(pts[i], pts[i - 1]));

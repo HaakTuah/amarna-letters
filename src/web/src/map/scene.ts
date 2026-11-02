@@ -6,7 +6,7 @@
 import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
 import { coverOf, isMove, ownerFor, ownerOf, type FrameBand, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame, type FrameGovernor, type Mood, moodOfObeyed } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
-import { along, between, city, route, type Pt } from "./art.ts";
+import { along, between, city, lengthOf, route, type Pt } from "./art.ts";
 import { ownFiguresAt } from "./known.ts";
 import { remember, type Remembered } from "./memory.ts";
 
@@ -802,11 +802,18 @@ export function traceOf(path: readonly PathStep[]): Pt[] {
     if (i === 0) return push([step.at]);
     const a = path[i - 1].on;
     const b = step.on;
-    if ("from" in a && "from" in b && a.from === b.from && a.to === b.to) return push(between(route(a.from, a.to), a.progress, b.progress));
-    // From where he was to where his next road began (or where he next stood), then along that road as far as he had come.
-    if ("from" in a) push(between(route(a.from, a.to), a.progress, 1));
-    const left = "from" in a ? a.to : a.province;
     const next = "from" in b ? b.from : b.province;
+    if ("from" in a && "from" in b && a.from === b.from && a.to === b.to && b.progress >= a.progress) return push(between(route(a.from, a.to), a.progress, b.progress));
+    // From where he was to where his next road began (or where he next stood), then along that road as far as he had come.
+    // Seen on a road, he is not known to have reached its end: he leaves it by whichever end is the shorter way on.
+    let left = "from" in a ? a.to : a.province;
+    if ("from" in a) {
+      const road = route(a.from, a.to);
+      const back = a.progress * lengthOf(road) + lengthOf(route(a.from, next));
+      const on = (1 - a.progress) * lengthOf(road) + lengthOf(route(a.to, next));
+      if (back < on) left = a.from;
+      push(between(road, a.progress, left === a.to ? 1 : 0));
+    }
     if (left !== next) push(route(left, next));
     push("from" in b ? between(route(b.from, b.to), 0, b.progress) : [step.at]);
   });
