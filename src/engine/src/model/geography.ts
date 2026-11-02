@@ -241,7 +241,11 @@ export type CityWater = "River" | "Spring" | "Wells" | "Outside" | "Cisterns" | 
 
 const W = (kind: CityWater, ...ids: string[]): [string, CityWater][] => ids.map((id) => [id, kind]);
 
-/** Each land province's chief city's water, from the water dossier. */
+/**
+ * Each land province's chief city's water, from the water dossier; the cities it has no row for (tunip, niya, samuha,
+ * gezer, pella, aijalon, akko, ashkelon, lachish, beirut, ashtaroth, gath, hazor, azzi, libya, shasu) are first guesses
+ * [G] from their land, as are those the dossier grades [G].
+ */
 export const CityWaters: ReadonlyMap<string, CityWater> = new Map<string, CityWater>([
   ...W("River", "seha", "apasa", "kizzuwatna", "terqa", "nineveh", "ashur", "ekallate", "sippar", "durkurigalzu", "babylon", "nippur", "ur", "delta", "memphis", "akhetaten", "thebes", "nubia", "isuwa", "carchemish", "alalakh", "qadesh", "damascus", "suhu", "susa", "tunip", "niya", "samuha"),
   ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "jerusalem", "gezer", "pella", "aijalon"),
@@ -252,7 +256,7 @@ export const CityWaters: ReadonlyMap<string, CityWater> = new Map<string, CityWa
   ...W("Island", "tyre", "arwad"),
 ]);
 
-/** The island cities with no water of their own, whose water comes by boat like their grain: Tyre (EA 146-155) and Arwad. */
+/** The island cities with no water of their own, whose water comes by boat like their grain: Tyre (EA 146-151, 154-155) and Arwad. */
 export const isIslandWater = (province: string): boolean => CityWaters.get(province) === "Island";
 
 /** How many seasons a besieged city can drink from its own stores (Infinity: it never runs dry; islands: once blockaded). */
@@ -388,8 +392,8 @@ export function climateOf(province: string): Climate {
 
 /**
  * The regions whose rains fail together, and how often, one year in so many (the environment dossier's first guesses:
- * the Anatolian plateau one in six, the Levant and north Syria and the Habur and Assyria one in eight; the milder west
- * one in ten, and Elam's Susiana, watered by rain and canals, as often [G]). A drought is drawn once a year for each, in
+ * the Anatolian plateau one in six, the Levant and north Syria one in eight; past what it gives, the Habur and Assyria
+ * one in eight, the milder west one in ten, and Elam's Susiana, watered by rain and canals, as often [G]). A drought is drawn once a year for each, in
  * Shemu, and strikes the year after.
  */
 export const DroughtRegions: readonly { readonly id: string; readonly name: string; readonly oneIn: number }[] = [
