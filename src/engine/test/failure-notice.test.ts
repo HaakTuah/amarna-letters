@@ -1,9 +1,7 @@
 import { describe, test } from "vitest";
-import { court } from "../../game/src/bots/statecraft-court.ts";
 import {
   Dict,
   type GameState,
-  type Power,
   TurnEngine,
   counterIntel,
   dispatch,

@@ -9,7 +9,6 @@ import {
   TurnEngine,
   type TurnSubmission,
   Views,
-  WorldMap,
   assay,
   authenticate,
   check,
@@ -33,11 +32,9 @@ import {
   newTabletProposal,
   newTurnSubmission,
   opt,
-  ownedBy,
   release,
   serialize,
   single,
-  sum,
 } from "@amarna/engine";
 import { fresh, Assert, toDict, skilled, homeJob, oldWorld, smallWorld } from "./support.ts";
 

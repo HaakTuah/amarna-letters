@@ -1,6 +1,3 @@
-import { describe, test } from "vitest";
-import { court } from "../src/bots/statecraft-court.ts";
-import { host } from "../src/bots/statecraft-letters.ts";
 import {
   AllPowers,
   type AudienceView,
@@ -16,8 +13,6 @@ import {
   type StandingOrder,
   type StandingRequest,
   type TurnSubmission,
-  convoy,
-  first,
   inboxOf,
   move,
   newGame,
@@ -32,17 +27,12 @@ import {
   newStandingRequest,
   newTurnSubmission,
   newUnit,
-  support,
   unitAt,
   unitOf,
 } from "@amarna/engine";
 import { GameRunner, type ISeat, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
 import { removeAll, Assert, toDict, oldWorld, commanded } from "../../engine/test/support.ts";
-import { convoy as convoyOrder } from "@amarna/engine";
-import { first as firstOf } from "@amarna/engine";
-import { support as supportOrder } from "@amarna/engine";
-import { describe as describeOrder } from "@amarna/engine";
 
 // The sleeping seats' tests share these seats, games and helpers (split from one file, since files stay under 50 KB).
 

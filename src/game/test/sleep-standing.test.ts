@@ -9,7 +9,6 @@ import {
   type StandingRequest,
   TurnEngine,
   Views,
-  convoy,
   counterIntel,
   hold,
   inboxOf,
@@ -28,7 +27,6 @@ import {
   range,
   single,
   standingFiredTitle,
-  support,
   unitAt,
 } from "@amarna/engine";
 import { type JsonObject, LlmLeaderSeat, Parse, Replies, Schemas, leaderRules, problems, situation } from "@amarna/llm";
@@ -45,16 +43,12 @@ import { attackedOf } from "./sleep-support.ts";
 import { standingOf } from "./sleep-support.ts";
 import { noticeOf } from "./sleep-support.ts";
 import { emptyDurkurigalzu } from "./sleep-support.ts";
-import { assyriaInSusa } from "./sleep-support.ts";
 import { removeAll } from "../../engine/test/support.ts";
 import { waiting } from "./sleep-support.ts";
 import { assyriaToArbela } from "./sleep-support.ts";
 import { Replying } from "./sleep-support.ts";
 import { PlanningReply } from "./sleep-support.ts";
-import { convoy as convoyOrder } from "@amarna/engine";
-import { first as firstOf } from "@amarna/engine";
 import { support as supportOrder } from "@amarna/engine";
-import { describe as describeOrder } from "@amarna/engine";
 
 // Sleeping seats: standing orders and what a model king writes.
 describe("SleepTests", () => {
@@ -362,7 +356,6 @@ describe("SleepTests", () => {
     );
     let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "arrapha")] }) : newTurnSubmission()));
     let r = await play("Babylonia", sleeper, 2, cap(0), new Dict([["Assyria", assyria]]));
-    let sleep = r.state.sleep.get("Babylonia");
 
     Assert.contains("- s1: when Assyria's troops enter arrapha, then: the army now in babylon -> nippur", situation(last(sleeper.views)));
     Assert.null(unitAt(r.state, "nippur"));
