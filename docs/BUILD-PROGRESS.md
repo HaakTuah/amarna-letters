@@ -77,7 +77,11 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
      the PR shows ten lines before and after, so the owner can set the bar.
   4. **A cheap guard after:** a test that fails when a script king's letters, or a report's lines, keep repeating one
      shape across a game.
-  Done when a second fresh read finds nothing worse than fine. One PR per kind of text.
+  **Scored like every review** (the owner, 2 November 2026): each kind of text gets a score from 1 to 10, with
+  everything that keeps it from 10, and only a 10 passes; a 10 means nothing in it reads machine-made, every voice is
+  its own and no formula repeats. The usual guards hold ("Reviews" in `docs/claude-and-codex.md`): later rounds judge
+  the fixes, with the reviewer's own earlier lists; three rounds at most, then the escalation helper. The owner's read
+  of the ten lines before and after is the final word, and calibrates the reviewer. One PR per kind of text.
 
 - **The Gulf's head as it stood in the Late Bronze Age** (the owner, 2 November 2026; #527; archive item 175): the map's
   old shore (`OldGulfShore` in `src/web/src/map/features.ts`) moves to where the published reconstructions of the Late
