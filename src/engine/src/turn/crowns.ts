@@ -145,7 +145,8 @@ P.crownsSeason = function () {
       k.heard = this.heardAt(k.power, k.seat);
       remember(c, S.turn, `The king of ${k.power} offered me the kingship of ${lands} under oath; I would not take it.`);
       this.tell(k.power, k.seat, "Rejected", "A kingship refused", `${c.name} would not take the kingship of ${lands} on your terms.${k.terms !== "" ? ` His answer: "${k.terms}"` : ""}`);
-      logEvent(S, "crown", `${c.name} refused the kingship of ${lands} offered by ${k.power}.`, [k.power], "crown-refused");
+      // Its king learns of it from the notice the road brings (hidden information); the event is the god view's.
+      logEvent(S, "crown", `${c.name} refused the kingship of ${lands} offered by ${k.power}.`, [], "crown-refused");
       if (!S.governors.some((g) => g.character === c.id)) this.leaveCommand(c, k.seat);
       continue;
     }
@@ -183,7 +184,8 @@ TurnEngine.prototype.crowned = function (k: Crown, c: Character, lands: string) 
   // His price rides home with his answer: it reaches the treasury as word of it does.
   k.paidArrives = k.heard;
   this.tell(k.power, k.seat, "Resolution", "A kingship taken", `${c.name} took the kingship of ${lands} under oath: ${own} is your vassal now, its tablet sealed for ${k.tribute} shekels of tribute a year${price > 0 ? `; the ${price} shekels he paid are on the road to you` : ""}.`);
-  logEvent(S, "crown", `${c.name} took the kingship of ${lands} from ${k.power}.`, [k.power, own], "crown-taken");
+  // The new king's own; the granting king learns of it from the notice the road brings (hidden information).
+  logEvent(S, "crown", `${c.name} took the kingship of ${lands} from ${k.power}.`, [own], "crown-taken");
 };
 
 declare module "./core.ts" {

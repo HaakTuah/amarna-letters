@@ -32,6 +32,7 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
   The new realm's growth is reckoned from all the land it was given (`startStrength` set once every province is its own),
   and so is a turning governor's.
   Refused, or no longer possible (the man gone, the land lost): the king is told by the road; a man from court goes home.
+  Taken or refused, the granting king learns of it only by that notice: the season's events do not show it to him.
 - No rule of its own decides whether it pays: tribute is the vassal's order like any promise; the king's troops left in
   the land weigh as his in "Whom a province obeys".
 

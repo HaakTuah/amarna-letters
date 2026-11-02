@@ -82,6 +82,8 @@ describe("SeatWordTests", () => {
     // Pending until the refusal is in the inbox, and from then on gone, in the same season.
     const first = rows.findIndex(([, heard]) => heard);
     Assert.true(first > 0);
+    // Its events say nothing to the court before then: it learns of the answer by the road.
+    Assert.false(s.events.some((e) => e.kind === "crown" && e.signal !== "crown" && e.visibleTo.includes("Egypt")));
     for (const [k, [pending, heard]] of rows.entries()) Assert.equal([k, !heard], [k, pending]);
   });
 
