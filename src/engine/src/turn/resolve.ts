@@ -553,8 +553,8 @@ P.raise = function (p, r) {
     // A share that came to fewer than a levy's least is told as that, never as a land without men.
     const short = r.share != null && menAvailable(S, prov.id) >= LandData.levyLeast;
     const why = short ? `the share you asked of its men came to fewer than a levy takes (${LandData.levyLeast} at least); ask a larger share or a number of men` : `it has too few men of fighting age left (${LandData.levyLeast} at least are needed)`;
-    this.tell(p, prov.id, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`);
-    this.scheduledFailed(p, r, short ? "the share asked came to fewer men than a levy takes" : "too few men of fighting age");
+    // Its notice and a sleeping seat's wake come by the road from a far province (bug #517).
+    this.lostOrder(p, r, prov.id, "Levy failed", `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`, short ? "the share asked came to fewer men than a levy takes" : "too few men of fighting age");
     return;
   }
   const cost = forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, men);

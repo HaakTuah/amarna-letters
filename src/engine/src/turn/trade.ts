@@ -359,7 +359,7 @@ P.sendTraders = function (orders, tell) {
     const to = Map.get(o.to);
     const fail = (why: string, reason: string): void => {
       tell(p, o.from, why);
-      this.scheduledFailed(p, o, reason);
+      this.wakeFrom(p, o, o.from, reason);
     };
     // Land lost out of the king's sight: word of it comes home by the road (bug #467).
     if (S.owner.getOrDefault(o.from, null) !== p) {

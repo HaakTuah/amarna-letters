@@ -774,7 +774,7 @@ P.settleMarkets = function (orders) {
     if (d > 0 && Number.isFinite(d)) this.lostOrder(p, o, prov, "Order failed", line, "it is besieged");
     else {
       tell(p, prov, line);
-      this.scheduledFailed(p, o, "it is besieged");
+      this.wakeFrom(p, o, prov, "it is besieged");
     }
     return false;
   };
@@ -826,7 +826,7 @@ P.settleMarkets = function (orders) {
         }
         tell(p, prov, `Sold ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < net ? `; its people's purse could pay for no more (${net - r.taken} unsold)` : "") + ".");
         if (r.taken > 0) logEvent(S, "sale", `${p} sold grain at ${name}.`, this.nearOf(prov, p), "sale");
-        if (r.taken < net) for (const o of list.filter((o) => o.type === "sell")) this.scheduledFailed(p, o, "the people's purse ran dry");
+        if (r.taken < net) for (const o of list.filter((o) => o.type === "sell")) this.wakeFrom(p, o, prov, "the people's purse ran dry");
       } else if (net < 0) {
         const r = buyAlongCurve(m.stock, normal, t.gold, -net);
         m.stock -= r.taken;
@@ -844,13 +844,13 @@ P.settleMarkets = function (orders) {
     const route = this.caravanRoute(p, o.from, o.to);
     if (route === null) {
       tell(p, o.from, `No caravan left ${Map.get(o.from).name} for ${Map.get(o.to).name}: there is no road there by land or river.`);
-      this.scheduledFailed(p, o, "no road there by land or river");
+      this.wakeFrom(p, o, o.from, "no road there by land or river");
       continue;
     }
     const grain = this.takeFromStores(o.from, o.amount);
     if (grain <= 0) {
       tell(p, o.from, `No caravan left ${Map.get(o.from).name}: its stores were empty.`);
-      this.scheduledFailed(p, o, "the stores were empty");
+      this.wakeFrom(p, o, o.from, "the stores were empty");
       continue;
     }
     S.caravans.push(newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, route, since: S.turn }));

@@ -94,6 +94,14 @@ stores of nippur: Nippur is besieged…".
   - What the events then showed of #540's class is listed under #540 and added to it: the realm's reaping event, a far
     province's works events, a caravan's arrival.
 
+## Review, round 3
+
+- **Claude's reviewer, 9/10:** nothing in scope open; it asked for the benchmarks and a bug for grant events seen by
+  the grantee at once (filed: #565). Its one idea, the twins at a second place, is filed as #566.
+- **Codex, one P1:** a far levy that failed for too few men woke a sleeping seat at once. It now goes through
+  `lostOrder`; so do the markets' and trade's foiled orders, through `TurnEngine.wakeFrom` (split from `lostOrder`).
+  `wakeFrom` and `nearOf` time word by `heardAt`, as `tell` does.
+
 ## Benchmarks
 
 BENCH
