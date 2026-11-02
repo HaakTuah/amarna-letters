@@ -3,10 +3,13 @@
  * the log holds: the header, every decision, every call in full (what was asked and what came back, with each model's
  * notes, plans, ledger and standing orders), the shadow scripts and the audits. Each filter leaves a part out; the human
  * words filter blanks every word a human player wrote, so the export can be kept in the repository and still replays.
- * What is sensitive is never a filter: the log never holds it (sensitive.ts).
+ *
+ * What is sensitive is never a filter and never in any export, and it is kept out by design, not scrubbed: nothing
+ * sensitive is recorded (a failure is logged as its kind, failure.ts), and the export is built from the list of fields
+ * each record may give, so a field no one listed stays out.
  */
+import { isFailure } from "./failure.ts";
 import type { GameLog } from "./log.ts";
-import { inJson, withoutSensitive, withoutSensitiveJson } from "./sensitive.ts";
 
 /** What an export holds: each part true to put it in. */
 export interface ExportParts {
@@ -16,253 +19,123 @@ export interface ExportParts {
   shadows: boolean;
   /** The audits of lower rungs' decisions. */
   audits: boolean;
-  /** Every word a human player wrote: his letters, notes and speeches. Left out, each is a marked blank of its length. */
+  /** Every word a human player wrote. Left out, in a game with a human seat, every text is a marked blank of its length. */
   humanWords: boolean;
 }
 
 export const Everything: ExportParts = { calls: true, shadows: true, audits: true, humanWords: true };
 
-/** The mark that stands for each letter of a human player's words left out. Spaces stay, so a blank keeps its shape. */
+/**
+ * The fields each record may give, in the order the log writes them. A field the log gains is in no export until it is
+ * listed here (or knowingly left out: `export.test.ts` holds every field of the log's schemas to one side or the other).
+ */
+export const ExportFields = {
+  header: ["version", "seed", "config", "seats", "sleepers", "minds", "narrator", "jobs", "note"],
+  authorship: ["kind", "name", "reason", "rung", "model", "why"],
+  call: ["key", "turn", "role", "model", "system", "prompt", "output", "inputTokens", "outputTokens", "cacheReadTokens", "cacheWriteTokens", "costUsd", "usedFallback", "error", "requestChars", "attempt", "unpriced"],
+  shadow: ["key", "turn", "kind", "character", "name", "traits", "goldCarried", "giftOffered", "serviceOffered", "known", "model", "script", "error"],
+  choice: ["text", "kept", "swap", "acceptGift", "acceptService", "commitments", "price", "dropped", "flags"],
+  audit: ["key", "turn", "kind", "rung", "model", "above", "differ", "mattered"],
+} as const;
+
+/** The mark that stands for each letter of words left out. Spaces stay, so a blank keeps its shape. */
 export const BlankMark = "▒";
 
 /**
- * The fields of a human player's decisions that hold his own words, by name: letters, mandates and speeches, notes,
- * summaries and ledger entries, his answers' words, a tablet's or a forgery's text, a custom greeting, what a turned
- * captive is to report home, and any text the game could not read as an order. Every other field is an order the engine
- * reads (ids, names it knows, numbers), and is never blanked, so the export replays (`export.test.ts` holds each to one
- * side, so a new field of words cannot be missed).
+ * The fields of a decision that hold words, by name: letters, mandates and speeches, notes, summaries and ledger entries,
+ * answers' words, a tablet's or a forgery's text, a custom greeting, what a turned captive is to report home, and any
+ * text the game could not read as an order. Every other field is an order the engine reads (ids, names it knows,
+ * numbers), and is never blanked, so the export replays (`export.test.ts` holds each to one side, so a new field of
+ * words cannot be missed).
  */
 export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments", "poison", "unreadable", "reason"]);
-
-/**
- * Where a human's words may be quoted in a decision: its word fields, a decision whose whole value is a text (a
- * narrator's chronicle, a character's persona), and the ladder's why in its authorship (a model's own words).
- */
-const QuotedFields = new Set([...WordFields, "value", "why"]);
-
-/**
- * How much of a human's text must match, from its start or a sentence's, for a match to count as his quote: a quote cut
- * short (a prompt's brief of a letter keeps its first 120 letters) still counts. A text shorter than this counts only
- * whole, between word boundaries.
- */
-const MinQuoted = 12;
-
-/**
- * A quote may also begin at any word inside one of his sentences (a model copying a phrase): such a start must match for
- * this many letters, so that a common phrase of anyone's is not taken for his.
- */
-const MinInner = 20;
-
-/** The longest name the scribe may put where an id stood. */
-const MaxName = 120;
 
 /** A text blanked: every letter replaced by the mark, its spaces and its length kept. */
 export function blank(text: string): string {
   return text.replace(/\S/g, BlankMark);
 }
 
-/** The log as JSON lines, holding the parts asked for. */
+type Node = Record<string, unknown>;
+
+/** The log as JSON lines, holding the parts asked for, each record giving only its listed fields. */
 export function exportJsonl(log: GameLog, parts: ExportParts = Everything): string {
-  const lines = log.toJsonl().split("\n").filter((l) => l.length > 0);
-  const kept = lines.filter((line) => {
-    const type = typeOf(line);
-    return !((type === "call" && !parts.calls) || (type === "shadow" && !parts.shadows) || (type === "audit" && !parts.audits));
-  });
-  // A human's words are found as he wrote them, before anything sensitive in them is taken out.
-  return (parts.humanWords ? kept : withoutHumanWords(kept))
-    .map(withoutSensitiveWords)
-    .map((l) => l + "\n")
-    .join("");
+  // Models quote and echo what they read, so under the filter a game with a human seat loses every text; a game with
+  // none loses nothing.
+  const blanking = !parts.humanWords && ([...log.header.seats].some(([, label]) => label === "Human") || log.decisions.some((d) => d.by?.kind === "human"));
+  let out = "";
+  for (const line of log.toJsonl().split("\n")) {
+    if (line.length === 0) continue;
+    const record = given(JSON.parse(line) as Node, parts, blanking);
+    if (record !== null) out += toJson(record) + "\n";
+  }
+  return out;
 }
 
-/**
- * A record with anything sensitive taken out of every string but its type and key, whatever the filters. A player may
- * type an e-mail address or a key into a letter, and a model may put anything into any field: the log keeps decisions as
- * written, for his own replay, and no export carries them; a field the engine reads never holds such a thing in a valid
- * order, so the export still replays. Calls and shadows are read again too, since a log loaded before its providers
- * registered their keys was cleaned without them.
- */
-function withoutSensitiveWords(line: string): string {
-  const touched = { any: false };
-  // Decisions as they stand; every other record read again with its JSON decoded, now that every key in use is known
-  // (a log loaded before its providers were made was cleaned without them).
-  const change = line.startsWith('{"type":"decision"') ? withoutSensitive : withoutSensitiveJson;
-  const back = mapWords(JSON.parse(line), change, (f) => f !== "type" && f !== "key", "", touched);
-  return touched.any ? toJson(back) : line;
+/** A record as the export gives it, or null when its part is left out (or its type is not one the export knows). */
+function given(node: Node, parts: ExportParts, blanking: boolean): Node | null {
+  const words = (s: unknown): unknown => (blanking && typeof s === "string" ? blank(s) : s);
+  switch (node.type) {
+    case "header":
+      return { ...pick(node, ExportFields.header), type: "header" };
+    case "decision": {
+      const by = node.by === null || node.by === undefined ? null : pick(node.by as Node, ExportFields.authorship);
+      if (by !== null) {
+        by.reason = failure(by.reason);
+        by.why = words(by.why);
+      }
+      // The value comes last: a log is read back by what follows its "value" key.
+      return { type: "decision", key: node.key, ...(by !== null ? { by } : {}), value: blanking ? blankWords(node.value) : node.value };
+    }
+    case "call": {
+      if (!parts.calls) return null;
+      const call = pick(node, ExportFields.call);
+      for (const f of ["system", "prompt", "output"]) call[f] = words(call[f]);
+      call.error = failure(call.error);
+      return { ...call, type: "call" };
+    }
+    case "shadow": {
+      if (!parts.shadows) return null;
+      const shadow = pick(node, ExportFields.shadow);
+      if (Array.isArray(shadow.known)) shadow.known = shadow.known.map(words);
+      for (const side of ["model", "script"]) {
+        if (shadow[side] === null || shadow[side] === undefined) continue;
+        const choice = pick(shadow[side] as Node, ExportFields.choice);
+        choice.text = words(choice.text);
+        choice.commitments = words(choice.commitments);
+        shadow[side] = choice;
+      }
+      shadow.error = failure(shadow.error);
+      return { ...shadow, type: "shadow" };
+    }
+    case "audit":
+      return parts.audits ? { ...pick(node, ExportFields.audit), type: "audit" } : null;
+    default:
+      return null;
+  }
 }
 
-/** The record type of a line: the last property of every line the log writes, but a decision's, whose value is last. */
-function typeOf(line: string): string {
-  return line.startsWith('{"type":"decision"') ? "decision" : ((JSON.parse(line) as { type?: string }).type ?? "");
+/** The listed fields of a record, in the listed order; any other is left out. */
+function pick(node: Node, fields: readonly string[]): Node {
+  const out: Node = {};
+  for (const f of fields) if (f in node) out[f] = node[f];
+  return out;
 }
 
-/**
- * The lines with every word a human wrote blanked: the word fields of his decisions, and wherever a piece of them is
- * quoted elsewhere (a model's prompt that carries his letter, an envoy's report of it, the narrator's chronicle).
- */
-function withoutHumanWords(lines: string[]): string[] {
-  const words: string[] = [];
-  const out = lines.map((line) => {
-    if (!line.startsWith('{"type":"decision"')) return line;
-    const node = JSON.parse(line) as { by?: { kind?: string } | null; value: unknown };
-    if (node.by?.kind !== "human") return line;
-    node.value = blankFields(node.value, words);
-    return toJson(node);
-  });
-  const quoted = pieces(words);
-  if (quoted.heads[0].size === 0 && quoted.short.length === 0) return out;
-  return out.map((line) => {
-    const node = JSON.parse(line) as Record<string, unknown>;
-    // In decisions only words are blanked, never an order's ids or names, so the export still replays.
-    const touched = { any: false };
-    // In decisions and the header only words are blanked, never an order's ids or names, so the export still replays;
-    // elsewhere everything but a record's ids and names.
-    const changes = node.type === "decision" || node.type === "header" ? (f: string) => QuotedFields.has(f) : (f: string) => !Names.has(f);
-    const back = mapWords(node, (v) => inJson(v, (t) => blankIn(t, quoted)), changes, "", touched);
-    return touched.any ? toJson(back) : line;
-  });
+/** A logged failure as the export gives it: a kind as this build writes it, or, from an older log, "failed". */
+function failure(v: unknown): unknown {
+  return typeof v === "string" && v.length > 0 && !isFailure(v) ? "failed" : v;
 }
 
+/** A decision's value with its words blanked: its word fields, or the whole of a value that is a text (a chronicle). */
+function blankWords(v: unknown, key: string | null = null): unknown {
+  if (typeof v === "string") return key === null || WordFields.has(key) ? blank(v) : v;
+  // A list's entries are words only under a word field; a list at the top (ids, names) is orders.
+  if (Array.isArray(v)) return v.map((x) => blankWords(x, key ?? ""));
+  if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, blankWords(x, k)]));
+  return v;
+}
 
 /** A record as a line, its strings escaped as the log writes them (engine's json.ts, quote). */
 function toJson(v: unknown): string {
   return JSON.stringify(v).replace(/[^\x20-\x7e]|[<>&'+`]/g, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
-}
-
-/** A human decision's value with its word fields blanked; each text blanked is added to `words`. */
-function blankFields(v: unknown, words: string[], key = ""): unknown {
-  if (typeof v === "string") {
-    if (!WordFields.has(key) || v.trim().length === 0) return v;
-    words.push(v);
-    return blank(v);
-  }
-  if (Array.isArray(v)) return v.map((x) => blankFields(x, words, key));
-  if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, blankFields(x, words, k)]));
-  return v;
-}
-
-/**
- * A reference the engine's scribe puts a name in place of before others read a letter (`scribe` in the engine's
- * archives.ts): a person ("c12", "Mane (c12)"), a tablet ("the tablet k3") or a lot of gold ("g7").
- */
-const Reference = /\s*\([ckg]\d+\)|\b(?:(?:the\s+)?(?:tablet|copy|gold|lot)\s+)?[ckg]\d+\b/gi;
-
-/** What to look for: texts matched from their start, and forms in which each reference may have become a name. */
-interface Quotes {
-  /** Texts by their opening letters (`MinQuoted` of them, or `MinInner` for a start inside a sentence). */
-  heads: Map<string, string[]>[];
-  /** Texts shorter than `MinQuoted`, matched only whole. */
-  short: string[];
-  /** Texts that named ids, as runs of his words between them (each id may have become any name, or none). */
-  forms: string[][];
-}
-
-/**
- * The texts to look for elsewhere: each whole text, and each sentence or line of it; each also as it stands inside a
- * JSON string, since a model's reply is JSON (`Meet \\"my brother\\"`, a line break as `\\n`). One that names a
- * reference is also looked for as the scribe delivers it: each long run between references alone, and the whole with
- * any name of up to 120 letters, or none, where each reference stood ("Mane (c1)" is delivered as "Mane").
- */
-function pieces(words: string[]): Quotes {
-  const starts = new Map<string, string[]>();
-  const inner = new Map<string, string[]>();
-  const short = new Set<string>();
-  const forms = new Map<string, string[]>();
-  const add = (map: Map<string, string[]>, t: string, n: number): void => {
-    const head = t.slice(0, n);
-    const list = map.get(head) ?? [];
-    if (!list.includes(t)) list.push(t);
-    map.set(head, list);
-  };
-  const text = (t: string): void => {
-    if (t.length <= MinQuoted) short.add(t);
-    else add(starts, t, MinQuoted);
-    // Each start inside it, at a word, long enough to be his.
-    for (const m of t.matchAll(/(?<=\s)\S/g)) if (t.length - m.index >= MinInner) add(inner, t.slice(m.index), MinInner);
-  };
-  for (const w of words)
-    for (const p of [w, ...w.split(/(?<=[.!?;:])\s+|\n+/)]) {
-      const t = p.trim();
-      if (t.length === 0) continue;
-      // As written, as the log keeps it in a call (anything sensitive replaced), and each inside a JSON string.
-      const cleaned = withoutSensitive(t);
-      for (const form of new Set([t, cleaned, JSON.stringify(t).slice(1, -1), JSON.stringify(cleaned).slice(1, -1)])) {
-        text(form);
-        const runs = form.split(Reference);
-        if (runs.length === 1) continue;
-        for (const r of runs) if (r.trim().length >= MinQuoted) text(r.trim());
-        // A name at either end is not his; and a form with too few of his letters would match anyone's.
-        while (runs.length > 0 && runs[0].trim() === "") runs.shift();
-        while (runs.length > 0 && runs[runs.length - 1].trim() === "") runs.pop();
-        if (runs.join("").replace(/\s/g, "").length < MinQuoted) continue;
-        forms.set(form, runs);
-      }
-    }
-  return { heads: [starts, inner], short: [...short], forms: [...forms.values()] };
-}
-
-const isWord = (c: string | undefined): boolean => c !== undefined && /[\p{L}\p{N}_]/u.test(c);
-
-/**
- * A string with every quote of the texts blanked: wherever one's start (its first {@link MinQuoted} letters) stands at a
- * word's start, the span that goes on matching it is blanked, however soon it is cut off; a short text only whole.
- */
-function blankIn(s: string, quotes: Quotes): string {
-  // Every match is found in the text as it stands, then all are blanked together, so one match cut short (a text's JSON
-  // form against its plain quote) never hides another's. Each word start of the string is looked up by its opening
-  // letters, so the string is read once however many texts there are.
-  const hit = new Uint8Array(s.length);
-  let any = false;
-  const mark = (i: number, t: string, from: number): void => {
-    let n = from;
-    while (n < t.length && s[i + n] === t[n]) n++;
-    hit.fill(1, i, i + n);
-    any = true;
-  };
-  for (let i = 0; i < s.length; i++) {
-    if (isWord(s[i - 1])) continue;
-    const at12 = quotes.heads[0].get(s.slice(i, i + MinQuoted));
-    if (at12 !== undefined) for (const t of at12) mark(i, t, MinQuoted);
-    const at20 = quotes.heads[1].get(s.slice(i, i + MinInner));
-    if (at20 !== undefined) for (const t of at20) mark(i, t, MinInner);
-  }
-  for (const t of quotes.short)
-    for (let i = s.indexOf(t); i >= 0; i = s.indexOf(t, i + 1))
-      if (!isWord(s[i - 1]) && !isWord(s[i + t.length])) {
-        hit.fill(1, i, i + t.length);
-        any = true;
-      }
-  // A form is matched run by run: each next run is the first found within a name's length of the one before, with no
-  // going back, so the work stays bounded however many ids a text named.
-  for (const runs of quotes.forms)
-    for (let i = s.indexOf(runs[0]); i >= 0; i = s.indexOf(runs[0], i + 1)) {
-      let end = i + runs[0].length;
-      for (let r = 1; r < runs.length && end >= 0; r++) {
-        const k = s.slice(end, end + MaxName + runs[r].length).indexOf(runs[r]);
-        end = k < 0 || s.slice(end, end + k).includes("\n") ? -1 : end + k + runs[r].length;
-      }
-      if (end < 0) continue;
-      hit.fill(1, i, end);
-      any = true;
-    }
-  if (!any) return s;
-  let out = "";
-  for (let i = 0; i < s.length; i++) out += hit[i] === 1 && !/\s/.test(s[i]) ? BlankMark : s[i];
-  return out;
-}
-
-/** Ids and names in calls and shadows, never blanked: they say whose the record is. */
-const Names = new Set(["type", "key", "role", "model", "character", "name", "traits"]);
-
-/** A record with `change` applied to each string under a field `changes` accepts. `touched.any` is set if anything changed. */
-function mapWords(v: unknown, change: (s: string) => string, changes: (field: string) => boolean, key: string, touched: { any: boolean }): unknown {
-  if (typeof v === "string") {
-    if (!changes(key)) return v;
-    const s = change(v);
-    if (s !== v) touched.any = true;
-    return s;
-  }
-  if (Array.isArray(v)) return v.map((x) => mapWords(x, change, changes, key, touched));
-  if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, mapWords(x, change, changes, k, touched)]));
-  return v;
 }

@@ -26,7 +26,6 @@ import {
   type Power,
   type Schema,
 } from "@amarna/engine";
-import { withoutSensitive, withoutSensitiveJson, withoutSensitiveOrNull } from "./sensitive.ts";
 
 export interface LogHeader {
   /** The rules version the game was played under ({@link CURRENT_VERSION} for a new game). */
@@ -394,8 +393,6 @@ export class GameLog {
       if (by !== null && by.kind !== "fallback")
         by = { ...by, kind: r.rung === "script" ? "script" : by.kind, name: r.rung === "script" ? `Script, for ${by.name}` : by.name, rung: r.rung, model: r.model, why: r.why };
     }
-    // A fallback's reason is its failed call's error, which may carry what is sensitive.
-    if (by !== null) by = cleanAuthorship(by);
     const json = serialize(schema, value);
     this.index.set(key, json);
     this.decisions.push({ key, json, by });
@@ -418,20 +415,11 @@ export class GameLog {
     return this.index.has(key);
   }
 
-  /** Logs a call, with anything sensitive in its texts taken out ("Logging and replay"). */
   addCall(call: ModelCall): void {
-    this.calls.push(cleanCall(call));
+    this.calls.push(call);
   }
 
-  /** Logs a shadow, with anything sensitive in its texts taken out: its choices may quote a letter, its error a provider. */
   addShadow(shadow: ShadowDecision): void {
-    shadow.known = shadow.known.map(withoutSensitive);
-    for (const c of [shadow.model, shadow.script]) {
-      if (c === null) continue;
-      c.text = withoutSensitive(c.text);
-      c.commitments = withoutSensitive(c.commitments);
-    }
-    shadow.error = withoutSensitiveOrNull(shadow.error);
     this.shadows.push(shadow);
   }
 
@@ -453,7 +441,7 @@ export class GameLog {
   private jsonlDecisions = { count: 0, text: "" };
 
   toJsonl(): string {
-    let out = withType(serialize(LogHeaderSchema, cleanHeader(this.header)), "header") + "\n";
+    let out = withType(serialize(LogHeaderSchema, this.header), "header") + "\n";
     const cache = this.jsonlDecisions;
     for (let i = cache.count; i < this.decisions.length; i++) {
       const d = this.decisions[i];
@@ -484,18 +472,17 @@ export class GameLog {
           // The value's JSON as written: the rest of the line after its "value" key (the last in the line).
           const at = line.indexOf('"value":');
           const json = at < 0 ? "null" : line.slice(at + 8, line.length - 1);
-          let by = node.by !== undefined && node.by !== null ? deserialize<Authorship>(AuthorshipSchema, JSON.stringify(node.by)) : null;
-          if (by !== null) by = cleanAuthorship(by);
+          const by = node.by !== undefined && node.by !== null ? deserialize<Authorship>(AuthorshipSchema, JSON.stringify(node.by)) : null;
           log.index.set(key, json);
           log.decisions.push({ key, json, by });
           if (by !== null) log.authors.set(key, by);
           break;
         }
         case "call":
-          log.addCall(deserialize<ModelCall>(ModelCallSchema, line));
+          log.calls.push(deserialize<ModelCall>(ModelCallSchema, line));
           break;
         case "shadow":
-          log.addShadow(deserialize<ShadowDecision>(ShadowDecisionSchema, line));
+          log.shadows.push(deserialize<ShadowDecision>(ShadowDecisionSchema, line));
           break;
         case "audit":
           log.audits.push(deserialize<Audit>(AuditSchema, line));
@@ -504,26 +491,6 @@ export class GameLog {
     }
     return log;
   }
-}
-
-/** An authorship's texts with anything sensitive taken out: a fallback's reason repeats its call's error, a ladder's why a model's words. */
-function cleanAuthorship(by: Authorship): Authorship {
-  return { ...by, reason: withoutSensitiveJson(by.reason), why: withoutSensitiveJson(by.why) };
-}
-
-/** A call's texts with anything sensitive taken out: in place, since the call is logged once it is complete. */
-function cleanCall(call: ModelCall): ModelCall {
-  call.system = withoutSensitive(call.system);
-  call.prompt = withoutSensitive(call.prompt);
-  call.output = withoutSensitiveJson(call.output);
-  call.error = withoutSensitiveOrNull(call.error);
-  return call;
-}
-
-/** The header as written: its labels, jobs and note with anything sensitive taken out. */
-function cleanHeader(h: LogHeader): LogHeader {
-  const seats = new Dict<Power, string>([...h.seats].map(([p, label]) => [p, withoutSensitive(label)] as const));
-  return { ...h, seats, minds: withoutSensitive(h.minds), narrator: withoutSensitive(h.narrator), jobs: withoutSensitive(h.jobs), note: withoutSensitive(h.note) };
 }
 
 /** A JSON object with "type" added as its last property, as the C# build adds it to a serialized node. */

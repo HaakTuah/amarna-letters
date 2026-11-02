@@ -1,52 +1,46 @@
 ## The export
 
 One export, with filters for what goes in (Engine and models, "Logging and replay"; the owner, 2 November 2026). Built in
-`src/game/src/export.ts` (`exportJsonl`) and `src/game/src/sensitive.ts`; the web app's menu offers it as "Export log"
-(`src/web/src/components/ExportLog.tsx`).
+`src/game/src/export.ts` (`exportJsonl`) and `src/game/src/failure.ts`; the web app's menu offers it as "Export log"
+(`src/web/src/components/ExportLog.tsx`). Whether "Export log" should wait for "Reveal all" while a human plays is the
+open question #424; until it is answered the button stays as it is.
 
-- **What it holds, by default everything** (the log's JSON lines, `GameLog.toJsonl`):
+- **What it holds, by default everything** (the log's JSON lines, `GameLog.toJsonl`), each record giving only the fields
+  listed for it (`ExportFields`):
   - the header: save version, seed, the game's settings (`config`), each seat's label ("Human", "Script", "Haiku 5.5
     leader", "File seat", "Local agent"), the sleepers, the characters' and narrator's labels, the table's model choices
     (`jobs`: models by job, ladders, the spending plan) and a note;
   - every decision under its key, with who wrote it (kind, label, the ladder's rung and model and why, or a fallback's
-    reason) and its value: orders, notes, summaries, ledger lines, letters, speeches, answers, chronicles;
+    kind of failure) and its value: orders, notes, summaries, ledger lines, letters, speeches, answers, chronicles;
   - every model call: key, season, role, model, the system text and prompt sent, the reply in full (each model's notes,
     plans, ledger and standing orders are in it), tokens read, written and cached, cost, whether the provider fell back,
-    the error if any, request size and attempt. No model is asked to think in this build, so there is no thinking to
-    keep; the change that turns thinking on keeps its text in the call;
-  - the shadow scripts beside model characters (what each faced, the model's choice, the script's, the error);
+    the kind of failure if any, request size and attempt. No model is asked to think in this build, so there is no
+    thinking to keep; the change that turns thinking on keeps its text in the call;
+  - the shadow scripts beside model characters (what each faced, the model's choice, the script's, the kind of failure);
   - the audits of lower rungs' decisions.
-- **Filters** leave parts out: the model calls, the shadow scripts, the audits, and a human player's words. Without
-  his words, every word field of a human's decisions (`letter`, `mandate`, `notes`, `summary`, `entry`, `speech`,
-  `bribeAsk`, `say`, `reply`, `text`, `custom`, `commitments`, a turned captive's `poison`, and `unreadable` and `reason`
-  for text the game could not read; a test holds every string field of his orders and answers to one side or the other) becomes a blank of the same length, each letter a `▒`
-  and its spaces kept, and every quote of them is blanked wherever it stands: in a
-  model's prompt, a character's report, the narrator's chronicle (a decision whose whole value is a text), a ladder's why. A quote is any span, from a word's start, that
-  matches the start of one of his texts or of one of its sentences for twelve letters or more, however soon it is cut
-  off (a prompt's brief of a letter keeps its first 120 letters); a text shorter than that counts only whole. A quote may also begin at any word inside one of his sentences, if it
-  matches for twenty letters or more (a model copying a phrase). Each is also looked for as it stands inside a JSON string, since a
-  model's reply is JSON, and as the log keeps it in a call, anything sensitive in it replaced; a reply's JSON is read
-  decoded, so an escape beside a quote ("\\n") never hides it. A text that names a person, tablet or lot by its id (`c12`, `k3`, `g7`) is also looked for as
-  the engine's scribe delivers it, with a name in each id's place: each long run between ids alone, and the whole with
-  any name, or none, where each id stood ("Mane (c1)" is delivered as "Mane"), each next run
-  taken as the first found within 120 letters of the one before, so the work stays bounded however many ids it named. Orders, ids and names the engine reads are never
-  blanked, so the export replays to the same game, his words blanked in it too (`src/game/test/export.test.ts`). A
+- **Filters** leave parts out: the model calls, the shadow scripts, the audits, and a human player's words. Without his
+  words, in a game with a human seat, every text is a blank of the same length, each letter a `▒` and its spaces kept:
+  the word fields of every decision (`letter`, `mandate`, `notes`, `summary`, `entry`, `speech`, `bribeAsk`, `say`,
+  `reply`, `text`, `custom`, `commitments`, a turned captive's `poison`, and `unreadable` and `reason` for text the game
+  could not read; a test holds every string field of the orders and answers to one side or the other), a decision whose
+  whole value is a text (a chronicle, a persona), a ladder's why, every call's system text, prompt and reply, and every
+  shadow's texts. Models quote and echo what they read, so nothing short of that keeps his words out. Each record keeps
+  its shape (who, when, what kind, its tokens and timings, whether the answer fitted), and orders, ids and names the
+  engine reads are never blanked, so the export replays to the same game. A game with no human seat loses nothing. A
   human's words are not sensitive: a normal export keeps them, since he wrote them in play.
-- **What is sensitive is never a filter and never in the log.** It reaches the log only through what a provider, the
-  bridge or the file system says when a call fails (a file seat's timeout names its reply file's full path; a
-  provider's error can carry a request id, the organisation's id or a masked key). Every call's texts (a model's JSON reply, whole or in a fenced block, and any JSON in an error or a reason, decoded and kept in one
-  spelling with no escapes but those JSON needs) and every
-  shadow's texts (its choices may quote a letter) and error, a fallback decision's reason (its failed call's error again) and a ladder's why (a model's own words), are read through
-  `withoutSensitive` as they are logged, and as an old log is read back, and the
-  header's labels, jobs and note as it is written; each piece becomes a marker that says what stood there: `[key]`
-  (keys, masked or not, bearer tokens, a key named as one), `[address]` (any URL: a provider's or the bridge's may carry
-  a token), `[id]` (request and organisation ids, any UUID), `[e-mail]` (in any alphabet), `[path]` (absolute paths in any alphabet; one under a drive, a share or a home folder to the end of its
-  line, since a folder's name may hold spaces),
-  `[device]` (a browser's or device's description). The rest of the message stays, so the log still says what failed.
-  Each key in use is also taken out by its exact value, whatever its shape or length (`rememberKey`: every provider
-  registers its key as it is made; one shorter than eight letters only where it stands whole), since a provider may echo
-  it in an error. A player may also type an address or a key into his own words: the log keeps them as written, for his
-  own replay, and every export takes them out of every string of every decision but its type and key, whatever the filters (a
-  model may put anything into any field; a field the engine reads never holds such a thing in a valid order, so the
-  export still replays). Keys themselves never reach the log otherwise: they live in memory in the web app and in environment variables in the batch
-  runner, and nothing writes them into a call.
+- **What is sensitive is never a filter and never in any export, and it is kept out by design, never scrubbed after the
+  fact** (there is always another way to spell a secret):
+  - nothing sensitive is recorded: a failure is logged as its kind and code (`failureOf`: "timed out", "unreachable",
+    "refused (401)", "rate limited (429)", "overloaded (529)", "provider error (500)", "rejected (400)", "refused by the
+    model", "cut off", "did not fit" with the schema's own account of what did not, or "failed"), never the message a
+    provider, the bridge or the file system gave, which may carry a key, an address, an account, organisation or request
+    id, or a local path. The player's own list of what failed in his game (the runner's `errors`, shown in the app) keeps
+    the message; it is never logged;
+  - the export gives only the listed fields of each record, so a field the log gains stays out until it is listed (a
+    test holds every field of the log's schemas to the list or to a named "left out");
+  - a log written before failures were kinds may hold raw messages: the export gives any failure that is not a kind as
+    "failed";
+  - keys never reach the log: the web app holds them in memory and the batch runner in environment variables, and no
+    call or header field is built from them.
+- **The canary test** (another lane, #421) plants secrets in a small game, exports it under every filter, decodes it and
+  finds none; it calls `exportJsonl(log, parts)` from `@amarna/game`.

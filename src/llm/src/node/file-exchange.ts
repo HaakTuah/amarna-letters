@@ -7,6 +7,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writ
 import { join, resolve } from "node:path";
 import { newGame, trim, trimStart, type Character, type GameConfig } from "@amarna/engine";
 import type { ModelCall, ShadowDecision } from "@amarna/game";
+import { failing } from "@amarna/game";
 import { LlmCharacterMind } from "../character-mind.ts";
 import type { CallSpec, JsonAsker } from "../client.ts";
 import { CharacterActor, King, converse, requestText } from "../exchange.ts";
@@ -58,7 +59,7 @@ export class FileExchange implements JsonAsker {
     let emptySince: number | null = null;
     for (;;) {
       if (signal?.aborted) throw signal.reason;
-      if (Date.now() > deadline) throw new Error(`no reply in ${stem}.reply.json after ${Math.round(this.timeoutMs / 60000)} minutes`);
+      if (Date.now() > deadline) throw failing("timed out", `no reply in ${reply} after ${Math.round(this.timeoutMs / 60000)} minutes`);
       await sleep(FileExchange.PollMs, signal);
       let now: number;
       try {

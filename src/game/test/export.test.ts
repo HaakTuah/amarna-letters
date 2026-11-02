@@ -1,153 +1,133 @@
 import { describe, test } from "vitest";
-import { AllPowers, GameStateSchema, HostReplySchema, S, TurnSubmissionSchema, hold, type Schema, type AudienceView, type HostReply, type SeatView, type TurnSubmission, dispatch, first, newGame, newGameConfig, newHostReply, newTurnSubmission, serialize } from "@amarna/engine";
-import { BlankMark, Everything, GameLog, WordFields, newAuthorship, rememberKey, GameRunner, type ISeat, ScriptMind, TemplateNarrator, exportJsonl, newAudit, newModelCall, newShadowDecision, newCharacterChoice } from "@amarna/game";
-import { CompatibleProvider, SdkTransport } from "@amarna/llm";
+import {
+  AllPowers,
+  GameStateSchema,
+  HostReplySchema,
+  S,
+  TurnSubmissionSchema,
+  dispatch,
+  first,
+  newGame,
+  newGameConfig,
+  newHostReply,
+  newTurnSubmission,
+  serialize,
+  type AudienceView,
+  type HostReply,
+  type ObjSchema,
+  type Schema,
+  type SeatView,
+  type TurnSubmission,
+} from "@amarna/engine";
+import {
+  AuditSchema,
+  AuthorshipSchema,
+  BlankMark,
+  CharacterChoiceSchema,
+  Everything,
+  ExportFields,
+  GameLog,
+  GameRunner,
+  LogHeaderSchema,
+  ModelCallSchema,
+  ScriptMind,
+  ShadowDecisionSchema,
+  TemplateNarrator,
+  WordFields,
+  exportJsonl,
+  failing,
+  failureOf,
+  newAudit,
+  newAuthorship,
+  newCharacterChoice,
+  newModelCall,
+  newShadowDecision,
+  type ISeat,
+  type ModelCall,
+} from "@amarna/game";
+import { ApiStatusError, ModelRefusedError, ReplyError, converse, type CallSpec } from "@amarna/llm";
 import { Assert, toDict } from "../../engine/test/support.ts";
 
-// One export, with filters (Engine and models, "Logging and replay"): what is sensitive is never in it, whatever the
-// filters; by default it holds everything; filters leave parts out, and one blanks a human player's words, still replaying.
+// One export, with filters (Engine and models, "Logging and replay"): what is sensitive is kept out by design, never
+// scrubbed (a failure is logged as its kind; the export gives only listed fields); by default it holds everything;
+// filters leave parts out, and one blanks a human player's words, still replaying.
 describe("ExportTests", () => {
   /**
-   * Sensitive texts as providers, the bridge and the file system write them into failed calls. Every key and id is built
-   * here from pieces and every name invented, so nothing in this file is real or looks like a real key to a scanner.
+   * What providers, the bridge and the file system say when they fail, holding what must never be recorded. Every key and
+   * id is built here from pieces and every name invented, so nothing in this file is real or looks like a real key.
    */
-  const fakeGoogleKey = "AIza" + "Sy" + "x".repeat(33);
-  const fakeMaskedKey = "sk-" + "proj-" + "*".repeat(28) + "Wq7z";
-  const fakeAnthropicKey = "sk-" + "ant-" + "api03-" + "x".repeat(40);
+  const fakeKey = "sk-" + "ant-" + "api03-" + "x".repeat(40);
   const fakeRequestId = "req_" + "0".repeat(24);
-  const fakeOrgId = ["f".repeat(8), "f".repeat(4), "4fff", "8fff", "f".repeat(12)].join("-");
-  const fakeBearer = "eyJ" + "x".repeat(20) + "." + "y".repeat(20);
-  const Leaks: [string, string][] = [
-    ["a local path", "no reply in /home/jdoe/games/egypt/t3-orders-Egypt.reply.json after 30 minutes"],
-    ["a Windows path", "ENOENT: no such file C:\\Users\\jdoe\\seats\\egypt\\t3.reply.json"],
-    ["a Windows path with a space", "no reply in C:\\Users\\Jane Doe\\seats\\egypt\\t3.reply.json after 30 minutes"],
-    ["a home path in another alphabet", "no reply in /home/jdøe/My Seats/egypt/t3.reply.json after 30 minutes"],
-    ["a server path in another alphabet", "ENOENT: /srv/jdøe/seats/t3.reply.json"],
-    ["a provider address with a key", `fetch failed: https://generativelanguage.example.com/v1beta/models?key=${fakeGoogleKey}`],
-    ["a masked key", `openai API 401: Incorrect API key provided: ${fakeMaskedKey}.`],
-    ["a key", fakeAnthropicKey],
-    ["a request id", `Anthropic API 429 {"type":"error","error":{"type":"rate_limit_error"},"request_id":"${fakeRequestId}"}`],
-    ["an organisation id", `This request would exceed the rate limit for your organization (${fakeOrgId}) of 50,000 input tokens per minute.`],
-    ["an e-mail address", "account jdoe@example.com has no credit left"],
-    ["a device", "the bridge refused the request: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"],
-    ["a bridge address with a bracket in its token", "no local bridge answers at http://localhost:5190/?auth=]BRIDGE_TOKEN: fetch failed"],
-    ["an e-mail address in another alphabet", "write to jdoe@bücher.example instead"],
-    ["a bearer token", `authorization: Bearer ${fakeBearer}`],
+  const Said = [
+    `no reply in /home/jdoe/seats/egypt/t3.reply.json after 30 minutes`,
+    `Anthropic API 429: {"request_id":"${fakeRequestId}"}`,
+    `Incorrect API key provided: ${fakeKey}`,
+    `no local bridge answers at http://localhost:5190/?auth=TOKEN123: fetch failed`,
   ];
-  /** What none of the leaks may leave in an export. */
-  const Secrets = ["/home/", "/srv/", "BRIDGE_TOKEN", "bücher", "b\\u00FCcher", "b\\u00fccher", "jdoe", "jdøe", "jd\\u00f8e", "Jane Doe", "AIza", "sk-", "req_", "ffffffff", "example.com", "Macintosh", "Mozilla", "eyJ", "Wq7z"];
+  const Secrets = ["/home/jdoe", fakeRequestId, fakeKey, "TOKEN123", "localhost:5190"];
 
-  function leaky(): GameLog {
+  test("A failure is logged as its kind and code, never its message", () => {
+    const [path, request, key, bridge] = Said;
+    Assert.equal("rate limited (429)", failureOf(new ApiStatusError(request, 429)));
+    Assert.equal("refused (401)", failureOf(new ApiStatusError(key, 401)));
+    Assert.equal("unreachable", failureOf(new ApiStatusError(bridge, 0)));
+    Assert.equal("provider error (500)", failureOf(new ApiStatusError(key, 500)));
+    Assert.equal("overloaded (529)", failureOf(new ApiStatusError(key, 529)));
+    Assert.equal("rejected (400)", failureOf(new ApiStatusError(key, 400)));
+    Assert.equal("timed out", failureOf(failing("timed out", path)));
+    Assert.equal("refused by the model", failureOf(new ModelRefusedError("claude-haiku-5-5", null)));
+    Assert.equal("did not fit: it was not one JSON object", failureOf(new ReplyError("it was not one JSON object")));
+    Assert.equal("failed", failureOf(new Error(key)));
+  });
+
+  test("A failed exchange is logged without what was said, and so is every export of it", async () => {
     const log = new GameLog();
-    log.header.note = "played from http://user:token@localhost:5190/";
-    // A fallback's reason is its failed call's error, copied into the decision's authorship.
-    Leaks.forEach(([, reason], i) => log.record(`t1/orders/p${i}`, S, "", newAuthorship({ kind: "fallback", name: "File seat", reason })));
-    // A model may put anything into any field of its decision, an order's ids included.
-    Leaks.forEach(([, text], i) => log.record(`t1/orders/r${i}`, TurnSubmissionSchema, newTurnSubmission({ orders: [hold(text)] })));
-    // A ladder's why is a model's own words, which may repeat anything it was shown.
-    Leaks.forEach(([, why], i) => {
-      log.route(`t1/orders/q${i}`, { rung: "small", model: "Haiku", why });
-      log.record(`t1/orders/q${i}`, S, "", newAuthorship({ kind: "model", name: "Haiku leader" }));
-    });
-    for (const [, error] of Leaks) {
-      log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, role: "leader", model: "Haiku", prompt: "Your orders.", error }));
-      log.addShadow(newShadowDecision({ key: "t1/aud/present/c5", turn: 1, kind: "present", script: newCharacterChoice({ text: error }), model: newCharacterChoice({ commitments: error }), known: [error], error }));
-    }
-    return log;
-  }
-
-  test("Nothing sensitive is in the log or any export, whatever the filters", () => {
-    const log = leaky();
-    // The log keeps decisions as written, for the player's own replay; every export takes what is sensitive out of them.
-    for (const text of [exportJsonl(log), exportJsonl(log, { ...Everything, humanWords: false }), exportJsonl(GameLog.fromJsonl(log.toJsonl()))])
-      for (const s of Secrets) Assert.false(text.includes(s), `"${s}" is in an export`);
-    // What failed is still said: only the sensitive piece is replaced, by a marker that names it.
-    const errors = log.calls.map((c) => c.error!);
-    Assert.equal("no reply in [path]", errors[0]);
-    Assert.equal("no reply in [path]", errors[2]);
-    Assert.contains("[key]", errors[6]);
-    Assert.contains("[id]", errors[8]);
-    Assert.contains("[id]", errors[9]);
-    Assert.contains("[e-mail]", errors[10]);
+    const spec = { key: "t1/orders/Egypt", turn: 1, role: "leader", user: "Your orders." } as unknown as CallSpec;
+    for (const message of Said) await converse(spec, "file seat", () => Promise.reject(new Error(message)), (c: ModelCall) => log.addCall(c)).catch(() => undefined);
+    Assert.equal(["failed", "failed", "failed", "failed"], log.calls.map((c) => c.error));
+    for (const parts of [Everything, { ...Everything, humanWords: false }])
+      for (const s of Secrets) Assert.false(exportJsonl(log, parts).includes(s), `"${s}" is in an export`);
   });
 
-  test("A key in use is taken out by its value, whatever its shape", () => {
-    const opaque = "opaque_" + "secret_" + "12345";
-    rememberKey(opaque);
-    const log = new GameLog();
-    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: `local API 401: Incorrect API key provided: ${opaque}` }));
-    log.record("t1/orders/Hatti", S, "", newAuthorship({ kind: "fallback", name: "local leader", reason: `Incorrect API key provided: ${opaque}` }));
-    Assert.false(exportJsonl(log).includes("opaque_secret"));
-    Assert.equal("local API 401: Incorrect API key provided: [key]", log.calls[0].error);
-  });
-
-  test("A log loaded before its keys are known is cleaned of them when exported", () => {
-    // A saved game whose error echoed a key, read back in a fresh session before its providers are made.
-    const key = "saved_" + "game_" + "key_" + "13579";
-    const saved = `{"version":38,"seed":1,"type":"header"}\n{"key":"t1/orders/Egypt","turn":1,"error":"Incorrect API key provided: ${key}","type":"call"}\n`;
-    const log = GameLog.fromJsonl(saved);
-    rememberKey(key);
-    Assert.false(exportJsonl(log).includes(key));
-  });
-
-  test("A short key is taken out where it stands whole, and only there", () => {
-    rememberKey("abc" + "1234");
-    const log = new GameLog();
-    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: "Incorrect API key provided: abc1234; see abc12345 and xabc1234" }));
-    Assert.equal("Incorrect API key provided: [key]; see abc12345 and xabc1234", log.calls[0].error);
-  });
-
-  test("Every provider registers its key as it is made", () => {
-    const one = "compatible_" + "key_" + "67890";
-    const two = "anthropic_" + "key_" + "24680";
-    new CompatibleProvider({ id: "local", baseUrl: "http://localhost:11434/v1" }, one);
-    new SdkTransport(two);
-    const log = new GameLog();
-    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: `keys ${one} and ${two}` }));
-    Assert.equal("keys [key] and [key]", log.calls[0].error);
-  });
-
-  test("A model's JSON reply is read with its escapes decoded", () => {
-    const log = new GameLog();
-    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, output: '{"notes":"write to jdoe@b\\u00fccher.example","ledger":[]}' }));
-    const back = JSON.parse(JSON.parse(exportJsonl(log).split("\n")[1]).output) as { notes: string };
-    Assert.equal("write to [e-mail]", back.notes);
-    // A provider's error that carries JSON of its own shape is read the same way.
-    log.addCall(newModelCall({ key: "t1/orders/Mitanni", turn: 1, error: 'compatible API 400: {"detail":"Account jdoe@b\\u00fccher.example"}' }));
-    Assert.equal('compatible API 400: {"detail":"Account [e-mail]"}', log.calls[1].error);
-    // A reply that is a bare JSON string is read the same way.
-    log.addCall(newModelCall({ key: "t1/orders/Assyria", turn: 1, output: '"jdoe@b\\u00fccher.example"' }));
-    Assert.equal('"[e-mail]"', log.calls[2].output);
-    // So is an error that ends in a JSON array.
-    log.addCall(newModelCall({ key: "t1/orders/Kaska", turn: 1, error: 'local API 400: ["Account jdoe@b\\u00fccher.example"]' }));
-    Assert.equal('local API 400: ["Account [e-mail]"]', log.calls[3].error);
-    // A property's name is read the same way.
-    log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, output: '{"jdoe@b\\u00fccher.example":0}' }));
-    Assert.false(JSON.stringify(JSON.parse(log.calls[4].output)).includes("cher"));
-  });
-
-  test("A reply with its JSON in a fenced block is read the same way", () => {
-    const log = new GameLog();
-    const reply = 'Here are my orders.\n```json\n{"notes":"write to jdoe@b\\u00fccher.example"}\n```';
-    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, output: reply }));
-    const out = log.calls[0].output;
-    Assert.true(out.startsWith("Here are my orders.\n```json\n"));
-    Assert.false(JSON.stringify(out).includes("cher"), out);
-    Assert.contains("[e-mail]", out);
-  });
-
-  test("A log read back from an old file loses what is sensitive in it", () => {
+  test("A log written before failures were kinds gives their raw messages as failed", () => {
     const old =
-      `{"version":38,"seed":1,"type":"header"}\n{"key":"t1/orders/Egypt","turn":1,"error":"${Leaks[0][1]}","type":"call"}\n` +
-      `{"type":"decision","key":"t1/orders/Egypt","by":{"kind":"fallback","name":"File seat","reason":"${Leaks[0][1]}"},"value":""}\n`;
-    Assert.false(GameLog.fromJsonl(old).toJsonl().includes("/home/"));
+      `{"version":38,"seed":1,"type":"header"}\n` +
+      Said.map((m) => `{"key":"t1/orders/Egypt","turn":1,"error":${JSON.stringify(m)},"type":"call"}\n`).join("") +
+      `{"type":"decision","key":"t1/orders/Hatti","by":{"kind":"fallback","name":"File seat","reason":${JSON.stringify(Said[2])}},"value":""}\n` +
+      `{"key":"t1/aud/present/c5","turn":1,"kind":"present","script":{},"error":${JSON.stringify(Said[3])},"type":"shadow"}\n`;
+    const text = exportJsonl(GameLog.fromJsonl(old));
+    for (const s of Secrets) Assert.false(text.includes(s), `"${s}" is in the export`);
+    Assert.equal(6, text.split('"failed"').length - 1);
+    // A failure as this build writes it is given as it stands.
+    const log = new GameLog();
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: "rate limited (429)" }));
+    log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, error: "did not fit: letters[0].to" }));
+    Assert.contains('"error":"rate limited (429)"', exportJsonl(log));
+    Assert.contains('"error":"did not fit: letters[0].to"', exportJsonl(log));
+  });
+
+  test("Every field the log's records hold is given by the export or knowingly left out", () => {
+    const names = (s: ObjSchema<unknown>): string[] => s.fields.map(([n]) => n);
+    // None is left out today: a field the log gains fails here until it is listed, or named here as left out.
+    const LeftOut: string[] = [];
+    for (const [schema, listed] of [
+      [LogHeaderSchema, ExportFields.header],
+      [AuthorshipSchema, ExportFields.authorship],
+      [ModelCallSchema, ExportFields.call],
+      [ShadowDecisionSchema, ExportFields.shadow],
+      [CharacterChoiceSchema, ExportFields.choice],
+      [AuditSchema, ExportFields.audit],
+    ] as [ObjSchema<unknown>, readonly string[]][])
+      Assert.equal(names(schema).filter((n) => !LeftOut.includes(n)), [...listed]);
   });
 
   test("By default the export holds everything; each filter leaves its part out", () => {
-    const log = leaky();
+    const log = new GameLog();
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1 }));
+    log.addShadow(newShadowDecision({ key: "t1/aud/present/c5", turn: 1, kind: "present", script: newCharacterChoice() }));
     log.addAudit(newAudit({ key: "t1/orders/Egypt", turn: 1, kind: "orders" }));
+    log.record("t1/orders/Hatti", S, "", newAuthorship({ kind: "script", name: "Script" }));
     const types = (text: string): string[] => [...new Set(text.split("\n").filter((l) => l.length > 0).map((l) => (JSON.parse(l) as { type: string }).type))].sort();
-    // Everything: a line for every line of the log.
     Assert.equal(log.toJsonl().split("\n").length, exportJsonl(log).split("\n").length);
     Assert.equal(["audit", "call", "decision", "header", "shadow"], types(exportJsonl(log)));
     Assert.equal(["audit", "decision", "header", "shadow"], types(exportJsonl(log, { ...Everything, calls: false })));
@@ -163,20 +143,7 @@ describe("ExportTests", () => {
     "vassal", "via", "what", "when", "where", "withdraw",
   ]);
 
-  test("A text naming many ids is matched in bounded time, however it is quoted", () => {
-    // Many ids, and a long prompt that almost matches: a backtracking pattern took seconds here.
-    const note = "Tell c1 and c2 and c3 and c4 and c5 and c6 and c7 and c8 to bring horses to the secret gate.";
-    const log = new GameLog();
-    log.record("t1/orders/Egypt", TurnSubmissionSchema, newTurnSubmission({ notes: note }), newAuthorship({ kind: "human", name: "Human" }));
-    log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, prompt: "Tell " + "Mane and ".repeat(400) + "Hani." }));
-    log.addCall(newModelCall({ key: "t1/orders/Mitanni", turn: 1, prompt: "Tell Mane and Hani and Tuya and Ay and Huya and Maya and Pepi and Nakht to bring horses to the secret gate." }));
-    const started = Date.now();
-    const text = exportJsonl(log, { ...Everything, humanWords: false });
-    Assert.true(Date.now() - started < 1000, "the export took too long");
-    Assert.false(text.includes("Tell Mane and Hani and Tuya"));
-  });
-
-  test("Every string a human's orders and answers can hold is either his words or an order", () => {
+  test("Every string a human's orders and answers can hold is either words or an order", () => {
     const unsorted = new Set<string>();
     const seen = new Set<Schema>();
     const walk = (s: Schema, key: string): void => {
@@ -208,12 +175,9 @@ describe("ExportTests", () => {
     Assert.equal([], [...unsorted]);
   });
 
-  /** A human player's words, long enough to be looked for wherever they are quoted. */
+  /** A human player's words. */
   const Letter = "Greetings, my brother of Alashiya. I send you twelve horses and a chariot of gold.";
   const Notes = "Attack now";
-  /** A note naming a person by his id, and the same as the scribe delivers it to another court. */
-  const Named = "Ask c1 to bring the horses to the secret gate. Meet jdoe@example.com beside the old well tomorrow. Tell Mane (c1) and Hani (c2) to strike.";
-  const Scribed = "Ask Mane to bring the horses to the secret gate. Meet jdoe@example.com beside the old well tomorrow. Tell Mane and Hani to strike.";
   const Speech = 'Your lord\'s horses are welcome here. Say "my brother" to him.';
 
   class HumanSender implements ISeat {
@@ -223,7 +187,7 @@ describe("ExportTests", () => {
       this.envoy = envoy;
     }
     decide(view: SeatView): Promise<TurnSubmission> {
-      return Promise.resolve(view.turn === 1 ? newTurnSubmission({ orders: [dispatch(this.envoy, "Alashiya", Letter)], notes: Notes, stayAwake: true }) : newTurnSubmission({ notes: view.turn === 2 ? Named : "", stayAwake: true }));
+      return Promise.resolve(view.turn === 1 ? newTurnSubmission({ orders: [dispatch(this.envoy, "Alashiya", Letter)], notes: Notes, stayAwake: true }) : newTurnSubmission({ stayAwake: true }));
     }
     hostAudience(): Promise<HostReply> {
       return Promise.resolve(newHostReply({ end: true }));
@@ -240,7 +204,10 @@ describe("ExportTests", () => {
     }
   }
 
-  test("Without human words, every word a human wrote is blanked, wherever it is quoted, and the export still replays", async () => {
+  /** Every string of a record set to its blank: two records are the same game when these match. */
+  const shape = (json: string): string => JSON.stringify(JSON.parse(json), (_k, v: unknown) => (typeof v === "string" ? v.replace(/\S/g, BlankMark) : v));
+
+  test("Without human words, a game with a human seat loses every text, keeps its shape, and still replays", async () => {
     const state = newGame(5, newGameConfig({ catastropheChance: 0, endMedian: 10000 }));
     const envoy = first(state.characters, (c) => c.employer === "Egypt");
     const seats = toDict(
@@ -251,74 +218,35 @@ describe("ExportTests", () => {
     const runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     await runner.prepare();
     for (let i = 0; i < 4; i++) await runner.playTurn();
-    // A model's prompt that carries the letter, as an envoy's or a court's request would.
-    // A model's reply, itself JSON, that copies the host's speech with its quotation marks.
-    runner.log.addCall(newModelCall({ key: "t2/orders/Hatti", turn: 2, role: "leader", model: "Haiku", output: JSON.stringify({ notes: `Alashiya said: ${Speech}` }) }));
-    // A letter naming a person by his id, delivered with his name in its place (the engine's scribe).
-    runner.log.addCall(newModelCall({ key: "t3/orders/Hatti", turn: 3, role: "leader", model: "Haiku", prompt: `A letter: "${Scribed}" And another: "Bring the horses."` }));
-    // A reply that spells the letter out in escapes, every letter of it.
-    const spelled = [...Letter].map((c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")).join("");
-    runner.log.addCall(newModelCall({ key: "t2/orders/Mitanni", turn: 2, role: "leader", model: "Haiku", output: `{"notes":"${spelled}"}` }));
-    // A reply quoting the short note right after a line break in its JSON.
-    runner.log.addCall(newModelCall({ key: "t2/orders/Assyria", turn: 2, role: "leader", model: "Haiku", output: JSON.stringify({ notes: "First line\nAttack now" }) }));
-    // A model's decision copying a phrase from the middle of the letter.
-    runner.log.record("t3/aud/react/c9", S, JSON.stringify({ speech: "He promised horses and a chariot of gold, my lord." }), newAuthorship({ kind: "model", name: "Haiku characters" }));
-    // A shadow whose choices quote the note with the address in it.
-    runner.log.addShadow(newShadowDecision({ key: "t3/aud/report/c1", turn: 3, kind: "report", script: newCharacterChoice({ text: `I carried: "${Scribed}"` }) }));
-    // A model seat's ladder passing a decision up, its why quoting the letter.
+    // Models quote and echo what they read: a call, a shadow, a ladder's why and a chronicle carrying his letter.
+    runner.log.addCall(newModelCall({ key: "t2/aud/react/c1", turn: 2, role: "character", model: "Haiku", prompt: `The letter you carry: "${Letter}"`, output: JSON.stringify({ notes: `He wrote: ${Notes}` }) }));
+    runner.log.addShadow(newShadowDecision({ key: "t3/aud/report/c1", turn: 3, kind: "report", known: [Letter], script: newCharacterChoice({ text: `I carried: "${Letter}"` }) }));
     runner.log.route("t3/orders/Hatti/up", { rung: "small", model: "Haiku", why: `the letter says "${Letter}"` });
     runner.log.record("t3/orders/Hatti/up", S, "", newAuthorship({ kind: "model", name: "Haiku leader" }));
-    // A chronicle, a decision whose whole value is a text, quoting the letter.
     runner.log.record("t2/chronicle/Egypt", S, `Pharaoh wrote to Alashiya: "${Letter}"`, newAuthorship({ kind: "model", name: "Haiku narrator" }));
-    // Prompts that carry the letter whole, a brief of it cut mid-word, and the short note.
-    runner.log.addCall(newModelCall({ key: "t2/aud/react/c1", turn: 2, role: "character", model: "Haiku", prompt: `The letter you carry: "${Letter}"` }));
-    runner.log.addCall(newModelCall({ key: "t2/orders/Hatti", turn: 2, role: "leader", model: "Haiku", prompt: `A tablet from Egypt: ${Letter.slice(0, 50)}… Your spy read: Attack now. Attack nowhere else.` }));
 
-    // The export as read: its strings unescaped.
+    // The export as read: every string decoded.
     const read = (text: string): string => text.split("\n").filter((l) => l.length > 0).map((l) => JSON.stringify(JSON.parse(l))).join("\n");
     const full = read(exportJsonl(runner.log));
-    // A normal export keeps a human's words, but never what is sensitive in them.
-    Assert.false(full.includes("jdoe@example.com"));
-    Assert.true(full.includes("Meet [e-mail] beside the old well tomorrow."));
-    // As the export reads: in a string, and in a JSON string inside one (a model's reply).
-    const esc = (w: string): string => JSON.stringify(w).slice(1, -1);
-    for (const words of [Letter, Notes, Speech]) Assert.true(full.includes(esc(words)), `a normal export keeps "${words}"`);
+    for (const words of [Letter, Notes, Speech]) Assert.true(full.includes(JSON.stringify(words).slice(1, -1)), `a normal export keeps "${words}"`);
 
     const text = exportJsonl(runner.log, { ...Everything, humanWords: false });
-    const kept = read(text);
-    for (const words of [Letter, Speech, "twelve horses", "my brother of Alashiya", "Attack now.", "welcome here", 'Say "my brother"'])
-      for (const form of [esc(words), esc(esc(words))]) Assert.false(kept.includes(form), `"${form}" is still in the export`);
-    Assert.true(kept.includes('Pharaoh wrote to Alashiya: \\"' + Letter.replace(/\S/g, BlankMark)));
-    // The scribe's delivery of a note that named a person by his id: his words blanked around the name put in; a short
-    // sentence of the prompt's own stays.
-    Assert.false(kept.includes("to bring the horses to the secret gate"));
-    Assert.false(kept.includes("Ask Mane"));
-    // A phrase copied from the middle of a sentence of his.
-    Assert.false(kept.includes("horses and a chariot of gold"));
-    // "Mane (c1)" is delivered as "Mane": the scribe deletes the id, and the quote is still found.
-    Assert.false(kept.includes("Tell Mane"));
-    Assert.false(kept.includes("and Hani to strike"));
-    // The log took the address out of the prompt ("Meet [e-mail] beside ..."): his words around it are still found.
-    Assert.false(kept.includes("beside the old well"));
-    Assert.true(kept.includes("Bring the horses."));
-    // The reply that spelled the letter in escapes, decoded as a reader would: none of it left.
-    const spelledLine = text.split("\n").find((l) => l.endsWith('"type":"call"}') && l.includes('"key":"t2/orders/Mitanni"'))!;
-    const notes = (JSON.parse((JSON.parse(spelledLine) as { output: string }).output) as { notes: string }).notes;
-    Assert.false(notes.includes("Greetings"), notes);
-    const shortLine = text.split("\n").find((l) => l.endsWith('"type":"call"}') && l.includes('"key":"t2/orders/Assyria"'))!;
-    Assert.false((JSON.parse((JSON.parse(shortLine) as { output: string }).output) as { notes: string }).notes.includes("Attack now"));
-    // A short text counts only whole: the same letters inside a longer word are not his.
-    Assert.true(kept.includes("Attack nowhere else."));
-    // Each is a marked blank of its own length, its spaces kept.
-    Assert.true(kept.includes(Letter.replace(/\S/g, BlankMark)));
-    Assert.true(kept.includes(Notes.replace(/\S/g, BlankMark)));
-    // Orders are never blanked: the export replays to the same game.
+    for (const words of ["Greetings", "twelve horses", "Attack now", "welcome here", "He wrote", "Pharaoh wrote", "the letter says", "I carried"])
+      Assert.false(read(text).includes(words), `"${words}" is still in the export`);
+    // Every record keeps its shape: the same lines, each with its texts the same lengths, its numbers and kinds as they were.
+    const lines = (t: string): string[] => t.split("\n").filter((l) => l.length > 0);
+    Assert.equal(lines(exportJsonl(runner.log)).map(shape), lines(text).map(shape));
+    // Orders are never blanked: the export replays to the same game, its words blanked in it too.
     const replay = GameRunner.forReplay(GameLog.fromJsonl(text));
     await replay.prepare();
     for (let i = 0; i < 4; i++) await replay.playTurn();
-    // The same game, with the human's words blanked in it too.
-    let expected = read(serialize(GameStateSchema, state));
-    for (const words of [Letter, Notes, Speech]) expected = expected.split(esc(words)).join(esc(words.replace(/\S/g, BlankMark)));
-    Assert.equal(expected, read(serialize(GameStateSchema, replay.state)));
+    Assert.equal(shape(serialize(GameStateSchema, state)), shape(serialize(GameStateSchema, replay.state)));
+  });
+
+  test("Without human words, a game with no human seat loses nothing", () => {
+    const log = new GameLog();
+    log.record("t1/orders/Egypt", TurnSubmissionSchema, newTurnSubmission({ notes: "Hold the passes." }), newAuthorship({ kind: "model", name: "Haiku leader" }));
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, prompt: "Your orders.", output: '{"notes":"Hold the passes."}' }));
+    Assert.equal(exportJsonl(log), exportJsonl(log, { ...Everything, humanWords: false }));
   });
 });
