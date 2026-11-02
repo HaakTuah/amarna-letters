@@ -18,7 +18,8 @@ import {
   type GameState,
   type Province,
   type Terrain,
- modernOf } from "@amarna/engine";
+ modernOf,
+  describedAs } from "@amarna/engine";
 import { ownEconomy, unitKindName, type MapScene } from "../map/scene.ts";
 import { powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
@@ -91,6 +92,7 @@ export function ProvinceInfo({
             {p.name} {p.capital && <small className="muted">· capital of {p.home !== null ? powerName(p.home) : ""}</small>}
           </h3>
           {/* Item 17+ ("Places by their own names"): the modern name on a second, smaller line, for the human player only. */}
+          {describedAs(p.id) !== null && <small className="muted">{describedAs(p.id)}</small>}
           {modernOf(p.id) !== null && <small className="muted">today {modernOf(p.id)}</small>}
         </>
       }
