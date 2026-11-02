@@ -87,6 +87,16 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
 fixed.
 
+- **First of all: what a game's export holds** (Haakon, 2 November 2026: "And queue a job going fully over what the
+  export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
+  fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
+  session's `export`, `log.toJsonl()` and every record type in it: the header, calls, decisions, shadows) and
+  everything it could carry: API keys or anything from the key's storage, provider addresses with tokens in them,
+  request or organisation ids, e-mail addresses, local paths, browser or device details, a human player's own text.
+  Anything sensitive is removed from the export, with a test that fails if it comes back, and **Haakon is alerted at
+  once**: the PR's first line and the session's "Questions for Haakon" say what was found and which files in
+  `tests/fixtures/` hold it, so they can be removed from the repository and its history. If nothing is found, the
+  report lists what the export holds, field by field.
 - **First among the side lanes, beside the fog below (other files, so both run at once): model calls that get
   through** (Haakon, 2 November 2026; Engine and models, "Calls that get through, live or in the background"). His
   Haiku game of 1 November (seed 407184, two seasons, $0.52) lost 57 of the first season's 104 decisions to the
@@ -94,7 +104,8 @@ fixed.
   answers refused for slips. Build the limiter and its retries, the cache written once, answers read as meant, the
   background mode on the provider's batch service, and the cost estimate. No model games: checked against a stand-in
   service that refuses calls past a limit, answers batches late and returns that game's slips. The report gives the
-  expected cost of a season, live and in the background.
+  expected cost of a season, live and in the background. The game itself is in
+  `tests/fixtures/model-games/` (its README): its slips are the test cases, its token counts the estimate's start.
 - **First, before any other side lane: people moving in the fog** (Haakon, 2 November 2026: "Who are these people i can
   see moving about in the fog of war when viewing a game as egypt? Different caravan and what looks like scout units or
   something?"). Find what they are and why a seat sees them. If Egypt should not know of them, it is a leak ("Only what
