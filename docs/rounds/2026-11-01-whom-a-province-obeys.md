@@ -272,8 +272,10 @@ gates weigh only as next door, so love must do the rest), the rulebook was wrong
 
 **Stirring never wins** (round 3's point 3, measured): 20 games on `ae1095c`, stirring 21 seasons, `stir-won` 0. Two script
 patches since, both pushed (`3c3f5b1`): kings stir where their armies can follow (102 seasons of stirring, still 0 won),
-and their armies weigh a watched, stirred province 1.3 times as a target (`WooedWorth`, `tactics.ts`); that run's result
-is not in yet.
+and their armies weigh a watched, stirred province 1.3 times as a target (`WooedWorth`, `tactics.ts`). Its 20-game run
+(seed 1) came out the same to the season as the run before it: 102 seasons of stirring, `stir-won` 0, 282 changes of
+hands, the same winners, so the weight never moves a target: the watched land is not where the plans' attacks look. Still
+open: the next session finds where the tactics choose targets, or takes it to the escalation helper.
 
 ## Where to pick up (hand-off, 2 November 2026, context)
 
@@ -283,8 +285,7 @@ The builder's context is large; this session stops at a passed gate (round 3's f
   self-contained brief: Codex round 3 point 2 (answered, the helper rules on the answer), design round 3 points 1-3
   (fixed; the helper confirms), and stirring's success (below). Whatever it leaves open: the PR stays a blocked draft,
   `docs/BUILD-PROGRESS.md` marks it blocked, and it goes under "Questions for Haakon".
-- **Stirring**: rerun `scripts/sim.sh --games 20 --seed 1` on `3c3f5b1` and read `stir` and `stir-won` in the signals.
-  If it still never wins, either teach the scripts to march where they stirred (the tactics' targets) or report it as a
+- **Stirring**: on `3c3f5b1` it still never wins (above). Either teach the scripts to march where they stirred (the tactics' targets) or report it as a
   feature whose users never succeed and take it to the helper; put the count in the table above ("A rival's gold
   stirring a people").
 - **Benchmarks on `ae1095c`** (20 games, every replay exact): no kingdom fell in its first two seasons in 20 of 20; 319
