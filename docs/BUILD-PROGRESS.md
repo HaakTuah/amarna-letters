@@ -66,9 +66,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
-- **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 46):
+- **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
-  down the Euphrates and the marshes. Still due: the full `--versus solo` run, seeds 1-40, on save version 46, with the
+  down the Euphrates and the marshes. Still due: the full `--versus solo` run, seeds 1-40, on save version 47, with the
   next item's benchmarks (#523 measured two seeds only).
 
 - **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
@@ -110,7 +110,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
-  1-3. **Done** (save version 46; `docs/rounds/2026-11-02-history-owner-answers.md`): no starting Alashiyan debt (#476);
+  1-3. **Done** (save version 47; `docs/rounds/2026-11-02-history-owner-answers.md`): no starting Alashiyan debt (#476);
      the people of 1346 "Of" where they served, Akhetaten no one's birthplace (#486); every flagged guess set by the
      experts' middle (#492): Jerusalem's water outside, Arwad's cisterns, Nubia, Babylonia and Hatti's people, 175 a
      hectare, the Nile's low floods and the plateau's droughts.

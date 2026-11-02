@@ -55,7 +55,7 @@ describe("StartingTermTests", () => {
   // more powers, each with its envoy, the name styles of Azzi, Libya and the Shasu, and an Akkadian scribe at each court that
   // reads Akkadian), and for save version 32 (item 11f+: the connections follow the drawn land, so the posts and plants
   // that go by neighbours change), and for save version 39 (item 17++: the governors and commissioners of 1346 in their
-  // posts, and the courts they were drawn from given another servant), and for save version 46 (the owner's answers to the
+  // posts, and the courts they were drawn from given another servant), and for save version 47 (the owner's answers to the
   // history check: Akhetaten no generated Egyptian's birthplace, so every draw after it moves, and the people of 1346 "Of"
   // where they served; the texts the history checks corrected before it are now the fingerprint's own).
   //
