@@ -132,8 +132,11 @@ goes to building. Its usage can run out like any other, and it may then not say 
    Claude did on everything, two thirds of it on security reviews run with every round). Codex's security review is
    set to run only when asked, never with every code review. A builder asks for it once (`@codex security review`), on
    the round it expects to be the last, and only when the change touches what a security review is for: input from
-   players, models or files, a workflow, the network, saved files or exports, or a dependency. Every other PR gets the
-   code review alone.
+   players, models or files, a workflow, the network, saved files or exports, or a dependency newly added or moved up a
+   major version. Every other PR gets the code review alone, Dependabot's minor and patch updates included (CI, the
+   licence gate and GitHub's dependency review check those). If a later fix changes the risky part again, the builder
+   asks once more. Codex's automatic review and automatic security review are both off in its settings, so nothing
+   runs unless a builder asks.
 7. **Checks that run the work, once Codex can build** (the owner, 2 November 2026; `docs/archive/instructions.md`, item
    134). The native review reads the diff but runs nothing, so it cannot check a claim such as "the script kings now
    win 29 games of 50". When Codex's environments work ("Setup"), a Codex task in its container also reruns the
