@@ -92,11 +92,15 @@ fixed.
   fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
   session's `export`, `log.toJsonl()` and every record type in it: the header, calls, decisions, shadows) and
   everything it could carry: API keys or anything from the key's storage, provider addresses with tokens in them,
-  request or organisation ids, e-mail addresses, local paths, browser or device details, a human player's own text.
+  request or organisation ids, e-mail addresses, local paths, browser or device details.
   Anything sensitive is removed from the export, with a test that fails if it comes back, and **Haakon is alerted at
   once**: the PR's first line and the session's "Questions for Haakon" say what was found and which files in
   `tests/fixtures/` hold it, so they can be removed from the repository and its history. If nothing is found, the
-  report lists what the export holds, field by field.
+  report lists what the export holds, field by field. Then build **one export with filters** (Engine and models,
+  "Logging and replay"; Haakon, 2 November 2026): by default everything, every call in full with each model's notes,
+  plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
+  wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
+  in any export. A human player's own words are not sensitive in a normal export.
 - **First among the side lanes, beside the fog below (other files, so both run at once): model calls that get
   through** (Haakon, 2 November 2026; Engine and models, "Calls that get through, live or in the background"). His
   Haiku game of 1 November (seed 407184, two seasons, $0.52) lost 57 of the first season's 104 decisions to the
