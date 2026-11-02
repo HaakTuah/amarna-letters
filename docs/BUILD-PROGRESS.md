@@ -62,10 +62,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
-- **Node 26** (the owner, 2 November 2026; "Git and GitHub" in `AGENTS.md`): CI's `node-version` (every
+- ~~**Node 26** (the owner, 2 November 2026; "Git and GitHub" in `AGENTS.md`): CI's `node-version` (every
   `actions/setup-node` in `.github/workflows/`) and `scripts/cloud-setup.sh` (installing Node 26 if the machine has an
   older one, from the npm registry the cloud allows) move from 22 to 26 together, with `@types/node` 26 and the full
-  suites; 24 if the tooling is not ready for 26, said in the PR. Dependabot's closed #448 was the cue.
+  suites; 24 if the tooling is not ready for 26, said in the PR. Dependabot's closed #448 was the cue.~~ Done in #455:
+  CI on 26, the cloud setup on 26.13.0, pinned and checked by its SHA-256 (a new pin repeats the check against
+  nodejs.org's `SHASUMS256.txt`).
 
 Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
 fixed.
