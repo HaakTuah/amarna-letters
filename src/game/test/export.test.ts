@@ -91,9 +91,12 @@ describe("ExportTests", () => {
     log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, output: '{"notes":"write to jane@b\\u00fccher.de","ledger":[]}' }));
     const back = JSON.parse(JSON.parse(exportJsonl(log).split("\n")[1]).output) as { notes: string };
     Assert.equal("write to [e-mail]", back.notes);
+    // A provider's error that carries JSON of its own shape is read the same way.
+    log.addCall(newModelCall({ key: "t1/orders/Mitanni", turn: 1, error: 'compatible API 400: {"detail":"Account jane@b\\u00fccher.de"}' }));
+    Assert.equal('compatible API 400: {"detail":"Account [e-mail]"}', log.calls[1].error);
     // A property's name is read the same way.
     log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, output: '{"jane@b\\u00fccher.de":0}' }));
-    Assert.false(JSON.stringify(JSON.parse(log.calls[1].output)).includes("cher"));
+    Assert.false(JSON.stringify(JSON.parse(log.calls[2].output)).includes("cher"));
   });
 
   test("A reply with its JSON in a fenced block is read the same way", () => {
@@ -226,6 +229,9 @@ describe("ExportTests", () => {
     runner.log.addCall(newModelCall({ key: "t2/orders/Hatti", turn: 2, role: "leader", model: "Haiku", output: JSON.stringify({ notes: `Alashiya said: ${Speech}` }) }));
     // A letter naming a person by his id, delivered with his name in its place (the engine's scribe).
     runner.log.addCall(newModelCall({ key: "t3/orders/Hatti", turn: 3, role: "leader", model: "Haiku", prompt: `A letter: "${Scribed}" And another: "Bring the horses."` }));
+    // A reply that spells the letter out in escapes, every letter of it.
+    const spelled = [...Letter].map((c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")).join("");
+    runner.log.addCall(newModelCall({ key: "t2/orders/Mitanni", turn: 2, role: "leader", model: "Haiku", output: `{"notes":"${spelled}"}` }));
     // A model's decision copying a phrase from the middle of the letter.
     runner.log.record("t3/aud/react/c9", S, JSON.stringify({ speech: "He promised horses and a chariot of gold, my lord." }), newAuthorship({ kind: "model", name: "Haiku characters" }));
     // A shadow whose choices quote the note with the address in it.
@@ -266,6 +272,10 @@ describe("ExportTests", () => {
     // The log took the address out of the prompt ("Meet [e-mail] beside ..."): his words around it are still found.
     Assert.false(kept.includes("beside the old well"));
     Assert.true(kept.includes("Bring the horses."));
+    // The reply that spelled the letter in escapes, decoded as a reader would: none of it left.
+    const spelledLine = text.split("\n").find((l) => l.endsWith('"type":"call"}') && l.includes('"key":"t2/orders/Mitanni"'))!;
+    const notes = (JSON.parse((JSON.parse(spelledLine) as { output: string }).output) as { notes: string }).notes;
+    Assert.false(notes.includes("Greetings"), notes);
     // A short text counts only whole: the same letters inside a longer word are not his.
     Assert.true(kept.includes("Attack nowhere else."));
     // Each is a marked blank of its own length, its spaces kept.

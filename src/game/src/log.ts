@@ -508,7 +508,7 @@ export class GameLog {
 
 /** An authorship's texts with anything sensitive taken out: a fallback's reason repeats its call's error, a ladder's why a model's words. */
 function cleanAuthorship(by: Authorship): Authorship {
-  return { ...by, reason: withoutSensitive(by.reason), why: withoutSensitive(by.why) };
+  return { ...by, reason: withoutSensitiveJson(by.reason), why: withoutSensitiveJson(by.why) };
 }
 
 /** A call's texts with anything sensitive taken out: in place, since the call is logged once it is complete. */

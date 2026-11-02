@@ -77,7 +77,11 @@ export function withoutSensitiveJson(text: string): string {
   return withoutSensitive(text.slice(0, start)) + inner + withoutSensitive(text.slice(end + 1));
 }
 
-/** A JSON object's text with every string in it scrubbed (written back only if one changed), or null if it is not one. */
+/**
+ * A JSON object's text with every string and name in it scrubbed, or null if it is not one. It is always written back in
+ * one spelling, with no escapes but the ones JSON needs, so a reader, and the export's search for a human's words, see
+ * it as any parser would.
+ */
 function scrubbedObject(text: string): string | null {
   let node: unknown;
   try {
@@ -86,29 +90,16 @@ function scrubbedObject(text: string): string | null {
     return null;
   }
   if (node === null || typeof node !== "object") return null;
-  let changed = false;
   const walk = (v: unknown): unknown => {
-    if (typeof v === "string") {
-      const c = withoutSensitive(v);
-      if (c !== v) changed = true;
-      return c;
-    }
+    if (typeof v === "string") return withoutSensitive(v);
     if (Array.isArray(v)) return v.map(walk);
-    if (v !== null && typeof v === "object")
-      return Object.fromEntries(
-        Object.entries(v).map(([k, x]) => {
-          const name = withoutSensitive(k);
-          if (name !== k) changed = true;
-          return [name, walk(x)];
-        }),
-      );
+    if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [withoutSensitive(k), walk(x)]));
     return v;
   };
-  const back = walk(node);
-  return changed ? JSON.stringify(back) : withoutSensitive(text);
+  return JSON.stringify(walk(node));
 }
 
-/** The same, for a text that may be null (a call's or a shadow's error). */
+/** The same, for a text that may be null (a call's or a shadow's error, which may carry a provider's JSON). */
 export function withoutSensitiveOrNull(text: string | null): string | null {
-  return text === null ? null : withoutSensitive(text);
+  return text === null ? null : withoutSensitiveJson(text);
 }
