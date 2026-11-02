@@ -1347,3 +1347,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     expertly!" Written into "The king says how much he wants" under World (revision 66) and item 17++ in the build
     order (revision 206): built in part C, with script kings choosing by how fresh their count is and the
     use-against-ignore numbers as the check.
+150. **2 November 2026, 11:13 and 11:15 UTC**, in the design chat: "Why are none of the current lanes using Fable 5.1?" Then, to the design session's take (Fable kept
+    out of long building sessions, but used in short calls where its judgement pays most: the design check on
+    build-order items and a direct call for the script kings' planning designs, with Opus at high as the fallback and
+    the owner watching Fable's share of the week): "Yes, expertly! If you think this is the best way, in your expert opinion! Getting us the best bang for our tokens." Written into the model table in `CLAUDE.md` ("Design check",
+    "Planning design", and "Last escalation"); the same in Barkstreet Snakes.
