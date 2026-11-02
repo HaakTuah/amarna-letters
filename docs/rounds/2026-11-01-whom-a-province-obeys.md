@@ -263,6 +263,38 @@ Codex: **P1×4**, security clean. **All fixed** in `fdb8d0a`: a beaten governor'
 back; his followers now fight in the rising); a band's robbing gave a zero debit (by share, at least a point); the
 "Rising" request counted the band twice (followers apart); a winning rising lost no men (the winner's share).
 
+**Round 3, both on `fd1aeaf`.** The design check: **8**, points (all B): (1) a beaten governor's followers lost nothing;
+(2) the rulebook and design note did not say his levies fight in a rising nor that a winning rising loses men; (3)
+stirring had no success count. **All three fixed** in `ae1095c` (and a `stir-won` signal). Codex: **P1×2**, security clean:
+(1) the same levies' losses, **fixed** in `ae1095c`; (2) "a walled town goes to a foreign army outside its walls":
+**answered** on the thread: the code is the design ("Gubla now answers to Aziru: his men stand at its gates"; troops at the
+gates weigh only as next door, so love must do the rest), the rulebook was wrong and is fixed (`50ef2ac`), with a test.
+
+**Stirring never wins** (round 3's point 3, measured): 20 games on `ae1095c`, stirring 21 seasons, `stir-won` 0. Two script
+patches since, both pushed (`3c3f5b1`): kings stir where their armies can follow (102 seasons of stirring, still 0 won),
+and their armies weigh a watched, stirred province 1.3 times as a target (`WooedWorth`, `tactics.ts`); that run's result
+is not in yet.
+
+## Where to pick up (hand-off, 2 November 2026, context)
+
+The builder's context is large; this session stops at a passed gate (round 3's fixes pushed, CI green to `50ef2ac`).
+
+- **The review is past round 3**: the escalation helper (`model: "opus"`, `effort: "xhigh"`) takes what is open, with a
+  self-contained brief: Codex round 3 point 2 (answered, the helper rules on the answer), design round 3 points 1-3
+  (fixed; the helper confirms), and stirring's success (below). Whatever it leaves open: the PR stays a blocked draft,
+  `docs/BUILD-PROGRESS.md` marks it blocked, and it goes under "Questions for Haakon".
+- **Stirring**: rerun `scripts/sim.sh --games 20 --seed 1` on `3c3f5b1` and read `stir` and `stir-won` in the signals.
+  If it still never wins, either teach the scripts to march where they stirred (the tactics' targets) or report it as a
+  feature whose users never succeed and take it to the helper; put the count in the table above ("A rival's gold
+  stirring a people").
+- **Benchmarks on `ae1095c`** (20 games, every replay exact): no kingdom fell in its first two seasons in 20 of 20; 319
+  fell in all; first fall season 4. Rerun once more after the stirring patch, and the use-against-ignore runs if the
+  scripts' play changed much (folding pays 29-21; the ledger's play does not yet, 21-29).
+- Then merge at 10 (CI green), the milestone into `main` (check `merged_at` first), the progress file's 17++ row, and parts
+  B and C of 17++ (the report's opening paragraph), each branched from this one.
+
+Questions for Haakon: none.
+
 ## History: round 1's hand-off (1 November 2026), done in round 2
 
 Kept as written then; every point in it is answered above ("Round 1's open points, answered in round 2").
