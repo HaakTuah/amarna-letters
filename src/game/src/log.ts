@@ -395,7 +395,7 @@ export class GameLog {
         by = { ...by, kind: r.rung === "script" ? "script" : by.kind, name: r.rung === "script" ? `Script, for ${by.name}` : by.name, rung: r.rung, model: r.model, why: r.why };
     }
     // A fallback's reason is its failed call's error, which may carry what is sensitive.
-    if (by !== null && by.reason.length > 0) by = { ...by, reason: withoutSensitive(by.reason) };
+    if (by !== null) by = cleanAuthorship(by);
     const json = serialize(schema, value);
     this.index.set(key, json);
     this.decisions.push({ key, json, by });
@@ -485,7 +485,7 @@ export class GameLog {
           const at = line.indexOf('"value":');
           const json = at < 0 ? "null" : line.slice(at + 8, line.length - 1);
           let by = node.by !== undefined && node.by !== null ? deserialize<Authorship>(AuthorshipSchema, JSON.stringify(node.by)) : null;
-          if (by !== null && by.reason.length > 0) by = { ...by, reason: withoutSensitive(by.reason) };
+          if (by !== null) by = cleanAuthorship(by);
           log.index.set(key, json);
           log.decisions.push({ key, json, by });
           if (by !== null) log.authors.set(key, by);
@@ -504,6 +504,11 @@ export class GameLog {
     }
     return log;
   }
+}
+
+/** An authorship's texts with anything sensitive taken out: a fallback's reason repeats its call's error, a ladder's why a model's words. */
+function cleanAuthorship(by: Authorship): Authorship {
+  return { ...by, reason: withoutSensitive(by.reason), why: withoutSensitive(by.why) };
 }
 
 /** A call's texts with anything sensitive taken out: in place, since the call is logged once it is complete. */

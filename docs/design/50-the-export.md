@@ -21,7 +21,7 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
   `bribeAsk`, `say`, `reply`, `text`, `custom`, `commitments`, a turned captive's `poison`, and `unreadable` and `reason`
   for text the game could not read; a test holds every string field of his orders and answers to one side or the other) becomes a blank of the same length, each letter a `▒`
   and its spaces kept, and every quote of them is blanked wherever it stands: in a
-  model's prompt, a character's report, the narrator's chronicle (a decision whose whole value is a text). A quote is any span, from a word's start, that
+  model's prompt, a character's report, the narrator's chronicle (a decision whose whole value is a text), a ladder's why. A quote is any span, from a word's start, that
   matches the start of one of his texts or of one of its sentences for twelve letters or more, however soon it is cut
   off (a prompt's brief of a letter keeps its first 120 letters); a text shorter than that counts only whole. Each is also looked for as it stands inside a JSON string, since a
   model's reply is JSON, and as the log keeps it in a call, anything sensitive in it replaced. A text that names a person, tablet or lot by its id (`c12`, `k3`, `g7`) is also looked for as
@@ -32,11 +32,11 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
 - **What is sensitive is never a filter and never in the log.** It reaches the log only through what a provider, the
   bridge or the file system says when a call fails (a file seat's timeout names its reply file's full path; a
   provider's error can carry a request id, the organisation's id or a masked key). Every call's texts and every
-  shadow's texts (its choices may quote a letter) and error, and a fallback decision's reason (its failed call's error again), are read through
+  shadow's texts (its choices may quote a letter) and error, a fallback decision's reason (its failed call's error again) and a ladder's why (a model's own words), are read through
   `withoutSensitive` as they are logged, and as an old log is read back, and the
   header's labels, jobs and note as it is written; each piece becomes a marker that says what stood there: `[key]`
   (keys, masked or not, bearer tokens, a key named as one), `[address]` (any URL: a provider's or the bridge's may carry
-  a token), `[id]` (request and organisation ids, any UUID), `[e-mail]`, `[path]` (absolute paths in any alphabet; one under a drive, a share or a home folder to the end of its
+  a token), `[id]` (request and organisation ids, any UUID), `[e-mail]` (in any alphabet), `[path]` (absolute paths in any alphabet; one under a drive, a share or a home folder to the end of its
   line, since a folder's name may hold spaces),
   `[device]` (a browser's or device's description). The rest of the message stays, so the log still says what failed.
   Each key in use is also taken out by its exact value, whatever its shape or length (`rememberKey`: every provider

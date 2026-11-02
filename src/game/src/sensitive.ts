@@ -13,7 +13,8 @@ const Patterns: [RegExp, string][] = [
   // Any address: a provider's or the bridge's, whose path, query or user part may carry a token.
   // Taken to the first space or quotation mark: "]" and ")" may stand in a URL's query, as part of a token.
   [/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi, "[address]"],
-  [/\b[\w.%+-]+@[\w-]+(?:\.[\w-]+)+\b/g, "[e-mail]"],
+  // An e-mail address, in any alphabet ("jane@bücher.de").
+  [/(?<![\p{L}\p{N}._%+-])[\p{L}\p{N}._%+-]+@[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)+/gu, "[e-mail]"],
   // Keys: Anthropic's and OpenAI's ("sk-ant-...", "sk-proj-...", masked or not), Google's ("AIza..."), bearer tokens, and
   // any key or token named as one.
   [/\bsk-[\w*.-]{4,}/g, "[key]"],

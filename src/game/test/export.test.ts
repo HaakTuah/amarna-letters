@@ -22,16 +22,22 @@ describe("ExportTests", () => {
     ["an e-mail address", "account haakon.example@gmail.com has no credit left"],
     ["a device", "the bridge refused the request: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"],
     ["a bridge address with a bracket in its token", "no local bridge answers at http://localhost:5190/?auth=]BRIDGE_TOKEN: fetch failed"],
+    ["an e-mail address in another alphabet", "write to jane@bücher.de instead"],
     ["a bearer token", "authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc"],
   ];
   /** What none of the leaks may leave in an export. */
-  const Secrets = ["/home/", "/srv/", "BRIDGE_TOKEN", "haakon", "Haakon", "Sval", "øystein", "AIza", "sk-", "req_011", "fb3a3f3e", "gmail", "Macintosh", "Mozilla", "eyJ", "googleapis", "Ab1x"];
+  const Secrets = ["/home/", "/srv/", "BRIDGE_TOKEN", "bücher", "b\\u00FCcher", "b\\u00fccher", "haakon", "Haakon", "Sval", "øystein", "AIza", "sk-", "req_011", "fb3a3f3e", "gmail", "Macintosh", "Mozilla", "eyJ", "googleapis", "Ab1x"];
 
   function leaky(): GameLog {
     const log = new GameLog();
     log.header.note = "played from http://user:token@localhost:5190/";
     // A fallback's reason is its failed call's error, copied into the decision's authorship.
     Leaks.forEach(([, reason], i) => log.record(`t1/orders/p${i}`, S, "", newAuthorship({ kind: "fallback", name: "File seat", reason })));
+    // A ladder's why is a model's own words, which may repeat anything it was shown.
+    Leaks.forEach(([, why], i) => {
+      log.route(`t1/orders/q${i}`, { rung: "small", model: "Haiku", why });
+      log.record(`t1/orders/q${i}`, S, "", newAuthorship({ kind: "model", name: "Haiku leader" }));
+    });
     for (const [, error] of Leaks) {
       log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, role: "leader", model: "Haiku", prompt: "Your orders.", error }));
       log.addShadow(newShadowDecision({ key: "t1/aud/present/c5", turn: 1, kind: "present", script: newCharacterChoice({ text: error }), model: newCharacterChoice({ commitments: error }), known: [error], error }));
@@ -185,6 +191,9 @@ describe("ExportTests", () => {
     runner.log.addCall(newModelCall({ key: "t3/orders/Hatti", turn: 3, role: "leader", model: "Haiku", prompt: `A letter: "${Scribed}" And another: "Bring the horses."` }));
     // A shadow whose choices quote the note with the address in it.
     runner.log.addShadow(newShadowDecision({ key: "t3/aud/report/c1", turn: 3, kind: "report", script: newCharacterChoice({ text: `I carried: "${Scribed}"` }) }));
+    // A model seat's ladder passing a decision up, its why quoting the letter.
+    runner.log.route("t3/orders/Hatti/up", { rung: "small", model: "Haiku", why: `the letter says "${Letter}"` });
+    runner.log.record("t3/orders/Hatti/up", S, "", newAuthorship({ kind: "model", name: "Haiku leader" }));
     // A chronicle, a decision whose whole value is a text, quoting the letter.
     runner.log.record("t2/chronicle/Egypt", S, `Pharaoh wrote to Alashiya: "${Letter}"`, newAuthorship({ kind: "model", name: "Haiku narrator" }));
     // Prompts that carry the letter whole, a brief of it cut mid-word, and the short note.

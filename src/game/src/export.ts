@@ -35,10 +35,10 @@ export const BlankMark = "▒";
 export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments", "poison", "unreadable", "reason"]);
 
 /**
- * Where a human's words may be quoted in a decision: its word fields, and a decision whose whole value is a text (a
- * narrator's chronicle, a character's persona).
+ * Where a human's words may be quoted in a decision: its word fields, a decision whose whole value is a text (a
+ * narrator's chronicle, a character's persona), and the ladder's why in its authorship (a model's own words).
  */
-const QuotedFields = new Set([...WordFields, "value"]);
+const QuotedFields = new Set([...WordFields, "value", "why"]);
 
 /**
  * How much of a human's text must match, from its start or a sentence's, for a match to count as his quote: a quote cut
