@@ -58,7 +58,7 @@ describe("StartingTermTests", () => {
     // EA 265, two callings, and the facts below. Put back first, so that #468's articles below see the old callings.
     const was = Corrected.reduce(
       (t, [now, old]) => t.replaceAll(now, old),
-      text.replaceAll("Tahmaya", "Tahmashshi").replaceAll("son of Balumme", "man of Akka").replaceAll("man of Aziru's house", "son of Abdi-Ashirta"),
+      text.replace(/^son of Balumme$/, "a man of Akka").replaceAll("Tahmaya", "Tahmashshi").replaceAll("son of Balumme", "man of Akka").replaceAll("man of Aziru's house", "son of Abdi-Ashirta"),
     );
     return was.replaceAll("as an interpreter", "as a interpreter").replaceAll("once an interpreter", "once a interpreter").replaceAll("Nesa", "Kanesh")
       // A calling with an article of its own, or a title, no longer takes another (#468): put back the one it took then.
