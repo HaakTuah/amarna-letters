@@ -22,8 +22,6 @@ Codex: read its "For Codex" section at the start of every task.
 | Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |
 | What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, review questions, "Found during the port". |
-| Briefs for the steps of item 5+ | `docs/items/` | Docs and preview pass, conversion, fix pass. |
-| Specs Haakon wrote for item 5+ | `docs/prompts/DOCS-AND-PREVIEW.md`, `docs/CONVERSION-PLAN.md` | His words, quoted. |
 | The historical sources | `docs/history/` (start at `README.md`) | Dossiers on 1346 BCE from item 6+; cite them when an item builds from them. |
 | Item reports | `docs/rounds/<date>-<item>.md` | Write yours there. |
 | History | `docs/archive/` (build log; Haakon's instructions word for word; the design document's history) | Read only when a task points there. |
@@ -32,9 +30,8 @@ Codex: read its "For Codex" section at the start of every task.
 
 1. Work from `develop`: if you are on `main`, check out `develop` first (this file and the docs it names live there
    until the next milestone PR merges `develop` into `main`).
-2. Find the next item in `docs/BUILD-PROGRESS.md`. For the steps of item 5+, read its brief in `docs/items/`. For
-   item 6 onward, the item's own text is its brief: `docs/intent/build-order/item-<n>.md` (`item-6.md`,
-   `item-9plus.md`, ...).
+2. Find the next item in `docs/BUILD-PROGRESS.md`. The item's own text is its brief:
+   `docs/intent/build-order/item-<n>.md` (`item-6.md`, `item-9plus.md`, ...).
 3. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules), and do it
    again before opening the item's pull request.
 4. Read "The game in one page" (`docs/intent/overview/the-game-in-one-page.md`) before every item: most questions
