@@ -1,7 +1,8 @@
 import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import { type Condition, ConditionSchema } from "./conditions.ts";
 import type { UnitKind } from "./map.ts";
-import { type Order, OrderSchema } from "./orders.ts";
+import { type Order } from "./orders.ts";
+import { OrderSchema } from "./order-schema.ts";
 import type { Power } from "./power.ts";
 
 /**
