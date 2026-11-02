@@ -185,8 +185,3 @@ function exactRound(x: number, decimals: number): [string, string] {
   const s = q.toString().padStart(decimals + 1, "0");
   return [s.slice(0, s.length - decimals), s.slice(s.length - decimals)];
 }
-
-/** C#'s "x16" format of a 64-bit hash given as hex: lower-case, 16 digits. */
-export function hex16(h: string): string {
-  return h.padStart(16, "0");
-}

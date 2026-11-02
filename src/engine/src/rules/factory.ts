@@ -269,7 +269,7 @@ const Styled: Seed[] = [
   seed("Sin-iqisham", "Ninua", false),
   seed("Abdi-Milki", "Ṣurru", false),
   seed("Ammistamru", "Ugarit", false),
-  seed("Kushmeshu", "the harbour of Alashiya", false),
+  seed("Kushmeshu", "Enkomi", false),
   seed("Piyamaradu", "Apasa", false),
   seed("Zitanza", "Lukka", false),
 ];

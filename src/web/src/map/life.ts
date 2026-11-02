@@ -62,8 +62,13 @@ export function lifeLayer(s: MapScene): string {
     const at = along(route(r.from, r.to), Math.min(0.85, Math.max(0.15, r.progress)));
     sb += `<g class="life-mark ${cls}" data-province="${r.from}" transform="translate(${F(at.x)},${F(at.y + (i % 2) * 6)})"><title>${esc(text)}</title><g class="sym"><circle class="life-bg${r.power !== null ? ` f-${glyphId(r.power)}` : ""}" r="8"/><use href="${fig}" class="life-icon" x="-6.6" y="-6.6" width="13.2" height="13.2"/></g></g>`;
   };
-  s.memory.caravans.forEach((c, i) => mark(c, i, "caravan", "#fig-caravan", `${c.power !== null ? `${powerName(c.power)}'s caravan` : "A caravan"} on the road from ${provinceName(c.from)} to ${provinceName(c.to)}: ${c.what}`));
-  s.memory.walking.forEach((w, i) => mark(w, i, "walking", "#fig-walkers", `${w.what}, on the road from ${provinceName(w.from)} to ${provinceName(w.to)}`));
+  // In a court's view every caravan drawn is its own, in sight or not (its drivers' word reaches it), and the deportees are
+  // on a road it sees: the titles say so, so a figure moving in the fog is never taken for a foreign one.
+  const own = s.viewer !== null;
+  s.memory.caravans.forEach((c, i) =>
+    mark(c, i, "caravan", "#fig-caravan", `${own ? "Your caravan" : c.power !== null ? `${powerName(c.power)}'s caravan` : "A caravan"} on the road from ${provinceName(c.from)} to ${provinceName(c.to)}: ${c.what}${own ? ". You hear from your own caravans wherever they are" : ""}`),
+  );
+  s.memory.walking.forEach((w, i) => mark(w, i, "walking", "#fig-walkers", `${w.what}, on the road from ${provinceName(w.from)} to ${provinceName(w.to)}${own ? ", in your sight" : ""}`));
   return sb;
 }
 

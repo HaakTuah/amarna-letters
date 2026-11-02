@@ -124,11 +124,7 @@ and amount numbers together.
   fixed rather than left open, and the round checks those fixes; anything a fourth round had left open would have gone
   to the escalation helper. Reading taken on the rule's purpose (an end to the rounds, a bar that does not slip).
 
-Questions for Haakon:
+Questions for the owner:
 
-1. The sections part B names under The world ("Counts as the scribes knew them", "A census", "The king says how much he
-   wants") are not in the repository's copy of the design document, and this account cannot read the live one. Could the
-   copy be refreshed? Reading taken: built from the item's own text (readings above). Alternative: wait for the sections.
-2. Should the corvée (the men a work takes) also be asked as a share? Levies now can be, as the item's text says. Reading
-   taken: the corvée stays each work's need, an amount, since a share would have to invent how a half-manned work
-   progresses. Alternative: a share of the men for works, the work going slower by the men who came.
+- #410: could the design document's copy be refreshed with part B's sections of The world?
+- #411: should the corvée also be askable as a share, as grain and levies now are?

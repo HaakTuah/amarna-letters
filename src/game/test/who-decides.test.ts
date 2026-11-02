@@ -429,9 +429,13 @@ describe("Who decides (item 6c)", () => {
     Presets.Standard.applyTo(c);
     Assert.true(Presets.Standard.matches(c));
     Assert.equal("Off", c.planning);
-    // Its estimate is below Standard's, which plays every king on Sonnet.
+    // Its kings' own calls cost less than Standard's, which plays every king on Sonnet; its plans, each reading the kings'
+    // whole rulebook on Sonnet, bring it to about Standard's figure (the recorded token counts, 2 November 2026).
     const counsel = new SeatChoices();
     Presets.Counsel.applyTo(counsel);
-    Assert.true(CostEstimate.perGame(counsel) < CostEstimate.perGame(c));
+    const unplanned = counsel.copy();
+    unplanned.planning = "Off";
+    Assert.true(CostEstimate.perGame(unplanned) < CostEstimate.perGame(c));
+    Assert.inRange(CostEstimate.perGame(counsel) / CostEstimate.perGame(c), 0.8, 1.2);
   });
 });

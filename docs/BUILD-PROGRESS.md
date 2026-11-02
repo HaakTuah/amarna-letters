@@ -1,57 +1,30 @@
 # Build progress
 
-Follows "Build order" in the design document (copy: `docs/intent/build-order/`; the builder rules are in
-`.claude/rules/builder-rules.md`). One line per item: state, branch, report, and what was decided along the way. Items
-are built on their own branch from `develop` and merged into `develop` when the tests pass and one reviewer has found
-nothing blocking; `main` is never pushed to: it changes only by the milestone PR from `develop`, which the builder
-merges once CI is green ("You merge, always.", 27 October 2026). The whole order is built without
-stopping at review points: their questions and the readings taken are listed under "For Haakon" and in each item's
-report. Work goes on item after item until weekly usage nears 90% ("Usage" in the builder rules; decided 26 October
-2026, replacing the stop after item 5 of 20 October).
+One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
+`.claude/rules/builder-rules.md`, which also say how items are branched, merged and reviewed, and when work slows for
+usage). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
+document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
+longer finds was history and is in `docs/archive/design-history.md`.
 
-Since 27 October 2026 the design document has one tab per system, and its copy one folder per tab
-(`docs/intent/INDEX.md` lists them, with each tab's node and revision for the check for changes). An entry keeps its
-title wherever it moved, so `grep -rn "Title" docs/intent` still finds what an item names. On 27 October the document was
-also condensed: passages that record history rather than intent (what was tried or retired, what past runs
-measured, the full text of items 1 to 5) moved word for word to `docs/archive/design-history.md`, so a title that
-`grep` no longer finds in `docs/intent/` is looked up there.
-
-What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`.
-Haakon's standing instructions given in chat are recorded word for word in `docs/archive/instructions.md`.
+What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`;
+The owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
 
 ## The polish lane
 
-A side lane of small refinements, beside the item lane and never ahead of it (Haakon, 31 October 2026: "Should we add a
+A side lane of small refinements, beside the item lane and never ahead of it (the owner, 31 October 2026: "Should we add a
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
-- **First, the README** (Haakon, 31 October 2026: "Yes, expertly to both!"): bring `README.md` up to the game as
-  built: "How to play" through every item since it was written (characters and errands, the economy and hunger,
-  command at a distance, city-states, the living map), the numbers the improvement audit found stale, and the
-  developer section's commands; one PR, docs only. It gets a second, smaller pass in the PRs of items 17+ and 17++,
-  which change the opening and how a king asks and counts ("A change a player sees updates the README" in
-  `AGENTS.md`).
-- **Also first, the far-zoom edge** (Haakon, 31 October 2026: "if you zoom far enough out, the world ends with just
-  water to the east and west, since the map is longer on the north-south axis"; then "Yes, expertly to all!"): zooming
-  out stops where the map fills the screen, and the lands beyond the game are drawn out to every edge of the frame (the
-  Zagros and the Iranian plateau to the east; Greece, Crete and Libya to the west), so the map never ends at a bare edge,
-  as "The map in true geography" already says.
-- **Also first, Space and the speed keys** (Haakon, 31 October 2026: "pressing spacebar really needs to pause and
-  unpause the game", then "Agreed to all, expertly!"): on a computer, Space pauses and unpauses, even mid-playout;
-  three watching speeds, not five, since seasons are turns as in Civilization and no clock runs between them (Haakon,
-  1 November 2026: "I don't feel we should introduce 5, just to have 5."): 1 Slow, 2 Normal, 3 Fast, and 4 Simulate once
-  item 17+++ keeps every season ("Pace of play" under Interface); + and −, on the main keys and the number pad, step
-  between Slow, Normal and Fast, by the character typed; never while a letter or a name is being typed; each shown in
-  its button's tooltip. PR #293's added Very slow and fifth speed go before it merges. The rest of the keys come in item 17+++a.
-- **Next, from Haakon's notes of 2 November** (his words in `docs/archive/instructions.md`, item 134), one PR each:
-  every province a proper name, never a description (Tjehenu, not "the land of the Tjehenu"; where 1346 gives
-  none, the oldest name the sources give, such as Moab, the Negeb, Tamassos: "Places by their own names" under World); the camera stops at the play area's edges, so an edge province can
-  be centred; the tabs scroll with the mouse wheel and by dragging, or fit; the small provinces of the Levant can be seen
-  and clicked at the normal zoom (a minimum hit area, labels that grow as you zoom out); and, by "Following, travel
-  lines and borders" under Interface, Follow keeps the camera on the person, travel lines follow their roads (your
+- **Next, from the owner's notes of 2 November** (his words in `docs/archive/instructions.md`, item 134): by "Following,
+  travel lines and borders" under Interface, Follow keeps the camera on the person, travel lines follow their roads (your
   orders' whole path, others' only as reported), and borders are strong between powers and quiet within one (after
-  17++ part C merges, since it redraws the map's steps).
-- **Done:** the soundtracks and the Music page (#350), the soundscape (#351, #352); their briefs are in `docs/archive/progress-done.md`, "Side lanes".
+  17++ part C merges, since it redraws the map's steps). Open from the notes' first four: the powers' land names
+  (#403, a question for the owner), and army counters standing over a neighbour's seal on the whole map (the lane's report).
+- **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
+  the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
+  `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
+  the camera to the play area's edges (#396), a seal's tap to its own city (#398), and the tabs and the courts scrolled
+  by wheel and drag (#397).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
@@ -71,7 +44,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## The workshop lane
 
-- **The file-by-file review** (Haakon, 2 November 2026: "Need a full review and clean up where we look at every file,
+- **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
   the rules restructure (PR of 2 November). Every file, docs first: what does it say it is for, and does it do that?
@@ -81,40 +54,44 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
+- **Done so far** (2 November 2026): the progress file under 20 KB (#388); the files every session reads (#390);
+  `docs/` (#392: item 2's, 4's and 5+'s briefs and specs to `docs/archive/specs/`, built entries out of "Not built yet"; #393:
+  design note 10 down to its live differences); the archive's `progress-done.md` split by kind (#394). **Left:** the code,
+  once the open lanes touching it merge (17++ B and C, export, model calls, fog); first find there: the conversion's
+  parity check (`src/game/src/parity.ts`, `src/batch/src/parity*.ts`, `--parity` in `src/batch`) compares against the C#
+  build removed on 27 October, so it is probably a leftover; `docs/DESIGN-NOTES.md` after its open lane merges.
 
 ## Follow-ups
 
 Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
 fixed.
 
-- **First of all: what a game's export holds** (Haakon, 2 November 2026: "And queue a job going fully over what the
+- **First of all: what a game's export holds** (the owner, 2 November 2026: "And queue a job going fully over what the
   export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
   fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
   session's `export`, `log.toJsonl()` and every record type in it: the header, calls, decisions, shadows) and
   everything it could carry: API keys or anything from the key's storage, provider addresses with tokens in them,
   request or organisation ids, e-mail addresses, local paths, browser or device details.
-  Anything sensitive is removed from the export, with a test that fails if it comes back, and **Haakon is alerted at
-  once**: the PR's first line and the session's "Questions for Haakon" say what was found and which files in
+  Anything sensitive is removed from the export, with a test that fails if it comes back, and **The owner is alerted at
+  once**: the PR's first line and the session's "Questions for the owner" say what was found and which files in
   `tests/fixtures/` hold it, so they can be removed from the repository and its history. If nothing is found, the
   report lists what the export holds, field by field. Then build **one export with filters** (Engine and models,
-  "Logging and replay"; Haakon, 2 November 2026): by default everything, every call in full with each model's notes,
+  "Logging and replay"; the owner, 2 November 2026): by default everything, every call in full with each model's notes,
   plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
   wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
   in any export. A human player's own words are not sensitive in a normal export.
-- **First among the side lanes, beside the fog below (other files, so both run at once): model calls that get
-  through** (Haakon, 2 November 2026; Engine and models, "Calls that get through, live or in the background"). His
-  Haiku game of 1 November (seed 407184, two seasons, $0.52) lost 57 of the first season's 104 decisions to the
-  account's limit on calls in flight, paid about two thirds of that season for 25 copies of one cache, and had 26
-  answers refused for slips. Build the limiter and its retries, the cache written once, answers read as meant, the
-  background mode on the provider's batch service, and the cost estimate. No model games: checked against a stand-in
-  service that refuses calls past a limit, answers batches late and returns that game's slips. The report gives the
-  expected cost of a season, live and in the background. The game itself is in
-  `tests/fixtures/model-games/` (its README): its slips are the test cases, its token counts the estimate's start.
-- **First, before any other side lane: people moving in the fog** (Haakon, 2 November 2026: "Who are these people i can
-  see moving about in the fog of war when viewing a game as egypt? Different caravan and what looks like scout units or
-  something?"). Find what they are and why a seat sees them. If Egypt should not know of them, it is a leak ("Only what
-  the seat knows plays"): fix it in what the seat is shown and, if script or model kings get it too, in their view as
-  well, with the benchmarks before and after.
+- ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
+  as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
+  token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:
+  `docs/rounds/2026-11-02-model-calls-get-through.md`.
+- **Counsel's plans from a digest** (found by "model calls that get through", 2 November 2026; Engine and models,
+  "Passing up and asking advice": the strong model writes the plan "from a digest of the year ... rather than the whole
+  record"). A plan call opens with the kings' whole 70,600-token rulebook on Sonnet, so at the recorded token counts
+  Counsel estimates about 5% above Standard, where the design has small models play and the large one only plan and
+  advise. Give the plan call its own short opening (the digest and what it needs of the rules), then restore the test's
+  old claim that Counsel costs less than Standard (`src/game/test/who-decides.test.ts`).
+- ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
+  armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
 
 - **From #348 (17+), round 2, not blocking; outside 17++'s text (names as claims), so a side lane takes them:** (a) engine
   notices name powers by their own land while a court's view may give a contested name to another, so one name can mean two
@@ -130,55 +107,27 @@ fixed.
   fixture, so every engine test builds the whole starting world; a small-world fixture (a few powers on part of the map)
   for rule tests, as "the smallest game that tests the rule" asks.
 
-## For Haakon: review points
+## For the owner
 
-Answered review points, and the rows of items 1 to 11c, are in `docs/archive/progress-done.md` (moved 28 October 2026,
-"The workshop check"; the review points of 11c to the improvement audit, without questions or answered, moved on 1 November 2026).
-
-| Item | Review question | Reading taken | State |
-|---|---|---|---|
-| 17++ B | The sections part B names under The world ("Counts as the scribes knew them", "A census", "The king says how much he wants") are not in the repository's copy of the design document: could the copy be refreshed? | Built from the item's own text (the report's readings); alternative: wait for the sections | open |
-| 17++ B | Should the corvée (the men a work takes) also be asked as a share? Levies now can be. | The corvée stays each work's need, an amount, since a share would have to invent how a half-manned work progresses; alternative: a share of the men for works, the work going slower by the men who came | open |
-
+Everything for the owner is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Afor-owner)
+(`for-owner`) and [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aidea) (`idea`), by
+"Questions, readings and ideas" in `AGENTS.md`. Answered review points from before 2 November 2026:
+`docs/archive/progress-done.md`.
 
 ## Use against ignore
 
 Every item adds its numbers here: on the same seeds, scripts that use the item's features against scripts that ignore them ("Using a feature must pay" in the builder rules, 28 October 2026). While the game is incomplete a feature may not win yet; once it is feature complete (item 18) none may be left whose users do not come out ahead. Earlier items' numbers are in their reports; item 10+a's audit of every feature built so far adds them here.
 
+The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use against ignore: done items" (moved 2 November
+2026, "The workshop check"); new rows are added here. Where they stand: **pays** 6c planning ahead, 7b roads, 9+b trade,
+10+b borders, 11a and 11a+ money and seasons (a little), 13 command (a little), 15 works (growth), 16 the council;
+**even or barely** 7a sea play, 8 inventories, 9 authority, 10+a land play, 11b+ hunting, 11e walls,
+12 languages, 17+ holding back pay; **not paying yet, re-measure in item 18** 9 winter strokes, 9+a the economy (wins),
+10 characters, 11b and 11b++ hunting, 11b+ carriers and repaying, 11+ vassalage, 11f supply through foreign land,
+17 buying food and stirring; nothing to measure for 11d, 11f+, 13+, 14 and 17+'s names.
+
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
-| 6c | Sleeping script kings planning ahead (`--plan-ahead-half`) | 2.63 growth to 2.34, 41 wins to 39, in 80 games | Pays, a little (from its report) |
-| 7a | Sea play: blockades, guards, landings (`--no-sea-play`) | mixed by power (Hatti 3.76 to 3.52, Babylonia 3.06 to 4.15) | Matters; whether it pays as a whole was not measured (from its report) |
-| 7b | Closing roads to foes (`--road-play-half`) | 2.80 growth to 2.54, 26 wins to 24 | Pays (from its report) |
-| 8 | Inventories with gold (`--no-inventory-play`) | 2.70 growth to 2.65 | Barely (from its report) |
-| 9 | Winter strokes over the passes (`--no-winter-play`) | 2.70 growth to 2.72 | Not paying (from its report) |
-| 9 | Envoy authority and passage (`--no-authority-play`) | 2.70 growth to 2.67 | Barely (from its report) |
-| 9+a | The economy played well: depots, caravans, pricing (`--plain-economy-half`) | 1.02 growth to 0.94, 23 wins to 27 | Grows more, wins less (from its report) |
-| 9+b | Trade abroad, ships, tolls (`--trade-play-half`) | 32 wins to 18 | Pays |
-| 10 | Characters: seeking, questioning captives, stealing, false names | 22 wins to 28 in 50 games, same growth | Not yet paying: errands come in 11, 11b and 13; re-measure there |
-| 10+a | Tax to what farmers bear, famine feeding, levy costing, colonists (`--land-play-half`) | 1.05 growth to 1.04, 25 wins to 25, in 50 games | Barely: the levers are small at these first guesses (10+a's reading 14); re-measure in item 18 |
-| 10+b | Settling the loose, returning promised runaways, deporting from taken land at risk, putting mouths out (`--border-play-half`) | 1.08 growth to 1.02, 30 wins to 20, in 50 games | Pays (unevenly by power: Hatti 0.80 to 1.03) |
-| 11a | Kings borrowing from lenders at court and repaying what is due (`--money-play-half`) | 1.16 growth to 1.14, 28 wins to 22, in 50 games | Pays, a little: kings are rarely short at these first guesses |
-| 11a+ | Tax and famine by the granaries, smaller levies, mouths by share, deporting by safe roads, passage by order, watching spies, winter strokes by sea (`--season-play-half`) | 1.17 growth to 1.15, 29 wins to 21, in 50 games | Pays, a little (unevenly: Hatti 1.20 to 1.51) |
-| 11b | Hunting the bands in one's land and buying news of foes (`--outlaw-play-half`) | 1.17 growth to 1.16, 22 wins to 28, in 50 games (26 to 24 before the review's fixes) | Not paying yet: the hunt costs men and keeps armies from the front; re-measure with policing (15) and command (13) |
-| 11b+ | Borrowing and repaying, carriers paid by standing order, tablets sold and collected, hoards seized (`--money-play-half`; every king pays fees on completion) | 1.12 growth to 1.09, 22 wins to 28, in 50 games | Not paying yet by wins (carriers' fees and repayment cost gold; a good name pays in hiring); re-measure in item 18 |
-| 11b+ | Hunting bands only where it breaks them or drives them abroad, and buying news of foes only (`--outlaw-play-half`) | 1.13 growth to 1.14, 23 wins to 27, in 50 games (1.08 to 1.16, 20 to 30 before the patch) | Even, within noise: troops standing already halve what bands take; re-measure with policing (15) and command (13) |
-| 11+ | Vassalage: tribute paid while it is worth it, demands of vassals in arrears, offers either way, paying vassals spared (`--vassal-play-half`) | 0.88 growth to 0.88, 25 wins to 25, in 50 games | Not paying yet: tribute moves score, it does not make it; re-measure with command (13) and policing (15) |
-| 11b++ | Hunting bands by order where it breaks them, buying news of foes (`--outlaw-play-half`; the first measure in the thirty-power world) | 0.87 growth to 0.92, 20 wins to 30, in 50 games (the whole-land standing hunt: 0.88 to 0.92, 19 to 31) | Not paying: a hunt costs the army's men and the band's, and troops standing with a band already halve what it takes; re-measure with policing (15) and command (13) |
-| 11d | Ceding a capital whole by sealed tablet | n/a: no script cedes its capital, by design (a fallen power's growth is 0); the rest is starting data | Nothing to measure |
-| 11e | Reckoning the city's men on the walls and the land's men beside a troop (`--wall-play-half`) | 0.77 growth to 0.75, 24 wins to 26, in 50 games (0.71 to 0.76 before two script fixes) | Even: the rule is the engine's, and reckoning it no longer costs a king |
-| 12 | Choosing envoys by the languages they say they speak, and hiring a bridge for an envoy nobody understands (`--language-play-half`; on 11e's game) | 0.75 growth to 0.75, 23 wins to 27, in 50 games (0.69 to 0.72, 21 to 29 before two script fixes and 11e) | Even, within noise: the rules bind every king alike; the seasons a good choice saves do not yet turn into gain; re-measure with command (13) and in item 18 |
-| 11f | Kingdoms supplying their armies through foreign land, sneaking where closed (`--caravan-play-half`) | 0.79 growth to 0.77, 20 wins to 30, in 50 games (24 to 26 before the review's open-roads-first fix) | Not paying yet in wins (caravans found and seized in closed land cost grain and porters); re-measure with command at a distance (13) |
-| 11f+ | Neighbours on the map are neighbours in the rules | No lever to use or ignore (the map's neighbours); the script kings ordered 18 in a hundred of their moves over the 23 new connections, every one used, in all 50 games | Used; nothing to compare |
-| 13 | Granting command, mandates, governors, bands enlisted as soldiers and moving the court (`--command-play-half`) | 0.77 growth to 0.76, 27 wins to 23, in 50 games (0.78 to 0.77, 27 to 23 before two script patches); hunting re-measured with command (`--outlaw-play-half`): 0.76 to 0.77, 28 wins to 22 | Paying a little, within noise: the gain is in far provinces, which the scripts' growth reaches late; re-measure in item 18 |
-| 13+ | A risen governor's seat (no script choice to ignore: the same script king plays it) | No governor rose in 50 games; in a small game the risen seat kept its men, took lawless land beside it and replayed exactly | Not measurable yet: governors are rarely in place when a Great King falls; re-measure once item 17 raises more powers in play |
-| 16 | Playing troops and levies by the royal council, the whole plan of the advisor the others agree with most (`--council-play-half`) | 0.82 growth to 0.76, 29 wins to 21, in 50 games (a troop-by-troop majority across the plans: 0.81 to 0.79, 17 to 33) | Pays, followed as a plan; the omens are words, nothing to measure |
-| 14 | Legends, and a greedy king's begging letter | n/a: the legends are read by people, never by a seat; the begging letter is an Easter egg (3 letters in 50 games, 1 granted) | Nothing to measure |
-| 17 | Buying armies' food where they stand by leave (gold sent only where the market holds grain), easing the tax where governors write of unrest, stirring a foe's conquered land (`--freedom-play-half`) | 0.73 growth to 0.79, 21 wins to 29, in 50 games (0.79 to 0.79, 26 to 24 before the review and the longer age); 2 meals bought against 878 taken | Not paying: used too rarely to move the score, within noise; buying finds little grain at these first guesses; re-measure in item 18 |
-| 13+ (re-measured in 17) | A risen ruler's seat | 42 seats rose in 25 of 50 games (10 by revolt, 32 elders); 28 ruled at the end, mean growth 1.00 | Rising now; the same script king plays them |
-| 15 | Roads and relay stations, policing, harbours, water works, repairs under siege and razing (`--works-play-half`; baseline builds only walls) | 0.79 growth to 0.76, 23 wins to 27, in 50 games (first build, before two script patches: 0.78 to 0.79, 28 to 22) | Pays in growth, wins within noise; Assyria grows less using it (0.57 to 0.86): re-measure in item 18 |
-| 17+ | Holding back pay from safe units in a lean season (`--upkeep-play-half`) | 0.74 growth to 0.74, 25 wins to 25, in 50 games | Neither pays nor costs yet: gold saved buys little until 17++'s demands and ledger give unpaid men a memory |
-| 17+ | A realm's name claimed by a city holding a greater realm's capital, contested names given by greetings | 3 claims in 20 games | n/a: a claim gives nothing by rule; its worth is the other kings' recognition |
 | 17++ B | Counting the land (census), asking an amount by a fresh count and levying by share by an old one (`--count-play-half`) | 0.97 growth to 0.86, 26 wins to 24, in 50 games (after round 1: 0.96 to 0.89, 30 to 20) | Pays |
 | 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
 | 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |

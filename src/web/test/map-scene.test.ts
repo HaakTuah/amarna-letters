@@ -311,6 +311,10 @@ describe("MapSceneTests", () => {
       let sees = (id: string): boolean => frames[k].knownOwner.get(p)?.get(id)?.owner === p || frames[k].sight.get(p)!.has(id);
       // Its own caravans only, as the engine's view; deportees on roads it sees; its own people's numbers only.
       for (const r of seat.memory.caravans) Assert.equal(p, r.power);
+      // And the map says so: each is "Your caravan", never one named as another court's (one moving in the fog is its own).
+      const life = lifeLayer(seat);
+      Assert.equal(seat.memory.caravans.length, life.split("Your caravan").length - 1);
+      Assert.false(life.includes("'s caravan"));
       for (const r of seat.memory.walking) Assert.true(frames[k].sight.get(p)!.has(r.from) || frames[k].sight.get(p)!.has(r.to));
       for (const id of seat.memory.wild) Assert.true(sees(id));
       // Its own people only: land it knows it holds (as it last held it, where lost without its knowing).

@@ -111,7 +111,7 @@ export const PeopleOf1346: readonly CastSeed[] = [
   person("Ashur-iddin", "Ashur", "Assyria", "royal envoy", { loyalty: 70, courage: 60, competence: 60 }, 10, ["Ashur-uballit's envoy, kept standing in the sun at Pharaoh's court until the king complained of it (EA 16)."]),
   person("Adad-iddina", "Ninua", "Assyria", "royal envoy", { loyalty: 65, competence: 55 }, 10, ["Ashur-uballit's envoy, kept standing in the sun at Pharaoh's court with his fellow (EA 16)."]),
   // Alashiya: the governor who writes to his Egyptian counterpart (EA 40), unnamed, so named after a later governor [C]
-  person("Eshuwara", "the harbour of Alashiya", "Alashiya", "the governor of Alashiya", { competence: 70, loyalty: 70, greed: 50 }, 40, ["The governor of Alashiya, a second voice of the island's state, who writes to Pharaoh's governor and sends gifts of his own (EA 40)."]),
+  person("Eshuwara", "Enkomi", "Alashiya", "the governor of Alashiya", { competence: 70, loyalty: 70, greed: 50 }, 40, ["The governor of Alashiya, a second voice of the island's state, who writes to Pharaoh's governor and sends gifts of his own (EA 40)."]),
   // The Levant: claimants, the brothers of rulers, the men of action, the rulers of towns too small for a province
   person("Ilirabih", "Gubla", "Byblos", "the ruler's brother", { ambition: 80, loyalty: 20, competence: 60, courage: 55 }, 20, ["Rib-Hadda's younger brother, who shut him out of Gubla and wrote to Pharaoh as its ruler (EA 137-140, 162)."], "byblos"),
   person("Pu-Baʿlu", "Amurru", "Amurru", "son of Abdi-Ashirta", { courage: 70, ambition: 70, loyalty: 45, greed: 60 }, 15, ["A son of Abdi-Ashirta and Aziru's brother, one of the sons who share Amurru and took the coast's towns (EA 104, 132)."], "amurru"),
@@ -193,7 +193,7 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   },
   {
     court: "Alashiya",
-    origins: ["the harbour of Alashiya", "the copper hills of Alashiya"],
+    origins: ["Enkomi", "Tamassos"],
     names: ["Kushmeshusha", "Kushmeshu-ziti", "Tamarisa"],
     callings: ["copper trader", "sailor", "merchant"],
   },
@@ -243,7 +243,7 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   },
   {
     court: "Suteans",
-    origins: ["the Sutean steppe", "Tadmor"],
+    origins: ["Sutu", "Tadmor"],
     names: ["Ammu-ili", "Yaqqim-Addu", "Sumu-ilu"],
     callings: ["herdsman", "caravan guide", "hired fighter"],
   },

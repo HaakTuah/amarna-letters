@@ -7,7 +7,6 @@ import type { Power } from "./power.ts";
  * arrives at its court, in the engine's vocabulary, as an envoy carries a mandate. The engine carries them out for nothing,
  * worded by a phrasing call, and they never wake the king.
  */
-export const AnswerBringsValues = ["Anything", "Words", "Gold", "Tablet"] as const;
 export type AnswerBrings =
   /** Any envoy of the court named. */
   | "Anything"

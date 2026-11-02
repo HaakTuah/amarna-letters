@@ -115,7 +115,6 @@ export const LevyRefSchema: ObjSchema<LevyRef> = obj("LevyRef", newLevyRef, {
  * The events a standing order waits for: a small vocabulary the engine checks from the seat's own view. Each is a move set
  * out this season, which the standing order answers in the same season (since the fix pass after item 4).
  */
-export const StandingWhenValues = ["UnitEnters", "UnitAttacked"] as const;
 export type StandingWhen =
   /**
    * A unit of {@link StandingOrder.Power} (any foreign power's if null) sets out, where the seat can see it, to move into {@link StandingOrder.Province}.

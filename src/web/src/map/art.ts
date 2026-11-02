@@ -13,7 +13,6 @@ import { BoardHeight, BoardWidth } from "./projection.ts";
 
 export { city, Isles, ll, type Pt };
 
-export const pt = (x: number, y: number): Pt => ({ x, y });
 export const add = (a: Pt, b: Pt): Pt => ({ x: a.x + b.x, y: a.y + b.y });
 export const sub = (a: Pt, b: Pt): Pt => ({ x: a.x - b.x, y: a.y - b.y });
 export const mul = (a: Pt, k: number): Pt => ({ x: a.x * k, y: a.y * k });
@@ -147,9 +146,6 @@ export interface Line {
 
 /** The rivers (features.ts): the three great ones of the engine's geography first, then smaller ones for the eye. */
 export const Rivers: readonly Line[] = RiverCourses.map((r) => ({ id: r.id, name: r.name, path: r.pieces.map(polyline).join(""), width: r.width, labelled: r.name !== "" }));
-
-/** Mountain ranges, drawn as rows of peaks along these lines. */
-export const Ranges: readonly Pt[][] = RangeLines;
 
 /** Deserts, drawn with a stipple, as Natural Earth bounds them: the Syrian desert, the Negev, Egypt's eastern and western deserts, the Nubian desert and the Nafud. */
 export const Deserts: readonly string[] = DesertRings.map(([, r]) => smoothClosed(decode(r)));
@@ -462,13 +458,6 @@ export function along(pts: readonly Pt[], t: number): Pt {
 export function arc(a: Pt, b: Pt, bow = 0.12): string {
   const c = add(mul(add(a, b), 0.5), mul(normal(sub(b, a)), bow));
   return `M${F(a.x)},${F(a.y)}Q${F(c.x)},${F(c.y)} ${F(b.x)},${F(b.y)}`;
-}
-
-/** The point a fraction of the way along arc. */
-export function arcAt(a: Pt, b: Pt, t: number, bow = 0.12): Pt {
-  const c = add(mul(add(a, b), 0.5), mul(normal(sub(b, a)), bow));
-  const u = 1 - t;
-  return add(add(mul(a, u * u), mul(c, 2 * u * t)), mul(b, t * t));
 }
 
 /** Peaks along a range: small hachured triangles every few units. */
