@@ -59,7 +59,11 @@ describe("MapSceneTests", () => {
     return done;
   }
 
-  const living = (s: GameState): Power[] => AllPowers.filter((p) => isAlive(s, p));
+  // The powers risen in play are the game's own: set them from the state read, since other games played since replaced them.
+  const living = (s: GameState): Power[] => {
+    setRisen(s.risen);
+    return AllPowers.filter((p) => isAlive(s, p));
+  };
   const sorted = <T>(xs: Iterable<T>): string[] => [...xs].map((x) => JSON.stringify(x)).sort();
   const entries = (m: ReadonlyMap<string, unknown>): string[] => sorted(m.entries());
 
