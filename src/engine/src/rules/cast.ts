@@ -65,7 +65,7 @@ export const AttestedCast: readonly CastSeed[] = [
   cast("Mahu", "Akhetaten", "Egypt", "chief of the Medjay", { courage: 75, loyalty: 70, competence: 65 }),
   cast("Amanappa", "Akhetaten", "Egypt", "palace official", { loyalty: 55 }),
   cast("Haya", "Akhetaten", "Egypt", "commissioner", { competence: 60 }),
-  cast("Maya", "Waset", "Egypt", "commissioner"),
+  cast("Maya", "Gazru", "Egypt", "commissioner"),
   cast("Addaya", "Hazzatu", "Egypt", "commissioner at Gaza", { greed: 60 }),
   cast("Irshappa", "Akhetaten", "Egypt", "royal envoy"),
   cast("Asali", "Washukanni", "Mitanni", "royal envoy"),
