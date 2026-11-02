@@ -1,6 +1,6 @@
 # Item 17++, part B: what a king can count
 
-Branch `item/what-a-king-can-count`, from part A's branch (`item/whom-a-province-obeys` at `7319705`), as "Pipeline,
+Branch `item/counts-and-demands` (an older `item/what-a-king-can-count` from before part A was split off is left as it was), from part A's branch (`item/whom-a-province-obeys` at `7319705`), as "Pipeline,
 don't wait" orders. The item's text: `docs/intent/build-order/item-17.md`, "Then **17++**", the words from "17++, what a
 king can count" to "this replaces item 10+a's tax rate", and "Script kings use the census and judge their demands by
 their counts where it pays, measured against scripts that never count." Design note:
