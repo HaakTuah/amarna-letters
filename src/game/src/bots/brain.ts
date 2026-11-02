@@ -326,7 +326,7 @@ export class Brain {
             break;
           case "Audience": {
             if (!item.title.endsWith("envoy of " + name)) break;
-            const weighed = /weighers found ([^.]+)\./.exec(item.body);
+            const weighed = Weighed.exec(item.body);
             if (weighed !== null) {
               const w = shekels(weighed[1]);
               if (w > 0) r.trust = Math.min(1, r.trust + Math.min(0.25, w / 400.0));
@@ -495,13 +495,13 @@ export class Brain {
     const ours = (test: (c: CharacterView) => boolean): CharacterView | null => v.court.find((c) => c.ours && test(c)) ?? null;
     switch (item.kind) {
       case "EnvoyReport": {
-        const lot = /\[The inventory lists (.+?) of gold; your weighers found (.+?)\.\]/.exec(item.body);
+        const lot = EnvoyLot.exec(item.body);
         if (item.subject !== null && lot !== null && shekels(lot[2]) < shekels(lot[1])) this.thieves.add(item.subject);
         break;
       }
       // Our own examination: the forger who brought the inventory, named.
       case "Authentication": {
-        const hand = /trace it to the hand of (.+?), who brought it/.exec(item.body);
+        const hand = ForgerHand.exec(item.body);
         const thief = hand !== null ? ours((c) => c.name === hand[1]) : null;
         if (thief !== null) this.thieves.add(thief.id);
         break;
@@ -558,7 +558,13 @@ export class Brain {
   }
 }
 
-const SpiedUnit = /([\p{L}\p{Mn}\p{Nd}\p{Pc}]+) (?:has|had) (?:an army|a fleet) in/gu;
+/** What our weighers found of a gift, in an audience's record. */
+export const Weighed = /weighers found ([^.]{1,80})\./;
+/** The gold an envoy brought home: what its inventory lists, and what our weighers found. */
+export const EnvoyLot = /\[The inventory lists ([^;\]\n]{1,80}) of gold; your weighers found ([^\]\n]{1,80})\.\]/;
+/** The forger our scribes name, who brought the inventory. */
+export const ForgerHand = /trace it to the hand of ([^,\n]{1,80}), who brought it/;
+export const SpiedUnit = /(?<![\p{L}\p{Mn}\p{Nd}\p{Pc}])([\p{L}\p{Mn}\p{Nd}\p{Pc}]+) (?:has|had) (?:an army|a fleet) in/gu;
 
 /** One of our people whose line reads that they have not returned: the overdue word has come, and nothing since. */
 function overdue(c: CharacterView): boolean {
@@ -575,7 +581,7 @@ function sentiment(text: string): number {
 
 /** Reads an amount written as "2 minas 15 shekels", "1 mina" or "45 shekels". */
 export function shekels(text: string): number {
-  const minas = /(\d+) minas?/.exec(text);
-  const sh = /(\d+) shekels?/.exec(text);
+  const minas = /(?<!\d)(\d+) minas?/.exec(text);
+  const sh = /(?<!\d)(\d+) shekels?/.exec(text);
   return (minas !== null ? Number(minas[1]) * 60 : 0) + (sh !== null ? Number(sh[1]) : 0);
 }
