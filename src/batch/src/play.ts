@@ -48,7 +48,6 @@ import {
   SdkTransport,
   SeatChoices,
   SimulatedApi,
-  bodyText,
   buildSeats,
   checkJobs,
   providersFor,
