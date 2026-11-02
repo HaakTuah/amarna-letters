@@ -2,7 +2,7 @@
  * The lakes and marshes of 1346 that today's data lacks or draws smaller (build order item 11c++; dossier
  * `docs/history/13-the-land-drawn.md`): Lake Huleh and its swamp, drained in the 1950s; the Lake of Antioch in the Amuq
  * plain, Alalakh's, drained in the 1970s; the Faiyum's lake, larger than today's Birket Qarun; the Delta's lagoons along
- * its shore and Lake Mareotis behind it; and the marshes at the head of the Gulf, round Lagash, Ur and the Tigris' mouth.
+ * its shore and Lake Mareotis behind it; and the marshes at the head of the Gulf, round Lagash, Ur and the Tigris' mouth, and the Hammar below Ur.
  * Each traced by hand from the dossier's lines, in latitude and longitude; drawing only.
  */
 import { LL, type Pt } from "./features.ts";
@@ -29,4 +29,6 @@ export const PeriodMarshes: readonly Pt[][] = [
   LL(33.175, 35.59, 33.175, 35.645, 33.1, 35.64, 33.1, 35.597),
   // The marshes at the Gulf's head: round Lagash and Girsu, east of Ur, and along the lower Tigris towards Susa's plain.
   LL(31.75, 46.3, 31.85, 46.8, 31.95, 47.35, 31.75, 47.75, 31.4, 47.8, 31.1, 47.65, 30.95, 47.3, 30.98, 46.8, 31.1, 46.45, 31.35, 46.25, 31.6, 46.2),
+  // The Hammar's freshwater marshes below Ur, between the river port and the estuary of 1346 (13-hammar).
+  LL(30.95, 46.5, 30.95, 47.3, 30.75, 47.45, 30.65, 47.4, 30.8, 46.9, 30.85, 46.55),
 ];

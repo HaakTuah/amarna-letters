@@ -186,10 +186,9 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
   5% on textiles, and the cities on the road took transit dues besides, in tin or cloth (K. R. Veenhof, *Law and Trade in Ancient Mesopotamia and Anatolia: Selected Papers*, ed. N. Kouwenberg (Sidestone, 2020, [open access](https://sidestone.com/openaccess/9789088909153.pdf)), p. 59: "the
   right to levy taxes on the imported tin (ca. 3 %) and textiles (5 %)"; p. 138: "import taxes (nisḫātum) amounting to five
   percent of the textiles and four pounds of tin per standard donkey-load of 130 pounds of tin"; p. 119: "local import and
-  transit taxes"); Larsen not reached. **Start
-  from:** a default rate of 3%, the low end, per border crossed, which a holder may raise or waive as the intent
-  says; at 5% the goods of a Babylon-Egypt caravan crossing four or five holders would lose a fifth to tolls, which the
-  record of merchants still trading that road does not suggest.
+  transit taxes"); Larsen not reached. **Estimate [G]:** about 5% per border, the middle of 3%, 4.6%, 5% and 6% (one caravan account takes "2 ½ textiles" of
+  42 and of 54: Harvard Art Museums 1983.98). **The game starts with no tolls**: every rate is 0% until a king orders one,
+  who may raise or waive it as the intent says.
 - **Tolls were a political gift as well as revenue** [B]: exemptions were asked for and granted between friends (EA 39;
   the kudurrus), and Hattusili III's rule on the merchants of Ura (RS 17.130) shows an overlord setting who could trade
   where. The intent's rate per partner, zero included, is that [B].
@@ -274,7 +273,7 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
 - <a id="15-police-start"></a>**Start from** [G]: a province's police at the low end of a garrison's range, **20 men for a province on a main road
   and 50 for one on the frontier or in bandit country**, the size of the garrisons the vassals asked for (EA 289, Moran: "50 men as a garrison"); each
   holds banditry down in that province only, and costs its men's rations as soldiers in garrison do (see 11). Those are
-  first guesses for item 18 to tune.
+  first guesses for item 18 to tune; no published estimate of the period's policing strength was found [S].
 
 ## What item 15 should not read into this
 

@@ -232,6 +232,8 @@ export interface SeasonFrame {
   /** Who each court knows holds each land province, and the season that news dates from (item 7b). */
   knownOwner: Map<Power, Map<string, { owner: Power | null; turn: number }>>;
   sieges: FrameSiege[];
+  /** The sieges as each court knows them (bug #517: `Views.siegesKnown`), with the walls it knows. */
+  knownSieges: Map<Power, FrameSiege[]>;
   units: FrameUnit[];
   /** Every order of the season just resolved (the union of what each court saw). */
   moves: FrameMove[];
@@ -393,6 +395,14 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
   const knownOwner = new Map<Power, Map<string, { owner: Power | null; turn: number }>>(
     AllPowers.map((p) => [p, new Map([...Views.knownHolders(s, map, p).entries()].map(([k, x]) => [k, { owner: x.owner, turn: x.turn }] as const))] as const),
   );
+  const knownSieges = new Map<Power, FrameSiege[]>(
+    AllPowers.map((p) => [
+      p,
+      isAlive(s, p)
+        ? Views.siegesKnown(s, map, p).map((x) => ({ province: x.province, besieger: x.power, progress: x.progress, walls: knownWalls.get(p)?.get(x.province) ?? 0, since: x.since }))
+        : [],
+    ] as const),
+  );
   const sleep = new Map<Power, FrameSleep>();
   for (const [p, x] of s.sleep) {
     const woke = x.history.filter((h) => h.wokeAt > 0);
@@ -416,6 +426,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     owner: new Map(s.owner.entries()),
     walls: new Map(s.walls.entries()),
     sieges: s.sieges.map((x) => ({ province: x.province, besieger: x.power, progress: x.progress, walls: wallsOf(s, x.province), since: x.since })),
+    knownSieges,
     units: s.units.map((u) => ({ id: u.id, power: u.power, kind: u.kind, province: u.province, men: u.men })),
     moves,
     seenBy,

@@ -88,7 +88,7 @@ line in the treasury notice; signal `robbed`. Bands gathering them are item 11b'
   and commanders wait for item 13.
 - **One price at a market** (`tradeTogether`): caravans and ships reaching one market in the same season sell as one lot
   and buy as one purse along the curve, each taking its share in proportion to what it brought.
-- **Water by where a city stands** (`waterSeasons`): river land and a city with a spring inside its walls or a walled way
+- **Water by where a city stands** (`waterSeasons`; replaced by "Water from a dossier per city" in `22-harvests-and-answers.md`): river land and a city with a spring inside its walls or a walled way
   down to one (`SafeWater`: Jerusalem, Megiddo) never run dry; elsewhere a besieged city drinks its cisterns,
   `CisternSeasons` 4 seasons in rain-fed land, `WellSeasons` 2 in arid ground, and then surrenders whatever its food
   (signal `siege-thirst`); an island city without water of its own (`IslandWater`: Tyre, Arwad) runs dry

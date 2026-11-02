@@ -4,6 +4,8 @@ export { Schemas, Replies, OtherActions, ReportText, ReportToSender, jsonSchema,
 export { Parse } from "./parse.ts";
 export * from "./journal.ts";
 export * from "./prompts.ts";
+export * from "./prompt-letters.ts";
+export * from "./prompt-audience.ts";
 export * from "./rules.ts";
 export * from "./rules-plan.ts";
 export * from "./client.ts";

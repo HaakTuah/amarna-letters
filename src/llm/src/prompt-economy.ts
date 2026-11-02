@@ -152,3 +152,11 @@ export function peopleLines(v: SeatView): string[] {
     lines.push(`PROVINCES THAT LOOK TO YOU (take_up_province to take one up, refuse_province to turn it away; unanswered, an offer stands only while its people lean your way): ${join("; ", v.declared.map((d) => `${d.province} (${d.from !== null ? `ceded to you by ${d.from}` : "its people declare for you"}${d.takenUp ? ", taken up: it answers to you as the season turns, if they still accept you" : ""})`))}.`);
   return lines;
 }
+
+/**
+ * "Gold is a lifeline" (item 11a): what gold is worth to a king, said wherever a request asks him to give, take or keep it.
+ */
+export const GoldLifeline =
+    "Gold is part of how you win (it counts in your strength) and your security: it pays the troops who would otherwise desert, the ransoms and the envoys. Give it only for what it buys on average over a time you can name: a gift buys favour, a bribe a softer report or a secret, a fee a servant's work, a loan interest, tribute peace. Gold you send abroad, or pay to people, leaves your realm. Gold you borrow counts as yours until you repay it; repaying costs you now and keeps lenders lending, defaulting keeps the gold and costs your name.";
+
+/** A grant as its two kings read it in their view (item 9). */
