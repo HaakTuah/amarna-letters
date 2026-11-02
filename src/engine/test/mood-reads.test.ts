@@ -1,13 +1,13 @@
 import { describe, test } from "vitest";
 import { TalkData, TurnEngine, moodsKnown, newCharacter, newGame, newGameConfig, newId, newMoodRead, newSkills, pruneMoodReads, type GameState, type MoodRead } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // The mood of the land as each court knows it (item 17++, part C; "Who holds what, and the mood of the land"): dated reads
 // from governors, spies, envoys, scribes, travellers and the court's own eyes, each known only from when it reaches the
 // court. The starting world, with only the steps each test needs.
 describe("MoodReadsTests", () => {
   // Couriers slowed (travelDays) where a test needs word to take seasons.
-  const fresh = (travelDays = 45): GameState => newGame(1, newGameConfig({ catastropheChance: 0, travelDays }));
+  const fresh = (travelDays = 45): GameState => smallWorld(newGame(1, newGameConfig({ catastropheChance: 0, travelDays })), "Babylonia", "Egypt", "Hatti");
   const readsOf = (s: GameState, p: string, source: MoodRead["source"]): MoodRead[] => s.moodReads.filter((r) => r.power === p && r.source === source);
 
   test("Every court starts seeing its own city, and only that", () => {

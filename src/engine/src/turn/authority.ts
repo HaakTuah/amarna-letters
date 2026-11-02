@@ -14,7 +14,7 @@ import type { EnvoyReaction, HostReply } from "../model/exchanges.ts";
 import type { GrantOrder, RepudiateOrder, RevokeOrder } from "../model/orders.ts";
 import type { Character } from "../model/people.ts";
 import { remember } from "../model/people.ts";
-import { land, type Power } from "../model/power.ts";
+import { land, type Power, quoteWords } from "../model/power.ts";
 import type { Clause } from "../model/clauses.ts";
 import { isAlive, logEvent, newId, notify, ownedBy, type Unit } from "../model/state.ts";
 import { TurnEngine } from "./core.ts";
@@ -242,7 +242,7 @@ P.repudiate = function (p, o) {
     other,
     "Notice",
     RepudiatedTitle,
-    `The king of ${land(p)} repudiates the tablet his envoy ${t.byHand ?? ""} sealed in his name ("${cap(t.text, 160)}"): he says it went beyond the envoy's authority, and it does not bind him. What it granted, either way, has ended.` +
+    `The king of ${land(p)} repudiates the tablet his envoy ${t.byHand ?? ""} sealed in his name (${quoteWords(cap(t.text, 160))}): he says it went beyond the envoy's authority, and it does not bind him. What it granted, either way, has ended.` +
       (t.credentialsShown ? ` His envoy showed you its credentials: by them the tablet lay ${t.within ? "within" : "beyond"} his authority.` : ""),
   );
   logEvent(S, "tablet", `${p} repudiated the tablet its envoy ${t.byHand ?? ""} sealed with ${other}, as beyond his authority.`, [p, other], "repudiated");

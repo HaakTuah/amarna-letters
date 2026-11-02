@@ -2,8 +2,8 @@ import { NewsKinds, WorldMap, authorityText, newHostReply, newTabletProposal, re
 import { useState } from "react";
 import { powerName, shekels, when } from "../ui/format.ts";
 import { ClauseEditor } from "./ClauseEditor.tsx";
+import { num } from "./orders/form.ts";
 
-const num = (s: string): number => (s.trim() === "" || !Number.isFinite(Number(s)) ? 0 : Math.trunc(Number(s)));
 
 /** A foreign envoy stands before you. You hear the envoy, never the king who sent it. The form is new for every round (keyed by the caller). */
 export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceView; court: SeatView; structured: boolean; onAnswer: (r: HostReply) => void }) {

@@ -24,7 +24,7 @@ import { newLossAbroad, newTabletCopy } from "../model/records.ts";
 import { stormed, strengthWords, wallsDefence, type Assault } from "../model/outcomes.ts";
 import { LandData, menAvailable } from "../model/land.ts";
 import { remember, type Character } from "../model/people.ts";
-import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
+import { AllPowers, cmpPower, land, type Power, quoteWords } from "../model/power.ts";
 import { isAlive, logEvent, newGoldLot, newId, newSiege, notify, siegeOf, unitAt, wallsOf, type Siege } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { ValidationResult } from "../rules/validator.ts";
@@ -278,7 +278,7 @@ P.intercept = function (c, lord, siege, leaving, dispatch, cargo, due) {
   const lines = this.seize(c, lord, besieger, dispatch, cargo, `taken from ${c.name}, envoy of ${lord}, caught at ${city}`);
   const said =
     dispatch !== null
-      ? `leaving the city for the court of ${trail?.to ?? ""}. The letter he was to speak: "${dispatch.letter}"` + (dispatch.mandate.length > 0 ? ` His mandate: "${dispatch.mandate}"` : "")
+      ? `leaving the city for the court of ${trail?.to ?? ""}. The letter he was to speak: ${quoteWords(dispatch.letter)}` + (dispatch.mandate.length > 0 ? ` His mandate: ${quoteWords(dispatch.mandate)}` : "")
       : `coming home to the city from the court of ${trail?.to ?? "abroad"}.`;
   notify(
     S,

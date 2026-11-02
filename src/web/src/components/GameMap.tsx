@@ -5,8 +5,9 @@ import type { MapInput, MapRenderer } from "../map/renderer.ts";
 import { SvgMapRenderer } from "../map/svg-renderer.ts";
 
 export interface MapHandle {
-  /** Brings a point of the board into view (following a character, or a province chosen from the list). */
-  focus(at: Pt, minZoom?: number): void;
+  /** Brings a point of the board into view (following a character, or a province chosen from the list); `centre` puts it
+   * in the middle of the view. */
+  focus(at: Pt, minZoom?: number, centre?: boolean): void;
   /** Where the map is looking now (the world's sound bed follows it, item 19+++). */
   view(): MapView | null;
 }
@@ -52,6 +53,7 @@ export function GameMap({
   onPerson,
   onMark,
   onBlank,
+  onCamera,
   children,
   ref,
 }: {
@@ -62,13 +64,15 @@ export function GameMap({
   onPerson: (id: string) => void;
   onMark: (id: string, province: string | null) => void;
   onBlank: () => void;
+  /** The player moved the camera (a drag, or the whole map shown): it is theirs, so a follow stops keeping it on its person. */
+  onCamera?: () => void;
   children?: ReactNode;
   ref?: Ref<MapHandle>;
 }) {
   const view = useRef<HTMLDivElement>(null);
   const renderer = useRef<MapRenderer | null>(null);
-  const handlers = useRef({ onProvince, onPerson, onMark, onBlank });
-  handlers.current = { onProvince, onPerson, onMark, onBlank };
+  const handlers = useRef({ onProvince, onPerson, onMark, onBlank, onCamera });
+  handlers.current = { onProvince, onPerson, onMark, onBlank, onCamera };
   // The view before "show the whole map", to come back to.
   const [back, setBack] = useState<MapView | null>(null);
   // Item 17++, part C: the realms view (who holds what) or the mood of the land, one tap away.
@@ -85,9 +89,13 @@ export function GameMap({
       onBlank: () => handlers.current.onBlank(),
     });
     renderer.current = r;
+    const el = view.current!;
+    const drag = (): void => handlers.current.onCamera?.();
+    el.addEventListener("mapdrag", drag);
     // For the map's checks in a development build: the renderer, to zoom and focus from a test.
     if (import.meta.env.DEV) (window as unknown as { __map?: MapRenderer }).__map = r;
     return () => {
+      el.removeEventListener("mapdrag", drag);
       keep(key.current, r.getView());
       r.destroy();
       renderer.current = null;
@@ -108,12 +116,14 @@ export function GameMap({
     return () => keep(viewKey, r.getView());
   }, [viewKey]);
 
-  useImperativeHandle(ref, () => ({ focus: (at, minZoom = 1) => renderer.current?.focus(at, minZoom), view: () => renderer.current?.getView() ?? null }), []);
+  useImperativeHandle(ref, () => ({ focus: (at, minZoom = 1, centre = false) => renderer.current?.focus(at, minZoom, centre), view: () => renderer.current?.getView() ?? null }), []);
 
   // One button shows the whole map, and the same button returns to where the map was.
   const whole = (): void => {
     const r = renderer.current;
     if (r === null) return;
+    // The player moves the camera: a follow no longer keeps it on its person.
+    handlers.current.onCamera?.();
     const now = r.getView();
     if (back !== null) {
       r.setView(back.at, back.zoom, true);
