@@ -57,9 +57,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
   #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
   locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568). **Left, each its own PR with
-  behaviour proven:** splits the review found, each file holding two or three things: `llm/src/schemas.ts` (JSON-schema
-  tools; orders and letters; envoy and court replies), `llm/src/prompts.ts` (the king's briefs; audience and person
-  prompts), `llm/src/character-mind.ts` (the audience path), `llm/src/seat-setup.ts` (presets and cost estimate),
+  behaviour proven:** splits the review found, each file holding two or three things (`prompts.ts` #572 and `schemas.ts`
+  #573 done): `llm/src/character-mind.ts` (the audience path), `llm/src/seat-setup.ts` (presets and cost estimate),
   `bots/statecraft-letters.ts` (the audiences), `bots/tactics.ts` (joints, winter), `web/src/audio/player.ts` (the
   listening page), `web/src/pages/Home.tsx` (saved games and replays); then `--noUnusedLocals` again on the open PRs'
   files once they merge.

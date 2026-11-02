@@ -26,7 +26,8 @@ import { CompatibleProvider, type ProviderSetting } from "./compatible.ts";
 import { LlmLeaderSeat } from "./leader-seat.ts";
 import { ModelIds, PriceTable, type PriceSetting } from "./models.ts";
 import { LlmNarrator } from "./narrator.ts";
-import { Replies, type ReplySchema } from "./schemas.ts";
+import type { ReplySchema } from "./schema-tools.ts";
+import { Replies } from "./schemas.ts";
 
 /**
  * Who plays a king: "Script", "Human", "LocalAgent" (local play on a Claude subscription, through the local bridge), or a

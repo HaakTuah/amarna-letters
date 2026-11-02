@@ -49,7 +49,8 @@ import { audience, ordersStandAtCourt } from "./prompt-audience.ts";
 import { tabletBrief, tabletLine } from "./prompt-letters.ts";
 import { leaderRules } from "./rules.ts";
 import { planRules } from "./rules-plan.ts";
-import { Replies, Schemas, type JsonObject } from "./schemas.ts";
+import type { JsonObject } from "./schema-tools.ts";
+import { Replies, Schemas } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
 
 /** The log key of one exchange of an audience: each answer is logged under it, whatever call made it. */

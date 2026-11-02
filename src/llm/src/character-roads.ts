@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { land, newChiefChoice, newReportsChoice, type ChiefChoice, type ChiefView, type Kill, type LandSeen, type ReportsChoice, type ReportsView } from "@amarna/engine";
-import { object, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import { Sb } from "./text.ts";
 
 /** Whom his men kill, in his words, and back. */
