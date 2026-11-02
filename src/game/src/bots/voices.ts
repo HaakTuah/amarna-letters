@@ -111,11 +111,11 @@ export const Letter = {
       (x) =>
         "My brother, our fathers sent messengers to each other; let us do the same. My soldiers will not cross into your land, nor yours into mine." +
         (x.gift ? " I send gold with my messenger, for I love my brother." : "") +
-        " The tablet he carries waits for your seal.",
+        " Set your seal on the tablet he carries.",
       (x) =>
         "I desire brotherhood with you, and no quarrel. Let no soldier of mine or of yours cross between our lands." +
         (x.gift ? " The gold I send speaks my love for my brother." : "") +
-        " Seal the tablet my messenger brings, before the gods of both our lands.",
+        " Set your seal on the tablet my messenger brings, before the gods of both our lands.",
     ]),
   lull: (p: LetterParts): string =>
     L(p, "lull", [
@@ -267,9 +267,9 @@ const Closings: Partial<Record<Power, readonly string[]>> = {
   ],
   Alashiya: [
     "I send you copper from my mountains; send me silver and gold.",
-    "Your messenger will come home with copper.",
-    "Copper is what my island has, and I do not hold it back.",
-    "Your ships know the way to my harbour, and my copper waits for them.",
+    "Your messenger will bring copper home; let him bring me gold.",
+    "Copper is what my island has, and I do not hold it back; send me silver.",
+    "Your ships know the way to my harbour; let them bring me gold for my copper.",
   ],
 };
 
@@ -289,7 +289,7 @@ export const Audience = {
   modest: ["Your lord writes modestly to a Great King. It is well.", "Your lord knows how to write to a Great King."],
   lightGold: ["My scales say your lord sends light gold to a Great King.", "Either your lord's hand is close, or his messenger's hands are heavy with my gold."],
   smallGift: ["I have received your gift. It is small, for a Great King.", "Your gift has come. A Great King sends more.", "This gift is light for a Great King to send."],
-  thanks: ["I have received your gift, and I thank my brother.", "The gift has come, and it pleases me; my brother is generous.", "My brother's gift has come, and I am glad of it."],
+  thanks: ["I have received your gift, and I thank my brother.", "The gift has come; my brother is generous.", "My brother's gift has come, and I am glad of it."],
   copy: ["I have seen the tablet you show me. Whoever breaks oaths, or forges them, I will know him again.", "I have read the tablet you bring. I will know who made it."],
   sealed: ["I have sealed the tablet before the gods.", "The tablet is sealed; the gods are witness.", "It is sealed, and Shamash has seen it."],
   refuseGives: ["I will not seal a tablet that bargains with my land, my gold or my tribute."],
