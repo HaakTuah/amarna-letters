@@ -12,7 +12,7 @@ import { sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { idiv } from "../core/num.ts";
 import { UnrestData } from "../model/unrest.ts";
-import { caravanAt, newCaravan, type Caravan } from "../model/caravans.ts";
+import { caravanAt, caravanGone, newCaravan, setOut, type Caravan } from "../model/caravans.ts";
 import { buyAlongCurve, needOf, priceAt, sellAlongCurve } from "../model/economy.ts";
 import { newMarketSeen, type MarketSeen } from "../model/views.ts";
 import { newWord, noteMarket, noteTolls, type Word } from "../model/word.ts";
@@ -161,7 +161,7 @@ P.atBorder = function (c, a, b, book) {
   if (sneaking) {
     const odds = smuggleOdds(c.grain, c.gold, S.counterIntel.getOrDefault(k, 0), RoadOdds.most, policeAt(S, b));
     if (this.r("smuggle", `${c.id}-${b}`).nextDouble() * 100 >= odds) {
-      logEvent(S, "smuggled", `${c.power}'s ${c.sneak ? "smugglers" : "caravan"} slipped into ${k}'s land at ${name}.`, [c.power], c.sneak ? "smuggled" : "caravan-slipped");
+      logEvent(S, "smuggled", `${c.power}'s ${c.sneak ? "smugglers" : "caravan"} slipped into ${k}'s land at ${name}.`, [...this.nearOf(b, c.power)], c.sneak ? "smuggled" : "caravan-slipped");
       return "pass";
     }
     const lost = this.putInStores(b, c.grain);
@@ -171,12 +171,12 @@ P.atBorder = function (c, a, b, book) {
     e.gold += c.gold;
     e.found++;
     const who = c.sneak ? "smugglers" : "caravan, sneaking through land closed to you,";
-    notify(S, c.power, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${k}'s people, and ${c.sneak ? "their" : "its"} goods were seized: ${c.grain} measures of grain${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""}.`);
-    logEvent(S, "smuggler-found", `${k}'s people found ${c.power}'s ${c.sneak ? "smugglers" : "caravan"} at ${name} and seized ${c.sneak ? "their" : "its"} goods.`, [c.power, k], c.sneak ? "smuggler-found" : "caravan-found");
+    this.tell(c.power, b, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${k}'s people, and ${c.sneak ? "their" : "its"} goods were seized: ${c.grain} measures of grain${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""}.`);
+    logEvent(S, "smuggler-found", `${k}'s people found ${c.power}'s ${c.sneak ? "smugglers" : "caravan"} at ${name} and seized ${c.sneak ? "their" : "its"} goods.`, [...this.nearOf(b, c.power), k], c.sneak ? "smuggler-found" : "caravan-found");
     return "seized";
   }
   if ((S.roadsClosed.tryGet(k) ?? []).includes(c.power) && !this.passageFor(k, c.power, b)) {
-    notify(S, c.power, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} was turned back at the border of ${k}'s land at ${name}: his roads are closed to your people.`);
+    this.tell(c.power, b, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} was turned back at the border of ${k}'s land at ${name}: his roads are closed to your people.`);
     const heard = S.roadsHeard.tryGet(c.power) ?? [];
     if (!heard.includes(k)) S.roadsHeard.set(c.power, [...heard, k]);
     return "turned";
@@ -193,8 +193,8 @@ P.atBorder = function (c, a, b, book) {
   e.grain += grain - lost;
   e.gold += gold;
   if (grain + gold > 0) {
-    notify(S, c.power, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} paid ${k}'s toll of ${rate}% at ${name}: ${grain} measures of grain${gold > 0 ? ` and ${formatMoney(gold)}` : ""}.`);
-    logEvent(S, "toll", `${c.power}'s goods paid ${k}'s toll at ${name}.`, [c.power, k], "toll-paid");
+    this.tell(c.power, b, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} paid ${k}'s toll of ${rate}% at ${name}: ${grain} measures of grain${gold > 0 ? ` and ${formatMoney(gold)}` : ""}.`);
+    logEvent(S, "toll", `${c.power}'s goods paid ${k}'s toll at ${name}.`, [...this.nearOf(b, c.power), k], "toll-paid");
   }
   return "pass";
 };
@@ -259,7 +259,7 @@ P.tradeTogether = function (cs, parts) {
     c.gold += paid[i];
     if (taken[i] > 0) say(c, `sold ${taken[i]} measures of grain for ${formatMoney(paid[i])}`);
     if (c.grain > 0) say(c, `its people's purse could pay for no more (${c.grain} unsold)`);
-    if (taken[i] > 0) logEvent(S, "sale-abroad", `${c.power} sold grain at ${name}${besieged ? ", besieged" : ""}.`, [c.power], besieged ? "besieged-fed" : "sale-abroad");
+    if (taken[i] > 0) logEvent(S, "sale-abroad", `${c.power} sold grain at ${name}${besieged ? ", besieged" : ""}.`, [...this.nearOf(at, c.power)], besieged ? "besieged-fed" : "sale-abroad");
   });
   // The buyers' gold, as one purse, each buying no more than it can carry.
   const spend = open.map((c, i) => (besieged ? 0 : c.gold - paid[i]));
@@ -279,7 +279,7 @@ P.tradeTogether = function (cs, parts) {
     c.gold -= cost[i];
     c.grain += got[i];
     say(c, `bought ${got[i]} measures of grain for ${formatMoney(cost[i])}`);
-    logEvent(S, "purchase-abroad", `${c.power} bought grain at ${name}.`, [c.power], "purchase-abroad");
+    logEvent(S, "purchase-abroad", `${c.power} bought grain at ${name}.`, [...this.nearOf(at, c.power)], "purchase-abroad");
   });
   // What each found after the season's trades, which it carries home.
   for (const c of open) noteMarket(c.word, at, this.marketNow(at));
@@ -301,28 +301,40 @@ P.caravanHome = function (c) {
     c.grain = this.putInStores(at, c.grain);
     if (before > c.grain) parts.push(`${before - c.grain} measures of grain into the stores`);
   }
-  if (c.gold > 0) {
-    const t = S.treasuries.get(c.power);
-    t.gold += c.gold;
-    t.income += c.gold;
-    parts.push(`${formatMoney(c.gold)} into the treasury`);
-    c.gold = 0;
+  // Bug #540: home beyond the couriers' season, its gold, its word and any archive go on to the court as a load, as a far
+  // market's proceeds do (item 13); near, they reach it now.
+  const far = this.wordTo(c.power, at) > 0 && (c.gold > 0 || c.archive.length > 0);
+  if (far && this.lootHome(c.power, at, c.gold, c.archive, c.archiveOf)) {
+    S.caravans[S.caravans.length - 1].word = c.word;
+    if (c.gold > 0) parts.push(`${formatMoney(c.gold)} sent on to the treasury`);
+  } else if (far) {
+    // No road on to the court: it reaches it at once, as loot does (TurnEngine.lootHome).
+    if (c.gold > 0) parts.push(`${formatMoney(c.gold)} into the treasury`);
+    this.hearWord(c.power, c.word);
+  } else {
+    if (c.gold > 0) {
+      const t = S.treasuries.get(c.power);
+      t.gold += c.gold;
+      t.income += c.gold;
+      parts.push(`${formatMoney(c.gold)} into the treasury`);
+    }
+    // What it learned abroad of markets and tolls, its court learns now; a captured archive it carried is its king's now.
+    this.hearWord(c.power, c.word);
+    if (c.archive.length > 0) this.archiveArrives(c.power, c.archive, c.archiveOf, this.map.get(c.to).name);
   }
-  // What it learned abroad of markets and tolls, its court learns now; a captured archive it carried is its king's now.
-  this.hearWord(c.power, c.word);
-  if (c.archive.length > 0) this.archiveArrives(c.power, c.archive, c.archiveOf, this.map.get(c.to).name);
+  c.gold = 0;
   const fleet = this.rejoinFleet(c);
-  S.caravans.splice(S.caravans.indexOf(c), 1);
+  caravanGone(S, c);
   const lostLine = c.grain > 0 ? ` The other ${c.grain} measures had nowhere to go and were lost.` : "";
-  notify(
-    S,
+  this.tell(
     c.power,
+    at,
     "Notice",
     MarketsTitle,
     `Your ${c.ship !== null ? "ship" : "caravan"} came home to ${name}${parts.length > 0 ? ` with ${parts.join(" and ")}` : ""}.${lostLine}` +
       (c.ship !== null ? (fleet !== null ? ` The fleet is back in ${this.map.get(fleet).name}, ready for war.` : " Its waters and the seas near them were held, so its crew went home.") : ""),
   );
-  logEvent(S, "caravan", `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} came home to ${name}.`, [c.power], "caravan");
+  logEvent(S, "caravan", `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} came home to ${name}.`, [...this.nearOf(at, c.power)], "caravan");
 };
 
 /**
@@ -396,7 +408,8 @@ P.sendTraders = function (orders, tell) {
     t.gold -= gold;
     const trading = o.type === "trade" || o.trade;
     if (fleet !== null) S.units.splice(S.units.indexOf(fleet), 1);
-    S.caravans.push(
+    setOut(
+      S,
       newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, gold, route, since: S.turn, trade: trading, sneak: o.type === "trade" && o.sneak, ship: fleet }),
     );
     const what = `${grain} measures of grain${gold > 0 ? ` and ${formatMoney(gold)}` : ""}`;
@@ -488,7 +501,7 @@ P.lootHome = function (taker, from, gold, archive, archiveOf, to) {
     this.archiveArrives(taker, archive, archiveOf, this.map.get(from).name);
     return false;
   }
-  S.caravans.push(newCaravan({ id: newId(S, "v"), power: taker, from: cap, to: from, gold, route, at: 0, returning: true, since: S.turn, archive: [...archive], archiveOf }));
+  setOut(S, newCaravan({ id: newId(S, "v"), power: taker, from: cap, to: from, gold, route, at: 0, returning: true, since: S.turn, archive: [...archive], archiveOf }));
   return true;
 };
 

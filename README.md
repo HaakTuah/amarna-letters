@@ -413,8 +413,10 @@ gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods s
 battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
 you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
-Click such a city and its card gives only what your stewards last reported and how many seasons ago, never its new
-holder's affairs; a band your people last told of there is drawn faded, with the age of that word. Looking back at an
+Your land beyond a season's courier ride is shown the same way while you hold it: its stores, people, works and
+harvest as its officials last reported them, your caravans there as their last word has them, and your strength
+reckoned from what you know. Click such a city and its card gives only what your stewards last reported and how many
+seasons ago, never its new holder's affairs; a band your people last told of there is drawn faded, with the age of that word. Looking back at an
 earlier season, a card gives the figures recorded in that season, never today's.
 Figures on the roads in the fog are your own: your caravans, wherever they are, and your envoys and spies where you
 believe them; foreign troops show only in your land and where your troops stand, within a season's courier ride of your court, and

@@ -33,6 +33,9 @@ export function economyLines(v: SeatView): string[] {
     lines.push(
       `YOUR PROVINCES (grain in measures; prices in shekels for ten measures): stores ${stewards(sum(ps, (x) => x.stores))} of ${sum(ps, (x) => x.capacity)} room; the tax brings in ${stewards(sum(ps, (x) => x.tax))} a season; your towns need ${sum(ps, (x) => x.need)} a season; your markets hold ${sum(ps, (x) => x.stock)} and your people's purses ${sum(ps, (x) => x.purse)} shekels.`,
     );
+    // Bug #540: those beyond its couriers' season, as their officials' last report has them.
+    const reported = ps.filter((x) => x.reported !== null);
+    if (reported.length > 0) lines.push(`- Known by their last report, beyond your couriers' season: ${join(", ", reported.map((x) => `${x.province} as reported in turn ${x.reported}`))}.`);
     const spare = sortBy(ps.filter((x) => x.stores >= 20), [(x) => x.stores, desc(cmpNum)]).slice(0, 8);
     if (spare.length > 0) lines.push(`- Grain in store: ${join(", ", spare.map((x) => `${x.province} ${stewards(x.stores)} of ${x.capacity}${x.stores + x.tax > x.capacity ? " (full: the next tax will not fit)" : ""}`))}.`);
     const short = ps.filter((x) => x.stock < x.need);

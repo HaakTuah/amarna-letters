@@ -237,20 +237,11 @@ const siegeAfterOrders: Twin = {
 
 /**
  * Leaks still open, each with its issue: a difference matching one is not counted here, and each must still be found, so
- * the list shrinks as they are fixed. Bug #540: a far province's economy, works, people and caravans, and the realm's
- * totals, are shown as they are, not as last reported.
+ * the list shrinks as they are fixed. Question #587: the porters of a caravan from the far province are paid from the
+ * treasury before word of its setting out could come.
  */
 const Known: { issue: number; what: string; is: (difference: string) => boolean }[] = [
-  // Of the far province itself (Nippur, in every twin), and the realm's totals.
-  ...["provinces", "works"].map((k) => ({ issue: 540, what: `view.${k} of the far province`, is: (d: string) => d.startsWith(`view.${k}[nippur]: `) })),
-  { issue: 540, what: "a caravan to or from the far province", is: (d) => /^view\.caravans\[[a-z]+\]: /.test(d) && d.includes('"nippur"') },
-  ...["strength", "gold"].map((k) => ({ issue: 540, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
-  { issue: 540, what: "the treasury notice", is: (d) => /^only where (true|false): The treasury: /.test(d) },
-  { issue: 540, what: "the works notice", is: (d) => /^only where (true|false): Works: What you keep and build cost /.test(d) },
-  { issue: 540, what: "a caravan's arrival", is: (d) => /^only where (true|false): Markets and caravans: Your caravan reached /.test(d) },
-  { issue: 540, what: "the realm's reaping event", is: (d) => /^only where (true|false): event: Egypt's land reaped its harvest: /.test(d) },
-  { issue: 540, what: "a works event of the far province", is: (d) => /^only where (true|false): event: Egypt (raised|repaired) [^.]*Nippur/.test(d) },
-  { issue: 540, what: "a caravan's arrival event", is: (d) => /^only where (true|false): event: Egypt's caravan reached /.test(d) },
+  ...["strength", "gold"].map((k) => ({ issue: 587, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
 ];
 
 /** Every difference a twin's seasons show, each with the known leak it is, if any. */

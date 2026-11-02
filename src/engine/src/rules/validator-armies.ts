@@ -71,7 +71,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (v.knownOwner(f.province) !== power) return `you do not hold ${prov.name}`;
       const data = WorksData[f.kind];
       if (!Number.isInteger(f.level) || f.level < 0 || f.level > data.most) return `the ${workName(f.kind)} go from 0 to ${workLevelText(f.kind, data.most)}`;
-      const level = levelOf(S, f.kind, f.province);
+      const level = v.knownWork(f.kind, f.province);
       const land = landRefusal(f.kind, prov);
       if (land !== null && f.level > level) return land;
       if (f.share != null && (!f.labour || !Number.isInteger(f.share) || f.share <= 0 || f.share > 100)) return "a corvée's share is a percent of the men of fighting age at home, from 1 to 100, and only by corvée";

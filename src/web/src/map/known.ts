@@ -85,15 +85,17 @@ export function seesNow(f: SeasonFrame, viewer: Power | null, id: string): boole
 
 /**
  * The season whose figures of a province's own land (its people, how they ate, its stores, the bands its people tell of)
- * the viewer's map shows, or null for none: land it knows it holds. Where it truly holds it too, now, as the engine's
- * own view of a court shows it its provinces; where it lost it without knowing, the last season it truly held it, so
- * the town stands as it last knew it until word of the loss arrives (never vanishing the season it is lost). God view:
- * now, everywhere.
+ * the viewer's map shows, or null for none: land it knows it holds. Where it sees it, now, as the engine's own view of a
+ * court shows it its provinces; farther off, as of the season the word of its holder is from (bug #540: never newer
+ * than its officials' last report), the last season by then it truly held it, so the town stands as it last knew it
+ * until word of a loss arrives (never vanishing the season it is lost). God view: now, everywhere.
  */
 export function ownFiguresAt(frames: readonly SeasonFrame[], index: number, viewer: Power | null, id: string): number | null {
   if (viewer === null) return index;
   const f = frames[index];
-  if (f === undefined || f.knownOwner.get(viewer)?.get(id)?.owner !== viewer) return null;
-  for (let k = index; k >= 0; k--) if ((frames[k].owner.get(id) ?? null) === viewer) return k;
+  const k = f?.knownOwner.get(viewer)?.get(id);
+  if (f === undefined || k?.owner !== viewer) return null;
+  const asOf = f.sight.get(viewer)?.has(id) ? f.turn : k.turn;
+  for (let i = index; i >= 0; i--) if (frames[i].turn <= asOf && (frames[i].owner.get(id) ?? null) === viewer) return i;
   return null;
 }

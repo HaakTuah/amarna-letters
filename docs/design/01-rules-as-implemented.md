@@ -269,7 +269,8 @@
   (until item 11a, less the back pay owed; since then nothing owed is subtracted: `21-money-and-work.md`). Growth is strength over starting strength. Units are not counted;
   they cost upkeep and are the means to land. One function computes it (`strength`): the
   engine's score with true gold and the back pay a power really owes; a seat's own strength line
-  (`TurnEngine.ledgerStrength`) with its gold by its ledger and the back pay it believes it owes,
+  (`SeatView.strength`) with its gold by its ledger and the back pay it believes it owes, and its far land, troops and
+  caravans as last reported (bug #540),
   covers included; the script kings with what their view shows (see Script kings). The rulebook's
   HOW YOU WIN says so ("... + the gold in your treasury - the back pay you owe your people"), and the
   view's treasury line says that back pay is counted against it. (Until the simulation-fixes round's

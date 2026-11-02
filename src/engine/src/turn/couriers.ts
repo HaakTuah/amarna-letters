@@ -22,6 +22,7 @@ import { cheapestRoute, legPoints } from "../model/travel.ts";
 import { RoadOdds } from "./travel.ts";
 import { asItStands } from "./plans.ts";
 import { TurnEngine } from "./core.ts";
+import { reportCaravan } from "../model/caravans.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -280,4 +281,6 @@ P.keepTrails = function () {
     u.trail.push(`${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}|${u.chest}|${u.buy ? 1 : 0}`);
     if (u.trail.length > TrailKept) u.trail.splice(0, u.trail.length - TrailKept);
   }
+  // Bug #540: the caravans' reports too, which come home as word does.
+  for (const c of this.s.caravans) reportCaravan(c, this.s.turn);
 };

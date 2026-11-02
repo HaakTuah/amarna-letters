@@ -13,7 +13,7 @@ import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
-import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit } from "../model/state.ts";
+import { alive, isAlive, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit } from "../model/state.ts";
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
@@ -41,7 +41,6 @@ declare module "./core.ts" {
     /** `ceded`: the king ceded his capital by agreement (item 11d) rather than losing it. */
     fall(p: Power, conqueror: Power | null, taker: Power | null, ceded?: boolean): void;
     strength(p: Power): number;
-    ledgerStrength(p: Power): number;
     landYield(p: Power): number;
     growth(p: Power): number;
     /** The final score of each living power, highest first, with its size and performance beside it (item 11e). */
@@ -718,14 +717,6 @@ export function removeAll<T>(list: T[], match: (x: T) => boolean): T[] {
 /** The score: the wealth of the realm, its true gold counted (item 9+a); since item 11a nothing owed is subtracted. */
 P.strength = function (p) {
   return scoringStrength(this.s.config, this.landYield(p), this.s.treasuries.get(p).gold, this.holdings(p));
-};
-
-/**
- * Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at their weight. A seat
- * must never see true strength, or it could read debased gold off the difference.
- */
-P.ledgerStrength = function (p) {
-  return scoringStrength(this.s.config, this.landYield(p), ledger(this.s.treasuries.get(p)), this.holdings(p));
 };
 
 /** The worth a season of the land a power holds at reference prices, each province counted as far as it obeys him. */

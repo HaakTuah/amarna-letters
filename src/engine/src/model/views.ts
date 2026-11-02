@@ -155,10 +155,15 @@ export interface ProvinceEconomyView {
   granary: number;
   crop: number;
   reapsIn: number;
+  /**
+   * Bug #540: the season of the report this is, for a province of the court's beyond its couriers' season (its officials'
+   * report as that season ended, 0 for the start); null when it is as it is now.
+   */
+  reported: number | null;
 }
 
 export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
-  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, counted: null, settled: 0, men: 0, loose: 0, town: 0, room: 0, share: 0, amount: null, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, ...init };
+  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, counted: null, settled: 0, men: 0, loose: 0, town: 0, room: 0, share: 0, amount: null, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, reported: null, ...init };
 }
 
 export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
@@ -185,6 +190,7 @@ export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("Pr
   granary: I,
   crop: I,
   reapsIn: I,
+  reported: opt(I),
 });
 
 /** One of the court's caravans on the road (item 9+a), or ships in cargo service (item 9+b). */
