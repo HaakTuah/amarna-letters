@@ -14,7 +14,7 @@ import { gain, newNewsHeld, remember, type Character } from "../model/people.ts"
 import type { Power } from "../model/power.ts";
 import { newJourney, Waiting, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId } from "../model/state.ts";
-import { hostileAt } from "../model/works.ts";
+import { bidden } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { basePrice } from "./court.ts";
@@ -52,13 +52,13 @@ function courtIn(e: TurnEngine, province: string): Power | null {
 }
 
 /**
- * A king's enemies, by the game's own marks of enmity: those whose troops stand in his land unbidden (`hostileAt`), and
+ * A king's enemies, by the game's own marks of enmity: those whose troops stand in his land unbidden (`bidden`), and
  * those who have closed their roads to him or he to them.
  */
 function enemiesOf(e: TurnEngine, holder: Power, but: Power): Set<Power> {
   const S = e.s;
   const out = new Set<Power>();
-  for (const u of S.units) if (u.power !== holder && u.power !== but && S.owner.getOrDefault(u.province, null) === holder && hostileAt(S, u.province, holder)) out.add(u.power);
+  for (const u of S.units) if (u.power !== holder && u.power !== but && S.owner.getOrDefault(u.province, null) === holder && !bidden(S, u.power, u.province, holder)) out.add(u.power);
   for (const p of S.roadsClosed.tryGet(holder) ?? []) if (p !== but) out.add(p);
   for (const [p, closed] of S.roadsClosed.entries()) if (p !== holder && p !== but && closed.includes(holder)) out.add(p);
   return new Set([...out].filter((p) => isAlive(S, p)));
@@ -74,7 +74,12 @@ function knows(e: TurnEngine, c: Character, at: string, p: Power, own: boolean):
   const name = e.map.get(at).name;
   remember(c, S.turn, `I carry the word of the people of ${name} to the court of ${p}: they lean his way and offer themselves to him.`);
   if (own && !sellsSecrets(c)) return;
-  c.news = [...c.news.filter((n) => n.court !== p || !n.lines.some((l) => l.startsWith(`The people of ${name} `))), newNewsHeld({ court: p, turn: S.turn, lines: [`The people of ${name} lean toward ${p} and have sent him their offer.`] })];
+  // One piece of news a court: added to what he holds of the claimant's court, or held on its own, telling only its lines.
+  const line = `The people of ${name} lean toward ${p} and have sent him their offer.`;
+  const had = c.news.find((n) => n.court === p) ?? null;
+  if (had !== null) {
+    if (!had.lines.includes(line)) had.lines.push(line);
+  } else c.news.push(newNewsHeld({ court: p, turn: S.turn, lines: [line], landSeen: false }));
   logEvent(S, "letter", `${c.name} knows of the offer he carries, and may sell it.`, [], "offer-news");
 }
 

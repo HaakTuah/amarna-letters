@@ -27,7 +27,7 @@ revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 4
   outlaws loses it with what they took (`offersRobbed`, from `stopped` in `travel.ts`; `offer-robbed`). A cession by treaty is a king's word, told as before.
 - **Talk** (`sendOffer`): talk of the leaning reaches the power, the holder and the holder's enemies at the roads' pace
   from the province (a "Talk of ..." rumour, `offer-talk`). His enemies (`enemiesOf`), by the game's marks of enmity:
-  those whose troops stand unbidden in his land (`hostileAt`), and those who closed their roads to him or he to them.
+  those whose troops stand unbidden in his land (`bidden`, per power), and those who closed their roads to him or he to them.
   Talk is no offer: it cannot be answered. It bends as it travels: no figures, no carrier named, and the holder keeps it
   as a travellers' read of the land's mood (restless, dated, `readMood`), in THE MOOD OF THE LAND until newer word.
 

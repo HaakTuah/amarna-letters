@@ -62,11 +62,8 @@ P.carryLetters = function () {
   for (const letter of waiting) {
     // Taken already this season, with another letter waiting there for the same court.
     if (letter.carrier !== null) continue;
-    // Item 17++, part D: a province's offer to an absent power finds its own carriers (`offers.ts`).
-    if (letter.kind === "Offer") {
-      this.carryOffer(letter);
-      continue;
-    }
+    // Item 17++, part D: a province's offer to an absent power finds its own carriers, after the other letters (below).
+    if (letter.kind === "Offer") continue;
     if (!isAlive(S, letter.to)) {
       S.journeys.splice(S.journeys.indexOf(letter), 1);
       continue;
@@ -211,6 +208,8 @@ P.carryLetters = function () {
     }
     logEvent(S, "letter", `${carrier.name} took a letter from ${this.map.get(at).name} for ${letter.to}${fee > 0 ? ` for ${formatMoney(fee)} on delivery` : ""}.`, [], carrier === spy ? "carrier-self" : passer === null ? "carrier-hired" : own !== null ? "carrier-own" : "carrier-passing");
   }
+  // Item 17++, part D: offers last, while this season's carriers of spy reports still stand where they were taken up.
+  for (const offer of waiting.filter((x) => x.kind === "Offer" && x.carrier === null && S.journeys.includes(x))) this.carryOffer(offer);
 };
 
 P.lettersGo = function () {

@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newJourney, newTraits, newUnit, Waiting, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
+import { Dict, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newGrant, newJourney, newTraits, newUnit, Waiting, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
 import { Assert, removeAll } from "./support.ts";
 
 // Item 17++, part D (#431, the owner: "Yes, expertly, if you think it is best"): a province's offer to an absent power
@@ -172,5 +172,42 @@ describe("OfferTests", () => {
     s.journeys.unshift(newJourney({ id: "j0", kind: "Ransom", departTurn: s.turn, arriveTurn: Waiting, from: "Babylonia", to: "Egypt", waitAt: "babylon" }));
     e.carryLetters();
     Assert.null(offer(s).carrier);
+  });
+
+  test("An offer older than a spy report goes with the carrier that report takes up this season", () => {
+    const [s, e] = offered();
+    const spy = person(s, { status: "Employed", employer: "Egypt", duty: "SpyPosted", watchProvince: "babylon", purse: 1000 });
+    const hire = person(s, { status: "Free", at: "Babylonia" });
+    s.journeys.push(newJourney({ id: newId(s, "j"), kind: "SpyReport", departTurn: s.turn - 1, arriveTurn: Waiting, from: "Egypt", to: "Egypt", characterId: spy.id, waitAt: "babylon" }));
+    e.carryLetters();
+    Assert.equal(hire.id, offer(s).carrier);
+    Assert.contains(s.events, (x) => x.signal === "offer-spy");
+  });
+
+  test("A guest by the land king's leave is no enemy of his, though another's army stands beside him unbidden", () => {
+    const s = quiet();
+    const e = new TurnEngine(s);
+    e.beginTurn();
+    const theirs = WorldMap.default.landProvinces.find((x) => s.owner.getOrDefault(x.id, null) === "Babylonia" && x.id !== "babylon")!.id;
+    removeAll(s.units, (u) => u.province === theirs);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: theirs }));
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Fleet", province: theirs }));
+    s.grants.push(newGrant({ grantor: "Babylonia", grantee: "Assyria", kind: "basing", province: theirs, from: s.turn - 1 }));
+    const d = newDeclaration({ province: "babylon", power: "Egypt" });
+    s.declarations.push(d);
+    e.sendOffer(d, "Babylonia", "The people declare for you.");
+    const told = s.journeys.filter((j) => j.kind === "Word" && (j.text ?? "").includes("Talk of")).map((j) => j.to);
+    Assert.contains(told, (x) => x === "Hatti");
+    Assert.doesNotContain(told, (x) => x === "Assyria");
+  });
+
+  test("Bought, word of an offer tells its lines and none of the claimant's land", () => {
+    const [s, e] = offered();
+    farGone(s);
+    e.market("babylon").purse = 10000;
+    const c = person(s, { status: "Free", at: "Babylonia" });
+    e.carryLetters();
+    const n = c.news.find((x) => x.court === "Egypt")!;
+    Assert.false(n.landSeen);
   });
 });
