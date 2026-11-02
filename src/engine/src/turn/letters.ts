@@ -62,6 +62,11 @@ P.carryLetters = function () {
   for (const letter of waiting) {
     // Taken already this season, with another letter waiting there for the same court.
     if (letter.carrier !== null) continue;
+    // Item 17++, part D: a province's offer to an absent power finds its own carriers (`offers.ts`).
+    if (letter.kind === "Offer") {
+      this.carryOffer(letter);
+      continue;
+    }
     if (!isAlive(S, letter.to)) {
       S.journeys.splice(S.journeys.indexOf(letter), 1);
       continue;

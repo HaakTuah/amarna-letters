@@ -1,0 +1,174 @@
+/**
+ * Who carries a province's offer (item 17++, part D; the owner's answer to #431, 2 November 2026: "Yes, expertly, if you
+ * think it is best"; "Whom a province obeys" under War). A province declaring for a power whose troops are not there sends
+ * him its offer only if someone carries it: talk of its leaning spreads at the roads' pace to him, to its holder and to the
+ * kings beside it, but the offer itself is a letter waiting in the province, as a spy's report waits ("Messengers are
+ * errands"). His own spy watching it reports it with his reports; a man of his going that way carries it for nothing; and
+ * only a people far gone in his favour, with the gold, pays a traveller going that way from its own purse, or a free person
+ * at the court there to take it. A carrier knows whom he carries for and to whom, and one who sells secrets sells that to
+ * the land's king. An offer nobody carries never arrives, and fades as the people's leaning does.
+ */
+import { idiv } from "../core/num.ts";
+import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
+import { OfferUnheard, type Declaration } from "../model/declarations.ts";
+import { gain, remember, type Character } from "../model/people.ts";
+import type { Power } from "../model/power.ts";
+import { newJourney, Waiting, type Journey } from "../model/records.ts";
+import { findCharacter, isAlive, logEvent, newId } from "../model/state.ts";
+import { formatMoney } from "../rules/calendar.ts";
+import { idNumber, TurnEngine } from "./core.ts";
+import { basePrice } from "./court.ts";
+import { LetterData } from "./letters.ts";
+import { sellsSecrets } from "./news.ts";
+import { isWalker } from "./travel.ts";
+
+/**
+ * First guesses, for item 18: how far a people's lean toward a power must pass its holder's weight before it pays a
+ * courier from its purse; and what the land's king pays a carrier who sells him word of it.
+ */
+export const OfferData = { farGone: 40, sellPrice: 20 } as const;
+
+declare module "./core.ts" {
+  interface TurnEngine {
+    /** A province declares for an absent power: its offer waits there for a carrier, and talk of its leaning spreads. */
+    sendOffer(d: Declaration, holder: Power | null, text: string): void;
+    /** Each season, with the letters: a waiting offer finds a carrier, or waits. */
+    carryOffer(letter: Journey): void;
+    /** An offer reaches the court it was sent to: from then he knows it and may answer it. */
+    offerArrives(j: Journey): void;
+    /** A declaration ended: any offer of it still waiting for a carrier is not sent. */
+    dropOffer(d: Declaration): void;
+  }
+}
+
+const P = TurnEngine.prototype;
+
+/** The court whose capital is a province, if any. */
+function courtIn(e: TurnEngine, province: string): Power | null {
+  for (const p of e.s.owner.values()) if (p !== null && isAlive(e.s, p) && e.courtAt(p) === province) return p;
+  return null;
+}
+
+/** The province an offer is from: written first in its letter. */
+const provinceOf = (j: Journey): string => (j.text ?? "").split("|")[0];
+
+P.sendOffer = function (d, holder, text) {
+  const S = this.s;
+  const name = this.map.get(d.province).name;
+  d.known = OfferUnheard;
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Offer", departTurn: S.turn, arriveTurn: Waiting, from: holder ?? d.power, to: d.power, waitAt: d.province, text: `${d.province}|${text}` }));
+  logEvent(S, "declare", `The people of ${name} would send to ${d.power}.`, [], "offer-sent");
+  // Talk of it: to the power it leans to, to its holder, and to the kings beside it, at the roads' pace from there.
+  const near = new Set<Power>();
+  for (const n of this.map.neighbors(d.province)) {
+    const h = S.owner.getOrDefault(n, null);
+    if (h !== null && h !== holder && h !== d.power && isAlive(S, h)) near.add(h);
+  }
+  const told: [Power, string][] = [
+    [d.power, `Travellers say the people of ${name} lean your way. It is talk, not their word: they offer you nothing unless someone brings it.`],
+    ...(holder !== null && isAlive(S, holder) ? [[holder, `Travellers say the people of ${name} lean toward ${d.power}.`] as [Power, string]] : []),
+    ...sortBy([...near], [(x: Power) => x, cmpStr]).map((x): [Power, string] => [x, `Travellers say the people of ${name} lean toward ${d.power}${holder !== null ? `, away from ${holder}` : ""}.`]),
+  ];
+  for (const [p, words] of told) {
+    const seasons = this.travelTurnsBetween(d.province, this.courtAt(p));
+    S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + 1 + (Number.isFinite(seasons) ? seasons : 1), from: p, to: p, news: "Realm", text: `Rumor|Talk of ${name}|${words}` }));
+  }
+  logEvent(S, "declare", `Talk of ${name}'s leaning toward ${d.power} spread.`, [], "offer-talk");
+};
+
+P.dropOffer = function (d) {
+  const S = this.s;
+  S.journeys = S.journeys.filter((j) => !(j.kind === "Offer" && j.carrier === null && j.to === d.power && provinceOf(j) === d.province));
+};
+
+P.carryOffer = function (letter) {
+  const S = this.s;
+  const at = letter.waitAt!;
+  const p = letter.to;
+  const d = S.declarations.find((x) => x.province === at && x.power === p && x.gone === null && x.from === null) ?? null;
+  if (d === null || !isAlive(S, p)) {
+    S.journeys.splice(S.journeys.indexOf(letter), 1);
+    return;
+  }
+  // His own spy watching it reports it with his reports: it goes with their carrier, whoever that is.
+  const report = S.journeys.find((j) => j.kind === "SpyReport" && j.waitAt === at && j.to === p && j.carrier !== null) ?? null;
+  if (report !== null) {
+    letter.carrier = report.carrier;
+    letter.border = report.border;
+    logEvent(S, "letter", `The offer of ${this.map.get(at).name}'s people went to ${p} with its spy's reports.`, [], "offer-spy");
+    return;
+  }
+  const home = this.courtAt(p);
+  const seasons = Math.max(1, this.travelTurnsBetween(at, home));
+  const understood = (c: Character | null): boolean => c !== null && this.reach(c.tongues, p, c.id).skill > 0;
+  const going = sortBy(
+    S.journeys.filter((j) => isWalker(j) && j.kind !== "CaptiveConvoy" && j.route.length > 1 && j.route[j.leg] === at && j.route[j.route.length - 1] === home && j.characterId !== null && understood(findCharacter(S, j.characterId))),
+    [(j: Journey) => idNumber(j.id), cmpNum],
+  ).map((j) => findCharacter(S, j.characterId)!);
+  // A man whose stakes it serves carries it for nothing: one in his service, or one his grant made what he is.
+  const own = going.find((c) => c.status !== "Captured" && (c.employer === p || c.grantedBy === p)) ?? null;
+  const holder = S.owner.getOrDefault(at, null);
+  const purse = this.market(at);
+  const far = this.weightIn(at, p) >= (holder !== null && isAlive(S, holder) ? this.weightIn(at, holder) : 0) + OfferData.farGone;
+  let carrier: Character | null = own;
+  let how = "offer-own";
+  if (carrier === null && far) {
+    // Paid from its people's purse: a traveller going that way his side fee, else a free person at the court there his
+    // fee for the whole journey.
+    const side = (c: Character): number => idiv(basePrice(c, p) * seasons * LetterData.sidePercent, 100);
+    const passer = going.find((c) => c.status !== "Captured" && purse.purse >= side(c)) ?? null;
+    if (passer !== null) {
+      purse.purse -= side(passer);
+      gain(passer, side(passer), "News");
+      remember(passer, S.turn, `The people of ${this.map.get(at).name} paid me ${formatMoney(side(passer))} to carry their word to the court of ${p} on my way.`);
+      carrier = passer;
+      how = "offer-paid";
+    } else {
+      const court = courtIn(this, at);
+      const ask = (c: Character): number => idiv(basePrice(c, p) * seasons * LetterData.hiredPercent, 100);
+      const hire =
+        court === null
+          ? null
+          : (sortBy(
+              S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && purse.purse >= ask(c) && understood(c)),
+              [(c: Character) => ask(c), cmpNum],
+              [(c: Character) => idNumber(c.id), cmpNum],
+            )[0] ?? null);
+      if (hire !== null) {
+        purse.purse -= ask(hire);
+        gain(hire, ask(hire), "News");
+        this.startTravel(hire, p);
+        remember(hire, S.turn, `The people of ${this.map.get(at).name} paid me ${formatMoney(ask(hire))} to carry their word to the court of ${p}.`);
+        carrier = hire;
+        how = "offer-hired";
+      }
+    }
+  }
+  if (carrier === null) return;
+  letter.carrier = carrier.id;
+  letter.fee = 0;
+  logEvent(S, "letter", `${carrier.name} took the offer of ${this.map.get(at).name}'s people to ${p}.`, [], how);
+  // He knows whom he carries for and to whom, and one who sells secrets sells it to the land's king.
+  if (how !== "offer-own" && holder !== null && holder !== p && isAlive(S, holder) && sellsSecrets(carrier) && S.treasuries.get(holder).gold >= OfferData.sellPrice) {
+    S.treasuries.get(holder).gold -= OfferData.sellPrice;
+    gain(carrier, OfferData.sellPrice, "News");
+    this.tell(holder, at, "Rumor", "Word sold on the road", `${carrier.name}, carrying the word of the people of ${this.map.get(at).name} to ${p}, sold it to your men for ${formatMoney(OfferData.sellPrice)}: they offer themselves to ${p}.`);
+    logEvent(S, "letter", `${carrier.name} sold ${holder} word of the offer he carried.`, [holder], "offer-sold");
+  }
+};
+
+P.offerArrives = function (j) {
+  const S = this.s;
+  const province = provinceOf(j);
+  const d = S.declarations.find((x) => x.province === province && x.power === j.to && x.gone === null && x.from === null) ?? null;
+  if (d === null || !isAlive(S, j.to)) return;
+  d.known = S.turn;
+  const [, ...text] = (j.text ?? "").split("|");
+  const c = findCharacter(S, j.carrier);
+  notify(this, j.to, `${text.join("|")}${c !== null ? ` ${c.name} brought it.` : ""}`);
+  logEvent(S, "declare", `The offer of ${this.map.get(province).name}'s people reached ${j.to}.`, [j.to], "offer-arrived");
+};
+
+function notify(e: TurnEngine, p: Power, text: string): void {
+  e.tell(p, e.courtAt(p), "Notice", "A province looks to you", text);
+}
