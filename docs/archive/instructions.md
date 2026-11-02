@@ -1315,3 +1315,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     can't manage to post on its own. sometimes you don't fully know what access they have." Written into
     `docs/claude-and-codex.md` ("For Codex": file them yourself if your access allows, otherwise in the report); the
     same in Barkstreet Snakes.
+145. **2 November 2026, 09:49 UTC**, in the design chat, to the builders' question in issue #403 (whether the four
+    powers' land names should follow their provinces' proper names): "Yes, expertly." Written into "Places by their own
+    names" under World (Tjehenu, Kaska, Sutu, Seir for what letters and seat views called the land of the Tjehenu, the
+    Kaska lands, the Sutean steppe and the land of the Shasu) and into build order item 17++a, with the benchmarks
+    before and after, since the script kings read letters by every name a king goes by.
