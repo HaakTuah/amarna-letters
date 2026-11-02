@@ -87,12 +87,9 @@ fixed.
   as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
   token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:
   `docs/rounds/2026-11-02-model-calls-get-through.md`.
-- **Counsel's plans from a digest** (found by "model calls that get through", 2 November 2026; Engine and models,
-  "Passing up and asking advice": the strong model writes the plan "from a digest of the year ... rather than the whole
-  record"). A plan call opens with the kings' whole 70,600-token rulebook on Sonnet, so at the recorded token counts
-  Counsel estimates about 5% above Standard, where the design has small models play and the large one only plan and
-  advise. Give the plan call its own short opening (the digest and what it needs of the rules), then restore the test's
-  old claim that Counsel costs less than Standard (`src/game/test/who-decides.test.ts`).
+- ~~**Counsel's plans from a digest**~~ (done, #437): the plan call opens with its own short rules (how a power wins,
+  the plan, standing answers), about 3,900 tokens where it read the kings' 70,600, so Counsel estimates below Standard
+  again ($1.13 a season live against $1.34). Report: `docs/rounds/2026-11-02-counsel-plans-from-digest.md`.
 - ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
   armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
 
