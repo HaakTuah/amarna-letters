@@ -41,4 +41,4 @@ export * from "./signals.ts";
 export * from "./batch.ts";
 export { highlights, type Personality } from "./bots/personality.ts";
 export * from "./export.ts";
-export { rememberKey } from "./sensitive.ts";
+export { rememberKey, withoutSensitive, withoutSensitiveJson } from "./sensitive.ts";
