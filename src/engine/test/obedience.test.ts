@@ -349,6 +349,25 @@ describe("ObedienceTests", () => {
     Assert.true(s.inbox.get("Byblos").some((i) => i.body.includes("now answers to Amurru")));
   });
 
+  test("A walled town not a court opens its gates to a king its people love whose men stand at them, though they never stormed", () => {
+    const s = quiet();
+    const id = "sapinuwa";
+    removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
+    Assert.true(wallsOf(s, id) > 0);
+    s.ledger.set(id, new Dict([["Hatti", 0], ["Mitanni", 100]]));
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: id, home: "washukanni", men: 1000 }));
+    new TurnEngine(s).obeySeason();
+    Assert.equal("Mitanni", s.owner.get(id));
+    Assert.false(s.breached.has(id));
+    // Fear alone from before the walls does not open them.
+    const t = quiet();
+    removeAll(t.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
+    t.ledger.set(id, new Dict([["Hatti", 30]]));
+    t.units.push(newUnit({ id: newId(t, "u"), power: "Mitanni", kind: "Army", province: id, home: "washukanni", men: 40000 }));
+    new TurnEngine(t).obeySeason();
+    Assert.equal("Hatti", t.owner.get(id));
+  });
+
   test("A court lists the land it knows it holds: one gained out of its sight once it hears, one lost as it last knew it", () => {
     const s = quiet();
     const e = new TurnEngine(s);
