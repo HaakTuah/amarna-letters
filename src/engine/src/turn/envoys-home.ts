@@ -144,6 +144,12 @@ P.fulfil = function (req, reply) {
       // Item 17++: a man of standing chose whether he leads the people of a province against its master, taken next season.
       if (c !== null && reply.rising !== null && req.rising !== null) c.risePlan = { turn: req.rising.turn, province: req.rising.province, rise: reply.rising.rise };
       return;
+    case "Crown": {
+      // Item 17++: a man offered a kingship chose whether he takes it, taken next season.
+      const k = req.crown === null || reply.crown === null ? undefined : this.s.crowns.find((x) => x.id === req.crown!.crownId && x.paidArrives === null);
+      if (k !== undefined && reply.crown !== null) k.accept = reply.crown.accept;
+      return;
+    }
     case "EnvoyReport": {
       if (c === null) return;
       const lord = requestFor(req);

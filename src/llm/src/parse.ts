@@ -12,6 +12,7 @@ import {
   newMandate,
   govern,
   unseat,
+  crown,
   moveCourt,
   enlist,
   type MandateTask,
@@ -558,6 +559,9 @@ function other(x: Node): Order | null {
       return govern(province, person, Math.max(0, I(x, "term")));
     case "take_back_governorship":
       return unseat(province);
+    case "grant_kingship":
+      // The tribute a year in gold, the price he pays in amount.
+      return crown(person, L(x, "lands").map(prov), Math.max(0, I(x, "gold")), Math.max(0, amount));
     case "move_court":
       return moveCourt(province);
     case "enlist_band":

@@ -111,6 +111,7 @@ export class TurnEngine {
     // Item 13: word reaches commanders and governors, and those whose army or province is gone go home.
     this.commandSeason();
     this.governorsSeason();
+    this.crownsSeason();
     this.tasksDue();
     this.jobsDone(stood);
     // Item 11a: the characters' money and their own seasons.

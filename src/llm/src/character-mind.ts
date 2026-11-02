@@ -61,6 +61,7 @@ import { Parse } from "./parse.ts";
 import { lifeOf, lifeSchema, lifeSummary, lifeText } from "./character-life.ts";
 import { chiefOf, chiefSchema, chiefSummary, chiefText, reportsOf, reportsSchema, reportsSummary, reportsText } from "./character-roads.ts";
 import { bridgeOf, bridgeSchema, bridgeText, unheardOf, unheardSchema, unheardSummary, unheardText } from "./character-tongues.ts";
+import { crownOf, crownSchema, crownSummary, crownText } from "./character-crown.ts";
 import { risingOf, risingSchema, risingSummary, risingText } from "./character-rising.ts";
 import { Replies, Schemas, type JsonObject, type ReplySchema } from "./schemas.ts";
 import type { Stakes } from "./spending.ts";
@@ -367,7 +368,7 @@ export class LlmCharacterMind implements ICharacterMind {
   write(ctx: MindContext, signal?: AbortSignal): Promise<MindReply> {
     if (this.askerFor(ctx.self) === null) return this.script.write(ctx, signal);
     if (ctx.request.task === "Life") return this.live(ctx, signal);
-    if (ctx.request.task === "Chief" || ctx.request.task === "Reports" || ctx.request.task === "Unheard" || ctx.request.task === "Rising") return this.onTheRoad(ctx, signal);
+    if (ctx.request.task === "Chief" || ctx.request.task === "Reports" || ctx.request.task === "Unheard" || ctx.request.task === "Rising" || ctx.request.task === "Crown") return this.onTheRoad(ctx, signal);
     if (ctx.request.task === "Bridge") return this.bridging(ctx, signal);
     const key = writeKey(ctx);
     if (key === null) return Promise.resolve(newMindReply());
@@ -469,24 +470,27 @@ export class LlmCharacterMind implements ICharacterMind {
     const unheard = ctx.request.task === "Unheard" ? ctx.request.unheard : null;
     // Item 17++: a man of standing whose province's people would follow him, choosing whether he leads them.
     const rising = ctx.request.task === "Rising" ? ctx.request.rising : null;
-    if (chief === null && reports === null && unheard === null && rising === null) return Promise.resolve(newMindReply());
-    const kind = chief !== null ? "chief" : reports !== null ? "carry" : unheard !== null ? "unheard" : "rising";
+    // Item 17++, part C: a man offered a kingship by his king, choosing whether he takes it.
+    const crown = ctx.request.task === "Crown" ? ctx.request.crown : null;
+    if (chief === null && reports === null && unheard === null && rising === null && crown === null) return Promise.resolve(newMindReply());
+    const kind = chief !== null ? "chief" : reports !== null ? "carry" : unheard !== null ? "unheard" : rising !== null ? "rising" : "crown";
     const key = `t${ctx.turn}/${kind}/${c.id}`;
     const model = async (): Promise<MindReply> => {
-      const user = chief !== null ? chiefText(chief) : reports !== null ? reportsText(reports) : unheard !== null ? unheardText(unheard) : risingText(rising!);
-      const schema = chief !== null ? chiefSchema(chief) : reports !== null ? reportsSchema(reports) : unheard !== null ? unheardSchema(unheard) : risingSchema();
+      const user = chief !== null ? chiefText(chief) : reports !== null ? reportsText(reports) : unheard !== null ? unheardText(unheard) : rising !== null ? risingText(rising) : crownText(crown!);
+      const schema = chief !== null ? chiefSchema(chief) : reports !== null ? reportsSchema(reports) : unheard !== null ? unheardSchema(unheard) : rising !== null ? risingSchema() : crownSchema();
       // A chief stakes his men, his purse and his neck; a spy its post and a little of its purse; an unheard envoy his errand.
       const json = await this.ask(key, ctx.turn, `${kind}:${c.id}`, c, user, schema, signal, null, null, {
-        stakes: { kind, moved: chief !== null || rising !== null ? 0.5 : 0.2 },
+        stakes: { kind, moved: chief !== null || rising !== null || crown !== null ? 0.5 : 0.2 },
         keys: [`t${ctx.turn}/mind/${ctx.request.id}`],
         fields: [],
       });
       if (chief !== null) return newMindReply({ chief: chiefOf(json, chief) });
       if (reports !== null) return newMindReply({ reports: reportsOf(json, reports) });
+      if (crown !== null) return newMindReply({ crown: crownOf(json, crown) });
       return unheard !== null ? newMindReply({ unheard: unheardOf(json, unheard) }) : newMindReply({ rising: risingOf(json, rising!) });
     };
     const choice = (r: MindReply): CharacterChoice =>
-      newCharacterChoice({ text: chief !== null ? chiefSummary(r.chief) : reports !== null ? reportsSummary(r.reports) : unheard !== null ? unheardSummary(r.unheard) : risingSummary(r.rising) });
+      newCharacterChoice({ text: chief !== null ? chiefSummary(r.chief) : reports !== null ? reportsSummary(r.reports) : unheard !== null ? unheardSummary(r.unheard) : rising !== null ? risingSummary(r.rising) : crownSummary(r.crown) });
     return this.shadowed(
       key,
       kind,

@@ -5,6 +5,7 @@ import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema, type TabletProposal, TabletProposalSchema } from "./records.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
+import { type CrownChoice, CrownChoiceSchema, type CrownView, CrownViewSchema } from "./command.ts";
 import { type Skills, SkillsSchema, type UnheardChoice, UnheardChoiceSchema, type UnheardView, UnheardViewSchema, type BridgeView, BridgeViewSchema, type RisingView, RisingViewSchema, type RisingChoice, RisingChoiceSchema } from "./people.ts";
 import {
   type ChiefChoice,
@@ -23,7 +24,7 @@ import {
 import { type CharacterView, CharacterViewSchema, type TabletView, TabletViewSchema, newCharacterView } from "./views.ts";
 
 /** Text the engine needs written by a character or the narrator before it can be delivered. */
-export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory", "Questioned", "Life", "Chief", "Reports", "Unheard", "Bridge", "Rising"] as const;
+export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory", "Questioned", "Life", "Chief", "Reports", "Unheard", "Bridge", "Rising", "Crown"] as const;
 export type MindTask = (typeof MindTaskValues)[number];
 
 export interface MindRequest {
@@ -61,6 +62,8 @@ export interface MindRequest {
   bridge: BridgeView | null;
   /** Item 17++: a man of standing whose province's people would follow him against its master ("Rising"). */
   rising: RisingView | null;
+  /** Item 17++: a man offered a kingship by his king ("Crown"). */
+  crown: CrownView | null;
   /**
    * For a spy's report: the copies of tablets from the watched court's archive that came home with it, now in the court's archive.
    * For a captive questioned (item 10+b): the tablets it gave way on (tablet ids).
@@ -88,6 +91,7 @@ export function newMindRequest(init: Partial<MindRequest> = {}): MindRequest {
     unheard: null,
     bridge: null,
     rising: null,
+    crown: null,
     copyIds: [],
     ...init,
   };
@@ -112,6 +116,7 @@ export const MindRequestSchema: ObjSchema<MindRequest> = obj("MindRequest", newM
   unheard: () => UnheardViewSchema,
   bridge: () => BridgeViewSchema,
   rising: () => RisingViewSchema,
+  crown: () => CrownViewSchema,
   copyIds: list(S),
 });
 
@@ -153,6 +158,8 @@ export interface MindReply {
   unheard: UnheardChoice | null;
   /** Item 17++: whether he leads a rising he was asked of; null: the script's traits decide. */
   rising: RisingChoice | null;
+  /** Item 17++: whether he takes a kingship offered him; null: the script's traits decide. */
+  crown: CrownChoice | null;
 }
 
 export function newMindReply(init: Partial<MindReply> = {}): MindReply {
@@ -171,6 +178,7 @@ export function newMindReply(init: Partial<MindReply> = {}): MindReply {
     reports: null,
     unheard: null,
     rising: null,
+    crown: null,
     ...init,
   };
 }
@@ -190,6 +198,7 @@ export const MindReplySchema: ObjSchema<MindReply> = obj("MindReply", newMindRep
   reports: () => ReportsChoiceSchema,
   unheard: () => UnheardChoiceSchema,
   rising: () => RisingChoiceSchema,
+  crown: () => CrownChoiceSchema,
 });
 
 /** What the host replies at an audience. Every field but Speech is an action the engine checks. */

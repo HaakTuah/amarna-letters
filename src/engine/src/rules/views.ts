@@ -428,6 +428,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     }
   }
   v.counting = s.censuses.filter((c) => c.power === p).map((c) => c.province);
+  v.crowning = s.crowns.filter((k) => k.power === p && k.paidArrives === null).map((k) => k.character);
   // Yields as the people bring them in now, and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {

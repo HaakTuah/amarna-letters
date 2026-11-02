@@ -18,7 +18,7 @@ import type { People } from "./land.ts";
 import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
-import { type Courier, CourierSchema, type Governor, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
+import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
 import { type WorkPlan, WorkPlanSchema } from "./works.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
@@ -83,7 +83,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 40;
+export const CURRENT_VERSION = 41;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -340,6 +340,8 @@ export interface GameState {
   bands: Band[];
   /** Item 13 ("Governors"): the governorships granted, standing or on their way; ended ones are dropped. */
   governors: Governor[];
+  /** Item 17++: grants of kingship on their way, answered, or their price on the road to the king; done ones are dropped. */
+  crowns: Crown[];
   /**
    * Item 13 ("The capital is wherever the king is"): the province where each king is, which is his capital, where his
    * court sits and from where his orders travel; a king never moved is at his map capital and left out.
@@ -510,6 +512,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     loot: new Dict(),
     bands: [],
     governors: [],
+    crowns: [],
     court: new Dict(),
     kingRoads: [],
     couriers: [],
@@ -631,6 +634,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   loot: dict(I),
   bands: list(() => BandSchema),
   governors: list(() => GovernorSchema),
+  crowns: list(() => CrownSchema),
   court: dict(S),
   kingRoads: list(() => KingRoadSchema),
   couriers: list(() => CourierSchema),

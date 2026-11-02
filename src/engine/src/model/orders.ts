@@ -396,6 +396,18 @@ export interface GovernOrder {
   character: string;
   levies: number;
 }
+/**
+ * Item 17++ ("Governors"): grant `character`, a governor or a character of the seat's, the kingship of `provinces` of the
+ * seat's under oath, as its vassal, for `tribute` shekels a year and a `price` he pays for it: the word reaches him at his
+ * seat; he takes it or not by his stakes; if he does, the land is his, bound by a vassal tablet.
+ */
+export interface CrownOrder {
+  type: "crown";
+  character: string;
+  provinces: string[];
+  tribute: number;
+  price: number;
+}
 /** Item 13: take back the governorship of `province` by sending word; he steps down when it reaches him, or refuses. */
 export interface UnseatOrder {
   type: "unseat";
@@ -602,6 +614,7 @@ export type Order =
   | MandateOrder
   | SupplyOrder
   | GovernOrder
+  | CrownOrder
   | UnseatOrder
   | CourtOrder
   | EnlistOrder
@@ -675,6 +688,7 @@ export const relieve = (unit: string): RelieveOrder => ({ type: "relieve", unit 
 export const supply = (unit: string, buy: boolean, gold = 0): SupplyOrder => ({ type: "supply", unit, buy, gold });
 export const mandateOrder = (unit: string, mandate: Mandate | null): MandateOrder => ({ type: "mandate", unit, mandate });
 export const govern = (province: string, character: string, levies = 0): GovernOrder => ({ type: "govern", province, character, levies });
+export const crown = (character: string, provinces: string[], tribute: number, price = 0): CrownOrder => ({ type: "crown", character, provinces, tribute, price });
 export const unseat = (province: string): UnseatOrder => ({ type: "unseat", province });
 export const moveCourt = (to: string): CourtOrder => ({ type: "court", to });
 export const enlist = (province: string, fee: number, term: number): EnlistOrder => ({ type: "enlist", province, fee, term });
@@ -803,6 +817,8 @@ export function describe(o: Order): string {
       return `grant ${o.character} the governorship of ${named(o.province)}${o.levies > 0 ? `, to raise up to ${o.levies} levies there if foreign troops threaten it` : ""}`;
     case "unseat":
       return `take back the governorship of ${named(o.province)}`;
+    case "crown":
+      return `grant ${o.character} the kingship of ${o.provinces.map(named).join(", ")} under oath as your vassal, for ${o.tribute} shekels of tribute a year${o.price > 0 ? ` and a price of ${o.price} shekels` : ""}`;
     case "court":
       return `set out with the court for ${named(o.to)}`;
     case "enlist":
@@ -973,6 +989,7 @@ export function characterOf(o: Order): string | null {
       return o.envoy;
     case "command":
     case "govern":
+    case "crown":
       return o.character;
     case "release":
     case "dismiss":
@@ -1017,6 +1034,7 @@ export const OrderSchema = poly("Order", "type", {
   supply: v("SupplyOrder", () => supply("", false), { unit: S, buy: B, gold: I, named: opt(S) }),
   mandate: v("MandateOrder", () => mandateOrder("", null), { unit: S, mandate: opt(() => MandateSchema) }),
   govern: v("GovernOrder", () => govern("", ""), { province: S, character: S, levies: I }),
+  crown: v("CrownOrder", () => crown("", [], 0), { character: S, provinces: list(S), tribute: I, price: I }),
   unseat: v("UnseatOrder", () => unseat(""), { province: S }),
   court: v("CourtOrder", () => moveCourt(""), { to: S }),
   enlist: v("EnlistOrder", () => enlist("", 0, 0), { province: S, fee: I, term: I }),

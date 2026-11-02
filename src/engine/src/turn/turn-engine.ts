@@ -9,6 +9,7 @@ import "./command.ts";
 import "./couriers.ts";
 import "./kings.ts";
 import "./governors.ts";
+import "./crowns.ts";
 import "./events.ts";
 import "./covers.ts";
 import "./inventories.ts";

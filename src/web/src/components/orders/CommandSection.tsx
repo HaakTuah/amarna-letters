@@ -9,6 +9,7 @@ import {
   command,
   enlist,
   govern,
+  crown,
   mandateOrder,
   mandateText,
   moveCourt,
@@ -44,6 +45,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
     until: 0,
   });
   const [gov, setGov] = useState<{ province: string; person: string; levies: number }>({ province: "", person: "", levies: 1 });
+  const [king, setKing] = useState<{ person: string; tribute: string; price: string }>({ person: "", tribute: "", price: "" });
   const [food, setFood] = useState<Record<string, number>>({});
   const ready = v.court.filter((x) => x.ready);
   const own = v.units.filter((u) => u.power === me).sort((a, b) => byName(a.province, b.province));
@@ -251,6 +253,36 @@ export function CommandSection({ c }: { c: OrdersContext }) {
           Grant the governorship
         </button>
       </div>
+      {/* Item 17++, part C: a governor made a vassal king under oath over the provinces he governs, for the tribute and price named. */}
+      <div className="row" style={{ gap: ".3rem" }}>
+        <select value={king.person} onChange={(e) => setKing({ ...king, person: e.target.value })}>
+          <option value="">— make king? —</option>
+          {[...new Set(v.governors.filter((g) => !g.relieving && g.from <= v.turn && !v.crowning.includes(g.character)).map((g) => g.character))].map((id) => (
+            <option key={id} value={id}>
+              {name(id)} (of {v.governors.filter((g) => g.character === id && g.province !== v.courtAt).map((g) => provinceName(g.province)).join(", ")})
+            </option>
+          ))}
+        </select>
+        <input type="number" min={0} placeholder="tribute a year" value={king.tribute} onChange={(e) => setKing({ ...king, tribute: e.target.value })} style={{ width: "7rem" }} />
+        <input type="number" min={0} placeholder="price" value={king.price} onChange={(e) => setKing({ ...king, price: e.target.value })} style={{ width: "5rem" }} />
+        <button
+          className="small"
+          disabled={king.person === "" || king.tribute === ""}
+          onClick={() =>
+            add(
+              crown(
+                king.person,
+                v.governors.filter((g) => g.character === king.person && g.province !== v.courtAt).map((g) => g.province),
+                Math.max(0, Math.floor(Number(king.tribute))),
+                Math.max(0, Math.floor(Number(king.price || 0))),
+              ),
+            )
+          }
+        >
+          Grant the kingship
+        </button>
+      </div>
+      {v.crowning.length > 0 && <small>A kingship offered, the answer not yet come: {v.crowning.map(name).join(", ")}.</small>}
     </div>
   );
 }

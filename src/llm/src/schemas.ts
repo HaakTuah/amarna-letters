@@ -167,6 +167,7 @@ export const OtherActions = [
   "hunt_bands_always",
   "stop_hunting_bands",
   "grant_governorship",
+  "grant_kingship",
   "take_back_governorship",
   "move_court",
   "enlist_band",
@@ -198,9 +199,9 @@ const otherOrder = (described = true): ReplySchema =>
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back), or buy_news (the court whose news you buy)." : null)],
-    ["person", str(described ? "Person id, for grant_governorship (one at your court), hire, renew, pay_fee, withhold_fee, borrow, buy_news, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift, seize_hoard, sell_tablet (the buyer)." : null)],
-    ["amount", int(described ? "build, build_corvee: the level to keep (police: the men, in tens; 0 to keep none, letting what stands decay). The whole fee for the job (hire, renew), the price (sell_tablet), the men a levy takes (raise_army, raise_fleet; 0 for a full unit), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, feed_town_in_own_name, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the share of the harvest in percent (ask_share), or the measures of grain a season (ask_amount), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
-    ["gold", int(described ? "enlist_band: the fee offered the band's chief, paid now. trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; place_spy on a province: the shekels he carries to spend among its people, stirring them against its holder (0 for none); hire, renew: the part of the fee handed over now (0 means nothing now); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
+    ["person", str(described ? "Person id, for grant_governorship (one at your court), grant_kingship (your governor, or one at your court), hire, renew, pay_fee, withhold_fee, borrow, buy_news, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift, seize_hoard, sell_tablet (the buyer)." : null)],
+    ["amount", int(described ? "grant_kingship: the price he pays you for it, in shekels (0 for none). build, build_corvee: the level to keep (police: the men, in tens; 0 to keep none, letting what stands decay). The whole fee for the job (hire, renew), the price (sell_tablet), the men a levy takes (raise_army, raise_fleet; 0 for a full unit), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, feed_town_in_own_name, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the share of the harvest in percent (ask_share), or the measures of grain a season (ask_amount), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
+    ["gold", int(described ? "enlist_band: the fee offered the band's chief, paid now. grant_kingship: the tribute a year he swears to send. trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; place_spy on a province: the shekels he carries to spend among its people, stirring them against its holder (0 for none); hire, renew: the part of the fee handed over now (0 means nothing now); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
     [
       "term",
       int(
@@ -219,6 +220,7 @@ const otherOrder = (described = true): ReplySchema =>
       ),
     ],
     ["seals", array(str(), described ? "Powers whose seals a forgery bears." : null)],
+    ["lands", array(str(), described ? "grant_kingship: the provinces of yours, beside one another, he is made king of (a governor's own, his seat among them). Otherwise empty." : null)],
     [
       "errand",
       enumOf(["", "envoy", "spy", "stay"], described ? "hire, renew: the job's errand: envoy (to the court named in power), spy (on the court in power, or the province in province), or stay (at your own court until the term ends: power is your own). Else empty." : null),

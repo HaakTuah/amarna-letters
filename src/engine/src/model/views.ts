@@ -890,6 +890,8 @@ export interface SeatView {
   provinces: ProvinceEconomyView[];
   /** The provinces its scribes are out counting (item 17++, "A census"), until their count comes home. */
   counting: string[];
+  /** The people it has offered a kingship whose answer has not yet come (item 17++, part C), by id. */
+  crowning: string[];
   /** Its caravans on the road, and its fleets in cargo service. */
   caravans: CaravanView[];
   /** Foreign markets as it last knew them (item 9+b), by province. */
@@ -1017,6 +1019,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     prices: new Dict(),
     provinces: [],
     counting: [],
+    crowning: [],
     caravans: [],
     markets: new Dict(),
     tolls: [],
@@ -1106,6 +1109,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   prices: dict(I),
   provinces: list(() => ProvinceEconomyViewSchema),
   counting: list(S),
+  crowning: list(S),
   caravans: list(() => CaravanViewSchema),
   markets: dict(() => MarketSeenSchema),
   tolls: list(() => TollSchema),
