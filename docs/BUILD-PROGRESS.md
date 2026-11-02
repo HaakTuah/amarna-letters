@@ -72,8 +72,8 @@ fixed.
 - ~~**The canary test for hidden information**~~ (done, #421): `src/web/test/canary.test.ts` plants an envoy's hidden
   mandate, its letter, a sealed tablet, an army in the fog and another court's treasury, and reads every seat's input,
   every model request, the chronicles, every view, map and panel the page shows, live, in past seasons and on replay; no
-  leak found. Whether "Export log" should wait for "Reveal all" while a human plays: #424. Its export part (secrets
-  and a human seat's words exported under every filter, none found) is added once the export lane (#385) merges.
+  leak found; its export part (#430) plants sensitive failures and a human seat's words and exports them under all
+  sixteen filters: none found. Whether "Export log" should wait for "Reveal all" while a human plays: #424.
 - ~~**First of all: what a game's export holds**~~ (done, #385): nothing sensitive in `tests/fixtures/`; one export
   with filters (calls, shadows, audits, human words), kept clean by design: failures logged as kind and code, each
   record giving only its listed fields, and without human words a game with a human seat blanks every text and still
