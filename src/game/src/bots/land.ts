@@ -141,6 +141,3 @@ export function settleThere(v: SeatView, me: string, province: string, kind: Uni
   const x = v.provinces.find((p) => p.province === province);
   return x !== undefined && x.settled + men <= x.room;
 }
-
-/** The reference price of a measure of grain in shekels, for weighing grain against gold. */
-export const grainShekel = EconomyData.basePrice / 100;
