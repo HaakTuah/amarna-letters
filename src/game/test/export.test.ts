@@ -10,6 +10,9 @@ describe("ExportTests", () => {
   const Leaks: [string, string][] = [
     ["a local path", "no reply in /home/haakon/games/egypt/t3-orders-Egypt.reply.json after 30 minutes"],
     ["a Windows path", "ENOENT: no such file C:\\Users\\haakon\\seats\\egypt\\t3.reply.json"],
+    ["a Windows path with a space", "no reply in C:\\Users\\Haakon Sval\\seats\\egypt\\t3.reply.json after 30 minutes"],
+    ["a home path in another alphabet", "no reply in /home/øystein/My Seats/egypt/t3.reply.json after 30 minutes"],
+    ["a server path in another alphabet", "ENOENT: /srv/øystein/seats/t3.reply.json"],
     ["a provider address with a key", "fetch failed: https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyA1b2C3d4E5f6G7h8I9j0KlMnOpQrStUvW"],
     ["a masked key", "openai API 401: Incorrect API key provided: sk-proj-****************************Ab1x."],
     ["a key", "sk-ant-api03-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789"],
@@ -20,7 +23,7 @@ describe("ExportTests", () => {
     ["a bearer token", "authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc"],
   ];
   /** What none of the leaks may leave in an export. */
-  const Secrets = ["/home/", "haakon", "AIza", "sk-", "req_011", "fb3a3f3e", "gmail", "Macintosh", "Mozilla", "eyJ", "googleapis", "Ab1x"];
+  const Secrets = ["/home/", "/srv/", "haakon", "Haakon", "Sval", "øystein", "AIza", "sk-", "req_011", "fb3a3f3e", "gmail", "Macintosh", "Mozilla", "eyJ", "googleapis", "Ab1x"];
 
   function leaky(): GameLog {
     const log = new GameLog();
@@ -40,11 +43,12 @@ describe("ExportTests", () => {
       for (const s of Secrets) Assert.false(text.includes(s), `"${s}" is in an export`);
     // What failed is still said: only the sensitive piece is replaced, by a marker that names it.
     const errors = log.calls.map((c) => c.error!);
-    Assert.equal("no reply in [path] after 30 minutes", errors[0]);
-    Assert.contains("[key]", errors[3]);
-    Assert.contains("[id]", errors[5]);
-    Assert.contains("[id]", errors[6]);
-    Assert.contains("[e-mail]", errors[7]);
+    Assert.equal("no reply in [path]", errors[0]);
+    Assert.equal("no reply in [path]", errors[2]);
+    Assert.contains("[key]", errors[6]);
+    Assert.contains("[id]", errors[8]);
+    Assert.contains("[id]", errors[9]);
+    Assert.contains("[e-mail]", errors[10]);
   });
 
   test("A log read back from an old file loses what is sensitive in it", () => {
@@ -106,6 +110,8 @@ describe("ExportTests", () => {
     await runner.prepare();
     for (let i = 0; i < 4; i++) await runner.playTurn();
     // A model's prompt that carries the letter, as an envoy's or a court's request would.
+    // A chronicle, a decision whose whole value is a text, quoting the letter.
+    runner.log.record("t2/chronicle/Egypt", S, `Pharaoh wrote to Alashiya: "${Letter}"`, newAuthorship({ kind: "model", name: "Haiku narrator" }));
     // Prompts that carry the letter whole, a brief of it cut mid-word, and the short note.
     runner.log.addCall(newModelCall({ key: "t2/aud/react/c1", turn: 2, role: "character", model: "Haiku", prompt: `The letter you carry: "${Letter}"` }));
     runner.log.addCall(newModelCall({ key: "t2/orders/Hatti", turn: 2, role: "leader", model: "Haiku", prompt: `A tablet from Egypt: ${Letter.slice(0, 50)}… Your spy read: Attack now. Attack nowhere else.` }));
@@ -118,6 +124,7 @@ describe("ExportTests", () => {
     const text = exportJsonl(runner.log, { ...Everything, humanWords: false });
     const kept = read(text);
     for (const words of [Letter, Speech, "twelve horses", "my brother of Alashiya", "Attack now."]) Assert.false(kept.includes(words), `"${words}" is still in the export`);
+    Assert.true(kept.includes('Pharaoh wrote to Alashiya: \\"' + Letter.replace(/\S/g, BlankMark)));
     // A short text counts only whole: the same letters inside a longer word are not his.
     Assert.true(kept.includes("Attack nowhere else."));
     // Each is a marked blank of its own length, its spaces kept.

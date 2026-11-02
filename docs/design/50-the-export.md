@@ -20,7 +20,7 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
   his words, every word field of a human's decisions (`letter`, `mandate`, `notes`, `summary`, `entry`, `speech`,
   `bribeAsk`, `say`, `reply`, `text`, `custom`, `commitments`) becomes a blank of the same length, each letter a `▒`
   and its spaces kept, and every quote of them is blanked wherever it stands: in a
-  model's prompt, a character's report, the narrator's chronicle. A quote is any span, from a word's start, that
+  model's prompt, a character's report, the narrator's chronicle (a decision whose whole value is a text). A quote is any span, from a word's start, that
   matches the start of one of his texts or of one of its sentences for twelve letters or more, however soon it is cut
   off (a prompt's brief of a letter keeps its first 120 letters); a text shorter than that counts only whole. Orders, ids and names the engine reads are never
   blanked, so the export replays to the same game, his words blanked in it too (`src/game/test/export.test.ts`). A
@@ -32,7 +32,8 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
   `withoutSensitive` as they are logged, and as an old log is read back, and the
   header's labels, jobs and note as it is written; each piece becomes a marker that says what stood there: `[key]`
   (keys, masked or not, bearer tokens, a key named as one), `[address]` (any URL: a provider's or the bridge's may carry
-  a token), `[id]` (request and organisation ids, any UUID), `[e-mail]`, `[path]` (absolute, home and Windows paths),
+  a token), `[id]` (request and organisation ids, any UUID), `[e-mail]`, `[path]` (absolute paths in any alphabet; one under a drive, a share or a home folder to the end of its
+  line, since a folder's name may hold spaces),
   `[device]` (a browser's or device's description). The rest of the message stays, so the log still says what failed.
   Keys themselves never reach the log: they live in memory in the web app and in environment variables in the batch
   runner, and nothing writes them into a call.

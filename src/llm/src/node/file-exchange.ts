@@ -58,7 +58,7 @@ export class FileExchange implements JsonAsker {
     let emptySince: number | null = null;
     for (;;) {
       if (signal?.aborted) throw signal.reason;
-      if (Date.now() > deadline) throw new Error(`no reply in ${reply} after ${Math.round(this.timeoutMs / 60000)} minutes`);
+      if (Date.now() > deadline) throw new Error(`no reply in ${stem}.reply.json after ${Math.round(this.timeoutMs / 60000)} minutes`);
       await sleep(FileExchange.PollMs, signal);
       let now: number;
       try {

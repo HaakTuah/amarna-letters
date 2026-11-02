@@ -32,6 +32,12 @@ export const BlankMark = "▒";
 const WordFields = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments"]);
 
 /**
+ * Where a human's words may be quoted in a decision: its word fields, and a decision whose whole value is a text (a
+ * narrator's chronicle, a character's persona).
+ */
+const QuotedFields = new Set([...WordFields, "value"]);
+
+/**
  * How much of a human's text must match, from its start or a sentence's, for a match to count as his quote: a quote cut
  * short (a prompt's brief of a letter keeps its first 120 letters) still counts. A text shorter than this counts only
  * whole, between word boundaries.
@@ -77,7 +83,7 @@ function withoutHumanWords(lines: string[]): string[] {
     const node = JSON.parse(line) as Record<string, unknown>;
     // In decisions only words are blanked, never an order's ids or names, so the export still replays.
     const touched = { any: false };
-    const back = blankQuoted(node, quoted, node.type === "decision" || node.type === "header" ? WordFields : null, "", touched);
+    const back = blankQuoted(node, quoted, node.type === "decision" || node.type === "header" ? QuotedFields : null, "", touched);
     return touched.any ? toJson(back) : line;
   });
 }

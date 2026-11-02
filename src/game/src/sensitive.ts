@@ -25,11 +25,13 @@ const Patterns: [RegExp, string][] = [
   [/\breq_[A-Za-z0-9]{8,}/g, "[id]"],
   [/\borg-[A-Za-z0-9]{8,}/g, "[id]"],
   [/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, "[id]"],
-  // Local paths: Windows ("C:\Users\...", "\\server\share"), home ("~/..."), and absolute paths of two parts or more.
-  [/\b[A-Za-z]:[\\/][^\s"'<>|]*/g, "[path]"],
-  [/\\\\[\w.$-]+\\[^\s"'<>|]*/g, "[path]"],
-  [/~\/[^\s"'<>|]*/g, "[path]"],
-  [/(?<![\w.~:/\]])\/(?:[\w.@-]+\/)+[\w.@-]*/g, "[path]"],
+  // Local paths. One under a drive, a share or a home folder is taken to the end of its line, since a folder's name may
+  // hold spaces ("C:\Users\Jane Smith\...", "/home/jane/My Games/..."); any other absolute path of two parts or more is
+  // taken while it runs, in any alphabet ("/srv/øystein/seats").
+  [/\b[A-Za-z]:[\\/][^\n"'<>|]*/g, "[path]"],
+  [/\\\\[^\s\\]+\\[^\n"'<>|]*/g, "[path]"],
+  [/(?:~|\/(?:home|Users|root|mnt|Volumes|media))\/[^\n"'<>|]*/g, "[path]"],
+  [/(?<![\p{L}\p{N}_.~:/\]])\/(?:[\p{L}\p{N}_.@-]+\/)+[\p{L}\p{N}_.@-]*/gu, "[path]"],
 ];
 
 /** The text with every sensitive piece replaced by its marker ("[key]", "[address]", "[path]", ...). */

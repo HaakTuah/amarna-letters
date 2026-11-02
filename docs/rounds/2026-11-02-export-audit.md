@@ -78,8 +78,8 @@ In `docs/design/50-the-export.md` ("What it holds").
 
 ## Overlap with other lanes
 
-None in files: `src/llm` (the limiter lane) is untouched; the sources of the leaks there are left as they are, since the
-log cleans what they write. `src/web/src/pages/Play.tsx` changes one line (the menu's export button).
+`src/llm` (the limiter lane's) changes in one line: a file seat's timeout names only its reply file, not the folder
+(`src/llm/src/node/file-exchange.ts`); the log cleans what the other sources write. `src/web/src/pages/Play.tsx` changes one line (the menu's export button).
 
 ## Helpers
 
