@@ -67,6 +67,11 @@ describe("StartingTermTests", () => {
       .replaceAll("Tamassos", "the copper hills of Alashiya")
       .replaceAll("Enkomi", "the harbour of Alashiya")
       .replaceAll("Sutu", "the Sutean steppe")
+      // Item 17++a (#403): the realms named by their lands, as those provinces already were; "the chief of the ..." keeps
+      // the people's name.
+      .replace(/(?<!the )\bTjehenu\b/g, "the land of the Tjehenu")
+      .replace(/(?<!the )\bKaska\b(?!n)/g, "the Kaska lands")
+      .replaceAll("Seir", "the land of the Shasu")
       // The history spot-check of 2 November 2026 corrected Yapahu's post and two cast texts against their letters (#461, #462).
       .replaceAll("Burna-Buriash's envoy to Egypt (EA 10).", "Burna-Buriash's envoy to Egypt (EA 11).")
       .replaceAll("noble of Gazru", "the ruler's brother")
