@@ -189,9 +189,10 @@ and Sidon, Urusalim for Jerusalem, Magidda, Shakmu, Hasura, Gazru, Akka, Ashqalu
 for the Aijalon valley, Pihil for Pella, Ashtartu, Hazzatu for Gaza, Biruta, Arwada, Ṣumur, Halab for Aleppo, Karkamish,
 Babili for Babylon, Urim for Ur, Ninua and Arbail for Nineveh and Arbela, Shushan for Susa), otherwise the period's
 Egyptian or Hittite (Waset for Thebes, Men-nefer for Memphis, Ta-Mehu for the Delta, Kush for Nubia, the Ways of Horus for
-the north Sinai, Hayasa, the land of the Tjehenu for Libya, Seir for the Shasu's land); a place with no name of the period
-is named by description (the copper hills and the harbour of Alashiya, the plateau beyond the Salt Sea). The modern name
-is on the second line of the province card. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
+the north Sinai, Hayasa, Tjehenu for Libya, Seir for the Shasu's land, Kaska and Sutu for the Kaska's hills and the
+Suteans' steppe; their realms still go by "the land of the Tjehenu" and the like); every province has a proper name, never a description: where the period gives none, the oldest name the
+sources do give (Tamassos for the copper hills of Cyprus), and a modern one only where no ancient name survives (Enkomi).
+What a place is ("the copper hills of Alashiya") and its modern name are on the province card, under its name. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
 in Egypt's own seat; his other names are on his card.
 
 A realm's name is a claim: you go by your land's name until you claim another, any realm's name, Pharaoh's included
@@ -298,13 +299,14 @@ Pick a preset, choose whether to watch or take a seat, and begin.
 | Preset | Kings | Envoys and spies | Narrator | Rough cost of a game |
 |---|---|---|---|---|
 | **Free** | Script kings | Script | Template | $0, no key needed |
-| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $4 |
-| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $45 |
-| **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $60 |
-| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $110 |
+| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $9 ($5 in the background) |
+| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $115 ($70 in the background) |
+| **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $110 ($65 in the background) |
+| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $180 ($105 in the background) |
 | **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
 
-The costs are the start page's estimates for an age of the usual length (about 80 seasons); the page reckons them
+The costs are the start page's estimates for an age of the usual length (about 80 seasons), from the token counts of a
+recorded game (November 2026: each king's call opens with some 70,000 tokens of rules, read from cache); the page reckons them
 again for the table's own ending, and the meter in the game shows the real spend.
 
 Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
@@ -317,7 +319,11 @@ estimate (you can change it).
 Model seats use your own Anthropic API key: calls go straight from the page to the Anthropic
 API, and the key is never stored outside this tab. Use a dedicated key with a spend limit set in
 the Anthropic Console. **Simulate the API** (under Customize) tries model seats with canned
-replies; nothing leaves the browser. When a model call fails, a script king or character makes
+replies; nothing leaves the browser. Calls are kept under your account's limit on calls in flight, and one refused
+or overloaded is sent again after a wait before a script stands in. **Play in the background** (under the estimate)
+sends each phase's Anthropic calls as one batch to Anthropic's batch service, at about half the price; answers take
+minutes or more, so seasons pass slowly, and you may close the page and continue the saved game later (with the box
+ticked and the same key) to collect them. The setup shows what a season costs both ways. When a model call fails, a script king or character makes
 that decision instead, the failure is listed at the top of the side panel, and the game goes on.
 
 **Local agents** is local play, for your own games: you take a seat, and the other kings are guarded Claude Code agents
@@ -348,17 +354,20 @@ In games without a human, the god view shows everything the engine knows: true m
 treasury, every character's hidden traits and facts and who knows them, and the **message
 trail**: for every message, what the king wrote, what the envoy said abroad, and what the envoy
 reported home. Switch to any power to see exactly what it saw. The side panel's tabs show the
-season's events, the trail, the people, the provinces, the standings and the rules. The timeline
+season's events, the trail, the people, the provinces, the standings and the rules; with a mouse,
+the tabs and the courts along the map scroll with the wheel or by dragging. The timeline
 steps back through the seasons; signals mark sealed tablets, accusations, forgeries, broken
 promises and more. After the game, compare two nations' self-serving annals with the true record.
 
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
 each power in its colour with an emblem and a border line of its own (so it reads without
-colour), armies as chariots and fleets as ships. Step the timeline and each season's moves,
+colour), armies as chariots and fleets as ships. On the whole map every city is a seal, and a tap on
+it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
 uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow
-their life: their path, their masters, their missions, what they said and reported.
+their life: their path, their masters, their missions, what they said and reported. Drag and zoom
+as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
 gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
@@ -367,6 +376,9 @@ you know it: a city sacked or lost far from your court, out of your sight, stand
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
 Click such a city and its card gives only what your stewards last reported and how many seasons ago, never its new
 holder's affairs; a band your people last told of there is drawn faded, with the age of that word.
+Figures on the roads in the fog are your own: your caravans, wherever they are, and your envoys and spies where you
+believe them; foreign troops show only in your land and where your troops stand, within a season's courier ride of your court, and
+one step beyond.
 Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall

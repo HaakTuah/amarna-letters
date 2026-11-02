@@ -28,6 +28,7 @@ import { buildLifeRecord } from "../session/life-record.ts";
 import { choicesOf, handLimitNeeded, newSettings, usesModels, withChoices } from "../session/settings.ts";
 import { cap, powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
+import { sideScroll } from "../ui/side-scroll.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
 import { useSession } from "../ui/use-session.ts";
@@ -457,7 +458,7 @@ export function Play() {
           <span className="grip"></span>
           <span className="sr">{sheet ? "Show the map" : "Enlarge the panel"}</span>
         </button>
-        <div className="tabs" role="tablist">
+        <div className="tabs" role="tablist" ref={sideScroll}>
           {pendingAudience !== null && (
             <button className={tabClass("audience", true)} onClick={() => pick("audience")}>
               Audience!
