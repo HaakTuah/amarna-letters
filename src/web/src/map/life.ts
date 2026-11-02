@@ -6,7 +6,7 @@
 import { WorldMap, economyOf, type OmenTier, type Power } from "@amarna/engine";
 import { F, Shapes, along, city, landClipOf, route } from "./art.ts";
 import { glyphId } from "./glyphs.ts";
-import { ringOf } from "./markup.ts";
+import { outerRing } from "./markup.ts";
 import { FamineBelow } from "./memory.ts";
 import type { MapScene } from "./scene.ts";
 import type { FrameRoad, SeasonFrame } from "../session/frames.ts";
@@ -25,7 +25,7 @@ export function memoryLayer(s: MapScene): string {
   }
   for (const [id, b] of m.memorials) {
     const at = city(id);
-    const r = ringOf(Map_.get(id).capital, s.walls.get(id) ?? 0) + 7;
+    const r = outerRing(Map_.get(id).capital, s.walls.get(id) ?? 0, s.sieges.some((x) => x.province === id)) + 7;
     sb +=
       `<g class="memorial" transform="translate(${F(at.x)},${F(at.y)})"><g class="csym"><g transform="translate(${F(-r * 0.74)},${F(r * 0.66)})">` +
       `<title>${b.count === 1 ? "A battlefield" : `${b.count} battles fought here`}, the last in season ${b.last}</title>` +
