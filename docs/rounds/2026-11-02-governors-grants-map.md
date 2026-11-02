@@ -83,7 +83,16 @@ None.
 
 ## Benchmarks and use against ignore
 
-(Running.)
+**Grants** (`--grant-play-half`, 50 games, seed 1): kings that grant against kings that never do: **0.87 growth to 0.87,
+24 wins to 26: even.** Use and success: grants offered in 32 of 50 games (85), 25 taken (17 games), 58 refused, 2 no
+longer possible when the word came; every taken grant became a seat of its own (`risen-granted` 25). Which of the item's
+two answers: **the land's multiple makes land too dear to give away**, rather than bad play. A king's strength counts his
+land at ten seasons of what it produces, as far as it obeys him, and a grant takes all of that out of his score at once,
+while the tribute joins it only as it arrives, three quarters of a year's yield a year; the scripts grant only where they
+lose least (restless, hungry or far land), and the refusals (ambitious men take three-quarter tribute, others only half)
+keep it rare. A finding for item 18: the land's multiple against tribute, and the men's terms.
+
+**The audit's finds** (`--audit-play-half`): running.
 
 ## The review
 
