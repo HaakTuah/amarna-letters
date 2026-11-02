@@ -1,7 +1,9 @@
 import { describe, expect, test } from "vitest";
+import { formatMoney } from "@amarna/engine";
 import { CompatibleProvider } from "@amarna/llm";
 import { EnvoyLot, ForgerHand, SpiedUnit, Weighed, shekels } from "../src/bots/brain.ts";
 import { GovernorWrites } from "../src/bots/freedom.ts";
+import { TextKit } from "../src/bots/textkit.ts";
 
 // The script kings' reads of letters and reports finish quickly on very long text, and still read what the engine writes.
 describe("LongTextTests", () => {
@@ -20,18 +22,24 @@ describe("LongTextTests", () => {
     quick(() => [..."a".repeat(N * 5).matchAll(SpiedUnit)]);
     quick(() => shekels("1".repeat(N * 5)));
     quick(() => GovernorWrites.exec("governor of ".repeat(N)));
+    quick(() => TextKit.isAccusation("never" + " ".repeat(N) + "x"));
+    quick(() => TextKit.isAccusation("broke ".repeat(N / 20)));
+    quick(() => TextKit.sentences("!" + '"'.repeat(N) + " a"));
     quick(() => new CompatibleProvider({ id: "local", baseUrl: "http://localhost:1/v1" + "/".repeat(N * 5) + "x" + "/".repeat(N * 5) }, ""));
   });
 
   test("each read still reads the engine's words", () => {
-    expect(Weighed.exec("Your weighers found 1 mina 20 shekels.")?.[1]).toBe("1 mina 20 shekels");
-    const lot = EnvoyLot.exec("He came home.\n\n[The inventory lists 2 minas of gold; your weighers found 1 mina 30 shekels.]");
-    expect([lot?.[1], lot?.[2]]).toEqual(["2 minas", "1 mina 30 shekels"]);
+    expect(Weighed.exec(`Your weighers found ${formatMoney(80)}.`)?.[1]).toBe(formatMoney(80));
+    const lot = EnvoyLot.exec(`He came home.\n\n[The inventory lists ${formatMoney(120)} of gold; your weighers found ${formatMoney(90)}.]`);
+    expect([shekels(lot?.[1] ?? ""), shekels(lot?.[2] ?? "")]).toEqual([120, 90]);
     expect(ForgerHand.exec("A forgery. The scribes trace it to the hand of Pawura, who brought it.")?.[1]).toBe("Pawura");
     expect([..."Hatti has an army in Kadesh; Mitanni had a fleet in Ugarit.".matchAll(SpiedUnit)].map((m) => m[1])).toEqual(["Hatti", "Mitanni"]);
     expect(shekels("2 minas 15 shekels")).toBe(135);
     const governor = GovernorWrites.exec("Ari, your governor of Amurru, writes that its people are near revolt.");
     expect([governor?.[1], governor?.[2]]).toEqual(["Amurru", "near revolt"]);
+    expect(TextKit.isAccusation("You broke the oath you swore.")).toBe(true);
+    expect(TextKit.isAccusation("We have never lied to you.")).toBe(false);
+    expect(TextKit.sentences('He said "Go!" Then he left.')).toEqual(['He said "Go!"', "Then he left."]);
   });
 
   test("a base address loses only its trailing slashes", async () => {

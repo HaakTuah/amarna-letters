@@ -564,6 +564,7 @@ export const Weighed = /weighers found ([^.]{1,80})\./;
 export const EnvoyLot = /\[The inventory lists ([^;\]\n]{1,80}) of gold; your weighers found ([^\]\n]{1,80})\.\]/;
 /** The forger our scribes name, who brought the inventory. */
 export const ForgerHand = /trace it to the hand of ([^,\n]{1,80}), who brought it/;
+/** A king the spy saw with an army or a fleet somewhere. */
 export const SpiedUnit = /(?<![\p{L}\p{Mn}\p{Nd}\p{Pc}])([\p{L}\p{Mn}\p{Nd}\p{Pc}]+) (?:has|had) (?:an army|a fleet) in/gu;
 
 /** One of our people whose line reads that they have not returned: the overdue word has come, and nothing since. */
