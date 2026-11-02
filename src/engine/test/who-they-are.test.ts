@@ -40,7 +40,7 @@ import {
   WorldMap,
   PeopleOf1346,
 } from "@amarna/engine";
-import { Assert, skilled } from "./support.ts";
+import { Assert, skilled, smallWorld } from "./support.ts";
 
 describe("WhoTheyAreTests", () => {
   function begin(s: GameState): TurnEngine {
@@ -160,7 +160,7 @@ describe("WhoTheyAreTests", () => {
   });
 
   test("A false envoy is given a host's gift, and an envoy sent to the king it named exposes it", () => {
-    const s = newGame(8, newGameConfig({ catastropheChance: 0 }));
+    const s = smallWorld(newGame(8, newGameConfig({ catastropheChance: 0 })), "Babylonia", "Egypt");
     const c = first(s.characters, (x) => x.status === "Free");
     c.at = "Egypt";
     c.met = [];
@@ -183,7 +183,7 @@ describe("WhoTheyAreTests", () => {
 
   test("A captive questioned gives way by the odds, then tells the tablets it saw, or lies with one that never was, as it decides", () => {
     for (const loyal of [false, true]) {
-      const s = newGame(9, newGameConfig({ catastropheChance: 0 }));
+      const s = smallWorld(newGame(9, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Mitanni");
       const c = first(s.characters, (x) => x.employer === "Mitanni");
       s.tablets.push(newTablet({ id: "t900", text: "Peace.", proposedBy: "Mitanni", partner: "Egypt", seals: ["Mitanni", "Egypt"], createdTurn: 1, sealedTurn: 1 }));
       c.seen = ["t900"];
@@ -210,7 +210,7 @@ describe("WhoTheyAreTests", () => {
   });
 
   test("A captive handed over travels under guard, and is the other court's captive once it arrives", () => {
-    const s = newGame(9, newGameConfig({ catastropheChance: 0 }));
+    const s = smallWorld(newGame(9, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Mitanni");
     const c = first(s.characters, (x) => x.employer === "Mitanni");
     c.status = "Captured";
     c.heldBy = "Hatti";
@@ -232,7 +232,7 @@ describe("WhoTheyAreTests", () => {
   test("A spy told to steal takes a tablet the court then no longer holds, and it comes home with the report", () => {
     let stolen = false;
     for (const seed of [11, 12, 13, 14, 15, 16]) {
-      const s = newGame(seed, newGameConfig({ catastropheChance: 0 }));
+      const s = smallWorld(newGame(seed, newGameConfig({ catastropheChance: 0 })), "Arzawa", "Egypt", "Hatti");
       const spy = first(s.characters, (x) => x.employer === "Egypt");
       spy.secretMaster = null;
       skilled(spy, 100);

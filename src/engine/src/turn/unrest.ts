@@ -693,9 +693,9 @@ function seatLetters(e: TurnEngine): void {
 function stirSeason(e: TurnEngine): void {
   const S = e.s;
   // Gold for stirring that one no longer on his errand still carries (caught on the road, dismissed, turned): his purse
-  // holds it now, on him wherever he is.
+  // holds it now, on him wherever he is: kept from an errand, not skimmed (as `capture` and the road home count it).
   for (const c of S.characters.filter((c) => c.stirGold > 0 && !(c.status === "Employed" && (c.duty === "SpyOutbound" || c.duty === "SpyPosted" || c.duty === "EnvoyHomebound")))) {
-    gain(c, c.stirGold, "Skimmed");
+    gain(c, c.stirGold, "Carried");
     c.stirGold = 0;
   }
   for (const c of sortBy(

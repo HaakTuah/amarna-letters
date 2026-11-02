@@ -36,8 +36,8 @@ export interface MapRenderer {
   render(input: MapInput): void;
   zoomBy(factor: number): void;
   fit(): void;
-  /** Brings a point of the board into view, zooming in to at least the given zoom. */
-  focus(at: Pt, minZoom: number): void;
+  /** Brings a point of the board into view, zooming in to at least the given zoom; `centre` puts it in the middle. */
+  focus(at: Pt, minZoom: number, centre?: boolean): void;
   /** Where the view is: the board point at its centre, and its zoom (1 is the whole board where the screen allows). */
   /** Where the view is; `whole` when it is as far out as it may go. */
   getView(): { at: Pt; zoom: number; whole?: boolean } | null;

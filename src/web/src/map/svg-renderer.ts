@@ -489,8 +489,8 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.view !== null) reset(this.view);
   }
 
-  focus(at: Pt, minZoom: number): void {
-    if (this.view !== null) focus(this.view, at.x, at.y, minZoom);
+  focus(at: Pt, minZoom: number, centre = false): void {
+    if (this.view !== null) focus(this.view, at.x, at.y, minZoom, centre);
   }
 
   getView(): { at: Pt; zoom: number; whole?: boolean } | null {

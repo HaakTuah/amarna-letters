@@ -674,11 +674,14 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   for (const other of alive(S).filter((x) => x !== conqueror)) {
     const text = `Word spreads that the kingdom of ${land(p)} is no more: ${who}.`;
     if (seeing.includes(other)) {
-      notify(S, other, "Rumor", "A kingdom falls", text);
       S.fallsHeard.set(other, [...(S.fallsHeard.tryGet(other) ?? []), p]);
+      this.syncNames();
+      notify(S, other, "Rumor", "A kingdom falls", text);
     } else this.word(p, other, "KingdomFalls", text);
   }
   if (conqueror !== null) S.fallsHeard.set(conqueror, [...(S.fallsHeard.tryGet(conqueror) ?? []), p]);
+  // The fallen claim nothing, as each court that has heard of the fall knows (item 17+).
+  this.syncNames();
   if (conqueror !== null) {
     const winner = conqueror;
     const rest = passed.filter((x) => x !== capital.id).map((x) => this.map.get(x).name);

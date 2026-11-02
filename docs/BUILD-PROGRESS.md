@@ -54,11 +54,15 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
-- **Done so far** (2 November 2026): the progress file under 20 KB (#388); the files every session reads (#390);
-  `docs/` (#392: item 2's, 4's and 5+'s briefs and specs to `docs/archive/specs/`, built entries out of "Not built yet"; #393:
-  design note 10 down to its live differences); the archive's `progress-done.md` split by kind (#394). **Left:** the code,
-  once the open lanes touching it merge (17++ B and C, export, model calls, fog); the conversion's parity check removed
-  (#443); `docs/DESIGN-NOTES.md` after its open lane merges.
+- **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
+  #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
+  locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568). **Left, each its own PR with
+  behaviour proven:** splits the review found, each file holding two or three things: `llm/src/schemas.ts` (JSON-schema
+  tools; orders and letters; envoy and court replies), `llm/src/prompts.ts` (the king's briefs; audience and person
+  prompts), `llm/src/character-mind.ts` (the audience path), `llm/src/seat-setup.ts` (presets and cost estimate),
+  `bots/statecraft-letters.ts` (the audiences), `bots/tactics.ts` (joints, winter), `web/src/audio/player.ts` (the
+  listening page), `web/src/pages/Home.tsx` (saved games and replays); then `--noUnusedLocals` again on the open PRs'
+  files once they merge.
 
 ## Follow-ups
 
@@ -183,8 +187,9 @@ fixed.
   twin canary plays a seat's seasons with and without a hidden fact. What it still finds is bug #540. Report:
   `docs/rounds/2026-11-02-far-true-state.md`.
 
-- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); (a), (i) and a dismissed spy's stirring gold wait for #378:
-  issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.
+- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
+  #417; report `docs/rounds/2026-11-02-bug-417.md`). (b), the chiefs' lands falling in the first two seasons, is 17++'s
+  and measured in its report.
 - ~~**From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
   is over 50 KB (about 55 KB)~~ (#532: the order kinds, their makers, what they say, their JSON and the season's
   submission, each in its own file; replays byte-identical).

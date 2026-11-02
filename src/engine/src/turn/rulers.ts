@@ -97,6 +97,7 @@ P.ruleOwn = function (id, c, r) {
   S.kingTongues.set(p, kingTongues(p, id));
   S.court.set(p, id);
   S.fallsHeard.set(p, was !== null && !isAlive(S, was) ? [was] : []);
+  this.syncNames();
   for (const g of S.governors.filter((x) => x.character === c.id)) this.dropGovernor(g);
   this.setOwner(id, p);
   c.employer = p;

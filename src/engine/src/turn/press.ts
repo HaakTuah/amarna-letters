@@ -5,7 +5,7 @@
 import { Dict } from "../core/collections.ts";
 import type { ClaimNameOrder, SupportOrder } from "../model/orders.ts";
 import { claimantsOf, claimedName, house, isGreatKing, knownName, land, nameKnown, ownLand, setNameClaims, type Power } from "../model/power.ts";
-import { newRecognition } from "../model/recognition.ts";
+import { type HeardName, newRecognition } from "../model/recognition.ts";
 import type { GreetingOptions } from "../model/records.ts";
 import { alive, logEvent, notify } from "../model/state.ts";
 import { TurnEngine } from "./core.ts";
@@ -15,7 +15,7 @@ declare module "./core.ts" {
     recordGreeting(from: Power, to: Power, g: GreetingOptions | null): void;
     claimName(p: Power, o: ClaimNameOrder): void;
     syncNames(): void;
-    claimHeard(court: Power, claimant: Power, name: string | null): void;
+    claimHeard(court: Power, claimant: Power, name: string | null, sealed: number): void;
     recognise(): void;
     promisesKept(supports: readonly [Power, SupportOrder][]): void;
   }
@@ -59,17 +59,19 @@ P.recordGreeting = function (from, to, g) {
 
 /** The registry of names (`power.ts`) set to the state's, after a claim or a greeting changed it (item 17+). */
 P.syncNames = function () {
-  setNameClaims(this.s.names, this.s.eliminated, this.s.nameGiven, this.s.namesHeard);
+  setNameClaims(this.s.names, this.s.eliminated, this.s.nameGiven, this.s.namesHeard, this.s.fallsHeard);
 };
 
-/** A court reads in a claimant's sealed greeting the name he claims (item 17+); null: his own land's. */
-P.claimHeard = function (court, claimant, name) {
+/**
+ * A court reads in a claimant's sealed greeting, sealed in season `sealed`, the name he claims (item 17+); null: his own
+ * land's. It keeps the newest it has read: a greeting sealed before the one it holds tells it nothing new.
+ */
+P.claimHeard = function (court, claimant, name, sealed) {
   const S = this.s;
-  const n = name ?? ownLand(claimant);
-  const heard = S.namesHeard.tryGet(court) ?? new Dict<Power, string>();
-  if ((heard.tryGet(claimant) ?? ownLand(claimant)) === n) return;
-  if (n === ownLand(claimant)) heard.delete(claimant);
-  else heard.set(claimant, n);
+  const heard = S.namesHeard.tryGet(court) ?? new Dict<Power, HeardName>();
+  const was = heard.tryGet(claimant);
+  if (was !== undefined && was.sealed > sealed) return;
+  heard.set(claimant, { name: name ?? ownLand(claimant), sealed });
   S.namesHeard.set(court, heard);
   this.syncNames();
 };
@@ -86,7 +88,7 @@ P.claimName = function (p, o) {
   const name = nameKnown(o.name);
   if (name === null || claimedName(p) === name) return;
   if (name === ownLand(p)) S.names.delete(p);
-  else S.names.set(p, { name, since: S.turn });
+  else S.names.set(p, name);
   this.syncNames();
   // The rivals his court knows of: those whose greetings it has read.
   const rivals = claimantsOf(name, p).filter((x) => x !== p);
@@ -96,6 +98,8 @@ P.claimName = function (p, o) {
     "Notice",
     NameClaimTitle,
     `Your court now calls you the king of ${name}.${rivals.length > 0 ? ` Another claims the name too: each court gives it to the claimant it recognises, in the greetings it sends, and calls the other by his house (yours is ${house(p)}).` : ""}`,
+    null,
+    false,
   );
   logEvent(S, "recognition", `${land(p)} claims the name of ${name}${rivals.length > 0 ? `, claimed also by ${rivals.map(land).join(", ")}` : ""}.`, [p], "name-claim");
 };
