@@ -152,6 +152,11 @@ export class Brain {
   readonly leaveAsked = new Dict<Power, Clause[]>();
   /** Tablets sealed by an envoy's hand that we have weighed already: honoured, repudiated, or heard repudiated (item 9). */
   readonly judged = new HSet<string>();
+  /**
+   * The seasons running in which a governor's own report, the newest word we have of his land, called its people restless
+   * or near revolt, by province (the audit's find 4: his reports come every season, his letters only when the mood changes).
+   */
+  readonly alarmed = new Dict<string, number>();
   lastSeek = -10;
   lastSpyCaught = -10;
   warTarget: Power | null = null;
@@ -223,6 +228,11 @@ export class Brain {
     if (v.turn === this.turn) return;
     this.turn = v.turn;
     const P = this.p;
+    for (const g of v.governors) {
+      const word = v.moods.find((x) => x.province === g.province);
+      const bad = word !== undefined && word.source === "governor" && (word.mood === "restless" || word.mood === "near revolt");
+      this.alarmed.set(g.province, bad ? this.alarmed.getOrDefault(g.province, 0) + 1 : 0);
+    }
     // Powers risen in play since we last looked (items 13+ and 17) are kings like any other to us.
     for (const x of AllPowers) if (x !== this.me && !this.rel.has(x)) this.rel.set(x, new Relation());
 

@@ -106,15 +106,20 @@ export function requestText(spec: CallSpec, replyPath: string, error: string, ac
   return sb.toString();
 }
 
+/** The longest a field's line in `readable` grows before its entries go on lines of their own. */
+const LongestLine = 1000;
+
 /**
  * The schema as the request prints it: indented, but each object that holds no other object (a field: its type, enum and
- * description) on one line, and apostrophes left as they are.
+ * description) on one line unless that line would pass `LongestLine`, and apostrophes left as they are.
  */
 export function readable(node: unknown, depth = 0): string {
   const nested = (x: unknown): boolean => (x !== null && typeof x === "object" && !Array.isArray(x)) || (Array.isArray(x) && x.some(nested));
   const pad = " ".repeat(2 * depth);
   const inner = " ".repeat(2 * (depth + 1));
-  if (node !== null && typeof node === "object" && !Array.isArray(node) && Object.values(node).some(nested))
+  // A field on one line, unless that line would grow long enough for a file reader to cut: then one line per entry.
+  const long = node !== null && typeof node === "object" && !Array.isArray(node) && JSON.stringify(node).length > LongestLine;
+  if (node !== null && typeof node === "object" && !Array.isArray(node) && (long || Object.values(node).some(nested)))
     return (
       "{\n" +
       Object.entries(node)

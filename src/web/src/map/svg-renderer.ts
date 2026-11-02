@@ -14,6 +14,7 @@ import { OmenSigns, RuinMarks, lifeLayer, mediumOf, memoryLayer, sceneMarkup, sc
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, outerRing, ringOf, TentHalf, TentRing } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { seasonLayer } from "./seasons.ts";
+import { holdingLayer, tintClass, type MapMode } from "./holding.ts";
 import { captureLine, unitKindName, type MapScene, type SceneTraveller, type SceneUnit } from "./scene.ts";
 import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
 
@@ -38,7 +39,7 @@ function provinceTitle(p: Province, owner: Power | null): string {
   );
 }
 
-function tints(s: MapScene): string {
+function tints(s: MapScene, mode: MapMode): string {
   let sb = `<g class="politics" clip-path="url(#seaclip)">`;
   for (const p of Seas) sb += `<path class="hit sea-hit" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(`${p.name}, a sea zone`)}</path>`;
   sb += "</g>";
@@ -46,11 +47,12 @@ function tints(s: MapScene): string {
     sb += `<g class="politics" clip-path="${clip}">`;
     for (const p of group) {
       const owner = s.owner.get(p.id) ?? null;
-      sb += `<path class="${owner !== null ? `tint t-${glyphId(owner)}` : "tint free"}" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(provinceTitle(p, owner))}</path>`;
+      sb += `<path class="${tintClass(s, p.id, owner)}" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(provinceTitle(p, owner))}</path>`;
     }
     sb += "</g>";
   }
-  return sb;
+  // Item 17++, part C: governors' blocs, and the mood of the land in its own view.
+  return sb + `<g class="holding">${holdingLayer(s, mode)}</g>`;
 }
 
 function bands(s: MapScene): string {
@@ -676,7 +678,7 @@ export class SvgMapRenderer implements MapRenderer {
           if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
         }
       },
-      () => this.layer("tints", s.frame, () => tints(s)),
+      () => this.layer("tints", `${s.index}|${s.viewer}|${input.mode ?? "realms"}|${s.frame.turn}`, () => tints(s, input.mode ?? "realms")),
       () => this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s)),
       () => {
         const m = s.memory;

@@ -305,7 +305,7 @@ export const Governors1346: readonly { name: string | null; court: Power; provin
   { name: "Thutmose", court: "Egypt", province: "nubia", grade: "B: King's Son of Kush (the Buhen stela, his name lost there)" },
   { name: "Addaya", court: "Egypt", province: "gaza", grade: "A: Pharaoh's man, who put a garrison in his house at Hazzatu (EA 254, 285, 287, 289)" },
   { name: "Pahanate", court: "Egypt", province: "sumur", grade: "C: commissioner at Ṣumur (EA 60, 62, 68), Ṣumur perhaps still Egypt's in 1346" },
-  { name: "Enlil-kidinni", court: "Babylonia", province: "nippur", grade: "A: governor of Nippur (the Nippur letters)" },
+  { name: "Enlil-kidinni", court: "Babylonia", province: "nippur", grade: "C: governor of Nippur (the Nippur letters), in office about 1342-1336 on Brinkman's dating, so perhaps a few years after 1346" },
   { name: "Ili-ippashra", court: "Babylonia", province: "dilmun", grade: "B: an official in Dilmun (the Dilmun letters from Nippur), \"governor\" a reading" },
   { name: "Eshuwara", court: "Alashiya", province: "kalavasos", grade: "C: the governor of Alashiya (EA 40), over the copper hills, whose copper he sends; his name [G]" },
   { name: null, court: "Hatti", province: "tuwanuwa", grade: "B: a lord of the watchtower of the Lower Land, facing Arzawa" },

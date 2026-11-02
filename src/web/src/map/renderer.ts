@@ -3,6 +3,7 @@
  * in a later graphical pass without touching the rest: the page hands a renderer the scene and the draft overlays, and
  * hears back which province or person was tapped.
  */
+import type { MapMode } from "./holding.ts";
 import type { UnitKind } from "@amarna/engine";
 import type { Pt } from "./art.ts";
 import type { MapScene, PathStep } from "./scene.ts";
@@ -15,6 +16,8 @@ export interface MapInput {
   arrows: { from: string; to: string; support: boolean; kind: UnitKind }[] | null;
   followId: string | null;
   followPath: PathStep[] | null;
+  /** Item 17++, part C: the map's view, who holds what (default) or the mood of the land. */
+  mode?: MapMode;
 }
 
 export interface MapHandlers {

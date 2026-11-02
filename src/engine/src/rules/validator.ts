@@ -73,6 +73,10 @@ export class OrderValidator {
 
     // What this seat can see: a refusal says nothing of troops out of its sight.
     const Sight = (): HSet<string> => (sight ??= Views.sight(S, Map, power));
+    // Who holds each province as this court knows it: a refusal says nothing of a loss whose word has not come.
+    let holders: ReturnType<typeof Views.knownHolders> | null = null;
+    // Bug #467: every check of who holds a province reads it so; the engine answers by the true state, by the road.
+    const knownOwner = (province: string): Power | null => (holders ??= Views.knownHolders(S, Map, power, Sight())).tryGet(province)?.owner ?? null;
 
     const nobody = (id: string): string => (isBlank(id) ? "you named nobody" : `there is nobody called '${id}'`);
 
@@ -193,7 +197,7 @@ export class OrderValidator {
       get dispatches() { return dispatches; },
       get seekCount() { return seekCount; },
       get counterIntel() { return counterIntel; },
-      heardFallen, Sight, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
+      heardFallen, Sight, knownOwner, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
     };
     const check = (order: Order): string | null => {
       for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder]) {

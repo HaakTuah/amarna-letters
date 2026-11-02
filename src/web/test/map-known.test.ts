@@ -15,7 +15,7 @@ function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
     knownOwner: new Map(), sieges: [], units: [], moves: [], seenBy: new Map(), sight: new Map(), journeys: [], people: new Map(),
     sleep: new Map(), eliminated: new Set(), events: [], news: [], inboxCount: new Map(), openAge: false, ageBand: "Usual",
     ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), counted: new Map(), fed: new Map(),
-    unrest: new Map(), caravans: [], walking: [], omen: "Quiet", ...over,
+    unrest: new Map(), caravans: [], walking: [], omen: "Quiet", governed: new Map(), governedKnown: new Map(), bonds: new Map(), knownBonds: new Map(), moodRead: new Map(), obeyed: new Map(), ...over,
   } as SeasonFrame;
 }
 
@@ -64,7 +64,7 @@ describe("MapKnownTests", () => {
         knownOwner: word(knows, knows === "Egypt" ? 1 : i),
         settled: new Map([[city.id, people]]),
         // Each court as if its scribes counted it that season (item 17++).
-        counted: new Map((["Egypt", "Hatti"] as Power[]).map((p) => [p, new Map([[city.id, people]])] as const)),
+        counted: new Map((["Egypt", "Hatti"] as Power[]).map((p) => [p, new Map([[city.id, { settled: people, turn: i + 1 }]])] as const)),
         stores: new Map([[city.id, people / 10]]),
         fed: new Map([[city.id, 600]]),
       });
@@ -97,20 +97,20 @@ describe("MapKnownTests", () => {
         knownOwner: word(knows, knows === "Egypt" ? 1 : i),
         settled: new Map([[city.id, people]]),
         // Each court as if its scribes counted it that season (item 17++).
-        counted: new Map((["Egypt", "Hatti"] as Power[]).map((p) => [p, new Map([[city.id, people]])] as const)),
+        counted: new Map((["Egypt", "Hatti"] as Power[]).map((p) => [p, new Map([[city.id, { settled: people, turn: i + 1 }]])] as const)),
         stores: new Map([[city.id, people / 10]]),
         fed: new Map([[city.id, 900]]),
         bands: [band(people / 100)],
       });
     const fs = [at(0, "Egypt", "Egypt", 5000), at(1, "Hatti", "Egypt", 4000), at(2, "Hatti", "Egypt", 3000), at(3, "Hatti", "Hatti", 2000)];
     // Held and known, looking back at that season: the figures recorded then, never the live state of a later season.
-    Assert.equal(JSON.stringify({ live: false, age: 0, stores: 500, settled: 5000, fed: 900 }), JSON.stringify(ownEconomy(buildScene(fs, 0, "Egypt"), city.id)));
+    Assert.equal(JSON.stringify({ live: false, age: 0, stores: 500, settled: 5000, countAge: 0, fed: 900 }), JSON.stringify(ownEconomy(buildScene(fs, 0, "Egypt"), city.id)));
     // Held and known at the latest season: the card tells everything, from the court's own view.
     Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(fs.slice(0, 1), 0, "Egypt"), city.id)));
     for (const i of [1, 2]) {
       const scene = buildScene(fs, i, "Egypt");
       // Lost unawares: the stewards' last report (frame 0), with its age; never the live state or the new holder's figures.
-      Assert.equal(JSON.stringify({ live: false, age: i, stores: 500, settled: 5000, fed: 900 }), JSON.stringify(ownEconomy(scene, city.id)));
+      Assert.equal(JSON.stringify({ live: false, age: i, stores: 500, settled: 5000, countAge: i, fed: 900 }), JSON.stringify(ownEconomy(scene, city.id)));
       // The map's stores and bands as last held, the band faded with its age.
       Assert.equal(500, scene.stores.get(city.id));
       const b = scene.bands.find((x) => x.province === city.id)!;
@@ -128,7 +128,7 @@ describe("MapKnownTests", () => {
     Assert.equal(JSON.stringify({ live: false, age: 0, stores: 300, settled: 3000, fed: 900 }), JSON.stringify(ownEconomy(buildScene(fs, 2, null), city.id)));
     const hatti = fs.map((f) => ({ ...f, knownOwner: new Map([["Hatti" as Power, new Map([[city.id, { owner: (f.index >= 1 ? "Hatti" : "Egypt") as Power, turn: f.turn }]])]]) }));
     Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(hatti, 3, "Hatti"), city.id)));
-    Assert.equal(JSON.stringify({ live: false, age: 0, stores: 300, settled: 3000, fed: 900 }), JSON.stringify(ownEconomy(buildScene(hatti, 2, "Hatti"), city.id)));
+    Assert.equal(JSON.stringify({ live: false, age: 0, stores: 300, settled: 3000, countAge: 0, fed: 900 }), JSON.stringify(ownEconomy(buildScene(hatti, 2, "Hatti"), city.id)));
     // Land its scribes never counted (taken, no census since): no figure for its people, never a count of 0.
     const uncounted = hatti.map((f) => ({ ...f, counted: new Map() }));
     Assert.equal(JSON.stringify({ live: false, age: 0, stores: 300, fed: 900 }), JSON.stringify(ownEconomy(buildScene(uncounted, 2, "Hatti"), city.id)));

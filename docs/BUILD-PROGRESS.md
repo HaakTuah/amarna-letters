@@ -62,6 +62,18 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The Gulf's head as it stood in the Late Bronze Age** (the owner, 2 November 2026; #527; archive item 175): the map's
+  old shore (`OldGulfShore` in `src/web/src/map/features.ts`) moves to where the published reconstructions of the Late
+  Bronze Age shoreline put it, gathered and taken at their middle as "History holds" asks; if that leaves Ur inland, Ur
+  loses its sea harbour and its Gulf door, and its trade reaches the Gulf down the Euphrates. Done by the history lane
+  with a new save version.
+
+- **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in
+  `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact
+  true and once false (a far province lost or held, a siege, a death abroad, an army moving out of sight), and assert
+  that everything the seat receives (its input, notices, wakes and view) is identical until word of the fact could
+  reach it. It catches leaks nobody listed. Built in the lane fixing #517, or right after it.
+
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
   1. **Alashiya owes Egypt nothing at the start** (#476): the starting copper debt goes, as EA 35 shows none.
@@ -80,9 +92,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   one PR and one `bug` issue per dossier (#473, #477, #479, #483, #485, #488, #490, #494, #499, #500, #501, #504,
   #506, #508, #510); the counts are in "Calibration" in `docs/claude-and-codex.md`. #466's four notes are settled
   (Yapah-Hadda and Artatama marked guesses, Shum-Adda has no town, EA 28-29 date to about 1352-1349). What remains:
-  - **Anchors for the rest of the game's data.** Every person and named ruler names its anchor, with the test
-    (`src/engine/test/history-anchors.test.ts`); the places, distances, waters, walls, armies, doors and tongues have
-    anchored lines in their dossiers but name none yet. Extend `src/engine/src/rules/anchors.ts` and its test to them.
+  - ~~**Anchors for the rest of the game's data.**~~ Done in #522: waters, walls, tongues, languages, doors, crossings,
+    distances, armies and fleets, harbours and rivers each name their line, checked by the anchors test; the guesses with
+    no dossier row are marked invented, for the unclear lines' lane to source or estimate.
   - **The lines left unclear** (213 of 1,447, mostly where the edition was out of reach: Beckman, Bryce's *Kingdom*,
     Veenhof, the excavation reports): source each, or mark what the game rests on it as invented.
 
@@ -131,6 +143,9 @@ fixed.
   again ($1.13 a season live against $1.34). Report: `docs/rounds/2026-11-02-counsel-plans-from-digest.md`.
 - ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
   armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
+- ~~**Order checks reveal a far loss (bug #467)**~~ (done, #515): the checks read who holds a province as the court
+  knows it, and an order that fails on land lost out of sight answers by the road; the governor's view completes with
+  #378; the rest of the far true state is bug #517. Report: `docs/rounds/2026-11-02-known-holding.md`.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); (a), (i) and a dismissed spy's stirring gold wait for #378:
   issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.
@@ -163,7 +178,12 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
-| 17++ B | Counting the land (census), asking an amount by a fresh count and levying by share by an old one (`--count-play-half`) | 0.97 growth to 0.86, 26 wins to 24, in 50 games (after round 1: 0.96 to 0.89, 30 to 20) | Pays |
+| 17++ C | Taking up the provinces that look to them where it pays, refusing the rest (`--take-up-play-half`) | 0.94 growth to 0.86, 26 wins to 24, in 50 games; declarations in 47 games (884), 845 taken up, 79 refused, 490 passed | Pays |
+| 17++ C | Giving a trusted governor the threatened province beside his own (`--region-play-half`) | 0.96 growth to 0.89, 33 wins to 17, in 50 games; regions given in 49 games (463) | Pays |
+| 17++ C | Making governors vassal kings where the tribute nets more than keeping (`--grant-play-half`) | 0.94 growth to 0.86, 28 wins to 22, in 50 games; 24 kingships taken of 95 offered | Pays (the land's multiple against tribute stays a finding for item 18) |
+| 17++ B | Counting the land (census), asking an amount by a fresh count and levying by share by an old one (`--count-play-half`) | 0.96 growth to 0.85, 31 wins to 19, in 50 games, on part C's final head (part B's own: 0.97 to 0.86, 26 to 24) | Pays |
+| 17++ C | The audit's script finds: raising troops when rich, governors' gold, vassal requests answered as sealed (`--audit-play-half`) | 0.94 growth to 0.86, 27 wins to 23, in 50 games | Pays |
+| 17++ C | Checking a governor's word against one's own spy, recalling one caught hiding unrest (#459, `--spy-check-play-half`) | 0.96 growth to 0.87, 27 wins to 23, in 50 games | Pays |
 | 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
 | 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |
 
@@ -173,7 +193,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, and script kings checking a governor's word against their spy's: #459, the owner, 2 November 2026) under way; "taken up, never thrust on anyone" (2 November 2026) goes into part C, or a part of its own if C has merged | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md` |
+| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; next #480 (a governor's letter says where he sits), then part D (#431's carriers), then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
 | 17++a | Something happens every season | not started (next after 17++) | | |
 | 17+++ | The season plays out | not started | | |
 | 17+++a | Keys for everything | not started | | |

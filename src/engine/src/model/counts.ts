@@ -36,7 +36,7 @@ export const CountSchema: ObjSchema<Count> = obj(
 
 /**
  * Scribes a king sent to count a province: they count it in the season `counted` and their count, once taken (`count`),
- * reaches his court in the season `home`.
+ * reaches his court in the season `home`, with its people's mood as they found it (item 17++, part C; "" until counted).
  */
 export interface Census {
   power: string;
@@ -44,12 +44,13 @@ export interface Census {
   counted: number;
   home: number;
   count: Count | null;
+  mood: string;
 }
 
 export const CensusSchema: ObjSchema<Census> = obj(
   "Census",
-  (init: Partial<Census> = {}) => ({ power: "Egypt", province: "", counted: 0, home: 0, count: null, ...init }),
-  { power: S, province: S, counted: I, home: I, count: opt(() => CountSchema) },
+  (init: Partial<Census> = {}) => ({ power: "Egypt", province: "", counted: 0, home: 0, count: null, mood: "", ...init }),
+  { power: S, province: S, counted: I, home: I, count: opt(() => CountSchema), mood: S },
 );
 
 /**
@@ -109,12 +110,39 @@ export function keepCount(s: GameState, power: string, c: Count): void {
 }
 
 /**
- * Every court starts with a count of the land it holds, as its scribes last counted it before the game: dated the season
- * before the first, before the first season's harvest is reaped.
+ * The seasons before the first in which each court last counted its land ("at the start each court has the counts its
+ * sources suggest (Egypt counted often, so its counts are recent; most others' are older)", "Counts as the scribes knew
+ * them"): different data under the same rules. First guesses, for item 18: Egypt two seasons, every other court two years.
+ */
+export const StartCountAge: { readonly default: number; readonly by: Readonly<Partial<Record<string, number>>> } = { default: 8, by: { Egypt: 2 } };
+
+/**
+ * Every court starts with a count of the land it holds, as its scribes last counted it before the game (`StartCountAge`),
+ * before the first season's harvest is reaped.
  */
 export function seedCounts(s: GameState, map: WorldMap): void {
   for (const p of map.landProvinces) {
     const holder = s.owner.getOrDefault(p.id, null);
-    if (holder !== null) keepCount(s, holder, { ...takeCount(s, map, p.id), turn: s.turn - 1 });
+    if (holder !== null) keepCount(s, holder, { ...takeCount(s, map, p.id), turn: s.turn - (StartCountAge.by[holder] ?? StartCountAge.default) });
   }
+}
+
+/**
+ * The figures a count of people shows by its age in seasons ("Counts as the scribes knew them": "a fresh count shows its
+ * figure and its date, each year older it shows one figure less, down to one"): two while under a year old, then one.
+ * A land never counted shows only a rough guess, at one figure.
+ */
+export function countFigures(age: number | null): number {
+  return age === null ? 1 : Math.max(1, 2 - Math.floor(Math.max(0, age) / 4));
+}
+
+/** `n` to `figures` significant figures: 18,400 to two is 18,000; numbers with no more figures than that stay as they are. */
+export function toFigures(n: number, figures: number): number {
+  if (n <= 0) return 0;
+  // Integer steps only, so every engine rounds alike: the step is the power of ten below the last figure kept.
+  let top = 1;
+  for (let i = 0; i < figures; i++) top *= 10;
+  let step = 1;
+  while (Math.round(n / step) >= top) step *= 10;
+  return Math.round(n / step) * step;
 }

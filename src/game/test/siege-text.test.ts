@@ -64,7 +64,7 @@ describe("SiegeTextTests", () => {
   test("A build order is read from a reply and offered in the schema", () => {
     let sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","command":[],"letters":[],"units":[{"unit":"suhu","order":"besiege","target":"","to":""},{"unit":"Babylon","order":"sally","target":"sippar","to":""}],"other_orders":[{"action":"build_corvee","province":"Thebes","power":"","person":"","amount":2,"term":0,"text":"","item":"walls","seals":[]}]}`,
+        `{"notes":"","command":[],"letters":[],"units":[{"unit":"suhu","order":"besiege","target":"","to":""},{"unit":"Babylon","order":"sally","target":"sippar","to":""}],"other_orders":[{"action":"build_corvee","province":"Thebes","power":"","person":"","amount":2,"term":0,"text":"","item":"walls","seals":[],"lands":[]}]}`,
       )!,
     );
     Assert.equal([besiege("suhu"), sally("babylon", "sippar"), build("thebes", "Walls", 2, true)], sub.orders);
