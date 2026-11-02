@@ -179,6 +179,11 @@ merged; (3) reviewed like any PR: Codex's review, the release notes read for bre
 `npm install` and the full suites run before pushing; (5) it is ordinary work for the next free lane, not a lane of its
 own. One that fails a condition is closed with the reason, and the update is made on `develop` instead.
 
+**CodeQL checks every PR** into `develop` and `main`, every push to them and once a week (`.github/workflows/codeql.yml`).
+A finding on your PR shows on it as a note: fix it in the same PR, or, if it is a false alarm, say why in the PR and
+leave the alert to the owner, who alone can dismiss it. Alerts already in the code are the owner's to pass on
+(`SECURITY.md`, point 9).
+
 Cloud sessions can't use GitHub's GraphQL API, so `gh pr create`, `gh pr list` and `gh pr view` fail.
 Use the REST API (repository `HaakTuah/amarna-letters`):
 
