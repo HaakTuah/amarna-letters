@@ -9,11 +9,14 @@ export function FollowPanel({
   viewer,
   onProvince,
   onClose,
+  onTrack,
 }: {
   record: LifeRecord;
   viewer: Power | null;
   onProvince: (id: string) => void;
   onClose: () => void;
+  /** The camera left its person (the player dragged the map): this puts it back on him. Null while it keeps to him. */
+  onTrack?: (() => void) | null;
 }) {
   return (
     <>
@@ -63,6 +66,11 @@ export function FollowPanel({
           ))}
         </>
       )}
+      {onTrack != null && (
+        <button className="small" onClick={onTrack}>
+          Keep the camera on them
+        </button>
+      )}{" "}
       <button className="small" onClick={onClose}>
         Stop following
       </button>
