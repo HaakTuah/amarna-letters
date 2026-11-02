@@ -179,7 +179,7 @@ the audit's script finds.
 | --- | --- | --- |
 | A province going over to a king by the season's rule | 603 times in 48 games | 603 |
 | Men of standing asked whether they lead a rising | 392 times in 34 games (by their traits, 112 would and 280 would not) | 11 risings broke out (3 led revolts, 8 governors), the rest no longer clearing a season later as the master's troops came back or stood fast |
-| Leaderless risings of a stripped people | 136 in 37 games | 86 won, 50 put down by troops |
+| Risings of a stripped people with nobody at their head | 136 broke out in 37 games | 50 of all risings were put down by troops there; the rest took the land from its master |
 | Remnants folded (`fold`) | 135 times in 48 games | 135 |
 | Grain handed out (`feed`, scripts' and the land play's) | 74,255 in 50 games | every one given |
 | Commanders and governors turning with the men who follow them (`defect`) | 22 in 13 games | 22 |
@@ -250,6 +250,18 @@ so they go to a session of their own ("Bigger review fixes in a session of their
 - CI's smoke: passes on this head (`node src/web/smoke.mjs`); the marker that touched Gezer's badge came of round 1's
   game, and the layout is unchanged.
 - Found on the way: land lost by the season's rule did not wake a sleeping seat (`sleep.ts`, `LandLostTitles`); fixed.
+
+**Round 2, both started together on `b04018e`.** The design check: **7**, points (B blocking, N not):
+1. B: use against ignore missing. **Fixed** (above, and the progress table).
+2. B: no counts of each feature's use and success; few led revolts. **Fixed**: the table above, with a `rising-asked` /
+   `rising-would` signal; the few led revolts follow the sources' grades (above).
+3. B: the rulebook said the master's weakness weighs everywhere; a doubled word. **Fixed** (`rules-freedom.ts`).
+4. N: round 1's hand-off read as current. **Fixed** (kept below as history).
+Round 1's points: all fixed or answered acceptably, by its own ruling.
+
+Codex: **P1×4**, security clean. **All fixed** in `fdb8d0a`: a beaten governor's split levy was left as two units (merged
+back; his followers now fight in the rising); a band's robbing gave a zero debit (by share, at least a point); the
+"Rising" request counted the band twice (followers apart); a winning rising lost no men (the winner's share).
 
 ## History: round 1's hand-off (1 November 2026), done in round 2
 
