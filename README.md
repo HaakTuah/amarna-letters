@@ -358,7 +358,8 @@ colour), armies as chariots and fleets as ships. Step the timeline and each seas
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
 uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow
-their life: their path, their masters, their missions, what they said and reported.
+their life: their path, their masters, their missions, what they said and reported. Drag and zoom
+as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
 gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
