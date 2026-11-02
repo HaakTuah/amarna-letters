@@ -397,7 +397,10 @@ sets how long each is watched), and + and − step between them; no key acts whi
 its key.
 
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
-browser, and a game's log can be exported and loaded again to replay it exactly.
+browser, and a game's log can be exported and loaded again to replay it exactly. The export ("Export log" in the menu)
+holds everything by default, every model call in full included; its boxes leave parts out, and unticking "Human players'
+words" blanks every text of a game a human played (models quote what they read), so the file can be shared and still
+replays. Keys, addresses, account and request ids, local paths and device details are never recorded, so never in it.
 
 ## Music and sound
 

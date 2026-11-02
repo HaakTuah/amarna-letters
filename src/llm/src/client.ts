@@ -6,7 +6,7 @@
  * validates it against the schema, sends an unfit reply back once with its errors, and otherwise throws, so the runner's
  * script stands in ("Calls that get through, live or in the background"). Every call is logged, each resend too.
  */
-import { newModelCall, type ModelCall } from "@amarna/game";
+import { newModelCall, type ModelCall, failureOf } from "@amarna/game";
 import { CacheGate } from "./cache-gate.ts";
 import { CallLimiter, RealClock, isRetryable, isTooMany, waitBefore, LimiterDefaults, type Clock } from "./limiter.ts";
 import { BatchDiscount, ModelIds, PriceTable } from "./models.ts";
@@ -14,12 +14,15 @@ import { readAsMeant } from "./reading.ts";
 import { jsonSchema, problems, type JsonObject, type ReplySchema } from "./schemas.ts";
 
 export class ModelRefusedError extends Error {
+  readonly failure = "refused by the model";
   constructor(model: string, category: string | null) {
     super(`${ModelIds.display(model)} declined (${category ?? "no category"}).`);
   }
 }
 
-export class ModelOutputError extends Error {}
+export class ModelOutputError extends Error {
+  readonly failure = "did not fit";
+}
 
 /** One structured call. */
 export interface CallSpec {
@@ -211,15 +214,17 @@ export class ModelClient implements JsonAsker {
       call.usedFallback = r.model.length > 0 && r.model !== model;
       call.output = r.text;
       if (r.stopReason === "refusal") {
-        call.error = "refusal";
+        call.error = "refused by the model";
         throw new ModelRefusedError(spec.model, r.category);
       }
-      if (r.stopReason === "max_tokens") call.error = "max_tokens";
+      // A reply cut off at its limit is logged as that; one that did not fit, with the schema's own account of why.
       const why = unfit(r.text, spec.schema);
-      if (why !== null) call.error = (call.error !== null ? call.error + ": " : "") + why;
+      if (r.stopReason === "max_tokens") call.error = "cut off";
+      else if (why !== null) call.error = `did not fit: ${why}`;
       return { text: r.text, result: r };
     } catch (ex) {
-      if (call.error === null) call.error = ex instanceof Error ? ex.message : String(ex);
+      // Its kind and code, never the provider's message ("Logging and replay": nothing sensitive is recorded).
+      if (call.error === null) call.error = failureOf(ex);
       throw ex;
     } finally {
       this.log(call);

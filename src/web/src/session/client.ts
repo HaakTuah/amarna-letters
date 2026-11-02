@@ -20,7 +20,7 @@ import {
   type SeatView,
   type TurnSubmission,
 } from "@amarna/engine";
-import { SnapshotHistory } from "@amarna/game";
+import { SnapshotHistory, type ExportParts } from "@amarna/game";
 import { buildScene, type MapScene } from "../map/scene.ts";
 import { IncrementalReader, ReadReplaced } from "./incremental.ts";
 import { fromWire, sameMap, samePerson, sameSet, type SeasonFrame } from "./frames.ts";
@@ -365,8 +365,9 @@ export class Session {
     this.notify();
   }
 
-  async export(): Promise<void> {
-    const m = await this.request({ type: "export", id: this.nextId++ });
+  /** Downloads the game's export, holding the parts asked for (Engine and models, "Logging and replay"). */
+  async export(parts: ExportParts): Promise<void> {
+    const m = await this.request({ type: "export", id: this.nextId++, parts });
     if (m.type === "export" && m.text !== "") download(m.name, m.text);
   }
 

@@ -158,7 +158,7 @@ describe("ModelLayerTests", () => {
     fake.refuse = true;
     await runner.playTurn();
     Assert.contains(runner.errors, (e) => e.includes("declined"));
-    Assert.contains(runner.log.calls, (c) => c.error === "refusal");
+    Assert.contains(runner.log.calls, (c) => c.error === "refused by the model");
   });
 
   test("A characters prompt holds only its own secrets", () => {

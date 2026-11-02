@@ -53,6 +53,7 @@ import {
   type MindContext,
   type PresentResult,
   type ShadowDecision,
+  failureOf,
 } from "@amarna/game";
 import type { CallSpec, JsonAsker } from "./client.ts";
 import { fieldsDiffer, type Ladder } from "./ladder.ts";
@@ -283,7 +284,7 @@ export class LlmCharacterMind implements ICharacterMind {
       return r;
     } catch (ex) {
       if (ex instanceof Error && ex.name === "AbortError") throw ex;
-      shadow.error = ex instanceof Error ? ex.message : String(ex);
+      shadow.error = failureOf(ex);
       log(shadow);
       throw ex;
     }
