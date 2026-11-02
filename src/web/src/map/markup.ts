@@ -156,6 +156,11 @@ export const NameOrder: readonly string[] = (() => {
 
 /** The radius of a city's outermost ring, in its own units (cities, in svg-renderer.ts): a name stands off it. */
 export const ringOf = (capital: boolean, walls: number): number => (walls > 0 ? (capital ? 12 : 8.5) + 2 * walls + 1.2 : capital ? 13.2 : 8.2);
+/** A siege camp's tents (item 19): their middles stand `TentRing` beyond a city's outermost ring, each `2 * TentHalf` wide. */
+export const TentRing = 2.6;
+export const TentHalf = 2.6;
+/** A city's outermost ring with what is drawn round it: a besieged city's ends past its siege camp's tents. */
+export const outerRing = (capital: boolean, walls: number, besieged: boolean): number => ringOf(capital, walls) + (besieged ? TentRing + TentHalf : 0);
 
 function buildLabels(): string {
   let sb = `<g class="labels">`;
