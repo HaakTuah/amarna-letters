@@ -37,14 +37,15 @@ Where a figure has to become a game number, the dossier says which end of a rang
 
 ## One chronology
 
-The game counts years from 1346 BCE (since item 6a). The dossiers use the **Egyptian low chronology** of Hornung, Krauss
-and Warburton (2006), the one most handbooks now use, with Akhenaten reigning about 1353-1336 BCE. So 1346 is about
-**Akhenaten's year 8**: Akhetaten (Amarna) was founded in his year 5 and the court had settled there by about year 8,
-which is when the archive the letters come from fills up [B]. The letters span about thirty years, from late in
-Amenhotep III's reign (about his year 30, c. 1360) to early in Tutankhamun's (c. 1332), so not every writer was alive
-or in office in 1346; each dossier says where that is in doubt. Mesopotamian dates follow Brinkman (Kassites) and the
-Assyrian King List as in the handbooks, which are tied to Egypt's only through the letters themselves, so they carry
-about ten years of play [C].
+<a id="readme-chronology"></a>The game counts years from 1346 BCE (since item 6a), which on the **Egyptian low chronology** of Hornung, Krauss and Warburton (2006), with Akhenaten reigning about 1353-1336 BCE, is about **Akhenaten's year 8** [B]; he swore to found Akhetaten (Amarna) in his year 5 [A: the boundary stelae]. HKW, p. 419 (Krauss): "in 5 Akhenaten. On that day the king took an oath to found Akhetaten", and "the year would have been 1348 BC"
+
+The dossiers use that chronology. The archive "spans at most about thirty years, perhaps only fifteen or so" (Moran,
+p. xxxiv): "The archive begins about the thirtieth year of Amenophis III and extends no later than the first year or so
+of Tutankhamun" (about 1360 to the early 1330s on these dates), so not every writer was alive or in office in 1346; each dossier
+says where that is in doubt. Mesopotamian dates follow Brinkman (Kassites) and the Assyrian King List as in the
+handbooks; they meet Egypt's through the letters (HKW, p. 313: "a real synchronism can be won from the Amarna
+letters", EA 15 and 16), and the Assyrian dates carry about ten years of play (HKW, p. 310: "the proposed reduction of
+Assyrian chronology by 10 years") [C].
 
 ## Sources and abbreviations
 

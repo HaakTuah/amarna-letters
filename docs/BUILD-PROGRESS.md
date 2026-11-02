@@ -76,23 +76,15 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision
      344), not before.
 
-- **History: a full check of every dossier** (the owner, 2 November 2026; archive item 167). Due now, as a lane beside
-  the items, once #466 has merged, since it touches the same files. The first spot-check found 3 misses in 13 facts:
-  an error rate somewhere between about 5% and 54%, too high for spot-checks to watch.
-  1. Every claim in every dossier, and every real fact in the game's data that rests on one, is checked against the
-     source it cites, by Opus helpers at high effort, one dossier each, four at a time. Each is graded holds, wrong,
-     no source or unclear. The cast (`src/engine/src/rules/cast.ts`), `06-attested-people.md` and `01-politics.md` go
-     first.
-  2. One PR per dossier, with what it touches in the game, and one `bug` issue per dossier tracking its misses until
-     the fix is live.
-  3. The four notes #466 left open (Shum-Adda, Yapah-Hadda, Artatama II, and the dating of EA 28-29) are settled in
-     this pass.
-  4. Each line the game rests on gets an anchor and quotes the few words of its source it relies on: a letter's words
-     in its edition's translation, never a passage, or a study's page. A line left "no source" or "unclear" is
-     sourced, or the game marks what rests on it as invented.
-  5. A test, landing with the first PR: every real fact in the game's data names its anchor, the anchor exists, and
-     its line names the same entity. Anchors are data, never shown to a king or a model ("Requests are rules too").
-     Item 17+++b's "Learn more" check builds on it.
+- ~~**History: a full check of every dossier**~~ (the owner, 2 November 2026; archive item 167): done on 2 November,
+  one PR and one `bug` issue per dossier (#473, #477, #479, #483, #485, #488, #490, #494, #499, #500, #501, #504,
+  #506, #508, #510); the counts are in "Calibration" in `docs/claude-and-codex.md`. #466's four notes are settled
+  (Yapah-Hadda and Artatama marked guesses, Shum-Adda has no town, EA 28-29 date to about 1352-1349). What remains:
+  - **Anchors for the rest of the game's data.** Every person and named ruler names its anchor, with the test
+    (`src/engine/test/history-anchors.test.ts`); the places, distances, waters, walls, armies, doors and tongues have
+    anchored lines in their dossiers but name none yet. Extend `src/engine/src/rules/anchors.ts` and its test to them.
+  - **The lines left unclear** (213 of 1,447, mostly where the edition was out of reach: Beckman, Bryce's *Kingdom*,
+    Veenhof, the excavation reports): source each, or mark what the game rests on it as invented.
 
 - **Licences: audit, gate and notices** (the owner, 2 November 2026; `SECURITY.md`, point 10). (1) Audit every package,
   the ones packages pull in included, and every font, image, sound and data set, with its licence; anything off the list
