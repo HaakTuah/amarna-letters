@@ -81,6 +81,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - Looking back at an earlier season, the province card gave the live state (in a seat view the new holder's figures where the city has since fallen); it gives that season's recorded figures (from the weekly blind re-review of #374).
 - A king's other names were never shown (#418): his card, from the courts along the map, now gives them under his name ("Also known as Akhenaten; Neferkheperure Waenre; Amenhotep IV"), every name but the one the viewer's court uses.
 - A post with an article of its own took another ("once a the ruler's brother", "Served as an a lord of the coast", "a King's Son of Kush"); such a post, or a title, now takes none (#468).
+- A herders' land's small seal (Kaska, Lukka, Nesa, the steppe, Libya, the Shasu) was drawn 1.43 times as wide as the box the placement kept clear for it, so a caravan's mark could touch it (#525); it now shrinks to the small seal's share of its own size.
 
 ## Finds not yet fixed
 
