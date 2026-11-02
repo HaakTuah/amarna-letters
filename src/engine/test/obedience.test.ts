@@ -337,7 +337,7 @@ describe("ObedienceTests", () => {
   });
 
   test("Love for a neighbour whose men stand at its gates takes a province over to him", () => {
-    const s = small("Byblos", "Amurru");
+    const s = small("Byblos", "Amurru", "Egypt");
     removeAll(s.units, (u) => u.province === "byblos" || u.province === "amurru");
     s.ledger.get("byblos").set("Byblos", 0);
     s.ledger.get("byblos").set("Amurru", 80);
