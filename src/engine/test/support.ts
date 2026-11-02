@@ -355,6 +355,7 @@ export function smallWorld(s: GameState, ...powers: Power[]): GameState {
       for (let i = s.units.length - 1; i >= 0; i--) if (s.units[i].power === p) s.units.splice(i, 1);
     }
   s.characters = s.characters.filter((c) => (c.employer !== null ? powers.includes(c.employer) : c.at !== null && powers.includes(c.at)));
+  s.governors = s.governors.filter((g) => s.characters.some((c) => c.id === g.character));
   return s;
 }
 
