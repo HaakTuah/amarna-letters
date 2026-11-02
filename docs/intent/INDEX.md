@@ -18,7 +18,7 @@ with the copy and say so in the report, and before opening the pull request read
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 569 |
 | Build order | `docs/intent/build-order/` | `f6588701-e47a` | 204 |
-| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 63 |
+| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 64 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 58 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 26 |
@@ -69,7 +69,7 @@ session loads.
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.4 |
 | `docs/intent/world-and-history/the-map.md` | The map | 10.7 |
 | `docs/intent/world-and-history/the-sources.md` | The sources | 6.6 |
-| `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 23.5 |
+| `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 23.8 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.9 |
 | `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 22.0 |

@@ -44,8 +44,8 @@ account until its usage is spent; on the main account the usage brake closes it 
   between Slow, Normal and Fast, by the character typed; never while a letter or a name is being typed; each shown in
   its button's tooltip. PR #293's added Very slow and fifth speed go before it merges. The rest of the keys come in item 17+++a.
 - **Next, from Haakon's notes of 2 November** (his words in `docs/archive/instructions.md`, item 134), one PR each:
-  every province a proper name, never a description (Tjehenu, not "the land of the Tjehenu"; "Places by their own
-  names" under World, checked against the dossiers); the camera stops at the play area's edges, so an edge province can
+  every province a proper name, never a description (Tjehenu, not "the land of the Tjehenu"; where 1346 gives
+  none, the oldest name the sources give, such as Moab, the Negeb, Tamassos: "Places by their own names" under World); the camera stops at the play area's edges, so an edge province can
   be centred; the tabs scroll with the mouse wheel and by dragging, or fit; the small provinces of the Levant can be seen
   and clicked at the normal zoom (a minimum hit area, labels that grow as you zoom out); and, by "Following, travel
   lines and borders" under Interface, Follow keeps the camera on the person, travel lines follow their roads (your

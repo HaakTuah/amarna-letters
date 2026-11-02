@@ -1,4 +1,4 @@
-<!-- Generated from the design document, World and history tab, revision 63 (2026-11-02). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, World and history tab, revision 64 (2026-11-02). Do not edit: see docs/intent/INDEX.md. -->
 ## The world: seven asymmetric Great Kings
 
 The board holds the seven powers of the Amarna correspondence, deliberately unequal. Strength breeds suspicion: the strongest powers must look less threatening than they are, the weakest must make themselves indispensable, and everyone in between decides who the bigger threat is this year.

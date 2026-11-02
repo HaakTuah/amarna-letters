@@ -72,11 +72,15 @@ usage allows, at the lowest cost now and later.
 - **Keep it lean** (`docs/archive/instructions.md`, item 133). Every change removes what it replaces, in the same PR: no
   commented-out code, no "old" copies, nothing it made unused (code, files, settings, assets, test helpers). Look for an
   existing helper before writing one. A leftover is a finding in every review.
-- **Split by meaning** (item 134), so a reader loads only what it needs. Split along the lines people look things up
-  by (a power, a system, a screen, a tab of the design), never by size alone: about 50 KB is the signal to look for
-  such a split, not the place to cut. Where a family of things differs only in part (powers, characters, script
-  kings), write the shared part once and each difference as an override. Before a split, say in the PR what it saves
-  later; a split that saves nothing is not made. Each split goes in its own PR, with behaviour proven unchanged.
+- **Split by meaning, from the start** (items 134 and 135), so a reader loads only what it needs. Each file holds one
+  thing people look up on its own (a power, a system, a screen, a tab of the design), as small as that thing is; new
+  work goes into its own file as it is written, never into a big file to be split later. Smaller than that is not
+  better: one thing spread over several files costs every reader more. Where a family differs only in part (powers,
+  characters, script kings), write the shared part once and each difference as an override. Size is never the reason,
+  only a warning: a file past about 20 KB probably holds more than one thing. Splitting an existing file goes in its
+  own PR, with behaviour proven unchanged and what it saves said in the PR. Drift and oversights still add up, so the
+  workshop check and the file-by-file reviews keep running and keep their tracking: building lean does not replace
+  them.
 - **Principles over rules** (item 134). Where a rule's letter would defeat what it is for, follow its purpose, say so
   in the PR under "Readings taken", and flag the rule to be fixed. Never for the safety rules: `SECURITY.md`, `main`,
   keys and secrets, spending, and no model games until the build order is done.
