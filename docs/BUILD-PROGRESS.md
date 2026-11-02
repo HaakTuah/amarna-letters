@@ -112,8 +112,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   - ~~**Anchors for the rest of the game's data.**~~ Done in #522: waters, walls, tongues, languages, doors, crossings,
     distances, armies and fleets, harbours and rivers each name their line, checked by the anchors test; the guesses with
     no dossier row are marked invented, for the unclear lines' lane to source or estimate.
-  - **The lines left unclear** (213 of 1,447, mostly where the edition was out of reach: Beckman, Bryce's *Kingdom*,
-    Veenhof, the excavation reports): source each, or mark what the game rests on it as invented.
+  - ~~**The lines left unclear**~~ Done in #524, #526, #544 and #548 (the lines the owner's-answers lane held, #523,
+    left to it): each sourced, given the published estimates' middle [G], or marked invented with what was searched;
+    the game moved with its lines (Enlil-kidinni graded C; Waset about 70,000; Nesa unwalled; four road distances,
+    #482). Still unclear, for a reader with the editions: Telipinu at Aleppo and Zida (the *Deeds*, Beckman), Ugarit's
+    150 ships (RS 18.148), RS 17.130, KBo I 10's terms, the Libyans' tongue, Akhetaten's open city (Kemp), Byblos's and
+    Kalavasos's walls, RS 20.212, the Lebanon crossing at Beirut, the Nile flood's rate (Hassan).
 
 - ~~**Licences: audit, gate and notices** (the owner, 2 November 2026; `SECURITY.md`, point 10). (1) Audit every package,
   the ones packages pull in included, and every font, image, sound and data set, with its licence; anything off the list
