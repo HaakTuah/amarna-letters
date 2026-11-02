@@ -155,7 +155,7 @@ P.resolveSeason = function (submissions) {
       const text = `${unitLabel(u)} was disbanded` + (home !== "" ? `: ${home}` : "") + (savings > 0 ? `; their savings, ${formatMoney(savings)}, went into the purse of ${this.map.get(u.home).name}.` : ".");
       // Settling asked on land lost out of the king's sight (bug #467): the men go home, and word of it comes by the road.
       if (asked && !settle) this.tell(p, where, "Resolution", "Disbanded", `${text} Its men could not settle as colonists in ${this.map.get(where).name}: you no longer held it.`);
-      else notify(S, p, "Resolution", "Disbanded", text);
+      else this.tell(p, where, "Resolution", "Disbanded", text);
     }
     // The unit moved by the seat's own orders, or was destroyed (which wakes the seat by itself).
     else this.failed(p, d, "Disband failed", `No unit of yours stood in ${this.map.get(unit).name} after movement, so none was disbanded.`, "the unit is gone", false);
@@ -495,7 +495,7 @@ P.resolveTransfers = function (cessions, gifts) {
     }
     this.setOwner(c.province, c.to);
     this._cededNow.set(c.province, c.to);
-    notify(S, p, "Resolution", "Land ceded", `${Map.get(c.province).name} now belongs to ${c.to}: his troops stand in it.`);
+    this.tell(p, c.province, "Resolution", "Land ceded", `${Map.get(c.province).name} now belongs to ${c.to}: his troops stand in it.`);
     notify(S, c.to, "Resolution", "Land received", `${p} has ceded ${Map.get(c.province).name} to you, and your troops there hold it.`);
     logEvent(S, "cession", `${p} ceded ${Map.get(c.province).name} to ${c.to}.`, [p, c.to]);
     // A capital ceded is a capital taken: its archive lies in the city.
@@ -540,7 +540,7 @@ P.raise = function (p, r) {
     // Only land lost in movement is others' doing, and its word comes home by the road (bug #467): a province the seat
     // still holds that is not empty holds its own unit (any other troops there would have taken it), and a cession is its own.
     if (S.owner.getOrDefault(prov.id, null) !== p && !this._cededNow.has(prov.id)) this.lostOrder(p, r, prov.id, "Levy failed", text, why);
-    else notify(S, p, "Rejected", "Levy failed", text);
+    else this.tell(p, prov.id, "Rejected", "Levy failed", text);
     return;
   }
   // Sized by the men the province has (item 11a+): a full levy where it can, else every man at home; its price, pay and
@@ -551,7 +551,7 @@ P.raise = function (p, r) {
     // A share that came to fewer than a levy's least is told as that, never as a land without men.
     const short = r.share != null && menAvailable(S, prov.id) >= LandData.levyLeast;
     const why = short ? `the share you asked of its men came to fewer than a levy takes (${LandData.levyLeast} at least); ask a larger share or a number of men` : `it has too few men of fighting age left (${LandData.levyLeast} at least are needed)`;
-    notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`);
+    this.tell(p, prov.id, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`);
     this.scheduledFailed(p, r, short ? "the share asked came to fewer men than a levy takes" : "too few men of fighting age");
     return;
   }
@@ -563,7 +563,7 @@ P.raise = function (p, r) {
   this.levyMen(prov.id, men);
   const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });
   S.units.push(u);
-  notify(S, p, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ": all the men of fighting age the province had to give" : ""}, so it counts for ${strengthWords(shareOfFull(r.kind, men))} of a full ${kind} in battle, and costs and eats in proportion` : ""}.`);
+  this.tell(p, prov.id, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ": all the men of fighting age the province had to give" : ""}, so it counts for ${strengthWords(shareOfFull(r.kind, men))} of a full ${kind} in battle, and costs and eats in proportion` : ""}.`);
   if (r.share != null) logEvent(S, "levy", `${p} raised a ${kind} in ${prov.name} by a share of its men.`, [p], "levy-share");
   this.levyRaised(p, u);
 };

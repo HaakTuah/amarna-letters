@@ -59,7 +59,7 @@ declare module "./core.ts" {
     tradeTogether(cs: Caravan[], parts: Map<string, string[]>): void;
     caravanHome(c: Caravan): void;
     rejoinFleet(c: Caravan): string | null;
-    sendTraders(orders: [Power, Order][], tell: (p: Power, line: string) => void): void;
+    sendTraders(orders: [Power, Order][], tell: (p: Power, at: string, line: string) => void): void;
     setToll(p: Power, o: TollOrder): void;
     sack(province: string, taker: Power, stormed?: boolean): void;
     /** `to`: where the load goes, if not the taker's court (gold sent to a fallen capital he holds, item 13+). */
@@ -358,7 +358,7 @@ P.sendTraders = function (orders, tell) {
     const from = Map.get(o.from);
     const to = Map.get(o.to);
     const fail = (why: string, reason: string): void => {
-      tell(p, why);
+      tell(p, o.from, why);
       this.scheduledFailed(p, o, reason);
     };
     // Land lost out of the king's sight: word of it comes home by the road (bug #467).
@@ -367,7 +367,7 @@ P.sendTraders = function (orders, tell) {
       continue;
     }
     if (siegeOf(S, o.from) !== null) {
-      fail(`Nothing set out from ${from.name}: it is besieged.`, "it is besieged");
+      this.lostOrder(p, o, o.from, "Order failed", `Nothing set out from ${from.name}: it is besieged.`, "it is besieged");
       continue;
     }
     let fleet: Unit | null = null;
@@ -397,8 +397,8 @@ P.sendTraders = function (orders, tell) {
       newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, gold, route, since: S.turn, trade: trading, sneak: o.type === "trade" && o.sneak, ship: fleet }),
     );
     const what = `${grain} measures of grain${gold > 0 ? ` and ${formatMoney(gold)}` : ""}`;
-    if (fleet !== null) tell(p, `Your fleet in ${Map.get(fleet.province).name} loaded ${what} at ${from.name} and sailed for ${to.name} to ${trading ? "trade" : "deliver it"}: it is out of the war until it is back.`);
-    else tell(p, `A caravan${o.type === "trade" && o.sneak ? " of smugglers" : ""} with ${what} set out from ${from.name} to trade at ${to.name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
+    if (fleet !== null) tell(p, o.from, `Your fleet in ${Map.get(fleet.province).name} loaded ${what} at ${from.name} and sailed for ${to.name} to ${trading ? "trade" : "deliver it"}: it is out of the war until it is back.`);
+    else tell(p, o.from, `A caravan${o.type === "trade" && o.sneak ? " of smugglers" : ""} with ${what} set out from ${from.name} to trade at ${to.name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
     logEvent(S, fleet !== null ? "ship-out" : "trade-out", `${p} sent ${fleet !== null ? "a ship" : "a trading caravan"} from ${from.name}.`, [p], fleet !== null ? "ship-out" : "trade-out");
   }
 };

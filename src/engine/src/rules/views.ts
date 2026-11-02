@@ -55,7 +55,7 @@ import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
 import { courtOf } from "./court.ts";
-import { knownHolders, ownerAt, SeenSource, sight, wallsKnown, WordSource } from "./known-land.ts";
+import { knownHolders, ownerAt, SeenSource, siegesKnown, sight, wallsKnown, WordSource } from "./known-land.ts";
 
 export { SeenSource, WordSource };
 import { ageBand } from "./ending.ts";
@@ -250,8 +250,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           .filter((k) => levelOf(s, k, x) > 0)
           .map((k) => newWorkView({ province: x, kind: k, level: levelOf(s, k, x), keep: levelOf(s, k, x) })),
       ),
-    sieges: s.sieges
-      .filter((x) => x.power === p || s.owner.getOrDefault(x.province, null) === p || seen.has(x.province))
+    // The sieges it knows of: those it sees, and its own and its cities' farther off once word of them came (bug #517).
+    sieges: siegesKnown(s, m, p, seen)
       .map((x) =>
         newSiegeView({
           province: x.province,
@@ -830,6 +830,7 @@ export const Views = {
   wallsKnown,
   ownerAt,
   knownHolders,
+  siegesKnown,
   // Item 17+: a court's view names every power as that court gives its name.
   for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map)),
   letters,

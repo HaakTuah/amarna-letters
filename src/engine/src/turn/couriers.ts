@@ -42,8 +42,8 @@ declare module "./core.ts" {
     /** A notice to a king from a place in his realm: at once within the season's reach, else when a courier brings it. */
     tell(p: Power, province: string, kind: InboxKind, title: string, text: string, extra?: number): void;
     /**
-     * An order that failed because its province was no longer the king's (bug #467): word of it comes home by the road, as
-     * word of the loss does, never at once; a scheduled one wakes its seat when the word comes.
+     * An order that failed for what befell its province out of the king's sight, its loss (bug #467) or a siege (bug #517):
+     * word of it comes home by the road, as word of that does, never at once; a scheduled one wakes its seat when it comes.
      */
     lostOrder(p: Power, order: Order, province: string, title: string, text: string, why: string): void;
     /** At the end of each season, each unit's place joins its trail, the reports its king's couriers bring. */

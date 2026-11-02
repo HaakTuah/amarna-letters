@@ -5,7 +5,7 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { StartWalls, type WorldMap } from "../model/map.ts";
 import type { Power } from "../model/power.ts";
-import { newKnown, ownedBy, type GameState, type Known } from "../model/state.ts";
+import { newKnown, ownedBy, type GameState, type Known, type Siege } from "../model/state.ts";
 import { wordSeasons } from "../model/travel.ts";
 import { courierSeasons, courtOf } from "./court.ts";
 
@@ -82,4 +82,19 @@ export function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<s
     out.set(x.id, best);
   }
   return out;
+}
+
+/**
+ * The sieges a court knows of (bug #517): where it sees, as they are; one of its own cities, or of its own armies, farther
+ * off once word of its beginning, setting out the season it began, has reached the court; none it cannot see otherwise.
+ * One lifted out of its sight is gone from what it knows at once: the engine keeps no record of a siege that ended.
+ */
+export function siegesKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Siege[] {
+  const sightNow = seen ?? sight(s, map, p);
+  const court = courtOf(s, map, p);
+  return s.sieges.filter(
+    (x) =>
+      sightNow.has(x.province) ||
+      ((x.power === p || s.owner.getOrDefault(x.province, null) === p) && x.since + wordSeasons(s.config.travelDays, map, x.province, court, x.since) <= s.turn),
+  );
 }
