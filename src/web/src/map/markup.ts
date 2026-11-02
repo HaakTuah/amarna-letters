@@ -175,19 +175,20 @@ function buildLabels(): string {
     const y = uy * 2.5 + (uy > 0.6 ? 9.5 : uy < -0.6 ? -1 : 4);
     sb += `<g class="lab" data-label="${p.id}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ringOf(p.capital, 0))};--ux:${F(ux)};--uy:${F(uy)}"><g class="lring"><text class="plabel${p.capital ? " cap" : ""}" x="${F(x)}" y="${F(y)}" text-anchor="${s.anchor}">${escape(p.name)}</text></g></g>`;
   }
-  // Item 17+ ("Places by their own names"): the lands outside the game drawn as no one's and named by description, since no
-  // name of the period survives for them.
+  // Item 17+ ("Places by their own names"): the lands outside the game drawn as no one's, each by the oldest name the
+  // sources give it, with what it is in its tooltip.
   for (const o of OutsideLabels) {
     const at = ll(o.lat, o.lon);
-    sb += `<g class="lab outside" transform="translate(${F(at.x)},${F(at.y)})"><text class="plabel olabel" x="0" y="0" text-anchor="middle">${escape(o.text)}</text></g>`;
+    sb += `<g class="lab outside" transform="translate(${F(at.x)},${F(at.y)})"><title>${escape(o.what)}</title><text class="plabel olabel" x="0" y="0" text-anchor="middle">${escape(o.text)}</text></g>`;
   }
   return sb + "</g>";
 }
 
-/** The lands outside the game that the map names by description, where they lie. */
-const OutsideLabels: readonly { text: string; lat: number; lon: number }[] = [
-  // The plateau east of the Salt Sea, where Moab and Ammon rose centuries later (item 17+, "the land east of the Jordan")
-  { text: "the plateau beyond the Salt Sea", lat: 31.35, lon: 35.95 },
+/** The lands outside the game that the map names, where they lie. */
+const OutsideLabels: readonly { text: string; what: string; lat: number; lon: number }[] = [
+  // The plateau east of the Salt Sea, where Moab and Ammon rose later: Moab, as Egyptian lists name it within a century of
+  // 1346 ("Places by their own names")
+  { text: "Moab", what: "the plateau beyond the Salt Sea", lat: 31.35, lon: 35.95 },
 ];
 
 /**

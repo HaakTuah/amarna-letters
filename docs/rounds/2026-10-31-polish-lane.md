@@ -63,6 +63,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - On a phone the home page's "Your seat" broke over two lines beside its menu; the label stands above the menu, as the table's other fields have it.
 - At 390 px "Customize the table" ran its "Played by" menus off the screen (the page scrolled sideways, 444 px wide); the table fits its column and each menu the room left beside the power and its tier.
 - A saved game's line read "…(turn 3), 47 Script bot"; it reads "Script bot for 46 seats, Human for 1 seat" (new saves; older ones keep the line they were saved with).
+- Every province a proper name ("Places by their own names"): the copper hills of Alashiya are Tamassos, its harbour Enkomi, the land of the Tjehenu Tjehenu, the Kaska lands Kaska, the Sutean steppe Sutu, and the map's plateau beyond the Salt Sea Moab; what the descriptions said is on the province card, under the name. Still open: the powers' land names ("the land of the Tjehenu", "the Kaska lands", "the Sutean steppe", "the land of the Shasu"), whose renaming changes how the script kings read letters (seed 2 changed its winner), so it goes to an item.
 - An audience's answer ran "Seal the tablet  Gift to the envoy [0]" together and left its amounts bare ("purity % 100"); the seal has its own line, each amount its unit ("[0] shekels", "of purity [100] %"), the envoy order form too, and the note says accepted service is paid three seasons ahead.
 - The Standard preset's card told players it was "The design document's table"; it reads "The table the game is built for".
 - The header's second line began with the runner's step in lower case ("orders · Any season may be the last"); it reads "Orders being given", "Audiences", "The season resolves" and so on.
@@ -75,9 +76,12 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - In the Standings tables a power's name could fall to the line below its emblem ("Carchemish" alone under its seal);
   emblem and name now stay on one line (#346).
 - The camera stopped where the board met the screen's edge, so a province at the edge of the play area could never be centred; it now goes until the board's edge is at the centre, over the lands drawn beyond it, never past them.
+- On the whole map a tap on a small city's seal opened whichever neighbour's tap circle was drawn last (Sidon's opened Ṣurru, Gezer's Ayyaluna: 23 of 71 seals on a computer, 31 on a phone); the nearest seal wins now (5 and 1 left, each a neighbour's army counter drawn over the seal, an open find).
+- The panel's tabs and the courts along the map scrolled only by touch or the arrow keys; with a mouse they scroll with the wheel and by dragging, and a drag never picks the tab or opens the court it started on.
 
 ## Finds not yet fixed
 
+- On the whole map a few army counters stand over a neighbour's seal (Seha's under Apasa's army, Niya's and Tunip's under Qadesh's, Nineveh's under Ashur's, Dur-Kurigalzu's under Babili's at 1280 × 800), so a tap there opens the counter's province.
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
 - In a seat's view the map's "as of …" notes on remembered units overlap one another near Gaza (Egypt, desktop, the

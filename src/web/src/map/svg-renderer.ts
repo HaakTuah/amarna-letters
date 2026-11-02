@@ -508,6 +508,25 @@ function reconcile(parent: SVGGElement, items: readonly Item[], known: Map<strin
 
 // ---------------------------------------------------------------- the renderer
 
+/**
+ * The city a tap means, where the tap circles of several overlap (the Levant's towns on the whole board): the one whose
+ * seal is nearest, not the one drawn last, so every small province can be clicked at every zoom (Haakon, 2 November 2026:
+ * "Some of the provinces in the Levant are so small you can't even click on them").
+ */
+function nearestCity(e: MouseEvent): Element | null {
+  let best: Element | null = (e.target as Element).closest(".city");
+  let far = Infinity;
+  for (const el of document.elementsFromPoint(e.clientX, e.clientY)) {
+    if (!el.classList.contains("tap-hit")) continue;
+    const city = el.closest(".city");
+    if (city === null) continue;
+    const r = el.getBoundingClientRect();
+    const d = Math.hypot(r.left + r.width / 2 - e.clientX, r.top + r.height / 2 - e.clientY);
+    if (d < far) [best, far] = [city, d];
+  }
+  return best;
+}
+
 export class SvgMapRenderer implements MapRenderer {
   private view: HTMLElement | null = null;
   private layers = new Map<string, SVGGElement>();
@@ -537,7 +556,7 @@ export class SvgMapRenderer implements MapRenderer {
       this.handlers?.onMark(mark.getAttribute("data-mark")!, under?.closest("[data-province]")?.getAttribute("data-province") ?? null);
       return;
     }
-    const prov = t?.closest("[data-province]");
+    const prov = t?.closest(".city") ? nearestCity(e as MouseEvent) : t?.closest("[data-province]");
     if (prov !== null && prov !== undefined) this.handlers?.onProvince(prov.getAttribute("data-province")!);
     else this.handlers?.onBlank();
   };
