@@ -38,7 +38,9 @@ home (`src/game/src/bots/script-mind.ts`). Part 1: `docs/rounds/2026-11-02-slop-
 | 1 | 5 | "Great King" to every ruler; "my lord" in thirty lines; "carry your words" three times; "honours me" for yes and no; modern idiom ("find another voice"); every court's envoy alike; phrasings that mark a hidden state |
 | 2 | 6 | The round-1 wording surviving as each line's first form; "wants"; "I am back"; "I give you my word" |
 | 3 | 8 | The new god-oath only in the over-promise (a new tell); "won him over"; one shape abroad and at home; "by his own messenger" marking the lie |
-| Escalation | see the PR | |
+| Escalation 1 | 8 | Repetition: the address in most lines, "every word" three times, "words" in every opening, "your house and his" twice; "He wishes you well"; "by his own messenger" still marking the lie; two lines too long |
+| Escalation 2 | 9 | "and bring his tablet" could be untrue when no tablet travels; one line still long |
+| Escalation 3 | **10** | Given by the helper once its one remaining point was fixed (the tablet claim, now "with his words") |
 
 ## Readings taken
 

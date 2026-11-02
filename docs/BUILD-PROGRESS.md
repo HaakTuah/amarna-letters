@@ -112,9 +112,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   nothing reads machine-made, every voice is its own and no formula repeats. The owner's read of the ten lines before
   and after is the final word. One PR per kind of text.
   **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
-  the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`). **Next:**
-  their envoys' speech (`bots/script-mind.ts`); then notices, news and reports once #537 merges; then the rest in the
-  order above.
+  the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`); the
+  envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
+  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state). **Next:** notices,
+  news and reports (the bribed envoy's invented news moves with them); then the rest in the order above.
 
 - **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in
   `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact
