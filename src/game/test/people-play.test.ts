@@ -34,8 +34,10 @@ describe("PeoplePlayTests", () => {
     const nesa = v.provinces.find((x) => x.province === "nesa")!;
     // At the start the farmers can bear a little more than the default.
     Assert.inRange(bearableShare(nesa, null, v.turn), 34, 40);
-    // Counted at the start, and the count fresh: it asks the grain as an amount, which the land cannot hide.
-    Assert.contains(demandOrders(v, "Hatti"), (o) => o.type === "demand" && o.how === "amount" && o.province === "nesa");
+    // Hatti's scribes counted two years before the start: on so old a count it asks a share, never an amount it cannot judge.
+    Assert.false(demandOrders(v, "Hatti").some((o) => o.type === "demand" && o.how === "amount" && o.province === "nesa"));
+    // Egypt counted often, so its count is fresh: it asks the grain as an amount, which the land cannot hide.
+    Assert.contains(demandOrders(Views.for(s, "Egypt"), "Egypt"), (o) => o.type === "demand" && o.how === "amount");
     // A province in a drought can bear far less.
     Assert.true(bearableShare({ ...nesa, harvest: Math.floor(nesa.harvest / 2) }, null, v.turn) < 10);
     Assert.true(canLevy(v, "sapinuwa", "Army"));

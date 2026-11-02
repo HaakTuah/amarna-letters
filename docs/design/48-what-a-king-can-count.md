@@ -12,13 +12,17 @@ readings. The report: `docs/rounds/2026-11-02-what-a-king-can-count.md`. Save ve
 
 - A count is a province as a court's scribes found it in one season: the settled on its land, the men of fighting age
   among them, the loose, the people of its town, the last harvest, the farmers' granaries and the crop in the fields.
-- Every court starts with a count of the land it holds, dated the first season (`seedCounts`). Land taken later has no
-  count until the king sends scribes.
+- Every court starts with a count of the land it holds (`seedCounts`), dated as its sources suggest (`StartCountAge`,
+  part C): Egypt's two seasons before the first, every other court's two years. Land taken later has no count until the
+  king sends scribes.
 - **What a seat sees** (`rules/views.ts`, `provinceEconomy`): its provinces' people and fields from its last count, with
-  the count's season (`counted`, null where it has none, the figures then 0). Its stewards report the rest exactly: its
-  stores, its market, how its countryside ate, and what its demand brings in (`tax`). The model king's prompt says each
-  count's age and the land never counted; the web's province card and town marker show the seat's count in a seat view,
-  rounded to two figures ("about 18,000"), and the exact figures in god view. The engine always reckons with the exact.
+  the count's season (`counted`, null where it has none, the figures then 0). Its stewards report its stores, its market,
+  how its countryside ate, and what its demand brings in (`tax`). **What is shown of it** (part C, against "Counts as the
+  scribes knew them"): a count at two figures while under a year old ("about 650,000") and one once older ("some
+  600,000", `countFigures`, `toFigures`); a land never counted only as a rough guess, one figure of what its land carries;
+  stores and the demand's take as the stewards round them, to two figures ("about 440 measures"). The model king's
+  prompt, the province card, the orders panel and the town marker follow it in a seat view; god view shows the exact
+  figures. The engine always reckons with the exact.
 
 ## The census (`GameState.censuses`, `turn/counts.ts`)
 

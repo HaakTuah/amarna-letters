@@ -23,7 +23,7 @@ import {
  modernOf,
   describedAs } from "@amarna/engine";
 import { ownEconomy, unitKindName, type MapScene } from "../map/scene.ts";
-import { about, powerName, provinceName, shekels, when } from "../ui/format.ts";
+import { about, counted, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import { MapCard } from "./MapCard.tsx";
 
@@ -134,7 +134,7 @@ export function ProvinceInfo({
           {live && (
             <p className="small">
               {/* The economy at home (item 9+a): what its own king's stewards report, or anyone in god view. */}
-              Stores {state.stores.getOrDefault(p.id, 0)} of {capacityOf(p)} measures of grain. Its market holds {state.markets.tryGet(p.id)?.stock ?? 0} (its town
+              Stores {scene.viewer === null ? state.stores.getOrDefault(p.id, 0) : `about ${about(state.stores.getOrDefault(p.id, 0))}`} of {capacityOf(p)} measures of grain. Its market holds {state.markets.tryGet(p.id)?.stock ?? 0} (its town
               needs {needOf(p)} a season) at {shekels(priceForTen(priceAt(state.markets.tryGet(p.id)?.stock ?? 0, needOf(p))))} for ten measures; its people&apos;s purse holds{" "}
               {shekels(state.markets.tryGet(p.id)?.purse ?? 0)}.
             </p>
@@ -143,9 +143,9 @@ export function ProvinceInfo({
             <p className="small">
               {/* Land lost without the court's knowing: what its stewards last sent, as the map shows it; or, looking back at an
                   earlier season, what was recorded then, never the present. */}
-              {mine.age === 0 ? "That season" : `As your stewards last reported, ${mine.age} season${mine.age === 1 ? "" : "s"} ago`}: stores {mine.stores} of{" "}
+              {mine.age === 0 ? "That season" : `As your stewards last reported, ${mine.age} season${mine.age === 1 ? "" : "s"} ago`}: stores {scene.viewer === null ? mine.stores : `about ${about(mine.stores)}`} of{" "}
               {capacityOf(p)} measures of grain;{" "}
-              {mine.settled === undefined ? (scene.viewer === null ? "no count of its people" : "its people never counted by your scribes") : `about ${about(mine.settled)} on its land${scene.viewer === null ? "" : " as last counted"}`}
+              {mine.settled === undefined ? (scene.viewer === null ? "no count of its people" : "its people never counted by your scribes") : `${scene.viewer === null ? mine.settled.toLocaleString("en") : counted(mine.settled, mine.countAge ?? 0)} on its land${scene.viewer === null ? "" : " as last counted"}`}
               {mine.fed !== undefined ? `; its countryside ate ${Math.round(mine.fed / 10)}% of its need` : ""}.{mine.age > 0 ? " No word has come since." : ""}
             </p>
           )}
@@ -158,12 +158,16 @@ export function ProvinceInfo({
                 const n = scene.viewer === null ? { town: economyOf(p).town * 1000, settled: x.settled, men: x.men, loose: x.loose, harvest: state.reaped.getOrDefault(p.id, 0), granary: state.granary.getOrDefault(p.id, 0), crop: state.crop.getOrDefault(p.id, 0) } : c;
                 const amount = state.amounts.tryGet(p.id);
                 const asked = amount !== undefined ? `${amount} measures of grain a season` : `${state.shares.getOrDefault(p.id, EconomyData.taxPercent)}% of its last harvest`;
-                if (n === null) return `Your scribes have never counted it (order a census). You ask ${asked}.`;
+                if (n === null) return `Your scribes have never counted it (order a census); by a rough guess, ${counted(reckonedOf(WorldMap.default, p.id).settled, null)} live on its land. You ask ${asked}.`;
+                // God view exact; a seat's count shows two figures while under a year old, then one ("Counts as the scribes knew them").
+                const age = c === null ? 0 : state.turn - c.turn;
+                const f = (x: number): string => (c === null ? x.toLocaleString("en") : counted(x, age));
                 return (
                   <>
-                    {c !== null ? `As your scribes counted it in ${when(c.turn, scene.viewer)}: ` : ""}about {about(n.town)} in the town; about {about(n.settled)} on its land ({about(n.men)} men of fighting age), its land carrying{" "}
-                    {about(reckonedOf(WorldMap.default, p.id).room)}; {about(n.loose)} loose. {scene.viewer === null ? "Its king asks" : "You ask"} {asked}; its last harvest {n.harvest} measures, a third of it a season; its farmers&apos; granaries
-                    held {n.granary}, and the crop in its fields {n.crop}, reaped in {reapSeasonOf(p.id) === 0 ? "Akhet" : reapSeasonOf(p.id) === 1 ? "Peret" : "Shemu"}
+                    {c !== null ? `As your scribes counted it in ${when(c.turn, scene.viewer)}: ` : ""}
+                    {f(n.town)} in the town; {f(n.settled)} on its land ({f(n.men)} men of fighting age), its land carrying{" "}
+                    about {about(reckonedOf(WorldMap.default, p.id).room)}; {f(n.loose)} loose. {scene.viewer === null ? "Its king asks" : "You ask"} {asked}; its last harvest {f(n.harvest)} measures, a third of it a season; its farmers&apos; granaries
+                    held {f(n.granary)}, and the crop in its fields {f(n.crop)}, reaped in {reapSeasonOf(p.id) === 0 ? "Akhet" : reapSeasonOf(p.id) === 1 ? "Peret" : "Shemu"}
                     {state.fed.has(p.id) ? `; last season its countryside ate ${Math.round(state.fed.get(p.id) / 10)}% of its need` : ""}.
                   </>
                 );

@@ -258,8 +258,8 @@ export interface SeasonFrame {
   stores: Map<string, number>;
   /** Item 19, life on the map: the people settled in each province, how well its countryside ate (thousandths, where short), and its unrest (from item 17++ the grievances its people remember). */
   settled: Map<string, number>;
-  /** Item 17++: the settled on each province's land as each court's scribes last counted them, what a seat's map shows. */
-  counted: Map<Power, Map<string, number>>;
+  /** Item 17++: the settled on each province's land as each court's scribes last counted them, and the season they did, what a seat's map shows. */
+  counted: Map<Power, Map<string, { settled: number; turn: number }>>;
   /**
    * Item 17++, part C ("Who holds what, and the mood of the land"): each governed province's governor (arrived), the vassal
    * bonds as they stand (vassal to overlord), each court's own read of them from the tablets in its archive, and each
@@ -449,7 +449,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
       }),
     built: new Map(s.built.entries()),
     settled: new Map([...s.people.entries()].map(([k, x]) => [k, x.settled] as const)),
-    counted: new Map([...s.counts.entries()].map(([p, d]) => [p, new Map([...d.entries()].map(([k, c]) => [k, c.settled] as const))] as const)),
+    counted: new Map([...s.counts.entries()].map(([p, d]) => [p, new Map([...d.entries()].map(([k, c]) => [k, { settled: c.settled, turn: c.turn }] as const))] as const)),
     ...holdings(s),
     fed: new Map(s.fed.entries()),
     // Item 17++: what each province's people remember taken from them, by anyone (the ledger's takings, never shown).

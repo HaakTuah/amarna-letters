@@ -331,7 +331,7 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
  */
 export type OwnEconomy =
   | { live: true }
-  | { live: false; age: number; stores: number; settled: number | undefined; fed: number | undefined }
+  | { live: false; age: number; stores: number; settled: number | undefined; countAge?: number; fed: number | undefined }
   | null;
 
 export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
@@ -345,7 +345,8 @@ export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
   const own = scene.own.get(id);
   if (own === undefined) return null;
   if (own.age === 0 && scene.latest) return { live: true };
-  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: own.frame.counted.get(scene.viewer)?.get(id), fed: own.frame.fed.get(id) };
+  const c = own.frame.counted.get(scene.viewer)?.get(id);
+  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: c?.settled, countAge: c === undefined ? undefined : own.frame.turn - c.turn, fed: own.frame.fed.get(id) };
 }
 
 /** A band as a viewer's map shows it, with the seasons since its word of it. */

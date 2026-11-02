@@ -31,7 +31,7 @@ import {
   type Power,
   type UnitKind,
 } from "@amarna/engine";
-import { powerName, provinceName, shekels, when } from "../../ui/format.ts";
+import { about, counted, powerName, provinceName, shekels, when } from "../../ui/format.ts";
 import { byName } from "../../ui/order-draft.ts";
 import { map } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
@@ -151,8 +151,8 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
                   {f.grainAction === "census"
                     ? `${provinceName(id)} (${x.counted === null ? "never counted" : `counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""})`
                     : f.grainAction === "share" || f.grainAction === "amount"
-                      ? `${provinceName(id)} (asked ${x.amount !== null ? `${x.amount} a season` : `${x.share}%`}, harvest ${x.harvest}${x.counted === null ? ", never counted" : ` as counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
-                      : `${provinceName(id)} (stores ${x.stores}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
+                      ? `${provinceName(id)} (asked ${x.amount !== null ? `${x.amount} a season` : `${x.share}%`}, harvest ${x.counted === null ? x.harvest : counted(x.harvest, v.turn - x.counted)}${x.counted === null ? ", never counted" : ` as counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
+                      : `${provinceName(id)} (stores about ${about(x.stores)}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
                 </option>
               );
             })}
@@ -283,7 +283,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
             .sort(byName)
             .map((id) => (
               <option key={id} value={id}>
-                {provinceName(id)} (stores {v.provinces.find((y) => y.province === id)!.stores})
+                {provinceName(id)} (stores about {about(v.provinces.find((y) => y.province === id)!.stores)})
               </option>
             ))}
         </select>
