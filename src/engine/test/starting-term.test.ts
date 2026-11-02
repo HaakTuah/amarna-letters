@@ -75,6 +75,7 @@ describe("StartingTermTests", () => {
 
   /** The cast's facts as the full history check corrected them, and as they were. */
   const Corrected: readonly (readonly [string, string])[] = [
+    ["An official of Babylon's in Dilmun in the Gulf, who writes of the island's troubles to Ililiya, taken for Enlil-kidinni (the Dilmun letters from Nippur).", "Governor of Dilmun in the Gulf, who writes to Enlil-kidinni of the island's troubles (the Dilmun letters from Nippur)."],
     ["Chief of the bodyguard, probably the king's brother, who commands the guard at the king's person and often an army (the Deeds of Suppiluliuma).", "Chief of the bodyguard, the king's brother, who commands the guard at the king's person and often an army (the Deeds of Suppiluliuma)."],
     ["God's Father and Overseer of All the Horses of His Majesty, a fan-bearer at the king's right hand (his tomb at Amarna).", "God's Father and Master of the Horse at Akhetaten: the chariotry and the king's household are his (his tomb at Amarna)."],
     ["King's Son of Kush, the viceroy who rules Nubia for Pharaoh; most take him for the viceroy of the year-12 campaign on the Buhen stela, whose name is lost there.", "King's Son of Kush, the viceroy who rules Nubia for Pharaoh and led his one campaign there (the Buhen and Amada stelae)."],

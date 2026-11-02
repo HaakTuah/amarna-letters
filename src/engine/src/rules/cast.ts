@@ -106,7 +106,7 @@ export const PeopleOf1346: readonly CastSeed[] = [
   person("Shuttarna", "Taidu", "Mitanni", "son of the rival king", { ambition: 75, loyalty: 15, greed: 70, competence: 55 }, 30, ["Artatama's son and heir to his claim, who later gives the palace treasure to Assyria and Alshe (the Shattiwaza treaty)."], "washukanni"),
   // Babylonia
   person("Enlil-kidinni", "Nippur", "Babylonia", "governor of Nippur", { competence: 80, loyalty: 75, greed: 45 }, 60, ["Governor of Nippur, the kingdom's great official, keeping the city and its temple estates (the Nippur letters)."]),
-  person("Ili-ippashra", "Dilmun", "Babylonia", "governor of Dilmun", { competence: 55, loyalty: 65, courage: 45 }, 25, ["Governor of Dilmun in the Gulf, who writes to Enlil-kidinni of the island's troubles (the Dilmun letters from Nippur)."]),
+  person("Ili-ippashra", "Dilmun", "Babylonia", "governor of Dilmun", { competence: 55, loyalty: 65, courage: 45 }, 25, ["An official of Babylon's in Dilmun in the Gulf, who writes of the island's troubles to Ililiya, taken for Enlil-kidinni (the Dilmun letters from Nippur)."]),
   person("Shindishugab", "Babili", "Babylonia", "royal envoy", { competence: 60, loyalty: 70 }, 15, ["Burna-Buriash's envoy to Egypt (EA 10)."]),
   // Assyria: the envoys Ashur-uballit complains were kept standing in the sun at Pharaoh's court (EA 16), unnamed, so
   // named in the Assyrian style [G]
@@ -306,7 +306,7 @@ export const Governors1346: readonly { name: string | null; court: Power; provin
   { name: "Addaya", court: "Egypt", province: "gaza", grade: "A: Pharaoh's man, who put a garrison in his house at Hazzatu (EA 254, 285, 287, 289)" },
   { name: "Pahanate", court: "Egypt", province: "sumur", grade: "C: commissioner at Ṣumur (EA 60, 62, 68), Ṣumur perhaps still Egypt's in 1346" },
   { name: "Enlil-kidinni", court: "Babylonia", province: "nippur", grade: "A: governor of Nippur (the Nippur letters)" },
-  { name: "Ili-ippashra", court: "Babylonia", province: "dilmun", grade: "A: governor of Dilmun (the Dilmun letters from Nippur)" },
+  { name: "Ili-ippashra", court: "Babylonia", province: "dilmun", grade: "B: an official in Dilmun (the Dilmun letters from Nippur), \"governor\" a reading" },
   { name: "Eshuwara", court: "Alashiya", province: "kalavasos", grade: "C: the governor of Alashiya (EA 40), over the copper hills, whose copper he sends; his name [G]" },
   { name: null, court: "Hatti", province: "tuwanuwa", grade: "B: a lord of the watchtower of the Lower Land, facing Arzawa" },
   { name: null, court: "Hatti", province: "samuha", grade: "B: a lord of the watchtower of the Upper Land, facing the Kaska" },
