@@ -91,9 +91,10 @@ export function ProvinceInfo({
           <h3>
             {p.name} {p.capital && <small className="muted">· capital of {p.home !== null ? powerName(p.home) : ""}</small>}
           </h3>
-          {/* Item 17+ ("Places by their own names"): the modern name on a second, smaller line, for the human player only. */}
-          {describedAs(p.id) !== null && <small className="muted">{describedAs(p.id)}</small>}
-          {modernOf(p.id) !== null && <small className="muted">today {modernOf(p.id)}</small>}
+          {/* "Places by their own names", for the human player only: what the name alone does not say, then the modern name. */}
+          {(describedAs(p.id) !== null || modernOf(p.id) !== null) && (
+            <small className="muted">{[describedAs(p.id), modernOf(p.id) !== null ? `today ${modernOf(p.id)}` : null].filter((x) => x !== null).join(", ")}</small>
+          )}
         </>
       }
     >
