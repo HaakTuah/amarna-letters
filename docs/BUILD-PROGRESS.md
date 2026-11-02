@@ -75,7 +75,7 @@ fixed.
   plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
   wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
   in any export. A human player's own words are not sensitive in a normal export.
-- **First among the side lanes, beside the fog below (other files, so both run at once): model calls that get
+- ~~**First among the side lanes, beside the fog below (other files, so both run at once): model calls that get
   through** (Haakon, 2 November 2026; Engine and models, "Calls that get through, live or in the background"). His
   Haiku game of 1 November (seed 407184, two seasons, $0.52) lost 57 of the first season's 104 decisions to the
   account's limit on calls in flight, paid about two thirds of that season for 25 copies of one cache, and had 26
@@ -83,7 +83,7 @@ fixed.
   background mode on the provider's batch service, and the cost estimate. No model games: checked against a stand-in
   service that refuses calls past a limit, answers batches late and returns that game's slips. The report gives the
   expected cost of a season, live and in the background. The game itself is in
-  `tests/fixtures/model-games/` (its README): its slips are the test cases, its token counts the estimate's start.
+  `tests/fixtures/model-games/` (its README): its slips are the test cases, its token counts the estimate's start.~~ Done: PR #386, report `docs/rounds/2026-11-02-model-calls-get-through.md`.
 - **Counsel's plans from a digest** (found by "model calls that get through", 2 November 2026; Engine and models,
   "Passing up and asking advice": the strong model writes the plan "from a digest of the year ... rather than the whole
   record"). A plan call opens with the kings' whole 70,600-token rulebook on Sonnet, so at the recorded token counts
