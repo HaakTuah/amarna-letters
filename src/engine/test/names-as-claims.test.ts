@@ -14,13 +14,13 @@ import {
   TurnEngine,
   Views,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // Item 17+ ("A power's name is a claim"): a power goes by the name it claims; where two claim one name, each court gives it
 // to the one its greetings name so and calls the other by his house; a claim gives nothing by rule.
 describe("NamesAsClaims", () => {
   function game(): [ReturnType<typeof newGame>, TurnEngine] {
-    const s = newGame(3, newGameConfig({ catastropheChance: 0 }));
+    const s = smallWorld(newGame(3, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Amurru", "Byblos");
     return [s, new TurnEngine(s)];
   }
 

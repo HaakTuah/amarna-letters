@@ -1,5 +1,5 @@
 /**
- * A capital ceded whole (build order item 11d, Haakon's answer to item 11+'s review: "a ruler may cede his capital whole,
+ * A capital ceded whole (build order item 11d, the owner's answer to item 11+'s review: "a ruler may cede his capital whole,
  * by agreement on a sealed tablet, losing his seat and living on as a character"). The validator lets the order stand only
  * where a sealed tablet between the two gives the city ({@link cessionAgreed}); here, after the season's other cessions
  * and gifts of troops, the kingdom falls as one whose capital was taken, but to the receiver, by agreement: its land

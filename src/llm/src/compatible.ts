@@ -23,7 +23,9 @@ export class CompatibleProvider implements Provider {
 
   constructor(setting: ProviderSetting, apiKey: string, fetchImpl: typeof fetch = (...a) => fetch(...a)) {
     this.id = setting.id;
-    this.baseUrl = setting.baseUrl.replace(/\/+$/, "");
+    let end = setting.baseUrl.length;
+    while (end > 0 && setting.baseUrl[end - 1] === "/") end--;
+    this.baseUrl = setting.baseUrl.slice(0, end);
     this.apiKey = apiKey;
     this.fetchImpl = fetchImpl;
   }

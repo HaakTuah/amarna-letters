@@ -7,7 +7,7 @@ import { type Word, WordSchema, newWord } from "./word.ts";
 import { type JobErrand, JobErrandSchema } from "./people.ts";
 
 /**
- * A job offered by a king to a person away from his court, carried by his envoy (Haakon's answers to item 11a: "a job is
+ * A job offered by a king to a person away from his court, carried by his envoy (the owner's answers to item 11a: "a job is
  * offered through any character carrying the offer, wherever the man is"). The advance goes with the envoy, and is handed
  * over only if the man takes the job; otherwise the envoy brings it home.
  */
@@ -90,7 +90,7 @@ export interface Journey {
   waitAt: string | null;
   carrier: string | null;
   /**
-   * For a report its spy walks to the border himself (Haakon's answers to item 11b+): the province of its master's where
+   * For a report its spy walks to the border himself (the owner's answers to item 11b+): the province of its master's where
    * the realm's couriers take it, once the spy's walk has passed there; null otherwise.
    */
   border: string | null;
@@ -185,13 +185,13 @@ export interface Dispatch {
   /** Item 10: the person whose claim to serve the host the envoy is to check there. */
   checkClaim: string | null;
   /**
-   * Item 10+b: a false envoy's audience (Haakon's answer of 28 October 2026, "A false envoy"): nobody sent it; it claims
+   * Item 10+b: a false envoy's audience (the owner's answer of 28 October 2026, "A false envoy"): nobody sent it; it claims
    * to come from the sender and carries no letter, seal or tablet, and whatever it is given it keeps.
    */
   pretended: boolean;
   /** Jobs offered to people at the court the envoy goes to, their advances carried with it. */
   offers: JobOffer[];
-  /** A debt tablet from its king's archive the envoy carries to present to the borrower (Haakon's answers to item 11a). */
+  /** A debt tablet from its king's archive the envoy carries to present to the borrower (the owner's answers to item 11a). */
   collect: string | null;
   /**
    * Item 17+: the realm's name the sender claimed when the tablet was sealed, read by the host when it is presented (a

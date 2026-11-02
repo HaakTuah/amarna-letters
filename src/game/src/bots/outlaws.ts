@@ -51,7 +51,7 @@ export function huntBands(b: Board, plan: MilitaryPlan): void {
 }
 
 /**
- * Haakon's answers to item 11b: an army falls on a band only on its king's order. Item 11b+ found that a hunted band fled
+ * The owner's answers to item 11b: an army falls on a band only on its king's order. Item 11b+ found that a hunted band fled
  * to a province of ours without troops and robbed it at the full rate, so a script king orders a hunt (`hunt`, for the
  * next season) only where it ends the band or drives it out of our land: an army of ours stands with it, and either the
  * band is small enough to break or no province of ours without troops lies next door for it to flee to. Item 11b++

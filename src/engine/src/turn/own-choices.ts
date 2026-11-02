@@ -1,5 +1,5 @@
 /**
- * Haakon's answers to item 11b: a chief decides raids, ships and the way back in a request of his own, like every
+ * The owner's answers to item 11b: a chief decides raids, ships and the way back in a request of his own, like every
  * character, and a posted spy whose reports wait for a carrier decides whether to wait, pay or carry them home itself.
  * Each season, after its own, a chief and such a spy are asked ("Chief", "Reports"). A model mind answers with its
  * choices, which the engine takes the next season; a script mind answers nothing, and the script's traits decide as

@@ -37,7 +37,7 @@ describe("ContractTextTests", () => {
     ) as JsonObject;
     Assert.empty(problems(json, Replies.leaderOrders(newGameConfig())));
     let sub = Parse.orders(json);
-    // Haakon's answers to item 11a: nothing handed over now unless the king names it.
+    // The owner's answers to item 11a: nothing handed over now unless the king names it.
     Assert.equal([renew("c3", 20, 6, 0), renew("c4", 25, 9, 0), hire("c9", 30, 12, 10), hire("c10", 30, 6, 0)], sub.orders);
     Assert.equal("offer c3 a new job within 6 seasons for 20 shekels, 0 of them now", describeOrder(sub.orders[0]));
   });

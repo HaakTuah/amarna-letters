@@ -35,7 +35,7 @@ P.resolveCourt = function (orders) {
   const S = this.s;
   // Names claimed first (item 17+), so the season's greetings carry them.
   for (const [p, o] of orders) if (o.type === "claimName") this.claimName(p, o);
-  // Jobs first (Haakon's answers to item 11a): a man offered a job at court this season can be sent on its errand at once.
+  // Jobs first (the owner's answers to item 11a): a man offered a job at court this season can be sent on its errand at once.
   this.hireAll(orders.filter(([, o]) => o.type === "hire" && ((o as HireOrder).via ?? null) === null).map(([p, o]) => ({ p, h: o as HireOrder })));
   for (const [p, o] of orders) if (o.type === "renew") this.renew(p, o);
   // Offers carried abroad go with the envoys named, sent this season.
@@ -117,7 +117,7 @@ export function errandOf(o: { what?: JobWhat | null; where?: string | null }): J
 }
 
 /**
- * Hiring (item 11a, "Hiring as a negotiation", with Haakon's answers): a person is offered a job where it stands, at the
+ * Hiring (item 11a, "Hiring as a negotiation", with the owner's answers): a person is offered a job where it stands, at the
  * court (or, held, by the king who holds it), or by an envoy carrying the offer to where it is. It takes the offer worth
  * most to it, the advance in hand and the rest as far as it trusts the court from what it has heard, if that reaches what
  * it asks for the term and the term is long enough for the errand; every real offer is one it may cite elsewhere.
@@ -204,7 +204,7 @@ P.hireAll = function (hires, carriedTo = null) {
     c.reputation.set(winner, c.reputation.getOrDefault(winner, 0) + 5);
     // A court that takes people on is a court that is hiring, as those who hear of it know.
     S.hiring.set(winner, S.turn);
-    // Those standing there hear what the job pays (Haakon's answers: what others were paid is what a person has heard).
+    // Those standing there hear what the job pays (the owner's answers: what others were paid is what a person has heard).
     const rate = rateOf(hire.fee, term(bids[0]));
     for (const x of S.characters) if (x.status !== "Dead" && x.at !== null && x.at === c.at && x.heldBy === null) this.heardFee(x, rate);
     const errand = errandWords(c.contract.errand, (x) => this.map.exists(x) ? this.map.get(x).name : x);
@@ -244,7 +244,7 @@ export function errandWords(e: JobErrand | null, name: (x: string) => string): s
 }
 
 /**
- * A new job offered to one of the court's own (Haakon's answers to item 11a: renewing is a new offer the man must accept):
+ * A new job offered to one of the court's own (the owner's answers to item 11a: renewing is a new offer the man must accept):
  * taken if it is worth what it asks for the term and the term fits the errand. The new job is made this season; the rest
  * of the present one, not yet due, is carried into it. A servant abroad whose fate its master has not heard of is offered
  * it as the master believes it, so nothing is betrayed. A refusal wakes nobody.
@@ -287,7 +287,7 @@ P.renew = function (p, r) {
   }
   if (serves) {
     gain(c, advance, "Fees");
-    // Haakon's answers to item 11b+: an errand given during a stay is its own job with its own fee; the stay waits beside it.
+    // The owner's answers to item 11b+: an errand given during a stay is its own job with its own fee; the stay waits beside it.
     // A new stay takes the place of one waiting beside the errand, whose rest it carries.
     const staying = k!.errand?.what === "stay" && errand?.what !== "stay" && k!.untilTurn >= S.turn && !k!.captured;
     const old = errand?.what === "stay" && k!.stay !== null ? k!.stay.rest : 0;
@@ -348,7 +348,7 @@ P.dismiss = function (p, c, order) {
     return;
   }
   remember(c, S.turn, `The king of ${land(p)} dismissed me.`);
-  // Haakon's answer to item 11a (opening item 11b): a dismissal before the job's term ends is a broken promise on record.
+  // The owner's answer to item 11a (opening item 11b): a dismissal before the job's term ends is a broken promise on record.
   if (c.contract !== null && Math.max(c.contract.untilTurn, c.contract.stay?.until ?? 0) > S.turn) this.recordPay(p, false, p, c);
   c.formerEmployer = p;
   c.employer = null;
@@ -399,7 +399,7 @@ export function askingPrice(c: Character, court: Power): number {
 /** Item 11b (first guesses): what a person asks more of a court for each of its people it heard were lost abroad, and each it put to death, in percent, at most `WaryMost`. */
 export const WaryLost = 10;
 export const WaryKilled = 15;
-/** Haakon's answers to item 11a (a first guess): what a person asks more of a court it heard seized a hoard, in percent, each. */
+/** The owner's answers to item 11a (a first guess): what a person asks more of a court it heard seized a hoard, in percent, each. */
 export const WarySeized = 15;
 export const WaryMost = 60;
 
@@ -407,7 +407,7 @@ export const WaryMost = 60;
  * What a person asks a court a season of a job's term (item 10): by what it believes it can do, never its true skill
  * ("Seeing oneself"), by its greed, by its name at that court ("A name has a price"), and by the debts that press on its
  * purse; less at the court it favours, or where its lover or family is. Then it bargains from what it has heard a job pays
- * (Haakon's answers to item 11a: no going rate, no floor set by the engine; "what others were paid is only what a
+ * (the owner's answers to item 11a: no going rate, no floor set by the engine; "what others were paid is only what a
  * character has heard, and he bargains from it"), and asks more of a court it heard loses its people or seizes hoards.
  */
 export function basePrice(c: Character, court: Power): number {

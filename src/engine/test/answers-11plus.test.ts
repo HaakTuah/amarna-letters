@@ -17,11 +17,12 @@ import {
   newTurnSubmission,
   vassalBonds,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
-// Build order item 11d: Haakon's answers to item 11+'s review.
+// Build order item 11d: the owner's answers to item 11+'s review.
 describe("The answers to item 11+", () => {
-  const game = (): GameState => newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+  const whole = (): GameState => newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+  const game = (): GameState => smallWorld(whole(), "Byblos", "Sidon", "Egypt", "Hatti");
   const season = (s: GameState, subs: Dict<Power, TurnSubmission>): void => {
     const e = new TurnEngine(s);
     e.beginTurn();
@@ -45,7 +46,8 @@ describe("The answers to item 11+", () => {
   });
 
   test("Terqa, Mira and Seha start as vassal city-states of Mitanni and Arzawa, under rulers of their own", () => {
-    const s = game();
+    // The starting world itself.
+    const s = whole();
     const bonds = vassalBonds(s.tablets);
     for (const [vassal, overlord, city] of [["Terqa", "Mitanni", "terqa"], ["Mira", "Arzawa", "mira"], ["Seha", "Arzawa", "seha"]] as const) {
       Assert.equal(vassal, s.owner.get(city));
@@ -78,7 +80,8 @@ describe("The answers to item 11+", () => {
   });
 
   test("A ruler who cedes his capital loses his realm whole and lives on as a free character at his old city", () => {
-    const s = game();
+    // The whole world: strangers come through the doors in numbers that depend on its size, and the test counts the characters.
+    const s = whole();
     sealedCession(s, "Byblos", "Egypt", "byblos");
     const before = s.characters.length;
     season(s, orders("Byblos", cede("byblos", "Egypt")));

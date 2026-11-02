@@ -25,7 +25,7 @@ import {
   newGameConfig,
   PeopleOf1346,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 const Map = WorldMap.default;
 
@@ -100,7 +100,7 @@ describe("City-states as powers (item 11+)", () => {
   });
 
   test("The vassal mark names one of the two kings or nothing", () => {
-    const s = newGame(3);
+    const s = smallWorld(newGame(3), "Tyre", "Egypt", "Hatti");
     const e = new TurnEngine(s);
     const envoy = s.characters.find((c) => c.employer === "Tyre")!;
     e.resolve(
@@ -148,7 +148,7 @@ describe("City-states as powers (item 11+)", () => {
   });
 
   test("The final score blends size and performance, and the highest wins", () => {
-    // Item 11e: size against the largest realm, performance as the rank; size weighs 5 percent since item 11f (Haakon's answer).
+    // Item 11e: size against the largest realm, performance as the rank; size weighs 5 percent since item 11f (the owner's answer).
     Assert.equal(0.5, finalScore(50, 1, 0));
     Assert.equal(0.75, finalScore(50, 0.5, 1));
     Assert.equal(0.25, finalScore(0, 1, 0.25));

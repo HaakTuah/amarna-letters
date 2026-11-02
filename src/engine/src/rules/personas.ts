@@ -16,10 +16,14 @@ function opening(c: Character): string {
   return `You are ${c.name}, born in ${c.origin}, once ${calling(c)}. You are `;
 }
 
-/** A character's former calling with its article ("a merchant", "an interpreter"). */
+/**
+ * A character's former calling with its article ("a merchant", "an interpreter"). A calling that has its own ("the
+ * ruler's brother", "a lord of the coast") or is a title ("King's Son of Kush") is given as it is (#468).
+ */
 export function calling(c: Character): string {
-  const first = c.calling.length > 0 ? c.calling[0].toLowerCase() : "\0";
-  return ("aeiou".includes(first) && first !== "" ? "an " : "a ") + c.calling;
+  const k = c.calling;
+  if (/^(a|an|the)\s/i.test(k) || /^[A-Z]/.test(k)) return k;
+  return ("aeiou".includes(k.charAt(0).toLowerCase()) && k !== "" ? "an " : "a ") + k;
 }
 
 const WantMarker = ". What you want most: ";

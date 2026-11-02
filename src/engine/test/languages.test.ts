@@ -25,7 +25,7 @@ import {
   type GameState,
   type Power,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 const Map = WorldMap.default;
 
@@ -116,7 +116,7 @@ describe("LanguagesTests", () => {
   });
 
   test("An envoy nobody understands is no audience: his host is told plainly, and the next season he presents his gifts", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Hatti", "Egypt", "Mitanni");
     hittiteOnly(s);
     const c = envoyAtHatti(s, [["Egyptian", 100]], 40);
     c.traits.greed = 90;
@@ -138,7 +138,7 @@ describe("LanguagesTests", () => {
   });
 
   test("A bridger who bends the words leaves no trace the host sees unless someone there noticed", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Hatti", "Egypt", "Mitanni");
     hittiteOnly(s);
     const bridge = person(s, "Hatti", [["Hittite", 100], ["Akkadian", 100]], "Hatti");
     envoyAtHatti(s, [["Egyptian", 100], ["Akkadian", 100]]);
@@ -150,7 +150,7 @@ describe("LanguagesTests", () => {
   });
 
   test("A servant who speaks with both carries the envoy's words to his king", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Hatti", "Egypt", "Mitanni");
     hittiteOnly(s);
     const bridge = person(
       s,
@@ -171,7 +171,7 @@ describe("LanguagesTests", () => {
   });
 
   test("A go-between at court carries the words of an envoy nobody understands, for his price, from the envoy's purse", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Hatti", "Egypt", "Mitanni");
     hittiteOnly(s);
     const g = person(s, "Hatti", [
       ["Hittite", 100],
@@ -187,7 +187,7 @@ describe("LanguagesTests", () => {
   });
 
   test("An unheard envoy waits by his loyalty, then goes home, or says his message was delivered", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Hatti", "Egypt", "Mitanni");
     hittiteOnly(s);
     const c = envoyAtHatti(s, [["Egyptian", 100]]);
     c.traits.loyalty = 10;
@@ -224,7 +224,7 @@ describe("LanguagesTests", () => {
   });
 
   test("A tablet in a language its holder's scribes do not read waits for a reader", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Babylonia", "Arzawa", "Hatti", "Egypt");
     // Arzawa reads Hittite and Luwian; an Akkadian tablet waits until someone at its court reads Akkadian and Luwian.
     for (const x of s.characters) if (x.employer === "Arzawa") x.tongues = new Dict([["Luwian", 100]]);
     s.tablets.push(
@@ -255,7 +255,7 @@ describe("LanguagesTests", () => {
   });
 
   test("Only a bridger in someone else's pay may bend the words he carries", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Hatti", "Egypt", "Mitanni");
     hittiteOnly(s);
     const bridge = person(
       s,

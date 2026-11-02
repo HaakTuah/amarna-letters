@@ -115,7 +115,7 @@ goes to building. Its usage can run out like any other, and it may then not say 
    with nothing open, its 👍 or "Didn't find any major issues", or every finding fixed or moved out as "Reviews"
    says. That is Codex's 10. P0 and P1 are fixed first.
 5. **The design check, with a score:** on its build-order items (not the polish and sound lanes' small fixes), the design check (`CLAUDE.md`, "Design check": Fable at
-   medium effort, Opus at high when Fable is out) checks the work against the design: given the diff and the PR's description and "The game in one page", it gives the score
+   medium effort, Opus at high when Fable is out) checks the work against the design: given the diff and the PR's description and "The game in one page", and the dossier passages the work cites when it adds or changes real-world content (a fact without a source, or against its source, blocks), it gives the score
    from 1 to 10 and what keeps it from 10, blocking or not ("Reviews" below), on the design alone, since Codex looks for
    faults and security. Smaller PRs get Codex's review alone. **Why it is enough:** a test PR with three planted faults
    (Barkstreet Snakes #298, 1 November 2026, never merged) got all three as P1 from Codex within four minutes: a bug
@@ -144,7 +144,7 @@ The guards against both are part of the rule:
    standing rules) or **not blocking**, which says only what is fixed first. **A 10 is a list with nothing open:** the
    work does all of the item's text and the sections it names, keeps every standing rule, leaves nothing behind ("Keep it lean" in `AGENTS.md`), its tests prove it, and a
    demanding expert would hand it over as it stands. A 10 with a point open, or less than 10 with none, is no review:
-   ask again. This definition goes into every reviewer's brief word for word, and only the owner changes it.
+   ask again. This definition goes into every reviewer's brief word for word, and only the owner changes it; so does "One idea, for every reviewer" ("Review guidelines" in `AGENTS.md`).
 2. **Every point is fixed, or moved out with a reason.** A point within the item is always fixed. A point outside it
    (code or a question the item did not touch) may become a follow-up (a `bug` issue if it is a bug, otherwise an entry in `docs/BUILD-PROGRESS.md`), with the reason in the
    PR. A point the builder thinks wrong is answered in the PR with why. The next round's reviewer rules on each move
@@ -167,6 +167,13 @@ The guards against both are part of the rule:
      guidelines), a test PR with planted faults goes to each reviewer and is never merged. The faults are a bug, a
      broken standing rule, a security hole and a departure from the design, as on Snakes #298. Each fault not found is
      a miss.
+   - **A history spot-check every month** (the owner, 2 November 2026; archive items 164 and 167): a fresh reviewer
+     picks about 30 facts from `docs/history/`, two from each dossier and the rest among those the game uses most, and
+     checks each against the words of its source that its line quotes, and against the source itself (the letter, the
+     edition, the study) where it can reach it. Every fact that does not hold is a miss: the dossier and the game are
+     fixed, and a `bug` issue tracks it until the fix is live. More than one miss in fifteen facts checked: every
+     dossier a miss came from gets a full check. The first spot-check (#466) found 3 in 13, so the full check of every
+     dossier ("Follow-ups" in `docs/BUILD-PROGRESS.md`) runs before the next one.
    - **Logged and reported:** each check is a row in "Calibration" below, and each milestone PR says in one line the
      misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
      the owner, and the categories it reviews go back to the other reviewer meanwhile.
@@ -178,10 +185,11 @@ The guards against both are part of the rule:
 
 ### Calibration
 
-The weekly blind re-reviews and the canaries, newest first ("Reviews", point 5).
+The weekly blind re-reviews, the canaries and the monthly history spot-checks, newest first ("Reviews", point 5).
 
 | Date | Check | PR | Reviewer checked | Misses | What changed |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-02 | History spot-check | this PR | The dossiers and the cast (Claude's reviewer, Opus, high) | 3 of 13: Tushratta's detained envoys (Mane was Pharaoh's, #460); Yapahu as Milkilu's brother (#461); Shindishugab cited to EA 11, not EA 10 (#462). Held: Naphurureya and Akhenaten's dates, Burna-Buriash's dates, EA 16, Tarhundaradu [C], the gilded statues, Hinnatuna (EA 8), Salmu robbed twice (EA 7), Tagi, Zida, Rib-Hadda shut out | Dossiers and cast fixed in this PR; dossier lines added for Shindishugab, Yapahu and Tagi as Milkilu's father-in-law, which the cast used without a source |
 | 2026-11-02 | Blind re-review | #374 | Codex | 1 blocking (province card reads the latest state when looking back) | Fixed in #414; second Codex miss in a row on seat views: interface went to Claude's reviewer until its guidelines were tightened with the owner, the same day ("Hidden information" in "Review guidelines", #420); interface is Codex's again, and the next canary plants a seat-view leak |
 | 2026-11-01 | Blind re-review | #359 | Codex (and Claude's round 2) | 1 blocking (province panel leak) | Fixed in this PR; follow-up for the seat view's own early drop goes to item 17++ |
 | 2026-11-01 | Canary (before this rule) | Snakes #298 | Codex | 0 of 3 | None needed |

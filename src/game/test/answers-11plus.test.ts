@@ -4,7 +4,7 @@ import { Views, clause, newGame, newGameConfig, newTablet, newTabletCopy, newId,
 import { ScriptLeader } from "@amarna/game";
 import { Assert } from "../../engine/test/support.ts";
 
-// Build order item 11d: what the script players make of Haakon's answers to item 11+'s review.
+// Build order item 11d: what the script players make of the owner's answers to item 11+'s review.
 describe("The answers to item 11+, as the script players play them", () => {
   const sealed = (s: GameState, giver: Power, receiver: Power, province: string): void => {
     s.tablets.push(newTablet({ id: "t990", text: "I give you my city.", proposedBy: giver, partner: receiver, seals: [giver, receiver], createdTurn: 1, sealedTurn: 1, clauses: [clause("cede", { province })] }));
@@ -12,7 +12,7 @@ describe("The answers to item 11+, as the script players play them", () => {
   };
 
   test("A script ruler never cedes his capital, even with the tablet sealed", async () => {
-    // A seat plays for its power's growth, and nothing in it makes giving up the whole realm pay (Haakon: "a character
+    // A seat plays for its power's growth, and nothing in it makes giving up the whole realm pay (the owner: "a character
     // based on the incentive structure we have now should never say yes").
     const s = newGame(3, newGameConfig({ catastropheChance: 0 }));
     sealed(s, "Byblos", "Egypt", "byblos");

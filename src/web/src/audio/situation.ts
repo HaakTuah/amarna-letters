@@ -57,7 +57,7 @@ const involves = (m: FrameMove, viewer: Power | null): boolean => viewer === nul
 
 /**
  * Who holds each province, as the viewer knows it (the truth in god view). What the record lacks counts as unknown, never
- * as the truth (Haakon, 1 November 2026: "The music must never reveal what's outside the fog of war").
+ * as the truth (the owner, 1 November 2026: "The music must never reveal what's outside the fog of war").
  */
 function owners(f: SeasonFrame, viewer: Power | null): Map<string, Power | null> {
   if (viewer === null) return f.owner;
@@ -300,7 +300,7 @@ export function cuesAt(frames: readonly SeasonFrame[], index: number, viewer: Po
   }
   add("season", null, Moments.arrivals);
   // The event sounds are one seat's own: its player hears them, or a spectator watching through it; god view hears only
-  // the music and the world's sounds (Haakon, 1 November 2026: "all the event stuff is for players only").
+  // the music and the world's sounds (the owner, 1 November 2026: "all the event stuff is for players only").
   out.sounds = viewer === null ? [] : [...out.sounds].sort((a, b) => loud.indexOf(a.name) - loud.indexOf(b.name)).slice(0, 3);
   // A battle the court's own sounds carry is not heard twice.
   const main = out.sounds.find((c) => c.name === "battle");
@@ -369,7 +369,7 @@ const wildLands = new Set(Crossings.filter((c) => c.kind === "Desert" || c.kind 
  * The world's bed under the music, from what the viewer's own map shows at its centre: a siege camp where a siege it sees
  * is near, a city's market close in on a town it believes standing, the water of the great rivers and the coasts, the
  * wind of the steppe, the desert and the mountains. The land itself never changes and is known to all, so its water and
- * wind are heard wherever the view goes; a town sounds as the viewer last knew it (Haakon, 1 November 2026: "if you zoom
+ * wind are heard wherever the view goes; a town sounds as the viewer last knew it (the owner, 1 November 2026: "if you zoom
  * in on a city that is really burned but that you still believe is buzzing, then it should probably play the urban
  * commotion sound"): `ruins` are the cities it knows in ruins (`knownRuins`, map/known.ts), whose market is silent, only the wind over
  * them, until it sees them rebuilt. Heard by zoom (`bedLevel` in mix.ts).

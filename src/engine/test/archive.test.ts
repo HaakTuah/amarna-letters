@@ -26,7 +26,7 @@ import {
   newUnit,
   single,
 } from "@amarna/engine";
-import { removeAll, Assert, skilled } from "./support.ts";
+import { removeAll, Assert, skilled, smallWorld } from "./support.ts";
 
 // <summary>Tablets are objects in a place: archives at the capital, copied by spies, taken with the capital.</summary>
 describe("ArchiveTests", () => {
@@ -101,6 +101,7 @@ describe("ArchiveTests", () => {
   test("A spy copies one tablet a season never one its master holds agreements and the newest first", () => {
     // Seed 1: with save version 7's dice, seed 8's watchmen catch the spy in its first season.
     let [s, spy] = spyAtAssyria(1);
+    smallWorld(s, "Babylonia", "Assyria", "Hatti", "Egypt");
     sealed(s, "t900", "Assyria", "Hatti", 1, "The oldest treaty.");
     sealed(s, "t901", "Assyria", "Babylonia", 2, "A treaty Babylonia holds already.");
     sealed(s, "t902", "Assyria", "Egypt", 3, "The newest treaty.");
@@ -123,6 +124,7 @@ describe("ArchiveTests", () => {
 
   test("A spy turned by the court it watches copies nothing and a clumsy one copies seldom", () => {
     let [s, spy] = spyAtAssyria();
+    smallWorld(s, "Babylonia", "Assyria", "Hatti");
     sealed(s, "t900", "Assyria", "Hatti", 1, "A treaty.");
     spy.secretMaster = "Assyria";
     spy.poisonText = "All is quiet.";
@@ -135,6 +137,7 @@ describe("ArchiveTests", () => {
 
     // Skill is the chance: a spy of no skill never copies.
     let [s2, clumsy] = spyAtAssyria();
+    smallWorld(s2, "Babylonia", "Assyria", "Hatti");
     sealed(s2, "t900", "Assyria", "Hatti", 1, "A treaty.");
     skilled(clumsy, 0);
     advance(s2, 6);
@@ -198,6 +201,7 @@ describe("ArchiveTests", () => {
 
   test("Land that is not a capital holds no archive and a capital ceded gives its archive as one taken", () => {
     let [s, capital, from] = babyloniaNextToAshur();
+    smallWorld(s, "Babylonia", "Assyria", "Hatti", "Egypt");
     sealed(s, "t900", "Assyria", "Hatti", 1, "Assyria and Hatti swear peace.");
     // Babylonia takes a province of Assyria's homeland that is not its capital: no archive there.
     let other = first(
@@ -237,6 +241,7 @@ describe("ArchiveTests", () => {
     // (Until the siege package this test also had Assyria retake its capital and gain nothing from its own archive; a
     // kingdom now falls with its capital, so there is no king left to retake it.)
     let [s, capital, from] = babyloniaNextToAshur();
+    smallWorld(s, "Babylonia", "Assyria");
     begin(s).resolve(orders("Babylonia", move(from, capital)));
     // Item 17++: moving in takes nothing by itself; the province answers to Babylonia as the next season begins.
     begin(s).resolve(orders("Babylonia"));

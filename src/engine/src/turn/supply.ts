@@ -1,5 +1,5 @@
 /**
- * Buying or taking (build order item 17; "Armies need food as well as pay" under Land, people and economy, Haakon of 29
+ * Buying or taking (build order item 17; "Armies need food as well as pay" under Land, people and economy, the owner of 29
  * October 2026). Each army's king tells it whether to buy its food where it stands by leave, at home or in a friend's
  * land, or to take it, and sends gold for the buying; the word and the gold travel with his couriers and hold from the
  * season they arrive ("Command at a distance"). Hunger decides before orders do: an army without the gold takes what it

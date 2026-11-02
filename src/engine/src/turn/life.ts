@@ -68,7 +68,7 @@ function landRatio(e: TurnEngine, p: Power): number {
 }
 
 /** What a party's record of paying is, for a court or a person. */
-/** A party's record of paying as a person has heard it (Haakon's answers to item 11a: records travel as news). */
+/** A party's record of paying as a person has heard it (the owner's answers to item 11a: records travel as news). */
 const recordOf = (e: TurnEngine, party: string, c: Character): { kept: number; broken: number; keptAged: number; brokenAged: number } => {
   const r = recordKnown(e.s, party, c);
   const w = recordKnown(e.s, party, c, true);
@@ -97,7 +97,7 @@ function keptWords(d: Debt): string {
  */
 P.wantsLife = function (c) {
   const S = this.s;
-  // Haakon's answers to item 11a: characters deal wherever they share a province, so a free traveller answers an
+  // The owner's answers to item 11a: characters deal wherever they share a province, so a free traveller answers an
   // approach on the road.
   if (c.at === null && c.status === "Free" && c.duty === "Travelling" && c.heldBy === null) return S.approaches.some((a) => a.to === c.id && a.accepted === null);
   if (c.status === "Dead" || c.status === "Captured" || c.heldBy !== null || c.at === null || c.duty !== "None" || hiddenAt(c, c.at)) return false;
@@ -309,7 +309,7 @@ P.applyLife = function (c, ch) {
     c.seeking = ch.seek;
     c.waited = c.seeking ? c.waited + 1 : 0;
   }
-  // One approach a season, to someone in the same province (Haakon's answers to item 11a: "characters deal wherever they
+  // One approach a season, to someone in the same province (the owner's answers to item 11a: "characters deal wherever they
   // share a province").
   const m = ch.approach;
   if (m !== null) {
@@ -445,7 +445,7 @@ P.deliverErrand = function (c, deliver) {
   if (d !== null && d.ended === null && d.holder === c.id) this.passTablet(d, emp.id, "Person");
   // The rest is due only for a job done: the borrower's court reached with the tablet (item 11a, "done" is what the engine
   // can see). One that turned back on the way is owed nothing more, and breaks nothing.
-  // Paid only by its employer's own order, given with the job (Haakon's answers to item 11a: "unpaid is unpaid").
+  // Paid only by its employer's own order, given with the job (the owner's answers to item 11a: "unpaid is unpaid").
   const rest = e.reached ? Math.max(0, e.fee - e.advance) : 0;
   const paid = e.payOnDone ? Math.min(rest, emp.purse) : 0;
   emp.purse -= paid;

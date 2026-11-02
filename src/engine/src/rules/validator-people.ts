@@ -222,7 +222,7 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       if (c === null || c.status !== "Captured" || c.heldBy !== power) return `you hold no captive '${co.character}'`;
       // Item 10+b: a captive handed over travels under guard; it is nobody's to dispose of until it arrives.
       if (c.duty === "UnderGuard") return `${c.name} is on the road under guard and has not reached your court yet`;
-      // Taking what it carries is no task: the captive's fate may be decided too (Haakon's answers to item 11a).
+      // Taking what it carries is no task: the captive's fate may be decided too (the owner's answers to item 11a).
       if (co.fate === "TakePurse") return orders.some((o, i) => i < orders.indexOf(co) && o.type === "captive" && o.character === co.character && o.fate === "TakePurse") ? `you already take what ${c.name} carries` : c.purse + c.carriedFor > 0 || S.debts.some((d) => d.ended === null && d.holder === c.id && d.kept === "Person") ? null : `${c.name} carries nothing to take`;
       if (busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
       if (co.fate === "Ransom" && co.ransom <= 0) return "name a ransom";

@@ -28,12 +28,13 @@ import {
   unitAt,
   unseat,
 } from "@amarna/engine";
-import { Assert, removeAll, walled } from "./support.ts";
+import { Assert, removeAll, smallWorld, walled } from "./support.ts";
 
 // Build order item 17, "How cities become free": unrest from conditions, revolts and who leads them, rulers rising in land
 // without one, the gate opened from within, armies buying or taking their food, and outside help.
 describe("FreeCitiesTests", () => {
-  const quiet = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+  const quiet = (...powers: Power[]): GameState =>
+    smallWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })), ...(powers.length > 0 ? powers : ["Hatti", "Kaska", "Arzawa"]));
   const signals = (s: GameState, sig: string): number => s.events.filter((e) => e.signal === sig).length;
   function season(s: GameState, orders: Dict<Power, TurnSubmission> = new Dict()): void {
     const e = new TurnEngine(s);
@@ -54,7 +55,7 @@ describe("FreeCitiesTests", () => {
   };
 
   test("Unrest follows the ledger: a hated holder's land is restless, his troops there calm it, and memory fades", () => {
-    const s = quiet();
+    const s = quiet("Hatti", "Kaska", "Lukka");
     kaskaTaken(s);
     const e = new TurnEngine(s);
     // The Kaska still love their own house, which has no troops near: no rival, but Hatti stands at nothing with them.

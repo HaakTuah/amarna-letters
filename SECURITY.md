@@ -60,6 +60,35 @@ vector and security concerns".
    scanning) are seen only by the owner, and no agent is given a token to read them. One he passes on is never copied
    into an issue, a comment or a report: it is fixed in a PR that says what it hardens, never how to attack it. A real
    secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
+10. **Licences: free to use, kept that way** (archive: 2 November 2026). Two lists, by what reaches players.
+   - **What ships, or is built into it** (what the web build bundles, which its notices file lists, whatever
+     `package.json` calls it): every package, the ones it pulls in included, and every font, image, sound and data
+     set, is under a licence on this list: MIT, MIT-0, ISC, BSD-2-Clause,
+     BSD-3-Clause, Apache-2.0, 0BSD, CC0-1.0, Unlicense, Zlib, BlueOak-1.0.0, Python-2.0, CC-BY-3.0 and CC-BY-4.0 (for
+     data and assets), OFL-1.1 (for fonts), or the public domain. Never copyleft (GPL, LGPL, AGPL, MPL, EPL, CDDL,
+     CC-BY-SA). What these licences ask, keeping their notices, is met by a third-party notices file shipped with the
+     game.
+   - **Tools that only run** (to build, test, render, check or scan, on a builder's machine or in CI), nothing of which
+     ships: any licence the Open Source Initiative approves, copyleft included, or one on the same terms (such as
+     matplotlib's, modelled on Python's). Running a program carries no obligation, and what it makes is the owner's.
+     GitHub's own services (Actions, CodeQL) run under GitHub's terms, free for public repositories; if a repository
+     goes private, CodeQL is a paid add-on and is decided again. A tool's code never moves into what ships without
+     passing the first list.
+   - **Never, in either:** non-commercial or no-derivatives terms, source-available terms (BSL, SSPL, Elastic, Commons
+     Clause), or anything without a licence.
+
+   A check on every pull request, Dependabot's included, fails one that adds a package, or updates one, to a licence
+   off its list; one the owner wants anyway is a `question` issue, never merged on its own. The owner's own code
+   carries no licence file, by his choice: all rights reserved. Never add one.
+11. **Nothing personal, ever** (archive: 2 November 2026). No file, commit message, PR, issue, comment, log or picture
+   holds personal information about the owner or anyone in his life: no names (he is "the owner"), no profession,
+   employer or workplace, no family, home or age, no health, memberships or money, and nothing else about his life
+   outside this project. His words in the archive are kept word for word except such details, which are left out as
+   "[…]". The one exception is the GitHub account in the repository's own address and links. Test data uses made-up
+   names. A check on every pull request (`.github/workflows/personal-terms.yml`) fails one whose files, new commit
+   messages, title or description hold a term from the Actions secret `PERSONAL_TERMS`, kept out of the repository
+   since the list itself is personal; it prints where, never what. Reviewers report a personal detail as P1. Commits
+   made before this rule keep what they hold: rewriting history is irreversible, and the owner's to decide.
 
 ## Reporting a weakness
 

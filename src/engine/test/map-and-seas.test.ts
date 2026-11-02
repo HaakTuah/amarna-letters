@@ -29,7 +29,7 @@ import {
   newUnit,
   unitAt,
 } from "@amarna/engine";
-import { Assert, last, oldWorld } from "./support.ts";
+import { Assert, last, oldWorld, smallWorld } from "./support.ts";
 
 // The map and the seas (build order item 7a): the map review's provinces, names and connections, the lengths of the
 // connections, each coast's waters, the open-sea crossings closed in winter, and the blockade deciding at sea.
@@ -44,7 +44,7 @@ describe("MapAndSeasTests", () => {
     for (const id of ["aleppo", "qatna", "alalakh", "nuhashshe", "jerusalem", "shechem", "arrapha", "sidon", "arwad", "nubia", "dilmun", "kaska", "steppe", "akko", "hazor", "gezer", "ashkelon", "lachish", "gath", "aijalon", "redsea"])
       Assert.true(Map.exists(id), id);
     // Names of their time; Kumidi stays within Damascus's land. Ṣumur is a province of its own on Amurru's coast, and Lukka
-    // a land without a king (item 8: Haakon's answers to item 7a's review).
+    // a land without a king (item 8: the owner's answers to item 7a's review).
     for (const id of ["mari", "kanesh", "ekallatum", "tamassos", "kumidi"]) Assert.false(Map.exists(id), id);
     Assert.equal(["Coast", "Land"], [Map.get("sumur").kind, Map.get("amurru").kind]);
     Assert.true(Map.areAdjacent("sumur", "amurru") && Map.areAdjacent("sumur", "ugarit") && Map.areAdjacent("sumur", "byblos"));
@@ -155,7 +155,7 @@ describe("MapAndSeasTests", () => {
 
   test("A besieged coastal city is supplied by sea unless its besieger's fleet holds its waters", () => {
     // Egypt's army stands within the walls of Gaza (walls 2, held by no one) and besieges it.
-    const s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
+    const s = smallWorld(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "Egypt", "Hatti", "Babylonia", "Alashiya");
     s.units.push(newUnit({ id: "x1", power: "Egypt", kind: "Army", province: "gaza" }));
     season(s, "Egypt", besiege("gaza"));
     Assert.equal(0, s.sieges[0].progress);

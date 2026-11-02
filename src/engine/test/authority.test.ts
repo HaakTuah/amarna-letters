@@ -31,7 +31,7 @@ import {
   type Authority,
   type HostReply,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 const Map = WorldMap.default;
 
@@ -39,7 +39,7 @@ const Map = WorldMap.default;
 describe("AuthorityTests", () => {
   /** Egypt's envoy, sent with this authority, stands before Alashiya's king. */
   function atAudience(authority: Authority | null): [GameState, TurnEngine, Character, PendingAudience] {
-    const s = newGame(5);
+    const s = smallWorld(newGame(5), "Egypt", "Alashiya");
     const envoy = s.characters.find((c) => c.employer === "Egypt")!;
     envoy.secretMaster = null;
     let e = new TurnEngine(s);
@@ -108,7 +108,7 @@ describe("AuthorityTests", () => {
   });
 
   test("A guest passing through takes no land; one that stays a season under passage alone takes it; basing lets it stay", () => {
-    const s = newGame(7);
+    const s = smallWorld(newGame(7), "Egypt", "Hatti");
     s.units = s.units.filter((u) => !["nesa", "kizzuwatna", "tuwanuwa", "hattusa"].includes(u.province));
     s.units.push(newUnit({ id: "u-guest", power: "Egypt", kind: "Army", province: "kizzuwatna" }));
     s.owner.set("kizzuwatna", "Egypt");
@@ -128,7 +128,7 @@ describe("AuthorityTests", () => {
     new TurnEngine(s).obeySeason();
     Assert.equal("Egypt", s.owner.get("tuwanuwa"));
 
-    const b = newGame(7);
+    const b = smallWorld(newGame(7), "Egypt", "Hatti");
     b.units = b.units.filter((u) => !["tuwanuwa", "kizzuwatna", "tuwanuwa", "hattusa"].includes(u.province));
     b.units.push(newUnit({ id: "u-guest", power: "Egypt", kind: "Army", province: "tuwanuwa" }));
     b.grants.push(newGrant({ id: "p1", kind: "basing", grantor: "Hatti", grantee: "Egypt", province: "tuwanuwa", sinceTurn: 0, tabletId: "t-x" }));
@@ -140,7 +140,7 @@ describe("AuthorityTests", () => {
     // Revoked: from next season the guest takes the land if it stays.
     new TurnEngine(b).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [revoke("Egypt")] })]]));
     Assert.equal("Hatti", b.owner.get("tuwanuwa"));
-    // Word of it travels to Egypt's court (Haakon's answers to item 11a), never known there at once.
+    // Word of it travels to Egypt's court (the owner's answers to item 11a), never known there at once.
     Assert.false(inboxOf(b, "Egypt").some((i) => i.title === "Passage and basing"));
     Assert.true(b.journeys.some((j) => j.kind === "Word" && j.news === "Grant" && j.to === "Egypt"));
     new TurnEngine(b).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("tuwanuwa")] })]]));
@@ -152,7 +152,7 @@ describe("AuthorityTests", () => {
   });
 
   test("Passage lets the grantee's travellers through land closed to them; closing the roads ends the grant", () => {
-    const s = newGame(9);
+    const s = smallWorld(newGame(9), "Egypt", "Hatti", "Mitanni");
     s.roadsClosed.set("Hatti", ["Egypt"]);
     s.grants.push(newGrant({ id: "p1", kind: "passage", grantor: "Hatti", grantee: "Egypt", province: null, lands: ["tuwanuwa", "nesa", "hattusa", "sapinuwa"], sinceTurn: 0, tabletId: "t-x" }));
     const e = new TurnEngine(s);

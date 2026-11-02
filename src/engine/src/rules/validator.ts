@@ -87,7 +87,7 @@ export class OrderValidator {
       // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
       if (covered(c) || (c.employer === power && (c.status === "Employed" || c.status === "Captured")))
         return [`${c.name} is already in your service; to keep them on, order renew`, c];
-      // Item 11a, "Hiring as a negotiation", with Haakon's answers: offered where it stands, at your court or by an envoy
+      // Item 11a, "Hiring as a negotiation", with the owner's answers: offered where it stands, at your court or by an envoy
       // you send this season to the court where it is. Of a person abroad the court knows only what it heard: whether it is
       // still there and free is settled when the envoy comes (the engine), never told now.
       const via = h.via ?? null;
@@ -116,7 +116,7 @@ export class OrderValidator {
         if (AllPowers.includes(where as Power)) return where !== power && !heardFallen(where as Power) ? null : `you cannot spy on ${where}`;
         return Map.exists(where) && !Map.get(where).isSea ? null : `there is no court or province called '${where}'`;
       }
-      // Haakon's answers to item 11b+: staying at your court until a deadline is an errand like any other.
+      // The owner's answers to item 11b+: staying at your court until a deadline is an errand like any other.
       if (what === "stay") return where === power ? null : `a stay is at your own court: name ${power}`;
       return `a job's errand is "envoy", "spy" or "stay", not '${what}'`;
     };
@@ -176,7 +176,7 @@ export class OrderValidator {
     const ownCharacter = (id: string, mustBeHome = true): string | null => {
       const c = findCharacter(S, id);
       if (c === null) return nobody(id);
-      // Haakon's answers to item 11a: one offered a job at your court by an earlier order may be sent on its errand at once
+      // The owner's answers to item 11a: one offered a job at your court by an earlier order may be sent on its errand at once
       // (if it takes the job).
       if (hiring.has(c.id) && c.at === power) return busyCharacters.has(c.id) ? `${c.name} was already given a task by an earlier order` : null;
       const away = covered(c) || (c.employer === power && c.status === "Captured");

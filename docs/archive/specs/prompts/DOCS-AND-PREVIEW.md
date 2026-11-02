@@ -1,8 +1,8 @@
 # Docs and preview pass
 
 The first step of build order item 5+ in the design document, before the TypeScript conversion
-(`docs/CONVERSION-PLAN.md`). Not before 26 October 2026, when usage resets; Haakon sets the session's usage limit
-when he starts it (since 26 October: the 90% rule, "Usage" in the builder rules). Haakon's instructions are quoted word for word, with his corrections and additions, followed by
+(`docs/CONVERSION-PLAN.md`). Not before 26 October 2026, when usage resets; the owner sets the session's usage limit
+when he starts it (since 26 October: the 90% rule, "Usage" in the builder rules). The owner's instructions are quoted word for word, with his corrections and additions, followed by
 what was found while preparing the pass.
 
 ## Status (26 October 2026)
@@ -14,7 +14,7 @@ Part of this pass was done on 26 October 2026, when the repository was set up fo
   `DESIGN-NOTES.md` is now its short index, so old references still work.
 - **Splitting the design document into tabs** is replaced by a copy of the document in the repository, one file per
   section (`docs/intent/`), with a check against the live document at the start of each item. It gives builders the
-  same small reads, and the docs tools could only move text between tabs by retyping it. Haakon left the choice to
+  same small reads, and the docs tools could only move text between tabs by retyping it. The owner left the choice to
   Claude on 26 October ("You handle the details", `docs/archive/instructions.md`). The finished items' details were
   already in `docs/BUILD-PROGRESS.md`; its history now lives in `docs/archive/build-log.md`. Then on 27 October the
   document was split into tabs after all, one per system (Overview, Build order, World and history, Engine and models,
@@ -28,7 +28,7 @@ Part of this pass was done on 26 October 2026, when the repository was set up fo
 Left for the pass: step 2 (archiving the round reports), step 4 (previews), point 8 (tidy-up), the sizes before and
 after, and the merge exception. The brief is `docs/items/docs-and-preview.md`.
 
-## The task (Haakon, 21 October 2026)
+## The task (the owner, 21 October 2026)
 
 ```
 Make development in this repo cheaper in usage, and give me playable previews.
@@ -72,9 +72,9 @@ Then carry on with the build order as before.
 ```
 
 "Carry on with the build order" means the TypeScript conversion next, then the fix pass for "Found during the
-port", then item 6 (Haakon, 21 October 2026).
+port", then item 6 (the owner, 21 October 2026).
 
-## Corrections and additions (Haakon, 21 October 2026)
+## Corrections and additions (the owner, 21 October 2026)
 
 Correction to the archiving step in the docs and preview PR:
 - Don't archive docs/rounds/2026-10-18-sleep-and-simulation.md. The design document's
@@ -123,13 +123,13 @@ check the site root shows main and check previews on the next PR; fix previews i
 
 (The exception was also recorded in the progress file's builder rules, now `docs/archive/build-log.md`. It applies to this one PR only.)
 
-(Haakon's point 5, adding `docs/CONVERSION-PLAN.md` in this PR, was done ahead of it: the file was committed on
+(the owner's point 5, adding `docs/CONVERSION-PLAN.md` in this PR, was done ahead of it: the file was committed on
 `develop` on 21 October 2026, together with this one.)
 
 ## Findings while preparing the pass (21 October 2026; check them again before relying on them)
 
 **Pages and previews.**
-- **The approach (Haakon, 21 October 2026, word for word):**
+- **The approach (the owner, 21 October 2026, word for word):**
 
   ```
   On the deploy step: GitHub Pages has one deployment per site, so a PR deployed with the
@@ -149,7 +149,7 @@ check the site root shows main and check previews on the next PR; fix previews i
     number checked to be digits, and comments the link on the PR. Closing a PR removes that folder only.
     `workflow_run` always uses `main`'s copy of the publisher, so a PR cannot change what it does.
   - Every write to the branch is pushed with a lease, and retried if another run moved the branch first.
-- **Settings (left to Haakon; the PR says exactly which).** On 21 October Pages served from GitHub Actions
+- **Settings (left to the owner; the PR says exactly which).** On 21 October Pages served from GitHub Actions
   (`build_type: workflow`). Serving from the branch needs Settings → Pages → Build and deployment → Source: "Deploy
   from a branch", branch `gh-pages`, folder `/ (root)`. On 21 October the `github-pages` environment allowed
   deployments only from `main`. If GitHub's own deployment from `gh-pages` is refused once the source is switched,
@@ -160,7 +160,7 @@ check the site root shows main and check previews on the next PR; fix previews i
 - **Jekyll.** A site served from a branch goes through Jekyll, which drops folders that start with an underscore
   (`_framework`). A `.nojekyll` file at the branch root prevents that.
 - **The docs PR's own preview.** The publisher runs only from `main`, so the docs PR's own preview appears only
-  after it is merged. The merge exception asked for its own preview link to work first, so Haakon changed its
+  after it is merged. The merge exception asked for its own preview link to work first, so the owner changed its
   condition (21 October 2026, word for word): "Merge the docs PR once its build and tests pass, then check the site
   root shows main and check previews on the next PR; fix previews in a follow-up if needed."
 - `src/Amarna.Web/wwwroot/service-worker.published.js` answers every navigation inside its scope with the cached

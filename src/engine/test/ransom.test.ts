@@ -38,11 +38,11 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // <summary>One open demand per captive, known to the payer only once its rumour has arrived, and paid once.</summary>
 describe("RansomTests", () => {
-  // Since Haakon's answers to item 11b a demand waits at the captor's court for a carrier: these tests give each one a
+  // Since the owner's answers to item 11b a demand waits at the captor's court for a carrier: these tests give each one a
   // carrier who sets out at once, so its word arrives at the pace of the road, as the rules here are about.
   function begin(s: GameState): TurnEngine {
     let e = new TurnEngine(s);
@@ -64,8 +64,8 @@ describe("RansomTests", () => {
   }
 
   // <summary>One of 's people held captive by , its master aware of it.</summary>
-  function held(master: Power, jailer: Power, config: GameConfig | null = null): [GameState, Character] {
-    let s = newGame(4, config);
+  function held(master: Power, jailer: Power, config: GameConfig | null = null, ...others: Power[]): [GameState, Character] {
+    let s = smallWorld(newGame(4, config), master, jailer, ...others);
     let spy = first(s.characters, (c) => c.employer === master);
     spy.secretMaster = null;
     spy.status = "Captured";
@@ -345,7 +345,7 @@ describe("RansomTests", () => {
     const skimmed = (): number => sum(s.governors.filter((g) => g.power === "Egypt"), (g) => g.skimmed);
     const kept = skimmed();
     begin(s);
-    // What it carried passed to the court where it died (Haakon's answers to item 11a: the dead's purse goes with its tablets).
+    // What it carried passed to the court where it died (the owner's answers to item 11a: the dead's purse goes with its tablets).
     Assert.true(spy.purse === 0 || spy.purse === purse);
     Assert.equal(fee, line().fee);
     // Nothing left the treasury for it, before or after its death (no other job of Egypt's fell due this season).
@@ -366,7 +366,7 @@ describe("RansomTests", () => {
   });
 
   test("A captive put to death is rumoured to its king and to every court that still believes it serves it", () => {
-    let [s, spy] = held("Hatti", "Mitanni");
+    let [s, spy] = held("Hatti", "Mitanni", null, "Egypt");
     // Once Egypt's envoy, gone over to Hatti unknown to Egypt.
     spy.covers.push(newCover({ for: "Egypt", since: 1, believed: "Detained", dutyText: "has not returned from Hatti", whereText: "unknown", fee: 120 }));
     begin(s).resolve(orders("Mitanni", captive(spy.id, "Execute")));

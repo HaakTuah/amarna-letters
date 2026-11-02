@@ -709,7 +709,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       plan.destinations.add(best[0]);
     }
 
-    // By sea too (item 11a+, Haakon's answer to item 9's review): an army on a coast carried by our free fleets over the open
+    // By sea too (item 11a+, the owner's answer to item 9's review): an army on a coast carried by our free fleets over the open
     // sea, where winter's storms take men from it and from the fleets, to a coast it could not reach by safe waters this
     // season; taken where what it wins, if enough of it lands, outweighs the men the storms take from it and the fleets.
     const freeFleet = (z: string): boolean => free.has(z) && b.unitAt.get(z).kind === "Fleet" && !stay.has(z) && !threat.has(z);

@@ -15,8 +15,8 @@
     "lint": "eslint src/engine/src"
   },
   "devDependencies": {
-    "@types/node": "^22.20.5",
-    "eslint": "^9.39.5",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.13.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.1",
     "vitest": "^5.0.5"

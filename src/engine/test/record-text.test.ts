@@ -33,7 +33,7 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { Assert, formerHome, join, oldWorld } from "./support.ts";
+import { Assert, formerHome, join, oldWorld, smallWorld } from "./support.ts";
 import { dispatch as dispatchOrder } from "@amarna/engine";
 
 // What the engine's records and notices say, after the second agent simulation's defects in the views (the fix pass after
@@ -45,7 +45,7 @@ describe("RecordTextTests", () => {
     state: GameState | null = null,
     sent: Character | null = null,
   ): [GameState, TurnEngine, Character, PendingAudience] {
-    let s = state ?? oldWorld(newGame(5));
+    let s = state ?? smallWorld(oldWorld(newGame(5)), "Egypt", "Hatti", "Mitanni", "Alashiya");
     let envoy = sent ?? first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let e = new TurnEngine(s);
@@ -61,7 +61,7 @@ describe("RecordTextTests", () => {
 
   // <summary>A game where Egypt holds its copy k900 of a peace it sealed with Hatti, and Hatti its own, k901.</summary>
   function withPeace(): GameState {
-    let s = oldWorld(newGame(5));
+    let s = smallWorld(oldWorld(newGame(5)), "Egypt", "Hatti", "Mitanni", "Alashiya");
     s.tablets.push(
       newTablet({
         id: "t900",
@@ -152,7 +152,7 @@ describe("RecordTextTests", () => {
   test("Scribes turn into names only the ids of people the writer knows", () => {
     // The review's probe (the review of the fix pass after item 4): Egypt's letter "Greetings. c3 c4 c5 c6 c7" came back
     // in its own view naming five people none of its lists held.
-    let s = oldWorld(newGame(5));
+    let s = smallWorld(oldWorld(newGame(5)), "Egypt", "Hatti", "Mitanni", "Alashiya");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let view = Views.for(s, "Egypt");
@@ -212,7 +212,7 @@ describe("RecordTextTests", () => {
 
   test("A stopped move says where the unit now stands", () => {
     // Assyria and Mitanni meet head to head between Ekallate and Suhu at equal strength: both bounce and stay.
-    let s = formerHome(oldWorld(newGame(1)), "suhu", "Mitanni");
+    let s = formerHome(smallWorld(oldWorld(newGame(1)), "Egypt", "Hatti", "Mitanni", "Alashiya", "Assyria", "Babylonia"), "suhu", "Mitanni");
     new TurnEngine(s).resolve(
       new Dict([
         ["Assyria", newTurnSubmission({ orders: [move("ekallate", "suhu")] })],
@@ -230,7 +230,7 @@ describe("RecordTextTests", () => {
     );
 
     // A unit whose move failed and that was then destroyed is not said to stay: its own line says it was destroyed.
-    let t = formerHome(oldWorld(newGame(1)), "suhu", "Mitanni");
+    let t = formerHome(smallWorld(oldWorld(newGame(1)), "Egypt", "Hatti", "Mitanni", "Alashiya", "Assyria", "Babylonia"), "suhu", "Mitanni");
     new TurnEngine(t).resolve(
       new Dict([
         ["Assyria", newTurnSubmission({ orders: [move("ekallate", "suhu")] })],
@@ -245,7 +245,7 @@ describe("RecordTextTests", () => {
   });
 
   test("A kings letter is in his view in full while its envoy is away and beside the report when it comes", () => {
-    let s = oldWorld(newGame(5));
+    let s = smallWorld(oldWorld(newGame(5)), "Egypt", "Hatti", "Mitanni", "Alashiya");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let message = "Brother, my army will not cross into Alashiya. ".repeat(12).trim();
@@ -341,7 +341,7 @@ describe("RecordTextTests", () => {
 
   test("An envoy remembers its mandate with one full stop", () => {
     // The follow-up's review: "You may agree to peace and an exchange of gifts.." in a character's memory.
-    let s = oldWorld(newGame(5));
+    let s = smallWorld(oldWorld(newGame(5)), "Egypt", "Hatti", "Mitanni", "Alashiya");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     let e = new TurnEngine(s);
     e.beginTurn();
@@ -372,5 +372,18 @@ describe("RecordTextTests", () => {
         Assert.doesNotContain(c.facts, (f) => f.text.startsWith("Served as a interpreter"));
         Assert.doesNotContain("once a interpreter", c.persona);
       }
+  });
+
+  test("A calling with an article of its own, or a title, takes no other (#468)", () => {
+    Assert.equal("the ruler's brother", Personas.calling(newCharacter({ calling: "the ruler's brother" })));
+    Assert.equal("a lord of the coast", Personas.calling(newCharacter({ calling: "a lord of the coast" })));
+    Assert.equal("King's Son of Kush", Personas.calling(newCharacter({ calling: "King's Son of Kush" })));
+    Assert.equal("a prince of Miam", Personas.calling(newCharacter({ calling: "prince of Miam" })));
+    Assert.contains("once the ruler's brother. You are ", Personas.template(newCharacter({ calling: "the ruler's brother" })));
+    // No starting character of a whole game is "once a the …" or "Served as an a …".
+    for (const c of newGame(1).characters) {
+      Assert.false(/\b(a|an) (a|an|the) /.test(c.persona), c.persona);
+      Assert.doesNotContain(c.facts, (f) => /^Served as (a|an) (a|an|the|[A-Z])/.test(f.text));
+    }
   });
 });

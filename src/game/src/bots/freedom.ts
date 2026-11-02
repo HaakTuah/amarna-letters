@@ -77,12 +77,15 @@ export function supplyOrders(b: Board, _brain: Brain, orders: Order[], gold: num
   return sent;
 }
 
+/** A governor's letter: the province, and whether its people are restless or near revolt. */
+export const GovernorWrites = /governor of ([^,\n]{1,80}), writes that its people are (restless|near revolt)/;
+
 /** The provinces our governors call restless or near revolt, from their latest letters this season. */
 export function restless(b: Board): string[] {
   const out: string[] = [];
   for (const m of b.v.inbox) {
     if (m.title !== "Your governor writes") continue;
-    const x = /governor of (.+?), writes that its people are (restless|near revolt)/.exec(m.body);
+    const x = GovernorWrites.exec(m.body);
     const p = x !== null ? Board.Map.provinces.find((q) => q.name === x[1]) : undefined;
     if (p !== undefined) out.push(p.id);
   }

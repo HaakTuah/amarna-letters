@@ -435,7 +435,7 @@ P.stopped = function (j, c, province, stop) {
 };
 
 /**
- * A captive's convoy stopped on the road (item 10+b, Haakon's answer of 28 October 2026: a captive handed over travels under
+ * A captive's convoy stopped on the road (item 10+b, the owner's answer of 28 October 2026: a captive handed over travels under
  * guard like any company). A hostile king's troops or people take it: the captive is his, or free if he is its own king;
  * outlaws scatter the guards and it slips away. (Nature only holds it up: see travelOne.)
  */

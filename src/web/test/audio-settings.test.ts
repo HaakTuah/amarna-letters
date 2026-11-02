@@ -2,10 +2,10 @@ import { describe, test } from "vitest";
 import { Assert } from "../../engine/test/support.ts";
 import { DefaultAudio, StartFade, Styles, scheduleStartFade } from "../src/audio/settings.ts";
 
-// Item 19+++, Haakon's answer (1 November 2026): music and sound on by default at a regular volume, the first music
+// Item 19+++, the owner's answer (1 November 2026): music and sound on by default at a regular volume, the first music
 // fading in so it never blasts at start-up.
 describe("AudioSettingsTests", () => {
-  // Haakon, 1 November 2026: Orchestra (the default), then Lyre and reed, then 8-bit last, everywhere.
+  // The owner, 1 November 2026: Orchestra (the default), then Lyre and reed, then 8-bit last, everywhere.
   test("The versions are Orchestra (the default), Lyre and reed, then 8-bit", () => {
     Assert.equal(Styles.join(","), "orchestra,period,chip");
     Assert.equal(DefaultAudio.style, "orchestra");

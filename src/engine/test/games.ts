@@ -23,17 +23,22 @@ import {
   raise,
   unitAt,
 } from "@amarna/engine";
-import { firstOrNull, orderBy, walled, oldWorld } from "./support.ts";
+import { firstOrNull, orderBy, walled, oldWorld, smallWorld } from "./support.ts";
 /** Games the ported tests share across files (the C# suite reached into SiegeTests and EngineTests for them). */
 
 /** Seed 1 with no catastrophes, and Suhu walled 2 as Mari was before item 7a: the board the siege tests start from. */
-export function siegeBoard(): GameState {
-  return walled(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2);
+export function siegeBoard(...kings: Power[]): GameState {
+  const g = newGame(1, newGameConfig({ catastropheChance: 0 }));
+  return walled(kings.length > 0 ? smallWorld(oldWorld(g), ...kings) : oldWorld(g), "suhu", 2);
 }
 
-/** A game of random but legal-looking orders, every model task answered with filler. */
-export function playRandom(seed: number, turns: number, config: GameConfig | null = null): GameState {
-  let s = oldWorld(newGame(seed, config ?? newGameConfig({ capMin: 99, capMax: 99, endMedian: 10000 })));
+/**
+ * A game of random but legal-looking orders, every model task answered with filler: in the whole world, or in
+ * {@link smallWorld} when kings are named.
+ */
+export function playRandom(seed: number, turns: number, config: GameConfig | null = null, ...kings: Power[]): GameState {
+  const g = newGame(seed, config ?? newGameConfig({ capMin: 99, capMax: 99, endMedian: 10000 }));
+  let s = kings.length > 0 ? smallWorld(oldWorld(g), ...kings) : oldWorld(g);
   let map = WorldMap.default;
   for (let i = 0; i < turns && !s.ended; i++) {
     let e = new TurnEngine(s);
@@ -61,7 +66,7 @@ export function playRandom(seed: number, turns: number, config: GameConfig | nul
       }
       let home = map.homeOf(p).filter((x) => s.owner.get(x.id) === p && unitAt(s, x.id) === null);
       if (home.length > 0 && s.treasuries.get(p).gold > 300) sub.orders.push(raise(home[0].id, "Army"));
-      // Each errand is a job (Haakon's answers to item 11a): a servant at court whose job is another errand, or a free
+      // Each errand is a job (the owner's answers to item 11a): a servant at court whose job is another errand, or a free
       // person standing there, is offered the job for this one, generously, and sent at once.
       let envoy =
         firstOrNull(s.characters, (c) => c.employer === p && c.duty === "None" && c.at === p && c.status === "Employed") ??
