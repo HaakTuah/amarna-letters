@@ -56,7 +56,7 @@ threshold), one fewer where they were restless. `siege-starved` now marks a gate
 `spy {province, stir}` (model kings: `place_spy` with `gold`): the gold leaves the treasury with him (`Character.stirGold`);
 posted, he spends half of it a season (at least 50) into the province's purse, keeping (greed − loyalty)/200 of it, and
 `stir` points a hundred shekels go into the province's ledger as his master's giving (item 17++,
-`47-whom-a-province-obeys.md`). Caught, it is in his purse; home, he hands back what is left.
+`47-whom-a-province-obeys.md`). Caught, it is in his purse, counted as gold kept from an errand (`Carried`), not skimmed; home, he hands back what is left.
 
 ## Script kings (`bots/freedom.ts`)
 

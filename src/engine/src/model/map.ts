@@ -751,15 +751,14 @@ const CityShips: Readonly<Record<string, number>> = { ugarit: 80, arwad: 20, sid
 
 /**
  * Where a city-state's army or ships start elsewhere than its city (item 17+), by the city's capital province: data, read
- * by one rule for every city. Aziru's men stand in Amurru's own land beside Sumur, where Rib-Hadda reports them pressing
- * Egypt's base (EA 103-106) [B; C on the year]: not in Sumur itself, since one province holds one unit and Egypt's
- * garrison holds it. Arwad keeps a fleet instead of an army, in its own waters beside Byblos's, whose ships it blockaded
- * with Amurru (EA 98, 105) [A]; Sidon's ships stand in Sidon's waters next to Tyre's, which hold Tyre's own fleet (EA
- * 148-149) [A, B that it was so in 1346]. Labaya's war on Megiddo (EA 244) was over before 1346, so Shechem's men stand at
- * home.
+ * by one rule for every city. Aziru's men need no entry: they stand in Amurru's own land beside Sumur, where Rib-Hadda
+ * reports them pressing Egypt's base (EA 103-106) [B; C on the year], not in Sumur itself, since one province holds one
+ * unit and Egypt's garrison holds it. Arwad keeps a fleet instead of an army, in its own waters beside Byblos's, whose
+ * ships it blockaded with Amurru (EA 98, 105) [A]; Sidon's ships stand in Sidon's waters next to Tyre's, which hold Tyre's
+ * own fleet (EA 148-149) [A, B that it was so in 1346]. Labaya's war on Megiddo (EA 244) was over before 1346, so
+ * Shechem's men stand at home.
  */
-const CityStarts: Readonly<Record<string, { army?: string | null; fleet?: string }>> = {
-  amurru: { army: "amurru" },
+const CityStarts: Readonly<Record<string, { army: string | null }>> = {
   arwad: { army: null },
 };
 
@@ -769,11 +768,10 @@ const cityUnits = (): StartUnit[] =>
     .filter((x) => x.capital && x.home !== null && !isGreatKing(x.home))
     .flatMap((x) => {
       const home = x.home!;
-      const place = CityStarts[x.id] ?? {};
-      const armyAt = place.army === undefined ? x.id : place.army;
+      const armyAt = CityStarts[x.id] === undefined ? x.id : CityStarts[x.id].army;
       const out: StartUnit[] = armyAt === null ? [] : [su(home, "Army", armyAt, cityMen(x), x.id)];
       const ships = CityShips[x.id];
-      if (ships !== undefined) out.push(su(home, "Fleet", place.fleet ?? x.waters ?? x.id, ships * MenPerShip, x.id));
+      if (ships !== undefined) out.push(su(home, "Fleet", x.waters ?? x.id, ships * MenPerShip, x.id));
       return out;
     });
 

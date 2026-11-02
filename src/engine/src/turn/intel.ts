@@ -456,8 +456,9 @@ P.capture = function (c, host, rng) {
   c.status = "Captured";
   c.heldBy = host;
   c.duty = "None";
-  // Gold he carried to stir the people is in his purse now, on him where he is held (item 17).
-  gain(c, c.stirGold, "Skimmed");
+  // Gold he carried to stir the people is in his purse now, on him where he is held (item 17): kept from an errand, not
+  // skimmed.
+  gain(c, c.stirGold, "Carried");
   c.stirGold = 0;
   c.at = host;
   this.meet(c, host);

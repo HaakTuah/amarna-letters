@@ -312,4 +312,17 @@ describe("FreeCitiesTests", () => {
     for (let i = 0; i < 6 && given() === 0; i++) season(s);
     Assert.true(given() > 0 && spy.stirGold < 200, `given ${given()}`);
   });
+
+  // From #348's review, round 2 (g): caught with gold to stir a province, he keeps it as gold kept from an errand, not
+  // as gold skimmed (his wealth line would call him a thief).
+  test("A spy caught with gold to stir the people keeps it as carried, not skimmed", () => {
+    const s = quiet();
+    const spy = newCharacter({ id: newId(s, "c"), name: "Zida", traits: newTraits({ courage: 20 }), status: "Employed", employer: "Arzawa", duty: "SpyPosted", watchProvince: "kaska", stirGold: 120 });
+    s.characters.push(spy);
+    // A courage under 50 confesses without a roll, so no stream of chance is drawn.
+    new TurnEngine(s).capture(spy, "Hatti", null as never);
+    Assert.equal(0, spy.stirGold);
+    Assert.equal(120, spy.earned.carried);
+    Assert.equal(0, spy.earned.skimmed);
+  });
 });

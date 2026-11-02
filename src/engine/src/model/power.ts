@@ -245,12 +245,12 @@ export function ownLand(p: Power): string {
 
 /**
  * Item 17+ ("A power's name is a claim"): the name each power in play claims, where it claims another than its own land's
- * (`GameState.names`), with the season it claimed it; the names each court has read in the claimants' sealed greetings
+ * (`GameState.names`); the names each court has read in the claimants' sealed greetings
  * (`GameState.namesHeard`), since a court learns of a claim only from the claimant's own letters; and whom each court gives a
  * contested name to (`GameState.nameGiven`). Mirrored here, as the risen powers are, for the functions that name a power
  * without the state.
  */
-const claimed = new Map<string, { name: string; since: number }>();
+const claimed = new Map<string, string>();
 const fallenNow = new Set<string>();
 const givenBy = new Map<string, Map<string, string>>();
 const heardBy = new Map<string, Map<string, string>>();
@@ -262,7 +262,7 @@ type Pairs<V> = Iterable<[string, V]>;
 
 /** Sets the name claims to a game's (`GameState.names`, `nameGiven`, `namesHeard` and the fallen, who claim nothing). */
 export function setNameClaims(
-  names: Pairs<{ name: string; since: number }>,
+  names: Pairs<{ name: string }>,
   fallen: Iterable<Power>,
   given: Pairs<Pairs<string>> = [],
   heard: Pairs<Pairs<string>> = [],
@@ -271,7 +271,7 @@ export function setNameClaims(
   fallenNow.clear();
   givenBy.clear();
   heardBy.clear();
-  for (const [p, c] of names) claimed.set(p, { name: c.name, since: c.since });
+  for (const [p, c] of names) claimed.set(p, c.name);
   for (const p of fallen) fallenNow.add(p);
   for (const [court, m] of given) givenBy.set(court, new Map(m));
   for (const [court, m] of heard) heardBy.set(court, new Map(m));
@@ -299,7 +299,7 @@ export function setNameViewer(viewer: Power | null): void {
 
 /** The name a power claims: its own land's unless it claimed another. */
 export function claimedName(p: Power): string {
-  return claimed.get(p)?.name ?? ownLand(p);
+  return claimed.get(p) ?? ownLand(p);
 }
 
 /**
@@ -339,7 +339,7 @@ export function contestedNames(viewer: Power | null = null): string[] {
 export function claimableNames(): string[] {
   const out = new Set<string>();
   for (const p of AllPowers) out.add(ownLand(p));
-  for (const c of claimed.values()) out.add(c.name);
+  for (const c of claimed.values()) out.add(c);
   return [...out];
 }
 
@@ -357,28 +357,24 @@ export function house(p: Power): string {
 
 /**
  * Whom a court gives a contested name to: itself, if it claims it; else the claimant its greetings last named so
- * (`GameState.nameGiven`), if he still claims it as the court knows; else the power whose own land it is, if he claims it
- * still; else nobody, and every claimant is called by his house. With no viewer, the world's record: the power whose own
- * land it is, else the one that claimed it first, two who claimed it in the same season sharing it with nobody (the order
- * of resolution never decides).
+ * (`GameState.nameGiven`), if he still claims it as the court knows; else the power whose own land it is, if he still
+ * claims it as the court knows (it has read no greeting of his claiming another); else nobody, and every claimant is
+ * called by his house. Only a court gives names: the engine's notices and god view name each power by its own land.
  */
-export function nameGivenBy(viewer: Power | null, name: string): Power | null {
+export function nameGivenBy(viewer: Power, name: string): Power | null {
   const cs = claimantsOf(name, viewer);
   if (cs.length === 0) return null;
   if (cs.length === 1) return cs[0];
-  if (viewer !== null && cs.includes(viewer)) return viewer;
-  const g = viewer !== null ? givenBy.get(viewer)?.get(name) : undefined;
+  if (cs.includes(viewer)) return viewer;
+  const g = givenBy.get(viewer)?.get(name);
   if (g !== undefined && cs.includes(g)) return g;
-  const own = cs.find((p) => ownLand(p) === name && !claimed.has(p));
-  if (own !== undefined) return own;
-  if (viewer !== null) return null;
-  const first = Math.min(...cs.map((p) => claimed.get(p)?.since ?? 0));
-  const firsts = cs.filter((p) => (claimed.get(p)?.since ?? 0) === first);
-  return firsts.length === 1 ? firsts[0] : null;
+  // A claimant known by his own land's name is one the court has heard claim nothing else (`claimHeard` keeps no entry
+  // for a claim of one's own land), whatever he has claimed since out of its hearing.
+  return cs.find((p) => ownLand(p) === name) ?? null;
 }
 
 /** A power's name as `viewer`'s court knows and gives it: the name it claims, or its house where the court gives that name to another. */
-export function landFor(viewer: Power | null, p: Power): string {
+export function landFor(viewer: Power, p: Power): string {
   const name = knownName(viewer, p);
   if (claimantsOf(name, viewer).length < 2) return name;
   return nameGivenBy(viewer, name) === p ? name : house(p);
