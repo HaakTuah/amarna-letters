@@ -135,6 +135,9 @@ describe("NamesAsClaims", () => {
     // The claimant's own court gives the name to him, and the house name of the other is left as it is.
     notify(s, "Amurru", "Notice", "News", "Amurru marches on Gubla, and Bit-Rib-Hadda is afraid.");
     Assert.equal("Gubla marches on Bit-Rib-Hadda, and Bit-Rib-Hadda is afraid.", said("Amurru"));
+    // What the engine quotes stays as it was written: a sealed greeting, a letter, someone's words.
+    notify(s, "Amurru", "Audience", "Audience", 'The sealed greeting reads: "Say to the king of Gubla, of Amurru your servant." Amurru said: "Gubla (the city) is mine".\nOutcome: Gubla wept.');
+    Assert.equal('The sealed greeting reads: "Say to the king of Gubla, of Amurru your servant." Gubla said: "Gubla (the city) is mine".\nOutcome: Bit-Rib-Hadda wept.', said("Amurru"));
     // The god view keeps the engine's names.
     Assert.equal("Amurru", land("Amurru"));
   });

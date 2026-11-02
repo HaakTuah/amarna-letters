@@ -394,10 +394,14 @@ export function land(p: Power): string {
   return viewerNow === null ? ownLand(p) : landFor(viewerNow, p);
 }
 
+/** Words the engine quotes, a sealed greeting, a letter or what someone said: between double quotes, closed before a space, a stop or the end. */
+const Quoted = /(?<=^|[\s(])"[\s\S]*?"(?=$|[\s.,;:!?)\]\u2014])/gu;
+
 /**
  * The engine's words, which name each power by its own land's name, with the names `viewer`'s court knows and gives
- * (item 17+): so a name in a notice means the same power it means in the rest of what the court reads. A land's name
- * joined to a word before it ("Bit-Hatti") is not a power's name and is left.
+ * (item 17+): so a name in a notice means the same power it means in the rest of what the court reads. Only the engine's
+ * own narration is renamed: what it quotes (a sealed greeting, a letter, a king's or an envoy's words) stays as it was
+ * written, and a land's name joined to a word before it ("Bit-Hatti") is not a power's name and is left.
  */
 export function namedFor(viewer: Power, text: string): string {
   if (claimed.size === 0 && ![...heardBy.values()].some((m) => [...m].some(([p, n]) => n !== ownLand(p)))) return text;
@@ -408,7 +412,15 @@ export function namedFor(viewer: Power, text: string): string {
   }
   if (swaps.size === 0) return text;
   const names = [...swaps.keys()].sort((a, b) => b.length - a.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  return text.replace(new RegExp(`(?<![\\p{L}-])(?:${names.join("|")})(?![\\p{L}])`, "gu"), (m) => swaps.get(m)!);
+  const name = new RegExp(`(?<![\\p{L}-])(?:${names.join("|")})(?![\\p{L}])`, "gu");
+  const rename = (part: string): string => part.replace(name, (m) => swaps.get(m)!);
+  let out = "";
+  let from = 0;
+  for (const q of text.matchAll(Quoted)) {
+    out += rename(text.slice(from, q.index)) + q[0];
+    from = q.index + q[0].length;
+  }
+  return out + rename(text.slice(from));
 }
 
 /** The reigning king (or chief), by the names the letters use: what foreign courts call him. */

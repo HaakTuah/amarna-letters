@@ -115,8 +115,8 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   sources name no king; never a number.
 - **Naming as a court gives it** (`land(p)` reads `landFor(viewer, p)`): the engine writes and logs each power by its own
   land's name; a notice to a court is turned into that court's names as it is written (`notify`, `namedFor`, issue #417),
-  so one name means one power in all a court reads, except the notice of one's own claim, which speaks of the name
-  itself. A land's name in a notice is read as the realm's, a province of that name included. A court's seat view (`Views.for`, wrapped in `asSeenBy`) and the web page with one human seat (`setNameViewer`) name them
+  so one name means one power in all a court reads. What a notice quotes (a sealed greeting, a letter, someone's words,
+  between double quotes) stays as written, and so does the notice of one's own claim, which speaks of the name itself. A land's name in a notice is read as the realm's, a province of that name included. A court's seat view (`Views.for`, wrapped in `asSeenBy`) and the web page with one human seat (`setNameViewer`) name them
   as that court gives them. The seat view carries `claimedName` and `nameClaims` (each contested name, its claimants and
   whom the court gives it to); the models read them as NAMES CLAIMED beside RANK. The registry mirrors the state as the
   risen powers do (`setNameClaims`, set by the engine, the batch runner and the web client).
