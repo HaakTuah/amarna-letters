@@ -49,7 +49,7 @@ describe("WallSightTests", () => {
   });
 
   test("A court sees walls where it sees troops and remembers them as last seen", () => {
-    let s = smallWorld(walled(formerHomes(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2), "Mitanni", "Egypt");
+    let s = smallWorld(walled(formerHomes(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2), "Mitanni", "Egypt", "Babylonia");
     Assert.contains("suhu", Views.sight(s, WorldMap.default, "Mitanni"));
     Assert.doesNotContain("suhu", Views.sight(s, WorldMap.default, "Egypt"));
 
