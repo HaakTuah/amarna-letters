@@ -156,6 +156,11 @@ export const NameOrder: readonly string[] = (() => {
 
 /** The radius of a city's outermost ring, in its own units (cities, in svg-renderer.ts): a name stands off it. */
 export const ringOf = (capital: boolean, walls: number): number => (walls > 0 ? (capital ? 12 : 8.5) + 2 * walls + 1.2 : capital ? 13.2 : 8.2);
+/** A siege camp's tents (item 19): their middles stand `TentRing` beyond a city's outermost ring, each `2 * TentHalf` wide. */
+export const TentRing = 2.6;
+export const TentHalf = 2.6;
+/** A city's outermost ring with what is drawn round it: a besieged city's ends past its siege camp's tents. */
+export const outerRing = (capital: boolean, walls: number, besieged: boolean): number => ringOf(capital, walls) + (besieged ? TentRing + TentHalf : 0);
 
 function buildLabels(): string {
   let sb = `<g class="labels">`;
@@ -175,19 +180,20 @@ function buildLabels(): string {
     const y = uy * 2.5 + (uy > 0.6 ? 9.5 : uy < -0.6 ? -1 : 4);
     sb += `<g class="lab" data-label="${p.id}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ringOf(p.capital, 0))};--ux:${F(ux)};--uy:${F(uy)}"><g class="lring"><text class="plabel${p.capital ? " cap" : ""}" x="${F(x)}" y="${F(y)}" text-anchor="${s.anchor}">${escape(p.name)}</text></g></g>`;
   }
-  // Item 17+ ("Places by their own names"): the lands outside the game drawn as no one's and named by description, since no
-  // name of the period survives for them.
+  // Item 17+ ("Places by their own names"): the lands outside the game drawn as no one's, each by the oldest name the
+  // sources give it, with what it is in its tooltip.
   for (const o of OutsideLabels) {
     const at = ll(o.lat, o.lon);
-    sb += `<g class="lab outside" transform="translate(${F(at.x)},${F(at.y)})"><text class="plabel olabel" x="0" y="0" text-anchor="middle">${escape(o.text)}</text></g>`;
+    sb += `<g class="lab outside" transform="translate(${F(at.x)},${F(at.y)})"><title>${escape(o.what)}</title><text class="plabel olabel" x="0" y="0" text-anchor="middle">${escape(o.text)}</text></g>`;
   }
   return sb + "</g>";
 }
 
-/** The lands outside the game that the map names by description, where they lie. */
-const OutsideLabels: readonly { text: string; lat: number; lon: number }[] = [
-  // The plateau east of the Salt Sea, where Moab and Ammon rose centuries later (item 17+, "the land east of the Jordan")
-  { text: "the plateau beyond the Salt Sea", lat: 31.35, lon: 35.95 },
+/** The lands outside the game that the map names, where they lie. */
+const OutsideLabels: readonly { text: string; what: string; lat: number; lon: number }[] = [
+  // The plateau east of the Salt Sea, where Moab and Ammon rose later: Moab, as Egyptian lists name it within a century of
+  // 1346 ("Places by their own names")
+  { text: "Moab", what: "the plateau beyond the Salt Sea", lat: 31.35, lon: 35.95 },
 ];
 
 /**

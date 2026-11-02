@@ -6,7 +6,7 @@
 import { WorldMap, economyOf, type OmenTier, type Power } from "@amarna/engine";
 import { F, Shapes, along, city, landClipOf, route } from "./art.ts";
 import { glyphId } from "./glyphs.ts";
-import { ringOf } from "./markup.ts";
+import { outerRing } from "./markup.ts";
 import { FamineBelow } from "./memory.ts";
 import type { MapScene } from "./scene.ts";
 import type { FrameRoad, SeasonFrame } from "../session/frames.ts";
@@ -25,7 +25,7 @@ export function memoryLayer(s: MapScene): string {
   }
   for (const [id, b] of m.memorials) {
     const at = city(id);
-    const r = ringOf(Map_.get(id).capital, s.walls.get(id) ?? 0) + 7;
+    const r = outerRing(Map_.get(id).capital, s.walls.get(id) ?? 0, s.sieges.some((x) => x.province === id)) + 7;
     sb +=
       `<g class="memorial" transform="translate(${F(at.x)},${F(at.y)})"><g class="csym"><g transform="translate(${F(-r * 0.74)},${F(r * 0.66)})">` +
       `<title>${b.count === 1 ? "A battlefield" : `${b.count} battles fought here`}, the last in season ${b.last}</title>` +
@@ -62,8 +62,13 @@ export function lifeLayer(s: MapScene): string {
     const at = along(route(r.from, r.to), Math.min(0.85, Math.max(0.15, r.progress)));
     sb += `<g class="life-mark ${cls}" data-province="${r.from}" transform="translate(${F(at.x)},${F(at.y + (i % 2) * 6)})"><title>${esc(text)}</title><g class="sym"><circle class="life-bg${r.power !== null ? ` f-${glyphId(r.power)}` : ""}" r="8"/><use href="${fig}" class="life-icon" x="-6.6" y="-6.6" width="13.2" height="13.2"/></g></g>`;
   };
-  s.memory.caravans.forEach((c, i) => mark(c, i, "caravan", "#fig-caravan", `${c.power !== null ? `${powerName(c.power)}'s caravan` : "A caravan"} on the road from ${provinceName(c.from)} to ${provinceName(c.to)}: ${c.what}`));
-  s.memory.walking.forEach((w, i) => mark(w, i, "walking", "#fig-walkers", `${w.what}, on the road from ${provinceName(w.from)} to ${provinceName(w.to)}`));
+  // In a court's view every caravan drawn is its own, in sight or not (its drivers' word reaches it), and the deportees are
+  // on a road it sees: the titles say so, so a figure moving in the fog is never taken for a foreign one.
+  const own = s.viewer !== null;
+  s.memory.caravans.forEach((c, i) =>
+    mark(c, i, "caravan", "#fig-caravan", `${own ? "Your caravan" : c.power !== null ? `${powerName(c.power)}'s caravan` : "A caravan"} on the road from ${provinceName(c.from)} to ${provinceName(c.to)}: ${c.what}${own ? ". You hear from your own caravans wherever they are" : ""}`),
+  );
+  s.memory.walking.forEach((w, i) => mark(w, i, "walking", "#fig-walkers", `${w.what}, on the road from ${provinceName(w.from)} to ${provinceName(w.to)}${own ? ", in your sight" : ""}`));
   return sb;
 }
 

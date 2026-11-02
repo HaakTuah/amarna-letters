@@ -48,6 +48,11 @@ export interface GameSettings {
   messagesPerTurn: number;
   /** Answer model calls inside the browser with canned replies: for trying the app without a key or cost. */
   simulateApi: boolean;
+  /**
+   * Play in the background ("Calls that get through, live or in the background"): each phase's Anthropic calls go as one
+   * batch to its batch service, at half the price, and the game plays on as the answers come back, minutes or more later.
+   */
+  background: boolean;
   /** Providers other than Anthropic, each with an OpenAI-compatible endpoint (their keys are held apart, in memory). */
   providers: ProviderSetting[];
   /** Prices the table set, by model, over the defaults. */
@@ -98,6 +103,7 @@ export function newSettings(): GameSettings {
     budgetUsd: 0,
     messagesPerTurn: 3,
     simulateApi: false,
+    background: false,
     providers: [],
     prices: {},
     pauseFallbackShare: 0.5,
@@ -165,7 +171,7 @@ export const usesModels = (s: GameSettings): boolean => choicesOf(s).usesModels;
  */
 export const handLimitNeeded = (s: GameSettings): boolean => usesModels(s) && !s.simulateApi;
 /** The estimate for a game of median length; an open age has no end, so it is the spend of the same span, before the limit. */
-export const estimate = (s: GameSettings): number => CostEstimate.perGame(choicesOf(s), s.endMedian);
+export const estimate = (s: GameSettings): number => CostEstimate.perGame(choicesOf(s), s.endMedian, s.background);
 
 export function toConfig(s: GameSettings): GameConfig {
   return newGameConfig({
@@ -184,7 +190,7 @@ export function toConfig(s: GameSettings): GameConfig {
 }
 
 /** The table's own settings a saved log does not keep, carried over from the page when a game is continued. */
-export type TableSettings = Pick<GameSettings, "providers" | "prices" | "pauseFallbackShare" | "bridgeCharacters">;
+export type TableSettings = Pick<GameSettings, "providers" | "prices" | "pauseFallbackShare" | "bridgeCharacters"> & Partial<Pick<GameSettings, "background">>;
 
 export function settingsFromHeader(header: LogHeader, table: TableSettings | null = null): GameSettings {
   const s = withChoices(
@@ -202,16 +208,13 @@ export function settingsFromHeader(header: LogHeader, table: TableSettings | nul
       capMin: header.config.capMin,
       capMax: header.config.capMax,
       openAge: header.config.openAge,
-      ...(table !== null ? { prices: { ...table.prices }, pauseFallbackShare: table.pauseFallbackShare, bridgeCharacters: [...(table.bridgeCharacters ?? [])] } : {}),
+      ...(table !== null ? { prices: { ...table.prices }, pauseFallbackShare: table.pauseFallbackShare, bridgeCharacters: [...(table.bridgeCharacters ?? [])], background: table.background ?? false } : {}),
     },
     choicesFromHeader(header, table?.providers ?? []),
   );
   s.budgetUsd = CostEstimate.suggestedBudget(estimate(s));
   return s;
 }
-
-/** The human seats chosen. */
-export const humansOf = (s: GameSettings): Power[] => FixedPowers.filter((p) => s.leaders[p] === "Human");
 
 /**
  * A fallen player's game is over: once every human seat at the table has fallen, and the table's setting allows it (on by

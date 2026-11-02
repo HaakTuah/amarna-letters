@@ -55,7 +55,7 @@ export function wealthSources(e: Earnings): string {
   if (e.dealt > 0) parts.push(`lending and dealing ${e.dealt}`);
   if (e.skimmed > 0) parts.push(`skimmed ${e.skimmed}`);
   if (e.gifts > 0) parts.push(`gifts ${e.gifts}`);
-  if (e.carried > 0) parts.push(`gold kept on dismissal ${e.carried}`);
+  if (e.carried > 0) parts.push(`gold kept on dismissal or capture ${e.carried}`);
   if (e.savings > 0) parts.push(`savings ${e.savings}`);
   if (e.loot > 0) parts.push(`loot ${e.loot}`);
   if (e.news > 0) parts.push(`news and carrying ${e.news}`);

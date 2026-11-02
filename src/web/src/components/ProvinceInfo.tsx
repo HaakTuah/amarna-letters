@@ -20,7 +20,8 @@ import {
   type GameState,
   type Province,
   type Terrain,
- modernOf } from "@amarna/engine";
+ modernOf,
+  describedAs } from "@amarna/engine";
 import { ownEconomy, unitKindName, type MapScene } from "../map/scene.ts";
 import { about, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
@@ -78,7 +79,8 @@ export function ProvinceInfo({
   // Its economy, as the viewer may know it: in god view as it is; in a seat view only in land it knows it holds (never by
   // the true owner): from the live state where it holds it now (as the engine's own view of a court shows it its
   // provinces), and from the season it last held it where it was lost without its knowing (map/known.ts), the figures its
-  // stewards last sent and nothing newer, until word of the loss arrives.
+  // stewards last sent and nothing newer, until word of the loss arrives. Looking back at an earlier season, the live state
+  // is a later one, so the card gives only that season's recorded figures (`ownEconomy`).
   const mine = ownEconomy(scene, id);
   const live = mine !== null && mine.live;
   return (
@@ -92,8 +94,10 @@ export function ProvinceInfo({
           <h3>
             {p.name} {p.capital && <small className="muted">· capital of {p.home !== null ? powerName(p.home) : ""}</small>}
           </h3>
-          {/* Item 17+ ("Places by their own names"): the modern name on a second, smaller line, for the human player only. */}
-          {modernOf(p.id) !== null && <small className="muted">today {modernOf(p.id)}</small>}
+          {/* "Places by their own names", for the human player only: what the name alone does not say, then the modern name. */}
+          {(describedAs(p.id) !== null || modernOf(p.id) !== null) && (
+            <small className="muted">{[describedAs(p.id), modernOf(p.id) !== null ? `today ${modernOf(p.id)}` : null].filter((x) => x !== null).join(", ")}</small>
+          )}
         </>
       }
     >
@@ -137,10 +141,12 @@ export function ProvinceInfo({
           )}
           {mine !== null && !mine.live && (
             <p className="small">
-              {/* Land lost without the court's knowing: what its stewards last sent, as the map shows it. */}
-              As your stewards last reported, {mine.age} season{mine.age === 1 ? "" : "s"} ago: stores {mine.stores} of {capacityOf(p)} measures of grain;{" "}
-              about {about(mine.settled)} on its land as last counted{mine.fed !== undefined ? `; its countryside ate ${Math.round(mine.fed / 10)}% of its need` : ""}. No
-              word has come since.
+              {/* Land lost without the court's knowing: what its stewards last sent, as the map shows it; or, looking back at an
+                  earlier season, what was recorded then, never the present. */}
+              {mine.age === 0 ? "That season" : `As your stewards last reported, ${mine.age} season${mine.age === 1 ? "" : "s"} ago`}: stores {mine.stores} of{" "}
+              {capacityOf(p)} measures of grain;{" "}
+              {mine.settled === undefined ? (scene.viewer === null ? "no count of its people" : "its people never counted by your scribes") : `about ${about(mine.settled)} on its land${scene.viewer === null ? "" : " as last counted"}`}
+              {mine.fed !== undefined ? `; its countryside ate ${Math.round(mine.fed / 10)}% of its need` : ""}.{mine.age > 0 ? " No word has come since." : ""}
             </p>
           )}
           {live && state.people.has(p.id) && (

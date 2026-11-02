@@ -304,6 +304,8 @@ td .sub { display: block; font-size: .8em; white-space: nowrap; }
 
 .tabs { display: flex; gap: .1rem; padding: 0 .4rem; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; flex: none; }
 .tabs::-webkit-scrollbar { display: none; }
+/* Dragged sideways with the mouse (ui/side-scroll.ts): no text selected on the way. */
+.tabs.dragging, .courts.dragging { cursor: grabbing; user-select: none; }
 .tabs button { flex: none; border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: .45rem .6rem; color: var(--muted); }
 .tabs button.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
 .tabs button.alert { color: var(--accent); font-weight: 600; }
@@ -459,6 +461,8 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .map .plabel.cap { font-size: 13.5px; letter-spacing: .06em; font-variant: small-caps; }
 /* Item 17+: a land outside the game, named by description, in a lighter hand. */
 .map .plabel.olabel { font-size: 11px; font-weight: 500; font-style: italic; fill: var(--ink-muted, var(--ink)); opacity: .75; }
+/* A land outside the game shows what it is when hovered (its <title>), though the other names let the pointer through. */
+.map .labels .outside text { pointer-events: auto; cursor: help; }
 /* Names give way to more important names and to the pieces (the renderer measures them, item 11c+); each stands off its
    city's outermost ring (--ring, in the city's own units), on its side (--ux, --uy). */
 .map .plabel.off { visibility: hidden; }

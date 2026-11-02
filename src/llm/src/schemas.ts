@@ -82,13 +82,25 @@ export function measure(schema: JsonObject): SchemaMeasure {
   return m;
 }
 
-/** Where a reply breaks its schema, at most eight problems, each with its path ("units[0].order: ..."); empty when it fits. */
+/**
+ * Where a reply breaks its schema, in words a model can act on when the reply goes back to it: each field with what it gave
+ * and what was asked ("letters[0].to: "Babel" is not one of Assyria, Babylonia, ..."), at most eight; empty when it fits.
+ */
 export function problems(reply: unknown, schema: z.ZodType): string[] {
   const r = schema.safeParse(reply);
   if (r.success) return [];
+  const asked: Record<string, string> = { string: "text", number: "a number", boolean: "true or false", object: "an object", array: "a list" };
   return r.error.issues.slice(0, 8).map((i) => {
     const path = i.path.reduce<string>((s, k) => (typeof k === "number" ? `${s}[${k}]` : s.length === 0 ? String(k) : `${s}.${String(k)}`), "");
-    return `${path.length === 0 ? "reply" : path}: ${i.message}`;
+    const got = i.path.reduce<unknown>((v, k) => (v !== null && typeof v === "object" ? (v as Record<PropertyKey, unknown>)[k] : undefined), reply);
+    const gave = got === undefined ? "nothing" : JSON.stringify(got).slice(0, 80);
+    let what: string;
+    if (i.code === "invalid_value") {
+      const values = i.values.map((v) => (v === "" ? '"" (none)' : String(v)));
+      what = `${gave} is not one of ${values.slice(0, 40).join(", ")}${values.length > 40 ? ", ..." : ""}`;
+    } else if (i.code === "invalid_type") what = `gave ${gave}, where ${asked[i.expected] ?? i.expected} was asked`;
+    else what = `gave ${gave}: ${i.message}`;
+    return `${path.length === 0 ? "reply" : path}: ${what}`;
   });
 }
 

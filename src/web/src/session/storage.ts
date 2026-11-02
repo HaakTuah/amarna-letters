@@ -1,6 +1,12 @@
-/** Event logs live in IndexedDB (the log is the save game and the replay), in the page and in the engine's worker alike. */
+/**
+ * Event logs live in IndexedDB (the log is the save game and the replay), in the page and in the engine's worker alike;
+ * beside them, the batches a game in the background still has out, so a game opened again collects their answers.
+ */
+import type { BatchStore } from "@amarna/llm";
+
 const DB = "amarna-letters";
 const STORE = "logs";
+const BATCHES = "batches";
 
 export interface SavedLog {
   id: string;
@@ -10,18 +16,20 @@ export interface SavedLog {
 
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+    const req = indexedDB.open(DB, 2);
+    req.onupgradeneeded = () => {
+      for (const name of [STORE, BATCHES]) if (!req.result.objectStoreNames.contains(name)) req.result.createObjectStore(name);
+    };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
-async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T> | void): Promise<T | undefined> {
+async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T> | void, store = STORE): Promise<T | undefined> {
   const db = await open();
   return new Promise((resolve, reject) => {
-    const t = db.transaction(STORE, mode);
-    const req = fn(t.objectStore(STORE));
+    const t = db.transaction(store, mode);
+    const req = fn(t.objectStore(store));
     t.oncomplete = () => resolve(req ? req.result : undefined);
     t.onerror = () => reject(t.error);
   });
@@ -76,6 +84,35 @@ export async function deleteLog(id: string): Promise<void> {
     /* nothing to delete */
   }
 }
+
+/**
+ * The batches sent, by the ids of their requests (no key and nothing of the account: only the batch's own id), kept
+ * while the service keeps their answers (29 days) and then forgotten.
+ */
+const BatchDays = 29;
+export const savedBatches: BatchStore = {
+  async find(request) {
+    const row = (await tx("readonly", (s) => s.get(request), BATCHES)) as { batch: string; at: number } | undefined;
+    return row !== undefined && Date.now() - row.at < BatchDays * 86_400_000 ? row.batch : null;
+  },
+  async keep(batch, requests) {
+    const now = Date.now();
+    await tx(
+      "readwrite",
+      (s) => {
+        for (const r of requests) s.put({ batch, at: now }, r);
+        const old = s.openCursor();
+        old.onsuccess = () => {
+          const c = old.result;
+          if (c === null) return;
+          if (now - ((c.value as { at?: number }).at ?? 0) >= BatchDays * 86_400_000) c.delete();
+          c.continue();
+        };
+      },
+      BATCHES,
+    );
+  },
+};
 
 export function download(filename: string, text: string): void {
   const blob = new Blob([text], { type: "application/x-ndjson" });

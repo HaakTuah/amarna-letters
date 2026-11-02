@@ -11,7 +11,7 @@ import { dash, glyphId } from "./glyphs.ts";
 import { roadsLayer, worksAtCities } from "./built.ts";
 import { figureOf } from "./figures.ts";
 import { OmenSigns, RuinMarks, lifeLayer, mediumOf, memoryLayer, sceneMarkup, scenesOf } from "./life.ts";
-import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
+import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, outerRing, ringOf, TentHalf, TentRing } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { seasonLayer } from "./seasons.ts";
 import { holdingLayer, tintClass, type MapMode } from "./holding.ts";
@@ -88,10 +88,10 @@ function cities(s: MapScene): string {
     const siege = s.sieges.find((x) => x.province === p.id);
     if (siege !== undefined) {
       // Close in, so they stay within the gap a city's own counters keep from its outermost ring.
-      const r = ringOf(p.capital, walls) + 2.6;
+      const r = ringOf(p.capital, walls) + TentRing;
       for (let k = 0; k < 6; k++) {
         const a = (k * Math.PI) / 3 + Math.PI / 6;
-        sb += `<use href="#fig-tent" class="tent t-${glyphId(siege.besieger)}" x="${F(Math.cos(a) * r - 2.6)}" y="${F(Math.sin(a) * r - 2.6)}" width="5.2" height="5.2"/>`;
+        sb += `<use href="#fig-tent" class="tent t-${glyphId(siege.besieger)}" x="${F(Math.cos(a) * r - TentHalf)}" y="${F(Math.sin(a) * r - TentHalf)}" width="${F(2 * TentHalf)}" height="${F(2 * TentHalf)}"/>`;
       }
     }
     if (owner !== null)
@@ -367,7 +367,7 @@ function unitItems(units: readonly SceneUnit[], viewer: Power | null, scale: num
   return items;
 }
 
-function peopleAtCourts(input: MapInput): string {
+export function peopleAtCourts(input: MapInput): string {
   const s = input.scene;
   const byProvince = new Map<string, typeof s.people>();
   for (const p of s.people) {
@@ -377,8 +377,10 @@ function peopleAtCourts(input: MapInput): string {
   }
   let sb = "";
   // Each court's people stand in rows of three to the left of its city, clear of its outermost ring (--ring, app.css), and
-  // its news to the right, so neither touches the badge or the counters above it (item 11c++).
-  const ringAt = (province: string): string => F(ringOf(Map_.get(province).capital, s.walls.get(province) ?? 0));
+  // its news to the right, so neither touches the badge or the counters above it (item 11c++); round a besieged city, clear
+  // of the siege camp's tents too, which are part of its badge.
+  const besieged = new Set(s.sieges.map((x) => x.province));
+  const ringAt = (province: string): string => F(outerRing(Map_.get(province).capital, s.walls.get(province) ?? 0, besieged.has(province)));
   for (const [province, list] of byProvince) {
     const c = city(province);
     sb += `<g class="court-at" data-court="${province}" transform="translate(${F(c.x)},${F(c.y)})"><g class="cring" style="--ring:${ringAt(province)}"><g class="sym">`;
@@ -510,6 +512,25 @@ function reconcile(parent: SVGGElement, items: readonly Item[], known: Map<strin
 
 // ---------------------------------------------------------------- the renderer
 
+/**
+ * The city a tap means, where the tap circles of several overlap (the Levant's towns on the whole board): the one whose
+ * seal is nearest, not the one drawn last, so every small province can be clicked at every zoom (Haakon, 2 November 2026:
+ * "Some of the provinces in the Levant are so small you can't even click on them").
+ */
+function nearestCity(e: MouseEvent): Element | null {
+  let best: Element | null = (e.target as Element).closest(".city");
+  let far = Infinity;
+  for (const el of document.elementsFromPoint(e.clientX, e.clientY)) {
+    if (!el.classList.contains("tap-hit")) continue;
+    const city = el.closest(".city");
+    if (city === null) continue;
+    const r = el.getBoundingClientRect();
+    const d = Math.hypot(r.left + r.width / 2 - e.clientX, r.top + r.height / 2 - e.clientY);
+    if (d < far) [best, far] = [city, d];
+  }
+  return best;
+}
+
 export class SvgMapRenderer implements MapRenderer {
   private view: HTMLElement | null = null;
   private layers = new Map<string, SVGGElement>();
@@ -539,7 +560,7 @@ export class SvgMapRenderer implements MapRenderer {
       this.handlers?.onMark(mark.getAttribute("data-mark")!, under?.closest("[data-province]")?.getAttribute("data-province") ?? null);
       return;
     }
-    const prov = t?.closest("[data-province]");
+    const prov = t?.closest(".city") ? nearestCity(e as MouseEvent) : t?.closest("[data-province]");
     if (prov !== null && prov !== undefined) this.handlers?.onProvince(prov.getAttribute("data-province")!);
     else this.handlers?.onBlank();
   };
@@ -661,7 +682,8 @@ export class SvgMapRenderer implements MapRenderer {
       () => this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s)),
       () => {
         const m = s.memory;
-        this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}`).join()}`, () => memoryLayer(s));
+        // Redrawn when anything a stele stands by changes: its battles, its city's walls, a siege camp round it.
+        this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}:${s.sieges.some((x) => x.province === k) ? 1 : 0}`).join()}`, () => memoryLayer(s));
       },
       () => this.layer("fog", s, () => fog(s)),
       () => this.layer("bands", s.frame, () => bands(s)),
@@ -907,8 +929,8 @@ export class SvgMapRenderer implements MapRenderer {
       const writes: (() => void)[] = [];
       for (const f of followed) place(f.rs, null);
       for (const { id, c, badge, seal, rest } of cityRects) {
-        // A city's own markers must not touch each other either (two pieces of news, say).
-        const own = rest.every((r, i) => !rest.slice(i + 1).some((o) => touch(r, o)));
+        // A city's own markers must not touch each other either (two pieces of news, say), nor its own badge (a siege's tents).
+        const own = rest.every((r, i) => !rest.slice(i + 1).some((o) => touch(r, o)) && !badge.some((b) => touch(r, b)));
         if (own && free(badge) && free(rest)) {
           place(badge, id);
           place(rest, null);

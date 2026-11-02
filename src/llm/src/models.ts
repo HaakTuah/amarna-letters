@@ -38,7 +38,10 @@ export const OutputCaps = {
   chronicle: 6000,
 };
 
-/** Dollars per million tokens. Cache writes (5-minute) cost 1.25x input. */
+/** The batch service's price, as a share of the live one (the background mode): half, on Anthropic's. */
+export const BatchDiscount = 0.5;
+
+/** Dollars per million tokens. Cache writes cost 1.25x input when they last five minutes, 2x when they last an hour. */
 export class Price {
   readonly input: number;
   readonly output: number;
@@ -51,8 +54,13 @@ export class Price {
   get cacheWrite(): number {
     return this.input * 1.25;
   }
-  cost(input: number, output: number, cacheRead: number, cacheWrite: number): number {
-    return (input * this.input + output * this.output + cacheRead * this.cacheRead + cacheWrite * this.cacheWrite) / 1_000_000.0;
+  get cacheWriteLong(): number {
+    return this.input * 2;
+  }
+  /** `cacheWrite`: every token written to cache; of them, `cacheWriteLong` written to last an hour. */
+  cost(input: number, output: number, cacheRead: number, cacheWrite: number, cacheWriteLong = 0): number {
+    const long = Math.min(cacheWrite, cacheWriteLong);
+    return (input * this.input + output * this.output + cacheRead * this.cacheRead + (cacheWrite - long) * this.cacheWrite + long * this.cacheWriteLong) / 1_000_000.0;
   }
 }
 
@@ -76,7 +84,7 @@ export class PriceTable {
   for(model: string): Price | null {
     return this.prices.get(model) ?? null;
   }
-  cost(model: string, input: number, output: number, cacheRead: number, cacheWrite: number): number {
-    return this.for(model)?.cost(input, output, cacheRead, cacheWrite) ?? 0;
+  cost(model: string, input: number, output: number, cacheRead: number, cacheWrite: number, cacheWriteLong = 0): number {
+    return this.for(model)?.cost(input, output, cacheRead, cacheWrite, cacheWriteLong) ?? 0;
   }
 }

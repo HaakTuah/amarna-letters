@@ -244,8 +244,9 @@ export const watersId = (coast: string): string => coast + "waters";
 /**
  * Item 17+ ("Places by their own names"): the modern name of each land province, for the province card's second line
  * ("Dimashqa, today Damascus") and the rulebook's gazetteer; the map, the seat view and every request show the period
- * name only. Where the period gives no name (the Cypriot sites, the Negev, the plateau beyond the Salt Sea) the province is
- * labelled by description. Each checked against the dossiers (`docs/history/02-geography.md`, "Names for the provinces";
+ * name only. Every province has a proper name, never a description (polish lane, 2 November 2026): where the period gives
+ * none, the oldest name the sources do give (Tamassos for the copper hills of Cyprus), and a modern one only where no
+ * ancient name survives (Enkomi); what a description said is on the card ({@link describedAs}). Each checked against the dossiers (`docs/history/02-geography.md`, "Names for the provinces";
  * the politics dossier's table) and graded in the item's report.
  */
 export const ModernNames: ReadonlyMap<string, string> = new Map<string, string>([
@@ -279,7 +280,6 @@ export const ModernNames: ReadonlyMap<string, string> = new Map<string, string>(
   ["thebes", "Thebes (Luxor)"],
   ["nubia", "Nubia"],
   ["kalavasos", "Kalavasos"],
-  ["enkomi", "Enkomi"],
   ["isuwa", "the Elazığ plain"],
   ["azzi", "the Erzincan highlands"],
   ["carchemish", "Carchemish (Jerablus)"],
@@ -322,8 +322,24 @@ export const ModernNames: ReadonlyMap<string, string> = new Map<string, string>(
   ["shasu", "Edom and the Negev"],
 ]);
 
-/** A province's modern name, where one is given; null for the seas and the lands named only by description. */
+/** A province's modern name, where one is given; null for the seas and where the name is modern already (Enkomi). */
 export const modernOf = (id: string): string | null => ModernNames.get(id) ?? null;
+
+/**
+ * What a province is, for the card under its name, where the name alone does not say ("Places by their own names": what a
+ * description said moves to the province card). The human player's card only; no request carries it.
+ */
+const Descriptions: ReadonlyMap<string, string> = new Map<string, string>([
+  ["kalavasos", "the copper hills of Alashiya"],
+  ["enkomi", "the harbour of Alashiya"],
+  ["kaska", "the hills of the Kaska"],
+  ["steppe", "the steppe of the Suteans"],
+  ["libya", "the land of the Tjehenu and Tjemehu"],
+  ["shasu", "the land of the Shasu"],
+]);
+
+/** What a province is, where its card says it ({@link Descriptions}); null elsewhere. */
+export const describedAs = (id: string): string | null => Descriptions.get(id) ?? null;
 
 /**
  * The Late Bronze Age board after the map review of build order item 7a: 61 land provinces and 18 sea zones (with item
@@ -388,8 +404,8 @@ export function buildMap(): WorldMap {
     p("nubia", "Kush", "Land", "Egypt", 30, false, 22.67, 32.03),
 
     // Alashiya (weak): Cyprus, the copper island, east and west
-    p("kalavasos", "the copper hills of Alashiya", "Coast", "Alashiya", 40, false, 34.77, 33.3),
-    p("enkomi", "the harbour of Alashiya", "Coast", "Alashiya", 45, true, 35.16, 33.88),
+    p("kalavasos", "Tamassos", "Coast", "Alashiya", 40, false, 34.77, 33.3),
+    p("enkomi", "Enkomi", "Coast", "Alashiya", 45, true, 35.16, 33.88),
 
     // The city-states, each a power of its own since item 11+ ("City-states as powers"), its one city its capital: taken by
     // force (each has walls: see StartWalls) or by agreement, never bought. Gaza and Sumur are Egypt's own land, governed
@@ -451,11 +467,11 @@ export function buildMap(): WorldMap {
     // The edges: lands without a king, each under one leader of its own since item 11+ ("Land without a ruler")
     // Lukka, the Lycian coast of seafarers and raiders, ruled by no king (since item 8: Haakon's answer to item 7a's review)
     { ...p("lukka", "Lukka", "Coast", "Lukka", 15, true, 36.4, 29.4), kingless: true, town: false },
-    { ...p("kaska", "the Kaska lands", "Land", "Kaska", 10, true, 41.1, 35.4), kingless: true, town: false },
-    { ...p("steppe", "the Sutean steppe", "Land", "Suteans", 10, true, 34.55, 38.27), kingless: true, town: false },
+    { ...p("kaska", "Kaska", "Land", "Kaska", 10, true, 41.1, 35.4), kingless: true, town: false },
+    { ...p("steppe", "Sutu", "Land", "Suteans", 10, true, 34.55, 38.27), kingless: true, town: false },
     // Item 11f ("The edges of the map"): Libya west of the Delta, the Tjehenu and Tjemehu, and the Shasu of the Negev and
     // Edom, each a desert land under a chief, no town: their centres are the herders' land, not a site [G]
-    { ...p("libya", "the land of the Tjehenu", "Land", "Libya", 10, true, 30.95, 28.6), kingless: true, town: false },
+    { ...p("libya", "Tjehenu", "Land", "Libya", 10, true, 30.95, 28.6), kingless: true, town: false },
     { ...p("shasu", "Seir", "Land", "Shasu", 10, true, 30.6, 35.3), kingless: true, town: false },
   ];
 
@@ -469,8 +485,8 @@ export function buildMap(): WorldMap {
     waters("apasa", "Apasa waters"),
     waters("lukka", "Lukka waters"),
     waters("kizzuwatna", "Kizzuwatna waters"),
-    waters("kalavasos", "the copper hills of Alashiya waters"),
-    waters("enkomi", "the harbour of Alashiya waters"),
+    waters("kalavasos", "Tamassos waters"),
+    waters("enkomi", "Enkomi waters"),
     waters("ugarit", "Ugarit waters"),
     waters("sumur", "Ṣumur and Arwada waters"),
     waters("byblos", "Gubla waters"),
@@ -751,15 +767,14 @@ const CityShips: Readonly<Record<string, number>> = { ugarit: 80, arwad: 20, sid
 
 /**
  * Where a city-state's army or ships start elsewhere than its city (item 17+), by the city's capital province: data, read
- * by one rule for every city. Aziru's men stand in Amurru's own land beside Sumur, where Rib-Hadda reports them pressing
- * Egypt's base (EA 103-106) [B; C on the year]: not in Sumur itself, since one province holds one unit and Egypt's
- * garrison holds it. Arwad keeps a fleet instead of an army, in its own waters beside Byblos's, whose ships it blockaded
- * with Amurru (EA 98, 105) [A]; Sidon's ships stand in Sidon's waters next to Tyre's, which hold Tyre's own fleet (EA
- * 148-149) [A, B that it was so in 1346]. Labaya's war on Megiddo (EA 244) was over before 1346, so Shechem's men stand at
- * home.
+ * by one rule for every city. Aziru's men need no entry: they stand in Amurru's own land beside Sumur, where Rib-Hadda
+ * reports them pressing Egypt's base (EA 103-106) [B; C on the year], not in Sumur itself, since one province holds one
+ * unit and Egypt's garrison holds it. Arwad keeps a fleet instead of an army, in its own waters beside Byblos's, whose
+ * ships it blockaded with Amurru (EA 98, 105) [A]; Sidon's ships stand in Sidon's waters next to Tyre's, which hold Tyre's
+ * own fleet (EA 148-149) [A, B that it was so in 1346]. Labaya's war on Megiddo (EA 244) was over before 1346, so
+ * Shechem's men stand at home.
  */
-const CityStarts: Readonly<Record<string, { army?: string | null; fleet?: string }>> = {
-  amurru: { army: "amurru" },
+const CityStarts: Readonly<Record<string, { army: string | null }>> = {
   arwad: { army: null },
 };
 
@@ -769,11 +784,10 @@ const cityUnits = (): StartUnit[] =>
     .filter((x) => x.capital && x.home !== null && !isGreatKing(x.home))
     .flatMap((x) => {
       const home = x.home!;
-      const place = CityStarts[x.id] ?? {};
-      const armyAt = place.army === undefined ? x.id : place.army;
+      const armyAt = CityStarts[x.id] === undefined ? x.id : CityStarts[x.id].army;
       const out: StartUnit[] = armyAt === null ? [] : [su(home, "Army", armyAt, cityMen(x), x.id)];
       const ships = CityShips[x.id];
-      if (ships !== undefined) out.push(su(home, "Fleet", place.fleet ?? x.waters ?? x.id, ships * MenPerShip, x.id));
+      if (ships !== undefined) out.push(su(home, "Fleet", x.waters ?? x.id, ships * MenPerShip, x.id));
       return out;
     });
 

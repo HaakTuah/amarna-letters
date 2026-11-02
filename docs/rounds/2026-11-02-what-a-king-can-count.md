@@ -85,6 +85,17 @@ both ways in every game.
 Before round 1 (on `bee4370`, before the signals): 20 games, every replay exact, the first fall in season 4 on the
 median, none in the first two seasons.
 
+**After round 3** (20 games, seed 1, `--verify-replay`, on `13eef53`): every replay exact; a capital fell in 20 of 20
+games, 292 kingdoms in all, the first in season 4 on the median (4 to 5), none in its first two seasons; scribes sent 20 /
+13,367, counts home 20 / 13,099, demands as a share 20 / 15,527 and as an amount 20 / 14,345, levies by share 20 / 532.
+
+**Use against ignore after round 3** (`--count-play-half`, 50 games, seed 1, on `c701835`): kings that count, ask an amount
+by a fresh count and levy by share by an old one, against kings that never count and always ask a share: **0.97 growth to
+0.86, 26 wins to 24. Pays.** Use and success over the 50 games: scribes sent 50 / 15,504, counts home 49 / 15,147 (98%);
+demands as a share 50 / 23,060, as an amount 50 / 16,744; **levies raised by share 49 / 568** (`levy-share`, round 2's
+feature; the signal counts the levies raised, so each one succeeded). Uneven by power as before (Hatti 1.16 against 1.32,
+Assyria 0.51 against 0.68, Libya 5.12 against 3.45): item 18.
+
 **Use against ignore** (`--count-play-half`, 50 games, seed 1, after round 1): kings that count and ask an amount while the
 count is fresh, against kings that never count and always ask a share: **0.96 growth to 0.89, 30 wins to 20. Pays.**
 Uneven by power (Hatti 1.05 against 1.28, Assyria 0.36 against 0.57, Azzi 1.62 against 0.97): item 18 looks at the share
@@ -92,13 +103,28 @@ and amount numbers together.
 
 ## The review
 
-(To come.)
+`Review: rules · Codex · P1×3 P2×1, clean, P1×2, clean · design check · 4, (not recorded), 7, 9, 10`
 
-Questions for Haakon:
+- **Round 1** (on `e9833c5`): the design check, 4: a share that could squeeze the farmers, levies not askable as a share,
+  an amount for all one's land, no use-against-ignore numbers, exact counts leaking, news of lost land at once, a `tax-set`
+  leftover, missing tests, the province's word, god view's "You ask", `orders.ts` over 50 KB (moved out as a follow-up).
+  Codex, P1×3 P2×1: the smallest game (moved out as a follow-up: a reduced-map fixture for the engine suite), the count's
+  road home reckoned outward, scheduled censuses not waiting for their word, the granary reckoned before this season's
+  eating. All fixed or moved out with reasons in `78fd012` (the PR's "Round 1: answers").
+- **Round 2** (on `da1c8be`): Codex clean. The design check's points were fixed in `5766c80` (levies by share for the
+  script kings, a share too small for a levy told as that, the seat's yields as the last reaping's); its score was not
+  recorded, since the session that ran it ended before writing it down.
+- **Round 3** (on `2af5e43`): the design check, 7: the old yields wording left in the model's prompt and the view's
+  comment, a share levy's wake reason, no numbers after round 2's changes, the questions not reaching Haakon three ways.
+  Codex, P1×2: a share could take the farmers' food from a granary already emptied, and a levy's reserved gold was
+  reckoned from the men really there. All fixed in `c701835` and `13eef53`, with tests; the seat-view fault part C's games
+  found (`8e8fa70`) came in the same round.
+- **Round 4** (on `13eef53`): the design check, 9, nothing blocking: this section, the PR's review line and its footer.
+  Fixed, and the same reviewer gave 10 with nothing open. Codex: clean ("Didn't find any major issues"). This is a fourth round past the rule's three ("Reviews: only a 10 passes", point 4): round 3's points were
+  fixed rather than left open, and the round checks those fixes; anything a fourth round had left open would have gone
+  to the escalation helper. Reading taken on the rule's purpose (an end to the rounds, a bar that does not slip).
 
-1. The sections part B names under The world ("Counts as the scribes knew them", "A census", "The king says how much he
-   wants") are not in the repository's copy of the design document, and this account cannot read the live one. Could the
-   copy be refreshed? Reading taken: built from the item's own text (readings above). Alternative: wait for the sections.
-2. Should the corvée (the men a work takes) also be asked as a share? Levies now can be, as the item's text says. Reading
-   taken: the corvée stays each work's need, an amount, since a share would have to invent how a half-manned work
-   progresses. Alternative: a share of the men for works, the work going slower by the men who came.
+Questions for the owner:
+
+- #410: could the design document's copy be refreshed with part B's sections of The world?
+- #411: should the corvée also be askable as a share, as grain and levies now are?
