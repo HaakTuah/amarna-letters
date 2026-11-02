@@ -50,8 +50,9 @@ describe("EconomyTests", () => {
     const gold = s.treasuries.get("Egypt").gold;
     e.harvestSeason();
     const nesa = Map.get("nesa");
-    // Filled up to their capacity, then a little spoils.
-    const filled = Math.min(capacityOf(nesa), before + taxOf(harvestOf(nesa)));
+    // Filled up to their capacity, then a little spoils. What the share asks, less what the land hides of it since its
+    // last count (item 17++: a point a season), is what comes in.
+    const filled = Math.min(capacityOf(nesa), before + e.grainAsked("nesa"));
     Assert.equal(filled - Math.floor((filled * EconomyData.spoilPercent) / 100), s.stores.get("nesa"));
     const mines = Map.homeOf("Egypt").reduce((a, x) => a + economyOf(x).mine, 0);
     // Less what Pharaoh's governors kept of what passed through their hands (Thutmose over Kush's gold, item 17++).
