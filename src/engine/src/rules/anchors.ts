@@ -261,7 +261,8 @@ export const DistanceAnchors: ReadonlyMap<string, string> = new Map<string, stri
 
 /**
  * Each army and fleet at the start (`StartUnits`), by its Great King, or by its city's capital province for a city-state's
- * (`CityRange`, `CityShips`): the armies dossier's line for its size (`docs/history/11-armies-and-fleets.md`).
+ * (`StartUnits`, by its home): the armies dossier's line for its size, or {@link Invented} for a city whose men are the game's
+ * old guess from its land's yield (`docs/history/11-armies-and-fleets.md`).
  */
 export const ArmyAnchors: ReadonlyMap<string, string> = new Map<string, string>([
   ...own("11-", "Egypt", "Hatti", "Mitanni", "Babylonia", "Assyria", "Arzawa", "Alashiya").map(([k, a]): [string, string] => [k, a.toLowerCase() + "-army"]),
@@ -270,6 +271,8 @@ export const ArmyAnchors: ReadonlyMap<string, string> = new Map<string, string>(
   ...on("11-syrian-cities", "qatna", "qadesh", "aleppo", "alalakh", "nuhashshe"),
   ...on("11-arwad-tyre-sidon", "tyre", "sidon"),
   ...on("11-raiders", "kaska", "lukka", "steppe"),
+  // The cities the armies dossier gives no range for keep the game's old guess, 50 men for each shekel their land yields
+  ...on(Invented, "seha", "mira", "terqa", "isuwa", "azzi", "carchemish", "niya", "tunip", "gath", "aijalon", "arrapha", "susa", "libya", "shasu"),
 ]);
 
 /** Each fleet at the start, by its Great King or its city's capital province: the armies dossier's line in "Fleets". */

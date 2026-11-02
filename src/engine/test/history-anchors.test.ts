@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, test } from "vitest";
 import {
-  AllPowers, ArmyAnchors, AttestedCast, AttestedKm, CityRange, CityShips, CityWaters, CrossedRivers, CrossingAnchors, Crossings, DistanceAnchors,
+  AllPowers, ArmyAnchors, AttestedCast, AttestedKm, CityWaters, CrossedRivers, CrossingAnchors, Crossings, DistanceAnchors,
   DoorAnchors, Doors, FirstCores, FleetAnchors, HarbourAnchors, Invented, LanguageAnchors, NamedScribes, NubianCast, PeopleOf1346, PersonAnchors,
   RiverAnchors, Rivers, RulerAnchors, StartUnits, StartWalls, TongueAnchors, WallAnchors, WaterAnchors, WorldMap, beyondTongue, isGreatKing, king,
   modernOf, peopleSpeak, rulerNamed, startHarbour,
@@ -148,10 +148,11 @@ describe("HistoryAnchorTests", () => {
   });
 
   test("Every army and fleet at the start names an anchor, and its line names its king or city", () => {
-    const kings = [...new Set(StartUnits.filter((u) => isGreatKing(u.power)))];
+    // A Great King's units by its name, a city-state's by its city (`home`), every unit that starts the game included
+    const owners = (kind: string): string[] => [...new Set(StartUnits.filter((u) => u.kind === kind).map((u) => (isGreatKing(u.power) ? u.power : u.home)))];
     const out = [
-      ...misses("army", [...new Set(kings.filter((u) => u.kind === "Army").map((u) => u.power)), ...Object.keys(CityRange)], ArmyAnchors, (k) => [[k, ...placeNames(k)]]),
-      ...misses("fleet", [...new Set(kings.filter((u) => u.kind === "Fleet").map((u) => u.power)), ...Object.keys(CityShips)], FleetAnchors, (k) => [[k, ...placeNames(k)]]),
+      ...misses("army", owners("Army"), ArmyAnchors, (k) => [[k, ...placeNames(k)]]),
+      ...misses("fleet", owners("Fleet"), FleetAnchors, (k) => [[k, ...placeNames(k)]]),
     ];
     Assert.equal("", out.join(", "));
   });

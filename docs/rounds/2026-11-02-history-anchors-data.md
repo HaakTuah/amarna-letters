@@ -21,11 +21,11 @@ Nesa, `ekallatum` for Ekallate), a crossing or a distance by both its ends.
 | `DoorAnchors` | `Doors` and each land beyond them | `08-beyond-the-edges.md` | none |
 | `CrossingAnchors` | `Crossings` (41) | `02-geography.md`: the great routes, terrain, crossings, neighbours | none |
 | `DistanceAnchors` | `AttestedKm` | `02-geography.md`, "Distances between the map's places" | none |
-| `ArmyAnchors`, `FleetAnchors` | `StartUnits`' Great Kings, `CityRange`, `CityShips` | `11-armies-and-fleets.md` | none |
+| `ArmyAnchors`, `FleetAnchors` | every army and fleet in `StartUnits`, by its Great King or its city | `11-armies-and-fleets.md` | 14 cities the armies dossier gives no range for, whose men are the game's old guess from their land's yield (found by Codex's review) |
 | `HarbourAnchors` | the ports `startHarbour` raises above a beach | `02-geography.md` "Coasts and harbours", `12-...` "Harbours" | none |
 | `RiverAnchors` | `Rivers`, `CrossedRivers` | `02-geography.md`, "Rivers" | none |
 
-`CityRange` and `CityShips` are exported for the test. Anchors stay data only: nothing shows them to a king, a
+Anchors stay data only: nothing shows them to a king, a
 character or a model.
 
 ## What the test found, and the fixes

@@ -725,7 +725,7 @@ export const MenPerShip = 25;
  * within the dossier's range; where the dossier gives none, the old guess stands. Arwad, Sidon, Tyre, Byblos and Ugarit
  * also keep the ships the dossier gives them ("Fleets"), in the waters off their city.
  */
-export const CityRange: Readonly<Record<string, readonly [number, number, "low" | "middle" | null]>> = {
+const CityRange: Readonly<Record<string, readonly [number, number, "low" | "middle" | null]>> = {
   megiddo: [100, 500, "low"],
   shechem: [100, 500, "middle"],
   jerusalem: [100, 500, "low"],
@@ -762,7 +762,7 @@ function cityMen(x: Province): number {
 }
 
 /** The ships of the coastal cities (the armies dossier, "Fleets", its "Start from" column), by the city's capital province. */
-export const CityShips: Readonly<Record<string, number>> = { ugarit: 80, arwad: 20, sidon: 20, tyre: 20, byblos: 10 };
+const CityShips: Readonly<Record<string, number>> = { ugarit: 80, arwad: 20, sidon: 20, tyre: 20, byblos: 10 };
 
 /**
  * Where a city-state's army or ships start elsewhere than its city (item 17+), by the city's capital province: data, read
