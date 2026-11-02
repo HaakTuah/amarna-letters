@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { court } from "../../game/src/bots/statecraft-court.ts";
 import {
   type Character,
   Dict,

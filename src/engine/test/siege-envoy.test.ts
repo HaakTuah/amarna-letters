@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { orders } from "../../llm/src/parse.ts";
 import {
   type Character,
   Dict,
@@ -67,7 +66,6 @@ describe("SiegeEnvoyTests", () => {
   test("An envoy caught leaving is the besieger s captive with its letter gold and tablet", () => {
     let [s, envoy] = besieged(newGameConfig({ siegeCatchMin: 100, siegeCatchMax: 100 }));
     Assert.equal(2, new TurnEngine(s).tightness(s.sieges[0]));
-    let babylonGold = s.treasuries.get("Babylonia").gold;
     season(s, letter(envoy, 60, newTabletProposal({ text: "Egypt and Assyria stand together." })));
 
     Assert.equal(["Captured", "Babylonia", true], [envoy.status, envoy.heldBy, envoy.intercepted]);

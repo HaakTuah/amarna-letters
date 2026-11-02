@@ -29,7 +29,6 @@ import {
   setLevel,
   upkeepGold,
   upkeepMen,
-  type WorkKind,
   WorkKindValues,
   WorksData,
   WorksEffect,

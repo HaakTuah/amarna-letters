@@ -1,7 +1,6 @@
 import { describe, test } from "vitest";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
-import { host } from "../src/bots/statecraft-letters.ts";
 import { Statecraft } from "../src/bots/statecraft.ts";
 import { type HostReply, type Power, Rng, Views, newAudienceView, newGame, newTabletView } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";

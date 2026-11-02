@@ -1,9 +1,9 @@
 import { describe, test } from "vitest";
 import { scriptSeats, seasons } from "./small-world.ts";
-import { AllPowers, Dict, type GameState, Wealth, earningsTotal, gain, newCharacter, newContract, newHoard, sum } from "@amarna/engine";
-import { GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator, batchReport, playGame } from "@amarna/game";
+import { Dict, type GameState, Wealth, earningsTotal, gain, newCharacter, newContract, newHoard, sum } from "@amarna/engine";
+import { GameRunner, ScriptMind, TemplateNarrator, batchReport, playGame } from "@amarna/game";
 import { selfText } from "@amarna/llm";
-import { Assert, toDict } from "../../engine/test/support.ts";
+import { Assert } from "../../engine/test/support.ts";
 
 // <summary>The richest characters, ranked at the end of a game where the game's end is shown.</summary>
 describe("RichestTests", () => {

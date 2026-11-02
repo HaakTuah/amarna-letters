@@ -1,10 +1,8 @@
 import { describe, test } from "vitest";
-import { host } from "../src/bots/statecraft-letters.ts";
 import { TextKit } from "../src/bots/textkit.ts";
 import {
   type Character,
   type Power,
-  king,
   newCharacter,
   newDispatch,
   newExchange,

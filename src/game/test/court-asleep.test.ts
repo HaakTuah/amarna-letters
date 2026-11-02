@@ -1,7 +1,4 @@
 import { describe, test } from "vitest";
-import { react } from "../../llm/src/parse.ts";
-import { letters } from "../src/bots/statecraft-letters.ts";
-import { present } from "../src/character-checks.ts";
 import {
   AllPowers,
   type AudienceView,
@@ -46,7 +43,6 @@ import {
   single,
   unitAt,
   unreadable,
-  write,
 } from "@amarna/engine";
 import {
   type EnvoyContext,
@@ -75,7 +71,7 @@ import {
   situation,
   sleepLine,
 } from "@amarna/llm";
-import { at, str, Assert, last, orderBy, toDict, join, oldWorld } from "../../engine/test/support.ts";
+import { str, Assert, last, orderBy, toDict, join, oldWorld } from "../../engine/test/support.ts";
 import { audience as audienceOf } from "@amarna/llm";
 import { first as firstOf } from "@amarna/engine";
 import { describe as describeOrder } from "@amarna/engine";

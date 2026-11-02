@@ -17,7 +17,6 @@ import {
   list,
   newGameConfig,
   obj,
-  opt,
   quote,
   serialize,
   sortBy,

@@ -1,10 +1,7 @@
 import { describe, test } from "vitest";
-import { court } from "../src/bots/statecraft-court.ts";
 import { TextKit } from "../src/bots/textkit.ts";
 import {
-  I,
   SealedOutcome,
-  king,
   land,
   newCharacter,
   newDispatch,
