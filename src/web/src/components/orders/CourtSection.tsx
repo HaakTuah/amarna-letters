@@ -41,8 +41,9 @@ import type { OrdersContext } from "./use-orders.ts";
 /** The orders panel's Court: servants, candidates, jobs and their fees, lenders and debts, inquiries and captives. */
 export function CourtSection({ c }: { c: OrdersContext }) {
   const { draft, v, me, f, set, wage, ready, reserved, others, add, term, addSpy } = c;
-  // The upkeep order's pay or food half already drafted: for all the troops (any draft of that half, since a whole order
-  // after a province's would set the province's back), or for one province (its own, or the whole order's).
+  // The upkeep order's pay or food half, drafted in a season either for all the troops or province by province: the
+  // orders apply in turn, so a whole order after a province's would clear it, and a province's choices after a whole
+  // order are worded against the order as the season began.
   const drafted = (half: "pay" | "feed", at?: string): boolean =>
     draft.other.some((o) => o.type === "upkeep" && o[half] !== null && (o.province === undefined || at === undefined || o.province === at));
   return (
