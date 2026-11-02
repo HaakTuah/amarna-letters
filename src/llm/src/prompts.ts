@@ -404,12 +404,12 @@ function standingLine(st: StandingOrderView, v: SeatView): string
     /// not the full map: its treasury, its land and troops, foreign troops at or inside its borders as far as it can see, its
     /// scheduled and standing orders, and its people at court and away.
     /// </summary>
-export function realmBrief(v: SeatView): string
+export function realmBrief(v: SeatView, purpose = "enough to judge whether the news changes your plan; you see the full map only if you reopen your orders"): string
     {
         const map = WorldMap.default;
         const sb = new Sb();
         const kindOf = (k: UnitKind): string => (k === "Army" ? `army` : `fleet`);
-        sb.appendLine(`YOUR REALM IN BRIEF (enough to judge whether the news changes your plan; you see the full map only if you reopen your orders):`);
+        sb.appendLine(`YOUR REALM IN BRIEF (${purpose}):`);
         sb.appendLine(`- Treasury: ${v.gold} shekels by your ledger; gold in since your last orders ${v.income}; a season your troops' pay ${v.upkeep}${(v.worksUpkeep > 0 ? `, what you keep and build in gold ${v.worksUpkeep}` : ``)}, your people's jobs about ${v.fees}; fees still to fall due ${v.feesDue}${v.debts.length > 0 ? `; debts ${v.debts.reduce((a, d) => a + d.left, 0)}` : ``}.`);
         const hungry = v.units.filter((u) => u.power === v.power && (u.hungry > 0 || u.unpaid > 0));
         if (hungry.length > 0) sb.appendLine(`- Troops hungry or unpaid: ${joinS(`, `, hungry.map((u) => `${u.province}${u.hungry > 0 ? ` hungry ${u.hungry}` : ``}${u.unpaid > 0 ? ` unpaid ${u.unpaid}` : ``}`))}.`);

@@ -46,6 +46,7 @@ import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
 import { audience, courtBrief, identity, ordersLine, ordersStandAtCourt, realmBrief, situation, sleepLine, tabletBrief, tabletLine } from "./prompts.ts";
 import { leaderRules } from "./rules.ts";
+import { planRules } from "./rules-plan.ts";
 import { Replies, Schemas, type JsonObject } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
 
@@ -114,7 +115,12 @@ export class LlmLeaderSeat implements ISeat {
 
   /** The rulebook: the table's settings, with the age open once the view says so (the table may play on past its end). */
   private shared(view: SeatView): string {
-    return leaderRules(this.primer, view.openAge === this.config.openAge ? this.config : { ...this.config, openAge: view.openAge });
+    return leaderRules(this.primer, this.configOf(view));
+  }
+
+  /** The table's settings, with the age open once the view says so. */
+  private configOf(view: SeatView): GameConfig {
+    return view.openAge === this.config.openAge ? this.config : { ...this.config, openAge: view.openAge };
   }
 
   /** The orders request for this view, as the king's record now stands (the measure of call size reads it too). */
@@ -195,7 +201,7 @@ export class LlmLeaderSeat implements ISeat {
     if (why === null) return null;
     const user = new Sb();
     user.appendLine(`SEASON: turn ${view.turn}. You set down your plan for the seasons ahead (${why === "the first plan" ? "your first" : "anew"}), from your record and your realm as they stand.`);
-    user.append(realmBrief(view));
+    user.append(realmBrief(view, "enough to plan by; you see the full map when you give your orders"));
     user.appendLine(this.journalOf.forOrders());
     user.appendLine(
       "Write your plan: your aims, your friends and enemies, what to do in the seasons ahead and what to watch for. You play each season by it, and may ask for it to be written anew. Leave standing answers with it for the envoys you expect.",
@@ -205,7 +211,8 @@ export class LlmLeaderSeat implements ISeat {
       turn: view.turn,
       role: `plan:${this.power}`,
       model: r.planning,
-      sharedSystem: this.shared(view),
+      // Its own short opening, what a planner needs of the rules, never the kings' whole rulebook.
+      sharedSystem: planRules(this.configOf(view)),
       seatSystem: identity(this.power),
       user: user.toString(),
       schema: planReply(),
