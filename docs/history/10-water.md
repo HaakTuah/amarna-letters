@@ -29,15 +29,15 @@ Water works (a well sunk, a cistern dug, a guarded way down to a spring) are ite
 | --- | --- | --- | --- |
 | <a id="10-seha"></a>seha | the Seha River Land's towns | River | [C] the valley of the Hermos (Gediz) or Kaikos (Bakırçay); the towns are not located with certainty. Wikipedia, Seha River Land: "generally identified with the Bakırçay River or the Gediz River" |
 | <a id="10-apasa"></a>apasa | Apasa (Ephesus, Ayasuluk hill) | River | [C] the Cayster's valley below the hill, though the river's course moved. Wikipedia, Ephesus: "During the Late Bronze Age, the hill was fortified" (Ayasuluk); "the movement of the Kayster River" |
-| <a id="10-mira"></a>mira | Mira's towns (Beycesultan?) | Cisterns | [G] the capital is not located for certain |
+| <a id="10-mira"></a>mira | Mira's towns (Beycesultan?) | Cisterns | [G] Cisterns is the game's reading: the capital is not located for certain. Wikipedia, Mira: "It is probable that Mira extended to the Aegean coast and had its capital at Apaša"; the other candidate, Beycesultan, "lies in a bend of an old tributary of Büyük Menderes River" (Wikipedia, Beycesultan); either would fit River |
 | <a id="10-tuwanuwa"></a>tuwanuwa | Tuwanuwa (Tyana) | Outside | [C] its springs lay outside the town: in Roman times an aqueduct brought water from a spring some 4 km away, and a sacred spring rose about two miles south. Hamilton, *Researches in Asia Minor* II (1842): "About two miles south of Tyana is the spring" |
 | <a id="10-hattusa"></a>hattusa | Hattusa | Spring | [B] great ponds inside the city, dug into the slope and filled by groundwater rising in winter (the East and South Ponds). Wittenberg and Aksoy, "From cut-in to qanats" (abstract): "used 3600 years ago by the Hittites to fill the ponds of their capital Hattuşa" |
-| <a id="10-sapinuwa"></a>sapinuwa | Sapinuwa (Ortaköy) | Cisterns | [S] nothing published on its water; [G] |
-| <a id="10-nesa"></a>nesa | Nesa (Kültepe) | Cisterns | [G] the mound stands in the plain; its water is not described |
+| <a id="10-sapinuwa"></a>sapinuwa | Sapinuwa (Ortaköy) | Cisterns | [G] Cisterns is the game's reading; little is published on its water. Wikipedia, Sapinuwa: on the hills to the west, "the need for water and timber were being supplied from these hills", which would fit Outside |
+| <a id="10-nesa"></a>nesa | Nesa (Kültepe) | Cisterns | [G] invented for the game: the mound stands in the plain and no source on its water was found (searched Wikipedia and Livius on Kültepe); Livius, Kaneš: "there are no indications that it was inhabited in the Late Bronze Age" |
 | <a id="10-kizzuwatna"></a>kizzuwatna | Kummanni and the Cilician plain | River | [C] the Ceyhan and Seyhan cross the plain; Kummanni itself lay in the highlands and its water is not described. Wikipedia, Kizzuwatna: "The centre of the kingdom was the city of Kummanni, located in the highlands" |
 | <a id="10-harran"></a>harran | Harran | Wells | [C] wells; in later times the in-town wells ran brackish and the sweet one (Jacob's Well) lay outside the walls; a canal from the Balikh was dug under Harun al-Rashid. Wikipedia, Harran: "six wells were still operational within the ancient walls" |
 | <a id="10-washukanni"></a>washukanni | Washukanni (Tell Fakhariya?) | Spring | [C] by the springs of Ras al-Ain at the Khabur's head, if the identification holds (it is unproven). Wikipedia, Washukanni: "precise location... is unknown"; Tell Fekheriye lies on the southern edge of Ras al-Ain |
-| <a id="10-taidu"></a>taidu | Taidu | Cisterns | [S] not located for certain; [G] |
+| <a id="10-taidu"></a>taidu | Taidu | Cisterns | [S] not located for certain, its water not described; Cisterns [G]. Wikipedia, Taite: "The site of Tall Al-Hamidiya has recently been proposed as the location of ancient Taite" (Wäfler 2007) |
 | <a id="10-terqa"></a>terqa | Terqa (Tell Ashara) | River | [B] on the Euphrates. Wikipedia, Terqa: "on the banks of the middle Euphrates" |
 | <a id="10-nineveh"></a>nineveh | Nineveh | River | [B] on the Tigris, where the Khosr joins it. Wikipedia, Nineveh: "at the junction of the Tigris and the Khosr Rivers" |
 | <a id="10-arbela"></a>arbela | Arbela (Erbil) | Wells | [G] a citadel mound in a plain; wells assumed, its ancient water not described |
@@ -49,12 +49,12 @@ Water works (a well sunk, a cistern dug, a guarded way down to a spring) are ite
 | <a id="10-nippur"></a>nippur | Nippur | River | [B] on the Shatt en-Nil, an old course of the Euphrates. Wikipedia, Nippur: "one of the earliest courses of the Euphrates" |
 | <a id="10-ur"></a>ur | Ur | River | [B] on the Euphrates and its canals. Wikipedia, Ur: "near the mouth of the Euphrates" |
 | <a id="10-dilmun"></a>dilmun | Dilmun (Qal'at al-Bahrain) | Spring | [B] Bahrain's freshwater springs. Wikipedia, Dilmun: "close to the sea and to artesian springs" |
-| <a id="10-delta"></a>delta | the Delta's towns | River | [B] the Nile's branches |
+| <a id="10-delta"></a>delta | the Delta's towns | River | [B] the Nile's branches. Wikipedia, Nile Delta: "In the past, the delta had several distributaries" |
 | <a id="10-sinai"></a>sinai | the Sinai's forts | Arid | [B] wells along the Ways of Horus, a little water for a garrison; Seti I's Karnak reliefs (some fifty years later) name its forts and wells. Wikipedia, Way of Horus: "Wells were dug along the route at distances approximately one day's walk" |
 | <a id="10-memphis"></a>memphis | Memphis | River | [B] on the Nile. Wikipedia, Memphis: "on the west bank of the Nile" |
 | <a id="10-akhetaten"></a>akhetaten | Akhetaten (Amarna) | River | [B] on the Nile; wells in the town [A, excavated]. Wikipedia, Amarna: "on the east bank of the Nile River"; gardenvisit.com, El Amarna: "Many of the courts had circular wells" |
 | <a id="10-thebes"></a>thebes | Thebes | River | [B] on the Nile. Wikipedia, Thebes: "located along the Nile" |
-| <a id="10-nubia"></a>nubia | Nubia's towns | River | [B] on the Nile |
+| <a id="10-nubia"></a>nubia | Nubia's towns | River | [B] on the Nile. Wikipedia, Buhen: "The fortress itself extended more than 150 metres (490 ft) along the west bank of the Nile" |
 | <a id="10-kalavasos"></a>kalavasos | Kalavasos-Ayios Dhimitrios | Wells | [G] wells in the town assumed; it stood by the Vasilikos river. Wikipedia, Kalavasos: "on the river Vasilikos" |
 | <a id="10-enkomi"></a>enkomi | Enkomi | Wells | [G] wells inside the 14th-century town assumed: the wells the source names are later, in the Ashlar Building's Level IIIA, which the article dates to Late Cypriot IIIA, 1200–1100 BCE. Wikipedia, Enkomi (site): "the discovery of multiple wells, hearths, and benches" |
 | <a id="10-isuwa"></a>isuwa | Isuwa's towns | River | [C] on the upper Euphrates. Wikipedia, Isuwa: "eastern bank of the river Euphrates" |
@@ -62,10 +62,10 @@ Water works (a well sunk, a cistern dug, a guarded way down to a spring) are ite
 | <a id="10-alalakh"></a>alalakh | Alalakh (Tell Atchana) | River | [C] in the Orontes' flood plain in the Amuq. Wikipedia, Alalakh: "within the flood plain of the Orontes River, where the river enters the Amuq Plain" |
 | <a id="10-aleppo"></a>aleppo | Aleppo | Wells | [C] the citadel's deep wells, of unknown date; the Queiq river below. Wikipedia, Citadel of Aleppo: "Several wells penetrate down to 125 m" |
 | <a id="10-ugarit"></a>ugarit | Ugarit (Ras Shamra) | Wells | [B] wells across the city, one feeding a pool in the palace [A, excavated]. Collège de France (2024): "numerous wells have been found within the city" |
-| <a id="10-nuhashshe"></a>nuhashshe | Nuhashshe's towns | Cisterns | [S] not located for certain; [G] |
+| <a id="10-nuhashshe"></a>nuhashshe | Nuhashshe's towns | Cisterns | [S] its towns not located for certain, their water not described; Cisterns [G]. Wikipedia, Nuhašše: it "stretched from the Euphrates valley in the east to the Orontes valley in the west" |
 | <a id="10-qatna"></a>qatna | Qatna (Tell Mishrifeh) | Spring | [C] a spring-fed lake inside its great ramparts, which dried toward the end of the Bronze Age. Morandi Bonacossi (via Wikipedia, Qatna): "an inner lake fed by a spring located in the northern foot of the upper city" |
 | <a id="10-qadesh"></a>qadesh | Qadesh (Tell Nebi Mend) | River | [B] at the meeting of the Orontes and the Mukadiya, made an island by a cut channel (Ramesses II's reliefs show it ringed by water, a century later). Wikipedia, Kadesh: "had cut a channel from the river to a stream south of the town" |
-| <a id="10-amurru"></a>amurru | Amurru's hill towns | Cisterns | [G] Abdi-Ashirta's land in the hills; its towns are not located |
+| <a id="10-amurru"></a>amurru | Amurru's hill towns | Cisterns | [G] invented for the game: Abdi-Ashirta's land in the hills; its towns are not located and no source on their water was found |
 | <a id="10-sumur"></a>sumur | Ṣumur (Tell Kazel) | Wells | [G] wells assumed; its water is not described. [B] it stands in the coastal plain by the Abrash. Wikipedia, Tell Kazel: "in the north of the Akkar plain on the north of the al-Abrash River" |
 | <a id="10-arwad"></a>arwad | Arwad | Island | [B] an island with cisterns; water came from the mainland, and in war from a spring in the sea channel. Strabo 16.2.13 (1st century BCE): "partly from the rains and cisterns and partly from their territory on the mainland" |
 | <a id="10-byblos"></a>byblos | Byblos | Spring | [B] the town's spring (Ain el-Malik) in the valley between its two summits. Livius, Byblos well: "two summits that are separated by a valley with a well" |
@@ -77,11 +77,11 @@ Water works (a well sunk, a cistern dug, a guarded way down to a spring) are ite
 | <a id="10-jerusalem"></a>jerusalem | Jerusalem | Spring | [C] the Gihon, guarded by the Spring Tower: dated to the Middle Bronze Age by its excavators (Reich and Shukron), to about 800-900 BCE by radiocarbon (Regev et al., *Radiocarbon* 59, 2017), which Reich disputes (2018). ScienceDaily (2017): "The date revealed by this radiocarbon dating was sometime around 800-900 BCE" |
 | <a id="10-gaza"></a>gaza | Gaza | Wells | [C] wells in the coastal sands with a high water table. Wikipedia, Gaza City: "depends on groundwater as the only source for drinking" (today) |
 | <a id="10-suhu"></a>suhu | Suhu's towns | River | [B] on the Euphrates. Wikipedia, Suhum: "around the middle course of the Euphrates River" |
-| <a id="10-arrapha"></a>arrapha | Arrapha (Kirkuk) | Cisterns | [G] its water is not described |
+| <a id="10-arrapha"></a>arrapha | Arrapha (Kirkuk) | Cisterns | [G] invented for the game: its water is not described. Wikipedia, Arrapha: "Arrapha has not been excavated yet, due to its location beneath modern Kirkuk" |
 | <a id="10-susa"></a>susa | Susa | River | [B] the Shaur runs at the foot of the mounds, between the Karkheh and the Dez; that it ran there in the 14th century BCE is inferred. *Encyclopædia Britannica* (1911), "Susa": "The Shaur, a small tributary of the Dizful, washes the eastern base of the mounds of Shush"; Wikipedia, Susa: "between the Karkheh and Dez Rivers" |
-| <a id="10-lukka"></a>lukka | the Lukka lands | Cisterns | [G] a rugged coast of small places |
-| <a id="10-kaska"></a>kaska | the Kaska lands | Cisterns | [G] mountain villages, no cities to besiege |
-| <a id="10-steppe"></a>steppe | the Sutean steppe | Arid | [G] wells and seasonal pools |
+| <a id="10-lukka"></a>lukka | the Lukka lands | Cisterns | [G] invented for the game: a rugged coast of small places; no source on its water found |
+| <a id="10-kaska"></a>kaska | the Kaska lands | Cisterns | [G] invented for the game: mountain villages, no cities to besiege; no source on their water found |
+| <a id="10-steppe"></a>steppe | the Sutean steppe | Arid | [G] invented for the game: wells and seasonal pools; no source on its water found |
 
 ## What changed from item 10+b's reading
 
