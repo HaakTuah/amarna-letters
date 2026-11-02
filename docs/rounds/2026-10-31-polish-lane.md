@@ -74,9 +74,11 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The end of an age read "The age has ended (the gods have ended the age)"; it reads "The gods have ended the age." (or "Only one kingdom remains.", "The age has run its course."), and the header names the winners as the game shows them.
 - In the Standings tables a power's name could fall to the line below its emblem ("Carchemish" alone under its seal);
   emblem and name now stay on one line (#346).
+- On the whole map a tap on a small city's seal opened whichever neighbour's tap circle was drawn last (Sidon's opened Ṣurru, Gezer's Ayyaluna: 23 of 71 seals on a computer, 31 on a phone); the nearest seal wins now (5 and 1 left, each a neighbour's army counter drawn over the seal, an open find).
 
 ## Finds not yet fixed
 
+- On the whole map a few army counters stand over a neighbour's seal (Seha's under Apasa's army, Niya's and Tunip's under Qadesh's, Nineveh's under Ashur's, Dur-Kurigalzu's under Babili's at 1280 × 800), so a tap there opens the counter's province.
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
 - In a seat's view the map's "as of …" notes on remembered units overlap one another near Gaza (Egypt, desktop, the
