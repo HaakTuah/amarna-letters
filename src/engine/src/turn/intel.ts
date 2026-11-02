@@ -208,8 +208,9 @@ P.spyComesHome = function (j) {
   // What he did not spend of the gold to stir a province he hands back (item 17).
   if (c.stirGold > 0) {
     if (!free && isAlive(S, j.to)) this.credit(j.to, c.stirGold, this.courtAt(j.to), false);
-    // His master's gold on him now, counted as what he kept of it (item 17+: the purse holds only what is counted).
-    else gain(c, c.stirGold, "Skimmed");
+    // Dismissed, or his master fallen: the gold on him is his now, kept from an errand (item 17+: the purse holds only
+    // what is counted), not skimmed.
+    else gain(c, c.stirGold, "Carried");
     c.stirGold = 0;
   }
   this.bringNews(j, j.to, c);

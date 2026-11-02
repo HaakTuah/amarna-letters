@@ -255,7 +255,7 @@ const fallenNow = new Set<string>();
 const givenBy = new Map<string, Map<string, string>>();
 const heardBy = new Map<string, Map<string, string>>();
 let viewerNow: Power | null = null;
-/** Each court's claimants by name, as it knows them (the key "" is the world's record), reckoned when first asked. */
+/** Each court's claimants by name, as it knows them, reckoned when first asked. */
 const byName = new Map<string, Map<string, Power[]>>();
 
 type Pairs<V> = Iterable<[string, V]>;
@@ -304,17 +304,16 @@ export function claimedName(p: Power): string {
 
 /**
  * The name a power goes by as `viewer`'s court knows it: its own claim for itself, else the name the claimant's last
- * greeting to it styled him by, else his own land's. With no viewer, the world's record: the name he claims.
+ * greeting to it styled him by, else his own land's.
  */
-export function knownName(viewer: Power | null, p: Power): string {
-  if (viewer === null || viewer === p) return claimedName(p);
+export function knownName(viewer: Power, p: Power): string {
+  if (viewer === p) return claimedName(p);
   return heardBy.get(viewer)?.get(p) ?? ownLand(p);
 }
 
-/** The powers in play claiming a name, in their order, as `viewer`'s court knows them (null: the world's record). */
-export function claimantsOf(name: string, viewer: Power | null = null): Power[] {
-  const key = viewer ?? "";
-  let m = byName.get(key);
+/** The powers in play claiming a name, in their order, as `viewer`'s court knows them. */
+export function claimantsOf(name: string, viewer: Power): Power[] {
+  let m = byName.get(viewer);
   if (m === undefined) {
     m = new Map();
     for (const p of AllPowers) {
@@ -324,15 +323,15 @@ export function claimantsOf(name: string, viewer: Power | null = null): Power[] 
       if (l === undefined) m.set(n, [p]);
       else l.push(p);
     }
-    byName.set(key, m);
+    byName.set(viewer, m);
   }
   return m.get(name) ?? [];
 }
 
-/** The names two or more powers in play claim, as `viewer`'s court knows them (null: the world's record). */
-export function contestedNames(viewer: Power | null = null): string[] {
+/** The names two or more powers in play claim, as `viewer`'s court knows them. */
+export function contestedNames(viewer: Power): string[] {
   claimantsOf("", viewer);
-  return [...byName.get(viewer ?? "")!.entries()].filter(([, l]) => l.length > 1).map(([n]) => n);
+  return [...byName.get(viewer)!.entries()].filter(([, l]) => l.length > 1).map(([n]) => n);
 }
 
 /** The names a power may claim (item 17+): every realm's the map knows or a power rose with, and every name claimed. */

@@ -11,10 +11,12 @@ import {
   inboxOf,
   newBand,
   newCharacter,
+  newDispatch,
   newGame,
   newGameConfig,
   newGovernor,
   newId,
+  newJourney,
   newSiege,
   newTraits,
   newTurnSubmission,
@@ -323,6 +325,16 @@ describe("FreeCitiesTests", () => {
     new TurnEngine(s).capture(spy, "Hatti", null as never);
     Assert.equal(0, spy.stirGold);
     Assert.equal(120, spy.earned.carried);
+    Assert.equal(0, spy.earned.skimmed);
+  });
+
+  test("A spy dismissed on the road home keeps the gold for stirring as carried, not skimmed", () => {
+    const s = quiet();
+    const spy = newCharacter({ id: newId(s, "c"), name: "Zida", status: "Free", at: null, stirGold: 80 });
+    s.characters.push(spy);
+    new TurnEngine(s).spyComesHome(newJourney({ id: "j1", kind: "SpyHomebound", from: "Hatti", to: "Arzawa", characterId: spy.id, dispatch: newDispatch() }));
+    Assert.equal(0, spy.stirGold);
+    Assert.equal(80, spy.earned.carried);
     Assert.equal(0, spy.earned.skimmed);
   });
 });

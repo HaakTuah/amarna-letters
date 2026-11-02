@@ -36,7 +36,7 @@ describe("NamesAsClaims", () => {
     const [s, e] = game();
     e.claimName("Amurru", claimName("Gubla"));
     Assert.equal("Gubla", s.names.get("Amurru").name);
-    Assert.equal(2, claimantsOf("Gubla").length);
+    Assert.equal(2, claimantsOf("Gubla", "Amurru").length);
     // The engine's own notices name each power by its own land, which every court knows.
     Assert.equal("Gubla", land("Byblos"));
     Assert.equal("Amurru", land("Amurru"));
@@ -101,7 +101,7 @@ describe("NamesAsClaims", () => {
     e.claimHeard("Egypt", "Amurru", "Gubla");
     s.eliminated.push("Byblos");
     e.syncNames();
-    Assert.equal(1, claimantsOf("Gubla").length);
+    Assert.equal(1, claimantsOf("Gubla", "Egypt").length);
     Assert.equal("Gubla", asSeenBy("Egypt", () => land("Amurru")));
   });
 });
