@@ -1,9 +1,9 @@
 import { describe, test } from "vitest";
 import { scriptSeats } from "./small-world.ts";
-import { AllPowers, GameStateSchema, Views, newGame, newGameConfig, serialize } from "@amarna/engine";
+import { GameStateSchema, Views, newGame, newGameConfig, serialize } from "@amarna/engine";
 import { leaderRules } from "@amarna/llm";
-import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
-import { Assert, toDict } from "../../engine/test/support.ts";
+import { GameLog, GameRunner, ScriptMind, TemplateNarrator } from "@amarna/game";
+import { Assert } from "../../engine/test/support.ts";
 
 // "An open age" (build order item 6a): a table may play on once the age has ended, and the choice is in the log, so a
 // replay plays on too.

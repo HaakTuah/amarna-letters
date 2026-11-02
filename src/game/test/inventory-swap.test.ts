@@ -12,7 +12,6 @@ import {
   dispatch,
   first,
   hash,
-  king,
   newCharacter,
   newContract,
   newDispatch,
@@ -29,7 +28,7 @@ import {
   newTurnSubmission,
   single,
 } from "@amarna/engine";
-import { GameLog, GameRunner, type ISeat, type MindContext, ScriptMind, TemplateNarrator, newEnvoyContext, newMindContext, swaps } from "@amarna/game";
+import { GameLog, GameRunner, type ISeat, type MindContext, ScriptMind, TemplateNarrator, newEnvoyContext, newMindContext } from "@amarna/game";
 import { AnthropicProvider, ModelClient, LlmCharacterMind, Parse, Schemas, SimulatedApi } from "@amarna/llm";
 import { str, Assert, toDict } from "../../engine/test/support.ts";
 import { kept as keptOf } from "@amarna/game";

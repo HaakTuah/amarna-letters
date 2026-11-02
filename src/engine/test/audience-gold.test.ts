@@ -123,7 +123,7 @@ describe("AudienceGoldTests", () => {
   });
 
   test("A gift refused in the first exchange may be offered again", () => {
-    let [s, e, envoy, a] = atAudience();
+    let [s, e, , a] = atAudience();
     let gold = s.treasuries.get("Alashiya").gold;
     e.applyAudience(twoRounds(a, newHostReply({ bribe: 20 }), newHostReply({ bribe: 30, end: true }), false, true));
 

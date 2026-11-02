@@ -35,14 +35,13 @@ import {
   newStandingRequest,
   newTurnSubmission,
   newUnit,
-  season,
   standingFiredTitle,
   sum,
   support,
   unitAt,
   unitOf,
 } from "@amarna/engine";
-import { GameLog, GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
+import { GameLog, GameRunner, type ISeat, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, leaderRules, situation } from "@amarna/llm";
 import { removeAll, Assert, armiesBefore13, commanded, firstOrNull, toDict, unruled } from "../../engine/test/support.ts";
 

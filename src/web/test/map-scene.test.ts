@@ -14,8 +14,8 @@ import {
   single,
   setRisen,
 } from "@amarna/engine";
-import { GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
-import { Assert, removeAll, toDict } from "../../engine/test/support.ts";
+import { GameRunner, ScriptMind, TemplateNarrator } from "@amarna/game";
+import { Assert, removeAll } from "../../engine/test/support.ts";
 import { buildScene, type ScenePerson, wallsIn } from "../src/map/scene.ts";
 import { seasonLayer } from "../src/map/seasons.ts";
 import { roadsLayer, worksAtCities } from "../src/map/built.ts";
