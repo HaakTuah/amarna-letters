@@ -1470,3 +1470,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     And a king may choose not to be upfront about why he calls his governor back also, free choice, no?" Written into
     "History holds" in `AGENTS.md` (the most plausible estimate, from as many expert estimates as can be found), "Follow-ups"
     in `docs/BUILD-PROGRESS.md`, and item 17 (Build order, revision 344).
+171. **2 November 2026, 19:05 and 19:06 UTC**, in the design chat: "Should it not read the progress file?" Then, to the
+    design session's take (yes: the progress file is the queue, so each wake reads its diff and acts on what is new,
+    skipping its own builders' done-marks): "Yes, do it expertly if it is worth it in your expert opinion." Written into
+    "The rules, re-read when they change" in `docs/orchestrating.md`; the same in Barkstreet Snakes.
