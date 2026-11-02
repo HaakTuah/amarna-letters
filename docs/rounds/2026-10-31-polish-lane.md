@@ -74,6 +74,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The end of an age read "The age has ended (the gods have ended the age)"; it reads "The gods have ended the age." (or "Only one kingdom remains.", "The age has run its course."), and the header names the winners as the game shows them.
 - In the Standings tables a power's name could fall to the line below its emblem ("Carchemish" alone under its seal);
   emblem and name now stay on one line (#346).
+- The camera stopped where the board met the screen's edge, so a province at the edge of the play area could never be centred; it now goes until the board's edge is at the centre, over the lands drawn beyond it, never past them.
 - On the whole map a tap on a small city's seal opened whichever neighbour's tap circle was drawn last (Sidon's opened Ṣurru, Gezer's Ayyaluna: 23 of 71 seals on a computer, 31 on a phone); the nearest seal wins now (5 and 1 left, each a neighbour's army counter drawn over the seal, an open find).
 
 ## Finds not yet fixed

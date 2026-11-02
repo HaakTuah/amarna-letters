@@ -359,7 +359,8 @@ it opens its province, the Levant's smallest included. Step the timeline and eac
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
 uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow
-their life: their path, their masters, their missions, what they said and reported.
+their life: their path, their masters, their missions, what they said and reported. Drag and zoom
+as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
 gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
@@ -368,6 +369,9 @@ you know it: a city sacked or lost far from your court, out of your sight, stand
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
 Click such a city and its card gives only what your stewards last reported and how many seasons ago, never its new
 holder's affairs; a band your people last told of there is drawn faded, with the age of that word.
+Figures on the roads in the fog are your own: your caravans, wherever they are, and your envoys and spies where you
+believe them; foreign troops show only in your land and where your troops stand, within a season's courier ride of your court, and
+one step beyond.
 Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall
