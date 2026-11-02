@@ -18,7 +18,7 @@ import { terrainOf } from "../model/geography.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import type { RoadsOrder } from "../model/orders.ts";
 import { remember, type Character } from "../model/people.ts";
-import { land, type Power } from "../model/power.ts";
+import { land, type Power, quoteWords } from "../model/power.ts";
 import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind, type InboxKind } from "../model/records.ts";
 import { GrantTitle } from "./authority.ts";
 import { char, findCharacter, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
@@ -239,7 +239,7 @@ P.readAtStation = function (j, c, province) {
   if (holder === null || holder === masterOf(j) || holder === counterpart(j) || d === null || d === undefined || d.letter.trim() === "") return;
   if (levelOf(S, "Stations", province) <= 0 || hostileAt(S, province, holder)) return;
   const name = this.map.get(province).name;
-  this.tell(holder, province, "SpyReport", "Read at a relay station", `At your relay station in ${name}, your men read the letter ${c.name} carries from ${j.from} to ${j.to}: "${d.letter}"`);
+  this.tell(holder, province, "SpyReport", "Read at a relay station", `At your relay station in ${name}, your men read the letter ${c.name} carries from ${j.from} to ${j.to}: ${quoteWords(d.letter)}`);
   logEvent(S, "station", `${holder}'s station men in ${name} read the letter ${c.name} carried from ${j.from} to ${j.to}.`, [holder], "station-read");
 };
 
@@ -565,7 +565,7 @@ P.caughtOnRoad = function (j, c, captor, province) {
   const said = spy
     ? `a spy of ${lord}, ${out ? `on the way to watch ${place ?? `the court of ${j.to}`}` : "on the way home"}.`
     : j.dispatch !== null
-      ? `envoy of ${lord}, on his way to the court of ${j.to}. The letter he was to speak: "${j.dispatch.letter}"` + (j.dispatch.mandate.length > 0 ? ` His mandate: "${j.dispatch.mandate}"` : "")
+      ? `envoy of ${lord}, on his way to the court of ${j.to}. The letter he was to speak: ${quoteWords(j.dispatch.letter)}` + (j.dispatch.mandate.length > 0 ? ` His mandate: ${quoteWords(j.dispatch.mandate)}` : "")
       : `envoy of ${lord}, on his way home from the court of ${j.from}.`;
   notify(
     S,
@@ -656,6 +656,7 @@ P.wordArrives = function (j) {
       const heard = new HSet<Power>(S.fallsHeard.tryGet(j.to) ?? []);
       heard.add(j.from);
       S.fallsHeard.set(j.to, [...heard]);
+      this.syncNames();
       notify(S, j.to, "Rumor", "A kingdom falls", j.text ?? "");
       break;
     }

@@ -4,6 +4,7 @@ import {
   claimName,
   claimantsOf,
   dispatch,
+  quoteWords,
   inboxOf,
   land,
   newGame,
@@ -104,6 +105,10 @@ describe("NamesAsClaims", () => {
     e.claimHeard("Egypt", "Amurru", "Gubla", s.turn);
     s.eliminated.push("Byblos");
     e.syncNames();
+    // Until word of the fall reaches Egypt, it still knows two claimants.
+    Assert.equal(2, claimantsOf("Gubla", "Egypt").length);
+    s.fallsHeard.set("Egypt", ["Byblos"]);
+    e.syncNames();
     Assert.equal(1, claimantsOf("Gubla", "Egypt").length);
     Assert.equal("Gubla", asSeenBy("Egypt", () => land("Amurru")));
   });
@@ -126,9 +131,12 @@ describe("NamesAsClaims", () => {
     const c = s.characters.find((x) => x.employer === "Amurru" && x.status === "Employed" && x.duty === "None")!;
     e.dispatch("Amurru", dispatch(c.id, "Egypt", "Greetings."));
     const j = s.journeys.find((x) => x.characterId === c.id)!;
-    Assert.equal(s.turn, j.dispatch!.sealed);
+    const sealed = s.turn;
+    Assert.equal(sealed, j.dispatch!.sealed);
     e.claimName("Amurru", claimName("Gubla"));
-    e.claimHeard("Egypt", "Amurru", "Gubla", s.turn + 1);
+    e.claimHeard("Egypt", "Amurru", "Gubla", sealed + 1);
+    // The old tablet comes two seasons on, after the newer greeting: only its sealing season keeps it from counting.
+    s.turn = sealed + 2;
     e.envoyArrivesAbroad(j);
     Assert.equal("Gubla", s.namesHeard.get("Egypt").get("Amurru").name);
     Assert.equal("Bit-Aziru", asSeenBy("Egypt", () => land("Amurru")));
@@ -153,16 +161,25 @@ describe("NamesAsClaims", () => {
     // What the engine quotes stays as it was written: a sealed greeting, a letter, someone's words.
     notify(s, "Amurru", "Audience", "Audience", 'The sealed greeting reads: "Say to the king of Gubla, of Amurru your servant." Amurru said: "Gubla (the city) is mine".\nOutcome: Gubla wept.');
     Assert.equal('The sealed greeting reads: "Say to the king of Gubla, of Amurru your servant." Gubla said: "Gubla (the city) is mine".\nOutcome: Bit-Rib-Hadda wept.', said("Amurru"));
-    // A fallen claimant claims nothing: he goes by his own land's name again, and the name he claimed is its own power's.
+    // Words the engine marks as quoted stay whole, even with double quotes of their writer's own inside them.
+    notify(s, "Amurru", "Audience", "Audience", `Amurru said: ${quoteWords('I, the "true" king of Gubla, say Amurru is mine.')} Gubla wept.`);
+    Assert.equal('Gubla said: "I, the "true" king of Gubla, say Amurru is mine." Bit-Rib-Hadda wept.', said("Amurru"));
+    // A fallen claimant claims nothing, once a court hears of the fall: before the word comes it names him as it did.
     s.eliminated.push("Amurru");
+    e.syncNames();
+    Assert.equal("Bit-Aziru", asSeenBy("Egypt", () => land("Amurru")));
+    notify(s, "Egypt", "Notice", "News", "Amurru waits.");
+    Assert.equal("Bit-Aziru waits.", said("Egypt"));
+    // When it hears, he goes by his own land's name again, and the name he claimed is its own power's.
+    s.fallsHeard.set("Egypt", ["Amurru"]);
     e.syncNames();
     Assert.equal("Amurru", asSeenBy("Egypt", () => land("Amurru")));
     notify(s, "Egypt", "Rumor", "A kingdom falls", "Amurru has fallen; Gubla stands. The Kaska lands are quiet.");
     Assert.equal("Amurru has fallen; Gubla stands. The Kaska lands are quiet.", said("Egypt"));
     // A name beginning with "the" is found at the head of a sentence too.
     e.claimName("Hatti", claimName("the Kaska lands"));
-    notify(s, "Hatti", "Notice", "News", "The Kaska lands are quiet; Hatti waits.");
-    Assert.equal(`${asSeenBy("Hatti", () => land("Kaska"))[0].toUpperCase()}${asSeenBy("Hatti", () => land("Kaska")).slice(1)} are quiet; the Kaska lands waits.`, said("Hatti"));
+    notify(s, "Hatti", "Notice", "News", "The Kaska lands are quiet; Hatti waits. Hatti is patient.");
+    Assert.equal(`${asSeenBy("Hatti", () => land("Kaska"))} are quiet; the Kaska lands waits. The Kaska lands is patient.`, said("Hatti"));
     // The god view keeps the engine's names.
     Assert.equal("Amurru", land("Amurru"));
   });

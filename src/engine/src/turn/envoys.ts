@@ -8,7 +8,7 @@ import { hire, type DispatchOrder } from "../model/orders.ts";
 import { factsKnownTo, gain, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
 import { courtSpeaks } from "../model/languages.ts";
 import { errandOf } from "./court.ts";
-import { claimedName, land, type Power } from "../model/power.ts";
+import { claimedName, land, type Power, quoteWords } from "../model/power.ts";
 import { SealedOutcome, newDispatch, newExchange, newGreetingOptions, newHomeCargo, newJobOffer, newJourney, newMessageTrail, newPendingAudience, newTablet, newTabletCopy, newTabletProposal, type Exchange, type HomeCargo, type JobOffer, type Journey, type MessageTrail, type PendingAudience } from "../model/records.ts";
 import { char, findCharacter, isAlive, logEvent, newGoldLot, newId, notify, ownedBy } from "../model/state.ts";
 import { authorityText, newAuthority } from "../model/authority.ts";
@@ -652,8 +652,8 @@ P.overdue = function (sender, c, host, when, place = null) {
  */
 P.audienceTranscript = function (a, c, trail, stated, weighed, unseen) {
   const lines: string[] = [];
-  lines.push(a.dispatch.greetingText.length > 0 ? `The sealed greeting reads: "${a.dispatch.greetingText}"` : "The tablet bears no greeting at all.");
-  lines.push(`${c.name} said: "${trail.delivered}"`);
+  lines.push(a.dispatch.greetingText.length > 0 ? `The sealed greeting reads: ${quoteWords(a.dispatch.greetingText)}` : "The tablet bears no greeting at all.");
+  lines.push(`${c.name} said: ${quoteWords(trail.delivered)}`);
   if (a.dispatch.gold > 0)
     lines.push(
       a.dispatch.inventory
@@ -661,15 +661,15 @@ P.audienceTranscript = function (a, c, trail, stated, weighed, unseen) {
         : `The gold came with no inventory; your weighers found ${formatMoney(weighed)}.`,
     );
   for (const x of trail.exchanges) {
-    lines.push(`You said: "${x.host}"`);
-    lines.push(`${c.name} answered: "${x.envoy}"`);
+    lines.push(`You said: ${quoteWords(x.host)}`);
+    lines.push(`${c.name} answered: ${quoteWords(x.envoy)}`);
   }
   // What the envoy promised is its own words, set apart from what the audience brought about.
   const outcomes = trail.outcomes.filter((o) => !unseen.includes(o) && commitment(o) === null);
   if (outcomes.length > 0) lines.push("Outcome: " + outcomes.join("; ") + ".");
   for (const o of trail.outcomes) {
     const promised = commitment(o);
-    if (promised !== null) lines.push(`${c.name} promised on behalf of ${a.from}: "${promised}"`);
+    if (promised !== null) lines.push(`${c.name} promised on behalf of ${a.from}: ${quoteWords(promised)}`);
   }
   return lines.join("\n");
 };

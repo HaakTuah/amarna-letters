@@ -13,7 +13,7 @@ import { toFigures } from "../model/counts.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { CrownOrder } from "../model/orders.ts";
 import { remember, spend, type Character } from "../model/people.ts";
-import type { Power } from "../model/power.ts";
+import { quoteWords, type Power } from "../model/power.ts";
 import { newTablet, newTabletCopy } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { renderClauses } from "../rules/clauses.ts";
@@ -146,7 +146,7 @@ P.crownsSeason = function () {
     if (!k.accept || c.purse < k.price) {
       k.heard = this.heardAt(k.power, k.seat);
       remember(c, S.turn, `The king of ${k.power} offered me the kingship of ${lands} under oath; I would not take it.`);
-      this.tell(k.power, k.seat, "Rejected", "A kingship refused", `${c.name} would not take the kingship of ${lands} on your terms.${k.terms !== "" ? ` His answer: "${k.terms}"` : ""}`);
+      this.tell(k.power, k.seat, "Rejected", "A kingship refused", `${c.name} would not take the kingship of ${lands} on your terms.${k.terms !== "" ? ` His answer: ${quoteWords(k.terms)}` : ""}`);
       // Its king learns of it from the notice the road brings (hidden information); the event is the god view's.
       logEvent(S, "crown", `${c.name} refused the kingship of ${lands} offered by ${k.power}.`, [], "crown-refused");
       if (!S.governors.some((g) => g.character === c.id)) this.leaveCommand(c, k.seat);

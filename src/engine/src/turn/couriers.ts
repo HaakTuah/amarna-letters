@@ -11,7 +11,7 @@ import { hostileAt, levelOf, waysOf } from "../model/works.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { newCourier } from "../model/command.ts";
 import { describe, newTurnSubmission, unitOf, type Order, type TurnSubmission } from "../model/orders.ts";
-import type { Power } from "../model/power.ts";
+import { quoteWords, type Power } from "../model/power.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
 import { logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
 import { courierSeasons, courtOf } from "../rules/court.ts";
@@ -164,7 +164,7 @@ P.sendOrders = function (p, sub) {
     if (stopper !== null) {
       lost.push(describe(o));
       logEvent(S, "courier", `${stopper}'s men stopped a courier of ${p}'s.`, [p, stopper], "courier-stopped");
-      notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${p} on the road to ${this.map.get(at.province).name}. The order he carried read: "${describe(o)}".`);
+      notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${p} on the road to ${this.map.get(at.province).name}. The order he carried read: ${quoteWords(describe(o))}.`);
       continue;
     }
     S.couriers.push(newCourier({ power: p, plan, given: S.turn, arrives: S.turn + d }));
@@ -228,7 +228,7 @@ P.courierRead = function (p, to, o) {
     if (holder === null || holder === p || read.has(holder) || levelOf(S, "Stations", x) <= 0) continue;
     if (hostileAt(S, x, holder)) continue;
     read.add(holder);
-    this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${p}'s carried to ${this.map.get(to).name}: "${describe(o)}".`);
+    this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${p}'s carried to ${this.map.get(to).name}: ${quoteWords(describe(o))}.`);
     logEvent(S, "station", `${holder}'s station men read an order of ${p}'s on its way to ${this.map.get(to).name}.`, [holder], "station-read");
   }
 };

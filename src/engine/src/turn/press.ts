@@ -59,7 +59,7 @@ P.recordGreeting = function (from, to, g) {
 
 /** The registry of names (`power.ts`) set to the state's, after a claim or a greeting changed it (item 17+). */
 P.syncNames = function () {
-  setNameClaims(this.s.names, this.s.eliminated, this.s.nameGiven, this.s.namesHeard);
+  setNameClaims(this.s.names, this.s.eliminated, this.s.nameGiven, this.s.namesHeard, this.s.fallsHeard);
 };
 
 /**

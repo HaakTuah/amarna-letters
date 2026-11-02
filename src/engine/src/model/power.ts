@@ -262,6 +262,8 @@ const claimed = new Map<string, string>();
 const fallenNow = new Set<string>();
 const givenBy = new Map<string, Map<string, string>>();
 const heardBy = new Map<string, Map<string, string>>();
+/** The falls each court has heard of (`GameState.fallsHeard`): only these it knows to claim nothing. */
+const fallsBy = new Map<string, Set<string>>();
 let viewerNow: Power | null = null;
 /** Each court's claimants by name, as it knows them, reckoned when first asked. */
 const byName = new Map<string, Map<string, Power[]>>();
@@ -278,8 +280,11 @@ export function setNameClaims(
   fallen: Iterable<Power>,
   given: Pairs<Pairs<string>> = [],
   heard: Pairs<Pairs<{ name: string }>> = [],
+  falls: Pairs<Iterable<Power>> = [],
 ): void {
   claimed.clear();
+  fallsBy.clear();
+  for (const [court, l] of falls) fallsBy.set(court, new Set(l));
   fallenNow.clear();
   givenBy.clear();
   heardBy.clear();
@@ -325,13 +330,21 @@ export function knownName(viewer: Power, p: Power): string {
   return heardBy.get(viewer)?.get(p) ?? ownLand(p);
 }
 
-/** The powers in play claiming a name, in their order, as `viewer`'s court knows them. */
+/**
+ * Whether `viewer`'s court knows `p` to have fallen: it has heard word of the fall (`GameState.fallsHeard`), or has fallen
+ * itself and sees what every fallen seat sees, as its seat view's `fallen` does.
+ */
+function fallenFor(viewer: Power, p: Power): boolean {
+  return fallenNow.has(p) && (fallenNow.has(viewer) || (fallsBy.get(viewer)?.has(p) ?? false));
+}
+
+/** The powers in play claiming a name, in their order, as `viewer`'s court knows them (the falls it has heard of left out). */
 export function claimantsOf(name: string, viewer: Power): Power[] {
   let m = byName.get(viewer);
   if (m === undefined) {
     m = new Map();
     for (const p of AllPowers) {
-      if (fallenNow.has(p)) continue;
+      if (fallenFor(viewer, p)) continue;
       const n = knownName(viewer, p);
       const l = m.get(n);
       if (l === undefined) m.set(n, [p]);
@@ -388,8 +401,9 @@ export function nameGivenBy(viewer: Power, name: string): Power | null {
 
 /** A power's name as `viewer`'s court knows and gives it: the name it claims, or its house where the court gives that name to another. */
 export function landFor(viewer: Power, p: Power): string {
-  // A fallen power claims nothing: it goes by its own land's name, or by its house where another still claims that name.
-  if (fallenNow.has(p)) return claimantsOf(ownLand(p), viewer).length > 0 ? house(p) : ownLand(p);
+  // A fallen power claims nothing, once the court has heard of the fall: it goes by its own land's name, or by its house
+  // where another still claims that name.
+  if (fallenFor(viewer, p)) return claimantsOf(ownLand(p), viewer).length > 0 ? house(p) : ownLand(p);
   const name = knownName(viewer, p);
   if (claimantsOf(name, viewer).length < 2) return name;
   return nameGivenBy(viewer, name) === p ? name : house(p);
@@ -404,17 +418,26 @@ export function land(p: Power): string {
   return viewerNow === null ? ownLand(p) : landFor(viewerNow, p);
 }
 
-/** Words the engine quotes, a sealed greeting, a letter or what someone said: between double quotes, closed before a space, a stop or the end. */
+/** Someone's own words the engine quotes in a notice, marked where they are written (`quoteWords`) so no renaming touches them. */
+const Marked = /\uE000([\s\S]*?)\uE001/gu;
+/** Words between double quotes the engine wrote without marking them: closed before a space, a stop or the end. */
 const Quoted = /(?<=^|[\s(])"[\s\S]*?"(?=$|[\s.,;:!?)\]\u2014])/gu;
 
 /**
- * The engine's words, which name each power by its own land's name, with the names `viewer`'s court knows and gives
- * (item 17+): so a name in a notice means the same power it means in the rest of what the court reads. Only the engine's
- * own narration is renamed: what it quotes (a sealed greeting, a letter, a king's or an envoy's words) stays as it was
- * written, and a land's name joined to a word before it ("Bit-Hatti") is not a power's name and is left.
+ * Someone's own words (a sealed greeting, a letter, what a king, an envoy or a captive said) as a notice quotes them:
+ * between double quotes, and marked so that {@link namedFor} leaves them as they were written.
  */
-export function namedFor(viewer: Power, text: string): string {
-  if (!anyClaim) return text;
+export function quoteWords(words: string): string {
+  return `"\uE000${words.replace(/[\uE000\uE001]/gu, "")}\uE001"`;
+}
+
+/** A notice's text with the marks of what it quotes taken out, its names left as they are. */
+export function unmarked(text: string): string {
+  return text.replace(/[\uE000\uE001]/gu, "");
+}
+
+/** The renaming of `viewer`'s court: each own-land name it knows or gives otherwise, and the pattern that finds them. */
+function renamingOf(viewer: Power): { swaps: Map<string, string>; name: RegExp } | null {
   let r = renaming.get(viewer);
   if (r === undefined) {
     const swaps = new Map<string, string>();
@@ -424,22 +447,47 @@ export function namedFor(viewer: Power, text: string): string {
       if (seen === own) continue;
       swaps.set(own, seen);
       // A name that begins with "the" begins a sentence with "The".
-      if (own.startsWith("the ")) swaps.set("T" + own.slice(1), seen[0].toUpperCase() + seen.slice(1));
+      if (own.startsWith("the ")) swaps.set("T" + own.slice(1), seen);
     }
     const names = [...swaps.keys()].sort((x, y) => y.length - x.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
     r = swaps.size === 0 ? null : { swaps, name: new RegExp(`(?<![\\p{L}-])(?:${names.join("|")})(?![\\p{L}])`, "gu") };
     renaming.set(viewer, r);
   }
-  if (r === null) return text;
-  const { swaps, name } = r;
-  const rename = (part: string): string => part.replace(name, (m) => swaps.get(m)!);
-  let out = "";
+  return r;
+}
+
+/** The engine's own narration renamed, a name at the head of a sentence capitalised; what it quotes unmarked is left. */
+function renamed(text: string, r: { swaps: Map<string, string>; name: RegExp }, before: string): string {
+  const one = (part: string, prior: string): string =>
+    part.replace(r.name, (m: string, at: number) => {
+      const seen = r.swaps.get(m)!;
+      return /(?:^|[.!?\n]\s*)$/u.test(prior + part.slice(0, at)) ? seen[0].toUpperCase() + seen.slice(1) : seen;
+    });
+  let out = before;
   let from = 0;
   for (const q of text.matchAll(Quoted)) {
-    out += rename(text.slice(from, q.index)) + q[0];
+    out += one(text.slice(from, q.index), out) + q[0];
     from = q.index + q[0].length;
   }
-  return out + rename(text.slice(from));
+  return (out + one(text.slice(from), out)).slice(before.length);
+}
+
+/**
+ * The engine's words, which name each power by its own land's name, with the names `viewer`'s court knows and gives
+ * (item 17+): so a name in a notice means the same power it means in the rest of what the court reads. Only the engine's
+ * own narration is renamed: what it quotes (`quoteWords`, or else between double quotes) stays as it was written, and a land's
+ * name joined to a word before it ("Bit-Hatti") is not a power's name and is left. The marks of the quotes are taken out.
+ */
+export function namedFor(viewer: Power, text: string): string {
+  const r = anyClaim ? renamingOf(viewer) : null;
+  if (r === null) return unmarked(text);
+  let out = "";
+  let from = 0;
+  for (const q of text.matchAll(Marked)) {
+    out += renamed(text.slice(from, q.index), r, out) + q[1];
+    from = q.index + q[0].length;
+  }
+  return out + renamed(text.slice(from), r, out);
 }
 
 /** The reigning king (or chief), by the names the letters use: what foreign courts call him. */

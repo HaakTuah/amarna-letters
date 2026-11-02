@@ -5,7 +5,7 @@ import { type GameConfig, GameConfigSchema, newGameConfig } from "./config.ts";
 import { type UnitKind, WorldMap } from "./map.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import { type Character, CharacterSchema } from "./people.ts";
-import { AllPowers, type Power, type RisenPower, cmpPower, namedFor } from "./power.ts";
+import { AllPowers, type Power, type RisenPower, cmpPower, namedFor, unmarked } from "./power.ts";
 import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
@@ -1012,10 +1012,8 @@ export function inboxOf(s: GameState, p: Power): InboxItem[] {
  * false, for a notice that speaks of a name itself rather than the power it names.
  */
 export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null, named = true): void {
-  if (named) {
-    title = namedFor(p, title);
-    body = namedFor(p, body);
-  }
+  title = named ? namedFor(p, title) : unmarked(title);
+  body = named ? namedFor(p, body) : unmarked(body);
   // A person the court knows by a false name (item 10) is named to it by that name.
   const c = subject === null ? null : (s.characters.find((x) => x.id === subject) ?? null);
   const alias = c === null ? null : (c.declared.find((d) => d.court === p && d.exposed === null)?.name ?? null);
