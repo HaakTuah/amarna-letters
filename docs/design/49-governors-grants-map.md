@@ -34,6 +34,8 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
   and so is a turning governor's.
   Refused, or no longer possible (the man gone, the land lost): the king is told by the road; a man from court goes home.
   Taken or refused, the granting king learns of it only by that notice: the season's events do not show it to him.
+  So with cessions: a cession's event is its giver's, and its failure to be kept or its handing over shows only to those
+  who see the land; the parties learn of the rest by the road.
 - No rule of its own decides whether it pays: tribute is the vassal's order like any promise; the king's troops left in
   the land weigh as his in "Whom a province obeys".
 

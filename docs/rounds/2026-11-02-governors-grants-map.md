@@ -204,7 +204,8 @@ full set gains more growth, and the loss first measured (0.88 to 0.90) was on a 
   older `govern` check is filed as #467; round 5, two P1s (a stale grant that set out a governor already gone from his
   post; a governor of two whose rising decisions overwrote each other, so he never rose) and a P2 (a kingship's outcome
   shown in its king's events before its word came), fixed in 746e25a and 6fcc832. A man now decides on a rising once a
-  season, for the first province he is asked about; round 6 pending.
+  season, for the first province he is asked about; round 6, a P2 (cession events shown to the parties before word
+  came), fixed with three tests whose setups the new cession and starting counts outdated; round 7 pending.
 
 Questions for the owner: none new. #431 is answered (above); it stays open until the carriers are built. Filed: #467
 (a bug, outside this part: order checks that reveal a far loss).

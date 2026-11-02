@@ -465,7 +465,8 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
   const name = e.map.get(id).name;
   const seeing = (extra: Power[]): Power[] => [...new Set([...AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, e.map, x).has(id)), ...extra])];
   if (rival?.taken === true && rival.power !== null) {
-    e.provinceTakenUp(id, rival.power, seeing(holder === null ? [rival.power] : [holder, rival.power]));
+    // Its old and new masters learn of it by the road, unless they see it (hidden information).
+    e.provinceTakenUp(id, rival.power, seeing([]));
     return;
   }
   if (holder === null) {

@@ -75,6 +75,16 @@ describe("SeatWordTests", () => {
     Assert.equal(["Ruling", null, "nippur"], [c.duty, c.grantedBy, s.crowns[0].seat]);
   });
 
+  test("Land ceded from afar is not shown in its receiver's events: he learns of it by the road", () => {
+    const s = quiet();
+    const e = new TurnEngine(s);
+    e.beginTurn();
+    e.cededClaim("Babylonia", "Egypt", "babylon");
+    Assert.contains(s.events, (x) => x.kind === "cession" && x.visibleTo.includes("Babylonia"));
+    Assert.doesNotContain(s.events, (x) => x.kind === "cession" && x.visibleTo.includes("Egypt"));
+    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "Land ceded to you");
+  });
+
   test("A province taken up again keeps the season word of the first taking up comes home", () => {
     const t = quiet();
     const f = new TurnEngine(t);

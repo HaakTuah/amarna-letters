@@ -55,7 +55,8 @@ P.declareIn = function (province, holder, against, affirmed, clears) {
     if (claim.takenUp && giverThere && !claim.broken && claim.takenKnown !== null && S.turn > claim.takenKnown) {
       claim.broken = true;
       this.tell(claim.power, province, "Notice", "A cession not kept", `${claim.from}'s troops still stand in ${name}, which he ceded to you and you took up: the treaty bound him to withdraw, and he has not.`);
-      logEvent(S, "cession", `${claim.from} has not withdrawn from ${name}, which he ceded to ${claim.power}.`, AllPowers.filter((x) => x === claim.power || x === claim.from || (isAlive(S, x) && Views.sight(S, this.map, x).has(province))), "cession-unkept");
+      // Seen by those who see the land; its receiver learns of it by the road (hidden information).
+      logEvent(S, "cession", `${claim.from} has not withdrawn from ${name}, which he ceded to ${claim.power}.`, AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, this.map, x).has(province)), "cession-unkept");
     }
     return claim.takenUp && !giverThere && clears(this.weightIn(province, claim.power), UnrestData.floor) ? claim.power : null;
   }
@@ -104,7 +105,8 @@ P.cededClaim = function (giver, to, province) {
   S.declarations.push(newDeclaration({ province, power: to, from: giver, known: knownBy(this, to, province) }));
   notify(S, giver, "Resolution", "Land ceded", `You ceded ${name} to ${to}: it stays in your hands until ${to} takes it up, and then your officers withdraw. Keep your troops out of it, or he cannot.`);
   this.tell(to, province, "Resolution", "Land ceded to you", `${giver} has ceded ${name} to you. It is yours to take up (answer it), or refuse; until you do, it stays in ${giver}'s hands, and once you do, its people still weigh you.`);
-  logEvent(S, "cession", `${giver} ceded ${name} to ${to}.`, [giver, to]);
+  // The giver's own act; the receiver learns of it by the road (hidden information).
+  logEvent(S, "cession", `${giver} ceded ${name} to ${to}.`, [giver]);
 };
 
 P.answerProvince = function (p, o) {
