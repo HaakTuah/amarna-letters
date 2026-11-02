@@ -1501,3 +1501,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     instead of consulting the evidence?" Written into #527's entry in "Follow-ups" in `docs/BUILD-PROGRESS.md`: no
     outcome assumed beforehand. The same holds for every history follow-up: the brief names the evidence to gather,
     never the answer expected.
+177. **2 November 2026, 20:36 and 20:37 UTC**, in the design chat, after turning Codex's automatic security review
+    off: "does it always make sense with a security review?" Then, to the design session's take (only for the risky
+    kinds of change; a dependency only when newly added or moved up a major version, Dependabot's minor and patch
+    updates left to CI and the dependency checks): "do it expertly!" Written into "Codex reviews" in
+    `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
