@@ -175,10 +175,29 @@ while the tribute joins it only as it arrives, three quarters of a year's yield 
 lose least (restless, hungry or far land), and the refusals (ambitious men take three-quarter tribute, others only half)
 keep it rare. A finding for item 18: the land's multiple against tribute, and the men's terms.
 
-**The audit's finds** (`--audit-play-half`): running.
+**Taking up** (`--take-up-play-half`, 50 games, seed 1, the final head): kings that take up the provinces that look to
+them where it pays and refuse the rest, against kings that take up every one: **0.94 growth to 0.86, 26 wins to 24:
+pays.** Use and success: provinces declared in 47 of 50 games (884), 845 taken up, 79 refused, 490 passed to the king who
+took them up (`obey-taken`); the rest lapsed before his word arrived or were still waiting at the end.
+
+**Governors over regions** (`--region-play-half`, the final head): kings that give a trusted governor the threatened
+province beside his own, against kings that never do: **0.96 growth to 0.89, 33 wins to 17: pays.** Regions given in 49 of
+50 games (463).
+
+**The audit's finds** (`--audit-play-half`): running on the final head. On an earlier head (a0c18e5) they paid, 0.95
+growth to 0.82, 26 wins to 24; without find 3 (raise troops when rich), 0.94 to 0.86, 30 to 20. Find 3 is kept: the
+full set gains more growth, and the loss first measured (0.88 to 0.90) was on a head before round 2's fixes.
 
 ## The review
 
-(To come.)
+- **Claude's fault-finding reviewer** (Opus, high), with "Hidden information" word for word in its brief: round 1, 4
+  (seat views showing grants, declarations and governors' ends before word of them could arrive; the corvée's part
+  season); round 2, 6 (the seasons the views waited for one season early); round 3, **10**, nothing open.
+- **Fable's design check** (medium): round 1, 7 (the corvée share box, the mood legend, the take-up panel's wording);
+  round 2, **10**.
+- **Codex:** round 1, seven P1s (fixed in 379b716, among them the regional governor's levies and their lag, and a reduced
+  world for the feature tests, answered as on part B); round 2, clean; round 3, four P1s (the kingship's price before
+  its answer, a far refusal shown at once, a governor's lost seat, a ceded claim ended by a siege), fixed in 6e88338;
+  round 4 pending.
 
 Questions for the owner: none new. #431 is answered (above); it stays open until the carriers are built.
