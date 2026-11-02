@@ -128,9 +128,9 @@ export const PeopleOf1346: readonly CastSeed[] = [
   // No letter names Yapah-Hadda's town (Beirut is one reading [C]): at Ṣiduna beside Zimrida, with whom the letters pair
   // him (EA 83, 106) [G]
   person("Yapah-Hadda", "Ṣiduna", "Sidon", "a lord of the coast", { ambition: 65, loyalty: 35, greed: 60, competence: 55 }, 20, ["A lord of the coast at feud with Rib-Hadda, who says he sides with Aziru, seized one of Gubla's ships and kept its ships from Yarimuta (EA 105, 113-114, 116)."], "sidon"),
-  person("Arzawiya", "Dimashqa", "Damascus", "lord of Ruhizzi", { ambition: 60, loyalty: 30, courage: 60, competence: 50 }, 15, ["The man of Ruhizzi, who serves Aitakama of Qadesh against Pharaoh's land of Upe, Akizzi says (EA 53-54); with Biridashwa he laid Upe waste, Biryawaza says (EA 197)."], "damascus"),
+  person("Arzawiya", "Dimashqa", "Damascus", "lord of Ruhizzi", { ambition: 60, loyalty: 30, courage: 60, competence: 50 }, 15, ["The man of Ruhizzi, who serves Aitakama of Qadesh against Pharaoh's land of Upe, Akizzi says (EA 53-54); with Biridashwa he is causing the loss of Upe, Biryawaza says (EA 197)."], "damascus"),
   person("Teuwatti", "Dimashqa", "Damascus", "lord of Lapana", { ambition: 55, loyalty: 30, courage: 55, competence: 50 }, 15, ["The man of Lapana, who serves Aitakama of Qadesh against Pharaoh's land of Upe, Akizzi says (EA 53-54)."], "damascus"),
-  person("Biridashwa", "Ashtartu", "Ashtaroth", "lord of Yanuamu", { ambition: 65, loyalty: 25, courage: 65, greed: 60 }, 20, ["Turned Yanuamma against Biryawaza, took chariots at Ashtartu and gave them to the Habiru, and with Arzawiya laid Upe waste, Biryawaza says (EA 196-197)."], "ashtaroth"),
+  person("Biridashwa", "Ashtartu", "Ashtaroth", "lord of Yanuamu", { ambition: 65, loyalty: 25, courage: 65, greed: 60 }, 20, ["Turned Yanuamma against Biryawaza, took chariots at Ashtartu and gave them to the Habiru, and with Arzawiya is causing the loss of Upe, Biryawaza says (EA 196-197)."], "ashtaroth"),
   person("Yapahu", "Gazru", "Gezer", "noble of Gazru", { ambition: 60, loyalty: 55, competence: 55, greed: 50 }, 10, ["A man of Gazru who rules it after Milkilu, kin or not no letter says, and writes to Pharaoh as its ruler; his own younger brother went over to the Habiru (EA 297-300)."], "gezer"),
 ];
 

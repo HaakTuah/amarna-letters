@@ -20,6 +20,20 @@ describe("HistoryAnchorTests", () => {
   /** Names as the dossiers and the game may spell them apart: no diacritics, no ʿ or ', any case. */
   const plain = (s: string): string => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[ʿʾ'’]/g, "").toLowerCase();
 
+  /**
+   * What an anchored line is about: the given cell of a table row (the people dossier names its person in the first, the
+   * politics dossier its ruler in the second), never the rest of the row, where other people are named; a line that is not
+   * a row is about what it says.
+   */
+  function subject(id: string, cell: number): string {
+    const line = lines.get(id) ?? "";
+    const after = line.slice(line.indexOf(`<a id="${id}"></a>`)).replace(/<a id="[^"]+"><\/a>/g, "");
+    return after.includes("|") ? (after.split("|")[cell] ?? "") : after;
+  }
+
+  /** Whether a subject names someone: his name as a whole word, so that Ay is not found in Maya. */
+  const names = (text: string, name: string): boolean => new RegExp(`(^|[^a-z])${plain(name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z]|$)`).test(plain(text));
+
   // Everyone the game presents as a real person of 1346: the cast, the first pool's attested envoys and the named scribes.
   const people = [
     ...AttestedCast.map((c) => c.name),
@@ -35,7 +49,7 @@ describe("HistoryAnchorTests", () => {
     Assert.equal("", people.filter((n) => !PersonAnchors.has(n)).join(", ")));
 
   test("Every anchor exists and its line names the same person", () => {
-    const wrong = [...PersonAnchors].filter(([name, id]) => id !== Invented && !plain(lines.get(id) ?? "").includes(plain(name)));
+    const wrong = [...PersonAnchors].filter(([name, id]) => id !== Invented && !names(subject(id, 0), name));
     Assert.equal("", wrong.map(([name, id]) => `${name} -> ${id}${lines.has(id) ? "" : " (missing)"}`).join(", "));
   });
 
@@ -44,7 +58,7 @@ describe("HistoryAnchorTests", () => {
 
   test("Every named ruler names an anchor, and its line names him", () => {
     Assert.equal("", rulers.filter((n) => !RulerAnchors.has(n)).join(", "));
-    const wrong = [...RulerAnchors].filter(([name, id]) => !plain(lines.get(id) ?? "").includes(plain(name)));
+    const wrong = [...RulerAnchors].filter(([name, id]) => !names(subject(id, id.startsWith("01-") ? 1 : 0), name));
     Assert.equal("", wrong.map(([name, id]) => `${name} -> ${id}${lines.has(id) ? "" : " (missing)"}`).join(", "));
   });
 

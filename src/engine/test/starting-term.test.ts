@@ -97,9 +97,9 @@ describe("StartingTermTests", () => {
     ["Son of Balumme, who with Shutatna of Akka sent his men to kill Babylon's merchants at Hinnatuna and take their silver, Burna-Buriash says (EA 8).", "Son of Balumme, a man of Akka who killed Babylon's merchants at Hinnatuna and took their silver, Burna-Buriash says (EA 8)."],
     ["Son of Surata of Akka, who killed Babylon's merchants with Shum-Adda (EA 8); Akka's ruler after his father (EA 233-235).", "Son of Surata of Akka, who killed Babylon's merchants with Shum-Adda (EA 8); Akka's ruler after his father."],
     ["A lord of the coast at feud with Rib-Hadda, who says he sides with Aziru, seized one of Gubla's ships and kept its ships from Yarimuta (EA 105, 113-114, 116).", "A lord of the coast at feud with Rib-Hadda, who says he sides with Aziru and seizes Gubla's ships (EA 83, 85, 98, 113-114, 116)."],
-    ["The man of Ruhizzi, who serves Aitakama of Qadesh against Pharaoh's land of Upe, Akizzi says (EA 53-54); with Biridashwa he laid Upe waste, Biryawaza says (EA 197).", "Rules Ruhizzi in Upe and sides with Aitakama of Qadesh against Pharaoh's land, Akizzi says (EA 53-54, 191, 197)."],
+    ["The man of Ruhizzi, who serves Aitakama of Qadesh against Pharaoh's land of Upe, Akizzi says (EA 53-54); with Biridashwa he is causing the loss of Upe, Biryawaza says (EA 197).", "Rules Ruhizzi in Upe and sides with Aitakama of Qadesh against Pharaoh's land, Akizzi says (EA 53-54, 191, 197)."],
     ["The man of Lapana, who serves Aitakama of Qadesh against Pharaoh's land of Upe, Akizzi says (EA 53-54).", "Rules Lapana in Upe and sides with Aitakama of Qadesh, Akizzi says (EA 53-54, 193)."],
-    ["Turned Yanuamma against Biryawaza, took chariots at Ashtartu and gave them to the Habiru, and with Arzawiya laid Upe waste, Biryawaza says (EA 196-197).", "Rules Yanuamu beyond the Jordan and took Biryawaza's chariots with Arzawiya, Biryawaza says (EA 197)."],
+    ["Turned Yanuamma against Biryawaza, took chariots at Ashtartu and gave them to the Habiru, and with Arzawiya is causing the loss of Upe, Biryawaza says (EA 196-197).", "Rules Yanuamu beyond the Jordan and took Biryawaza's chariots with Arzawiya, Biryawaza says (EA 197)."],
   ];
 
   /** The full history check: no one of 1346 was born at Akhetaten, founded about three years before; they were said to be. */
