@@ -36,7 +36,9 @@ const P = TurnEngine.prototype;
 P.grantGovernorship = function (p, o) {
   const S = this.s;
   const c = findCharacter(S, o.character);
-  if (c === null || S.owner.getOrDefault(o.province, null) !== p) return;
+  // Granted as the court knows the land (bug #467): to a province lost out of its sight he sets out all the same, finds it
+  // another's, and comes home as any governor of lost land does (governorsSeason).
+  if (c === null) return;
   const seasons = wordFromKing(S, this.map, p, o.province);
   const from = S.turn + Math.max(1, Number.isFinite(seasons) ? seasons : 1);
   S.governors.push(newGovernor({ province: o.province, character: c.id, power: p, levies: o.levies, from }));

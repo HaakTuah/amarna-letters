@@ -757,8 +757,13 @@ P.settleMarkets = function (orders) {
   };
   const held = (p: Power, prov: string, what: string, o: Order): boolean => {
     if (S.owner.getOrDefault(prov, null) === p && siegeOf(S, prov) === null) return true;
-    tell(p, `${what} in ${Map.get(prov).name} did not happen: ${S.owner.getOrDefault(prov, null) === p ? "it is besieged" : "you no longer hold it"}.`);
-    this.scheduledFailed(p, o, S.owner.getOrDefault(prov, null) === p ? "it is besieged" : "the province was lost");
+    // Land lost out of the king's sight: word of it comes home by the road (bug #467).
+    if (S.owner.getOrDefault(prov, null) !== p) {
+      this.lostOrder(p, o, prov, "Order failed", `${what} in ${Map.get(prov).name} did not happen: you no longer hold it.`, "the province was lost");
+      return false;
+    }
+    tell(p, `${what} in ${Map.get(prov).name} did not happen: it is besieged.`);
+    this.scheduledFailed(p, o, "it is besieged");
     return false;
   };
   for (const p of AllPowers) S.treasuries.get(p).income = 0;

@@ -361,8 +361,13 @@ P.sendTraders = function (orders, tell) {
       tell(p, why);
       this.scheduledFailed(p, o, reason);
     };
-    if (S.owner.getOrDefault(o.from, null) !== p || siegeOf(S, o.from) !== null) {
-      fail(`Nothing set out from ${from.name}: ${S.owner.getOrDefault(o.from, null) === p ? "it is besieged" : "you no longer hold it"}.`, "the province was lost or besieged");
+    // Land lost out of the king's sight: word of it comes home by the road (bug #467).
+    if (S.owner.getOrDefault(o.from, null) !== p) {
+      this.lostOrder(p, o, o.from, "Order failed", `Nothing set out from ${from.name}: you no longer hold it.`, "the province was lost");
+      continue;
+    }
+    if (siegeOf(S, o.from) !== null) {
+      fail(`Nothing set out from ${from.name}: it is besieged.`, "it is besieged");
       continue;
     }
     let fleet: Unit | null = null;
