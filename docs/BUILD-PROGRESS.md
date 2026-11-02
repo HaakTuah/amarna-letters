@@ -56,12 +56,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   next refresh.
 - **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
   #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
-  locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568). **Left, each its own PR with
-  behaviour proven:** splits the review found, each file holding two or three things (`prompts.ts` #572 and `schemas.ts`
-  #573 done): `llm/src/character-mind.ts` (the audience path), `llm/src/seat-setup.ts` (presets and cost estimate),
-  `bots/statecraft-letters.ts` (the audiences), `bots/tactics.ts` (joints, winter), `web/src/audio/player.ts` (the
-  listening page), `web/src/pages/Home.tsx` (saved games and replays); then `--noUnusedLocals` again on the open PRs'
-  files once they merge.
+  locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it found:
+  `prompts.ts` (#572), `schemas.ts` (#573), `seat-setup.ts` (#577), `statecraft-letters.ts` (#588). **Left:**
+  `--noUnusedLocals` again on the files open PRs held (one known: `renew` in `bots/statecraft-court.ts`). Looked at and
+  left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
+  `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx`
+  (the start screen; its saved-games card is 2.5 KB).
 
 ## Follow-ups
 
@@ -112,9 +112,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   nothing reads machine-made, every voice is its own and no formula repeats. The owner's read of the ten lines before
   and after is the final word. One PR per kind of text.
   **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
-  the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`). **Next:**
-  their envoys' speech (`bots/script-mind.ts`); then notices, news and reports once #537 merges; then the rest in the
-  order above.
+  the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`); the
+  envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
+  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state). **Next:** notices,
+  news and reports (the bribed envoy's invented news moves with them); then the rest in the order above.
 
 - **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in
   `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact
