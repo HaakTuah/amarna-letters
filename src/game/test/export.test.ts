@@ -93,6 +93,16 @@ describe("ExportTests", () => {
     Assert.equal("write to [e-mail]", back.notes);
   });
 
+  test("A reply with its JSON in a fenced block is read the same way", () => {
+    const log = new GameLog();
+    const reply = 'Here are my orders.\n```json\n{"notes":"write to jane@b\\u00fccher.de"}\n```';
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, output: reply }));
+    const out = log.calls[0].output;
+    Assert.true(out.startsWith("Here are my orders.\n```json\n"));
+    Assert.false(JSON.stringify(out).includes("cher"), out);
+    Assert.contains("[e-mail]", out);
+  });
+
   test("A log read back from an old file loses what is sensitive in it", () => {
     const old =
       `{"version":38,"seed":1,"type":"header"}\n{"key":"t1/orders/Egypt","turn":1,"error":"${Leaks[0][1]}","type":"call"}\n` +

@@ -62,19 +62,30 @@ export function withoutSensitive(text: string): string {
 }
 
 /**
- * A text that may be JSON (a model's reply) with anything sensitive taken out: its strings decoded first, since JSON may
- * write any letter as an escape ("\\u00fc") that hides an address or a key from a scan of the raw text. Other text is
- * read as it stands.
+ * A text that may hold JSON (a model's reply) with anything sensitive taken out. Its object is read as the game reads a
+ * reply (the whole text, or else from its first "{" to its last "}", as in a fenced block) and its strings decoded before
+ * they are scrubbed, since JSON may write any letter as an escape ("\\u00fc") that hides an address or a key from a scan
+ * of the raw text. The text around it, and any text that holds no object, is scrubbed as it stands.
  */
 export function withoutSensitiveJson(text: string): string {
-  const raw = withoutSensitive(text);
+  const whole = scrubbedObject(text);
+  if (whole !== null) return whole;
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  const inner = start < 0 || end <= start ? null : scrubbedObject(text.slice(start, end + 1));
+  if (inner === null) return withoutSensitive(text);
+  return withoutSensitive(text.slice(0, start)) + inner + withoutSensitive(text.slice(end + 1));
+}
+
+/** A JSON object's text with every string in it scrubbed (written back only if one changed), or null if it is not one. */
+function scrubbedObject(text: string): string | null {
   let node: unknown;
   try {
     node = JSON.parse(text);
   } catch {
-    return raw;
+    return null;
   }
-  if (node === null || typeof node !== "object") return raw;
+  if (node === null || typeof node !== "object") return null;
   let changed = false;
   const walk = (v: unknown): unknown => {
     if (typeof v === "string") {
@@ -83,11 +94,11 @@ export function withoutSensitiveJson(text: string): string {
       return c;
     }
     if (Array.isArray(v)) return v.map(walk);
-    if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [withoutSensitive(k), walk(x)]));
     return v;
   };
   const back = walk(node);
-  return changed ? JSON.stringify(back) : raw;
+  return changed ? JSON.stringify(back) : withoutSensitive(text);
 }
 
 /** The same, for a text that may be null (a call's or a shadow's error). */
