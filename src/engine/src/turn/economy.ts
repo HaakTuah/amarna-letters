@@ -750,7 +750,13 @@ P.settleMarkets = function (orders) {
   const S = this.s;
   const Map = this.map;
   const lines = new Dict<Power, string[]>();
-  const tell = (p: Power, line: string): void => {
+  // A court's lines of markets near it in one notice; of one farther off, by the road from there (bug #517).
+  const tell = (p: Power, at: string, line: string): void => {
+    const d = this.wordTo(p, at);
+    if (d > 0 && Number.isFinite(d)) {
+      this.tell(p, at, "Resolution", MarketsTitle, line);
+      return;
+    }
     let l = lines.tryGet(p);
     if (!l) lines.set(p, (l = []));
     l.push(line);
@@ -762,8 +768,14 @@ P.settleMarkets = function (orders) {
       this.lostOrder(p, o, prov, "Order failed", `${what} in ${Map.get(prov).name} did not happen: you no longer hold it.`, "the province was lost");
       return false;
     }
-    tell(p, `${what} in ${Map.get(prov).name} did not happen: it is besieged.`);
-    this.scheduledFailed(p, o, "it is besieged");
+    // A siege: near, told among the markets' lines as ever; one it may not have heard of, by the road (bug #517).
+    const line = `${what} in ${Map.get(prov).name} did not happen: it is besieged.`;
+    const d = this.wordTo(p, prov);
+    if (d > 0 && Number.isFinite(d)) this.lostOrder(p, o, prov, "Order failed", line, "it is besieged");
+    else {
+      tell(p, prov, line);
+      this.wakeFrom(p, o, prov, "it is besieged");
+    }
     return false;
   };
   for (const p of AllPowers) S.treasuries.get(p).income = 0;
@@ -772,8 +784,8 @@ P.settleMarkets = function (orders) {
     if (!held(p, o.province, "Grain for the town", o)) continue;
     const given = this.takeFromStores(o.province, o.amount);
     this.market(o.province).stock += given;
-    tell(p, `You handed ${given} measures of grain from the stores of ${Map.get(o.province).name} to its town.`);
-    if (given > 0) logEvent(S, "feed", `${p} handed grain to the town of ${Map.get(o.province).name}.`, [p], "feed");
+    tell(p, o.province, `You handed ${given} measures of grain from the stores of ${Map.get(o.province).name} to its town.`);
+    if (given > 0) logEvent(S, "feed", `${p} handed grain to the town of ${Map.get(o.province).name}.`, this.nearOf(o.province, p), "feed");
     // Item 17++: grain handed out is a giving its people remember, most in a famine, of the hand they see: the governor
     // there, unless it comes in the king's own name.
     const hungry = S.fed.getOrDefault(o.province, 1000) < 1000;
@@ -812,18 +824,18 @@ P.settleMarkets = function (orders) {
           t.gold += r.paid;
           t.income += r.paid;
         }
-        tell(p, `Sold ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < net ? `; its people's purse could pay for no more (${net - r.taken} unsold)` : "") + ".");
-        if (r.taken > 0) logEvent(S, "sale", `${p} sold grain at ${name}.`, [p], "sale");
-        if (r.taken < net) for (const o of list.filter((o) => o.type === "sell")) this.scheduledFailed(p, o, "the people's purse ran dry");
+        tell(p, prov, `Sold ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < net ? `; its people's purse could pay for no more (${net - r.taken} unsold)` : "") + ".");
+        if (r.taken > 0) logEvent(S, "sale", `${p} sold grain at ${name}.`, this.nearOf(prov, p), "sale");
+        if (r.taken < net) for (const o of list.filter((o) => o.type === "sell")) this.wakeFrom(p, o, prov, "the people's purse ran dry");
       } else if (net < 0) {
         const r = buyAlongCurve(m.stock, normal, t.gold, -net);
         m.stock -= r.taken;
         m.purse += r.paid;
         t.gold -= r.paid;
         const over = this.putInStores(prov, r.taken);
-        tell(p, `Bought ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < -net ? ` (${-net - r.taken} more were not to be had)` : "") + (over > 0 ? `; ${over} did not fit in the stores and were lost` : "") + ".");
-        if (r.taken > 0) logEvent(S, "purchase-grain", `${p} bought grain at ${name}.`, [p], "grain-bought");
-      } else if (offered > 0) tell(p, `At ${name} your sales and purchases cancelled out: no grain changed hands.`);
+        tell(p, prov, `Bought ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < -net ? ` (${-net - r.taken} more were not to be had)` : "") + (over > 0 ? `; ${over} did not fit in the stores and were lost` : "") + ".");
+        if (r.taken > 0) logEvent(S, "purchase-grain", `${p} bought grain at ${name}.`, this.nearOf(prov, p), "grain-bought");
+      } else if (offered > 0) tell(p, prov, `At ${name} your sales and purchases cancelled out: no grain changed hands.`);
     }
   }
   // Caravans set out.
@@ -831,19 +843,19 @@ P.settleMarkets = function (orders) {
     if (!held(p, o.from, "A caravan", o)) continue;
     const route = this.caravanRoute(p, o.from, o.to);
     if (route === null) {
-      tell(p, `No caravan left ${Map.get(o.from).name} for ${Map.get(o.to).name}: there is no road there by land or river.`);
-      this.scheduledFailed(p, o, "no road there by land or river");
+      tell(p, o.from, `No caravan left ${Map.get(o.from).name} for ${Map.get(o.to).name}: there is no road there by land or river.`);
+      this.wakeFrom(p, o, o.from, "no road there by land or river");
       continue;
     }
     const grain = this.takeFromStores(o.from, o.amount);
     if (grain <= 0) {
-      tell(p, `No caravan left ${Map.get(o.from).name}: its stores were empty.`);
-      this.scheduledFailed(p, o, "the stores were empty");
+      tell(p, o.from, `No caravan left ${Map.get(o.from).name}: its stores were empty.`);
+      this.wakeFrom(p, o, o.from, "the stores were empty");
       continue;
     }
     S.caravans.push(newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, route, since: S.turn }));
-    tell(p, `A caravan of ${grain} measures of grain set out from ${Map.get(o.from).name} for ${Map.get(o.to).name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
-    logEvent(S, "caravan-out", `${p} sent a caravan from ${Map.get(o.from).name}.`, [p], "caravan-out");
+    tell(p, o.from, `A caravan of ${grain} measures of grain set out from ${Map.get(o.from).name} for ${Map.get(o.to).name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
+    logEvent(S, "caravan-out", `${p} sent a caravan from ${Map.get(o.from).name}.`, this.nearOf(o.from, p), "caravan-out");
   }
   // Trading caravans and ships (item 9+b).
   this.sendTraders(orders, tell);

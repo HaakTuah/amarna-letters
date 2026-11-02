@@ -82,6 +82,26 @@ on sealed tablets comes with item 9.
   in, the engine carries it out by the true holder, and its failure comes home by the road (`TurnEngine.lostOrder`, by
   `tell`; a scheduled one wakes its seat when that word comes, its wake line travelling with it as news `Foiled`). A governor granted such land sets out, finds
   it another's and comes home as any governor of lost land does.
+- **Sieges, walls and men far off** (bug #517, `siegesKnown` and `wallsKnown` in `rules/known-land.ts`): a court knows the
+  sieges where it sees, and one of its own cities or its own armies farther off from when word of its beginning, setting
+  out the season it began, reaches it until word of its end does (`GameState.siegesEnded`, `endSieges` in
+  `model/sieges-ended.ts`, keeps those ended lately); the walls of the cities it knows it holds as its works stand, as its
+  view shows its works. A far siege's progress is as of the newest season whose word has come (`Siege.history`), its
+  holder and walls as the court knows them, its ring's tightness unknown. The seat's view (`SeatView.sieges`), the web
+  map (`SeasonFrame.knownSieges`) and the order checks read the same (`Checking.knownSiege`, `knownWalls`); a sally out
+  of sight is not refused for the troops within, and a levy's men far off are checked by the court's last count, or not
+  at all without one. The events of a far place (a siege's, a market's, a levy's, what welcome, deport, expel and return
+  runaways did, a cession, people fleeing) name as parties only the courts within the season's reach of it
+  (`TurnEngine.nearOf`); a farther court reads of them in the word that comes by the road. A siege ended as its city
+  changed hands is recorded with the holder as the season began, and the walls of a far city a court believes it holds
+  are its works only while it truly holds it. The season's siege news of a far city, the markets' lines (sales, purchases, grain to the towns, caravans, trade and ships) of a far province,
+  people fleeing into or out of it, a levy's outcome, a cession, a disbanding, and what welcome, deport, expel and
+  return runaways did there come home by the road (`TurnEngine.tell`); an order a siege foils far off fails as one on
+  lost land does (`TurnEngine.lostOrder`). A grant of passage or basing, given at court, is recorded as given even over
+  land lost out of sight: it means nothing while another holds the land (`grantCovers`). The yields, markets and
+  resistance in the view go by the land the court knows it holds; resistance only where it sees. The twin canary (`src/web/test/twin-canary.test.ts`) plays a seat's
+  seasons twice, a hidden fact true and false, and finds any difference before word could come; what it still finds
+  (bug #540: a far province's economy, works, people and caravans, and the realm's totals) it lists by issue.
 - **Fallen kingdoms** (`GameState.fallsHeard`, `SeatView.fallen`): a court that sees the fallen capital hears at once,
   the rest by word; the fall's event is visible only to the fallen court and those that saw it. Until it hears, a court
   may still send an envoy or a spy to the fallen court, or close or open its roads to it (the validator accepts them):

@@ -9,7 +9,7 @@ import { isLetterOrDigit, trimEnd } from "@amarna/engine";
 import { failureOf, newModelCall, type ModelCall } from "@amarna/game";
 import { readObject, retryNote, type CallSpec } from "./client.ts";
 import { readAsMeant } from "./reading.ts";
-import { jsonSchema, problems, type JsonObject } from "./schemas.ts";
+import { jsonSchema, problems, type JsonObject } from "./schema-tools.ts";
 import { Sb } from "./text.ts";
 
 /** Whom the request asks to decide: a king's file seat decides "as the king", a file character "as yourself". */

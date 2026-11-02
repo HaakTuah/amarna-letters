@@ -79,6 +79,11 @@ export class OrderValidator {
     let holders: ReturnType<typeof Views.knownHolders> | null = null;
     // Bug #467: every check of who holds a province reads it so; the engine answers by the true state, by the road.
     const knownOwner = (province: string): Power | null => (holders ??= Views.knownHolders(S, Map, power, Sight())).tryGet(province)?.owner ?? null;
+    // Bug #517: the sieges and walls as this court knows them, as its view shows them.
+    let besieged: HSet<string> | null = null;
+    const knownSiege = (province: string): boolean => (besieged ??= new HSet(Views.siegesKnown(S, Map, power, Sight()).map((x) => x.province))).has(province);
+    let walls: ReturnType<typeof Views.wallsKnown> | null = null;
+    const knownWalls = (province: string): number => (walls ??= Views.wallsKnown(S, Map, power, Sight())).getOrDefault(province, 0);
 
     const nobody = (id: string): string => (isBlank(id) ? "you named nobody" : `there is nobody called '${id}'`);
 
@@ -199,7 +204,7 @@ export class OrderValidator {
       get dispatches() { return dispatches; },
       get seekCount() { return seekCount; },
       get counterIntel() { return counterIntel; },
-      heardFallen, Sight, knownOwner, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
+      heardFallen, Sight, knownOwner, knownSiege, knownWalls, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
     };
     const check = (order: Order): string | null => {
       for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder]) {

@@ -44,10 +44,13 @@ import {
 import { fieldsDiffer } from "./ladder.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
-import { audience, courtBrief, identity, ordersLine, ordersStandAtCourt, realmBrief, situation, sleepLine, tabletBrief, tabletLine } from "./prompts.ts";
+import { courtBrief, identity, ordersLine, realmBrief, situation, sleepLine } from "./prompts.ts";
+import { audience, ordersStandAtCourt } from "./prompt-audience.ts";
+import { tabletBrief, tabletLine } from "./prompt-letters.ts";
 import { leaderRules } from "./rules.ts";
 import { planRules } from "./rules-plan.ts";
-import { Replies, Schemas, type JsonObject } from "./schemas.ts";
+import type { JsonObject } from "./schema-tools.ts";
+import { Replies, Schemas } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
 
 /** The log key of one exchange of an audience: each answer is logged under it, whatever call made it. */

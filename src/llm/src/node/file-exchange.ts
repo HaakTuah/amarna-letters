@@ -10,7 +10,7 @@ import { failing, type ModelCall, type ShadowDecision } from "@amarna/game";
 import { LlmCharacterMind } from "../character-mind.ts";
 import type { CallSpec, JsonAsker } from "../client.ts";
 import { CharacterActor, King, converse, requestText } from "../exchange.ts";
-import type { JsonObject } from "../schemas.ts";
+import type { JsonObject } from "../schema-tools.ts";
 
 const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
   new Promise((ok, fail) => {

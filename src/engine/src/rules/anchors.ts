@@ -257,6 +257,7 @@ export const DistanceAnchors: ReadonlyMap<string, string> = new Map<string, stri
   ...on("02-route-hattusa-kanesh", "hattusa-nesa"),
   ...on("02-route-kanesh-kizzuwatna", "nesa-kizzuwatna"),
   ...on("02-route-enkomi-ugarit", "ugaritwaters-enkomiwaters"),
+  ...on("02-gulf-head", "ur-gulf"),
 ]);
 
 /**

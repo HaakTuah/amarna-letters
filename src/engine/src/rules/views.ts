@@ -55,7 +55,7 @@ import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
 import { courtOf } from "./court.ts";
-import { knownHolders, ownerAt, SeenSource, sight, wallsKnown, WordSource } from "./known-land.ts";
+import { knownHolders, ownerAt, SeenSource, siegesKnown, sight, wallsKnown, WordSource } from "./known-land.ts";
 
 export { SeenSource, WordSource };
 import { ageBand } from "./ending.ts";
@@ -250,17 +250,18 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           .filter((k) => levelOf(s, k, x) > 0)
           .map((k) => newWorkView({ province: x, kind: k, level: levelOf(s, k, x), keep: levelOf(s, k, x) })),
       ),
-    sieges: s.sieges
-      .filter((x) => x.power === p || s.owner.getOrDefault(x.province, null) === p || seen.has(x.province))
+    // The sieges it knows of: those it sees, and its own and its cities' farther off once word of them came (bug #517).
+    // Out of its sight, the holder and walls as it knows them; how tight the ring is, only where it sees or its army besieges.
+    sieges: siegesKnown(s, m, p, seen)
       .map((x) =>
         newSiegeView({
           province: x.province,
           besieger: x.power,
-          holder: s.owner.getOrDefault(x.province, null),
+          holder: seen.has(x.province) ? s.owner.getOrDefault(x.province, null) : (known.tryGet(x.province)?.owner ?? null),
           progress: x.progress,
-          walls: wallsOf(s, x.province),
+          walls: seen.has(x.province) ? wallsOf(s, x.province) : wallsKnown(s, m, p, seen).getOrDefault(x.province, 0),
           since: x.since,
-          tightness: x.power === p || s.owner.getOrDefault(x.province, null) === p ? engine.tightness(x) : null,
+          tightness: x.power === p || (seen.has(x.province) && s.owner.getOrDefault(x.province, null) === p) ? engine.tightness(x) : null,
         }),
       ),
     units: unitsSeen(s, engine, p, seen, (u) =>
@@ -377,12 +378,13 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {
-    if (!seen.has(prov.id) && !(s.owner.getOrDefault(prov.id, null) === p && known.tryGet(prov.id)?.owner === p)) continue;
+    if (!seen.has(prov.id) && known.tryGet(prov.id)?.owner !== p) continue;
     const full = harvestOf(prov);
     // Item 17++: what its last reaping brought in, a season's third of it, as the stewards (or the troops who saw the fields)
     // know it; never the hands there now, which only a count tells.
     v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * idiv(s.reaped.getOrDefault(prov.id, full * 3), 3), full));
-    const r = engine.resistance(prov.id, p);
+    // Its people's resistance only where it sees them (bug #517); its own land farther off, by its yields alone.
+    const r = seen.has(prov.id) ? engine.resistance(prov.id, p) : 0;
     if (r > 0) v.resistance.set(prov.id, r);
   }
   v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
@@ -390,7 +392,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   for (const c of s.caravans.filter((c) => c.power === p))
     v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning, gold: c.gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null }));
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
-  for (const [k, seen] of s.marketsSeen.tryGet(p)?.entries() ?? []) if (s.owner.getOrDefault(k, null) !== p) v.markets.set(k, { ...seen });
+  // Its own, as it knows its land (bug #517), are among its provinces instead.
+  for (const [k, seen] of s.marketsSeen.tryGet(p)?.entries() ?? []) if (known.tryGet(k)?.owner !== p) v.markets.set(k, { ...seen });
   // Its own tolls it knows; the others only as last reported to it (item 10+b), never posted.
   for (const t of s.tolls) if (t.holder === p) v.tolls.push({ ...t });
   for (const t of s.tollsKnown.tryGet(p) ?? []) if (t.holder !== p && isAlive(s, t.holder)) v.tolls.push({ ...t });
@@ -830,6 +833,7 @@ export const Views = {
   wallsKnown,
   ownerAt,
   knownHolders,
+  siegesKnown,
   // Item 17+: a court's view names every power as that court gives its name.
   for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map)),
   letters,

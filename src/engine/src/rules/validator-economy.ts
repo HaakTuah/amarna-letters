@@ -11,7 +11,7 @@ import { buyAlongCurve, needOf } from "../model/economy.ts";
 import { LandData } from "../model/land.ts";
 import { CountData } from "../model/counts.ts";
 import { harbourOf, shipFleet, TradeData } from "../model/trade.ts";
-import { findCharacter, siegeOf } from "../model/state.ts";
+import { findCharacter } from "../model/state.ts";
 import type { Checking } from "./validator-context.ts";
 
 /** Why the order is refused, null if it stands, or undefined if it is not one of these. */
@@ -26,7 +26,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
       const name = Map.get(order.province).name;
       if (v.knownOwner(order.province) !== power) return `you do not hold ${name}: at a foreign market you trade by a caravan (order trade) or a ship (order ship)`;
-      if (siegeOf(S, order.province) !== null) return `${name} is besieged: nothing goes in or out of its market`;
+      if (v.knownSiege(order.province)) return `${name} is besieged: nothing goes in or out of its market`;
       if (!(order.amount > 0)) return "name how many measures of grain";
       if (order.type !== "purchase") return null;
       const m = S.markets.tryGet(order.province);
@@ -38,7 +38,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       for (const x of [order.from, order.to]) if (!Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;
       if (order.from === order.to) return "a caravan must go somewhere else";
       if (v.knownOwner(order.from) !== power) return `you do not hold ${Map.get(order.from).name}`;
-      if (siegeOf(S, order.from) !== null) return `${Map.get(order.from).name} is besieged: no caravan can leave it`;
+      if (v.knownSiege(order.from)) return `${Map.get(order.from).name} is besieged: no caravan can leave it`;
       if (!(order.amount > 0)) return "name how many measures of grain";
       return null;
     }
@@ -47,7 +47,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (isBlank(order.from) || isBlank(order.to)) return "name the province the caravan sets out from and the market it goes to";
       for (const x of [order.from, order.to]) if (!Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;
       if (v.knownOwner(order.from) !== power) return `you do not hold ${Map.get(order.from).name}`;
-      if (siegeOf(S, order.from) !== null) return `${Map.get(order.from).name} is besieged: no caravan can leave it`;
+      if (v.knownSiege(order.from)) return `${Map.get(order.from).name} is besieged: no caravan can leave it`;
       if (v.knownOwner(order.to) === power) return `${Map.get(order.to).name} is your own market: sell or buy there with the orders sell and purchase`;
       if (Map.get(order.to).kingless) return `${Map.get(order.to).name} has no town and no market to trade at`;
       if (!(order.grain >= 0) || !(order.gold >= 0) || order.grain + order.gold <= 0) return "name the grain it carries to sell, the gold it carries to buy with, or both";
@@ -63,7 +63,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       const to = Map.get(order.to);
       if (harbourOf(from) <= 0) return `${from.name} has no harbour`;
       if (v.knownOwner(order.from) !== power) return `you do not hold ${from.name}`;
-      if (siegeOf(S, order.from) !== null) return `${from.name} is besieged: nothing is loaded there`;
+      if (v.knownSiege(order.from)) return `${from.name} is besieged: nothing is loaded there`;
       if (harbourOf(to) <= 0) return `${to.name} has no harbour`;
       if (order.from === order.to) return "a ship must sail somewhere else";
       if (order.trade && v.knownOwner(order.to) === power) return `${to.name} is your own market: deliver there (trade false), and sell with the order sell`;
@@ -134,7 +134,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (v.knownOwner(order.province) !== power) return `you do not hold ${name}`;
       const key = `${order.type}|${order.province}|${order.type === "returnRunaways" ? order.to : ""}`;
       if (peopleSet.has(key)) return `you had already given that order for ${name} this season`;
-      if (order.type === "expel" && siegeOf(S, order.province) === null) return `${name} is not besieged`;
+      if (order.type === "expel" && !v.knownSiege(order.province)) return `${name} is not besieged`;
       if (order.type === "expel" && (!Number.isInteger(order.percent) || order.percent < 1 || order.percent > 100)) return "say how many in a hundred of the mouths still inside to put out, 1 to 100";
       if (order.type === "returnRunaways" && (!AllPowers.includes(order.to) || order.to === power)) return `you cannot send runaways to '${order.to}'`;
       if (order.type === "deport") {

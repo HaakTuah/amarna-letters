@@ -8,7 +8,7 @@ effort. Fixes #482.
 | Dossier | Unclear | Sourced | Estimated [G] | Marked invented | Still unclear |
 | --- | --- | --- | --- | --- | --- |
 | 02-geography | 82 | 50 | 30 (27 road distances by the dossier's own rule, straight line plus a quarter, from Pleiades' coordinates) | 1 (the Western Desert roads) | 1 (the Lebanon crossing at Beirut, the builder's reading of the relief), and six smaller parts |
-| 03-environment-and-seasons | 8 | 7 (rainfall from climate tables; the current up the Levant from Marcus) | 1 | 0 | 1 (the Nile flood's rate: Hassan not reached) |
+| 03-environment-and-seasons | 8 | 7 (rainfall from climate tables; the current up the Levant from Marcus) | 1 | 0 | 0 (the Nile flood's rate, unclear here, has since an estimate from the owner's-answers lane, #523) |
 | 13-the-land-drawn | 2 | 2 (the Litani, the Maeander) | 0 | 0 | 0 |
 
 The Gulf's head (`02-gulf-head`, `OldGulfShore`) is the owner's-answers lane's (#523, from #527) and is left as it is.

@@ -60,8 +60,9 @@ is `docs/rounds/2026-10-28-harvests-and-answers.md`. Every number is a first gue
   mouths still inside, up to `LandData.expelMost` (90) in a hundred of the town in all; more may be put out later.
   `ProvinceEconomyView.expelled` is now the share put out.
 - **Water from a dossier per city** (`CityWaters`, `model/geography.ts`, from `docs/history/10-water.md`): River,
-  Spring and Wells never fail; Outside (a spring outside the walls, cut off: Megiddo, Shechem, Tuwanuwa) and Cisterns
-  last `CisternSeasons` (4); Arid `WellSeasons` (2); Island `IslandSeasons` (1) once blockaded. `SafeWater` and
+  Spring and Wells never fail; Outside (a spring outside the walls, cut off: Megiddo, Shechem, Tuwanuwa, Hazor and,
+  since #523, Jerusalem) and Cisterns (Arwad among them since #523) last `CisternSeasons` (4); Arid `WellSeasons` (2);
+  Island `IslandSeasons` (1) once blockaded, for Tyre alone, whose water comes by boat. `SafeWater` and
   `IslandWater` are gone (`isIslandWater`).
 - **Deportees freed on the road** (`Walk.route`, `departs`, `from`; `deporteesOnRoad`): deportees walk the cheapest road
   as a company; each season they cover their share of it, and where the stretch holds troops of the king whose homeland
