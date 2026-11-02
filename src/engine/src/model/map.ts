@@ -734,7 +734,6 @@ const CityRange: Readonly<Record<string, readonly [number, number, "low" | "midd
   gezer: [100, 500, null],
   ashkelon: [100, 500, null],
   lachish: [100, 500, null],
-  hebron: [100, 500, null],
   pella: [100, 500, null],
   ashtaroth: [100, 500, null],
   beirut: [100, 500, null],

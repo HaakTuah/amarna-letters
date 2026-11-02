@@ -32,7 +32,6 @@
     --gezer: #5a7a3a;
     --ashkelon: #3a7a7a;
     --lachish: #7a3a5a;
-    --hebron: #6a6a3a;
     --azzi: #5a4a6a;
     --niya: #3a6a5a;
     --tunip: #6a5a2a;
@@ -76,7 +75,6 @@
       --gezer: #a7d07f;
       --ashkelon: #7fd0d0;
       --lachish: #d07fa7;
-      --hebron: #c6c67f;
       --azzi: #bba8cf;
       --niya: #8fcfb8;
       --tunip: #d0bc7c;
@@ -120,7 +118,6 @@
     --gezer: #a7d07f;
     --ashkelon: #7fd0d0;
     --lachish: #d07fa7;
-    --hebron: #c6c67f;
     --azzi: #bba8cf;
     --niya: #8fcfb8;
     --tunip: #d0bc7c;
@@ -190,8 +187,6 @@
 .map .m-ashkelon .shaft, .map .m-ashkelon .sup, .map .m-ashkelon .conv, .map .c-ashkelon circle { stroke: var(--ashkelon); }
 .e-lachish .ei-bg, .f-lachish, .e-lachish, .ah-lachish { fill: var(--lachish); } .map .t-lachish, .map .s-lachish { fill: var(--lachish); } .b-lachish, .r-lachish { stroke: var(--lachish); }
 .map .m-lachish .shaft, .map .m-lachish .sup, .map .m-lachish .conv, .map .c-lachish circle { stroke: var(--lachish); }
-.e-hebron .ei-bg, .f-hebron, .e-hebron, .ah-hebron { fill: var(--hebron); } .map .t-hebron, .map .s-hebron { fill: var(--hebron); } .b-hebron, .r-hebron { stroke: var(--hebron); }
-.map .m-hebron .shaft, .map .m-hebron .sup, .map .m-hebron .conv, .map .c-hebron circle { stroke: var(--hebron); }
 .e-azzi .ei-bg, .f-azzi, .e-azzi, .ah-azzi { fill: var(--azzi); } .map .t-azzi, .map .s-azzi { fill: var(--azzi); } .b-azzi, .r-azzi { stroke: var(--azzi); }
 .map .m-azzi .shaft, .map .m-azzi .sup, .map .m-azzi .conv, .map .c-azzi circle { stroke: var(--azzi); }
 .e-niya .ei-bg, .f-niya, .e-niya, .ah-niya { fill: var(--niya); } .map .t-niya, .map .s-niya { fill: var(--niya); } .b-niya, .r-niya { stroke: var(--niya); }
