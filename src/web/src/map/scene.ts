@@ -311,7 +311,8 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
 
   const [travellers, people] = viewer === null ? godPeople(f) : seatPeople(f, viewer);
   const news = viewer !== null ? newsOf(frames, index, viewer) : [];
-  const sieges = viewer !== null ? f.sieges.filter((x) => x.besieger === viewer || ownerOf(f, x.province) === viewer || (f.sight.get(viewer)?.has(x.province) ?? false)) : [...f.sieges];
+  // As the court knows them (bug #517): the engine's own reckoning, carried in the frame.
+  const sieges = viewer !== null ? [...(f.knownSieges.get(viewer) ?? [])] : [...f.sieges];
 
   const owner = new Map(Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const));
   // As the engine's own view of a court shows them: in its sight, or in land it holds and knows it holds; in land it lost

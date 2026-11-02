@@ -106,7 +106,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact
   true and once false (a far province lost or held, a siege, a death abroad, an army moving out of sight), and assert
   that everything the seat receives (its input, notices, wakes and view) is identical until word of the fact could
-  reach it. It catches leaks nobody listed. Built in the lane fixing #517, or right after it.
+  reach it. It catches leaks nobody listed. Built in the lane fixing #517, or right after it. ~~Done~~ (#537).
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
@@ -178,6 +178,10 @@ fixed.
 - ~~**Order checks reveal a far loss (bug #467)**~~ (done, #515): the checks read who holds a province as the court
   knows it, and an order that fails on land lost out of sight answers by the road; the governor's view completes with
   #378; the rest of the far true state is bug #517. Report: `docs/rounds/2026-11-02-known-holding.md`.
+- ~~**Far provinces' true state (bug #517) and the twin canary (#520)**~~ (done, #537): sieges, walls and men far off
+  read as the court knows them, in its view and its checks alike; far markets, sieges and levies told by the road; the
+  twin canary plays a seat's seasons with and without a hidden fact. What it still finds is bug #540. Report:
+  `docs/rounds/2026-11-02-far-true-state.md`.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
   #417; report `docs/rounds/2026-11-02-bug-417.md`). (b), the chiefs' lands falling in the first two seasons, is 17++'s
