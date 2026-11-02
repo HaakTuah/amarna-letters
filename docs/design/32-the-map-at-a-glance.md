@@ -21,8 +21,9 @@ exactly as before.
   as costly to cross, a barrier a quarter of its border cost), with the point where it crosses their border; a voyage's
   is the way over water. The script prints where the drawing and the connections disagree (in the report); neither is
   changed for it. Connections come from the attested roads (`distance.ts`) and do not follow the drawing.
-- The land as it was in 1346 (`features.ts`; dossier `02-geography.md`, "The land as it was"): the Gulf's head towards Ur,
-  the bay of Miletus, the Euphrates in its old bed by Sippar, Babylon, Nippur's country, Uruk and Ur, and the Delta's
+- The land as it was in 1346 (`features.ts`; dossier `02-geography.md`, "The land as it was"): the Gulf's head as the estuary
+  of 1346 below Ur, the bay of Miletus, the Euphrates in its old bed by Sippar, Babylon, Nippur's country, Uruk and Ur and
+  on through the Hammar's marshes, and the Delta's
   Pelusiac, Tanitic, Sebennytic and Canopic branches. The lands beyond the game are named as no one's (`GeoLabels`;
   dossier `08-beyond-the-edges.md`): Wilusa, Masa, Ahhiyawa, Keftiu, Tjehenu, Pala, Lullubi, Anshan.
 - Run the script again (8 seconds) after changing a feature, a city's place or the map's provinces.

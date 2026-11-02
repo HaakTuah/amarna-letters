@@ -107,10 +107,11 @@ export const LandData = {
  */
 const Regions: readonly [number, readonly string[]][] = [
   [3000, ["delta", "memphis", "akhetaten", "thebes", "sinai"]],
-  [100, ["nubia"]],
-  [800, ["sippar", "durkurigalzu", "babylon", "nippur", "ur"]],
+  [60, ["nubia"]], // 04-nubia
+  // 04-babylonia, 04-hatti: the experts' middles (#492's rule, "History holds")
+  [350, ["sippar", "durkurigalzu", "babylon", "nippur", "ur"]],
   [20, ["dilmun"]],
-  [900, ["hattusa", "sapinuwa", "nesa", "tuwanuwa", "kizzuwatna", "samuha"]],
+  [1200, ["hattusa", "sapinuwa", "nesa", "tuwanuwa", "kizzuwatna", "samuha"]],
   [500, ["washukanni", "taidu", "harran", "terqa", "arrapha"]],
   [250, ["ashur", "nineveh", "arbela", "ekallate"]],
   [300, ["apasa", "seha", "mira"]],
