@@ -48,6 +48,7 @@ export const AttestedKm: readonly Attested[] = [
   att("harran", "washukanni", 180, "across the Habur triangle"),
   att("hattusa", "nesa", 200, "the plateau road; Old Assyrian caravans covered about 25 km a marching day (Veenhof)"),
   att("nesa", "kizzuwatna", 230, "by the Cilician Gates"),
+  att("ur", "gulf", 150, "Ur, a river port on the Euphrates in 1346, down the river's drawn bed through the marshes to the estuary at the Gulf's head, some 140 km in a straight line (02-gulf-head) [G]"),
   att("ugaritwaters", "enkomiwaters", 130, "Cyprus to Ugarit in about a day (Ugarit's letters on ships to and from Alashiya)"),
 ];
 

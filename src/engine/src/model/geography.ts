@@ -248,15 +248,16 @@ const W = (kind: CityWater, ...ids: string[]): [string, CityWater][] => ids.map(
  */
 export const CityWaters: ReadonlyMap<string, CityWater> = new Map<string, CityWater>([
   ...W("River", "seha", "apasa", "kizzuwatna", "terqa", "nineveh", "ashur", "ekallate", "sippar", "durkurigalzu", "babylon", "nippur", "ur", "delta", "memphis", "akhetaten", "thebes", "nubia", "isuwa", "carchemish", "alalakh", "qadesh", "damascus", "suhu", "susa", "tunip", "niya", "samuha"),
-  ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "jerusalem", "gezer", "pella", "aijalon"),
+  ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "gezer", "pella", "aijalon"),
   ...W("Wells", "harran", "arbela", "kalavasos", "enkomi", "aleppo", "ugarit", "sumur", "sidon", "gaza", "akko", "ashkelon", "lachish", "beirut", "ashtaroth", "gath"),
-  ...W("Outside", "tuwanuwa", "megiddo", "shechem", "hazor"),
-  ...W("Cisterns", "mira", "sapinuwa", "nesa", "taidu", "nuhashshe", "amurru", "arrapha", "lukka", "kaska", "azzi"),
+  // Jerusalem (10-jerusalem) and Arwad (10-arwad) by the experts' middle reading (#492).
+  ...W("Outside", "tuwanuwa", "megiddo", "shechem", "hazor", "jerusalem"),
+  ...W("Cisterns", "arwad", "mira", "sapinuwa", "nesa", "taidu", "nuhashshe", "amurru", "arrapha", "lukka", "kaska", "azzi"),
   ...W("Arid", "sinai", "steppe", "libya", "shasu"),
-  ...W("Island", "tyre", "arwad"),
+  ...W("Island", "tyre"),
 ]);
 
-/** The island cities with no water of their own, whose water comes by boat like their grain: Tyre (EA 146-151, 154-155) and Arwad. */
+/** The island cities with no water of their own, whose water comes by boat like their grain: Tyre (EA 146-151, 154-155). */
 export const isIslandWater = (province: string): boolean => CityWaters.get(province) === "Island";
 
 /** How many seasons a besieged city can drink from its own stores (Infinity: it never runs dry; islands: once blockaded). */
@@ -391,13 +392,13 @@ export function climateOf(province: string): Climate {
 }
 
 /**
- * The regions whose rains fail together, and how often, one year in so many (the environment dossier's first guesses:
- * the Anatolian plateau one in six, the Levant and north Syria one in eight; past what it gives, the Habur and Assyria
+ * The regions whose rains fail together, and how often, one year in so many (the environment dossier: the Anatolian
+ * plateau one in nine, the middle of the tree-ring estimates [G]; the Levant and north Syria one in eight [G]; past what it gives, the Habur and Assyria
  * one in eight, the milder west one in ten, and Elam's Susiana, watered by rain and canals, as often [G]). A drought is drawn once a year for each, in
  * Shemu, and strikes the year after.
  */
 export const DroughtRegions: readonly { readonly id: string; readonly name: string; readonly oneIn: number }[] = [
-  { id: "plateau", name: "the Anatolian plateau", oneIn: 6 },
+  { id: "plateau", name: "the Anatolian plateau", oneIn: 9 },
   { id: "levant", name: "the Levant and Syria", oneIn: 8 },
   { id: "north", name: "the Habur and Assyria", oneIn: 8 },
   { id: "west", name: "the western coasts and Cyprus", oneIn: 10 },
@@ -408,11 +409,12 @@ export const DroughtRegions: readonly { readonly id: string; readonly name: stri
  * Each great river's floods, drawn once a year in its flood season and shared by every province along it ("Rivers"): a
  * bad flood one year in so many (`badOneIn`), cutting the harvest to `badPercent` for the year, and a ruinous one one in
  * `ruinOneIn`, to `ruinPercent`, drowning `ruinDeadPermille` of the people. The Nile is steady (a low Nile one Akhet in
- * eight, a ruinous flood one in thirty: the environment dossier's first guesses); the Tigris and the Euphrates flood at
+ * six, the middle of the flood-record estimates, and a ruinous flood one in thirty: the environment dossier [G]); the Tigris and the Euphrates flood at
  * the harvest, irregularly (a damaging flood one Shemu in six) [G].
  */
 export const RiverFloods: ReadonlyMap<string, { readonly badOneIn: number; readonly badPercent: number; readonly ruinOneIn: number; readonly ruinPercent: number; readonly ruinDeadPermille: number }> = new Map([
-  ["nile", { badOneIn: 8, badPercent: 60, ruinOneIn: 30, ruinPercent: 30, ruinDeadPermille: 10 }],
+  // 03-nile-flood
+  ["nile", { badOneIn: 6, badPercent: 60, ruinOneIn: 30, ruinPercent: 30, ruinDeadPermille: 10 }],
   ["euphrates", { badOneIn: 6, badPercent: 60, ruinOneIn: 20, ruinPercent: 30, ruinDeadPermille: 10 }],
   ["tigris", { badOneIn: 6, badPercent: 60, ruinOneIn: 20, ruinPercent: 30, ruinDeadPermille: 10 }],
 ]);
