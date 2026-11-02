@@ -392,7 +392,7 @@ steps back through the seasons; signals mark sealed tablets, accusations, forger
 promises and more. After the game, compare two nations' self-serving annals with the true record.
 
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
-each power in its colour with an emblem and a border line of its own (so it reads without
+each power in its colour with an emblem and a border line of its own along its frontiers (so it reads without
 colour), armies as chariots and fleets as ships. On the whole map every city is a seal, and a tap on
 it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
