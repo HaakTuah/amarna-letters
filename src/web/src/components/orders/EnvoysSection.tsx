@@ -9,7 +9,7 @@ import { ClauseEditor } from "../ClauseEditor.tsx";
 import { num } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
 
-/** The orders panel's Envoys: split from OrdersPanel.tsx, unchanged. */
+/** The orders panel's Envoys. */
 export function EnvoysSection({ c }: { c: OrdersContext }) {
   const { state, v, f, set, structured, ready, reserved, others, mine, price, addDispatch, toggle, g, greetingText } = c;
   return (

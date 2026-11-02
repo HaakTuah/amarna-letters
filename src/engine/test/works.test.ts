@@ -38,18 +38,18 @@ import {
   wallsOf,
   type Ways,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // Item 15, "One rule for everything built": walls, roads, relay stations, harbours, policing and water works are levels
 // with upkeep, decay and projects, paid in gold or by corvée; roads and stations are the pace rule's roads term; police
 // hold the loose and the bands down and find smugglers. The engine's season steps are called directly, on a new game,
 // so each test plays no more of a season than its rule needs ("the smallest game that tests the rule").
 describe("WorksTests", () => {
-  const game = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0 }));
+  const game = (): GameState => smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Babylonia", "Egypt", "Hatti", "Mitanni");
   const gold = (s: GameState, p: Power): number => s.treasuries.get(p).gold;
 
   test("What stands at the start comes from the dossiers, the capitals' walls included", () => {
-    const s = game();
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 })); // the whole starting world: its dossier data
     Assert.equal([0, 3, 3, 3, 2, 1, 1], ["akhetaten", "hattusa", "qatna", "qadesh", "nubia", "delta", "memphis"].map((x) => wallsOf(s, x)));
     Assert.equal([2, 2, 2, 1, 0], ["delta", "sinai", "gaza", "hattusa", "kaska"].map((x) => levelOf(s, "Roads", x)));
     Assert.equal([1, 1, 1, 0], ["delta", "sinai", "gaza", "memphis"].map((x) => levelOf(s, "Stations", x)));
