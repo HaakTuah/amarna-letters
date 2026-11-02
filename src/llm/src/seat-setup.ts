@@ -21,7 +21,7 @@ import { AnthropicProvider, type ApiTransport } from "./anthropic.ts";
 import { AnthropicId, ModelClient, splitModel, type Provider } from "./client.ts";
 import { CompatibleProvider, type ProviderSetting } from "./compatible.ts";
 import { LlmLeaderSeat } from "./leader-seat.ts";
-import { ModelIds, PriceTable, type PriceSetting } from "./models.ts";
+import { BatchDiscount, ModelIds, PriceTable, type PriceSetting } from "./models.ts";
 import { LlmNarrator } from "./narrator.ts";
 import { Replies, type ReplySchema } from "./schemas.ts";
 
@@ -290,44 +290,96 @@ export const Presets = {
   },
 };
 
-/** A rough cost for a typical game, from average token counts per call. The in-game meter shows the actual figure. */
+/**
+ * What a game costs, before it starts ("What a season costs" under "Calls that get through, live or in the background"):
+ * from the token counts of a recorded game, the Haiku game of 1 November 2026 (`tests/fixtures/model-games/`), with each
+ * shared opening's cache written once a season and read by every other call, live or in the background. The in-game meter
+ * shows the actual figure.
+ */
 export const CostEstimate = {
   /** The median game: half of all ages have ended by season 44 (1332 BCE) by default. */
   TypicalSeasons: 44,
-  perGame(c: SeatChoices, seasons = 44): number {
+  /**
+   * Tokens of one call of each kind as recorded (fresh input, output, and its shared opening, read from cache), and how
+   * many such calls a season makes on the starting map; the kings' share comes per king, from how often they wake.
+   */
+  Recorded: {
+    orders: { fresh: 7000, output: 1650, opening: 70_600 },
+    court: { fresh: 4000, output: 1470, opening: 63_000 },
+    life: { fresh: 5200, output: 590, opening: 1600, perSeason: 40 },
+    envoy: { fresh: 1200, output: 330, opening: 1100, perSeason: 60 },
+    persona: { fresh: 1080, output: 1380, characters: 122 },
+  },
+  /** What one season costs with these choices, live or in the background (the batch service, at its discount). */
+  perSeason(c: SeatChoices, background = false): number {
     const prices = new PriceTable(c.prices);
+    const R = CostEstimate.Recorded;
     const effort = c.leaderEffort === "low" ? 0.6 : c.leaderEffort === "high" ? 1.6 : 1.0;
-    const cost = (model: string | null, fresh: number, out: number, cached: number): number => {
+    // Calls of one kind and one opening: `n` calls a season, all reading the opening but the one that writes it.
+    const calls = (model: string | null, n: number, k: { fresh: number; output: number; opening: number }, scale = 1): number => {
       const price = model !== null ? prices.for(model) : null;
-      return price === null ? 0 : price.cost(fresh, out, cached, 0);
+      if (price === null || n <= 0) return 0;
+      const writes = Math.min(1, n);
+      const write = background ? price.cost(0, 0, 0, k.opening, k.opening) : price.cost(0, 0, 0, k.opening);
+      return n * price.cost(k.fresh, Math.trunc(k.output * scale), 0, 0) + (n - writes) * price.cost(0, 0, k.opening, 0) + writes * write;
     };
-    let total = 0.0;
+    // By model, how many calls of each kind the kings make a season: as measured in item 6b (src/batch/src/measure.ts,
+    // script games shadowed by model kings that sleep), a king gives orders in about three seasons in ten and holds court,
+    // all its envoys in one call, in about one in five. The ladder's first guesses (item 6c, not measured until the model
+    // games): a small rung that plays the king passes one decision in five up; routine courts, most of a sleeping king's,
+    // one in three; light alerts come in about one season in three; one decision in twenty is audited on the rung above; a
+    // plan is written once a year and twice more.
+    const orders = new Map<string, number>();
+    const courts = new Map<string, number>();
+    const light = new Map<string, number>();
+    const add = (m: Map<string, number>, model: string | null, n: number): void => void (model !== null && m.set(model, (m.get(model) ?? 0) + n));
     for (const p of AllPowers) {
       const model = leaderModel(c.leaders.get(p));
       if (model === null) continue;
       const small = smallModel(c, p);
-      // As measured in item 6b (src/batch/src/measure.ts, script games shadowed by model kings that sleep): a king gives
-      // orders in about three seasons in ten and holds court, all its envoys in one call, in about one in five. Orders
-      // read the rulebook and their schema (some 16,000 tokens) from cache and about 4,500 fresh; a court about 14,000 from
-      // cache and 3,500 fresh. A standing answer's phrasing call costs next to nothing.
-      const orders = (m: string | null): number => cost(m, 4500, Math.trunc(3000 * effort), 16000);
-      const courts = (m: string | null): number => cost(m, 3500, Math.trunc(1000 * effort), 14000);
-      // The ladder's first guesses (item 6c, not measured until the model games): a small rung that plays the king passes
-      // one decision in five up; routine courts, most of a sleeping king's, one in three; light alerts come in about one
-      // season in three; one decision in twenty is audited on the rung above; a plan is written once a year and twice more.
-      if (small !== null && c.plays === "small") total += seasons * (0.3 * (orders(small) + 0.2 * orders(model)) + 0.2 * (courts(small) + 0.2 * courts(model)));
-      else total += seasons * (0.3 * orders(model) + 0.2 * (small !== null ? courts(small) + 0.3 * courts(model) : courts(model)));
-      if (small !== null) total += seasons * (0.3 * cost(small, 3000, 300, 16000) + 0.05 * 0.4 * orders(model));
-      const planner = rungModel(c.planning);
-      if (planner !== null) total += (seasons / 3 + 2) * cost(planner, 3000, 1000, 16000);
+      if (small !== null && c.plays === "small") {
+        add(orders, small, 0.3);
+        add(orders, model, 0.3 * 0.2);
+        add(courts, small, 0.2);
+        add(courts, model, 0.2 * 0.2);
+      } else {
+        add(orders, model, 0.3);
+        if (small !== null) {
+          add(courts, small, 0.2);
+          add(courts, model, 0.2 * 0.3);
+        } else add(courts, model, 0.2);
+      }
+      if (small !== null) {
+        add(light, small, 0.3);
+        add(orders, model, 0.05 * 0.4);
+      }
+      add(light, rungModel(c.planning), 1 / 3);
     }
+    let total = 0;
+    for (const [m, n] of orders) total += calls(m, n, R.orders, effort);
+    for (const [m, n] of courts) total += calls(m, n, R.court, effort);
+    // Light alerts and plans: a short call over the kings' opening.
+    for (const [m, n] of light) total += calls(m, n, { fresh: 3000, output: 600, opening: R.orders.opening });
     const cm = characterModel(c.characters);
     if (cm !== null) {
       const up = rungModel(c.charactersUp);
-      total += seasons * 15 * (cost(cm, 1500, 400, 0) + (up !== null && up !== cm ? 0.15 * cost(up, 1500, 400, 0) : 0));
+      const climbs = up !== null && up !== cm ? 0.15 : 0;
+      total += calls(cm, R.life.perSeason, R.life) + calls(cm, R.envoy.perSeason, R.envoy);
+      if (climbs > 0) total += calls(up, climbs * R.life.perSeason, R.life) + calls(up, climbs * R.envoy.perSeason, R.envoy);
     }
+    return total * (background ? BatchDiscount : 1);
+  },
+  /** A game of `seasons`: its seasons, the narrator's personas at setup and its chronicle at the end. */
+  perGame(c: SeatChoices, seasons = 44, background = false): number {
+    const prices = new PriceTable(c.prices);
+    let total = seasons * CostEstimate.perSeason(c, background);
     const nm = narratorModel(c.narrator);
-    if (nm !== null) total += 18 * cost(nm, 600, 400, 0) + 7 * cost(nm, 3000, 1200, 0) + 5 * cost(nm, 300, 200, 0);
+    const price = nm !== null ? prices.for(nm) : null;
+    if (price !== null) {
+      const P = CostEstimate.Recorded.persona;
+      const narrator = P.characters * price.cost(P.fresh, P.output, 0, 0) + 7 * price.cost(3000, 1200, 0, 0) + 5 * price.cost(300, 200, 0, 0);
+      total += narrator * (background ? BatchDiscount : 1);
+    }
     return total;
   },
   /** The models in use that have no price set: the meter shows their cost as unknown, never as free. */
@@ -339,10 +391,14 @@ export const CostEstimate = {
    * The estimate as the setup shows it: unknown while a model in use has no price (never free, so the figure never quietly
    * under-reports), else as {@link describe} words it.
    */
-  describeFor(c: SeatChoices, seasons = 44): string {
+  describeFor(c: SeatChoices, seasons = 44, background = false): string {
     const unpriced = CostEstimate.unpriced(c);
     if (unpriced.length > 0) return `unknown (no price for ${unpriced.map(ModelIds.display).join(", ")})`;
-    return CostEstimate.describe(CostEstimate.perGame(c, seasons));
+    return CostEstimate.describe(CostEstimate.perGame(c, seasons, background));
+  },
+  /** A season's cost as the setup shows it: "$0.27"; unknown while a model in use has no price. */
+  describeSeason(c: SeatChoices, background = false): string {
+    return CostEstimate.unpriced(c).length > 0 ? "unknown" : `$${fmt(CostEstimate.perSeason(c, background), "0.00")}`;
   },
   /** "about $9", "under $1", "free". */
   describe(dollars: number): string {

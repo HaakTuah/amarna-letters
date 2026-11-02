@@ -8,6 +8,7 @@
 import { isLetterOrDigit, trimEnd } from "@amarna/engine";
 import { newModelCall, type ModelCall } from "@amarna/game";
 import { readObject, retryNote, type CallSpec } from "./client.ts";
+import { readAsMeant } from "./reading.ts";
 import { jsonSchema, problems, type JsonObject } from "./schemas.ts";
 import { Sb } from "./text.ts";
 
@@ -45,8 +46,9 @@ export async function converse(
       call.output = text;
       call.requestChars = chars;
       try {
-        const json = readObject(text);
-        if (json === null) throw new ReplyError("it was not one JSON object");
+        const raw = readObject(text);
+        if (raw === null) throw new ReplyError("it was not one JSON object");
+        const json = readAsMeant(raw, spec.schema);
         // Every reply is validated against its schema, a file seat's as a model's.
         const found = problems(json, spec.schema);
         if (found.length > 0) throw new ReplyError("it does not match the schema: " + found.join("; "));

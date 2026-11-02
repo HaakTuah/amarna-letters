@@ -22,14 +22,17 @@
   has a price (`startProblem`; the web app always has one, the pause at $…, and so has the batch runner, `--budget`); a
   local model the table prices at 0 is free. Kings think at a chosen effort (medium by default; host audiences run
   one level lower); characters run at low effort.
-- **Cost estimates** (`CostEstimate`) come from average token counts per call, as item 6b measured them (`src/batch/src/measure.ts`):
-  a king that sleeps gives orders in about three seasons in ten, reading the rulebook and schema (some 16,000 tokens)
-  from cache and about 4,500 fresh, with 3,000 out; it holds court in about one season in five, 14,000 from cache and
-  3,500 fresh; some 15 character calls a season; the narrator's personas and chronicles. For the median game of 44
-  seasons that was roughly $0.50 (Budget), $5.60 (Standard) and $10.50 (Showcase) in item 6b. Item 6c adds the ladder's
-  first guesses, not yet measured: routine courts on the small rung with one in three passed up, light alerts in about a
-  season in three, one decision in twenty audited, a plan once a year and twice more (some 3,000 tokens fresh and 1,000
-  out), the small rung that plays a king passing one decision in five up, and one character call in seven going up.
+- **Cost estimates** (`CostEstimate`, "What a season costs"; rebuilt 2 November 2026) come from the token counts of the
+  Haiku game of 1 November (`tests/fixtures/model-games/`): an orders call reads a 70,600-token opening from cache with
+  7,000 fresh and 1,650 out; a court 63,000 cached, 4,000 fresh, 1,470 out; some 40 character life calls a season (5,200
+  fresh, 590 out, a 1,600-token opening) and 60 envoy calls (1,200 fresh, 330 out, 1,100); 122 narrator personas at setup.
+  How often a king calls is still item 6b's measure (orders in about three seasons in ten, court in one in five) with
+  item 6c's ladder guesses (routine courts on the small rung with one in three passed up, light alerts in about a season
+  in three, one decision in twenty audited, a plan once a year and twice more, the small rung that plays a king passing
+  one decision in five up, and 15% of character calls going up). Each opening's cache is written once a season and read
+  by every other call. `perSeason(choices, background)` gives a season, live or in the background (half the price, the
+  write lasting an hour); `perGame` adds the narrator. Per season, live and in the background: Budget about $0.12 and
+  $0.06, Standard $1.34 and $0.78, Showcase $2.20 and $1.31; the setup shows both under "Play in the background".
   The spending cap defaults to one and a half times the estimate.
 - **One mind per seat** (the owner's principle, 18 October 2026; since item 6c, "The seat's model commits; a cheaper
   model handles what is light"): the seat's own model makes every commitment; since item 6c a small rung answers
@@ -145,6 +148,26 @@
   same at every court of a game (two variants: with the king's orders standing or not), where the audience schema,
   which asked only what applied to the exchange, made five or so prefixes a game (measured: 5.2 a game, at most 9,
   before; 2.0 after). The orders schema was already one per game.
+- **Calls that get through** (decided 2 November 2026; built in the side lane of that name, report
+  `docs/rounds/2026-11-02-model-calls-get-through.md`). `ModelClient` sends each call under its provider's limiter
+  (`CallLimiter`, `limiter.ts`): a limit on calls in flight that starts at 4, halves (once per crowd) when a call is
+  refused as too many (429) and grows by about one a round with each call that gets through, up to 32. A refused,
+  overloaded or failed-to-connect call (0, 408, 429, 5xx, 529) waits as long as `retry-after` asks, or 2 s doubling to
+  60 s, and is sent again, each send logged; after ten minutes of trying the script stands in. The SDK retries nothing
+  itself. Calls that share an opening (the model, the reply tool and the shared system block: the cache's prefix) pass
+  `CacheGate` (`cache-gate.ts`): the first goes alone and the rest wait until its reply shows the cache written; an
+  opening found lapsed is written to last an hour from then on (`ttl: "1h"`, priced at twice the input price), and one
+  too short to cache is never waited on again. Replies are read as meant before the schema check (`readAsMeant`,
+  `reading.ts`): a field left out is blank (empty text, no choice, an empty list, 0, false), blank-looking values and
+  leaked tool markup in a choice are blank, a list of one where one value is asked is that value, numbers and yes/no
+  written as text are read, and a choice matches its options in any case or accents or by a unique start of four letters
+  or more (Babylon, Babylonia); the reply line tells the model a field that does not apply may be left out. What still
+  does not fit goes back once with `problems`, which names what was given and what was asked. **In the background**
+  (`BatchTransport`, `background.ts`; the setup's "Play in the background") Anthropic calls are gathered for half a
+  second and sent as one batch (`SdkBatchService`, Message Batches), asked after every 10 s doubling to 2 min, priced at
+  `BatchDiscount` (half), with no limiter; each request is named by a digest of its body, and the batches still out are
+  kept in IndexedDB (`savedBatches`), so a game continued with the box ticked collects the answers instead of sending
+  again. Other providers stay live. The log's records are unchanged.
 - **Providers** (`Provider` in `src/llm/src/client.ts`): one small interface, with each provider's adapter handling its own
   format for system prompts and structured replies. Anthropic (`AnthropicProvider`) goes through the official TypeScript
   SDK (`SdkTransport`, `@anthropic-ai/sdk`) in the browser, the batch runner and the tests alike, with the

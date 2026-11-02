@@ -159,12 +159,12 @@ export function Home() {
     const c = choices.copy();
     p.applyTo(c);
     // For this table's ending, as the table's own total below is (settings.ts, `estimate`).
-    return CostEstimate.perGame(c, settings.endMedian);
+    return CostEstimate.perGame(c, settings.endMedian, settings.background);
   };
   const describeFor = (p: Preset): string => {
     const c = choices.copy();
     p.applyTo(c);
-    return CostEstimate.describeFor(c, settings.endMedian);
+    return CostEstimate.describeFor(c, settings.endMedian, settings.background);
   };
 
   const changeSeat = (value: string): void =>
@@ -282,7 +282,7 @@ export function Home() {
       }
     }
     navigate("play");
-    session.load(text, continuePlay, allKeys(keys.key ?? key), { providers: settings.providers, prices: settings.prices, pauseFallbackShare: settings.pauseFallbackShare, bridgeCharacters: characters }, keepId);
+    session.load(text, continuePlay, allKeys(keys.key ?? key), { providers: settings.providers, prices: settings.prices, pauseFallbackShare: settings.pauseFallbackShare, bridgeCharacters: characters, background: settings.background }, keepId);
   }
 
   async function loadSaved(id: string, continuePlay: boolean, resumed = false): Promise<void> {
@@ -336,7 +336,7 @@ export function Home() {
         </div>
         {selected === null && (
           <p className="notice">
-            Custom setup: {summary()}. Estimated {CostEstimate.describeFor(choices, settings.endMedian)}
+            Custom setup: {summary()}. Estimated {CostEstimate.describeFor(choices, settings.endMedian, settings.background)}
             {est > 0 ? " a game" : ""}.
           </p>
         )}
@@ -583,7 +583,7 @@ export function Home() {
               </>
             )}
             <p style={{ marginTop: ".6rem" }}>
-              Estimated cost: <strong>{CostEstimate.describeFor(choices, settings.endMedian)}</strong> for {settings.openAge ? `the first ${settings.endMedian} seasons of an open age, which has no end` : `a game of median length (${settings.endMedian} seasons)`} (a rough figure: the meter
+              Estimated cost: <strong>{CostEstimate.describeFor(choices, settings.endMedian, settings.background)}</strong> for {settings.openAge ? `the first ${settings.endMedian} seasons of an open age, which has no end` : `a game of median length (${settings.endMedian} seasons)`} (a rough figure: the meter
               in the game shows the real spend).{" "}
               <label>
                 The game pauses at $
@@ -601,6 +601,15 @@ export function Home() {
                 />
               </label>
             </p>
+            {choices.providersInUse.includes(AnthropicId) && (
+              <label style={{ marginTop: ".6rem" }}>
+                <input type="checkbox" checked={settings.background} onChange={(e) => setSettings(recost({ ...settings, background: e.target.checked }))} />
+                Play in the background: each phase's Anthropic calls go as one batch to its batch service, at half the price and with no limit on calls in
+                flight; answers come back in minutes or more, so seasons pass slowly. You may close the page while the courts deliberate: continue the saved
+                game later with this box ticked and the same key, and it collects the answers. A season costs about {CostEstimate.describeSeason(choices, false)} live,{" "}
+                {CostEstimate.describeSeason(choices, true)} in the background.
+              </label>
+            )}
           </div>
         )}
 
