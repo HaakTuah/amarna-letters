@@ -31,7 +31,7 @@ import {
   serialize,
   deserialize,
 } from "@amarna/engine";
-import { removeAll, Assert } from "./support.ts";
+import { removeAll, Assert, smallWorld } from "./support.ts";
 
 // Item 13+, Haakon's answers to item 13's review ("A kingdom falls with its capital" under War): a fallen realm comes
 // apart province by province as word of the fall reaches each, life there going on as before until then, and a governor
@@ -46,7 +46,7 @@ describe("FallAsNewsTests", () => {
   // Seed 1, no catastrophes: Assyria's army one season from Babylon's surrender; a governor of Babylonia's in Nippur with
   // an army of Babylonia's there, and a purse of `purse`.
   function babylonFalls(purse: number): { s: GameState; governor: string } {
-    const s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+    const s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "Assyria", "Babylonia", "Egypt", "Hatti", "Alashiya");
     removeAll(s.units, (u) => u.province === "babylon" || u.province === "nippur");
     const army = newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "babylon", men: 3000 });
     s.units.push(army);
@@ -78,7 +78,7 @@ describe("FallAsNewsTests", () => {
     // Hatti falls to Assyria's army at Hattusa; the silver of Tuwanuwa, which word of the fall has not reached, goes to
     // Hattusa as before, and so to Assyria: against the same season with Hatti's other land held by nobody, Assyria's
     // income is the greater by it.
-    const s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+    const s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "Assyria", "Hatti");
     removeAll(s.units, (u) => u.province === "hattusa");
     const army = newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "hattusa", men: 3000 });
     s.units.push(army);

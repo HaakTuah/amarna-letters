@@ -41,7 +41,7 @@ import { Assert, armiesBefore13, last, smallWorld } from "./support.ts";
 describe("EconomyTests", () => {
   const Map = WorldMap.default;
   // The armies as before item 13: these rules were measured on full levies.
-  const game = (...powers: Power[]): GameState => smallWorld(armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 }))), ...(powers.length > 0 ? powers : ["Hatti"]));
+  const game = (...powers: Power[]): GameState => smallWorld(armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 }))), ...(powers.length > 0 ? powers : ["Hatti", "Kaska"]));
   const notice = (s: GameState, title: string): string => last(inboxOf(s, "Hatti"), (i) => i.title === title).body;
 
   test("The harvest's tax goes into each province's stores and the mines' gold into the treasury", () => {
