@@ -33,11 +33,11 @@ describe("PeoplePlayTests", () => {
     const v = Views.for(s, "Hatti");
     const nesa = v.provinces.find((x) => x.province === "nesa")!;
     // At the start the farmers can bear a little more than the default.
-    Assert.inRange(bearableShare(nesa), 34, 40);
+    Assert.inRange(bearableShare(nesa, null, v.turn), 34, 40);
     // Counted at the start, and the count fresh: it asks the grain as an amount, which the land cannot hide.
     Assert.contains(demandOrders(v, "Hatti"), (o) => o.type === "demand" && o.how === "amount" && o.province === "nesa");
     // A province in a drought can bear far less.
-    Assert.true(bearableShare({ ...nesa, harvest: Math.floor(nesa.harvest / 2) }) < 10);
+    Assert.true(bearableShare({ ...nesa, harvest: Math.floor(nesa.harvest / 2) }, null, v.turn) < 10);
     Assert.true(canLevy(v, "sapinuwa", "Army"));
     Assert.false(canLevy({ ...v, provinces: v.provinces.map((x) => (x.province === "sapinuwa" ? { ...x, men: 100 } : x)) }, "sapinuwa", "Army"));
     // The plateau sows and reaps in Akhet (turn 1): a levy costs it more then than in Peret.
@@ -57,8 +57,8 @@ describe("PeoplePlayTests", () => {
     Assert.false(v.yields.has("hattusa"));
     Assert.false(v.resistance.has("sapinuwa"));
     const lines = peopleLines(v).join("\n");
-    Assert.contains("YOUR PEOPLE: settled", lines);
-    Assert.contains("Tax: 33% in", lines);
+    Assert.contains("YOUR PEOPLE, as your scribes last counted them: on the land", lines);
+    Assert.contains("What you ask: 33% of the harvest in", lines);
     Assert.contains("Men of fighting age in your homeland", lines);
   });
 

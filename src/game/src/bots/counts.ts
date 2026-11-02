@@ -38,7 +38,7 @@ export function demandOrders(v: SeatView, me: string): Order[] {
   for (const x of v.provinces) {
     if (x.counted === null) continue;
     const now = shareNow(x);
-    let rate = bearableShare(x, me);
+    let rate = bearableShare(x, me, v.turn);
     if (x.fed < 1000) rate = Math.min(rate, Math.max(0, now - 5));
     if (CountPlay.on(me) && v.turn - x.counted <= FreshSeasons && x.harvest > 0) {
       const amount = Math.floor((x.harvest * rate) / 100);

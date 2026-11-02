@@ -108,10 +108,13 @@ export function keepCount(s: GameState, power: string, c: Count): void {
   if (old === undefined || old.turn <= c.turn) mine.set(c.province, c);
 }
 
-/** Every court starts with a count of the land it holds, as its scribes last counted it before the game. */
+/**
+ * Every court starts with a count of the land it holds, as its scribes last counted it before the game: dated the season
+ * before the first, before the first season's harvest is reaped.
+ */
 export function seedCounts(s: GameState, map: WorldMap): void {
   for (const p of map.landProvinces) {
     const holder = s.owner.getOrDefault(p.id, null);
-    if (holder !== null) keepCount(s, holder, takeCount(s, map, p.id));
+    if (holder !== null) keepCount(s, holder, { ...takeCount(s, map, p.id), turn: s.turn - 1 });
   }
 }

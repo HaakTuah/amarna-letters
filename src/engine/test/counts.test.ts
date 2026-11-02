@@ -11,7 +11,7 @@ describe("CountsTests", () => {
   test("Every court starts with a count of the land it holds, and its view shows the count, not the land as it is now", () => {
     const s = fresh();
     const c = countOf(s, "Hatti", "nesa")!;
-    Assert.equal(s.turn, c.turn);
+    Assert.equal(s.turn - 1, c.turn);
     Assert.equal(s.people.get("nesa").settled, c.settled);
     // The land changes; the court's view keeps the count until a new one comes home.
     s.people.get("nesa").settled += 50_000;

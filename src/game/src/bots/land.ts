@@ -51,7 +51,7 @@ const TaxMargin = 3;
  * The highest share a province's farmers can bear this season, by the king's last count of it, without going hungry, less a margin: what they keep of
  * its harvest must cover what its countryside eats.
  */
-export function bearableShare(x: ProvinceEconomyView, me: string | null = null): number {
+export function bearableShare(x: ProvinceEconomyView, me: string | null = null, turn: number = x.counted ?? 0): number {
   const p = WorldMap.default.get(x.province);
   const need = countryNeed(p, x.settled, reckonedOf(WorldMap.default, x.province).settled);
   if (x.harvest <= 0) return 0;
@@ -59,8 +59,26 @@ export function bearableShare(x: ProvinceEconomyView, me: string | null = null):
   // The harvest comes once a year (item 11a+): until the next is reaped, the granary must feed them and pay the tax. The
   // seasons it must last: those before the reaping season, which the new harvest feeds.
   const seasons = x.reapsIn === 0 ? 2 : x.reapsIn - 1;
-  if (seasons > 0 && (me === null || SeasonPlay.on(me))) most = Math.min(most, Math.floor(((x.granary / seasons - need) * 100) / x.harvest) - TaxMargin);
+  if (seasons > 0 && (me === null || SeasonPlay.on(me))) most = Math.min(most, Math.floor(((granaryNow(x, turn) / seasons - need) * 100) / x.harvest) - TaxMargin);
   return Math.max(0, Math.min(LandData.taxMost, most));
+}
+
+/**
+ * The farmers' granary now, reckoned forward from the king's last count of it (item 17++): each season since, what its
+ * countryside eats and what he asks taken from it, and a reaping in between filling it with a harvest like the counted
+ * one; this season's reaping in, its eating not yet. The count's own figure when it is this season's.
+ */
+export function granaryNow(x: ProvinceEconomyView, turn: number): number {
+  if (x.counted === null) return x.granary;
+  const need = countryNeed(WorldMap.default.get(x.province), x.settled, reckonedOf(WorldMap.default, x.province).settled);
+  const use = need + Math.floor((x.harvest * shareNow(x)) / 100);
+  let g = x.granary;
+  for (let t = x.counted + 1; t <= turn; t++) {
+    if ((((t - turn - x.reapsIn) % 3) + 3) % 3 === 0) g += 3 * x.harvest;
+    // This season's eating and asking are still to come when the king gives his orders.
+    if (t < turn) g = Math.max(0, g - use);
+  }
+  return g;
 }
 
 /** The share a province now gives, in percent of a season's harvest: its share, or what its amount comes to. */
@@ -79,10 +97,10 @@ export function famineFeeding(v: SeatView, me: string, besieged: ReadonlySet<str
   for (const x of v.provinces) {
     if (besieged.has(x.province)) continue;
     const need = countryNeed(WorldMap.default.get(x.province), x.settled, reckonedOf(WorldMap.default, x.province).settled);
-    const rate = Math.min(shareNow(x), bearableShare(x, me));
+    const rate = Math.min(shareNow(x), bearableShare(x, me, v.turn));
     // What the farmers will have next season (item 11a+): their granary, the harvest if it is reaped then, less the tax.
     // A king that ignores the granaries reckons by a season's share of the harvest, as before.
-    const kept = SeasonPlay.on(me) ? x.granary + (x.reapsIn === 1 ? x.crop + x.harvest : 0) - Math.floor((x.harvest * rate) / 100) : Math.floor((x.harvest * (100 - rate)) / 100);
+    const kept = SeasonPlay.on(me) ? granaryNow(x, v.turn) + (x.reapsIn === 1 ? x.crop + x.harvest : 0) - Math.floor((x.harvest * rate) / 100) : Math.floor((x.harvest * (100 - rate)) / 100);
     const short = need - kept - Math.max(0, x.stock - x.need);
     const give = Math.min(short, stores(x.province));
     if (give > 0) orders.push(feed(x.province, give));

@@ -82,10 +82,11 @@ describe("PeopleTests", () => {
     Assert.contains(r.rejected, (x) => x.reason.includes("too few men of fighting age"));
   });
 
-  test("A heavy tax empties the farmers' granaries, and the hungry leave the land in the season it bites", () => {
+  test("A heavy share empties the farmers' granaries, and the hungry leave the land in the season it bites", () => {
     const s = quiet();
-    season(s, subs({ Hatti: { orders: [demand("share", 70, "nesa")] } }));
-    Assert.equal(70, s.shares.get("nesa"));
+    // Item 17++: the land hides part of a share as its count ages, so the share that bites within the year is heavier.
+    season(s, subs({ Hatti: { orders: [demand("share", 80, "nesa")] } }));
+    Assert.equal(80, s.shares.get("nesa"));
     // The granaries carry them for a while (item 11a+: the harvest comes once a year); before the year is out they run dry.
     let bit = false;
     for (let k = 0; k < 6 && !bit; k++) {
@@ -100,9 +101,9 @@ describe("PeopleTests", () => {
       } else new TurnEngine(s).resolve(new Dict());
     }
     Assert.true(bit);
-    // Its neighbours at the default tax ate their fill.
+    // Its neighbours at the usual share ate their fill.
     Assert.false(s.fed.has("hattusa"));
-    // A province changing hands keeps no tax of its old holder's.
+    // A province changing hands keeps no demand of its old holder's.
     new TurnEngine(s).setOwner("nesa", "Mitanni");
     Assert.false(s.shares.has("nesa"));
   });
