@@ -474,10 +474,13 @@ function other(x: Node): Order | null {
     case "raise_fleet_share":
       return raise(province, "Fleet", null, amount);
     case "build":
-    case "build_corvee": {
+    case "build_corvee":
+    case "build_corvee_share": {
       const kind = workKindNamed(S(x, "item"));
       if (kind === null) return unreadable(`build in ${province}`, "name what to build in item: walls, roads, stations, harbour, police or water");
-      return build(province, kind, kind === "Policing" ? Math.round(Math.max(0, amount) / PoliceMenPerLevel) : amount, S(x, "action") === "build_corvee");
+      const action = S(x, "action");
+      // Item 17++: a corvée asked as a share of the men at home, in percent (share).
+      return build(province, kind, kind === "Policing" ? Math.round(Math.max(0, amount) / PoliceMenPerLevel) : amount, action !== "build", action === "build_corvee_share" ? I(x, "share") : null);
     }
     case "sell_grain":
       return sell(province, amount);

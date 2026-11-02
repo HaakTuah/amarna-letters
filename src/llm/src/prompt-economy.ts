@@ -19,7 +19,7 @@ export function worksLines(v: SeatView): string[] {
   for (const [prov, ws] of groupBy(v.works, (w) => w.province)) {
     const parts = ws.map((w) => {
       const keep = w.keep !== w.level ? (w.keep > w.level ? `, building to ${w.kind === "Policing" ? `${w.keep * PoliceMenPerLevel} men` : w.keep} (${w.progress} of ${w.seasons} seasons)` : `, kept at ${w.kind === "Policing" ? `${w.keep * PoliceMenPerLevel} men` : w.keep}, the rest decaying`) : "";
-      return `${word(w.kind)} ${level(w)}${keep}${w.labour ? "" : " (gold)"}${w.neglect > 0 ? `, unpaid ${w.neglect} season(s)` : ""}`;
+      return `${word(w.kind)} ${level(w)}${keep}${w.labour ? (w.share !== null ? ` (corvée: ${w.share}% of the men at home)` : "") : " (gold)"}${w.neglect > 0 ? `, unpaid ${w.neglect} season(s)` : ""}`;
     });
     lines.push(`- ${prov}: ${parts.join("; ")}.`);
   }

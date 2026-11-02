@@ -112,12 +112,15 @@ rumours, and those can be late, shaded or false.
   The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men on the
   roads may raise bands of their own.
 - You know your provinces' people only as your scribes last counted them, dated: the province card shows the town and
-  its land apart ("about 18,000 in the town; about 650,000 on its land"). Send scribes to count a province afresh (a
+  its land apart ("about 18,000 in the town; about 650,000 on its land"), two figures while the count is under a year
+  old and one once older ("some 600,000"), and your stores as your stewards round them. Egypt starts with recent counts,
+  the other courts with counts two years old. Send scribes to count a province afresh (a
   census, paid when they set out): their count comes home a season or more later, and being counted stirs the people a
   little.
 - Sell and buy grain and goods at your own markets, where prices follow supply; send caravans and trade abroad, and set
   tolls on your roads.
-- Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée: nothing is
+- Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée (the men a work
+  needs, or a share of the men at home, the work going as fast as the men who come): nothing is
   kept unless you order it, and an army in another's land can raze them.
 - **No province is owned by a flag: it obeys whoever it fears or loves most.** Fear is troops standing in it, weighed
   against its own men (twice as many in hill land); troops next door, or before walls they have not stormed, weigh a

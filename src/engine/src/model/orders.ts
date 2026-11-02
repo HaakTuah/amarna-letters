@@ -63,6 +63,8 @@ export interface BuildOrder {
   kind: WorkKind;
   level: number;
   labour: boolean;
+  /** Item 17++: by corvée, a share in a hundred of the men of fighting age at home rather than the men the work needs. */
+  share?: number | null;
 }
 /**
  * An army of the seat's standing in land another holds razes a level of what stands there: its roads, relay stations,
@@ -712,7 +714,7 @@ export const move = (unit: string, to: string, forced = false): MoveOrder => (fo
 export const support = (unit: string, supported: string, to: string | null = null): SupportOrder => ({ type: "support", unit, supported, to });
 export const convoy = (unit: string, army: string, to: string): ConvoyOrder => ({ type: "convoy", unit, army, to });
 export const besiege = (unit: string): BesiegeOrder => ({ type: "besiege", unit });
-export const build = (province: string, kind: WorkKind, level: number, labour = false): BuildOrder => ({ type: "build", province, kind, level, labour });
+export const build = (province: string, kind: WorkKind, level: number, labour = false, share: number | null = null): BuildOrder => ({ type: "build", province, kind, level, labour, ...(share !== null ? { share } : {}) });
 export const raze = (unit: string, kind: WorkKind): RazeOrder => ({ type: "raze", unit, kind });
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
 export const raise = (province: string, kind: UnitKind, men: number | null = null, share: number | null = null): RaiseOrder =>
@@ -854,7 +856,7 @@ export function describe(o: Order): string {
     case "unreadable":
       return o.text;
     case "build":
-      return `keep the ${workName(o.kind)} of ${named(o.province)} at ${workLevelText(o.kind, o.level)}, ${o.labour ? "by corvée" : "paid in gold"}`;
+      return `keep the ${workName(o.kind)} of ${named(o.province)} at ${workLevelText(o.kind, o.level)}, ${o.labour ? (o.share != null ? `by a corvée of ${o.share}% of the men at home` : "by corvée") : "paid in gold"}`;
     case "raze":
       return `${o.unit} razes a level of the ${workName(o.kind)} where it stands`;
     case "sally":
@@ -1063,7 +1065,7 @@ export const OrderSchema = poly("Order", "type", {
   support: v("SupportOrder", () => support("", ""), { unit: S, supported: S, to: S }),
   convoy: v("ConvoyOrder", () => convoy("", "", ""), { unit: S, army: S, to: S }),
   besiege: v("BesiegeOrder", () => besiege(""), { unit: S }),
-  build: v("BuildOrder", () => build("", "Walls", 0), { province: S, kind: S, level: I, labour: B }),
+  build: v("BuildOrder", () => build("", "Walls", 0), { province: S, kind: S, level: I, labour: B, share: opt(I) }),
   raze: v("RazeOrder", () => raze("", "Roads"), { unit: S, kind: S }),
   sally: v("SallyOrder", () => sally("", ""), { city: S, from: S }),
   sell: v("SellOrder", () => sell("", 0), { province: S, amount: I }),

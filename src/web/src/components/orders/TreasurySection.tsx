@@ -109,10 +109,22 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
         <label>
           <input type="checkbox" checked={f.buildLabour} onChange={(e) => set({ buildLabour: e.target.checked })} /> by corvée
         </label>
+        {f.buildLabour && (
+          <input
+            type="number"
+            min={1}
+            max={100}
+            style={{ width: "6em" }}
+            placeholder="share %"
+            value={f.buildShare}
+            onChange={(e) => set({ buildShare: e.target.value })}
+            title="a share of the men of fighting age at home, in percent; empty for the men the work needs"
+          />
+        )}
         <button
           className="small"
           disabled={f.buildAt === ""}
-          onClick={() => add(build(f.buildAt, f.buildKind as WorkKind, f.buildKind === "Policing" ? Math.round(f.buildLevel / PoliceMenPerLevel) : f.buildLevel, f.buildLabour))}
+          onClick={() => add(build(f.buildAt, f.buildKind as WorkKind, f.buildKind === "Policing" ? Math.round(f.buildLevel / PoliceMenPerLevel) : f.buildLevel, f.buildLabour, f.buildLabour && f.buildShare !== "" ? Math.min(100, Math.max(1, Math.floor(Number(f.buildShare)))) : null))}
         >
           Add
         </button>

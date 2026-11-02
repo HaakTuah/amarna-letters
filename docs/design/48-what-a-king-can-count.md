@@ -54,7 +54,14 @@ readings. The report: `docs/rounds/2026-11-02-what-a-king-can-count.md`. Save ve
   runaways give, and the ledger's taking or giving against the usual share.
 - **Levies** (`raise` with `share`; model actions `raise_army_share`, `raise_fleet_share`): a share of the men of
   fighting age at home, less the same `hiddenIn` percent; or a number of men, as item 11a+ built it. A share that comes to
-  fewer than a levy takes is refused as that, never as a land without men. The corvée stays each work's need (item 15).
+  fewer than a levy takes is refused as that, never as a land without men.
+- **The corvée** (part C, the owner's answer to #411; `BuildOrder.share`, `WorkPlan.share`, `corveeMen` in
+  `turn/works.ts`; model action `build_corvee_share`; the web's share box beside "by corvée"): the men a work needs,
+  named, as item 15 built it, or a share of the men of fighting age at home, less the same `hiddenIn` percent, never more
+  than the work needs. The work goes as fast as the men who come: a share short of a project's need does that part of a
+  season's work (`WorkPlan.done`, in a hundred), carried on until it makes a season; a share short of the upkeep keeps
+  nothing that season. Script kings name the men while their count is fresh and ask a share sized to the work's need by
+  an old count (`corveeShares`), within `--count-play-half`.
 - The seat view's `yields` are what the last reaping brought in, a season's third of it, never the hands there now.
 - Only a governor stands between king and province: where one stands, the ledger debits or credits him for what is
   asked, as the hand the people see (part A's rule), and nothing else comes between.

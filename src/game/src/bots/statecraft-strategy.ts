@@ -40,7 +40,7 @@ import { Board } from "./board.ts";
 import { worksOrders } from "./works.ts";
 import { depotFor, grainOrders, plainGrain, plainGrainOrders } from "./grain.ts";
 import { canLevy, levyCost, settleThere } from "./land.ts";
-import { censusOrders, demandOrders, levyOrder } from "./counts.ts";
+import { censusOrders, corveeShares, demandOrders, levyOrder } from "./counts.ts";
 import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import type { Brain } from "./brain.ts";
@@ -352,6 +352,8 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   }
   // Item 15: roads and relay stations, police, harbours, water works, repairs under siege and razing (see works.ts).
   const works = worksOrders(b, plan, gold - reserve);
+  // Item 17++: a corvée as a share of the men at home where the count is too old to name them by.
+  corveeShares(b.v, b.me, works.orders);
   orders.push(...works.orders);
   gold -= works.spent;
   brain.spareGold = gold - reserve;

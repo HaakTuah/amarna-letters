@@ -58,6 +58,17 @@ declare module "./core.ts" {
 
 const P = TurnEngine.prototype;
 
+/**
+ * The men a corvée brings to a work needing `need`: named (no share), the need if the men at home can spare it, else none;
+ * by share (item 17++, "The king says how much he wants"), its share of the men at home, less what the province hides at
+ * its count's age and distance, as a levy by share does, never more than the work takes.
+ */
+function corveeMen(e: TurnEngine, province: string, need: number, plan: WorkPlan | null): number {
+  const home = menAvailable(e.s, province);
+  if (plan?.share == null) return home >= need ? need : 0;
+  return Math.min(need, idiv(idiv(home * plan.share, 100) * (100 - e.hiddenIn(province)), 100));
+}
+
 P.setWorks = function (p, o) {
   const S = this.s;
   const prov = this.map.get(o.province);
@@ -69,6 +80,7 @@ P.setWorks = function (p, o) {
   if (plan === null) S.works.push((plan = newWorkPlan({ province: o.province, kind: o.kind })));
   plan.keep = o.level;
   plan.labour = o.labour;
+  plan.share = o.labour ? (o.share ?? null) : null;
   plan.since = S.turn;
 };
 
@@ -134,7 +146,9 @@ P.worksSeason = function () {
         if (kept > 0 && reach) {
           if (labour) {
             const need = upkeepMen(kind, kept);
-            if (menAvailable(S, id) >= need) {
+            // By share, only men enough to keep it keep it; fewer leave it unkept this season.
+            const come = corveeMen(this, id, need, plan);
+            if (come >= need) {
               S.corvee.set(id, S.corvee.getOrDefault(id, 0) + need);
               men += need;
               paid = true;
@@ -186,12 +200,25 @@ P.worksSeason = function () {
             const next = kind === "Policing" ? keep : level + 1;
             const hire = kind === "Policing" ? next - level : next;
             let done = false;
+            let part = false;
             if (labour) {
               const need = buildMen(kind, id, hire);
-              if (menAvailable(S, id) >= need) {
-                S.corvee.set(id, S.corvee.getOrDefault(id, 0) + need);
-                men += need;
-                done = true;
+              const come = corveeMen(this, id, need, plan);
+              if (come > 0) {
+                S.corvee.set(id, S.corvee.getOrDefault(id, 0) + come);
+                men += come;
+                // Item 17++: the work goes as fast as the men who come; a share short of its need does part of a season's.
+                if (come >= need) done = true;
+                else {
+                  work.done += idiv(come * 100, need);
+                  if (work.done >= 100) {
+                    work.done -= 100;
+                    done = true;
+                  } else {
+                    part = true;
+                    say(id, `the ${workName(kind)} of ${prov.name}: the share you asked brought fewer men than the work needs, and it went at ${idiv(come * 100, need)} in a hundred of its pace`);
+                  }
+                }
               }
             } else {
               const cost = buildGold(kind, id, hire);
@@ -202,8 +229,8 @@ P.worksSeason = function () {
                 done = true;
               }
             }
-            if (!done) say(id, `no work was done on the ${workName(kind)} of ${prov.name}: ${labour ? "too few men at home" : "too little gold"}`);
-            else {
+            if (!done && !part) say(id, `no work was done on the ${workName(kind)} of ${prov.name}: ${labour ? (plan?.share != null ? "the share you asked brought no men" : "too few men at home") : "too little gold"}`);
+            else if (done) {
               work.progress++;
               const seasons = WorksData[kind].seasons;
               if (work.progress >= seasons) {

@@ -646,6 +646,8 @@ export interface WorkView {
   level: number;
   keep: number;
   labour: boolean;
+  /** Item 17++: a corvée asked as a share of the men at home, in a hundred; null: the men the work needs. */
+  share: number | null;
   /** Seasons of work done towards the next level, and the seasons a level takes. */
   progress: number;
   seasons: number;
@@ -660,7 +662,7 @@ export interface WorkView {
 }
 
 export function newWorkView(init: Partial<WorkView> = {}): WorkView {
-  return { province: "", kind: "Roads", level: 0, keep: 0, labour: true, progress: 0, seasons: 0, upkeepGold: 0, upkeepMen: 0, buildGold: 0, buildMen: 0, neglect: 0, decay: 0, ...init };
+  return { province: "", kind: "Roads", level: 0, keep: 0, labour: true, share: null, progress: 0, seasons: 0, upkeepGold: 0, upkeepMen: 0, buildGold: 0, buildMen: 0, neglect: 0, decay: 0, ...init };
 }
 
 export const WorkViewSchema: ObjSchema<WorkView> = obj("WorkView", newWorkView, {
@@ -669,6 +671,7 @@ export const WorkViewSchema: ObjSchema<WorkView> = obj("WorkView", newWorkView, 
   level: I,
   keep: I,
   labour: B,
+  share: opt(I),
   progress: I,
   seasons: I,
   upkeepGold: I,

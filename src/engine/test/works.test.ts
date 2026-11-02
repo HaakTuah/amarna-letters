@@ -7,6 +7,8 @@ import {
   TurnEngine,
   WorldMap,
   build,
+  buildMen,
+  menAvailable,
   drinkingSeasons,
   first,
   inboxOf,
@@ -84,6 +86,43 @@ describe("WorksTests", () => {
     Assert.equal(start - 50, gold(s, "Egypt"));
     e.worksSeason();
     Assert.equal(start - 51, gold(s, "Egypt"));
+  });
+
+  test("A corvée asked as a share brings its share of the men at home, less what the land hides, and the work goes as fast as they come", () => {
+    // The men the city's other works take each season, for comparison.
+    const base = game();
+    new TurnEngine(base).worksSeason();
+    const others = base.corvee.getOrDefault("thebes", 0);
+    const s = game();
+    const e = new TurnEngine(s);
+    const home = menAvailable(s, "thebes");
+    const need = buildMen("Walls", "thebes", 1);
+    // A small share, bringing fewer men than the work needs: part of a season's work, carried into the next.
+    const share = Math.max(1, Math.floor((need * 50) / home));
+    e.setWorks("Egypt", build("thebes", "Walls", 1, true, share));
+    Assert.equal(share, planOf(s, "Walls", "thebes")!.share);
+    e.worksSeason();
+    const come = Math.min(need, Math.floor((Math.floor((home * share) / 100) * (100 - e.hiddenIn("thebes"))) / 100));
+    Assert.true(come > 0 && come < need);
+    Assert.equal(others + come, s.corvee.get("thebes"));
+    Assert.equal(0, planOf(s, "Walls", "thebes")!.progress);
+    Assert.equal(Math.floor((come * 100) / need), planOf(s, "Walls", "thebes")!.done);
+    Assert.contains("went at", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
+    const half = planOf(s, "Walls", "thebes")!.done;
+    s.corvee.clear();
+    e.worksSeason();
+    // The next season's men add to it: about two halves make a season of work done.
+    const w = planOf(s, "Walls", "thebes")!;
+    Assert.inRange(w.progress * 100 + w.done, 2 * half - 5, 2 * half + 5);
+    // Named, the men it needs come in full, as before.
+    const t = game();
+    new TurnEngine(t).setWorks("Egypt", build("thebes", "Walls", 1, true));
+    new TurnEngine(t).worksSeason();
+    Assert.equal(others + need, t.corvee.get("thebes"));
+    Assert.equal(1, planOf(t, "Walls", "thebes")!.progress);
+    // A share is only by corvée, from 1 to 100.
+    Assert.single(new OrderValidator(t).validate("Egypt", newTurnSubmission({ orders: [build("memphis", "Walls", 3, false, 20)] })).rejected);
+    Assert.single(new OrderValidator(t).validate("Egypt", newTurnSubmission({ orders: [build("memphis", "Walls", 3, true, 120)] })).rejected);
   });
 
   test("A build order is refused beyond its kind's top, on land not held, where the land forbids it, and twice", () => {

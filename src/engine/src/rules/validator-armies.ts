@@ -74,6 +74,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       const level = levelOf(S, f.kind, f.province);
       const land = landRefusal(f.kind, prov);
       if (land !== null && f.level > level) return land;
+      if (f.share != null && (!f.labour || !Number.isInteger(f.share) || f.share <= 0 || f.share > 100)) return "a corvée's share is a percent of the men of fighting age at home, from 1 to 100, and only by corvée";
       const key = `${f.kind}:${f.province}`;
       if (fortified.has(key)) return `you had already given an order for the ${workName(f.kind)} of ${prov.name} this season`;
       // The first season of a project paid in gold is reserved now.

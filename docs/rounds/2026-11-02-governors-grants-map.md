@@ -47,6 +47,22 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
 11. **Script kings take up what pays** (`bots/declarations.ts`): ceded land always; a declaration unless its holder is a
     friend or it lies over three courier seasons from the court, refused at once; `--take-up-play-half` against kings
     that take up everything.
+12. **Part B against its sections** (the orchestrator, 2 November 2026: the three sections are in the design copy as bold
+    run-in titles, `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md`, line 54). Four
+    gaps, fixed here: a count shows two figures while under a year old and one once older ("some 600,000",
+    `countFigures`, `toFigures`); a land never counted only a rough guess, one figure of what its land carries; a king's
+    stores and his demand's take as his stewards round them, to two figures ("about 440 measures"); and each court's
+    starting counts as its sources suggest (`StartCountAge`: Egypt two seasons old, every other court two years). The
+    province card (looking back too: frames keep each count's season), the orders panel, the town marker, the model's
+    prompt and the rulebook follow; god view stays exact. Tests: `counts.test.ts`, `map-known.test.ts`,
+    `people-play.test.ts` (Hatti's old count now asks a share, Egypt's fresh one an amount).
+13. **The corvée as a share** (#411; the owner, 2 November 2026: "Yes, agreed to all expertly!", to the design session's
+    take that "the corvée is asked as a share as well as an amount, as the design already says ("for grain, levy and work
+    gangs alike")"): order `build` by corvée with a share of the men at home (model action `build_corvee_share`, the
+    web's share box), less what the province hides at its count's age; the work goes as fast as the men who come, a
+    share short of a project's need doing part of a season's work (`WorkPlan.done`), carried on. Script kings name the
+    men by a fresh count and ask a share by an old one (`corveeShares`, within `--count-play-half`). Rulebook
+    (`rules-works.ts`), design note 48, README. Test: `works.test.ts`.
 
 ## Readings taken
 
@@ -102,12 +118,19 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
     held only by its people's favour, its tax and defence coming late; both cost more than they bring, so the scripts
     refuse them at once rather than leave them hanging. Principle: "Every feature is every seat's".
 
+15. **A share short of the upkeep keeps nothing that season**: upkeep is all or nothing (a level kept or decaying), so
+    part of a season's upkeep has nothing to do; only a project goes "as fast as the men who come". Principle: "The
+    smallest rule that does the job".
+16. **Where a corvée by share stands**: a share asked for one work, not a standing share of every work in a province,
+    since each work's order already names its province and its pay. Principle: "No menus".
+
 ## First guesses (for item 18)
 
 Tribute asked three quarters of a year's yield; a governor four seasons in office before a script crowns him; the man's
 ambition 30; the mood steps 900 and 600; a rich king's muster: ten seasons' pay and food beyond his reserve, at most
 half his homeland in armies; recall after two restless letters within six seasons; a refusal's entry in the ledger 20; three courier seasons as the
-farthest a script king takes up a declared province.
+farthest a script king takes up a declared province; starting counts two seasons old for Egypt and two years for every
+other court.
 
 ## Design questions
 
