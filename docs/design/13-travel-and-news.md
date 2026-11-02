@@ -90,8 +90,11 @@ on sealed tablets comes with item 9.
   holder and walls as the court knows them, its ring's tightness unknown. The seat's view (`SeatView.sieges`), the web
   map (`SeasonFrame.knownSieges`) and the order checks read the same (`Checking.knownSiege`, `knownWalls`); a sally out
   of sight is not refused for the troops within, and a levy's men far off are checked by the court's last count, or not
-  at all without one. The season's siege news of a far city, its siege events (a far holder is not among the events'
-  parties), the markets' lines (sales, purchases, grain to the towns, caravans, trade and ships) of a far province,
+  at all without one. The events of a far place (a siege's, a market's, a levy's, what welcome, deport, expel and return
+  runaways did, a cession, people fleeing) name as parties only the courts within the season's reach of it
+  (`TurnEngine.nearOf`); a farther court reads of them in the word that comes by the road. A siege ended as its city
+  changed hands is recorded with the holder as the season began, and the walls of a far city a court believes it holds
+  are its works only while it truly holds it. The season's siege news of a far city, the markets' lines (sales, purchases, grain to the towns, caravans, trade and ships) of a far province,
   people fleeing into or out of it, a levy's outcome, a cession, a disbanding, and what welcome, deport, expel and
   return runaways did there come home by the road (`TurnEngine.tell`); an order a siege foils far off fails as one on
   lost land does (`TurnEngine.lostOrder`). A grant of passage or basing, given at court, is recorded as given even over

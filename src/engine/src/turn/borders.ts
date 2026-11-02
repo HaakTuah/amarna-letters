@@ -93,7 +93,7 @@ P.refuge = function (from, n, why) {
   if (a !== null && isAlive(S, a)) this.tell(a, from, "Notice", PeopleTitle, `${people(n)} of the people of ${nameA} fled ${why} into ${nameB}${b !== null ? `, ${b}'s land` : ""}, as loose men.`);
   if (b !== null && isAlive(S, b))
     this.tell(b, best, "Notice", PeopleTitle, `${people(n)} people fled ${why} from ${nameA}${a !== null ? `, ${a}'s land,` : ""} into your land of ${nameB}, as loose men. You may settle them where there is room (order welcome)${a !== null ? ` or send them back to ${a} (order return runaways)` : ""}.`);
-  logEvent(S, "refugees", `${people(n)} people fled ${why} from ${nameA} into ${nameB}.`, ([[a, from], [b, best]] as const).filter(([x, at]) => x !== null && !(this.wordTo(x, at) > 0 && Number.isFinite(this.wordTo(x, at)))).map(([x]) => x!), "refugees");
+  logEvent(S, "refugees", `${people(n)} people fled ${why} from ${nameA} into ${nameB}.`, [...this.nearOf(from, a), ...this.nearOf(best, b)], "refugees");
 };
 
 /** Loose men move between provinces, with their share of the gold the loose carry there and of its runaways. */
@@ -231,7 +231,7 @@ P.welcome = function (p, o) {
   shift(x, n, idiv(n * LandData.menPercent, 100));
   this.looseLeave(o.province, n);
   this.tell(p, o.province, "Resolution", PeopleTitle, `You settled ${people(n)} loose men in ${name}: they are its settled people now, and bring their gold into its purse.`);
-  logEvent(S, "welcome", `${p} settled ${people(n)} loose men in ${name}${fled.length > 0 ? `, among them runaways from ${fled.join(" and ")}` : ""}.`, [p], "welcomed");
+  logEvent(S, "welcome", `${p} settled ${people(n)} loose men in ${name}${fled.length > 0 ? `, among them runaways from ${fled.join(" and ")}` : ""}.`, this.nearOf(o.province, p), "welcomed");
 };
 
 /**
@@ -338,7 +338,7 @@ P.deport = function (p, o) {
       (fled > 0 ? `, and ${people(fled)} slipped away and stay loose in ${from.name}` : "") +
       ".",
   );
-  logEvent(S, "deport", `${p} deported ${people(n)} people from ${from.name} to ${Map.get(o.to).name}.`, [p], "deported");
+  logEvent(S, "deport", `${p} deported ${people(n)} people from ${from.name} to ${Map.get(o.to).name}.`, this.nearOf(o.province, p), "deported");
 };
 
 /**
@@ -373,7 +373,7 @@ P.returnRunaways = function (p, o) {
   this.looseLeave(o.province, 0);
   const [arrive] = this.sendPeople(p, o.province, home, n, gold);
   this.tell(p, o.province, "Resolution", PeopleTitle, `You sent ${people(n)} runaways from ${o.to}'s land in ${name} back to ${o.to}: ${people(arrive)} are on the road to ${Map.get(home).name}.`);
-  logEvent(S, "runaways", `${p} sent ${people(n)} runaways from ${name} back to ${o.to}.`, [p, o.to], "runaways-returned");
+  logEvent(S, "runaways", `${p} sent ${people(n)} runaways from ${name} back to ${o.to}.`, this.nearOf(o.province, p, o.to), "runaways-returned");
 };
 
 /**
@@ -405,6 +405,6 @@ P.expel = function (p, o) {
   shift(x, -n, 0);
   x.loose += n;
   this.tell(p, o.province, "Resolution", PeopleTitle, `You put out of ${prov.name} ${people(n)} people, mouths that cannot fight: the city eats ${after}% less than in peace while the siege lasts, and they are refugees outside the walls.`);
-  logEvent(S, "expel", `${p} put ${people(n)} people out of besieged ${prov.name}.`, [p], "mouths-expelled");
+  logEvent(S, "expel", `${p} put ${people(n)} people out of besieged ${prov.name}.`, this.nearOf(o.province, p), "mouths-expelled");
   this.refuge(o.province, n, "the siege");
 };

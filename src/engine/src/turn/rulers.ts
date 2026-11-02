@@ -120,7 +120,7 @@ P.ruleOwn = function (id, c, r) {
     u.power = p;
     u.commander = null;
     u.mandate = null;
-    endSieges(S, (x) => x.unitId === u.id);
+    endSieges(S, this.map, (x) => x.unitId === u.id);
   }
   // His band becomes his army.
   if (r.band !== undefined && r.band !== null) {

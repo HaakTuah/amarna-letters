@@ -55,7 +55,7 @@ const map = WorldMap.default;
 
 const isDict = (x: unknown): x is Record<string, unknown> => typeof x === "object" && x !== null && !Array.isArray(x);
 
-/** What differs between two seats' receipts: each view field that differs, and each notice only one of them got. */
+/** What differs between two seats' receipts: each view field that differs, each notice and event only one of them got. */
 function differences(a: GameState, b: GameState, p: Power): string[] {
   const [va, vb] = [a, b].map((s) => JSON.parse(serialize(SeatViewSchema, Views.for(s, p))) as Record<string, unknown>);
   const out: string[] = [];
@@ -84,6 +84,10 @@ function differences(a: GameState, b: GameState, p: Power): string[] {
       }
     } else out.push(`view.${k}: ${JSON.stringify(la).slice(0, 300)} against ${JSON.stringify(lb).slice(0, 300)}`);
   }
+  // The events it may see, which the page lists in its season panel.
+  const [ea, eb] = [a, b].map((s) => s.events.filter((e) => e.visibleTo.includes(p)).map((e) => `event: ${e.text}`));
+  for (const x of ea.filter((x) => !eb.includes(x))) out.push(`only where true: ${x}`);
+  for (const x of eb.filter((x) => !ea.includes(x))) out.push(`only where false: ${x}`);
   const [wa, wb] = [a, b].map((s) => JSON.stringify(s.sleep.tryGet(p)?.pendingWake ?? []));
   if (wa !== wb) out.push(`wake: ${wa} against ${wb}`);
   return out;
@@ -244,6 +248,9 @@ const Known: { issue: number; what: string; is: (difference: string) => boolean 
   { issue: 540, what: "the treasury notice", is: (d) => /^only where (true|false): The treasury: /.test(d) },
   { issue: 540, what: "the works notice", is: (d) => /^only where (true|false): Works: What you keep and build cost /.test(d) },
   { issue: 540, what: "a caravan's arrival", is: (d) => /^only where (true|false): Markets and caravans: Your caravan reached /.test(d) },
+  { issue: 540, what: "the realm's reaping event", is: (d) => /^only where (true|false): event: Egypt's land reaped its harvest: /.test(d) },
+  { issue: 540, what: "a works event of the far province", is: (d) => /^only where (true|false): event: Egypt (raised|repaired) [^.]*Nippur/.test(d) },
+  { issue: 540, what: "a caravan's arrival event", is: (d) => /^only where (true|false): event: Egypt's caravan reached /.test(d) },
 ];
 
 /** Every difference a twin's seasons show, each with the known leak it is, if any. */
@@ -264,13 +271,29 @@ const siegeLifted: Twin = {
   later: {
     at: 2,
     happen(s) {
-      endSieges(s, (x) => x.province === "nippur");
+      endSieges(s, WorldMap.default, (x) => x.province === "nippur");
       s.units = s.units.filter((u) => u.id !== "u990");
     },
   },
 };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted];
+/** As `siegeLifted`, but in the twin where the fact is true the city falls to its besieger, its walls a level lower. */
+const siegeFallen: Twin = {
+  ...siegeLifted,
+  name: "a far city of the seat's, under a siege it knows of, falling out of sight",
+  seasons: 4,
+  later: {
+    at: 2,
+    happen(s) {
+      holds(s, "Babylonia", 2);
+      endSieges(s, WorldMap.default, (x) => x.province === "nippur");
+      s.walls.set("nippur", Math.max(0, (s.walls.tryGet("nippur") ?? 1) - 1));
+    },
+  },
+  heard: farLoss.heard,
+};
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

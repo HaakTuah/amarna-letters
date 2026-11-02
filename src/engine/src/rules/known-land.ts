@@ -38,7 +38,9 @@ export function wallsKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<str
   const known = last !== undefined ? last.clone() : new Dict<string, number>([...StartWalls.entries()].filter(([, v]) => v > 0));
   const holders = knownHolders(s, map, p, sightNow);
   for (const x of map.landProvinces) {
-    if (!sightNow.has(x.id) && holders.tryGet(x.id)?.owner !== p) continue;
+    // Its own far cities' walls as its works stand only while they are its own in truth too: one lost out of its sight
+    // keeps the walls it last knew, never the walls a surrender lowered (bug #517).
+    if (!sightNow.has(x.id) && !(holders.tryGet(x.id)?.owner === p && s.owner.getOrDefault(x.id, null) === p)) continue;
     const level = s.walls.tryGet(x.id);
     if (level !== undefined) known.set(x.id, level);
     else known.delete(x.id);

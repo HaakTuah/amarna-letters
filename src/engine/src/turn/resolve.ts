@@ -499,7 +499,7 @@ P.resolveTransfers = function (cessions, gifts) {
     this._cededNow.set(c.province, c.to);
     this.tell(p, c.province, "Resolution", "Land ceded", `${Map.get(c.province).name} now belongs to ${c.to}: his troops stand in it.`);
     notify(S, c.to, "Resolution", "Land received", `${p} has ceded ${Map.get(c.province).name} to you, and your troops there hold it.`);
-    logEvent(S, "cession", `${p} ceded ${Map.get(c.province).name} to ${c.to}.`, [p, c.to]);
+    logEvent(S, "cession", `${p} ceded ${Map.get(c.province).name} to ${c.to}.`, this.nearOf(c.province, p, c.to));
     // A capital ceded is a capital taken: its archive lies in the city.
     this.takeArchive(c.to, c.province);
   }
@@ -566,7 +566,7 @@ P.raise = function (p, r) {
   const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });
   S.units.push(u);
   this.tell(p, prov.id, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ": all the men of fighting age the province had to give" : ""}, so it counts for ${strengthWords(shareOfFull(r.kind, men))} of a full ${kind} in battle, and costs and eats in proportion` : ""}.`);
-  if (r.share != null) logEvent(S, "levy", `${p} raised a ${kind} in ${prov.name} by a share of its men.`, [p], "levy-share");
+  if (r.share != null) logEvent(S, "levy", `${p} raised a ${kind} in ${prov.name} by a share of its men.`, this.nearOf(prov.id, p), "levy-share");
   this.levyRaised(p, u);
 };
 
@@ -620,7 +620,7 @@ P.fall = function (p, conqueror, taker, ceded = false) {
     this.setOwner(id, conqueror);
     if (conqueror !== null) passed.push(id);
     // A siege the conqueror pressed against land that is now his is over.
-    if (conqueror !== null) endSieges(S, (x) => x.province === id && x.power === conqueror);
+    if (conqueror !== null) endSieges(S, this.map, (x) => x.province === id && x.power === conqueror);
   }
   const apart = landHeld.filter((x) => !passes(x));
   S.falls.push(newKingdomFall({ power: p, turn: S.turn, conqueror, capital: capital.id, land: passed }));

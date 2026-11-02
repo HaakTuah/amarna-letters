@@ -48,6 +48,11 @@ declare module "./core.ts" {
      * word of it comes home by the road, as word of that does, never at once; a scheduled one wakes its seat when it comes.
      */
     lostOrder(p: Power, order: Order, province: string, title: string, text: string, why: string): void;
+    /**
+     * Of these courts, those within the season's reach of the place (or with no road to it): the parties to name for an
+     * event there, a farther court reading of it only in the word that comes by the road (bug #517).
+     */
+    nearOf(province: string, ...ps: (Power | null)[]): Power[];
     /** At the end of each season, each unit's place joins its trail, the reports its king's couriers bring. */
     keepTrails(): void;
   }
@@ -257,6 +262,14 @@ P.lostOrder = function (p, order, province, title, text, why) {
   // The wake goes home with the word (TurnEngine.wordArrives), so a sleeping king is roused when he can read why.
   const wake = this.scheduledFailure(p, order, why);
   if (wake !== null) S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + 1 + d, from: p, to: p, news: "Foiled", text: wake }));
+};
+
+P.nearOf = function (province, ...ps) {
+  return ps.filter((p): p is Power => {
+    if (p === null) return false;
+    const d = this.wordTo(p, province);
+    return d === 0 || !Number.isFinite(d);
+  });
 };
 
 P.keepTrails = function () {

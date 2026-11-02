@@ -78,6 +78,22 @@ stores of nippur: Nippur is besieged…".
   (`tell`), and the two can differ by a season either way. Neither brings anything before word could come by its own
   reckoning; making them one clock is a question for the realm's reports (#540). Kept, and noted here.
 
+## Review, round 2
+
+- **Codex:** no major issues.
+- **Claude's reviewer, 7/10:** three blocking leaks, all fixed, each now guarded by the twins.
+  - (A) A siege ended as its city changed hands recorded the new holder, so the old holder's court dropped it at once.
+    `endSieges` now records the holder as the season began (by the log of holders).
+  - (B) `wallsKnown` read the true walls of a far city the court only believed it held. Now it does so only while the
+    court truly holds it, and otherwise keeps the walls it last knew.
+  - (C) The events log, which the page lists in each seat's season panel, named a far court as a party to a far
+    market's, levy's, borders order's or siege's event at once. `TurnEngine.nearOf` now names only courts within the
+    season's reach; a farther one reads of it by the road.
+  - The twin canary compares the events each seat may see, and a new twin, "a far city ... falling out of sight", plays
+    a storm. Undoing (A) or (B) fails it.
+  - What the events then showed of #540's class is listed under #540 and added to it: the realm's reaping event, a far
+    province's works events, a caravan's arrival.
+
 ## Benchmarks
 
 BENCH
