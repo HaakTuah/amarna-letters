@@ -354,7 +354,8 @@ In games without a human, the god view shows everything the engine knows: true m
 treasury, every character's hidden traits and facts and who knows them, and the **message
 trail**: for every message, what the king wrote, what the envoy said abroad, and what the envoy
 reported home. Switch to any power to see exactly what it saw. The side panel's tabs show the
-season's events, the trail, the people, the provinces, the standings and the rules. The timeline
+season's events, the trail, the people, the provinces, the standings and the rules; with a mouse,
+the tabs and the courts along the map scroll with the wheel or by dragging. The timeline
 steps back through the seasons; signals mark sealed tablets, accusations, forgeries, broken
 promises and more. After the game, compare two nations' self-serving annals with the true record.
 

@@ -304,6 +304,8 @@ td .sub { display: block; font-size: .8em; white-space: nowrap; }
 
 .tabs { display: flex; gap: .1rem; padding: 0 .4rem; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; flex: none; }
 .tabs::-webkit-scrollbar { display: none; }
+/* Dragged sideways with the mouse (ui/side-scroll.ts): no text selected on the way. */
+.tabs.dragging, .courts.dragging { cursor: grabbing; user-select: none; }
 .tabs button { flex: none; border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: .45rem .6rem; color: var(--muted); }
 .tabs button.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
 .tabs button.alert { color: var(--accent); font-weight: 600; }
