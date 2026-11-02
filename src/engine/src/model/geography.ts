@@ -392,8 +392,8 @@ export function climateOf(province: string): Climate {
 
 /**
  * The regions whose rains fail together, and how often, one year in so many (the environment dossier's first guesses:
- * the Anatolian plateau one in six, the Levant and north Syria and the Habur and Assyria one in eight; the milder west
- * one in ten, and Elam's Susiana, watered by rain and canals, as often [G]). A drought is drawn once a year for each, in
+ * the Anatolian plateau one in six, the Levant and north Syria one in eight; past what it gives, the Habur and Assyria
+ * one in eight, the milder west one in ten, and Elam's Susiana, watered by rain and canals, as often [G]). A drought is drawn once a year for each, in
  * Shemu, and strikes the year after.
  */
 export const DroughtRegions: readonly { readonly id: string; readonly name: string; readonly oneIn: number }[] = [
