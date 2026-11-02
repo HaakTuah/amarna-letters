@@ -48,13 +48,16 @@ export const RecognitionSchema: ObjSchema<Recognition> = obj("Recognition", () =
   lastTurn: I,
 });
 
-/** A power's claim to a realm's name (item 17+, "A power's name is a claim"): the name, and the season it was claimed. */
-export interface NameClaim {
+/**
+ * The name a court last read a claimant styled by in his sealed greetings (item 17+, "A power's name is a claim"), and the
+ * season that greeting was sealed: a tablet sealed earlier that arrives later does not set the court's knowledge back.
+ */
+export interface HeardName {
   name: string;
-  since: number;
+  sealed: number;
 }
 
-export const NameClaimSchema: ObjSchema<NameClaim> = obj("NameClaim", () => ({ name: "", since: 0 }), { name: S, since: I });
+export const HeardNameSchema: ObjSchema<HeardName> = obj("HeardName", () => ({ name: "", sealed: 0 }), { name: S, sealed: I });
 
 /** The claims that are new at the start of every game, with the king who holds each claimant his vassal (starting data). */
 export const StartClaims: readonly Claim[] = [newClaim({ power: "Assyria", overlord: "Babylonia" })];

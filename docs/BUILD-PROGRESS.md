@@ -179,8 +179,9 @@ fixed.
   knows it, and an order that fails on land lost out of sight answers by the road; the governor's view completes with
   #378; the rest of the far true state is bug #517. Report: `docs/rounds/2026-11-02-known-holding.md`.
 
-- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); (a), (i) and a dismissed spy's stirring gold wait for #378:
-  issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.
+- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
+  #417; report `docs/rounds/2026-11-02-bug-417.md`). (b), the chiefs' lands falling in the first two seasons, is 17++'s
+  and measured in its report.
 - ~~**From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
   is over 50 KB (about 55 KB)~~ (#532: the order kinds, their makers, what they say, their JSON and the season's
   submission, each in its own file; replays byte-identical).

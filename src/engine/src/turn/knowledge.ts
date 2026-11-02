@@ -9,7 +9,7 @@ import { cmpBool, cmpNum, desc, sortBy } from "../core/seq.ts";
 import { clause } from "../model/clauses.ts";
 import type { CaptiveOrder } from "../model/orders.ts";
 import { newFact, remember, type Character } from "../model/people.ts";
-import { AllPowers, land, type Power } from "../model/power.ts";
+import { AllPowers, land, type Power, quoteWords } from "../model/power.ts";
 import { newJourney, newPendingTask, newTablet, newTabletCopy, type Tablet } from "../model/records.ts";
 import { isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
@@ -82,7 +82,7 @@ P.questionedSays = function (host, c, tabletIds, lies, league, words) {
   const S = this.s;
   if (c.status !== "Captured" || c.heldBy !== host || !isAlive(S, host)) return;
   const source = `told by ${c.name} under questioning`;
-  const said = words.trim().length > 0 ? ` In their words: "${words.trim()}"` : "";
+  const said = words.trim().length > 0 ? ` In their words: ${quoteWords(words.trim())}` : "";
   const master = c.employer ?? c.formerEmployer;
   if (lies && master !== null && isAlive(S, master)) {
     const rng = this.r("question-lie", c.id);
