@@ -114,7 +114,7 @@ import {
   BandValues,
 } from "@amarna/engine";
 import { newPresentResult, type PresentResult } from "@amarna/game";
-import type { JsonObject } from "./schemas.ts";
+import type { JsonObject } from "./schema-tools.ts";
 
 type Node = unknown;
 

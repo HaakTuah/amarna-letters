@@ -44,10 +44,17 @@ declare module "./core.ts" {
     /** A notice to a king from a place in his realm: at once within the season's reach, else when a courier brings it. */
     tell(p: Power, province: string, kind: InboxKind, title: string, text: string, extra?: number): void;
     /**
-     * An order that failed because its province was no longer the king's (bug #467): word of it comes home by the road, as
-     * word of the loss does, never at once; a scheduled one wakes its seat when the word comes.
+     * An order that failed for what befell its province out of the king's sight, its loss (bug #467) or a siege (bug #517):
+     * word of it comes home by the road, as word of that does, never at once; a scheduled one wakes its seat when it comes.
      */
     lostOrder(p: Power, order: Order, province: string, title: string, text: string, why: string): void;
+    /** A scheduled order others foiled at a place wakes its seat when word from there could come (bug #517). */
+    wakeFrom(p: Power, order: Order, province: string, why: string): void;
+    /**
+     * Of these courts, those within the season's reach of the place (or with no road to it): the parties to name for an
+     * event there, a farther court reading of it only in the word that comes by the road (bug #517).
+     */
+    nearOf(province: string, ...ps: (Power | null)[]): Power[];
     /** At the end of each season, each unit's place joins its trail, the reports its king's couriers bring. */
     keepTrails(): void;
   }
@@ -247,16 +254,25 @@ P.tell = function (p, province, kind, title, text, extra = 0) {
 };
 
 P.lostOrder = function (p, order, province, title, text, why) {
-  const S = this.s;
   this.tell(p, province, "Rejected", title, text);
-  const d = this.map.exists(province) ? this.wordTo(p, province) : 0;
-  if (d === 0 || !Number.isFinite(d)) {
+  this.wakeFrom(p, order, province, why);
+};
+
+P.wakeFrom = function (p, order, province, why) {
+  const S = this.s;
+  // Timed as `tell` times its word (TurnEngine.heardAt).
+  const at = this.heardAt(p, province);
+  if (at === S.turn + S.deliveryOffset) {
     this.scheduledFailed(p, order, why);
     return;
   }
   // The wake goes home with the word (TurnEngine.wordArrives), so a sleeping king is roused when he can read why.
   const wake = this.scheduledFailure(p, order, why);
-  if (wake !== null) S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + 1 + d, from: p, to: p, news: "Foiled", text: wake }));
+  if (wake !== null) S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: p, to: p, news: "Foiled", text: wake }));
+};
+
+P.nearOf = function (province, ...ps) {
+  return ps.filter((p): p is Power => p !== null && this.heardAt(p, province) === this.s.turn + this.s.deliveryOffset);
 };
 
 P.keepTrails = function () {

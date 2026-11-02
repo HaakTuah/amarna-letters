@@ -212,4 +212,12 @@ const Token = rx(String.raw`[\p{L}\p{N}][\p{L}\p{N}'-]*|[^\s\p{L}\p{N}]`, "g");
 const CopyId = rx(String.raw`^k\d+$`);
 const Word = rx(String.raw`[\p{L}\p{N}][\p{L}\p{N}'-]*`, "g");
 
-export const CharacterChecks = { known, report, present, spy, threatToLord, claimsSeal };
+/** What a report's words are read for (see report), one test each, for the test that every form of a line reads alike. */
+const reads = {
+  ownGift: speaksOfOwnGift,
+  detention: (text: string): boolean => Detention.test(text),
+  ownsUp: (text: string): boolean => OwnsUp.test(text),
+  offer: (text: string): boolean => Offer.test(text),
+};
+
+export const CharacterChecks = { known, report, present, spy, threatToLord, claimsSeal, reads };

@@ -1,26 +1,21 @@
-/** The non-military half of a script king, third part: letters, the tablets it proposes, greetings and audiences. */
+/** The non-military half of a script king, third part: letters, the tablets it proposes and greetings (its audiences: statecraft-audiences.ts). */
 import { envoyFor } from "./tongues.ts";
 import { AuditPlay, canMarchOn } from "./audit-play.ts";
-import { bondClauses, bondLetters, noteGold, sealBond, sealedBond } from "./vassals.ts";
+import { bondClauses, bondLetters } from "./vassals.ts";
 import { fugitiveRights } from "./borders.ts";
 import {
-  AllPowers,
   HSet,
   clamp,
   cmpBool,
   cmpNum,
   cmpPower,
   cmpStr,
-  count,
   desc,
   dispatch,
-  formatMoney,
   idiv,
   newGreetingOptions,
-  newHostReply,
   newTabletProposal,
   clause,
-  ProposalKinds,
   type Clause,
   roundEven,
   sortBy,
@@ -28,33 +23,29 @@ import {
   tier,
   toInt,
   trim,
-  trimEnd,
-  type AudienceView,
   type CharacterView,
   type DispatchOrder,
   type GreetingOptions,
-  type HostReply,
   type Order,
   type Power,
   type SeatView,
-  type Province,
   type Rng,
-  type TabletView,
 } from "@amarna/engine";
 import { byHouse } from "./claims.ts";
-import { Board, LeadFloor } from "./board.ts";
+import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import { Names } from "./names.ts";
 import { PeoplePlay, reliability } from "./statecraft-court.ts";
 import { atHand, oursFirst } from "./errands.ts";
 import { outweighs, rivals, touches } from "./statecraft-strategy.ts";
-import { joints, willing } from "./tactics.ts";
+import { joints } from "./tactics.ts";
 import { TextKit } from "./textkit.ts";
-import { againstIn, answerLetter, clausePlays, givesAwayIn } from "./statecraft-clauses.ts";
-import { authorityFor, authorityOn, basingTablet, counterFor, grantsOk, passageClause, stagingFor } from "./authority.ts";
+import { clausePlays } from "./statecraft-clauses.ts";
+import { authorityFor, authorityOn, basingTablet, passageClause, stagingFor } from "./authority.ts";
 import { wantsTradeRights } from "./trade.ts";
+import { Letter, closing } from "./voices.ts";
 
-const Oath = "By Shamash, Amun, Marduk and Teshub";
+export const Oath = "By Shamash, Amun, Marduk and Teshub";
 
 /** `against`: the king a coalition is sworn against, or who besieges the city a plea is for. `city`: the besieged city a plea is for. */
 interface Mission {
@@ -228,7 +219,7 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
         dispatch(
           ready[ready.length - 1].id,
           shown,
-          `My brother, see what ${forged.seals.join(" and ")} have sealed in secret. I send you the tablet itself. Judge for yourself who are your friends.`,
+          Letter.forged({ key: `${v.turn}|${me}|${shown}`, names: forged.seals.join(" and ") }),
           // What it shows is the tablet; the clauses only greet him (item 8).
           { mandate: "Show the tablet. Promise nothing.", greeting: greet(brain, shown, false, b), copies: [forged.copyId], clauses: [clause("wellWishes")] },
         ),
@@ -252,7 +243,7 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
         dispatch(
           ready[0].id,
           told,
-          `${breaker} sealed this tablet with me before the gods, and then broke it. See for yourself what an oath of ${breaker} is worth. Stand with me, and ${breaker} will learn the price of a broken oath.`,
+          Letter.broken({ key: `${v.turn}|${me}|${told}`, names: breaker }),
           {
             mandate: `You may agree to act together against ${breaker}. Promise no land.`,
             greeting: greet(brain, told, false, b),
@@ -297,7 +288,8 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
   const me = b.me;
   const to = m.to;
   const greeting = greet(brain, to, m.kind === "tribute" || m.kind === "bond-tribute" || m.kind === "bond-submit", b);
-  const flavour = flavourOf(me, to);
+  const key = `${b.v.turn}|${me}|${to}`;
+  const flavour = closing(me, `${key}|${m.kind}`);
   const weaker =
     b.landGrowth(me) *
       sum(Board.Map.homeOf(me), (x) => x.yield) <
@@ -315,11 +307,8 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
   switch (m.kind) {
     case "coalition": {
       const top = m.against!;
-      const why =
-        top === b.leader()
-          ? `${top} grows like the flood of the river and swallows the cities one by one. If we stand apart, it will swallow us both.`
-          : `${top} has sent his troops into my land, and what he takes from me today he will take from you tomorrow.`;
-      return dispatch(envoy, to, `${why} Let us stand together and hold him back: where your troops face ${top}, mine will support them. ${flavour}`, {
+      const why = top === b.leader() ? Letter.coalitionLeader({ key, foe: top }) : Letter.coalitionInvaded({ key, foe: top });
+      return dispatch(envoy, to, trim(`${why} ${flavour}`), {
         mandate: `You may swear alliance against ${top} and agree to support each other's troops. Promise no land.`,
         greeting,
         // A pact against one king, not an alliance: it does not make the two of them partners in victory.
@@ -331,7 +320,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       return dispatch(
         envoy,
         to,
-        `We have kept the peace between us, as brothers should. Let us go further and swear to stand together, so that the enemy of one is the enemy of both. ${flavour}`,
+        trim(`${Letter.alliance({ key })} ${flavour}`),
         {
           mandate: "You may swear a full alliance. Promise no land.",
           greeting,
@@ -345,9 +334,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       return dispatch(
         envoy,
         to,
-        `I wish to live in brotherhood with you, as our fathers did. Let neither of us send troops into the lands of the other.` +
-          (g > 0 ? " I send you gold as a sign of my love." : "") +
-          ` ${flavour} Seal the tablet I send, before Shamash and the gods of your land.`,
+        trim(`${Letter.peace({ key, gift: g > 0 })} ${flavour}`),
         {
           mandate: "You may agree to peace and an exchange of gifts. Promise no land.",
           greeting,
@@ -360,20 +347,16 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       );
     }
     case "lull":
-      return dispatch(envoy, to, `Why should there be anything but friendship between us? My troops are few and my thoughts are of the harvest. Let gifts pass between us. ${flavour}`, {
+      return dispatch(envoy, to, trim(`${Letter.lull({ key })} ${flavour}`), {
         mandate: "Speak only of friendship. Promise nothing.",
         greeting,
         clauses: [clause("wellWishes"), clause("noAttack"), clause("newsStrength", { power: me, amount: 0 })],
       });
     case "grievance": {
       const r = brain.rel.get(to);
-      let text =
-        r.oathsBroken > 0
-          ? "You swore before the gods and then sent your troops into my land. Is this the oath of a king? Withdraw, and send me fitting gifts, or the gods and I will remember it."
-          : "Your troops have entered my land. Is this brotherhood? Withdraw them, and send me a fitting gift, or I will not forget it.";
       // A king strong enough to make it good, and warlike or vengeful enough to mean it, threatens war outright.
       const threat = b.strength(me) >= 0.9 * b.strength(to) && p.aggression + p.vengeance > 1 && (!AuditPlay.on(me) || canMarchOn(b, to));
-      if (threat) text += " If you do not withdraw, my troops will march into your land.";
+      const text = r.oathsBroken > 0 ? Letter.grievanceOath({ key, threat }) : Letter.grievance({ key, threat });
       // Where his troops stand in our land, the clauses name it, and ask him to withdraw from it.
       const held = sortBy(
         b.v.units.filter((u) => u.power === to && b.isMine(u.province)),
@@ -391,7 +374,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       const city = Board.Map.get(m.city!).name;
       // The walls sally only from a height (sallyMinWalls): the letter promises it only where they can.
       const min = b.v.prices.getOrDefault("sallyMinWalls", 2);
-      const sallyText = b.wallLevel(m.city!) >= min && min > 0 ? ", and my walls will sally to meet them" : "";
+      const sally = b.wallLevel(m.city!) >= min && min > 0;
       // A king not yet sworn with us against the besieger is asked to swear it too, as in a defence pact.
       const sworn = brain.rel.get(to).against === foe;
       // A sworn ally gets passage at once, by order, so his troops need not wait for a tablet (item 11a+).
@@ -399,9 +382,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       return dispatch(
         envoy,
         to,
-        `My brother, the troops of ${foe} besiege my city of ${city}. Come to my aid: send your troops to drive them out${sallyText}.` +
-          (sworn ? "" : ` What ${foe} takes from me today he will take from you tomorrow: let us stand together against him.`) +
-          trimEnd(` I will not forget who stood with me. ${flavour}`),
+        trim(`${Letter.plea({ key, foe, city, sally, unsworn: !sworn, servant: tier(me) === "City" })} ${flavour}`),
         {
           mandate: sworn
             ? `Ask for troops against ${foe} at ${city}. Promise no land.`
@@ -419,7 +400,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
     }
     case "basing": {
       const place = Board.Map.get(m.city!).name;
-      return dispatch(envoy, to, `My brother, my war with ${m.against!} must pass by your land. Let my troops stand in ${place} as your guests: they will take nothing of yours, and they will strike at ${m.against!} from there. ${flavour}`, {
+      return dispatch(envoy, to, trim(`${Letter.basing({ key, foe: m.against!, place })} ${flavour}`), {
         mandate: `Ask leave for my troops to stand in ${place}. Promise no land.`,
         greeting,
         proposal: basingTablet(m.city!, b.v.turn),
@@ -431,7 +412,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       return dispatch(
         envoy,
         to,
-        `The gold your messenger brought me weighed ${short} shekels less than the inventory you sealed. Either you are mean, or your messenger lied to you and to me. ${flavour}`,
+        trim(`${Letter.accuse({ key, amount: short })} ${flavour}`),
         { mandate: "Speak of the gold. Promise nothing.", greeting, clauses: [clause("envoyLied"), clause("lightGift", { amount: short })] },
       );
     }
@@ -441,12 +422,12 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       return dispatch(
         envoy,
         to,
-        `We have sworn to stand together against ${foe}. When your troops go from ${Board.Map.get(from).name} into ${Board.Map.get(target).name}, mine will support them. ${flavour}`,
+        trim(`${Letter.support({ key, foe, from: Board.Map.get(from).name, target: Board.Map.get(target).name })} ${flavour}`),
         { mandate: "Speak of the war against our common foe. Promise no land.", greeting, clauses: [clause("support", { province: from, to: target, turn: b.v.turn + 2 }), ...news(b, foe, to)] },
       );
     }
     case "bond-tribute":
-      return dispatch(envoy, to, `To the king, my lord: at the feet of my lord I fall. Here is the tribute of this year, ${m.amount} shekels of gold, as our tablet says. Let my lord guard his servant's land. ${flavour}`, {
+      return dispatch(envoy, to, trim(`${Letter.tribute({ key, amount: m.amount })} ${flavour}`), {
         mandate: "Deliver the tribute. Promise nothing more.",
         greeting,
         gold: m.amount,
@@ -456,21 +437,21 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       // The audit's find 3b: a king threatens only what he can make good, an army of his in or beside the vassal's land and
       // strength enough; otherwise he asks, and the vassal is left to weigh what his oath is worth.
       const can = AuditPlay.on(me) ? canMarchOn(b, to) : true;
-      return dispatch(envoy, to, `You are my servant by the tablet you sealed, and your tribute has not come. Send the ${m.amount} shekels of this year${can ? ", or my troops will come for it" : ", as your oath says"}. ${flavour}`, {
+      return dispatch(envoy, to, trim(`${Letter.demand({ key, amount: m.amount, threat: can })} ${flavour}`), {
         mandate: "Ask for the tribute owed. Promise nothing.",
         greeting,
         clauses: [clause("askTribute", { amount: m.amount }), ...(can ? [clause("threat")] : []), clause("brokenOath")],
       });
     }
     case "bond-offer":
-      return dispatch(envoy, to, `Be my servant and pay me ${m.amount} shekels a year, and my troops will guard your land instead of taking it. ${flavour}`, {
+      return dispatch(envoy, to, trim(`${Letter.offerBond({ key, amount: m.amount })} ${flavour}`), {
         mandate: "You may seal the tablet as it stands. Promise no land and no gold.",
         greeting,
         proposal: newTabletProposal({ text: vassalTablet(me, to, m.amount), vassal: to, clauses: bondClauses(true, m.amount) }),
         clauses: [clause("askTribute", { amount: m.amount }), clause("protect"), clause("askServe")],
       });
     case "bond-submit":
-      return dispatch(envoy, to, `Let me be your servant: I will send you ${m.amount} shekels a year, and take up no arms against you. Guard my land. ${flavour}`, {
+      return dispatch(envoy, to, trim(`${Letter.submit({ key, amount: m.amount })} ${flavour}`), {
         mandate: "You may seal the tablet as it stands. Promise no land.",
         greeting,
         proposal: newTabletProposal({ text: vassalTablet(to, me, m.amount), vassal: me, clauses: bondClauses(false, m.amount) }),
@@ -482,7 +463,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
     case "tribute": {
       const g = gift(0.06 + 0.08 * p.generosity);
       if (g === 0) return null;
-      return dispatch(envoy, to, `I have heard that all is well with you, and I rejoice. Here is a gift for my brother; send me your messenger quickly. ${flavour}`, {
+      return dispatch(envoy, to, trim(`${Letter.gift({ key })} ${flavour}`), {
         mandate: "Speak of friendship. Promise nothing.",
         greeting,
         gold: g,
@@ -511,7 +492,7 @@ export function* pleasIn(text: string, b: Board, sender: Power, host: Power): Ge
 }
 
 // The tablets a script king proposes.
-const Curse = "If one breaks this oath, may the gods destroy his name and his seed.";
+export const Curse = "If one breaks this oath, may the gods destroy his name and his seed.";
 
 export const peaceTablet = (me: Power, to: Power): string => `${Oath}: ${me} and ${to} are brothers. Neither king shall send troops into the lands of the other. ${Curse}`;
 
@@ -524,33 +505,6 @@ export const vassalTablet = (overlord: Power, vassal: Power, amount: number): st
 
 export const coalitionTablet = (me: Power, to: Power, against: Power): string =>
   `${Oath}: ${me} and ${to} swear to stand together against ${against}. Neither shall make peace with ${against} alone, and each shall support the other's troops against ${against}. ${Curse}`;
-
-/** Whether a tablet from this sender is in a script king's own words: one of the tablets above, or the frozen baseline's. */
-function scriptWords(text: string, from: Power, to: Power): boolean {
-  return (
-    text === peaceTablet(from, to) ||
-    text === allianceTablet(from, to) ||
-    text === `${Oath}: ${from} and ${to} are brothers. Neither king shall send troops into the lands of the other. They shall stand together against any enemy, and share in the victory. ${Curse}` ||
-    AllPowers.some((x) => text === coalitionTablet(from, to, x) || text === `${Oath}: ${from} and ${to} swear to stand together against ${x}. Neither shall make peace with ${x} alone. ${Curse}`)
-  );
-}
-
-/**
- * Whether a tablet in words no script king wrote speaks of land, gold or tribute, or names a province of ours (held now, or
- * of our homeland). A capital of ours counts only in a sentence that hands something over.
- */
-export function givesAway(proposal: TabletView, b: Board, from: Power): boolean {
-  // A tablet set out in clauses is read by them alone (item 8), whatever its words say.
-  if (proposal.clauses.length > 0) return givesAwayIn(proposal.clauses);
-  const text = proposal.text;
-  if (scriptWords(text, from, b.me)) return false;
-  if (TextKit.speaksOfLandOrGold(text)) return true;
-  const sentences = TextKit.sentences(text);
-  const named = (s: string, x: Province): boolean => Names.mentionsPlace(s, x.name) || Names.mentionsPlace(s, x.id);
-  return Board.Map.provinces
-    .filter((x) => !x.isSea && (b.isMine(x.id) || x.home === b.me))
-    .some((x) => (x.capital ? sentences.some((s) => named(s, x) && TextKit.handsOver(s)) : named(text, x)));
-}
 
 /** Free passage for each other's goods (item 9+b), written into a peace or an alliance where tolls stand between us. */
 function tradeRights(v: SeatView, to: Power): Clause[] {
@@ -618,203 +572,3 @@ function news(b: Board, foe: Power, to: Power): Clause[] {
 /** Finkel's parody of the Amarna letters, in full as the video's transcript gives it ("Finkel's version"). */
 export const FinkelLetter =
   "You're my brother. I love you. I love you. Send gold. I love you my gold owning brother and the best gold in the world. And you gave gold to my father and I like gold and sends much gold as you got lots of it anyway.";
-
-function flavourOf(me: Power, _to: Power): string {
-  switch (me) {
-    case "Egypt":
-      return "In my land gold is as plentiful as dust, and my friends do not go without.";
-    case "Babylonia":
-      return "Remember that the gifts of a Great King should be worthy of a Great King.";
-    case "Mitanni":
-      return "Let my brother protect me as his father protected mine, and I will be his faithful friend.";
-    case "Assyria":
-      return "I am a Great King, as you are, and I will be treated as one.";
-    case "Hatti":
-      return "The troops of Hatti are many, and they remember their friends.";
-    case "Arzawa":
-      return "The west is wide, and its friendship can be had.";
-    case "Alashiya":
-      return "I send you copper from my mountains; send me silver and gold.";
-    default:
-      return "";
-  }
-}
-
-// ================================================================= audiences
-
-export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): HostReply {
-  const p = brain.p;
-  const me = view.host;
-  const sender = view.from;
-  const r = brain.rel.get(sender);
-  const leader = b.leader();
-  const hostile = r.hostile || sender === brain.warTarget;
-  const friend = brain.isFriend(sender) && brain.betraying !== sender;
-  // The second exchange, held only when the host offered a gift: if the envoy refused it, the host offers half as much
-  // again, once, with the same request; otherwise it lets the envoy go.
-  if (view.round > 1) {
-    const again = newHostReply({ end: true, speech: "Go in peace, and carry my words faithfully." });
-    const offered = brain.bribeOffered.tryGet(view.audienceId);
-    if (offered !== undefined) {
-      brain.bribeOffered.delete(view.audienceId);
-      if (view.giftAccepted === 0 && brain.spareGold > 150 + offered[0]) {
-        again.bribe = toInt(roundEven((offered[0] * 1.5) / 10)) * 10;
-        again.bribeAsk = offered[1];
-        again.speech = "Do not refuse me so quickly. Take this, and think again of what I asked of you.";
-      }
-    }
-    return again;
-  }
-
-  const reply = newHostReply({ end: true });
-  const speech: string[] = [];
-
-  if (view.greetingDeviations.includes("no greeting at all")) {
-    speech.push("Your tablet does not even greet me. Is this how one writes to a Great King?");
-    r.trust -= 0.1 * p.pride;
-  } else if (view.greetingDeviations.includes('no "brother"')) {
-    speech.push("You do not call me brother. Have I not been a brother to you?");
-    r.trust -= 0.1 * p.pride;
-  }
-  if (view.greetingDeviations.includes("the recipient is not called Great King")) {
-    speech.push("And you deny me the title of Great King. I will remember it.");
-    r.grudge += p.pride;
-  }
-  if (view.greetingDeviations.includes("the sender's name first")) speech.push("You put your own name before mine.");
-  // A king who does not name himself Great King before us: a proud host is flattered.
-  if (view.greetingDeviations.includes("the sender does not claim to be a Great King")) {
-    speech.push("Your lord writes modestly to a Great King. It is well.");
-    r.trust += 0.05 + 0.1 * p.pride;
-  }
-  // An envoy secretly in our pay shows us what its lord really told it. Words of friendship it was told to speak and nothing
-  // more, or threats against us it left unsaid, show a lord who means us harm.
-  const secret = view.secretMandate;
-  if (
-    secret !== null &&
-    (secret.toUpperCase().includes("ONLY OF FRIENDSHIP") || TextKit.sentences(view.secretLetter ?? "").some((x) => TextKit.isThreatTo(x, me, sender) && !view.spoken.includes(x)))
-  ) {
-    r.trust -= 0.3;
-    r.grudge += 1.5;
-  }
-
-  // Gold from a vassal of ours is its tribute (item 11+).
-  if (view.goldWeighed > 0) noteGold(brain, sender, view.turn);
-  if (view.goldStated > 0 && view.goldWeighed < view.goldStated) {
-    speech.push(
-      `The inventory lists ${formatMoney(view.goldStated)}, but my weighers found only ${formatMoney(view.goldWeighed)}. Either your lord is mean or your messenger's hands are heavy with my gold.`,
-    );
-    reply.clauses.push(clause("lightGift", { amount: view.goldStated - view.goldWeighed }));
-    // Remembered, to tell his lord in a letter of our own that his messenger lied (see letters).
-    brain.lightFrom.set(sender, [view.goldStated - view.goldWeighed, view.turn, false]);
-    r.trust -= 0.15;
-  } else if (view.goldWeighed > 0) {
-    speech.push(p.greed > 0.65 && view.goldWeighed < 100 ? "I have received your gift. It is small, for a Great King." : "I have received your gift, and I thank my brother.");
-    reply.clauses.push(clause("accept", { answers: "gift" }));
-    r.trust += Math.min(0.25, view.goldWeighed / 400.0);
-  }
-
-  for (const copy of view.copiesShown) {
-    for (const accused of copy.seals.filter((s) => s !== sender && s !== me && brain.rel.has(s))) brain.rel.get(accused).trust -= 0.15 * (1 - p.caution);
-    speech.push("I have seen the tablet you show me. I will remember who breaks oaths, and who forges them.");
-  }
-
-  const proposal = view.proposal;
-  let refusedForGiving = false;
-  if (proposal !== null) {
-    // The king a coalition names, by any of his names (see Names).
-    const named = againstIn(proposal, [me, sender]);
-    // A vassal tablet is weighed by the bond's own sums (item 11+), whatever it gives away.
-    const bond = sealBond(b, brain, sender, proposal);
-    let seal: boolean;
-    if (bond !== null) seal = bond;
-    else if (named !== null) {
-      // Worth swearing against the king who leads (or stands at the top as we reckon it) if he outweighs us both; or against
-      // one on our own borders who is taking land and is too strong for the sender alone. Never against an ally.
-      const ra = brain.rel.get(named);
-      const ahead = b.growth(named) >= LeadFloor - 0.05 && [...b.alive].filter((x) => x !== named).every((x) => b.growth(named) >= b.growth(x));
-      const race = (named === leader || ahead) && outweighs(b, named, me, sender);
-      const defence =
-        touches(b, me, named) &&
-        b.strength(named) >= 0.8 * b.strength(sender) &&
-        (brain.belligerence.getOrDefault(named, 0) >= 1 || ra.hostile || named === brain.warTarget || ra.trust < 0);
-      // And never with a king who is taking our own land, whoever he names.
-      seal = !ra.allied && !hostile && (race || defence);
-    } else seal = !hostile && !(proposal.allianceOath && rivals(b, me, sender));
-    if (bond === null && sender === leader && !friend && p.caution < 0.6) seal = false;
-    // A tablet in someone else's words is read for what it would give away (see givesAway); leave it asks for our land
-    // that we would grant is not given away (item 9).
-    const grants = proposal.clauses.filter((x) => x.kind === "askPassage" || x.kind === "askBasing");
-    const granted = grants.length > 0 && grantsOk(b, brain, sender, grants);
-    const gives = bond === null && seal && (granted ? givesAwayIn(proposal.clauses.filter((x) => !grants.includes(x))) : givesAway(proposal, b, sender));
-    if (gives) seal = false;
-    // Leave we would grant but do not seal on this tablet we grant by order instead (item 11a+).
-    if (granted && !seal) brain.leaveAsked.set(sender, grants.map((x) => ({ ...x })));
-    refusedForGiving = gives;
-    reply.sealProposal = seal;
-    const offered = proposal.clauses.find((x) => ProposalKinds.includes(x.kind))?.kind ?? (named !== null ? "against" : proposal.allianceOath ? "alliance" : "peace");
-    reply.clauses.push(clause(seal ? "accept" : "refuse", { answers: offered }));
-    speech.push(
-      seal
-        ? "I have sealed the tablet before the gods."
-        : gives
-          ? "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine."
-          : "I will not seal this tablet now.",
-    );
-    // An oath to stand together asks for the envoy's word too, which it gives within its mandate, or beyond it.
-    if (seal && (named !== null || proposal.allianceOath)) {
-      speech.push("Swear to me that your lord's troops will stand with mine, as mine will stand with his.");
-      reply.clauses.push(clause("askOath"));
-    }
-    if (seal && bond !== null) sealedBond(brain, sender, proposal);
-    if (seal) {
-      r.trust += 0.1;
-      // What we swore binds us from now, not from when we next read our tablets: this season's orders are still to come.
-      r.treaty = true;
-      if (proposal.allianceOath) r.allied = true;
-      if (named !== null) r.against = named;
-    }
-  }
-
-  // An envoy that carries his king's seal is offered a tablet of ours: the one we would not seal without what it gives away,
-  // or leave for our troops where our war needs his land (item 9).
-  reply.counter = counterFor(b, brain, view, proposal === null || reply.sealProposal ? null : refusedForGiving ? "gives" : "other");
-  if (reply.counter !== null) speech.push("Here is a tablet I will seal with you: set your lord's seal on it, if he allows you.");
-
-  // A plea for relief: a city of the sender's besieged by a third king, remembered so that our troops march to its relief
-  // while it is fresh. A friend we would fight for hears that we will.
-  // Every proposal and request the letter sets out in clauses is answered (item 8); a plea in words alone is read as words.
-  answerLetter(view, b, brain, reply, (s) => speech.push(s));
-  let answered = view.clauses.some((x) => x.kind === "askHelp");
-  for (const [city, besieger] of answered ? [] : pleasIn(view.spoken, b, sender, me)) {
-    brain.pleas.set(city, [sender, besieger, view.turn]);
-    if (answered || !brain.isFriend(sender) || brain.betraying === sender || !(willing(b, brain, besieger, leader) || (r.allied && !brain.isFriend(besieger)))) continue;
-    speech.push(`I have heard of the siege of ${Board.Map.get(city).name}. Where my troops can reach the troops of ${besieger}, they will drive them out.`);
-    reply.clauses.push(clause("accept", { answers: "askHelp" }));
-    answered = true;
-  }
-
-  speech.push(friend ? "Tell my brother that my love for him is great." : hostile ? "Tell your lord that I have not forgotten what he did." : "Tell your lord that I have heard his words.");
-  if (friend) reply.clauses.push(clause("wellWishes"));
-  else if (hostile) reply.clauses.push(clause("grievance"));
-  speech.push(flavourOf(me, sender));
-
-  // A gift to the messenger, to colour what he tells his lord.
-  if (p.cunning > 0.6 && !friend && brain.spareGold > 150 && rng.chance(0.4 * p.cunning)) {
-    reply.bribe = 30 + rng.range(0, 3) * 10;
-    reply.bribeAsk = hostile ? "Tell your lord that my armies are few and my thoughts are of peace." : "Tell your lord that my armies are many and my friendship is worth keeping.";
-    reply.bribeClauses = [clause("newsStrength", { power: me, amount: hostile ? 0 : 1 })];
-    // The audience stays open for one more exchange, to offer more if the envoy refuses (see above).
-    reply.end = false;
-    brain.bribeOffered.set(view.audienceId, [reply.bribe, reply.bribeAsk]);
-  }
-  if (hostile && r.grudge > 3 && p.vengeance > 0.6 && rng.chance(0.5)) reply.detain = true;
-  if (reliability(view.envoy) === 0 && count(b.v.court, (c) => c.status === "employed") < 3 && brain.spareGold > 200 && rng.chance(0.1 + 0.2 * p.cunning)) reply.jobOffer = 30;
-  if (friend && view.goldWeighed >= 40 && brain.spareGold > 100 && p.generosity > 0.5) {
-    reply.goldBack = idiv(idiv(view.goldWeighed, 4), 10) * 10;
-    // Debased only for a friend we trust 0.3 or more, as for gifts (see compose).
-    reply.goldBackPurity = p.honesty < 0.45 && r.trust >= 0.3 ? 75 : 100;
-  }
-
-  reply.speech = speech.filter((s) => s.length > 0).join(" ");
-  return reply;
-}

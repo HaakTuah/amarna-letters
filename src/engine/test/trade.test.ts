@@ -54,7 +54,8 @@ describe("TradeTests", () => {
     Assert.contains("sold 69 measures of grain for", notices(s, "Hatti", "Markets and caravans"));
     Assert.contains("came home to Hattusa with", notices(s, "Hatti", "Markets and caravans"));
     Assert.true(s.events.some((x) => x.signal === "sale-abroad"));
-    Assert.contains("came home to Hattusa with 1 mina 21 shekels into the treasury", notices(s, "Hatti", "Markets and caravans"));
+    // Karkamish of 7,000 people, at 175 a hectare (the people dossier, #492).
+    Assert.contains("came home to Hattusa with 1 mina 25 shekels into the treasury", notices(s, "Hatti", "Markets and caravans"));
   });
 
   test("Tolls: the most particular rate applies, and goods entering pay it in kind and in gold", () => {

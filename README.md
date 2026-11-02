@@ -99,7 +99,8 @@ rumours, and those can be late, shaded or false.
 **Command at a distance.**
 - Your court is where you are, and you may move it. An order for a place your couriers cannot reach this season goes
   out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped. Orders are checked
-  against what your court knows: one for land lost out of your sight goes out, and you hear it failed when word comes.
+  against what your court knows: one for land lost or besieged out of your sight goes out, and you hear how it went when
+  word comes, as you hear of a siege of a far city of yours.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
   holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
   his seat; if he loses or gives up the province he sits in, he sits in another, and a loyal one writes to tell you where,
@@ -204,6 +205,14 @@ own, varied a little in every game.
 | **Assyria** | Ashur | Middle | armies in Ashur, Ninua and Arbail (4,000 men in all), 300 shekels | "The upstart who would be brother": aggressive and cunning, hungry to be counted a Great King |
 | **Arzawa** | Apasa | Weak | an army of 10,000 men in Apasa, a fleet in Apasa's waters, 300 shekels | "The western opportunist": the most cunning and least honest |
 | **Alashiya** | the harbour of Alashiya | Weak | armies in its harbour town and the copper hills, a fleet in its waters, 400 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
+
+**The opening by the best estimate.** Where no source speaks, the opening takes the middle of the published experts'
+estimates, cited in `docs/history/`: the realms' people, the size of towns reckoned from their area, how often the Nile
+fails and the plateau's rains, and how each city drinks under siege (Jerusalem's spring lay outside its walls, so a
+siege cuts it off; Arwad drinks from cisterns of its own), and where the Gulf's head lay (an estuary some 140 km below Ur,
+a river port whose ships reach the sea down the Euphrates and through the marshes). The debts on record at the start are the letters' own:
+Egypt owes Mitanni and Babylonia, and Alashiya owes nothing. People of 1346 are "of" where the sources put them
+serving, since no source says where any was born; invented people are "born in" a place.
 
 **Places by their own names.** The map, the seat view and every letter and request name each place as the sources of
 1346 do: the Amarna letters' form where they name it (Dimashqa for Damascus, Gubla for Byblos, Ṣurru and Ṣiduna for Tyre
@@ -383,7 +392,7 @@ steps back through the seasons; signals mark sealed tablets, accusations, forger
 promises and more. After the game, compare two nations' self-serving annals with the true record.
 
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
-each power in its colour with an emblem and a border line of its own (so it reads without
+each power in its colour with an emblem and a border line of its own along its frontiers (so it reads without
 colour), armies as chariots and fleets as ships. On the whole map every city is a seal, and a tap on
 it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
@@ -393,10 +402,11 @@ full where its king rules, lighter where a governor stands between, a faint wash
 provinces bounded by a thin line; the ◐ button shows the mood of the land as you last heard it (loyal, uneasy, restless,
 or no word), older reads fading: your own city as you see it, your governors' reports each season, a spy's watched
 province, the city of a court your envoy visited, a province your scribes counted, and travellers' blurred talk of the
-land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow
-their life: their path, their masters, their missions, what they said and reported; the camera keeps to them, where
-you last knew them, until you move it yourself ("Keep the camera on them" takes it back). Drag and zoom
-as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
+land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow their life: their
+path, along the roads between the places you knew them at, their masters, their missions, what they said and reported;
+the camera keeps to them, where you last knew them, until you move it yourself ("Keep the camera on them" takes it
+back). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
+centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
 gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
@@ -483,7 +493,7 @@ Then open <http://localhost:5183>, pick a preset, choose whether to watch or tak
 ```bash
 scripts/cloud-setup.sh   # on a fresh cloud machine: the npm packages and Playwright's Chromium, if missing
 scripts/test.sh          # type-check, the engine's determinism lint, and every test (Vitest), printing only the
-                         # summary and the failures (the full log goes to $TMPDIR/amarna-test.log)
+                         # summary and the failures (the full log goes to $TMPDIR/amarna-test-<pid>.log, one per run)
 npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright smoke test of the built app
 ```
 

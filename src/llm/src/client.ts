@@ -11,7 +11,7 @@ import { CacheGate } from "./cache-gate.ts";
 import { CallLimiter, RealClock, isRetryable, isTooMany, waitBefore, LimiterDefaults, type Clock } from "./limiter.ts";
 import { BatchDiscount, ModelIds, PriceTable } from "./models.ts";
 import { readAsMeant } from "./reading.ts";
-import { jsonSchema, problems, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { jsonSchema, problems, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 
 export class ModelRefusedError extends Error {
   readonly failure = "refused by the model";

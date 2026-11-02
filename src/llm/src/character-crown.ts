@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { land, newCrownChoice, type CrownChoice, type CrownView } from "@amarna/engine";
-import { object, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import { Sb } from "./text.ts";
 
 const Choices = { take: "take the kingship", refuse: "refuse it" } as const;

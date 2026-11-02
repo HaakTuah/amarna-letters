@@ -5,7 +5,7 @@
 
 import { WorldMap, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province } from "@amarna/engine";
 import { powerName } from "../ui/format.ts";
-import { F, Shapes, landClipOf, city } from "./art.ts";
+import { F, Shapes, frontierPath, landClipOf, city } from "./art.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { RuinMarks } from "./life.ts";
 import { ringOf, TentHalf, TentRing } from "./markup.ts";
@@ -51,7 +51,8 @@ export function bands(s: MapScene): string {
     for (const p of group) {
       const o = s.owner.get(p.id) ?? null;
       if (o === null) continue;
-      sb += `<path class="band b-${glyphId(o)}" d="${Shapes.get(p.id)}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
+      const d = frontierPath(p.id, (across) => across.length === 0 || across.some((q) => (q === "~" ? null : (s.owner.get(q) ?? null)) !== o));
+      if (d !== "") sb += `<path class="band b-${glyphId(o)}" d="${d}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
     }
     sb += "</g>";
   }

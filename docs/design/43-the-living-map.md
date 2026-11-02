@@ -43,7 +43,7 @@ winter is shown.
 drought as cracked, browned land whatever the season. A river's bad year strikes in its flood season and hurts the next
 three: the season after a flood rose (a ruinous one, or the Tigris's and the Euphrates's damaging floods) the water still
 lies over the province; after that its fields are spoiled, a grey-brown silt; and the Nile's bad year that is not
-ruinous is a low Nile ("a low Nile one Akhet in eight", the environment dossier), drawn as unwatered land, pale and dry. In a seat view they show only where the court's own eyes last saw the province, as it was then (a court's sight
+ruinous is a low Nile ("a low Nile one Akhet in six", the environment dossier), drawn as unwatered land, pale and dry. In a seat view they show only where the court's own eyes last saw the province, as it was then (a court's sight
 of each province, frame by frame, as the fog of war already reads it; word of who holds a province is not a sight of its
 fields). The calendar itself shows everywhere: every court keeps the same year.
 

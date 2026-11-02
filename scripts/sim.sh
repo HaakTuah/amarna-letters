@@ -6,7 +6,8 @@
 cd "$(dirname "$0")/.." || exit 2
 command -v node >/dev/null 2>&1 || { echo "node is missing (Node 26 or later)"; exit 2; }
 [ -d node_modules ] || npm ci --silent >/dev/null 2>&1 || { echo "npm ci failed"; exit 2; }
-LOG="${TMPDIR:-/tmp}/amarna-sim-$(date +%Y%m%d-%H%M%S).log"
+# The process id keeps two runs started in the same second apart: one shared log mixes both runs' lines (#552).
+LOG="${TMPDIR:-/tmp}/amarna-sim-$(date +%Y%m%d-%H%M%S)-$$.log"
 node --experimental-strip-types --no-warnings src/batch/src/main.ts "$@" >"$LOG" 2>&1
 rc=$?
 tail -n "${SIM_TAIL:-40}" "$LOG"
