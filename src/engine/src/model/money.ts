@@ -8,7 +8,7 @@ import { AllPowers, type Power } from "./power.ts";
 
 /**
  * First guesses (item 18 tunes them):
- * - `heardWeight`: how far what a person has heard a job pays a season moves what it asks, in percent (Haakon's answers to
+ * - `heardWeight`: how far what a person has heard a job pays a season moves what it asks, in percent (the owner's answers to
  *   item 11a: "what others were paid is only what a character has heard, and he bargains from it"). A person keeps every
  *   promise kept or broken it heard: one by one while it is news, then as old talk ({@link PayOld}).
  * - `talkHalf`: a script person weighs talk of a promise less as it ages ("Memory" in "The game in one page"): one heard
@@ -64,7 +64,7 @@ export function newPayRecord(init: Partial<PayRecord> = {}): PayRecord {
 export const PayRecordSchema: ObjSchema<PayRecord> = obj("PayRecord", newPayRecord, { kept: I, broken: I });
 
 /**
- * A promise to pay kept or broken, as news (Haakon's answers to item 11a: "a court's record of paying travels as news"):
+ * A promise to pay kept or broken, as news (the owner's answers to item 11a: "a court's record of paying travels as news"):
  * who promised, whether it was kept, and the season word of it reaches each court, by the roads from where it happened.
  * People hear it at the courts where they stand, and from those they meet; the payer and the payee know it at once.
  */
@@ -81,7 +81,7 @@ export function newPayFact(init: Partial<PayFact> = {}): PayFact {
 }
 
 /**
- * Old talk of one party's promises to pay that a person heard (Haakon's answers to item 11b+, "Memory": no rule forgets
+ * Old talk of one party's promises to pay that a person heard (the owner's answers to item 11b+, "Memory": no rule forgets
  * it): how many it heard kept and broken, and the season they were made, on the mean. A person keeps it all game.
  */
 export interface PayOld {
@@ -137,7 +137,7 @@ export interface Debt {
    */
   presented: number | null;
   /**
-   * The party a carrier holds the tablet for (a king's envoy sent to collect it, Haakon's answers to item 11a): what is
+   * The party a carrier holds the tablet for (a king's envoy sent to collect it, the owner's answers to item 11a): what is
    * repaid to it is carried home to that party, and so is the tablet. Null when the holder holds it for itself.
    */
   for: string | null;

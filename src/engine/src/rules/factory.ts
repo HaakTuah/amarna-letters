@@ -219,9 +219,10 @@ function openingBonds(s: GameState): void {
  * tablet in the creditor's archive, the claim as the letters state it; the sums are first guesses [G] against the
  * treasuries, since the letters give weights of gold the game does not reckon in. From the letters dossier ("Between the
  * Great Kings"): the solid-gold statues Amenhotep III promised Tushratta, which came from Akhenaten as gilded wood (EA
- * 26-29) [A the claim]; the silver of Burna-Buriash's merchants killed at Hinnatuna and of Salmu's caravan robbed twice in
- * Pharaoh's lands, which he demands returned (EA 7-8) [A]; and the copper the king of Alashiya says he still owes Pharaoh,
- * having sent only five hundred talents for the plague in his land (EA 35) [A]. Each falls due within the first year, as
+ * 26, 27, 29) [A the claim]; the silver of Burna-Buriash's merchants killed at Hinnatuna and the goods of Salmu's caravan
+ * robbed twice in Pharaoh's lands, which he demands made good (EA 7-8) [A]; and copper from Alashiya to Egypt, which EA 35
+ * does not show as a debt (the king calls his five hundred talents a gift, few for the plague, and asks for the value of
+ * the timber Egypt takes), kept as built until the owner decides (#476). Each falls due within the first year, as
  * the letters press for it now; nothing enforces it ("Debts are facts; repayment is a choice").
  */
 const StartDebts: readonly { lender: Power; borrower: Power; owed: number; due: number }[] = [
@@ -350,7 +351,7 @@ export function populate(s: GameState): void {
 }
 
 /**
- * Haakon's answer to item 12's review (item 11f): every court that reads Akkadian starts with an Akkadian-speaking scribe
+ * The owner's answer to item 12's review (item 11f): every court that reads Akkadian starts with an Akkadian-speaking scribe
  * in its service, as the archives show the letters read and written by such scribes at every court that answered them; a
  * servant like any other, paid, who may die, leave or be hired away. Each is drawn from a stream of its own, in its court's
  * name style (or the nearest court's), fluent in Akkadian, and has the court's own tongue from its years there.
@@ -391,7 +392,7 @@ function employ(s: GameState, rng: Rng, c: Character, p: Power, plant: boolean):
   // Item 11a: a job like any other, its fee for the seasons it runs at what the old wage paid, half handed over before the game.
   const until = Rng.for(s.seed, 0, "start-term", c.id).range(7, 13);
   const fee = (6 + Math.trunc(c.traits.competence / 10)) * (until - 1);
-  // Haakon's answers to item 11a: its first errand is named when it is first sent, and the job, agreed before the game,
+  // The owner's answers to item 11a: its first errand is named when it is first sent, and the job, agreed before the game,
   // carries the king's word to pay the rest when it is done (his standing order, which he may cancel: withhold_fee).
   c.contract = newContract({ fee, advance: Math.trunc(fee / 2), startTurn: 1, untilTurn: until, payOnDone: true });
   // On top of what he already holds (item 17+: a person of 1346 with a purse of his own may be taken into a post).

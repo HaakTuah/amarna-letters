@@ -1,5 +1,5 @@
 /**
- * The smallest game that tests the rule (Haakon, 29 October 2026): what most game tests play instead of the whole world.
+ * The smallest game that tests the rule (the owner, 29 October 2026): what most game tests play instead of the whole world.
  * Script kings plan for every power they play, and that planning is most of what a season costs, so a small world is a few
  * neighbouring powers played by the seats a test needs, every other power held by an {@link IdleSeat} that gives no
  * orders, and a short game. Script kings' planning grows with the number of kings, not of powers: a power more in the

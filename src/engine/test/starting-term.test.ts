@@ -47,8 +47,22 @@ describe("StartingTermTests", () => {
     );
   }
 
+  /** The callings with an article of their own, or titles, that took another before #468. */
+  const OwnArticle = new RegExp(
+    `\\b(once|Served as) (${["the ruler's brother", "the ruler's son", "the governor of Alashiya", "a dispossessed lord", "a lord of the coast", "a man of Akka", "God's Father and Master of the Horse", "King's Son of Kush"].join("|")})`,
+    "g",
+  );
+
   function beforeOf(text: string): string {
-    const out = text.replaceAll("as an interpreter", "as a interpreter").replaceAll("once an interpreter", "once a interpreter").replaceAll("Nesa", "Kanesh")
+    // The full history check (2 November 2026) corrected the cast's texts against their letters: Tahmashshi is Tahmaya in
+    // EA 265, two callings, and the facts below. Put back first, so that #468's articles below see the old callings.
+    const was = Corrected.reduce(
+      (t, [now, old]) => t.replaceAll(now, old),
+      text.replaceAll("Tahmaya", "Tahmashshi").replaceAll("son of Balumme", "man of Akka").replaceAll("man of Aziru's house", "son of Abdi-Ashirta"),
+    );
+    return was.replaceAll("as an interpreter", "as a interpreter").replaceAll("once an interpreter", "once a interpreter").replaceAll("Nesa", "Kanesh")
+      // A calling with an article of its own, or a title, no longer takes another (#468): put back the one it took then.
+      .replace(OwnArticle, (_m, w: string, k: string) => `${w} ${/^[aeiou]/i.test(k) ? "an" : "a"} ${k}`)
       // Every province a proper name (polish lane, 2 November 2026): the descriptions they replaced.
       .replaceAll("Tamassos", "the copper hills of Alashiya")
       .replaceAll("Enkomi", "the harbour of Alashiya")
@@ -56,14 +70,7 @@ describe("StartingTermTests", () => {
       // The history spot-check of 2 November 2026 corrected Yapahu's post and two cast texts against their letters (#461, #462).
       .replaceAll("Burna-Buriash's envoy to Egypt (EA 10).", "Burna-Buriash's envoy to Egypt (EA 11).")
       .replaceAll("noble of Gazru", "the ruler's brother")
-      .replaceAll("A man of Gazru who rules it after Milkilu, kin or not no letter says, and writes to Pharaoh as its ruler; his own younger brother went over to the Habiru (EA 297-300).", "Milkilu's brother at Gazru, who rules it after him and writes to Pharaoh as its ruler (EA 297-300).")
-      // The full history check (2 November 2026) corrected the cast's texts against their letters: Tahmashshi is Tahmaya
-      // in EA 265, two callings, and the facts below.
-      .replaceAll("Tahmaya", "Tahmashshi")
-      .replaceAll("a son of Balumme", "an a man of Akka")
-      .replaceAll("son of Balumme", "a man of Akka")
-      .replaceAll("man of Aziru's house", "son of Abdi-Ashirta");
-    return Corrected.reduce((t, [now, was]) => t.replaceAll(now, was), out);
+      .replaceAll("A man of Gazru who rules it after Milkilu, kin or not no letter says, and writes to Pharaoh as its ruler; his own younger brother went over to the Habiru (EA 297-300).", "Milkilu's brother at Gazru, who rules it after him and writes to Pharaoh as its ruler (EA 297-300).");
   }
 
   /** The cast's facts as the full history check corrected them, and as they were. */

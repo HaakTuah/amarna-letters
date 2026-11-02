@@ -36,12 +36,12 @@ declare module "./core.ts" {
     bandsSeason(): Dict<Power, string[]>;
     chiefKills(b: Band, victim: Character, province: string): boolean;
     /**
-     * Whether talk of a standing hunt over `target` has reached a chief at `at` (Haakon's answers to item 11b+: chiefs hear
+     * Whether talk of a standing hunt over `target` has reached a chief at `at` (the owner's answers to item 11b+: chiefs hear
      * of a standing hunt by talk like any news, from its king's capital at the pace of the roads).
      */
     huntHeard(at: string, target: string): boolean;
     /**
-     * A traveller robbed and left alive names his robbers (Haakon's answers to item 11b+: every traveller is a witness):
+     * A traveller robbed and left alive names his robbers (the owner's answers to item 11b+: every traveller is a witness):
      * word that the chief rode with the Habiru goes by the roads to the land's king and to the traveller's master.
      */
     robbersNamed(victim: Character, b: Band, province: string): void;
@@ -319,7 +319,7 @@ P.bandsSeason = function () {
     const holder = S.owner.getOrDefault(b.province, null);
     const rng = this.r("band", b.id);
 
-    // Hunted (Haakon's answers to item 11b: only on its king's order, for this season or standing): the holder's army
+    // Hunted (the owner's answers to item 11b: only on its king's order, for this season or standing): the holder's army
     // standing in its province falls on it; it loses men, may lose its chief, and flees.
     const standing = holder === null ? null : huntNow(S, holder);
     const ordered = holder !== null && ((standing !== null && huntCovers(S, standing, b.province)) || S.huntNow.includes(`${holder}|${b.province}`));
@@ -350,7 +350,7 @@ P.bandsSeason = function () {
         Map.movesFrom("Army", b.province).filter((n) => !Map.get(n).isSea && !S.units.some((u) => u.province === n && u.kind === "Army")),
         [(n: string) => n, cmpStr],
       );
-      // Haakon's answers to item 11b+: the hunted chief chooses where to flee, weighing where he would be hunted again: a
+      // The owner's answers to item 11b+: the hunted chief chooses where to flee, weighing where he would be hunted again: a
       // model chief where his own request said to go, if it is open to him; a script chief away from land he heard is
       // under a standing hunt, if he can.
       const plan = chief.chiefPlan;
@@ -474,7 +474,7 @@ P.bandsSeason = function () {
       const guarded = S.units.some((u) => u.province === id && u.kind === "Army") ? (chief.bold ? 3 : 6) : 1;
       return idiv(worth * 1000, (rivals + b.men + BandData.robHalf) * guarded);
     };
-    // A script chief keeps out of land he heard is under a standing hunt (Haakon's answers to item 11b+).
+    // A script chief keeps out of land he heard is under a standing hunt (the owner's answers to item 11b+).
     const best = sortBy(
       Map.movesFrom("Army", b.province).filter((n) => !Map.get(n).isSea && !this.huntHeard(b.province, n)),
       [(n: string) => -pickings(n), cmpNum],
@@ -535,7 +535,7 @@ P.naturalLosses = function () {
 };
 
 /**
- * Haakon's answers to item 11b: robbers choose whether to kill a traveller, with no fixed odds. A chief weighs the witness
+ * The owner's answers to item 11b: robbers choose whether to kill a traveller, with no fixed odds. A chief weighs the witness
  * (a king's servant would name him to his king, a free man to whoever pays for news) against being hunted for murder (the
  * land's king hunts bands, or has an army there or next door): a ruthless chief (disloyal or greedy) kills a witness when
  * nobody is hunting him there; a careful one never does. A model chief chooses in his own request (`own-choices.ts`).
@@ -547,7 +547,7 @@ P.chiefKills = function (b, victim, province) {
   // A chief who chose whom his band kills (a model, in his own request) is held to his choice.
   if (chief.chiefPlan !== null) return killsByChoice(chief.chiefPlan.kill, victim);
   const ruthless = chief.traits.loyalty < 40 || chief.traits.greed > 70;
-  // Haakon's answers to item 11b+: every traveller is a witness who can name his robbers. The ruthless chief silences him
+  // The owner's answers to item 11b+: every traveller is a witness who can name his robbers. The ruthless chief silences him
   // where he would not be hunted for the murder: no army of the land's king in or next to the province, and no standing
   // hunt over it that talk has brought him word of.
   const holder = S.owner.getOrDefault(province, null);

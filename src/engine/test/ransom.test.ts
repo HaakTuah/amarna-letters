@@ -42,7 +42,7 @@ import { Assert, smallWorld } from "./support.ts";
 
 // <summary>One open demand per captive, known to the payer only once its rumour has arrived, and paid once.</summary>
 describe("RansomTests", () => {
-  // Since Haakon's answers to item 11b a demand waits at the captor's court for a carrier: these tests give each one a
+  // Since the owner's answers to item 11b a demand waits at the captor's court for a carrier: these tests give each one a
   // carrier who sets out at once, so its word arrives at the pace of the road, as the rules here are about.
   function begin(s: GameState): TurnEngine {
     let e = new TurnEngine(s);
@@ -345,7 +345,7 @@ describe("RansomTests", () => {
     const skimmed = (): number => sum(s.governors.filter((g) => g.power === "Egypt"), (g) => g.skimmed);
     const kept = skimmed();
     begin(s);
-    // What it carried passed to the court where it died (Haakon's answers to item 11a: the dead's purse goes with its tablets).
+    // What it carried passed to the court where it died (the owner's answers to item 11a: the dead's purse goes with its tablets).
     Assert.true(spy.purse === 0 || spy.purse === purse);
     Assert.equal(fee, line().fee);
     // Nothing left the treasury for it, before or after its death (no other job of Egypt's fell due this season).

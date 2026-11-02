@@ -49,7 +49,7 @@ describe("SeasonOrderTests", () => {
     let s = smallWorld(oldWorld(newGame(4)), "Egypt", "Hatti", "Babylonia");
     let c = first(s.characters, (c) => c.status === "Free");
     c.at = "Egypt";
-    // Haakon's answers to item 11a: the job is the errand; offered first or sent first, both stand.
+    // The owner's answers to item 11a: the job is the errand; offered first or sent first, both stand.
     for (const orders of [
       [hire(c.id, 400, 20, 200, { what: "envoy", where: "Hatti" }), dispatch(c.id, "Hatti", "Greetings.")],
       [placeSpy(c.id, "Hatti"), hire(c.id, 400, 20, 200, { what: "spy", where: "Hatti" })],

@@ -19,13 +19,13 @@ export interface CourtSeen {
   /** Its record: promises to pay kept and broken, all it heard. */
   kept: number;
   broken: number;
-  /** The same, in tenths, each weighed by its age as a script person weighs old talk (Haakon's answers to item 11b+). */
+  /** The same, in tenths, each weighed by its age as a script person weighs old talk (the owner's answers to item 11b+). */
   keptAged: number;
   brokenAged: number;
   /** Item 11b: what it heard of the court: people it put to death, and its own people lost abroad (caught or put to death). */
   executions: number;
   lost: number;
-  /** Haakon's answers to item 11a: hoards of living people it heard the court seized. */
+  /** The owner's answers to item 11a: hoards of living people it heard the court seized. */
   seized: number;
   /** The price of a measure of grain at its capital's market, in hundredths of a shekel (100 is the usual price). */
   grain: number;
@@ -170,7 +170,7 @@ export interface LifeView {
   lendOffer: LendOffer | null;
   /** What its living costs a season where it stands, in shekels (nothing as a guest). */
   living: number;
-  /** What it has heard a job pays a season (Haakon's answers to item 11a: no going rate, only what one hears), or null. */
+  /** What it has heard a job pays a season (the owner's answers to item 11a: no going rate, only what one hears), or null. */
   heardRate: number | null;
   courts: CourtSeen[];
   /** Item 11a+: an invented name it may give at a court it sets out for that knows nothing of it, or null. */
@@ -354,7 +354,7 @@ export const LifeChoiceSchema: ObjSchema<LifeChoice> = obj("LifeChoice", newLife
 });
 
 /**
- * A province as a chief sees it from where his band works (Haakon's answer to item 11b: a model chief decides raids, ships
+ * A province as a chief sees it from where his band works (the owner's answer to item 11b: a model chief decides raids, ships
  * and the way back in a request of his own): what its people and stores hold, whether its king's troops stand there, the
  * other bands' men, and whether it has a coast.
  */
@@ -367,7 +367,7 @@ export interface LandSeen {
   army: boolean;
   bands: number;
   coast: boolean;
-  /** Haakon's answers to item 11b+: talk has reached him of a standing hunt over this land. */
+  /** The owner's answers to item 11b+: talk has reached him of a standing hunt over this land. */
   hunted: boolean;
 }
 
@@ -444,7 +444,7 @@ export function newChiefChoice(init: Partial<ChiefChoice> = {}): ChiefChoice {
 
 export const ChiefChoiceSchema: ObjSchema<ChiefChoice> = obj("ChiefChoice", newChiefChoice, { turn: I, go: opt(S), ship: B, giveUp: B, kill: S });
 
-/** What a posted spy knows when its reports wait for a carrier (Haakon's answers to item 11b: the spy decides). */
+/** What a posted spy knows when its reports wait for a carrier (the owner's answers to item 11b: the spy decides). */
 export interface ReportsView {
   turn: number;
   /** The province of its post, by name, and its master. */
@@ -461,7 +461,7 @@ export interface ReportsView {
   hired: number | null;
   /** Its master's standing order pays carriers on delivery. */
   paysOnDelivery: boolean;
-  /** Haakon's answers to item 11b+: the province of its master's next to its post, by name, it could walk them to; null if none. */
+  /** The owner's answers to item 11b+: the province of its master's next to its post, by name, it could walk them to; null if none. */
   border: string | null;
 }
 

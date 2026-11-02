@@ -540,7 +540,7 @@ describe("CoverTests", () => {
       Assert.equal("has not returned from Alashiya", single(Views.for(s, "Egypt").court, (c) => c.id === envoy.id).duty);
       e.resolve(none());
     }
-    // Home, its errand done: its job ends, and it stands free at court (Haakon's answers to item 11a).
+    // Home, its errand done: its job ends, and it stands free at court (the owner's answers to item 11a).
     Assert.equal("at your court", single(Views.for(s, "Egypt").known, (c) => c.id === envoy.id).where);
     Assert.contains(inboxOf(s, "Egypt"), (x) => x.kind === "EnvoyReport" && x.subject === envoy.id);
   });

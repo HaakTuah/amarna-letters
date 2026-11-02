@@ -1,5 +1,5 @@
 /**
- * What a viewer knows of the cities sacked: one rule for the map and the ear (Haakon, 1 November 2026: "a city burned
+ * What a viewer knows of the cities sacked: one rule for the map and the ear (the owner, 1 November 2026: "a city burned
  * seasons ago that you still believe is buzzing"; the sound lane, docs/rounds/2026-11-01-sound-lane.md). Read only from
  * the viewer's own record in the frames (the events it was shown, its sight, its dated word of each city's holder),
  * never from the true owner or the true unrest, except in god view, which sees as it is. Pure, tested without a browser.
@@ -41,7 +41,7 @@ export function sacksSeen(frames: readonly SeasonFrame[], j: number, viewer: Pow
 /**
  * The cities in ruins as the viewer knows them (the truth in god view): a sack counts from the season the viewer learns of
  * it, by being shown it, by having the city in sight as it happened, or by word of the city dated after it (its known
- * owner's season, as the map's dated knowledge gives it: Haakon, 1 November 2026, "a city burned seasons ago that you
+ * owner's season, as the map's dated knowledge gives it: the owner, 1 November 2026, "a city burned seasons ago that you
  * still believe is buzzing"); and the city is rebuilt for it only when it sees it so (its people's hardship faded, or
  * the city changed hands since), never by word of the true state.
  */

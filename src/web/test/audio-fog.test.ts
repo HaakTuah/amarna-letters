@@ -7,7 +7,7 @@ import { bedAt, cuesAt, moodAt, shadeAt } from "../src/audio/situation.ts";
 import { schedule } from "../src/audio/schedule.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 
-// Nothing heard reveals the fog of war (Haakon, 1 November 2026: "Important! The music must never reveal what's outside
+// Nothing heard reveals the fog of war (the owner, 1 November 2026: "Important! The music must never reveal what's outside
 // the fog of war."), and a seat hears what its own map shows ("you know where a sea is, so some things you can zoom in on
 // and hear, without it revealing anything"). Hand-built frames: three powers, a capital and a province or two.
 function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {

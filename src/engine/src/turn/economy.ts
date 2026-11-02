@@ -211,7 +211,7 @@ P.harvestSeason = function () {
     if (rot > 0) S.stores.set(k, v - rot);
   }
   for (const m of S.markets.values()) m.stock -= idiv(m.stock * EconomyData.spoilPercent, 100);
-  // Haakon's answer to item 11a+ (opening item 11b): the farmers' granaries rot like the king's stores.
+  // The owner's answer to item 11a+ (opening item 11b): the farmers' granaries rot like the king's stores.
   for (const [k, v] of [...S.granary.entries()]) {
     const rot = idiv(v * EconomyData.spoilPercent, 100);
     if (rot > 0) S.granary.set(k, v - rot);
@@ -480,7 +480,7 @@ P.disbandUnit = function (u, settle = false) {
   const i = S.units.indexOf(u);
   if (i >= 0) S.units.splice(i, 1);
   this.liftSiegesOf(u.id);
-  // The men carry their savings with them: home when they arrive, or where they settle (Haakon, 28 October 2026).
+  // The men carry their savings with them: home when they arrive, or where they settle (the owner, 28 October 2026).
   return this.menHome(u, settle);
 };
 

@@ -1,7 +1,7 @@
 # TypeScript conversion plan
 
 Build order item 5+ in the design document (decided 21 October 2026). The whole game moves from C# on Blazor
-WebAssembly to TypeScript, with features frozen while it runs. Haakon's instructions are quoted word for word;
+WebAssembly to TypeScript, with features frozen while it runs. The owner's instructions are quoted word for word;
 the rest is what was agreed with him.
 
 ## Order
@@ -11,7 +11,7 @@ the rest is what was agreed with him.
 3. The fix pass for the "Found during the port" list in `docs/BUILD-PROGRESS.md`.
 4. Build order item 6. (Since 26 October 2026 item 6 is built in two parts, 6a first.)
 
-## Haakon's plan (21 October 2026)
+## The owner's plan (21 October 2026)
 
 - Stack: TypeScript in strict mode, npm workspaces (engine, game, llm), Vite and React,
   Vitest, and a Node batch runner with worker threads. Keep the engine pure: no browser
@@ -20,7 +20,7 @@ the rest is what was agreed with him.
   32-bit operations (for example xoshiro128**), record new C# fingerprints, and port that
   generator. If you find a concrete reason not to, say why in the PR and port the 64-bit
   one carefully instead.
-  Added under random numbers (Haakon, 21 October 2026):
+  Added under random numbers (the owner, 21 October 2026):
   - Hash each roll's key (seed, season, purpose, subject) into the generator's full
     128-bit state with several 32-bit hash rounds, never into a single 32-bit seed, so
     different keys don't come to share a stream in long games.
@@ -40,10 +40,10 @@ the rest is what was agreed with him.
 - Once parity passes, the TypeScript build goes into develop and the switch-over PR goes to
   me like any milestone PR. Carry on with the fix pass and the rest on develop; main
   switches whenever I merge. I never need to approve before you continue: I just want to
-  try the newest build as it comes. *(Revised by Haakon on 21 October 2026, replacing
+  try the newest build as it comes. *(Revised by the owner on 21 October 2026, replacing
   "main keeps the C# game until parity passes and I've played the preview".)*
 
-## In the conversion (Haakon, 21 October 2026)
+## In the conversion (the owner, 21 October 2026)
 
 - Port behaviour exactly, including known flaws. Changes wanted before the port are made
   in C# first, with new fingerprints.
@@ -63,7 +63,7 @@ the rest is what was agreed with him.
   machine, cloud sessions included. Check first that they contain no API keys or other
   secrets. If they're too large, commit a trimmed set and say so in the PR.
 
-## Gates and checks added (Haakon, 21 October 2026)
+## Gates and checks added (the owner, 21 October 2026)
 
 - Split the script-king layer into several parity gates by phase (orders, audiences,
   letters, intelligence), so every session can end with a gate passed.
@@ -81,7 +81,7 @@ the rest is what was agreed with him.
 - Parity is checked on about 200 script-game seeds and on the recorded model-game logs.
 - Old saves won't load in the new build (new save version). The parity harness still reads the recorded logs.
 - While the port runs, the TypeScript build is played as a PR preview, and the C# game stays at the site root
-  until Haakon merges the switch-over PR.
+  until the owner merges the switch-over PR.
 - JavaScript numbers are all doubles, so integer-only maths goes through the engine's helpers. Watch for
   dictionary order and culture-sensitive string sorting in C#.
 

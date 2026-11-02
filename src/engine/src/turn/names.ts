@@ -138,7 +138,7 @@ P.declare = function (c, court, name, envoyOf) {
 };
 
 /**
- * A false envoy is received in a full audience (item 10+b, Haakon's answer of 28 October 2026, "A false envoy"): the host
+ * A false envoy is received in a full audience (item 10+b, the owner's answer of 28 October 2026, "A false envoy"): the host
  * sees an envoy of the king it names, with no letter, no sealed greeting and no seal; what it gives, gifts or gold for
  * that king, the impostor keeps (applyAudience).
  */

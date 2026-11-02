@@ -203,7 +203,7 @@ P.atBorder = function (c, a, b, book) {
  * A caravan or ship trades at the market it came to: it sells its grain there along the curve, from the people's purse,
  * and buys grain with the gold it carries (a ship no more than it holds). A besieged market trades by land with nobody;
  * anyone's ship may sell it grain while its waters are open, at what its starving market pays, but buys none there
- * ("Stores and mouths are the clock", Haakon's answer of 28 October 2026).
+ * ("Stores and mouths are the clock", the owner's answer of 28 October 2026).
  */
 P.tradeAtMarket = function (c, parts) {
   this.tradeTogether([c], new Map([[c.id, parts]]));

@@ -223,7 +223,7 @@ P.fulfil = function (req, reply) {
 };
 
 /**
- * What an envoy carries for its king beside its letter, on arriving at the court it was sent to (Haakon's answers to item
+ * What an envoy carries for its king beside its letter, on arriving at the court it was sent to (the owner's answers to item
  * 11a): the offers of jobs, put to the people standing there, and a debt tablet, presented to the borrower there.
  */
 P.envoyBusinessAbroad = function (c, j) {
