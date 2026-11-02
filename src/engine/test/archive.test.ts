@@ -227,6 +227,9 @@ describe("ArchiveTests", () => {
     // the city to Egypt that season: the archive lies in the city, and Egypt gains copies of it. (A king cannot cede his
     // own capital since the siege package.)
     s.owner.set(capital, "Babylonia");
+    // Item 17++: land ceded passes at once only where the receiver's troops stand, which is his taking it up.
+    removeAll(s.units, (u) => u.province === capital);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: capital }));
     begin(s).resolve(orders("Babylonia", cede(capital, "Egypt")));
     Assert.contains("Assyria", s.eliminated);
     Assert.equal("Egypt", s.owner.get(capital));

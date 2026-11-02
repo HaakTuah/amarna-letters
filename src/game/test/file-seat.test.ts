@@ -212,7 +212,7 @@ describe("FileSeatTests", () => {
       folder,
       (stem, _) =>
         stem === "t1_orders_Alashiya"
-          ? `{"notes":"x","summary":"","ledger":[],"units":["enkomi -> enkomiwaters"],"command":[],"letters":[],"other_orders":[{"action":"fly","province":"","power":"","person":"","amount":0,"text":"","item":"","seals":[]}]}`
+          ? `{"notes":"x","summary":"","ledger":[],"units":["enkomi -> enkomiwaters"],"command":[],"letters":[],"other_orders":[{"action":"fly","province":"","power":"","person":"","amount":0,"text":"","item":"","seals":[],"lands":[]}]}`
           : HoldEverything,
       stop.signal,
     );

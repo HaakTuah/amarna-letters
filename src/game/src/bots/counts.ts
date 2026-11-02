@@ -2,10 +2,11 @@
  * The script kings' counts and demands (build order item 17++, part B; "A census", "The king says how much he wants"):
  * each province asked a share of its harvest as high as its farmers can bear by the last count, or, while that count is
  * fresh enough to judge by, the same grain as an amount, which it cannot hide; scribes sent to count a province whose
- * count has grown old, where the gold allows. `--no-count-play` and `--count-play-half` never count and always ask a
- * share, only to measure what counting is worth.
+ * count has grown old, where the gold allows; and the corvée as a share where the count is old. `--no-count-play` and
+ * `--count-play-half` never count, always ask a share of grain and name the corvée's men, only to measure what counting
+ * is worth.
  */
-import { CountData, census, demand, menOf, raise, type Order, type ProvinceEconomyView, type SeatView, type UnitKind } from "@amarna/engine";
+import { CountData, build, buildMen, census, demand, menOf, raise, upkeepMen, type Order, type ProvinceEconomyView, type SeatView, type UnitKind } from "@amarna/engine";
 import { bearableShare, LandPlay, shareNow } from "./land.ts";
 
 /** Script kings that never count their land and always ask a share (`--no-count-play`, `--count-play-half`). None by default. */
@@ -77,4 +78,23 @@ export function levyOrder(v: SeatView, me: string, province: string, kind: UnitK
   const x = v.provinces.find((y) => y.province === province);
   if (!CountPlay.on(me) || x === undefined || x.counted === null || v.turn - x.counted <= FreshSeasons || x.men <= 0) return raise(province, kind);
   return raise(province, kind, null, Math.max(1, Math.min(100, Math.ceil((menOf(kind) * 100) / x.men))));
+}
+
+/**
+ * The corvée (item 17++, "The king says how much he wants": "for grain, levy and work gangs alike"; the owner's answer to
+ * #411): the men a work needs, named, while the count is fresh enough to judge them by; past that, a share of the men at
+ * home sized to the work's need by the old count, so it never takes more men than are there, though the province hides
+ * part of it and the work then goes slower. Kings that never count name the men as before.
+ */
+export function corveeShares(v: SeatView, me: string, orders: Order[]): void {
+  if (!CountPlay.on(me)) return;
+  orders.forEach((o, i) => {
+    if (o.type !== "build" || !o.labour || o.share != null) return;
+    const x = v.provinces.find((y) => y.province === o.province);
+    if (x === undefined || x.counted === null || v.turn - x.counted <= FreshSeasons || x.men <= 0) return;
+    const level = v.works.find((w) => w.province === o.province && w.kind === o.kind)?.level ?? 0;
+    const building = o.level > level ? buildMen(o.kind, o.province, o.kind === "Policing" ? o.level - level : level + 1) : 0;
+    const need = Math.max(upkeepMen(o.kind, Math.min(level, o.level)), building);
+    if (need > 0) orders[i] = build(o.province, o.kind, o.level, true, Math.max(1, Math.min(100, Math.ceil((need * 100) / x.men))));
+  });
 }

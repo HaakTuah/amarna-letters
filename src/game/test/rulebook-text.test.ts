@@ -111,7 +111,7 @@ describe("RulebookTextTests", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
     // Item 13: each unit at the size the armies dossier gives it.
     // Item 17+: each where the sources place it in 1346.
-    Assert.contains("- Egypt: armies in memphis (6000 men), akhetaten (4000 men), thebes (2200 men), nubia (2800 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 17975.", Rules);
+    Assert.contains("- Egypt: armies in memphis (6000 men), akhetaten (4000 men), thebes (2200 men), nubia (2800 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 19775.", Rules);
     Assert.contains("- Babylonia: armies in babylon (4000 men), durkurigalzu (3000 men), nippur (1500 men) and sippar (1500 men); treasury 600 shekels;", Rules);
     Assert.contains("- Alashiya: armies in enkomi (1000 men) and kalavasos (500 men), a fleet of 750 men in enkomiwaters; treasury 400 shekels;", Rules);
     Assert.contains("- Arwad: a fleet of 500 men in sumurwaters;", Rules);
@@ -241,9 +241,9 @@ describe("SeasonRulebookTests", () => {
  "units":[{"unit":"memphis","order":"move","target":"","to":""},
           {"unit":"akhetaten","order":"support","target":"","to":"sinai"},
           {"unit":"deltawaters","order":"convoy","target":"memphis","to":""}],
- "other_orders":[{"action":"cede_province","province":"sinai","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]},
-                 {"action":"give_unit","province":"memphis","power":"the Hittites","person":"","amount":0,"term":0,"text":"","item":"","seals":[]},
-                 {"action":"place_spy","province":"","power":"Kush","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]},
+ "other_orders":[{"action":"cede_province","province":"sinai","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[],"lands":[]},
+                 {"action":"give_unit","province":"memphis","power":"the Hittites","person":"","amount":0,"term":0,"text":"","item":"","seals":[],"lands":[]},
+                 {"action":"place_spy","province":"","power":"Kush","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[],"lands":[]},
                  {"action":"forge","province":"","power":"","person":"c3","amount":0,"term":0,"text":"Peace.","item":"","seals":["Hatti","Kush"]}]}`,
       )!,
     );
@@ -272,7 +272,7 @@ describe("SeasonRulebookTests", () => {
   test("A spy order with nowhere to watch is refused with the reason rather than dropped", () => {
     let sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","units":[],"command":[],"letters":[],"other_orders":[{"action":"place_spy","province":"","power":"","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
+        `{"notes":"","units":[],"command":[],"letters":[],"other_orders":[{"action":"place_spy","province":"","power":"","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[],"lands":[]}]}`,
       )!,
     );
     Assert.equal(placeSpy("c3"), Assert.single(sub.orders));

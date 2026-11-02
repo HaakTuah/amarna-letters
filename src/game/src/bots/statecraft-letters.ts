@@ -1,5 +1,6 @@
 /** The non-military half of a script king, third part: letters, the tablets it proposes, greetings and audiences. */
 import { envoyFor } from "./tongues.ts";
+import { AuditPlay, canMarchOn } from "./audit-play.ts";
 import { bondClauses, bondLetters, noteGold, sealBond, sealedBond } from "./vassals.ts";
 import { fugitiveRights } from "./borders.ts";
 import {
@@ -371,7 +372,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
           ? "You swore before the gods and then sent your troops into my land. Is this the oath of a king? Withdraw, and send me fitting gifts, or the gods and I will remember it."
           : "Your troops have entered my land. Is this brotherhood? Withdraw them, and send me a fitting gift, or I will not forget it.";
       // A king strong enough to make it good, and warlike or vengeful enough to mean it, threatens war outright.
-      const threat = b.strength(me) >= 0.9 * b.strength(to) && p.aggression + p.vengeance > 1;
+      const threat = b.strength(me) >= 0.9 * b.strength(to) && p.aggression + p.vengeance > 1 && (!AuditPlay.on(me) || canMarchOn(b, to));
       if (threat) text += " If you do not withdraw, my troops will march into your land.";
       // Where his troops stand in our land, the clauses name it, and ask him to withdraw from it.
       const held = sortBy(
@@ -451,12 +452,16 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
         gold: m.amount,
         clauses: [clause("tribute", { amount: m.amount }), clause("askProtect")],
       });
-    case "bond-demand":
-      return dispatch(envoy, to, `You are my servant by the tablet you sealed, and your tribute has not come. Send the ${m.amount} shekels of this year, or my troops will come for it. ${flavour}`, {
+    case "bond-demand": {
+      // The audit's find 3b: a king threatens only what he can make good, an army of his in or beside the vassal's land and
+      // strength enough; otherwise he asks, and the vassal is left to weigh what his oath is worth.
+      const can = AuditPlay.on(me) ? canMarchOn(b, to) : true;
+      return dispatch(envoy, to, `You are my servant by the tablet you sealed, and your tribute has not come. Send the ${m.amount} shekels of this year${can ? ", or my troops will come for it" : ", as your oath says"}. ${flavour}`, {
         mandate: "Ask for the tribute owed. Promise nothing.",
         greeting,
-        clauses: [clause("askTribute", { amount: m.amount }), clause("threat"), clause("brokenOath")],
+        clauses: [clause("askTribute", { amount: m.amount }), ...(can ? [clause("threat")] : []), clause("brokenOath")],
       });
+    }
     case "bond-offer":
       return dispatch(envoy, to, `Be my servant and pay me ${m.amount} shekels a year, and my troops will guard your land instead of taking it. ${flavour}`, {
         mandate: "You may seal the tablet as it stands. Promise no land and no gold.",

@@ -63,7 +63,8 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   // Item 17+: Akhetaten, still being built in these years, about 15,000 to 20,000, below Waset and Men-nefer [G]; the
   // Amarna Project puts the finished city at "around 30,000 or perhaps more" (the people dossier), which item 18 may weigh
   ["akhetaten", e(18, "High")],
-  ["thebes", e(30, "High", 30)],
+  // Waset about 70,000, the middle of the published estimates (the people dossier, 04-thebes-memphis) [G]
+  ["thebes", e(70, "High", 30)],
   ["nubia", e(4, "Fair", 70)],
   // Item 17+: Kalavasos, small and new (its town flourished from about 1325, the people dossier), about 1,000 [G]
   ["kalavasos", e(1, "Fair")],

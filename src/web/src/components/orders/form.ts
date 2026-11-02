@@ -23,6 +23,8 @@ export interface Form {
   buildKind: string;
   buildLevel: number;
   buildLabour: boolean;
+  /** Item 17++: a corvée as a share of the men at home, in percent; empty: the men the work needs. */
+  buildShare: string;
   grainAt: string;
   grainAction: string;
   grainAmount: string;
@@ -115,6 +117,7 @@ export function newForm(me: Power): Form {
     buildKind: "Roads",
     buildLevel: 2,
     buildLabour: false,
+    buildShare: "",
     grainAt: "",
     grainAction: "sell",
     grainAmount: "",

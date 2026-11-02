@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { CountData, Dict, EconomyData, WorldMap, OrderValidator, TurnEngine, Views, census, countOf, demand, hiddenPercent, menAvailable, newGame, newGameConfig, newPlannedOrder, newSleepState, newTurnSubmission, raise, type GameState } from "@amarna/engine";
+import { CountData, Dict, StartCountAge, countFigures, toFigures, EconomyData, WorldMap, OrderValidator, TurnEngine, Views, census, countOf, demand, hiddenPercent, menAvailable, newGame, newGameConfig, newPlannedOrder, newSleepState, newTurnSubmission, raise, type GameState } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
 // What a king can count (build order item 17++, part B): counts as the scribes knew them, the census, and the king's
@@ -8,10 +8,19 @@ import { Assert } from "./support.ts";
 describe("CountsTests", () => {
   const fresh = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0 }));
 
+  test("A count shows two figures while under a year old and one after; a land never counted, one, as a guess", () => {
+    Assert.equal([2, 2, 1, 1, 1], [0, 3, 4, 8, 40].map(countFigures));
+    Assert.equal(1, countFigures(null));
+    Assert.equal([650_000, 600_000, 18_000, 87, 90], [toFigures(648_200, 2), toFigures(648_200, 1), toFigures(18_400, 2), toFigures(87, 2), toFigures(87, 1)]);
+    Assert.equal(0, toFigures(0, 2));
+  });
+
   test("Every court starts with a count of the land it holds, and its view shows the count, not the land as it is now", () => {
     const s = fresh();
     const c = countOf(s, "Hatti", "nesa")!;
-    Assert.equal(s.turn - 1, c.turn);
+    // Egypt counted often, so its counts are recent; most others' are older (different data, same rules).
+    Assert.equal(s.turn - StartCountAge.default, c.turn);
+    Assert.equal(s.turn - StartCountAge.by.Egypt!, countOf(s, "Egypt", "memphis")!.turn);
     Assert.equal(s.people.get("nesa").settled, c.settled);
     // The land changes; the court's view keeps the count until a new one comes home.
     s.people.get("nesa").settled += 50_000;
@@ -88,7 +97,7 @@ describe("CountsTests", () => {
     const v = new OrderValidator(s, WorldMap.default).validate("Hatti", newTurnSubmission({ orders: [census("nesa"), census("nesa"), census("delta"), demand("share", 101, "nesa"), demand("amount", -1, "hattusa"), demand("amount", 50, "hattusa"), demand("amount", 50, null)] }));
     Assert.equal(2, v.accepted.length);
     Assert.equal(5, v.rejected.length);
-    s.censuses.push({ power: "Hatti", province: "nesa", counted: s.turn + 1, home: 0, count: null });
+    s.censuses.push({ power: "Hatti", province: "nesa", counted: s.turn + 1, home: 0, count: null, mood: "" });
     const w = new OrderValidator(s, WorldMap.default).validate("Hatti", newTurnSubmission({ orders: [census("nesa")] }));
     Assert.contains(w.rejected, (x) => x.reason.includes("already counting"));
   });

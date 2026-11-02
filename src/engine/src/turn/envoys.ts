@@ -4,7 +4,8 @@ import { distinct } from "../core/seq.ts";
 import { isBlank } from "../core/text.ts";
 import type { AudienceRecord, AudienceRound, AudienceView } from "../model/exchanges.ts";
 import { newAudienceView, newEnvoyReaction, newHostReply } from "../model/exchanges.ts";
-import { hire, type DispatchOrder } from "../model/orders.ts";
+import { hire } from "../model/order-makers.ts";
+import { type DispatchOrder } from "../model/orders.ts";
 import { factsKnownTo, gain, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
 import { courtSpeaks } from "../model/languages.ts";
 import { errandOf } from "./court.ts";
@@ -13,6 +14,7 @@ import { SealedOutcome, newDispatch, newExchange, newGreetingOptions, newHomeCar
 import { char, findCharacter, isAlive, logEvent, newGoldLot, newId, notify, ownedBy } from "../model/state.ts";
 import { authorityText, newAuthority } from "../model/authority.ts";
 import { noteMarket, noteTolls } from "../model/word.ts";
+import { newMoodRead, type MoodRead } from "../model/moods.ts";
 
 import { formatMoney } from "../rules/calendar.ts";
 import { cap, deviations, renderGreeting, stopped } from "../rules/greeting.ts";
@@ -52,7 +54,7 @@ declare module "./core.ts" {
     applyAudience(record: AudienceRecord): void;
     overdue(sender: Power, c: Character, host: Power, when: number, place?: string | null): void;
     audienceTranscript(a: PendingAudience, c: Character, trail: MessageTrail, stated: number, weighed: number, unseen: readonly string[]): string;
-    observe(c: Character, court: Power): string[];
+    observe(c: Character, court: Power): Pick<HomeCargo, "observations" | "mood">;
   }
 }
 
@@ -487,7 +489,7 @@ P.applyAudience = function (record) {
   // Gold to send home with the envoy: the latest amount named stands (0 in a later exchange keeps it), at that exchange's purity.
   let goldBack = 0;
   let goldBackPurity = 100;
-  const cargo = newHomeCargo({ trailId: trail.id, observations: this.observe(c, host) });
+  const cargo = newHomeCargo({ trailId: trail.id, ...this.observe(c, host) });
   // A claim to check (item 10): the host's court knows whom it employs, and the envoy brings home what it heard there.
   const claimant = d.checkClaim !== null ? findCharacter(S, d.checkClaim) : null;
   if (claimant !== null) {
@@ -697,5 +699,13 @@ P.observe = function (c, court) {
   // The captives the court holds, noticed as other envoys at court are; its executions, as its catastrophes are.
   obs.push(...this.lossesHeard(c, court, skill, 0.4 + hears / 2));
   if (court === c.traits.sympathy) c.traits.sympathyStrength = Math.min(100, c.traits.sympathyStrength + 5);
-  return obs;
+  // Item 17++, part C: the mood of the court's city, which it sees for itself as it sees the troops (its own stream, so
+  // nothing else it notices changes); its king reads it when it is home.
+  const holder = S.owner.getOrDefault(capital, null);
+  let mood: MoodRead | null = null;
+  if (holder !== null && c.employer !== null && this.r("observe-mood", c.id).chance(skill)) {
+    mood = newMoodRead({ power: c.employer, province: capital, mood: this.moodOf(capital), seen: S.turn, source: "envoy" });
+    obs.push(`The people of ${Map.get(capital).name} are ${mood.mood} under ${holder}.`);
+  }
+  return { observations: obs, mood };
 };

@@ -10,6 +10,9 @@ import {
   Views,
   WorldMap,
   inboxOf,
+  moodsKnown,
+  vassalTerms,
+  vassalBonds,
   isAlive,
   wallsOf,
   type CharacterStatus,
@@ -24,6 +27,8 @@ import {
   omenTier,
   type AgeBand,
   type OmenTier,
+  seatKnown,
+  type Governor,
 } from "@amarna/engine";
 import type { GameRunner } from "@amarna/game";
 
@@ -153,6 +158,64 @@ export interface FrameNews {
   observed: number;
 }
 
+/** A province's mood in the four coarse steps a king reads it in ("Who holds what, and the mood of the land"). */
+export type Mood = "loyal" | "uneasy" | "restless";
+
+/** A governor as the map shows him: his king, his name and the province he sits in. */
+export interface FrameGovernor {
+  power: Power;
+  character: string;
+  name: string;
+  seat: string;
+}
+
+/** The words a court was told of a province's mood, in the four steps. */
+const moodOfWords = (said: string): Mood => (said === "quiet" ? "loyal" : said === "uneasy" ? "uneasy" : "restless");
+
+/** God view's step for how fully a province obeys, in thousandths (first guesses, presentation only). */
+export const moodOfObeyed = (n: number): Mood => (n >= 900 ? "loyal" : n >= 600 ? "uneasy" : "restless");
+
+/** Item 17++, part C: governors, vassal bonds and each court's read of its land's mood, for the map. */
+function holdings(s: GameState): Pick<SeasonFrame, "governed" | "governedKnown" | "bonds" | "knownBonds" | "moodRead" | "obeyed"> {
+  const governed = new Map<string, FrameGovernor>();
+  const governedKnown = new Map<Power, Map<string, FrameGovernor>>();
+  const known = (g: Governor, name: string): void => {
+    let m = governedKnown.get(g.power);
+    if (m === undefined) governedKnown.set(g.power, (m = new Map()));
+    m.set(g.province, { power: g.power, character: g.character, name, seat: seatKnown(g, s.turn) });
+  };
+  for (const g of s.governors) {
+    if (s.turn < g.from) continue;
+    const c = s.characters.find((x) => x.id === g.character);
+    if (c === undefined) continue;
+    if (c.status !== "Dead") governed.set(g.province, { power: g.power, character: c.id, name: c.name, seat: g.seat === "" ? g.province : g.seat });
+    // His king knows him alive until word of his death comes, which drops the governorship (`dropGovernor`).
+    known(g, c.name);
+  }
+  // A governorship ended whose word has not reached its king: he still believes it stands.
+  for (const x of s.governorsGone) if (x.until > s.turn && s.turn >= x.governor.from) known(x.governor, s.characters.find((c) => c.id === x.governor.character)?.name ?? "");
+  const bonds = new Map(vassalBonds(s.tablets).map((b) => [b.vassal, b.overlord] as const));
+  const knownBonds = new Map<Power, Map<Power, Power>>();
+  for (const k of s.copies) {
+    const t = s.tablets.find((x) => x.id === k.tabletId);
+    // Only its two parties are told of a repudiation (turn/authority.ts); a third court holding a copy keeps the bond as
+    // its tablet says (hidden information).
+    const party = t !== undefined && (k.holder === t.proposedBy || k.holder === t.partner);
+    const v = t === undefined || (t.repudiatedTurn !== null && party) ? null : vassalTerms(t);
+    if (v === null) continue;
+    let m = knownBonds.get(k.holder);
+    if (m === undefined) knownBonds.set(k.holder, (m = new Map()));
+    m.set(v.vassal, v.overlord);
+  }
+  // Each court's reads as they reached it, dated from when they were seen.
+  const moodRead = new Map<Power, Map<string, { mood: Mood; turn: number }>>();
+  for (const p of AllPowers)
+    if (isAlive(s, p)) moodRead.set(p, new Map([...moodsKnown(s, p)].map(([id, r]) => [id, { mood: moodOfWords(r.mood), turn: r.seen }] as const)));
+  const obeyed = new Map<string, number>();
+  for (const [id, holder] of s.owner.entries()) if (holder !== null) obeyed.set(id, s.obeyed.getOrDefault(id, 1000));
+  return { governed, governedKnown, bonds, knownBonds, moodRead, obeyed };
+}
+
 export interface SeasonFrame {
   /** The snapshot index: 0 at the start, k after turn k. */
   index: number;
@@ -200,8 +263,21 @@ export interface SeasonFrame {
   stores: Map<string, number>;
   /** Item 19, life on the map: the people settled in each province, how well its countryside ate (thousandths, where short), and its unrest (from item 17++ the grievances its people remember). */
   settled: Map<string, number>;
-  /** Item 17++: the settled on each province's land as each court's scribes last counted them, what a seat's map shows. */
-  counted: Map<Power, Map<string, number>>;
+  /** Item 17++: the settled on each province's land as each court's scribes last counted them, and the season they did, what a seat's map shows. */
+  counted: Map<Power, Map<string, { settled: number; turn: number }>>;
+  /**
+   * Item 17++, part C ("Who holds what, and the mood of the land"): each governed province's governor (arrived), the vassal
+   * bonds as they stand (vassal to overlord), each court's own read of them from the tablets in its archive, and each
+   * court's read of its provinces' mood: from its governors' letters, dated as they arrived, and its own eyes at its court.
+   */
+  governed: Map<string, FrameGovernor>;
+  /** Each court's own governors as it knows them: one whose end has not yet reached it still stands (hidden information). */
+  governedKnown: Map<Power, Map<string, FrameGovernor>>;
+  bonds: Map<Power, Power>;
+  knownBonds: Map<Power, Map<Power, Power>>;
+  moodRead: Map<Power, Map<string, { mood: Mood; turn: number }>>;
+  /** God view's mood of each held province, from how fully it obeys (a thousand: in full). */
+  obeyed: Map<string, number>;
   fed: Map<string, number>;
   unrest: Map<string, number>;
   /** Item 19: the caravans, and the people carried off (deportees), on the road, each between the provinces it is between. */
@@ -380,7 +456,8 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
       }),
     built: new Map(s.built.entries()),
     settled: new Map([...s.people.entries()].map(([k, x]) => [k, x.settled] as const)),
-    counted: new Map([...s.counts.entries()].map(([p, d]) => [p, new Map([...d.entries()].map(([k, c]) => [k, c.settled] as const))] as const)),
+    counted: new Map([...s.counts.entries()].map(([p, d]) => [p, new Map([...d.entries()].map(([k, c]) => [k, { settled: c.settled, turn: c.turn }] as const))] as const)),
+    ...holdings(s),
     fed: new Map(s.fed.entries()),
     // Item 17++: what each province's people remember taken from them, by anyone (the ledger's takings, never shown).
     unrest: new Map([...s.ledger.entries()].map(([k, book]) => [k, [...book.values()].reduce((a, v) => a + Math.max(0, -v), 0)] as const).filter(([, v]) => v > 0)),

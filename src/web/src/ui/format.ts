@@ -1,5 +1,5 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, dateLabel, describe, formatMoney, land, rx, seasonName, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, countFigures, dateLabel, describe, formatMoney, land, rx, seasonName, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
@@ -13,11 +13,15 @@ export const powerName = (p: Power): string => (p === "Babylonia" ? "Babylonia" 
 /** The one date label of the interface: the court's season and the year BCE with the turn, or the spectator's. */
 export const when = (turn: number, court: Power | null): string => dateLabel(turn, court);
 
-/** A count of people as a king reads it (item 17++): two figures ("about 18,000"), never to the last head. */
-export function about(n: number): string {
-  if (n < 100) return n.toLocaleString("en");
-  const step = 10 ** (Math.floor(Math.log10(n)) - 1);
-  return (Math.round(n / step) * step).toLocaleString("en");
+/** A count as a king reads it (item 17++): two figures ("about 18,000"), never to the last head; one for an old count. */
+export function about(n: number, figures = 2): string {
+  return toFigures(n, figures).toLocaleString("en");
+}
+
+/** A count of `age` seasons (null: never counted, a guess) in words: "about 650,000" while fresh, "some 600,000" once old. */
+export function counted(n: number, age: number | null): string {
+  const figures = countFigures(age);
+  return `${figures >= 2 ? "about" : "some"} ${about(n, figures)}`;
 }
 
 export const cap = (s: string): string => (s.length === 0 ? s : s[0].toUpperCase() + s.slice(1));

@@ -1,4 +1,5 @@
 /** The non-military half of a script king, first part: strategy and treasury. */
+import { AuditPlay } from "./audit-play.ts";
 import { creditOrders } from "./credit.ts";
 import { upkeepOrders } from "./upkeep.ts";
 import { foldRemnants } from "./remnants.ts";
@@ -39,7 +40,7 @@ import { Board } from "./board.ts";
 import { worksOrders } from "./works.ts";
 import { depotFor, grainOrders, plainGrain, plainGrainOrders } from "./grain.ts";
 import { canLevy, levyCost, settleThere } from "./land.ts";
-import { censusOrders, demandOrders, levyOrder } from "./counts.ts";
+import { censusOrders, corveeShares, demandOrders, levyOrder } from "./counts.ts";
 import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import type { Brain } from "./brain.ts";
@@ -314,6 +315,19 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
     flow -= upkeep;
     raised++;
   }
+  // The audit's find 3: a rich king with idle men raises an army his plan did not ask for, where his gold keeps it ten seasons
+  // beyond his reserve and his income carries its pay, while he has fewer armies than half his homeland and one more.
+  const armyCost = v.prices.get("army");
+  const armyPay = v.prices.get("armyUpkeep");
+  if (AuditPlay.on(me) && raised === 0 && spots.length > 0 && count(b.mine, (u) => u.kind === "Army") <= Math.ceil(home.length / 2) && canLevy(v, spots[0].id, "Army")) {
+    if (gold - armyCost - 10 * (armyPay + EconomyData.armyFood) >= reserve && flow - armyPay >= 0) {
+      orders.push(raise(spots[0].id, "Army"));
+      spots.splice(0, 1);
+      gold -= armyCost;
+      flow -= armyPay;
+      raised++;
+    }
+  }
   if (b.mine.length === 0 && spots.length > 0 && canLevy(v, spots[0].id, "Army") && gold - v.prices.get("army") >= reserve) {
     orders.push(levyOrder(v, me, spots[0].id, "Army"));
     gold -= v.prices.get("army");
@@ -338,6 +352,8 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   }
   // Item 15: roads and relay stations, police, harbours, water works, repairs under siege and razing (see works.ts).
   const works = worksOrders(b, plan, gold - reserve);
+  // Item 17++: a corvée as a share of the men at home where the count is too old to name them by.
+  corveeShares(b.v, b.me, works.orders);
   orders.push(...works.orders);
   gold -= works.spent;
   brain.spareGold = gold - reserve;
