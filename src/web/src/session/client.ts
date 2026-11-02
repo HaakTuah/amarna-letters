@@ -365,8 +365,12 @@ export class Session {
     this.notify();
   }
 
-  /** Downloads the game's export, holding the parts asked for (Engine and models, "Logging and replay"). */
+  /**
+   * Downloads the game's export, holding the parts asked for (Engine and models, "Logging and replay"): only when the god
+   * view is open, since the export is the whole record.
+   */
   async export(parts: ExportParts): Promise<void> {
+    if (!this.canSeeAll) return;
     const m = await this.request({ type: "export", id: this.nextId++, parts });
     if (m.type === "export" && m.text !== "") download(m.name, m.text);
   }

@@ -8,6 +8,7 @@
  * sensitive is recorded (a failure is logged as its kind, failure.ts), and the export is built from the list of fields
  * each record may give, so a field no one listed stays out.
  */
+import { Aliases, nameKnown } from "@amarna/engine";
 import { isFailure } from "./failure.ts";
 import type { GameLog } from "./log.ts";
 
@@ -52,6 +53,35 @@ export const BlankMark = "▒";
  */
 export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments", "poison", "unreadable", "reason", "words"]);
 
+/**
+ * The fields of a decision that hold a name the engine reads, which a player may make up: a pitch's `name`, the alias a
+ * traveller gives (`goAs`) and the realm a king claims (`claimName`'s `name`). The engine takes only a name it knows (an
+ * alias it offered, a realm's, a person's) and reads any other as none, so under the filter a made-up one is a stand-in
+ * and the export still replays.
+ */
+export const NameFields: ReadonlySet<string> = new Set(["name", "goAs"]);
+
+/**
+ * Stands in for the names a player made up: Name-1, Name-2, in the order they first appear, the same name always the same
+ * stand-in. A real name is kept: an alias the engine offers, a realm's name, or one of the game's people's.
+ */
+class StandIns {
+  private readonly given = new Map<string, string>();
+  private readonly real: ReadonlySet<string>;
+
+  constructor(people: Iterable<string>) {
+    this.real = new Set([...Aliases, ...people]);
+  }
+
+  of(name: string): string {
+    const n = name.trim();
+    if (n.length === 0 || this.real.has(n) || nameKnown(n) !== null) return name;
+    let s = this.given.get(n);
+    if (s === undefined) this.given.set(n, (s = `Name-${this.given.size + 1}`));
+    return s;
+  }
+}
+
 /** The other marks a blank may use, after the first, so that two different texts never blank to the same. */
 const Marks = [BlankMark, "░", "▓", "█"];
 const Overflow = "▚";
@@ -64,6 +94,11 @@ const Overflow = "▚";
 class Blanker {
   private readonly given = new Map<string, string>();
   private readonly ofShape = new Map<string, number>();
+  readonly names: StandIns;
+
+  constructor(people: Iterable<string>) {
+    this.names = new StandIns(people);
+  }
 
   blank(text: string): string {
     const known = this.given.get(text);
@@ -89,12 +124,15 @@ class Blanker {
 
 type Node = Record<string, unknown>;
 
-/** The log as JSON lines, holding the parts asked for, each record giving only its listed fields. */
-export function exportJsonl(log: GameLog, parts: ExportParts = Everything): string {
+/**
+ * The log as JSON lines, holding the parts asked for, each record giving only its listed fields. `people` are the names of
+ * the game's people, kept as real names under the human-words filter.
+ */
+export function exportJsonl(log: GameLog, parts: ExportParts = Everything, people: Iterable<string> = []): string {
   // Models quote and echo what they read, so under the filter a game with a human seat loses every text; a game with
   // none loses nothing.
   const blanking = !parts.humanWords && ([...log.header.seats].some(([, label]) => label === "Human") || log.decisions.some((d) => d.by?.kind === "human"));
-  const blanker = blanking ? new Blanker() : null;
+  const blanker = blanking ? new Blanker(people) : null;
   let out = "";
   for (const line of log.toJsonl().split("\n")) {
     if (line.length === 0) continue;
@@ -164,9 +202,12 @@ function failed(v: unknown): unknown {
   return typeof v === "string" && v.length > 0 && !isFailure(v) ? "failed" : v;
 }
 
-/** A decision's value with its words blanked: its word fields, or the whole of a value that is a text (a chronicle). */
+/**
+ * A decision's value with its words blanked (its word fields, or the whole of a value that is a text, a chronicle) and its
+ * made-up names stood in for.
+ */
 function blankWords(blanker: Blanker, v: unknown, key: string | null = null): unknown {
-  if (typeof v === "string") return key === null || WordFields.has(key) ? blanker.blank(v) : v;
+  if (typeof v === "string") return key === null || WordFields.has(key) ? blanker.blank(v) : NameFields.has(key) ? blanker.names.of(v) : v;
   // A list's entries are words only under a word field; a list at the top (ids, names) is orders.
   if (Array.isArray(v)) return v.map((x) => blankWords(blanker, x, key ?? ""));
   if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, blankWords(blanker, x, k)]));

@@ -7,11 +7,14 @@ import {
   MindReplySchema,
   S,
   TurnSubmissionSchema,
+  claimName,
   dispatch,
   first,
   newGame,
   newGameConfig,
   newHostReply,
+  newLifeChoice,
+  newMindReply,
   newTurnSubmission,
   serialize,
   type AudienceView,
@@ -38,6 +41,7 @@ import {
   TemplateNarrator,
   WordFields,
   exportJsonl,
+  type ExportParts,
   failing,
   failureOf,
   newAudit,
@@ -281,6 +285,33 @@ describe("ExportTests", () => {
       .map((l) => (JSON.parse(l) as { value: string }).value);
     Assert.equal(7, new Set(blanks).size);
     for (const v of values) Assert.true(/^\S{4} \S{5}$/.test(v) && !/[A-Za-z]/.test(v), `"${v}" is not a blank of its shape`);
+  });
+
+  test("Without human words, a name made up in an order is a stand-in, the same wherever it appears; real names are kept", () => {
+    // A pitch's name, a traveller's alias and a claimed realm: the engine reads only names it knows, so a made-up one, which
+    // may quote a human's words, is Name-1, Name-2 (Engine and models, "Logging and replay").
+    const log = new GameLog();
+    const human = newAuthorship({ kind: "human", name: "Human" });
+    const model = newAuthorship({ kind: "model", name: "Haiku character" });
+    log.record("t1/orders/Egypt", TurnSubmissionSchema, newTurnSubmission({ orders: [claimName("the reed kingdom of Qirbashtu"), claimName("hatti")] }), human);
+    log.record("t1/aud/pitch/c1", MindReplySchema, newMindReply({ name: "Qirbashtu the Fair" }), model);
+    log.record("t1/aud/pitch/c2", MindReplySchema, newMindReply({ name: "Amenmose" }), model);
+    log.record("t1/aud/pitch/c3", MindReplySchema, newMindReply({ name: "Tiwari-invented" }), model);
+    log.record("t2/life/c1", MindReplySchema, newMindReply({ life: newLifeChoice({ go: "Hatti", goAs: " Qirbashtu the Fair" }) }), model);
+    log.record("t2/life/c2", MindReplySchema, newMindReply({ life: newLifeChoice({ go: "Hatti", goAs: "Amenmose" }) }), model);
+    const values = (parts: ExportParts): unknown[] =>
+      exportJsonl(log, parts, ["Tiwari-invented"])
+        .split("\n")
+        .filter((l) => l.includes('"type":"decision"'))
+        .map((l) => (JSON.parse(l) as { value: unknown }).value);
+    const names = (v: unknown[]): unknown[] => [
+      (v[0] as TurnSubmission).orders.map((o) => (o as { name: string }).name),
+      ...v.slice(1, 4).map((x) => (x as { name: string }).name),
+      ...v.slice(4).map((x) => (x as { life: { goAs: string } }).life.goAs),
+    ];
+    Assert.equal([["Name-1", "hatti"], "Name-2", "Amenmose", "Tiwari-invented", "Name-2", "Amenmose"], names(values({ ...Everything, humanWords: false })));
+    // A normal export keeps every name as written.
+    Assert.equal([["the reed kingdom of Qirbashtu", "hatti"], "Qirbashtu the Fair", "Amenmose", "Tiwari-invented", " Qirbashtu the Fair", "Amenmose"], names(values(Everything)));
   });
 
   test("Without human words, a game with no human seat loses nothing", () => {
