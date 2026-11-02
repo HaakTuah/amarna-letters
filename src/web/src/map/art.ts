@@ -323,6 +323,20 @@ const ArcSides: readonly (readonly string[])[] = (() => {
   for (const [id, rings] of Object.entries(ProvinceRings)) for (const ring of rings) for (const r of ring) sides[r >= 0 ? r : ~r].push(id);
   return sides;
 })();
+/** Each arc's first point and the rest of it as line segments, forward and reversed, written once for every redraw. */
+const ArcLines: readonly { start: [string, string]; rest: [string, string] }[] = Arcs.map((a) => {
+  const pt = (p: Pt): string => F(p.x) + "," + F(p.y);
+  const rest = (pts: readonly Pt[]): string => pts.slice(1).map((p) => "L" + pt(p)).join("");
+  const back = [...a].reverse();
+  return { start: [pt(a[0]), pt(back[0])], rest: [rest(a), rest(back)] };
+});
+/** A run of a ring's arcs (references as in `ProvinceRings`) as one line, closed if asked. */
+function arcRun(refs: readonly number[], close: boolean): string {
+  const way = (r: number): number => (r >= 0 ? 0 : 1);
+  let sb = "M" + ArcLines[refs[0] >= 0 ? refs[0] : ~refs[0]].start[way(refs[0])];
+  for (const r of refs) sb += ArcLines[r >= 0 ? r : ~r].rest[way(r)];
+  return close ? sb + "Z" : sb;
+}
 
 /**
  * A land province's frontier: its border where `meets` says what lies across is not its own side (given the provinces
@@ -335,7 +349,7 @@ export function frontierPath(id: string, meets: (across: readonly string[]) => b
   for (const ring of ProvinceRings[id] ?? []) {
     const on = ring.map((r) => meets(ArcSides[r >= 0 ? r : ~r].filter((x) => x !== id)));
     if (on.every(Boolean)) {
-      sb += polygon(ringOf(ring));
+      sb += arcRun(ring, true);
       continue;
     }
     // Start just after an arc that is not frontier, so a run that wraps round the ring's start stays one line.
@@ -345,7 +359,7 @@ export function frontierPath(id: string, meets: (across: readonly string[]) => b
       const i = (first + k) % ring.length;
       if (k < ring.length && on[i]) run.push(ring[i]);
       else if (run.length > 0) {
-        sb += polyline(ringOf(run));
+        sb += arcRun(run, false);
         run = [];
       }
     }
