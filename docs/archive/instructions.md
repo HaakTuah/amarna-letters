@@ -1284,3 +1284,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     builder sessions) and its question (write "the orchestrator builds nothing itself; each lane is a builder session,
     and helpers belong to builders" into both games): "yes please, expertly!" Written into `docs/orchestrating.md` (at
     its top) and `CLAUDE.md` ("Helpers: when they pay"); the same in Barkstreet Snakes.
+140. **2 November 2026, 07:46 and 07:47 UTC**, in the design chat, after the Snakes orchestrator, which could not set
+    a builder session's effort, held back part 4 (marked high) for Haakon to start: "I can't start a builder under it??
+    It will just have to start a regular one, then escalate? maybe it should try on medium first?" Then, to the design
+    session's take (builders start at the orchestrator's effort, and the work marked high goes to helpers at high
+    effort inside the builder, then the escalation chain): "Yes, expertly! We don't want them to hang up like this
+    again, and this seems like a smarter split!" Written into `CLAUDE.md` ("Models, effort and helpers") and
+    `docs/orchestrating.md`; the same in Barkstreet Snakes.
