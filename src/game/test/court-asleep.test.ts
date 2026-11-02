@@ -193,7 +193,7 @@ describe("CourtAsleepTests", () => {
   // <summary>Egypt sends one envoy to Alashiya in turn 1; Alashiya is the given seat; every other king does nothing.</summary>
   async function play(alashiya: ISeat, turns: number, config: GameConfig | null = null, minds: ICharacterMind | null = null): Promise<GameRunner> {
     let state = newGame(31, config ?? Quiet);
-    let envoy = firstOf(state.characters, (c) => c.employer === "Egypt").id;
+    let envoy = firstOf(state.characters, (c) => c.employer === "Egypt" && c.at === "Egypt" && c.contract !== null).id;
     let egypt = new Scripted((v) => (v.turn === 1 ? newTurnSubmission({ orders: [dispatch(envoy, "Alashiya", "Greetings, brother.")] }) : newTurnSubmission()));
     let seats = toDict(
       AllPowers,
@@ -686,7 +686,7 @@ describe("CourtAsleepTests", () => {
     let t = 1 + Math.max(toAlashiya, toArzawa);
     let state = newGame(31, Quiet);
     let envoys = state.characters
-      .filter((c) => c.employer === "Egypt")
+      .filter((c) => c.employer === "Egypt" && c.at === "Egypt" && c.contract !== null)
       .slice(0, 2)
       .map((c) => c.id);
     // Each speaks its host's tongue, so both are heard at once (item 12).

@@ -94,10 +94,6 @@ P.ruleOwn = function (id, c, r) {
   S.fallsHeard.set(p, was !== null && !isAlive(S, was) ? [was] : []);
   S.governors = S.governors.filter((x) => x.character !== c.id);
   this.setOwner(id, p);
-  // The land is his own people's: he rules it in full, nothing to absorb, and it starts content with him (the old holder
-  // is no cause for the people who rose against him).
-  S.conquered.delete(id);
-  S.takenFrom.delete(id);
   c.employer = p;
   c.status = "Employed";
   c.contract = null;
@@ -131,9 +127,12 @@ P.ruleOwn = function (id, c, r) {
     const men = Math.min(levySize(S, id, "Army"), menAvailable(S, id));
     if (men >= BandData.least && this.levyMen(id, men)) followed.push(newUnitFor(this, p, id, men));
   }
-  // What the people remembered was against the old holder, and the rising was their own.
-  S.unrest.delete(id);
-  S.stirred.delete(id);
+  // His people's regard for him is his realm's now: he rules in its name (item 17++).
+  const book = S.ledger.tryGet(id);
+  if (book !== undefined && book.has(c.id)) {
+    book.set(p, book.getOrDefault(p, 0) + book.get(c.id));
+    book.delete(c.id);
+  }
   S.startStrength.set(p, this.strength(p));
   const men = sum(followed, (u) => u.men);
   const troops = followed.length === 0 ? (r.followers.length === 0 ? "no troops stand with you" : "the troops there would not follow you, for you cannot pay them") : `${men} men follow you${followed.length < r.followers.length ? ", though not all: the rest you could not pay" : ""}`;

@@ -212,21 +212,14 @@ export class Board {
   }
 
   /**
-   * The yield land taken by force will not bring us from next season on, while we absorb it: one season's yield for land
-   * not ours that we would take, what is left of that for land of ours still being absorbed, nothing for our own homeland.
+   * The yield land we would take will not bring us at first (item 17++, "Whom a province obeys"): its people owe us nothing
+   * yet, so it obeys grudgingly while we hold it by force, about two thirds of a season's yield lost; nothing for land of
+   * ours or our own homeland.
    */
   absorptionLoss(id: string): number {
     const p = Board.Map.get(id);
-    if (p.isSea || p.home === this.me) return 0;
-    let taken = this.v.turn;
-    if (this.isMine(id)) {
-      const t = this.v.conquered.tryGet(id);
-      if (t === undefined) return 0;
-      taken = t;
-    }
-    let loss = 0.0;
-    for (let k = this.v.turn + 1; k <= taken + 2; k++) loss += k - taken <= 1 ? 2 / 3.0 : 1 / 3.0;
-    return loss * this.yieldOf(id);
+    if (p.isSea || p.home === this.me || this.isMine(id)) return 0;
+    return (2 / 3.0) * this.yieldOf(id);
   }
 
   /** Units (of a given power, or any but mine) that could move into a province this season. */
@@ -350,7 +343,11 @@ export const LeadFloor = 1.15;
  * Whether a script king reckons a storm by the city's men on its walls, multiplied by them (item 11e); off for the measure
  * of using it against ignoring it (`--wall-play-half`), when it reckons the walls and the garrison as before.
  */
-export const WallPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+export const WallPlay: {
+  off: boolean;
+  only: ReadonlySet<string> | null;
+  on: (me: string) => boolean;
+} = {
   off: false,
   only: null,
   on(me: string): boolean {

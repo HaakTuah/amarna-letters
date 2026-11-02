@@ -84,8 +84,6 @@ describe("The answers to item 11+", () => {
     season(s, orders("Byblos", cede("byblos", "Egypt")));
     Assert.contains("Byblos", s.eliminated);
     Assert.equal("Egypt", s.owner.get("byblos"));
-    // Land ceded by agreement is not land taken by force: nothing new to absorb.
-    Assert.false(s.conquered.has("byblos"));
     Assert.equal("Egypt", s.falls.find((f) => f.power === "Byblos")!.conqueror);
     Assert.equal(before + 1, s.characters.length);
     const ruler = s.characters.find((c) => c.name.startsWith("Rib-Hadda"))!;

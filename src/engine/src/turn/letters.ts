@@ -178,7 +178,8 @@ P.carryLetters = function () {
     // from a post just across its master's border to the border and back (Haakon's answers to item 11b+).
     // A script spy at a post just across the border walks at once: the border is a short walk, its couriers sure.
     let border: string | null = spy === null ? null : this.borderOf(spy, letter.to);
-    if (carrier === null && spy !== null && (plan !== null ? plan.carry : border !== null || waited >= selfWait(spy)) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
+    // A resident (item 17++) stays at his post: his reports wait for a carrier.
+    if (carrier === null && spy !== null && !spy.openly && (plan !== null ? plan.carry : border !== null || waited >= selfWait(spy)) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
       if (border !== null) {
         // Its master goes on believing it at its post: nothing tells him it walked off until word comes from it.
         this.coverFor(spy, letter.to, "SpyPosted");

@@ -1,6 +1,7 @@
 /** The non-military half of a script king, first part: strategy and treasury. */
 import { creditOrders } from "./credit.ts";
 import { upkeepOrders } from "./upkeep.ts";
+import { foldRemnants } from "./remnants.ts";
 import { bondWar } from "./vassals.ts";
 import { buyNewsOrders } from "./outlaws.ts";
 import { peopleAcrossBorders } from "./borders.ts";
@@ -234,6 +235,8 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   // While income covers upkeep, a small cushion is enough; a treasury that bleeds needs a season or two in hand.
   const reserve = (flow >= 0 ? costs * 0.3 * (0.5 + p.caution) : costs * (1 + p.caution)) + p.greed * 40 + 20;
 
+  // Item 17++: remnants folded into larger troops next to them, or disbanded.
+  foldRemnants(b, plan);
   // Disband before the troops desert: the least needed unit goes first. A unit that must go is given instead to a friend
   // whose land or troops it stands next to, and who can feed it (see troopsFor). When nothing idle is left and the treasury
   // cannot pay next season's upkeep, troops will desert whatever they are doing: one a friend can take is given to it.

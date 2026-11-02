@@ -288,6 +288,13 @@ const OldWalls: Record<string, number> = {
   isuwa: 1, ugarit: 1, amurru: 1, byblos: 1, damascus: 1, alalakh: 1, sidon: 1, jerusalem: 1, shechem: 1, arrapha: 1, suhu: 1, nuhashshe: 1, sumur: 1,
 };
 
+/** `p` holds `province`, and its people stand with him as a native house's do (item 17++: its ledger), others forgotten. */
+export function heldBy(s: GameState, province: string, p: Power, love = 100): GameState {
+  s.owner.set(province, p);
+  s.ledger.set(province, new Dict([[p as string, love]]));
+  return s;
+}
+
 /**
  * Land held by no one, as the free cities stood before item 11+ ("Land without a ruler": a kingdom fallen whose land nobody
  * took up): each province's holder gone (a city-state fallen with its city, its troops and tablets with it), with the walls

@@ -341,12 +341,15 @@ describe("RansomTests", () => {
       sum(ownedBy(s, "Egypt"), (id) => economyOf(WorldMap.default.get(id)).mine),
       e.upkeep("Egypt"),
     ];
+    // Less what Pharaoh's governors keep of what passes through their hands (item 17++: Thutmose over Kush's gold).
+    const skimmed = (): number => sum(s.governors.filter((g) => g.power === "Egypt"), (g) => g.skimmed);
+    const kept = skimmed();
     begin(s);
     // What it carried passed to the court where it died (Haakon's answers to item 11a: the dead's purse goes with its tablets).
     Assert.true(spy.purse === 0 || spy.purse === purse);
     Assert.equal(fee, line().fee);
     // Nothing left the treasury for it, before or after its death (no other job of Egypt's fell due this season).
-    Assert.equal(gold + income - upkeep, s.treasuries.get("Egypt").gold);
+    Assert.equal(gold + income - upkeep - (skimmed() - kept), s.treasuries.get("Egypt").gold);
   });
 
   test("A demand that lapses while a newer one is on the road tells the captor nothing yet", () => {

@@ -5,7 +5,7 @@
  * is a choice"), and the dead rank below every living character, among themselves by what they held when they died.
  */
 import { cmpBool, cmpNum, desc, sortBy } from "../core/seq.ts";
-import type { Character, Earnings } from "../model/people.ts";
+import { nameFrom, type Character, type Earnings } from "../model/people.ts";
 import type { GameState } from "../model/state.ts";
 import { idNumber } from "../turn/core.ts";
 
@@ -65,7 +65,7 @@ export function wealthSources(e: Earnings): string {
 
 /** One character's line in a ranking: "Mane of Ugarit (serving Egypt): 312 (purse 280, hoard 32; fees 250, skimmed 30)". */
 export function wealthLine(w: CharacterWealth): string {
-  return `${w.character.name} of ${w.character.origin} (${wealthStanding(w.character)}): ${w.total} (purse ${w.purse}, hoard ${w.hoard}; ${wealthSources(w.character.earned)})`;
+  return `${nameFrom(w.character)} (${wealthStanding(w.character)}): ${w.total} (purse ${w.purse}, hoard ${w.hoard}; ${wealthSources(w.character.earned)})`;
 }
 
 export const Wealth = { WhatCounts: WealthCounts, of: wealthOf, ranking: wealthRanking, standing: wealthStanding, sources: wealthSources, line: wealthLine };

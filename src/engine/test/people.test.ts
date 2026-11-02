@@ -192,6 +192,8 @@ describe("PeopleTests", () => {
     // Samuha in the open, without its walls, where its men meet the army in the field.
     s.walls.delete("samuha");
     s.people.get("samuha").men = 15000;
+    // Item 17++: as hostile as their ledger makes them: here they stand with nobody.
+    s.ledger.get("samuha").set("Hatti", 0);
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "isuwa", men: LandData.armyMen }));
     const e = new TurnEngine(s);
     Assert.equal(1500, e.resistance("samuha", "Mitanni"));
@@ -202,7 +204,7 @@ describe("PeopleTests", () => {
     // With support it gets in.
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "kaska", men: LandData.armyMen }));
     season(s, subs({ Mitanni: { orders: [move("isuwa", "samuha"), support("kaska", "isuwa", "samuha")] } }));
-    Assert.equal("Mitanni", s.owner.get("samuha"));
+    Assert.equal("Mitanni", unitAt(s, "samuha")?.power);
     // Off at the table's choice.
     const off = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
     Assert.equal(0, new TurnEngine(off).resistance("samuha", "Mitanni"));

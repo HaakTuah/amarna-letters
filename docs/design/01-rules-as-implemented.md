@@ -259,28 +259,11 @@
   the resolution, "…: you ceded Sinai to Hatti last season, before the levy."). Army 100, fleet 120 (into the purse of the province raised in, since item 9+a); pay 20 and 25 a season in gold and 10
   measures of grain. Since item 9+a troops the treasury cannot pay no longer desert at once: they mutiny after three
   seasons unpaid, or two hungry (`16-the-economy-at-home.md`).
-- **Slow absorption** (Build order item 5, the siege package; question 5, plan step 16, and the design document's "A
-  kingdom falls with its capital": "the land becomes the conqueror's over time rather than at once, so a conqueror gains
-  an empire to hold, not a lump of score"). A province taken by force (troops standing in it, a storm, a siege, or
-  passing with a fallen kingdom's capital) yields its new holder a third of its yield in its first season under him,
-  two thirds in the second, and all of it from the third, and counts in his strength the same way
-  (`TurnEngine.beginTurn`, `GameState.conquered`: the season it was taken). The first season is the season it was taken,
-  for the score reckoned at its end, and the next, for the income paid at its start; the mark goes once it counts in
-  full. A province of the taker's own homeland that he takes back counts in full at once (map data, not a check of which
-  power it is), and so does land bought or ceded, except land ceded while its giver was still absorbing it: the mark
-  stays, and the receiver goes on absorbing it from the season it was taken, unless it is his own homeland, which is his
-  in full at once as if he had retaken it (`TurnEngine.resolveTransfers`; since the review of the siege package, which
-  found that a cession clearing the mark let two friends launder a conquest by passing it back and forth).
-  Question 5 left the score unchanged; the design document's later words ("not a lump of score") are read as the score
-  following the yield (a reading; review question). Revolts, which the design document mentions, are left for later, as
-  question 5 planned. The view marks such land in LANDS ("sippar (taken by force in turn 1: yields and counts a third of
-  its yield this season)"), the court's own land only (`SeatView.conquered`): who holds a province is known as its news travels (item 7b), and how it
-  changed hands is not public, and a mark on every king's land told every court which land had been conquered and which ceded
-  or bought (since the review of the siege package; until then every view carried every mark). The rulebook says so
-  under ECONOMY ("LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is
-  not shown") and in HOW YOU WIN's strength. The public land standings still use base yields.
-- **Strength** = 10 × (land worth: the harvest of the provinces held at reference prices plus their mines, conquered land
-  counted as far as it is absorbed; `landWorth`, `16-the-economy-at-home.md`) + true gold + holdings
+- **Slow absorption** (Build order item 5) was replaced in item 17++ by degrees of obedience: a province pays and counts in
+  its holder's strength by how firmly it obeys him ([47](47-whom-a-province-obeys.md)); its old wording is in the
+  git history of this file.
+- **Strength** = 10 × (land worth: the harvest of the provinces held at reference prices plus their mines, each province
+  counted as far as it obeys its holder; `landWorth`, `16-the-economy-at-home.md`) + true gold + holdings
   (until item 11a, less the back pay owed; since then nothing owed is subtracted: `21-money-and-work.md`). Growth is strength over starting strength. Units are not counted;
   they cost upkeep and are the means to land. One function computes it (`strength`): the
   engine's score with true gold and the back pay a power really owes; a seat's own strength line

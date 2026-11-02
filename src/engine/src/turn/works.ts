@@ -6,6 +6,7 @@
  * food inside ("Walls price the storm, not the clock"). A conqueror takes over what stands, and its upkeep with it. The
  * figures are in `model/works.ts`.
  */
+import { UnrestData } from "../model/unrest.ts";
 import { Dict } from "../core/collections.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
 import { idiv } from "../core/num.ts";
@@ -210,6 +211,9 @@ P.worksSeason = function () {
                 setLevel(S, kind, id, level);
                 work.progress = 0;
                 say(id, `the ${workName(kind)} of ${prov.name} were raised to ${workLevelText(kind, level)}`);
+                // Item 17++: works paid in gold are a giving its people remember of the king who built them; their own corvée
+                // they built themselves.
+                if (!labour) this.give(id, p, UnrestData.work);
                 logEvent(S, "built", `${p} raised the ${workName(kind)} of ${prov.name} to ${workLevelText(kind, level)}.`, AllPowers.filter((x) => x === p || (kind === "Walls" && Views.sight(S, Map, x).has(id))), "built");
               } else say(id, `the ${workName(kind)} of ${prov.name}: ${work.progress} of ${seasons} seasons done towards ${workLevelText(kind, level + 1)}`);
             }

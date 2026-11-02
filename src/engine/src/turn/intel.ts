@@ -151,6 +151,8 @@ P.spyArrives = function (j) {
   if (c.status !== "Employed" || c.employer !== j.from) return;
   c.duty = "SpyPosted";
   c.at = c.missionTarget;
+  // A watcher posted by order goes as any spy does, unseen if he can be (item 17++: only the opening's residents are open).
+  c.openly = false;
 };
 
 P.recall = function (p, c) {
@@ -226,8 +228,8 @@ P.watchAndReport = function () {
     const host = c.missionTarget ?? (c.watchProvince !== null ? S.owner.getOrDefault(c.watchProvince, null) : null);
     const rng = this.r("spy", c.id);
 
-    // A fallen court has nobody left to catch a spy, nor to decide its fate.
-    if (host !== null && host !== employer && c.secretMaster !== host && isAlive(S, host)) {
+    // A fallen court has nobody left to catch a spy, nor to decide its fate; nobody hunts a resident known to all (item 17++).
+    if (host !== null && host !== employer && c.secretMaster !== host && isAlive(S, host) && !c.openly) {
       const watch = S.counterIntel.getOrDefault(host, 0);
       const risk = this._stealing.has(c.id) ? StealRisk : 0;
       const caughtAt = (skill: number): number => clamp(0.05 + watch / 300.0 - skill / 400.0 + risk, 0.02, 0.6 + risk);

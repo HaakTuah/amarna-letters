@@ -47,7 +47,8 @@ import { shekels, type Brain } from "./brain.ts";
 import { atHand, oursFirst, fewAtHand, freeAtCourt } from "./errands.ts";
 import { MoneyPlay } from "./credit.ts";
 import { bridgesWanted } from "./tongues.ts";
-import { stirGold } from "./freedom.ts";
+import { byLeave, stirGold, watchedProvinces } from "./freedom.ts";
+import { willing } from "./siege-tactics.ts";
 import type { Personality } from "./personality.ts";
 
 const Blemishes = ["Owes", "dismissed", "Took", "Abandoned", "forger", "fled", "Kept part", "secretly", "in the pay", "Was caught", "Turned back", "Posed as", "Sold the secrets"];
@@ -306,23 +307,42 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   // the land of the king we make war on, or who most threatens us, nearest our capital that we cannot see, where his troops
   // would gather against us or ours would strike; one at a time each, by the careful as well as the cunning.
   if (SeasonPlay.on(b.me) && ready.length >= 2 && spare > 80 && (p.cunning > 0.4 || p.caution > 0.6)) {
+    const cap = Board.Map.capital(b.me).id;
+    const seen = new Set(v.visible);
+    const watched = watchedProvinces(b);
+    const holder = (id: string): Power | null => v.owner.getOrDefault(id, null);
+    const watching = (x: Power): boolean => [...watched].some((id) => holder(id) === x);
+    // Item 17++: a cunning king stirs a people where his army stands among them, since their love for him weighs only once
+    // his men are there, and it carries a land that their fear alone does not: another king's land his army stands in, not
+    // by leave, that has not come over to him and that he does not besiege (a besieged city is the siege's).
+    const gold = stirGold(b, spare, p.cunning);
+    const stand =
+      gold <= 0
+        ? undefined
+        : sortBy(
+            [...new Set(b.mine.filter((u) => u.kind === "Army").map((u) => u.province))].filter((id) => {
+              const o = holder(id);
+              return o !== null && o !== b.me && !Board.Map.get(id).isSea && b.siegeAt(id) === null && !byLeave(b, id) && willing(b, brain, o, leader) && !watching(o);
+            }),
+            [(id: string) => Board.Map.hops(cap, id), cmpNum],
+            [(id: string) => id, cmpStr],
+          )[0];
     const foe = brain.warTarget ?? sortBy([...b.neighbours()].filter((x) => brain.hostility(x, b) > 0), [(x: Power) => brain.hostility(x, b), desc(cmpNum)])[0] ?? null;
-    if (foe !== null) {
-      const cap = Board.Map.capital(b.me).id;
-      const seen = new Set(v.visible);
-      const watched = (id: string): boolean => v.court.some((c) => c.where === `watching ${id}`);
-      const spot = sortBy(
-        [...v.owner.entries()].filter(([id, o]) => o === foe && !Board.Map.get(id).isSea && !seen.has(id) && Board.Map.hops(cap, id) <= 4).map(([id]) => id),
-        [(id: string) => Board.Map.hops(cap, id), cmpNum],
-        [(id: string) => id, cmpStr],
-      )[0];
-      if (spot !== undefined && !watched(spot) && !v.court.some((c) => c.where.startsWith("watching ") && v.owner.getOrDefault(c.where.slice(9), null) === foe)) {
-        const agent = ready[0];
-        ready.splice(0, 1);
-        // Item 17: with gold to stir its people where it is not the foe's own homeland, if we are cunning.
-        orders.push(placeSpy(agent.id, null, spot, stirGold(b, foe, spot, spare, p.cunning)));
-        busy.add(agent.id);
-      }
+    const spot =
+      stand ??
+      (foe === null || watching(foe)
+        ? undefined
+        : sortBy(
+            [...v.owner.entries()].filter(([id, o]) => o === foe && !Board.Map.get(id).isSea && !seen.has(id) && Board.Map.hops(cap, id) <= 4).map(([id]) => id),
+            [(id: string) => Board.Map.hops(cap, id), cmpNum],
+            [(id: string) => id, cmpStr],
+          )[0]);
+    if (spot !== undefined) {
+      const agent = ready[0];
+      ready.splice(0, 1);
+      // Item 17: with gold to stir its people where our army stands, if we are cunning; elsewhere he only watches.
+      orders.push(placeSpy(agent.id, null, spot, spot === stand ? gold : 0));
+      busy.add(agent.id);
     }
   }
 

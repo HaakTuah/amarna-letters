@@ -60,7 +60,7 @@ describe("SiegePlayTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ekallate" }));
     s.owner.set("ekallate", "Babylonia");
     s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: army.id, progress: 0, since: 1 }));
-    let envoy = first(s.characters, (c) => c.employer === "Assyria" && c.secretMaster === null);
+    let envoy = first(s.characters, (c) => c.employer === "Assyria" && c.secretMaster === null && c.at === "Assyria" && c.contract !== null);
     envoy.traits.courage = 100;
     return [s, envoy];
   }
@@ -195,7 +195,7 @@ describe("SiegePlayTests", () => {
     s.treasuries.get("Egypt").gold = 3000;
     // Its two envoys of the first pool, not the people of 1346 in their posts (item 17+).
     let envoys = orderBy(
-      s.characters.filter((c) => c.employer === "Egypt" && c.secretMaster === null && !PeopleOf1346.some((x) => x.name === c.name)),
+      s.characters.filter((c) => c.employer === "Egypt" && c.secretMaster === null && !PeopleOf1346.some((x) => x.name === c.name) && c.at === "Egypt" && c.contract !== null),
       (c) => c.id,
     );
     let loyal = envoys.at(-1)!;
@@ -240,22 +240,19 @@ describe("SiegePlayTests", () => {
     Assert.equal(Search.stake(false, 2, 1, 3), Search.stake(true, 2, 1, 3), 6);
   });
 
-  test("A script king values land by what it yields while absorbed", () => {
-    // Turn 6: Assyria took Terqa (Mitanni's, yield 30) last season, and holds Nineveh of its own homeland.
+  test("A script king values land it would take by what it yields while its people do not yet obey him", () => {
+    // Turn 6: Assyria holds Terqa, taken from Mitanni, and Nineveh of its own homeland (item 17++: no marks of conquest).
     let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     s.turn = 6;
     s.owner.set("terqa", "Assyria");
-    s.conquered.set("terqa", 5);
     let assyria = new Board(Views.for(s, "Assyria"));
-    // Land it would take by force yields a third, then two thirds: a season's yield lost.
-    Assert.equal(WorldMap.default.get("harran").yield, assyria.absorptionLoss("harran"), 6);
-    // Terqa, taken last season, has a third of a season's yield still to lose (two thirds next season).
-    Assert.equal(WorldMap.default.get("terqa").yield / 3.0, assyria.absorptionLoss("terqa"), 6);
-    // Its own homeland counts in full, held or retaken; so does land held from the start.
+    // Land it would take obeys grudgingly at first: two thirds of a season's yield lost.
+    Assert.equal((WorldMap.default.get("harran").yield * 2) / 3.0, assyria.absorptionLoss("harran"), 6);
+    // Land of its own, held or taken, it sees in its tax: nothing to reckon.
+    Assert.equal(0, assyria.absorptionLoss("terqa"));
     Assert.equal(0, assyria.absorptionLoss("nineveh"));
-    // To Mitanni, Harran is its own homeland: retaken, it counts in full (Terqa is Hana's own since item 11d).
+    // To Mitanni, Harran is its own homeland: nothing to reckon.
     s.owner.set("harran", "Assyria");
-    s.conquered.set("harran", 5);
     Assert.equal(0, new Board(Views.for(s, "Mitanni")).absorptionLoss("harran"));
   });
 

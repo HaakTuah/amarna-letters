@@ -121,7 +121,8 @@ describe("SeasonOrderTests", () => {
     let gold = s.treasuries.get("Egypt").gold;
     e.resolve(
       new Dict([
-        // Babylonia takes Sinai as Egypt raises an army there; Egypt marches into Thebes and raises one there too.
+        // Babylonia marches into Sinai as Egypt raises an army there (since item 17++ it takes the land only as the next
+        // season's reckoning finds it, so Sinai is still Egypt's but not empty); Egypt marches into Thebes and raises one there too.
         ["Babylonia", newTurnSubmission({ orders: [move("shasu", "sinai")] })],
         ["Egypt", newTurnSubmission({ orders: [move("akhetaten", "thebes"), raise("sinai", "Army"), raise("thebes", "Army")] })],
       ]),
@@ -130,7 +131,7 @@ describe("SeasonOrderTests", () => {
     let failed = inboxOf(s, "Egypt")
       .filter((i) => i.title === "Levy failed")
       .map((i) => [i.kind, i.body] as const);
-    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in the Ways of Horus: you no longer held the Ways of Horus after movement. No gold was paid.");
+    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in the Ways of Horus: the Ways of Horus was not empty after movement. No gold was paid.");
     Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in Waset: Waset was not empty after movement. No gold was paid.");
     Assert.equal(gold, s.treasuries.get("Egypt").gold);
   });

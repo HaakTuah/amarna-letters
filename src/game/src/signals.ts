@@ -42,6 +42,9 @@ export const SignalKinds: readonly string[] = [
   "raze", "wall-repair", "harbour-short", "station-read",
   // Item 17+: pay held back by a standing order, and a realm's name claimed.
   "pay-held", "name-claim",
+  // Item 17++: a province going over to a power by the season's rule, a remnant folded, grain handed out, a man asked whether
+  // he leads a rising (and whether his traits say he would).
+  "obey-power", "fold", "feed", "rising-asked", "rising-would", "stir-won",
 ];
 
 const MessengerBlamed = rx(

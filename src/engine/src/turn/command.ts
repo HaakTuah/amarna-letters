@@ -8,13 +8,14 @@
  * couriers; the commander carries it out when no order of the king's reaches the army (the game's script commanders,
  * `bots/commander.ts`).
  */
+import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData, bandCost, newBand, type Band } from "../model/bands.ts";
 import { Uncommanded, mandateText, type CommandTraits, type Mandate } from "../model/command.ts";
 import type { CommandOrder, EnlistOrder, MandateOrder, Order, RelieveOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { findCharacter, logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
+import { findCharacter, logEvent, newId, newUnit, notify, unitAt, type Unit } from "../model/state.ts";
 import { newJourney } from "../model/records.ts";
 import { courtOf, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
@@ -133,7 +134,23 @@ P.commandSeason = function () {
     // below 30 and ambition above 60); the king can enforce the recall only with troops.
     const t = c.traits;
     if (t.loyalty < 30 && t.ambition > 60 && u.kind === "Army") {
-      this.tell(u.power, u.province, "Battle", "A commander refuses", `${c.name} refused to give up the command of your army in ${this.map.get(u.province).name}, and keeps its ${u.men} men as his own.`);
+      // Item 17++: the men follow him only as far as their ledger stands with him against their king; the rest stay the king's.
+      const going = idiv(u.men * this.follows(u, c.id), 100);
+      if (going < BandData.least) {
+        u.commander = null;
+        u.relieveAt = null;
+        this.tell(u.power, u.province, "Battle", "A commander refuses", `${c.name} refused to give up the command of your army in ${this.map.get(u.province).name}, but its men would not follow him against you, and he left them.`);
+        this.leaveCommand(c, u.province);
+        continue;
+      }
+      if (going < u.men) {
+        const stay = newUnit({ id: newId(S, "u"), power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
+        u.food -= stay.food;
+        u.men = going;
+        S.units.push(stay);
+        this.armyEntry(stay, u.power, S.armies.tryGet(u.id)?.getOrDefault(u.power, 0) ?? 0);
+      }
+      this.tell(u.power, u.province, "Battle", "A commander refuses", `${c.name} refused to give up the command of your army in ${this.map.get(u.province).name}, and keeps ${u.men} of its men as his own.`);
       logEvent(S, "defect", `${c.name} refused his recall by ${u.power} and kept the army in ${this.map.get(u.province).name} as his own.`, [u.power], "defect");
       this.armyToBand(u, c, "commander");
       continue;

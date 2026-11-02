@@ -61,18 +61,21 @@ describe("StartingTermTests", () => {
   // city-states, each with its envoy, and Egypt's name style without Gezer's king), and for save version 30 (item 11f: eight
   // more powers, each with its envoy, the name styles of Azzi, Libya and the Shasu, and an Akkadian scribe at each court that
   // reads Akkadian), and for save version 32 (item 11f+: the connections follow the drawn land, so the posts and plants
-  // that go by neighbours change).
+  // that go by neighbours change), and for save version 39 (item 17++: the governors and commissioners of 1346 in their
+  // posts, and the courts they were drawn from given another servant).
   //
   test.each([
-    [1, "492af8640b9f6b16"],
-    [7, "6e49ddef04ee0420"],
-    [42, "ec3df9699553f0bb"],
+    [1, "98322bfa2b6daa67"],
+    [7, "b44e646d80657f9f"],
+    [42, "40ae77d83494bde6"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
-    let envoys = s.characters.filter((c) => c.contract !== null);
+    // Since item 17++ Pharaoh's commissioners stay at their posts for years: residents, not the starting corps.
+    let envoys = s.characters.filter((c) => c.contract !== null && !c.openly);
     // Two for each Great King and one for each city-state (item 11+), Terqa, Mira and Seha among them (item 11d), item 11c's six and item 11f's eight, and
-    // since item 11f an Akkadian scribe at each of the 23 courts that read Akkadian.
-    Assert.equal(96, envoys.length);
+    // since item 11f an Akkadian scribe at each of the 23 courts that read Akkadian; since item 17++ the governors of 1346
+    // hold grants, not jobs, and Pharaoh's commissioners are residents in his service.
+    Assert.equal(89, envoys.length);
     Assert.all(envoys, (c) => {
       Assert.equal(Rng.for(seed, 0, "start-term", c.id).range(7, 13), c.contract!.untilTurn);
       Assert.inRange(c.contract!.untilTurn, 7, 13);
@@ -84,7 +87,7 @@ describe("StartingTermTests", () => {
   test("The starting corps comes up for renewal over several seasons", () => {
     let ends = range(1, 20).flatMap((seed) =>
       newGame(seed)
-        .characters.filter((c) => c.contract !== null)
+        .characters.filter((c) => c.contract !== null && !c.openly)
         .map((c) => c.contract!.untilTurn),
     );
     Assert.equal(
@@ -96,7 +99,7 @@ describe("StartingTermTests", () => {
       Assert.true(
         distinct(
           newGame(seed)
-            .characters.filter((c) => c.contract !== null)
+            .characters.filter((c) => c.contract !== null && !c.openly)
             .map((c) => c.contract!.untilTurn),
         ).length >= 3,
       ),

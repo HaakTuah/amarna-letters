@@ -52,7 +52,8 @@ describe("MoneyAndWorkTests", () => {
     const s = newGame(5, newGameConfig({ catastropheChance: 0 }));
     s.debts = []; // the opening debts between courts (item 17+) are not these tests' matter
     for (const c of s.characters) c.seeking = false;
-    const c = first(s.characters, (x) => x.employer === "Egypt");
+    // One at court on a job (item 17++: not a governor on his grant nor a resident abroad).
+    const c = first(s.characters, (x) => x.employer === "Egypt" && x.at === "Egypt" && x.contract !== null);
     c.secretMaster = null;
     c.contract = newContract({ fee: 12, advance: 6, startTurn: 1, untilTurn: 1 });
     return [s, c];
@@ -60,7 +61,7 @@ describe("MoneyAndWorkTests", () => {
 
   // One of Egypt's servants at its court, on a long job (a guest there, it pays no living), who offers to lend.
   function lender(s: GameState, purse = 200): Character {
-    const c = s.characters.filter((x) => x.employer === "Egypt")[1];
+    const c = s.characters.filter((x) => x.employer === "Egypt" && x.at === "Egypt" && x.contract !== null)[1];
     c.contract = newContract({ fee: 300, advance: 150, startTurn: 1, untilTurn: 30 });
     [c.at, c.duty] = ["Egypt", "None"];
     c.purse = purse;
