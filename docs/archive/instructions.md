@@ -1481,3 +1481,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     for such a file going in as a new file, and the orchestrator's wake report counting its lanes and every independent
     entry not running, with the reason): "Yes, expertly to all!" Written into "Split by meaning, from the start" in
     `AGENTS.md` and "The rules, re-read when they change" in `docs/orchestrating.md`; the same in Barkstreet Snakes.
+173. **2 November 2026, 19:47 and 19:48 UTC**, in the design chat, on #458 and on #455 and #450 merged without his yes
+    in the PR: "You do it." (relayed on the three PRs). Then, to the design session's take on the `.github/` rule
+    (Dependabot's pinned version updates of actions already used need no yes when nothing else changes, CI is green and
+    the review clean; everything that changes what a workflow can do still does): "yes, expertly, always!" Written into
+    `SECURITY.md` point 3; the same in Barkstreet Snakes.
