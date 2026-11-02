@@ -96,8 +96,7 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
 
 ## A power's name is a claim (`model/power.ts`, `turn/press.ts`, `rules/greeting.ts`, `bots/claims.ts`)
 
-- **The claim.** `GameState.names` holds the name each power claims where it is not its own land's (`ownLand`), with the
-  season (`NameClaim`). The order `claimName(name)` (models: `claim_name`, the name in `item`) claims any realm's name the
+- **The claim.** `GameState.names` holds the name each power claims where it is not its own land's (`ownLand`). The order `claimName(name)` (models: `claim_name`, the name in `item`) claims any realm's name the
   map knows or a power claims (`claimableNames`), Pharaoh's included; one's own land's name returns one to it. It is
   resolved first among the court's business, so the season's greetings carry it. A risen power's own name is its seat's,
   as before, and it keeps it however far it grows. A fallen power claims nothing. A claim gives nothing by rule.
@@ -106,14 +105,20 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   `byHouse` (models: `by_house`) calls him by his house and takes back a name given him before. Lacking a greeting of its
   own, a court gives it to the power whose own land it is, if that power still claims it as the court knows (it has read
   no greeting of his claiming another), else to nobody (every claimant by his house). A court gives its own claimed name
-  to itself. Only a court gives names: without one (notices, logs, god view) each power goes by its own land's name.
+  to itself. Only a court gives names: without one (logs, god view) each power goes by its own land's name.
 - **A court learns of a claim only from the claimant's greetings** (`GameState.namesHeard`): a sealed tablet carries the
-  name its sender claimed (`Dispatch.styled`), and the host reads it when the envoy arrives (`claimHeard`). Until then the
-  court knows the claimant by his own land's name, and its view, letters and greetings know nothing of the claim.
+  name its sender claimed (`Dispatch.styled`) and the season it was sealed (`Dispatch.sealed`), and the host reads it when
+  the envoy arrives (`claimHeard`), keeping the newest it has read by that season (`HeardName`, his own land's name
+  included), so an older tablet arriving late sets nothing back (issue #417). Until then the court knows the claimant by
+  his own land's name, and its view, letters and greetings know nothing of the claim.
 - **House names** (`house`): Bit- and the first king's name (Bit-Aziru, Bit-Rib-Hadda), or Bit- and the land where the
   sources name no king; never a number.
-- **Naming as a court gives it** (`land(p)` reads `landFor(viewer, p)`): the engine's own notices and logs name each power
-  by its own land's name, which every court knows; a court's seat view (`Views.for`, wrapped in `asSeenBy`) and the web page with one human seat (`setNameViewer`) name them
+- **Naming as a court gives it** (`land(p)` reads `landFor(viewer, p)`): the engine writes and logs each power by its own
+  land's name; a notice to a court is turned into that court's names as it is written (`notify`, `namedFor`, issue #417),
+  so one name means one power in all a court reads. What a notice quotes (a sealed greeting, a letter, someone's words:
+  marked by `quoteWords`, or else between double quotes) stays as written, and so does the notice of one's own claim,
+  which speaks of the name itself. A fallen power claims nothing, as a court that has heard of the fall knows it
+  (`GameState.fallsHeard`): it goes by its own land's name, or by its house where another still claims that name. A land's name in a notice is read as the realm's, a province of that name included. A court's seat view (`Views.for`, wrapped in `asSeenBy`) and the web page with one human seat (`setNameViewer`) name them
   as that court gives them. The seat view carries `claimedName` and `nameClaims` (each contested name, its claimants and
   whom the court gives it to); the models read them as NAMES CLAIMED beside RANK. The registry mirrors the state as the
   risen powers do (`setNameClaims`, set by the engine, the batch runner and the web client).

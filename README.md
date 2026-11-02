@@ -220,8 +220,8 @@ in Egypt's own seat; his other names are on his card.
 A realm's name is a claim: you go by your land's name until you claim another, any realm's name, Pharaoh's included
 (Court: "Claim a realm's name"). A claim gives nothing by rule. Where two kings claim one name, each court gives it in
 its greetings: a greeting gives the recipient the name he claims, or, with "call them by their house", withholds it, and
-that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru). The Court section says which names
-are contested and whom your court gives each to.
+that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru), in its notices too. The Court section
+says which names are contested and whom your court gives each to.
 
 Between the great kingdoms lie the city-states, such as Ugarit, Gubla, Qadesh and Elam, and the Kaska,
 Lukka, Shasu and Sutean chiefs: forty powers of their own, most of them vassals of Egypt or Mitanni (a few of Hatti
@@ -393,10 +393,11 @@ full where its king rules, lighter where a governor stands between, a faint wash
 provinces bounded by a thin line; the ◐ button shows the mood of the land as you last heard it (loyal, uneasy, restless,
 or no word), older reads fading: your own city as you see it, your governors' reports each season, a spy's watched
 province, the city of a court your envoy visited, a province your scribes counted, and travellers' blurred talk of the
-land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow
-their life: their path, their masters, their missions, what they said and reported; the camera keeps to them, where
-you last knew them, until you move it yourself ("Keep the camera on them" takes it back). Drag and zoom
-as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
+land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow their life: their
+path, along the roads between the places you knew them at, their masters, their missions, what they said and reported;
+the camera keeps to them, where you last knew them, until you move it yourself ("Keep the camera on them" takes it
+back). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
+centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
 gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a

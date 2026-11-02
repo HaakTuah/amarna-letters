@@ -134,8 +134,10 @@ goes to building. Its usage can run out like any other, and it may then not say 
    the round it expects to be the last, and only when the change touches what a security review is for: input from
    players, models or files, a workflow, the network, saved files or exports, or a dependency newly added or moved up a
    major version. Every other PR gets the code review alone, Dependabot's minor and patch updates included (CI, the
-   licence gate and GitHub's dependency review check those). If a later fix changes the risky part again, the builder
-   asks once more. Codex's automatic review and automatic security review are both off in its settings, so nothing
+   licence gate and GitHub's dependency review check those). Never for a change proven unchanged in what it does (a
+   split by meaning, unused code removed, a rename) nor for docs or the history dossiers: moving the code that writes
+   a save is not changing it. Once means once: a second ask only when a fix after the first changed the risky part
+   again, and the PR names that part. Codex's automatic review and automatic security review are both off in its settings, so nothing
    runs unless a builder asks.
 7. **Checks that run the work, once Codex can build** (the owner, 2 November 2026; `docs/archive/instructions.md`, item
    134). The native review reads the diff but runs nothing, so it cannot check a claim such as "the script kings now

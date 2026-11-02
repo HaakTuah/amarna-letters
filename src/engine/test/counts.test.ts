@@ -1,12 +1,12 @@
 import { describe, test } from "vitest";
 import { CountData, Dict, StartCountAge, countFigures, toFigures, EconomyData, WorldMap, OrderValidator, TurnEngine, Views, census, countOf, demand, hiddenPercent, menAvailable, newGame, newGameConfig, newPlannedOrder, newSleepState, newTurnSubmission, raise, type GameState } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // What a king can count (build order item 17++, part B): counts as the scribes knew them, the census, and the king's
 // demand as a share or an amount. Each test calls the steps it tests on the starting world and plays no season it does
 // not need.
 describe("CountsTests", () => {
-  const fresh = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0 }));
+  const fresh = (): GameState => smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Egypt", "Mitanni");
 
   test("A count shows two figures while under a year old and one after; a land never counted, one, as a guess", () => {
     Assert.equal([2, 2, 1, 1, 1], [0, 3, 4, 8, 40].map(countFigures));

@@ -10,7 +10,7 @@ import { markGlyph, markKind } from "./crossings.ts";
 import { glyphId } from "./glyphs.ts";
 import { ringOf } from "./markup.ts";
 import type { MapInput } from "./renderer.ts";
-import { captureLine, unitKindName, type MapScene } from "./scene.ts";
+import { captureLine, traceOf, unitKindName, type MapScene } from "./scene.ts";
 import { title } from "./text.ts";
 
 const Map_ = WorldMap.default;
@@ -24,7 +24,7 @@ export function roads(input: MapInput): string {
     sb += `<polyline class="road r-${glyphId(t.owner)}${t.believed ? " believed" : ""}${t.characterId !== null && t.characterId === input.followId ? " followed" : ""}" points="${points(route(t.fromProvince, t.toProvince))}"/>`;
   const path = input.followPath;
   if (path !== null && path.length > 0) {
-    const pts = points(path.map((x) => x.at));
+    const pts = points(traceOf(path));
     sb += `<g class="follow-path"><polyline class="trace-casing" points="${pts}"/><polyline class="trace" points="${pts}"/>`;
     path.forEach((step, i) => {
       const last = i === path.length - 1;
