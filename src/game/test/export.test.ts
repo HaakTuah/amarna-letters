@@ -91,6 +91,9 @@ describe("ExportTests", () => {
     log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, output: '{"notes":"write to jane@b\\u00fccher.de","ledger":[]}' }));
     const back = JSON.parse(JSON.parse(exportJsonl(log).split("\n")[1]).output) as { notes: string };
     Assert.equal("write to [e-mail]", back.notes);
+    // A property's name is read the same way.
+    log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, output: '{"jane@b\\u00fccher.de":0}' }));
+    Assert.false(JSON.stringify(JSON.parse(log.calls[1].output)).includes("cher"));
   });
 
   test("A reply with its JSON in a fenced block is read the same way", () => {

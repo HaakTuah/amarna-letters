@@ -94,7 +94,14 @@ function scrubbedObject(text: string): string | null {
       return c;
     }
     if (Array.isArray(v)) return v.map(walk);
-    if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [withoutSensitive(k), walk(x)]));
+    if (v !== null && typeof v === "object")
+      return Object.fromEntries(
+        Object.entries(v).map(([k, x]) => {
+          const name = withoutSensitive(k);
+          if (name !== k) changed = true;
+          return [name, walk(x)];
+        }),
+      );
     return v;
   };
   const back = walk(node);
