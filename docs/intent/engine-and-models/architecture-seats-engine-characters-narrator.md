@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 58 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 59 (2026-11-02). Do not edit: see docs/intent/INDEX.md. -->
 ## Architecture: seats, engine, characters, narrator
 
 One deterministic engine sits at the center. Every language model touches the world only through a seat or a character, and every change it wants becomes an order the engine validates. The engine also holds the only copy of the game's state: the interface, the seats and any peers see only the views it releases.
@@ -18,6 +18,14 @@ Arrows down carry what the engine releases; arrows up carry requests the engine 
 | Narrator | Sonnet 5.5 | Persona writing at creation and chronicles at the end, a few calls per game |
 
 **Cost control.** Cache personas, system prompts and long histories (prompt caching); summarize character memory; cap messages per seat per turn; make the chronicle a toggle; use script bots for engine testing.
+
+**Calls that get through, live or in the background** (decided 2 November 2026; Haakon, after watching two seasons with Haiku in every seat: "Probably should spread them out then? And have it work in the background while you do your stuff?", then, to the design session's findings: "Yes, please, expertly to both!"). That first game showed three faults: every call was sent at once, past the account's limit on requests in flight, so 57 of the first season's 104 decisions fell back to scripts; every king's call opens with the same 70,600 tokens of rules, but sent all at once each wrote its own copy of the cache, about two thirds of that season's cost; and 26 answers were refused for slips (a field that did not apply filled with a quoted blank, a list where a blank was asked, "babylon" for Babylonia). So:
+
+- **Never more in flight than the account allows.** A limiter keeps the calls in flight under the account's limit, halving it when a call is refused and growing it slowly again; a refused or overloaded call waits, as long as the service asks, and is sent again before a script ever stands in. The fallback rate is shown with its reasons.
+- **The cache is written once.** Calls that share an opening (the kings' rulebook, the courts' audiences) start with one, and the rest follow once its cache is written; a longer-lived cache where seasons are far apart.
+- **Answers are read as meant.** A field that does not apply may be left out ("Requests are rules too"); blank-looking values are blank; names match the seat's own list in any spelling it is shown (Babylon, Babylonia); a slip gets one retry that shows the model what was wrong, before a fallback.
+- **Two ways to play: live, or in the background.** Live sends the calls as they come. In the background, each phase of a season's calls goes as one batch to the provider's batch service, at about half the price and with no limit on calls in flight, and the game plays on as the answers come back, minutes or more later; the watcher sees the courts deliberating and may leave and come back, since the provider keeps a batch's answers for days and the game collects them when it is open again with the key. The setup chooses; the models and the record are the same either way, so a game played in the background replays like any other.
+- **What a season costs** is estimated before a game starts, from the token counts of recorded games, and shown as it runs, in both modes; the spending limit holds in both.
 
 **Call size matters as much as call count.** In the first simulation the agents playing the kings used from about 26k to over 60k tokens an orders call over ten seasons, almost all of it journal and letters; the requests themselves grew from about 6k–8k to 11.5k–13.5k, and their fixed part, the rulebook, map and primer, from about 5k then to about 8k now (measured in item 1). Decided: older notes are summarized, so a king's memory of old betrayals survives, alongside a per-court ledger of promises. Which model writes the summaries is measured (see below). Candidates, to be weighed against a per-section breakdown of the request:
 
