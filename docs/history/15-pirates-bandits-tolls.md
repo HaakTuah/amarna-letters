@@ -182,10 +182,9 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
   the messengers who passed"; the place is Erman's guess) [A, later].
 - <a id="15-toll-rates"></a>**The rates of the period are lost** [S]. The only rates on record are Old Assyrian, five centuries earlier [A,
   earlier]: at Kanesh the local palace took a tax on entry (*nishatum*) of about 2 shekels in 65 on tin (about 3%) and
-  5% on textiles, and the cities on the road took transit dues besides, in tin or cloth (Veenhof; Larsen). **Start
-  from:** a default rate of 3%, the low end, per border crossed, which a holder may raise or waive as the intent
-  says; at 5% the goods of a Babylon-Egypt caravan crossing four or five holders would lose a fifth to tolls, which the
-  record of merchants still trading that road does not suggest.
+  5% on textiles, and the cities on the road took transit dues besides, in tin or cloth (Veenhof; Larsen); one caravan account takes "2 ½ textiles" of 42 and of 54 (about 6% and 4.6%; Harvard Art Museums 1983.98) [A,
+  earlier]. **Estimate [G]:** about 5% per border, the middle of 3%, 4.6%, 5% and 6%. **The game starts with no tolls**: every rate is 0% until a king
+  orders one, who may raise or waive it as the intent says.
 - **Tolls were a political gift as well as revenue** [B]: exemptions were asked for and granted between friends (EA 39;
   the kudurrus), and Hattusili III's rule on the merchants of Ura (RS 17.130) shows an overlord setting who could trade
   where. The intent's rate per partner, zero included, is that [B].
@@ -264,7 +263,7 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
 - <a id="15-police-start"></a>**Start from** [G]: a province's police at the low end of a garrison's range, **20 men for a province on a main road
   and 50 for one on the frontier or in bandit country**, the size of the garrisons the vassals asked for (EA 289, Moran: "50 men as a garrison"); each
   holds banditry down in that province only, and costs its men's rations as soldiers in garrison do (see 11). Those are
-  first guesses for item 18 to tune.
+  first guesses for item 18 to tune; no published estimate of the period's policing strength was found [S].
 
 ## What item 15 should not read into this
 

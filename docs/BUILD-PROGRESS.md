@@ -64,13 +64,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
-  1. **Alashiya owes Egypt nothing at the start** (#476): the starting copper debt goes, as EA 35 shows none.
-  2. **Born where a source says so** (#486): an attested person shows "Born in X." only where a source gives it, and
-     "Of X." (where he served) otherwise; Akhetaten leaves the generated Egyptians' birthplaces.
-  3. **The five cities' water, by the best estimate** (#492): for Jerusalem, Arwad, Hattusa, Harran and Kizzuwatna, the
-     history lane gathers the published expert estimates (excavation reports, surveys, reconstructions; as many as can
-     be found), takes their consensus or middle, cites them in `10-water.md`, and sets each city's water by it. The
-     same rule ("History holds" in `AGENTS.md`) covers every other guess the full check finds.
+  1-3. **Done** (save version 41; `docs/rounds/2026-11-02-history-owner-answers.md`): no starting Alashiyan debt (#476);
+     the people of 1346 "Of" where they served, Akhetaten no one's birthplace (#486); every flagged guess set by the
+     experts' middle (#492): Jerusalem's water outside, Arwad's cisterns, Nubia, Babylonia and Hatti's people, 175 a
+     hectare, the Nile's low floods and the plateau's droughts.
   4. **A governor's letter carries word of his moved seat** (#480), right after item 17++ part C: his seasonal letter
      says where he now sits, truly or not, as he chooses by his stakes.
   5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision

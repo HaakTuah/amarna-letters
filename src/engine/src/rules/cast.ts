@@ -60,14 +60,14 @@ export const FirstCores: ReadonlyMap<string, Core> = new Map<string, Core>([
 
 /** The attested people added to the pool, in the dossier's order. */
 export const AttestedCast: readonly CastSeed[] = [
-  cast("Hani", "Waset", "Egypt", "royal envoy", { loyalty: 75, competence: 70 }),
-  cast("Tutu", "Waset", "Egypt", "chamberlain", { greed: 70, competence: 70, ambition: 70, loyalty: 45 }),
-  cast("Mahu", "Waset", "Egypt", "chief of the Medjay", { courage: 75, loyalty: 70, competence: 65 }),
-  cast("Amanappa", "Men-nefer", "Egypt", "palace official", { loyalty: 55 }),
-  cast("Haya", "Men-nefer", "Egypt", "commissioner", { competence: 60 }),
+  cast("Hani", "Akhetaten", "Egypt", "royal envoy", { loyalty: 75, competence: 70 }),
+  cast("Tutu", "Akhetaten", "Egypt", "chamberlain", { greed: 70, competence: 70, ambition: 70, loyalty: 45 }),
+  cast("Mahu", "Akhetaten", "Egypt", "chief of the Medjay", { courage: 75, loyalty: 70, competence: 65 }),
+  cast("Amanappa", "Akhetaten", "Egypt", "palace official", { loyalty: 55 }),
+  cast("Haya", "Akhetaten", "Egypt", "commissioner", { competence: 60 }),
   cast("Maya", "Waset", "Egypt", "commissioner"),
   cast("Addaya", "Hazzatu", "Egypt", "commissioner at Gaza", { greed: 60 }),
-  cast("Irshappa", "Men-nefer", "Egypt", "royal envoy"),
+  cast("Irshappa", "Akhetaten", "Egypt", "royal envoy"),
   cast("Asali", "Washukanni", "Mitanni", "royal envoy"),
   // His caravan was robbed twice in Egypt's lands (EA 7): he kept going.
   cast("Salmu", "Babili", "Babylonia", "royal envoy", { courage: 70, loyalty: 70 }),
@@ -85,20 +85,20 @@ export const AttestedCast: readonly CastSeed[] = [
  * is his traits and his public facts, never a script. None led armed men of his own in 1346.
  */
 export const PeopleOf1346: readonly CastSeed[] = [
-  // Egypt's court (the courts dossier, "Egypt"): the great officers of Akhetaten and the commissioners in Canaan. Where
-  // each was born no source says; not at Akhetaten, founded about three years before 1346, so at Waset [G]
-  person("Ay", "Waset", "Egypt", "God's Father and Master of the Horse", { competence: 80, ambition: 80, loyalty: 65, greed: 55 }, 90, ["God's Father and Overseer of All the Horses of His Majesty, a fan-bearer at the king's right hand (his tomb at Amarna)."]),
-  person("Nakht", "Waset", "Egypt", "vizier", { competence: 75, loyalty: 70, ambition: 55 }, 60, ["Vizier at Akhetaten, head of the administration (his house at Amarna)."]),
-  person("Panehesy", "Waset", "Egypt", "chief servitor of the Aten", { loyalty: 75, competence: 60, ambition: 50 }, 40, ["Chief servitor of the Aten at Akhetaten (his tomb at Amarna); his name means 'the Nubian'."]),
-  person("Huya", "Waset", "Egypt", "steward of Queen Tiye", { loyalty: 70, competence: 65, greed: 45 }, 40, ["Steward of Queen Tiye, the king's mother, whose household he runs (his tomb at Amarna)."]),
+  // Egypt's court (the courts dossier, "Egypt"): the great officers of Akhetaten and the commissioners in Canaan, each of
+  // where he served (#486)
+  person("Ay", "Akhetaten", "Egypt", "God's Father and Master of the Horse", { competence: 80, ambition: 80, loyalty: 65, greed: 55 }, 90, ["God's Father and Overseer of All the Horses of His Majesty, a fan-bearer at the king's right hand (his tomb at Amarna)."]),
+  person("Nakht", "Akhetaten", "Egypt", "vizier", { competence: 75, loyalty: 70, ambition: 55 }, 60, ["Vizier at Akhetaten, head of the administration (his house at Amarna)."]),
+  person("Panehesy", "Akhetaten", "Egypt", "chief servitor of the Aten", { loyalty: 75, competence: 60, ambition: 50 }, 40, ["Chief servitor of the Aten at Akhetaten (his tomb at Amarna); his name means 'the Nubian'."]),
+  person("Huya", "Akhetaten", "Egypt", "steward of Queen Tiye", { loyalty: 70, competence: 65, greed: 45 }, 40, ["Steward of Queen Tiye, the king's mother, whose household he runs (his tomb at Amarna)."]),
   person("Thutmose", "Kush", "Egypt", "King's Son of Kush", { competence: 70, loyalty: 75, courage: 65 }, 60, ["King's Son of Kush, the viceroy who rules Nubia for Pharaoh; most take him for the viceroy of the year-12 campaign on the Buhen stela, whose name is lost there."]),
-  person("Paatenemheb", "Men-nefer", "Egypt", "general", { courage: 70, competence: 65, loyalty: 65 }, 50, ["A general of Akhenaten's, overseer of the army (his tomb at Amarna)."]),
+  person("Paatenemheb", "Akhetaten", "Egypt", "general", { courage: 70, competence: 65, loyalty: 65 }, 50, ["A general of Akhenaten's, overseer of the army (his tomb at Amarna)."]),
   person("Pahanate", "Ṣumur", "Egypt", "commissioner at Ṣumur", { competence: 55, loyalty: 60 }, 30, ["Pharaoh's commissioner at Ṣumur, Egypt's base on Amurru's coast, to whom Abdi-Ashirta writes (EA 62); Abdi-Ashirta and Rib-Hadda both name him (EA 60, 68, 131)."]),
   person("Pawura", "Gubla", "Egypt", "commissioner", { courage: 60, competence: 55, loyalty: 65, greed: 50 }, 30, ["Pharaoh's commissioner in the north, whom Rib-Hadda warned against Ha'ip (EA 132) and later reports killed (EA 362)."]),
   person("Ha'ip", "Ṣumur", "Egypt", "commissioner", { greed: 75, loyalty: 35, competence: 55 }, 40, ["An official of Pharaoh's in the north; Rib-Hadda says he handed Ṣumur over (EA 132), and Abi-Milku says he gave it to Aziru (EA 149)."]),
   person("Rianap", "Hazzatu", "Egypt", "commissioner", { competence: 60, loyalty: 65, greed: 50 }, 25, ["Pharaoh's commissioner in the south: the ruler of Gazru calls him his commissioner (EA 292), and Yidya of Ashqaluna says the king set him over the land (EA 326)."]),
   person("Tahmaya", "Hazzatu", "Egypt", "commissioner", { competence: 60, loyalty: 60 }, 25, ["Pharaoh sent Tagi of Ginti-kirmil a gold goblet and linen garments in his care (EA 265)."]),
-  person("Hatip", "Men-nefer", "Egypt", "royal envoy", { greed: 75, competence: 60, loyalty: 50 }, 35, ["Pharaoh's man with Aziru, who says Hatip took all the gold and silver the king had given him (EA 161); Aziru and Hatip are to come to Pharaoh together (EA 164-166)."]),
+  person("Hatip", "Akhetaten", "Egypt", "royal envoy", { greed: 75, competence: 60, loyalty: 50 }, 35, ["Pharaoh's man with Aziru, who says Hatip took all the gold and silver the king had given him (EA 161); Aziru and Hatip are to come to Pharaoh together (EA 164-166)."]),
   // Hatti
   person("Zida", "Hattusa", "Hatti", "chief of the bodyguard", { courage: 80, loyalty: 85, competence: 70, ambition: 50 }, 40, ["Chief of the bodyguard, probably the king's brother, who commands the guard at the king's person and often an army (the Deeds of Suppiluliuma)."]),
   // Mitanni: the rival line, whose seat before Tushratta's death no source gives: Taidu [G]
@@ -163,7 +163,8 @@ export const NubiansAttested: ReadonlySet<string> = new Set(["Hekanefer"]);
 export const Styles: readonly { court: Power; origins: readonly string[]; names: readonly string[]; callings: readonly string[] }[] = [
   {
     court: "Egypt",
-    origins: ["Waset", "Men-nefer", "Akhetaten", "Gubla", "Hazzatu"],
+    // Not Akhetaten, founded about three years before 1346 (#486).
+    origins: ["Waset", "Men-nefer", "Gubla", "Hazzatu"],
     names: ["Ramose", "Ptahmose", "Nebamun", "Penre", "Amenemope", "Userhat", "Abdi-Ashtarti", "Yapa-ilu"],
     callings: ["scribe of the treasury", "caravan master", "interpreter", "temple scribe", "soldier", "merchant of the coast"],
   },

@@ -24,10 +24,10 @@ or leave.
 | --- | --- | --- | --- | --- | --- | --- |
 | <a id="12-walls-hattusa"></a>hattusa | Hattusa | A double wall with towers round the lower city, and round the great upper city (if it was already built: some date it to the 16th century, others to the 13th) the Lion, King's and Sphinx gates, a rampart over the postern tunnel of Yerkapı; the citadel of Büyükkale walled on its rock | B (the walls), C (the upper city's date) | Seeher, the Hattusa excavation reports; Bryce, *Life and Society* | 3 | 3 |
 | <a id="12-walls-nesa"></a>nesa | Kanesh (Kültepe) | The Middle Bronze mound's walls; a lesser town by now | C | Kültepe reports | 2 | 1 |
-| <a id="12-walls-sapinuwa"></a>sapinuwa | Sapinuwa (Ortaköy) | A royal city with great buildings; its walls not published | S | Süel, Ortaköy reports | 0 | 1 [G] |
+| <a id="12-walls-sapinuwa"></a>sapinuwa | Sapinuwa (Ortaköy) | A royal city with great buildings; a 75 m stretch of its fortification wall has been exposed (Hitit University's excavation page, from a search summary); its full circuit is unpublished | C | Süel, Ortaköy reports | 0 | 1 [G] |
 | <a id="12-walls-tuwanuwa"></a>tuwanuwa | Tuwanuwa | Not excavated for this period | S | - | 0 | 0 |
 | <a id="12-walls-apasa"></a>apasa | Apasa (Ephesus) | The Ayasuluk hill, a citadel above the river; its Bronze Age walls barely known | C | Ayasuluk reports | 3 | 2 |
-| <a id="12-walls-washukanni"></a>washukanni | Washukanni | Not located for certain (Tell Fakhariya?); nothing of its walls | S | - | 3 | 3 [G], as a capital |
+| <a id="12-walls-washukanni"></a>washukanni | Washukanni | Not located for certain (Tell Fakhariya?); nothing of its walls; no published estimate found | S | - | 3 | 3 [G], as a capital |
 | <a id="12-walls-taidu"></a>taidu | Taidu | Not located for certain | S | - | 0 | 0 |
 | <a id="12-walls-carchemish"></a>carchemish | Carchemish | A citadel on a bluff over the Euphrates; strong enough that Suppiluliuma besieged it seven days and took it in a storm on the eighth (*Deeds*, about 1327) | A (the siege), C (the walls) | *Deeds*, fragment 28. Kitchen 1962, the table of events: "captures Carchemish ... Deeds, 28" | 2 | 2 |
 | <a id="12-walls-aleppo"></a>aleppo | Aleppo | The citadel hill with the Storm God's temple, walled | B | Kohlmeyer, the temple excavations | 2 | 2 |
@@ -48,7 +48,7 @@ or leave.
 | <a id="12-walls-megiddo"></a>megiddo | Megiddo | No city wall in the Late Bronze Age: a gate, a palace and houses at the edge served instead; disputed, since Finkelstein takes the town of Thutmose III's siege (Stratum IX, Late Bronze I) to have been well fortified | C | Ussishkin; Finkelstein, *Megiddo* reports and "Megiddo and Thutmose III: An Update", *Egypt and the Levant* 33 (2023); Gonen, "Urban Canaan in the Late Bronze Period" (1984) | 2 | 1 |
 | <a id="12-walls-shechem"></a>shechem | Shechem (Tell Balata) | The Middle Bronze "cyclopean" wall and East and North-West gates, rebuilt in part; a fortress temple | B | Wright; Campbell | 1 | 2 |
 | <a id="12-walls-jerusalem"></a>jerusalem | Jerusalem | The Middle Bronze wall on the eastern slope and the Spring Tower over the Gihon; the Late Bronze town small | C | Reich and Shukron | 1 | 1 |
-| <a id="12-walls-gaza"></a>gaza | Gaza | Egypt's base on the Ways of Horus; not excavated for this period | S | - | 2 | 2 [G], as a base |
+| <a id="12-walls-gaza"></a>gaza | Gaza | Egypt's base on the Ways of Horus; not excavated for this period; no published estimate found | S | - | 2 | 2 [G], as a base |
 | <a id="12-walls-hazor"></a>- (not on the map; for comparison) | Hazor | The great Middle Bronze earth rampart round a lower city of about 70-80 ha, still used | A | Yadin; Ben-Tor | - | - |
 | <a id="12-walls-memphis"></a>memphis | Memphis | The temple of Ptah's great enclosure and the "White Walls" of its name; the town itself open | B | Jeffreys, the Survey of Memphis | 2 | 1 |
 | <a id="12-walls-akhetaten"></a>akhetaten | Akhetaten (Amarna) | No city wall at all: the boundary stelae, the desert and the Medjay's patrol roads round it | A | Kemp | 3 | 0 |
@@ -59,10 +59,10 @@ or leave.
 | <a id="12-walls-kalavasos"></a>kalavasos | Kalavasos-Ayios Dhimitrios | An open town round a great ashlar building | B | South | 0 | 0 |
 | <a id="12-walls-ashur"></a>ashur | Ashur | On a bluff over the Tigris on two sides, a wall and moat on the landward side, rebuilt by its kings | A | Andrae; the kings' building inscriptions | 3 | 3 |
 | <a id="12-walls-nineveh"></a>nineveh | Nineveh | The Kuyunjik mound; its walls of this age unknown | S | - | 2 | 1 |
-| <a id="12-walls-arbela"></a>arbela | Arbela | A citadel mound; nothing of its walls | S | - | 0 | 1 [G] |
+| <a id="12-walls-arbela"></a>arbela | Arbela | A citadel mound; nothing of its walls; no published estimate found | S | - | 0 | 1 [G] |
 | <a id="12-walls-ekallate"></a>ekallate | Ekallate | Not located | S | - | 0 | 0 |
 | <a id="12-walls-arrapha"></a>arrapha | Arrapha; Nuzi, its town | Nuzi had a town wall round a main mound of about 200 m by 200 m (about 4 ha) | A (Nuzi) | Starr, the Nuzi excavations | 1 | 1 |
-| <a id="12-walls-babylon"></a>babylon | Babylon | Kassite Babylon lies under the water table; its walls are not known | S | - | 3 | 3 [G], as a capital |
+| <a id="12-walls-babylon"></a>babylon | Babylon | Kassite Babylon lies under the water table; a double wall acting as one, "more than 17 m in total thickness, at least since the Kassite period" (Montero Fenollós 2017) [C]; walls built by the first kings of the dynasty (Sumu-abum's year name, "the great city wall of Babylon", Wikipedia, snippet) [B] | C | Montero Fenollós, *Revista Universitaria de Historia Militar* (2017) | 3 | 3 [G], as a capital |
 | <a id="12-walls-durkurigalzu"></a>durkurigalzu | Dur-Kurigalzu | A new royal city with a walled palace and ziggurat, founded by Kurigalzu I | B | Baqir | 0 | 1 |
 | <a id="12-walls-sippar-nippur-ur"></a>sippar, nippur, ur | Sippar, Nippur, Ur | Old city walls, kept up by Kassite kings (Kurigalzu I's building at Ur) | B | Woolley; the kings' bricks | 0 | 1 |
 | <a id="12-walls-susa"></a>susa | Susa | The acropolis mound; its walls of this age unknown | C | - | 2 | 2 |

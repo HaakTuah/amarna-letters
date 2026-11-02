@@ -40,8 +40,10 @@ describe("PeoplePlayTests", () => {
     Assert.true(bearableShare({ ...nesa, harvest: Math.floor(nesa.harvest / 2) }, null, v.turn) < 10);
     Assert.true(canLevy(v, "sapinuwa", "Army"));
     Assert.false(canLevy({ ...v, provinces: v.provinces.map((x) => (x.province === "sapinuwa" ? { ...x, men: 100 } : x)) }, "sapinuwa", "Army"));
-    // The plateau sows and reaps in Akhet (turn 1): a levy costs it more then than in Peret.
-    Assert.true(levyCost(v, "Hatti", "sapinuwa", "Army") > levyCost(Views.for({ ...s, turn: 2 }, "Hatti"), "Hatti", "sapinuwa", "Army"));
+    // The plateau sows and reaps in Akhet (turn 1): a levy costs it more then than in Peret. Shown on a third of Sapinuwa's
+    // people, since in Hatti's land of 1.2 million (the people dossier, #492) both round up to the same few measures.
+    const third = (w: typeof v): typeof v => ({ ...w, provinces: w.provinces.map((x) => (x.province === "sapinuwa" ? { ...x, settled: Math.floor(x.settled / 3), men: Math.floor(x.men / 3) } : x)) });
+    Assert.true(levyCost(third(v), "Hatti", "sapinuwa", "Army") > levyCost(third(Views.for({ ...s, turn: 2 }, "Hatti")), "Hatti", "sapinuwa", "Army"));
     // Hattusa's army was levied from it: its land has room for its men again.
     Assert.true(settleThere(v, "Hatti", "hattusa", "Army"));
     Assert.false(settleThere(v, "Hatti", "sapinuwa", "Army"));

@@ -48,8 +48,8 @@ Hattusas" [A] ([EIEOL, Hittite lesson 5](https://lrc.la.utexas.edu/eieol/hitol/5
   September 25 and October 5". A low flood means hunger [B: the Ptolemaic Famine Stela's seven years without the flood,
   [Wikipedia](https://en.wikipedia.org/wiki/Famine_Stela)]; a very high one floods the land [A]: HKW, p. 372:
   "Osorkon III, year 3 ... flooding of Karnak temple". How often: the medieval Roda nilometer record suggests a poor
-  flood about one year in five and a disastrous one rarely, perhaps once a generation [C: Hassan's studies of the Roda record]. No bad flood is recorded
-  for Akhenaten's reign [S]. **First guess [G]:** a low Nile one Akhet in eight, a ruinous one one in thirty.
+  flood about one year in five and a disastrous one rarely, perhaps once a generation [C: Hassan's studies of the Roda record]; it gives a poor flood in some 14-28% of years: Fagan, *The Great Warming* (2010), p. 167, "28% of the years saw an inundation that fell short of expectations" (AD 622–999) [C]; Hassan (2007; PAGES summary) puts extremely low floods at "0-3%" in ordinary centuries and "20%" (AD 930–1070) and "14%" (AD 1070–1180) in anomalous ones [C]. No bad flood is recorded
+  for Akhenaten's reign [S]. **Estimate [G]:** a low Nile one Akhet in six (the middle of Fagan, Hassan and the dossier's one in five; "fell short of expectations" may be milder than the game's cut of the harvest); a ruinous one one in thirty, the top of Hassan's ordinary 0-3% (Hurst designed for "exceptionally dry seasons occurring statistically once in 100 years").
 - <a id="03-tigris-euphrates-floods"></a>**The Tigris and the Euphrates** rise with the snowmelt in the Taurus and
   Zagros, the Tigris peaking in April and the Euphrates in May, at or just before the harvest [B:
   [Wikipedia, Agriculture in Mesopotamia](https://en.wikipedia.org/wiki/Agriculture_in_Mesopotamia), citing Sanlaville
@@ -59,7 +59,7 @@ Hattusas" [A] ([EIEOL, Hittite lesson 5](https://lrc.la.utexas.edu/eieol/hitol/5
   reading [G]. A broken dam is attested, but from its owner's neglect, not the season [A: Laws of Hammurabi § 53,
   [Avalon](https://avalon.law.yale.edu/ancient/hamcode.asp): "If any one be too lazy to keep his dam in proper
   condition, and does not so keep it; if then the dam break and all the fields be flooded"]. Salt was the south's worst problem [B: Wikipedia, Agriculture in Mesopotamia, citing Huot 1989: "the salinisation of
-  the soil"]. **First guess [G]:** a damaging flood one Shemu in six on each river.
+  the soil"]. No modern estimate for antiquity was found [S]; the Abbasid chronicles record at least 55 notable floods of the two rivers in 132–656 AH (about 750–1258), about one year in nine, a floor, since only the worst were written down [C, snippet of an Arabic study in *HISS*]. **Estimate [G]:** a damaging flood one Shemu in six on each river, kept above that floor.
 - **The Orontes, Habur, Balikh and Halys** are smaller rivers with spring maxima; not navigable for trade [B].
 
 ## The sea
@@ -90,6 +90,6 @@ Hattusas" [A] ([EIEOL, Hittite lesson 5](https://lrc.la.utexas.edu/eieol/hitol/5
 **Readings for the game:** 1346 is an ordinary climate, before the drying that preceded the collapse of about 1200,
 so droughts and plagues are occasional events rather than a trend [B]. Rain-fed lands (Hatti above all, then the
 Levant, Mitanni and Assyria) suffer drought; flood lands suffer bad floods; trading ports and besieged cities catch
-plague, as the letters show. **First guesses [G]:** a drought on the Anatolian plateau one year in six, in the Levant
-and north Syria one in eight; a plague in a port or a besieged city one season in a hundred per province, more in a
+plague, as the letters show. Tree rings give a May–July drought (SPI ≤ −1) on the southern edge of the Anatolian plateau about one year in 12.6, AD 1251–1998, a floor ("most likely underestimate"; Touchan et al., *Climatic Change* 72, 2005: "The average interval between drought events was 12.6 yr"), against about one in six in the instrumental record by the index's definition [C]; Michael the Syrian's chronicle gives north Syria and the Jazira a severe drought "roughly every 20 years" (Widell, *Environment and History* 13, 2007) [C]; milder dry years come every 3-4 years in southern Jordan (Touchan, Meko and Hughes 1999: "an average interval between droughts of 4.2 years") and the eastern Mediterranean (Touchan et al., *Climate Dynamics* 25, 2005: "a mean recurrence interval of 3.2 years") [C]. **Estimates [G]:** a drought on the Anatolian plateau one year in nine (the middle of the floor and the index's definition), in the Levant
+and north Syria one in eight (between the mild and the severe), the Habur and Assyria, the west and Susiana unmeasured, kept at eight, ten and ten; a plague in a port or a besieged city one season in a hundred per province, more in a
 siege.

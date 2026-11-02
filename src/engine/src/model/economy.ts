@@ -28,8 +28,9 @@ export interface ProvinceEconomy {
 const e = (town: number, surplus: Surplus, mine = 0, trading = false): ProvinceEconomy => ({ town, trading, surplus, mine });
 
 /**
- * By province. Towns from the dossier's table where it gives one (the middle of its range, at 150 a hectare), otherwise a
- * guess from the province's place and size [G]. Mines: the map's new precious metal about 120 shekels a season, enough
+ * By province. Towns from the dossier's table where it gives one (the middle of its range; where the range is reckoned
+ * from the town's area, at 175 a hectare, the middle of the survey archaeologists' coefficients), otherwise a guess from
+ * the province's place and size [G]. Mines: the map's new precious metal about 120 shekels a season, enough
  * to make good what leaves the markets for characters' wages and bought cities, shared as the dossier's table shares it
  * (Egypt's sources about 84%, Hatti's silver 13%, the rest 3%) [G].
  */
@@ -38,7 +39,7 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["apasa", e(8, "Fair", 0, true)],
   ["mira", e(4, "Fair", 2)],
   ["tuwanuwa", e(4, "Low", 6)],
-  ["hattusa", e(11, "Low")],
+  ["hattusa", e(13, "Low")],
   ["sapinuwa", e(5, "Low")],
   // Item 17+: Nesa, the great trading city of three centuries before, by 1346 a name more than a city [B]
   ["nesa", e(1, "Low")],
@@ -54,8 +55,8 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["sippar", e(10, "High")],
   ["durkurigalzu", e(20, "High")],
   ["babylon", e(40, "High", 0, true)],
-  ["nippur", e(14, "High")],
-  ["ur", e(14, "High", 0, true)],
+  ["nippur", e(16, "High")],
+  ["ur", e(16, "High", 0, true)],
   ["dilmun", e(3, "Thin", 0, true)],
   ["delta", e(20, "High")],
   ["sinai", e(1, "Thin")],
@@ -69,8 +70,8 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["kalavasos", e(1, "Fair")],
   ["enkomi", e(3, "Fair", 2, true)],
   ["isuwa", e(3, "Low", 4)],
-  ["carchemish", e(6, "Fair", 0, true)],
-  ["alalakh", e(4, "Fair")],
+  ["carchemish", e(7, "Fair", 0, true)],
+  ["alalakh", e(5, "Fair")],
   ["aleppo", e(8, "Fair", 0, true)],
   ["ugarit", e(7, "Fair", 0, true)],
   ["nuhashshe", e(4, "Fair")],
@@ -88,7 +89,7 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["jerusalem", e(2, "Fair")],
   // Item 11c's cities of Canaan: Hazor the largest town in Canaan (80 ha, the people dossier), the rest small [G]
   ["akko", e(2, "Fair", 0, true)],
-  ["hazor", e(12, "Fair")],
+  ["hazor", e(14, "Fair")],
   ["gezer", e(2, "Fair")],
   ["ashkelon", e(2, "Fair", 0, true)],
   ["lachish", e(3, "Fair")],
@@ -98,7 +99,7 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["gaza", e(3, "Fair", 0, true)],
   ["suhu", e(3, "Fair")],
   ["arrapha", e(6, "Fair")],
-  ["susa", e(11, "Fair", 0, true)],
+  ["susa", e(13, "Fair", 0, true)],
   ["lukka", e(1, "Thin")],
   ["kaska", e(1, "Thin")],
   ["steppe", e(1, "Thin")],
