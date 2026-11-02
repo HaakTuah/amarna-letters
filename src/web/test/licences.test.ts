@@ -1,7 +1,7 @@
 // The licence policy (SECURITY.md, point 10; scripts/licences.mjs): SPDX expressions read with their brackets, and the
 // data, asset and font licences allowed only for the packages named as such in .github/licences.yml.
 import { describe, expect, it } from "vitest";
-import { licenceOk, policy, registryName } from "../../../scripts/licences.mjs";
+import { licenceOk, policy, registryName, registryOverrides } from "../../../scripts/licences.mjs";
 
 const code = policy().allowedFor("some-library");
 const data = policy().allowedFor("caniuse-lite");
@@ -33,5 +33,10 @@ describe("licences", () => {
     expect(registryName("https://registry.npmjs.org/@scope/pkg/-/pkg-1.0.0.tgz")).toBe("@scope/pkg");
     for (const local of [undefined, "file:vendor/caniuse-lite.tgz", "vendor/caniuse-lite", "git+https://example.com/caniuse-lite.git", "https://example.com/caniuse-lite/-/caniuse-lite-1.0.0.tgz"])
       expect(registryName(local)).toBeUndefined();
+  });
+
+  it("finds npm settings that would fetch from another registry than the lockfile names", () => {
+    expect(registryOverrides("registry=https://example.com/\nreplace-registry-host=always\n@x:registry = https://example.com/")).toHaveLength(3);
+    expect(registryOverrides("fund=false\naudit=false\n# registry=https://example.com/")).toEqual([]);
   });
 });

@@ -2,6 +2,7 @@
 // packages pull in included, against the list in .github/licences.yml and fails on one off it or naming no licence (the
 // pull-request check, .github/workflows/licences.yml). The web build imports `notices` to write the third-party notices
 // shipped with the game (src/web/vite.config.ts). Node's own modules only, so the check needs no install.
+import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -143,11 +144,22 @@ export function notices(dirs) {
   ].join("\n");
 }
 
+/**
+ * The npm settings in the repository that would make npm fetch from somewhere other than the address the lockfile names
+ * (a registry of its own, or `replace-registry-host`), so `registryName` would vouch for what npm does not fetch.
+ */
+export function registryOverrides(npmrc) {
+  return npmrc.split(/\r?\n/u).map((l) => l.trim()).filter((l) => /^(?:@[^:\s]+:)?registry\s*=|^replace-registry-host\s*=/u.test(l));
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const { allowedFor } = policy();
   const all = lockfilePackages();
   const off = all.filter((p) => !licenceOk(p.license, allowedFor(p.registryName ?? "")));
   for (const p of off) console.error(`off the list: ${p.name}@${p.version} (${p.license ?? "no licence"})`);
+  const npmrcs = execFileSync("git", ["ls-files", "-z", "--", ":(glob)**/.npmrc"], { cwd: root, encoding: "utf8" }).split("\0").filter(Boolean);
+  const overrides = npmrcs.flatMap((f) => registryOverrides(readFileSync(join(root, f), "utf8")).map((l) => `${f}: ${l}`));
+  for (const o of overrides) console.error(`registry changed (packages are named by the npm registry they come from): ${o}`);
   console.log(`${all.length} packages checked, ${off.length} off the list (SECURITY.md, point 10; .github/licences.yml)`);
-  process.exit(off.length ? 1 : 0);
+  process.exit(off.length || overrides.length ? 1 : 0);
 }
