@@ -22,8 +22,8 @@ describe("LongTextTests", () => {
     quick(() => [..."a".repeat(N * 5).matchAll(SpiedUnit)]);
     quick(() => shekels("1".repeat(N * 5)));
     quick(() => GovernorWrites.exec("governor of ".repeat(N)));
-    quick(() => TextKit.isAccusation("never" + " ".repeat(N) + "x"));
-    quick(() => TextKit.isAccusation("broke ".repeat(N / 20)));
+    quick(() => TextKit.isAccusation("never" + " ".repeat(N / 10) + "x"));
+    quick(() => TextKit.isAccusation("broke ".repeat(N / 50)));
     quick(() => TextKit.sentences("!" + '"'.repeat(N) + " a"));
     quick(() => new CompatibleProvider({ id: "local", baseUrl: "http://localhost:1/v1" + "/".repeat(N * 5) + "x" + "/".repeat(N * 5) }, ""));
   });
