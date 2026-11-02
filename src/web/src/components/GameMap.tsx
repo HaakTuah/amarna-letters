@@ -53,7 +53,7 @@ export function GameMap({
   onPerson,
   onMark,
   onBlank,
-  onDrag,
+  onCamera,
   children,
   ref,
 }: {
@@ -65,14 +65,14 @@ export function GameMap({
   onMark: (id: string, province: string | null) => void;
   onBlank: () => void;
   /** The player moved the camera (a drag, or the whole map shown): it is theirs, so a follow stops keeping it on its person. */
-  onDrag?: () => void;
+  onCamera?: () => void;
   children?: ReactNode;
   ref?: Ref<MapHandle>;
 }) {
   const view = useRef<HTMLDivElement>(null);
   const renderer = useRef<MapRenderer | null>(null);
-  const handlers = useRef({ onProvince, onPerson, onMark, onBlank, onDrag });
-  handlers.current = { onProvince, onPerson, onMark, onBlank, onDrag };
+  const handlers = useRef({ onProvince, onPerson, onMark, onBlank, onCamera });
+  handlers.current = { onProvince, onPerson, onMark, onBlank, onCamera };
   // The view before "show the whole map", to come back to.
   const [back, setBack] = useState<MapView | null>(null);
   // Item 17++, part C: the realms view (who holds what) or the mood of the land, one tap away.
@@ -90,7 +90,7 @@ export function GameMap({
     });
     renderer.current = r;
     const el = view.current!;
-    const drag = (): void => handlers.current.onDrag?.();
+    const drag = (): void => handlers.current.onCamera?.();
     el.addEventListener("mapdrag", drag);
     // For the map's checks in a development build: the renderer, to zoom and focus from a test.
     if (import.meta.env.DEV) (window as unknown as { __map?: MapRenderer }).__map = r;
@@ -123,7 +123,7 @@ export function GameMap({
     const r = renderer.current;
     if (r === null) return;
     // The player moves the camera: a follow no longer keeps it on its person.
-    handlers.current.onDrag?.();
+    handlers.current.onCamera?.();
     const now = r.getView();
     if (back !== null) {
       r.setView(back.at, back.zoom, true);

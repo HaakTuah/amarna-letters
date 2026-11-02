@@ -72,7 +72,7 @@ export function Play() {
   const [tabRaw, setTab] = useState("");
   const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
   const [followId, setFollowId] = useState<string | null>(null);
-  // Whether a follow keeps the camera on its person: until the player drags the map or stops following.
+  // Whether a follow keeps the camera on its person: until the player moves the camera or stops following.
   const [tracking, setTracking] = useState(false);
   const [sheet, setSheet] = useState(false);
   const [legend, setLegend] = useState(false);
@@ -130,7 +130,7 @@ export function Play() {
   useGameAudio(s.frames, s.shownIndex, viewerOf(), live.hasRunner ? live.gameId : "", () => map.current?.view() ?? null);
 
   // Follow keeps the camera on its person as the seasons go, where the seat last knew him ("Following, travel lines and
-  // borders" under Interface), until the player drags the map or stops following.
+  // borders" under Interface), until the player moves the camera or stops following.
   const followPath = followId !== null && s.frames.length > 0 ? pathOf(s.frames, s.shownIndex, viewerOf(), followId) : null;
   const followAt = tracking ? (followPath?.at(-1)?.at ?? null) : null;
   useEffect(() => {
@@ -453,7 +453,7 @@ export function Play() {
           viewKey={`${live.gameId}:${viewer ?? "god"}`}
           opening={openingView(viewer)}
           onProvince={clicked}
-          onDrag={() => setTracking(false)}
+          onCamera={() => setTracking(false)}
           onPerson={(id) => (carded ? closeCards() : follow(id))}
           onMark={markTapped}
           onBlank={closeCards}
