@@ -461,7 +461,7 @@ function renamed(text: string, r: { swaps: Map<string, string>; name: RegExp }, 
   const one = (part: string, prior: string): string =>
     part.replace(r.name, (m: string, at: number) => {
       const seen = r.swaps.get(m)!;
-      return /(?:^|[.!?]["')\]]*\s+|\n\s*)$/u.test(prior + part.slice(0, at)) ? seen[0].toUpperCase() + seen.slice(1) : seen;
+      return /(?:^|[.!?]["')\]]*\s+|\n\s*)["'(]*$/u.test(prior + part.slice(0, at)) ? seen[0].toUpperCase() + seen.slice(1) : seen;
     });
   let out = before;
   let from = 0;

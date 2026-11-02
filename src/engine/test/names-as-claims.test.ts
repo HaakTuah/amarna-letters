@@ -181,8 +181,8 @@ describe("NamesAsClaims", () => {
     Assert.equal("Amurru has fallen; Gubla stands. The Kaska lands are quiet.", said("Egypt"));
     // A name beginning with "the" is found at the head of a sentence too.
     e.claimName("Hatti", claimName("the Kaska lands"));
-    notify(s, "Hatti", "Notice", "News", `The Kaska lands are quiet; Hatti waits. Hatti is patient. He said: ${quoteWords("wait.")} Hatti waits.`);
-    Assert.equal(`${asSeenBy("Hatti", () => land("Kaska"))} are quiet; the Kaska lands waits. The Kaska lands is patient. He said: "wait." The Kaska lands waits.`, said("Hatti"));
+    notify(s, "Hatti", "Notice", "News", `The Kaska lands are quiet; Hatti waits. Hatti is patient. He said: ${quoteWords("wait.")} Hatti waits. (Hatti waits.)`);
+    Assert.equal(`${asSeenBy("Hatti", () => land("Kaska"))} are quiet; the Kaska lands waits. The Kaska lands is patient. He said: "wait." The Kaska lands waits. (The Kaska lands waits.)`, said("Hatti"));
     // The god view keeps the engine's names.
     Assert.equal("Amurru", land("Amurru"));
   });
