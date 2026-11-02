@@ -56,7 +56,7 @@ Water works (a well sunk, a cistern dug, a guarded way down to a spring) are ite
 | <a id="10-thebes"></a>thebes | Thebes | River | [B] on the Nile. Wikipedia, Thebes: "located along the Nile" |
 | <a id="10-nubia"></a>nubia | Nubia's towns | River | [B] on the Nile |
 | <a id="10-kalavasos"></a>kalavasos | Kalavasos-Ayios Dhimitrios | Wells | [G] wells in the town assumed; it stood by the Vasilikos river. Wikipedia, Kalavasos: "on the river Vasilikos" |
-| <a id="10-enkomi"></a>enkomi | Enkomi | Wells | [B] wells inside the town [A, excavated]. Wikipedia, Enkomi (site): "the discovery of multiple wells, hearths, and benches" (the Ashlar Building) |
+| <a id="10-enkomi"></a>enkomi | Enkomi | Wells | [G] wells inside the 14th-century town assumed: the wells the source names are later, in the Ashlar Building's Level IIIA, which the article dates to Late Cypriot IIIA, 1200–1100 BCE. Wikipedia, Enkomi (site): "the discovery of multiple wells, hearths, and benches" |
 | <a id="10-isuwa"></a>isuwa | Isuwa's towns | River | [C] on the upper Euphrates. Wikipedia, Isuwa: "eastern bank of the river Euphrates" |
 | <a id="10-carchemish"></a>carchemish | Carchemish | River | [B] on the Euphrates. Wikipedia, Carchemish: "located on the West bank of the Euphrates River" |
 | <a id="10-alalakh"></a>alalakh | Alalakh (Tell Atchana) | River | [C] in the Orontes' flood plain in the Amuq. Wikipedia, Alalakh: "within the flood plain of the Orontes River, where the river enters the Amuq Plain" |
@@ -66,19 +66,19 @@ Water works (a well sunk, a cistern dug, a guarded way down to a spring) are ite
 | <a id="10-qatna"></a>qatna | Qatna (Tell Mishrifeh) | Spring | [C] a spring-fed lake inside its great ramparts, which dried toward the end of the Bronze Age. Morandi Bonacossi (via Wikipedia, Qatna): "an inner lake fed by a spring located in the northern foot of the upper city" |
 | <a id="10-qadesh"></a>qadesh | Qadesh (Tell Nebi Mend) | River | [B] at the meeting of the Orontes and the Mukadiya, made an island by a cut channel (Ramesses II's reliefs show it ringed by water, a century later). Wikipedia, Kadesh: "had cut a channel from the river to a stream south of the town" |
 | <a id="10-amurru"></a>amurru | Amurru's hill towns | Cisterns | [G] Abdi-Ashirta's land in the hills; its towns are not located |
-| <a id="10-sumur"></a>sumur | Ṣumur (Tell Kazel) | Wells | [C] in the coastal plain by the Abrash. Wikipedia, Tell Kazel: "in the north of the Akkar plain on the north of the al-Abrash River" |
+| <a id="10-sumur"></a>sumur | Ṣumur (Tell Kazel) | Wells | [G] wells assumed; its water is not described. [B] it stands in the coastal plain by the Abrash. Wikipedia, Tell Kazel: "in the north of the Akkar plain on the north of the al-Abrash River" |
 | <a id="10-arwad"></a>arwad | Arwad | Island | [B] an island with cisterns; water came from the mainland, and in war from a spring in the sea channel. Strabo 16.2.13 (1st century BCE): "partly from the rains and cisterns and partly from their territory on the mainland" |
 | <a id="10-byblos"></a>byblos | Byblos | Spring | [B] the town's spring (Ain el-Malik) in the valley between its two summits. Livius, Byblos well: "two summits that are separated by a valley with a well" |
-| <a id="10-sidon"></a>sidon | Sidon | Wells | [C] the coastal plain, the Awali near. Wikipedia, Sidon: "near the Awali River" |
+| <a id="10-sidon"></a>sidon | Sidon | Wells | [G] wells assumed; its water is not described. [B] a town of the coastal plain, the Awali to its north. Wikipedia, Sidon: the Eshmun Temple, "in the north of Sidon near the Awali River" |
 | <a id="10-damascus"></a>damascus | Damascus | River | [B] the Barada and its oasis. Wikipedia, Damascus: "watered by the Barada river" |
 | <a id="10-tyre"></a>tyre | Tyre | Island | [A] EA 146-151, 154-155: Abi-Milku has neither water nor wood once Ushu on the mainland is lost. EA 149 (Moran): "Zimredda seized Usu ... so we have neither water nor wood" |
-| <a id="10-megiddo"></a>megiddo | Megiddo | Outside | [B] the spring lay at the foot of the mound, outside the town wall, its way down "entirely unprotected" in the earlier history; the gallery and shaft that reach it are later works (Lamon: the 12th century). Lamon, *The Megiddo Water System* (OIP 32, 1935), p. 1: "located at the foot of the mound definitely outside the city wall" |
-| <a id="10-shechem"></a>shechem | Shechem (Tell Balata) | Outside | [C] springs in the valley at the foot of the mound. Wikipedia, Shechem: "numerous natural springs and a high, stable water table" |
+| <a id="10-megiddo"></a>megiddo | Megiddo | Outside | [G] Outside is the game's reading. [B] the known spring lay at the foot of the mound, outside the town wall, its way down "entirely unprotected" in the earlier history; the gallery and shaft that reach it are later works (Lamon: the 12th century). Lamon, *The Megiddo Water System* (OIP 32, 1935), p. 1: "located at the foot of the mound definitely outside the city wall", and "at least one of the chief sources of water". [C] Lamon also infers an internal supply, never found: under Thutmose III's seven-month siege "there must have been an abundant supply of water within the city", and in the Amarna period "It would seem, then, that at that time too there was a good internal supply of water", "probably the same one" (p. 36); on p. 1 he calls it "the supposed pre-12th century internal supply", perhaps "maintained only as an emergency supply", and "At present there is little indication as to where this early internal water supply was located". Read his way, Megiddo would be Spring, not Outside |
+| <a id="10-shechem"></a>shechem | Shechem (Tell Balata) | Outside | [G] Outside is the game's reading: where the springs lay against the walls is not described. [B] water was plentiful, from springs and groundwater. Wikipedia, Shechem: "numerous natural springs and a high, stable water table, which made digging new wells easy" (which would fit Wells as well) |
 | <a id="10-jerusalem"></a>jerusalem | Jerusalem | Spring | [C] the Gihon, guarded by the Spring Tower: dated to the Middle Bronze Age by its excavators (Reich and Shukron), to about 800-900 BCE by radiocarbon (Regev et al., *Radiocarbon* 59, 2017), which Reich disputes (2018). ScienceDaily (2017): "The date revealed by this radiocarbon dating was sometime around 800-900 BCE" |
 | <a id="10-gaza"></a>gaza | Gaza | Wells | [C] wells in the coastal sands with a high water table. Wikipedia, Gaza City: "depends on groundwater as the only source for drinking" (today) |
 | <a id="10-suhu"></a>suhu | Suhu's towns | River | [B] on the Euphrates. Wikipedia, Suhum: "around the middle course of the Euphrates River" |
 | <a id="10-arrapha"></a>arrapha | Arrapha (Kirkuk) | Cisterns | [G] its water is not described |
-| <a id="10-susa"></a>susa | Susa | River | [B] between the Karkheh and the Dez. Wikipedia, Susa: "between the Karkheh and Dez Rivers" |
+| <a id="10-susa"></a>susa | Susa | River | [B] the Shaur runs at the foot of the mounds, between the Karkheh and the Dez; that it ran there in the 14th century BCE is inferred. *Encyclopædia Britannica* (1911), "Susa": "The Shaur, a small tributary of the Dizful, washes the eastern base of the mounds of Shush"; Wikipedia, Susa: "between the Karkheh and Dez Rivers" |
 | <a id="10-lukka"></a>lukka | the Lukka lands | Cisterns | [G] a rugged coast of small places |
 | <a id="10-kaska"></a>kaska | the Kaska lands | Cisterns | [G] mountain villages, no cities to besiege |
 | <a id="10-steppe"></a>steppe | the Sutean steppe | Arid | [G] wells and seasonal pools |
@@ -86,7 +86,7 @@ Water works (a well sunk, a cistern dug, a guarded way down to a spring) are ite
 ## What changed from item 10+b's reading
 
 Item 10+b gave every rain-fed city cisterns and every arid one wells, with Jerusalem and Megiddo safe and Tyre and Arwad
-islands. By the dossier, Megiddo's spring lay outside its walls in this age, so it can be made to thirst; Nineveh,
+islands. Megiddo's known spring lay outside its walls in this age, so the game lets it be made to thirst (a reading: Lamon infers an internal supply too); Nineveh,
 Carchemish, Alalakh, Qadesh, Damascus, Susa, the Cilician plain, Isuwa, the Seha valley and Apasa drink from rivers;
 Hattusa, Washukanni, Qatna, Byblos and Dilmun from springs inside their defences; and the cities of the coastal plains,
 Cyprus, Harran, Arbela and Aleppo from wells that reach groundwater. The rest drink their cisterns as before.
