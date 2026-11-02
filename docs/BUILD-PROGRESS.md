@@ -111,6 +111,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Each kind of text is reviewed as every review is ("Reviews" in `docs/claude-and-codex.md`); here a 10 means
   nothing reads machine-made, every voice is its own and no formula repeats. The owner's read of the ten lines before
   and after is the final word. One PR per kind of text.
+  **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
+  the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`). **Next:**
+  their envoys' speech (`bots/script-mind.ts`); then notices, news and reports once #537 merges; then the rest in the
+  order above.
 
 - **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in
   `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact

@@ -3,6 +3,7 @@ import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
 import { archetype } from "../src/bots/personality.ts";
 import { Statecraft } from "../src/bots/statecraft.ts";
+import { Audience } from "../src/bots/voices.ts";
 import { type HostReply, Rng, Views, newAudienceView, newGame, newTabletView } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
 
@@ -35,7 +36,7 @@ describe("SealingTests", () => {
   ] as const)("A script host seals no foreign tablet that gives land gold or tribute or names its provinces %s", (text: string) => {
     let reply = hear(text);
     Assert.false(reply.sealProposal);
-    Assert.contains("I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine.", reply.speech);
+    Assert.contains(Audience.refuseGives[0], reply.speech);
   });
 
   test("A foreign tablet that gives nothing away is sealed as before", () => {
