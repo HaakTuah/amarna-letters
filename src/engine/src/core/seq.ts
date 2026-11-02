@@ -21,12 +21,6 @@ export function cmpOpt<T>(cmp: Cmp<T>): Cmp<T | null | undefined> {
   };
 }
 
-/** An enum's order: by its index among the declared values. */
-export function cmpEnum<T extends string>(values: readonly T[]): Cmp<T> {
-  const index = new Map<string, number>(values.map((v, i) => [v, i]));
-  return (a, b) => index.get(a)! - index.get(b)!;
-}
-
 /**
  * Sorts a copy by keys, each with its comparison, the first key first (OrderBy().ThenBy()...). Stable. Every key is computed
  * once per element, a level at a time and in the items' order, as .NET's sort computes them (which matters for a key that
@@ -123,38 +117,6 @@ export function min<T>(items: Iterable<T>, f: (x: T) => number): number {
   }
   if (!any) throw new Error("Sequence contains no elements");
   return m;
-}
-
-/** The first item that is greatest by a key (MaxBy: the first of equals). */
-export function maxBy<T>(items: Iterable<T>, f: (x: T) => number): T | undefined {
-  let best: T | undefined;
-  let m = -Infinity;
-  let any = false;
-  for (const x of items) {
-    const v = f(x);
-    if (!any || v > m) {
-      m = v;
-      best = x;
-    }
-    any = true;
-  }
-  return best;
-}
-
-/** The first item that is least by a key (MinBy). */
-export function minBy<T>(items: Iterable<T>, f: (x: T) => number): T | undefined {
-  let best: T | undefined;
-  let m = Infinity;
-  let any = false;
-  for (const x of items) {
-    const v = f(x);
-    if (!any || v < m) {
-      m = v;
-      best = x;
-    }
-    any = true;
-  }
-  return best;
 }
 
 /** First item matching, or throws (First). */

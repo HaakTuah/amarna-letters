@@ -187,12 +187,6 @@ export function last<T>(c: Iterable<T>, f: (x: T) => boolean = () => true): T {
   return all[all.length - 1];
 }
 
-/** LINQ's LastOrDefault. */
-export function lastOrNull<T>(c: Iterable<T>, f: (x: T) => boolean = () => true): T | null {
-  const all = [...c].filter(f);
-  return all.length === 0 ? null : all[all.length - 1];
-}
-
 const cmp = (a: unknown, b: unknown): number => (a === b ? 0 : (a as never) < (b as never) ? -1 : 1);
 
 /** LINQ's OrderBy (stable, ordinal for strings). */
@@ -200,20 +194,11 @@ export function orderBy<T>(c: Iterable<T>, key: (x: T) => unknown): T[] {
   return [...c].sort((a, b) => cmp(key(a), key(b)));
 }
 
-export function orderByDesc<T>(c: Iterable<T>, key: (x: T) => unknown): T[] {
-  return [...c].sort((a, b) => cmp(key(b), key(a)));
-}
-
 /** LINQ's ToDictionary. */
 export function toDict<T, K, V>(c: Iterable<T>, key: (x: T) => K, value: (x: T) => V): Dict<K, V> {
   const d = new Dict<K, V>();
   for (const x of c) d.add(key(x), value(x));
   return d;
-}
-
-/** A Dict from an object's entries, in their order: the C# dictionary initializers. */
-export function dictOf<K extends string, V>(o: Partial<Record<K, V>>): Dict<K, V> {
-  return new Dict(Object.entries(o) as [K, V][]);
 }
 
 /** One season's submissions by power: { Hatti: { orders: [...] } }. */

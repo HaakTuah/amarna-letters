@@ -335,9 +335,7 @@ export function checkClauses(cs: readonly Clause[] | null | undefined, from: Pow
 }
 
 export const isProposal = (c: Clause): boolean => ProposalKinds.includes(c.kind);
-export const isRequest = (c: Clause): boolean => RequestKinds.includes(c.kind);
 export const isNews = (c: Clause): boolean => NewsKinds.includes(c.kind);
-export const isAnswer = (c: Clause): boolean => AnswerKinds.includes(c.kind);
 
 /** A clause by its kind and the fields it names, for lists where its words would be too long: "askGold (gold 50)". */
 export function clauseTag(c: Clause): string {
