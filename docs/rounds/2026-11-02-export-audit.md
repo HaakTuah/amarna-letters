@@ -85,6 +85,7 @@ In `docs/design/50-the-export.md` ("What it holds").
 ## Questions for the owner
 
 - [#424](https://github.com/HaakTuah/amarna-letters/issues/424): should "Export log" wait for "Reveal all" while a human plays? (open; the reading taken: nothing changes)
+- [#427](https://github.com/HaakTuah/amarna-letters/issues/427): should the human-words filter also blank names a model character invents (a pitch's `name`, `goAs`), at the cost of exact replay? (open; the reading taken: orders are never blanked)
 - [#422](https://github.com/HaakTuah/amarna-letters/pull/422) (merged): the design this export is built to, secrets kept out by design.
 - [#421](https://github.com/HaakTuah/amarna-letters/pull/421): the canary lane, which calls `exportJsonl(log, parts)`.
 
