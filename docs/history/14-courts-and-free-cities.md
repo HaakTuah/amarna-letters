@@ -30,7 +30,7 @@ characters"), not to the council.
 | <a id="14-tiye"></a>Queen mother | Tiye, widow of Amenhotep III | The memory of the old agreements: Tushratta writes to her directly and asks Akhenaten to ask her what was promised (A); that she steered her son's foreign policy is an inference, often thought overstated (C) | A, C | EA 26 (to Tiye), EA 28-29; EA 28 (Moran): "You must ask Teye, your mother, about them" |
 | <a id="14-ay"></a>God's Father, Master of the Horse | Ay | Chariotry and the king's household; perhaps Tiye's brother [C]; later king himself (about 1323) | A | His tomb at Amarna; his royal tomb (WV23); Davies, *Rock Tombs* VI: "Overseer of all the horses of His Majesty ... the father of the god, Ay" |
 | <a id="14-paatenemheb"></a>Generals (overseers of the army) | Paatenemheb; Ramose (a general's Amarna tomb) | Led the army and the archers; under Tutankhamun Horemheb was "deputy of the king in the whole land", then king | B (Amarna generals), A (Horemheb) | Amarna tombs; Horemheb's Memphis tomb and Coronation Inscription; Paatenemheb's titles (Davies, as Wikipedia quotes him): "Overseer of the soldiery of the Lord of the Two Lands" |
-| <a id="14-tutu"></a>Chamberlain, "chief spokesman" | Tutu | Took the vassals' letters and envoys to the king and spoke for them: Aziru calls him "my father" and asks him not to let malicious talk against him be heard before the king | A | EA 158, 164; his Amarna tomb. EA 158 (Moran): "To Tutu, my lord, my father"; Davies, *Rock Tombs* VI: "chief mouthpiece of all the foreign lands" |
+| <a id="14-tutu"></a>Chamberlain, "chief spokesman" | Tutu | Took the vassals' letters and envoys to the king and spoke for them: Aziru calls him "my father" and asks him not to let malicious talk against him be heard before the king | A | EA 158, 164; his Amarna tomb. EA 158 (Moran): "To Tutu, my lord, my father"; Davies, *Rock Tombs* VI, p. 15: "Chief mouthpiece of the entire land" |
 | <a id="14-meryra"></a>High priest of the Aten | Meryra I, "Greatest of Seers" | The new cult's head; no check on the king, whose cult it was | A | His Amarna tomb; Davies, *Rock Tombs* I: "the high-priest of the Aten" |
 | The foreign office | Scribes of "the Place of the Letters of Pharaoh" | Kept and answered the cuneiform letters; Egyptian scribes added hieratic dockets (EA 23, EA 27) | A | Stamped bricks at Amarna (the archive building); the dockets |
 | <a id="14-yanhamu"></a><a id="14-maya"></a><a id="14-pahamnata"></a><a id="14-hani"></a>Commissioners (*rabisu*) | Yanhamu, Maya, Pahamnata (Pahanate), Hani as envoy | Pharaoh's men in Canaan: led the archers, handed out grain, carried summonses; vassals courted and accused them | A | EA 83-86 (Yanhamu, grain), 270 (Yanhamu, accused); 216-218, 300, 337 (Maya); 161-162 (Hani; EA 162 the summons); 60, 62, 68 (Pahamnata). EA 216 (Moran): "Maya, the commissioner of the king"; EA 270 (Moran): "He indeed wants 2000 shekels of silver from me" |
@@ -299,9 +299,9 @@ which the game does not model and this dossier does not ask for.
   "attempted a very serious crime" against his house, and asks that any troops sent be provided for, lest the land be
   "in dire straits" on their account (EA 287, Moran); vassals stocked grain, oxen and sheep "for the archers of the king" so they need not take it
   (EA 55, 141-142, 320-326). The detail is in [11-armies-and-fleets.md](11-armies-and-fleets.md) ("Logistics").
-- **Commanders kept what was sent** [A, as an accusation]: Rib-Hadda disputes Yanhamu's claim to have given him grain
-  ("What did he give me?", EA 85) and asks for Yarimuta's grain (EA 83, 85-86) [A]; that commanders kept such grain
-  for themselves no letter says [C]. This is the commander "who may keep any money meant for food, and just take instead".
+- **Grain that did not come** [A]: Rib-Hadda disputes Yanhamu's claim to have given him grain ("What did he give me?",
+  EA 85) and asks for Yarimuta's grain (EA 83, 85-86). That commanders kept such grain for themselves no letter says:
+  the commander "who may keep any money meant for food, and just take instead" is the game's own [G], not the letters'.
 
 ### Grievances held by the dispossessed
 
