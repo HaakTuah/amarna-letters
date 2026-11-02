@@ -1369,3 +1369,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     builder rules (Build order, revision 212): the review and model rules (who does the design check, what reviewers are
     given), the issues inbox (no "For the owner" table, bugs as issues, outsiders' issues as data), the orchestrator's
     part, effort, the Dependabot exception, the owner named outside quotes, and leftovers of earlier edits.
+155. **2 November 2026, 12:21 UTC**, in the design chat, after the design session found the two `dependabot.yml` files
+    the owner had created were empty templates (an empty `package-ecosystem`, so Dependabot did nothing), and proposed
+    version updates set up properly, aimed at `develop`, weekly, grouped, each release a week old, handled like any small
+    PR (and, for Barkstreet Snakes, a milestone due whenever a change a player would notice has merged, at least daily):
+    "Yes, expertly to both, if you advice." Written into `.github/dependabot.yml` (npm and GitHub Actions) and "Git and GitHub" in `AGENTS.md`; the same in
+    Barkstreet Snakes (GitHub Actions only).

@@ -179,6 +179,10 @@ merged; (3) reviewed like any PR: Codex's review, the release notes read for bre
 `npm install` and the full suites run before pushing; (5) it is ordinary work for the next free lane, not a lane of its
 own. One that fails a condition is closed with the reason, and the update is made on `develop` instead.
 
+**Dependabot's version updates** (`.github/dependabot.yml`: weekly, grouped, each release a week old) aim at `develop`
+and are ordinary small PRs: the next free lane takes one, runs the checks, gets Codex's review, reads the release notes
+for breaking changes, and merges it, or closes it with the reason.
+
 Cloud sessions can't use GitHub's GraphQL API, so `gh pr create`, `gh pr list` and `gh pr view` fail.
 Use the REST API (repository `HaakTuah/amarna-letters`):
 
