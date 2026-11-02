@@ -221,8 +221,8 @@ A realm's name is a claim: you go by your land's name until you claim another, a
 (Court: "Claim a realm's name"). A claim gives nothing by rule. Where two kings claim one name, each court gives it in
 its greetings: a greeting gives the recipient the name he claims, or, with "call them by their house", withholds it, and
 that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru), in its notices too. The Court section
-says which names are contested, whom your court gives each to, and when it read each rival claim: the season his
-newest greeting to you was sealed, which is what the tablet says, not when it arrived.
+says which names are contested, whom your court gives each to, and the season each rival claimant's newest greeting
+your court has read was sealed (the date on the tablet, not when it arrived).
 
 Between the great kingdoms lie the city-states, such as Ugarit, Gubla, Qadesh and Elam, and the Kaska,
 Lukka, Shasu and Sutean chiefs: forty powers of their own, most of them vassals of Egypt or Mitanni (a few of Hatti
