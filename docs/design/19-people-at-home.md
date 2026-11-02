@@ -80,9 +80,9 @@ It runs after the troops eat: troops foraging in a province take their share fro
 - Plague kills 5% of the stricken realm's settled; an earthquake 2% of its province's. Drought and flood are no longer
   drawn by power: `catastropheChance` halved to 0.0175, so plague and earthquakes come as often as before.
 - **Droughts** (`climateSeason`, called from `worldEvents`): once a year, in Shemu, one draw a region (the plateau 1 in
-  6, the Levant and Syria and the Habur and Assyria 1 in 8, the western coasts and Cyprus and the Susiana plain 1 in 10):
+  9 since #523, the Levant and Syria and the Habur and Assyria 1 in 8, the western coasts and Cyprus and the Susiana plain 1 in 10):
   its rain-fed provinces reap half for the next three seasons. **Floods**: one draw a river a year, the season before its
-  flood season (the Nile floods in Akhet, the Tigris and Euphrates in Shemu), striking from it: a bad one (Nile 1 in 8, the others 1 in 6) leaves 60% for three seasons along the whole
+  flood season (the Nile floods in Akhet, the Tigris and Euphrates in Shemu), striking from it: a bad one (Nile 1 in 6 since #523, the others 1 in 6) leaves 60% for three seasons along the whole
   course, a ruinous one (1 in 30, 1 in 20) 30% and drowns 1%. Droughts and floods are drawn only while catastrophes are
   on (`catastropheChance` above 0). Holders are told when it is drawn, as are courts that see any of the land.
 

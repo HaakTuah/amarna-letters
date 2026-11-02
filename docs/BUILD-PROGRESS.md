@@ -66,11 +66,16 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
+  the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
+  down the Euphrates and the marshes. Still due: the full `--versus solo` run, seeds 1-40, on save version 47, with the
+  next item's benchmarks (#523 measured two seeds only).
+
 - **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
   - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
     a caught spy's report is read ("A letter taken on the road").
   - **#550:** under NAMES CLAIMED, in the seat view, the Court section and the models' line, the season each claim was
-    heard from its sealed greeting.
+    heard from its sealed greeting. Done, #574 (`docs/rounds/2026-11-02-names-season.md`).
   - **#554:** a short note, from its sourced basis, on each connection whose travel days are not the plain distance
     (Ur's river to the Gulf, the Ways of Horus, the Wadi Hammamat road).
   - **#549, the polish lane:** a faint accent on a frontier where the seat itself sees two powers' armies on either
@@ -97,27 +102,18 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   nothing reads machine-made, every voice is its own and no formula repeats. The owner's read of the ten lines before
   and after is the final word. One PR per kind of text.
 
-- **The Gulf's head as it stood in the Late Bronze Age** (the owner, 2 November 2026; #527; archive item 175): the map's
-  old shore (`OldGulfShore` in `src/web/src/map/features.ts`) moves to where the published reconstructions of the Late
-  Bronze Age shoreline put it, gathered and taken at their middle as "History holds" asks, with no outcome assumed
-  beforehand; Ur's harbour, its Gulf door and its trade follow from wherever the evidence puts the shore. Done by the
-  history lane with a new save version.
-
 - **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in
   `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact
   true and once false (a far province lost or held, a siege, a death abroad, an army moving out of sight), and assert
   that everything the seat receives (its input, notices, wakes and view) is identical until word of the fact could
-  reach it. It catches leaks nobody listed. Built in the lane fixing #517, or right after it.
+  reach it. It catches leaks nobody listed. Built in the lane fixing #517, or right after it. ~~Done~~ (#537).
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
-  1. **Alashiya owes Egypt nothing at the start** (#476): the starting copper debt goes, as EA 35 shows none.
-  2. **Born where a source says so** (#486): an attested person shows "Born in X." only where a source gives it, and
-     "Of X." (where he served) otherwise; Akhetaten leaves the generated Egyptians' birthplaces.
-  3. **The five cities' water, by the best estimate** (#492): for Jerusalem, Arwad, Hattusa, Harran and Kizzuwatna, the
-     history lane gathers the published expert estimates (excavation reports, surveys, reconstructions; as many as can
-     be found), takes their consensus or middle, cites them in `10-water.md`, and sets each city's water by it. The
-     same rule ("History holds" in `AGENTS.md`) covers every other guess the full check finds.
+  1-3. **Done** (save version 47; `docs/rounds/2026-11-02-history-owner-answers.md`): no starting Alashiyan debt (#476);
+     the people of 1346 "Of" where they served, Akhetaten no one's birthplace (#486); every flagged guess set by the
+     experts' middle (#492): Jerusalem's water outside, Arwad's cisterns, Nubia, Babylonia and Hatti's people, 175 a
+     hectare, the Nile's low floods and the plateau's droughts.
   4. ~~**A governor's letter carries word of his moved seat**~~ (#480): done, `item/governor-seat-letter`; report
      `docs/rounds/2026-11-02-governor-seat-letter.md`.
   5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision
@@ -182,6 +178,10 @@ fixed.
 - ~~**Order checks reveal a far loss (bug #467)**~~ (done, #515): the checks read who holds a province as the court
   knows it, and an order that fails on land lost out of sight answers by the road; the governor's view completes with
   #378; the rest of the far true state is bug #517. Report: `docs/rounds/2026-11-02-known-holding.md`.
+- ~~**Far provinces' true state (bug #517) and the twin canary (#520)**~~ (done, #537): sieges, walls and men far off
+  read as the court knows them, in its view and its checks alike; far markets, sieges and levies told by the road; the
+  twin canary plays a seat's seasons with and without a hidden fact. What it still finds is bug #540. Report:
+  `docs/rounds/2026-11-02-far-true-state.md`.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
   #417; report `docs/rounds/2026-11-02-bug-417.md`). (b), the chiefs' lands falling in the first two seasons, is 17++'s

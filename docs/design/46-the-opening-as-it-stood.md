@@ -31,8 +31,8 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   keeps item 13's places.
 - **Documented debts between courts** start as debt tablets in the creditor's archive (`openingDebts`): Egypt owes Mitanni
   the solid-gold statues Amenhotep III promised (EA 26-29), 200 shekels; Egypt owes Babylonia the silver of its merchants
-  killed at Hinnatuna and of Salmu's robbed caravan (EA 7-8), 60; Alashiya owes Egypt the copper it says it still owes
-  (EA 35), 80; each due within the first year [the claims A, the sums G]. Nothing enforces them ("Debts are facts;
+  killed at Hinnatuna and of Salmu's robbed caravan (EA 7-8), 60; each due within the first year [the claims A, the sums
+  G]. Alashiya owes Egypt nothing: EA 35 calls its copper a gift (#476). Nothing enforces them ("Debts are facts;
   repayment is a choice"); a court sees them in its seat view like any debt.
 - **No letters or memories** are written for any court: what each court knows of the others' standing is the dossiers'
   relations as items 11+ and 11b set them.
@@ -92,6 +92,9 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   place of the old Napkhururiya); Egypt's own seat says Akhenaten (`kingFor(viewer, p)`: the seat view's `king`, the
   models' "You are ...", the web's court strip); his other names (`kingOtherNames`) are for his card alone. The cast's
   origins are by their own names too (Waset, Men-nefer, Gubla), and the place-name map (`OriginProvince`) knows them.
+  A person of 1346 is "Of X." (the court or post the sources put him at; Pharaoh's court men of Akhetaten), since no
+  source gives where any was born; an invented one is "Born in X.", and Akhetaten, founded about three years before
+  1346, is no one's birthplace (#486).
 - **Only what stood in 1346 is drawn as standing:** above, under the map.
 
 ## A power's name is a claim (`model/power.ts`, `turn/press.ts`, `rules/greeting.ts`, `bots/claims.ts`)
