@@ -289,13 +289,18 @@ export interface NewsHeld {
   lines: string[];
   price: number;
   honest: boolean;
+  /**
+   * Whether it was seen at that court, so its land's holders come with it when bought; false for word carried of it from
+   * elsewhere (item 17++, part D: a province's offer its carrier knows of), which tells only its lines.
+   */
+  landSeen: boolean;
 }
 
 export function newNewsHeld(init: Partial<NewsHeld> = {}): NewsHeld {
-  return { court: "Egypt", turn: 0, lines: [], price: 0, honest: true, ...init };
+  return { court: "Egypt", turn: 0, lines: [], price: 0, honest: true, landSeen: true, ...init };
 }
 
-export const NewsHeldSchema: ObjSchema<NewsHeld> = obj("NewsHeld", newNewsHeld, { court: S, turn: I, lines: list(S), price: I, honest: B });
+export const NewsHeldSchema: ObjSchema<NewsHeld> = obj("NewsHeld", newNewsHeld, { court: S, turn: I, lines: list(S), price: I, honest: B, landSeen: B });
 
 export interface Character {
   id: string;
