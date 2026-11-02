@@ -63,6 +63,11 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
     share short of a project's need doing part of a season's work (`WorkPlan.done`), carried on. Script kings name the
     men by a fresh count and ask a share by an old one (`corveeShares`, within `--count-play-half`). Rulebook
     (`rules-works.ts`), design note 48, README. Test: `works.test.ts`.
+14. **A governor's word checked against the king's own spy** (#459; queued into this part by the owner's answer, 2
+    November 2026: "Yes, expertly to both!"): where his spy, within four seasons, found the people of a governed
+    province restless or near revolt under him while the governor's latest letter on it says otherwise, a script king
+    treats it as restless (relief) and takes the governorship back unless foreign troops stand in or beside it
+    (`bots/spy-check.ts`); `--spy-check-play-half`. Test: `game/test/spy-check.test.ts`.
 
 ## Readings taken
 
