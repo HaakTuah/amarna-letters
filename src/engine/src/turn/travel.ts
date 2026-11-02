@@ -393,6 +393,8 @@ P.stopped = function (j, c, province, stop) {
     const purse = c.purse;
     c.purse = 0;
     c.earned.spent += purse;
+    // Item 17++, part D: a province's offer he carries goes with what was taken.
+    this.offersRobbed(c);
     const band = this.robbedBy(province, gold + purse);
     if (band !== null && this.chiefKills(band, c, province)) {
       if (j.dispatch !== null) j.dispatch.gold = 0;

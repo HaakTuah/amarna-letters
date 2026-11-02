@@ -12,6 +12,7 @@
  */
 import { cmpStr, demand, EconomyData, feed, sortBy, sum, supply, unitFood, type Order, type UnitView } from "@amarna/engine";
 import { shareNow } from "./land.ts";
+import { talkedAway } from "./talk.ts";
 import { hidden } from "./spy-check.ts";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
@@ -92,6 +93,8 @@ export function restless(b: Board): string[] {
   }
   // #459: and where our own spy finds the people restless though their governor writes otherwise.
   for (const id of hidden(b)) if (!out.includes(id)) out.push(id);
+  // Part D: and where talk says the people lean toward another king.
+  for (const id of talkedAway(b)) if (!out.includes(id)) out.push(id);
   return out;
 }
 
