@@ -3,6 +3,7 @@
  */
 import { isBlank } from "../core/text.ts";
 import type { Order } from "../model/orders.ts";
+import { declarationKnown } from "../model/declarations.ts";
 import { hiddenAt } from "../model/people.ts";
 import { AllPowers } from "../model/power.ts";
 import { standsForBorrower } from "../model/money.ts";
@@ -114,9 +115,10 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
     case "answer": {
       if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
       const name = Map.get(order.province).name;
-      const d = S.declarations.find((x) => x.province === order.province && x.power === power && x.known <= S.turn);
+      // As the court knows it (hidden information): the order may still find it gone when it arrives.
+      const d = S.declarations.find((x) => x.province === order.province && x.power === power && declarationKnown(x, S.turn));
       if (d === undefined) return `${name} has not declared for you, nor been ceded to you`;
-      if (d.takenUp) return `you have already taken up ${name}`;
+      if (d.takenKnown !== null && d.takenKnown <= S.turn) return `you have already taken up ${name}`;
       if (taxesSet.has(`answer:${order.province}`)) return `you had already answered ${name} this season`;
       taxesSet.add(`answer:${order.province}`);
       return null;

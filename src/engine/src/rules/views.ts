@@ -19,6 +19,7 @@ import { PointsPerDay, wordSeasons } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
 import { countOf } from "../model/counts.ts";
+import { declarationKnown } from "../model/declarations.ts";
 import { seatOf } from "../model/command.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
@@ -257,7 +258,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     king: kingFor(p, p),
     courtAt: courtOf(s, m, p),
     courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
-    governors: s.governors.filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, seat: seatOf(g), character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
+    // Its governors as it knows them: one whose end (death, turning, land lost) has not yet reached it still stands.
+    governors: [...s.governors.filter((g) => g.power === p), ...s.governorsGone.filter((x) => x.governor.power === p && x.until > s.turn).map((x) => x.governor)].map((g) => newGovernorView({ province: g.province, seat: seatOf(g), character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
     ended: s.ended,
     openAge: s.config.openAge,
     ageBand: ageBand(s.config.endMedian),
@@ -437,8 +439,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     }
   }
   v.counting = s.censuses.filter((c) => c.power === p).map((c) => c.province);
-  v.crowning = s.crowns.filter((k) => k.power === p && k.paidArrives === null).map((k) => k.character);
-  v.declared = s.declarations.filter((d) => d.power === p && d.known <= s.turn).map((d) => newDeclaredView({ province: d.province, from: d.from, takenUp: d.takenUp }));
+  // A kingship offered stands in its view until word of its answer reaches the court.
+  v.crowning = s.crowns.filter((k) => k.power === p && (k.heard === null || k.heard > s.turn)).map((k) => k.character);
+  // As word of them has reached it: one ended stands until word of its end comes; taken up once word of that came home.
+  v.declared = s.declarations.filter((d) => d.power === p && declarationKnown(d, s.turn)).map((d) => newDeclaredView({ province: d.province, from: d.from, takenUp: d.takenKnown !== null && d.takenKnown <= s.turn }));
   // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {

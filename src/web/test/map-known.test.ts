@@ -15,7 +15,7 @@ function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
     knownOwner: new Map(), sieges: [], units: [], moves: [], seenBy: new Map(), sight: new Map(), journeys: [], people: new Map(),
     sleep: new Map(), eliminated: new Set(), events: [], news: [], inboxCount: new Map(), openAge: false, ageBand: "Usual",
     ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), counted: new Map(), fed: new Map(),
-    unrest: new Map(), caravans: [], walking: [], omen: "Quiet", governed: new Map(), bonds: new Map(), knownBonds: new Map(), moodRead: new Map(), obeyed: new Map(), ...over,
+    unrest: new Map(), caravans: [], walking: [], omen: "Quiet", governed: new Map(), governedKnown: new Map(), bonds: new Map(), knownBonds: new Map(), moodRead: new Map(), obeyed: new Map(), ...over,
   } as SeasonFrame;
 }
 
@@ -110,7 +110,7 @@ describe("MapKnownTests", () => {
     for (const i of [1, 2]) {
       const scene = buildScene(fs, i, "Egypt");
       // Lost unawares: the stewards' last report (frame 0), with its age; never the live state or the new holder's figures.
-      Assert.equal(JSON.stringify({ live: false, age: i, stores: 500, settled: 5000, countAge: 0, fed: 900 }), JSON.stringify(ownEconomy(scene, city.id)));
+      Assert.equal(JSON.stringify({ live: false, age: i, stores: 500, settled: 5000, countAge: i, fed: 900 }), JSON.stringify(ownEconomy(scene, city.id)));
       // The map's stores and bands as last held, the band faded with its age.
       Assert.equal(500, scene.stores.get(city.id));
       const b = scene.bands.find((x) => x.province === city.id)!;

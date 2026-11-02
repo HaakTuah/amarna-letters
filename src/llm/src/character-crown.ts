@@ -26,11 +26,14 @@ export function crownText(v: CrownView): string {
 }
 
 export function crownSchema(): ReplySchema {
-  return object(["choice", z.enum([Choices.take, Choices.refuse]).describe("Whether you take the kingship on these terms.")]);
+  return object(
+    ["choice", z.enum([Choices.take, Choices.refuse]).describe("Whether you take the kingship on these terms.")],
+    ["terms", z.string().describe("If you refuse: the terms you would take it on, in your own words, which go back to the king with your answer. Else empty.")],
+  );
 }
 
 export function crownOf(o: JsonObject, v: CrownView): CrownChoice {
-  return newCrownChoice({ crownId: v.crownId, accept: o.choice === Choices.take });
+  return newCrownChoice({ crownId: v.crownId, accept: o.choice === Choices.take, terms: typeof o.terms === "string" ? o.terms : "" });
 }
 
 export function crownSummary(ch: CrownChoice | null): string {

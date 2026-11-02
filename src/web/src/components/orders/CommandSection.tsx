@@ -46,9 +46,12 @@ export function CommandSection({ c }: { c: OrdersContext }) {
     until: 0,
   });
   const [gov, setGov] = useState<{ province: string; person: string; levies: number }>({ province: "", person: "", levies: 1 });
-  const [king, setKing] = useState<{ person: string; tribute: string; price: string }>({ person: "", tribute: "", price: "" });
+  const [king, setKing] = useState<{ person: string; tribute: string; price: string; land: string }>({ person: "", tribute: "", price: "", land: "" });
   const [food, setFood] = useState<Record<string, number>>({});
   const ready = v.court.filter((x) => x.ready);
+  // Item 17++: who may be offered a kingship, and over what: a governor of ours over the provinces he governs, never the court's city.
+  const governs = (id: string): string[] => v.governors.filter((g) => g.character === id && !g.relieving && g.from <= v.turn && g.province !== v.courtAt).map((g) => g.province);
+  const crownable = [...new Set(v.governors.map((g) => g.character))].filter((id) => !v.crowning.includes(id) && governs(id).length > 0);
   const own = v.units.filter((u) => u.power === me).sort((a, b) => byName(a.province, b.province));
   const name = (id: string | null): string => v.court.find((x) => x.id === id)?.name ?? id ?? "";
   const lands = map.landProvinces.map((p) => p.id).sort(byName);
@@ -258,22 +261,44 @@ export function CommandSection({ c }: { c: OrdersContext }) {
       <div className="row" style={{ gap: ".3rem" }}>
         <select value={king.person} onChange={(e) => setKing({ ...king, person: e.target.value })}>
           <option value="">— make king? —</option>
-          {[...new Set(v.governors.filter((g) => !g.relieving && g.from <= v.turn && !v.crowning.includes(g.character)).map((g) => g.character))].map((id) => (
+          {/* A governor over the provinces he governs (never the court's city), or a person at court over a province of ours. */}
+          {crownable.map((id) => (
             <option key={id} value={id}>
-              {name(id)} (of {v.governors.filter((g) => g.character === id && g.province !== v.courtAt).map((g) => provinceName(g.province)).join(", ")})
+              {name(id)} (of {governs(id).map(provinceName).join(", ")})
             </option>
           ))}
+          {ready
+            .filter((x) => x.ours && !v.crowning.includes(x.id) && !crownable.includes(x.id))
+            .map((x) => (
+              <option key={`court-${x.id}`} value={x.id}>
+                {x.name} (at your court)
+              </option>
+            ))}
         </select>
+        {king.person !== "" && !crownable.includes(king.person) && (
+          <select value={king.land} onChange={(e) => setKing({ ...king, land: e.target.value })}>
+            <option value="">— of which land? —</option>
+            {[...v.owner]
+              .filter(([id, o]) => o === me && id !== v.courtAt && !v.governors.some((g) => g.province === id))
+              .map(([id]) => id)
+              .sort(byName)
+              .map((id) => (
+                <option key={id} value={id}>
+                  {provinceName(id)}
+                </option>
+              ))}
+          </select>
+        )}
         <input type="number" min={0} placeholder="tribute a year" value={king.tribute} onChange={(e) => setKing({ ...king, tribute: e.target.value })} style={{ width: "7rem" }} />
         <input type="number" min={0} placeholder="price" value={king.price} onChange={(e) => setKing({ ...king, price: e.target.value })} style={{ width: "5rem" }} />
         <button
           className="small"
-          disabled={king.person === "" || king.tribute === ""}
+          disabled={king.person === "" || king.tribute === "" || (!crownable.includes(king.person) && king.land === "")}
           onClick={() =>
             add(
               crown(
                 king.person,
-                v.governors.filter((g) => g.character === king.person && g.province !== v.courtAt).map((g) => g.province),
+                crownable.includes(king.person) ? governs(king.person) : [king.land],
                 Math.max(0, Math.floor(Number(king.tribute))),
                 Math.max(0, Math.floor(Number(king.price || 0))),
               ),

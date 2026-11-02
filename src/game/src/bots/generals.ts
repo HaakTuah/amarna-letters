@@ -117,6 +117,15 @@ export function courtMove(b: Board, _brain: Brain, orders: Order[]): void {
 /** The seasons a governor must have held his post before a script king trusts him with a province beside it. */
 const TrustSeasons = 4;
 
+/** Script kings that never give a governor a province beside his own (`--no-region-play`, `--region-play-half`). None by default. */
+export const RegionPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+  off: false,
+  only: null,
+  on(me: string): boolean {
+    return !(this.off && (this.only === null || this.only.has(me)));
+  },
+};
+
 /**
  * A script king's governors (item 13, "Governors"): a former ruler standing at his court is granted his old city back as
  * its governor (item 11d's "a governorship, a privilege"); and, while he keeps one person at court for his letters, he
@@ -142,7 +151,7 @@ export function governorOrders(b: Board, _brain: Brain, orders: Order[], busy: H
   // Item 17++: a trusted governor (in office a while, his land not written of as restless) takes a threatened province
   // beside his own from his seat, one man over a region, rather than a new man over each.
   const unquiet = new Set(restless(b));
-  const trusted = v.governors.filter((g) => !g.relieving && g.from <= v.turn - TrustSeasons && !unquiet.has(g.province) && !busy.has(g.character));
+  const trusted = RegionPlay.on(b.me) ? v.governors.filter((g) => !g.relieving && g.from <= v.turn - TrustSeasons && !unquiet.has(g.province) && !busy.has(g.character)) : [];
   for (const x of sortBy(mine.filter((y) => y !== v.courtAt && !governed.has(y) && !Board.Map.get(y).isSea && Board.Map.neighbors(y).some((n) => foes.includes(n))), [(y: string) => y, cmpStr])) {
     const g = trusted.find((t) => Board.Map.neighbors(t.province).includes(x));
     if (g === undefined) continue;

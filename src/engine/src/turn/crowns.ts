@@ -9,6 +9,7 @@
 import { idiv } from "../core/num.ts";
 import { clause } from "../model/clauses.ts";
 import { newCrown, newCrownView, seatOf, type Crown } from "../model/command.ts";
+import { toFigures } from "../model/counts.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { CrownOrder } from "../model/orders.ts";
 import { remember, spend, type Character } from "../model/people.ts";
@@ -34,6 +35,12 @@ const P = TurnEngine.prototype;
 function road(e: TurnEngine, from: string, to: string): number {
   const n = courierSeasons(e.s, e.map, from, to);
   return Math.max(1, Number.isFinite(n) ? n : 1);
+}
+
+/** The seasons word from a grant's seat takes to its king's court, as `tell` carries it (0 within the season's reach). */
+function heardIn(e: TurnEngine, k: Crown): number {
+  const d = e.wordTo(k.power, k.seat);
+  return Number.isFinite(d) ? d : 0;
 }
 
 P.grantCrown = function (p, o) {
@@ -67,6 +74,13 @@ function wantsCrown(c: Character, k: Crown, yearly: number): boolean {
   return c.traits.ambition >= 30 || k.tribute * 2 <= yearly;
 }
 
+/** The terms a script man would take a kingship on, by the same sums as `wantsCrown`, in his words (empty: none would do). */
+function crownTerms(c: Character, k: Crown, yearly: number): string {
+  if (c.purse < k.price) return k.price > 0 ? `I cannot pay a price of ${k.price} shekels; ask ${Math.floor(c.purse / 5) * 5} or less.` : "";
+  const most = Math.floor(Math.min(yearly - idiv(k.price, 4), c.traits.ambition >= 30 ? yearly : idiv(yearly, 2)) / 5) * 5;
+  return most > 0 ? `I would take it for ${most} shekels of tribute a year.` : "";
+}
+
 /** Whether a grant can still be carried out: the man alive and the king's, every province still the king's. */
 function stands(e: TurnEngine, k: Crown, c: Character | null): boolean {
   const S = e.s;
@@ -81,27 +95,36 @@ P.crownsSeason = function () {
     const c = findCharacter(S, k.character);
     const lands = k.provinces.map((x) => this.map.get(x).name).join(", ");
     // His price, carried with his answer, reaches the king.
-    if (k.paidArrives !== null) {
-      if (S.turn < k.paidArrives) continue;
-      S.crowns = S.crowns.filter((x) => x !== k);
+    if (k.paidArrives !== null && S.turn >= k.paidArrives) {
       if (k.price > 0 && isAlive(S, k.power)) {
         S.treasuries.get(k.power).gold += k.price;
         notify(S, k.power, "Notice", "A kingship's price", `The ${k.price} shekels ${c?.name ?? "your new vassal"} paid for the kingship of ${lands} reached your treasury.`);
       }
+      k.paidArrives = null;
+    }
+    // Settled: kept, as its king knows it, until word of how it ended reaches his court.
+    if (k.heard !== null) {
+      if (S.turn >= k.heard && k.paidArrives === null) S.crowns = S.crowns.filter((x) => x !== k);
       continue;
     }
     if (S.turn < k.arrives) continue;
     if (c === null || !stands(this, k, c)) {
-      S.crowns = S.crowns.filter((x) => x !== k);
+      k.heard = S.turn + heardIn(this, k);
       if (c !== null && c.duty === "Governing" && !S.governors.some((g) => g.character === c.id)) this.leaveCommand(c, k.seat);
       if (isAlive(S, k.power)) this.tell(k.power, k.seat, "Rejected", "A kingship not given", `The kingship of ${lands} you offered ${c?.name ?? "your man"} could not be given: ${c === null || c.status === "Dead" || c.status === "Captured" ? "he is gone" : "the land, or the man, is no longer yours to give"}.`);
       continue;
     }
     if (k.answered === null) {
       // The word reaches him: his traits answer now; a model gives its own answer before the next season.
-      const yearly = 4 * k.provinces.reduce((a, x) => a + this.effectiveYield(x), 0);
+      // What the land yields as he can know it (hidden information): a governor of all of it what passed through his hands;
+      // anyone else what the king's stewards report of it, to two figures.
+      const raw = 4 * k.provinces.reduce((a, x) => a + this.effectiveYield(x), 0);
+      const governsAll = k.provinces.every((x) => S.governors.some((g) => g.character === c.id && g.power === k.power && g.province === x));
+      const yearly = governsAll ? raw : toFigures(raw, 2);
       k.answered = S.turn;
       k.accept = wantsCrown(c, k, yearly);
+      // Refusing, a script man names the terms he would take (a model gives its own words before the next season).
+      k.terms = k.accept ? "" : crownTerms(c, k, yearly);
       logEvent(S, "crown", `${c.name} was offered the kingship of ${lands} by ${k.power}.`, [], k.accept ? "crown-would" : "crown-asked");
       this.mindRequests.push(
         newMindRequest({
@@ -119,7 +142,7 @@ P.crownsSeason = function () {
             tribute: k.tribute,
             price: k.price,
             purse: c.purse,
-            yearly: Math.round(yearly / 10) * 10,
+            yearly,
           }),
         }),
       );
@@ -127,9 +150,9 @@ P.crownsSeason = function () {
     }
     if (S.turn <= k.answered) continue;
     if (!k.accept || c.purse < k.price) {
-      S.crowns = S.crowns.filter((x) => x !== k);
+      k.heard = S.turn + heardIn(this, k);
       remember(c, S.turn, `The king of ${k.power} offered me the kingship of ${lands} under oath; I would not take it.`);
-      this.tell(k.power, k.seat, "Rejected", "A kingship refused", `${c.name} would not take the kingship of ${lands} on your terms.`);
+      this.tell(k.power, k.seat, "Rejected", "A kingship refused", `${c.name} would not take the kingship of ${lands} on your terms.${k.terms !== "" ? ` His answer: "${k.terms}"` : ""}`);
       logEvent(S, "crown", `${c.name} refused the kingship of ${lands} offered by ${k.power}.`, [k.power], "crown-refused");
       if (!S.governors.some((g) => g.character === c.id)) this.leaveCommand(c, k.seat);
       continue;
@@ -161,6 +184,7 @@ TurnEngine.prototype.crowned = function (k: Crown, c: Character, lands: string) 
   for (const holder of [own, k.power]) S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: t.id, holder, acquiredTurn: S.turn, source: "sealed at the grant of a kingship" }));
   k.price = price;
   k.paidArrives = S.turn + road(this, k.seat, this.courtAt(k.power));
+  k.heard = S.turn + heardIn(this, k);
   this.tell(k.power, k.seat, "Resolution", "A kingship taken", `${c.name} took the kingship of ${lands} under oath: ${own} is your vassal now, its tablet sealed for ${k.tribute} shekels of tribute a year${price > 0 ? `; the ${price} shekels he paid are on the road to you` : ""}.`);
   logEvent(S, "crown", `${c.name} took the kingship of ${lands} from ${k.power}.`, [k.power, own], "crown-taken");
 };

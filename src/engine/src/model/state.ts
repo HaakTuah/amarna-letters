@@ -19,7 +19,7 @@ import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts"
 import { type Declaration, DeclarationSchema } from "./declarations.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
-import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
+import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, type GovernorGone, GovernorGoneSchema, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
 import { type WorkPlan, WorkPlanSchema } from "./works.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
@@ -343,6 +343,8 @@ export interface GameState {
   bands: Band[];
   /** Item 13 ("Governors"): the governorships granted, standing or on their way; ended ones are dropped. */
   governors: Governor[];
+  /** Item 17++: governorships ended whose word has not yet reached their king's court; his view keeps them until it does. */
+  governorsGone: GovernorGone[];
   /** Item 17++: grants of kingship on their way, answered, or their price on the road to the king; done ones are dropped. */
   crowns: Crown[];
   /**
@@ -515,6 +517,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     loot: new Dict(),
     bands: [],
     governors: [],
+    governorsGone: [],
     crowns: [],
     court: new Dict(),
     kingRoads: [],
@@ -639,6 +642,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   loot: dict(I),
   bands: list(() => BandSchema),
   governors: list(() => GovernorSchema),
+  governorsGone: list(() => GovernorGoneSchema),
   crowns: list(() => CrownSchema),
   court: dict(S),
   kingRoads: list(() => KingRoadSchema),

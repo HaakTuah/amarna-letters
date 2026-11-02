@@ -103,7 +103,9 @@ export function peopleLines(v: SeatView): string[] {
   const counted = ps.filter((x) => x.counted !== null);
   if (ps.length > 0) {
     lines.push(
-      `YOUR PEOPLE, as your scribes last counted them: on the land ${counts(v, counted, sum(counted, (x) => x.settled))} (men of fighting age ${counts(v, counted, sum(counted, (x) => x.men))}), in the towns ${counts(v, counted, sum(counted, (x) => x.town))}, loose ${counts(v, counted, sum(counted, (x) => x.loose))}${v.walking > 0 ? `; ${k(v.walking)} discharged men walking home` : ""}. The last harvests, a season's share: ${counts(v, counted, sum(counted, (x) => x.harvest))} measures; the farmers' granaries held ${counts(v, counted, sum(counted, (x) => x.granary))}, the crops in the fields ${counts(v, counted, sum(counted, (x) => x.crop))}.`,
+      counted.length === 0
+        ? `YOUR PEOPLE: your scribes have counted none of your land yet (order a census)${v.walking > 0 ? `; ${k(v.walking)} discharged men walking home` : ""}.`
+        : `YOUR PEOPLE, as your scribes last counted them: on the land ${counts(v, counted, sum(counted, (x) => x.settled))} (men of fighting age ${counts(v, counted, sum(counted, (x) => x.men))}), in the towns ${counts(v, counted, sum(counted, (x) => x.town))}, loose ${counts(v, counted, sum(counted, (x) => x.loose))}${v.walking > 0 ? `; ${k(v.walking)} discharged men walking home` : ""}. The last harvests, a season's share: ${counts(v, counted, sum(counted, (x) => x.harvest))} measures; the farmers' granaries held ${counts(v, counted, sum(counted, (x) => x.granary))}, the crops in the fields ${counts(v, counted, sum(counted, (x) => x.crop))}.`,
     );
     // Item 17++: the age of each count, and the land never counted.
     const ages = groupBy(sortBy(ps.filter((x) => x.counted !== null), [(x) => v.turn - x.counted!, cmpNum], [(x) => x.province, cmpStr]), (x) => v.turn - x.counted!);
@@ -127,12 +129,12 @@ export function peopleLines(v: SeatView): string[] {
     if (v.bands.length > 0) lines.push(`- Bands you see (an army of yours standing where one works in your land falls on it): ${join(", ", v.bands.map((b) => `${b.chief}'s ${b.men} men in ${b.province}${b.ship ? ", with a ship" : ""}`))}.`);
     const out = ps.filter((x) => x.expelled > 0);
     if (out.length > 0) lines.push(`- Mouths put out of (in a hundred of the town): ${join(", ", out.map((x) => `${x.province} ${x.expelled}`))}.`);
-    const empty = ps.filter((x) => x.room > 0 && x.settled * 10 < x.room * 9);
+    const empty = ps.filter((x) => x.counted !== null && x.room > 0 && x.settled * 10 < x.room * 9);
     if (empty.length > 0) lines.push(`- Land with room for more settled (settled of what it carries): ${join(", ", empty.map((x) => `${x.province} ${counts(v, [x], x.settled)} of ${k(x.room)}`))}.`);
     const home = new Set(WorldMap.default.homeOf(v.power).map((p) => p.id));
     const levy = ps.filter((x) => home.has(x.province));
     if (levy.length > 0)
-      lines.push(`- Men of fighting age in your homeland (an army takes ${k(menOf("Army"))}, a fleet ${k(menOf("Fleet"))}): ${join(", ", levy.map((x) => `${x.province} ${counts(v, [x], x.men)}`))}.`);
+      lines.push(`- Men of fighting age in your homeland (an army takes ${k(menOf("Army"))}, a fleet ${k(menOf("Fleet"))}): ${join(", ", levy.map((x) => `${x.province} ${x.counted === null ? "never counted" : counts(v, [x], x.men)}`))}.`);
   }
   const changed = sortBy([...v.yields.entries()].filter(([id, y]) => y !== WorldMap.default.get(id).yield), [([id]: [string, number]) => id, cmpStr]);
   if (changed.length > 0) lines.push(`YIELDS as the last reaping brought them in, a season's third of it, where they differ from the map's (yours and those in sight): ${join(", ", changed.map(([id, y]) => `${id} ${y} (map ${WorldMap.default.get(id).yield})`))}.`);

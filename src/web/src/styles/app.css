@@ -20,6 +20,10 @@
     --gold-metal: #d7a737;
     --shadow: 0 1px 2px rgba(60, 40, 20, .08), 0 6px 18px rgba(60, 40, 20, .08);
     --neutral: #c4b9a4;
+    --mood-loyal: #4f8a46;
+    --mood-uneasy: #c49a2c;
+    --mood-restless: #b0412c;
+    --mood-none: #8a8378;
 
     /* the powers */
     --egypt: #b8862b;
@@ -58,6 +62,10 @@
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
+        --mood-loyal: #7cbf70;
+        --mood-uneasy: #e0b850;
+        --mood-restless: #e0705a;
+        --mood-none: #9a9284;
         --bg: #1c1915;
         --paper: #29241d;
         --surface: #221e19;
@@ -105,6 +113,10 @@
 }
 
 :root[data-theme="dark"] {
+    --mood-loyal: #7cbf70;
+    --mood-uneasy: #e0b850;
+    --mood-restless: #e0705a;
+    --mood-none: #9a9284;
     --bg: #1c1915;
     --paper: #29241d;
     --surface: #221e19;
@@ -424,9 +436,13 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .map .holding { pointer-events: none; }
 .map .gov-bloc path { stroke: none; opacity: .85; }
 .map .mood { fill-opacity: .62; }
-.map .mood-loyal { fill: #4f8a46; } .map .mood-uneasy { fill: #c49a2c; } .map .mood-restless { fill: #b0412c; }
-.map .mood-none { fill: #8a8378; fill-opacity: .22; }
-.mood-legend { position: absolute; left: 8px; bottom: 8px; max-width: min(70vw, 22rem); background: var(--paper); padding: .2rem .45rem; border-radius: 4px; opacity: .92; }
+.map .mood-loyal { fill: var(--mood-loyal); } .map .mood-uneasy { fill: var(--mood-uneasy); } .map .mood-restless { fill: var(--mood-restless); }
+.map .mood-none { fill: var(--mood-none); fill-opacity: .22; }
+/* Above the legend button, which shares the corner. */
+.mood-legend { position: absolute; left: .5rem; bottom: 3rem; max-width: min(70vw, 22rem); background: var(--paper); padding: .2rem .45rem; border-radius: 4px; opacity: .92; }
+.mood-legend .sw { display: inline-block; width: .7em; height: .7em; border-radius: 2px; margin: 0 .2em 0 .45em; vertical-align: -.05em; }
+.mood-legend .sw.loyal { background: var(--mood-loyal); } .mood-legend .sw.uneasy { background: var(--mood-uneasy); }
+.mood-legend .sw.restless { background: var(--mood-restless); } .mood-legend .sw.none { background: var(--mood-none); opacity: .5; }
 .zb.on { outline: 2px solid var(--peak); }
 .map .bands, .map .fog, .map .labels, .map .roads, .map .moves { pointer-events: none; }
 .map .band { fill: none; stroke-width: calc(7px * var(--k)); stroke-linejoin: round; opacity: .95; }

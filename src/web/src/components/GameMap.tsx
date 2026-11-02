@@ -152,7 +152,17 @@ export function GameMap({
           </button>
         )}
       </div>
-      {mode === "mood" && <div className="map-ui mood-legend small">{MoodLegend}</div>}
+      {mode === "mood" && (
+        <div className="map-ui mood-legend small">
+          {MoodLegend.title}
+          {MoodLegend.steps.map(([cls, words]) => (
+            <span key={cls}>
+              <span className={`sw ${cls}`} />
+              {words}
+            </span>
+          ))}
+        </div>
+      )}
       {children}
     </div>
   );

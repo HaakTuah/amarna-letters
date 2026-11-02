@@ -8,11 +8,11 @@
  */
 import { idiv } from "../core/num.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
-import { newGovernor, seatOf, type Governor } from "../model/command.ts";
+import { newGovernor, newGovernorGone, seatOf, type Governor } from "../model/command.ts";
 import { raise, type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { findCharacter, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
+import { findCharacter, isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
 import { courierSeasons, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
 
@@ -28,6 +28,8 @@ declare module "./core.ts" {
     governorsLevy(): void;
     /** What a governor keeps of gold his province yields to its king (passing through his hands): returns what is left. */
     throughGovernor(province: string, gold: number): number;
+    /** A governorship ends: gone from the game, kept in its king's view until word of the end reaches his court. */
+    dropGovernor(g: Governor): void;
   }
 }
 
@@ -48,6 +50,7 @@ P.grantGovernorship = function (p, o) {
     S.governors.push(newGovernor({ province: o.province, seat, character: c.id, power: p, levies: o.levies, from }));
     remember(c, S.turn, `The king of ${p} gave me the governorship of ${this.map.get(o.province).name} too, from my seat at ${this.map.get(seat).name}.`);
     notify(S, p, "Resolution", "Governorship granted", `${c.name} governs ${this.map.get(o.province).name} too, from his seat at ${this.map.get(seat).name}, from turn ${from}${o.levies > 0 ? `, free to raise up to ${o.levies} levies there if foreign troops threaten it` : ""}.`, c.id);
+    logEvent(S, "govern", `${p} gave ${c.name} the governorship of ${this.map.get(o.province).name} too, from his seat at ${this.map.get(seat).name}.`, [p], "govern-region");
     logEvent(S, "governor", `${p} granted ${c.name} the governorship of ${this.map.get(o.province).name} beside his own.`, [p], "governor");
     return;
   }
@@ -81,15 +84,23 @@ P.governorOf = function (province) {
   return c !== null && c.status !== "Dead" && c.duty === "Governing" ? [g, c] : null;
 };
 
+P.dropGovernor = function (g) {
+  const S = this.s;
+  S.governors = S.governors.filter((x) => x !== g);
+  const d = this.wordTo(g.power, g.province);
+  if (isAlive(S, g.power) && Number.isFinite(d) && d > 0) S.governorsGone.push(newGovernorGone({ governor: g, until: S.turn + d }));
+};
+
 P.governorsSeason = function () {
   const S = this.s;
+  S.governorsGone = S.governorsGone.filter((x) => x.until > S.turn && isAlive(S, x.governor.power));
   for (const g of sortBy([...S.governors], [(x: Governor) => x.province, cmpStr])) {
     const c = findCharacter(S, g.character);
     const gone = c === null || c.status === "Dead" || c.duty !== "Governing";
     // His province lost to another, or his king fallen: the grant is over, and he walks home if he has one.
     const lost = S.owner.getOrDefault(g.province, null) !== g.power;
     if (gone || lost) {
-      S.governors = S.governors.filter((x) => x !== g);
+      this.dropGovernor(g);
       // A governor of several keeps the rest (item 17++).
       if (!gone && c !== null && !S.governors.some((x) => x.character === c.id)) this.leaveCommand(c, seatOf(g));
       continue;
@@ -115,7 +126,7 @@ P.governorsSeason = function () {
       // In the city where his king holds court he cannot make it his own (a coup is not modelled).
       if (turns.province && !others && this.courtAt(g.power) !== x.province) going.push(x.province);
     }
-    S.governors = S.governors.filter((x) => x !== g);
+    this.dropGovernor(g);
     if (disloyal && going.length === 0 && levies.length > 0) {
       // He turns with his levies as a band, as before item 17.
       const u = levies[0];

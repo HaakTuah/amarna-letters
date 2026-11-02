@@ -107,7 +107,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
         if (!v.Map.exists(x) || v.Map.get(x).isSea) return `there is no land province called '${x}'`;
         if (S.owner.getOrDefault(x, null) !== v.power) return `${x} is not yours`;
         if (courtOf(S, v.Map, v.power) === x) return `your court is in ${x}: a king does not grant away the city he holds court in`;
-        if (S.crowns.some((k) => k.power === v.power && k.answered === null && k.provinces.includes(x))) return `${x} is already in a grant on its way`;
+        if (S.crowns.some((k) => k.power === v.power && (k.heard === null || k.heard > S.turn) && k.provinces.includes(x))) return `${x} is already in a grant on its way`;
       }
       // The provinces hang together: each beside another named, so one man rules them from one seat.
       const reached = new Set([ps[0]]);
@@ -122,7 +122,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       if (reached.size !== ps.length) return "the provinces of a grant must lie beside one another";
       if (!Number.isInteger(order.tribute) || order.tribute < 0) return "the tribute is a number of shekels a year, 0 or more";
       if (!Number.isInteger(order.price) || order.price < 0) return "the price is a number of shekels, 0 or more";
-      if (S.crowns.some((k) => k.character === order.character && k.paidArrives === null)) return `a grant to ${order.character} is already on its way`;
+      if (S.crowns.some((k) => k.character === order.character && (k.heard === null || k.heard > S.turn))) return `a grant to ${order.character} is already on its way`;
       if (v.orders.some((o) => o.type === "crown" && v.orders.indexOf(o) < v.orders.indexOf(order) && o.provinces.some((x) => ps.includes(x)))) return "an earlier order already grants one of those provinces";
       // A governor of ours is granted the provinces he governs, his seat among them; anyone else stands at our court.
       const held = S.governors.filter((g) => g.character === order.character && g.power === v.power && g.relieved === null);

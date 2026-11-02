@@ -169,7 +169,7 @@ export type Holding = { kind: "ruled" } | { kind: "governed" } | { kind: "vassal
 /** Item 17++, part C: the holding, governors and mood of the land, as the viewer knows them. */
 function holdingsFor(f: SeasonFrame, viewer: Power | null, owner: Map<string, Power | null>): Pick<MapScene, "holding" | "governors" | "mood"> {
   const bonds = viewer === null ? f.bonds : (f.knownBonds.get(viewer) ?? new Map<Power, Power>());
-  const governors = new Map([...f.governed].filter(([id, g]) => (viewer === null || g.power === viewer) && owner.get(id) === g.power));
+  const governors = new Map([...(viewer === null ? f.governed : (f.governedKnown.get(viewer) ?? new Map<string, FrameGovernor>()))].filter(([id, g]) => owner.get(id) === g.power));
   const holding = new Map<string, Holding>();
   for (const [id, o] of owner) {
     if (o === null) continue;
@@ -346,7 +346,7 @@ export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
   if (own === undefined) return null;
   if (own.age === 0 && scene.latest) return { live: true };
   const c = own.frame.counted.get(scene.viewer)?.get(id);
-  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: c?.settled, countAge: c === undefined ? undefined : own.frame.turn - c.turn, fed: own.frame.fed.get(id) };
+  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: c?.settled, countAge: c === undefined ? undefined : scene.frame.turn - c.turn, fed: own.frame.fed.get(id) };
 }
 
 /** A band as a viewer's map shows it, with the seasons since its word of it. */

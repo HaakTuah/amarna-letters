@@ -14,6 +14,7 @@ import type { AnswerOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import { isAlive, logEvent, notify } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
+import { Views } from "../rules/views.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
@@ -44,13 +45,19 @@ function knownBy(e: TurnEngine, p: Power, province: string): number {
 P.declareIn = function (province, holder, against, affirmed, clears) {
   const S = this.s;
   const name = this.map.get(province).name;
-  const claim = S.declarations.find((d) => d.province === province && d.from !== null);
+  const claim = S.declarations.find((d) => d.province === province && d.from !== null && d.gone === null);
   if (claim !== undefined) {
     // A claim stands while its giver holds the land; taken up, the giver withdraws and its people weigh the receiver
     // against what they accept of anyone, as land without a ruler does, with the giver's troops gone from it.
     if (claim.from !== holder || !isAlive(S, claim.power)) return null;
     affirmed.add(province);
     const giverThere = S.units.some((u) => u.power === claim.from && u.province === province);
+    // Taken up, and the giver's troops still there a season on: the treaty that bound him to withdraw is broken.
+    if (claim.takenUp && giverThere && !claim.broken && claim.takenKnown !== null && S.turn > claim.takenKnown) {
+      claim.broken = true;
+      this.tell(claim.power, province, "Notice", "A cession not kept", `${claim.from}'s troops still stand in ${name}, which he ceded to you and you took up: the treaty bound him to withdraw, and he has not.`);
+      logEvent(S, "cession", `${claim.from} has not withdrawn from ${name}, which he ceded to ${claim.power}.`, AllPowers.filter((x) => x === claim.power || x === claim.from || (isAlive(S, x) && Views.sight(S, this.map, x).has(province))), "cession-unkept");
+    }
     return claim.takenUp && !giverThere && clears(this.weightIn(province, claim.power), UnrestData.floor) ? claim.power : null;
   }
   // The power its people lean to most, of those whose troops do not stand in it (those go by the season's rule).
@@ -63,9 +70,9 @@ P.declareIn = function (province, holder, against, affirmed, clears) {
   if (best === null || !clears(best.w, against)) return null;
   const p = best.p;
   affirmed.add(province);
-  let d: Declaration | undefined = S.declarations.find((x) => x.province === province);
+  let d: Declaration | undefined = S.declarations.find((x) => x.province === province && x.gone === null);
   if (d !== undefined && d.power !== p) {
-    S.declarations.splice(S.declarations.indexOf(d), 1);
+    end(this, d);
     d = undefined;
   }
   if (d === undefined) {
@@ -80,13 +87,19 @@ P.declareIn = function (province, holder, against, affirmed, clears) {
 
 P.declarationsLapse = function (affirmed, changed) {
   const S = this.s;
-  S.declarations = S.declarations.filter((d) => affirmed.has(d.province) && !changed.has(d.province));
+  for (const d of S.declarations) if (d.gone === null && (!affirmed.has(d.province) || changed.has(d.province))) end(this, d);
+  S.declarations = S.declarations.filter((d) => d.gone === null || d.gone > S.turn);
 };
+
+/** A declaration or claim ends: gone from the rule, kept in its court's view until word of the end reaches it. */
+function end(e: TurnEngine, d: Declaration): void {
+  d.gone = knownBy(e, d.power, d.province);
+}
 
 P.cededClaim = function (giver, to, province) {
   const S = this.s;
   const name = this.map.get(province).name;
-  S.declarations = S.declarations.filter((d) => d.province !== province);
+  for (const d of S.declarations) if (d.province === province && d.gone === null) end(this, d);
   S.declarations.push(newDeclaration({ province, power: to, from: giver, known: knownBy(this, to, province) }));
   notify(S, giver, "Resolution", "Land ceded", `You ceded ${name} to ${to}: it stays in your hands until ${to} takes it up, and then your officers withdraw. Keep your troops out of it, or he cannot.`);
   this.tell(to, province, "Resolution", "Land ceded to you", `${giver} has ceded ${name} to you. It is yours to take up (answer it), or refuse; until you do, it stays in ${giver}'s hands, and once you do, its people still weigh you.`);
@@ -96,14 +109,16 @@ P.cededClaim = function (giver, to, province) {
 P.answerProvince = function (p, o) {
   const S = this.s;
   const name = this.map.get(o.province).name;
-  const d = S.declarations.find((x) => x.province === o.province && x.power === p);
+  const d = S.declarations.find((x) => x.province === o.province && x.power === p && x.gone === null);
   if (d === undefined) {
     this.failed(p, o, "Answer failed", `Your word reached ${name}, but it no longer looked to you.`, "it no longer looked to you", true);
     return;
   }
   if (o.take) {
     d.takenUp = true;
-    notify(S, p, "Resolution", "A province taken up", `Your word taking up ${name} has reached it: it answers to you as the season turns, if its people still favour you${d.from !== null ? ` and ${d.from}'s troops have left it` : ""}.`);
+    // Word that his word reached it comes home by the road.
+    d.takenKnown = knownBy(this, p, o.province);
+    this.tell(p, o.province, "Resolution", "A province taken up", `Your word taking up ${name} reached it: it answers to you as the season turns after it came, if its people still favour you${d.from !== null ? ` and ${d.from}'s troops have left it` : ""}.`);
     logEvent(S, "declare", `${p} took up ${name}.`, [], "declare-taken");
     return;
   }
@@ -125,7 +140,7 @@ P.provinceTakenUp = function (province, p, seeing) {
   const S = this.s;
   const name = this.map.get(province).name;
   const holder = S.owner.getOrDefault(province, null);
-  const ceded = S.declarations.find((d) => d.province === province && d.power === p)?.from ?? null;
+  const ceded = S.declarations.find((d) => d.province === province && d.power === p && d.gone === null)?.from ?? null;
   this.setOwner(province, p);
   this.takeArchive(p, province);
   if (ceded !== null) {

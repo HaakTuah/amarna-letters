@@ -146,8 +146,11 @@ P.fulfil = function (req, reply) {
       return;
     case "Crown": {
       // Item 17++: a man offered a kingship chose whether he takes it, taken next season.
-      const k = req.crown === null || reply.crown === null ? undefined : this.s.crowns.find((x) => x.id === req.crown!.crownId && x.paidArrives === null);
-      if (k !== undefined && reply.crown !== null) k.accept = reply.crown.accept;
+      const k = req.crown === null || reply.crown === null ? undefined : this.s.crowns.find((x) => x.id === req.crown!.crownId && x.heard === null);
+      if (k !== undefined && reply.crown !== null) {
+        k.accept = reply.crown.accept;
+        k.terms = reply.crown.accept ? "" : reply.crown.terms.trim();
+      }
       return;
     }
     case "EnvoyReport": {
