@@ -37,12 +37,6 @@ function road(e: TurnEngine, from: string, to: string): number {
   return Math.max(1, Number.isFinite(n) ? n : 1);
 }
 
-/** The seasons word from a grant's seat takes to its king's court, as `tell` carries it (0 within the season's reach). */
-function heardIn(e: TurnEngine, k: Crown): number {
-  const d = e.wordTo(k.power, k.seat);
-  return Number.isFinite(d) ? d : 0;
-}
-
 P.grantCrown = function (p, o) {
   const S = this.s;
   const c = findCharacter(S, o.character);
@@ -113,7 +107,7 @@ P.crownsSeason = function () {
     }
     if (S.turn < k.arrives) continue;
     if (c === null || !stands(this, k, c)) {
-      k.heard = S.turn + heardIn(this, k);
+      k.heard = this.heardAt(k.power, k.seat);
       if (c !== null && c.duty === "Governing" && !S.governors.some((g) => g.character === c.id)) this.leaveCommand(c, k.seat);
       if (isAlive(S, k.power)) this.tell(k.power, k.seat, "Rejected", "A kingship not given", `The kingship of ${lands} you offered ${c?.name ?? "your man"} could not be given: ${c === null || c.status === "Dead" || c.status === "Captured" ? "he is gone" : "the land, or the man, is no longer yours to give"}.`);
       continue;
@@ -154,7 +148,7 @@ P.crownsSeason = function () {
     }
     if (S.turn <= k.answered) continue;
     if (!k.accept || c.purse < k.price) {
-      k.heard = S.turn + heardIn(this, k);
+      k.heard = this.heardAt(k.power, k.seat);
       remember(c, S.turn, `The king of ${k.power} offered me the kingship of ${lands} under oath; I would not take it.`);
       this.tell(k.power, k.seat, "Rejected", "A kingship refused", `${c.name} would not take the kingship of ${lands} on your terms.${k.terms !== "" ? ` His answer: "${k.terms}"` : ""}`);
       logEvent(S, "crown", `${c.name} refused the kingship of ${lands} offered by ${k.power}.`, [k.power], "crown-refused");
@@ -190,7 +184,7 @@ TurnEngine.prototype.crowned = function (k: Crown, c: Character, lands: string) 
   k.tablet = t.id;
   k.price = price;
   k.paidArrives = S.turn + road(this, k.seat, this.courtAt(k.power));
-  k.heard = S.turn + heardIn(this, k);
+  k.heard = this.heardAt(k.power, k.seat);
   this.tell(k.power, k.seat, "Resolution", "A kingship taken", `${c.name} took the kingship of ${lands} under oath: ${own} is your vassal now, its tablet sealed for ${k.tribute} shekels of tribute a year${price > 0 ? `; the ${price} shekels he paid are on the road to you` : ""}.`);
   logEvent(S, "crown", `${c.name} took the kingship of ${lands} from ${k.power}.`, [k.power, own], "crown-taken");
 };

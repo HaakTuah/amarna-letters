@@ -87,8 +87,9 @@ P.governorOf = function (province) {
 P.dropGovernor = function (g) {
   const S = this.s;
   S.governors = S.governors.filter((x) => x !== g);
-  const d = this.wordTo(g.power, g.province);
-  if (isAlive(S, g.power) && Number.isFinite(d) && d > 0) S.governorsGone.push(newGovernorGone({ governor: g, until: S.turn + d }));
+  // Until the season word of the end can be read at his court, as `tell` carries it.
+  const until = this.heardAt(g.power, g.province);
+  if (isAlive(S, g.power) && until > S.turn) S.governorsGone.push(newGovernorGone({ governor: g, until }));
 };
 
 P.governorsSeason = function () {

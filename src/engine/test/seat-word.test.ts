@@ -1,78 +1,87 @@
 import { describe, test } from "vitest";
-import { TurnEngine, Views, crown, newCharacter, newDeclaration, newGame, newGameConfig, newGovernor, newId, newTraits, type GameState } from "@amarna/engine";
+import { Dict, TurnEngine, Views, crown, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newGovernor, newId, newTraits, type GameState } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
 // Item 17++, part C (hidden information, the review of #378): a court's view keeps what it believes until word of the change
-// reaches it: a governor's end, a kingship's answer, a province's declaration ended. Babylon and Nippur lie a season's
-// word from Egypt's court; the steps that carry each change are called directly on the starting world.
+// can be read at its court, in the same season as the notice that carries it: a governor's end, a kingship's answer, a
+// province's declaration ended. Nippur and Babylon lie a season's word from Egypt's court. Real seasons are played (each
+// season begins, then resolves with no orders), since the moment a view changes depends on where in the season a change
+// falls.
 describe("SeatWordTests", () => {
   const quiet = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
-  const man = (s: GameState, name: string): string => {
-    const c = newCharacter({ id: newId(s, "c"), name, traits: newTraits({ loyalty: 60, greed: 50, ambition: 10, courage: 60, competence: 50 }), status: "Employed", employer: "Egypt", duty: "Governing", watchProvince: "nippur", purse: 0, grantedBy: "Egypt" });
-    s.characters.push(c);
-    return c.id;
-  };
   /** Egypt holding Nippur under a governor of its own, a season's word from its court. */
-  function governed(): [GameState, TurnEngine, string] {
+  function governed(): [GameState, string] {
     const s = quiet();
-    const e = new TurnEngine(s);
-    e.setOwner("nippur", "Egypt");
-    const id = man(s, "Amenemope");
-    s.governors.push(newGovernor({ province: "nippur", seat: "nippur", character: id, power: "Egypt", from: 0 }));
-    Assert.equal(1, e.wordTo("Egypt", "nippur"));
-    return [s, e, id];
+    new TurnEngine(s).setOwner("nippur", "Egypt");
+    const c = newCharacter({ id: newId(s, "c"), name: "Amenemope", traits: newTraits({ loyalty: 60, greed: 50, ambition: 10, courage: 60, competence: 50 }), status: "Employed", employer: "Egypt", duty: "Governing", watchProvince: "nippur", purse: 0, grantedBy: "Egypt" });
+    s.characters.push(c);
+    s.governors.push(newGovernor({ province: "nippur", seat: "nippur", character: c.id, power: "Egypt", from: 0 }));
+    Assert.equal(1, new TurnEngine(s).wordTo("Egypt", "nippur"));
+    return [s, c.id];
   }
+  /** Plays seasons: each begins (what the seats are shown is taken then), `look` reads it, then it resolves. */
+  function play(s: GameState, n: number, look: (s: GameState) => void): void {
+    for (let k = 0; k < n; k++) {
+      const e = new TurnEngine(s);
+      e.beginTurn();
+      look(s);
+      e.resolve(new Dict());
+    }
+  }
+  /** Whether word of the kingship's answer (taken, refused or not to be given) is in the court's inbox. */
+  const answered = (s: GameState): boolean => inboxOf(s, "Egypt").some((i) => i.title.startsWith("A kingship ") && i.title !== "A kingship offered");
 
-  test("A governor's death reaches his king's view only when its word does", () => {
-    const [s, e, id] = governed();
+  test("A governor's end leaves his king's view the season its word can be read there", () => {
+    const [s, id] = governed();
     s.characters.find((c) => c.id === id)!.status = "Dead";
-    e.governorsSeason();
-    Assert.false(s.governors.some((g) => g.character === id));
-    // Still his governor in Egypt's view this season; gone the next, when the word has come.
-    Assert.true(Views.for(s, "Egypt").governors.some((g) => g.province === "nippur" && g.character === id));
-    s.turn++;
-    e.governorsSeason();
-    Assert.false(Views.for(s, "Egypt").governors.some((g) => g.province === "nippur"));
+    const shown: boolean[] = [];
+    play(s, 4, (x) => shown.push(Views.for(x, "Egypt").governors.some((g) => g.province === "nippur")));
+    // Dropped as the first season began; word from a season away is read two seasons later, as `tell` carries it.
+    Assert.equal([true, true, false, false], shown);
   });
 
-  test("A kingship's answer reaches the court only when its word does", () => {
-    const [s, e, id] = governed();
-    e.grantCrown("Egypt", crown(id, ["nippur"], 1000));
-    const k = s.crowns.find((x) => x.character === id)!;
-    // The word reaches him, he answers (the tribute is far beyond the land), and his refusal sets out.
-    s.turn = k.arrives;
-    e.crownsSeason();
-    s.turn++;
-    e.crownsSeason();
-    Assert.notEqual(null, k.heard);
-    Assert.true(k.heard! > s.turn);
-    Assert.true(Views.for(s, "Egypt").crowning.includes(id));
-    s.turn = k.heard!;
-    e.crownsSeason();
-    Assert.false(Views.for(s, "Egypt").crowning.includes(id));
-    Assert.false(s.crowns.includes(k));
+  test("A kingship's answer leaves the grant pending in the view until its notice is read", () => {
+    const [s, id] = governed();
+    new TurnEngine(s).grantCrown("Egypt", crown(id, ["nippur"], 1000));
+    const rows: [boolean, boolean][] = [];
+    play(s, 8, (x) => rows.push([Views.for(x, "Egypt").crowning.includes(id), answered(x)]));
+    // Pending until the refusal is in the inbox, and from then on gone, in the same season.
+    const first = rows.findIndex(([, heard]) => heard);
+    Assert.true(first > 0);
+    for (const [k, [pending, heard]] of rows.entries()) Assert.equal(!heard, pending, `season ${k}`);
   });
 
-  test("A declaration ended stands in its court's view until word of the end comes; taken up, once word of that comes home", () => {
+  test("A declaration ended stands in its court's view until word of the end can be read; taken up, until word of that", () => {
     const s = quiet();
     const e = new TurnEngine(s);
+    e.beginTurn();
     const d = newDeclaration({ province: "babylon", power: "Egypt", known: s.turn });
     s.declarations.push(d);
     Assert.single(Views.for(s, "Egypt").declared);
-    // Its people no longer lean his way: gone from the rule now, from his view a season later.
+    // Its people no longer lean his way (no season affirms it): gone from the rule now, from his view once word can be read.
     e.declarationsLapse(new Set(), new Set());
-    Assert.notEqual(null, d.gone);
+    Assert.equal(e.heardAt("Egypt", "babylon"), d.gone);
+    Assert.true(d.gone! > s.turn + 1);
+    Assert.single(Views.for(s, "Egypt").declared);
+    s.turn = d.gone! - 1;
     Assert.single(Views.for(s, "Egypt").declared);
     s.turn = d.gone!;
-    e.declarationsLapse(new Set(), new Set());
     Assert.empty(Views.for(s, "Egypt").declared);
-    // Taken up: shown so only when word of it comes home.
+    // Taken up: shown so only from the season its notice is read, which `tell` carries home.
     const t = quiet();
     const f = new TurnEngine(t);
+    f.beginTurn();
     t.declarations.push(newDeclaration({ province: "babylon", power: "Egypt", known: t.turn }));
+    const takenUp: boolean[] = [];
+    const heard: boolean[] = [];
     f.answerProvince("Egypt", { type: "answer", province: "babylon", take: true });
-    Assert.false(Views.for(t, "Egypt").declared[0].takenUp);
-    t.turn++;
-    Assert.true(Views.for(t, "Egypt").declared[0].takenUp);
+    f.resolve(new Dict());
+    play(t, 3, (x) => {
+      takenUp.push(Views.for(x, "Egypt").declared[0]?.takenUp ?? false);
+      heard.push(heard.at(-1) === true || inboxOf(x, "Egypt").some((i) => i.title === "A province taken up"));
+    });
+    // Until the notice, not taken up in its view; with it, taken up (later the test's declaration, with nobody behind it, lapses).
+    Assert.equal([false, true], takenUp.slice(0, 2));
+    Assert.equal(heard.slice(0, 2), takenUp.slice(0, 2));
   });
 });

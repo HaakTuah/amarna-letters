@@ -36,10 +36,9 @@ declare module "./core.ts" {
 
 const P = TurnEngine.prototype;
 
-/** The season the word of something in `province` reaches `p`'s court. */
+/** The season the word of something in `province` can be read at `p`'s court: when `tell`'s notice of it arrives. */
 function knownBy(e: TurnEngine, p: Power, province: string): number {
-  const d = e.wordTo(p, province);
-  return e.s.turn + (Number.isFinite(d) ? d : 0);
+  return e.heardAt(p, province);
 }
 
 P.declareIn = function (province, holder, against, affirmed, clears) {
