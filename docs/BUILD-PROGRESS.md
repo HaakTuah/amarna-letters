@@ -69,25 +69,15 @@ fixed.
 - ~~**The province card looking back** (the weekly blind re-review of #374): in a seat view on an earlier season the
   card read the live state, the new holder's figures where the city has since fallen; it gives that season's recorded
   figures now, with a test at a past season (#414).~~
-- **The canary test for hidden information** (the owner, 2 November 2026, after reviews missed seat-view leaks twice;
-  "Hidden information" under "Review guidelines" in `AGENTS.md`). A small game with secrets planted (an envoy's hidden
-  errand, a sealed tablet's words, an army in the fog, another court's treasury); every seat's view, model request,
-  script king's input and export is built along every path (the latest season, past seasons, a replay, the god view
-  where a seat has none) and none may hold a secret. A test lane beside the items.
-- **First of all: what a game's export holds** (the owner, 2 November 2026: "And queue a job going fully over what the
-  export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
-  fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
-  session's `export`, `log.toJsonl()` and every record type in it: the header, calls, decisions, shadows) and
-  everything it could carry: API keys or anything from the key's storage, provider addresses with tokens in them,
-  request or organisation ids, e-mail addresses, local paths, browser or device details.
-  Anything sensitive is removed from the export, with a test that fails if it comes back, and **The owner is alerted at
-  once**: the PR's first line and the session's "Questions for the owner" say what was found and which files in
-  `tests/fixtures/` hold it, so they can be removed from the repository and its history. If nothing is found, the
-  report lists what the export holds, field by field. Then build **one export with filters** (Engine and models,
-  "Logging and replay"; the owner, 2 November 2026): by default everything, every call in full with each model's notes,
-  plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
-  wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
-  in any export. A human player's own words are not sensitive in a normal export.
+- ~~**The canary test for hidden information**~~ (done, #421): `src/web/test/canary.test.ts` plants an envoy's hidden
+  mandate, its letter, a sealed tablet, an army in the fog and another court's treasury, and reads every seat's input,
+  every model request, the chronicles, every view, map and panel the page shows, live, in past seasons and on replay; no
+  leak found. Whether "Export log" should wait for "Reveal all" while a human plays: #424. Its export part (secrets
+  and a human seat's words exported under every filter, none found) is added once the export lane (#385) merges.
+- ~~**First of all: what a game's export holds**~~ (done, #385): nothing sensitive in `tests/fixtures/`; one export
+  with filters (calls, shadows, audits, human words), kept clean by design: failures logged as kind and code, each
+  record giving only its listed fields, and without human words a game with a human seat blanks every text and still
+  replays. Open: #424, #427. Report: `docs/rounds/2026-11-02-export-audit.md`; note: `docs/design/50-the-export.md`.
 - ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
   as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
   token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:

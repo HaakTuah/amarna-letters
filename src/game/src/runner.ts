@@ -84,6 +84,7 @@ import {
   type PresentResult,
 } from "./contracts.ts";
 import { GameLog, authorKind, newAuthorship, newLogHeader, seasonFallbacks, type Authorship, type LogHeader, type SeasonFallbacks, type TrailAuthors } from "./log.ts";
+import { failureOf } from "./failure.ts";
 import { SnapshotStore } from "./snapshots.ts";
 import { Council } from "./bots/council.ts";
 import { ScriptLeader } from "./bots/script-leader.ts";
@@ -326,8 +327,9 @@ export class GameRunner {
       value = await produce();
     } catch (ex) {
       if (fallback === null || (ex instanceof Error && ex.name === "AbortError")) throw ex;
-      const reason = ex instanceof Error ? ex.message : String(ex);
-      this.errors.push(`${key}: ${reason}`);
+      // The player's own list of what failed keeps the message; the log, and so every export, keeps only its kind.
+      this.errors.push(`${key}: ${ex instanceof Error ? ex.message : String(ex)}`);
+      const reason = failureOf(ex);
       by = newAuthorship({ kind: "fallback", name: who ?? "", reason });
       value = await fallback();
     }

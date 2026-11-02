@@ -6,7 +6,7 @@
  * exchange is also logged as a model call (with no tokens, but the request's length), so the log holds the prompts.
  */
 import { isLetterOrDigit, trimEnd } from "@amarna/engine";
-import { newModelCall, type ModelCall } from "@amarna/game";
+import { failureOf, newModelCall, type ModelCall } from "@amarna/game";
 import { readObject, retryNote, type CallSpec } from "./client.ts";
 import { readAsMeant } from "./reading.ts";
 import { jsonSchema, problems, type JsonObject } from "./schemas.ts";
@@ -27,7 +27,9 @@ export const Footer =
   "When you have written your reply file, your final message must be the single word done. Say nothing about your decision. " +
   "Earlier reply files cannot be read: your record of earlier seasons is in this request.";
 
-export class ReplyError extends Error {}
+export class ReplyError extends Error {
+  readonly failure = "did not fit";
+}
 
 /** One decision as an exchange of files: the request under the key's safe name, and on an unreadable reply one retry. */
 export async function converse(
@@ -61,7 +63,7 @@ export async function converse(
     }
   } catch (ex) {
     if (!(ex instanceof Error && ex.name === "AbortError")) {
-      call.error = ex instanceof Error ? ex.message : String(ex);
+      call.error = failureOf(ex);
       record?.(call);
     }
     throw ex;
