@@ -14,7 +14,7 @@ accomplishing them most possible, with the least tokens, without sacrifacing qua
   its context is under an hour old and still small, and its last item has merged; otherwise a fresh session, and always
   one when a session's context has grown large.
 - **Bigger review fixes in a session of their own.** If a review asks for more than about an hour's work, start a fresh
-  session for it with the PR, the review and nothing else, at the item's effort; the builder goes on.
+  session for it with the PR, the review and nothing else, at the builder's effort (medium; work marked high goes to its helpers); the builder goes on.
 - **Hand over at once.** A builder's last message says what merged and what is next. Start the next session as soon as
   an item merges, woken by the PR's merge rather than a clock, with an hourly check as the fallback.
 - **A lane for every independent entry you can see,** each a builder session with its own brief and check-in, by the

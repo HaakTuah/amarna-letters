@@ -1,4 +1,4 @@
-# A button for Haakon: Actions → "Delete merged branches" → Run workflow.
+# A button for the owner: Actions → "Delete merged branches" → Run workflow.
 # Deletes only branches whose every commit is already in develop, that no open pull request uses,
 # and that are more than a day old (unless their pull request was merged). main, develop, pr-media and
 # gh-pages are never touched; main and develop are also protected by the "Proc" ruleset.
