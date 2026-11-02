@@ -72,7 +72,7 @@ describe("ExportTests", () => {
   /** A human player's words, long enough to be looked for wherever they are quoted. */
   const Letter = "Greetings, my brother of Alashiya. I send you twelve horses and a chariot of gold.";
   const Notes = "Attack now";
-  const Speech = "Your lord's horses are welcome here.";
+  const Speech = 'Your lord\'s horses are welcome here. Say "my brother" to him.';
 
   class HumanSender implements ISeat {
     readonly label = "Human";
@@ -110,6 +110,8 @@ describe("ExportTests", () => {
     await runner.prepare();
     for (let i = 0; i < 4; i++) await runner.playTurn();
     // A model's prompt that carries the letter, as an envoy's or a court's request would.
+    // A model's reply, itself JSON, that copies the host's speech with its quotation marks.
+    runner.log.addCall(newModelCall({ key: "t2/orders/Hatti", turn: 2, role: "leader", model: "Haiku", output: JSON.stringify({ notes: `Alashiya said: ${Speech}` }) }));
     // A chronicle, a decision whose whole value is a text, quoting the letter.
     runner.log.record("t2/chronicle/Egypt", S, `Pharaoh wrote to Alashiya: "${Letter}"`, newAuthorship({ kind: "model", name: "Haiku narrator" }));
     // Prompts that carry the letter whole, a brief of it cut mid-word, and the short note.
@@ -119,11 +121,14 @@ describe("ExportTests", () => {
     // The export as read: its strings unescaped.
     const read = (text: string): string => text.split("\n").filter((l) => l.length > 0).map((l) => JSON.stringify(JSON.parse(l))).join("\n");
     const full = read(exportJsonl(runner.log));
-    for (const words of [Letter, Notes, Speech]) Assert.true(full.includes(words), `a normal export keeps "${words}"`);
+    // As the export reads: in a string, and in a JSON string inside one (a model's reply).
+    const esc = (w: string): string => JSON.stringify(w).slice(1, -1);
+    for (const words of [Letter, Notes, Speech]) Assert.true(full.includes(esc(words)), `a normal export keeps "${words}"`);
 
     const text = exportJsonl(runner.log, { ...Everything, humanWords: false });
     const kept = read(text);
-    for (const words of [Letter, Speech, "twelve horses", "my brother of Alashiya", "Attack now."]) Assert.false(kept.includes(words), `"${words}" is still in the export`);
+    for (const words of [Letter, Speech, "twelve horses", "my brother of Alashiya", "Attack now.", "welcome here", 'Say "my brother"'])
+      for (const form of [esc(words), esc(esc(words))]) Assert.false(kept.includes(form), `"${form}" is still in the export`);
     Assert.true(kept.includes('Pharaoh wrote to Alashiya: \\"' + Letter.replace(/\S/g, BlankMark)));
     // A short text counts only whole: the same letters inside a longer word are not his.
     Assert.true(kept.includes("Attack nowhere else."));
@@ -136,7 +141,7 @@ describe("ExportTests", () => {
     for (let i = 0; i < 4; i++) await replay.playTurn();
     // The same game, with the human's words blanked in it too.
     let expected = read(serialize(GameStateSchema, state));
-    for (const words of [Letter, Notes, Speech]) expected = expected.split(words).join(words.replace(/\S/g, BlankMark));
+    for (const words of [Letter, Notes, Speech]) expected = expected.split(esc(words)).join(esc(words.replace(/\S/g, BlankMark)));
     Assert.equal(expected, read(serialize(GameStateSchema, replay.state)));
   });
 });

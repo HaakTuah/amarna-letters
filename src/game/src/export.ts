@@ -105,15 +105,20 @@ function blankFields(v: unknown, words: string[], key = ""): unknown {
   return v;
 }
 
-/** The texts to look for elsewhere: each whole text, and each sentence or line of it, longest first. */
+/**
+ * The texts to look for elsewhere: each whole text, and each sentence or line of it; each also as it
+ * stands inside a JSON string, since a model's reply is JSON (`Meet \\"my brother\\"`, a line break as `\\n`).
+ */
 function pieces(words: string[]): string[] {
   const found = new Set<string>();
   for (const w of words)
     for (const p of [w, ...w.split(/(?<=[.!?;:])\s+|\n+/)]) {
       const t = p.trim();
-      if (t.length > 0) found.add(t);
+      if (t.length === 0) continue;
+      found.add(t);
+      found.add(JSON.stringify(t).slice(1, -1));
     }
-  return [...found].sort((a, b) => b.length - a.length);
+  return [...found];
 }
 
 const isWord = (c: string | undefined): boolean => c !== undefined && /[\p{L}\p{N}_]/u.test(c);
@@ -123,17 +128,24 @@ const isWord = (c: string | undefined): boolean => c !== undefined && /[\p{L}\p{
  * word's start, the span that goes on matching it is blanked, however soon it is cut off; a short text only whole.
  */
 function blankIn(s: string, texts: string[]): string {
-  let out = s;
+  // Every match is found in the text as it stands, then all are blanked together, so one match cut short (a text's JSON
+  // form against its plain quote) never hides another's.
+  const hit = new Uint8Array(s.length);
+  let any = false;
   for (const t of texts) {
     const head = t.slice(0, MinQuoted);
-    for (let i = out.indexOf(head); i >= 0; i = out.indexOf(head, i + 1)) {
-      if (isWord(out[i - 1])) continue;
+    for (let i = s.indexOf(head); i >= 0; i = s.indexOf(head, i + 1)) {
+      if (isWord(s[i - 1])) continue;
       let n = head.length;
-      while (n < t.length && out[i + n] === t[n]) n++;
-      if (t.length <= MinQuoted && isWord(out[i + n])) continue;
-      out = out.slice(0, i) + blank(out.slice(i, i + n)) + out.slice(i + n);
+      while (n < t.length && s[i + n] === t[n]) n++;
+      if (t.length <= MinQuoted && isWord(s[i + n])) continue;
+      hit.fill(1, i, i + n);
+      any = true;
     }
   }
+  if (!any) return s;
+  let out = "";
+  for (let i = 0; i < s.length; i++) out += hit[i] === 1 && !/\s/.test(s[i]) ? BlankMark : s[i];
   return out;
 }
 
