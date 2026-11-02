@@ -168,4 +168,20 @@ describe("Calls that get through", () => {
     for (const p of AllPowers) c.leaders.set(p, "Haiku");
     Assert.inRange(CostEstimate.perSeason(c, true) / CostEstimate.perSeason(c), 0.45, 0.6);
   });
+
+  test("a call its batch answered with an overload is sent again in a new batch", async () => {
+    const { service, client } = setUp(true);
+    const results = service.results.bind(service);
+    let overloaded = true;
+    service.results = async (batch: string) => {
+      const answered = await results(batch);
+      if (overloaded) {
+        overloaded = false;
+        for (const id of answered.keys()) answered.set(id, new ApiStatusError("Anthropic batch: Overloaded", 529));
+      }
+      return answered;
+    };
+    await client.askJson(spec(1));
+    Assert.equal(2, service.batches.size);
+  });
 });

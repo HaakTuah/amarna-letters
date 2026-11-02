@@ -72,6 +72,8 @@ export class BatchTransport implements ApiTransport {
   private readonly out = new Map<string, Promise<ApiResult>>();
   /** The answers of each ended batch, fetched once however many of its calls are asked again. */
   private readonly answers = new Map<string, Promise<Map<string, ApiResult | ApiStatusError>>>();
+  /** Requests whose batch answered with a failure: asked again, they go in a new batch, whose id the store then keeps. */
+  private readonly failed = new Set<string>();
 
   /** `live`: counts tokens for the check at setup, which costs nothing and needs no batch. */
   constructor(service: BatchService, live: ApiTransport, store: BatchStore = new MemoryBatchStore(), clock: Clock = RealClock) {
@@ -91,7 +93,7 @@ export class BatchTransport implements ApiTransport {
     if (asked !== undefined) return asked;
     const answer = new Promise<ApiResult>((resolve, reject) => {
       const waiting = { id, body, resolve, reject };
-      this.store.find(id).then((kept) => {
+      (this.failed.has(id) ? Promise.resolve(null) : this.store.find(id)).then((kept) => {
         // A batch sent before the game was closed: collect its answer instead of sending the call again.
         if (kept !== null) return void this.collect(kept, [waiting], signal);
         this.gathered.push(waiting);
@@ -112,6 +114,7 @@ export class BatchTransport implements ApiTransport {
       return;
     }
     const these = this.gathered.splice(0);
+    for (const w of these) this.failed.delete(w.id);
     let batch: string;
     try {
       batch = await this.service.create(
@@ -146,9 +149,12 @@ export class BatchTransport implements ApiTransport {
       const answered = await results;
       for (const w of these) {
         const r = answered.get(w.id);
-        if (r === undefined) w.reject(new ApiStatusError(`Anthropic batch ${batch} has no answer for a call.`, 0));
-        else if (r instanceof ApiStatusError) w.reject(r);
-        else w.resolve(r);
+        if (r !== undefined && !(r instanceof ApiStatusError)) {
+          w.resolve(r);
+          continue;
+        }
+        this.failed.add(w.id);
+        w.reject(r ?? new ApiStatusError(`Anthropic batch ${batch} has no answer for a call.`, 0));
       }
     } catch (e) {
       // Stopped, or the service failed: the batch stays kept, so the call asked again, now or once the game is opened
