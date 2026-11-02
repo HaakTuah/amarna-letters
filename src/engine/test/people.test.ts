@@ -26,7 +26,7 @@ import {
   resistanceOf,
   startPeople,
   support,
-  tax,
+  demand,
   unitAt,
 } from "@amarna/engine";
 import { Assert, subs, oldWorld } from "./support.ts";
@@ -82,35 +82,66 @@ describe("PeopleTests", () => {
     Assert.contains(r.rejected, (x) => x.reason.includes("too few men of fighting age"));
   });
 
-  test("A heavy tax empties the farmers' granaries, and the hungry leave the land in the season it bites", () => {
+  test("A heavy share never squeezes the farmers; a heavy amount empties their granaries, and the hungry leave the land", () => {
+    // Item 17++: a share is reckoned from what the farmers do not eat, so even four in five leaves them fed.
     const s = quiet();
-    season(s, subs({ Hatti: { orders: [tax(70, "nesa")] } }));
-    Assert.equal(70, s.taxes.get("nesa"));
-    // The granaries carry them for a while (item 11a+: the harvest comes once a year); before the year is out they run dry.
+    season(s, subs({ Hatti: { orders: [demand("share", 80, "nesa")] } }));
+    Assert.equal(80, s.shares.get("nesa"));
+    for (let k = 0; k < 6; k++) {
+      new TurnEngine(s).beginTurn();
+      Assert.false(s.fed.has("nesa"));
+      new TurnEngine(s).resolve(new Dict());
+    }
+    // An amount is taken as asked: four in five of a season's harvest bites before the year is out.
+    const t = quiet();
+    const asked = Math.floor((Math.floor(t.reaped.get("nesa") / 3) * 80) / 100);
+    season(t, subs({ Hatti: { orders: [demand("amount", asked, "nesa")] } }));
+    Assert.equal(asked, t.amounts.get("nesa"));
     let bit = false;
     for (let k = 0; k < 6 && !bit; k++) {
-      const before = s.people.get("nesa").settled;
-      const loose = s.people.get("nesa").loose;
-      new TurnEngine(s).beginTurn();
-      if ((s.fed.tryGet("nesa") ?? 1000) < 1000) {
+      const before = t.people.get("nesa").settled;
+      const loose = t.people.get("nesa").loose;
+      new TurnEngine(t).beginTurn();
+      if ((t.fed.tryGet("nesa") ?? 1000) < 1000) {
         bit = true;
-        Assert.true(s.people.get("nesa").settled < before);
+        Assert.true(t.people.get("nesa").settled < before);
         // The hungry leave the land: loose on its roads, or settled with its neighbours (since item 17+ left Nesa more people).
-        Assert.true(s.people.get("nesa").settled + s.people.get("nesa").loose < before + loose);
-      } else new TurnEngine(s).resolve(new Dict());
+        Assert.true(t.people.get("nesa").settled + t.people.get("nesa").loose < before + loose);
+      } else new TurnEngine(t).resolve(new Dict());
     }
     Assert.true(bit);
-    // Its neighbours at the default tax ate their fill.
-    Assert.false(s.fed.has("hattusa"));
-    // A province changing hands keeps no tax of its old holder's.
-    new TurnEngine(s).setOwner("nesa", "Mitanni");
-    Assert.false(s.taxes.has("nesa"));
+    // Its neighbours at the usual share ate their fill.
+    Assert.false(t.fed.has("hattusa"));
+    // A province changing hands keeps no demand of its old holder's.
+    new TurnEngine(t).setOwner("nesa", "Mitanni");
+    Assert.false(t.amounts.has("nesa"));
+  });
+
+  test("A share leaves the farmers their season's food even when their granary was emptied before it", () => {
+    const s = quiet();
+    season(s, subs({ Hatti: { orders: [demand("share", 100, "nesa")] } }));
+    // Emptied by foraging or an earlier amount: only their season's food is left in it.
+    const e = new TurnEngine(s);
+    s.granary.set("nesa", e.shareReserve("nesa"));
+    s.stores.set("nesa", 0);
+    e.beginTurn();
+    Assert.false(s.fed.has("nesa"));
+  });
+
+  test("The gold a levy by share sets aside is reckoned by the king's count, never by the men really there", () => {
+    const refusal = (men: number): string => {
+      const s = quiet();
+      s.treasuries.get("Hatti").gold = 0;
+      s.people.get("nesa").men = men;
+      return new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [raise("nesa", "Army", null, 25)] })).rejected[0].reason;
+    };
+    Assert.equal(refusal(20_000), refusal(40_000));
   });
 
   test("Grain handed to a town's market feeds its countryside in a famine", () => {
     const hungry = (fed: boolean): number => {
       const s = quiet();
-      season(s, subs({ Hatti: { orders: [tax(70, "nesa"), ...(fed ? [feed("nesa", s.stores.getOrDefault("nesa", 0))] : [])] } }));
+      season(s, subs({ Hatti: { orders: [demand("share", 70, "nesa"), ...(fed ? [feed("nesa", s.stores.getOrDefault("nesa", 0))] : [])] } }));
       // Their granaries empty (item 11a+): they eat what the market holds.
       s.granary.set("nesa", 0);
       new TurnEngine(s).beginTurn();
@@ -274,9 +305,9 @@ describe("PeopleTests", () => {
     Assert.true(legPoints(Map, "delta", "sinai", 0, light) * legPoints(Map, "delta", "memphis", 0, { ...light, load: 35 }) >= legPoints(Map, "delta", "sinai", 0, { ...light, load: 35 }) * legPoints(Map, "delta", "memphis", 0, light));
   });
 
-  test("A tax is a percent from 0 to the most, on one's own land", () => {
+  test("A share is a percent from 0 to the most, on one's own land", () => {
     const s = quiet();
-    const v = new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [tax(LandData.taxMost + 1), tax(20, "delta"), tax(0, "nesa")] }));
+    const v = new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [demand("share", LandData.taxMost + 1), demand("share", 20, "delta"), demand("share", 0, "nesa")] }));
     Assert.equal(1, v.accepted.length);
     Assert.equal(2, v.rejected.length);
   });

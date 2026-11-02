@@ -100,6 +100,8 @@ export function captureLine(c: SceneCapture): string {
 
 export interface MapScene {
   index: number;
+  /** Whether the season shown is the latest there is: only then is the live game state the season on screen. */
+  latest: boolean;
   viewer: Power | null;
   frame: SeasonFrame;
   /**
@@ -288,25 +290,33 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const own = viewer === null ? new Map<string, { frame: SeasonFrame; age: number }>() : ownLand(frames, viewer, Math.min(Math.max(index, 0), frames.length - 1));
   const stores = viewer === null ? f.stores : storesOf(own);
   const bands: SceneBand[] = viewer === null ? f.bands.map((b) => ({ ...b, age: 0 })) : bandsOf(f, viewer, own);
-  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, own, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev };
+  return { index, latest: index >= frames.length - 1, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, own, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev };
 }
 
 /**
  * What a province card may tell a viewer of a province's economy: everything, as it is, in god view and in land the court
  * holds and knows it holds (the engine's own view of a court shows it its provinces' economy); in land it lost without
- * knowing, only what its stewards last sent, from the season it last held it (`ownFiguresAt`); elsewhere, nothing.
+ * knowing, only what its stewards last sent, from the season it last held it (`ownFiguresAt`); elsewhere, nothing. "As it
+ * is" holds only at the latest season: looking back, the figures recorded in the season shown (age 0) or before it.
+ * `settled` is absent where nothing was counted (land taken and never counted by the court's scribes).
  */
 export type OwnEconomy =
   | { live: true }
-  | { live: false; age: number; stores: number; settled: number; fed: number | undefined }
+  | { live: false; age: number; stores: number; settled: number | undefined; fed: number | undefined }
   | null;
 
 export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
-  if (scene.viewer === null) return { live: true };
+  // Looking back at an earlier season, the live state is a later one (and, for land since lost, the new holder's): the
+  // card gives the figures recorded in the season the map shows, never the present.
+  if (scene.viewer === null) {
+    if (scene.latest) return { live: true };
+    const f = scene.frame;
+    return { live: false, age: 0, stores: f.stores.get(id) ?? 0, settled: f.settled.get(id), fed: f.fed.get(id) };
+  }
   const own = scene.own.get(id);
   if (own === undefined) return null;
-  if (own.age === 0) return { live: true };
-  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: own.frame.settled.get(id) ?? 0, fed: own.frame.fed.get(id) };
+  if (own.age === 0 && scene.latest) return { live: true };
+  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: own.frame.counted.get(scene.viewer)?.get(id), fed: own.frame.fed.get(id) };
 }
 
 /** A band as a viewer's map shows it, with the seasons since its word of it. */

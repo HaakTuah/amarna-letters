@@ -1,5 +1,5 @@
 /**
- * The parity check of the TypeScript conversion (build order item 5+, `docs/CONVERSION-PLAN.md`): a fingerprint of the
+ * The parity check of the TypeScript conversion (build order item 5+, `docs/archive/specs/CONVERSION-PLAN.md`): a fingerprint of the
  * game after every phase of every season, one line each, which both builds write the same way and compare. A line is
  * "seed, phase, state, decisions": the FNV-1a hash of the state's JSON and of the decisions logged in that phase, each as
  * its key and its JSON, in ordinal order of key.
@@ -33,7 +33,7 @@ export function attachParity(runner: GameRunner, requests: (() => string[]) | nu
 }
 
 /**
- * Replays a recorded game leniently, as both builds must for the recorded model games (CONVERSION-PLAN.md, Notes): a recorded
+ * Replays a recorded game leniently, as both builds must for the recorded model games (`docs/archive/specs/CONVERSION-PLAN.md`, Notes): a recorded
  * reply wherever its key still comes up, the script stand-in (script kings, characters and narrator) elsewhere, whatever the
  * log's save version. The kings that could sleep in the recorded game sleep again.
  */

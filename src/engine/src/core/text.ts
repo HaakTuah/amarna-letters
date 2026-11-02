@@ -6,20 +6,11 @@
 /** char.IsWhiteSpace: the Unicode space separators, line and paragraph separators, and the C0/C1 spacing controls. */
 export const WS = "\t\n\v\f\r \u0085                 　";
 
-export function isWhiteSpace(c: string): boolean {
-  return c.length > 0 && WS.includes(c[0]);
-}
-
 /** string.IsNullOrWhiteSpace. */
 export function isBlank(s: string | null | undefined): s is null | undefined | "" {
   if (s === null || s === undefined) return true;
   for (let i = 0; i < s.length; i++) if (!WS.includes(s[i])) return false;
   return true;
-}
-
-/** string.IsNullOrEmpty. */
-export function isEmpty(s: string | null | undefined): s is null | undefined | "" {
-  return s === null || s === undefined || s.length === 0;
 }
 
 /** string.Trim() (or Trim(chars) when given). */
@@ -81,9 +72,4 @@ export function isLetterOrDigit(c: string): boolean {
 /** char.IsUpper. */
 export function isUpper(c: string): boolean {
   return /\p{Lu}/u.test(c);
-}
-
-/** char.IsPunctuation. */
-export function isPunctuation(c: string): boolean {
-  return /\p{P}/u.test(c);
 }

@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { MapScene } from "../map/scene.ts";
 import type { FrameSleep } from "../session/frames.ts";
 import { powerName, when } from "../ui/format.ts";
+import { sideScroll } from "../ui/side-scroll.ts";
 import { Emblem } from "./Emblem.tsx";
 import { sleepLine } from "./SeasonPanel.tsx";
 
@@ -24,7 +25,7 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
   const sleepOf = (p: Power): FrameSleep | null => (god ? (f.sleep.get(p) ?? null) : null);
   return (
     <div className="courtbar">
-      <div className="courts">
+      <div className="courts" ref={sideScroll}>
         {AllPowers.map((p) => {
           const held = heldBy(p);
           const fallen = f.eliminated.has(p);

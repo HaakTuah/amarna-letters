@@ -1,6 +1,6 @@
 ## The export
 
-One export, with filters for what goes in (Engine and models, "Logging and replay"; Haakon, 2 November 2026). Built in
+One export, with filters for what goes in (Engine and models, "Logging and replay"; the owner, 2 November 2026). Built in
 `src/game/src/export.ts` (`exportJsonl`) and `src/game/src/sensitive.ts`; the web app's menu offers it as "Export log"
 (`src/web/src/components/ExportLog.tsx`).
 

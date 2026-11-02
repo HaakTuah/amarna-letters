@@ -27,11 +27,11 @@ import {
   type GameConfig,
 } from "@amarna/engine";
 import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
-import { AnthropicId, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
+import { AnthropicId, BatchTransport, SdkBatchService, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { framesSince, toWire, type SeasonFrame, type WireFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
 import { choicesOf, fallenSeesAll, handLimitNeeded, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
-import { saveLog } from "./storage.ts";
+import { saveLog, savedBatches } from "./storage.ts";
 
 /** A human seat whose decisions the page makes: the worker asks, the page answers by message. */
 class PageSeat implements ISeat {
@@ -262,7 +262,10 @@ export class SessionCore {
       return providersFor(choices, null, {}, undefined, api);
     }
     const anthropic = (keys[AnthropicId] ?? "").trim();
-    return providersFor(choices, anthropic.length > 0 ? new SdkTransport(anthropic) : null, keys);
+    const live = anthropic.length > 0 ? new SdkTransport(anthropic) : null;
+    // In the background, Anthropic's calls go by its batch service; other providers' stay live.
+    const transport = live !== null && settings.background ? new BatchTransport(new SdkBatchService(live), live, savedBatches) : live;
+    return providersFor(choices, transport, keys);
   }
 
   private build(settings: GameSettings, state: GameState, keys: Keys): ReturnType<typeof buildSeats> {

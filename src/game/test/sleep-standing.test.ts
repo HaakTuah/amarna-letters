@@ -471,7 +471,7 @@ describe("SleepTests", () => {
 
   test("A reply naming an event the schema does not know breaks the schema", () => {
     let reply = PlanningReply.replaceAll('"unit_attacked"', '"unit_besieged"');
-    Assert.contains(problems(JSON.parse(reply), Replies.leaderOrders(newGameConfig())), (p) => p.startsWith("standing_orders[0].when: Invalid option"));
+    Assert.contains(problems(JSON.parse(reply), Replies.leaderOrders(newGameConfig())), (p) => p.startsWith("standing_orders[0].when: ") && p.includes("is not one of"));
     // Read anyway (as a model reply that ignored its schema would be), it is refused with the reason, not dropped.
     Assert.equal("name the event it waits for: unit_enters or unit_attacked", Parse.orders(JSON.parse(reply)).standing[0].unreadable);
   });

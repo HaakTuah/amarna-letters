@@ -7,26 +7,35 @@ import { Assert, toDict } from "../../engine/test/support.ts";
 // One export, with filters (Engine and models, "Logging and replay"): what is sensitive is never in it, whatever the
 // filters; by default it holds everything; filters leave parts out, and one blanks a human player's words, still replaying.
 describe("ExportTests", () => {
-  /** Sensitive texts as providers, the bridge and the file system have written them into failed calls. */
+  /**
+   * Sensitive texts as providers, the bridge and the file system write them into failed calls. Every key and id is built
+   * here from pieces and every name invented, so nothing in this file is real or looks like a real key to a scanner.
+   */
+  const fakeGoogleKey = "AIza" + "Sy" + "x".repeat(33);
+  const fakeMaskedKey = "sk-" + "proj-" + "*".repeat(28) + "Wq7z";
+  const fakeAnthropicKey = "sk-" + "ant-" + "api03-" + "x".repeat(40);
+  const fakeRequestId = "req_" + "0".repeat(24);
+  const fakeOrgId = ["f".repeat(8), "f".repeat(4), "4fff", "8fff", "f".repeat(12)].join("-");
+  const fakeBearer = "eyJ" + "x".repeat(20) + "." + "y".repeat(20);
   const Leaks: [string, string][] = [
-    ["a local path", "no reply in /home/haakon/games/egypt/t3-orders-Egypt.reply.json after 30 minutes"],
-    ["a Windows path", "ENOENT: no such file C:\\Users\\haakon\\seats\\egypt\\t3.reply.json"],
-    ["a Windows path with a space", "no reply in C:\\Users\\Haakon Sval\\seats\\egypt\\t3.reply.json after 30 minutes"],
-    ["a home path in another alphabet", "no reply in /home/øystein/My Seats/egypt/t3.reply.json after 30 minutes"],
-    ["a server path in another alphabet", "ENOENT: /srv/øystein/seats/t3.reply.json"],
-    ["a provider address with a key", "fetch failed: https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyA1b2C3d4E5f6G7h8I9j0KlMnOpQrStUvW"],
-    ["a masked key", "openai API 401: Incorrect API key provided: sk-proj-****************************Ab1x."],
-    ["a key", "sk-ant-api03-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789"],
-    ["a request id", 'Anthropic API 429 {"type":"error","error":{"type":"rate_limit_error"},"request_id":"req_011CUj4ZfzTqVqXyZ8aBcDeF"}'],
-    ["an organisation id", "This request would exceed the rate limit for your organization (fb3a3f3e-7c4b-4d8e-9a1f-2b6c8d0e4f12) of 50,000 input tokens per minute."],
-    ["an e-mail address", "account haakon.example@gmail.com has no credit left"],
+    ["a local path", "no reply in /home/jdoe/games/egypt/t3-orders-Egypt.reply.json after 30 minutes"],
+    ["a Windows path", "ENOENT: no such file C:\\Users\\jdoe\\seats\\egypt\\t3.reply.json"],
+    ["a Windows path with a space", "no reply in C:\\Users\\Jane Doe\\seats\\egypt\\t3.reply.json after 30 minutes"],
+    ["a home path in another alphabet", "no reply in /home/jdøe/My Seats/egypt/t3.reply.json after 30 minutes"],
+    ["a server path in another alphabet", "ENOENT: /srv/jdøe/seats/t3.reply.json"],
+    ["a provider address with a key", `fetch failed: https://generativelanguage.example.com/v1beta/models?key=${fakeGoogleKey}`],
+    ["a masked key", `openai API 401: Incorrect API key provided: ${fakeMaskedKey}.`],
+    ["a key", fakeAnthropicKey],
+    ["a request id", `Anthropic API 429 {"type":"error","error":{"type":"rate_limit_error"},"request_id":"${fakeRequestId}"}`],
+    ["an organisation id", `This request would exceed the rate limit for your organization (${fakeOrgId}) of 50,000 input tokens per minute.`],
+    ["an e-mail address", "account jdoe@example.com has no credit left"],
     ["a device", "the bridge refused the request: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"],
     ["a bridge address with a bracket in its token", "no local bridge answers at http://localhost:5190/?auth=]BRIDGE_TOKEN: fetch failed"],
-    ["an e-mail address in another alphabet", "write to jane@bücher.de instead"],
-    ["a bearer token", "authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc"],
+    ["an e-mail address in another alphabet", "write to jdoe@bücher.example instead"],
+    ["a bearer token", `authorization: Bearer ${fakeBearer}`],
   ];
   /** What none of the leaks may leave in an export. */
-  const Secrets = ["/home/", "/srv/", "BRIDGE_TOKEN", "bücher", "b\\u00FCcher", "b\\u00fccher", "haakon", "Haakon", "Sval", "øystein", "AIza", "sk-", "req_011", "fb3a3f3e", "gmail", "Macintosh", "Mozilla", "eyJ", "googleapis", "Ab1x"];
+  const Secrets = ["/home/", "/srv/", "BRIDGE_TOKEN", "bücher", "b\\u00FCcher", "b\\u00fccher", "jdoe", "jdøe", "jd\\u00f8e", "Jane Doe", "AIza", "sk-", "req_", "ffffffff", "example.com", "Macintosh", "Mozilla", "eyJ", "Wq7z"];
 
   function leaky(): GameLog {
     const log = new GameLog();
@@ -63,45 +72,48 @@ describe("ExportTests", () => {
   });
 
   test("A key in use is taken out by its value, whatever its shape", () => {
-    rememberKey("opaque_secret_12345");
+    const opaque = "opaque_" + "secret_" + "12345";
+    rememberKey(opaque);
     const log = new GameLog();
-    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: "local API 401: Incorrect API key provided: opaque_secret_12345" }));
-    log.record("t1/orders/Hatti", S, "", newAuthorship({ kind: "fallback", name: "local leader", reason: "Incorrect API key provided: opaque_secret_12345" }));
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: `local API 401: Incorrect API key provided: ${opaque}` }));
+    log.record("t1/orders/Hatti", S, "", newAuthorship({ kind: "fallback", name: "local leader", reason: `Incorrect API key provided: ${opaque}` }));
     Assert.false(exportJsonl(log).includes("opaque_secret"));
     Assert.equal("local API 401: Incorrect API key provided: [key]", log.calls[0].error);
   });
 
   test("A short key is taken out where it stands whole, and only there", () => {
-    rememberKey("abc1234");
+    rememberKey("abc" + "1234");
     const log = new GameLog();
     log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: "Incorrect API key provided: abc1234; see abc12345 and xabc1234" }));
     Assert.equal("Incorrect API key provided: [key]; see abc12345 and xabc1234", log.calls[0].error);
   });
 
   test("Every provider registers its key as it is made", () => {
-    new CompatibleProvider({ id: "local", baseUrl: "http://localhost:11434/v1" }, "compatible_key_67890");
-    new SdkTransport("anthropic_key_24680");
+    const one = "compatible_" + "key_" + "67890";
+    const two = "anthropic_" + "key_" + "24680";
+    new CompatibleProvider({ id: "local", baseUrl: "http://localhost:11434/v1" }, one);
+    new SdkTransport(two);
     const log = new GameLog();
-    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: "keys compatible_key_67890 and anthropic_key_24680" }));
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: `keys ${one} and ${two}` }));
     Assert.equal("keys [key] and [key]", log.calls[0].error);
   });
 
   test("A model's JSON reply is read with its escapes decoded", () => {
     const log = new GameLog();
-    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, output: '{"notes":"write to jane@b\\u00fccher.de","ledger":[]}' }));
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, output: '{"notes":"write to jdoe@b\\u00fccher.example","ledger":[]}' }));
     const back = JSON.parse(JSON.parse(exportJsonl(log).split("\n")[1]).output) as { notes: string };
     Assert.equal("write to [e-mail]", back.notes);
     // A provider's error that carries JSON of its own shape is read the same way.
-    log.addCall(newModelCall({ key: "t1/orders/Mitanni", turn: 1, error: 'compatible API 400: {"detail":"Account jane@b\\u00fccher.de"}' }));
+    log.addCall(newModelCall({ key: "t1/orders/Mitanni", turn: 1, error: 'compatible API 400: {"detail":"Account jdoe@b\\u00fccher.example"}' }));
     Assert.equal('compatible API 400: {"detail":"Account [e-mail]"}', log.calls[1].error);
     // A property's name is read the same way.
-    log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, output: '{"jane@b\\u00fccher.de":0}' }));
+    log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, output: '{"jdoe@b\\u00fccher.example":0}' }));
     Assert.false(JSON.stringify(JSON.parse(log.calls[2].output)).includes("cher"));
   });
 
   test("A reply with its JSON in a fenced block is read the same way", () => {
     const log = new GameLog();
-    const reply = 'Here are my orders.\n```json\n{"notes":"write to jane@b\\u00fccher.de"}\n```';
+    const reply = 'Here are my orders.\n```json\n{"notes":"write to jdoe@b\\u00fccher.example"}\n```';
     log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, output: reply }));
     const out = log.calls[0].output;
     Assert.true(out.startsWith("Here are my orders.\n```json\n"));
@@ -131,7 +143,7 @@ describe("ExportTests", () => {
   /** The string fields a human's orders and answers hold that are orders the engine reads: ids, names it knows, kinds. */
   const OrderFields = new Set([
     "answers", "army", "avoidPower", "brings", "byAnswer", "cancelAnswers", "cancelStanding", "cede", "character", "checkClaim", "city",
-    "collect", "copies", "copy", "council", "court", "debt", "engage", "envoy", "fate", "fleet", "from", "grantee", "into", "kind", "lot",
+    "collect", "copies", "copy", "council", "court", "debt", "engage", "envoy", "fate", "fleet", "from", "grantee", "how", "into", "kind", "lot",
     "name", "named", "open", "partner", "person", "power", "province", "provinces", "seals", "supported", "target", "task", "to", "unit",
     "vassal", "via", "what", "when", "where", "withdraw",
   ]);
@@ -185,8 +197,8 @@ describe("ExportTests", () => {
   const Letter = "Greetings, my brother of Alashiya. I send you twelve horses and a chariot of gold.";
   const Notes = "Attack now";
   /** A note naming a person by his id, and the same as the scribe delivers it to another court. */
-  const Named = "Ask c1 to bring the horses to the secret gate. Meet jane@example.com beside the old well tomorrow. Tell Mane (c1) and Hani (c2) to strike.";
-  const Scribed = "Ask Mane to bring the horses to the secret gate. Meet jane@example.com beside the old well tomorrow. Tell Mane and Hani to strike.";
+  const Named = "Ask c1 to bring the horses to the secret gate. Meet jdoe@example.com beside the old well tomorrow. Tell Mane (c1) and Hani (c2) to strike.";
+  const Scribed = "Ask Mane to bring the horses to the secret gate. Meet jdoe@example.com beside the old well tomorrow. Tell Mane and Hani to strike.";
   const Speech = 'Your lord\'s horses are welcome here. Say "my brother" to him.';
 
   class HumanSender implements ISeat {
@@ -249,7 +261,7 @@ describe("ExportTests", () => {
     const read = (text: string): string => text.split("\n").filter((l) => l.length > 0).map((l) => JSON.stringify(JSON.parse(l))).join("\n");
     const full = read(exportJsonl(runner.log));
     // A normal export keeps a human's words, but never what is sensitive in them.
-    Assert.false(full.includes("jane@example.com"));
+    Assert.false(full.includes("jdoe@example.com"));
     Assert.true(full.includes("Meet [e-mail] beside the old well tomorrow."));
     // As the export reads: in a string, and in a JSON string inside one (a model's reply).
     const esc = (w: string): string => JSON.stringify(w).slice(1, -1);

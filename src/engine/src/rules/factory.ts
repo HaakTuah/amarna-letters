@@ -7,6 +7,7 @@ import { levelOf, newWorkPlan, setLevel, startLevel, WorkKindValues } from "../m
 import { seasonOfTurn, StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
 import { forMen, harvestIn, menOf, reckonedOf, startPeople } from "../model/land.ts";
+import { seedCounts } from "../model/counts.ts";
 import { carriedOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
 import { newMarket } from "../model/caravans.ts";
 import { newDebt } from "../model/money.ts";
@@ -84,6 +85,8 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   openingBonds(s);
   openingDebts(s);
   openingLoyalties(s, m);
+  // Item 17++: every court knows its land as its scribes last counted it.
+  seedCounts(s, m);
 
   const engine = new TurnEngine(s, m);
   for (const p of AllPowers) s.startStrength.set(p, engine.strength(p));
@@ -266,7 +269,7 @@ const Styled: Seed[] = [
   seed("Sin-iqisham", "Ninua", false),
   seed("Abdi-Milki", "Ṣurru", false),
   seed("Ammistamru", "Ugarit", false),
-  seed("Kushmeshu", "the harbour of Alashiya", false),
+  seed("Kushmeshu", "Enkomi", false),
   seed("Piyamaradu", "Apasa", false),
   seed("Zitanza", "Lukka", false),
 ];

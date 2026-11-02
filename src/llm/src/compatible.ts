@@ -6,6 +6,7 @@
  */
 import { rememberKey } from "@amarna/game";
 import type { ApiResult, CallSpec, Provider } from "./client.ts";
+import { ApiStatusError, retryAfterMs } from "./limiter.ts";
 import { jsonSchema, type JsonObject, type ReplySchema } from "./schemas.ts";
 
 /** A provider as a table sets it up: its id (the prefix of its model settings), and where its endpoint is. */
@@ -57,7 +58,7 @@ export class CompatibleProvider implements Provider {
       signal,
     });
     const text = await response.text();
-    if (!response.ok) throw new Error(`${this.id} API ${response.status}: ${message(text)}`);
+    if (!response.ok) throw new ApiStatusError(`${this.id} API ${response.status}: ${message(text)}`, response.status, retryAfterMs(response.headers.get("retry-after")));
     const o = JSON.parse(text) as {
       model?: string;
       choices?: { finish_reason?: string; message?: { content?: string | null; refusal?: string | null } }[];

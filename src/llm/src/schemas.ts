@@ -82,13 +82,25 @@ export function measure(schema: JsonObject): SchemaMeasure {
   return m;
 }
 
-/** Where a reply breaks its schema, at most eight problems, each with its path ("units[0].order: ..."); empty when it fits. */
+/**
+ * Where a reply breaks its schema, in words a model can act on when the reply goes back to it: each field with what it gave
+ * and what was asked ("letters[0].to: "Babel" is not one of Assyria, Babylonia, ..."), at most eight; empty when it fits.
+ */
 export function problems(reply: unknown, schema: z.ZodType): string[] {
   const r = schema.safeParse(reply);
   if (r.success) return [];
+  const asked: Record<string, string> = { string: "text", number: "a number", boolean: "true or false", object: "an object", array: "a list" };
   return r.error.issues.slice(0, 8).map((i) => {
     const path = i.path.reduce<string>((s, k) => (typeof k === "number" ? `${s}[${k}]` : s.length === 0 ? String(k) : `${s}.${String(k)}`), "");
-    return `${path.length === 0 ? "reply" : path}: ${i.message}`;
+    const got = i.path.reduce<unknown>((v, k) => (v !== null && typeof v === "object" ? (v as Record<PropertyKey, unknown>)[k] : undefined), reply);
+    const gave = got === undefined ? "nothing" : JSON.stringify(got).slice(0, 80);
+    let what: string;
+    if (i.code === "invalid_value") {
+      const values = i.values.map((v) => (v === "" ? '"" (none)' : String(v)));
+      what = `${gave} is not one of ${values.slice(0, 40).join(", ")}${values.length > 40 ? ", ..." : ""}`;
+    } else if (i.code === "invalid_type") what = `gave ${gave}, where ${asked[i.expected] ?? i.expected} was asked`;
+    else what = `gave ${gave}: ${i.message}`;
+    return `${path.length === 0 ? "reply" : path}: ${what}`;
   });
 }
 
@@ -100,6 +112,8 @@ const powerNames = AllPowers as unknown as readonly [string, ...string[]];
 export const OtherActions = [
   "raise_army",
   "raise_fleet",
+  "raise_army_share",
+  "raise_fleet_share",
   "cede_province",
   "give_unit",
   "build",
@@ -118,7 +132,9 @@ export const OtherActions = [
   "ship_trade",
   "ship_deliver",
   "set_toll",
-  "set_tax",
+  "ask_share",
+  "ask_amount",
+  "census",
   "welcome_loose",
   "deport",
   "return_runaways",
@@ -192,12 +208,12 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, cede_province, give_unit, build, build_corvee (your province), sell_grain, buy_grain, feed_town, feed_town_in_own_name (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season), hunt_bands_always (a province your standing hunt covers; empty for all your land), the governorships and enlist_band (the province), move_court (where your court goes)." : null),
+      str(described ? "For raise, raise_army_share, raise_fleet_share, cede_province, give_unit, build, build_corvee (your province), sell_grain, buy_grain, feed_town, feed_town_in_own_name (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, ask_share (the province it applies in; empty for all your land), ask_amount (the province it applies in), census (your province to count), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season), hunt_bands_always (a province your standing hunt covers; empty for all your land), the governorships and enlist_band (the province), move_court (where your court goes)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back), or buy_news (the court whose news you buy)." : null)],
     ["person", str(described ? "Person id, for grant_governorship (one at your court), hire, renew, pay_fee, withhold_fee, borrow, buy_news, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift, seize_hoard, sell_tablet (the buyer)." : null)],
-    ["amount", int(described ? "build, build_corvee: the level to keep (police: the men, in tens; 0 to keep none, letting what stands decay). The whole fee for the job (hire, renew), the price (sell_tablet), the men a levy takes (raise_army, raise_fleet; 0 for a full unit), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, feed_town_in_own_name, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
+    ["amount", int(described ? "build, build_corvee: the level to keep (police: the men, in tens; 0 to keep none, letting what stands decay). The whole fee for the job (hire, renew), the price (sell_tablet), the men a levy takes (raise_army, raise_fleet; 0 for a full unit) or its share of the men of fighting age at home in percent (raise_army_share, raise_fleet_share), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, feed_town_in_own_name, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the share of the harvest in percent (ask_share), or the measures of grain a season (ask_amount), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
     ["gold", int(described ? "enlist_band: the fee offered the band's chief, paid now. trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; place_spy on a province: the shekels he carries to spend among its people, stirring them against its holder (0 for none); hire, renew: the part of the fee handed over now (0 means nothing now); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
     [
       "term",

@@ -1,5 +1,5 @@
 /**
- * The parity check of the TypeScript conversion (`docs/CONVERSION-PLAN.md`). Replays every game log in a folder
+ * The parity check of the TypeScript conversion (`docs/archive/specs/CONVERSION-PLAN.md`). Replays every game log in a folder
  * (game-N.jsonl, written by a batch runner with --out) through this build and compares its fingerprints after every
  * phase with those that run wrote (game-N.parity.tsv, with --fingerprints). The C# build it was written against is
  * kept at the tag csharp-final (scripts/parity.sh there); the batch runner's --fingerprints still lets two TypeScript

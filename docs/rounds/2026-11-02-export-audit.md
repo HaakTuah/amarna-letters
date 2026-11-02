@@ -3,7 +3,7 @@
 Side lane, 2 November 2026. PR #385. Design: Engine and models, "Logging and replay"; the note is
 `docs/design/50-the-export.md`.
 
-## Haakon's words
+## The owner's words
 
 > And queue a job going fully over what the export function includes, and ensuring it doesn't include anything
 > sensitive, at all. If it does, it must all be fixed, and we must be alerted, so we can remove this file.

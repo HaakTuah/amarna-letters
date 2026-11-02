@@ -262,7 +262,7 @@ describe("FreeCitiesTests", () => {
     for (const s of [buying, taking]) {
       removeAll(s.units, (u) => u.province === "sapinuwa");
       s.stores.set("sapinuwa", 0);
-      s.taxes.set("sapinuwa", 0);
+      s.shares.set("sapinuwa", 0);
       s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "sapinuwa", home: "sapinuwa", men: 5000 }));
     }
     season(buying, new Dict([["Hatti", newTurnSubmission({ orders: [supply("sapinuwa", true, 200)] })]]));
@@ -290,7 +290,7 @@ describe("FreeCitiesTests", () => {
     const s = quiet();
     removeAll(s.units, (u) => u.province === "sapinuwa");
     s.stores.set("sapinuwa", 0);
-    s.taxes.set("sapinuwa", 0);
+    s.shares.set("sapinuwa", 0);
     const c = newCharacter({ id: newId(s, "c"), name: "Kantuzzili", traits: newTraits({ loyalty: 10, greed: 90, ambition: 50, courage: 50, competence: 50 }), status: "Employed", employer: "Hatti", duty: "Commanding", purse: 0 });
     s.characters.push(c);
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "sapinuwa", home: "sapinuwa", men: 5000, commander: c.id, commandFrom: 0, buy: true, chest: 150, savings: 150 }));

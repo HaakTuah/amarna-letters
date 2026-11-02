@@ -221,8 +221,8 @@ describe("FileSeatTests", () => {
     await answering;
     Assert.empty(runner.errors);
     let retry = await File.readAllText(Path.combine(folder, "t1_orders_Alashiya.retry.request.md"));
-    Assert.contains("units[0]: Invalid input: expected object", retry);
-    Assert.contains("other_orders[0].action: Invalid option: expected one of", retry);
+    Assert.contains('units[0]: gave "enkomi -> enkomiwaters", where an object was asked', retry);
+    Assert.contains('other_orders[0].action: "fly" is not one of', retry);
   });
 
   test("A reply wrapped in a code fence or a stray line is still read", () => {

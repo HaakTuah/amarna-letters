@@ -1095,13 +1095,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     should have a measure there to ensure not endless loop, or lowering of what a 10 is. Carry this out, expert." (to
     the design session's answers to his question whether only a 10 passes Claude's reviews and whether both reviews run
     at the same time: (1) say in both games that Codex's review and Claude's design check start at the same time;
-    (2) gather the day's experience into a notes doc for his father's setup now, the guide itself after week one;
+    (2) a private matter outside this project;
     (3) the reviews' pass mark). Written into `docs/claude-and-codex.md` ("Codex reviews", points 4 and 5; "Reviews:
     only a 10 passes", with its guards and the new "Calibration" table), the "Review guidelines" and a standing
-    instruction in `AGENTS.md`; the same in Barkstreet Snakes. The notes doc is a Claude Doc, "Claude + Codex: notes
-    for Dad's setup".
-133. **1 November 2026, 18:35-18:37 UTC**, in the design chat, after the design session added "Keep it lean" to the
-    prompt for his father's setup: "Yes, please, expertly! Should we also have any of this, expert?", then, to the
+    instruction in `AGENTS.md`; the same in Barkstreet Snakes.
+133. **1 November 2026, 18:35-18:37 UTC**, in the design chat, after a talk about keeping projects lean: "Yes, please, expertly! Should we also have any of this, expert?", then, to the
     design session's questions (add to both games "every change removes what it replaces" and leftovers in the
     definition of a 10; the files every session reads back under 20 KB first at the next milestone's workshop check; a
     check for unused code in Barkstreet Snakes' queue): "yes, please, expertly expertly!" Written into `AGENTS.md`
@@ -1291,3 +1289,40 @@ Given in the design chat with Claude, answering the design questions of the cons
     effort inside the builder, then the escalation chain): "Yes, expertly! We don't want them to hang up like this
     again, and this seems like a smarter split!" Written into `CLAUDE.md` ("Models, effort and helpers") and
     `docs/orchestrating.md`; the same in Barkstreet Snakes.
+141. **2 November 2026, 08:25 and 08:28 UTC**, in the design chat, on whether agents should file ideas as issues: "Because that's different from how all questions to me bubble up, but maybe stuff is lost for me,
+    because they only raise blocking questions? Should we also have something like this? Right now we have to hunt
+    across PRs and stuff for the questions? Would this be a better place for all of that?" Then, to the design
+    session's take (one inbox of issues assigned to him, labelled `for-haakon` and `idea`): "Yes, important to avoid
+    duplication, we want everything there then, and just pointers there in the prs and stuff, to make us aware that new
+    ones are added. Should it be low stake to suggest an idea? […]"
+    Written into `AGENTS.md` ("Questions, readings and ideas", replacing "Questions and readings") and
+    `docs/BUILD-PROGRESS.md` ("For Haakon" points to the issues); the same in Barkstreet Snakes, whose noted ideas
+    moved to issues.
+142. **2 November 2026, 08:44 and 08:46 UTC**, in the design chat, after GitHub's secret scanning flagged as a public
+    leak the made-up Google key in a test of the export lane (`src/game/test/export.test.ts`, PR #385): "auto security
+    scan has found issues", then, to the design session's take (fake keys built when the test runs, invented names in
+    test data): "Yes, expertly." Written into `SECURITY.md` ("Test data is never real"); the same in Barkstreet Snakes.
+143. **2 November 2026, 08:57 UTC**, in the design chat, to the design session's two questions (should the rules and
+    labels say "the owner" instead of his name, keeping it only in archived quotes; and should private mentions be
+    removed from the public archives): "Yes, expertly across the board!" Written into `AGENTS.md`, `CLAUDE.md`,
+    `SECURITY.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md` and `docs/BUILD-PROGRESS.md` ("the owner";
+    the label `for-haakon` renamed `for-owner`), and the private mentions removed from items 132, 133 and 141; the
+    same in Barkstreet Snakes.
+144. **2 November 2026, 09:00 and 09:03 UTC**, in the design chat: "Is issues for both claude code and codex now?
+    should they write in the wiki instead of some of the stuff that are in the docs files?" Then, to the design
+    session's answer (Codex cannot file issues from its cloud, so it lists them in its report and the orchestrator
+    files them; the wiki has no branches or review, so the docs stay in the repository): "Okay, it does that if it
+    can't manage to post on its own. sometimes you don't fully know what access they have." Written into
+    `docs/claude-and-codex.md` ("For Codex": file them yourself if your access allows, otherwise in the report); the
+    same in Barkstreet Snakes.
+145. **2 November 2026, 09:49 UTC**, in the design chat, to the builders' question in issue #403 (whether the four
+    powers' land names should follow their provinces' proper names): "Yes, expertly." Written into "Places by their own
+    names" under World (Tjehenu, Kaska, Sutu, Seir for what letters and seat views called the land of the Tjehenu, the
+    Kaska lands, the Sutean steppe and the land of the Shasu) and into build order item 17++a, with the benchmarks
+    before and after, since the script kings read letters by every name a king goes by.
+146. **2 November 2026, 10:09 and 10:11 UTC**, in the design chat, on the issue templates he had added that morning:
+    "There are 2 different kinds of submissions, features and bugs. can't they use them instead of using custom tags? i don't mind them tagging, but they should use the templates that exist?" Then, to the design session's three questions (ideas filed as Feature requests labelled `enhancement` and bugs as
+    Bug reports labelled `bug`, dropping `idea`; his questions under GitHub's own `question` label in place of
+    `for-owner`; the templates tailored, with their labels set): "Yes, expertly for all, and also, give me the fully updated prompts for both." Written into `AGENTS.md` ("One inbox", and
+    "Bugs don't wait for the owner"), `docs/claude-and-codex.md` ("For Codex"), `docs/BUILD-PROGRESS.md` and
+    `.github/ISSUE_TEMPLATE/`; the issues relabelled and the two custom labels removed; the same in Barkstreet Snakes.
