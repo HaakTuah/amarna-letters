@@ -69,6 +69,11 @@ fixed.
 - ~~**The province card looking back** (the weekly blind re-review of #374): in a seat view on an earlier season the
   card read the live state, the new holder's figures where the city has since fallen; it gives that season's recorded
   figures now, with a test at a past season (#414).~~
+- **The canary test for hidden information** (the owner, 2 November 2026, after reviews missed seat-view leaks twice;
+  "Hidden information" under "Review guidelines" in `AGENTS.md`). A small game with secrets planted (an envoy's hidden
+  errand, a sealed tablet's words, an army in the fog, another court's treasury); every seat's view, model request,
+  script king's input and export is built along every path (the latest season, past seasons, a replay, the god view
+  where a seat has none) and none may hold a secret. A test lane beside the items.
 - **First of all: what a game's export holds** (the owner, 2 November 2026: "And queue a job going fully over what the
   export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
   fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
