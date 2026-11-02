@@ -23,7 +23,8 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
   and its spaces kept, and every quote of them is blanked wherever it stands: in a
   model's prompt, a character's report, the narrator's chronicle (a decision whose whole value is a text), a ladder's why. A quote is any span, from a word's start, that
   matches the start of one of his texts or of one of its sentences for twelve letters or more, however soon it is cut
-  off (a prompt's brief of a letter keeps its first 120 letters); a text shorter than that counts only whole. Each is also looked for as it stands inside a JSON string, since a
+  off (a prompt's brief of a letter keeps its first 120 letters); a text shorter than that counts only whole. A quote may also begin at any word inside one of his sentences, if it
+  matches for twenty letters or more (a model copying a phrase). Each is also looked for as it stands inside a JSON string, since a
   model's reply is JSON, and as the log keeps it in a call, anything sensitive in it replaced. A text that names a person, tablet or lot by its id (`c12`, `k3`, `g7`) is also looked for as
   the engine's scribe delivers it, with a name in each id's place: each long run between ids alone, and the whole with
   any name, or none, where each id stood ("Mane (c1)" is delivered as "Mane"). Orders, ids and names the engine reads are never
@@ -42,5 +43,7 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
   Each key in use is also taken out by its exact value, whatever its shape or length (`rememberKey`: every provider
   registers its key as it is made; one shorter than eight letters only where it stands whole), since a provider may echo
   it in an error. A player may also type an address or a key into his own words: the log keeps them as written, for his
-  own replay, and every export takes them out of every decision's words, whatever the filters (orders are never touched). Keys themselves never reach the log otherwise: they live in memory in the web app and in environment variables in the batch
+  own replay, and every export takes them out of every string of every decision but its type and key, whatever the filters (a
+  model may put anything into any field; a field the engine reads never holds such a thing in a valid order, so the
+  export still replays). Keys themselves never reach the log otherwise: they live in memory in the web app and in environment variables in the batch
   runner, and nothing writes them into a call.

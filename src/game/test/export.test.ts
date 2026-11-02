@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { AllPowers, GameStateSchema, HostReplySchema, S, TurnSubmissionSchema, type Schema, type AudienceView, type HostReply, type SeatView, type TurnSubmission, dispatch, first, newGame, newGameConfig, newHostReply, newTurnSubmission, serialize } from "@amarna/engine";
+import { AllPowers, GameStateSchema, HostReplySchema, S, TurnSubmissionSchema, hold, type Schema, type AudienceView, type HostReply, type SeatView, type TurnSubmission, dispatch, first, newGame, newGameConfig, newHostReply, newTurnSubmission, serialize } from "@amarna/engine";
 import { BlankMark, Everything, GameLog, WordFields, newAuthorship, rememberKey, GameRunner, type ISeat, ScriptMind, TemplateNarrator, exportJsonl, newAudit, newModelCall, newShadowDecision, newCharacterChoice } from "@amarna/game";
 import { CompatibleProvider, SdkTransport } from "@amarna/llm";
 import { Assert, toDict } from "../../engine/test/support.ts";
@@ -33,6 +33,8 @@ describe("ExportTests", () => {
     log.header.note = "played from http://user:token@localhost:5190/";
     // A fallback's reason is its failed call's error, copied into the decision's authorship.
     Leaks.forEach(([, reason], i) => log.record(`t1/orders/p${i}`, S, "", newAuthorship({ kind: "fallback", name: "File seat", reason })));
+    // A model may put anything into any field of its decision, an order's ids included.
+    Leaks.forEach(([, text], i) => log.record(`t1/orders/r${i}`, TurnSubmissionSchema, newTurnSubmission({ orders: [hold(text)] })));
     // A ladder's why is a model's own words, which may repeat anything it was shown.
     Leaks.forEach(([, why], i) => {
       log.route(`t1/orders/q${i}`, { rung: "small", model: "Haiku", why });
@@ -47,7 +49,8 @@ describe("ExportTests", () => {
 
   test("Nothing sensitive is in the log or any export, whatever the filters", () => {
     const log = leaky();
-    for (const text of [log.toJsonl(), exportJsonl(log), exportJsonl(log, { ...Everything, humanWords: false }), GameLog.fromJsonl(log.toJsonl()).toJsonl()])
+    // The log keeps decisions as written, for the player's own replay; every export takes what is sensitive out of them.
+    for (const text of [exportJsonl(log), exportJsonl(log, { ...Everything, humanWords: false }), exportJsonl(GameLog.fromJsonl(log.toJsonl()))])
       for (const s of Secrets) Assert.false(text.includes(s), `"${s}" is in an export`);
     // What failed is still said: only the sensitive piece is replaced, by a marker that names it.
     const errors = log.calls.map((c) => c.error!);
@@ -94,7 +97,8 @@ describe("ExportTests", () => {
     const log = leaky();
     log.addAudit(newAudit({ key: "t1/orders/Egypt", turn: 1, kind: "orders" }));
     const types = (text: string): string[] => [...new Set(text.split("\n").filter((l) => l.length > 0).map((l) => (JSON.parse(l) as { type: string }).type))].sort();
-    Assert.equal(log.toJsonl(), exportJsonl(log));
+    // Everything: a line for every line of the log.
+    Assert.equal(log.toJsonl().split("\n").length, exportJsonl(log).split("\n").length);
     Assert.equal(["audit", "call", "decision", "header", "shadow"], types(exportJsonl(log)));
     Assert.equal(["audit", "decision", "header", "shadow"], types(exportJsonl(log, { ...Everything, calls: false })));
     Assert.equal(["audit", "call", "decision", "header"], types(exportJsonl(log, { ...Everything, shadows: false })));
@@ -189,6 +193,8 @@ describe("ExportTests", () => {
     runner.log.addCall(newModelCall({ key: "t2/orders/Hatti", turn: 2, role: "leader", model: "Haiku", output: JSON.stringify({ notes: `Alashiya said: ${Speech}` }) }));
     // A letter naming a person by his id, delivered with his name in its place (the engine's scribe).
     runner.log.addCall(newModelCall({ key: "t3/orders/Hatti", turn: 3, role: "leader", model: "Haiku", prompt: `A letter: "${Scribed}" And another: "Bring the horses."` }));
+    // A model's decision copying a phrase from the middle of the letter.
+    runner.log.record("t3/aud/react/c9", S, JSON.stringify({ speech: "He promised horses and a chariot of gold, my lord." }), newAuthorship({ kind: "model", name: "Haiku characters" }));
     // A shadow whose choices quote the note with the address in it.
     runner.log.addShadow(newShadowDecision({ key: "t3/aud/report/c1", turn: 3, kind: "report", script: newCharacterChoice({ text: `I carried: "${Scribed}"` }) }));
     // A model seat's ladder passing a decision up, its why quoting the letter.
@@ -219,6 +225,8 @@ describe("ExportTests", () => {
     // sentence of the prompt's own stays.
     Assert.false(kept.includes("to bring the horses to the secret gate"));
     Assert.false(kept.includes("Ask Mane"));
+    // A phrase copied from the middle of a sentence of his.
+    Assert.false(kept.includes("horses and a chariot of gold"));
     // "Mane (c1)" is delivered as "Mane": the scribe deletes the id, and the quote is still found.
     Assert.false(kept.includes("Tell Mane"));
     Assert.false(kept.includes("and Hani to strike"));

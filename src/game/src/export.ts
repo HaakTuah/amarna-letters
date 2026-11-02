@@ -47,6 +47,12 @@ const QuotedFields = new Set([...WordFields, "value", "why"]);
  */
 const MinQuoted = 12;
 
+/**
+ * A quote may also begin at any word inside one of his sentences (a model copying a phrase): such a start must match for
+ * this many letters, so that a common phrase of anyone's is not taken for his.
+ */
+const MinInner = 20;
+
 /** A text blanked: every letter replaced by the mark, its spaces and its length kept. */
 export function blank(text: string): string {
   return text.replace(/\S/g, BlankMark);
@@ -67,13 +73,15 @@ export function exportJsonl(log: GameLog, parts: ExportParts = Everything): stri
 }
 
 /**
- * A decision's words with anything sensitive taken out, whatever the filters: a player may type an e-mail address or a
- * key into a letter. The log keeps them as written, for his own replay; no export carries them. Orders are never touched.
+ * A decision with anything sensitive taken out of every string but its type and key, whatever the filters: a player may
+ * type an e-mail address or a key into a letter, and a model may put anything into any field. The log keeps them as
+ * written, for his own replay; no export carries them. A field the engine reads never holds such a thing in a valid
+ * order, so the export still replays.
  */
 function withoutSensitiveWords(line: string): string {
   if (!line.startsWith('{"type":"decision"')) return line;
   const touched = { any: false };
-  const back = mapWords(JSON.parse(line), withoutSensitive, QuotedFields, "", touched);
+  const back = mapWords(JSON.parse(line), withoutSensitive, (f) => f !== "type" && f !== "key", "", touched);
   return touched.any ? toJson(back) : line;
 }
 
@@ -96,12 +104,15 @@ function withoutHumanWords(lines: string[]): string[] {
     return toJson(node);
   });
   const quoted = pieces(words);
-  if (quoted.texts.length === 0) return out;
+  if (quoted.heads[0].size === 0 && quoted.short.length === 0) return out;
   return out.map((line) => {
     const node = JSON.parse(line) as Record<string, unknown>;
     // In decisions only words are blanked, never an order's ids or names, so the export still replays.
     const touched = { any: false };
-    const back = mapWords(node, (v) => blankIn(v, quoted), node.type === "decision" || node.type === "header" ? QuotedFields : null, "", touched);
+    // In decisions and the header only words are blanked, never an order's ids or names, so the export still replays;
+    // elsewhere everything but a record's ids and names.
+    const changes = node.type === "decision" || node.type === "header" ? (f: string) => QuotedFields.has(f) : (f: string) => !Names.has(f);
+    const back = mapWords(node, (v) => blankIn(v, quoted), changes, "", touched);
     return touched.any ? toJson(back) : line;
   });
 }
@@ -131,7 +142,10 @@ const Reference = /\s*\([ckg]\d+\)|\b(?:(?:the\s+)?(?:tablet|copy|gold|lot)\s+)?
 
 /** What to look for: texts matched from their start, and forms in which each reference may have become a name. */
 interface Quotes {
-  texts: string[];
+  /** Texts by their opening letters (`MinQuoted` of them, or `MinInner` for a start inside a sentence). */
+  heads: Map<string, string[]>[];
+  /** Texts shorter than `MinQuoted`, matched only whole. */
+  short: string[];
   forms: RegExp[];
 }
 
@@ -142,8 +156,22 @@ interface Quotes {
  * any name of up to 120 letters, or none, where each reference stood ("Mane (c1)" is delivered as "Mane").
  */
 function pieces(words: string[]): Quotes {
-  const texts = new Set<string>();
+  const starts = new Map<string, string[]>();
+  const inner = new Map<string, string[]>();
+  const short = new Set<string>();
   const forms = new Map<string, RegExp>();
+  const add = (map: Map<string, string[]>, t: string, n: number): void => {
+    const head = t.slice(0, n);
+    const list = map.get(head) ?? [];
+    if (!list.includes(t)) list.push(t);
+    map.set(head, list);
+  };
+  const text = (t: string): void => {
+    if (t.length <= MinQuoted) short.add(t);
+    else add(starts, t, MinQuoted);
+    // Each start inside it, at a word, long enough to be his.
+    for (const m of t.matchAll(/(?<=\s)\S/g)) if (t.length - m.index >= MinInner) add(inner, t.slice(m.index), MinInner);
+  };
   for (const w of words)
     for (const p of [w, ...w.split(/(?<=[.!?;:])\s+|\n+/)]) {
       const t = p.trim();
@@ -151,10 +179,10 @@ function pieces(words: string[]): Quotes {
       // As written, as the log keeps it in a call (anything sensitive replaced), and each inside a JSON string.
       const cleaned = withoutSensitive(t);
       for (const form of new Set([t, cleaned, JSON.stringify(t).slice(1, -1), JSON.stringify(cleaned).slice(1, -1)])) {
-        texts.add(form);
+        text(form);
         const runs = form.split(Reference);
         if (runs.length === 1) continue;
-        for (const r of runs) if (r.trim().length >= MinQuoted) texts.add(r.trim());
+        for (const r of runs) if (r.trim().length >= MinQuoted) text(r.trim());
         // A name at either end is not his; and a form with too few of his letters would match anyone's.
         while (runs.length > 0 && runs[0].trim() === "") runs.shift();
         while (runs.length > 0 && runs[runs.length - 1].trim() === "") runs.pop();
@@ -162,7 +190,7 @@ function pieces(words: string[]): Quotes {
         forms.set(form, new RegExp(runs.map((r) => r.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[^\\n]{0,120}?"), "g"));
       }
     }
-  return { texts: [...texts], forms: [...forms.values()] };
+  return { heads: [starts, inner], short: [...short], forms: [...forms.values()] };
 }
 
 const isWord = (c: string | undefined): boolean => c !== undefined && /[\p{L}\p{N}_]/u.test(c);
@@ -173,20 +201,29 @@ const isWord = (c: string | undefined): boolean => c !== undefined && /[\p{L}\p{
  */
 function blankIn(s: string, quotes: Quotes): string {
   // Every match is found in the text as it stands, then all are blanked together, so one match cut short (a text's JSON
-  // form against its plain quote) never hides another's.
+  // form against its plain quote) never hides another's. Each word start of the string is looked up by its opening
+  // letters, so the string is read once however many texts there are.
   const hit = new Uint8Array(s.length);
   let any = false;
-  for (const t of quotes.texts) {
-    const head = t.slice(0, MinQuoted);
-    for (let i = s.indexOf(head); i >= 0; i = s.indexOf(head, i + 1)) {
-      if (isWord(s[i - 1])) continue;
-      let n = head.length;
-      while (n < t.length && s[i + n] === t[n]) n++;
-      if (t.length <= MinQuoted && isWord(s[i + n])) continue;
-      hit.fill(1, i, i + n);
-      any = true;
-    }
+  const mark = (i: number, t: string, from: number): void => {
+    let n = from;
+    while (n < t.length && s[i + n] === t[n]) n++;
+    hit.fill(1, i, i + n);
+    any = true;
+  };
+  for (let i = 0; i < s.length; i++) {
+    if (isWord(s[i - 1])) continue;
+    const at12 = quotes.heads[0].get(s.slice(i, i + MinQuoted));
+    if (at12 !== undefined) for (const t of at12) mark(i, t, MinQuoted);
+    const at20 = quotes.heads[1].get(s.slice(i, i + MinInner));
+    if (at20 !== undefined) for (const t of at20) mark(i, t, MinInner);
   }
+  for (const t of quotes.short)
+    for (let i = s.indexOf(t); i >= 0; i = s.indexOf(t, i + 1))
+      if (!isWord(s[i - 1]) && !isWord(s[i + t.length])) {
+        hit.fill(1, i, i + t.length);
+        any = true;
+      }
   for (const re of quotes.forms)
     for (const m of s.matchAll(re)) {
       hit.fill(1, m.index, m.index + m[0].length);
@@ -201,18 +238,15 @@ function blankIn(s: string, quotes: Quotes): string {
 /** Ids and names in calls and shadows, never blanked: they say whose the record is. */
 const Names = new Set(["type", "key", "role", "model", "character", "name", "traits"]);
 
-/**
- * A record with `change` applied to its strings: under a word field only (`fields`), or, where `fields` is null,
- * everywhere but the record's ids and names. `touched.any` is set if anything changed.
- */
-function mapWords(v: unknown, change: (s: string) => string, fields: ReadonlySet<string> | null, key: string, touched: { any: boolean }): unknown {
+/** A record with `change` applied to each string under a field `changes` accepts. `touched.any` is set if anything changed. */
+function mapWords(v: unknown, change: (s: string) => string, changes: (field: string) => boolean, key: string, touched: { any: boolean }): unknown {
   if (typeof v === "string") {
-    if (fields !== null ? !fields.has(key) : Names.has(key)) return v;
+    if (!changes(key)) return v;
     const s = change(v);
     if (s !== v) touched.any = true;
     return s;
   }
-  if (Array.isArray(v)) return v.map((x) => mapWords(x, change, fields, key, touched));
-  if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, mapWords(x, change, fields, k, touched)]));
+  if (Array.isArray(v)) return v.map((x) => mapWords(x, change, changes, key, touched));
+  if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, mapWords(x, change, changes, k, touched)]));
   return v;
 }
