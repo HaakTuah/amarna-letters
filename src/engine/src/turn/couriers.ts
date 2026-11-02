@@ -102,7 +102,9 @@ function placeOf(e: TurnEngine, p: Power, o: Order): { province: string; unit: U
     case "caravan":
     case "trade":
       return { province: o.from, unit: null };
-    case "tax":
+    case "census":
+      return { province: o.province, unit: null };
+    case "demand":
     case "toll":
       return o.province === null ? null : { province: o.province, unit: null };
     default:

@@ -93,8 +93,10 @@ export function remember(frames: readonly SeasonFrame[], index: number, viewer: 
     const g = frames[k];
     const fed = g.fed.get(p.id);
     if (fed !== undefined && fed < FamineBelow) famine.set(p.id, fed);
-    const now = g.settled.get(p.id) ?? 0;
-    if (now > 0) towns.set(p.id, { now, before: frameAt(frames, Math.max(0, k - 3)).settled.get(p.id) ?? now });
+    // Its land's people (item 17++): exact in god view, a seat's as its scribes last counted them.
+    const people = (x: SeasonFrame): number | undefined => (viewer === null ? x.settled.get(p.id) : x.counted.get(viewer)?.get(p.id));
+    const now = people(g) ?? 0;
+    if (now > 0) towns.set(p.id, { now, before: people(frameAt(frames, Math.max(0, k - 3))) ?? now });
   }
   // A court knows its own caravans, as the engine's view tells it; deportees on a road it sees.
   const caravans = viewer === null ? f.caravans : f.caravans.filter((r) => r.power === viewer);

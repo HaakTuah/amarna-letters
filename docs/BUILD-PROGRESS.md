@@ -7,25 +7,24 @@ document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` fi
 longer finds was history and is in `docs/archive/design-history.md`.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`;
-Haakon's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
+The owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
 
 ## The polish lane
 
-A side lane of small refinements, beside the item lane and never ahead of it (Haakon, 31 October 2026: "Should we add a
+A side lane of small refinements, beside the item lane and never ahead of it (the owner, 31 October 2026: "Should we add a
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
-- **Next, from Haakon's notes of 2 November** (his words in `docs/archive/instructions.md`, item 134), one PR each:
-  every province a proper name, never a description (Tjehenu, not "the land of the Tjehenu"; where 1346 gives
-  none, the oldest name the sources give, such as Moab, the Negeb, Tamassos: "Places by their own names" under World); the camera stops at the play area's edges, so an edge province can
-  be centred; the tabs scroll with the mouse wheel and by dragging, or fit; the small provinces of the Levant can be seen
-  and clicked at the normal zoom (a minimum hit area, labels that grow as you zoom out); and, by "Following, travel
-  lines and borders" under Interface, Follow keeps the camera on the person, travel lines follow their roads (your
+- **Next, from the owner's notes of 2 November** (his words in `docs/archive/instructions.md`, item 134): by "Following,
+  travel lines and borders" under Interface, Follow keeps the camera on the person, travel lines follow their roads (your
   orders' whole path, others' only as reported), and borders are strong between powers and quiet within one (after
-  17++ part C merges, since it redraws the map's steps).
+  17++ part C merges, since it redraws the map's steps). Open from the notes' first four: the powers' land names
+  (#403, a question for the owner), and army counters standing over a neighbour's seal on the whole map (the lane's report).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
-  the soundtracks and the Music page (#350), the soundscape (#351, #352); their briefs are in
-  `docs/archive/progress-done.md`, "Side lanes".
+  the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
+  `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
+  the camera to the play area's edges (#396), a seal's tap to its own city (#398), and the tabs and the courts scrolled
+  by wheel and drag (#397).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
@@ -45,7 +44,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## The workshop lane
 
-- **The file-by-file review** (Haakon, 2 November 2026: "Need a full review and clean up where we look at every file,
+- **The file-by-file review** (the owner, 2 November 2026: "Need a full review and clean up where we look at every file,
   especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
   then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
   the rules restructure (PR of 2 November). Every file, docs first: what does it say it is for, and does it do that?
@@ -67,17 +66,17 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
 fixed.
 
-- **First of all: what a game's export holds** (Haakon, 2 November 2026: "And queue a job going fully over what the
+- **First of all: what a game's export holds** (the owner, 2 November 2026: "And queue a job going fully over what the
   export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
   fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
   session's `export`, `log.toJsonl()` and every record type in it: the header, calls, decisions, shadows) and
   everything it could carry: API keys or anything from the key's storage, provider addresses with tokens in them,
   request or organisation ids, e-mail addresses, local paths, browser or device details.
-  Anything sensitive is removed from the export, with a test that fails if it comes back, and **Haakon is alerted at
-  once**: the PR's first line and the session's "Questions for Haakon" say what was found and which files in
+  Anything sensitive is removed from the export, with a test that fails if it comes back, and **The owner is alerted at
+  once**: the PR's first line and the session's "Questions for the owner" say what was found and which files in
   `tests/fixtures/` hold it, so they can be removed from the repository and its history. If nothing is found, the
   report lists what the export holds, field by field. Then build **one export with filters** (Engine and models,
-  "Logging and replay"; Haakon, 2 November 2026): by default everything, every call in full with each model's notes,
+  "Logging and replay"; the owner, 2 November 2026): by default everything, every call in full with each model's notes,
   plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
   wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
   in any export. A human player's own words are not sensitive in a normal export.
@@ -102,11 +101,16 @@ fixed.
   province once one upkeep order is drafted; (g) a captive's stirring gold counted as skimmed rather than carried; (h) a
   no-op `CityStarts` entry; (i) an older tablet arriving late sets a court's knowledge of a claim back. (b), the chiefs'
   lands falling in the first two seasons, is 17++'s and measured in its report.
+- **From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
+  is over 50 KB (about 55 KB): split by responsibility in a PR of its own, behaviour proven unchanged by replays.
+- **From #376 (17++ B), round 1 (Codex, P1); test infrastructure outside the item:** the engine suite has no reduced-world
+  fixture, so every engine test builds the whole starting world; a small-world fixture (a few powers on part of the map)
+  for rule tests, as "the smallest game that tests the rule" asks.
 
-## For Haakon
+## For the owner
 
-Everything for Haakon is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Afor-haakon)
-(`for-haakon`) and [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aidea) (`idea`), by
+Everything for the owner is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Afor-owner)
+(`for-owner`) and [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aidea) (`idea`), by
 "Questions, readings and ideas" in `AGENTS.md`. Answered review points from before 2 November 2026:
 `docs/archive/progress-done.md`.
 
@@ -124,6 +128,7 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
+| 17++ B | Counting the land (census), asking an amount by a fresh count and levying by share by an old one (`--count-play-half`) | 0.97 growth to 0.86, 26 wins to 24, in 50 games (after round 1: 0.96 to 0.89, 30 to 20) | Pays |
 | 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
 | 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |
 
@@ -133,7 +138,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) in review, #376; part C (governors over regions, grants, the map, the audit's script finds) under way; "taken up, never thrust on anyone" (2 November 2026) goes into part C, or a part of its own if C has merged | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md` |
+| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds) under way; "taken up, never thrust on anyone" (2 November 2026) goes into part C, or a part of its own if C has merged | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md` |
 | 17++a | Something happens every season | not started (next after 17++) | | |
 | 17+++ | The season plays out | not started | | |
 | 17+++a | Keys for everything | not started | | |

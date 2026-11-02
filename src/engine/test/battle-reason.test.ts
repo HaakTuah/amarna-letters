@@ -102,8 +102,8 @@ describe("BattleReasonTests", () => {
       }),
     );
     Assert.contains("- army in Ta-Mehu -> Lukka (by sea): fails: no convoy carried it across the sea", report(t, "Egypt"));
-    Assert.contains("- fleet in Ta-Mehu waters convoys Ta-Mehu -> the copper hills of Alashiya: void: no army moved from Ta-Mehu to the copper hills of Alashiya by sea", report(t, "Alashiya"));
-    Assert.contains("- Alashiya: fleet in Ta-Mehu waters convoys Ta-Mehu -> the copper hills of Alashiya: void", report(t, "Egypt"));
+    Assert.contains("- fleet in Ta-Mehu waters convoys Ta-Mehu -> Tamassos: void: no army moved from Ta-Mehu to Tamassos by sea", report(t, "Alashiya"));
+    Assert.contains("- Alashiya: fleet in Ta-Mehu waters convoys Ta-Mehu -> Tamassos: void", report(t, "Egypt"));
   });
 
   test("A unit that could not leave kept its place", () => {

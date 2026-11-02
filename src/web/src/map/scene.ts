@@ -306,7 +306,7 @@ export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
   const own = scene.own.get(id);
   if (own === undefined) return null;
   if (own.age === 0) return { live: true };
-  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: own.frame.settled.get(id) ?? 0, fed: own.frame.fed.get(id) };
+  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: own.frame.counted.get(scene.viewer)?.get(id) ?? 0, fed: own.frame.fed.get(id) };
 }
 
 /** A band as a viewer's map shows it, with the seasons since its word of it. */

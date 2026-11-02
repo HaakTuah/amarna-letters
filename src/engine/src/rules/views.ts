@@ -18,6 +18,7 @@ import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, upkeepOf, 
 import { PointsPerDay, wordSeasons } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
+import { countOf } from "../model/counts.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
@@ -178,6 +179,8 @@ function routineTreasury(i: InboxItem): boolean {
 function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: string): ProvinceEconomyView {
   const prov = m.get(id);
   const mk = engine.market(id);
+  const holder = s.owner.getOrDefault(id, null);
+  const c = holder === null ? null : countOf(s, holder, id);
   return newProvinceEconomyView({
     province: id,
     stores: engine.stores(id),
@@ -187,22 +190,51 @@ function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: stri
     stock: mk.stock,
     purse: mk.purse,
     price: priceAt(mk.stock, needOf(prov)),
-    // Its people (item 10+a).
-    settled: engine.peopleOf(id).settled,
-    men: engine.peopleOf(id).men,
-    loose: engine.peopleOf(id).loose,
+    // Its people and fields (item 10+a), as its holder's scribes last counted them (item 17++).
+    counted: c?.turn ?? null,
+    settled: c?.settled ?? 0,
+    men: c?.men ?? 0,
+    loose: c?.loose ?? 0,
+    town: c?.town ?? 0,
     room: reckonedOf(m, id).room,
-    taxRate: engine.taxRate(id),
-    // A season's share of the last harvest, what the tax is reckoned from (item 11a+).
-    harvest: idiv(s.reaped.getOrDefault(id, 0), 3),
+    share: engine.shareOf(id),
+    amount: engine.amountOf(id),
+    // A season's share of the last harvest, what the demand is reckoned from (item 11a+).
+    harvest: idiv(c?.harvest ?? 0, 3),
     fed: s.fed.getOrDefault(id, 1000),
     // Item 10+b.
     runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
     expelled: s.expelled.getOrDefault(id, 0),
-    granary: s.granary.getOrDefault(id, 0),
-    crop: s.crop.getOrDefault(id, 0),
+    granary: c?.granary ?? 0,
+    crop: c?.crop ?? 0,
     reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
   });
+}
+
+/**
+ * The troops a court sees: its own as their last reports place them, and others' where it sees. A report never puts two
+ * troops in one province: one shown where another stands (or is shown) is shown by an older report of its own whose place
+ * is free, and left out if it has none (never by where it truly is: that news has not come yet). Each unit is placed in
+ * turn, so two reported into one province never take the same older place.
+ */
+function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(province: string): boolean }, view: (u: Unit) => UnitView): UnitView[] {
+  const pairs: [Unit, UnitView | null][] = s.units.filter((u) => u.power === p || seen.has(u.province)).map((u) => [u, view(u)]);
+  for (const pair of pairs) {
+    const [u, x] = pair;
+    if (x === null || x.reported === 0 || u.power !== p || !pairs.some((y) => y !== pair && y[1]?.province === x.province)) continue;
+    if (u.trail.length === 0 || engine.wordTo(p, u.province) <= 0) continue;
+    pair[1] = null;
+    const taken = new HSet(pairs.filter((y) => y !== pair && y[1] !== null).map((y) => y[1]!.province));
+    const d = engine.wordTo(p, u.province);
+    for (let i = u.trail.length - 2 - d; i >= 0; i--) {
+      const r = trailEntry(u.trail[i]);
+      if (!taken.has(r.province)) {
+        pair[1] = { ...x, ...r, reported: s.turn - (u.trail.length - 1 - i) };
+        break;
+      }
+    }
+  }
+  return pairs.map(([, x]) => x).filter((x): x is UnitView => x !== null);
 }
 
 function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView {
@@ -297,29 +329,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           tightness: x.power === p || s.owner.getOrDefault(x.province, null) === p ? engine.tightness(x) : null,
         }),
       ),
-    units: s.units
-      .filter((u) => u.power === p || seen.has(u.province))
-      .map((u) =>
-        u.power === p
-          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, buy: u.buy, chest: u.chest, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
-          : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
-      )
-      .map((x, _i, all) => {
-        // A report never puts two troops in one province: one shown where another stands (or is shown) is shown by an
-        // older report of it whose place is free, and left out if it has none (never by where it truly is: that news has
-        // not come yet).
-        if (x.reported === 0 || !all.some((y) => y !== x && y.province === x.province)) return x;
-        const u = s.units.find((v) => v.power === p && v.trail.length > 0 && engine.shownAt(v) === x.province && engine.wordTo(p, v.province) > 0);
-        if (u === undefined) return x;
-        const taken = new HSet(all.filter((y) => y !== x).map((y) => y.province));
-        const d = engine.wordTo(p, u.province);
-        for (let i = u.trail.length - 2 - d; i >= 0; i--) {
-          const r = trailEntry(u.trail[i]);
-          if (!taken.has(r.province)) return { ...x, ...r, reported: s.turn - (u.trail.length - 1 - i) };
-        }
-        return null;
-      })
-      .filter((x): x is UnitView => x !== null),
+    units: unitsSeen(s, engine, p, seen, (u) =>
+      u.power === p
+        ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, buy: u.buy, chest: u.chest, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
+        : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
+    ),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
     // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.
     fallen: isAlive(s, p) ? s.eliminated.filter((x) => (s.fallsHeard.tryGet(p) ?? []).includes(x)) : [...s.eliminated],
@@ -420,12 +434,15 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       if (last !== undefined) v.provinces.push(last);
     }
   }
-  // Yields as the people bring them in now, and the people's resistance to this court's armies (item 10+a): where the
+  v.counting = s.censuses.filter((c) => c.power === p).map((c) => c.province);
+  // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {
     if (!seen.has(prov.id) && !(s.owner.getOrDefault(prov.id, null) === p && known.tryGet(prov.id)?.owner === p)) continue;
     const full = harvestOf(prov);
-    v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * engine.harvestNow(prov.id, false), full));
+    // Item 17++: what its last reaping brought in, a season's third of it, as the stewards (or the troops who saw the fields)
+    // know it; never the hands there now, which only a count tells.
+    v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * idiv(s.reaped.getOrDefault(prov.id, full * 3), 3), full));
     const r = engine.resistance(prov.id, p);
     if (r > 0) v.resistance.set(prov.id, r);
   }

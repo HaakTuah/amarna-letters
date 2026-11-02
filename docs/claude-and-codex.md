@@ -1,20 +1,20 @@
 # Claude and Codex
 
-Decided 1 November 2026 (`docs/archive/instructions.md`, item 123). Two builders spread the weekly usage, Claude on Haakon's Claude plan and Codex
+Decided 1 November 2026 (`docs/archive/instructions.md`, item 123). Two builders spread the weekly usage, Claude on the owner's Claude plan and Codex
 (OpenAI's) on ChatGPT Pro, and review each other: different models have different blind spots. This file is the whole
 arrangement; `AGENTS.md` points here, and nothing here is repeated there.
 
 **Status (1 November 2026): Codex reviews, Claude builds.** Codex's code review works on these repositories, but it
 cannot build yet: its GitHub tasks and its command line need a "Codex Cloud (Legacy)" environment, which cannot be
-created. So no lane goes to Codex, and nothing is labelled `codex`, until Haakon says it can build; until then the
-building, the routing below and Haakon's poller wait, and all building is Claude's.
+created. So no lane goes to Codex, and nothing is labelled `codex`, until the owner says it can build; until then the
+building, the routing below and the owner's poller wait, and all building is Claude's.
 
 ## Who does what
 
 - **The orchestrator is Claude, always:** it writes Codex's briefs, routes the work, takes the readings, merges
-  Codex's PRs, and brings Haakon his questions.
+  Codex's PRs, and brings the owner his questions.
 - **The builders:** Claude's builder sessions, and Codex in OpenAI's cloud, started by the `codex` label on a draft PR,
-  which Haakon's poller hands to Codex (below).
+  which the owner's poller hands to Codex (below).
 - **The reviewer is the other company's model.** Codex's PRs get Claude's reviewer (Opus, high effort), given
   the diff, the item's text and "The game in one page": it holds the picture of the finished game and sends the work back until it meets it. Claude's PRs
   that change the game get Codex's code review ("Codex reviews" below); when Codex does not answer in time, Claude's
@@ -62,15 +62,15 @@ reviews), and if it scores well, more items follow.
 1. **Claim the lane with a draft PR,** as usual: a fresh branch from `develop` with one empty commit ("Claim: ..."),
    and a draft PR into `develop` whose **description is the brief.** Codex starts fresh each time and sees only the
    brief and the repository, so the brief stands alone: the item, the sections and files to read (paths), the tests it
-   must pass, what not to touch, and what its report must say ("Readings taken", "Questions for Haakon").
-2. **Add the label `codex`.** Haakon's poller sees it within a minute, comments "Codex has started" with the cloud
+   must pass, what not to touch, and what its report must say ("Readings taken", "Questions for the owner").
+2. **Add the label `codex`.** the owner's poller sees it within a minute, comments "Codex has started" with the cloud
    task's id, and swaps the label for `codex-running`. Codex works in its cloud and pushes to the PR's branch itself;
    the poller then posts Codex's report and labels the PR `codex-done`, or `codex-failed` with the reason (Codex did not
    push, its usage ran out, or its work touched a protected file).
 3. **Questions go on the PR,** both ways: Codex's arrive in the poller's comment; the orchestrator answers by adding a
    section to the description ("Round 2: ...") and adding `codex` again. At most **two rounds** per question; then the
-   orchestrator takes the most reasonable reading and writes it under "Readings taken". Whatever only Haakon can settle
-   goes to "Questions for Haakon" and the "For Haakon" table, as always.
+   orchestrator takes the most reasonable reading and writes it under "Readings taken". Whatever only the owner can settle
+   goes to "Questions for the owner" and the "For the owner" table, as always.
 4. **The PR is then reviewed as below,** sent back the same way (the review's list added to the description, `codex`
    added again), marked ready, and merged by the orchestrator.
 5. **Write the Codex mention only to ask for a review:** `@codex review` or `@codex security review`, alone at the
@@ -80,7 +80,7 @@ reviews), and if it scores well, more items follow.
 
 ## When Codex is not there
 
-Codex's usage can run out with no alert, and the poller only works while Haakon's PC is on, so the orchestrator never
+Codex's usage can run out with no alert, and the poller only works while the owner's PC is on, so the orchestrator never
 waits on Codex for long. The poller looks every minute, so:
 
 - **`codex-failed`** (no usage left, an error, a task that could not be applied) **is a take-back at once.**
@@ -99,7 +99,7 @@ waits on Codex for long. The poller looks every minute, so:
 
 ## Codex reviews
 
-Codex reviews Claude's PRs that change the game, in OpenAI's cloud, on Haakon's Codex plan, so Claude's weekly usage
+Codex reviews Claude's PRs that change the game, in OpenAI's cloud, on the owner's Codex plan, so Claude's weekly usage
 goes to building. Its usage can run out like any other, and it may then not say so, so:
 
 1. **Ask:** a comment `@codex review` alone. Codex reads the PR's description, so the item's text and the design
@@ -121,13 +121,13 @@ goes to building. Its usage can run out like any other, and it may then not say 
    (Barkstreet Snakes #298, 1 November 2026, never merged) got all three as P1 from Codex within four minutes: a bug
    (an off-by-one in the board's bounds), a break of a rule that is not a bug (a renamed storage key, citing `AGENTS.md`)
    and a security hole (a peer's name as HTML, citing `SECURITY.md`); it also saw through the PR's false reasons. What
-   it does not give is the broad feedback on the design, which the design check gives. Haakon agreed ("I agree with
+   it does not give is the broad feedback on the design, which the design check gives. The owner agreed ("I agree with
    your assesment").
    **Both at once:** the design check starts in the same turn as the request to Codex, in the background, never after
    Codex's answer, so neither waits for the other, and the builder answers both lists in one round.
 6. **Docs-only PRs and the milestone PRs get no review,** as before. Codex's automatic review stays off in its settings
    for both repositories, so it reviews only when asked.
-7. **Checks that run the work, once Codex can build** (Haakon, 2 November 2026; `docs/archive/instructions.md`, item
+7. **Checks that run the work, once Codex can build** (the owner, 2 November 2026; `docs/archive/instructions.md`, item
    134). The native review reads the diff but runs nothing, so it cannot check a claim such as "the script kings now
    win 29 games of 50". When Codex's environments work ("Setup"), a Codex task in its container also reruns the
    measurements a PR's claims rest on (its benchmarks and use-against-ignore table) and confirms or corrects them, beside
@@ -135,7 +135,7 @@ goes to building. Its usage can run out like any other, and it may then not say 
 
 ## Reviews: only a 10 passes
 
-Every review, in either direction, passes the work only at a 10 (for Codex, nothing open). Haakon (1 November 2026):
+Every review, in either direction, passes the work only at a 10 (for Codex, nothing open). The owner (1 November 2026):
 "I want 3 stricter, though we should have a measure there to ensure not endless loop, or lowering of what a 10 is."
 The guards against both are part of the rule:
 
@@ -144,7 +144,7 @@ The guards against both are part of the rule:
    standing rules) or **not blocking**, which says only what is fixed first. **A 10 is a list with nothing open:** the
    work does all of the item's text and the sections it names, keeps every standing rule, leaves nothing behind ("Keep it lean" in `AGENTS.md`), its tests prove it, and a
    demanding expert would hand it over as it stands. A 10 with a point open, or less than 10 with none, is no review:
-   ask again. This definition goes into every reviewer's brief word for word, and only Haakon changes it.
+   ask again. This definition goes into every reviewer's brief word for word, and only the owner changes it.
 2. **Every point is fixed, or moved out with a reason.** A point within the item is always fixed. A point outside it
    (code or a question the item did not touch) may become a follow-up entry in `docs/BUILD-PROGRESS.md`, with the reason in the
    PR. A point the builder thinks wrong is answered in the PR with why. The next round's reviewer rules on each move
@@ -156,7 +156,7 @@ The guards against both are part of the rule:
 4. **At most three rounds, then the escalation helper, then blocked.** Anything still open after the third round goes
    to the escalation helper (`CLAUDE.md`) with a self-contained brief. It fixes each point, or rules it outside the
    item or wrong, with reasons. Whatever is still open after that, the PR is **not merged:** it stays open as a draft,
-   is marked blocked in `docs/BUILD-PROGRESS.md` and listed under "Questions for Haakon", and the work goes on with the next
+   is marked blocked in `docs/BUILD-PROGRESS.md` and listed under "Questions for the owner", and the work goes on with the next
    item that does not depend on it. Nothing is ever merged below 10.
 5. **The bar does not slip.** Three checks, run by the orchestrator:
    - **A blind re-review every week:** at the first milestone of each week, a PR merged at 10 in the week before
@@ -169,7 +169,7 @@ The guards against both are part of the rule:
      a miss.
    - **Logged and reported:** each check is a row in "Calibration" below, and each milestone PR says in one line the
      misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
-     Haakon, and the categories it reviews go back to the other reviewer meanwhile.
+     The owner, and the categories it reviews go back to the other reviewer meanwhile.
 6. **One line in each PR:** `Review: <category> · <builder> · <each round's result>`, a score from the design check
    or Claude's reviewer, or Codex's verdict (`clean`, or its findings, such as `P1×2`): `Review: interface · Codex ·
    P1×1, P3×2, clean`, or `Review: rules · Claude · 7, 9, 10`. At each milestone the orchestrator sums them by
@@ -199,6 +199,7 @@ The weekly blind re-reviews and the canaries, newest first ("Reviews", point 5).
   a key or secret anywhere.
 - Your environment's setup script installs what the suites need. If something is missing, say what in your report
   instead of working around it.
+- **Questions, readings and ideas go to the issues** ("Questions, readings and ideas" in `AGENTS.md`): file each as an issue yourself, labelled `for-owner` or `idea` and assigned to `HaakTuah`, if your access allows it. If it does not, list them in your report under "Questions for the owner" and "Ideas", and the orchestrator files each as an issue and links it in the PR. Either way the PR carries only the links.
 - Your review of Claude's PRs follows "Reviews" above: the score, the list, blocking or not.
 
 ## Setup (1 November 2026)
@@ -210,13 +211,13 @@ The weekly blind re-reviews and the canaries, newest first ("Reviews", point 5).
 - Codex runs on its own default model for cloud tasks, since none can be chosen there. The review scores per category
   show whether that is good enough.
 
-## Haakon's poller
+## The owner's poller
 
-A small poller on Haakon's PC, kept outside the repositories, connects the two: the orchestrator stays in Claude's
+A small poller on the owner's PC, kept outside the repositories, connects the two: the orchestrator stays in Claude's
 cloud and only labels pull requests; the poller sees the labels and starts Codex's cloud tasks. It runs no code from
 the repositories and keeps no copy of them; Codex builds and tests only in its cloud, which holds no secrets.
 
-**Only Haakon's own work reaches Codex.** Strangers can comment on a public repository and open pull requests from
+**Only the owner's own work reaches Codex.** Strangers can comment on a public repository and open pull requests from
 forks, but cannot add labels, and their text must never reach Codex as instructions. So a lane is handed to Codex only
 when it is a pull request HaakTuah opened from a branch in the repository itself (never a fork, never `main` or
 `develop`), labelled by HaakTuah, with its description as the brief; comments are never read as instructions. The
@@ -227,5 +228,5 @@ opened.
 planted somewhere could try to steer it. Its work may never change `.github/` (the CI workflows),
 `scripts/cloud-setup.sh`, `.gitattributes`, `.claude/`, `AGENTS.md`, `CLAUDE.md` or `SECURITY.md`. Such a PR is labelled
 `codex-failed` with the files named, and the orchestrator checks it too before any merge (`gh api
-repos/<repository>/compare/develop...<branch>` lists the files): it is never merged; Haakon decides. Lanes that must
+repos/<repository>/compare/develop...<branch>` lists the files): it is never merged; the owner decides. Lanes that must
 change those files are Claude's. Nothing secret is ever written to a repository.

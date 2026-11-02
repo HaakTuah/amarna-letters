@@ -158,13 +158,21 @@ export interface TollOrder {
   percent: number;
 }
 /**
- * Set the tax in goods on a province of one's own, or on all one's land (`province` null), in percent of its harvest
- * (item 10+a, "How a king lives"). It stands until changed; hunger answers a heavy one.
+ * Say how much grain a province of one's own gives, or all one's land (`province` null) (item 17++, "The king says how
+ * much he wants", replacing item 10+a's tax rate): as a `share` of its harvest, in percent, which never squeezes it but
+ * lets it hide more the older the king's count and the farther it lies; or as an `amount`, in measures a season, which he
+ * gets as far as its granaries hold, falling on the people really there. It stands until changed.
  */
-export interface TaxOrder {
-  type: "tax";
+export interface DemandOrder {
+  type: "demand";
   province: string | null;
-  percent: number;
+  how: "share" | "amount";
+  n: number;
+}
+/** Send scribes to count a province of one's own (item 17++, "A census"): paid now, their count travels home dated. */
+export interface CensusOrder {
+  type: "census";
+  province: string;
 }
 /**
  * People across borders and in kings' hands (item 10+b, "Where people go"). `welcome`: settle the loose men standing in a
@@ -201,6 +209,12 @@ export interface RaiseOrder {
   kind: UnitKind;
   /** Haakon's answers to item 11a+: how many men the levy takes, up to every man of fighting age there; none: a unit's full size. */
   men?: number | null;
+  /**
+   * Item 17++ ("The king says how much he wants"): the levy asked as a share of the men of fighting age at home, in
+   * percent, instead of a number: it never takes more than are there, but the province hides part of it as its count ages
+   * and the farther it lies. None: `men` as asked.
+   */
+  share?: number | null;
 }
 export interface DisbandOrder {
   type: "disband";
@@ -614,7 +628,8 @@ export type Order =
   | TradeOrder
   | ShipOrder
   | TollOrder
-  | TaxOrder
+  | DemandOrder
+  | CensusOrder
   | WelcomeOrder
   | DeportOrder
   | ExpelOrder
@@ -676,7 +691,8 @@ export const besiege = (unit: string): BesiegeOrder => ({ type: "besiege", unit 
 export const build = (province: string, kind: WorkKind, level: number, labour = false): BuildOrder => ({ type: "build", province, kind, level, labour });
 export const raze = (unit: string, kind: WorkKind): RazeOrder => ({ type: "raze", unit, kind });
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
-export const raise = (province: string, kind: UnitKind, men: number | null = null): RaiseOrder => (men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men });
+export const raise = (province: string, kind: UnitKind, men: number | null = null, share: number | null = null): RaiseOrder =>
+  share !== null ? { type: "raise", province, kind, share } : men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men };
 export const disband = (unit: string, settle = false): DisbandOrder => (settle ? { type: "disband", unit, settle } : { type: "disband", unit });
 export const fold = (unit: string, into: string): FoldOrder => ({ type: "fold", unit, into });
 export const cede = (province: string, to: Power): CedeProvinceOrder => ({ type: "cede", province, to });
@@ -745,7 +761,8 @@ export const feed = (province: string, amount: number, own = false): FeedOrder =
 export const caravan = (from: string, to: string, amount: number): CaravanOrder => ({ type: "caravan", from, to, amount });
 export const trade = (from: string, to: string, grain: number, gold: number, sneak = false): TradeOrder => ({ type: "trade", from, to, grain, gold, sneak });
 export const ship = (fleet: string, from: string, to: string, grain: number, gold: number, trade = true): ShipOrder => ({ type: "ship", fleet, from, to, grain, gold, trade });
-export const tax = (percent: number, province: string | null = null): TaxOrder => ({ type: "tax", province, percent });
+export const demand = (how: "share" | "amount", n: number, province: string | null = null): DemandOrder => ({ type: "demand", province, how, n });
+export const census = (province: string): CensusOrder => ({ type: "census", province });
 export const welcome = (province: string): WelcomeOrder => ({ type: "welcome", province });
 export const deport = (province: string, to: string, number: number, purse = false): DeportOrder => ({ type: "deport", province, to, number, purse });
 export const expel = (province: string, percent = 50): ExpelOrder => ({ type: "expel", province, percent });
@@ -838,13 +855,15 @@ export function describe(o: Order): string {
     case "returnRunaways":
       return `send ${o.to}'s runaways in ${named(o.province)} back to ${o.to}`;
     case "raise":
-      return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}${o.men != null ? ` of ${o.men} men` : ""}`;
+      return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}${o.share != null ? ` of ${o.share}% of its men of fighting age` : o.men != null ? ` of ${o.men} men` : ""}`;
     case "disband":
       return o.settle === true ? `disband ${o.unit} and settle its men there as colonists` : `disband ${o.unit}`;
     case "fold":
       return `fold the troops in ${o.unit} into those in ${o.into}`;
-    case "tax":
-      return `set the tax to ${o.percent}% of the harvest in ${o.province === null ? "all your land" : named(o.province)}`;
+    case "demand":
+      return `ask ${o.how === "share" ? `${o.n}% of the harvest` : `${o.n} measures of grain a season`} of ${o.province === null ? "all your land" : named(o.province)}`;
+    case "census":
+      return `send scribes to count ${named(o.province)}`;
     case "cede":
       return `cede ${o.province} to ${o.to}`;
     case "giftUnit":
@@ -1023,10 +1042,11 @@ export const OrderSchema = poly("Order", "type", {
   trade: v("TradeOrder", () => trade("", "", 0, 0), { from: S, to: S, grain: I, gold: I, sneak: B }),
   ship: v("ShipOrder", () => ship("", "", "", 0, 0), { fleet: S, from: S, to: S, grain: I, gold: I, trade: B }),
   toll: v("TollOrder", () => toll(0), { province: opt(S), partner: opt(S), percent: I }),
-  raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S, men: opt(I) }),
+  raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S, men: opt(I), share: opt(I) }),
   disband: v("DisbandOrder", () => disband(""), { unit: S, settle: opt(B) }),
   fold: v("FoldOrder", () => fold("", ""), { unit: S, into: S }),
-  tax: v("TaxOrder", () => tax(0), { province: opt(S), percent: I }),
+  demand: v("DemandOrder", () => demand("share", 0), { province: opt(S), how: S, n: I }),
+  census: v("CensusOrder", () => census(""), { province: S }),
   welcome: v("WelcomeOrder", () => welcome(""), { province: S }),
   deport: v("DeportOrder", () => deport("", "", 0), { province: S, to: S, number: I, purse: B }),
   expel: v("ExpelOrder", () => expel(""), { province: S, percent: I }),

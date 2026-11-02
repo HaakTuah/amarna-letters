@@ -759,7 +759,6 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
 });
 
 /** Where gold in a character's purse came from. */
-export const GoldSourceValues = ["Fees", "Skimmed", "Gifts", "Carried", "Loans", "Loot", "News"] as const;
 export type GoldSource =
   /** Fees for its jobs: the advance when a job was agreed, the rest when it was done (item 11a). */
   | "Fees"

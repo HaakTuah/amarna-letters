@@ -89,19 +89,23 @@ export function peopleLines(v: SeatView): string[] {
   const ps = v.provinces;
   if (ps.length > 0) {
     lines.push(
-      `YOUR PEOPLE: settled ${k(sum(ps, (x) => x.settled))} (men of fighting age ${k(sum(ps, (x) => x.men))}), loose ${k(sum(ps, (x) => x.loose))}${v.walking > 0 ? `; ${k(v.walking)} discharged men walking home` : ""}. The last harvests, a season's share: ${sum(ps, (x) => x.harvest)} measures; the farmers' granaries hold ${sum(ps, (x) => x.granary)}, the crops in the fields ${sum(ps, (x) => x.crop)}.`,
+      `YOUR PEOPLE, as your scribes last counted them: on the land ${k(sum(ps, (x) => x.settled))} (men of fighting age ${k(sum(ps, (x) => x.men))}), in the towns ${k(sum(ps, (x) => x.town))}, loose ${k(sum(ps, (x) => x.loose))}${v.walking > 0 ? `; ${k(v.walking)} discharged men walking home` : ""}. The last harvests, a season's share: ${sum(ps, (x) => x.harvest)} measures; the farmers' granaries held ${sum(ps, (x) => x.granary)}, the crops in the fields ${sum(ps, (x) => x.crop)}.`,
     );
+    // Item 17++: the age of each count, and the land never counted.
+    const ages = groupBy(sortBy(ps.filter((x) => x.counted !== null), [(x) => v.turn - x.counted!, cmpNum], [(x) => x.province, cmpStr]), (x) => v.turn - x.counted!);
+    lines.push(`- Counted (census: send scribes to count a province afresh): ${join("; ", ages.map(([n, g]) => `${n === 0 ? "this season" : `${n} season${n === 1 ? "" : "s"} ago`}: ${join(", ", g.map((x) => x.province))}`))}${ps.some((x) => x.counted === null) ? `; never counted: ${join(", ", ps.filter((x) => x.counted === null).map((x) => x.province))}` : ""}${v.counting.length > 0 ? `; scribes out counting: ${join(", ", v.counting)}` : ""}.`);
     // Item 11a+: each land reaps in its own season.
     const reaping = groupBy(sortBy(ps, [(x) => x.reapsIn, cmpNum], [(x) => x.province, cmpStr]), (x) => x.reapsIn);
     lines.push(`- Reaped ${join("; ", reaping.map(([n, g]) => `${n === 0 ? "this season" : n === 1 ? "next season" : `in ${n} seasons`}: ${join(", ", g.map((x) => x.province))}`))}.`);
     // What the farmers eat and pay until the next harvest feeds them, against what their granaries hold.
     const lasts = (x: (typeof ps)[number]): number =>
-      (countryNeed(WorldMap.default.get(x.province), x.settled, reckonedOf(WorldMap.default, x.province).settled) + Math.floor((x.harvest * x.taxRate) / 100)) * (x.reapsIn === 0 ? 2 : x.reapsIn - 1);
+      (countryNeed(WorldMap.default.get(x.province), x.settled, reckonedOf(WorldMap.default, x.province).settled) + (x.amount ?? Math.floor((x.harvest * x.share) / 100))) * (x.reapsIn === 0 ? 2 : x.reapsIn - 1);
     const thin = ps.filter((x) => x.granary < lasts(x));
-    if (thin.length > 0) lines.push(`- Granaries that will not feed the farmers and pay the tax until the next harvest (lower the tax, or feed them grain): ${join(", ", thin.map((x) => `${x.province} ${x.granary}`))}.`);
+    if (thin.length > 0) lines.push(`- Granaries that will not feed the farmers and pay the tax until the next harvest (ask less, or feed them grain): ${join(", ", thin.map((x) => `${x.province} ${x.granary}`))}.`);
     const hungry = ps.filter((x) => x.fed < 1000);
     if (hungry.length > 0) lines.push(`- Went hungry last season (share of their food the farmers had): ${join(", ", hungry.map((x) => `${x.province} ${Math.round(x.fed / 10)}%`))}.`);
-    lines.push(`- Tax: ${join("; ", groupBy(sortBy(ps, [(x) => x.taxRate, cmpNum], [(x) => x.province, cmpStr]), (x) => x.taxRate).map(([rate, g]) => `${rate}% in ${join(", ", g.map((x) => x.province))}`))}.`);
+    const asked = (x: (typeof ps)[number]): string => (x.amount !== null ? `${x.amount} measures a season` : `${x.share}% of the harvest`);
+    lines.push(`- What you ask: ${join("; ", groupBy(sortBy(ps, [asked, cmpStr], [(x) => x.province, cmpStr]), asked).map(([a, g]) => `${a} in ${join(", ", g.map((x) => x.province))}`))}.`);
     // Item 10+b: runaways from other kings' land standing loose in ours, and the besieged cities that put out their mouths.
     const ran = ps.flatMap((x) => [...x.runaways.entries()].filter(([, n]) => n >= 500).map(([q, n]) => `${x.province} ${k(n)} from ${q}`));
     if (ran.length > 0) lines.push(`- Runaways among your loose men (welcome_loose to settle them, return_runaways to send them back): ${join(", ", ran)}.`);
@@ -117,7 +121,7 @@ export function peopleLines(v: SeatView): string[] {
       lines.push(`- Men of fighting age in your homeland (an army takes ${k(menOf("Army"))}, a fleet ${k(menOf("Fleet"))}): ${join(", ", levy.map((x) => `${x.province} ${k(x.men)}`))}.`);
   }
   const changed = sortBy([...v.yields.entries()].filter(([id, y]) => y !== WorldMap.default.get(id).yield), [([id]: [string, number]) => id, cmpStr]);
-  if (changed.length > 0) lines.push(`YIELDS as their people bring them in now, where they differ from the map's (yours and those in sight): ${join(", ", changed.map(([id, y]) => `${id} ${y} (map ${WorldMap.default.get(id).yield})`))}.`);
+  if (changed.length > 0) lines.push(`YIELDS as the last reaping brought them in, a season's third of it, where they differ from the map's (yours and those in sight): ${join(", ", changed.map(([id, y]) => `${id} ${y} (map ${WorldMap.default.get(id).yield})`))}.`);
   if (v.resistance.size > 0)
     lines.push(
       `RESISTANCE your troops would meet from the people of land in sight, in units (in open land they add to any troop's hold, and a move must be stronger; on walls, the city's men before the walls multiply them): ${join("; ", groupBy(sortBy([...v.resistance.entries()], [([id]: [string, number]) => id, cmpStr]), ([, r]) => strengthWords(r)).map(([r, g]) => `${r}: ${join(", ", g.map(([id]) => `${id}${v.walls.getOrDefault(id, 0) > 0 ? " (walls)" : ""}`))}`))}.`,

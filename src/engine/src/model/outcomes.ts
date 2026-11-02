@@ -18,14 +18,7 @@ export function newMoveResult(init: Partial<MoveResult> = {}): MoveResult {
   };
 }
 
-export const MoveResultSchema: ObjSchema<MoveResult> = obj("MoveResult", newMoveResult, {
-  from: S,
-  to: S,
-  succeeded: B,
-});
-
 /** What stopped a move, in the order the adjudicator checks. */
-export const MoveStopValues = ["NoConvoy", "OwnUnit", "HeadToHead", "Held", "Stayed", "Bounced", "Resisted"] as const;
 export type MoveStop =
   /** The army went by sea and no convoy carried it. */
   | "NoConvoy"
@@ -132,18 +125,6 @@ export function newReportLine(init: Partial<ReportLine> = {}): ReportLine {
   };
 }
 
-export const ReportLineSchema: ObjSchema<ReportLine> = obj("ReportLine", newReportLine, {
-  province: S,
-  power: opt(S),
-  text: S,
-  ok: B,
-  target: S,
-  failure: () => MoveFailureSchema,
-  void: S,
-  cut: S,
-  assault: () => AssaultSchema,
-});
-
 /**
  * A move that got into a walled province its mover does not hold (Build order item 5): its strength, the level of the walls,
  * and the hold strength of the defenders it beat. An army storms the walls, and takes the province at once, only if its
@@ -237,19 +218,6 @@ export function newGroundFight(init: Partial<GroundFight> = {}): GroundFight {
     ...init,
   };
 }
-
-export const GroundFightSchema: ObjSchema<GroundFight> = obj("GroundFight", newGroundFight, {
-  from: S,
-  to: S,
-  attacker: S,
-  defender: S,
-  defenderKind: S,
-  ground: raw,
-  strength: I,
-  against: I,
-  won: B,
-  decided: B,
-});
 
 /** One order as it resolved: who, where, what, and whether it worked. */
 export interface OrderOutcome {

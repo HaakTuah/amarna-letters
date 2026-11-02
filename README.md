@@ -103,9 +103,16 @@ rumours, and those can be late, shaded or false.
   holding it gives him, and you take it back by sending word.
 
 **The land and its people.**
-- Each province's people farm, pay a tax you set (a third of the crop by default) into its stores, and eat what they
-  keep. The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men
-  on the roads may raise bands of their own.
+- Each province's people farm, give the grain you ask of them into its stores, and eat what they keep. Ask a share of
+  the harvest (a third by default), which never squeezes them but lets them hide more the older your count and the
+  farther they lie, or an amount of one province, which you get but can judge only by your count: too much and they go
+  hungry and flee. A levy too may be asked as a share of the men at home, which the province hides part of in the same way.
+  The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men on the
+  roads may raise bands of their own.
+- You know your provinces' people only as your scribes last counted them, dated: the province card shows the town and
+  its land apart ("about 18,000 in the town; about 650,000 on its land"). Send scribes to count a province afresh (a
+  census, paid when they set out): their count comes home a season or more later, and being counted stirs the people a
+  little.
 - Sell and buy grain and goods at your own markets, where prices follow supply; send caravans and trade abroad, and set
   tolls on your roads.
 - Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée: nothing is
@@ -113,7 +120,7 @@ rumours, and those can be late, shaded or false.
 - **No province is owned by a flag: it obeys whoever it fears or loves most.** Fear is troops standing in it, weighed
   against its own men (twice as many in hill land); troops next door, or before walls they have not stormed, weigh a
   little, for every king alike. Love is what its people remember of each king, governor and man of standing: what he gave
-  them (protection, a siege lifted, policing, grain handed out, a light tax) against what he took (a heavy tax, levies,
+  them (protection, a siege lifted, policing, grain handed out, asking little) against what he took (asking much, levies, a census,
   food taken, a sack, robbing, a famine under him); grain handed out where your governor stands is credited to him unless
   you hand it out in your own name. Memory fades, and you never see the numbers: your governor and spies tell you the mood
   in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. Marching in or
@@ -189,9 +196,10 @@ and Sidon, Urusalim for Jerusalem, Magidda, Shakmu, Hasura, Gazru, Akka, Ashqalu
 for the Aijalon valley, Pihil for Pella, Ashtartu, Hazzatu for Gaza, Biruta, Arwada, Ṣumur, Halab for Aleppo, Karkamish,
 Babili for Babylon, Urim for Ur, Ninua and Arbail for Nineveh and Arbela, Shushan for Susa), otherwise the period's
 Egyptian or Hittite (Waset for Thebes, Men-nefer for Memphis, Ta-Mehu for the Delta, Kush for Nubia, the Ways of Horus for
-the north Sinai, Hayasa, the land of the Tjehenu for Libya, Seir for the Shasu's land); a place with no name of the period
-is named by description (the copper hills and the harbour of Alashiya, the plateau beyond the Salt Sea). The modern name
-is on the second line of the province card. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
+the north Sinai, Hayasa, Tjehenu for Libya, Seir for the Shasu's land, Kaska and Sutu for the Kaska's hills and the
+Suteans' steppe; their realms still go by "the land of the Tjehenu" and the like); every province has a proper name, never a description: where the period gives none, the oldest name the
+sources do give (Tamassos for the copper hills of Cyprus), and a modern one only where no ancient name survives (Enkomi).
+What a place is ("the copper hills of Alashiya") and its modern name are on the province card, under its name. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
 in Egypt's own seat; his other names are on his card.
 
 A realm's name is a claim: you go by your land's name until you claim another, any realm's name, Pharaoh's included
@@ -353,13 +361,15 @@ In games without a human, the god view shows everything the engine knows: true m
 treasury, every character's hidden traits and facts and who knows them, and the **message
 trail**: for every message, what the king wrote, what the envoy said abroad, and what the envoy
 reported home. Switch to any power to see exactly what it saw. The side panel's tabs show the
-season's events, the trail, the people, the provinces, the standings and the rules. The timeline
+season's events, the trail, the people, the provinces, the standings and the rules; with a mouse,
+the tabs and the courts along the map scroll with the wheel or by dragging. The timeline
 steps back through the seasons; signals mark sealed tablets, accusations, forgeries, broken
 promises and more. After the game, compare two nations' self-serving annals with the true record.
 
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
 each power in its colour with an emblem and a border line of its own (so it reads without
-colour), armies as chariots and fleets as ships. Step the timeline and each season's moves,
+colour), armies as chariots and fleets as ships. On the whole map every city is a seal, and a tap on
+it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
 uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow

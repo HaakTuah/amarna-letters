@@ -74,14 +74,18 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   normalises it, where the letters name the place (Dimashqa, Gubla, Ṣurru, Ṣiduna, Urusalim, Magidda, Shakmu, Hasura,
   Gazru, Akka, Ashqaluna, Lakisha, Gimti, Ayyaluna, Pihil, Ashtartu, Hazzatu, Biruta, Arwada, Ṣumur, Halab, Karkamish,
   Babili, Ninua, Arbail); otherwise the period's own Egyptian, Hittite, Assyrian or Babylonian form (Waset, Men-nefer,
-  Ta-Mehu, Kush, the Ways of Horus, Hayasa, Urim, Shushan, the land of the Tjehenu, Seir); a place with no name of the
-  period is named by description (the copper hills and the harbour of Alashiya, the Sutean steppe, the Kaska lands, the
-  Western and the Eastern Sea, the Gulf, the plateau beyond the Salt Sea, drawn as no one's with its label). The waters
+  Ta-Mehu, Kush, the Ways of Horus, Hayasa, Urim, Shushan, Tjehenu, Seir, Kaska, Sutu). Every province has a proper name,
+  never a description (polish lane, 2 November 2026): where the period gives none, the oldest name the sources give
+  (Tamassos for `kalavasos`, the copper hills of Cyprus), a modern one only where no ancient one survives (Enkomi); what a
+  description said is on the web's province card (`describedAs`), never in a request. The seas keep their names (the
+  Western and the Eastern Sea, the Gulf), and the plateau beyond the Salt Sea is drawn as no one's, labelled Moab (what it is in the label's tooltip). The waters
   take their coasts' names. The ids stay (`damascus`, `byblos`), and so do the orders that name them.
 - **The modern name** (`ModernNames`, `modernOf`) is on the second line of the web's province card ("today Damascus") and in
   the models' list of provinces in the rulebook, each place once ("today Damascus"), so a model can place it; never in a
   letter, report or request. The README names the renamed places once.
-- **The powers' land names** (`land(p)`) follow: Gubla, Ṣurru, Karkamish, Hayasa, the land of the Tjehenu, the Kaska lands;
+- **The powers' land names** (`land(p)`) follow: Gubla, Ṣurru, Karkamish, Hayasa, the land of the Tjehenu, the Kaska lands
+  (still descriptions where the provinces now have proper names: renaming them changes how the script kings read letters,
+  so it waits for an item, not the polish lane);
   the Great Kings' realms keep the names the design document gives them (Egypt, Hatti, Karduniash, Mitanni, Assyria,
   Arzawa, Alashiya): a reading, listed in the report.
 - **People by the same rule:** foreign courts and every letter call Pharaoh Naphurureya (`king("Egypt")`, Moran's form, in

@@ -434,16 +434,3 @@ export function parsePower(s: string | null | undefined): Power | null {
   for (const p of AllPowers) if (house(p).toLowerCase() === lower || ownLand(p).toLowerCase() === lower) return p;
   return null;
 }
-
-/** An enum value parsed as C#'s Enum.TryParse(ignoreCase: true) does: by name, or by number. */
-export function parseEnum<T extends string>(values: readonly T[], s: string | null | undefined): T | null {
-  if (s === null || s === undefined) return null;
-  const t = s.trim();
-  const lower = t.toLowerCase();
-  for (const v of values) if (v.toLowerCase() === lower) return v;
-  if (/^[+-]?\d+$/.test(t)) {
-    const n = Number(t);
-    return n >= 0 && n < values.length ? values[n] : null;
-  }
-  return null;
-}
