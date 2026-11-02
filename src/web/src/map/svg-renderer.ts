@@ -680,7 +680,8 @@ export class SvgMapRenderer implements MapRenderer {
       () => this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s)),
       () => {
         const m = s.memory;
-        this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}`).join()}`, () => memoryLayer(s));
+        // Redrawn when anything a stele stands by changes: its battles, its city's walls, a siege camp round it.
+        this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}:${s.sieges.some((x) => x.province === k) ? 1 : 0}`).join()}`, () => memoryLayer(s));
       },
       () => this.layer("fog", s, () => fog(s)),
       () => this.layer("bands", s.frame, () => bands(s)),
