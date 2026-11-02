@@ -16,7 +16,7 @@ Highway, the Euphrates road, the Taurus passes) give the map its connections.
 | The same army, Gaza to Yehem, in hostile land | about 120 km | 11 days | about 11 km a day | A | The same |
 | Old Assyrian donkey caravans, Ashur to Kanesh | about 1,000-1,100 km | about 6-7 weeks | about 25 km a marching day | B | Veenhof, the Kanesh archives (19th century BCE, the same roads) |
 | A royal messenger between Babylon and Egypt | about 1,800-2,000 km by the Euphrates and the coast | months; "the land is far" | - | A (the complaint), C (the time) | EA 7: Burna-Buriash is told Pharaoh did not hear of his illness because the road is long, and his own envoy confirms it |
-| Envoys kept abroad | - | years | - | A | Mane and Keliya held at either court (EA 27-29); Assyria's envoys "kept in the sun" (EA 16) |
+| Envoys kept abroad | - | years | - | A | Pirissi and Tulubri held in Egypt, Pharaoh's Mane held by Tushratta in answer (EA 28-29); Assyria's envoys "kept in the sun" (EA 16) |
 | Coasting ships | - | - | about 50-100 km a day in fair weather | B | Wachsmann, *Seagoing Ships and Seamanship in the Bronze Age Levant* (1998) |
 | Cyprus to Ugarit | about 100-150 km | about a day | - | B | Ugarit texts on ships to and from Alashiya; Wachsmann |
 | Crete to Egypt's coast | about 500-550 km open sea | about 4-5 days with the north wind | - | B | Wachsmann; the summer winds blow from the north-west |
