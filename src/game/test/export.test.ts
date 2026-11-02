@@ -1,6 +1,7 @@
 import { describe, test } from "vitest";
 import { AllPowers, GameStateSchema, HostReplySchema, S, TurnSubmissionSchema, type Schema, type AudienceView, type HostReply, type SeatView, type TurnSubmission, dispatch, first, newGame, newGameConfig, newHostReply, newTurnSubmission, serialize } from "@amarna/engine";
-import { BlankMark, Everything, GameLog, WordFields, newAuthorship, GameRunner, type ISeat, ScriptMind, TemplateNarrator, exportJsonl, newAudit, newModelCall, newShadowDecision, newCharacterChoice } from "@amarna/game";
+import { BlankMark, Everything, GameLog, WordFields, newAuthorship, rememberKey, GameRunner, type ISeat, ScriptMind, TemplateNarrator, exportJsonl, newAudit, newModelCall, newShadowDecision, newCharacterChoice } from "@amarna/game";
+import { CompatibleProvider, SdkTransport } from "@amarna/llm";
 import { Assert, toDict } from "../../engine/test/support.ts";
 
 // One export, with filters (Engine and models, "Logging and replay"): what is sensitive is never in it, whatever the
@@ -50,6 +51,23 @@ describe("ExportTests", () => {
     Assert.contains("[id]", errors[8]);
     Assert.contains("[id]", errors[9]);
     Assert.contains("[e-mail]", errors[10]);
+  });
+
+  test("A key in use is taken out by its value, whatever its shape", () => {
+    rememberKey("opaque_secret_12345");
+    const log = new GameLog();
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: "local API 401: Incorrect API key provided: opaque_secret_12345" }));
+    log.record("t1/orders/Hatti", S, "", newAuthorship({ kind: "fallback", name: "local leader", reason: "Incorrect API key provided: opaque_secret_12345" }));
+    Assert.false(exportJsonl(log).includes("opaque_secret"));
+    Assert.equal("local API 401: Incorrect API key provided: [key]", log.calls[0].error);
+  });
+
+  test("Every provider registers its key as it is made", () => {
+    new CompatibleProvider({ id: "local", baseUrl: "http://localhost:11434/v1" }, "compatible_key_67890");
+    new SdkTransport("anthropic_key_24680");
+    const log = new GameLog();
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: "keys compatible_key_67890 and anthropic_key_24680" }));
+    Assert.equal("keys [key] and [key]", log.calls[0].error);
   });
 
   test("A log read back from an old file loses what is sensitive in it", () => {

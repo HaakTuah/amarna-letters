@@ -4,6 +4,7 @@
  * message; the reply schema as a JSON-schema response format, strict only where the call asks for it. The check at setup
  * asks the endpoint's model list for the model, which costs nothing; such endpoints document no schema limits.
  */
+import { rememberKey } from "@amarna/game";
 import type { ApiResult, CallSpec, Provider } from "./client.ts";
 import { jsonSchema, type JsonObject, type ReplySchema } from "./schemas.ts";
 
@@ -24,6 +25,7 @@ export class CompatibleProvider implements Provider {
     this.id = setting.id;
     this.baseUrl = setting.baseUrl.replace(/\/+$/, "");
     this.apiKey = apiKey;
+    rememberKey(apiKey);
     this.fetchImpl = fetchImpl;
   }
 

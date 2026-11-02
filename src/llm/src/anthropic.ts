@@ -7,6 +7,7 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { raw, write } from "@amarna/engine";
+import { rememberKey } from "@amarna/game";
 import { AnthropicId, type ApiResult, type CallSpec, type Provider } from "./client.ts";
 import { ModelIds } from "./models.ts";
 import { jsonSchema, type JsonObject, type ReplySchema } from "./schemas.ts";
@@ -93,6 +94,7 @@ export function replyText(content: readonly { type: string; name?: string; input
 export class SdkTransport implements ApiTransport {
   private readonly client: Anthropic;
   constructor(apiKey: string, fetchImpl?: typeof fetch) {
+    rememberKey(apiKey);
     this.client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 2, ...(fetchImpl !== undefined ? { fetch: fetchImpl } : {}) });
   }
 

@@ -35,10 +35,22 @@ const Patterns: [RegExp, string][] = [
   [/(?<![\p{L}\p{N}_.~:/\]])\/(?:[\p{L}\p{N}_.@-]+\/)+[\p{L}\p{N}_.@-]*/gu, "[path]"],
 ];
 
+/**
+ * The keys in use, taken out by their exact value: a provider may echo a key of any shape in its error ("Incorrect API key
+ * provided: ..."). Every provider registers its key as it is made, so the scrubber never needs to know a key's format.
+ */
+const keys = new Set<string>();
+
+/** Registers a key to take out by its value wherever it appears. Keys too short to tell from ordinary words are skipped. */
+export function rememberKey(key: string): void {
+  if (key.trim().length >= 8) keys.add(key.trim());
+}
+
 /** The text with every sensitive piece replaced by its marker ("[key]", "[address]", "[path]", ...). */
 export function withoutSensitive(text: string): string {
   if (text.length === 0) return text;
   let out = text;
+  for (const k of keys) if (out.includes(k)) out = out.split(k).join("[key]");
   for (const [re, marker] of Patterns) out = out.replace(re, marker);
   return out;
 }
