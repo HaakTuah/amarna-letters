@@ -1269,3 +1269,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     fixed, and we must be alerted, so we can remove this file." Written into `tests/fixtures/model-games/` (the game
     and its README) and `docs/BUILD-PROGRESS.md` (the side lane "What a game's export holds", first of all, and the
     model-calls lane pointed at the game).
+138. **2 November 2026, 07:32 and 07:35 UTC**, in the design chat, on the export check of item 137: "a human player's
+    own text is probably fine if they wrote in-game, but there should be an option export a version without, for this
+    exact purpose, to analyze it and keep in repo." Then: "Would also be nice if the export includes the full notes and
+    thinking and such of models, or at least there is an option for such an extensive export, so we really get the
+    full picture of everything and how the LLMs interact with the game, plan, and how well they understand it. Is that
+    already there? the best is probably instead of having multiple kinds of exports, maybe add some filters for what
+    you want to include. But like sensitive stuff, not just in-game messages, ALWAYS LEFT OUT!" Written into the design
+    document (Engine and models, "Logging and replay", revision 61: one export with filters, everything by default,
+    sensitive things never) and `docs/BUILD-PROGRESS.md` (the export lane builds the filters).
