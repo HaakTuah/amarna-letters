@@ -311,11 +311,21 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
       const cap = Board.Map.capital(b.me).id;
       const seen = new Set(v.visible);
       const watched = (id: string): boolean => v.court.some((c) => c.where === `watching ${id}`);
-      const spot = sortBy(
-        [...v.owner.entries()].filter(([id, o]) => o === foe && !Board.Map.get(id).isSea && !seen.has(id) && Board.Map.hops(cap, id) <= 4).map(([id]) => id),
+      // Item 17++: a cunning king who would stir a people does it where his armies can follow, since a people's love for him
+      // weighs only once his men stand among them: the foe's conquered land next to his armies, before land he cannot see.
+      const near = new Set(b.mine.filter((u) => u.kind === "Army").flatMap((u) => [u.province, ...Board.Map.neighbors(u.province)]));
+      const stirred = sortBy(
+        [...v.owner.entries()].filter(([id, o]) => o === foe && !Board.Map.get(id).isSea && near.has(id) && stirGold(b, foe, id, spare, p.cunning) > 0).map(([id]) => id),
         [(id: string) => Board.Map.hops(cap, id), cmpNum],
         [(id: string) => id, cmpStr],
       )[0];
+      const spot =
+        stirred ??
+        sortBy(
+          [...v.owner.entries()].filter(([id, o]) => o === foe && !Board.Map.get(id).isSea && !seen.has(id) && Board.Map.hops(cap, id) <= 4).map(([id]) => id),
+          [(id: string) => Board.Map.hops(cap, id), cmpNum],
+          [(id: string) => id, cmpStr],
+        )[0];
       if (spot !== undefined && !watched(spot) && !v.court.some((c) => c.where.startsWith("watching ") && v.owner.getOrDefault(c.where.slice(9), null) === foe)) {
         const agent = ready[0];
         ready.splice(0, 1);

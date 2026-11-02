@@ -139,6 +139,9 @@ export function joints(b: Board, brain: Brain): Joint[] {
 export const WinterStrokes: { on: boolean; only: ReadonlySet<string> | null } = { on: true, only: null };
 
 /** `temper`: plays the season with these weights instead of the king's own (to draw alternative plans). */
+/** How much more land whose people we have stirred is worth to take (a first guess of the script's own). */
+const WooedWorth = 1.3;
+
 export function makePlan(b: Board, brain: Brain, temper: Personality | null = null): MilitaryPlan {
   const plan = new MilitaryPlan();
   const p = temper ?? brain.p;
@@ -163,6 +166,11 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     if (brain.rel.get(owner).hostile) return 1.0 + 0.3 * p.vengeance;
     return 0.55 + 0.45 * p.aggression;
   };
+
+  // Item 17++: land whose people our agents are stirring, or have stirred, is worth more to take: its people lean to us, so
+  // it obeys us once our men stand there, and the gold spent pays only then.
+  const wooed = new HSet(b.v.court.filter((c) => c.where.startsWith("watching ")).map((c) => c.where.slice(9)));
+  const woo = (t: string): number => (wooed.has(t) ? WooedWorth : 1);
 
   const capital = Board.Map.capital(me).id;
   // Gifts and fair words may lull a court, but it trusts its capital only to a sworn ally.
@@ -337,7 +345,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const rivals = musters.length === 0 ? 0 : max(musters, (x) => x);
     const contest = rivals === 0 ? 0 : p.caution > 0.5 ? rivals : Math.max(0, rivals - 1);
 
-    let gain = (owner === me ? 0 : b.value(target)) * multiplier(owner) + (occupant !== null ? 120 : 0);
+    let gain = (owner === me ? 0 : b.value(target)) * multiplier(owner) * woo(target) + (occupant !== null ? 120 : 0);
     if (owner !== null && owner !== me && Board.Map.get(target).capital) gain += 60;
     // Our own city besieged: driving the besieger out saves it.
     if (besieged) gain += 0.9 * b.value(target);
