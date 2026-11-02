@@ -5,7 +5,9 @@
 import { HSet } from "../core/collections.ts";
 import { isBlank } from "../core/text.ts";
 import { WorldMap } from "../model/map.ts";
-import { characterOf, unitOf, type CaptiveFate, type HireOrder, type Order, type RejectedOrder, type TurnSubmission } from "../model/orders.ts";
+import { characterOf, unitOf } from "../model/order-reading.ts";
+import { type CaptiveFate, type HireOrder, type Order } from "../model/orders.ts";
+import { type RejectedOrder, type TurnSubmission } from "../model/submission.ts";
 import { coverOf, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";

@@ -3,7 +3,8 @@ import { B, D, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../c
 import { type Mandate, MandateSchema } from "./command.ts";
 import { newGameConfig } from "./config.ts";
 import type { UnitKind } from "./map.ts";
-import { type Order, OrderSchema } from "./orders.ts";
+import { type Order } from "./orders.ts";
+import { OrderSchema } from "./order-schema.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";

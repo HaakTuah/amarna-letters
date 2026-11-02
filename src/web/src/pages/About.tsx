@@ -49,6 +49,7 @@ export function About() {
     
         <h2>Credits</h2>
         <p>The game was inspired by Irving Finkel's <em>Curator's Corner</em> episode 100, “Reading the Pharaoh's private mail with Irving Finkel”, The British Museum (<a href="https://www.youtube.com/watch?v=3MZq_ZQDhJA" rel="noopener" target="_blank">youtube.com/watch?v=3MZq_ZQDhJA</a>), and leans on William L. Moran's <em>The Amarna Letters</em> for the translations of the letters themselves.</p>
+        <p>The libraries, music samples and map data the game ships, and their licences: <a href="third-party-notices.txt" target="_blank" rel="noopener">third-party notices</a>.</p>
     </div>
   );
 }
