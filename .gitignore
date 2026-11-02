@@ -2,6 +2,10 @@
 node_modules/
 .env
 
+# Python bytecode, from the music tools in scripts/music
+__pycache__/
+*.pyc
+
 # Logs and test output
 *.log
 npm-debug.log*
