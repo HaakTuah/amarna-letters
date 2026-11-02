@@ -419,9 +419,9 @@ export function land(p: Power): string {
 }
 
 /** Someone's own words the engine quotes in a notice, marked where they are written (`quoteWords`) so no renaming touches them. */
-const Marked = /"\uE000([\s\S]*?)\uE001"/gu;
+const Marked = /"\uE000([^\uE000\uE001]*)\uE001"/gu;
 /** Words between double quotes the engine wrote without marking them: closed before a space, a stop or the end. */
-const Quoted = /(?<=^|[\s(])"[\s\S]*?"(?=$|[\s.,;:!?)\]\u2014])/gu;
+const Quoted = /(?<=^|[\s(])"[^"]*"(?=$|[\s.,;:!?)\]\u2014])/gu;
 
 /**
  * Someone's own words (a sealed greeting, a letter, what a king, an envoy or a captive said) as a notice quotes them:
