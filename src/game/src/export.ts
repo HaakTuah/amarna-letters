@@ -138,13 +138,14 @@ type Node = Record<string, unknown>;
 
 /**
  * The log as JSON lines, holding the parts asked for, each record giving only its listed fields. `real` are the game's real
- * names (`realNames`), kept under the human-words filter.
+ * names (`realNames`), kept under the human-words filter: required there, since a real name stood in for would not replay.
  */
-export function exportJsonl(log: GameLog, parts: ExportParts = Everything, real: Iterable<string> = []): string {
+export function exportJsonl(log: GameLog, parts: ExportParts = Everything, real: Iterable<string> | null = null): string {
   // Models quote and echo what they read, so under the filter a game with a human seat loses every text; a game with
   // none loses nothing.
   const blanking = !parts.humanWords && ([...log.header.seats].some(([, label]) => label === "Human") || log.decisions.some((d) => d.by?.kind === "human"));
-  const blanker = blanking ? new Blanker(real) : null;
+  if (blanking && real === null) throw new Error("an export without human words needs the game's real names");
+  const blanker = blanking ? new Blanker(real!) : null;
   let out = "";
   for (const line of log.toJsonl().split("\n")) {
     if (line.length === 0) continue;

@@ -619,7 +619,7 @@ describe("CanaryTests", () => {
         `no ${what} to blank`,
       );
     for (const parts of Filters) {
-      const text = exportJsonl(log, parts);
+      const text = exportJsonl(log, parts, realNames(g.runner.state));
       const read = records(text);
       const name = JSON.stringify(parts);
       sensitive(name, text, strings(read));
@@ -637,7 +637,7 @@ describe("CanaryTests", () => {
 
     // Without human words the export still replays to the same game: every string as it was, but where the replay holds a
     // blank (a text composed from blanked words may differ in its punctuation: the engine adds a full stop that a blank lacks).
-    const replay = await replayOf(GameLog.fromJsonl(exportJsonl(log, { ...Everything, humanWords: false })));
+    const replay = await replayOf(GameLog.fromJsonl(exportJsonl(log, { ...Everything, humanWords: false }, realNames(g.runner.state))));
     for (let t = 0; t <= Seasons; t++)
       Assert.equal("", differ(JSON.parse(g.runner.snapshots.get(t)!), JSON.parse(replay.snapshots.get(t)!), `season ${t}`).join("\n"));
   }, 60000);

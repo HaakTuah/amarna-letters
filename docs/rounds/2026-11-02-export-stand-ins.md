@@ -61,6 +61,8 @@ No script player decides anything new: the export is a tool for the table, not a
 - Claude's reviewer (Opus, high): 8, four findings, all fixed in one round: real names (kings' names) were stood in
   for and the check read engine globals (now `realNames` from the game's state, no globals); the canary's `shape` was
   loosened beyond decision values (now only there); the doc's "reads any other as none" made precise; a test message.
+  Round 2: 9, one finding, fixed: an export under the filter without the real names would stand in for real ones and
+  not replay, so `exportJsonl` now refuses it, and the canary's filtered exports and replay pass `realNames`.
 
 ## Helpers
 
