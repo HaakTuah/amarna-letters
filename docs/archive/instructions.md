@@ -1417,3 +1417,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     and "Reviews" in `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
 162. **2 November 2026, 15:32 and 15:33 UTC**, in the design chat: "Should we limit them to just being able to suggest 1?", then, to the design session's take (one per review, with three guards: only reviews of changes to the game, new ideas only with repeats as comments, "none" the usual answer): "Yes, please, expertly!" Written into "One idea, for every reviewer"
     in `AGENTS.md`; the same in Barkstreet Snakes.
+163. **2 November 2026, 15:50 and 15:53 UTC**, in the design chat: "Indeed. When I made the union salary presentation, I
+    found a neat trick was to make it source absolutely everything it says and every slide it is on. There is mattered
+    really. Might be overkill for this project, but could attaching a Wikipedia page to every real character, place, and
+    concept, maybe work the same? Then the player also has the oppertunity to easily read about it and learn about the
+    world?" Then, to the design session's take (a "Learn more" link on every real entity, everything invented marked as
+    invented, the truth kept in the dossiers, and a check that fails when a real entity lacks its link or dossier
+    reference, built in item 17+++b): "Yes please, expertly!" Written into "Learn more, and what is invented" under
+    Interface (revision 27) and item 17+++b (Build order, revision 215).
