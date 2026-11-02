@@ -144,7 +144,7 @@ The guards against both are part of the rule:
    standing rules) or **not blocking**, which says only what is fixed first. **A 10 is a list with nothing open:** the
    work does all of the item's text and the sections it names, keeps every standing rule, leaves nothing behind ("Keep it lean" in `AGENTS.md`), its tests prove it, and a
    demanding expert would hand it over as it stands. A 10 with a point open, or less than 10 with none, is no review:
-   ask again. This definition goes into every reviewer's brief word for word, and only the owner changes it.
+   ask again. This definition goes into every reviewer's brief word for word, and only the owner changes it; so does "One idea, for every reviewer" ("Review guidelines" in `AGENTS.md`).
 2. **Every point is fixed, or moved out with a reason.** A point within the item is always fixed. A point outside it
    (code or a question the item did not touch) may become a follow-up (a `bug` issue if it is a bug, otherwise an entry in `docs/BUILD-PROGRESS.md`), with the reason in the
    PR. A point the builder thinks wrong is answered in the PR with why. The next round's reviewer rules on each move

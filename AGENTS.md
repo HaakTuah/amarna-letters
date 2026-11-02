@@ -224,3 +224,7 @@ On build-order items, Codex's review and Claude's design check start at the same
 in what it is shown, what a model is asked, what a script king reads or what an export holds. Check every path: the
 latest season, past seasons, replays and the god view. The canary test ("Follow-ups" in `docs/BUILD-PROGRESS.md`)
 guards the same from the other side, since a reviewer can miss it.
+
+**One idea, for every reviewer:** end the review with one thing outside this change that would make the game better,
+or "none". It never blocks (a P3 at most). The builder files a real one as an `enhancement` issue and links it in the
+PR; nothing is built from it until the owner queues it.

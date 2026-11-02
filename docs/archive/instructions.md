@@ -1411,3 +1411,7 @@ Given in the design chat with Claude, answering the design questions of the cons
 160. **2 November 2026, 15:18 to 15:21 UTC**, in the design chat, on #451 (Dependabot ignoring major versions of the
     Node types): "Why are we running an older version of Node?", then "Why should we ignore, if we update?", and, to the design session's take (no ignore rule: a new major of the Node types is the cue to move Node itself when it is long-term support, closed otherwise; Node 26 now, CI and the cloud setup together): "Yes, please, expertly, if you so expertly advice!" Written into "Git and GitHub" in `AGENTS.md` and "Follow-ups" in `docs/BUILD-PROGRESS.md`; #451
     closed in favour of it; the same in Barkstreet Snakes.
+161. **2 November 2026, 15:25 and 15:27 UTC**, in the design chat: "Are there more stuff we should update? Is the ideas and bugs reporting pathway showing fruits by bringing forward insights that would otherwise go lost?" Then, to the design session's answer (questions
+    and bugs paying off, ideas thin; every reviewer to name one idea outside the change, or none; the father's notes to
+    gain the afternoon's lessons): "Yes, address everything you just raised, masterfully!" Written into "Review guidelines" in `AGENTS.md` ("One idea, for every reviewer")
+    and "Reviews" in `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
