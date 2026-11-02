@@ -7,7 +7,6 @@
  * no dice of the game's own, so the game is the same with or without it.
  */
 import {
-  beliefWords,
   AllPowers,
   CharacterSchema,
   MessageTrailSchema,
@@ -30,16 +29,12 @@ import {
   type Character,
   type EnvoyReaction,
   type HostReply,
-  type MessageTrail,
   type MindReply,
   type Power,
   type SpyReport,
   authorityText,
-  clause,
   clauseTag,
-  type Clause,
   renderClauses,
-  strategyText,
 } from "@amarna/engine";
 import {
   CharacterChecks,
@@ -64,10 +59,10 @@ import { chiefOf, chiefSchema, chiefSummary, chiefText, reportsOf, reportsSchema
 import { bridgeOf, bridgeSchema, bridgeText, unheardOf, unheardSchema, unheardSummary, unheardText } from "./character-tongues.ts";
 import { crownOf, crownSchema, crownSummary, crownText } from "./character-crown.ts";
 import { risingOf, risingSchema, risingSummary, risingText } from "./character-rising.ts";
-import { Replies, Schemas, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { Replies, type JsonObject, type ReplySchema } from "./schemas.ts";
 import type { Stakes } from "./spending.ts";
 import { Sb, joinS } from "./text.ts";
-import { CharacterSystem, canForge, courtOf, keepLine, kingOf, landName, offerLine, selfText, traitLine } from "./character-self.ts";
+import { CharacterSystem, canForge, courtOf, keepLine, kingOf, offerLine, selfText, traitLine } from "./character-self.ts";
 import { asGiven, recitedBy, reportedBy } from "./character-recital.ts";
 
 /** The characters' ladder ("Minds follow what is at stake"): the small rung is their own model; above it, what they pass up. */

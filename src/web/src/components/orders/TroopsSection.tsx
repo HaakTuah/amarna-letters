@@ -10,7 +10,7 @@ import { StandingAnswersPanel } from "../StandingAnswersPanel.tsx";
 import { map, unitLetter } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
 
-/** The orders panel's Troops, standing answers and standing orders: split from OrdersPanel.tsx, unchanged. */
+/** The orders panel's Troops, standing answers and standing orders. */
 export function TroopsSection({ c }: { c: OrdersContext }) {
   const { draft, onChanged, v, me, f, set, structured, visibleUnits, others, addStandingOrder, addStanding, add } = c;
   return (

@@ -1,4 +1,4 @@
-import { B, D, I, type ObjSchema, S, list, obj } from "../core/json.ts";
+import { B, D, I, type ObjSchema, S, obj } from "../core/json.ts";
 import type { PressMode } from "./clauses.ts";
 
 /** Every tunable number in one place. The defaults are first proposals, tuned by batch runs. */

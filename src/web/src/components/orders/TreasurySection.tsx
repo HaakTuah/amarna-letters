@@ -36,9 +36,9 @@ import { byName } from "../../ui/order-draft.ts";
 import { map } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
 
-/** The orders panel's Treasury and land: split from OrdersPanel.tsx, unchanged. */
+/** The orders panel's Treasury and land. */
 export function TreasurySection({ c }: { c: OrdersContext }) {
-  const { draft, state, v, me, f, set, others, add, price, sallying } = c;
+  const { draft, v, me, f, set, others, add, price, sallying } = c;
   // What an army of yours in another's land could raze there, as your eyes see it standing (item 15).
   const razing = v.units
     .filter((u) => {

@@ -135,7 +135,10 @@ rumours, and those can be late, shaded or false.
   troops stand in it (within its walls), to a man of standing there whose following outweighs you, if he chooses to lead
   them (he rules it in his own name), or, if it bears you nothing, to nobody. Nothing is thrust on you: a province whose
   people favour you while your troops are not there declares for you, and is yours only if you take it up (the orders
-  panel's "Provinces that look to you"); refusing it costs you a little of its people's regard. Land ceded to you by
+  panel's "Provinces that look to you"); refusing it costs you a little of its people's regard. Its offer reaches you
+  only if someone carries it: your spy watching it, a man of yours going your way, or one its people pay if they are far
+  gone in your favour (the notice says who brought it). Talk of its leaning comes first, to you, its king and his
+  enemies alike; it is no offer, and a carrier may sell what he knows. Land ceded to you by
   treaty is the same: a claim its giver holds until you take it up. A rising against your troops is fought as a
   battle, and seven men among thousands who lean away are beaten. The men of your armies keep a ledger too: pay, plunder
   and victories bind them to the hand they see, so a commander or governor who turns takes only the men who follow him. A
@@ -217,8 +220,8 @@ in Egypt's own seat; his other names are on his card.
 A realm's name is a claim: you go by your land's name until you claim another, any realm's name, Pharaoh's included
 (Court: "Claim a realm's name"). A claim gives nothing by rule. Where two kings claim one name, each court gives it in
 its greetings: a greeting gives the recipient the name he claims, or, with "call them by their house", withholds it, and
-that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru). The Court section says which names
-are contested and whom your court gives each to.
+that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru), in its notices too. The Court section
+says which names are contested and whom your court gives each to.
 
 Between the great kingdoms lie the city-states, such as Ugarit, Gubla, Qadesh and Elam, and the Kaska,
 Lukka, Shasu and Sutean chiefs: forty powers of their own, most of them vassals of Egypt or Mitanni (a few of Hatti
@@ -391,7 +394,8 @@ provinces bounded by a thin line; the ◐ button shows the mood of the land as y
 or no word), older reads fading: your own city as you see it, your governors' reports each season, a spy's watched
 province, the city of a court your envoy visited, a province your scribes counted, and travellers' blurred talk of the
 land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow
-their life: their path, their masters, their missions, what they said and reported. Drag and zoom
+their life: their path, their masters, their missions, what they said and reported; the camera keeps to them, where
+you last knew them, until you move it yourself ("Keep the camera on them" takes it back). Drag and zoom
 as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's

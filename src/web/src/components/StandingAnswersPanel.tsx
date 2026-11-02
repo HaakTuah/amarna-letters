@@ -2,8 +2,8 @@ import { AllPowers, MaxAnswerSay, MaxAnswers, answerText, newStandingAnswerReque
 import { useState } from "react";
 import type { OrderDraft } from "../ui/order-draft.ts";
 import { powerName } from "../ui/format.ts";
+import { num } from "./orders/form.ts";
 
-const num = (s: string): number => (s.trim() === "" || !Number.isFinite(Number(s)) ? 0 : Math.trunc(Number(s)));
 
 /**
  * A human seat's standing answers ("Standing answers" under "Minds follow what is at stake"; answering item 6b's review,

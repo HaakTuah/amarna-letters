@@ -1,10 +1,8 @@
 import { describe, test } from "vitest";
-import { orders } from "../../llm/src/parse.ts";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
 import { Contingencies } from "../src/bots/contingencies.ts";
 import { CapitalAtStake, Search } from "../src/bots/search.ts";
-import { court } from "../src/bots/statecraft-court.ts";
 import { Statecraft } from "../src/bots/statecraft.ts";
 import { MilitaryPlan, Tactics } from "../src/bots/tactics.ts";
 import {
@@ -27,7 +25,6 @@ import {
   build,
   hold,
   inboxOf,
-  king,
   newGame,
   newGameConfig,
   newId,

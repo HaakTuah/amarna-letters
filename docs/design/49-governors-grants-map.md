@@ -48,7 +48,8 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 44 (43 wi
 - **A declaration** (`declareIn`, from `obeySeason`, where no rival takes the province by the season's rule and it is not
   a court's city or under siege): the power its people weigh most of those with no army standing in it (love, and troops
   next door), if that clears its holder's weight as a power rival must (or the floor, for land without a ruler), declares
-  for him. Word travels to his court (`known`, `tell`); it stays with its holder. One declaration a province: a new
+  for him. Its offer reaches his court only if someone carries it (part D, design note 51; `known`); it stays with its
+  holder. One declaration a province: a new
   favourite replaces the old.
 - **Taken up** (order `answer` with `take`; model action `take_up_province`; the web's "Take it up"): the word travels to
   the province (`placeOf`, `scheduledPlace`); once there, it passes to him as the next season is reckoned if it still

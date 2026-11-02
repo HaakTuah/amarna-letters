@@ -1,4 +1,4 @@
-/** The music and sound switches (item 19+++): kept in this browser between visits; quiet by default. */
+/** The music and sound switches (item 19+++): kept in this browser between visits; on by default (`DefaultAudio`). */
 import { useSyncExternalStore } from "react";
 
 export interface AudioSettings {

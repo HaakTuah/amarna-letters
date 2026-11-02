@@ -100,7 +100,7 @@ describe("ArchiveTests", () => {
 
   test("A spy copies one tablet a season never one its master holds agreements and the newest first", () => {
     // Seed 1: with save version 7's dice, seed 8's watchmen catch the spy in its first season.
-    let [s, spy] = spyAtAssyria(1);
+    let [s] = spyAtAssyria(1);
     smallWorld(s, "Babylonia", "Assyria", "Hatti", "Egypt");
     sealed(s, "t900", "Assyria", "Hatti", 1, "The oldest treaty.");
     sealed(s, "t901", "Assyria", "Babylonia", 2, "A treaty Babylonia holds already.");

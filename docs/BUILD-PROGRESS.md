@@ -54,13 +54,29 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
-- **Done so far** (2 November 2026): the progress file under 20 KB (#388); the files every session reads (#390);
-  `docs/` (#392: item 2's, 4's and 5+'s briefs and specs to `docs/archive/specs/`, built entries out of "Not built yet"; #393:
-  design note 10 down to its live differences); the archive's `progress-done.md` split by kind (#394). **Left:** the code,
-  once the open lanes touching it merge (17++ B and C, export, model calls, fog); the conversion's parity check removed
-  (#443); `docs/DESIGN-NOTES.md` after its open lane merges.
+- **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
+  #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
+  locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568). **Left, each its own PR with
+  behaviour proven:** splits the review found, each file holding two or three things: `llm/src/schemas.ts` (JSON-schema
+  tools; orders and letters; envoy and court replies), `llm/src/prompts.ts` (the king's briefs; audience and person
+  prompts), `llm/src/character-mind.ts` (the audience path), `llm/src/seat-setup.ts` (presets and cost estimate),
+  `bots/statecraft-letters.ts` (the audiences), `bots/tactics.ts` (joints, winter), `web/src/audio/player.ts` (the
+  listening page), `web/src/pages/Home.tsx` (saved games and replays); then `--noUnusedLocals` again on the open PRs'
+  files once they merge.
 
 ## Follow-ups
+
+- **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
+  - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
+    a caught spy's report is read ("A letter taken on the road").
+  - **#550:** under NAMES CLAIMED, in the seat view, the Court section and the models' line, the season each claim was
+    heard from its sealed greeting.
+  - **#554:** a short note, from its sourced basis, on each connection whose travel days are not the plain distance
+    (Ur's river to the Gulf, the Ways of Horus, the Wadi Hammamat road).
+  - **#549, the polish lane:** a faint accent on a frontier where the seat itself sees two powers' armies on either
+    side, drawn only from what it sees.
+  - **#562, the polish lane:** placement and the smoke test pad each seal's box by half its stroke, so no rim touches
+    a neighbouring marker.
 
 - **The slop audit** (the owner, 2 November 2026; archive item 178): everything a player reads, checked by fresh eyes
   for the tells of machine-written text, as a side lane now.
@@ -77,11 +93,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
      the PR shows ten lines before and after, so the owner can set the bar.
   4. **A cheap guard after:** a test that fails when a script king's letters, or a report's lines, keep repeating one
      shape across a game.
-  **Scored like every review** (the owner, 2 November 2026): each kind of text gets a score from 1 to 10, with
-  everything that keeps it from 10, and only a 10 passes; a 10 means nothing in it reads machine-made, every voice is
-  its own and no formula repeats. The usual guards hold ("Reviews" in `docs/claude-and-codex.md`): later rounds judge
-  the fixes, with the reviewer's own earlier lists; three rounds at most, then the escalation helper. The owner's read
-  of the ten lines before and after is the final word, and calibrates the reviewer. One PR per kind of text.
+  Each kind of text is reviewed as every review is ("Reviews" in `docs/claude-and-codex.md`); here a 10 means
+  nothing reads machine-made, every voice is its own and no formula repeats. The owner's read of the ten lines before
+  and after is the final word. One PR per kind of text.
 
 - **The Gulf's head as it stood in the Late Bronze Age** (the owner, 2 November 2026; #527; archive item 175): the map's
   old shore (`OldGulfShore` in `src/web/src/map/features.ts`) moves to where the published reconstructions of the Late
@@ -169,8 +183,9 @@ fixed.
   knows it, and an order that fails on land lost out of sight answers by the road; the governor's view completes with
   #378; the rest of the far true state is bug #517. Report: `docs/rounds/2026-11-02-known-holding.md`.
 
-- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); (a), (i) and a dismissed spy's stirring gold wait for #378:
-  issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.
+- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
+  #417; report `docs/rounds/2026-11-02-bug-417.md`). (b), the chiefs' lands falling in the first two seasons, is 17++'s
+  and measured in its report.
 - ~~**From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
   is over 50 KB (about 55 KB)~~ (#532: the order kinds, their makers, what they say, their JSON and the season's
   submission, each in its own file; replays byte-identical).
@@ -207,6 +222,7 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 | 17++ B | Counting the land (census), asking an amount by a fresh count and levying by share by an old one (`--count-play-half`) | 0.96 growth to 0.85, 31 wins to 19, in 50 games, on part C's final head (part B's own: 0.97 to 0.86, 26 to 24) | Pays |
 | 17++ C | The audit's script finds: raising troops when rich, governors' gold, vassal requests answered as sealed (`--audit-play-half`) | 0.94 growth to 0.86, 27 wins to 23, in 50 games | Pays |
 | 17++ C | Checking a governor's word against one's own spy, recalling one caught hiding unrest (#459, `--spy-check-play-half`) | 0.96 growth to 0.87, 27 wins to 23, in 50 games | Pays |
+| 17++ D | Heeding talk of a province's leaning: relief at home, warmth to the claimant, a spy where one is talked of (`--talk-play-half`) | 0.86 growth to 0.86, 26 wins to 24, in 50 games; 988 offers sent, 31 carried, 27 arrived | Even: offers rarely arrive yet, so the threat is rare; for item 18 |
 | 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
 | 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |
 
@@ -216,7 +232,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; next #480 (a governor's letter says where he sits), then part D (#431's carriers), then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
+| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) under way, `item/offer-carriers`; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
 | 17++a | Something happens every season | not started (next after 17++) | | |
 | 17+++ | The season plays out | not started | | |
 | 17+++a | Keys for everything | not started | | |
