@@ -41,16 +41,21 @@ const Patterns: [RegExp, string][] = [
  */
 const keys = new Set<string>();
 
-/** Registers a key to take out by its value wherever it appears. Keys too short to tell from ordinary words are skipped. */
+/** Registers a key to take out by its value: every key in use, whatever its length. */
 export function rememberKey(key: string): void {
-  if (key.trim().length >= 8) keys.add(key.trim());
+  if (key.trim().length > 0) keys.add(key.trim());
 }
+
+/** A key short enough to be part of an ordinary word is taken out only where it stands whole, between word boundaries. */
+const ShortKey = 8;
+const escape = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** The text with every sensitive piece replaced by its marker ("[key]", "[address]", "[path]", ...). */
 export function withoutSensitive(text: string): string {
   if (text.length === 0) return text;
   let out = text;
-  for (const k of keys) if (out.includes(k)) out = out.split(k).join("[key]");
+  for (const k of keys)
+    if (out.includes(k)) out = k.length >= ShortKey ? out.split(k).join("[key]") : out.replace(new RegExp(`(?<![\\p{L}\\p{N}_])${escape(k)}(?![\\p{L}\\p{N}_])`, "gu"), "[key]");
   for (const [re, marker] of Patterns) out = out.replace(re, marker);
   return out;
 }

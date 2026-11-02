@@ -39,6 +39,8 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
   a token), `[id]` (request and organisation ids, any UUID), `[e-mail]`, `[path]` (absolute paths in any alphabet; one under a drive, a share or a home folder to the end of its
   line, since a folder's name may hold spaces),
   `[device]` (a browser's or device's description). The rest of the message stays, so the log still says what failed.
-  Each key in use is also taken out by its exact value, whatever its shape (`rememberKey`: every provider registers its
-  key as it is made), since a provider may echo it in an error. Keys themselves never reach the log otherwise: they live in memory in the web app and in environment variables in the batch
+  Each key in use is also taken out by its exact value, whatever its shape or length (`rememberKey`: every provider
+  registers its key as it is made; one shorter than eight letters only where it stands whole), since a provider may echo
+  it in an error. A player may also type an address or a key into his own words: the log keeps them as written, for his
+  own replay, and every export takes them out of every decision's words, whatever the filters (orders are never touched). Keys themselves never reach the log otherwise: they live in memory in the web app and in environment variables in the batch
   runner, and nothing writes them into a call.

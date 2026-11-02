@@ -59,7 +59,19 @@ export function exportJsonl(log: GameLog, parts: ExportParts = Everything): stri
     const type = typeOf(line);
     return !((type === "call" && !parts.calls) || (type === "shadow" && !parts.shadows) || (type === "audit" && !parts.audits));
   });
-  return (parts.humanWords ? kept : withoutHumanWords(kept)).map((l) => l + "\n").join("");
+  const clean = kept.map(withoutSensitiveWords);
+  return (parts.humanWords ? clean : withoutHumanWords(clean)).map((l) => l + "\n").join("");
+}
+
+/**
+ * A decision's words with anything sensitive taken out, whatever the filters: a player may type an e-mail address or a
+ * key into a letter. The log keeps them as written, for his own replay; no export carries them. Orders are never touched.
+ */
+function withoutSensitiveWords(line: string): string {
+  if (!line.startsWith('{"type":"decision"')) return line;
+  const touched = { any: false };
+  const back = mapWords(JSON.parse(line), withoutSensitive, QuotedFields, "", touched);
+  return touched.any ? toJson(back) : line;
 }
 
 /** The record type of a line: the last property of every line the log writes, but a decision's, whose value is last. */
@@ -86,7 +98,7 @@ function withoutHumanWords(lines: string[]): string[] {
     const node = JSON.parse(line) as Record<string, unknown>;
     // In decisions only words are blanked, never an order's ids or names, so the export still replays.
     const touched = { any: false };
-    const back = blankQuoted(node, quoted, node.type === "decision" || node.type === "header" ? QuotedFields : null, "", touched);
+    const back = mapWords(node, (v) => blankIn(v, quoted), node.type === "decision" || node.type === "header" ? QuotedFields : null, "", touched);
     return touched.any ? toJson(back) : line;
   });
 }
@@ -187,17 +199,17 @@ function blankIn(s: string, quotes: Quotes): string {
 const Names = new Set(["type", "key", "role", "model", "character", "name", "traits"]);
 
 /**
- * Every string in a record with each quoted piece blanked: under a word field only (`fields`), or, where `fields` is null,
- * everywhere but the record's ids and names. `touched.any` is set if anything was blanked.
+ * A record with `change` applied to its strings: under a word field only (`fields`), or, where `fields` is null,
+ * everywhere but the record's ids and names. `touched.any` is set if anything changed.
  */
-function blankQuoted(v: unknown, quoted: Quotes, fields: ReadonlySet<string> | null, key: string, touched: { any: boolean }): unknown {
+function mapWords(v: unknown, change: (s: string) => string, fields: ReadonlySet<string> | null, key: string, touched: { any: boolean }): unknown {
   if (typeof v === "string") {
     if (fields !== null ? !fields.has(key) : Names.has(key)) return v;
-    const s = blankIn(v, quoted);
+    const s = change(v);
     if (s !== v) touched.any = true;
     return s;
   }
-  if (Array.isArray(v)) return v.map((x) => blankQuoted(x, quoted, fields, key, touched));
-  if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, blankQuoted(x, quoted, fields, k, touched)]));
+  if (Array.isArray(v)) return v.map((x) => mapWords(x, change, fields, key, touched));
+  if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, mapWords(x, change, fields, k, touched)]));
   return v;
 }

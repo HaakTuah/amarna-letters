@@ -62,6 +62,13 @@ describe("ExportTests", () => {
     Assert.equal("local API 401: Incorrect API key provided: [key]", log.calls[0].error);
   });
 
+  test("A short key is taken out where it stands whole, and only there", () => {
+    rememberKey("abc1234");
+    const log = new GameLog();
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, error: "Incorrect API key provided: abc1234; see abc12345 and xabc1234" }));
+    Assert.equal("Incorrect API key provided: [key]; see abc12345 and xabc1234", log.calls[0].error);
+  });
+
   test("Every provider registers its key as it is made", () => {
     new CompatibleProvider({ id: "local", baseUrl: "http://localhost:11434/v1" }, "compatible_key_67890");
     new SdkTransport("anthropic_key_24680");
@@ -185,6 +192,9 @@ describe("ExportTests", () => {
     // The export as read: its strings unescaped.
     const read = (text: string): string => text.split("\n").filter((l) => l.length > 0).map((l) => JSON.stringify(JSON.parse(l))).join("\n");
     const full = read(exportJsonl(runner.log));
+    // A normal export keeps a human's words, but never what is sensitive in them.
+    Assert.false(full.includes("jane@example.com"));
+    Assert.true(full.includes("Meet [e-mail] beside the old well tomorrow."));
     // As the export reads: in a string, and in a JSON string inside one (a model's reply).
     const esc = (w: string): string => JSON.stringify(w).slice(1, -1);
     for (const words of [Letter, Notes, Speech]) Assert.true(full.includes(esc(words)), `a normal export keeps "${words}"`);
