@@ -318,6 +318,26 @@ function ringOf(refs: readonly number[]): Pt[] {
 const tracedPath = (rings: readonly (readonly number[])[]): string => rings.map((r) => polygon(ringOf(r))).join("");
 
 /**
+ * Each land province's border arcs as lines, with the provinces on the arc's other side ("~": no one's land; none: the
+ * sea or the board's edge), so a realm's band is drawn only where it meets another ("Following, travel lines and borders":
+ * strong between powers, quiet within one).
+ */
+export const BorderSides: ReadonlyMap<string, readonly { d: string; across: readonly string[] }[]> = (() => {
+  const sides = Arcs.map(() => [] as string[]);
+  for (const [id, rings] of Object.entries(ProvinceRings)) for (const ring of rings) for (const r of ring) sides[r >= 0 ? r : ~r].push(id);
+  const out = new Map<string, { d: string; across: string[] }[]>();
+  sides.forEach((ids, i) => {
+    for (const id of new Set(ids)) {
+      if (id === "~") continue;
+      const list = out.get(id) ?? [];
+      list.push({ d: polyline(Arcs[i]), across: ids.filter((x) => x !== id) });
+      out.set(id, list);
+    }
+  });
+  return out;
+})();
+
+/**
  * Province shapes (item 11c+): each land province's land as the script traced it along the ridges, frontier rivers and
  * desert edges between the cities (`scripts/map-borders.ts`, `border-data.ts`), reaching a little out to sea so the coast
  * clips it; the sea zones as Voronoi cells of their spots within their waters.
