@@ -368,9 +368,9 @@ function pitch(ctx: MindContext): MindReply {
   const lines = [name === null ? `I am ${nameFrom(c)}, once ${calling(c)}.` : `I am ${name}.`];
   // What it says it can do is what it believes ("Seeing oneself"): the overconfident claim more.
   const believed = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
-  if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("I know every road and every court, and no master of mine was ever failed.");
+  if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("I know every road and every court; no master of mine was ever let down.");
   else if (believed < 45 && t.loyalty >= 55) lines.push("I am a plain servant and no great speaker, but I keep my word.");
-  else lines.push("I know the courts of the Great Kings and their ways, and my messages arrive as they were given.");
+  else lines.push("I know the courts of the Great Kings and their ways, and I carry a message as it was given.");
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
   if (defected !== null && t.loyalty < 50 && name === null) lines.push("I left my last master; I had cause.");
   // Item 11a, "Hiring as a negotiation": it plays courts against each other, citing a real offer, and a greedy, disloyal one
