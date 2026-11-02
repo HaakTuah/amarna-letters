@@ -1,11 +1,9 @@
 import { describe, test } from "vitest";
 import { scriptSeats } from "./small-world.ts";
 import {
-  AllPowers,
   type Character,
   type GameState,
   GameStateSchema,
-  type Power,
   type HireOrder,
   OrderValidator,
   payCarriers,
@@ -15,7 +13,6 @@ import {
   characterOf,
   deserialize,
   dismiss,
-  first,
   hash,
   max,
   newContract,
@@ -24,7 +21,7 @@ import {
   newGameConfig,
 } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
-import { Assert, holds, toDict } from "../../engine/test/support.ts";
+import { Assert, holds } from "../../engine/test/support.ts";
 
 // <summary>How a script king keeps its court: each errand a job offered to the man sent, and servants given up for lost.</summary>
 describe("ScriptCourtTests", () => {

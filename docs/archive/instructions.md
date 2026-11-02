@@ -1516,3 +1516,19 @@ Given in the design chat with Claude, answering the design questions of the cons
     to the design session's take (each kind of text scored 1 to 10, only a 10 passing, with the usual guards and the
     owner's read as the final word): "Yes, expertly!" Written into the slop audit in "Follow-ups" in
     `docs/BUILD-PROGRESS.md`; the same in Barkstreet Snakes.
+180. **2 November 2026, 21:40 UTC**, in the design chat: "If all reviews follow this criteria, isn't it easier to write
+    it one place, and point there?" The slop audit now points to "Reviews" in `docs/claude-and-codex.md` and keeps only
+    what a 10 means for text; the same in Barkstreet Snakes.
+181. **2 November 2026, 21:48 and 21:49 UTC**, in the design chat, on the slop audit: "Will it be run again
+    occasionally?" Then, to the design session's take (the formula test on every PR, a line in the review guidelines
+    for text a player reads, and a monthly fresh-eyes check of only the text changed since the last): "Yes, please,
+    expertly!" Written into the review guidelines in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`; the same
+    in Barkstreet Snakes.
+182. **2 November 2026, 22:00 UTC**, in the design chat, to the design session's takes on five ideas from the reviews
+    (#549, #550, #553 into part D, #554, #562): "Yes to all, expertly!" Written into "Follow-ups" in
+    `docs/BUILD-PROGRESS.md`.
+183. **2 November 2026, 22:26 and 22:29 UTC**, in the design chat: "How are we doing with the codex reviews now?" Then,
+    to the design session's finding (13 of 16 PRs asked for a security review, splits, cleanups and history batches
+    among them, some three times) and take (never for proven-unchanged refactors, docs or history; once means once;
+    the wake report counts the asks): "Yes, expertly sir!" Written into "Codex reviews" in `docs/claude-and-codex.md`
+    and the wake report in `docs/orchestrating.md`; the same in Barkstreet Snakes.

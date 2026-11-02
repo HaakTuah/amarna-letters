@@ -36,7 +36,7 @@ export const JobOfferSchema: ObjSchema<JobOffer> = obj("JobOffer", newJobOffer, 
   offerAgain: B,
 });
 
-export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel"] as const;
+export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**
@@ -199,6 +199,8 @@ export interface Dispatch {
    * court learns of a claim from the claimant's own greetings). Absent: his own land's.
    */
   styled?: string | null;
+  /** Item 17+: the season the tablet was sealed, which the host weighs against the newest greeting of the sender it has read. */
+  sealed?: number | null;
 }
 
 export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
@@ -243,6 +245,7 @@ export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, 
   offers: list(() => JobOfferSchema),
   collect: opt(S),
   styled: opt(S),
+  sealed: opt(I),
 });
 
 export interface TabletProposal {

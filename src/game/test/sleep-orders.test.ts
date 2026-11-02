@@ -14,7 +14,6 @@ import {
   WorldMap,
   asItStands,
   disband,
-  first,
   hold,
   inboxOf,
   move,
@@ -42,7 +41,6 @@ import { standingOf } from "./sleep-support.ts";
 import { noticeOf } from "./sleep-support.ts";
 import { emptyDurkurigalzu } from "./sleep-support.ts";
 import { convoy as convoyOrder } from "@amarna/engine";
-import { first as firstOf } from "@amarna/engine";
 import { support as supportOrder } from "@amarna/engine";
 import { describe as describeOrder } from "@amarna/engine";
 

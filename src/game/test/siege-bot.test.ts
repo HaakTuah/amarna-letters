@@ -1,8 +1,8 @@
 import { describe, test } from "vitest";
 import { scriptSeats } from "./small-world.ts";
-import { AllPowers, OrderValidator, Views, besiege, first, newGame, newGameConfig } from "@amarna/engine";
+import { OrderValidator, Views, besiege, first, newGame, newGameConfig } from "@amarna/engine";
 import { GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame } from "@amarna/game";
-import { Assert, toDict, oldWorld } from "../../engine/test/support.ts";
+import { Assert, oldWorld } from "../../engine/test/support.ts";
 
 // Script kings and the siege package (Build order item 5; "Every feature is every seat's"): they besiege the cities their
 // armies stand within, and their sieges take cities in play.

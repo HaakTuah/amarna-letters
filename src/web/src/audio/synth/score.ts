@@ -97,7 +97,6 @@ const fill = (notes: readonly SNote[], every: number, length: number): SNote[] =
     .filter((n) => n.at < length)
     .map((n) => ({ ...n, beats: Math.min(n.beats, length - n.at) }));
 
-const war: readonly Mood[] = ["war", "battle", "siege"];
 const quiet: readonly Mood[] = ["calm", "menu", "last"];
 const bright: readonly Shade[] = [0, 1];
 

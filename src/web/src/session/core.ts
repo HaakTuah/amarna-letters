@@ -25,6 +25,7 @@ import {
   type SeatView,
   type TurnSubmission,
   type GameConfig,
+  ownLand,
 } from "@amarna/engine";
 import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, realNames, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
 import { AnthropicId, BatchTransport, SdkBatchService, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
@@ -182,11 +183,16 @@ export class SessionCore {
       risen: r === null ? [] : r.state.risen,
       names:
         r === null
-          ? { claims: [], given: [], heard: [], fallen: [] }
+          ? { claims: [], given: [], heard: [], fallen: [], falls: [] }
           : {
               claims: [...r.state.names],
               given: [...r.state.nameGiven].map(([k, m]) => [k, [...m]] as [string, [string, string][]]),
-              heard: [...r.state.namesHeard].map(([k, m]) => [k, [...m]] as [string, [string, string][]]),
+              // The registry needs only the claims heard: a claimant known by his own land's name needs no entry.
+              heard: [...r.state.namesHeard]
+                .map(([k, m]) => [k, [...m].filter(([q, h]) => h.name !== ownLand(q)).map(([q, h]) => [q, { name: h.name }])] as [string, [string, { name: string }][]])
+                .filter(([, m]) => m.length > 0),
+              // The falls the page's seat has heard of: the one human seat's, whose court the page names things as.
+              falls: this.humans.size === 1 ? [...this.humans.keys()].map((h) => [h, r.state.fallsHeard.tryGet(h) ?? []] as [string, string[]]) : [],
               fallen: [...r.state.eliminated],
             },
       seats: r === null ? {} : Object.fromEntries([...r.log.header.seats]),
