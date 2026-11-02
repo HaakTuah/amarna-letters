@@ -82,6 +82,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - A king's other names were never shown (#418): his card, from the courts along the map, now gives them under his name ("Also known as Akhenaten; Neferkheperure Waenre; Amenhotep IV"), every name but the one the viewer's court uses.
 - A post with an article of its own took another ("once a the ruler's brother", "Served as an a lord of the coast", "a King's Son of Kush"); such a post, or a title, now takes none (#468).
 - Follow brought the camera to its person once and stayed put; the camera now keeps to the person, where the seat last knew him, season after season, until the player moves the camera (a drag, a province chosen from the list, the whole map shown; "Keep the camera on them" in the Follow tab takes it back) or stops following ("Following, travel lines and borders", first of three parts).
+- The small seal of a land with no great town of its time (Kaska, Lukka, Nesa, the steppe, Libya, the Shasu) was drawn 1.43 times as wide as the box the placement kept clear for it, so a caravan's mark could touch it (#525); it now shrinks to the small seal's share of its own size.
 
 ## Finds not yet fixed
 
