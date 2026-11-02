@@ -1333,3 +1333,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     information") and "Only the owner's comments answer" in `AGENTS.md`, and the canary test into "Follow-ups" in
     `docs/BUILD-PROGRESS.md`; #410 closed. The same "yes" also answered #411 (the corvée as an amount only), but the
     design already says grain, levies and work gangs alike, so that one went back to him with the design's text.
+148. **2 November 2026, 10:44 UTC**, in the design chat, to the design session's take on #385 (the export audit, about
+    ten Codex rounds since 08:04, each finding a new way private text slipped past the scrubbing: keep it out by design
+    instead, with nothing sensitive recorded, errors as kind and code, the export built from listed fields, all free
+    text blanked with human words left out in a game with a human seat, and the canary test as its check): "Yes,
+    expertly to 1!" Written into "Logging and replay" under Engine and models (revision 63) and the export's entry
+    under "Follow-ups" in `docs/BUILD-PROGRESS.md`.
