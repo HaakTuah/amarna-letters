@@ -90,11 +90,8 @@ fixed.
   service that refuses calls past a limit, answers batches late and returns that game's slips. The report gives the
   expected cost of a season, live and in the background. The game itself is in
   `tests/fixtures/model-games/` (its README): its slips are the test cases, its token counts the estimate's start.
-- **First, before any other side lane: people moving in the fog** (Haakon, 2 November 2026: "Who are these people i can
-  see moving about in the fog of war when viewing a game as egypt? Different caravan and what looks like scout units or
-  something?"). Find what they are and why a seat sees them. If Egypt should not know of them, it is a leak ("Only what
-  the seat knows plays"): fix it in what the seat is shown and, if script or model kings get it too, in their view as
-  well, with the benchmarks before and after.
+- ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
+  armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
 
 - **From #348 (17+), round 2, not blocking; outside 17++'s text (names as claims), so a side lane takes them:** (a) engine
   notices name powers by their own land while a court's view may give a contested name to another, so one name can mean two
