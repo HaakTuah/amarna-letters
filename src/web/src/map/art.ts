@@ -317,25 +317,41 @@ function ringOf(refs: readonly number[]): Pt[] {
 }
 const tracedPath = (rings: readonly (readonly number[])[]): string => rings.map((r) => polygon(ringOf(r))).join("");
 
-/**
- * Each land province's border arcs as lines, with the provinces on the arc's other side ("~": no one's land; none: the
- * sea or the board's edge), so a realm's band is drawn only where it meets another ("Following, travel lines and borders":
- * strong between powers, quiet within one).
- */
-export const BorderSides: ReadonlyMap<string, readonly { d: string; across: readonly string[] }[]> = (() => {
+/** Which provinces each border arc runs between ("~": no one's land; the sea and the board's edge are no one). */
+const ArcSides: readonly (readonly string[])[] = (() => {
   const sides = Arcs.map(() => [] as string[]);
   for (const [id, rings] of Object.entries(ProvinceRings)) for (const ring of rings) for (const r of ring) sides[r >= 0 ? r : ~r].push(id);
-  const out = new Map<string, { d: string; across: string[] }[]>();
-  sides.forEach((ids, i) => {
-    for (const id of new Set(ids)) {
-      if (id === "~") continue;
-      const list = out.get(id) ?? [];
-      list.push({ d: polyline(Arcs[i]), across: ids.filter((x) => x !== id) });
-      out.set(id, list);
-    }
-  });
-  return out;
+  return sides;
 })();
+
+/**
+ * A land province's frontier: its border where `meets` says what lies across is not its own side (given the provinces
+ * across, none on a coast or the board's edge), so a realm's band is drawn only where it meets another ("Following,
+ * travel lines and borders": strong between powers, quiet within one). Each ring's frontier arcs are joined into one
+ * line, closed when the whole ring is frontier, so the band's dashes run on unbroken.
+ */
+export function frontierPath(id: string, meets: (across: readonly string[]) => boolean): string {
+  let sb = "";
+  for (const ring of ProvinceRings[id] ?? []) {
+    const on = ring.map((r) => meets(ArcSides[r >= 0 ? r : ~r].filter((x) => x !== id)));
+    if (on.every(Boolean)) {
+      sb += polygon(ringOf(ring));
+      continue;
+    }
+    // Start just after an arc that is not frontier, so a run that wraps round the ring's start stays one line.
+    const first = on.indexOf(false) + 1;
+    let run: number[] = [];
+    for (let k = 0; k <= ring.length; k++) {
+      const i = (first + k) % ring.length;
+      if (k < ring.length && on[i]) run.push(ring[i]);
+      else if (run.length > 0) {
+        sb += polyline(ringOf(run));
+        run = [];
+      }
+    }
+  }
+  return sb;
+}
 
 /**
  * Province shapes (item 11c+): each land province's land as the script traced it along the ridges, frontier rivers and

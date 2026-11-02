@@ -5,7 +5,7 @@
  */
 import { WorldMap, crossingBetween, dateLabel, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province, type UnitKind } from "@amarna/engine";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
-import { BorderSides, CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Rivers, SeaPath, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
+import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Rivers, SeaPath, Shapes, Width, add, frontierPath, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { roadsLayer, worksAtCities } from "./built.ts";
@@ -67,10 +67,7 @@ function bands(s: MapScene): string {
     for (const p of group) {
       const o = s.owner.get(p.id) ?? null;
       if (o === null) continue;
-      const d = (BorderSides.get(p.id) ?? [])
-        .filter((b) => b.across.length === 0 || b.across.some((q) => (q === "~" ? null : (s.owner.get(q) ?? null)) !== o))
-        .map((b) => b.d)
-        .join("");
+      const d = frontierPath(p.id, (across) => across.length === 0 || across.some((q) => (q === "~" ? null : (s.owner.get(q) ?? null)) !== o));
       if (d !== "") sb += `<path class="band b-${glyphId(o)}" d="${d}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
     }
     sb += "</g>";
