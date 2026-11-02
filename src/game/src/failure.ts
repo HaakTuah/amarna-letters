@@ -64,5 +64,5 @@ export function failureOf(ex: unknown): string {
  * raw message: an export gives that as "failed".
  */
 export function isFailure(text: string): boolean {
-  return FailureKinds.some((k) => text === k || text.startsWith(`${k} (`) || (k === "did not fit" && text.startsWith(`${k}: `)));
+  return FailureKinds.some((k) => text.startsWith(k) && (text === k || /^ \(\d{3}\)$/.test(text.slice(k.length)) || (k === "did not fit" && text.startsWith(": ", k.length))));
 }

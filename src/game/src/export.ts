@@ -9,6 +9,8 @@
  * each record may give, so a field no one listed stays out.
  */
 import { isFailure } from "./failure.ts";
+
+const DidNotFit = "did not fit: ";
 import type { GameLog } from "./log.ts";
 
 /** What an export holds: each part true to put it in. */
@@ -50,9 +52,36 @@ export const BlankMark = "▒";
  */
 export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments", "poison", "unreadable", "reason"]);
 
-/** A text blanked: every letter replaced by the mark, its spaces and its length kept. */
-export function blank(text: string): string {
-  return text.replace(/\S/g, BlankMark);
+/** The other marks a blank may use, after the first, so that two different texts never blank to the same. */
+const Marks = [BlankMark, "░", "▓", "█"];
+
+/**
+ * Blanks texts: every letter replaced by a mark, its spaces and its length kept. The same text always blanks the same,
+ * and two different texts never do (the game compares texts: a go-between who changed an envoy's words bent them), so
+ * the nth text of a shape takes n, written in the marks, at the end of its letters.
+ */
+class Blanker {
+  private readonly given = new Map<string, string>();
+  private readonly ofShape = new Map<string, number>();
+
+  blank(text: string): string {
+    const known = this.given.get(text);
+    if (known !== undefined) return known;
+    const shape = text.replace(/\S/g, BlankMark);
+    let n = this.ofShape.get(shape) ?? 0;
+    this.ofShape.set(shape, n + 1);
+    const out = [...shape];
+    for (let i = out.length - 1; i >= 0 && n > 0; i--) {
+      if (out[i] !== BlankMark) continue;
+      out[i] = Marks[n % Marks.length]!;
+      n = Math.floor(n / Marks.length);
+    }
+    // More texts of one tiny shape than its letters can number: the rest of the number is added on.
+    for (; n > 0; n = Math.floor(n / Marks.length)) out.push(Marks[n % Marks.length]!);
+    const blanked = out.join("");
+    this.given.set(text, blanked);
+    return blanked;
+  }
 }
 
 type Node = Record<string, unknown>;
@@ -62,18 +91,24 @@ export function exportJsonl(log: GameLog, parts: ExportParts = Everything): stri
   // Models quote and echo what they read, so under the filter a game with a human seat loses every text; a game with
   // none loses nothing.
   const blanking = !parts.humanWords && ([...log.header.seats].some(([, label]) => label === "Human") || log.decisions.some((d) => d.by?.kind === "human"));
+  const blanker = blanking ? new Blanker() : null;
   let out = "";
   for (const line of log.toJsonl().split("\n")) {
     if (line.length === 0) continue;
-    const record = given(JSON.parse(line) as Node, parts, blanking);
+    const record = given(JSON.parse(line) as Node, parts, blanker);
     if (record !== null) out += toJson(record) + "\n";
   }
   return out;
 }
 
 /** A record as the export gives it, or null when its part is left out (or its type is not one the export knows). */
-function given(node: Node, parts: ExportParts, blanking: boolean): Node | null {
-  const words = (s: unknown): unknown => (blanking && typeof s === "string" ? blank(s) : s);
+function given(node: Node, parts: ExportParts, blanker: Blanker | null): Node | null {
+  const words = (s: unknown): unknown => (blanker !== null && typeof s === "string" ? blanker.blank(s) : s);
+  // An answer that did not fit says why, and the schema's account may quote the answer: under the filter only its kind stays.
+  const failure = (v: unknown): unknown => {
+    const kind = failed(v);
+    return blanker !== null && typeof kind === "string" && kind.startsWith(DidNotFit) ? DidNotFit + blanker.blank(kind.slice(DidNotFit.length)) : kind;
+  };
   switch (node.type) {
     case "header":
       return { ...pick(node, ExportFields.header), type: "header" };
@@ -84,7 +119,7 @@ function given(node: Node, parts: ExportParts, blanking: boolean): Node | null {
         by.why = words(by.why);
       }
       // The value comes last: a log is read back by what follows its "value" key.
-      return { type: "decision", key: node.key, ...(by !== null ? { by } : {}), value: blanking ? blankWords(node.value) : node.value };
+      return { type: "decision", key: node.key, ...(by !== null ? { by } : {}), value: blanker !== null ? blankWords(blanker, node.value) : node.value };
     }
     case "call": {
       if (!parts.calls) return null;
@@ -122,16 +157,16 @@ function pick(node: Node, fields: readonly string[]): Node {
 }
 
 /** A logged failure as the export gives it: a kind as this build writes it, or, from an older log, "failed". */
-function failure(v: unknown): unknown {
+function failed(v: unknown): unknown {
   return typeof v === "string" && v.length > 0 && !isFailure(v) ? "failed" : v;
 }
 
 /** A decision's value with its words blanked: its word fields, or the whole of a value that is a text (a chronicle). */
-function blankWords(v: unknown, key: string | null = null): unknown {
-  if (typeof v === "string") return key === null || WordFields.has(key) ? blank(v) : v;
+function blankWords(blanker: Blanker, v: unknown, key: string | null = null): unknown {
+  if (typeof v === "string") return key === null || WordFields.has(key) ? blanker.blank(v) : v;
   // A list's entries are words only under a word field; a list at the top (ids, names) is orders.
-  if (Array.isArray(v)) return v.map((x) => blankWords(x, key ?? ""));
-  if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, blankWords(x, k)]));
+  if (Array.isArray(v)) return v.map((x) => blankWords(blanker, x, key ?? ""));
+  if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, blankWords(blanker, x, k)]));
   return v;
 }
 

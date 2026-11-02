@@ -19,7 +19,10 @@ open question #424; until it is answered the button stays as it is.
   - the shadow scripts beside model characters (what each faced, the model's choice, the script's, the kind of failure);
   - the audits of lower rungs' decisions.
 - **Filters** leave parts out: the model calls, the shadow scripts, the audits, and a human player's words. Without his
-  words, in a game with a human seat, every text is a blank of the same length, each letter a `▒` and its spaces kept:
+  words, in a game with a human seat, every text is a blank of the same length, each letter a `▒` and its spaces kept
+  (the same text always blanks the same, and two different texts never do: the nth text of a shape ends in its number
+  written in `▒░▓█`, since the game compares texts, a go-between who changed an envoy's words having bent them; and an
+  answer that did not fit keeps only "did not fit: " before its blanked account, which may quote the answer):
   the word fields of every decision (`letter`, `mandate`, `notes`, `summary`, `entry`, `speech`, `bribeAsk`, `say`,
   `reply`, `text`, `custom`, `commitments`, a turned captive's `poison`, and `unreadable` and `reason` for text the game
   could not read; a test holds every string field of the orders and answers to one side or the other), a decision whose
@@ -38,8 +41,8 @@ open question #424; until it is answered the button stays as it is.
     the message; it is never logged;
   - the export gives only the listed fields of each record, so a field the log gains stays out until it is listed (a
     test holds every field of the log's schemas to the list or to a named "left out");
-  - a log written before failures were kinds may hold raw messages: the export gives any failure that is not a kind as
-    "failed";
+  - a log written before failures were kinds may hold raw messages: the export gives any failure that is not wholly a
+    kind (a kind, a kind and a three-figure code, or "did not fit: " and its account) as "failed";
   - keys never reach the log: the web app holds them in memory and the batch runner in environment variables, and no
     call or header field is built from them.
 - **The canary test** (another lane, #421) plants secrets in a small game, exports it under every filter, decodes it and

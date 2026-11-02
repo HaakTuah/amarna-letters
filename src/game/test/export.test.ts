@@ -104,6 +104,9 @@ describe("ExportTests", () => {
     log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, error: "did not fit: letters[0].to" }));
     Assert.contains('"error":"rate limited (429)"', exportJsonl(log));
     Assert.contains('"error":"did not fit: letters[0].to"', exportJsonl(log));
+    // Only the whole form is a kind: an old message that begins like one is still "failed".
+    const tail = "rate limited (429): request_id=" + fakeRequestId;
+    Assert.equal('"error":"failed"', /"error":"[^"]*"/.exec(exportJsonl(GameLog.fromJsonl(`{"key":"t1/orders/Egypt","turn":1,"error":${JSON.stringify(tail)},"type":"call"}\n`)))![0]);
   });
 
   test("Every field the log's records hold is given by the export or knowingly left out", () => {
@@ -224,6 +227,8 @@ describe("ExportTests", () => {
     runner.log.route("t3/orders/Hatti/up", { rung: "small", model: "Haiku", why: `the letter says "${Letter}"` });
     runner.log.record("t3/orders/Hatti/up", S, "", newAuthorship({ kind: "model", name: "Haiku leader" }));
     runner.log.record("t2/chronicle/Egypt", S, `Pharaoh wrote to Alashiya: "${Letter}"`, newAuthorship({ kind: "model", name: "Haiku narrator" }));
+    // A reply that did not fit, its schema's account quoting what he wrote.
+    runner.log.record("t4/aud/react/c1", S, "", newAuthorship({ kind: "fallback", name: "Script", reason: `did not fit: speech "${Speech}" is too long` }));
 
     // The export as read: every string decoded.
     const read = (text: string): string => text.split("\n").filter((l) => l.length > 0).map((l) => JSON.stringify(JSON.parse(l))).join("\n");
@@ -231,8 +236,9 @@ describe("ExportTests", () => {
     for (const words of [Letter, Notes, Speech]) Assert.true(full.includes(JSON.stringify(words).slice(1, -1)), `a normal export keeps "${words}"`);
 
     const text = exportJsonl(runner.log, { ...Everything, humanWords: false });
-    for (const words of ["Greetings", "twelve horses", "Attack now", "welcome here", "He wrote", "Pharaoh wrote", "the letter says", "I carried"])
+    for (const words of ["Greetings", "twelve horses", "Attack now", "welcome here", "He wrote", "Pharaoh wrote", "the letter says", "I carried", "is too long"])
       Assert.false(read(text).includes(words), `"${words}" is still in the export`);
+    Assert.contains('"reason":"did not fit: ', text);
     // Every record keeps its shape: the same lines, each with its texts the same lengths, its numbers and kinds as they were.
     const lines = (t: string): string[] => t.split("\n").filter((l) => l.length > 0);
     Assert.equal(lines(exportJsonl(runner.log)).map(shape), lines(text).map(shape));
@@ -241,6 +247,20 @@ describe("ExportTests", () => {
     await replay.prepare();
     for (let i = 0; i < 4; i++) await replay.playTurn();
     Assert.equal(shape(serialize(GameStateSchema, state)), shape(serialize(GameStateSchema, replay.state)));
+  });
+
+  test("Without human words, the same text blanks the same and two different texts never do", () => {
+    // The game compares texts (a go-between who changed an envoy's words bent them), so the export must too.
+    const log = new GameLog();
+    const human = newAuthorship({ kind: "human", name: "Human" });
+    for (const [i, words] of ["Send gold.", "Send food.", "Send gold.", "Send wine.", "Send oxen.", "Send iron."].entries()) log.record(`t1/aud/s${i}`, S, words, human);
+    const values = exportJsonl(log, { ...Everything, humanWords: false })
+      .split("\n")
+      .filter((l) => l.includes('"type":"decision"'))
+      .map((l) => (JSON.parse(l) as { value: string }).value);
+    Assert.equal(values[0], values[2]);
+    Assert.equal(5, new Set(values).size);
+    for (const v of values) Assert.true(/^\S{4} \S{5}$/.test(v) && !/[A-Za-z]/.test(v), `"${v}" is not a blank of its shape`);
   });
 
   test("Without human words, a game with no human seat loses nothing", () => {
