@@ -133,7 +133,7 @@ The rulers are in the politics dossier's table; their families and men:
 | Mut-Baal | Son of Labaya, at Pihil (Pella) | yes | A | EA 255-256; Pella's ruler in the game since item 11f (as Mut-Bahlu) |
 | Akit-Teshup | Brother of Takuwa of Niya, who turns Niya against him and Hatti | yes | A | The Shattiwaza treaty (Beckman no. 6A) |
 | Tagi | Ally of Labaya, in the Carmel region (Ginti-kirmil); Milkilu's father-in-law | yes | A | EA 249, 264-266, 289 |
-| Yapahu | Gezer's ruler after Milkilu; how the two were related no letter says; his own youngest brother went over to the Habiru | yes (at Gezer; ruling later) | A (the letters), C (in 1346) | EA 297-300 |
+| Yapahu | Gezer's ruler after Milkilu; how the two were related no letter says; his own younger brother went over to the Habiru | yes (at Gezer; ruling later) | A (the letters), C (in 1346) | EA 297-300 |
 | Heba | Wife of Niqmaddu II of Ugarit? | doubt | B | EA 48 |
 | Ilimilku | Scribe at Ugarit, who wrote down the Baal cycle under Niqmaddu II | yes | A | Colophons of the Ugaritic myths |
 | Shum-Adda, Shutatna | Men of Akko who killed Babylon's merchants | yes | A | EA 8 |

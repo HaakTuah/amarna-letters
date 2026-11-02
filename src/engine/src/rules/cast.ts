@@ -126,7 +126,7 @@ export const PeopleOf1346: readonly CastSeed[] = [
   person("Arzawiya", "Dimashqa", "Damascus", "lord of Ruhizzi", { ambition: 60, loyalty: 30, courage: 60, competence: 50 }, 15, ["Rules Ruhizzi in Upe and sides with Aitakama of Qadesh against Pharaoh's land, Akizzi says (EA 53-54, 191, 197)."], "damascus"),
   person("Teuwatti", "Dimashqa", "Damascus", "lord of Lapana", { ambition: 55, loyalty: 30, courage: 55, competence: 50 }, 15, ["Rules Lapana in Upe and sides with Aitakama of Qadesh, Akizzi says (EA 53-54, 193)."], "damascus"),
   person("Biridashwa", "Ashtartu", "Ashtaroth", "lord of Yanuamu", { ambition: 65, loyalty: 25, courage: 65, greed: 60 }, 20, ["Rules Yanuamu beyond the Jordan and took Biryawaza's chariots with Arzawiya, Biryawaza says (EA 197)."], "ashtaroth"),
-  person("Yapahu", "Gazru", "Gezer", "noble of Gazru", { ambition: 60, loyalty: 55, competence: 55, greed: 50 }, 10, ["A man of Gazru who rules it after Milkilu, kin or not no letter says, and writes to Pharaoh as its ruler; his own youngest brother went over to the Habiru (EA 297-300)."], "gezer"),
+  person("Yapahu", "Gazru", "Gezer", "noble of Gazru", { ambition: 60, loyalty: 55, competence: 55, greed: 50 }, 10, ["A man of Gazru who rules it after Milkilu, kin or not no letter says, and writes to Pharaoh as its ruler; his own younger brother went over to the Habiru (EA 297-300)."], "gezer"),
 ];
 
 /**
