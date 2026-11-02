@@ -22,8 +22,9 @@ revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 4
   secrets (`sellsSecrets`) (`offer-news`).
 - **Arrived** (`offerArrives`): the declaration is known from that season, and the "A province looks to you" notice names
   who brought it (`offer-arrived`).
-- **Never carried**: when the declaration ends (its people no longer lean his way), a letter still waiting is dropped
-  (`dropOffer`): it fades as the leaning does. A cession by treaty is a king's word, told as before.
+- **Never carried**: when the declaration ends (its people no longer lean his way), its letter is dropped, waiting or on
+  the road (`dropOffer`): it fades as the leaning does, and never stands for a later declaration. A carrier robbed by
+  outlaws loses it with what they took (`offersRobbed`, from `stopped` in `travel.ts`; `offer-robbed`). A cession by treaty is a king's word, told as before.
 - **Talk** (`sendOffer`): talk of the leaning reaches the power, the holder and the holder's enemies at the roads' pace
   from the province (a "Talk of ..." rumour, `offer-talk`). His enemies (`enemiesOf`), by the game's marks of enmity:
   those whose troops stand unbidden in his land (`hostileAt`), and those who closed their roads to him or he to them.

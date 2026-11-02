@@ -89,7 +89,7 @@ describe("OfferTests", () => {
     Assert.contains(c.news, (n) => n.court === "Egypt" && n.lines.some((l) => l.includes("have sent him their offer")));
     Assert.contains(c.memory, (m) => m.text.includes("I carry the word of the people"));
     // Nothing taken from the land's king's treasury: he buys it only by his own order, as any news.
-    Assert.doesNotContain(s.events, (x) => x.signal === "offer-sold");
+    Assert.contains(s.events, (x) => x.signal === "offer-news");
   });
 
   test("His spy's report from there takes the offer with it", () => {
@@ -139,5 +139,26 @@ describe("OfferTests", () => {
     e.carryLetters();
     Assert.equal(c.id, offer(s).carrier);
     Assert.contains(s.events, (x) => x.signal === "offer-own");
+  });
+
+  test("An offer on the road is dropped when its leaning ends, and never stands for a later one", () => {
+    const [s, e, d] = offered();
+    const c = person(s, { status: "Employed", employer: "Egypt", at: "Babylonia" });
+    e.startTravel(c, "Egypt");
+    e.carryLetters();
+    Assert.equal(c.id, offer(s).carrier);
+    e.declarationsLapse(new Set(), new Set());
+    Assert.true(d.gone !== null);
+    Assert.false(s.journeys.some((j) => j.kind === "Offer"));
+  });
+
+  test("A carrier robbed on the road loses the offer he carried", () => {
+    const [s, e] = offered();
+    const c = person(s, { status: "Employed", employer: "Egypt", at: "Babylonia" });
+    e.startTravel(c, "Egypt");
+    e.carryLetters();
+    e.offersRobbed(c);
+    Assert.false(s.journeys.some((j) => j.kind === "Offer"));
+    Assert.contains(s.events, (x) => x.signal === "offer-robbed");
   });
 });

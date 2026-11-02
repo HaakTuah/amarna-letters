@@ -20,9 +20,10 @@ valuable information for the king of the land, or his enemies." Written into "Wh
    its own purse (`Market.purse`), at the letters' fees.
 3. **On the road**: the carrier shares the letter's fate (robbed or killed, it is lost); he remembers what he carries and
    holds it as news to sell at other courts, by their kings' order (`buy_news`).
-4. **Fades**: when the declaration ends, an offer still waiting is dropped.
-5. **Talk**: talk of the leaning reaches the power, its holder and the kings holding land beside it, at the roads' pace
-   from the province; it cannot be answered.
+4. **Fades**: when the declaration ends, its offer is dropped, waiting or on the road, so an old letter never stands for
+   a later declaration of the same people. A carrier robbed on the road loses it (`offersRobbed`).
+5. **Talk**: talk of the leaning reaches the power, its holder and the holder's enemies (`enemiesOf`: troops standing
+   unbidden in his land, or roads closed between them), at the roads' pace from the province; it cannot be answered.
 6. **Script kings** treat a province of theirs that talk says leans away as restless and ease it while the talk is fresh
    (`bots/talk.ts`, `freedom.ts`); warm to a claimant that talk says a rival's people lean toward (`Brain.learn`); and,
    told that a province leans their way, post a spy there whose reports bring its offer home (`statecraft-court.ts`);

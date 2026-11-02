@@ -36,8 +36,10 @@ declare module "./core.ts" {
     carryOffer(letter: Journey): void;
     /** An offer reaches the court it was sent to: from then he knows it and may answer it. */
     offerArrives(j: Journey): void;
-    /** A declaration ended: any offer of it still waiting for a carrier is not sent. */
+    /** A declaration ended: its offer, waiting or on the road, no longer stands. */
     dropOffer(d: Declaration): void;
+    /** A carrier robbed on the road: the offers he carried are lost with what was taken. */
+    offersRobbed(c: Character): void;
   }
 }
 
@@ -103,7 +105,16 @@ P.sendOffer = function (d, holder, text) {
 
 P.dropOffer = function (d) {
   const S = this.s;
-  S.journeys = S.journeys.filter((j) => !(j.kind === "Offer" && j.carrier === null && j.to === d.power && provinceOf(j) === d.province));
+  // On the road too, so a letter of an ended offer never stands for a later one from the same people.
+  S.journeys = S.journeys.filter((j) => !(j.kind === "Offer" && j.to === d.power && provinceOf(j) === d.province));
+};
+
+P.offersRobbed = function (c) {
+  const S = this.s;
+  for (const j of S.journeys.filter((x) => x.kind === "Offer" && x.carrier === c.id)) {
+    S.journeys.splice(S.journeys.indexOf(j), 1);
+    logEvent(S, "letter", `The offer ${c.name} carried to ${j.to} was taken from him on the road.`, [], "offer-robbed");
+  }
 };
 
 P.carryOffer = function (letter) {
