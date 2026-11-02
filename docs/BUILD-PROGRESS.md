@@ -83,8 +83,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
      history lane gathers the published expert estimates (excavation reports, surveys, reconstructions; as many as can
      be found), takes their consensus or middle, cites them in `10-water.md`, and sets each city's water by it. The
      same rule ("History holds" in `AGENTS.md`) covers every other guess the full check finds.
-  4. **A governor's letter carries word of his moved seat** (#480), right after item 17++ part C: his seasonal letter
-     says where he now sits, truly or not, as he chooses by his stakes.
+  4. ~~**A governor's letter carries word of his moved seat**~~ (#480): done, `item/governor-seat-letter`; report
+     `docs/rounds/2026-11-02-governor-seat-letter.md`.
   5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision
      344), not before.
 
