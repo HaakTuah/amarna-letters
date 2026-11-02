@@ -7,7 +7,7 @@
 import { WorldMap, cmpStr, fmt, sortBy } from "@amarna/engine";
 import { PeriodLakes, PeriodMarshes } from "./period-water.ts";
 import { BorderArcs, ProvinceRings, Roads, RoughSpots } from "./border-data.ts";
-import { city, decode, Isles, IslandProvinces, LL, ll, MiletusBayShore, OldGulfShore, RangeLines, RiverCourses, type Pt } from "./features.ts";
+import { city, decode, Isles, IslandProvinces, LL, ll, MiletusBayShore, OldGulfShore, RiverCourses, type Pt } from "./features.ts";
 import { DesertRings, LakeRings, LandRings } from "./geo-data.ts";
 import { BoardHeight, BoardWidth } from "./projection.ts";
 
