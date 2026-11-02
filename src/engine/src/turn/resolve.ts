@@ -529,9 +529,10 @@ P.raise = function (p, r) {
   const men = levySize(S, prov.id, r.kind, r.share != null ? idiv(idiv(menAvailable(S, prov.id) * r.share, 100) * (100 - this.hiddenIn(prov.id)), 100) : (r.men ?? null));
   if (men <= 0) {
     // A share that came to fewer than a levy's least is told as that, never as a land without men.
-    const why = r.share != null && menAvailable(S, prov.id) >= LandData.levyLeast ? `the share you asked of its men came to fewer than a levy takes (${LandData.levyLeast} at least); ask a larger share or a number of men` : `it has too few men of fighting age left (${LandData.levyLeast} at least are needed)`;
+    const short = r.share != null && menAvailable(S, prov.id) >= LandData.levyLeast;
+    const why = short ? `the share you asked of its men came to fewer than a levy takes (${LandData.levyLeast} at least); ask a larger share or a number of men` : `it has too few men of fighting age left (${LandData.levyLeast} at least are needed)`;
     notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`);
-    this.scheduledFailed(p, r, "too few men of fighting age");
+    this.scheduledFailed(p, r, short ? "the share asked came to fewer men than a levy takes" : "too few men of fighting age");
     return;
   }
   const cost = forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, men);

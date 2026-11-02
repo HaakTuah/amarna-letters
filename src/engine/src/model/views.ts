@@ -895,8 +895,8 @@ export interface SeatView {
   /** The tolls it sets, and those on its goods as last reported to it (item 10+b: never posted). */
   tolls: Toll[];
   /**
-   * The yield of each land province the court sees (its own and those in its sight), as its people bring it in now
-   * (item 10+a), on the scale of the map's yields: a ravaged or emptied province yields less than at the start.
+   * The yield of each land province the court sees (its own and those in its sight), as the last reaping brought
+   * it in, a season's third of it (item 10+a; item 17++: never the hands there now, which only a count tells), on the scale of the map's yields: a ravaged or emptied province yields less than at the start.
    * Provinces out of sight are left out: the court knows only the map's yield for them.
    */
   yields: Dict<string, number>;

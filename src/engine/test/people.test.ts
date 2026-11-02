@@ -117,6 +117,27 @@ describe("PeopleTests", () => {
     Assert.false(t.amounts.has("nesa"));
   });
 
+  test("A share leaves the farmers their season's food even when their granary was emptied before it", () => {
+    const s = quiet();
+    season(s, subs({ Hatti: { orders: [demand("share", 100, "nesa")] } }));
+    // Emptied by foraging or an earlier amount: only their season's food is left in it.
+    const e = new TurnEngine(s);
+    s.granary.set("nesa", e.shareReserve("nesa"));
+    s.stores.set("nesa", 0);
+    e.beginTurn();
+    Assert.false(s.fed.has("nesa"));
+  });
+
+  test("The gold a levy by share sets aside is reckoned by the king's count, never by the men really there", () => {
+    const refusal = (men: number): string => {
+      const s = quiet();
+      s.treasuries.get("Hatti").gold = 0;
+      s.people.get("nesa").men = men;
+      return new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [raise("nesa", "Army", null, 25)] })).rejected[0].reason;
+    };
+    Assert.equal(refusal(20_000), refusal(40_000));
+  });
+
   test("Grain handed to a town's market feeds its countryside in a famine", () => {
     const hungry = (fed: boolean): number => {
       const s = quiet();

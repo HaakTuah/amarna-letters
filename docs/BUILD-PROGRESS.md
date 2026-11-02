@@ -137,7 +137,8 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
-| (none open) | | | |
+| 17++ B | The sections part B names under The world ("Counts as the scribes knew them", "A census", "The king says how much he wants") are not in the repository's copy of the design document: could the copy be refreshed? | Built from the item's own text (the report's readings); alternative: wait for the sections | open |
+| 17++ B | Should the corvée (the men a work takes) also be asked as a share? Levies now can be. | The corvée stays each work's need, an amount, since a share would have to invent how a half-manned work progresses; alternative: a share of the men for works, the work going slower by the men who came | open |
 
 
 ## Use against ignore
