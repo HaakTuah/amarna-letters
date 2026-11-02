@@ -27,6 +27,9 @@ export function canMarchOn(b: Board, to: Power): boolean {
 /** Seasons within which a governor's last two letters must both call his land restless before his king recalls him. */
 const RecallWithin = 6;
 
+/** What a governor's letter says before the mood it reports. */
+const Writes = ", writes that its people are ";
+
 /**
  * The audit's find 4, the script side: a king takes back the governorship of a man whose last two letters both call his
  * land restless or near revolt, while no foreign army stands in or beside it to explain it, and who raised no levies there
@@ -39,10 +42,13 @@ export function unseatOrders(b: Board, orders: Order[], busy: HSet<string>): voi
   const said = new Map<string, { turn: number; bad: boolean }[]>();
   for (const m of v.inbox) {
     if (m.title !== "Your governor writes" || m.turn < v.turn - RecallWithin) continue;
-    const x = /governor of (.+?), writes that its people are (quiet|uneasy|restless|near revolt)/.exec(m.body);
-    const p = x !== null ? Board.Map.provinces.find((q) => q.name === x[1]) : undefined;
+    // "..., governor of <land>, writes that its people are <mood>...", read by position (no pattern to backtrack over).
+    const at = m.body.indexOf(Writes);
+    const from = at < 0 ? -1 : m.body.lastIndexOf("governor of ", at);
+    const p = from < 0 ? undefined : Board.Map.provinces.find((q) => q.name === m.body.slice(from + "governor of ".length, at));
+    const mood = at < 0 ? "" : m.body.slice(at + Writes.length);
     if (p === undefined) continue;
-    said.set(p.id, [...(said.get(p.id) ?? []), { turn: m.turn, bad: x![2] === "restless" || x![2] === "near revolt" }]);
+    said.set(p.id, [...(said.get(p.id) ?? []), { turn: m.turn, bad: mood.startsWith("restless") || mood.startsWith("near revolt") }]);
   }
   const foes = new Set(b.others.filter((u) => u.kind === "Army").map((u) => u.province));
   for (const g of sortBy([...v.governors], [(x: GovernorView) => x.province, cmpStr])) {

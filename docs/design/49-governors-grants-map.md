@@ -12,13 +12,16 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
   goes on from there. His letters on a far province reach him late and the king from his seat.
 - Recalled, a disloyal and ambitious one turns with those of his provinces whose people would rather follow him
   (`turnsWith`), ruling them from the first (his seat if it goes); the rest stay his king's. Stepping down from one, he
-  keeps the others; losing the province of his seat, he keeps the rest and sits in the first of them.
+  keeps the others; losing or giving up the province of his seat, he keeps the rest and sits in the first of them. His
+  king's view shows the old seat until word of the move can be read at his court (`seatWas`, `seatHeard`, `seatKnown`).
 
 ## A vassal king by grant (`GameState.crowns`, `Crown`, `turn/crowns.ts`)
 
 - Order `crown` (model action `grant_kingship`: person, lands, gold = tribute a year, amount = price; the web's "Grant the
   kingship" row for a governor's provinces): a governor of ours over provinces he governs, his seat among them, or a man at
-  our court over neighbouring provinces of ours; never the court's city. One grant per man at a time.
+  our court over neighbouring provinces of ours; never the court's city. One grant per man at a time. Checked against what
+  the court knows (`knownHeld`, the governorships and seat its view shows): land lost out of its sight fails on arrival,
+  told by the road.
 - The word reaches him at his seat (`wordFromKing`); one at court sets out with it to the first province named. The season
   it arrives his traits answer (`wantsCrown`: he can pay the price, the land's yield a year covers the tribute and a quarter
   of the price, and he is ambitious (30+) or keeps half the yield) and a model character is asked ("Crown" request,
@@ -26,6 +29,8 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
 - Taken: his purse less the price becomes the treasury of a power risen in play (`ruleOwn`, `how: "granted"`, his seat its
   capital, the other provinces set to it), his people's regard for him its own; a vassal tablet (tribute, serve, askProtect)
   sealed by both, a copy in each archive; the price comes home with his answer (`paidArrives`, the season it is `heard`).
+  The new realm's growth is reckoned from all the land it was given (`startStrength` set once every province is its own),
+  and so is a turning governor's.
   Refused, or no longer possible (the man gone, the land lost): the king is told by the road; a man from court goes home.
 - No rule of its own decides whether it pays: tribute is the vassal's order like any promise; the king's troops left in
   the land weigh as his in "Whom a province obeys".
@@ -39,7 +44,8 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
   favourite replaces the old.
 - **Taken up** (order `answer` with `take`; model action `take_up_province`; the web's "Take it up"): the word travels to
   the province (`placeOf`, `scheduledPlace`); once there, it passes to him as the next season is reckoned if it still
-  leans his way (`provinceTakenUp`: no sack, the archive taken, `obey-taken`). **Refused** (`refuse_province`): the
+  leans his way (`provinceTakenUp`: no sack, the archive taken, `obey-taken`); a second word taking it up changes
+  nothing, the first one's season of coming home (`takenKnown`) standing. **Refused** (`refuse_province`): the
   declaration goes (from his view once word of the refusal comes home) and the ledger takes `RefusedPoints` (20, first
   guess) from him. **Unanswered**, or no longer leaning
   his way, it lapses (`declarationsLapse`).

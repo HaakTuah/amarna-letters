@@ -150,6 +150,12 @@ export interface Governor {
    * every distance; the province itself for a governor of one.
    */
   seat: string;
+  /**
+   * Item 17++ (hidden information): a seat moved (his seat's province lost or given up) shows its king the seat he knew,
+   * `seatWas`, until word of the move can be read at his court in the season `seatHeard`.
+   */
+  seatWas: string;
+  seatHeard: number;
   character: string;
   power: Power;
   levies: number;
@@ -162,12 +168,14 @@ export interface Governor {
 }
 
 export function newGovernor(init: Partial<Governor> = {}): Governor {
-  return { province: "", seat: "", character: "", power: "Egypt", levies: 0, raised: 0, from: 0, skimmed: 0, relieved: null, mood: "quiet", ...init };
+  return { province: "", seat: "", seatWas: "", seatHeard: 0, character: "", power: "Egypt", levies: 0, raised: 0, from: 0, skimmed: 0, relieved: null, mood: "quiet", ...init };
 }
 
 export const GovernorSchema: ObjSchema<Governor> = obj("Governor", newGovernor, {
   province: S,
   seat: S,
+  seatWas: S,
+  seatHeard: I,
   character: S,
   power: S,
   levies: I,
@@ -198,6 +206,9 @@ export const GovernorGoneSchema: ObjSchema<GovernorGone> = obj("GovernorGone", n
 
 /** The province a governor sits in (item 17++): his seat, or his one province. */
 export const seatOf = (g: Governor): string => (g.seat === "" ? g.province : g.seat);
+
+/** The seat a governor's king knows him in, in the season `turn`: the one he left until word of the move is read. */
+export const seatKnown = (g: Governor, turn: number): string => (g.seatHeard > turn ? g.seatWas : seatOf(g));
 
 /**
  * Item 17++ ("Governors": a vassal king by a grant under oath): a king's grant of kingship over provinces of his to a

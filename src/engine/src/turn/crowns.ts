@@ -169,6 +169,8 @@ TurnEngine.prototype.crowned = function (k: Crown, c: Character, lands: string) 
     bound: `You are ${k.power}'s vassal by your oath, sealed on a tablet: ${k.tribute} shekels of tribute a year, your service, and his protection. Sending the tribute is yours to order, as keeping any promise is; others will hear if you do not.`,
   });
   for (const x of k.provinces.filter((y) => y !== k.seat)) this.joinRealm(x, c, own);
+  // His realm starts with all of it: growth is reckoned from there.
+  S.startStrength.set(own, this.strength(own));
   // The oath, a vassal tablet like any other, sealed by both, a copy in each archive.
   const clauses = [clause("tribute", { amount: k.tribute }), clause("serve"), clause("askProtect")];
   const t = newTablet({ id: newId(S, "t"), text: renderClauses(clauses, own, k.power), proposedBy: own, partner: k.power, seals: [own, k.power], createdTurn: S.turn, sealedTurn: S.turn, vassal: own, clauses });

@@ -8,7 +8,7 @@
  */
 import { idiv } from "../core/num.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
-import { newGovernor, newGovernorGone, seatOf, type Governor } from "../model/command.ts";
+import { newGovernor, newGovernorGone, seatKnown, seatOf, type Governor } from "../model/command.ts";
 import { raise, type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
@@ -92,6 +92,22 @@ P.dropGovernor = function (g) {
   if (isAlive(S, g.power) && until > S.turn) S.governorsGone.push(newGovernorGone({ governor: g, until }));
 };
 
+/**
+ * A governor of several whose seat's province is no longer his (lost, or given up) takes up his seat in the first he keeps.
+ * His king knows him in the old seat until word of the move, setting out with word of the province, is read at his court.
+ */
+function reseat(e: TurnEngine, c: Character, kept: Governor[], was: string): void {
+  if (kept.length === 0 || kept.some((x) => x.province === was)) return;
+  const seat = sortBy([...kept], [(x: Governor) => x.province, cmpStr])[0].province;
+  const heard = e.heardAt(kept[0].power, was);
+  for (const x of kept) {
+    x.seatWas = seatKnown(x, e.s.turn);
+    x.seatHeard = Math.max(x.seatHeard, heard);
+    x.seat = seat;
+  }
+  c.watchProvince = seat;
+}
+
 P.governorsSeason = function () {
   const S = this.s;
   S.governorsGone = S.governorsGone.filter((x) => x.until > S.turn && isAlive(S, x.governor.power));
@@ -105,11 +121,7 @@ P.governorsSeason = function () {
       // A governor of several keeps the rest (item 17++); his seat lost, he takes it up in the first of those he keeps.
       const kept = gone || c === null ? [] : S.governors.filter((x) => x.character === c.id);
       if (!gone && c !== null && kept.length === 0) this.leaveCommand(c, seatOf(g));
-      else if (kept.length > 0 && !kept.some((x) => x.province === seatOf(g))) {
-        const seat = sortBy([...kept], [(x: Governor) => x.province, cmpStr])[0].province;
-        for (const x of kept) x.seat = seat;
-        c!.watchProvince = seat;
-      }
+      else if (c !== null) reseat(this, c, kept, seatOf(g));
       continue;
     }
     if (g.relieved === null || S.turn < g.relieved) continue;
@@ -172,10 +184,13 @@ P.governorsSeason = function () {
       });
       // The rest of his provinces that would follow him go with him, ruled from the first, their people's regard for him his realm's.
       for (const x of going.slice(1)) this.joinRealm(x, c!, own);
+      // His realm starts with all of it: growth is reckoned from there.
+      S.startStrength.set(own, this.strength(own));
       continue;
     }
     remember(c!, S.turn, `I gave up the governorship of ${this.map.get(g.province).name}, as the king of ${g.power} ordered.`);
     const rest = S.governors.some((x) => x.character === c!.id);
+    reseat(this, c!, S.governors.filter((x) => x.character === c!.id), seatOf(g));
     this.tell(g.power, g.province, "Resolution", "Governorship given up", `${c!.name} gave up the governorship of ${this.map.get(g.province).name}${rest ? ", and governs the rest from his seat" : " and is on the road to your court"}.`);
     if (!rest) this.leaveCommand(c!, seatOf(g));
   }

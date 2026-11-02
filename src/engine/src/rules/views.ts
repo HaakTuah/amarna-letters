@@ -21,7 +21,7 @@ import { reckonedOf, unitCarried } from "../model/land.ts";
 import { countOf } from "../model/counts.ts";
 import { declarationKnown } from "../model/declarations.ts";
 import { moodsKnown } from "../model/moods.ts";
-import { seatOf } from "../model/command.ts";
+import { seatKnown } from "../model/command.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
@@ -261,7 +261,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     courtAt: courtOf(s, m, p),
     courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
     // Its governors as it knows them: one whose end (death, turning, land lost) has not yet reached it still stands.
-    governors: [...s.governors.filter((g) => g.power === p), ...s.governorsGone.filter((x) => x.governor.power === p && x.until > s.turn).map((x) => x.governor)].map((g) => newGovernorView({ province: g.province, seat: seatOf(g), character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
+    governors: [...s.governors.filter((g) => g.power === p), ...s.governorsGone.filter((x) => x.governor.power === p && x.until > s.turn).map((x) => x.governor)].map((g) => newGovernorView({ province: g.province, seat: seatKnown(g, s.turn), character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
     ended: s.ended,
     openAge: s.config.openAge,
     ageBand: ageBand(s.config.endMedian),

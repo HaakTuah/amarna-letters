@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, TurnEngine, Views, crown, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newGovernor, newId, newTraits, type GameState } from "@amarna/engine";
+import { Dict, OrderValidator, TurnEngine, Views, WorldMap, crown, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newGovernor, newId, newTraits, newTurnSubmission, type GameState } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
 // Item 17++, part C (hidden information, the review of #378): a court's view keeps what it believes until word of the change
@@ -38,6 +38,40 @@ describe("SeatWordTests", () => {
     play(s, 4, (x) => shown.push(Views.for(x, "Egypt").governors.some((g) => g.province === "nippur")));
     // Dropped as the first season began; word from a season away is read two seasons later, as `tell` carries it.
     Assert.equal([true, true, false, false], shown);
+  });
+
+  test("A governor of two who loses his seat's province is known in it, and the land his, until word of the loss comes", () => {
+    const [s, id] = governed();
+    const e = new TurnEngine(s);
+    e.setOwner("ur", "Egypt");
+    s.governors.push(newGovernor({ province: "ur", seat: "nippur", character: id, power: "Egypt", from: 0 }));
+    // Some seasons on, word of Ur held has come; then Nippur is lost.
+    s.turn += 3;
+    e.setOwner("nippur", "Babylonia");
+    e.governorsSeason();
+    Assert.equal("ur", s.governors.find((g) => g.province === "ur")!.seat);
+    const heard = e.heardAt("Egypt", "nippur");
+    Assert.true(heard > s.turn);
+    const seat = (): string => Views.for(s, "Egypt").governors.find((g) => g.province === "ur")!.seat;
+    Assert.equal("nippur", seat());
+    // A grant of what the court believes he holds is not refused for a loss it has not heard of: the engine answers it by the road.
+    Assert.equal([], new OrderValidator(s, WorldMap.default).validate("Egypt", newTurnSubmission({ orders: [crown(id, ["nippur", "ur"], 0)] })).rejected.map((r) => r.reason));
+    s.turn = heard;
+    Assert.equal("ur", seat());
+  });
+
+  test("A province taken up again keeps the season word of the first taking up comes home", () => {
+    const t = quiet();
+    const f = new TurnEngine(t);
+    f.beginTurn();
+    const d = newDeclaration({ province: "babylon", power: "Egypt", known: t.turn });
+    t.declarations.push(d);
+    f.answerProvince("Egypt", { type: "answer", province: "babylon", take: true });
+    const first = d.takenKnown!;
+    Assert.true(first > t.turn);
+    t.turn++;
+    f.answerProvince("Egypt", { type: "answer", province: "babylon", take: true });
+    Assert.equal(first, d.takenKnown);
   });
 
   test("A kingship's answer leaves the grant pending in the view until its notice is read", () => {

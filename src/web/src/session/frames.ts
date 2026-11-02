@@ -27,6 +27,7 @@ import {
   omenTier,
   type AgeBand,
   type OmenTier,
+  seatKnown,
   type Governor,
 } from "@amarna/engine";
 import type { GameRunner } from "@amarna/game";
@@ -181,7 +182,7 @@ function holdings(s: GameState): Pick<SeasonFrame, "governed" | "governedKnown" 
   const known = (g: Governor, name: string): void => {
     let m = governedKnown.get(g.power);
     if (m === undefined) governedKnown.set(g.power, (m = new Map()));
-    m.set(g.province, { power: g.power, character: g.character, name, seat: g.seat === "" ? g.province : g.seat });
+    m.set(g.province, { power: g.power, character: g.character, name, seat: seatKnown(g, s.turn) });
   };
   for (const g of s.governors) {
     if (s.turn < g.from) continue;

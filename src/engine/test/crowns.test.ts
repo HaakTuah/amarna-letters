@@ -43,6 +43,8 @@ describe("CrownsTests", () => {
     const own = s.owner.get("tuwanuwa")!;
     Assert.notEqual("Hatti", own);
     Assert.equal(own, s.owner.get("kizzuwatna"));
+    // His realm's growth is reckoned from all the land he was given, not from its seat alone.
+    Assert.equal(new TurnEngine(s).strength(own), s.startStrength.get(own));
     // His people's regard for him is his realm's, in every province of the grant.
     for (const x of ["tuwanuwa", "kizzuwatna"]) {
       Assert.true(s.ledger.get(x).getOrDefault(own, 0) >= 150);

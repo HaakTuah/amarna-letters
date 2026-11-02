@@ -3,7 +3,9 @@ import {
   Dict,
   OrderValidator,
   TurnEngine,
+  Views,
   WorldMap,
+  crown,
   govern,
   newCharacter,
   newGame,
@@ -89,5 +91,33 @@ describe("GovernorsOfARegionTests", () => {
     const kept = s.governors.filter((g) => g.character === id);
     Assert.equal([["kizzuwatna", "kizzuwatna"]], kept.map((g) => [g.province, g.seat]));
     Assert.equal("kizzuwatna", s.characters.find((c) => c.id === id)!.watchProvince);
+    // His king knows him in his old seat until word of its loss is read at his court.
+    seen(s, "tuwanuwa", e.heardAt("Hatti", "tuwanuwa"));
   });
+
+  test("A governor of two who gives up the province of his seat governs the other from there", () => {
+    const s = quiet();
+    const id = governor(s, 70, 30);
+    s.governors.push(newGovernor({ province: "kizzuwatna", seat: "tuwanuwa", character: id, power: "Hatti", from: 0 }));
+    s.governors.find((g) => g.province === "tuwanuwa")!.relieved = s.turn;
+    const e = new TurnEngine(s);
+    e.governorsSeason();
+    Assert.equal([["kizzuwatna", "kizzuwatna"]], s.governors.filter((g) => g.character === id).map((g) => [g.province, g.seat]));
+    Assert.equal("kizzuwatna", s.characters.find((c) => c.id === id)!.watchProvince);
+    seen(s, "tuwanuwa", e.heardAt("Hatti", "tuwanuwa"));
+    // His seat is one the king may grant with the land he keeps.
+    s.turn = Math.max(s.turn, e.heardAt("Hatti", "tuwanuwa"));
+    Assert.equal([], new OrderValidator(s, WorldMap.default).validate("Hatti", newTurnSubmission({ orders: [crown(id, ["kizzuwatna"], 20)] })).rejected.map((r) => r.reason));
+  });
+
+  /** Kizzuwatna's governor as his king's view shows him: in the old seat until `heard`, in Kizzuwatna from then. */
+  function seen(s: GameState, was: string, heard: number): void {
+    const turn = s.turn;
+    for (const t of [turn, heard - 1, heard]) {
+      if (t < turn) continue;
+      s.turn = t;
+      Assert.equal([t, t < heard ? was : "kizzuwatna"], [t, Views.for(s, "Hatti").governors.find((g) => g.province === "kizzuwatna")!.seat]);
+    }
+    s.turn = turn;
+  }
 });

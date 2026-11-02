@@ -2,7 +2,7 @@
  * The checks of command at a distance (build order item 13): granting and taking back command of an army and the
  * governorship of a province, giving an army a mandate, and the king setting out with his court. Split from validator.ts.
  */
-import { EngageValues, MandateTaskValues, MostGovernorLevies, seatOf, WithdrawValues, type Mandate } from "../model/command.ts";
+import { EngageValues, MandateTaskValues, MostGovernorLevies, seatKnown, WithdrawValues, type Mandate } from "../model/command.ts";
 import type { Order } from "../model/orders.ts";
 import { coverOf, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
@@ -105,7 +105,8 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       if (new Set(ps).size !== ps.length) return "a province is named twice in the grant";
       for (const x of ps) {
         if (!v.Map.exists(x) || v.Map.get(x).isSea) return `there is no land province called '${x}'`;
-        if (S.owner.getOrDefault(x, null) !== v.power) return `${x} is not yours`;
+        // As the court knows it (hidden information): land lost out of its sight fails when the word arrives, and says so by the road.
+        if (!v.knownHeld(x)) return `${x} is not yours`;
         if (courtOf(S, v.Map, v.power) === x) return `your court is in ${x}: a king does not grant away the city he holds court in`;
         if (S.crowns.some((k) => k.power === v.power && (k.heard === null || k.heard > S.turn) && k.provinces.includes(x))) return `${x} is already in a grant on its way`;
       }
@@ -124,14 +125,15 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       if (!Number.isInteger(order.price) || order.price < 0) return "the price is a number of shekels, 0 or more";
       if (S.crowns.some((k) => k.character === order.character && (k.heard === null || k.heard > S.turn))) return `a grant to ${order.character} is already on its way`;
       if (v.orders.some((o) => o.type === "crown" && v.orders.indexOf(o) < v.orders.indexOf(order) && o.provinces.some((x) => ps.includes(x)))) return "an earlier order already grants one of those provinces";
-      // A governor of ours is granted the provinces he governs, his seat among them; anyone else stands at our court.
-      const held = S.governors.filter((g) => g.character === order.character && g.power === v.power && g.relieved === null);
+      // A governor of ours is granted the provinces he governs, his seat among them, as the court knows them (his
+      // governorships ended and his seat moved only as word of it has come); anyone else stands at our court.
+      const held = [...S.governors, ...S.governorsGone.filter((x) => x.until > S.turn).map((x) => x.governor)].filter((g) => g.character === order.character && g.power === v.power && g.relieved === null);
       if (held.length > 0) {
         const c = findCharacter(S, order.character);
-        if (c === null || c.status === "Dead" || c.duty !== "Governing") return v.nobody(order.character);
+        if (c === null) return v.nobody(order.character);
         if (v.busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
         if (!ps.every((x) => held.some((g) => g.province === x))) return `${c.name} is granted only provinces he governs`;
-        if (!held.some((g) => ps.includes(seatOf(g)))) return `the grant must include ${c.name}'s seat`;
+        if (!held.some((g) => ps.includes(seatKnown(g, S.turn)))) return `the grant must include ${c.name}'s seat`;
         return null;
       }
       return grantee(v, order.character, "a kingship");

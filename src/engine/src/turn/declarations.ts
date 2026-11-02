@@ -116,6 +116,8 @@ P.answerProvince = function (p, o) {
     return;
   }
   if (o.take) {
+    // Taken up already: the first word stands, and so does the season word of it comes home.
+    if (d.takenUp) return;
     d.takenUp = true;
     // Word that his word reached it comes home by the road.
     d.takenKnown = knownBy(this, p, o.province);
