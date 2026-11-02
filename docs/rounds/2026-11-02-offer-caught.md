@@ -62,7 +62,7 @@ once more offers travel (caravans as carriers, #543). Listed in the running tabl
   - Names unresolved.
 
   All fixed.
-- **One idea (the reviewer's):** a king who catches an offer's carrier could send it on to its claimant or sell it, a
+- **One idea (the reviewer's), filed as #592:** a king who catches an offer's carrier could send it on to its claimant or sell it, a
   bargaining chip and not knowledge only.
 - Helpers: one reviewer (Opus, high).
 
