@@ -1,7 +1,7 @@
 # Item 10+b: people across borders and in kings' hands (28 October 2026)
 
 Build order item 10+b (`docs/intent/build-order/item-10plus.md`, the 10+b part): "Where people go", "Deportation",
-"People are worth having, not free to keep" and "Bandits rob the purse", opened by Haakon's answers carried from 10+a
+"People are worth having, not free to keep" and "Bandits rob the purse", opened by the owner's answers carried from 10+a
 (the 10+a report, "The check for changes") and by the "Reason from the pillars" list that 10+a's own text gained after
 10+a was built (Build order revisions 68-72). Branch `item/people-across-borders`; save version 18. What was built is in
 `docs/design/20-people-across-borders.md` (the script kings' part also in `docs/design/07-script-kings/13-treasury.md`);
@@ -11,11 +11,11 @@ medium, as asked. Helpers: one reviewer, none other.
 ## The check for changes
 
 Asked at the start (Build order since 72; Land, people and economy since 29; War, travel and the seas since 59; Overview
-since 561): nothing new. `docs/BUILD-PROGRESS.md` held no new answers from Haakon to earlier items. The copy at revision
+since 561): nothing new. `docs/BUILD-PROGRESS.md` held no new answers from the owner to earlier items. The copy at revision
 72 showed that 10+a's text had gained, after 10+a's check, a list of readings by "Reason from the pillars" that 10+a never
 built (its report does not mention them); since they were 10+a's and this item comes next, they were taken up here, all
 but one (below). Asked again before the pull request (Build order 73; the other tabs unchanged): one new builder rule,
-"The workshop check" at every milestone (Haakon: "Yes please, sound good! Do it expertly for both!"). Done for this
+"The workshop check" at every milestone (the owner: "Yes please, sound good! Do it expertly for both!"). Done for this
 milestone: the progress file was 44 KB and is now 11 KB, its answered review points, the rows of items 1 to 10 and the
 port's findings moved word for word to `docs/archive/progress-done.md`; the rest is measured in the milestone PR.
 
@@ -33,7 +33,7 @@ the four 10+a's audit already explained (`reputation` and `pact-with-consequence
 
 See `docs/design/20-people-across-borders.md` for every formula. In short:
 
-- **Haakon's answers carried from 10+a**: anyone's ships may sell grain at a besieged harbour while its waters are open;
+- **The owner's answers carried from 10+a**: anyone's ships may sell grain at a besieged harbour while its waters are open;
   a court knows foreign prices and the tolls on its goods only as its caravans, ships and envoys bring word home (and its
   own eyes); model characters choose what they claim when they pitch, and what they say when they give way under
   questioning (a season later, the script mind keeping item 10's formula); a false envoy is received in a full audience
@@ -53,7 +53,7 @@ See `docs/design/20-people-across-borders.md` for every formula. In short:
 
 ## Readings taken and design questions
 
-Each is a question Haakon can answer; the reading taken comes first, the alternative in brackets, and the principle it
+Each is a question the owner can answer; the reading taken comes first, the alternative in brackets, and the principle it
 rests on ("Reason from the pillars").
 
 1. **The harvest in each land's own season is not built here**, though 10+a's text now lists it: the farmers' food would

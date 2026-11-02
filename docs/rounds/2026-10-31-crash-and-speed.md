@@ -4,14 +4,14 @@
 (the 17a passage). Built from the copy in `docs/intent/` (this account has no live design document); the copy did not change
 between the item's start (`f1007bc`) and the check before review. Design note: `docs/design/44-the-crash-and-speed.md`.
 
-## Haakon's words in this session
+## The owner's words in this session
 
 Relayed by the orchestrator, 31 October 2026, word for word: "Before anything else: every lane commits and pushes what it
 has now, unfinished work included, as a work-in-progress commit on its branch (a draft PR if it has none). From now on, push
 after every commit, not only at gates or hourly. We're near this account's limit for the next few hours: when it resets,
 carry on from the pushed branches."
 
-And for item 17++, from the same message: "Haakon answered the audit's tiny-troops question, and it is now written into item
+And for item 17++, from the same message: "the owner answered the audit's tiny-troops question, and it is now written into item
 17++ as 'A handful holds nothing by itself' (War tab). There is no size threshold. A move into a far weaker unit is a battle
 it loses by far. A garrison holds a town only as far as its people's ledger stands with its master. Script kings fold or
 disband remnants. Read it from develop (git fetch origin develop) before building 17++."
@@ -22,7 +22,7 @@ See "Where it stands (31 October 2026, 19:30 UTC)" at the end.
 
 ## The crash, reproduced
 
-Haakon: "Got a white page with an error. Was on github", watching a game at high speed on the live site.
+The owner: "Got a white page with an error. Was on github", watching a game at high speed on the live site.
 
 `node src/web/soak.mjs` watches a whole Free game (seed 1) at Fast speed in the built app and records the season, the page's
 and the worker's heap, seconds a season and the frames. On this 16 GB machine nothing crashed, desktop or phone profile (CPU
@@ -39,7 +39,7 @@ of up to 600 map scenes at about 2 MB each and a frame a season at about 1 MB.
 
 ## The root: the stream, and the page's own history
 
-Haakon, 31 October 2026, to the design session's finding that the page held a full copy of the game for every season:
+The owner, 31 October 2026, to the design session's finding that the page held a full copy of the game for every season:
 "Agreed, 100% sir!". The item's text now asks that "the engine sends the page what happened each season as a stream of
 events, not a whole new copy of the world, and the page keeps a compact history (each season's events and what each seat
 knew), from which any past season is rebuilt when looked back at; the same events drive item 17+++'s playback and item
@@ -102,7 +102,7 @@ to host it would be a new public surface, which this session did not open; the s
    them; and behaviour unchanged, which the item asks of the optimization round. The alternative, rebuilding the panels'
    data on the page from semantic events alone, would re-implement the engine's rules on the page and could drift from them.
 7. **The throttled phone's remaining frames: a question, not a reading.** The item states the bar for the throttled
-   phone too, and the page does not settle a bar, so it goes to Haakon (question 1 below) with the reading taken: the
+   phone too, and the page does not settle a bar, so it goes to the owner (question 1 below) with the reading taken: the
    long frames left there are the rendering of the season's layer writes (the season's washes change every turn by
    design) and the names placed, and item 17+++ "redraws the season textures" and plays the season out, which is where
    the season's drawing is rebuilt ("No stopgaps": not twice). The alternative is to rebuild the season drawing here,
@@ -175,7 +175,7 @@ below once run.
 
 ## Smoothness, measured (the bar of 31 October: no frame over about 50 ms)
 
-Haakon, 31 October 2026: "The game still doesn't move slowly and smooth enough. Still hicks. hope that polish pass isn't
+The owner, 31 October 2026: "The game still doesn't move slowly and smooth enough. Still hicks. hope that polish pass isn't
 done already, because it far from sufficed.", then "Agreed to all, expertly!" to the design session's bar: frame times
 recorded through a whole game, at normal and top speed, desktop and throttled phone, no frame over about 50 ms, the
 longest frames and the count over 50 ms before and after, and a short recording.
@@ -272,7 +272,7 @@ summary identical (wars, falls, press, standing orders, risen seats, characters'
 
 ## Where it stands (31 October 2026, 19:30 UTC)
 
-Haakon (via the orchestrator): "We are running out of usage. 97 percent. commit and push." Stopped here. Done and pushed:
+The owner (via the orchestrator): "We are running out of usage. 97 percent. commit and push." Stopped here. Done and pushed:
 everything above, the review's fixes, the suite (1264 passed), the smoke test, the benchmarks. Left: the throttled-phone
 soak after the fixes (`node src/web/soak.mjs --phone`, one row of the table above), then mark PR #236 ready, CI green, merge
 into develop, the milestone PR (check `merged_at` first), and the report to the orchestrator.
@@ -328,7 +328,7 @@ are theirs, checked only where noted):
 5. Housekeeping from the workshop check: `src/web/src/map/svg-renderer.ts` is 52 KB, over the mark; split in a PR of its own
    with behaviour unchanged.
 
-## Questions for Haakon
+## Questions for the owner
 
 1. **The throttled phone's frames.** On desktop the bar of no frame over about 50 ms is met but for a few frames a game
    (69 at normal speed, 110 at fast, none over 117 ms while seasons play; 327 to 337 before, the worst 617 ms). On the

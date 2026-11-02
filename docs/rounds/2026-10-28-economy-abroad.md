@@ -11,7 +11,7 @@ read it). Effort: medium, as asked. Helpers: one reviewer, none other.
 ## The check for changes
 
 Asked at the start (Build order since 64, Land, people and economy since 24, War, travel and the seas since 53,
-Diplomacy and intelligence since 23): nothing new. Haakon had not answered the questions of items 8, 9 or 9+a in
+Diplomacy and intelligence since 23): nothing new. The owner had not answered the questions of items 8, 9 or 9+a in
 `docs/BUILD-PROGRESS.md`, so their readings stand. Asked again before the pull request (Build order, Land, people and economy, War, travel and the seas, Victory): nothing newer than the copy.
 
 ## The audit at the start
@@ -125,7 +125,7 @@ What moved, and why:
 
 ## Readings taken and design questions
 
-Each is the reading taken, with its alternative; they are also in the progress file's "For Haakon" table.
+Each is the reading taken, with its alternative; they are also in the progress file's "For the owner" table.
 
 1. **Passage for trade is the travellers' rule.** Caravans trade at any market whose roads are open to them (no closure
    heard, or a passage grant), as envoys travel. Alternative: a caravan needs a passage tablet to enter a king's land.

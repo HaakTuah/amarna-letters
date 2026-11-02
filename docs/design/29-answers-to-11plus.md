@@ -1,6 +1,6 @@
-# Haakon's answers to item 11+ (item 11d)
+# The owner's answers to item 11+ (item 11d)
 
-Build order item 11d (`docs/intent/build-order/item-11.md`), Haakon's answers of 29 October 2026 to item 11+'s review:
+Build order item 11d (`docs/intent/build-order/item-11.md`), the owner's answers of 29 October 2026 to item 11+'s review:
 "Agree to all. Though a character based on the incentive structure we have now should never say yes to point 6, as it
 is essentially game over." Report: `docs/rounds/2026-10-29-answers-to-11plus.md`. Save version 25.
 

@@ -1,6 +1,6 @@
 # Item 5+, step 1: the rest of the docs and preview pass (26 October 2026)
 
-Brief: `docs/items/docs-and-preview.md`; spec: `docs/prompts/DOCS-AND-PREVIEW.md` (Haakon's words). Branch
+Brief: `docs/items/docs-and-preview.md`; spec: `docs/prompts/DOCS-AND-PREVIEW.md` (the owner's words). Branch
 `docs/archive-and-preview`. One session, no subagents or workflows, as the spec asks. So this pass has no separate
 reviewer: I read my own diff before merging.
 
@@ -8,7 +8,7 @@ reviewer: I read my own diff before merging.
 
 - **.NET** was already installed. `scripts/test.sh`: all 1,008 tests pass (688 game, 288 engine, 32 web).
 - **Usage:** `scripts/usage.sh` says "unknown": this session cannot see weekly usage, so the 90% rule depends on
-  Haakon watching it.
+  the owner watching it.
 - **Playwright's Chromium** launches and drives the published app (used below to check the previews).
 - **The live design document** has no changes since the copy's revision (main tab 542). The Ideas tab was not
   needed for this step.
@@ -46,7 +46,7 @@ These six are recorded in neither, and are listed here rather than copied over:
 
 ## Step 4: previews
 
-The approach is the one Haakon gave word for word in the spec: a publishing branch, `gh-pages`, with `main` built to
+The approach is the one the owner gave word for word in the spec: a publishing branch, `gh-pages`, with `main` built to
 its root and each PR to its own `pr-<number>/` folder, removed when the PR closes.
 
 - **`.github/workflows/pages.yml`** ("Build, test and publish") runs on every PR (into any branch) and every push to
@@ -91,10 +91,10 @@ its root and each PR to its own `pr-<number>/` folder, removed when the PR close
   - afterwards there is one worker (the root's) and the root's cache is intact.
 
 **Not checked here:** the workflows on GitHub itself. The publisher runs only from `main`, so this PR's own preview
-appears only after it is merged (as the spec found). Following Haakon's revised condition, the merge is followed
+appears only after it is merged (as the spec found). Following the owner's revised condition, the merge is followed
 by a check of the site root, and previews are checked on the next PR.
 
-## Settings (Haakon's to change; nothing breaks before he does)
+## Settings (the owner's to change; nothing breaks before he does)
 
 1. **Settings → Pages → Build and deployment → Source:** "Deploy from a branch", branch `gh-pages`, folder `/ (root)`.
    Until then, `pages-deploy.yml` deploys the branch from `main` with the Pages action, and the site shows the root
@@ -107,7 +107,7 @@ by a check of the site root, and previews are checked on the next PR.
 
 ## Point 8: tidy-up
 
-This cloud clone has no worktrees, and the worktrees on Haakon's computer (`.claude/worktrees/`, old scratch folders)
+This cloud clone has no worktrees, and the worktrees on the owner's computer (`.claude/worktrees/`, old scratch folders)
 cannot be reached from here.
 
 **Branches on GitHub.** These 11 have all their work in `develop` or `main`, and are ready to remove. This session's
@@ -145,7 +145,7 @@ Also `main`, `develop`, and this item's branch until it is merged.
 
 ## Readings taken
 
-- **Previews for PRs into any branch**, not only into `main`: item PRs go into `develop`, and Haakon asked for
+- **Previews for PRs into any branch**, not only into `main`: item PRs go into `develop`, and the owner asked for
   "every PR".
 - **No previews for PRs from forks:** a preview runs on the game's own origin, where saved games and any API key
   typed into the page are kept.
@@ -169,7 +169,7 @@ has the base branch's ref, `refs/heads/main`, so it joined the push run's group 
 Worse, that `closed` run started the preview publisher. With no `gh-pages` branch yet, its removal of `pr-22` created
 the branch with nothing but `.nojekyll`, and the deploy step put that live: **the site root showed GitHub's 404 page
 from about 23:16 UTC.** I restored it by running "Build, test and publish" by hand on `main`
-(`workflow_dispatch`), which publishes the root of `gh-pages` and deploys it. I did not revert: Haakon's revised
+(`workflow_dispatch`), which publishes the root of `gh-pages` and deploys it. I did not revert: the owner's revised
 condition says "fix previews in a follow-up if needed", and reverting merges on `main` would have left `main` and
 `develop` tangled. The follow-up fix (PR "Pages: never deploy without the game at the root"):
 - a PR's builds are grouped by the PR's number, so its `closed` run cannot cancel a push to `main`;

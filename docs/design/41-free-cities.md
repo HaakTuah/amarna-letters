@@ -76,7 +76,7 @@ posted, he spends half of it a season (at least 50) into the province's purse, k
 - Model kings' and characters' play of it: script seats only until model games return.
 - Travellers' talk of a province's mood: what travellers carry is the news of a revolt itself, as of any change of hands.
 
-## The age lengthened (item 17, revision 111; Haakon, 30 October 2026: "Yes to 1.")
+## The age lengthened (item 17, revision 111; the owner, 30 October 2026: "Yes to 1.")
 
 `GameConfig` defaults: `endMedian` 80 (was 44), the cap drawn from `capMin` 140 to `capMax` 160 (was 80 to 100); the omens'
 darkest tier comes at the bottom of the cap's range, so at season 140 (with no cap, at 140/80 of the median,

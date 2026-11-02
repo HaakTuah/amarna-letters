@@ -13,7 +13,7 @@ styles).
 ## The check for changes
 
 Asked at the start (Build order since 64, Characters since 18, Diplomacy and intelligence since 23): nothing new.
-Haakon had not answered the questions of items 8, 9, 9+a or 9+b in `docs/BUILD-PROGRESS.md`, so their readings stand.
+The owner had not answered the questions of items 8, 9, 9+a or 9+b in `docs/BUILD-PROGRESS.md`, so their readings stand.
 Asked again before the pull request: nothing newer than the copy (Build order, Characters, Diplomacy and intelligence), and nothing new on `develop`.
 
 ## The audit at the start
@@ -108,7 +108,7 @@ times a season each, 9 a season over the pool (item 8's measure).
 
 ## Readings taken and design questions
 
-Each is a question Haakon can answer; the reading taken comes first, the alternative in brackets.
+Each is a question the owner can answer; the reading taken comes first, the alternative in brackets.
 
 1. **Skills**: three skills the engine rolls on (gathering, slipping past guards, forging), drawn within 20 points of
    competence, which stays a trait for judgement; assaying and commanding wait for the items that use them (or one skill,
