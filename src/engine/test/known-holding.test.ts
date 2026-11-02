@@ -49,7 +49,7 @@ describe("KnownHoldingTests", () => {
     const before = inboxOf(s, "Egypt").length;
     e.setWorks("Egypt", build("nippur", "Walls", 1, true));
     Assert.equal(before, inboxOf(s, "Egypt").length);
-    const word = s.journeys.filter((j) => j.kind === "Word" && j.to === "Egypt" && j.text.includes("Not built"));
+    const word = s.journeys.filter((j) => j.kind === "Word" && j.to === "Egypt" && (j.text ?? "").includes("Not built"));
     Assert.equal(1, word.length);
     Assert.true(word[0].arriveTurn > s.turn + 1);
   });
