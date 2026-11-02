@@ -5,11 +5,11 @@ import { type GameConfig, GameConfigSchema, newGameConfig } from "./config.ts";
 import { type UnitKind, WorldMap } from "./map.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import { type Character, CharacterSchema } from "./people.ts";
-import { AllPowers, type Power, type RisenPower, cmpPower } from "./power.ts";
+import { AllPowers, type Power, type RisenPower, cmpPower, namedFor, unmarked } from "./power.ts";
 import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
-import { type Claim, ClaimSchema, type NameClaim, NameClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
+import { type Claim, ClaimSchema, type HeardName, HeardNameSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 import { type Grant, GrantSchema } from "./authority.ts";
 import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
 import { type Toll, TollSchema } from "./trade.ts";
@@ -197,14 +197,17 @@ export interface GameState {
   /** Who called whom brother and granted whom the title, in the greetings sent (item 8). */
   recognition: Recognition[];
   /**
-   * Item 17+ ("A power's name is a claim"): the name each power claims where it claims another than its own land's, and
-   * the season it claimed it. A claim gives nothing by rule.
+   * Item 17+ ("A power's name is a claim"): the name each power claims where it claims another than its own land's. A
+   * claim gives nothing by rule.
    */
-  names: Dict<Power, NameClaim>;
+  names: Dict<Power, string>;
   /** Item 17+: whom each court gives a contested name to, as its greetings last named him (court, then name, to claimant). */
   nameGiven: Dict<Power, Dict<string, Power>>;
-  /** Item 17+: the name each court last read a claimant styled by in his sealed greetings (court, then claimant, to name). */
-  namesHeard: Dict<Power, Dict<Power, string>>;
+  /**
+   * Item 17+: the name each court last read a claimant styled by in his sealed greetings, with the season it was sealed
+   * (court, then claimant, to name), his own land's included.
+   */
+  namesHeard: Dict<Power, Dict<Power, HeardName>>;
   /**
    * The season the age ended in, when the table chose to play on into an open age after it ("An open age"); its winners
    * and reason stay recorded in {@link winners} and {@link endReason}. Null otherwise.
@@ -596,9 +599,9 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   finalByCap: B,
   claims: list(() => ClaimSchema),
   recognition: list(() => RecognitionSchema),
-  names: dict(() => NameClaimSchema),
+  names: dict(S),
   nameGiven: dict(dict(S)),
-  namesHeard: dict(dict(S)),
+  namesHeard: dict(dict(() => HeardNameSchema)),
   ageEndedTurn: opt(I),
   ageWinners: list(S),
   owner: dict(opt(S)),
@@ -1004,7 +1007,13 @@ export function inboxOf(s: GameState, p: Power): InboxItem[] {
   return list;
 }
 
-export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null): void {
+/**
+ * A notice to a court: its powers named as that court knows and gives them (item 17+, {@link namedFor}), unless `named` is
+ * false, for a notice that speaks of a name itself rather than the power it names.
+ */
+export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null, named = true): void {
+  title = named ? namedFor(p, title) : unmarked(title);
+  body = named ? namedFor(p, body) : unmarked(body);
   // A person the court knows by a false name (item 10) is named to it by that name.
   const c = subject === null ? null : (s.characters.find((x) => x.id === subject) ?? null);
   const alias = c === null ? null : (c.declared.find((d) => d.court === p && d.exposed === null)?.name ?? null);
