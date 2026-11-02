@@ -134,17 +134,28 @@ const farSiege: Twin = {
   heard: () => false,
 };
 
-/** In the twin where the fact is true, one of Egypt's people at Babylon's court has died there. */
+/**
+ * One of Egypt's spies is posted at Babylon's court; in the twin where the fact is true, he dies there in the second
+ * season, the engine freezing what Egypt believes of him first, as it does for every servant something befalls abroad.
+ */
 const deathAbroad: Twin = {
   name: "a death abroad",
   seat: "Egypt",
-  seasons: 2,
-  make(fact) {
+  seasons: 3,
+  make() {
     const s = world("Egypt", "Babylonia");
     const c = s.characters.find((x) => x.employer === "Egypt" && x.status === "Employed" && x.at === "Egypt")!;
     c.at = "Babylonia";
-    if (fact) c.status = "Dead";
+    c.duty = "SpyPosted";
     return s;
+  },
+  later: {
+    at: 2,
+    happen(s) {
+      const c = s.characters.find((x) => x.employer === "Egypt" && x.duty === "SpyPosted")!;
+      new TurnEngine(s).coverFor(c, "Egypt", "SpyPosted");
+      c.status = "Dead";
+    },
   },
   orders: [],
   heard: () => false,
@@ -207,7 +218,7 @@ const siegeAfterOrders: Twin = {
  * totals, are shown as they are, not as last reported.
  */
 const Known: { issue: number; what: string; is: (difference: string) => boolean }[] = [
-  ...["provinces", "works", "caravans", "strength", "gold", "fees", "feesDue", "court"].map((k) => ({ issue: 540, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
+  ...["provinces", "works", "caravans", "strength", "gold"].map((k) => ({ issue: 540, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
   { issue: 540, what: "the treasury notice", is: (d) => /^only where (true|false): The treasury: /.test(d) },
   { issue: 540, what: "the works notice", is: (d) => /^only where (true|false): Works: What you keep and build cost /.test(d) },
   { issue: 540, what: "people moving", is: (d) => /^only where (true|false): People: .* fled /.test(d) },
