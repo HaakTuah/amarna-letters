@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type GameState, OrderValidator, RefusedPoints, TurnEngine, Views, answer, cede, newGame, newGameConfig, newTurnSubmission, newUnit, WorldMap } from "@amarna/engine";
+import { type GameState, OrderValidator, RefusedPoints, TurnEngine, Views, answer, cede, inboxOf, newGame, newGameConfig, newSiege, newTurnSubmission, newUnit, WorldMap } from "@amarna/engine";
 import { Assert, subs } from "./support.ts";
 
 // Build order item 17++, "taken up, never thrust on anyone" ("Whom a province obeys" under War, decided 2 November 2026):
@@ -61,8 +61,11 @@ describe("DeclarationTests", () => {
     const before = love(s, "gaza", "Hatti");
     e.answerProvince("Hatti", answer("gaza", false));
     Assert.equal(before - RefusedPoints, love(s, "gaza", "Hatti"));
-    Assert.false(s.declarations.some((x) => x.province === "gaza"));
+    Assert.false(s.declarations.some((x) => x.province === "gaza" && x.gone === null));
     Assert.equal("Egypt", s.owner.get("gaza"));
+    // Gaza is within his couriers' season: word that the refusal reached it is home at once (from afar: "SeatWordTests").
+    Assert.empty(Views.for(s, "Hatti").declared);
+    Assert.true(inboxOf(s, "Hatti").some((i) => i.title === "A province refused"));
   });
 
   test("A declaration lapses once its people no longer lean his way", () => {
@@ -86,9 +89,15 @@ describe("DeclarationTests", () => {
     const d = s.declarations.find((x) => x.province === "gaza")!;
     Assert.equal("Egypt", d.from);
     Assert.equal("Hatti", d.power);
-    // Unanswered, the giver keeps it.
+    // Unanswered, the giver keeps it; besieged, the claim stands while he holds it.
     begin(s);
     Assert.equal("Egypt", s.owner.get("gaza"));
+    s.units.push(newUnit({ id: "u-siege", power: "Babylonia", kind: "Army", province: "gaza", home: "babylon", men: 1000 }));
+    s.sieges.push(newSiege({ province: "gaza", power: "Babylonia", unitId: "u-siege", progress: 0, since: s.turn }));
+    e.obeySeason();
+    Assert.true(s.declarations.some((x) => x.province === "gaza" && x.power === "Hatti" && x.gone === null));
+    s.sieges = [];
+    s.units = s.units.filter((u) => u.id !== "u-siege");
     e.answerProvince("Hatti", answer("gaza", true));
     // The giver's troops back in it: he has not withdrawn, and the receiver cannot have it yet.
     s.units.push(newUnit({ id: "u-back", power: "Egypt", kind: "Army", province: "gaza", home: "memphis", men: 1000 }));

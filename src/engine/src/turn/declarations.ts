@@ -86,7 +86,9 @@ P.declareIn = function (province, holder, against, affirmed, clears) {
 
 P.declarationsLapse = function (affirmed, changed) {
   const S = this.s;
-  for (const d of S.declarations) if (d.gone === null && (!affirmed.has(d.province) || changed.has(d.province))) end(this, d);
+  // A claim stands while its giver holds the land, whether or not its people were reckoned this season (a siege skips them).
+  const stands = (d: Declaration): boolean => (d.from !== null ? S.owner.getOrDefault(d.province, null) === d.from && isAlive(S, d.power) : affirmed.has(d.province));
+  for (const d of S.declarations) if (d.gone === null && (!stands(d) || changed.has(d.province))) end(this, d);
   S.declarations = S.declarations.filter((d) => d.gone === null || d.gone > S.turn);
 };
 
@@ -121,10 +123,11 @@ P.answerProvince = function (p, o) {
     logEvent(S, "declare", `${p} took up ${name}.`, [], "declare-taken");
     return;
   }
-  S.declarations.splice(S.declarations.indexOf(d), 1);
+  // Gone from the rule now; in his view until word that his refusal reached it comes home by the road.
+  end(this, d);
   // A people turned away remember it.
   this.take(o.province, p, RefusedPoints);
-  notify(S, p, "Resolution", "A province refused", `Your word refusing ${name} has reached it: it stays as it was, and its people remember that you turned them away.`);
+  this.tell(p, o.province, "Resolution", "A province refused", `Your word refusing ${name} has reached it: it stays as it was, and its people remember that you turned them away.`);
   logEvent(S, "declare", `${p} refused ${name}.`, [], "declare-refused");
 };
 

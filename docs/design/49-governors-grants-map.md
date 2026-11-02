@@ -12,7 +12,7 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
   goes on from there. His letters on a far province reach him late and the king from his seat.
 - Recalled, a disloyal and ambitious one turns with those of his provinces whose people would rather follow him
   (`turnsWith`), ruling them from the first (his seat if it goes); the rest stay his king's. Stepping down from one, he
-  keeps the others.
+  keeps the others; losing the province of his seat, he keeps the rest and sits in the first of them.
 
 ## A vassal king by grant (`GameState.crowns`, `Crown`, `turn/crowns.ts`)
 
@@ -25,7 +25,7 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
   `llm/src/character-crown.ts`); the answer is taken the season after.
 - Taken: his purse less the price becomes the treasury of a power risen in play (`ruleOwn`, `how: "granted"`, his seat its
   capital, the other provinces set to it), his people's regard for him its own; a vassal tablet (tribute, serve, askProtect)
-  sealed by both, a copy in each archive; the price travels to the king by courier from his seat (`paidArrives`).
+  sealed by both, a copy in each archive; the price comes home with his answer (`paidArrives`, the season it is `heard`).
   Refused, or no longer possible (the man gone, the land lost): the king is told by the road; a man from court goes home.
 - No rule of its own decides whether it pays: tribute is the vassal's order like any promise; the king's troops left in
   the land weigh as his in "Whom a province obeys".
@@ -40,12 +40,13 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
 - **Taken up** (order `answer` with `take`; model action `take_up_province`; the web's "Take it up"): the word travels to
   the province (`placeOf`, `scheduledPlace`); once there, it passes to him as the next season is reckoned if it still
   leans his way (`provinceTakenUp`: no sack, the archive taken, `obey-taken`). **Refused** (`refuse_province`): the
-  declaration goes and the ledger takes `RefusedPoints` (20, first guess) from him. **Unanswered**, or no longer leaning
+  declaration goes (from his view once word of the refusal comes home) and the ledger takes `RefusedPoints` (20, first
+  guess) from him. **Unanswered**, or no longer leaning
   his way, it lapses (`declarationsLapse`).
 - **A cession** (`resolveTransfers`): with the receiver's army standing in it, it passes at once, as before (his troops
   are his taking it); otherwise it is a claim (`from`, the giver), the giver holding it until the receiver takes it up,
   then passing if the giver's troops are gone and the receiver's weight clears the floor. It lapses if the giver no longer
-  holds it. A capital ceded whole (item 11d) is unchanged: both sealed the tablet that gives it.
+  holds it, and only then (a siege does not end it). A capital ceded whole (item 11d) is unchanged: both sealed the tablet that gives it.
 - **Troops** standing in a province were sent to take or hold it, and go by the season's rule as before; **persons**
   choose by their stakes (the "Rising" and "Crown" requests). The seat view lists `declared` from when word reaches it.
 

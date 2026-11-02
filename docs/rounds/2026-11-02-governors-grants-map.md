@@ -115,8 +115,9 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
 12. **Who may be declared for**: a power with no army standing in the province, by the same weight and margin a rival
     power must clear (or the floor, for land without a ruler); never a court's own city or a besieged one, which change
     hands only to troops within or by the siege. Persons are asked through the "Rising" and "Crown" requests already built,
-    and only where they stand; whether a claimant should be offered a province whose people favour him where he does not
-    stand is a question for the owner (#431). Principle: "Different data, same rules".
+    and only where they stand. Answered on #431 (below): a province may declare for a favourite who is not there, but the
+    offer never arrives by itself; who carries it is part D, built next.
+    Principle: "Different data, same rules".
 13. **A cession while the giver holds it**: "until then it stays with its old master", so the giver keeps the land, its
     tax and its levies until the receiver takes it up; then the giver's officers withdraw, and it passes if his troops are
     gone and its people accept the receiver (his weight above the floor, as land without a ruler weighs anyone). A capital
@@ -151,7 +152,17 @@ other court.
 
 ## Design questions
 
-- #431: should a claimant be offered a province whose people favour him, even where he does not stand? (Reading 12.)
+- #431, answered by the owner (2 November 2026, 13:10 UTC, archive item 157): "Yes, expertly, if you think it is best."
+  And on who carries the offer (13:14 to 13:19 UTC, archive item 158): "Is the messenger a character it hires then?",
+  "But characters don't live anywhere, so it has to be a character who is paid or for some reason takes the mission for
+  free on his own accord?", and "Agreed, expertly. Though this is also information he can pass on or sell. I guess even
+  just a rumor can spread? Maybe the town must be really into someone and have the means, if they commission a message
+  and courier? And this is valuable information for the king of the land, or his enemies." Written into "Whom a
+  province obeys" (War, revision 95). Not built here: a declaration's word still reaches its power by `tell` at the
+  roads' pace, which the new text replaces with talk, a commissioned courier, a willing character or the claimant's own
+  envoy or spy. That is more than an hour's work, so it is part D, built next from `develop` before 17++a (the orchestrator's decision).
+  The path is left in C rather than taken out, since a declaration exists only for a power whose troops are not there:
+  taking the offer out would empty the taking up, the refusals and the cessions this part builds. D replaces it.
 
 ## Benchmarks and use against ignore
 
@@ -170,6 +181,4 @@ keep it rare. A finding for item 18: the land's multiple against tribute, and th
 
 (To come.)
 
-Questions for the owner:
-
-- #431: should a claimant be offered a province whose people favour him, even where he does not stand?
+Questions for the owner: none new. #431 is answered (above); it stays open until the carriers are built.

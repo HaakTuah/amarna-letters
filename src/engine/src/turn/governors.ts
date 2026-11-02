@@ -102,8 +102,14 @@ P.governorsSeason = function () {
     const lost = S.owner.getOrDefault(g.province, null) !== g.power;
     if (gone || lost) {
       this.dropGovernor(g);
-      // A governor of several keeps the rest (item 17++).
-      if (!gone && c !== null && !S.governors.some((x) => x.character === c.id)) this.leaveCommand(c, seatOf(g));
+      // A governor of several keeps the rest (item 17++); his seat lost, he takes it up in the first of those he keeps.
+      const kept = gone || c === null ? [] : S.governors.filter((x) => x.character === c.id);
+      if (!gone && c !== null && kept.length === 0) this.leaveCommand(c, seatOf(g));
+      else if (kept.length > 0 && !kept.some((x) => x.province === seatOf(g))) {
+        const seat = sortBy([...kept], [(x: Governor) => x.province, cmpStr])[0].province;
+        for (const x of kept) x.seat = seat;
+        c!.watchProvince = seat;
+      }
       continue;
     }
     if (g.relieved === null || S.turn < g.relieved) continue;

@@ -60,7 +60,11 @@ describe("CrownsTests", () => {
     // His purse, less the price, is his realm's treasury; the price is on the road to the king.
     Assert.equal(200, s.treasuries.get(own).gold);
     Assert.equal(gold, s.treasuries.get("Hatti").gold);
-    seasons(s, 4);
+    // The price comes home with the answer: in the treasury the season the oath's copy is, never before.
+    for (let k = 0; k < 4; k++) {
+      seasons(s, 1);
+      Assert.equal(s.copies.some((c) => c.tabletId === oath.id && c.holder === "Hatti"), s.treasuries.get("Hatti").gold === gold + 100);
+    }
     Assert.equal(gold + 100, s.treasuries.get("Hatti").gold);
     Assert.equal(0, s.crowns.length);
     Assert.true(s.copies.some((c) => c.tabletId === oath.id && c.holder === "Hatti"));

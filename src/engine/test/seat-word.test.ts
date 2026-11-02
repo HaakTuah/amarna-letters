@@ -4,7 +4,7 @@ import { Assert } from "./support.ts";
 
 // Item 17++, part C (hidden information, the review of #378): a court's view keeps what it believes until word of the change
 // can be read at its court, in the same season as the notice that carries it: a governor's end, a kingship's answer, a
-// province's declaration ended. Nippur and Babylon lie a season's word from Egypt's court. Real seasons are played (each
+// province's declaration ended, taken up or refused. Nippur and Babylon lie a season's word from Egypt's court. Real seasons are played (each
 // season begins, then resolves with no orders), since the moment a view changes depends on where in the season a change
 // falls.
 describe("SeatWordTests", () => {
@@ -83,5 +83,16 @@ describe("SeatWordTests", () => {
     // Until the notice, not taken up in its view; with it, taken up (later the test's declaration, with nobody behind it, lapses).
     Assert.equal([false, true], takenUp.slice(0, 2));
     Assert.equal(heard.slice(0, 2), takenUp.slice(0, 2));
+    // Refused: shown until the season its notice is read, then gone.
+    const r = quiet();
+    const g = new TurnEngine(r);
+    g.beginTurn();
+    r.declarations.push(newDeclaration({ province: "babylon", power: "Egypt", known: r.turn }));
+    g.answerProvince("Egypt", { type: "answer", province: "babylon", take: false });
+    g.resolve(new Dict());
+    const rows: [boolean, boolean][] = [];
+    play(r, 3, (x) => rows.push([Views.for(x, "Egypt").declared.length > 0, inboxOf(x, "Egypt").some((i) => i.title === "A province refused")]));
+    Assert.equal([true, false], rows[0]);
+    for (const [k, [shown, told]] of rows.entries()) Assert.equal([k, !told], [k, shown]);
   });
 });

@@ -78,4 +78,16 @@ describe("GovernorsOfARegionTests", () => {
     Assert.equal(["tuwanuwa"], s.governors.filter((g) => g.character === id).map((g) => g.province));
     Assert.equal("Governing", s.characters.find((c) => c.id === id)!.duty);
   });
+
+  test("A governor of two who loses the province of his seat keeps the other and takes up his seat there", () => {
+    const s = quiet();
+    const id = governor(s, 70, 30);
+    s.governors.push(newGovernor({ province: "kizzuwatna", seat: "tuwanuwa", character: id, power: "Hatti", from: 0 }));
+    const e = new TurnEngine(s);
+    e.setOwner("tuwanuwa", "Egypt");
+    e.governorsSeason();
+    const kept = s.governors.filter((g) => g.character === id);
+    Assert.equal([["kizzuwatna", "kizzuwatna"]], kept.map((g) => [g.province, g.seat]));
+    Assert.equal("kizzuwatna", s.characters.find((c) => c.id === id)!.watchProvince);
+  });
 });

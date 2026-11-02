@@ -17,7 +17,7 @@ import type { Power } from "../model/power.ts";
 import { newTablet, newTabletCopy } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { renderClauses } from "../rules/clauses.ts";
-import { courierSeasons, wordFromKing } from "../rules/court.ts";
+import { wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
@@ -30,12 +30,6 @@ declare module "./core.ts" {
 }
 
 const P = TurnEngine.prototype;
-
-/** Seasons from `from` to `to` by courier, at least one. */
-function road(e: TurnEngine, from: string, to: string): number {
-  const n = courierSeasons(e.s, e.map, from, to);
-  return Math.max(1, Number.isFinite(n) ? n : 1);
-}
 
 P.grantCrown = function (p, o) {
   const S = this.s;
@@ -183,8 +177,9 @@ TurnEngine.prototype.crowned = function (k: Crown, c: Character, lands: string) 
   S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: t.id, holder: own, acquiredTurn: S.turn, source: "sealed at the grant of a kingship" }));
   k.tablet = t.id;
   k.price = price;
-  k.paidArrives = S.turn + road(this, k.seat, this.courtAt(k.power));
   k.heard = this.heardAt(k.power, k.seat);
+  // His price rides home with his answer: it reaches the treasury as word of it does.
+  k.paidArrives = k.heard;
   this.tell(k.power, k.seat, "Resolution", "A kingship taken", `${c.name} took the kingship of ${lands} under oath: ${own} is your vassal now, its tablet sealed for ${k.tribute} shekels of tribute a year${price > 0 ? `; the ${price} shekels he paid are on the road to you` : ""}.`);
   logEvent(S, "crown", `${c.name} took the kingship of ${lands} from ${k.power}.`, [k.power, own], "crown-taken");
 };
