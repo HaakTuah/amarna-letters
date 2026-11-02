@@ -8,21 +8,62 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
-/** The licences allowed: the `allow-licenses` list in .github/licences.yml. */
-export function allowed() {
-  const yml = readFileSync(join(root, ".github/licences.yml"), "utf8");
-  const block = /^allow-licenses:\n((?:[ \t]+- .+\n?)+)/mu.exec(yml);
-  if (!block) throw new Error(".github/licences.yml has no allow-licenses list");
-  return new Set(block[1].split("\n").map((l) => l.replace(/^\s*- /u, "").trim()).filter(Boolean));
+/** A YAML list in .github/licences.yml, by key. */
+function list(yml, key) {
+  const block = new RegExp(`^${key}:\\n((?:[ \\t]+- .+\\n?)+)`, "mu").exec(yml);
+  if (!block) throw new Error(`.github/licences.yml has no ${key} list`);
+  return block[1].split("\n").map((l) => l.replace(/^\s*- /u, "").trim()).filter(Boolean);
 }
 
-/** Whether an SPDX expression is allowed: one side of an OR is enough, every part of an AND is needed. */
-export function licenceOk(expression, allow = allowed()) {
+/**
+ * The policy in .github/licences.yml: the licences any package may have, and the wider set (adding the data, asset and
+ * font licences) for the packages named as data, assets or fonts. "Public Domain", which has no SPDX id, counts for any
+ * package (point 10); the action cannot be told so and fails such a package until it is named in the file.
+ */
+export function policy() {
+  const yml = readFileSync(join(root, ".github/licences.yml"), "utf8");
+  const any = new Set([...list(yml, "allow-licenses"), "Public Domain"]);
+  const assets = new Set([...any, ...list(yml, "assets-licenses")]);
+  const named = new Set(list(yml, "allow-dependencies-licenses").map((purl) => purl.replace(/^pkg:npm\//u, "").replace(/@[^@/]*$/u, "")));
+  return { allowedFor: (name) => (named.has(name) ? assets : any) };
+}
+
+/**
+ * Whether an SPDX expression is allowed: parsed with its brackets, AND binding tighter than OR, so one side of an OR is
+ * enough and every part of an AND is needed. An exception (WITH) or anything unparsable is refused.
+ */
+export function licenceOk(expression, allow) {
   if (typeof expression !== "string" || !expression.trim()) return false;
-  const bare = expression.trim().replace(/^\((.*)\)$/u, "$1");
-  if (/ OR /u.test(bare)) return bare.split(/ OR /u).some((part) => licenceOk(part, allow));
-  if (/ AND /u.test(bare)) return bare.split(/ AND /u).every((part) => licenceOk(part, allow));
-  return allow.has(bare);
+  if (allow.has(expression.trim())) return true;
+  const tokens = expression.match(/\(|\)|[^\s()]+/gu) ?? [];
+  let at = 0;
+  const or = () => {
+    let ok = and();
+    while (tokens[at] === "OR") { at++; ok = and() || ok; }
+    return ok;
+  };
+  const and = () => {
+    let ok = atom();
+    while (tokens[at] === "AND") { at++; ok = atom() && ok; }
+    return ok;
+  };
+  const atom = () => {
+    const token = tokens[at++];
+    if (token === "(") {
+      const ok = or();
+      if (tokens[at++] !== ")") throw new Error("unbalanced");
+      return ok;
+    }
+    if (token === undefined || [")", "AND", "OR", "WITH"].includes(token)) throw new Error("unexpected token");
+    if (tokens[at] === "WITH") { at += 2; return false; }
+    return allow.has(token);
+  };
+  try {
+    const ok = or();
+    return at === tokens.length && ok;
+  } catch {
+    return false;
+  }
 }
 
 /** Every package the lockfile installs (the workspaces' own code, linked, is the owner's and carries no licence). */
@@ -56,11 +97,11 @@ const ASSETS = [
  * ships; throws on one whose licence is off the list, so a build never ships one.
  */
 export function notices(dirs) {
-  const allow = allowed();
+  const { allowedFor } = policy();
   const packages = [...new Set(dirs)]
     .map((dir) => ({ dir, ...JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) }))
     .sort((a, b) => a.name.localeCompare(b.name));
-  const off = packages.filter((p) => !licenceOk(p.license, allow));
+  const off = packages.filter((p) => !licenceOk(p.license, allowedFor(p.name)));
   if (off.length) throw new Error(`Licences off the list (SECURITY.md, point 10): ${off.map((p) => `${p.name} (${p.license ?? "none"})`).join(", ")}`);
   const rule = "-".repeat(80);
   return [
@@ -79,9 +120,9 @@ export function notices(dirs) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const allow = allowed();
+  const { allowedFor } = policy();
   const all = lockfilePackages();
-  const off = all.filter((p) => !licenceOk(p.license, allow));
+  const off = all.filter((p) => !licenceOk(p.license, allowedFor(p.name)));
   for (const p of off) console.error(`off the list: ${p.name}@${p.version} (${p.license ?? "no licence"})`);
   console.log(`${all.length} packages checked, ${off.length} off the list (SECURITY.md, point 10; .github/licences.yml)`);
   process.exit(off.length ? 1 : 0);

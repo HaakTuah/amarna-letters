@@ -2,6 +2,9 @@
 # scripts/licences.mjs (the lockfile check and the build's third-party notices). One list, one place.
 license-check: true
 vulnerability-check: false
+# Every package, not only the runtime ones (the action's default).
+fail-on-scopes: [runtime, development, unknown]
+# Allowed for any package.
 allow-licenses:
   - MIT
   - MIT-0
@@ -15,5 +18,14 @@ allow-licenses:
   - Zlib
   - BlueOak-1.0.0
   - Python-2.0
+# Data, asset and font packages, each checked by hand to be one: the action lets them through, and scripts/licences.mjs
+# holds them to allow-licenses or assets-licenses. Adding one is a reviewed change to this file.
+allow-dependencies-licenses:
+  - pkg:npm/caniuse-lite
+# Allowed only for the packages above (point 10: CC-BY for data and assets, OFL for fonts; PDDL is a public-domain
+# dedication for data). The action ignores this key.
+assets-licenses:
   - CC-BY-3.0
   - CC-BY-4.0
+  - OFL-1.1
+  - PDDL-1.0
