@@ -247,6 +247,8 @@ describe("ExportTests", () => {
     // A reply that spells the letter out in escapes, every letter of it.
     const spelled = [...Letter].map((c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")).join("");
     runner.log.addCall(newModelCall({ key: "t2/orders/Mitanni", turn: 2, role: "leader", model: "Haiku", output: `{"notes":"${spelled}"}` }));
+    // A reply quoting the short note right after a line break in its JSON.
+    runner.log.addCall(newModelCall({ key: "t2/orders/Assyria", turn: 2, role: "leader", model: "Haiku", output: JSON.stringify({ notes: "First line\nAttack now" }) }));
     // A model's decision copying a phrase from the middle of the letter.
     runner.log.record("t3/aud/react/c9", S, JSON.stringify({ speech: "He promised horses and a chariot of gold, my lord." }), newAuthorship({ kind: "model", name: "Haiku characters" }));
     // A shadow whose choices quote the note with the address in it.
@@ -291,6 +293,8 @@ describe("ExportTests", () => {
     const spelledLine = text.split("\n").find((l) => l.endsWith('"type":"call"}') && l.includes('"key":"t2/orders/Mitanni"'))!;
     const notes = (JSON.parse((JSON.parse(spelledLine) as { output: string }).output) as { notes: string }).notes;
     Assert.false(notes.includes("Greetings"), notes);
+    const shortLine = text.split("\n").find((l) => l.endsWith('"type":"call"}') && l.includes('"key":"t2/orders/Assyria"'))!;
+    Assert.false((JSON.parse((JSON.parse(shortLine) as { output: string }).output) as { notes: string }).notes.includes("Attack now"));
     // A short text counts only whole: the same letters inside a longer word are not his.
     Assert.true(kept.includes("Attack nowhere else."));
     // Each is a marked blank of its own length, its spaces kept.

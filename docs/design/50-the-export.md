@@ -25,7 +25,8 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
   matches the start of one of his texts or of one of its sentences for twelve letters or more, however soon it is cut
   off (a prompt's brief of a letter keeps its first 120 letters); a text shorter than that counts only whole. A quote may also begin at any word inside one of his sentences, if it
   matches for twenty letters or more (a model copying a phrase). Each is also looked for as it stands inside a JSON string, since a
-  model's reply is JSON, and as the log keeps it in a call, anything sensitive in it replaced. A text that names a person, tablet or lot by its id (`c12`, `k3`, `g7`) is also looked for as
+  model's reply is JSON, and as the log keeps it in a call, anything sensitive in it replaced; a reply's JSON is read
+  decoded, so an escape beside a quote ("\\n") never hides it. A text that names a person, tablet or lot by its id (`c12`, `k3`, `g7`) is also looked for as
   the engine's scribe delivers it, with a name in each id's place: each long run between ids alone, and the whole with
   any name, or none, where each id stood ("Mane (c1)" is delivered as "Mane"), each next run
   taken as the first found within 120 letters of the one before, so the work stays bounded however many ids it named. Orders, ids and names the engine reads are never

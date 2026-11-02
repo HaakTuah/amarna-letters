@@ -115,9 +115,34 @@ function withoutHumanWords(lines: string[]): string[] {
     // In decisions and the header only words are blanked, never an order's ids or names, so the export still replays;
     // elsewhere everything but a record's ids and names.
     const changes = node.type === "decision" || node.type === "header" ? (f: string) => QuotedFields.has(f) : (f: string) => !Names.has(f);
-    const back = mapWords(node, (v) => blankIn(v, quoted), changes, "", touched);
+    const back = mapWords(node, (v) => inJson(v, (t) => blankIn(t, quoted)), changes, "", touched);
     return touched.any ? toJson(back) : line;
   });
+}
+
+/**
+ * A text with `change` applied: to each decoded string of the JSON it holds (a model's reply, whole or between its first
+ * "{" and last "}", as the log keeps it), so an escape beside a quote ("\\n") never hides it; and to the rest as it stands.
+ */
+function inJson(text: string, change: (s: string) => string): string {
+  const decoded = (part: string): string | null => {
+    let node: unknown;
+    try {
+      node = JSON.parse(part);
+    } catch {
+      return null;
+    }
+    const walk = (v: unknown): unknown =>
+      typeof v === "string" ? change(v) : Array.isArray(v) ? v.map(walk) : v !== null && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [change(k), walk(x)])) : v;
+    return JSON.stringify(walk(node));
+  };
+  if (!/[{["]/.test(text)) return change(text);
+  const whole = decoded(text);
+  if (whole !== null) return whole;
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  const inner = start < 0 || end <= start ? null : decoded(text.slice(start, end + 1));
+  return inner === null ? change(text) : change(text.slice(0, start)) + inner + change(text.slice(end + 1));
 }
 
 /** A record as a line, its strings escaped as the log writes them (engine's json.ts, quote). */
