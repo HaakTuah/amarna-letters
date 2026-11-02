@@ -307,13 +307,14 @@ Pick a preset, choose whether to watch or take a seat, and begin.
 |---|---|---|---|---|
 | **Free** | Script kings | Script | Template | $0, no key needed |
 | **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | about $9 ($5 in the background) |
-| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $115 ($70 in the background) |
+| **Counsel** | Haiku 5.5, with Sonnet 5.5 writing each king's plan once a year and taking what is passed up | Haiku 5.5 | Sonnet 5.5 | about $90 ($55 in the background) |
 | **Standard** (recommended) | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $110 ($65 in the background) |
 | **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $180 ($105 in the background) |
 | **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
 
 The costs are the start page's estimates for an age of the usual length (about 80 seasons), from the token counts of a
-recorded game (November 2026: each king's call opens with some 70,000 tokens of rules, read from cache); the page reckons them
+recorded game (November 2026: each king's call opens with some 70,000 tokens of rules, read from cache; a plan reads only
+what a planner needs of them, some 4,000); the page reckons them
 again for the table's own ending, and the meter in the game shows the real spend.
 
 Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible

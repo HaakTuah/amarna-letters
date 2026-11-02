@@ -26,13 +26,15 @@
   Haiku game of 1 November (`tests/fixtures/model-games/`): an orders call reads a 70,600-token opening from cache with
   7,000 fresh and 1,650 out; a court 63,000 cached, 4,000 fresh, 1,470 out; some 40 character life calls a season (5,200
   fresh, 590 out, a 1,600-token opening) and 60 envoy calls (1,200 fresh, 330 out, 1,100); 122 narrator personas at setup.
+  A plan, not yet recorded, reads its own opening (`planRules`, about 3,900 tokens, scaled from its text as the
+  rulebook's was recorded; a test holds the figure to the text) with 4,000 fresh and 900 out.
   How often a king calls is still item 6b's measure (orders in about three seasons in ten, court in one in five) with
   item 6c's ladder guesses (routine courts on the small rung with one in three passed up, light alerts in about a season
   in three, one decision in twenty audited, a plan once a year and twice more, the small rung that plays a king passing
   one decision in five up, and 15% of character calls going up). Each opening's cache is written once a season and read
   by every other call. `perSeason(choices, background)` gives a season, live or in the background (half the price, the
   write lasting an hour); `perGame` adds the narrator. Per season, live and in the background: Budget about $0.12 and
-  $0.06, Standard $1.34 and $0.78, Showcase $2.20 and $1.31; the setup shows both under "Play in the background".
+  $0.06, Counsel $1.13 and $0.68, Standard $1.34 and $0.78, Showcase $2.20 and $1.31; the setup shows both under "Play in the background".
   The spending cap defaults to one and a half times the estimate.
 - **One mind per seat** (the owner's principle, 18 October 2026; since item 6c, "The seat's model commits; a cheaper
   model handles what is light"): the seat's own model makes every commitment; since item 6c a small rung answers
@@ -324,10 +326,14 @@
     erring toward waking. Its choice is a logged decision (`t<N>/alerts/<Power>`), so a replay wakes the same kings; a
     woken king reads "word came: …" naming what came, and the season's lines leave his digest (he reads them as news).
     A failed call wakes nobody.
-  - **Planning** (`LlmLeaderSeat.planIfDue`). When on, the planning model writes the king's plan at his first orders,
-    once a year (three seasons), when he has lost land, his capital is newly threatened or a kingdom has fallen, and
-    when he asks (`new_plan`, in his orders schema only while planning is on), from his realm in brief and his record,
-    and may leave standing answers with it; the plan heads his record ("YOUR PLAN FOR THE SEASONS AHEAD").
+  - **Planning** (`LlmLeaderSeat.planIfDue`). When on, the planning model writes the king's plan before his first
+    orders, and anew before his next orders once a year (three seasons) has passed since it, or if since it he has lost
+    land, his capital has newly come under threat or a kingdom has fallen, or when he asks (`new_plan`, in his orders
+    schema only while planning is on), from his realm in brief, his omens and his record, and may leave standing answers
+    with it. Its opening is its own (`planRules`, "from a digest of the year ... rather than the whole record"): how a
+    power wins, what the plan is and when it is written anew, and the rules of standing answers and their conditions,
+    never the kings' whole rulebook, whose sections it shares; the plan heads his record ("YOUR PLAN FOR THE SEASONS
+    AHEAD").
   - **What a call is worth, and the budget** (`Spending`). Stakes are read from what the mind could see: a king's orders
     by the share of his land with foreign troops in or beside it and what woke him; a court by the gold brought against
     his treasury and tablets; characters by the gold they carry or are offered against their purse. A rung's worth is

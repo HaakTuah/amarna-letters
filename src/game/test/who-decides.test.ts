@@ -13,8 +13,10 @@ import {
   buildSeats,
   choicesFromHeader,
   expectedSeasonsLeft,
+  leaderRules,
   newSpendingSettings,
   ordersStakes,
+  planRules,
   providersFor,
   startProblem,
   type CallSpec,
@@ -331,6 +333,15 @@ describe("Who decides (item 6c)", () => {
     const plans = api.requests.filter((r) => has(props(r), "plan"));
     Assert.true(plans.length >= 5);
     Assert.all(plans, (r) => Assert.equal(ModelIds.Opus, str(r, "model")));
+    // From a digest: its own short opening (how a power wins, the plan, standing answers and their conditions), never the
+    // kings' whole rulebook, and the king's realm in brief and his record.
+    Assert.all(plans, (r) => {
+      const system = JSON.stringify(r.system);
+      Assert.contains("YOUR PLAN", system);
+      Assert.contains("STANDING ANSWERS (standing_answers, in your orders, at your court or with your plan)", system);
+      Assert.doesNotContain("HOW A SEASON RESOLVES", system);
+      Assert.contains("YOUR REALM IN BRIEF (enough to plan by; you see the full map when you give your orders)", userOf(r));
+    });
     const orders = api.requests.filter((r) => has(props(r), "units"));
     Assert.true(has(props(orders[0]), "new_plan"));
     Assert.contains("YOUR PLAN FOR THE SEASONS AHEAD (set down in turn 1): Befriend Hatti", userOf(orders[0]));
@@ -429,13 +440,13 @@ describe("Who decides (item 6c)", () => {
     Presets.Standard.applyTo(c);
     Assert.true(Presets.Standard.matches(c));
     Assert.equal("Off", c.planning);
-    // Its kings' own calls cost less than Standard's, which plays every king on Sonnet; its plans, each reading the kings'
-    // whole rulebook on Sonnet, bring it to about Standard's figure (the recorded token counts, 2 November 2026).
+    // Its estimate is below Standard's, which plays every king on Sonnet: its plans read their own short opening, not the
+    // kings' whole rulebook. The estimate's size of that opening follows its text, scaled as the rulebook's was recorded.
     const counsel = new SeatChoices();
     Presets.Counsel.applyTo(counsel);
-    const unplanned = counsel.copy();
-    unplanned.planning = "Off";
-    Assert.true(CostEstimate.perGame(unplanned) < CostEstimate.perGame(c));
-    Assert.inRange(CostEstimate.perGame(counsel) / CostEstimate.perGame(c), 0.8, 1.2);
+    Assert.true(CostEstimate.perGame(counsel) < CostEstimate.perGame(c));
+    const config = newGameConfig();
+    const opening = (CostEstimate.Recorded.orders.opening * planRules(config).length) / leaderRules(true, config).length;
+    Assert.inRange(CostEstimate.Recorded.plan.opening / opening, 0.9, 1.1);
   });
 });
