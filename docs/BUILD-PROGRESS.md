@@ -62,6 +62,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The Gulf's head as it stood in the Late Bronze Age** (the owner, 2 November 2026; #527; archive item 175): the map's
+  old shore (`OldGulfShore` in `src/web/src/map/features.ts`) moves to where the published reconstructions of the Late
+  Bronze Age shoreline put it, gathered and taken at their middle as "History holds" asks; if that leaves Ur inland, Ur
+  loses its sea harbour and its Gulf door, and its trade reaches the Gulf down the Euphrates. Done by the history lane
+  with a new save version.
+
 - **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in
   `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact
   true and once false (a far province lost or held, a siege, a death abroad, an army moving out of sight), and assert
