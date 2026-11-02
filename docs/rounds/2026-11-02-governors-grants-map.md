@@ -194,9 +194,13 @@ took them up (`obey-taken`); the rest lapsed before his word arrived or were sti
 province beside his own, against kings that never do: **0.96 growth to 0.89, 33 wins to 17: pays.** Regions given in 49 of
 50 games (463).
 
-**The audit's finds** (`--audit-play-half`, the final head): **0.94 growth to 0.86, 27 wins to 23: pays.** On an
+**The audit's finds** (`--audit-play-half`, the final head, and again on b6be2615 after find 4 was made to fire: the same, 0.94 to 0.86, 27 to 23): **0.94 growth to 0.86, 27 wins to 23: pays.** On an
 earlier head (a0c18e5) they paid 0.95 growth to 0.82, 26 wins to 24; without find 3 (raise troops when rich), 0.94 to 0.86, 30 to 20. Find 3 is kept: the
 full set gains more growth, and the loss first measured (0.88 to 0.90) was on a head before round 2's fixes.
+
+**A governor's word checked against the spy** (#459, `--spy-check-play-half`, 50 games, seed 1, b6be2615): kings that
+check against kings that read the governor alone: **0.96 growth to 0.87, 27 wins to 23: pays.** How often it fired is not
+counted (a recall is an order like any other; no event marks the check), a gap for the next audit of the script kings.
 
 ## The review
 
