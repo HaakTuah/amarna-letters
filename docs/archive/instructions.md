@@ -1241,3 +1241,15 @@ Given in the design chat with Claude, answering the design questions of the cons
     >   the next item without waiting for me to review or merge.
 
     The limit of two agents is replaced by "Helpers: when they pay" (question 3).
+135. **2 November 2026, 07:10 and 07:15 UTC**, in the design chat. First, among other questions: "Where there
+    absolutely is no name, I'd rather they use a more modern name? But perhaps we should use some name closer to that
+    time, rather than the most modern name?" and "And the split by meaning of course means as small as sensible, this
+    we ideally do while building already, not wait for stuff to pass 20 kb. Agreed expert? Is the wording already
+    clear on that?" Then, to the design session's answers (the oldest name the sources give, in the region's own
+    languages, a modern one only where none survives: Moab, the Negeb, Tamassos; "Split by meaning, from the start",
+    with a file as small as one thing people look up, no smaller): "Yes, please, expertly! But we still keep the
+    occasional file optimizing runs, because you know even if it is in the instructions, there will be drift and
+    oversight, which accumulates. So while it is important to emphasize working smarter, that doesn't replacing the
+    occasional clean-ups and tracking." Written into the design document (World, "Places by their own names", revision
+    64), `AGENTS.md` ("Split by meaning, from the start", with the workshop check and the file-by-file reviews kept)
+    and `docs/BUILD-PROGRESS.md` (the polish lane's names fix); the same split rule in Barkstreet Snakes.
