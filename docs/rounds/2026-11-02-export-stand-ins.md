@@ -16,9 +16,8 @@ Side lane, 2 November 2026. PR #436, answering #427 and #424. Design: Engine and
 - **Stand-in names** (`src/game/src/export.ts`, `NameFields`, `StandIns`). Under the human-words filter, in a game with
   a human seat, a name made up in an order becomes Name-1, Name-2, in the order they first appear, the same name
   (trimmed) always the same stand-in, wherever it appears. A real name stays, in any case: an alias the engine offers
-  (`Aliases`), or one of the game's real names, which the web app's worker passes from the game's state (`realNames`:
-  every person's, and every power's id, land, ruler and his other names, a risen one's as it rose; `namesOf` in the
-  engine gives a fixed power's).
+  (`Aliases`), a fixed power's id, land, ruler or his other names (`namesOf` in the engine, always), or one only the
+  game's state knows, which the web app's worker passes (`realNames`: every person's, a risen power's as it rose).
   The fields are those of every decision schema that hold a name the engine reads (found by walking the schemas the
   runner records): a pitch's `name` (`MindReply`), a traveller's `goAs` (`LifeChoice`) and a claimed realm
   (`claimName`'s `name`). A model's `goAs` is already held to the alias it was offered by its parser
@@ -62,7 +61,8 @@ No script player decides anything new: the export is a tool for the table, not a
   for and the check read engine globals (now `realNames` from the game's state, no globals); the canary's `shape` was
   loosened beyond decision values (now only there); the doc's "reads any other as none" made precise; a test message.
   Round 2: 9, one finding, fixed: an export under the filter without the real names would stand in for real ones and
-  not replay, so `exportJsonl` now refuses it, and the canary's filtered exports and replay pass `realNames`.
+  not replay, so `exportJsonl` now refuses it, and the canary's filtered exports and replay pass `realNames`. Codex
+  raised the same on that commit (P1) and asked that the fixed powers' names be kept whatever is passed: done too.
 
 ## Helpers
 

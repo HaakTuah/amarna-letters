@@ -62,27 +62,24 @@ export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "no
 export const NameFields: ReadonlySet<string> = new Set(["name", "goAs"]);
 
 /**
- * The game's real names, from its state: every person's, and every power's (its id, its land's, its ruler's and his other
- * names, a risen one's as it rose). With the aliases the engine offers, these are kept under the human-words filter.
+ * The real names only a game's state knows: every person's, and every risen power's (its id, its land's, its ruler's).
+ * With the aliases the engine offers and the fixed powers' names, these are kept under the human-words filter.
  */
 export function realNames(state: GameState): string[] {
-  return [
-    ...state.characters.map((c) => c.name),
-    ...PowerValues.flatMap(namesOf),
-    ...state.risen.flatMap((r) => [r.power, r.land, r.king]),
-  ];
+  return [...state.characters.map((c) => c.name), ...state.risen.flatMap((r) => [r.power, r.land, r.king])];
 }
 
 /**
  * Stands in for the names a player made up: Name-1, Name-2, in the order they first appear, the same name always the same
- * stand-in. A real name, in any case, is kept: an alias the engine offers, or one of `realNames`.
+ * stand-in. A real name, in any case, is kept: an alias the engine offers, a fixed power's (its id, land, ruler and his
+ * other names), or one of `realNames`.
  */
 class StandIns {
   private readonly given = new Map<string, string>();
   private readonly real: ReadonlySet<string>;
 
   constructor(real: Iterable<string>) {
-    this.real = new Set([...Aliases, ...real].map((n) => n.toLowerCase()));
+    this.real = new Set([...Aliases, ...PowerValues.flatMap(namesOf), ...real].map((n) => n.toLowerCase()));
   }
 
   of(name: string): string {

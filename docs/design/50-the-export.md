@@ -31,8 +31,9 @@ know (#424); the page's session asks its worker for no export otherwise.
   shadow's texts. Models quote and echo what they read, so nothing short of that keeps his words out. A name made up
   in an order (`NameFields`: a pitch's `name`, a traveller's `goAs`, a realm a king claims) becomes a stand-in, Name-1,
   Name-2 in the order they first appear, the same name (trimmed) always the same stand-in; a real name stays: an alias
-  the engine offers (`Aliases`), or one of the game's real names from its state (`realNames`: every person's, and every
-  power's id, land, ruler and his other names), in any case (#427). The engine takes only a name it knows and reads any
+  the engine offers (`Aliases`), a fixed power's id, land, ruler or his other names (`namesOf`), or one only the game's
+  state knows (`realNames`: every person's, a risen power's), in any case; the filter refuses to run without the latter
+  (#427). The engine takes only a name it knows and reads any
   other as no false name (a pitch or a traveller gives its own, a claim is refused), so the game replays the same; where it
   echoes a made-up name in a text (a rejected claim's notice, a journey's `asName`), the replay holds the stand-in, as it
   holds a blank where it echoes words. Each record keeps
