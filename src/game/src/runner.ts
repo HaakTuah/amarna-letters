@@ -161,11 +161,6 @@ export class GameRunner {
   readonly changed: (() => void)[] = [];
 
   /**
-   * Called after each phase of a season, with its name ("setup", "t3/begin", "t3/reports", "t3/audiences", "t3/orders",
-   * "t3/resolve", "end/chronicles"): the parity check of the TypeScript conversion fingerprints the state there.
-   */
-  phaseDone: ((phase: string) => void) | null = null;
-  /**
    * Every decision a character was asked for, by character id, as the seasons it was asked in ("Characters sleep like
    * kings", item 8): a character played by an agent is woken for each, so these are its calls and its wake-ups.
    */
@@ -356,7 +351,6 @@ export class GameRunner {
     for (const [c, persona] of results) if (!isBlank(persona)) c.persona = persona;
     if (this.keepSnapshots) this.snapshots.push(serialize(GameStateSchema, this.state));
     this.prepared = true;
-    this.phaseDone?.("setup");
     this.setPhase("Ready");
   }
 
@@ -375,7 +369,6 @@ export class GameRunner {
 
     this.setPhase(`Turn ${turn}: income and arrivals`);
     engine.beginTurn();
-    this.phaseDone?.(`t${turn}/begin`);
 
     // Item 11a: a newcomer through the doors has its persona written by the narrator, as the starting cast had at setup.
     for (const c of S_.characters.filter((c) => c.arrived === turn)) {
@@ -395,20 +388,16 @@ export class GameRunner {
     }
     engine.wakeCheck();
     await this.alerts(engine, turn, signal);
-    this.phaseDone?.(`t${turn}/reports`);
 
     this.setPhase(`Turn ${turn}: audiences`);
     await this.audiences(engine, turn, signal);
-    this.phaseDone?.(`t${turn}/audiences`);
 
     this.setPhase(`Turn ${turn}: orders`);
     const subs = await this.orders(turn, signal);
-    this.phaseDone?.(`t${turn}/orders`);
 
     this.setPhase(`Turn ${turn}: resolution`);
     engine.resolve(subs);
     if (this.keepSnapshots) this.snapshots.push(serialize(GameStateSchema, S_));
-    this.phaseDone?.(`t${turn}/resolve`);
 
     // The chronicles are of the age: written when it ends, and not again if the table plays on into an open age.
     if (S_.ended && this.writeChronicles && this.chronicles.size === 0) await this.chronicleAll(signal);
@@ -803,7 +792,6 @@ export class GameRunner {
       }),
     );
     for (const [p, text] of results) this.chronicles.set(p, text);
-    this.phaseDone?.("end/chronicles");
   }
 
   /** The state at the end of a given turn (0 = start), from the snapshots. */

@@ -41,7 +41,7 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 
 - **`GameConfig.pressMode`**: `"full"` (the default, for model games) or `"structured"`. Structured press is required
   whenever the characters are script, so every table that starts a game sets it from its character layer (`pressFor` in
-  `runner.ts`, called by the web app, the batch runner, the measure and the parity worker); the log keeps it in the
+  `runner.ts`, called by the web app, the batch runner and the measure); the log keeps it in the
   config, so a replay keeps its press. Script games are therefore in structured press; a game with model or local agent
   characters is in full press.
 - **Full press.** Kings write words, and clauses beside them. Where the words and the clauses differ each reader goes by
