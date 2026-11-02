@@ -298,10 +298,11 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
  * holds and knows it holds (the engine's own view of a court shows it its provinces' economy); in land it lost without
  * knowing, only what its stewards last sent, from the season it last held it (`ownFiguresAt`); elsewhere, nothing. "As it
  * is" holds only at the latest season: looking back, the figures recorded in the season shown (age 0) or before it.
+ * `settled` is absent where nothing was counted (land taken and never counted by the court's scribes).
  */
 export type OwnEconomy =
   | { live: true }
-  | { live: false; age: number; stores: number; settled: number; fed: number | undefined }
+  | { live: false; age: number; stores: number; settled: number | undefined; fed: number | undefined }
   | null;
 
 export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
@@ -310,12 +311,12 @@ export function ownEconomy(scene: MapScene, id: string): OwnEconomy {
   if (scene.viewer === null) {
     if (scene.latest) return { live: true };
     const f = scene.frame;
-    return { live: false, age: 0, stores: f.stores.get(id) ?? 0, settled: f.settled.get(id) ?? 0, fed: f.fed.get(id) };
+    return { live: false, age: 0, stores: f.stores.get(id) ?? 0, settled: f.settled.get(id), fed: f.fed.get(id) };
   }
   const own = scene.own.get(id);
   if (own === undefined) return null;
   if (own.age === 0 && scene.latest) return { live: true };
-  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: own.frame.counted.get(scene.viewer)?.get(id) ?? 0, fed: own.frame.fed.get(id) };
+  return { live: false, age: own.age, stores: own.frame.stores.get(id) ?? 0, settled: own.frame.counted.get(scene.viewer)?.get(id), fed: own.frame.fed.get(id) };
 }
 
 /** A band as a viewer's map shows it, with the seasons since its word of it. */

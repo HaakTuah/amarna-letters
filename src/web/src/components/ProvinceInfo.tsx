@@ -137,7 +137,8 @@ export function ProvinceInfo({
               {/* Land lost without the court's knowing: what its stewards last sent, as the map shows it; or, looking back at an
                   earlier season, what was recorded then, never the present. */}
               {mine.age === 0 ? "That season" : `As your stewards last reported, ${mine.age} season${mine.age === 1 ? "" : "s"} ago`}: stores {mine.stores} of{" "}
-              {capacityOf(p)} measures of grain; about {about(mine.settled)} on its land{scene.viewer === null ? "" : " as last counted"}
+              {capacityOf(p)} measures of grain;{" "}
+              {mine.settled === undefined ? (scene.viewer === null ? "no count of its people" : "its people never counted by your scribes") : `about ${about(mine.settled)} on its land${scene.viewer === null ? "" : " as last counted"}`}
               {mine.fed !== undefined ? `; its countryside ate ${Math.round(mine.fed / 10)}% of its need` : ""}.{mine.age > 0 ? " No word has come since." : ""}
             </p>
           )}

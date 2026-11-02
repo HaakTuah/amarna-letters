@@ -129,6 +129,9 @@ describe("MapKnownTests", () => {
     const hatti = fs.map((f) => ({ ...f, knownOwner: new Map([["Hatti" as Power, new Map([[city.id, { owner: (f.index >= 1 ? "Hatti" : "Egypt") as Power, turn: f.turn }]])]]) }));
     Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(hatti, 3, "Hatti"), city.id)));
     Assert.equal(JSON.stringify({ live: false, age: 0, stores: 300, settled: 3000, fed: 900 }), JSON.stringify(ownEconomy(buildScene(hatti, 2, "Hatti"), city.id)));
+    // Land its scribes never counted (taken, no census since): no figure for its people, never a count of 0.
+    const uncounted = hatti.map((f) => ({ ...f, counted: new Map() }));
+    Assert.equal(JSON.stringify({ live: false, age: 0, stores: 300, fed: 900 }), JSON.stringify(ownEconomy(buildScene(uncounted, 2, "Hatti"), city.id)));
   });
 
   test("Who holds a province is as the record has it: known ownerless stays so, and what the record lacks is no one", () => {
