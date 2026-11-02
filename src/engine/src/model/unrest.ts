@@ -17,8 +17,8 @@
  * homeland `home`, a holder in land he did not grow from `held`, a claimant or a town's ruler `stake` (the sources' grade
  * in the report).
  *
- * **Weight**, each season: force, the troops of a power standing in it (`force` points for troops as many as a tenth of
- * its men of fighting age; a quarter of that from next door or before walls not stormed, at most `nearMost`, and for
+ * **Weight**, each season: force, the troops of a power standing in it (`force` points for troops as many as its men of
+ * fighting age, twice them in hill land and half on open plain; a quarter of that from next door or before walls not stormed, at most `nearMost`, and for
  * every power alike; at most `forceMost` in all), plus love, its ledger with him and with
  * the men who serve him there and do not want it themselves; less, for its holder, the master's weakness (`besieged`
  * while his court's city is besieged, up to `weakness` as his realm shrinks below its start). It obeys whoever weighs
