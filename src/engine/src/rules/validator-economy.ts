@@ -8,6 +8,7 @@ import { AllPowers } from "../model/power.ts";
 import { standsForBorrower } from "../model/money.ts";
 import { buyAlongCurve, needOf } from "../model/economy.ts";
 import { LandData } from "../model/land.ts";
+import { CountData } from "../model/counts.ts";
 import { harbourOf, shipFleet, TradeData } from "../model/trade.ts";
 import { findCharacter, siegeOf } from "../model/state.ts";
 import type { Checking } from "./validator-context.ts";
@@ -85,13 +86,26 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       return null;
     }
 
-    case "tax": {
+    case "demand": {
       if (order.province !== null && (!Map.exists(order.province) || Map.get(order.province).isSea)) return `there is no province called '${order.province}'`;
       if (order.province !== null && S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${Map.get(order.province).name}`;
-      if (!Number.isInteger(order.percent) || order.percent < 0 || order.percent > LandData.taxMost) return `a tax is a percent of the harvest from 0 to ${LandData.taxMost}`;
+      if (order.how !== "share" && order.how !== "amount") return "a demand is a share of the harvest or an amount of grain";
+      if (order.how === "share" && (!Number.isInteger(order.n) || order.n < 0 || order.n > LandData.taxMost)) return `a share is a percent of the harvest from 0 to ${LandData.taxMost}`;
+      if (order.how === "amount" && (!Number.isInteger(order.n) || order.n < 0)) return "an amount is a number of measures of grain a season, 0 or more";
       const key = order.province ?? "";
-      if (taxesSet.has(key)) return "you had already set that tax this season";
+      if (taxesSet.has(key)) return "you had already said what that land gives this season";
       taxesSet.add(key);
+      return null;
+    }
+
+    case "census": {
+      if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
+      if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${Map.get(order.province).name}`;
+      if (S.censuses.some((c) => c.power === power && c.province === order.province)) return `your scribes are already counting ${Map.get(order.province).name}`;
+      if (taxesSet.has(`census:${order.province}`)) return `you had already sent scribes to ${Map.get(order.province).name} this season`;
+      const refused = spend(CountData.gold);
+      if (refused !== null) return refused;
+      taxesSet.add(`census:${order.province}`);
       return null;
     }
 

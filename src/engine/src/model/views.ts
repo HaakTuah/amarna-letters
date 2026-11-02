@@ -122,15 +122,21 @@ export interface ProvinceEconomyView {
   purse: number;
   price: number;
   /**
-   * Its people (item 10+a): the settled and the men of fighting age among them, the loose, and how many settled its
-   * land carries; its tax in percent of the harvest; a season's share of its last harvest (item 11a+); and how well its countryside ate
-   * last season, in thousandths (1000 when it ate its fill).
+   * Its people (item 10+a), as the court's scribes last counted them (item 17++, "Counts as the scribes knew them": the
+   * season `counted`, null if they never did, when these are 0): the settled and the men of fighting age among them, the
+   * loose and the people of its town; how many settled its land carries; what the king asks of it, a `share` of the
+   * harvest in percent or an `amount` of grain a season (null: a share); a season's share of its last harvest (item
+   * 11a+); and how well its countryside ate last season, in thousandths (1000 when it ate its fill), as its stewards
+   * report.
    */
+  counted: number | null;
   settled: number;
   men: number;
   loose: number;
+  town: number;
   room: number;
-  taxRate: number;
+  share: number;
+  amount: number | null;
   harvest: number;
   fed: number;
   /**
@@ -151,7 +157,7 @@ export interface ProvinceEconomyView {
 }
 
 export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
-  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, settled: 0, men: 0, loose: 0, room: 0, taxRate: 0, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, ...init };
+  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, counted: null, settled: 0, men: 0, loose: 0, town: 0, room: 0, share: 0, amount: null, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, ...init };
 }
 
 export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
@@ -163,11 +169,14 @@ export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("Pr
   stock: I,
   purse: I,
   price: I,
+  counted: opt(I),
   settled: I,
   men: I,
   loose: I,
+  town: I,
   room: I,
-  taxRate: I,
+  share: I,
+  amount: opt(I),
   harvest: I,
   fed: I,
   runaways: dict(I),
@@ -877,6 +886,8 @@ export interface SeatView {
   prices: Dict<string, number>;
   /** Its own provinces' stores and markets (item 9+a). */
   provinces: ProvinceEconomyView[];
+  /** The provinces its scribes are out counting (item 17++, "A census"), until their count comes home. */
+  counting: string[];
   /** Its caravans on the road, and its fleets in cargo service. */
   caravans: CaravanView[];
   /** Foreign markets as it last knew them (item 9+b), by province. */
@@ -1003,6 +1014,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     courtLetters: [],
     prices: new Dict(),
     provinces: [],
+    counting: [],
     caravans: [],
     markets: new Dict(),
     tolls: [],
@@ -1091,6 +1103,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   courtLetters: list(() => OrderSchema),
   prices: dict(I),
   provinces: list(() => ProvinceEconomyViewSchema),
+  counting: list(S),
   caravans: list(() => CaravanViewSchema),
   markets: dict(() => MarketSeenSchema),
   tolls: list(() => TollSchema),

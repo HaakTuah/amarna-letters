@@ -26,7 +26,7 @@ import {
   resistanceOf,
   startPeople,
   support,
-  tax,
+  demand,
   unitAt,
 } from "@amarna/engine";
 import { Assert, subs, oldWorld } from "./support.ts";
@@ -84,8 +84,8 @@ describe("PeopleTests", () => {
 
   test("A heavy tax empties the farmers' granaries, and the hungry leave the land in the season it bites", () => {
     const s = quiet();
-    season(s, subs({ Hatti: { orders: [tax(70, "nesa")] } }));
-    Assert.equal(70, s.taxes.get("nesa"));
+    season(s, subs({ Hatti: { orders: [demand("share", 70, "nesa")] } }));
+    Assert.equal(70, s.shares.get("nesa"));
     // The granaries carry them for a while (item 11a+: the harvest comes once a year); before the year is out they run dry.
     let bit = false;
     for (let k = 0; k < 6 && !bit; k++) {
@@ -104,13 +104,13 @@ describe("PeopleTests", () => {
     Assert.false(s.fed.has("hattusa"));
     // A province changing hands keeps no tax of its old holder's.
     new TurnEngine(s).setOwner("nesa", "Mitanni");
-    Assert.false(s.taxes.has("nesa"));
+    Assert.false(s.shares.has("nesa"));
   });
 
   test("Grain handed to a town's market feeds its countryside in a famine", () => {
     const hungry = (fed: boolean): number => {
       const s = quiet();
-      season(s, subs({ Hatti: { orders: [tax(70, "nesa"), ...(fed ? [feed("nesa", s.stores.getOrDefault("nesa", 0))] : [])] } }));
+      season(s, subs({ Hatti: { orders: [demand("share", 70, "nesa"), ...(fed ? [feed("nesa", s.stores.getOrDefault("nesa", 0))] : [])] } }));
       // Their granaries empty (item 11a+): they eat what the market holds.
       s.granary.set("nesa", 0);
       new TurnEngine(s).beginTurn();
@@ -274,9 +274,9 @@ describe("PeopleTests", () => {
     Assert.true(legPoints(Map, "delta", "sinai", 0, light) * legPoints(Map, "delta", "memphis", 0, { ...light, load: 35 }) >= legPoints(Map, "delta", "sinai", 0, { ...light, load: 35 }) * legPoints(Map, "delta", "memphis", 0, light));
   });
 
-  test("A tax is a percent from 0 to the most, on one's own land", () => {
+  test("A share is a percent from 0 to the most, on one's own land", () => {
     const s = quiet();
-    const v = new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [tax(LandData.taxMost + 1), tax(20, "delta"), tax(0, "nesa")] }));
+    const v = new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [demand("share", LandData.taxMost + 1), demand("share", 20, "delta"), demand("share", 0, "nesa")] }));
     Assert.equal(1, v.accepted.length);
     Assert.equal(2, v.rejected.length);
   });

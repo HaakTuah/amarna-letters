@@ -18,6 +18,7 @@ import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, upkeepOf, 
 import { PointsPerDay, wordSeasons } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
+import { countOf } from "../model/counts.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
@@ -178,6 +179,8 @@ function routineTreasury(i: InboxItem): boolean {
 function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: string): ProvinceEconomyView {
   const prov = m.get(id);
   const mk = engine.market(id);
+  const holder = s.owner.getOrDefault(id, null);
+  const c = holder === null ? null : countOf(s, holder, id);
   return newProvinceEconomyView({
     province: id,
     stores: engine.stores(id),
@@ -187,20 +190,23 @@ function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: stri
     stock: mk.stock,
     purse: mk.purse,
     price: priceAt(mk.stock, needOf(prov)),
-    // Its people (item 10+a).
-    settled: engine.peopleOf(id).settled,
-    men: engine.peopleOf(id).men,
-    loose: engine.peopleOf(id).loose,
+    // Its people and fields (item 10+a), as its holder's scribes last counted them (item 17++).
+    counted: c?.turn ?? null,
+    settled: c?.settled ?? 0,
+    men: c?.men ?? 0,
+    loose: c?.loose ?? 0,
+    town: c?.town ?? 0,
     room: reckonedOf(m, id).room,
-    taxRate: engine.taxRate(id),
-    // A season's share of the last harvest, what the tax is reckoned from (item 11a+).
-    harvest: idiv(s.reaped.getOrDefault(id, 0), 3),
+    share: engine.shareOf(id),
+    amount: engine.amountOf(id),
+    // A season's share of the last harvest, what the demand is reckoned from (item 11a+).
+    harvest: idiv(c?.harvest ?? 0, 3),
     fed: s.fed.getOrDefault(id, 1000),
     // Item 10+b.
     runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
     expelled: s.expelled.getOrDefault(id, 0),
-    granary: s.granary.getOrDefault(id, 0),
-    crop: s.crop.getOrDefault(id, 0),
+    granary: c?.granary ?? 0,
+    crop: c?.crop ?? 0,
     reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
   });
 }
@@ -420,6 +426,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       if (last !== undefined) v.provinces.push(last);
     }
   }
+  v.counting = s.censuses.filter((c) => c.power === p).map((c) => c.province);
   // Yields as the people bring them in now, and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {

@@ -13,6 +13,13 @@ export const powerName = (p: Power): string => (p === "Babylonia" ? "Babylonia" 
 /** The one date label of the interface: the court's season and the year BCE with the turn, or the spectator's. */
 export const when = (turn: number, court: Power | null): string => dateLabel(turn, court);
 
+/** A count of people as a king reads it (item 17++): two figures ("about 18,000"), never to the last head. */
+export function about(n: number): string {
+  if (n < 100) return n.toLocaleString("en");
+  const step = 10 ** (Math.floor(Math.log10(n)) - 1);
+  return (Math.round(n / step) * step).toLocaleString("en");
+}
+
 export const cap = (s: string): string => (s.length === 0 ? s : s[0].toUpperCase() + s.slice(1));
 
 /** The same, capitalised to open a sentence or a heading. */

@@ -200,6 +200,8 @@ export interface SeasonFrame {
   stores: Map<string, number>;
   /** Item 19, life on the map: the people settled in each province, how well its countryside ate (thousandths, where short), and its unrest (from item 17++ the grievances its people remember). */
   settled: Map<string, number>;
+  /** Item 17++: the settled on each province's land as each court's scribes last counted them, what a seat's map shows. */
+  counted: Map<Power, Map<string, number>>;
   fed: Map<string, number>;
   unrest: Map<string, number>;
   /** Item 19: the caravans, and the people carried off (deportees), on the road, each between the provinces it is between. */
@@ -378,6 +380,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
       }),
     built: new Map(s.built.entries()),
     settled: new Map([...s.people.entries()].map(([k, x]) => [k, x.settled] as const)),
+    counted: new Map([...s.counts.entries()].map(([p, d]) => [p, new Map([...d.entries()].map(([k, c]) => [k, c.settled] as const))] as const)),
     fed: new Map(s.fed.entries()),
     // Item 17++: what each province's people remember taken from them, by anyone (the ledger's takings, never shown).
     unrest: new Map([...s.ledger.entries()].map(([k, book]) => [k, [...book.values()].reduce((a, v) => a + Math.max(0, -v), 0)] as const).filter(([, v]) => v > 0)),

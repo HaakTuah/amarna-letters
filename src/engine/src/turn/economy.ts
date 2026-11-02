@@ -172,7 +172,7 @@ P.harvestSeason = function () {
       if (metal > 0) this.spendAt(prov.id, metal);
     } else {
       // The harvest already bore the catastrophes; the tax bears only how fully it obeys, and nothing reaches it under a siege.
-      const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * this.taxRate(prov.id), 100) * obeyedIn(S, prov.id)));
+      const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(this.grainAsked(prov.id) * obeyedIn(S, prov.id)));
       const tax = Math.min(granary, due);
       granary -= tax;
       const over = this.putInStores(prov.id, tax);

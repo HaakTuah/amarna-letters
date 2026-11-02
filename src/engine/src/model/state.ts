@@ -15,6 +15,7 @@ import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./carava
 import { type Toll, TollSchema } from "./trade.ts";
 import { type MarketSeen, MarketSeenSchema, type ProvinceEconomyView, ProvinceEconomyViewSchema } from "./views.ts";
 import type { People } from "./land.ts";
+import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
 import { type Courier, CourierSchema, type Governor, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
@@ -82,7 +83,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 39;
+export const CURRENT_VERSION = 40;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -282,8 +283,17 @@ export interface GameState {
   walking: Walk[];
   /** Droughts and river floods under way (item 10+a, "Land and climate", "Rivers"), oldest first. */
   climate: ClimateEvent[];
-  /** The tax each king set on a province of his, in percent, where it is not the default (item 10+a, "How a king lives"). */
-  taxes: Dict<string, number>;
+  /**
+   * What each king asks of a province of his in grain (item 17++, "The king says how much he wants"): a share of its
+   * harvest, in percent, where it is not the default (`shares`), or an amount, in measures a season (`amounts`), which
+   * stands in place of a share.
+   */
+  shares: Dict<string, number>;
+  amounts: Dict<string, number>;
+  /** Each king's last counts of provinces, as they reached his court (item 17++, "Counts as the scribes knew them"). */
+  counts: Dict<Power, Dict<string, Count>>;
+  /** The scribes out counting, until their count reaches their court (item 17++, "A census"). */
+  censuses: Census[];
   /** The men levied this season to build and keep what stands (the corvée, item 15), by province: away from the next harvest. */
   corvee: Dict<string, number>;
   /** How well each province's countryside ate last season, in thousandths, where it went short (item 10+a). */
@@ -537,7 +547,10 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     people: new Dict(),
     walking: [],
     climate: [],
-    taxes: new Dict(),
+    shares: new Dict(),
+    amounts: new Dict(),
+    counts: new Dict(),
+    censuses: [],
     corvee: new Dict(),
     fed: new Dict(),
     losses: [],
@@ -594,7 +607,10 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   people: dict(() => PeopleSchema),
   walking: list(() => WalkSchema),
   climate: list(() => ClimateEventSchema),
-  taxes: dict(I),
+  shares: dict(I),
+  amounts: dict(I),
+  counts: dict(dict(() => CountSchema)),
+  censuses: list(() => CensusSchema),
   corvee: dict(I),
   fed: dict(I),
   caravans: list(() => CaravanSchema),

@@ -7,6 +7,7 @@ import {
   reapSeasonOf,
   reckonedOf,
   economyOf,
+  countOf,
   harvestOf,
   needOf,
   priceAt,
@@ -20,7 +21,7 @@ import {
   type Terrain,
  modernOf } from "@amarna/engine";
 import { ownEconomy, unitKindName, type MapScene } from "../map/scene.ts";
-import { powerName, provinceName, shekels, when } from "../ui/format.ts";
+import { about, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import { MapCard } from "./MapCard.tsx";
 
@@ -131,19 +132,29 @@ export function ProvinceInfo({
             <p className="small">
               {/* Land lost without the court's knowing: what its stewards last sent, as the map shows it. */}
               As your stewards last reported, {mine.age} season{mine.age === 1 ? "" : "s"} ago: stores {mine.stores} of {capacityOf(p)} measures of grain;{" "}
-              {mine.settled.toLocaleString("en")} people settled{mine.fed !== undefined ? `; its countryside ate ${Math.round(mine.fed / 10)}% of its need` : ""}. No
+              about {about(mine.settled)} on its land as last counted{mine.fed !== undefined ? `; its countryside ate ${Math.round(mine.fed / 10)}% of its need` : ""}. No
               word has come since.
             </p>
           )}
           {live && state.people.has(p.id) && (
             <p className="small">
-              {/* People at home (item 10+a). */}
-              Its people: {state.people.get(p.id).settled.toLocaleString("en")} settled ({state.people.get(p.id).men.toLocaleString("en")} men of fighting age), its land
-              carrying {reckonedOf(WorldMap.default, p.id).room.toLocaleString("en")}; {state.people.get(p.id).loose.toLocaleString("en")} loose. Tax{" "}
-              {state.taxes.getOrDefault(p.id, EconomyData.taxPercent)}% of its last harvest, {state.reaped.getOrDefault(p.id, 0)} measures, a third of it a season; its
-              farmers&apos; granaries hold {state.granary.getOrDefault(p.id, 0)}, and the crop in its fields {state.crop.getOrDefault(p.id, 0)}, reaped in{" "}
-              {reapSeasonOf(p.id) === 0 ? "Akhet" : reapSeasonOf(p.id) === 1 ? "Peret" : "Shemu"}
-              {state.fed.has(p.id) ? `; last season its countryside ate ${Math.round(state.fed.get(p.id) / 10)}% of its need` : ""}.
+              {/* People at home (item 10+a): the town and the land apart (item 17++), in a seat view as its scribes last counted them. */}
+              {(() => {
+                const x = state.people.get(p.id);
+                const c = scene.viewer === null ? null : countOf(state, scene.viewer, p.id);
+                const n = scene.viewer === null ? { town: economyOf(p).town * 1000, settled: x.settled, men: x.men, loose: x.loose, harvest: state.reaped.getOrDefault(p.id, 0), granary: state.granary.getOrDefault(p.id, 0), crop: state.crop.getOrDefault(p.id, 0) } : c;
+                const amount = state.amounts.tryGet(p.id);
+                const asked = amount !== undefined ? `${amount} measures of grain a season` : `${state.shares.getOrDefault(p.id, EconomyData.taxPercent)}% of its last harvest`;
+                if (n === null) return `Your scribes have never counted it (order a census). You ask ${asked}.`;
+                return (
+                  <>
+                    {c !== null ? `As your scribes counted it in ${when(c.turn, scene.viewer)}: ` : ""}about {about(n.town)} in the town; about {about(n.settled)} on its land ({about(n.men)} men of fighting age), its land carrying{" "}
+                    {about(reckonedOf(WorldMap.default, p.id).room)}; {about(n.loose)} loose. You ask {asked}; its last harvest {n.harvest} measures, a third of it a season; its farmers&apos; granaries
+                    held {n.granary}, and the crop in its fields {n.crop}, reaped in {reapSeasonOf(p.id) === 0 ? "Akhet" : reapSeasonOf(p.id) === 1 ? "Peret" : "Shemu"}
+                    {state.fed.has(p.id) ? `; last season its countryside ate ${Math.round(state.fed.get(p.id) / 10)}% of its need` : ""}.
+                  </>
+                );
+              })()}
             </p>
           )}
           {siege !== undefined && (

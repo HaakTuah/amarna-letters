@@ -49,7 +49,7 @@ const P = TurnEngine.prototype;
  */
 P.livingScore = function (province) {
   if (siegeOf(this.s, province) !== null) return 0;
-  return idiv(this.s.fed.getOrDefault(province, 1000) * (100 - this.taxRate(province)), 100);
+  return idiv(this.s.fed.getOrDefault(province, 1000) * (100 - Math.min(100, this.burden(province))), 100);
 };
 
 /**

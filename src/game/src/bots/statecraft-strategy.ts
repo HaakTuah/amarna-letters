@@ -7,6 +7,7 @@ import { buyNewsOrders } from "./outlaws.ts";
 import { peopleAcrossBorders } from "./borders.ts";
 import {
   standingOf,
+  CountData,
   HSet,
   cede,
   clamp,
@@ -37,7 +38,8 @@ import {
 import { Board } from "./board.ts";
 import { worksOrders } from "./works.ts";
 import { depotFor, grainOrders, plainGrain, plainGrainOrders } from "./grain.ts";
-import { canLevy, levyCost, settleThere, taxOrders } from "./land.ts";
+import { canLevy, levyCost, settleThere } from "./land.ts";
+import { censusOrders, demandOrders } from "./counts.ts";
 import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import type { Brain } from "./brain.ts";
@@ -208,8 +210,10 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   const costs = v.upkeep + v.worksUpkeep + v.fees;
   // Grain first (item 9+a): what its sales this season should bring, with the mines, is the season's income.
   const grain = plainGrain(b.me) ? { sales: plainGrainOrders(v, orders), abroad: 0 } : grainOrders(b, brain, plan, orders, gold, costs);
-  // Each province's tax, as high as its farmers can bear (item 10+a).
-  orders.push(...taxOrders(v, b.me));
+  // What each province gives, as much as its farmers can bear by the last count (item 10+a), and scribes sent to count
+  // the land whose count has grown old (item 17++).
+  orders.push(...demandOrders(v, b.me), ...censusOrders(v, b.me, gold));
+  gold -= orders.filter((o) => o.type === "census").length * CountData.gold;
   // People across borders and in our hands (item 10+b).
   peopleAcrossBorders(b, orders);
   // Credit (item 11a): borrow when hard up, repay what is due to keep its name; the gold counts as the treasury's.

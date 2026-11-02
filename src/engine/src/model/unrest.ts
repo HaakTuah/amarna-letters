@@ -6,10 +6,11 @@
  * each province remember what each actor gave them and took from them. A fair exchange is neutral; memory fades by `fade`
  * in a hundred a season. Takings: famine under its holder (`hunger` points at no food at all), levies (`levy` for every
  * man of fighting age), food troops took (`taken` for all the farmers' food), a sack (`sacked` by the share of the purse),
- * a tax above the usual (`tax` points a season for each 10 points of rate above it, the hand that collects it). Givings: a
+ * grain asked above the usual share (`tax` points a season for each 10 points of the harvest taken above it, the hand that
+ * collects it), scribes counting them (`census`, item 17++: "counting stirs some unrest"). Givings: a
  * rival's gold among the people (`stir` a hundred shekels), the holder's troops standing in it (`troops` a season) or next
  * to it (`near`), policing (`policing` a level), a harvest left to people who ate in full (`harvest`), a tax below the
- * usual, a work built (`work` a level), a battle won in it for its holder (`victory`), grain handed out (`grain` for a season's
+ * usual share, a work built (`work` a level), a battle won in it for its holder (`victory`), grain handed out (`grain` for a season's
  * need, in a famine; a quarter of it in plenty), a siege lifted by its holder's troops (`relief`). What the holder gives counts less the farther his court (`far` in a hundred a
  * season of road beyond the first, at most `farMost`), except through a governor there.
  *
@@ -33,6 +34,7 @@ export const UnrestData = {
   taken: 400,
   sacked: 30,
   tax: 1,
+  census: 5,
   stir: 25,
   troops: 4,
   near: 1,

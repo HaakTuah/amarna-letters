@@ -1,7 +1,8 @@
 import { describe, test } from "vitest";
 import { Board } from "../src/bots/board.ts";
-import { bearableTax, canLevy, levyCost, settleThere, taxOrders } from "../src/bots/land.ts";
-import { LandData, OrderValidator, TurnEngine, Views, disband, forMen, levySize, menAvailable, shareOfFull, unitWeight, newGame, newGameConfig, newTurnSubmission, raise, tax } from "@amarna/engine";
+import { bearableShare, canLevy, levyCost, settleThere } from "../src/bots/land.ts";
+import { demandOrders } from "../src/bots/counts.ts";
+import { LandData, OrderValidator, TurnEngine, Views, disband, forMen, levySize, menAvailable, shareOfFull, unitWeight, newGame, newGameConfig, newTurnSubmission, raise, demand, census } from "@amarna/engine";
 import { OtherActions, Parse, leaderRules } from "@amarna/llm";
 import { peopleLines } from "../../llm/src/prompt-economy.ts";
 import { Assert } from "../../engine/test/support.ts";
@@ -9,32 +10,34 @@ import { Assert } from "../../engine/test/support.ts";
 // People at home (build order item 10+a) as kings read and play it: the rulebook, the orders a model king gives, and what
 // the script kings do with the tax, levies and colonists.
 describe("PeoplePlayTests", () => {
-  test("The rulebook states the people, the tax and the people's resistance, and a model king can order them", () => {
+  test("The rulebook states the people, the demand, the census and the people's resistance, and a model king can order them", () => {
     const rules = leaderRules(true, newGameConfig());
     Assert.contains("PEOPLE", rules);
-    Assert.contains("order set_tax", rules);
+    Assert.contains("orders ask_share and ask_amount", rules);
+    Assert.contains("order census", rules);
     Assert.contains("The people defend their land.", rules);
     Assert.contains("In this game a land's people do not resist", leaderRules(true, newGameConfig({ peopleDefence: 0 })));
     const sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","command":[],"letters":[],"units":[{"unit":"Nesa","order":"settle","target":"","to":""}],"other_orders":[{"action":"set_tax","province":"Hattusa","power":"","person":"","amount":40,"term":0,"text":"","item":"","seals":[]},{"action":"set_tax","province":"","power":"","person":"","amount":30,"term":0,"text":"","item":"","seals":[]}]}`,
+        `{"notes":"","command":[],"letters":[],"units":[{"unit":"Nesa","order":"settle","target":"","to":""}],"other_orders":[{"action":"ask_share","province":"Hattusa","power":"","person":"","amount":40,"term":0,"text":"","item":"","seals":[]},{"action":"ask_amount","province":"","power":"","person":"","amount":30,"term":0,"text":"","item":"","seals":[]},{"action":"census","province":"Nesa","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
       )!,
     );
-    Assert.equal([disband("nesa", true), tax(40, "hattusa"), tax(30)], sub.orders);
-    Assert.contains("set_tax", OtherActions);
+    Assert.equal([disband("nesa", true), demand("share", 40, "hattusa"), demand("amount", 30), census("nesa")], sub.orders);
+    Assert.contains("census", OtherActions);
   });
 
-  test("A script king taxes each province as much as its farmers bear, levies where the men are and settles men where there is room", () => {
+  test("A script king asks each province as much as its farmers bear, levies where the men are and settles men where there is room", () => {
     const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     // As a king sees it when he gives his orders: after the season's harvest (Nesa reaps in Akhet, item 11a+).
     new TurnEngine(s).beginTurn();
     const v = Views.for(s, "Hatti");
     const nesa = v.provinces.find((x) => x.province === "nesa")!;
     // At the start the farmers can bear a little more than the default.
-    Assert.inRange(bearableTax(nesa), 34, 40);
-    Assert.contains(taxOrders(v, "Hatti"), (o) => o.type === "tax" && o.province === "nesa");
+    Assert.inRange(bearableShare(nesa), 34, 40);
+    // Counted at the start, and the count fresh: it asks the grain as an amount, which the land cannot hide.
+    Assert.contains(demandOrders(v, "Hatti"), (o) => o.type === "demand" && o.how === "amount" && o.province === "nesa");
     // A province in a drought can bear far less.
-    Assert.true(bearableTax({ ...nesa, harvest: Math.floor(nesa.harvest / 2) }) < 10);
+    Assert.true(bearableShare({ ...nesa, harvest: Math.floor(nesa.harvest / 2) }) < 10);
     Assert.true(canLevy(v, "sapinuwa", "Army"));
     Assert.false(canLevy({ ...v, provinces: v.provinces.map((x) => (x.province === "sapinuwa" ? { ...x, men: 100 } : x)) }, "sapinuwa", "Army"));
     // The plateau sows and reaps in Akhet (turn 1): a levy costs it more then than in Peret.
