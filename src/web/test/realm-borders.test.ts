@@ -31,9 +31,10 @@ describe("RealmBorders", () => {
   test("A frontier where the seat sees two powers' armies face to face is marked, from the armies it sees now only", () => {
     const army = (power: Power, province: string, ghost = false): SceneUnit =>
       ({ key: `${power}-${province}`, power, kind: "Army", province, count: 1, men: 1000, ghost, age: ghost ? 2 : 0, seenAt: 0 });
-    const scene = (units: SceneUnit[]): MapScene =>
-      ({ owner: new Map<string, Power | null>([["sapinuwa", "Egypt"], ["hattusa", "Hatti"]]), units }) as unknown as MapScene;
-    const contested = (units: SceneUnit[]): number => (bands(scene(units)).match(/class="band contested/g) ?? []).length;
+    const scene = (units: SceneUnit[], hattusa: Power = "Hatti"): MapScene =>
+      ({ owner: new Map<string, Power | null>([["sapinuwa", "Egypt"], ["hattusa", hattusa]]), units }) as unknown as MapScene;
+    const contested = (units: SceneUnit[], hattusa?: Power): number => (bands(scene(units, hattusa)).match(/class="band contested/g) ?? []).length;
+    const pathOf = (markup: string, cls: string): string => markup.match(new RegExp(`class="${cls}" d="([^"]*)"`))?.[1] ?? "";
     // Face to face across the frontier: marked on both sides.
     expect(contested([army("Egypt", "sapinuwa"), army("Hatti", "hattusa")])).toBe(2);
     // One side only, or one power's armies on both sides: not.
@@ -41,6 +42,15 @@ describe("RealmBorders", () => {
     expect(contested([army("Egypt", "sapinuwa"), army("Egypt", "hattusa")])).toBe(0);
     // An army known only from an old report is not seen now: not.
     expect(contested([army("Egypt", "sapinuwa"), army("Hatti", "hattusa", true)])).toBe(0);
+    // Within one realm there is no frontier, armies or not; two powers' armies in one province with none across: not.
+    expect(contested([army("Egypt", "sapinuwa"), army("Hatti", "hattusa")], "Egypt")).toBe(0);
+    expect(contested([army("Egypt", "sapinuwa"), army("Hatti", "sapinuwa")])).toBe(0);
+    // Only the stretch they face each other across: Sapinuwa's frontier with Hattusa, not its border with no one's land.
+    const drawn = bands(scene([army("Egypt", "sapinuwa"), army("Hatti", "hattusa")]));
+    const accent = pathOf(drawn, "band contested b-egypt");
+    const band = pathOf(drawn, "band b-egypt");
+    expect(accent).not.toBe("");
+    expect(accent.length).toBeLessThan(band.length);
     // Fleets do not face each other across a land frontier.
     expect(contested([army("Egypt", "sapinuwa"), { ...army("Hatti", "hattusa"), kind: "Fleet" }])).toBe(0);
   });
