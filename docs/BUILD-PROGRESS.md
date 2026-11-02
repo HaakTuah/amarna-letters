@@ -15,16 +15,15 @@ A side lane of small refinements, beside the item lane and never ahead of it (Ha
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
-- **Next, from Haakon's notes of 2 November** (his words in `docs/archive/instructions.md`, item 134), one PR each:
-  every province a proper name, never a description (Tjehenu, not "the land of the Tjehenu"; where 1346 gives
-  none, the oldest name the sources give, such as Moab, the Negeb, Tamassos: "Places by their own names" under World); the camera stops at the play area's edges, so an edge province can
-  be centred; the tabs scroll with the mouse wheel and by dragging, or fit; the small provinces of the Levant can be seen
-  and clicked at the normal zoom (a minimum hit area, labels that grow as you zoom out); and, by "Following, travel
-  lines and borders" under Interface, Follow keeps the camera on the person, travel lines follow their roads (your
+- **Next, from Haakon's notes of 2 November** (his words in `docs/archive/instructions.md`, item 134): by "Following,
+  travel lines and borders" under Interface, Follow keeps the camera on the person, travel lines follow their roads (your
   orders' whole path, others' only as reported), and borders are strong between powers and quiet within one (after
-  17++ part C merges, since it redraws the map's steps).
+  17++ part C merges, since it redraws the map's steps). Open from the notes' first four: the powers' land names
+  (#403, for Haakon), and army counters standing over a neighbour's seal on the whole map (the lane's report).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
-  the soundtracks and the Music page (#350), the soundscape (#351, #352); their briefs are in
+  the soundtracks and the Music page (#350), the soundscape (#351, #352); from the notes of 2 November, every province
+  a proper name (#391), the camera to the play area's edges (#396), a seal's tap to its own city (#398) and the tabs
+  and courts scrolled by wheel and drag (#397); their briefs are in
   `docs/archive/progress-done.md`, "Side lanes".
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
