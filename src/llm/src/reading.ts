@@ -7,7 +7,7 @@
  * what was wrong (`problems` in schemas.ts).
  */
 import type { z } from "zod";
-import type { JsonObject, ReplySchema } from "./schemas.ts";
+import type { JsonObject, ReplySchema } from "./schema-tools.ts";
 
 type Def = { type: string; shape?: Record<string, z.ZodType>; element?: z.ZodType; entries?: Record<string, string> };
 const def = (s: z.ZodType): Def => (s as unknown as { _zod: { def: Def } })._zod.def;

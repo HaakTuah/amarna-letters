@@ -12,7 +12,7 @@ import { sha256, utf8 } from "@amarna/engine";
 import { FallbackBeta, apiError, bodyText, resultOf, sdkParams, type ApiTransport, type SdkTransport } from "./anthropic.ts";
 import type { ApiResult } from "./client.ts";
 import { ApiStatusError, RealClock, type Clock } from "./limiter.ts";
-import type { JsonObject } from "./schemas.ts";
+import type { JsonObject } from "./schema-tools.ts";
 
 /** A batch service: Anthropic's Message Batches, or a stand-in. */
 export interface BatchService {

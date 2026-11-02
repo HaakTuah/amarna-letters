@@ -59,7 +59,8 @@ import { chiefOf, chiefSchema, chiefSummary, chiefText, reportsOf, reportsSchema
 import { bridgeOf, bridgeSchema, bridgeText, unheardOf, unheardSchema, unheardSummary, unheardText } from "./character-tongues.ts";
 import { crownOf, crownSchema, crownSummary, crownText } from "./character-crown.ts";
 import { risingOf, risingSchema, risingSummary, risingText } from "./character-rising.ts";
-import { Replies, type JsonObject, type ReplySchema } from "./schemas.ts";
+import type { JsonObject, ReplySchema } from "./schema-tools.ts";
+import { Replies } from "./schemas.ts";
 import type { Stakes } from "./spending.ts";
 import { Sb, joinS } from "./text.ts";
 import { CharacterSystem, canForge, courtOf, keepLine, kingOf, offerLine, selfText, traitLine } from "./character-self.ts";
