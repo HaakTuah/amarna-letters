@@ -38,7 +38,9 @@ const P = TurnEngine.prototype;
 P.grantGovernorship = function (p, o) {
   const S = this.s;
   const c = findCharacter(S, o.character);
-  if (c === null || S.owner.getOrDefault(o.province, null) !== p) return;
+  // Granted as the court knows the land (bug #467): to a province lost out of its sight he sets out all the same, finds it
+  // another's, and comes home as any governor of lost land does (governorsSeason).
+  if (c === null) return;
   // Item 17++: a governor already holding provinces of ours takes this one beside them from his seat: the word reaches him
   // there, and his word reaches the province from there.
   // As the court knows him (hidden information): a governor gone from his post before word of it came is not set out

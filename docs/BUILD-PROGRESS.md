@@ -62,23 +62,29 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
-- **History: a full check of every dossier** (the owner, 2 November 2026; archive item 167). Due now, as a lane beside
-  the items, once #466 has merged, since it touches the same files. The first spot-check found 3 misses in 13 facts:
-  an error rate somewhere between about 5% and 54%, too high for spot-checks to watch.
-  1. Every claim in every dossier, and every real fact in the game's data that rests on one, is checked against the
-     source it cites, by Opus helpers at high effort, one dossier each, four at a time. Each is graded holds, wrong,
-     no source or unclear. The cast (`src/engine/src/rules/cast.ts`), `06-attested-people.md` and `01-politics.md` go
-     first.
-  2. One PR per dossier, with what it touches in the game, and one `bug` issue per dossier tracking its misses until
-     the fix is live.
-  3. The four notes #466 left open (Shum-Adda, Yapah-Hadda, Artatama II, and the dating of EA 28-29) are settled in
-     this pass.
-  4. Each line the game rests on gets an anchor and quotes the few words of its source it relies on: a letter's words
-     in its edition's translation, never a passage, or a study's page. A line left "no source" or "unclear" is
-     sourced, or the game marks what rests on it as invented.
-  5. A test, landing with the first PR: every real fact in the game's data names its anchor, the anchor exists, and
-     its line names the same entity. Anchors are data, never shown to a king or a model ("Requests are rules too").
-     Item 17+++b's "Learn more" check builds on it.
+- **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
+  it moves a seed:
+  1. **Alashiya owes Egypt nothing at the start** (#476): the starting copper debt goes, as EA 35 shows none.
+  2. **Born where a source says so** (#486): an attested person shows "Born in X." only where a source gives it, and
+     "Of X." (where he served) otherwise; Akhetaten leaves the generated Egyptians' birthplaces.
+  3. **The five cities' water, by the best estimate** (#492): for Jerusalem, Arwad, Hattusa, Harran and Kizzuwatna, the
+     history lane gathers the published expert estimates (excavation reports, surveys, reconstructions; as many as can
+     be found), takes their consensus or middle, cites them in `10-water.md`, and sets each city's water by it. The
+     same rule ("History holds" in `AGENTS.md`) covers every other guess the full check finds.
+  4. **A governor's letter carries word of his moved seat** (#480), right after item 17++ part C: his seasonal letter
+     says where he now sits, truly or not, as he chooses by his stakes.
+  5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision
+     344), not before.
+
+- ~~**History: a full check of every dossier**~~ (the owner, 2 November 2026; archive item 167): done on 2 November,
+  one PR and one `bug` issue per dossier (#473, #477, #479, #483, #485, #488, #490, #494, #499, #500, #501, #504,
+  #506, #508, #510); the counts are in "Calibration" in `docs/claude-and-codex.md`. #466's four notes are settled
+  (Yapah-Hadda and Artatama marked guesses, Shum-Adda has no town, EA 28-29 date to about 1352-1349). What remains:
+  - ~~**Anchors for the rest of the game's data.**~~ Done in #522: waters, walls, tongues, languages, doors, crossings,
+    distances, armies and fleets, harbours and rivers each name their line, checked by the anchors test; the guesses with
+    no dossier row are marked invented, for the unclear lines' lane to source or estimate.
+  - **The lines left unclear** (213 of 1,447, mostly where the edition was out of reach: Beckman, Bryce's *Kingdom*,
+    Veenhof, the excavation reports): source each, or mark what the game rests on it as invented.
 
 - **Licences: audit, gate and notices** (the owner, 2 November 2026; `SECURITY.md`, point 10). (1) Audit every package,
   the ones packages pull in included, and every font, image, sound and data set, with its licence; anything off the list
@@ -125,6 +131,9 @@ fixed.
   again ($1.13 a season live against $1.34). Report: `docs/rounds/2026-11-02-counsel-plans-from-digest.md`.
 - ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
   armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
+- ~~**Order checks reveal a far loss (bug #467)**~~ (done, #515): the checks read who holds a province as the court
+  knows it, and an order that fails on land lost out of sight answers by the road; the governor's view completes with
+  #378; the rest of the far true state is bug #517. Report: `docs/rounds/2026-11-02-known-holding.md`.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); (a), (i) and a dismissed spy's stirring gold wait for #378:
   issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.

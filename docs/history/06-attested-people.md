@@ -14,113 +14,119 @@ What each person is known for is a fact about him, for his traits ("Attested cha
 
 | Name | Who | In 1346 | Grade | Source, and what it shows |
 | --- | --- | --- | --- | --- |
-| Akhenaten (Naphurureya) | King | yes | A | The letters addressed to him (EA 26-29, the vassal letters) |
-| Nefertiti | Great Royal Wife | yes | A | Amarna reliefs and stelae |
-| Tiye | Queen mother, the widow of Amenhotep III | yes | A | Tushratta writes to her and asks her to speak for him (EA 26); Egypt's memory of the old agreements (EA 28-29) |
-| Meritaten (Mayati) | Eldest daughter | yes (a child) | A | Named by Abi-Milku of Tyre (EA 155) |
-| Kiya | Secondary wife | likely | B | Amarna inscriptions; possibly a Mitanni princess (Tadukhepa?) [C] |
-| Tadukhepa | Tushratta's daughter, in Akhenaten's harem | yes | A | EA 19-29 |
-| Ay | God's Father, Master of the Horse | yes | A | His tomb at Amarna |
-| Nakht | Vizier at Akhetaten | likely | B | His house at Amarna |
-| Tutu | Chamberlain, "chief spokesman" of the king; the vassals' friend at court | yes | A | Aziru writes to him as "my father" (EA 158, 164); his tomb at Amarna |
-| Mahu | Chief of the Medjay, the police of Akhetaten | yes | A | His tomb at Amarna |
-| Panehesy | Chief servitor of the Aten; his name means "the Nubian" | yes | A, C (origin) | His tomb at Amarna |
-| Meryra II | Overseer of the royal harem | yes | A | His tomb shows the year-12 tribute |
-| Huya | Steward of Queen Tiye | yes | A | His tomb at Amarna |
-| Thutmose | Viceroy of Kush, the King's Son of Kush | yes | A | Akhenaten's stelae at Buhen and Amada, which name him |
-| Mane | Envoy to Mitanni, again and again | yes | A | EA 19-29; Tushratta held him until his own envoys were released (EA 28-29) |
-| Hani | Envoy to Aziru; later to Hatti | yes | A | EA 161; the *Deeds* (the Dahamunzu affair, later) |
-| Pahanate | Commissioner at Sumur | doubt | A | EA 60, 62, 68; Sumur's fall (about 1346) |
-| Yanhamu | Commissioner, in charge of the grain at Yarimuta; perhaps of Semitic birth | yes | A | EA 83, 85, 86, 118, 270, 296 |
-| Amanappa | Official; Rib-Hadda's contact | yes | A | EA 73, 77, 82, 86, 87, 93 |
-| Maya | Commissioner in the south | likely | A | EA 216-218, 300, 337 |
-| Pawura | Commissioner; killed in the north | doubt | A | EA 287, 362 |
-| Addaya | Commissioner at Gaza | yes | A | EA 254, 285, 287 |
-| Haya | Commissioner and envoy | likely | A | EA 71, 101; EA 11 [C] |
-| Rianap, Tahmashshi | Commissioners | likely | A | EA 292, 315-326; EA 265 |
+| <a id="06-akhenaten"></a>Akhenaten (Naphurureya) | King | yes | A | The letters addressed to him by name (EA 7-11, 16, 27-29) and the vassal letters. EA 28 (Rainey): "Speak to Naphurireya king of the land of Egypt, my brother" |
+| <a id="06-nefertiti"></a>Nefertiti | Great Royal Wife | yes | A | Amarna reliefs and stelae. Davies, *Rock Tombs of El Amarna* II (1905), the tomb of Meryra II: "the great wife of the King [mistress of the Two Lands] Nefertiti" |
+| <a id="06-tiye"></a>Tiye | Queen mother, the widow of Amenhotep III | yes | A | Tushratta writes to her and asks her to speak for him (EA 26); Egypt's memory of the old agreements (EA 28-29). EA 28 (Rainey): "Teye, your mother, knows them. No one else knows them." |
+| <a id="06-meritaten"></a>Meritaten (Mayati) | Eldest daughter | yes (a child) | A | Named by Burna-Buriash as Pharaoh's daughter (EA 10) and by Abi-Milku of Tyre as his lady (EA 155). EA 10 (Rainey): "your daughter Mayati"; EA 155: "the city of Tyre, the city of Mayati" |
+| <a id="06-kiya"></a>Kiya | Secondary wife | likely | B | Amarna inscriptions; possibly a Mitanni princess (Tadukhepa?) [C] |
+| <a id="06-tadukhepa"></a>Tadukhepa | Tushratta's daughter, wed to Amenhotep III, then in Akhenaten's harem | yes | A | EA 22-24 (her marriage to Amenhotep III); EA 26-29 (Akhenaten's wife). EA 28 (Rainey): "Tadu-Heba, my daughter, your wife" |
+| <a id="06-ay"></a>Ay | God's Father, Master of the Horse | yes | A | His tomb at Amarna. Davies, *Rock Tombs of El Amarna* VI (1908): "the father of the god, Ay" and "overseer of all the horses of His Majesty" |
+| <a id="06-nakht"></a>Nakht | Vizier at Akhetaten | likely | A (the office), B (that the house and the tomb are one man's) | His house at Amarna and his tomb there (no. 12, as Nekht-pa-aten). The Amarna Project, "The Main City": "the house of the vizier Nakht (K50.1), excavated in 1922"; Davies, *Rock Tombs of El Amarna* V (1908), pp. 12-13: "Tomb 12. Nekht-pa-aten", "a man of the highest rank", "chancellor, and vizier" |
+| <a id="06-tutu"></a>Tutu | Chamberlain, "chief spokesman" of the king; the vassals' friend at court | yes | A | Aziru writes to him as "my father" (EA 158, 164); his tomb at Amarna. EA 158 (Rainey): "To Tutu, my lord, my father; the message of Aziru"; Davies, *Rock Tombs of El Amarna* VI (1908): "the Chamberlain, Tutu", "chief mouthpiece of all the foreign lands" |
+| <a id="06-mahu"></a>Mahu | Chief of the Medjay, the police of Akhetaten | yes | A | His tomb at Amarna. Davies, *Rock Tombs of El Amarna* IV (1906): "the Commandant of the police of Akhetaten, Mahu" |
+| <a id="06-panehesy"></a>Panehesy | Chief servitor of the Aten; his name means "the Nubian" | yes | A, C (origin) | His tomb at Amarna. Davies, *Rock Tombs of El Amarna* II (1905): "the Chief Servitor, etc., etc., Panehesy" |
+| <a id="06-meryra-ii"></a>Meryra II | Overseer of the royal harem | yes | A | His tomb shows the tribute of year 12 (the date broken there, whole in Huya's tomb). Davies, *Rock Tombs of El Amarna* II (1905): "the Superintendent of the royal harem of the great wife of the King" |
+| <a id="06-huya"></a>Huya | Steward of Queen Tiye | yes | A | His tomb at Amarna. Davies, *Rock Tombs of El Amarna* III (1905): "the steward of the great royal wife [Tyi" |
+| <a id="06-thutmose"></a>Thutmose | Viceroy of Kush, the King's Son of Kush | likely | A (the office), B (the man) | Akhenaten's year-12 stela at Buhen tells of a viceroy of Kush putting down a Nubian revolt; the viceroy's name is lost there, and he is taken to be Thutmose, the only viceroy known under Akhenaten ([Wikipedia](https://en.wikipedia.org/wiki/Thutmose_%28viceroy_of_Kush%29), after H. S. Smith, *The Fortress of Buhen: The Inscriptions*, 1976) |
+| <a id="06-paatenemheb"></a>Paatenemheb | General, overseer of the army under Akhenaten | yes | A | His tomb at Amarna (no. 24), known from ink texts on its jambs. Davies, *Rock Tombs of El Amarna* V (1908), p. 15: "He was named Pa-aten-em-heb, and was a Royal Scribe, Overseer of the soldiery of the Lord of the Two Lands". The courts dossier's "Generals" line rests on the same tomb |
+| <a id="06-mane"></a>Mane | Envoy to Mitanni, again and again | yes | A | EA 19-21, 24, 26-29; Tushratta says he holds him until Pharaoh releases his own envoys (EA 28-29). EA 28 (Rainey): "Mane, the emissary of [my brother] am I detaining until [my] brother releases my emissary" |
+| <a id="06-hani"></a>Hani | Envoy to Aziru; later to Hatti | yes | A | EA 161-162; the *Deeds* (the Dahamunzu affair, later). EA 162 (Rainey): "Hanni, the ambassador of the king" |
+| <a id="06-hatip"></a>Hatip | Pharaoh's official with Aziru: Aziru says he took half of what the king gave Aziru and all the gold and silver, and that the kings of Nuhashshe took Aziru's cities at his instruction (EA 161); he and Aziru are to come to Pharaoh together (EA 164-167) | likely | A | EA 161, 164-167. EA 161 (Moran): "Hatip has taken half of the things that the king, my lord, gave (me)"; EA 164: "Hatip has come and brought the gracious and sweet words of the king" |
+| <a id="06-pahanate"></a>Pahanate | Commissioner at Sumur | doubt | A | EA 60, 62, 68; Sumur fell to Aziru about 1346 [C] (the politics dossier). EA 68 (Rainey): "Pahamnata, the king's commissioner who is in the city of Sumur" |
+| <a id="06-haip"></a>Ha'ip | Pharaoh's official in the north (Moran: "commissioner"); Rib-Hadda says his father turned the cities into enemies and he handed over Sumur (EA 132); Abi-Milku says he gave Sumur to Aziru (EA 149) | doubt (Sumur fell about 1346 [C]) | A | EA 107, 132, 133, 149 (Moran's Haapi). EA 132 (Moran): "Now Ha'ip has handed over Sumur"; EA 149: "Haapi gave Sumur to Aziru" |
+| <a id="06-yanhamu"></a>Yanhamu | Commissioner, in charge of the grain at Yarimuta; perhaps of Semitic birth | yes | A, C (birth) | EA 83, 85, 86, 118, 270, 296. EA 85 (Rainey): "[sp]eak to Yanhamu that he take silver for the [foo]d for the men of [the city of] Byblos in the land of Yarimuta" |
+| <a id="06-amanappa"></a>Amanappa | Official; Rib-Hadda's contact | yes | A | EA 73, 77, 82, 86, 87, 93. EA 73 (Rainey): "To Amanappa my father, the message of Rib-Haddi your son" |
+| <a id="06-maya"></a>Maya | Commissioner in the south | likely | A | EA 216-218, 292, 300, 337. EA 300 (Rainey, from Gezer): "the words of Maya, the commissioner of the king, my lord" |
+| <a id="06-pawura"></a>Pawura | Commissioner; killed in the north, Rib-Hadda says | doubt | A, C (one man) | EA 362; a Pawuru is also Pharaoh's man in the south (EA 287, 289), perhaps the same. EA 362 (Rainey): "slain the commissioner, Piwuru"; Rib-Hadda warned him against Ha'ip, EA 132 (Moran): "to Pawuru so he would not listen to the words of Ha'ip" |
+| <a id="06-addaya"></a>Addaya | Commissioner at Gaza | yes | A | EA 254, 285, 287, 289. EA 289 (Rainey): "Addaya took (and) placed in his house in the city of Gaza" |
+| <a id="06-haya"></a>Haya | Official ("the vizier" to Rib-Hadda), commissioner and envoy | likely | A | EA 71, 101, 112; the Haya who leads the escort for Burna-Buriash's daughter (EA 11) and Haya son of Miyare (EA 289) may be the same man [C]. EA 71 (Rainey): "[To] Haya, the vizi[r]" |
+| <a id="06-rianap"></a><a id="06-tahmashshi"></a><a id="06-tahmaya"></a>Rianap, Tahmashshi (Tahmaya) | Commissioners (Tahmashshi "perhaps a commissioner", Moran) | likely | A | Rianap: EA 292, 315, 326; Tahmashshi: EA 303, 316, 364, and in EA 265 as Tahmaya, which Moran takes for the short form of the same name; Pharaoh sent Tagi a gift in his care (EA 265 (Moran): "sent a present to me in the care of Tahmaya"). EA 326 (Rainey): "the king, my lord, has appointed Re'-anapa commissioner"; EA 303: "I am obeying Tahmassi" |
 
 ### Nubians in Egypt's service
 
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
-| Hekanefer (Heqanefer) | Prince of Miam (Aniba region), a child of the royal nursery, an Egyptianised Nubian; later shown bringing tribute in the tomb of Huy (TT40) | **yes**: his career spans Amenhotep III to Tutankhamun | B | His tomb at Toshka; TT40 ([Peabody](https://echoesofegypt.peabody.yale.edu/node/328); [Wikipedia](https://en.wikipedia.org/wiki/Heqanefer)) |
-| (unnamed) | Captains of Nubian troops (Meluhha, Kashi) garrisoning Canaan; men of Kashi broke into Abdi-Heba's house (EA 287) | yes | A | EA 70, 95, 108, 112, 117, 127, 131-133, 287 |
-| Panehesy | See above: a Nubian name, origin unknown | yes | C | |
+| <a id="06-hekanefer"></a>Hekanefer (Heqanefer) | Prince of Miam (Aniba region), a child of the royal nursery, an Egyptianised Nubian; later shown bringing tribute in the tomb of Huy (TT40) | **yes**: his career spans Amenhotep III to Tutankhamun | B | His tomb at Toshka; TT40 ([Peabody](https://echoesofegypt.peabody.yale.edu/node/328); [Wikipedia](https://en.wikipedia.org/wiki/Heqanefer)). Peabody: "Heqanefer's career spanned, at least, the reigns of Amenhotep III (ca. 1390-1352 BC) to Tutankhamun" |
+| <a id="06-nubian-captains"></a>(unnamed) | Captains of Nubian troops (Meluhha, Kashi) garrisoning Canaan; men of Kashi broke into Abdi-Heba's house (EA 287) | yes | A | EA 70, 95, 108, 112, 117, 127, 131-133, 287. EA 287 (Rainey): "I came within an inch of being slain by the hand of the men of the land of Cush" |
+| <a id="06-panehesy-nubian"></a>Panehesy | See above: a Nubian name, origin unknown | yes | C | |
 
-Name style for more: Egyptian names, as Nubians in Egyptian service bore them (Hekanefer; Panehesy, "the Nubian") [B]; a few
+<a id="06-style-nubian"></a>Name style for more: Egyptian names, as Nubians in Egyptian service bore them (Hekanefer; Panehesy, "the Nubian") [B]; a few
 Nubian names survive in Egyptian writing only [C], so invented Nubian personal names are marked [G].
 
 ## Hatti
 
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
-| Suppiluliuma I | King | yes (see politics) | C | EA 41; the *Deeds* |
-| Henti | Queen | likely | B | Hittite texts; later replaced by the Babylonian Tawananna, possibly exiled [C] |
-| Arnuwanda | Eldest son, later king (II) | yes | A | The *Deeds*; he succeeds his father |
-| Telipinu | Son, "the priest", in Kizzuwatna; later king of Aleppo | yes | A | The *Deeds*; Beckman |
-| Piyassili (Sharri-Kushuh) | Son; later king of Carchemish | yes | A | The *Deeds*; the Shattiwaza treaty |
-| Zannanza | Son, sent to Egypt to marry the widowed queen, killed on the road | later | A | The *Deeds* |
-| Mursili | Youngest son, later king (II) | a child | A | His own *Annals* |
-| Lupakki | General; leads the raid on Amka | yes (later raid) | A | The *Deeds* |
-| Hattusa-ziti | Chamberlain, envoy to Egypt | later | A | The *Deeds* |
-| Hukkana | Lord of Hayasa, Suppiluliuma's brother-in-law by treaty | yes | A | His treaty (Beckman no. 3) |
+| <a id="06-suppiluliuma"></a>Suppiluliuma I | King | yes (see politics) | C | EA 41; the *Deeds*. EA 41 (Rainey): "Suppiluliuma, the gr[eat king, [the king of the land of H]atti" |
+| <a id="06-henti"></a>Henti | Queen | likely | B | Hittite texts; later replaced by the Babylonian Tawananna, possibly exiled [C] |
+| <a id="06-arnuwanda"></a>Arnuwanda | Eldest son, later king (II) | yes | A | The *Deeds*; he succeeds his father |
+| <a id="06-telipinu"></a>Telipinu | Son, "the priest", in Kizzuwatna; later king of Aleppo | yes | A | The *Deeds*; Beckman |
+| <a id="06-piyassili"></a>Piyassili (Sharri-Kushuh) | Son; later king of Carchemish | yes | A | The *Deeds*; the Shattiwaza treaty. Luckenbill 1921, p. 168 (6A): "Biashshi-ilim, the king's son" |
+| <a id="06-zannanza"></a>Zannanza | Son, sent to Egypt to marry the widowed queen, killed on the road | later | A | The *Deeds*; Mursili II's second plague prayer (Singer, *Hittite Prayers*, 2002, no. 11 §4): "when my father gave them his son, as they led him off, they murdered him" |
+| <a id="06-mursili"></a>Mursili | A younger son, later king (II) | a child | A | His own *Annals* |
+| <a id="06-lupakki"></a>Lupakki | General; leads the raid on Amka | yes (later raid) | A | The *Deeds* ([translation](https://ancientegyptonline.co.uk/suppiluliuma-letter)): "sent Lupakkish and Teshub-Zalmash to the country of Amqa" |
+| <a id="06-zida"></a>Zida | Suppiluliuma's brother; chief of the bodyguard in the *Deeds* | likely | B | The *Deeds* (not read for this row, no quote; see the courts dossier's "Chief of the bodyguard"); Moran takes the Zita who writes EA 44 for him. Moran, index: "Zita ... probably brother of Šuppiluliumaš"; EA 44 (Moran): "Thus Zita, the king's son, your son" |
+| <a id="06-hattusa-ziti"></a>Hattusa-ziti | Chamberlain, envoy to Egypt | later | A | The *Deeds* ([translation](https://ancientegyptonline.co.uk/suppiluliuma-letter)): "He decided to send Hattu-Zittish, the chamberlain" |
+| <a id="06-hukkana"></a>Hukkana | Lord of Hayasa, Suppiluliuma's brother-in-law by treaty | yes | A | His treaty (Beckman no. 3) |
 
 ## Mitanni
 
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
-| Tushratta | King | yes | A | EA 17-29 |
-| Iuni | His queen | yes | A | Greeted in his letters [B]; she wrote to Tiye [C] |
-| Gilukhepa | His sister, a wife of Amenhotep III | likely | A | EA 17; Amenhotep III's marriage scarab |
-| Artatama II | Rival king, "king of the Hurrians" | yes | A | The Shattiwaza treaty |
-| Shuttarna III | Artatama's son | likely | A | The same |
-| Kili-Teshup (Shattiwaza) | Tushratta's son, later Hatti's vassal king | yes | A | His treaty (Beckman no. 6) |
-| Keliya | Envoy to Egypt, again and again | yes | A | EA 19-29 |
-| Pirissi, Tulubri | Envoys detained in Egypt | yes | A | EA 27-29 (whole in EA 28; in EA 27 and 29 the names are partly broken and restored, as in Moran) |
-| Artessupa, Asali | Envoys | likely | C | EA 17, 20 |
-| Akit-Teshup | Noble who fled with chariots to Babylon | later | A | The Shattiwaza treaty |
+| <a id="06-tushratta"></a>Tushratta | King | yes | A | EA 17-29. EA 28 (Rainey): "Thus Tushratta, king of the land of Mittanni" |
+| <a id="06-iuni"></a>Iuni (Yuni) | His wife, the queen | yes | A | EA 26, where Tushratta asks Tiye to send her a gift and her own envoys to go to Tiye. EA 26 (Rainey): "may the envoy[s] [o]f Yuni my wife go to [you] regularly" |
+| <a id="06-gilukhepa"></a>Gilukhepa | His sister, a wife of Amenhotep III | likely | A | EA 17; Amenhotep III's marriage scarab. EA 17 (Rainey): "Kelu-Heba, my sister" |
+| <a id="06-artatama"></a>Artatama II | Rival king, "king of the Hurrians" | yes | A | The Shattiwaza treaty. Luckenbill 1921, p. 163 (6A): "Artatama, the king of Harri" |
+| <a id="06-shuttarna"></a>Shuttarna III | Artatama's son | likely | A | The same. Luckenbill 1921, p. 171 (6B): "Shuttarna, son of Artatama" |
+| <a id="06-shattiwaza"></a>Kili-Teshup (Shattiwaza) | Tushratta's son, later Hatti's vassal king | yes | A | His treaty (Beckman no. 6). Luckenbill 1921, p. 166 (6A): "Mattiuaza, son of Tushratta, the king" |
+| <a id="06-keliya"></a>Keliya | Envoy to Egypt, again and again | yes | A | EA 17, 19-20, 24, 26-27, 29. EA 17 (Rainey): "Kelia, my chief minister" |
+| <a id="06-pirissi"></a><a id="06-tulubri"></a>Pirissi, Tulubri | Envoys detained in Egypt | yes | A | EA 27-29 (whole in EA 28; in EA 27 and 29 the names are partly broken and restored, as in Moran). EA 28 (Rainey): "Pirissi and Tulubri, [m]y emissaries" |
+| <a id="06-artessupa"></a><a id="06-asali"></a>Artessupa, Asali | Envoys (Asali his tablet scribe); later accused of a misdeed in Egypt, chained and sent to a frontier town by Tushratta (EA 29) | doubt | A | EA 24, 29. EA 24 (Rainey): "Keliya and Ar-Tessob and Asali" |
+| <a id="06-haamashshi"></a>Haamashshi | Pharaoh's envoy to Burna-Buriash and to Tushratta; the Haramashshi of EA 20 is perhaps another man [C] | yes | A | EA 11, 27, 29. EA 27 (Moran): "When Haamashshi, my brother's messenger, came to me" |
+| <a id="06-mazipalali"></a>Mazipalali | Tushratta's envoy to Pharaoh, Keliya's uncle, sent in Keliya's place | yes | A | EA 29. EA 29 (Moran): "my messenger, (who is) also Keliya's uncle" |
+| <a id="06-akit-teshup"></a>Akit-Teshup | Fled from Shuttarna to Babylonia with two hundred chariots | later | A | The Shattiwaza treaty. Luckenbill 1921, p. 172 (6B): "With two hundred chariots he fled" |
 
 ## Babylonia
 
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
-| Burna-Buriash II | King | yes | A | EA 6-14 |
-| His daughter (unnamed) | Bride for Akhenaten's house; escorted by only five carriages | yes | A | EA 11 |
-| Salmu | Envoy, whose caravan was robbed twice in Egypt's lands | yes | A | EA 7 |
-| Ahutabu | Burna-Buriash's man (messenger or caravan leader) who went on to Egypt; the merchants left behind were killed at Hinnatuna | likely | A | EA 8 |
-| Enlil-kidinni | Governor of Nippur | yes | A | The Nippur letters |
-| Ili-ippashra | Governor of Dilmun, writing to Enlil-kidinni | likely | B | The Dilmun letters from Nippur |
-| Shindishugab | Burna-Buriash's messenger to Egypt | yes | A | EA 10 |
-| Kurigalzu (II) | A son or grandson, later king | yes (young) | B | Kassite chronicles |
+| <a id="06-burna-buriash"></a>Burna-Buriash II | King | yes | A | EA 6-11, 13-14. EA 8 (Rainey): "Thus (says) Burraburiyash, king of the land of Kara[duniash]" |
+| <a id="06-burna-buriash-daughter"></a>His daughter (unnamed) | Bride for Akhenaten's house; escorted by only five carriages | yes | A | EA 11 (Rainey): "With Haya there are only five chariots" |
+| <a id="06-salmu"></a>Salmu | Envoy, whose caravan was robbed twice in Egypt's lands | yes | A | EA 7 (Rainey): "Salmu, my envoy whom I sent to [you], [tw]ice has his caravan has been robb[ed]" |
+| <a id="06-ahutabu"></a>Ahutabu | Burna-Buriash's man (messenger or caravan leader) who went on to Egypt; the merchants left behind were killed at Hinnatuna | likely | A | EA 8 (Rainey): "After Ahu-tabu went on to my brother" |
+| <a id="06-enlil-kidinni"></a>Enlil-kidinni | Governor of Nippur | yes | A | The Nippur letters. Cornwall, "Two Letters from Dilmun", *JCS* 6 (1952), p. 137: "Ellil-kidinni, guenna (governor) of Nippur during the reign of Burnaburiyas"; p. 138: "in rank second only to the king" |
+| <a id="06-ili-ippashra"></a>Ili-ippashra | Governor of Dilmun, writing to Enlil-kidinni | likely | A (the letters), B (the title: the edition calls him only an official in Dilmun) | The Dilmun letters from Nippur (Ni. 615, 641), to Ililiya, taken for Enlil-kidinni. Cornwall, "Two Letters from Dilmun", *JCS* 6 (1952), p. 138: "an official of the Cassite dynasty of Babylonia was present in Dilmun"; Goetze's translation there, p. 144: "This is what Ili-ippasra, thy brother, said", "May Inzag and Meskilak, the gods of Tilmun, guard thy life!" |
+| <a id="06-shindishugab"></a>Shindishugab | Burna-Buriash's messenger to Egypt | yes | A | EA 10 (Rainey): "when Sindisugab, my envoy, reaches you" |
+| <a id="06-kurigalzu"></a>Kurigalzu (II) | A son or grandson, later king | doubt (young, or not yet born if a grandson) | A (later king), C (whose son) | Chronicle P ([livius](https://www.livius.org/sources/content/mesopotamian-chronicles-content/abc-22-chronicle-p/), Grayson's ABC 22): "Aššur-uballit put Kurigalzu, son of Kadašman-harbe, on his father's throne" |
 
 ## Assyria
 
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
-| Ashur-uballit I | King | yes | A | EA 15-16 |
-| Muballitat-Sherua | His daughter, later the wife of Burna-Buriash or of one of his sons [C] | yes | A | Chronicle P, Synchronistic History |
-| Enlil-nirari | His son, later king | yes | A | The Assyrian King List |
-| (unnamed) | His envoys, "kept in the sun" in Egypt | yes | A | EA 16 |
+| <a id="06-ashur-uballit"></a>Ashur-uballit I | King | yes | A | EA 15-16. EA 16 (Rainey): "Thus (speaks) Ashur-uballit, king of the land of Assyria" |
+| <a id="06-muballitat-sherua"></a>Muballitat-Sherua | His daughter, later the wife of Burna-Buriash or of one of his sons [C] | yes | A | Chronicle P, Synchronistic History. Chronicle P ([livius](https://www.livius.org/sources/content/mesopotamian-chronicles-content/abc-22-chronicle-p/)): "Kadašman-harbe, son of Karaindaš, son of Muballitat-serua, the daughter of Aššur-uballit" |
+| <a id="06-enlil-nirari"></a>Enlil-nirari | His son, later king | yes | A | The Assyrian King List |
+| <a id="06-assyrian-envoys"></a>(unnamed) | His envoys, kept standing outside at Pharaoh's court | yes | A | EA 16 (Rainey): "why are they continually standing outside so that they will die outside?" |
 
 ## Arzawa
 
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
-| Tarhundaradu | King | doubt | A | EA 31-32 |
-| Kalbaya | Arzawa's envoy | doubt | A | EA 31 |
-| Irshappa | Egypt's envoy to Arzawa | doubt | A | EA 31 |
-| Uhhaziti | Later king | later | A | Mursili II's *Annals* |
-| Manapa-Tarhunta | Ruler of the Seha River Land | later | A | His treaty and letter (about 1320-1300) |
-| Mashhuiluwa | Ruler of Mira | later | A | Mursili II's *Annals* |
+| <a id="06-tarhundaradu"></a>Tarhundaradu | King | doubt | A | EA 31-32. EA 31 (Rainey): "to Tarhundarasu, king of Arzawa" |
+| <a id="06-kalbaya"></a>Kalbaya | Arzawa's envoy | doubt | A | EA 32 (Rainey): "Send Kalbaya back to me promptly together with my envoy" |
+| <a id="06-irshappa"></a>Irshappa | Egypt's envoy to Arzawa | doubt | A | EA 31 (Rainey): "I have sent to you Irsappa, my messenger" |
+| <a id="06-uhhaziti"></a>Uhhaziti | Later king | later | A | Mursili II's *Annals* |
+| <a id="06-manapa-tarhunta"></a>Manapa-Tarhunta | Ruler of the Seha River Land | later | A | His treaty with Mursili II and his letter to a Hittite king (late 14th or early 13th century [C]) |
+| <a id="06-mashhuiluwa"></a>Mashhuiluwa | Ruler of Mira | later | A | Mursili II's *Annals* |
 
 ## Alashiya
 
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
-| (unnamed) | The king; a name in Cypriot style is invented, marked [G] | yes | A | EA 33-39 |
-| (unnamed) | "The governor of Alashiya", writing to his Egyptian counterpart | yes | A | EA 40 |
-| (unnamed) | The king's merchants, exempt from customs at his request | yes | A | EA 39 |
-| Kushmeshusha, Eshuwara | A king and a "senior governor" of Alashiya, writing to Ugarit | later | A | RS 20.18, RS 20.168 (13th-12th century); for name style |
+| <a id="06-alashiya-king"></a>(unnamed) | The king; a name in Cypriot style is invented, marked [G] | yes | A | EA 33-39. EA 39 (Rainey): "thus (says) the king of Alashia, your brother" |
+| <a id="06-alashiya-governor"></a>(unnamed) | "The governor of Alashiya" (Rainey: "commissioner"), writing to his Egyptian counterpart | yes | A | EA 40 (Rainey): "[To the commissioner of E[gypt ... the commissioner o]f Ala[shiya" |
+| <a id="06-alashiya-merchants"></a>(unnamed) | The king's merchants, exempt from customs at his request | yes | A | EA 39 (Rainey): "As for my merchant(s) (and) my ship, may your customs' inspector not draw near to them" |
+| <a id="06-kushmeshusha"></a><a id="06-eshuwara"></a>Kushmeshusha, Eshuwara | A king and a "senior governor" of Alashiya, writing to Ugarit; the game gives the unnamed governor of EA 40 the name of this later governor [G] | later | A | RS 20.18 (Eshuwara; G. Steiner, "Der Brief des Ešuwara (R.S. 20.18)", 2002), RS 20.168 (13th-12th century); for name style |
 
 ## The Levant and north Syria
 
@@ -128,17 +134,24 @@ The rulers are in the politics dossier's table; their families and men:
 
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
-| Ilirabih (Ili-rapih) | Writes from Byblos after Rib-Hadda's fall (EA 139-140); most identify him with the unnamed younger brother who drove Rib-Hadda out (EA 137-138, 162), one study with a son | yes | A (the letters), B (the brother), C (a son) | EA 137-140, 162 |
-| Pu-Baʿlu and his brothers | Sons of Abdi-Ashirta, Aziru's brothers | yes | A | EA 104, 132 |
-| Mut-Baal | Son of Labaya, at Pihil (Pella) | yes | A | EA 255-256; Pella's ruler in the game since item 11f (as Mut-Bahlu) |
-| Akit-Teshup | Brother of Takuwa of Niya, who turns Niya against him and Hatti | yes | A | The Shattiwaza treaty (Beckman no. 6A) |
-| Tagi | Ally of Labaya, in the Carmel region (Ginti-kirmil); Milkilu's father-in-law | yes | A | EA 249, 264-266, 289 |
-| Yapahu | Gezer's ruler after Milkilu; how the two were related no letter says; his own younger brother went over to the Habiru | yes (at Gezer; ruling later) | A (the letters), C (in 1346) | EA 297-300 |
-| Heba | Wife of Niqmaddu II of Ugarit? | doubt | B | EA 48 |
-| Ilimilku | Scribe at Ugarit, who wrote down the Baal cycle under Niqmaddu II | yes | A | Colophons of the Ugaritic myths |
-| Shum-Adda, Shutatna | Men of Akko who killed Babylon's merchants | yes | A | EA 8 |
-| Shutatarra | Aitakama's father, of Qadesh | dead or old | A | EA 189 |
-| Abdi-Heba's scribe | A scribe trained in north Syria, by his hand | yes | B | Moran; his postscripts to Pharaoh's scribe (EA 286-289) |
+| <a id="06-ilirabih"></a>Ilirabih (Ili-rapih) | Writes from Byblos after Rib-Hadda's fall (EA 139-140); most identify him with the younger brother who drove Rib-Hadda out (EA 137-138, 162) | yes | A (the letters), B (the brother) | EA 137-140, 162. EA 137 (Rainey): "my brother, younger than me, alienated the city of Byblos"; Rainey 2015, i, p. 20: "The brother who had ousted Rib-Haddi was Ilirapi'" |
+| <a id="06-yapah-hadda"></a>Yapah-Hadda | A ruler on the coast, hostile to Rib-Hadda and in league with Aziru; seizes Byblos's ships; writes to Yanhamu himself (EA 98). No letter names his town [S] | yes | A | EA 83, 85, 98, 105, 113-114, 116. EA 114 (Rainey): "Yapa'-Haddi is hostile to me along with Aziru. And behold, he has seized my ship" |
+| <a id="06-pu-balu"></a>Pu-Baʿlu and his brothers | Sons of Abdi-Ashirta, Aziru's brothers | yes | A | EA 104, 132. EA 104 (Rainey): "Pu-Baʿla, the son of Abdi-Ashirta, has entered into the city of Ullasa" |
+| <a id="06-baluya"></a>Baʿluya | Writes with Bet-ili to Aziru while Aziru is in Egypt that Hittite troops under Lupakku have taken cities of Amqu; perhaps Aziru's brother | doubt (Aziru's stay in Egypt, later) | A (the letter), C (the brother) | EA 170; Moran, index: "brother of Aziru?" (EA 165, 170). EA 170 (Moran): "Message of Baʿaluya and message of Bet-ili"; "troops of Hatti under Lupakku have captured cities of Amqu" |
+| <a id="06-mut-baal"></a>Mut-Baal | Son of Labaya, at Pihil (Pella) | yes | A | EA 255-256; Pella's ruler in the game since item 11f (as Mut-Bahlu). EA 255 (Rainey): "[La]b'ayu, my father" |
+| <a id="06-akit-teshup-of-niya"></a>Akit-Teshup | Brother of Takuwa of Niya, who turns Niya against him and Hatti | yes | A | The Shattiwaza treaty (Beckman no. 6A). Luckenbill 1921, p. 165: "Behind the back of Takuwa, Akit-Teshub, his brother, roused land and city of Nia to hostility" |
+| <a id="06-tagi"></a>Tagi | Lord of Ginti-kirmil (Gath-carmel), in the Carmel region; Milkilu's father-in-law, and with Milkilu in league with the sons of Labaya, Abdi-Heba says | yes | A | EA 249, 264-266, 289. EA 249 (Rainey): "To Tagi, his father-in-law, he gave his (own) men"; EA 289: "the territory of the city of Gath-carmel belongs to Tagi" |
+| <a id="06-yashdata"></a>Yashdata | Driven out by the men of Taanach, who made off with all the king had given him; now with Biridiya at Magidda (EA 248); rode with Biridiya after Labaya (EA 245) | doubt (Labaya's death, before 1346 [C]) | A | EA 245, 248. EA 248 (Moran): "they have slaughtered my oxen and driven me away. So I am now with Biridiya"; EA 245: "rode with Yashdata" |
+| <a id="06-yapahu"></a>Yapahu | Gezer's ruler after Milkilu; how the two were related no letter says; his own younger brother went over to the Habiru | yes (at Gezer; ruling later) | A (the letters), C (in 1346) | EA 297-300. EA 298 (Rainey): "my younger brother has become hostile to me and he has entered into the city of Mo'hazi and he has pl<edg>ed himself to the ʿapiru" |
+| <a id="06-heba"></a>Heba ([...]-Heba) | A queen of Ugarit writing to Egypt's queen; perhaps Niqmaddu II's wife (Liverani, in Moran) | doubt | A (the letter), C (whose wife) | EA 48; the name is broken. EA 48 (Rainey): "[the message of (...)-H]eba, your handmaiden" |
+| <a id="06-ilimilku"></a>Ilimilku | Scribe at Ugarit, who wrote down the Baal cycle under a King Niqmaddu | doubt | A (the colophon), C (which Niqmaddu: II, about 1350-1315, or a later one) | Colophons of the Ugaritic myths. Wyatt, *Religious Texts from Ugarit* (2nd ed., 2002), pp. 145-146 (KTU 1.6 vi 54-58): "Ilimilku the Shubanite wrote (it), the student of Attanu the diviner", "of Niqmad king of Ugarit"; p. 146 n. 132: most have taken the king for Niqmad II, but with the Urtenu archive "Ilimilku is now known to have flourished in the time of Niqmad III or IV" |
+| <a id="06-shum-adda"></a><a id="06-shutatna"></a>Shum-Adda, Shutatna | Shum-Adda son of Balumme and Shutatna son of Sharatu of Akka, whose men killed Babylon's merchants at Hinnatuna; the letter gives Shum-Adda no town | yes | A | EA 8 (Rainey): "Shum-Hadda son of Ba'lumme (and) Sutatna son of Saratu of the town of Akka" |
+| <a id="06-endaruta"></a>Endaruta | Ruler of Akshapa; promises to prepare whatever the king orders (EA 223); with Surata of Akka came to Shuwardata's aid with 50 chariots (EA 366); Pharaoh writes to him (EA 367) | likely | A | EA 223, 366, 367. EA 223 (Moran): "Whatsoever the king, my lord, orders, I shall prepare"; EA 366: "Endaruta, the ruler of Akshapa, (these) two also have come to my aid" |
+| <a id="06-shutatarra"></a>Shutatarra | Aitakama's father, of Qadesh (Kinza); he and his son fought Suppiluliuma in the Syrian war and were taken to Hatti | doubt (alive at that war, about 1344 [C]) | A | The Shattiwaza treaty (Beckman no. 6A). Luckenbill 1921, p. 165: "Shutatarra, with Aitakkama, his son, and his chariots marched out against me" |
+| <a id="06-arzawiya"></a>Arzawiya (Moran: Arsawuya) | Ruler of Ruhizzi; with Teuwatti at Aitakama's disposal while Upe burns, Akizzi says (EA 53-54); took Aziru's troops and captured Shaddu, and with Biridashwa is causing the loss of Upe, Biryawaza says (EA 197); to Pharaoh, ready for the archers (EA 191-192) | likely | A | EA 53-54, 191-192, 197. EA 191 (Moran): "Message of Arsawuya, the ruler of Ruhizzi"; EA 197: "Arsawuya along with Biridaswa is causing the loss of Apu" |
+| <a id="06-teuwatti"></a>Teuwatti (Tiwati) | Ruler of Lapana; with Arzawiya at Aitakama's disposal, Akizzi says (EA 53-54); writes that he is on guard and will go with the archers (EA 193) | likely | A | EA 53-54, 193. EA 53 (Moran): "Teuwatti of Lapana and Arsawuya of Ruhizzi place themselves at the disposition of Aitukama"; EA 193: "Message of Tiwati" |
+| <a id="06-biridashwa"></a>Biridashwa | Moved Yanuamma to rebellion against Biryawaza, took chariots from Ashtartu and gave them to the Habiru, and with Arzawiya is causing the loss of Upe, Biryawaza says (EA 196-197); Moran calls him mayor of Ashtartu | likely | A (the deeds), C (his town) | EA 196-197. EA 197 (Moran): "Biridaswa saw this deed and moved Yanuamma to rebellion against me" |
+| <a id="06-abdi-heba-scribe"></a>Abdi-Heba's scribe | A scribe trained in north Syria, by his hand | yes | B | Moran; his postscripts to Pharaoh's scribe (EA 286-289). EA 287 (Rainey): "Speak to the scribe of the king, my lord; thus Abdi-Heba" |
 
 ## Name styles for everyone else
 
@@ -147,22 +160,22 @@ marked [G].
 
 | Region | Style, with attested examples | Grade |
 | --- | --- | --- |
-| Egypt | Theophoric names with Amun, Ra, Ptah, Thoth, under Akhenaten often the Aten: Ramose, Ptahmose, Meryra, Paatenemheb, Tutu, Nakht, Mahu, Huya, Penre | A |
-| Babylonia (Akkadian) | Marduk-nadin-ahhe, Nabu-, Ili-, -iddina, Enlil-kidinni, Salmu | A |
-| Babylonia (Kassite) | Kadashman-, Kurigalzu, Burna-, Kudur-, -Buriash, -Harbe, Shagarakti- | A |
-| Assyria | Ashur-, Enlil-, Adad-, -uballit, -nirari, Ninurta- | A |
-| Mitanni and Kizzuwatna, Nuzi (Hurrian) | -Teshup, Akit-, Kili-, Ehli-, Agib-, Tulubri, Pirissi, women's names in -hepa (Gilukhepa, Tadukhepa) | A |
-| Mitanni's elite (Indo-Aryan) | Tushratta, Artatama, Shuttarna, Biridashwa; also in the Levant: Biryawaza, Biridiya | A |
-| Hatti and Arzawa (Hittite, Luwian) | Arnuwanda, Tudhaliya, -ziti, Tarhunta-, Kurunta-, -muwa, Piyama-, Uhhaziti, Mashhuiluwa | A |
-| Levant (Canaanite, Amorite) | Abdi-, Rib-, -Hadda/Addu, Milk-, Milkilu, Zimri-, -Baʿlu, Yapahu, Shum-Adda, Ammunira | A |
-| Ugarit (Ugaritic) | Niqmaddu, Ammistamru, Ilimilku, Yarimanu, -Baʿlu | A |
-| Alashiya (Cypriot) | Kushmeshusha, Eshuwara; the island's own language (Cypro-Minoan) is unread | C |
-| Elam | Kidin-Hutran, Pahir-ishshan, Attar-kittah, Humban-, Shilhak-, Kutir- | A |
-| Aegeans (Linear B, Greek) | a-ki-re-u (Akhileus), e-ke-ra-wo, a-pi-me-de, te-se-u (Theseus?), women a-re-ka-sa-da-ra (Alexandra) | A |
-| Kaska | Pihhuniya (later), Kaska chiefs in Hittite texts | A, few |
-| Sherden, Lukka | No names survive | G |
-| Nubians beyond Egypt | Few, in Egyptian writing | C, G |
-| Suteans, Habiru | West Semitic names, as the Levant | B |
+| <a id="06-style-egypt"></a>Egypt | Theophoric names with Amun, Ra, Ptah, Thoth, under Akhenaten often the Aten: Ramose, Ptahmose, Meryra, Paatenemheb, Tutu, Nakht, Mahu, Huya, Penre. Davies, *Rock Tombs of El Amarna* VI (1908): "the Chamberlain, Tutu" | A |
+| <a id="06-style-babylonia-akkadian"></a>Babylonia (Akkadian) | Marduk-nadin-ahhe, Nabu-, Ili-, -iddina, Enlil-kidinni, Salmu. EA 7 (Rainey): "Salmu, my envoy" | A |
+| <a id="06-style-babylonia-kassite"></a>Babylonia (Kassite) | Kadashman-, Kurigalzu, Burna-, Kudur-, -Buriash, -Harbe, Shagarakti-. Chronicle P: "Kurigalzu, son of Kadašman-harbe" | A |
+| <a id="06-style-assyria"></a>Assyria | Ashur-, Enlil-, Adad-, -uballit, -nirari, Ninurta-. EA 16 (Rainey): "my father Ashur-nadin-ahhe" | A |
+| <a id="06-style-hurrian"></a>Mitanni and Kizzuwatna, Nuzi (Hurrian) | -Teshup, Akit-, Kili-, Ehli-, Agib-, Tulubri, Pirissi, women's names in -hepa (Gilukhepa, Tadukhepa). EA 17 (Rainey): "Kelu-Heba, my sister" | A |
+| <a id="06-style-indo-aryan"></a>Mitanni's elite (Indo-Aryan) | Tushratta, Artatama, Shuttarna, Biridashwa; also in the Levant: Biryawaza, Biridiya. EA 7 (Rainey): "Biryawaza robbed" | A (the names), B (Indo-Aryan) |
+| <a id="06-style-hittite-luwian"></a>Hatti and Arzawa (Hittite, Luwian) | Arnuwanda, Tudhaliya, -ziti, Tarhunta-, Kurunta-, -muwa, Piyama-, Uhhaziti, Mashhuiluwa | A |
+| <a id="06-style-levant"></a>Levant (Canaanite, Amorite) | Abdi-, Rib-, -Hadda/Addu, Milk-, Milkilu, Zimri-, -Baʿlu, Yapahu, Shum-Adda, Ammunira. EA 8 (Rainey): "Shum-Hadda son of Ba'lumme" | A |
+| <a id="06-style-ugarit"></a>Ugarit (Ugaritic) | Niqmaddu, Ammistamru, Ilimilku, Yarimanu, -Baʿlu. EA 49 (Rainey): "the message of Niqmaddu" | A |
+| <a id="06-style-alashiya"></a>Alashiya (Cypriot) | Kushmeshusha, Eshuwara; the island's own language (Cypro-Minoan) is unread | C |
+| <a id="06-style-elam"></a>Elam | Kidin-Hutran, Pahir-ishshan, Attar-kittah, Humban-, Shilhak-, Kutir- | A |
+| <a id="06-style-aegean"></a>Aegeans (Linear B, Greek) | a-ki-re-u (Akhileus), e-ke-ra-wo, a-pi-me-de, te-se-u (Theseus?), women a-re-ka-sa-da-ra (Alexandra) | A |
+| <a id="06-style-kaska"></a>Kaska | Pihhuniya (later), Kaska chiefs in Hittite texts | A, few |
+| <a id="06-style-sherden-lukka"></a>Sherden, Lukka | No names survive | G |
+| <a id="06-style-nubians-beyond"></a>Nubians beyond Egypt | Few, in Egyptian writing | C, G |
+| <a id="06-style-suteans-habiru"></a>Suteans, Habiru | West Semitic names, as the Levant | B |
 
-Women are attested chiefly as queens, princesses and brides, and as the writers of a few letters (EA 48, EA 273-274 from
-the "Lady of the Lions", Baʿlat-nese, a ruler in southern Canaan) [A].
+<a id="06-women"></a>Women are attested chiefly as queens, princesses and brides, and as the writers of a few letters (EA 48, EA 273-274 from
+<a id="06-balat-nese"></a>the "Lady of the Lions" (one reading of her name: Baʿlat-nese [C]), a ruler in southern Canaan) [A]. EA 273 (Rainey): "the message of 'Lady of the Lions,' your handmaid"

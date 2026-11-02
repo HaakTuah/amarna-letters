@@ -4,7 +4,7 @@ The item's text: `docs/intent/build-order/item-17.md`, "Then **17++**". Sections
 `docs/intent/war-travel-and-the-seas/command-at-a-distance.md`) and "Who holds what, and the mood of the land" (Interface,
 `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`), and "taken up, never thrust on anyone" ("Whom a
 province obeys", War, `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md`; decided 2 November 2026).
-Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
+Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 44 (43 with #467's change from `develop`).
 
 ## A governor over several provinces (`Governor.seat`, `seatOf`, `turn/governors.ts`)
 

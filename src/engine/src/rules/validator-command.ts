@@ -84,7 +84,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
     }
     case "govern": {
       if (!v.Map.exists(order.province) || v.Map.get(order.province).isSea) return `there is no land province called '${order.province}'`;
-      if (S.owner.getOrDefault(order.province, null) !== v.power) return `${order.province} is not yours`;
+      if (v.knownOwner(order.province) !== v.power) return `${order.province} is not yours`;
       // The governorships as this court knows them (hidden information): one ended out of its sight still stands in its view.
       const known = governorsKnown(S, S.turn).filter((g) => g.power === v.power);
       // A governorship taken back by an order of this season is not one to grant beside: the recall goes first.
@@ -110,7 +110,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       for (const x of ps) {
         if (!v.Map.exists(x) || v.Map.get(x).isSea) return `there is no land province called '${x}'`;
         // As the court knows it (hidden information): land lost out of its sight fails when the word arrives, and says so by the road.
-        if (!v.knownHeld(x)) return `${x} is not yours`;
+        if (v.knownOwner(x) !== v.power) return `${x} is not yours`;
         if (courtOf(S, v.Map, v.power) === x) return `your court is in ${x}: a king does not grant away the city he holds court in`;
         if (S.crowns.some((k) => k.power === v.power && (k.heard === null || k.heard > S.turn) && k.provinces.includes(x))) return `${x} is already in a grant on its way`;
       }

@@ -80,6 +80,8 @@ declare module "./core.ts" {
     tellFired(p: Power, f: Firing, v: ValidationResult): void;
     failureOf(p: Power, order: Order): string;
     scheduledFailed(p: Power, order: Order, why: string): void;
+    /** The line a scheduled or standing order foiled so would wake its seat with, or null if it wakes nobody. */
+    scheduledFailure(p: Power, order: Order, why: string): string | null;
     afterValidation(p: Power, sub: TurnSubmission, v: ValidationResult): void;
     bind(p: Power, turn: number, o: Order, levies: readonly LevyRef[]): [PlannedOrder | null, string];
     levyRaised(p: Power, unit: Unit): void;
@@ -473,10 +475,14 @@ P.failureOf = function (p, order) {
  * it only for those: nothing the seat's own orders bring about wakes it.
  */
 P.scheduledFailed = function (p, order, why) {
+  const line = this.scheduledFailure(p, order, why);
+  if (line !== null) this.s.sleep.get(p).pendingWake.push(line);
+};
+
+P.scheduledFailure = function (p, order, why) {
   const list = this._scheduledNow.tryGet(p);
-  const sl = this.s.sleep.tryGet(p);
-  if (list === undefined || !list.some((o) => o === order) || sl === undefined) return;
-  sl.pendingWake.push(`${this.failureOf(p, order)}: ${describe(order)} (${why})`);
+  if (list === undefined || !list.some((o) => o === order) || this.s.sleep.tryGet(p) === undefined) return null;
+  return `${this.failureOf(p, order)}: ${describe(order)} (${why})`;
 };
 
 /**

@@ -68,7 +68,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (!Map.exists(f.province) || Map.get(f.province).isSea) return `there is no province called '${f.province}'`;
       if (!(WorkKindValues as readonly string[]).includes(f.kind)) return `there is no kind of building called '${f.kind}': ${WorkKindValues.join(", ")}`;
       const prov = Map.get(f.province);
-      if (S.owner.getOrDefault(f.province, null) !== power) return `you do not hold ${prov.name}`;
+      if (v.knownOwner(f.province) !== power) return `you do not hold ${prov.name}`;
       const data = WorksData[f.kind];
       if (!Number.isInteger(f.level) || f.level < 0 || f.level > data.most) return `the ${workName(f.kind)} go from 0 to ${workLevelText(f.kind, data.most)}`;
       const level = levelOf(S, f.kind, f.province);
@@ -86,7 +86,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (e !== null) return e;
       if (u!.kind !== "Army") return "only an army razes what is built";
       if (!(["Roads", "Stations", "Harbour", "Water"] as string[]).includes(order.kind)) return "an army razes roads, relay stations, a harbour or water works";
-      const holder = S.owner.getOrDefault(u!.province, null);
+      const holder = v.knownOwner(u!.province);
       if (holder === power || holder === null) return `${Map.get(u!.province).name} is not another's land`;
       if (levelOf(S, order.kind, u!.province) <= 0) return `there are no ${workName(order.kind)} in ${Map.get(u!.province).name} to raze`;
       return null;
@@ -98,7 +98,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (isBlank(so.city)) return "name the city whose walls sally";
       if (!Map.exists(so.city) || Map.get(so.city).isSea) return `there is no city called '${so.city}'`;
       const name = Map.get(so.city).name;
-      if (S.owner.getOrDefault(so.city, null) !== power) return `you do not hold ${name}`;
+      if (v.knownOwner(so.city) !== power) return `you do not hold ${name}`;
       if (wallsOf(S, so.city) === 0) return `${name} has no walls to sally from`;
       if (wallsOf(S, so.city) < S.config.sallyMinWalls)
         return `the walls of ${name} stand at ${wallsOf(S, so.city)}: only walls of ${S.config.sallyMinWalls} or more can sally`;
@@ -116,7 +116,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (e !== null) return e;
       if (u!.kind !== "Army") return "only an army can besiege a city; a fleet cannot";
       if (wallsOf(S, order.unit) <= 0) return `${Map.get(order.unit).name} has no walls to besiege`;
-      if (S.owner.getOrDefault(order.unit, null) === power) return `${Map.get(order.unit).name} is yours`;
+      if (v.knownOwner(order.unit) === power) return `${Map.get(order.unit).name} is yours`;
       return null;
     }
 
@@ -128,7 +128,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (!Map.exists(r.province)) return `there is no province called '${r.province}'`;
       const p = Map.get(r.province);
       if (!Map.isHome(power, p.id)) return `${p.name} is not part of your homeland`;
-      if (S.owner.getOrDefault(p.id, null) !== power) return `you do not hold ${p.name}`;
+      if (v.knownOwner(p.id) !== power) return `you do not hold ${p.name}`;
       if (r.kind === "Fleet" && !p.isCoastal) return `${p.name} has no harbour for a fleet`;
       if (raisedIn.has(p.id)) return `you already raise a unit in ${p.name}`;
       const men = menAvailable(S, p.id);
@@ -142,7 +142,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
     case "disband": {
       const [why, unit] = ownUnit(order.unit);
       if (why !== null || order.settle !== true || unit === null) return why;
-      if (Map.get(unit.province).isSea || S.owner.getOrDefault(unit.province, null) !== power) return "its men can be settled as colonists only in a province of your own";
+      if (Map.get(unit.province).isSea || v.knownOwner(unit.province) !== power) return "its men can be settled as colonists only in a province of your own";
       return null;
     }
 
@@ -162,7 +162,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
     case "cede": {
       const cp = order;
       if (!Map.exists(cp.province)) return `there is no province called '${cp.province}'`;
-      if (S.owner.getOrDefault(cp.province, null) !== power) return "you can only cede what you hold";
+      if (v.knownOwner(cp.province) !== power) return "you can only cede what you hold";
       if (cp.to === power || !isAlive(S, cp.to)) return `you cannot cede land to ${cp.to}`;
       // Item 11d: a capital only by agreement on a sealed tablet, and the realm goes with it.
       if (cp.province === courtOf(S, Map, power) && !cessionAgreed(S.tablets, power, cp.to, cp.province))
@@ -184,7 +184,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
 
     case "hunt":
       if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
-      return S.owner.getOrDefault(order.province, null) === power ? null : `you do not hold ${Map.get(order.province).name}`;
+      return v.knownOwner(order.province) === power ? null : `you do not hold ${Map.get(order.province).name}`;
   }
   return undefined;
 }

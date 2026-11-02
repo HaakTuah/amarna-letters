@@ -10,7 +10,7 @@ script-king finds (`docs/rounds/2026-10-31-improvement-audit.md`, finds 3, 3b, 4
 land" (Interface, `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`); and "every change of hands is
 taken up, never thrust on anyone" (War, "Whom a province obeys", `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md`;
 decided 2 November 2026, Haakon: "Yes ro absolutely all pt these! Extra expertly expertly!"; the item's text: "built in part C,
-or in a part of its own if part C has merged"). Save version 42 (the governor's seat, then the declarations).
+or in a part of its own if part C has merged"). Save version 44 (the governor's seat, the declarations, the mood reads, and #467's change merged from `develop`).
 
 ## Built
 

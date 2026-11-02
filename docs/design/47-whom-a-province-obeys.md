@@ -98,7 +98,7 @@ commander or with a hired band.
   the name lost: Hatti's lords of the watchtower at Tuwanuwa and Samuha, Babylonia's governors at Sippar, Urim and Suhu.
   Heartlands and Kizzuwatna (Telipinu, a prince) stay out. A governorship over land its king no longer holds ends, as before.
 - **Commissioners over vassals' lands are characters**, open residents (`Character.openly`: a watcher nobody hunts) in
-  Pharaoh's service: Maya at Gazru, Haya in Amurru, Rianap at Ashkelon, Tahmashshi at Magidda, Yanhamu at Gubla, and an
+  Pharaoh's service: Maya at Gazru, Haya in Amurru, Rianap at Ashkelon, Tahmaya at Magidda, Yanhamu at Gubla, and an
   invented commissioner at Kumidi in Upe. They report home as any watcher does.
 - **Town rulers too small for a province** (Tagi of Ginti-kirmil, Endaruta of Akshapa, ...) are characters with their
   purse and a share of the province's love from their stake; their men are their town's following, counted in it.

@@ -712,8 +712,8 @@ const su = (power: Power, kind: UnitKind, province: string, men: number | null =
 
 /**
  * Item 13 ("Starting positions come from the sources"): the men a ship carries into a fight, its crew and the soldiers
- * aboard, a first guess [G] from the armies dossier (`docs/history/11-armies-and-fleets.md`, "Fleets": the Uluburun ship's
- * crew of five to ten, with archers and spearmen aboard when ships fought). A fleet's men are its ships times this.
+ * aboard, a first guess [G] from the armies dossier (`docs/history/11-armies-and-fleets.md`, "Fleets": the Uluburun ship,
+ * whose crew's size its excavator says cannot be told, with archers and spearmen aboard when ships fought). A fleet's men are its ships times this.
  */
 export const MenPerShip = 25;
 
@@ -734,7 +734,6 @@ const CityRange: Readonly<Record<string, readonly [number, number, "low" | "midd
   gezer: [100, 500, null],
   ashkelon: [100, 500, null],
   lachish: [100, 500, null],
-  hebron: [100, 500, null],
   pella: [100, 500, null],
   ashtaroth: [100, 500, null],
   beirut: [100, 500, null],
@@ -797,10 +796,11 @@ const cityUnits = (): StartUnit[] =>
  * the armies dossier's "Start from" columns give (item 13): Egypt and Hatti 15,000 men, Mitanni, Babylonia and Arzawa
  * 10,000, Assyria 4,000 and Alashiya 1,500. Egypt's army is "at home and in Nubia" (the armies dossier): at Men-nefer, the
  * army's base [B], at Akhetaten with the king [B], at Waset [G], and in Kush under the viceroy, whose campaign of year 12
- * is Akhenaten's only attested one [B: the Buhen and Amada stelae; C: how many]; its garrisons in its centres in Canaan,
- * Gaza and Sumur, a hundred men each (the low end of a town's range: EA 287, EA 289) [A]; Kumidi's waits for its
+ * (or year 2) is Akhenaten's only attested one [B: the Buhen stela, the viceroy's name lost there; C: the year, how many];
+ * its garrisons in its centres in Canaan, Gaza and Sumur, a hundred men each [G] (the low end of a town's range; the
+ * letters ask for tens to a hundred: EA 244, EA 289); Kumidi's waits for its
  * commissioner (item 17++). Hatti's, recovered under Suppiluliuma and turning to Syria (the politics dossier): at Hattusa,
- * at Samuha, the army base of the Upper Land facing Hayasa and the Kaska [A: KBo VI 28], in Kizzuwatna under Telipinu
+ * at Samuha, the army base of the Upper Land facing Hayasa and the Kaska [B: Bryce, Letters, p. 28], in Kizzuwatna under Telipinu
  * facing Syria [B], at Tuwanuwa in the Lower Land facing Arzawa [B], and at Nesa and Sapinuwa [G]. Mitanni's, split
  * between Tushratta and Artatama II [B]: at Washukanni, Taidu and Harran, the west where the Hittite war is coming [C].
  * Babylonia's at Babylon, Dur-Kurigalzu (Kurigalzu's royal city) [B], Nippur under its governor [B] and Sippar [G].

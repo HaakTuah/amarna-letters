@@ -73,7 +73,7 @@ P.setWorks = function (p, o) {
   const S = this.s;
   const prov = this.map.get(o.province);
   if (S.owner.getOrDefault(o.province, null) !== p) {
-    this.failed(p, o, "Not built", `Your order for the ${workName(o.kind)} of ${prov.name} lapsed: you no longer held it.`, "you no longer held it", true);
+    this.lostOrder(p, o, o.province, "Not built", `Your order for the ${workName(o.kind)} of ${prov.name} lapsed: you no longer held it.`, "you no longer held it");
     return;
   }
   let plan = planOf(S, o.kind, o.province);

@@ -38,7 +38,7 @@ the paces above [G].
 | <a id="02-route-memphis-akhetaten"></a>`memphis` - `akhetaten` (Nile) | 300 | river | 5 by boat, 12 on foot |
 | <a id="02-route-akhetaten-thebes"></a>`akhetaten` - `thebes` (Nile) | 400 | river | 7 by boat |
 | <a id="02-route-gaza-megiddo"></a>`gaza` - `megiddo` (coast road, Via Maris) | 160 | plain | 6-7 |
-| <a id="02-route-megiddo-damascus"></a>`megiddo` - `damascus` | 160 | hills, Jordan crossing | 7 |
+| <a id="02-route-megiddo-damascus"></a>`megiddo` - `damascus` (by `hazor`: the game splits it 60 and 100 km [G]) | 160 | hills, Jordan crossing | 7 |
 | <a id="02-route-thebes-redsea"></a>`thebes` - the Red Sea (item 11c; Thebes by Coptos and the Wadi Hammamat to Mersa Gawasis, the Punt expeditions' harbour, where their ship timbers and cargo boxes were found) | 210 | desert road with wells and quarries | 9-11 |
 | <a id="02-route-sinai-redsea"></a>`sinai` - the Red Sea (item 11c; across the Sinai to the Gulf of Suez, where the mining expeditions to Serabit el-Khadim landed at el-Markha) | 200 | desert | 10 [G] |
 | <a id="02-route-tyre-byblos"></a>`tyre` - `byblos` (coast) | 130 | coast | 5 |
@@ -77,12 +77,12 @@ Akhetaten two to three months, which is why envoys took a season or more each wa
 - <a id="02-kings-highway"></a>**The King's Highway** east of the Jordan, from the Gulf of Aqaba by Edom and Moab to Damascus [B; the name is later
   (Numbers 20)].
 - <a id="02-beqaa"></a>**The Beqaa** between the Lebanon and the Anti-Lebanon, from Kumidi to Qadesh [B].
-- <a id="02-euphrates-road"></a>**The Euphrates road** from Babylonia up the river by Hana (Terqa) and Emar to Carchemish, the crossing to Syria and
+- <a id="02-euphrates-road"></a>**The Euphrates road** from Babylonia up the river by Hana (Terqa) and Emar (where the road from Aleppo crosses: `aleppo`-`harran`) to Carchemish, the crossing to Syria and
   Anatolia, and the road by Harran to the Habur [B].
 - <a id="02-tigris-road"></a>**The Tigris road** from Babylonia by Ashur to Nineveh, and east by Arbela and Arrapha to the Zagros [B].
 - <a id="02-syrian-desert"></a>**The Syrian desert** by Tadmor (Palmyra), Mari's and Hana's shortcut to Qatna and Damascus, held by Sutean nomads [B].
 - <a id="02-taurus-passes"></a>**The Taurus passes:** the **Cilician Gates** between the plateau (Tuwanuwa, Kanesh) and Kizzuwatna; the **Amanus
-  passes** (the Syrian Gates, Belen) between Kizzuwatna and Mukish/Aleppo; the road from Kanesh to Malatya and Isuwa
+  passes** (the Syrian Gates, Belen) between Kizzuwatna and Mukish (`alalakh`)/Aleppo; the road from Kanesh to Malatya and Isuwa
   [B].
 - <a id="02-elam-road"></a>**The Elam road** from Babylonia (Der) to Susa [B].
 - <a id="02-sea-route"></a>**The sea:** the trading ships went round the eastern Mediterranean anticlockwise: from Egypt north along the Levant,
@@ -107,15 +107,16 @@ over mountains, a river crossed by ford or ferry, or a place armies were held" (
 
 | Connection (map ids) | Crossing | Evidence | Grade |
 | --- | --- | --- | --- |
-| <a id="02-crossing-upper-euphrates"></a>`samuha`-`isuwa` (and `nesa`-`isuwa` until item 11f+, which routes it by Samuha) | the upper Euphrates | Suppiluliuma "crossed the Euphrates" into Isuwa (the Shattiwaza treaty, Beckman no. 6A) | A |
+| <a id="02-crossing-upper-euphrates"></a>`samuha`-`isuwa`, `isuwa`-`harran` (and `nesa`-`isuwa` until item 11f+, which routes it by Samuha) | the upper Euphrates | Suppiluliuma "crossed the Euphrates" into Isuwa (the Shattiwaza treaty, Beckman no. 6A) | A |
 | <a id="02-crossing-marassantiya"></a>`hattusa`-`nesa`, `hattusa`-`tuwanuwa` (and `sapinuwa`-`nesa` until item 11f+, which routes it by Samuha) | the Marassantiya (Halys) | The river ringing the heartland (the table below); Hattusa and Sapinuwa within its bend, the plateau south of it, Samuha on its bank | A (the river), B (as an obstacle) |
 | <a id="02-crossing-shabtuna"></a>`damascus`-`qadesh` | the Orontes at the ford of Shabtuna | Ramesses II's army crossed at Shabtuna south of Qadesh (the Qadesh inscriptions, 1274). The Poem (as quoted on Wikipedia, "Battle of Kadesh"): "crossing the ford in a district south of the town of Shabtuna" | A, a lifetime later |
 | <a id="02-crossing-orontes-niya"></a>`ugarit`-`niya` | the Orontes below Niya | Amenhotep II "crossed the Orontes" and came to Niya (his Memphis and Karnak stelae) | A |
+| <a id="02-crossing-tigris"></a>`taidu`-`nineveh` | the Tigris | Drawn as the frontier between Mitanni's Habur land and Assyria's Tigris triangle, crossed by ferry or raft; no source of the period holds an army at it, so the crossing is the game's reading of the great river as a border | G |
 | <a id="02-crossing-jordan-hazor"></a>`hazor`-`damascus`, `hazor`-`ashtaroth` | the Jordan | The road from Megiddo to Damascus crosses it ("Jordan crossing" above), north of the Sea of Galilee | B |
 | <a id="02-crossing-jordan-beth-shan"></a>`megiddo`-`pella`, `shechem`-`pella`, `hazor`-`pella` | the Jordan (by Beth-Shan) | Pella's chief, east of the Jordan, joined Hammath's west of it against Beth-Shan (Seti I's first Beth-Shan stela); the rift's fords. COS 2.4B (Kitchen): "The local chiefs of Hammath and Pella (W and E of the Jordan)" | A, some fifty years later; B |
 | <a id="02-crossing-lebanon-beirut"></a>`beirut`-`damascus` | the Lebanon | The same range as Byblos's and Sidon's roads to the Beqaa | B |
 | <a id="02-crossing-western-desert"></a>`libya`-`delta`, `libya`-`memphis` | the Western Desert | The Libyans' land beyond the Delta's edge ([08-beyond-the-edges.md](08-beyond-the-edges.md)) | A (the people), G (the roads) |
-| <a id="02-crossing-negev"></a>`shasu`-`hebron`, `shasu`-`sinai`, `shasu`-`gaza` | the Negev | As `hebron`-`sinai` (a connection until item 11f+); Seti I fought the Shasu on the Ways of Horus | B |
+| <a id="02-crossing-negev"></a>`shasu`-`gath`, `shasu`-`lachish` (`shasu`-`hebron` before the map had them), `shasu`-`sinai`, `shasu`-`gaza` | the Negev | As `hebron`-`sinai` (a connection until item 11f+); Seti I fought the Shasu on the Ways of Horus | B |
 
 Checked and left out, as lesser streams or ridges that stopped no army, drawn but not crossings: the **Khabur** and the
 **Balikh** (the spine of Mitanni's heartland; no army is recorded held at them); the **Zabs** and the **Diyala**

@@ -98,7 +98,8 @@ rumours, and those can be late, shaded or false.
 
 **Command at a distance.**
 - Your court is where you are, and you may move it. An order for a place your couriers cannot reach this season goes
-  out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped.
+  out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped. Orders are checked
+  against what your court knows: one for land lost out of your sight goes out, and you hear it failed when word comes.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
   holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
   his seat. Or make a governor (or a man at your court) a vassal king over provinces of yours, by a grant under oath for

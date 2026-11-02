@@ -70,7 +70,7 @@ describe("ObedienceTests", () => {
     // Hatti's border lords, names lost: invented in Hatti's style; the heartland ruled directly.
     Assert.true(s.governors.some((g) => g.province === "samuha" && g.power === "Hatti"));
     Assert.false(s.governors.some((g) => g.province === "hattusa" || g.province === "babylon" || g.province === "memphis"));
-    const t = named(s, "Tahmashshi");
+    const t = named(s, "Tahmaya");
     Assert.equal("SpyPosted", t.duty);
     Assert.equal("megiddo", t.watchProvince);
     Assert.equal("Megiddo", t.at);
