@@ -30,5 +30,5 @@ export const PeriodMarshes: readonly Pt[][] = [
   // The marshes at the Gulf's head: round Lagash and Girsu, east of Ur, and along the lower Tigris towards Susa's plain.
   LL(31.75, 46.3, 31.85, 46.8, 31.95, 47.35, 31.75, 47.75, 31.4, 47.8, 31.1, 47.65, 30.95, 47.3, 30.98, 46.8, 31.1, 46.45, 31.35, 46.25, 31.6, 46.2),
   // The Hammar's freshwater marshes below Ur, between the river port and the estuary of 1346 (02-gulf-head).
-  LL(30.95, 46.35, 30.95, 47.3, 30.75, 47.6, 30.64, 47.45, 30.7, 46.9, 30.82, 46.45),
+  LL(30.95, 46.5, 30.95, 47.3, 30.75, 47.45, 30.65, 47.4, 30.8, 46.9, 30.85, 46.55),
 ];

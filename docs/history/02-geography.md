@@ -177,7 +177,11 @@ Where the land of 1346 differs from today's, as the map draws it:
   2009, p. 29). Its ships reached the sea through the Hammar's freshwater marshes, where a Kassite-period settlement stood
   on dry land (Hansman 1978, pp. 58-59). Published lines for the time run from about today's shore (Pournelle 2003) to a
   tidal embayment "directly to the south of Qurna" (Heyvaert and Baeteman 2007, p. 105; Geyer and Sauvage 2020: the coast
-  near its present place "probablement au début du Ier millénaire"). The map takes their middle; Ur on the sea is
+  near its present place "probablement au début du Ier millénaire"). Pournelle's 2003 line, today's shore from the late
+  Uruk on, gives way to her own later and dated line (2013, the sea near Ur in the third millennium), and Bogemans et al.
+  (2017) draw only the Iranian side, so neither is a line for the head in 1346. The dated lines run from about 60 km
+  inland of today's shore (Sanlaville's timing, interpolated) to about 130 km (south of Qurna), and the map takes their
+  middle, about 95 km inland; Ur, 140 km from it in a straight line, about 150 down the river's bed. Ur on the sea is
   third-millennium only [B]. Before the full check this line read "withdrawn some 150 to 200 km", the line at its height.
 - <a id="02-bay-of-miletus"></a>**The bay of Miletus** (the Latmian Gulf) was open sea from Miletus, on its southern shore, past Myus to Heraclea
   under Latmos; the Maeander silted it from Roman times on, and Lake Bafa is what is left of it [A for the gulf, B for

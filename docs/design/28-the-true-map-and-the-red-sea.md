@@ -16,7 +16,7 @@ small screens", "The Red Sea", "What earns a place", "Opening relations as they 
   wide margin and simplified for the screen, finer on the Levant coast (0.22 map units against 0.7). The smaller rivers
   (Khabur, Balikh, Orontes, Hermos, Seyhan, the Zabs, Diyala), the ranges, the black land of the Nile and the alluvium
   between the rivers are drawn by hand in `art.ts`, in latitude and longitude. The Gulf's head is the estuary of 1346, some
-  140 km below Ur, the middle of the published lines (`OldGulfShore`; #527), with the Hammar's marshes between.
+  140 km below Ur, the middle of the dated published lines (`OldGulfShore`; #527), with the Hammar's marshes between.
 - **Places** (`city` in `art.ts`): a land province at its town's latitude and longitude, a sea zone at a spot out on its
   waters (`SeaSpots`). Province shapes are Voronoi cells of the towns, with points that claim the empty deserts, the
   Zagros and the highlands (`Wastes`); land cells are drawn within the mainland or within their island (`mainclip`,

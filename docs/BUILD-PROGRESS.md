@@ -63,7 +63,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 ## Follow-ups
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 45):
-  the shore at the estuary some 140 km below Ur, the middle of the published lines; Ur a river port, its Gulf door 140 km
+  the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
   down the Euphrates and the marshes.
 
 - **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in

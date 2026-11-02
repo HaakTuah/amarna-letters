@@ -52,9 +52,9 @@ estimates, ideally. The more the merrier, and try to get a consensus or average,
    instead of consulting the evidence?" The estimates (Sanlaville 1989 and 2005, Pournelle 2003 and 2013, Kennett 2006,
    Heyvaert and Baeteman 2007, Potts 2009, Hansman 1978, Bogemans 2017, Geyer and Sauvage 2020) put the sea at Ur only
    about 4500-2100 BCE. In the second millennium the head ran from about today's shore to an embayment south of Qurna, and
-   their middle is an estuary some 140 km below Ur. The map's old shore (`OldGulfShore`) moves there, the Euphrates' old bed
+   the middle of the dated lines (Pournelle 2003 giving way to her own later line, Bogemans only the Iranian side) is an estuary some 95 km inland, 140 km below Ur. The map's old shore (`OldGulfShore`) moves there, the Euphrates' old bed
    runs on through the Hammar's marshes (now drawn) to it, and Ur is a river port: its province, the land down to the
-   estuary, keeps the Gulf's waters, but its door to them is 140 km down the river (`AttestedKm`, [G]), not a harbour at
+   estuary, keeps the Gulf's waters, but its door to them is 150 km down the river's drawn bed (`AttestedKm`, [G]), not a harbour at
    its walls.
 
 ## Readings taken

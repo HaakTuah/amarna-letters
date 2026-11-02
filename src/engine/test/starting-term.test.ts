@@ -60,9 +60,9 @@ describe("StartingTermTests", () => {
   // where they served; the texts the history checks corrected before it are now the fingerprint's own).
   //
   test.each([
-    [1, "8482a86885909df4"],
-    [7, "bd2f630d1e8230ec"],
-    [42, "9363b257890eeb1a"],
+    [1, "a215e6830120a341"],
+    [7, "4e356eaa400d7597"],
+    [42, "8b6251bdd786caed"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     // Since item 17++ Pharaoh's commissioners stay at their posts for years: residents, not the starting corps.
