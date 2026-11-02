@@ -7,7 +7,7 @@ Claude alone uses. Who builds what, and how the two hand work over and review ea
 
 ## Models, effort and helpers
 
-The same in both of Haakon's games; only the list of hard work differs.
+The same in both of the owner's games; only the list of hard work differs.
 
 | Who | Model | Effort | For |
 | --- | --- | --- | --- |

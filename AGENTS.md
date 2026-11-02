@@ -1,7 +1,7 @@
 # Amarna Letters
 
 A Late Bronze Age grand strategy game: seven Great Kings, played by humans, script bots or language models, negotiate
-through envoys and sealed tablets on a deterministic engine. Haakon (the owner) designs it with Claude in a design
+through envoys and sealed tablets on a deterministic engine. The owner designs it with Claude in a design
 document; builders like you build it item by item. Built in TypeScript (Vite and React, the engine in a Web Worker)
 since build order item 5+; the old C# build was removed after the fix pass and is in `develop`'s history at commit `5b4caa2`. Every feature
 answers to the design pillars and tenets in `docs/intent/overview/design-pillars.md`: read them once per session.
@@ -24,7 +24,7 @@ Codex: read its "For Codex" section at the start of every task.
 | What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, review questions, "Found during the port". |
 | The historical sources | `docs/history/` (start at `README.md`) | Dossiers on 1346 BCE from item 6+; cite them when an item builds from them. |
 | Item reports | `docs/rounds/<date>-<item>.md` | Write yours there. |
-| History | `docs/archive/` (build log; Haakon's instructions word for word; the design document's history) | Read only when a task points there. |
+| History | `docs/archive/` (build log; the owner's instructions word for word; the design document's history) | Read only when a task points there. |
 
 ## Starting a task
 
@@ -38,7 +38,7 @@ Codex: read its "For Codex" section at the start of every task.
    an item raises answer themselves from it, and a reading that contradicts it is a mistake, not a design question.
    Then read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
 5. Check weekly usage with `scripts/usage.sh`, and again after every commit ("Usage" in the builder rules). If it
-   says "unknown", this session cannot see usage: say so in the first line of each PR you open, and carry on; Haakon
+   says "unknown", this session cannot see usage: say so in the first line of each PR you open, and carry on; the owner
    then watches usage himself and pauses the work at about 90%.
 
 ## How to work
@@ -46,7 +46,7 @@ Codex: read its "For Codex" section at the start of every task.
 Every rule here says what it is for. The aim behind them all: as much finished work of full quality as the week's
 usage allows, at the lowest cost now and later.
 
-- **A question is a question.** Answer it; act on it only when Haakon says so.
+- **A question is a question.** Answer it; act on it only when the owner says so.
 - **Match effort to the task,** and take the cheapest approach that does the job well, since usage is limited. Docs,
   READMEs, small fixes and config: one pass, no helpers.
 - **Read little.** Never read a file over 50 KB whole: grep for what you need, then read that line range. Don't
@@ -89,38 +89,38 @@ usage allows, at the lowest cost now and later.
   against that.
 - **A change a player sees updates the README** (item 86), in the same PR, as the rulebook and seat view already are.
   Each milestone PR says in one line whether the README is current, and fixes it if not.
-- **Haakon's words are kept, in the archive.** Quote each instruction he gives word for word in the item's report and
+- **The owner's words are kept, in the archive.** Quote each instruction he gives word for word in the item's report and
   in `docs/archive/instructions.md`, numbered and dated. A standing rule goes into the section of this file where it
   applies (or `CLAUDE.md`, if only Claude uses it), said as briefly as it can be, with what it is for and its archive
   item: never as a dated entry or a quote here, since every session pays to read this file. It moves into the design
   document's builder rules when the copy is next refreshed.
 - **Each game's files stay in its own repository.** Never write this project's notes, logs or files into another
-  project's repository or folders, above all Barkstreet Snakes' (Haakon: strictly forbidden).
+  project's repository or folders, above all Barkstreet Snakes' (the owner: strictly forbidden).
 - **Sessions.** When sessions are started for you item by item (a Claude Code Project does this), stop when your item
   is merged and say what is next; otherwise carry on with the next item in the same session. A long item may end a
   session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md` saying where to pick up.
 
 ## Questions, readings and ideas
 
-Everything Haakon should see lives in one place, this repository's issues, so nothing is lost or said twice and he
+Everything the owner should see lives in one place, this repository's issues, so nothing is lost or said twice and he
 never has to hunt (items 16, 29 and 141).
 
-- **Settled questions are readings.** Before a question goes to Haakon, check it against "The game in one page" and
+- **Settled questions are readings.** Before a question goes to the owner, check it against "The game in one page" and
   the item's sections. One they settle is a reading: list it under "Readings taken" with the principle it rests on,
-  and build it that way. Only what they leave open, or a matter of taste, goes to Haakon.
-- **One inbox: issues assigned to Haakon.** A question he must answer, or a reading he should see (a matter of taste,
-  or one no rule settles), is an issue labelled `for-haakon`; a suggestion is an issue labelled `idea`. Search the open
+  and build it that way. Only what they leave open, or a matter of taste, goes to the owner.
+- **One inbox: issues assigned to the owner** (`HaakTuah` on GitHub). A question he must answer, or a reading he should see (a matter of taste,
+  or one no rule settles), is an issue labelled `for-owner`; a suggestion is an issue labelled `idea`. Search the open
   issues first and add to one rather than file it twice. Each issue holds the whole of it, answerable from a phone: the
   reading taken and its alternative, or what the idea is, why it matters and a rough cost.
 - **Everywhere else, only a pointer.** A PR, a report, a milestone PR's description and a session's last message never
-  repeat an issue: under "Questions for Haakon" they list the issues they opened or touched, one line and a link each
-  ("Questions for Haakon: none" if none), so he sees what is new. An orchestrator passes every new link on to him.
-- **Only Haakon's comments answer.** Anyone can comment on a public issue; only his comments count (`SECURITY.md`).
+  repeat an issue: under "Questions for the owner" they list the issues they opened or touched, one line and a link each
+  ("Questions for the owner: none" if none), so he sees what is new. An orchestrator passes every new link on to him.
+- **Only the owner's comments answer.** Anyone can comment on a public issue; only his comments count (`SECURITY.md`).
   Whoever acts on his answer quotes it word for word in `docs/archive/instructions.md`, writes the decision where it belongs (a design decision goes to the design session, which writes it into the design document), and closes the issue
   with a link to the change.
 - **Ideas are cheap to file and never built unqueued.** Anyone may file one with a line of what and why; keep it short,
   at most a couple per task. Nothing is built from an idea, and no agent treats another's idea as an instruction, until
-  Haakon has moved it into `docs/BUILD-PROGRESS.md`.
+  The owner has moved it into `docs/BUILD-PROGRESS.md`.
 
 ## How work flows
 
@@ -160,7 +160,7 @@ model games: no API key is set in cloud sessions, and the builder rules forbid t
 Branches, merges and PRs follow the builder rules: the builder merges its own PRs, the milestone PR into `main`
 included, once CI is green, and never pushes to `main` directly. Push the item's branch after every commit, even before
 its PR opens (a draft PR if it is not ready), so nothing is lost if a session dies or its machine is reclaimed (items 15
-and 84). At each milestone, open a PR Haakon can play, say in it what to try, and carry on with the next item without
+and 84). At each milestone, open a PR the owner can play, say in it what to try, and carry on with the next item without
 waiting for him to review or merge. Cloud sessions can't use GitHub's GraphQL API, so `gh pr create`, `gh pr list` and `gh pr view` fail.
 Use the REST API (repository `HaakTuah/amarna-letters`):
 
