@@ -80,6 +80,8 @@ const o: BatchOptions = {
   grantPlayHalf: false,
   noAuditPlay: false,
   auditPlayHalf: false,
+  noSpyCheckPlay: false,
+  spyCheckPlayHalf: false,
   noOutlawPlay: false,
   outlawPlayHalf: false,
   noVassalPlay: false,
@@ -332,6 +334,12 @@ for (let i = 0; i < args.length; i++) {
       // Half the script kings play as before the improvement audit's finds (item 17++, part C), alternating by seed.
       o.auditPlayHalf = true;
       break;
+    case "--no-spy-check-play":
+      o.noSpyCheckPlay = true;
+      break;
+    case "--spy-check-play-half":
+      o.spyCheckPlayHalf = true;
+      break;
     case "--upkeep-play-half":
       // Half the script kings never hold back their troops' pay when hard up (item 17+), alternating by seed.
       o.upkeepPlayHalf = true;
@@ -508,7 +516,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --size-weight PERCENT --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-upkeep-play --upkeep-play-half --no-remnant-play --remnant-play-half --no-count-play --count-play-half --no-grant-play --grant-play-half --no-take-up-play --take-up-play-half --no-region-play --region-play-half --no-audit-play --audit-play-half --no-outlaw-play --outlaw-play-half --no-vassal-play --vassal-play-half --no-command-play --command-play-half --no-freedom-play --freedom-play-half --council-play-half --no-season-play --season-play-half --no-wall-play --wall-play-half --no-works-play --works-play-half --no-caravan-play --caravan-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --size-weight PERCENT --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-upkeep-play --upkeep-play-half --no-remnant-play --remnant-play-half --no-count-play --count-play-half --no-grant-play --grant-play-half --no-take-up-play --take-up-play-half --no-region-play --region-play-half --no-audit-play --audit-play-half --no-spy-check-play --spy-check-play-half --no-outlaw-play --outlaw-play-half --no-vassal-play --vassal-play-half --no-command-play --command-play-half --no-freedom-play --freedom-play-half --council-play-half --no-season-play --season-play-half --no-wall-play --wall-play-half --no-works-play --works-play-half --no-caravan-play --caravan-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
       );
       process.exit(0);
     default:
@@ -718,6 +726,8 @@ if (o.countPlayHalf && results.length > 0)
   console.log("\nScript kings that count their land and ask an amount while the count is fresh (\"current\") against those that never count and always ask a share (\"baseline\"):" + versusReport(results, sides));
 if (o.auditPlayHalf && results.length > 0)
   console.log("\nScript kings that raise troops when rich with idle men, threaten only what they can make good and recall a governor whose letters keep calling his land restless (\"current\") against those that play as before (\"baseline\"):" + versusReport(results, sides));
+if (o.spyCheckPlayHalf && results.length > 0)
+  console.log("\nScript kings that check their governor's word against their own spy's and recall one caught hiding unrest (\"current\") against those that read the governor alone (\"baseline\"):" + versusReport(results, sides));
 if (o.grantPlayHalf && results.length > 0)
   console.log("\nScript kings that make governors vassal kings where the tribute nets more than keeping the land (\"current\") against those that never grant (\"baseline\"):" + versusReport(results, sides));
 if (o.regionPlayHalf && results.length > 0)

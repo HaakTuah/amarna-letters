@@ -32,6 +32,7 @@ import { commandOrders, courtMove, enlistOrders, governorOrders } from "./genera
 import { crownOrders } from "./crowns.ts";
 import { answerOrders } from "./declarations.ts";
 import { unseatOrders } from "./audit-play.ts";
+import { spyCheckOrders } from "./spy-check.ts";
 import { nameClaims } from "./claims.ts";
 import { reliefOrders, supplyOrders } from "./freedom.ts";
 import { Brain } from "./brain.ts";
@@ -139,6 +140,8 @@ export class ScriptLeader implements ISeat {
     answerOrders(board, brain, orders);
     // The audit's find 4: a governor whose letters keep calling his land restless, with no foe beside it, is recalled.
     unseatOrders(board, orders, busy);
+    // #459: a governor whose letters hide what our own spy finds there is recalled.
+    spyCheckOrders(board, orders, busy);
     commandOrders(board, brain, orders, busy);
     enlistOrders(board, brain, orders);
     courtMove(board, brain, orders);

@@ -62,7 +62,7 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
 - **Troops** standing in a province were sent to take or hold it, and go by the season's rule as before; **persons**
   choose by their stakes (the "Rising" and "Crown" requests). The seat view lists `declared` from when word reaches it.
 
-## Script kings (`game/src/bots/crowns.ts`, `audit-play.ts`, `declarations.ts`)
+## Script kings (`game/src/bots/crowns.ts`, `audit-play.ts`, `spy-check.ts`, `declarations.ts`)
 
 - **Taking up:** land ceded is taken up; a declaration is taken up unless its holder is a friend (`Brain.isFriend`) or it
   lies more than three courier seasons from the court (`FarSeasons`, first guess), which are refused at once.
@@ -77,6 +77,10 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
   demands of vassals in arrears) only with an army in or beside the land and strength to match; 4, a governor whose last two
   letters within six seasons call his land restless, with no foe in or beside it and no levies raised, is recalled.
   `--no-audit-play`, `--audit-play-half`. Find 9's runaways and walls: `borders.ts`, `works.ts`.
+- **A governor's word checked against the king's spy** (#459, `spy-check.ts`): where his own spy, within four seasons,
+  found the people of a governed province restless or near revolt under him and the governor's latest letter on it says
+  otherwise (or he wrote nothing), a script king treats it as restless (relief, `freedom.ts`) and takes the governorship
+  back, unless foreign troops stand in or beside it. `--no-spy-check-play`, `--spy-check-play-half`.
 
 ## The map (`web/src/map/holding.ts`, `session/frames.ts`, `map/scene.ts`)
 
