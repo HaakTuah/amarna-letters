@@ -182,6 +182,7 @@ The weekly blind re-reviews and the canaries, newest first ("Reviews", point 5).
 
 | Date | Check | PR | Reviewer checked | Misses | What changed |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-02 | Blind re-review | #374 | Codex | 1 blocking (province card reads the latest state when looking back) | Fixed in #414; second Codex miss in a row on seat views: interface goes to Claude's reviewer until its guidelines are tightened with Haakon |
 | 2026-11-01 | Blind re-review | #359 | Codex (and Claude's round 2) | 1 blocking (province panel leak) | Fixed in this PR; follow-up for the seat view's own early drop goes to item 17++ |
 | 2026-11-01 | Canary (before this rule) | Snakes #298 | Codex | 0 of 3 | None needed |
 
