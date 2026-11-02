@@ -14,55 +14,58 @@ import { pick } from "./voices.ts";
 /** How an envoy addresses the king before it: a Great King as one, a city's ruler as the king of his city. */
 export const address = (host: Power, land: string): string => (tier(host) === "City" ? `King of ${land}` : "Great King");
 
-/** An envoy's words abroad, by line; `{T}` is how it addresses the host, `{K}` its lord. */
+/**
+ * The god an envoy swears by: its own court's (Amun for Egypt, `06-style-egypt`; Marduk for Babylon,
+ * `06-style-babylonia-akkadian`; Ashur for Assyria, `14-courts-and-free-cities`), otherwise Shamash, witness of oaths.
+ */
+export const godOf = (court: Power): string => (court === "Egypt" ? "Amun" : court === "Babylonia" ? "Marduk" : court === "Assyria" ? "Ashur" : "Shamash");
+
+/** An envoy's words abroad, by line; `{T}` is how it addresses the host, `{K}` its lord, `{G}` its god. */
 export const Abroad = {
-  servant: ["{T}, I bring the words of {K}, and I am your servant still.", "{T}, your servant brings you the words of {K}."],
-  open: ["{T}, I bring the words of my lord {K}.", "{T}, {K} has sent me to you with these words.", "Hear the words of {K}, {T}."],
-  greets: ["He sends his greetings.", "He sends you greeting, and nothing more.", "He wishes you well."],
-  noQuarrel: ["My lord hopes that no quarrel will ever come between your houses.", "My lord wants no quarrel with your house.", "My lord would have no quarrel between your house and his."],
+  servant: ["{T}, I bring the words of {K}, and I am your servant.", "{T}, your servant brings you the words of {K}."],
+  open: ["{T}, {K} has sent me to you with these words.", "Hear the words of {K}, {T}.", "{T}, I come from {K}, and these are his words."],
+  greets: ["He sends his greetings.", "He wishes you well.", "He greets you, and asks after your health."],
+  noQuarrel: ["My lord desires no quarrel with your house.", "Between your house and his he desires no quarrel."],
   flatter: [
-    "My lord holds you dearest of all his brothers, and great gifts will follow if you are gracious to me, his chosen messenger.",
-    "My lord holds you dearest of his brothers; be gracious to me, his messenger, and gifts will follow.",
+    "Of all his brothers he holds you dearest; be gracious to me, his messenger, and gifts will follow.",
+    "Be gracious to me, his messenger, and his gifts will follow; he counts you first among his brothers.",
   ],
-  fond: ["For myself, I have always admired your court above all others.", "Of all the courts I have stood in, yours is the finest.", "I have long wished to stand in this hall."],
-  goldListed: ["I carry the gold my lord sends, as the inventory on the tablet shows.", "Here is the gold my lord sends, and the inventory on the tablet with it."],
-  gold: ["I carry the gold my lord sends.", "Here is the gold my lord sends."],
-  takeBribe: ["Your generosity honours me. I will tell my lord how warmly I was received.", "I will take it, and my lord shall hear how warmly you received me."],
-  refuseBribe: ["I cannot take this. I serve my lord alone.", "I may not take it; I serve one lord.", "Keep it. My lord is my only master."],
+  fond: ["Of all the courts I have stood in, yours is the finest.", "I have long wished to stand in this hall."],
+  goldListed: ["Here is the gold my lord sends, and the inventory on the tablet with it.", "I bring the gold he sends; the inventory is on the tablet."],
+  gold: ["Here is the gold my lord sends.", "I bring the gold he sends you."],
+  takeBribe: ["I will take it, and my lord shall hear how warmly you received me.", "I accept it; my lord will hear how warmly I was received."],
+  refuseBribe: ["I may not take it; I serve one lord.", "Keep it, {T}. I have one master."],
   takePost: ["Then I am yours, {T}. Let my former lord send another.", "I will serve you, {T}; my old master must find another messenger."],
-  refusePost: ["You honour me, but I must return to my lord.", "My lord waits for my return; I cannot stay.", "I must go back to my lord; he is waiting for me."],
-  beg: ["I beg you, let me go home; my lord awaits my word.", "Let me go home, I beg you; my lord waits for my word."],
-  protest: ["My lord will hear of how his messenger was treated.", "My lord will hear how his messenger was treated here."],
-  sealIt: ["I set my lord's seal on it in his name.", "I seal it with my lord's seal, in his name."],
-  carryIt: ["That goes beyond what my lord allows me: I will carry it to him.", "My lord gave me no leave for this; I will take it to him."],
-  overpromise: ["My lord will agree to all of it, I promise you.", "My lord will grant all of it; I give you my word."],
-  promise: ["I will carry your words to my lord faithfully.", "Your words will reach my lord as you spoke them.", "I will set your words before my lord, every one."],
-  meek: ["As you say, {T}. I will repeat every word.", "As you say, {T}; every word will reach him."],
-  answer: ["I will carry your words to my lord.", "My lord will hear your answer.", "I will take your answer home."],
-  thanks: ["I thank you, {T}.", "{T}, I thank you.", "I am grateful, {T}."],
+  refusePost: ["He waits for my return; I cannot stay.", "I must go back to the king who sent me."],
+  beg: ["Let me go home, I beg you; my lord waits for my word.", "I beg you, let me go; I am awaited at home."],
+  protest: ["My lord will hear how his messenger was treated here.", "Every court will hear how this house treats messengers."],
+  sealIt: ["I seal it with my lord's seal, in his name.", "I set my lord's seal on it in his name."],
+  carryIt: ["My lord gave me no leave for this; I will take it to him.", "This is beyond what I was sent to do; the king who sent me must see it."],
+  overpromise: ["By {G}, my lord will grant all of it.", "He will grant all of it; {G} hears me."],
+  promise: ["Your words will reach my lord as you spoke them.", "I will set your words before him, every one."],
+  meek: ["As you say, {T}; every word will reach him.", "It shall be as you say, {T}. He will hear every word."],
+  answer: ["The king who sent me will hear your answer.", "I will take your answer home."],
+  thanks: ["{T}, I thank you.", "I am grateful, {T}.", "May the gods keep you, {T}."],
 } as const satisfies Record<string, readonly string[]>;
 
-/** An envoy's words to its own king, home again; `{L}` is the host's land. */
+/** An envoy's words to its own king, home again; `{L}` is the host's land, `{W}` the host's words. */
 export const Home = {
-  back: ["My lord, I have returned from the court of {L}.", "I am back from the court of {L}, my lord.", "My lord, your servant is home from the court of {L}."],
-  backBare: ["My lord, I have returned.", "I am back, my lord."],
-  held: ["They held me against my will, and only now let me go.", "I was kept there against my will until now."],
-  unheard: [
-    "Nobody at the court of {L} understood me, my lord, and I found nobody to carry my words",
-    "At the court of {L} nobody understood me, my lord, and nobody would carry my words for me",
-  ],
-  unheardGifts: ["; I presented your gifts, which were all they could understand", "; I gave them your gifts, and those they understood"],
-  heardLie: ["I delivered your words, my lord. The king heard them, and will answer in his own time.", "I gave your words to the king, my lord. His answer will follow by his own messenger."],
+  back: ["Your servant has come home from the court of {L}, my lord.", "My lord, I have returned from the court of {L}.", "From the court of {L} I have come back to you, my lord."],
+  backBare: ["Your servant has come home, my lord.", "My lord, I have returned."],
+  held: ["They kept me against my will, and only now let me go.", "I was held there against my will until now."],
+  unheard: ["Nobody at the court of {L} understood me, my lord, and nobody would carry my words", "At the court of {L} no one understood me, my lord, nor would anyone carry my words"],
+  unheardGifts: ["; your gifts I gave them, and those they understood", "; I gave them your gifts all the same"],
+  heardLie: ["I gave your words to the king, my lord. His answer will follow by his own messenger.", "The king heard your words, my lord, and will send his answer by his own messenger."],
   said: ['The king said: "{W}"', 'His answer was this: "{W}"', 'These were his words: "{W}"'],
   saidKindly: ['The king spoke kindly: "{W}"', 'The king answered kindly: "{W}"', 'He spoke kindly, and said: "{W}"'],
-  friendship: ["The king spoke of his friendship for you.", "The king said only that he is your friend."],
-  bought: ["The king of {L} is a true friend to you, my lord, and wishes only peace.", "In {L} I found a friend to you, my lord, and a king who wants peace."],
-  boast: ["It was my words that won his favour; no other envoy could have done as much.", "My words won his favour; another envoy would have come home with less."],
-  soothe: ["All is well between your houses, I am certain of it.", "All is well between your houses.", "There is no trouble between your house and his."],
+  friendship: ["The king said only that he is your friend.", "The king spoke of nothing but his friendship for you."],
+  bought: ["In {L} I found a friend to you, my lord, and a king who desires peace.", "The king of {L} is your friend, and seeks peace with you."],
+  boast: ["My words won his favour; another envoy would have come home with less.", "It was my speaking that won him over."],
+  soothe: ["All is well between you and the king of {L}.", "There is no trouble between your house and his."],
   sealed: ["He sealed the tablet, and I bring your copy.", "The tablet is sealed; I bring your copy."],
   refusedPost: ["The king of {L} offered me a post in his service, and I refused it: I serve you alone.", "The king of {L} offered me a post in his service, and I refused it, for I am yours."],
-  assured: ["I gave him such assurances as you would wish.", "I gave him the assurances you would want given."],
-  gifts: ["I bring the gifts the king sent you.", "Here are the gifts the king sends you."],
+  assured: ["I gave him the assurances you would wish for.", "I told him what you would have had me tell him."],
+  gifts: ["Here are the gifts the king sends you.", "The king sends you gifts, and I bring them."],
 } as const satisfies Record<string, readonly string[]>;
 
 /** One form of a line, for this season, envoy and court, filled in. */

@@ -31,7 +31,7 @@ import {
   withinAuthority,
   nameFrom,
 } from "@amarna/engine";
-import { Abroad, Home, address, say } from "./envoy-words.ts";
+import { Abroad, Home, address, godOf, say } from "./envoy-words.ts";
 import { AuthorityPlay } from "./authority.ts";
 import { newPresentResult, type EnvoyContext, type ICharacterMind, type MindContext, type PresentResult } from "../contracts.ts";
 import { TextKit } from "./textkit.ts";
@@ -101,7 +101,7 @@ export class ScriptMind implements ICharacterMind {
       const tie = c.ties.some((x) => x.court === ctx.host) ? 15 : 0;
       const score = t.greed + host.bribe / 4.0 - t.loyalty - (t.courage > 70 ? 10 : 0) + rng.range(-10, 10) + (t.sympathy === ctx.host ? 15 : 0) + tie;
       reaction.acceptBribe = score > 20;
-      speech.push(say(Abroad, reaction.acceptBribe ? "takeBribe" : "refuseBribe", key));
+      speech.push(say(Abroad, reaction.acceptBribe ? "takeBribe" : "refuseBribe", key, { T }));
     }
 
     const k = c.contract;
@@ -133,7 +133,7 @@ export class ScriptMind implements ICharacterMind {
       if (ctx.dispatch.mandate.length > 0 && (oath || containsIgnoreCase(host.speech, "agree") || containsIgnoreCase(host.speech, "swear"))) {
         const overreach = t.ambition > 70 && t.loyalty < 50;
         reaction.commitments = overreach ? Overreach : "said my lord will consider these words";
-        speech.push(say(Abroad, overreach ? "overpromise" : "promise", key));
+        speech.push(say(Abroad, overreach ? "overpromise" : "promise", key, { G: godOf(ctx.sender) }));
       } else if (speech.length === 0) speech.push(say(Abroad, t.courage < 35 ? "meek" : "answer", key, { T }));
     }
     if (speech.length === 0) speech.push(say(Abroad, "thanks", key, { T }));
@@ -287,7 +287,7 @@ function report(ctx: MindContext): MindReply {
     }
     if (bribed) lines.push(say(Home, "bought", key, { L }));
     if (t.ambition >= 65) lines.push(say(Home, "boast", key));
-    if (fearful && !bribed) lines.push(say(Home, "soothe", key));
+    if (fearful && !bribed) lines.push(say(Home, "soothe", key, { L }));
     // Only the engine's own record of a sealing, not the envoy's commitments or a gift's request that speak of one.
     if (trail.outcomes.includes(SealedOutcome)) lines.push(say(Home, "sealed", key));
     // An envoy that turned down the host's offer of a post tells its lord; one with little loyalty, or bought by that host,
