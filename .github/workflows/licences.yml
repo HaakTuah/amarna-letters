@@ -1,0 +1,25 @@
+# Licences (SECURITY.md, point 10): every pull request, Dependabot's included, fails if it adds or updates a package
+# under a licence off the list in .github/licences.yml. Two steps, since dependency-review-action only warns on a package
+# that names no licence: the action checks what the PR changes, and scripts/licences.mjs checks the whole lockfile,
+# failing on a missing licence too. Reads only; no secret, no write token, nothing from the PR installed or run but the
+# check script itself, under a read-only token.
+name: Licences
+
+on:
+  pull_request:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  licences:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: New and updated packages
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          config-file: ./.github/licences.yml
+      - name: Every package in the lockfile
+        run: node scripts/licences.mjs

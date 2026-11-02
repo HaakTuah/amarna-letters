@@ -2,8 +2,10 @@ import react from "@vitejs/plugin-react";
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { join, sep } from "node:path";
+import { dirname, join, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
+import { notices } from "../../scripts/licences.mjs";
 
 /**
  * The offline cache: writes service-worker.js beside the built files, listing every one of them with its hash, so the
@@ -26,7 +28,8 @@ function serviceWorker(): Plugin {
         .map((f) => f.split(sep).join("/"))
         // The music and the sounds (audio/, item 19+++) are not installed with the app: each file is fetched when first played
         // and kept then (the worker's audio cache), so the first screen stays fast and a phone downloads only what it hears.
-        .filter((f) => statSync(join(outDir, f)).isFile() && f !== "service-worker.js" && f !== "version.json" && !f.startsWith("audio/"))
+        // The third-party notices are read, if ever, online.
+        .filter((f) => statSync(join(outDir, f)).isFile() && f !== "service-worker.js" && f !== "version.json" && f !== "third-party-notices.txt" && !f.startsWith("audio/"))
         .sort();
       const assets = files.map((url) => ({ url, hash: "sha256-" + createHash("sha256").update(readFileSync(join(outDir, url))).digest("base64") }));
       const all = JSON.stringify(assets);
@@ -38,6 +41,35 @@ function serviceWorker(): Plugin {
     },
   };
 }
+
+/**
+ * The third-party notices (SECURITY.md, point 10): every package the build bundles, the worker's included, with its
+ * licence, written to third-party-notices.txt beside the game; the build fails on a licence off the list.
+ */
+function thirdPartyNotices(): { main: Plugin; worker: Plugin } {
+  const dirs = new Set<string>();
+  const collect = (ids: Iterable<string>) => {
+    for (const id of ids) {
+      // Vite's own helpers (the preload helper) come in as virtual modules, but they are Vite's code.
+      if (id.startsWith("\0vite/")) dirs.add(dirname(fileURLToPath(import.meta.resolve("vite/package.json"))));
+      const at = id.lastIndexOf("/node_modules/");
+      if (at < 0 || id.startsWith("\0")) continue;
+      const rest = id.slice(at + 14).split("/");
+      dirs.add(id.slice(0, at + 14) + rest.slice(0, rest[0].startsWith("@") ? 2 : 1).join("/"));
+    }
+  };
+  const worker: Plugin = { name: "amarna-notices-worker", apply: "build", buildEnd() { collect(this.getModuleIds()); } };
+  const main: Plugin = {
+    name: "amarna-notices",
+    apply: "build",
+    generateBundle() {
+      collect(this.getModuleIds());
+      this.emitFile({ type: "asset", fileName: "third-party-notices.txt", source: notices([...dirs]) });
+    },
+  };
+  return { main, worker };
+}
+const notice = thirdPartyNotices();
 
 /** The build's commit, for the error screen's report (item 17a): the publishing workflow's, else the checkout's, else "dev". */
 function buildId(): string {
@@ -53,8 +85,8 @@ export default defineConfig({
   // Relative URLs throughout: the site lives under a sub-path on GitHub Pages, set by the page's <base href>.
   base: "./",
   define: { __BUILD_ID__: JSON.stringify(buildId()) },
-  plugins: [react(), serviceWorker()],
-  worker: { format: "es" },
+  plugins: [react(), notice.main, serviceWorker()],
+  worker: { format: "es", plugins: () => [notice.worker] },
   build: { outDir: "dist", target: "es2022", chunkSizeWarningLimit: 2000 },
   server: { port: 5183 },
 });

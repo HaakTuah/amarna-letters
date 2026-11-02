@@ -536,3 +536,7 @@ The game was inspired by Irving Finkel's *Curator's Corner* episode 100, "Readin
 private mail with Irving Finkel" (The British Museum,
 <https://www.youtube.com/watch?v=3MZq_ZQDhJA>), and leans on William L. Moran's *The Amarna
 Letters* for the translations of the letters themselves.
+
+The libraries, samples and map data the game ships, with their licences, are listed in its third-party notices
+(`third-party-notices.txt` beside the game, linked from the About page's Credits; written by the web build from
+`scripts/licences.mjs`). The game's own code carries no licence: all rights reserved.

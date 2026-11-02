@@ -1,0 +1,19 @@
+# The licences allowed (SECURITY.md, point 10), read by dependency-review-action (.github/workflows/licences.yml) and by
+# scripts/licences.mjs (the lockfile check and the build's third-party notices). One list, one place.
+license-check: true
+vulnerability-check: false
+allow-licenses:
+  - MIT
+  - MIT-0
+  - ISC
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - Apache-2.0
+  - 0BSD
+  - CC0-1.0
+  - Unlicense
+  - Zlib
+  - BlueOak-1.0.0
+  - Python-2.0
+  - CC-BY-3.0
+  - CC-BY-4.0
