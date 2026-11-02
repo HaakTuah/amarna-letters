@@ -136,7 +136,10 @@ rumours, and those can be late, shaded or false.
   troops stand in it (within its walls), to a man of standing there whose following outweighs you, if he chooses to lead
   them (he rules it in his own name), or, if it bears you nothing, to nobody. Nothing is thrust on you: a province whose
   people favour you while your troops are not there declares for you, and is yours only if you take it up (the orders
-  panel's "Provinces that look to you"); refusing it costs you a little of its people's regard. Land ceded to you by
+  panel's "Provinces that look to you"); refusing it costs you a little of its people's regard. Its offer reaches you
+  only if someone carries it: your spy watching it, a man of yours going your way, or one its people pay if they are far
+  gone in your favour (the notice says who brought it). Talk of its leaning comes first, to you, its king and his
+  enemies alike; it is no offer, and a carrier may sell what he knows. Land ceded to you by
   treaty is the same: a claim its giver holds until you take it up. A rising against your troops is fought as a
   battle, and seven men among thousands who lean away are beaten. The men of your armies keep a ledger too: pay, plunder
   and victories bind them to the hand they see, so a commander or governor who turns takes only the men who follow him. A
@@ -150,7 +153,9 @@ waits until someone at court can read it, and people learn the tongues of where 
 
 Walls stand where the sources put them. Hattusa, Washukanni, Ashur and Babylon have walls of level 3, as do
 Qatna, Qadesh and Hazor; Apasa, Enkomi and the great fortresses (Carchemish, Aleppo, Ugarit, Arwad, Byblos, Tyre,
-Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's new city of Akhetaten has none.
+Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's new city of Akhetaten has none,
+nor has Nesa, old Kanesh, whose mound shows no Late Bronze town. Towns are as large as the sources reckon them:
+Waset (Thebes), Egypt's great southern city, about 70,000 people.
 
 - **Storming.** Walls add nothing to a field battle. A move into a walled city takes it at once only
   if its strength also beats the walls plus the defenders.

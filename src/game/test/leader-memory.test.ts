@@ -1,6 +1,5 @@
 import { describe, test } from "vitest";
 import { Near, smallSeats } from "./small-world.ts";
-import { court } from "../src/bots/statecraft-court.ts";
 import {
   AllPowers,
   type AudienceView,
@@ -22,7 +21,7 @@ import {
 } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { type CallSpec, type JsonAsker, type JsonObject, LeaderJournal, LlmLeaderSeat, Parse, Schemas, leaderRules } from "@amarna/llm";
-import { at, str, fresh, Assert, last, toDict } from "../../engine/test/support.ts";
+import { at, str, Assert, last } from "../../engine/test/support.ts";
 
 // <summary>A model king's record of earlier seasons: its notes, its own summary of older seasons, its ledger of dealings, and what each request shows.</summary>
 describe("LeaderMemoryTests", () => {

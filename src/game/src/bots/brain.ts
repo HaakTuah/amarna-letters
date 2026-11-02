@@ -2,6 +2,7 @@
  * A script king's memory and judgement: relations with every other king, the war it has chosen, the people it has checked,
  * the evidence it has sent. One per power, kept across seasons.
  */
+import { claimantsTalkedOf, CourtTrust } from "./talk.ts";
 import {
   AllPowers,
   RoadsTitle,
@@ -228,6 +229,8 @@ export class Brain {
     if (v.turn === this.turn) return;
     this.turn = v.turn;
     const P = this.p;
+    // Item 17++, part D: talk that a rival's land leans toward someone: we court him ("his enemies by courting the claimant").
+    for (const x of claimantsTalkedOf(b)) if (this.rel.has(x)) this.rel.get(x).trust = Math.min(1, this.rel.get(x).trust + CourtTrust);
     for (const g of v.governors) {
       const word = v.moods.find((x) => x.province === g.province);
       const bad = word !== undefined && word.source === "governor" && (word.mood === "restless" || word.mood === "near revolt");

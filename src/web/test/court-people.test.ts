@@ -2,7 +2,7 @@ import { describe, test } from "vitest";
 import { Assert } from "../../engine/test/support.ts";
 import { outerRing, ringOf, TentHalf, TentRing } from "../src/map/markup.ts";
 import type { MapScene } from "../src/map/scene.ts";
-import { peopleAtCourts } from "../src/map/svg-renderer.ts";
+import { peopleAtCourts } from "../src/map/tokens.ts";
 
 // The people and news at a court stand clear of its badge (item 11c++); round a besieged city the siege camp's tents are
 // part of the badge (item 19), so they stand clear of those too. Found by the smoke test: a captive at besieged Susa stood

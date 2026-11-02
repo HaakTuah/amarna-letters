@@ -40,8 +40,8 @@ stores of nippur: Nippur is besieged…".
   - the markets' lines of a far province (sales, purchases, grain to the towns, caravans setting out, trade and ships);
   - a levy's outcome, a cession and a disbanding there;
   - an order foiled by a siege it may not know of, through `TurnEngine.lostOrder`, which now serves for sieges too.
-- Rulebook (`rules-command.ts`), README, `docs/design/13-travel-and-news.md` ("News"). Save version 45 (#534 takes 45
-  too; whichever merges second takes the next).
+- Rulebook (`rules-command.ts`), README, `docs/design/13-travel-and-news.md` ("News"). Save version 46 (#534, merged
+  first, took 45).
 
 ## Readings taken
 
@@ -104,7 +104,7 @@ stores of nippur: Nippur is besieged…".
 
 ## Benchmarks
 
-BENCH
+`scripts/sim.sh --games 20 --seed 1 --verify-replay`, each run alone on the machine (#552): before on `develop` at `16bec662`, after on this branch at `68216c71`. Every game replays exactly, 20 of 20, before and after. Every game lasts as many seasons as before; 6 of the 20 have a different winner (seeds 2, 6, 11, 12, 13 and 20), since the script kings read their view and the checks, both now as the court knows the land. Kingdoms fallen: 374 against 378. The first fall still comes in season 4.5 on the median (range 4-5), and no kingdom falls in the first two seasons, so play stays playable. Seats risen in play: 43 against 44. No balance was tuned, as the frozen-balance rule asks. The save version moved (to 46) because the rules changed.
 
 ## Helpers
 
@@ -112,4 +112,4 @@ None: the twin canary did the finding, which a search helper would otherwise hav
 
 ## Questions for the owner
 
-None. Bug filed: #540 (a far province's economy, works, people and caravans, and the realm's totals, as they are).
+None. Filed: bugs #540 (a far province's economy, works and caravans, and the realm's totals, as they are), #552 (the batch summary varies between runs), #565 (grant events seen at once) and #569 (a far levy's waiting orders dropped at once); idea #566 (the twins at a second place).

@@ -156,7 +156,6 @@ P.spyArrives = function (j) {
 
 P.recall = function (p, c) {
   const S = this.s;
-  const Map = this.map;
   // Its stay is over, recalled or its term served: its job is done when it is home.
   if (c.contract?.errand?.what === "spy") c.contract.errand.done = true;
   const from = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(p));
@@ -219,7 +218,6 @@ P.spyComesHome = function (j) {
 /** Every posted spy risks detection, then observes what its competence allows and sends word home. */
 P.watchAndReport = function () {
   const S = this.s;
-  const Map = this.map;
   for (const c of sortBy(
     S.characters.filter((c) => c.duty === "SpyPosted" && c.status === "Employed"),
     [(c: Character) => idNumber(c.id), cmpNum],

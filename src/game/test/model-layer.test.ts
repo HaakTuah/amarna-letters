@@ -1,5 +1,5 @@
 import { afterEach, describe, test, vi } from "vitest";
-import { AllPowers, type DispatchOrder, GameStateSchema, Views, first, hash, king, newGame, newGameConfig, remember } from "@amarna/engine";
+import { AllPowers, type DispatchOrder, GameStateSchema, Views, first, hash, newGame, newGameConfig, remember } from "@amarna/engine";
 import { GameLog, GameRunner } from "@amarna/game";
 import {
   type ApiTransport,

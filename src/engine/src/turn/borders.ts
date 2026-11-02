@@ -15,7 +15,7 @@ import { grainWorth, needOf } from "../model/economy.ts";
 import { countryNeed, LandData, reckonedOf } from "../model/land.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import type { DeportOrder, ExpelOrder, ReturnRunawaysOrder, WelcomeOrder } from "../model/orders.ts";
-import { land, type Power } from "../model/power.ts";
+import { type Power } from "../model/power.ts";
 import { isAlive, logEvent, ownedBy, siegeOf } from "../model/state.ts";
 import { cheapestRoute, fastestPoints, legPoints, PointsPerDay } from "../model/travel.ts";
 import { TurnEngine } from "./core.ts";
