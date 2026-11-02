@@ -62,6 +62,23 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The slop audit** (the owner, 2 November 2026; archive item 178): everything a player reads, checked by fresh eyes
+  for the tells of machine-written text, as a side lane now.
+  1. **Scope:** the rulebook and the seat view; notices, news and the season's reports; the script kings' letters and
+     their envoys' speech (`src/game/src/bots/statecraft-letters.ts` and its kin), whose templates a player meets every
+     season; the cast's biographies; the interface, the council and the help; the README's player text. And the
+     requests that make models write (personas, letters, envoys' words): no stock phrasing a model would echo back,
+     as "Requests are rules too" asks, changed only with that rule's care.
+  2. **A fresh-eyes reviewer** (a helper given only the text and this brief, Opus at high effort) reads each kind
+     whole and lists its worst lines, each with the tell: one sentence shape filled in again and again, filler and
+     hedging, clichés and modern idiom in an ancient voice, every king sounding alike, the same formula in every
+     season's report, lines too long for the seat view.
+  3. **The builder rewrites them** in the period's voice, as "Voice of the age" under World and history describes it;
+     the PR shows ten lines before and after, so the owner can set the bar.
+  4. **A cheap guard after:** a test that fails when a script king's letters, or a report's lines, keep repeating one
+     shape across a game.
+  Done when a second fresh read finds nothing worse than fine. One PR per kind of text.
+
 - **The Gulf's head as it stood in the Late Bronze Age** (the owner, 2 November 2026; #527; archive item 175): the map's
   old shore (`OldGulfShore` in `src/web/src/map/features.ts`) moves to where the published reconstructions of the Late
   Bronze Age shoreline put it, gathered and taken at their middle as "History holds" asks, with no outcome assumed

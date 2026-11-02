@@ -1508,3 +1508,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
 178. **2 November 2026, 19:46 UTC**, on #458 (the licences lane), to the request for his yes to its `.github/` files
     (`SECURITY.md`, point 3): "Yes to the .github/ changes." The PR merged on that yes.
+178. **2 November 2026, 21:14 and 21:19 UTC**, in the design chat: "Are these 2 games ai sloppy?" Then, to the design
+    session's take (the design and its checks are not; the text no human reads is at risk, as the history's errors and
+    the chatter's repeated templates show; a fresh-eyes audit of everything a player reads): "Yes, please, expertly! Do
+    we need it for amarna also?" Written into "Follow-ups" in `docs/BUILD-PROGRESS.md`; the same in Barkstreet Snakes.
