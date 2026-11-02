@@ -148,7 +148,9 @@ waits until someone at court can read it, and people learn the tongues of where 
 
 Walls stand where the sources put them. Hattusa, Washukanni, Ashur and Babylon have walls of level 3, as do
 Qatna, Qadesh and Hazor; Apasa, Enkomi and the great fortresses (Carchemish, Aleppo, Ugarit, Arwad, Byblos, Tyre,
-Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's new city of Akhetaten has none.
+Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's new city of Akhetaten has none,
+nor has Nesa, old Kanesh, whose mound shows no Late Bronze town. Towns are as large as the sources reckon them:
+Waset (Thebes), Egypt's great southern city, about 70,000 people.
 
 - **Storming.** Walls add nothing to a field battle. A move into a walled city takes it at once only
   if its strength also beats the walls plus the defenders.
