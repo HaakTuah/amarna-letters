@@ -3,7 +3,7 @@
  * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
  */
 import { expect } from "vitest";
-import { AllPowers, Dict, newCharacter, newTraits, newWorkPlan, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
+import { AllPowers, Dict, GreatKings, ownedBy, newCharacter, newTraits, newWorkPlan, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
 
 type Coll<T> = Iterable<T> | ArrayLike<T>;
 
@@ -337,6 +337,19 @@ export function oldWorld(s: GameState): GameState {
       c.status = "Free";
       c.contract = null;
     }
+  return s;
+}
+
+/**
+ * The smallest world that tests a rule ("The smallest game that tests the rule" in `AGENTS.md`): the world of
+ * {@link oldWorld} with only the Great Kings a test names. Every other king's land is held by no one, his troops and
+ * tablets gone with him, and only the named kings' servants and the free people at their courts remain. The map stays
+ * whole; the kings stand on their part of it. A season here costs about a quarter of one in the whole world.
+ */
+export function smallWorld(s: GameState, ...kings: Power[]): GameState {
+  oldWorld(s);
+  for (const p of GreatKings) if (!kings.includes(p)) unruled(s, WorldMap.default.capital(p).id, ...ownedBy(s, p));
+  s.characters = s.characters.filter((c) => (c.employer !== null ? kings.includes(c.employer) : c.at !== null && kings.includes(c.at)));
   return s;
 }
 

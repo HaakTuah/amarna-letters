@@ -23,7 +23,7 @@ import {
   raise,
   unitAt,
 } from "@amarna/engine";
-import { firstOrNull, orderBy, walled, oldWorld } from "./support.ts";
+import { firstOrNull, orderBy, walled, oldWorld, smallWorld } from "./support.ts";
 /** Games the ported tests share across files (the C# suite reached into SiegeTests and EngineTests for them). */
 
 /** Seed 1 with no catastrophes, and Suhu walled 2 as Mari was before item 7a: the board the siege tests start from. */
@@ -31,9 +31,13 @@ export function siegeBoard(): GameState {
   return walled(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2);
 }
 
-/** A game of random but legal-looking orders, every model task answered with filler. */
-export function playRandom(seed: number, turns: number, config: GameConfig | null = null): GameState {
-  let s = oldWorld(newGame(seed, config ?? newGameConfig({ capMin: 99, capMax: 99, endMedian: 10000 })));
+/**
+ * A game of random but legal-looking orders, every model task answered with filler: in the whole world, or in
+ * {@link smallWorld} when kings are named.
+ */
+export function playRandom(seed: number, turns: number, config: GameConfig | null = null, ...kings: Power[]): GameState {
+  const g = newGame(seed, config ?? newGameConfig({ capMin: 99, capMax: 99, endMedian: 10000 }));
+  let s = kings.length > 0 ? smallWorld(g, ...kings) : oldWorld(g);
   let map = WorldMap.default;
   for (let i = 0; i < turns && !s.ended; i++) {
     let e = new TurnEngine(s);
