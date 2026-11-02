@@ -69,7 +69,16 @@ which completes this for `govern`. #378 takes save version 43; whichever merges 
 
 ## Benchmarks
 
-BENCH
+`scripts/sim.sh --games 20 --seed 1 --verify-replay`, on `develop` (before) and on this branch at `b31b319` (after): the whole summary is identical, line for line: the same 20 games, the same turns and winners (seed 1, 102 turns, Egypt; ...), 297 kingdoms fallen, the first fall at season 4.5 on the median, the same use of every order; every game replays exactly. The script kings never order for land lost out of their sight in these games, since their orders read their view, and the new failures by the road arise only there. No balance changed, as the frozen-balance rule asks. The save version moved to 41 because what the checks accept changed.
+
+## Reviews
+
+- Codex, round 1: two P1s (a deportation's lost destination told at once; a far foiled scheduled order never waking its
+  seat), both fixed. Round 2: no major issues. Security: one P2 (siege, stock, walls, works and men still read in the
+  checks), moved to #517.
+- Claude's reviewer (Opus, high): round 1 6/10 (deport, disband with settling, the governor's view, and four smaller
+  items), all fixed or moved out with their reason; round 2 9/10, its four remaining items (benchmarks, a test for the
+  travelling wake, the PR's text and two docs) fixed.
 
 ## Helpers
 
@@ -78,4 +87,4 @@ BENCH
 
 ## Questions for the owner
 
-None. Bug filed: #517.
+None. Filed: bug #517 (the rest of a far province's true state), idea #520 (a twin canary, the reviewer's one idea).
