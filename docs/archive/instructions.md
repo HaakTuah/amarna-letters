@@ -1403,3 +1403,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     into someone and have the means, if they commission a message and courier? And this is valuable information for the
     king of the land, or his enemies." Written into "Whom a province obeys" under War (revision 95) and item 17++
     (revision 214).
+159. **2 November 2026, 13:26 to 13:30 UTC**, in the design chat: "Oh, sorry. Looked at this: \"dependabot.yml is the empty template: its check fails on every commit #433\" but suddenly it was closed. how was it fixed? is it fixed in both? are all the issues that are closed fixed or being fixed, expert?" Then "What is best?", "Why should they be treated
+    differently?", and, to the design session's take (a question or an idea is done once answered, its work tracked
+    where it lives, so "open" means "needs the owner"; a bug is done only when its fix is live, closed by GitHub when a
+    "Fixes #n" commit reaches `main`): "agreed with your expert take." Written into "Questions, readings and ideas" in
+    `AGENTS.md`; #433 reopened until the next milestone; the same in Barkstreet Snakes.
