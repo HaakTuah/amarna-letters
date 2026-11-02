@@ -69,7 +69,7 @@ on the median (4 to 7), **none in its first two seasons**. Winners: Egypt 9, Luk
 Hatti, Assyria, Ashkelon and Amurru 1 each. The census and demand signals (`census`, `census-home`, `demand-share`,
 `demand-amount`) were added to the batch after this run; the next run counts them.
 
-**Use against ignore** (`--count-play-half`, 50 games, seed 1): (to come: running on this branch).
+**Use against ignore** (`--count-play-half`, 50 games, seed 1): to run (a run started in the session that built this part did not finish before it handed over; rerun `scripts/sim.sh --games 50 --seed 1 --count-play-half` on this head, with the new signals).
 
 ## The review
 
