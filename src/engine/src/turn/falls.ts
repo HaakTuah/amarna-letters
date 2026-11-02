@@ -8,6 +8,7 @@
  * pay them; the rest falls lawless ("Land without a ruler"). The fallen king's armies hear it where they stand, and are
  * then their commanders' to decide, as item 13 built.
  */
+import { endSieges } from "../model/sieges-ended.ts";
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData } from "../model/bands.ts";
@@ -64,7 +65,7 @@ P.fallsSpread = function () {
       const seeing = (extra: Power[]): Power[] => [...new Set([...AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, this.map, x).has(id)), ...extra])];
       if (conqueror !== null && S.units.some((u) => u.province === id && u.power === conqueror)) {
         this.setOwner(id, conqueror);
-        S.sieges = S.sieges.filter((x) => !(x.province === id && x.power === conqueror));
+        endSieges(S, (x) => x.province === id && x.power === conqueror);
         this.tell(conqueror, id, "Battle", "Land held by force", `Word of the fall of ${land(p)} has reached ${name}, where your troops stand: it is yours, held by force.`);
         logEvent(S, "fall", `Word of the fall of ${land(p)} reached ${name}, and ${conqueror}'s troops there hold it.`, seeing([conqueror]), "fall-held");
         continue;

@@ -83,9 +83,10 @@ on sealed tablets comes with item 9.
   `tell`; a scheduled one wakes its seat when that word comes, its wake line travelling with it as news `Foiled`). A governor granted such land sets out, finds
   it another's and comes home as any governor of lost land does.
 - **Sieges, walls and men far off** (bug #517, `siegesKnown` and `wallsKnown` in `rules/known-land.ts`): a court knows the
-  sieges where it sees, and one of its own cities or its own armies farther off once word of its beginning, setting out
-  the season it began, has reached it; one lifted out of its sight drops from what it knows at once (no record of an ended
-  siege is kept). The seat's view (`SeatView.sieges`) and the order checks read the same (`Checking.knownSiege`,
+  sieges where it sees, and one of its own cities or its own armies farther off from when word of its beginning, setting
+  out the season it began, reaches it until word of its end does (`GameState.siegesEnded`, `endSieges` in
+  `model/sieges-ended.ts`, keeps those ended lately); the walls of the cities it knows it holds as its works stand, as its
+  view shows its works. The seat's view (`SeatView.sieges`) and the order checks read the same (`Checking.knownSiege`,
   `knownWalls`); a levy's men far off are checked by the court's last count. The season's siege news of a far city, the
   markets' lines (sales, purchases, grain to the towns, caravans, trade and ships) of a far province, a levy's outcome,
   a cession and a disbanding there come home by the road (`TurnEngine.tell`); an order a siege foils far off fails as

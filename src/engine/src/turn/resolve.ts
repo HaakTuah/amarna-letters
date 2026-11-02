@@ -1,4 +1,5 @@
 /** The season's resolution (phase 4 of TurnEngine): movement, land changing hands, transfers, levies, the end. */
+import { endSieges } from "../model/sieges-ended.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
@@ -619,7 +620,7 @@ P.fall = function (p, conqueror, taker, ceded = false) {
     this.setOwner(id, conqueror);
     if (conqueror !== null) passed.push(id);
     // A siege the conqueror pressed against land that is now his is over.
-    if (conqueror !== null) S.sieges = removeAll(S.sieges, (x) => x.province === id && x.power === conqueror);
+    if (conqueror !== null) endSieges(S, (x) => x.province === id && x.power === conqueror);
   }
   const apart = landHeld.filter((x) => !passes(x));
   S.falls.push(newKingdomFall({ power: p, turn: S.turn, conqueror, capital: capital.id, land: passed }));

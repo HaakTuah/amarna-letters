@@ -48,9 +48,11 @@ stores of nippur: Nippur is besieged…".
 - **One function for the view and the checks.** A check that read better than the view would leak what the view hides,
   and one that read worse would refuse what the king sees: both read `siegesKnown` and `wallsKnown` ("Hidden
   information"; one fact, one place).
-- **A siege lifted out of sight drops from what the court knows at once,** since the engine keeps no record of a siege
-  that ended. An order for a city whose siege was lifted out of sight is accepted rather than refused as besieged; the
-  difference is told only when its outcome comes home by the road.
+- **A siege lifted out of sight stays in what the court knows until word of its end comes** (Codex, round 1): every place
+  a siege ends now goes through `endSieges` (`model/sieges-ended.ts`), which keeps it in `GameState.siegesEnded` for as
+  long as any word could take (eight seasons). A twin ("a far siege the seat knows of, lifted out of sight") guards it.
+- **A court knows the walls of the cities it knows it holds as its works stand** (Codex, round 1): its view already shows
+  its works so (bug #540), and building walls far off must let a city sally once built.
 - **Works levels** of a far province stay read as they are: the view shows them so (bug #540), and the checks read what
   the view shows; they move together when #540 is fixed.
 - **Units' own reports** (folding, giving troops, a unit gone when its order arrives) are left as they are: a king's far

@@ -17,6 +17,7 @@ import {
   WorldMap,
   newGame,
   newGameConfig,
+  endSieges,
   newOwnerChange,
   newSiege,
   newUnit,
@@ -230,7 +231,26 @@ function found(t: Twin): { line: string; known: (typeof Known)[number] | undefin
   return play(t).map((x) => ({ line: x.line, known: Known.find((k) => k.is(x.difference)) }));
 }
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders];
+/** A far city of Egypt's under a siege it has long known of; in the twin where the fact is true, the siege is lifted. */
+const siegeLifted: Twin = {
+  ...farSiege,
+  name: "a far siege the seat knows of, lifted out of sight",
+  seasons: 3,
+  make() {
+    const s = farSiege.make(true);
+    s.sieges[0].since = -8;
+    return s;
+  },
+  later: {
+    at: 2,
+    happen(s) {
+      endSieges(s, (x) => x.province === "nippur");
+      s.units = s.units.filter((u) => u.id !== "u990");
+    },
+  },
+};
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

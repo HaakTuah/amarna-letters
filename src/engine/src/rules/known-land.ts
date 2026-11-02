@@ -5,7 +5,7 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { StartWalls, type WorldMap } from "../model/map.ts";
 import type { Power } from "../model/power.ts";
-import { newKnown, ownedBy, type GameState, type Known, type Siege } from "../model/state.ts";
+import { newKnown, newSiege, ownedBy, type GameState, type Known, type Siege } from "../model/state.ts";
 import { wordSeasons } from "../model/travel.ts";
 import { courierSeasons, courtOf } from "./court.ts";
 
@@ -28,16 +28,20 @@ export function sight(s: GameState, map: WorldMap, p: Power): HSet<string> {
 
 /**
  * The walls as a court knows them, by province (a province with none left out): those standing now where it can see
- * troops ({@link sight}), and elsewhere as it last saw them (GameState.wallsSeen; at the start, as the map gives them).
+ * troops ({@link sight}), and of the cities it knows it holds, its own works (bug #517: as its view shows its works, until
+ * bug #540 makes those as last reported); elsewhere as it last saw them (GameState.wallsSeen; at the start, as the map
+ * gives them).
  */
 export function wallsKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, number> {
   const sightNow = seen ?? sight(s, map, p);
   const last = s.wallsSeen.tryGet(p);
   const known = last !== undefined ? last.clone() : new Dict<string, number>([...StartWalls.entries()].filter(([, v]) => v > 0));
-  for (const id of sightNow) {
-    const level = s.walls.tryGet(id);
-    if (level !== undefined) known.set(id, level);
-    else known.delete(id);
+  const holders = knownHolders(s, map, p, sightNow);
+  for (const x of map.landProvinces) {
+    if (!sightNow.has(x.id) && holders.tryGet(x.id)?.owner !== p) continue;
+    const level = s.walls.tryGet(x.id);
+    if (level !== undefined) known.set(x.id, level);
+    else known.delete(x.id);
   }
   return known;
 }
@@ -86,15 +90,19 @@ export function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<s
 
 /**
  * The sieges a court knows of (bug #517): where it sees, as they are; one of its own cities, or of its own armies, farther
- * off once word of its beginning, setting out the season it began, has reached the court; none it cannot see otherwise.
- * One lifted out of its sight is gone from what it knows at once: the engine keeps no record of a siege that ended.
+ * off from when word of its beginning, setting out the season it began, reaches the court until word of its end does
+ * (GameState.siegesEnded keeps those ended lately). One it cannot see otherwise it does not know of.
  */
 export function siegesKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Siege[] {
   const sightNow = seen ?? sight(s, map, p);
   const court = courtOf(s, map, p);
-  return s.sieges.filter(
-    (x) =>
-      sightNow.has(x.province) ||
-      ((x.power === p || s.owner.getOrDefault(x.province, null) === p) && x.since + wordSeasons(s.config.travelDays, map, x.province, court, x.since) <= s.turn),
+  const heard = (province: string, turn: number): boolean => turn + wordSeasons(s.config.travelDays, map, province, court, turn) <= s.turn;
+  const standing = s.sieges.filter(
+    (x) => sightNow.has(x.province) || ((x.power === p || s.owner.getOrDefault(x.province, null) === p) && heard(x.province, x.since)),
   );
+  const ended = s.siegesEnded
+    .filter((e) => !sightNow.has(e.province) && (e.power === p || e.holder === p) && heard(e.province, e.since) && !heard(e.province, e.ended))
+    .filter((e) => !standing.some((x) => x.province === e.province))
+    .map((e) => newSiege({ province: e.province, power: e.power, progress: e.progress, since: e.since }));
+  return [...standing, ...ended];
 }

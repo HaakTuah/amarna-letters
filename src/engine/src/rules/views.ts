@@ -251,16 +251,17 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           .map((k) => newWorkView({ province: x, kind: k, level: levelOf(s, k, x), keep: levelOf(s, k, x) })),
       ),
     // The sieges it knows of: those it sees, and its own and its cities' farther off once word of them came (bug #517).
+    // Out of its sight, the holder and walls as it knows them; how tight the ring is, only where it sees or its army besieges.
     sieges: siegesKnown(s, m, p, seen)
       .map((x) =>
         newSiegeView({
           province: x.province,
           besieger: x.power,
-          holder: s.owner.getOrDefault(x.province, null),
+          holder: seen.has(x.province) ? s.owner.getOrDefault(x.province, null) : (known.tryGet(x.province)?.owner ?? null),
           progress: x.progress,
-          walls: wallsOf(s, x.province),
+          walls: seen.has(x.province) ? wallsOf(s, x.province) : wallsKnown(s, m, p, seen).getOrDefault(x.province, 0),
           since: x.since,
-          tightness: x.power === p || s.owner.getOrDefault(x.province, null) === p ? engine.tightness(x) : null,
+          tightness: x.power === p || (seen.has(x.province) && s.owner.getOrDefault(x.province, null) === p) ? engine.tightness(x) : null,
         }),
       ),
     units: unitsSeen(s, engine, p, seen, (u) =>

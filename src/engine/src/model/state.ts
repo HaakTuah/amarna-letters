@@ -18,6 +18,7 @@ import type { People } from "./land.ts";
 import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts";
 import { type MoodRead, MoodReadSchema } from "./moods.ts";
 import { type Declaration, DeclarationSchema } from "./declarations.ts";
+import { type SiegeEnded, SiegeEndedSchema } from "./sieges-ended.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
 import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, type GovernorGone, GovernorGoneSchema, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
@@ -253,6 +254,8 @@ export interface GameState {
   fallsHeard: Dict<Power, Power[]>;
   /** The sieges under way: a foreign army standing in a walled city, ordered to besiege it. */
   sieges: Siege[];
+  /** Sieges ended lately, kept until word of their end has reached every court (bug #517; model/sieges-ended.ts). */
+  siegesEnded: SiegeEnded[];
   /**
    * Item 17++ ("Loyalty is a ledger"): each province's people's ledger, by actor (a power, or a character's id), in points:
    * what he gave them less what he took, fading each season (`UnrestData`). Never shown as a number to anyone.
@@ -497,6 +500,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     grants: [],
     fallsHeard: new Dict(),
     sieges: [],
+    siegesEnded: [],
     ledger: new Dict(),
     obeyed: new Dict(),
     ownLast: new Dict(),
@@ -613,6 +617,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   grants: list(() => GrantSchema),
   fallsHeard: dict(list(S)),
   sieges: list(() => SiegeSchema),
+  siegesEnded: list(() => SiegeEndedSchema),
   ledger: dict(dict(I)),
   obeyed: dict(I),
   ownLast: dict(dict(() => ProvinceEconomyViewSchema)),

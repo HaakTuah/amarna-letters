@@ -11,6 +11,7 @@
  * cannot feed its people, or when the wear reaches EconomyData.breachPerLevel seasons for each level of its walls; either
  * way its walls fall a level.
  */
+import { endSieges } from "../model/sieges-ended.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { clamp, roundEven, toInt } from "../core/num.ts";
@@ -29,7 +30,6 @@ import { isAlive, logEvent, newGoldLot, newId, newSiege, notify, siegeOf, unitAt
 import { formatMoney } from "../rules/calendar.ts";
 import type { ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
-import { removeAll } from "./resolve.ts";
 import { TurnEngine } from "./core.ts";
 import { learn } from "../rules/skills.ts";
 import { openToSea } from "./trade.ts";
@@ -74,12 +74,12 @@ P.lowerWalls = function (province) {
 
 /** A unit that is gone lifts any siege it pressed. */
 P.liftSiegesOf = function (unitId) {
-  removeAll(this.s.sieges, (x) => x.unitId === unitId);
+  endSieges(this.s, (x) => x.unitId === unitId);
 };
 
 /** Sieges whose army no longer stands in the city for its king, or whose city its besieger now holds, are over. */
 P.liftLostSieges = function () {
-  removeAll(this.s.sieges, (x) => !this.stands(x));
+  endSieges(this.s, (x) => !this.stands(x));
 };
 
 /** Whether a siege still stands: its army is in the city, still its king's, and the city's walls are another's. */
@@ -114,7 +114,7 @@ P.sieges = function (valid) {
 
   for (const x of [...S.sieges]) {
     if (this.stands(x)) continue;
-    S.sieges.splice(S.sieges.indexOf(x), 1);
+    endSieges(S, (y) => y === x);
     const name = Map.get(x.province).name;
     const owner = S.owner.getOrDefault(x.province, null);
     const unit = S.units.find((u) => u.id === x.unitId) ?? null;
@@ -324,7 +324,7 @@ P.surrender = function (x, owner, tell, how) {
   const prov = x.province;
   const name = this.map.get(prov).name;
   const seasons = S.turn - x.since + 1;
-  S.sieges.splice(S.sieges.indexOf(x), 1);
+  endSieges(S, (y) => y === x);
   this.lowerWalls(prov);
   this.setOwner(prov, x.power);
   this.sack(prov, x.power, false);
