@@ -155,6 +155,24 @@ async function watch(viewport, name) {
     await p.getByRole("button", { name: tab, exact: true }).click();
     await p.waitForTimeout(150);
   }
+  // Follow keeps the camera on its person until the player moves it ("Following, travel lines and borders"): a drag frees
+  // the camera, and "Keep the camera on them" takes it back.
+  await p.getByRole("button", { name: "People", exact: true }).click();
+  await p.locator(".item button", { hasText: "Follow" }).first().click();
+  const mapBox = await (await p.$(".mapview")).boundingBox();
+  await p.mouse.move(mapBox.x + mapBox.width / 2, mapBox.y + mapBox.height / 2);
+  await p.mouse.down();
+  await p.mouse.move(mapBox.x + mapBox.width / 2 + 120, mapBox.y + mapBox.height / 2 + 60, { steps: 6 });
+  await p.mouse.up();
+  const keep = p.getByRole("button", { name: "Keep the camera on them" });
+  // The panel redraws after the drag's event, so each check waits for it (a busy machine draws late).
+  if (!(await keep.waitFor({ timeout: 5000 }).then(() => true, () => false))) failures.push(`${name}: a drag while following did not free the camera`);
+  else {
+    await keep.click();
+    if (!(await keep.waitFor({ state: "detached", timeout: 5000 }).then(() => true, () => false)))
+      failures.push(`${name}: "Keep the camera on them" did not put the camera back on the person`);
+  }
+  await p.getByRole("button", { name: "Stop following" }).click();
   await p.getByRole("button", { name: "Provinces", exact: true }).click();
   await p.locator(".prow").first().click();
   await p.getByRole("button", { name: "Season", exact: true }).click();

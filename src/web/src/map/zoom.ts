@@ -44,7 +44,8 @@ export function attach(view, onSettle) {
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
     window.removeEventListener("pointercancel", onUp);
-    if (st.moved) { st.swallow = performance.now(); }
+    // A drag of the player's own: the camera is theirs now, so a follow stops keeping it on its person ("mapdrag").
+    if (st.moved) { st.swallow = performance.now(); view.dispatchEvent(new CustomEvent("mapdrag")); }
     else if (e.pointerType === "touch") {
       // A double tap zooms in where it falls.
       const now = performance.now();
@@ -134,8 +135,9 @@ export function setView(view, mx, my, zoom, animated) {
   else { change(); apply(st); settle(st, true); }
 }
 
-/// Brings a map point into view, zooming in to at least the given zoom (used to follow a character or a province).
-export function focus(view, mx, my, minZoom) {
+/// Brings a map point into view, zooming in to at least the given zoom (used to follow a character or a province);
+/// `centre`, to put it in the middle of the view however far in it already is (a follow keeping its person in view).
+export function focus(view, mx, my, minZoom, centre) {
   const st = states.get(view);
   if (!st) return;
   const r = view.getBoundingClientRect();
@@ -145,7 +147,7 @@ export function focus(view, mx, my, minZoom) {
     const px = g.ox + mx * g.b, py = g.oy + my * g.b;
     const sx = st.x + st.s * px, sy = st.y + st.s * py;
     // Only move if the point is out of view or near an edge.
-    if (sx < r.width * 0.15 || sx > r.width * 0.85 || sy < r.height * 0.15 || sy > r.height * 0.85) {
+    if (centre || sx < r.width * 0.15 || sx > r.width * 0.85 || sy < r.height * 0.15 || sy > r.height * 0.85) {
       st.x = r.width / 2 - st.s * px;
       st.y = r.height / 2 - st.s * py;
     }
