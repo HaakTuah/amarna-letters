@@ -7,7 +7,7 @@ import type { CheckContext, ChronicleContext, INarrator } from "@amarna/game";
 import type { ModelClient } from "./client.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
-import { Replies, Schemas } from "./schemas.ts";
+import { Replies } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
 
 const Shared =

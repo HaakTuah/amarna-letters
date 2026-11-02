@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { host } from "../../game/src/bots/statecraft-letters.ts";
 import {
   type Character,
   Dict,

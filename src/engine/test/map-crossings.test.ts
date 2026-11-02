@@ -141,6 +141,8 @@ describe("MapCrossingsTests", () => {
         s.roadsClosed.set("Mitanni", ["Hatti"]);
         s.roadsHeard.set("Hatti", ["Mitanni"]);
         if (besieged) {
+          // Walls to be shut inside (Nesa has none since the walls dossier found no Late Bronze town there)
+          s.walls.set("nesa", 1);
           s.owner.set("nesa", "Mitanni");
           s.sieges.push(newSiege({ province: "nesa", power: "Hatti", unitId: mine.id, since: s.turn }));
         }

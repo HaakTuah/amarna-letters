@@ -138,7 +138,7 @@ export const WaterAnchors: ReadonlyMap<string, string> = new Map<string, string>
  * "Walls by city"), or {@link Invented} for the towns it knows nothing of, which start with one level [G].
  */
 export const WallAnchors: ReadonlyMap<string, string> = new Map<string, string>([
-  ...own("12-walls-", "hattusa", "babylon", "ashur", "washukanni", "apasa", "enkomi", "nubia", "memphis", "nesa", "sapinuwa"),
+  ...own("12-walls-", "hattusa", "babylon", "ashur", "washukanni", "apasa", "enkomi", "nubia", "memphis", "sapinuwa"),
   ...own("12-walls-", "nineveh", "arbela", "durkurigalzu", "qatna", "qadesh", "carchemish", "aleppo", "ugarit", "arwad", "byblos"),
   ...own("12-walls-", "tyre", "shechem", "susa", "isuwa", "alalakh", "nuhashshe", "amurru", "sidon", "damascus", "megiddo"),
   ...own("12-walls-", "jerusalem", "arrapha", "hazor", "gaza", "sumur"),

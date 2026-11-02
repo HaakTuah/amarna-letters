@@ -1,8 +1,6 @@
 import { describe, test } from "vitest";
 import { Near, smallSeats } from "./small-world.ts";
-import { host } from "../src/bots/statecraft-letters.ts";
 import {
-  AllPowers,
   type Character,
   Dict,
   type GameState,
@@ -15,7 +13,6 @@ import {
   first,
   hash,
   isBlank,
-  king,
   newCharacter,
   newDispatch,
   newExchange,

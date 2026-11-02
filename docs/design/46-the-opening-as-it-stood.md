@@ -60,9 +60,9 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   Shuttarna III's doings, after 1346, and Emar only as a crossing of the Euphrates and Idrimi's refuge a century before;
   neither acts as a polity in 1346 ("What earns a place").
 - **Nesa** is a land with no great town marked (`Province.town` false; the web draws its seal without a town's rings), its
-  town about 1,000; its old mound walls stay 1.
+  town about 1,000; unwalled since the history check (no sign of a Late Bronze town on the mound: the walls dossier).
 - **Every town's people as it stood** (`ProvinceEconomies` in `model/economy.ts`, thousands): Akhetaten 18 (still being
-  built, below Waset and Men-nefer at 30), Kalavasos 1 (small and new), Nesa 1, Gath 3, Tunip 5 (beside Niya 3 and Qadesh
+  built, below Men-nefer at 30 and Waset at 70 since the history check), Kalavasos 1 (small and new), Nesa 1, Gath 3, Tunip 5 (beside Niya 3 and Qadesh
   5), Aijalon 1; the rest checked against the people dossier's ranges and left as they were.
 - The borders are regenerated (`node --experimental-strip-types scripts/map-borders.ts`), with no disagreement between the
   drawing and the connections, as item 11f+ requires; the Jordan cases in `docs/design/36-map-neighbours.md` are read
