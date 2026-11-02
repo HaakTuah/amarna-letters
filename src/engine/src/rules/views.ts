@@ -9,7 +9,7 @@ import { reapSeasonOf } from "../model/geography.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, king, kingFor, land, nameGivenBy, type Power } from "../model/power.ts";
+import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, king, kingFor, land, nameGivenBy, ownLand, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
@@ -181,7 +181,19 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     greetings: s.recognition.filter((r) => r.from === p || r.to === p).map((r) => ({ ...r })),
     // Item 17+: the names claimed, as this court gives them.
     claimedName: claimedName(p),
-    nameClaims: contestedNames(p).map((name) => ({ name, claimants: claimantsOf(name, p), givenTo: nameGivenBy(p, name) })),
+    nameClaims: contestedNames(p).map((name) => {
+      const claimants = claimantsOf(name, p);
+      const heard = s.namesHeard.tryGet(p);
+      return {
+        name,
+        claimants,
+        givenTo: nameGivenBy(p, name),
+        heard: claimants.flatMap((c) => {
+          const h = c === p || name === ownLand(c) ? undefined : heard?.tryGet(c);
+          return h === undefined ? [] : [{ claimant: c, sealed: h.sealed }];
+        }),
+      };
+    }),
     turn: s.turn,
     season: season(s.turn, p),
     power: p,

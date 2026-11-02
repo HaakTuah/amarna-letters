@@ -1,5 +1,5 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, countFigures, dateLabel, describe, formatMoney, land, rx, seasonName, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, countFigures, dateLabel, describe, formatMoney, land, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
@@ -66,6 +66,15 @@ export function describeOrder(o: Order, v: SeatView): string {
   let text = describe(o);
   text = text.replace(Ids, (m) => names.get(m) ?? m);
   return text.replace(Words, (m) => (WorldMap.default.exists(m) ? WorldMap.default.get(m).name : m));
+}
+
+/**
+ * The season each claim to a contested name was read in its claimant's sealed greeting (#550): " (read in Mitanni's greeting
+ * sealed in season 2, 1344 BCE)", or nothing where no claim was read in one.
+ */
+export function heardIn(heard: SeatView["nameClaims"][number]["heard"], me: Power): string {
+  if (heard.length === 0) return "";
+  return ` (read in ${heard.map((h, i) => (i === 0 ? `${powerName(h.claimant)}'s greeting sealed in ${shortDate(h.sealed, me)}` : `in ${powerName(h.claimant)}'s of ${shortDate(h.sealed, me)}`)).join(", and ")})`;
 }
 
 /** A grant of passage or basing as its two kings read it (item 9). */

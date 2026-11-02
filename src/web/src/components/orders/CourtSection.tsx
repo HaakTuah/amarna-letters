@@ -32,7 +32,7 @@ import {
   claimableNames,
   type Power,
 } from "@amarna/engine";
-import { dated, grantLine, powerName, provinceName, shekels } from "../../ui/format.ts";
+import { dated, grantLine, heardIn, powerName, provinceName, shekels } from "../../ui/format.ts";
 import { byName } from "../../ui/order-draft.ts";
 import { Person } from "../Person.tsx";
 import { map, num } from "./form.ts";
@@ -76,7 +76,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
       <div className="row" style={{ marginTop: ".4rem" }}>
         <span>
           You go by the name of {v.claimedName}.
-          {v.nameClaims.map((n) => ` ${n.name} is claimed by ${n.claimants.map(powerName).join(" and ")}${n.givenTo !== null ? `; your court gives it to ${powerName(n.givenTo)}` : ""}.`).join("")}
+          {v.nameClaims.map((n) => ` ${n.name} is claimed by ${n.claimants.map(powerName).join(" and ")}${heardIn(n.heard, v.power)}${n.givenTo !== null ? `; your court gives it to ${powerName(n.givenTo)}` : ""}.`).join("")}
         </span>
         <select
           value=""

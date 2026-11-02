@@ -49,6 +49,10 @@ describe("NamesAsClaims", () => {
     Assert.empty(Views.for(s, "Egypt").nameClaims);
     e.claimHeard("Egypt", "Amurru", "Gubla", s.turn);
     Assert.equal(1, Views.for(s, "Egypt").nameClaims.length);
+    // #550: the season the claim was read from its sealed greeting; Byblos claims his own land's name, read in no greeting.
+    Assert.deepEqual([{ claimant: "Amurru", sealed: s.turn }], Views.for(s, "Egypt").nameClaims[0].heard);
+    // Amurru's own court knows his claim without a greeting, and has read none of Byblos's.
+    Assert.empty(Views.for(s, "Amurru").nameClaims[0].heard);
     // Nobody given the name yet: Egypt gives it to the power whose own land it is.
     Assert.equal("Gubla", asSeenBy("Egypt", () => land("Byblos")));
     Assert.equal("Bit-Aziru", asSeenBy("Egypt", () => land("Amurru")));
