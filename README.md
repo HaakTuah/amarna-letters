@@ -368,7 +368,8 @@ stores and its people as they were, until the news reaches you; only then does i
 Click such a city and its card gives only what your stewards last reported and how many seasons ago, never its new
 holder's affairs; a band your people last told of there is drawn faded, with the age of that word.
 Figures on the roads in the fog are your own: your caravans, wherever they are, and your envoys and spies where you
-believe them; foreign troops show only in your land, where your troops stand and one step beyond.
+believe them; foreign troops show only in your land and where your troops stand, within a season's courier ride of your court, and
+one step beyond.
 Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall

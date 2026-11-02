@@ -21,7 +21,7 @@ was drawn. The figures moving through Egypt's fog are of three kinds:
    with the envoy's figure, or an eye, in Egypt's colour.
 3. **The nomads' armies next to Egypt:** the Shasu in Seir and the Tjehenu in their land, drawn in the steppe's style
    (two archers), which looks like a scouting party. Both provinces border Egyptian land, so they are in Egypt's sight
-   (its land, where its troops stand, and one link beyond: `Views.sight`, `docs/design/01-rules-as-implemented.md`,
+   (its land and where its troops stand, within a season's courier ride of its court, and one link beyond: `Views.sight`, `docs/design/01-rules-as-implemented.md`,
    "Sight"), and the Shasu army really is moving (Seir, Hazzatu, Lakisha in the 3-season game).
 
 The white discs with a dotted line along the borders are crossings (passes and fords), not people.
@@ -36,7 +36,7 @@ there is no leak, and the kings' view needs no change: no benchmarks were run, s
   deportees' title ends "in your sight" (`life.ts`).
 - The legend says whose figures a king's view shows: the caravan "in a king's view, only his own, wherever it is"; the
   envoy "in a king's view, his own where he believes them"; people carried off "on a road in sight"; and the fog line
-  gives the sight rule ("A king sees troops in his land, where his troops stand, and one step beyond").
+  gives the sight rule, with its courier reach ("Distance inside your own realm", `docs/design/35-command-at-a-distance.md`).
 - README ("Watching a game") and the design note say the same.
 - The test that a court sees only its own caravans now also checks the drawn titles (`map-scene.test.ts`).
 
