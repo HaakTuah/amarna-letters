@@ -106,9 +106,12 @@ describe("ExportTests", () => {
     // A provider's error that carries JSON of its own shape is read the same way.
     log.addCall(newModelCall({ key: "t1/orders/Mitanni", turn: 1, error: 'compatible API 400: {"detail":"Account jdoe@b\\u00fccher.example"}' }));
     Assert.equal('compatible API 400: {"detail":"Account [e-mail]"}', log.calls[1].error);
+    // A reply that is a bare JSON string is read the same way.
+    log.addCall(newModelCall({ key: "t1/orders/Assyria", turn: 1, output: '"jdoe@b\\u00fccher.example"' }));
+    Assert.equal('"[e-mail]"', log.calls[2].output);
     // A property's name is read the same way.
     log.addCall(newModelCall({ key: "t1/orders/Hatti", turn: 1, output: '{"jdoe@b\\u00fccher.example":0}' }));
-    Assert.false(JSON.stringify(JSON.parse(log.calls[2].output)).includes("cher"));
+    Assert.false(JSON.stringify(JSON.parse(log.calls[3].output)).includes("cher"));
   });
 
   test("A reply with its JSON in a fenced block is read the same way", () => {

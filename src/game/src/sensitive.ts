@@ -9,31 +9,49 @@
 /** Each kind of sensitive text and its marker. Order matters: an address is taken whole before its parts. */
 const Patterns: [RegExp, string][] = [
   // A browser's or device's description: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 ...".
-  [/\b(?:Mozilla|AppleWebKit|Chrome|Safari|Firefox|Edg|Gecko|Version|Mobile)\/[\w.]+(?:\s*\([^)]*\))?/g, "[device]"],
+  [
+    /\b(?:Mozilla|AppleWebKit|Chrome|Safari|Firefox|Edg|Gecko|Version|Mobile)\/[\w.]+(?:\s*\([^)]*\))?/g,
+    "[device]",
+  ],
   // Any address: a provider's or the bridge's, whose path, query or user part may carry a token.
   // Taken to the first space or quotation mark: "]" and ")" may stand in a URL's query, as part of a token.
   [/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi, "[address]"],
   // An e-mail address, in any alphabet ("jane@bücher.de").
-  [/(?<![\p{L}\p{N}._%+-])[\p{L}\p{N}._%+-]+@[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)+/gu, "[e-mail]"],
+  [
+    /(?<![\p{L}\p{N}._%+-])[\p{L}\p{N}._%+-]+@[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)+/gu,
+    "[e-mail]",
+  ],
   // Keys: Anthropic's and OpenAI's ("sk-ant-...", "sk-proj-...", masked or not), Google's ("AIza..."), bearer tokens, and
   // any key or token named as one.
   [/\bsk-[\w*.-]{4,}/g, "[key]"],
   [/\bAIza[\w-]{20,}/g, "[key]"],
   [/\bBearer\s+[\w.~+/=-]+/gi, "[key]"],
-  [/\b(?:x-api-key|api[_-]?key|access[_-]?token|authorization)(["']?\s*[:=]\s*["']?)[^\s"',;}]+/gi, "[key]"],
+  [
+    /\b(?:x-api-key|api[_-]?key|access[_-]?token|authorization)(["']?\s*[:=]\s*["']?)[^\s"',;}]+/gi,
+    "[key]",
+  ],
   // Request and organisation ids: "req_011C...", "request_id": "...", "org-...", and any UUID (Anthropic names an
   // organisation by one in its rate-limit messages).
-  [/["']?\b(?:request[_-]?id|x-request-id|organi[sz]ation[_-]?id|org[_-]?id)["']?\s*[:=]\s*["']?[\w-]+["']?/gi, "[id]"],
+  [
+    /["']?\b(?:request[_-]?id|x-request-id|organi[sz]ation[_-]?id|org[_-]?id)["']?\s*[:=]\s*["']?[\w-]+["']?/gi,
+    "[id]",
+  ],
   [/\breq_[A-Za-z0-9]{8,}/g, "[id]"],
   [/\borg-[A-Za-z0-9]{8,}/g, "[id]"],
-  [/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, "[id]"],
+  [
+    /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
+    "[id]",
+  ],
   // Local paths. One under a drive, a share or a home folder is taken to the end of its line, since a folder's name may
   // hold spaces ("C:\Users\Jane Smith\...", "/home/jane/My Games/..."); any other absolute path of two parts or more is
   // taken while it runs, in any alphabet ("/srv/øystein/seats").
   [/\b[A-Za-z]:[\\/][^\n"'<>|]*/g, "[path]"],
   [/\\\\[^\s\\]+\\[^\n"'<>|]*/g, "[path]"],
   [/(?:~|\/(?:home|Users|root|mnt|Volumes|media))\/[^\n"'<>|]*/g, "[path]"],
-  [/(?<![\p{L}\p{N}_.~:/\]])\/(?:[\p{L}\p{N}_.@-]+\/)+[\p{L}\p{N}_.@-]*/gu, "[path]"],
+  [
+    /(?<![\p{L}\p{N}_.~:/\]])\/(?:[\p{L}\p{N}_.@-]+\/)+[\p{L}\p{N}_.@-]*/gu,
+    "[path]",
+  ],
 ];
 
 /**
@@ -56,7 +74,17 @@ export function withoutSensitive(text: string): string {
   if (text.length === 0) return text;
   let out = text;
   for (const k of keys)
-    if (out.includes(k)) out = k.length >= ShortKey ? out.split(k).join("[key]") : out.replace(new RegExp(`(?<![\\p{L}\\p{N}_])${escape(k)}(?![\\p{L}\\p{N}_])`, "gu"), "[key]");
+    if (out.includes(k))
+      out =
+        k.length >= ShortKey
+          ? out.split(k).join("[key]")
+          : out.replace(
+              new RegExp(
+                `(?<![\\p{L}\\p{N}_])${escape(k)}(?![\\p{L}\\p{N}_])`,
+                "gu",
+              ),
+              "[key]",
+            );
   for (const [re, marker] of Patterns) out = out.replace(re, marker);
   return out;
 }
@@ -72,13 +100,21 @@ export function withoutSensitiveJson(text: string): string {
   if (whole !== null) return whole;
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
-  const inner = start < 0 || end <= start ? null : scrubbedObject(text.slice(start, end + 1));
+  const inner =
+    start < 0 || end <= start
+      ? null
+      : scrubbedObject(text.slice(start, end + 1));
   if (inner === null) return withoutSensitive(text);
-  return withoutSensitive(text.slice(0, start)) + inner + withoutSensitive(text.slice(end + 1));
+  return (
+    withoutSensitive(text.slice(0, start)) +
+    inner +
+    withoutSensitive(text.slice(end + 1))
+  );
 }
 
 /**
- * A JSON object's text with every string and name in it scrubbed, or null if it is not one. It is always written back in
+ * A JSON value's text (an object, or a bare string a model replied with) with every string and name in it scrubbed, or
+ * null if it is not JSON. It is always written back in
  * one spelling, with no escapes but the ones JSON needs, so a reader, and the export's search for a human's words, see
  * it as any parser would.
  */
@@ -89,11 +125,13 @@ function scrubbedObject(text: string): string | null {
   } catch {
     return null;
   }
-  if (node === null || typeof node !== "object") return null;
   const walk = (v: unknown): unknown => {
     if (typeof v === "string") return withoutSensitive(v);
     if (Array.isArray(v)) return v.map(walk);
-    if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [withoutSensitive(k), walk(x)]));
+    if (v !== null && typeof v === "object")
+      return Object.fromEntries(
+        Object.entries(v).map(([k, x]) => [withoutSensitive(k), walk(x)]),
+      );
     return v;
   };
   return JSON.stringify(walk(node));
