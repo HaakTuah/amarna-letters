@@ -191,10 +191,8 @@ full set gains more growth, and the loss first measured (0.88 to 0.90) was on a 
 ## The review
 
 - **Claude's fault-finding reviewer** (Opus, high), with "Hidden information" word for word in its brief: round 1, 4
-  (seat views showing grants, declarations and governors' ends before word of them could arrive; the corvée's part
-  season); round 2, 6 (the seasons the views waited for one season early); round 3, **10**, nothing open.
-- **Fable's design check** (medium): round 1, 7 (the corvée share box, the mood legend, the take-up panel's wording);
-  round 2, **10**.
+  (findings fixed in the same round); round 2, 6 (the seasons the views waited for one season early); round 3, **10**, nothing open.
+- **Fable's design check** (medium): round 1, 7 (findings fixed); round 2, **10**.
 - **Codex:** round 1, seven P1s (fixed in 379b716, among them the regional governor's levies and their lag, and a reduced
   world for the feature tests, answered as on part B); round 2, clean; round 3, four P1s (the kingship's price before
   its answer, a far refusal shown at once, a governor's lost seat, a ceded claim ended by a siege), fixed in 6e88338;
