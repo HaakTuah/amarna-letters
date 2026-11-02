@@ -1339,3 +1339,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     text blanked with human words left out in a game with a human seat, and the canary test as its check): "Yes,
     expertly to 1!" Written into "Logging and replay" under Engine and models (revision 63) and the export's entry
     under "Follow-ups" in `docs/BUILD-PROGRESS.md`.
+149. **2 November 2026, 10:47 and 10:48 UTC**, in the design chat, on #411 (whether the corvée may be asked as a share as
+    well as an amount; the design session had first leaned to amount only, then found the design already says "for
+    grain, levy and work gangs alike"): "So in your expert opinion, following the document is the better approach?"
+    Then, to the design session's take (yes: one rule for every demand, the census's gamble kept for building, little
+    to build since works already go by men and seasons, and closer to how labour duty was owed): "Yes, agreed to all
+    expertly!" Written into "The king says how much he wants" under World (revision 66) and item 17++ in the build
+    order (revision 206): built in part C, with script kings choosing by how fresh their count is and the
+    use-against-ignore numbers as the check.
