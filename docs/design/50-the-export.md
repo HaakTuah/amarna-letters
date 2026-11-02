@@ -26,7 +26,7 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
   off (a prompt's brief of a letter keeps its first 120 letters); a text shorter than that counts only whole. Each is also looked for as it stands inside a JSON string, since a
   model's reply is JSON, and as the log keeps it in a call, anything sensitive in it replaced. A text that names a person, tablet or lot by its id (`c12`, `k3`, `g7`) is also looked for as
   the engine's scribe delivers it, with a name in each id's place: each long run between ids alone, and the whole with
-  any name where each id stood. Orders, ids and names the engine reads are never
+  any name, or none, where each id stood ("Mane (c1)" is delivered as "Mane"). Orders, ids and names the engine reads are never
   blanked, so the export replays to the same game, his words blanked in it too (`src/game/test/export.test.ts`). A
   human's words are not sensitive: a normal export keeps them, since he wrote them in play.
 - **What is sensitive is never a filter and never in the log.** It reaches the log only through what a provider, the

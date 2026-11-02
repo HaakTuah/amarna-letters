@@ -139,7 +139,7 @@ interface Quotes {
  * The texts to look for elsewhere: each whole text, and each sentence or line of it; each also as it stands inside a
  * JSON string, since a model's reply is JSON (`Meet \\"my brother\\"`, a line break as `\\n`). One that names a
  * reference is also looked for as the scribe delivers it: each long run between references alone, and the whole with
- * any name of up to 120 letters where each reference stood.
+ * any name of up to 120 letters, or none, where each reference stood ("Mane (c1)" is delivered as "Mane").
  */
 function pieces(words: string[]): Quotes {
   const texts = new Set<string>();
@@ -159,7 +159,7 @@ function pieces(words: string[]): Quotes {
         while (runs.length > 0 && runs[0].trim() === "") runs.shift();
         while (runs.length > 0 && runs[runs.length - 1].trim() === "") runs.pop();
         if (runs.join("").replace(/\s/g, "").length < MinQuoted) continue;
-        forms.set(form, new RegExp(runs.map((r) => r.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[^\\n]{1,120}?"), "g"));
+        forms.set(form, new RegExp(runs.map((r) => r.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[^\\n]{0,120}?"), "g"));
       }
     }
   return { texts: [...texts], forms: [...forms.values()] };

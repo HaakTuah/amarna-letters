@@ -145,8 +145,8 @@ describe("ExportTests", () => {
   const Letter = "Greetings, my brother of Alashiya. I send you twelve horses and a chariot of gold.";
   const Notes = "Attack now";
   /** A note naming a person by his id, and the same as the scribe delivers it to another court. */
-  const Named = "Ask c1 to bring the horses to the secret gate. Meet jane@example.com beside the old well tomorrow.";
-  const Scribed = "Ask Mane to bring the horses to the secret gate. Meet jane@example.com beside the old well tomorrow.";
+  const Named = "Ask c1 to bring the horses to the secret gate. Meet jane@example.com beside the old well tomorrow. Tell Mane (c1) and Hani (c2) to strike.";
+  const Scribed = "Ask Mane to bring the horses to the secret gate. Meet jane@example.com beside the old well tomorrow. Tell Mane and Hani to strike.";
   const Speech = 'Your lord\'s horses are welcome here. Say "my brother" to him.';
 
   class HumanSender implements ISeat {
@@ -219,6 +219,9 @@ describe("ExportTests", () => {
     // sentence of the prompt's own stays.
     Assert.false(kept.includes("to bring the horses to the secret gate"));
     Assert.false(kept.includes("Ask Mane"));
+    // "Mane (c1)" is delivered as "Mane": the scribe deletes the id, and the quote is still found.
+    Assert.false(kept.includes("Tell Mane"));
+    Assert.false(kept.includes("and Hani to strike"));
     // The log took the address out of the prompt ("Meet [e-mail] beside ..."): his words around it are still found.
     Assert.false(kept.includes("beside the old well"));
     Assert.true(kept.includes("Bring the horses."));
