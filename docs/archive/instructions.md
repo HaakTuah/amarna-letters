@@ -1291,3 +1291,13 @@ Given in the design chat with Claude, answering the design questions of the cons
     effort inside the builder, then the escalation chain): "Yes, expertly! We don't want them to hang up like this
     again, and this seems like a smarter split!" Written into `CLAUDE.md` ("Models, effort and helpers") and
     `docs/orchestrating.md`; the same in Barkstreet Snakes.
+141. **2 November 2026, 08:25 and 08:28 UTC**, in the design chat, on whether agents should file ideas in his father's
+    repository: "Because that's different from how all questions to me bubble up, but maybe stuff is lost for me,
+    because they only raise blocking questions? Should we also have something like this? Right now we have to hunt
+    across PRs and stuff for the questions? Would this be a better place for all of that?" Then, to the design
+    session's take (one inbox of issues assigned to him, labelled `for-haakon` and `idea`): "Yes, important to avoid
+    duplication, we want everything there then, and just pointers there in the prs and stuff, to make us aware that new
+    ones are added. Should it be low stake to suggest an idea? I think this could be good for both me and my father."
+    Written into `AGENTS.md` ("Questions, readings and ideas", replacing "Questions and readings") and
+    `docs/BUILD-PROGRESS.md` ("For Haakon" points to the issues); the same in Barkstreet Snakes, whose noted ideas
+    moved to issues.
