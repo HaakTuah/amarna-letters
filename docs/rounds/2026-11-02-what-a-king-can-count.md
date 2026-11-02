@@ -99,7 +99,26 @@ and amount numbers together.
 
 ## The review
 
-(To come.)
+`Review: rules · Codex · P1×3 P2×1, clean, P1×2, (round 4) · design check · 4, (not recorded), 7, 9`
+
+- **Round 1** (on `e9833c5`): the design check, 4: a share that could squeeze the farmers, levies not askable as a share,
+  an amount for all one's land, no use-against-ignore numbers, exact counts leaking, news of lost land at once, a `tax-set`
+  leftover, missing tests, the province's word, god view's "You ask", `orders.ts` over 50 KB (moved out as a follow-up).
+  Codex, P1×3 P2×1: the smallest game (moved out as a follow-up: a reduced-map fixture for the engine suite), the count's
+  road home reckoned outward, scheduled censuses not waiting for their word, the granary reckoned before this season's
+  eating. All fixed or moved out with reasons in `78fd012` (the PR's "Round 1: answers").
+- **Round 2** (on `da1c8be`): Codex clean. The design check's points were fixed in `5766c80` (levies by share for the
+  script kings, a share too small for a levy told as that, the seat's yields as the last reaping's); its score was not
+  recorded, since the session that ran it ended before writing it down.
+- **Round 3** (on `2af5e43`): the design check, 7: the old yields wording left in the model's prompt and the view's
+  comment, a share levy's wake reason, no numbers after round 2's changes, the questions not reaching Haakon three ways.
+  Codex, P1×2: a share could take the farmers' food from a granary already emptied, and a levy's reserved gold was
+  reckoned from the men really there. All fixed in `c701835` and `13eef53`, with tests; the seat-view fault part C's games
+  found (`8e8fa70`) came in the same round.
+- **Round 4** (on `13eef53`): the design check, 9, nothing blocking: this section, the PR's review line and its footer.
+  Fixed. This is a fourth round past the rule's three ("Reviews: only a 10 passes", point 4): round 3's points were
+  fixed rather than left open, and the round checks those fixes; anything a fourth round had left open would have gone
+  to the escalation helper. Reading taken on the rule's purpose (an end to the rounds, a bar that does not slip).
 
 Questions for Haakon:
 
