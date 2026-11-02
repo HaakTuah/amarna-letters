@@ -51,6 +51,10 @@ vector and security concerns".
   no `postinstall` scripts from new packages; CI's audit findings are fixed, not silenced.
 8. **Reviews look for these,** and for any new way in: a new input, a new external request, a new dependency or
    script, a weakened check. Code from a PR is never run on Haakon's PC.
+- **Test data is never real.** Fake keys and tokens in tests are built when the test runs, from pieces (such as
+  `"AIza" + "Sy" + "x".repeat(33)`), never written out as a literal that looks real, so no scanner takes one for a
+  leak. Sample names, paths and e-mail addresses are invented (`jdoe`, `/home/jdoe`, `jdoe@example.com`), never a
+  real person's. A scanning alert on a test's fake is closed as "Used in tests" once the literal is gone.
 
 ## Reporting a weakness
 
