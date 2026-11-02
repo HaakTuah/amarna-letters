@@ -17,6 +17,8 @@ export const unitLetter = (k: UnitKind): string => (k === "Army" ? "A" : "F");
 export interface Form {
   raiseAt: string;
   raiseKind: string;
+  /** Item 17++: the levy as a share of the men of fighting age at home, in percent; empty for a full unit. */
+  raiseShare: string;
   buildAt: string;
   buildKind: string;
   buildLevel: number;
@@ -108,6 +110,7 @@ export function newForm(me: Power): Form {
   return {
     raiseAt: "",
     raiseKind: "Army",
+    raiseShare: "",
     buildAt: "",
     buildKind: "Roads",
     buildLevel: 2,

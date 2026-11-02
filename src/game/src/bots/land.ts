@@ -66,17 +66,20 @@ export function bearableShare(x: ProvinceEconomyView, me: string | null = null, 
 /**
  * The farmers' granary now, reckoned forward from the king's last count of it (item 17++): each season since, what its
  * countryside eats and what he asks taken from it, and a reaping in between filling it with a harvest like the counted
- * one; this season's reaping in, its eating not yet. The count's own figure when it is this season's.
+ * one; this season's reaping and eating done, as they are when the king gives his orders. The count's own figure when it
+ * is this season's.
  */
 export function granaryNow(x: ProvinceEconomyView, turn: number): number {
   if (x.counted === null) return x.granary;
   const need = countryNeed(WorldMap.default.get(x.province), x.settled, reckonedOf(WorldMap.default, x.province).settled);
-  const use = need + Math.floor((x.harvest * shareNow(x)) / 100);
+  // A share is reckoned from what the farmers do not eat; an amount is taken as asked.
+  const asked = Math.floor((x.harvest * shareNow(x)) / 100);
+  const use = need + (x.amount === null ? Math.min(asked, Math.max(0, x.harvest - need)) : asked);
   let g = x.granary;
   for (let t = x.counted + 1; t <= turn; t++) {
     if ((((t - turn - x.reapsIn) % 3) + 3) % 3 === 0) g += 3 * x.harvest;
-    // This season's eating and asking are still to come when the king gives his orders.
-    if (t < turn) g = Math.max(0, g - use);
+    // This season's reaping, eating and asking are done before the king gives his orders.
+    g = Math.max(0, g - use);
   }
   return g;
 }

@@ -30,29 +30,38 @@ question for Haakon asks for the copy to be refreshed so that the next part, and
 
 ## Readings taken
 
-1. **Levies and work gangs stay amounts as built.** The item lists "grain, levy and work gangs" as asked by share or
-   amount. A levy already takes the men a unit needs from the men really there (item 10+a, `levyMen`), and the corvée the
-   men a work needs (item 15): both are amounts the king names and gets, falling on the people there, which is what the
-   item says an amount is. A share of men has no use the game has yet (no standing levy each year), and inventing one is a
-   rule the sections might say otherwise of. So grain is asked either way, and levies and gangs stay the amounts they are.
-   Principle: "No stopgaps" (no rule invented for the meantime) and "Different data, same rules". **Asked of Haakon**
-   (question 2), since the sections are missing.
+1. **Levies by share or amount; work gangs as each work's need** (round 1 of the review). The item's text settles levies:
+   "grain, levy and work gangs asked either as a share ... or as an amount". A levy may now be asked as a share of the men
+   of fighting age at home (`raise` with `share`; model actions `raise_army_share`, `raise_fleet_share`; the web's share
+   box beside the levy), which never takes more than are there but which the province hides part of by the same rule as a
+   share of grain; or as a number of men, which the king gets from the men really there, every one if he asks that many,
+   the fields losing their hands (item 11a+'s levy, unchanged). The corvée is not asked at all: each work names the men
+   it needs (item 15), so it is an amount by nature, and a share of it would have to invent how a half-manned work
+   progresses, a rule no section gives. Principle: "No stopgaps". **Asked of Haakon** (question 2, narrowed to the corvée).
 2. **What a share hides.** "lets it hide more the older his count and the farther it lies": a point of the share for every
    season since the count, two for every season of the word's road beyond the first, at most thirty; land never counted
    twenty before distance. First guesses. Principle: "Information time travel" (what a king knows is as old as its road).
+   **A share never squeezes** (round 1): it is reckoned from what the farmers do not eat, their food held back first, so
+   no share starves them, and only an amount can.
 3. **What an amount does.** "which he gets but cannot judge, falling on the people really there (a smaller next harvest,
    hunger, unrest, flight) or leaving wealth in the fields": taken as asked, as far as the farmers' granaries hold; what
    the farmers lack for food is hunger by item 10+a's rule, its flight and its ledger taking; the next harvest is smaller by
    the hands that left. No new rule of hunger. Principle: "One rule for everything".
 4. **What the stewards report exactly.** A count is of people and fields; the king's own stores, market, what his demand
    brings in and how the countryside ate are his stewards' reports and stay exact. So a king can see a share's hiding as
-   a shortfall in what comes in, as a court would. Principle: "Information as known".
+   a shortfall in what comes in, as a court would; the yields the seat view gives of its own and watched land are the
+   same: what comes in, as it comes in. A levy refused for too few men no longer names how many are at home (round 1).
+   Principle: "Information as known".
 5. **Every court starts counted** in the first season: the courts of the age kept lists of households and
    men (as at Alalakh and Ugarit). Land taken later is uncounted. Principle: "Period first".
 6. **The census's fee is flat** (three shekels a province), so the fee tells the king nothing of what the scribes will
    find; a census of a province once at a time; "counting stirs some unrest" is five points of the ledger. First guesses.
 7. **"Only a governor stands between king and province"** read as: where a governor stands, the ledger debits and credits
    him for what is asked (part A's hand); no other intermediary. Principle: "One rule for everything".
+9. **"Counted people and measured fields are the king's answer to a province's word"** read as: a governor's letters on a
+   province's mood and harvest (items 13, 17), and the shortfall a share shows, are claims a king can now check against
+   his own count, which comes home dated and by the road; no rule compares them for him. Principle: "Deceit is
+   information" (a lie is found out by evidence, never by a roll).
 8. **The scripts' amount** is what their farmers can bear by the count (item 10+a's reckoning), asked while the count is
    two seasons old or less; past that a share. They count the richest stale provinces (eight seasons), two a season.
    Script play, not balance.
@@ -80,6 +89,6 @@ Questions for Haakon:
 1. The sections part B names under The world ("Counts as the scribes knew them", "A census", "The king says how much he
    wants") are not in the repository's copy of the design document, and this account cannot read the live one. Could the
    copy be refreshed? Reading taken: built from the item's own text (readings above). Alternative: wait for the sections.
-2. Should levies and work gangs also be asked as a share (for example a standing share of the men each year)? Reading
-   taken: they stay amounts as built, since a levy and the corvée already take named numbers of men from the men really
-   there. Alternative: a share of men, hidden by the count's age like grain.
+2. Should the corvée (the men a work takes) also be asked as a share? Levies now can be, as the item's text says. Reading
+   taken: the corvée stays each work's need, an amount, since a share would have to invent how a half-manned work
+   progresses. Alternative: a share of the men for works, the work going slower by the men who came.

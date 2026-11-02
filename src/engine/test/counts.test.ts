@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { CountData, Dict, EconomyData, WorldMap, OrderValidator, TurnEngine, Views, census, countOf, demand, newGame, newGameConfig, newTurnSubmission, type GameState } from "@amarna/engine";
+import { CountData, Dict, EconomyData, WorldMap, OrderValidator, TurnEngine, Views, census, countOf, demand, hiddenPercent, menAvailable, newGame, newGameConfig, newPlannedOrder, newSleepState, newTurnSubmission, raise, type GameState } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
 // What a king can count (build order item 17++, part B): counts as the scribes knew them, the census, and the king's
@@ -85,11 +85,98 @@ describe("CountsTests", () => {
 
   test("A census and a demand are given for one's own land only, once a season", () => {
     const s = fresh();
-    const v = new OrderValidator(s, WorldMap.default).validate("Hatti", newTurnSubmission({ orders: [census("nesa"), census("nesa"), census("delta"), demand("share", 101, "nesa"), demand("amount", -1, "hattusa"), demand("amount", 50, "hattusa")] }));
+    const v = new OrderValidator(s, WorldMap.default).validate("Hatti", newTurnSubmission({ orders: [census("nesa"), census("nesa"), census("delta"), demand("share", 101, "nesa"), demand("amount", -1, "hattusa"), demand("amount", 50, "hattusa"), demand("amount", 50, null)] }));
     Assert.equal(2, v.accepted.length);
-    Assert.equal(4, v.rejected.length);
+    Assert.equal(5, v.rejected.length);
     s.censuses.push({ power: "Hatti", province: "nesa", counted: s.turn + 1, home: 0, count: null });
     const w = new OrderValidator(s, WorldMap.default).validate("Hatti", newTurnSubmission({ orders: [census("nesa")] }));
     Assert.contains(w.rejected, (x) => x.reason.includes("already counting"));
+  });
+  test("A share hides more the farther the land lies from its court, up to a bound", () => {
+    Assert.equal(0, hiddenPercent(0, 1));
+    Assert.equal(2 * CountData.hidePerFar, hiddenPercent(0, 3));
+    Assert.equal(CountData.hidePerSeason * 4 + 2 * CountData.hidePerFar, hiddenPercent(4, 3));
+    Assert.equal(CountData.hideMost, hiddenPercent(40, 9));
+    Assert.equal(CountData.hideUncounted + CountData.hidePerFar, hiddenPercent(null, 2));
+  });
+
+  test("What a share hides stays in the farmers' granaries; an amount below the harvest leaves the rest with them", () => {
+    const run = (age: number, amount: number | null): GameState => {
+      const s = fresh();
+      const c = countOf(s, "Hatti", "nesa")!;
+      s.counts.get("Hatti").set("nesa", { ...c, turn: s.turn - age });
+      const e = new TurnEngine(s);
+      if (amount !== null) e.setDemand("Hatti", demand("amount", amount, "nesa"));
+      e.beginTurn();
+      e.resolve(new Dict());
+      return s;
+    };
+    const exact = run(0, null);
+    const old = run(20, null);
+    // The older count brings less into the stores, and the farmers keep what they hid.
+    Assert.true(old.stores.getOrDefault("nesa", 0) < exact.stores.getOrDefault("nesa", 0));
+    Assert.true(old.granary.getOrDefault("nesa", 0) > exact.granary.getOrDefault("nesa", 0));
+    // A small amount: the farmers keep more than under the usual share.
+    const light = run(0, 1);
+    Assert.true(light.granary.getOrDefault("nesa", 0) > exact.granary.getOrDefault("nesa", 0));
+  });
+
+  test("A count waits for the road home, and scribes who find the land lost send word home by the same road", () => {
+    const s = fresh();
+    const e = new TurnEngine(s);
+    // The court far from the land counted, so the count has a road to travel.
+    s.court.set("Hatti", "memphis");
+    e.sendCensus("Hatti", census("nesa"));
+    e.sendCensus("Hatti", census("samuha"));
+    const before = countOf(s, "Hatti", "nesa")!.turn;
+    // Samuha is lost before the scribes count it.
+    e.setOwner("samuha", "Mitanni");
+    const told = (): boolean => s.inbox.get("Hatti").some((i) => i.title === "A census" && i.body.includes("came home with nothing"));
+    while (s.turn < s.censuses[0].counted) s.turn++;
+    e.censusSeason();
+    const lost = s.censuses.find((c) => c.province === "samuha")!;
+    Assert.equal(null, lost.count);
+    Assert.true(lost.home > s.turn);
+    Assert.false(told());
+    const counted = s.censuses.find((c) => c.province === "nesa")!;
+    Assert.true(counted.count !== null && counted.home > s.turn);
+    // Until the count reaches the court, the court keeps the old one.
+    Assert.equal(before, countOf(s, "Hatti", "nesa")!.turn);
+    while (s.censuses.length > 0) {
+      s.turn++;
+      if (s.turn < counted.home) Assert.equal(before, countOf(s, "Hatti", "nesa")!.turn);
+      e.censusSeason();
+    }
+    Assert.true(told());
+    Assert.equal(counted.count!.turn, countOf(s, "Hatti", "nesa")!.turn);
+  });
+
+  test("A levy asked as a share takes that share of the men at home, less what the province hides of it", () => {
+    const s = fresh();
+    const c = countOf(s, "Hatti", "hattusa")!;
+    s.counts.get("Hatti").set("hattusa", { ...c, turn: s.turn - 10 });
+    const e = new TurnEngine(s);
+    s.units = s.units.filter((u) => u.province !== "hattusa");
+    const at = menAvailable(s, "hattusa");
+    const expect = Math.floor((Math.floor((at * 6) / 100) * (100 - e.hiddenIn("hattusa"))) / 100);
+    const n = s.units.length;
+    s.treasuries.get("Hatti").gold += 10_000;
+    e.raise("Hatti", raise("hattusa", "Army", null, 6));
+    Assert.equal(n + 1, s.units.length);
+    Assert.equal(expect, s.units[s.units.length - 1].men);
+    const v = new OrderValidator(s, WorldMap.default).validate("Hatti", newTurnSubmission({ orders: [raise("nesa", "Army", null, 0), raise("nesa", "Army", null, 101)] }));
+    Assert.equal(2, v.rejected.length);
+  });
+  test("A census scheduled ahead waits for word of it to reach the province", () => {
+    const s = fresh();
+    const e = new TurnEngine(s);
+    // Land far from the court: word of an order takes a season to reach it.
+    e.setOwner("thebes", "Hatti");
+    const reach = e.wordTo("Hatti", "thebes");
+    Assert.true(reach >= 1);
+    const sl = newSleepState({ asleep: true, wakeAt: 50 });
+    const x = newPlannedOrder({ turn: s.turn, order: census("thebes"), given: s.turn });
+    Assert.true(e.notYetReached("Hatti", sl, x.order, x));
+    Assert.equal(s.turn + reach, sl.scheduled[0].turn);
   });
 });

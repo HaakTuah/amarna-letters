@@ -71,7 +71,12 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           <option value="Army">army ({shekels(price("army"))})</option>
           <option value="Fleet">fleet ({shekels(price("fleet"))})</option>
         </select>
-        <button className="small" disabled={f.raiseAt === ""} onClick={() => add(raise(f.raiseAt, f.raiseKind as UnitKind))}>
+        <input type="number" min={1} max={100} placeholder="share %" title="Empty: a full unit. A share of the men of fighting age at home, which the province hides part of as its count ages." value={f.raiseShare} onChange={(e) => set({ raiseShare: e.target.value })} style={{ width: "5rem" }} />
+        <button
+          className="small"
+          disabled={f.raiseAt === "" || (f.raiseShare !== "" && !(Number(f.raiseShare) >= 1 && Number(f.raiseShare) <= 100))}
+          onClick={() => add(raise(f.raiseAt, f.raiseKind as UnitKind, null, f.raiseShare === "" ? null : Math.floor(Number(f.raiseShare))))}
+        >
           Add
         </button>
       </div>
@@ -143,9 +148,11 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
               const x = v.provinces.find((y) => y.province === id)!;
               return (
                 <option key={id} value={id}>
-                  {f.grainAction === "share" || f.grainAction === "amount" || f.grainAction === "census"
-                    ? `${provinceName(id)} (asked ${x.amount !== null ? `${x.amount} a season` : `${x.share}%`}, harvest ${x.harvest}${x.counted === null ? ", never counted" : ` as counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
-                    : `${provinceName(id)} (stores ${x.stores}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
+                  {f.grainAction === "census"
+                    ? `${provinceName(id)} (${x.counted === null ? "never counted" : `counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""})`
+                    : f.grainAction === "share" || f.grainAction === "amount"
+                      ? `${provinceName(id)} (asked ${x.amount !== null ? `${x.amount} a season` : `${x.share}%`}, harvest ${x.harvest}${x.counted === null ? ", never counted" : ` as counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
+                      : `${provinceName(id)} (stores ${x.stores}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
                 </option>
               );
             })}

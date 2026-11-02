@@ -74,6 +74,11 @@ fixed.
   province once one upkeep order is drafted; (g) a captive's stirring gold counted as skimmed rather than carried; (h) a
   no-op `CityStarts` entry; (i) an older tablet arriving late sets a court's knowledge of a claim back. (b), the chiefs'
   lands falling in the first two seasons, is 17++'s and measured in its report.
+- **From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
+  is over 50 KB (about 55 KB): split by responsibility in a PR of its own, behaviour proven unchanged by replays.
+- **From #376 (17++ B), round 1 (Codex, P1); test infrastructure outside the item:** the engine suite has no reduced-world
+  fixture, so every engine test builds the whole starting world; a small-world fixture (a few powers on part of the map)
+  for rule tests, as "the smallest game that tests the rule" asks.
 
 ## For Haakon: review points
 

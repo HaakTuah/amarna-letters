@@ -28,17 +28,19 @@ readings. The report: `docs/rounds/2026-11-02-what-a-king-can-count.md`. Save ve
 - They count it `seasons` (1) later, at the season's end, as it stands then (`takeCount`); counting is a taking in the
   ledger (`UnrestData.census`, 5 points, the hand the people see: the governor where one stands). The count then travels
   home as word does (`courierSeasons` from the province to the court) and replaces the older count when it arrives, with
-  a notice of what it found. Scribes in land the king no longer holds come home with nothing.
+  a notice of what it found. Scribes in land the king no longer holds come home with nothing, their word on the same
+  road (at least a season).
 
 ## The demand (`GameState.shares`, `GameState.amounts`)
 
-- Order `demand` (a province, or all one's land; model actions `ask_share` and `ask_amount`; the web's grain row) replaces
+- Order `demand` (a share for a province or all one's land, an amount for one province; model actions `ask_share` and `ask_amount`; the web's grain row) replaces
   item 10+a's `tax`. It stands until changed or the province changes hands, when it lapses to the usual share
   (`EconomyData.taxPercent`, 33).
 - **A share** (percent of a season's third of the last harvest) never squeezes the land, but the land hides part of it:
   `hidePerSeason` (1) point for every season since its holder's last count, plus `hidePerFar` (2) for every season its word
   takes to reach his court beyond the first, at most `hideMost` (30); a land he never counted hides `hideUncounted` (20)
-  before distance (`hiddenPercent`).
+  before distance (`hiddenPercent`). The share is reckoned from what the farmers do not eat (`countryNeed`): their food is
+  held back first, so no share starves them.
 - **An amount** (measures a season) hides nothing: it is taken as asked, as far as the farmers' granaries hold. Asked
   beyond what the land yields it falls on the people really there: the granary empties, they go hungry, flee and turn
   against the hand that takes (the ledger's takings for hunger and for asking above the usual share), and fewer hands
@@ -46,6 +48,9 @@ readings. The report: `docs/rounds/2026-11-02-what-a-king-can-count.md`. Save ve
 - `grainAsked` is what either asks a season, before obedience and siege; `burden` is it as a percent of the season's
   third, and stands wherever the tax rate stood: what the farmers keep, the land's appeal to those leaving, the reason
   runaways give, and the ledger's taking or giving against the usual share.
+- **Levies** (`raise` with `share`; model actions `raise_army_share`, `raise_fleet_share`): a share of the men of
+  fighting age at home, less the same `hiddenIn` percent; or a number of men, as item 11a+ built it. The corvée stays each
+  work's need (item 15).
 - Only a governor stands between king and province: where one stands, the ledger debits or credits him for what is
   asked, as the hand the people see (part A's rule), and nothing else comes between.
 

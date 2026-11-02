@@ -13,7 +13,7 @@ describe("PeoplePlayTests", () => {
   test("The rulebook states the people, the demand, the census and the people's resistance, and a model king can order them", () => {
     const rules = leaderRules(true, newGameConfig());
     Assert.contains("PEOPLE", rules);
-    Assert.contains("orders ask_share and ask_amount", rules);
+    Assert.contains("orders ask_share: the province, or none for all your land; ask_amount: one province", rules);
     Assert.contains("order census", rules);
     Assert.contains("The people defend their land.", rules);
     Assert.contains("In this game a land's people do not resist", leaderRules(true, newGameConfig({ peopleDefence: 0 })));

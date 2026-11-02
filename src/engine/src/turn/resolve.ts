@@ -525,7 +525,8 @@ P.raise = function (p, r) {
   }
   // Sized by the men the province has (item 11a+): a full levy where it can, else every man at home; its price, pay and
   // food are in proportion.
-  const men = levySize(S, prov.id, r.kind, r.men ?? null);
+  // Item 17++: a share of the men at home, less what the province hides of it; an amount, the men asked.
+  const men = levySize(S, prov.id, r.kind, r.share != null ? idiv(idiv(menAvailable(S, prov.id) * r.share, 100) * (100 - this.hiddenIn(prov.id)), 100) : (r.men ?? null));
   if (men <= 0) {
     notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: it has too few men of fighting age left (${LandData.levyLeast} at least are needed). No gold was paid.`);
     this.scheduledFailed(p, r, "too few men of fighting age");
