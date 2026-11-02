@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Tests run only where they can be affected (Haakon, 28 October 2026:
+  # Tests run only where they can be affected (the owner, 28 October 2026:
   # "tests should only run where they impact something"): notes alone
   # (docs/, .claude/, any .md) skip them; the build still runs for the preview.
   changes:
@@ -52,7 +52,7 @@ jobs:
           web=$(echo "$files" | grep -E '^(src/(web|engine|game|llm)/|(package(-lock)?|tsconfig(\.base)?)\.json$)' | grep -v -E '^src/[^/]+/test/|\.md$' | grep -c . || true)
           echo "web=$([ "$web" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
-  # Lint and types, beside the tests (Haakon, 29 October 2026: optimizations to development, "do all expertly").
+  # Lint and types, beside the tests (the owner, 29 October 2026: optimizations to development, "do all expertly").
   checks:
     needs: changes
     if: needs.changes.outputs.code == 'true'

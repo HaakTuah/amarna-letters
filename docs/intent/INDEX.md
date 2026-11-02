@@ -17,9 +17,9 @@ with the copy and say so in the report, and before opening the pull request read
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 569 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 206 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 212 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 66 |
-| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 63 |
+| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 64 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 26 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
@@ -43,7 +43,7 @@ session loads.
 | `docs/intent/overview/prototype-scope.md` | Prototype scope | 3.0 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
-| `.claude/rules/builder-rules.md` | Rules for the builder | 11.5 |
+| `.claude/rules/builder-rules.md` | Rules for the builder | 11.7 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.8 |
@@ -72,7 +72,7 @@ session loads.
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 24.5 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.9 |
-| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 27.0 |
+| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 27.6 |
 | `docs/intent/engine-and-models/script-mode-and-press-modes.md` | Script mode and press modes | 3.2 |
 | `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 12.3 |
 | `docs/intent/engine-and-models/security-prompt-injection-and-information-leakage.md` | Security: prompt injection and information leakage | 2.0 |

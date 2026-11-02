@@ -1,13 +1,13 @@
 # Build progress
 
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
-`.claude/rules/builder-rules.md`, which also say how items are branched, merged and reviewed, and when work slows for
-usage). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
+`.claude/rules/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
+how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
 document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
 longer finds was history and is in `docs/archive/design-history.md`.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`;
-The owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
+the owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
 
 ## The polish lane
 
@@ -72,27 +72,17 @@ fixed.
 - ~~**The canary test for hidden information**~~ (done, #421): `src/web/test/canary.test.ts` plants an envoy's hidden
   mandate, its letter, a sealed tablet, an army in the fog and another court's treasury, and reads every seat's input,
   every model request, the chronicles, every view, map and panel the page shows, live, in past seasons and on replay; no
-  leak found. Whether "Export log" should wait for "Reveal all" while a human plays: #424. Its export part (secrets
-  and a human seat's words exported under every filter, none found) is added once the export lane (#385) merges.
-- **First of all: what a game's export holds** (the owner, 2 November 2026: "And queue a job going fully over what the
-  export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
-  fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
-  session's `export`, `log.toJsonl()` and every record type in it: the header, calls, decisions, shadows) and
-  everything it could carry: API keys or anything from the key's storage, provider addresses with tokens in them,
-  request or organisation ids, e-mail addresses, local paths, browser or device details.
-  Anything sensitive is removed from the export, with a test that fails if it comes back, and **The owner is alerted at
-  once**: the PR's first line and the session's "Questions for the owner" say what was found and which files in
-  `tests/fixtures/` hold it, so they can be removed from the repository and its history. If nothing is found, the
-  report lists what the export holds, field by field. Then build **one export with filters** (Engine and models,
-  "Logging and replay"; the owner, 2 November 2026): by default everything, every call in full with each model's notes,
-  plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
-  wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
-  in any export. A human player's own words are not sensitive in a normal export.
-  **Kept out by design, not scrubbed** (the owner, 2 November 2026, after #385's review rounds found a new leak in
-  every round: "Yes, expertly to 1!"; "Logging and replay" under Engine and models): nothing sensitive is recorded
-  (errors as kind and code), the export gives only the fields each record lists per filter, and with human words left
-  out a game with a human seat blanks all free text, keeping its shape. #385 stops scrubbing free text and is rebuilt
-  this way; the canary test for hidden information checks the export too.
+  leak found; its export part (#430) plants sensitive failures and a human seat's words and exports them under all
+  sixteen filters: none found. Whether "Export log" should wait for "Reveal all" while a human plays: #424.
+- ~~**First of all: what a game's export holds**~~ (done, #385): nothing sensitive in `tests/fixtures/`; one export
+  with filters (calls, shadows, audits, human words), kept clean by design: failures logged as kind and code, each
+  record giving only its listed fields, and without human words a game with a human seat blanks every text and still
+  replays. Report: `docs/rounds/2026-11-02-export-audit.md`; note: `docs/design/50-the-export.md`.
+- **The export's stand-in names and its gate** (the owner, 2 November 2026: "Yes to everything, expertly!", to #427 and
+  #424; "Logging and replay" under Engine and models). Under the human-words filter, a name a model invents in its
+  orders becomes a stand-in (Name-1, Name-2), the same wherever it appears, real names kept, and the export still
+  replays exactly; and while a human plays, "Export log" is offered only when the god view is. The canary test's
+  export part grows a line for each.
 - ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
   as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
   token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:

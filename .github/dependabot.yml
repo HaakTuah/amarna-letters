@@ -1,0 +1,28 @@
+# Dependabot version updates (the owner, 2 November 2026; "Git and GitHub" in AGENTS.md). They aim at develop and
+# are ordinary small PRs. Security updates need no file here: GitHub aims those at main, under the five conditions.
+# A release is proposed only a week after it came out (cooldown), so a bad release is usually pulled first.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+    groups:
+      npm-minor-and-patch:
+        update-types: ["minor", "patch"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]

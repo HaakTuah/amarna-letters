@@ -1,11 +1,14 @@
 /**
  * The canary for hidden information ("Hidden information" under "Review guidelines" in AGENTS.md; "Follow-ups" in
- * docs/BUILD-PROGRESS.md). A small game with secrets planted: an envoy's hidden errand, its letter's and a sealed tablet's
- * words, an army in the fog and another court's treasury. Every seat's view, what every model is asked, every script king's input,
- * the chronicles and everything the page shows a seat (its map and panels) are read along every path (the season as it is
- * played, every past season, a replay) and none may hold a secret its seat or character could not know. Each secret is first shown to be there for whoever may
- * know it, so the canary cannot pass by having planted nothing. The smallest game that tests the rule: three seats on part
- * of the map, three seasons.
+ * docs/BUILD-PROGRESS.md). A small game with secrets planted: an envoy's hidden errand, its letter's and a sealed
+ * tablet's words, an army in the fog and another court's treasury. Every seat's view, what every model is asked, every
+ * script king's input, the chronicles and everything the page shows a seat (its map and panels) are read along every
+ * path (the season as it is played, every past season, a replay) and none may hold a secret its seat or character could
+ * not know. The export is read too (Engine and models, "Logging and replay"): the game's failed calls carry what must
+ * never be recorded, and its envoy's king is a human seat, so under every filter nothing sensitive is in it, and without
+ * human words his are gone and it still replays. Each secret is first shown to be there for whoever may know it, so the
+ * canary cannot pass by having planted nothing. The smallest game that tests the rule: three seats on part of the map,
+ * three seasons, played once for the whole file.
  */
 import { describe, test } from "vitest";
 import {
@@ -25,8 +28,22 @@ import {
   newUnit,
   serialize,
 } from "@amarna/engine";
-import { GameRunner, type ISeat, ReplayMind, ReplayNarrator, ReplaySeat, ScriptLeader } from "@amarna/game";
-import { SeatChoices, SimulatedApi, buildSeats, providersFor, situation } from "@amarna/llm";
+import {
+  BlankMark,
+  WordFields,
+  Everything,
+  exportJsonl,
+  ExportFields,
+  type ExportParts,
+  GameLog,
+  GameRunner,
+  type ISeat,
+  ReplayMind,
+  ReplayNarrator,
+  ReplaySeat,
+  ScriptLeader,
+} from "@amarna/game";
+import { ApiStatusError, type ApiResult, type JsonObject, SeatChoices, SimulatedApi, buildSeats, providersFor, situation } from "@amarna/llm";
 import { IdleSeat, Near, seasons } from "../../game/test/small-world.ts";
 import { Assert } from "../../engine/test/support.ts";
 import { frameFrom, type SeasonFrame } from "../src/session/frames.ts";
@@ -65,6 +82,8 @@ interface Secret {
 
 /** Assyria's script king, with the canary's envoy sent to Babylonia in the first season. */
 class Planting extends ScriptLeader {
+  // Played as a human's seat would be: its letter, mandate and tablet are a human player's words in the export.
+  override readonly label = "Human";
   readonly envoy: string;
   constructor(envoy: string) {
     super(Seed);
@@ -150,6 +169,47 @@ interface Played {
   fogOwner: Power;
 }
 
+/**
+ * What providers and the machine say when a call fails, holding what must never be recorded: a key, a provider address
+ * with a token, request and organisation ids, a local path, an e-mail address, a browser's details. Every one is built
+ * here from invented pieces, so nothing in this file is real or looks like a real key.
+ */
+const Sensitive = [
+  "sk-" + "ant-" + "api03-" + "q".repeat(40),
+  "https://user:" + "TOKEN" + "77x@relay.invented.example/v1",
+  "req_" + "7".repeat(24),
+  "org_" + "3".repeat(12),
+  "/home/kiyya-invented/amarna",
+  "nobody@invented.example",
+  "Mozilla/5.0 (Inventedbox 9; Fable)",
+];
+const Said = [
+  new ApiStatusError(`Anthropic API 401: Incorrect API key provided: ${Sensitive[0]} via ${Sensitive[1]}`, 401),
+  new ApiStatusError(`Anthropic API 400: {"request_id":"${Sensitive[2]}","organization":"${Sensitive[3]}"}`, 400),
+  new Error(`ENOENT: open '${Sensitive[4]}/t1.reply.json' for ${Sensitive[5]} on ${Sensitive[6]}`),
+];
+/**
+ * The calls that fail, by their place in the game's order, none of them a call the positive controls read: two characters'
+ * personas at setup (a call alone), and a character's own decision in season 1 (a call with its script's shadow beside it).
+ */
+const FailAt = [5, 41, 130];
+/** How each planted failure is logged: its kind and code only. */
+const Kinds = ["refused (401)", "rejected (400)", "failed"];
+/** A distinctive core of each sensitive piece, so a piece cut short is found too. */
+const Cores = ["sk-ant", "TOKEN77x", "relay.invented", "req_7777", "org_3333", "kiyya-invented", "nobody@", "Inventedbox"];
+
+/** The stand-in API, failing the planted calls with what must never be recorded. */
+class Failing extends SimulatedApi {
+  #n = 0;
+  failed = 0;
+  override send(body: JsonObject): Promise<ApiResult> {
+    const i = FailAt.indexOf(++this.#n);
+    if (i < 0) return super.send(body);
+    this.failed++;
+    return Promise.reject(Said[i]);
+  }
+}
+
 /** The canary's game: Mitanni and Babylonia played by models (a stand-in answers: no model is called), Assyria by its script king. */
 async function play(): Promise<Played> {
   const { state, envoy, fog, fogOwner } = planted();
@@ -159,7 +219,8 @@ async function play(): Promise<Played> {
   choices.leaders.set("Babylonia", "Haiku");
   choices.characters = "Haiku";
   choices.narrator = "Haiku";
-  const set = buildSeats(choices, state, providersFor(choices, new SimulatedApi(), {}), () => runner!.log);
+  const api = new Failing();
+  const set = buildSeats(choices, state, providersFor(choices, api, {}), () => runner!.log);
   set.seats.set("Assyria", new Planting(envoy));
   const seats = new Map<Power, Inputs>();
   for (const p of AllPowers)
@@ -174,7 +235,9 @@ async function play(): Promise<Played> {
   runner = new GameRunner(state, set.seats, set.minds, set.narrator);
   await runner.prepare();
   while (await runner.playTurn());
-  Assert.equal("", runner.errors.join("; "));
+  // The planted failures, and nothing else, failed; a script stood in for each.
+  Assert.equal(FailAt.length, api.failed);
+  Assert.equal(FailAt.length, runner.errors.length);
   return { runner, seats, envoy, fog, fogOwner };
 }
 
@@ -314,6 +377,10 @@ function shown(g: Read, frames: SeasonFrame[], sceneAt: (t: number, p: Power) =>
   return out;
 }
 
+/** The game, played once for every test of the file. */
+let shared: Promise<Read> | null = null;
+const game = (): Promise<Read> => (shared ??= read());
+
 /** The canary's game played, and the season it was heard at Babylonia's court. */
 async function read(): Promise<Read> {
   const g = await play();
@@ -323,9 +390,115 @@ async function read(): Promise<Read> {
   return { ...g, states, audience: Number(court![1]) };
 }
 
+/** A log replayed on a fresh copy of the planted world. */
+async function replayOf(log: GameLog): Promise<GameRunner> {
+  const replay = new GameRunner(
+    planted().state,
+    new Dict(AllPowers.map((p) => [p, new ReplaySeat(log.header.seats.tryGet(p) ?? "?") as ISeat] as const)),
+    new ReplayMind(log.header.minds),
+    new ReplayNarrator(log.header.narrator),
+    { replay: log },
+  );
+  await replay.prepare();
+  while (await replay.playTurn());
+  return replay;
+}
+
+/** Every filter the export offers, in each of its sixteen combinations. */
+const Filters: ExportParts[] = Array.from({ length: 16 }, (_, i) => ({
+  calls: (i & 1) > 0,
+  shadows: (i & 2) > 0,
+  audits: (i & 4) > 0,
+  humanWords: (i & 8) > 0,
+}));
+
+/** An export's records, decoded. */
+const records = (text: string): Record<string, unknown>[] =>
+  text
+    .split("\n")
+    .filter((l) => l.length > 0)
+    .map((l) => JSON.parse(l) as Record<string, unknown>);
+
+/** Every string within a value. */
+function strings(v: unknown): string[] {
+  if (typeof v === "string") return [v];
+  if (Array.isArray(v)) return v.flatMap(strings);
+  if (v !== null && typeof v === "object") return Object.values(v).flatMap(strings);
+  return [];
+}
+
+/** The fields a record of each type may give: its listed fields, and its type. */
+function unlisted(r: Record<string, unknown>): string[] {
+  const keys = (o: unknown, listed: readonly string[], where: string) =>
+    o === null || o === undefined
+      ? []
+      : Object.keys(o)
+          .filter((k) => !listed.includes(k))
+          .map((k) => `${where}.${k}`);
+  const type = String(r.type);
+  switch (type) {
+    case "header":
+      return keys(r, [...ExportFields.header, "type"], type);
+    case "decision":
+      return keys(r, ["type", "key", "by", "value"], type).concat(keys(r.by, ExportFields.authorship, "decision.by"));
+    case "call":
+      return keys(r, [...ExportFields.call, "type"], type);
+    case "shadow":
+      return keys(r, [...ExportFields.shadow, "type"], type).concat(
+        keys(r.model, ExportFields.choice, "shadow.model"),
+        keys(r.script, ExportFields.choice, "shadow.script"),
+      );
+    case "audit":
+      return keys(r, [...ExportFields.audit, "type"], type);
+    default:
+      return [`a record of type ${type}`];
+  }
+}
+
+/** A blank holds no letter or digit: only the export's marks, spaces and punctuation. */
+const isBlank = (text: string): boolean => !/[\p{L}\p{N}]/u.test(text);
+
+/** Each kind of text an export may hold, as a list: the texts the filter without human words must blank. */
+function texts(read: Record<string, unknown>[]): Record<string, string[]> {
+  const of = (type: string) => read.filter((r) => r.type === type);
+  const words = (v: unknown, key: string | null): string[] =>
+    typeof v === "string"
+      ? key === null || WordFields.has(key)
+        ? [v]
+        : []
+      : Array.isArray(v)
+        ? v.flatMap((x) => words(x, key ?? ""))
+        : v !== null && typeof v === "object"
+          ? Object.entries(v).flatMap(([k, x]) => words(x, k))
+          : [];
+  const choices = of("shadow").flatMap((r) => [r.model, r.script].filter((c): c is Record<string, unknown> => c !== null && c !== undefined));
+  return {
+    "a call's system, prompt or output": of("call").flatMap((r) => [r.system, r.prompt, r.output].map(String)),
+    "a decision's words (a chronicle, a persona, a letter, notes)": of("decision").flatMap((r) => words(r.value, null)),
+    // Whatever the list of word fields says: a text of several words in a decision is words, never an order.
+    "a decision's text of several words": of("decision").flatMap((r) => strings(r.value).filter((x) => /\p{L}+\s+\p{L}+/u.test(x) && !isBlank(x))),
+    "an author's why": of("decision").flatMap((r) => strings((r.by as Record<string, unknown> | undefined)?.why)),
+    "a shadow's choice text or commitments": choices.flatMap((c) => strings([c.text, c.commitments])),
+    "a shadow's known": of("shadow").flatMap((r) => strings(r.known)),
+  };
+}
+
+/** Where two states differ, every string compared but where the second holds a blank. */
+function differ(a: unknown, b: unknown, path: string): string[] {
+  if (typeof b === "string" && /[\u2580-\u259f]/.test(b)) return typeof a === "string" ? [] : [`${path}: a blank where there was no text`];
+  if (a !== null && typeof a === "object" && b !== null && typeof b === "object")
+    return [...new Set([...Object.keys(a), ...Object.keys(b)])].flatMap((k) =>
+      differ((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], `${path}.${k}`),
+    );
+  return a === b ? [] : [`${path}: ${JSON.stringify(a)?.slice(0, 80)} became ${JSON.stringify(b)?.slice(0, 80)}`];
+}
+
+/** Every string of a record set to its blank: two exports are the same game in shape when these match. */
+const shape = (r: unknown): string => JSON.stringify(r, (_, v: unknown) => (typeof v === "string" ? v.replace(/\S/g, BlankMark) : v));
+
 describe("CanaryTests", () => {
   test("No seat, model, script king or page is handed a secret, live, in past seasons or on replay", async () => {
-    const g = await read();
+    const g = await game();
     const { runner, states } = g;
     const list = secrets(g);
     const gold = list.find((x) => x.name === "Babylonia's treasury")!.tokens;
@@ -397,16 +570,62 @@ describe("CanaryTests", () => {
     Assert.equal("", found.join("\n"));
 
     // A replay of the log on a fresh copy of the planted world plays the same seasons, so each holds no more than the game's.
-    const replay = new GameRunner(
-      planted().state,
-      new Dict(AllPowers.map((p) => [p, new ReplaySeat(runner.log.header.seats.tryGet(p) ?? "?") as ISeat] as const)),
-      new ReplayMind(runner.log.header.minds),
-      new ReplayNarrator(runner.log.header.narrator),
-      { replay: runner.log },
-    );
-    await replay.prepare();
-    while (await replay.playTurn());
+    const replay = await replayOf(runner.log);
     for (let t = 0; t <= Seasons; t++) Assert.equal(runner.snapshots.get(t), replay.snapshots.get(t));
+  }, 60000);
+
+  test("No export holds what is sensitive, under any filter; without human words a human seat's are gone and it still replays", async () => {
+    const g = await game();
+    const log = g.runner.log;
+    const human = ["Zirtaqqu", "Nuribtash", "Ullazemmi"];
+    // The planted failures reached the code under test, whole, and are in the log as their kinds alone, beside a
+    // character's call and its shadow; the human's words are in the log as he wrote them.
+    for (const s of Sensitive)
+      Assert.true(
+        g.runner.errors.some((e) => e.includes(s)),
+        s,
+      );
+    Assert.equal(
+      Kinds,
+      log.calls.filter((c) => c.error !== null && c.error !== "").map((c) => c.error),
+    );
+    Assert.true(log.shadows.some((x) => x.error === "failed"));
+    for (const w of human) Assert.contains(w, log.toJsonl());
+
+    const found: string[] = [];
+    const sensitive = (where: string, text: string, all: string[]) => {
+      for (const c of Cores) if (text.includes(c) || all.some((x) => x.includes(c))) found.push(`${where}: ${c}`);
+    };
+    // The log itself (the saved game), raw and decoded, then every export.
+    const raw = log.toJsonl();
+    sensitive("the log", raw, strings(records(raw)));
+    const full = records(exportJsonl(log));
+    // The texts a filter without human words must blank, each found in the full export so none passes by being absent.
+    for (const [what, list] of Object.entries(texts(full)))
+      Assert.true(
+        list.some((x) => !isBlank(x)),
+        `no ${what} to blank`,
+      );
+    for (const parts of Filters) {
+      const text = exportJsonl(log, parts);
+      const read = records(text);
+      const name = JSON.stringify(parts);
+      sensitive(name, text, strings(read));
+      for (const r of read) for (const f of unlisted(r)) found.push(`${name}: ${f}`);
+      if (parts.humanWords) continue;
+      for (const w of human) if (strings(read).some((x) => x.includes(w))) found.push(`${name}: the human's words (${w})`);
+      // Every text is blank: models quote and echo what they read.
+      for (const [what, list] of Object.entries(texts(read))) if (list.some((x) => !isBlank(x))) found.push(`${name}: ${what} not blank`);
+      // Each record keeps its shape: the same records, each text as long as it was.
+      Assert.equal(records(exportJsonl(log, { ...parts, humanWords: true })).map(shape), read.map(shape));
+    }
+    Assert.equal("", found.join("\n"));
+
+    // Without human words the export still replays to the same game: every string as it was, but where the replay holds a
+    // blank (a text composed from blanked words may differ in its punctuation: the engine adds a full stop that a blank lacks).
+    const replay = await replayOf(GameLog.fromJsonl(exportJsonl(log, { ...Everything, humanWords: false })));
+    for (let t = 0; t <= Seasons; t++)
+      Assert.equal("", differ(JSON.parse(g.runner.snapshots.get(t)!), JSON.parse(replay.snapshots.get(t)!), `season ${t}`).join("\n"));
   }, 60000);
 
   test("A human seat has no god view while it plays, unless the table reveals all or the game is over", async () => {

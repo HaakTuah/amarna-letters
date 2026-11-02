@@ -5,7 +5,7 @@
  * contents once the king's agent has written it. The folders stay with the bridge: the page names a king, never a path.
  */
 import { parsePower, trim, trimStart, type Power } from "@amarna/engine";
-import type { ModelCall } from "@amarna/game";
+import { failing, type ModelCall } from "@amarna/game";
 import type { CallSpec, JsonAsker } from "./client.ts";
 import { King, converse, requestText } from "./exchange.ts";
 import type { JsonObject } from "./schemas.ts";
@@ -104,7 +104,7 @@ export class LocalBridge {
     const deadline = Date.now() + this.timeoutMs;
     try {
       for (;;) {
-        if (Date.now() > deadline) throw new Error(`no reply from the agent of ${seat} after ${Math.round(this.timeoutMs / 60000)} minutes`);
+        if (Date.now() > deadline) throw failing("timed out", `no reply from the agent of ${seat} after ${Math.round(this.timeoutMs / 60000)} minutes`);
         await sleep(LocalBridge.pollMs, signal);
         let response: Response;
         // The bridge may be restarted while an agent works: the request stays in the folder, so keep asking.
@@ -137,7 +137,7 @@ export class LocalBridge {
           await sleep(2000, signal);
           continue;
         }
-        throw new Error(`no local bridge answers at ${this.address}: ${e instanceof Error ? e.message : String(e)}`);
+        throw failing("unreachable", `no local bridge answers at ${this.address}: ${e instanceof Error ? e.message : String(e)}`);
       }
       const answer = await response.text();
       if (!response.ok) throw new Error(`the bridge refused the request: ${answer}`);

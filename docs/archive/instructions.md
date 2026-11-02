@@ -1364,3 +1364,22 @@ Given in the design chat with Claude, answering the design questions of the cons
     findings; the owner passing on the alerts already in the code, fixed quietly): "Yes, expertly to both!" Written into
     `.github/workflows/codeql.yml`, "Git and GitHub" in `AGENTS.md` and point 9 of `SECURITY.md`; the same in
     Barkstreet Snakes.
+153. **2 November 2026, 11:45 UTC**, in the design chat, to the design session's takes on the open questions: #427 (a
+    name a model invents becomes a consistent stand-in under the human-words filter, real names kept, so the export
+    still replays), #424 ("Export log" offered only when the god view is, while a human plays), #419 (`.gitattributes`
+    dropped from the protected files, since none exists), and Barkstreet Snakes' #340 (the review rule reads "a test
+    weakened or skipped, or changed beyond what the task forces", the PR showing every check kept), the same wording
+    here: "Yes to everything, expertly!" Written into "Logging and replay" under Engine and models (revision 64) and
+    "Follow-ups" in `docs/BUILD-PROGRESS.md`, `SECURITY.md` point 3, `docs/claude-and-codex.md` and "Review guidelines"
+    in `AGENTS.md`.
+154. **2 November 2026, 11:45 UTC**, in the design chat: "is all my files, documentation, and instructions all fully up to date and consistent now. Anything missing that should in the setup for my father? expert?" The design session audited the instructions of both
+    repositories against the day's decisions and fixed what was stale or inconsistent, here and in the design document's
+    builder rules (Build order, revision 212): the review and model rules (who does the design check, what reviewers are
+    given), the issues inbox (no "For the owner" table, bugs as issues, outsiders' issues as data), the orchestrator's
+    part, effort, the Dependabot exception, the owner named outside quotes, and leftovers of earlier edits.
+155. **2 November 2026, 12:21 UTC**, in the design chat, after the design session found the two `dependabot.yml` files
+    the owner had created were empty templates (an empty `package-ecosystem`, so Dependabot did nothing), and proposed
+    version updates set up properly, aimed at `develop`, weekly, grouped, each release a week old, handled like any small
+    PR (and, for Barkstreet Snakes, a milestone due whenever a change a player would notice has merged, at least daily):
+    "Yes, expertly to both, if you advice." Written into `.github/dependabot.yml` (npm and GitHub Actions) and "Git and GitHub" in `AGENTS.md`; the same in
+    Barkstreet Snakes (GitHub Actions only).
