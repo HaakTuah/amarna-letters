@@ -207,6 +207,15 @@ export const GovernorGoneSchema: ObjSchema<GovernorGone> = obj("GovernorGone", n
 /** The province a governor sits in (item 17++): his seat, or his one province. */
 export const seatOf = (g: Governor): string => (g.seat === "" ? g.province : g.seat);
 
+/**
+ * The governorships as their kings know them in the season `turn` (hidden information): those that stand, and those ended
+ * whose word has not yet reached their king's court.
+ */
+export const governorsKnown = (s: { governors: readonly Governor[]; governorsGone: readonly GovernorGone[] }, turn: number): Governor[] => [
+  ...s.governors,
+  ...s.governorsGone.filter((x) => x.until > turn).map((x) => x.governor),
+];
+
 /** The seat a governor's king knows him in, in the season `turn`: the one he left until word of the move is read. */
 export const seatKnown = (g: Governor, turn: number): string => (g.seatHeard > turn ? g.seatWas : seatOf(g));
 

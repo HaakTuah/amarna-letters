@@ -8,7 +8,7 @@
  */
 import { idiv } from "../core/num.ts";
 import { clause } from "../model/clauses.ts";
-import { newCrown, newCrownView, seatKnown, type Crown } from "../model/command.ts";
+import { newCrown, governorsKnown, newCrownView, seatKnown, type Crown } from "../model/command.ts";
 import { toFigures } from "../model/counts.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { CrownOrder } from "../model/orders.ts";
@@ -36,8 +36,7 @@ P.grantCrown = function (p, o) {
   const c = findCharacter(S, o.character);
   if (c === null) return;
   // His seat as the court knows it: a governorship ended, or a seat moved, only as word of it has come.
-  const known = [...S.governors, ...S.governorsGone.filter((x) => x.until > S.turn).map((x) => x.governor)];
-  const held = known.find((g) => g.character === c.id && g.power === p && g.relieved === null && o.provinces.includes(seatKnown(g, S.turn)));
+  const held = governorsKnown(S, S.turn).find((g) => g.character === c.id && g.power === p && g.relieved === null && o.provinces.includes(seatKnown(g, S.turn)));
   const seat = held !== undefined ? seatKnown(held, S.turn) : o.provinces[0];
   const seasons = wordFromKing(S, this.map, p, seat);
   const arrives = S.turn + Math.max(1, Number.isFinite(seasons) ? seasons : 1);

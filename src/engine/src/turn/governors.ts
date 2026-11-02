@@ -8,7 +8,7 @@
  */
 import { idiv } from "../core/num.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
-import { newGovernor, newGovernorGone, seatKnown, seatOf, type Governor } from "../model/command.ts";
+import { governorsKnown, newGovernor, newGovernorGone, seatKnown, seatOf, type Governor } from "../model/command.ts";
 import { raise, type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
@@ -41,7 +41,15 @@ P.grantGovernorship = function (p, o) {
   if (c === null || S.owner.getOrDefault(o.province, null) !== p) return;
   // Item 17++: a governor already holding provinces of ours takes this one beside them from his seat: the word reaches him
   // there, and his word reaches the province from there.
-  const held = S.governors.find((g) => g.character === c.id && g.power === p && g.relieved === null);
+  // As the court knows him (hidden information): a governor gone from his post before word of it came is not set out
+  // anew; the grant fails where he was, and the road brings that home.
+  const held = governorsKnown(S, S.turn).find((g) => g.character === c.id && g.power === p && g.relieved === null);
+  const gone = governorsKnown(S, S.turn).find((g) => g.character === c.id && g.power === p && !S.governors.includes(g));
+  if ((held !== undefined && !S.governors.includes(held)) || (held === undefined && (gone !== undefined || c.at !== p))) {
+    const where = held ?? gone;
+    this.tell(p, where !== undefined ? seatKnown(where, S.turn) : o.province, "Rejected", "Governorship not given", `${c.name} could not take the governorship of ${this.map.get(o.province).name}: he no longer governs for you.`);
+    return;
+  }
   if (held !== undefined) {
     const seat = seatOf(held);
     const toSeat = wordFromKing(S, this.map, p, seat);
@@ -68,10 +76,11 @@ P.grantGovernorship = function (p, o) {
 
 P.unseatGovernor = function (p, o) {
   const S = this.s;
-  const g = S.governors.find((x) => x.province === o.province && x.power === p && x.relieved === null);
+  // As the court knows it (hidden information): word to a governorship already ended goes all the same, and is lost.
+  const g = governorsKnown(S, S.turn).find((x) => x.province === o.province && x.power === p && x.relieved === null);
   if (g === undefined) return;
   // The word goes to him where he sits (item 17++).
-  const seasons = wordFromKing(S, this.map, p, seatOf(g));
+  const seasons = wordFromKing(S, this.map, p, seatKnown(g, S.turn));
   g.relieved = S.turn + Math.max(1, Number.isFinite(seasons) ? seasons : 1);
   notify(S, p, "Resolution", "Governorship taken back", `Word that you take back the governorship of ${this.map.get(o.province).name} is on its way; it reaches him in turn ${g.relieved}.`);
 };

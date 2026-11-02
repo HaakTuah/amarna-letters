@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, OrderValidator, TurnEngine, Views, WorldMap, crown, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newGovernor, newId, newTraits, newTurnSubmission, type GameState } from "@amarna/engine";
+import { Dict, OrderValidator, TurnEngine, Views, WorldMap, crown, govern, inboxOf, type Order, newCharacter, newDeclaration, newGame, newGameConfig, newGovernor, newId, newTraits, newTurnSubmission, type GameState } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
 // Item 17++, part C (hidden information, the review of #378): a court's view keeps what it believes until word of the change
@@ -83,6 +83,30 @@ describe("SeatWordTests", () => {
     Assert.contains(s.events, (x) => x.kind === "cession" && x.visibleTo.includes("Babylonia"));
     Assert.doesNotContain(s.events, (x) => x.kind === "cession" && x.visibleTo.includes("Egypt"));
     Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "Land ceded to you");
+  });
+
+  test("Orders to a governor who died out of sight are taken as the court knows him, and fail by the road", () => {
+    const [s, id] = governed();
+    const e = new TurnEngine(s);
+    e.setOwner("ur", "Egypt");
+    s.turn += 3;
+    const c = s.characters.find((x) => x.id === id)!;
+    c.status = "Dead";
+    e.governorsSeason();
+    Assert.true(Views.for(s, "Egypt").governors.some((g) => g.province === "nippur"));
+    const check = (o: Order): string[] => new OrderValidator(s, WorldMap.default).validate("Egypt", newTurnSubmission({ orders: [o] })).rejected.map((r) => r.reason);
+    // Neither refused for what the court has not heard, nor anyone given a new governor there yet.
+    Assert.equal([], check({ type: "unseat", province: "nippur" }));
+    Assert.equal([], check(govern("ur", id, 0)));
+    Assert.contains(check(govern("nippur", id, 0)), (r) => r.includes("already has a governor"));
+    // Carried out as for a living governor: word on its way, and a grant beside him that fails by the road.
+    e.unseatGovernor("Egypt", { type: "unseat", province: "nippur" });
+    Assert.true(Views.for(s, "Egypt").governors.find((g) => g.province === "nippur")!.relieving);
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "Governorship taken back");
+    e.grantGovernorship("Egypt", govern("ur", id, 0));
+    Assert.false(s.governors.some((g) => g.province === "ur" && g.power === "Egypt"));
+    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "Governorship not given");
+    Assert.contains(s.journeys, (j) => (j.text ?? "").includes("Governorship not given"));
   });
 
   test("A province taken up again keeps the season word of the first taking up comes home", () => {
