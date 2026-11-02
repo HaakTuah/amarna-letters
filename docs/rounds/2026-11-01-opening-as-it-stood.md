@@ -122,9 +122,10 @@ Each with the principle it rests on ("Reason from the pillars").
     same greetings record whom each court gives it to"; No menus): a greeting gives the recipient the name he claims, and
     one "by his house" withholds it and takes back a name given him before, as withholding "Great King" withholds the
     title. The hand-off's planned `giveName` order is not built, since the design document puts the giving in the greetings.
-29. **The world's record of a contested name** (no viewer: the engine's notices and logs) gives it to the power whose own
-    land it is while that power claims it, else to the one that claimed it first; two who claimed it in the same season
-    share it with nobody, both called by their houses (The order of resolution never decides).
+29. **No world's record of a contested name:** without a court (the engine's notices and logs, and god view) each power
+    goes by its own land's name, which every court knows (reading 30); only a court gives a contested name. Changed by the
+    side lane on #348's second review round: the first build kept a world's record (the land's own power while he claimed
+    it, else the first claimant), which nothing read.
 30. **Who hears of a claim** (Information moves in physical time; changed after the review, which found every court knowing
     a claim at once): the claimant's court at once; another court when a sealed tablet of his, styled with the name he
     claimed when it was sealed, is presented there. The engine's own notices name every power by its own land's name, which
@@ -135,6 +136,9 @@ Each with the principle it rests on ("Reason from the pillars").
     bond friend, else a friend, else the claimant holding the realm's capital, else the one whose own land it is.
 32. **A house name** is Bit- and the first king's name (Bit-Aziru, Bit-Rib-Hadda), or Bit- and the land where the sources
     name no king ("Bit-Hana"); risen powers take their founder's (Places by their own names: "never a number").
+33. **A court names powers as it gives their names** in its seat view and its requests, and the web page does so for a lone
+    human seat; the engine's own notices and logs name each power by its own land (reading 30). The ids in models' orders
+    stay as they are.
 34. **The governors of 1346 take their grants in item 17++, not here** (No stopgaps, read with the order: 17++'s text
     says "every governor the sources name in office in 1346 holds his post from the first season", over the provinces the
     sources give him, and makes the commissioners open residents). The review of 17+ found Thutmose, Enlil-kidinni,
@@ -145,8 +149,6 @@ Each with the principle it rests on ("Reason from the pillars").
 35. **City-states' units start one to a province** (from the review: the engine holds one unit in a province): Aziru's men
     in Amurru's own land beside Sumur, not in it, since Egypt's garrison holds it; Arwad's ships in its own waters beside
     Byblos's; Sidon's in its own beside Tyre's [the placements B as before; the shift G]. The placements are a data table.
-33. **A court names powers as it gives their names** in its seat view and its requests, and the web page does so for a lone
-    human seat; the engine's own notices and logs use the world's record. The ids in models' orders stay as they are.
 
 ## The model-text finds of the hand-off ("Requests are rules too")
 

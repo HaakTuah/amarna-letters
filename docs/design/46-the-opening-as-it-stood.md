@@ -104,9 +104,9 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
 - **Whom a name goes to.** Where two or more claim one name, each court gives it in the greetings it sends
   (`GameState.nameGiven`, court to name to claimant): a greeting gives the recipient the name he claims, and one with
   `byHouse` (models: `by_house`) calls him by his house and takes back a name given him before. Lacking a greeting of its
-  own, a court gives it to the power whose own land it is, if that power still claims it, else to nobody (every claimant
-  by his house). A court gives its own claimed name to itself. The spectator's record (`nameGivenBy(null, ...)`) gives it
-  likewise, else to the one that claimed it first; two who claimed it in the same season share it with nobody.
+  own, a court gives it to the power whose own land it is, if that power still claims it as the court knows (it has read
+  no greeting of his claiming another), else to nobody (every claimant by his house). A court gives its own claimed name
+  to itself. Only a court gives names: without one (notices, logs, god view) each power goes by its own land's name.
 - **A court learns of a claim only from the claimant's greetings** (`GameState.namesHeard`): a sealed tablet carries the
   name its sender claimed (`Dispatch.styled`), and the host reads it when the envoy arrives (`claimHeard`). Until then the
   court knows the claimant by his own land's name, and its view, letters and greetings know nothing of the claim.

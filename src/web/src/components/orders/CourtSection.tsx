@@ -41,6 +41,11 @@ import type { OrdersContext } from "./use-orders.ts";
 /** The orders panel's Court: servants, candidates, jobs and their fees, lenders and debts, inquiries and captives. */
 export function CourtSection({ c }: { c: OrdersContext }) {
   const { draft, v, me, f, set, wage, ready, reserved, others, add, term, addSpy } = c;
+  // The upkeep order's pay or food half, drafted in a season either for all the troops or province by province: the
+  // orders apply in turn, so a whole order after a province's would clear it, and a province's choices after a whole
+  // order are worded against the order as the season began.
+  const drafted = (half: "pay" | "feed", at?: string): boolean =>
+    draft.other.some((o) => o.type === "upkeep" && o[half] !== null && (o.province === undefined || at === undefined || o.province === at));
   return (
     <>
     <div className="section">
@@ -283,13 +288,13 @@ export function CourtSection({ c }: { c: OrdersContext }) {
       ))}
       {/* Item 17+: the king's standing order to pay and feed his troops, his to change, for all of them or for one province's. */}
       <div className="row">
-        <button className="small" disabled={draft.other.some((o) => o.type === "upkeep" && o.province === undefined)} onClick={() => add(upkeep(!v.payTroops, null))}>
+        <button className="small" disabled={drafted("pay")} onClick={() => add(upkeep(!v.payTroops, null))}>
           {v.payTroops ? "Stop paying your troops" : "Pay your troops again"}
         </button>
-        <button className="small" disabled={draft.other.some((o) => o.type === "upkeep" && o.province === undefined)} onClick={() => add(upkeep(null, !v.feedTroops))}>
+        <button className="small" disabled={drafted("feed")} onClick={() => add(upkeep(null, !v.feedTroops))}>
           {v.feedTroops ? "Stop feeding your troops from your stores" : "Feed your troops from your stores again"}
         </button>
-        <select value="" disabled={draft.other.some((o) => o.type === "upkeep")} onChange={(e) => {
+        <select value="" onChange={(e) => {
           const [what, at] = e.target.value.split("|");
           // A province's troops treated as the whole order says get the other; those already apart go back to it.
           if (what === "pay") add(upkeep(v.payHeld.includes(at) ? v.payTroops : !v.payTroops, null, at));
@@ -297,8 +302,8 @@ export function CourtSection({ c }: { c: OrdersContext }) {
         }}>
           <option value="">Hold back pay or food from the troops in one province, or give it again…</option>
           {[...new Set(v.units.filter((u) => u.power === me).map((u) => u.province))].flatMap((at) => [
-            <option key={`pay|${at}`} value={`pay|${at}`}>{v.payHeld.includes(at) === v.payTroops ? `Pay the troops in ${provinceName(at)}` : `Hold back pay from the troops in ${provinceName(at)}`}</option>,
-            <option key={`food|${at}`} value={`food|${at}`}>{v.feedHeld.includes(at) === v.feedTroops ? `Feed the troops in ${provinceName(at)}` : `Hold back food from the troops in ${provinceName(at)}`}</option>,
+            <option key={`pay|${at}`} value={`pay|${at}`} disabled={drafted("pay", at)}>{v.payHeld.includes(at) === v.payTroops ? `Pay the troops in ${provinceName(at)}` : `Hold back pay from the troops in ${provinceName(at)}`}</option>,
+            <option key={`food|${at}`} value={`food|${at}`} disabled={drafted("feed", at)}>{v.feedHeld.includes(at) === v.feedTroops ? `Feed the troops in ${provinceName(at)}` : `Hold back food from the troops in ${provinceName(at)}`}</option>,
           ])}
         </select>
         {(v.payHeld.length > 0 || v.feedHeld.length > 0) && (
