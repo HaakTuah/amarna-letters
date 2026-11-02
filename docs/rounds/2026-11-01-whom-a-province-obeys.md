@@ -162,7 +162,33 @@ none): the ledger at work, and 37 of them were put down by troops. The scripts' 
 (item 17's buy-or-take rule buys only where a market holds grain to spare and gold is plentiful), listed for part C with
 the audit's script finds.
 
-USE
+**Use against ignore** (50 games each, seed 1; `fdb8d0a` for the ledger's run, `b04018e` for the remnants'):
+
+- **Remnants folded or disbanded** (`--remnant-play-half`): 0.96 growth to 0.88, **29 wins to 21**: it pays. (Round 1's run
+  had played both halves alike.)
+- **The ledger's script play** (`--freedom-play-half`: grain to restless provinces in the king's own name, tax relief,
+  food bought where it stands by leave, a spy's gold stirring a foe's land): 0.95 growth to 0.92, 21 wins to 29: **not
+  paying yet**. The scripts play it as well as the land lets them: they sent word to buy food 12 times, and armies bought
+  it in no season against 1,056 unit-seasons taken, since the markets hold no grain to spare at these first guesses (gold
+  buys only what is there), so the hunger their troops bring outweighs the grain and tax they give; the same finding as
+  item 17's, for item 18's tuning of the markets and the army's food, re-measured there.
+
+**How often the new features were used and worked** (the same 50 games; "games with / total" from the signals table):
+
+| Feature | Used | Worked |
+| --- | --- | --- |
+| A province going over to a king by the season's rule | 603 times in 48 games | 603 |
+| Men of standing asked whether they lead a rising | 392 times in 34 games (by their traits, 112 would and 280 would not) | 11 risings broke out (3 led revolts, 8 governors), the rest no longer clearing a season later as the master's troops came back or stood fast |
+| Leaderless risings of a stripped people | 136 in 37 games | 86 won, 50 put down by troops |
+| Remnants folded (`fold`) | 135 times in 48 games | 135 |
+| Grain handed out (`feed`, scripts' and the land play's) | 74,255 in 50 games | every one given |
+| Commanders and governors turning with the men who follow them (`defect`) | 22 in 13 games | 22 |
+| A rival's gold stirring a people (`stir`) | 36 seasons in 10 games | |
+
+Few led revolts break out: the claimants of 1346 start graded below their kings (`stake` 30 against `home` 100 or `held`
+40, reading 4 and the sources' grades), so they lead only where their king's standing has fallen far, which is the rule
+as designed ("a claimant's strength is real and readable"), not the scripts' play; whether the grades should be higher is
+the sources' question, not a first guess to tune here.
 
 ## The review
 
