@@ -48,7 +48,8 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
 - **Travel bands kept to the old pace** until item 7b, which replaced them with routes measured in days ([travel and news](13-travel-and-news.md)).
 - **The seas** ("Finer seas"). Every coastal province has its own waters (`Province.waters`, a sea zone `<id>waters`, named
   "Ugarit waters"), except that Amurru and Arwad share theirs (the Arwad blockade of Ṣumur, EA 98, 104-105) and Ur, Dilmun
-  and Susa all touch **the Gulf**; the **Western Sea** is the open sea at the Aegean edge. Coastal hops join neighbouring
+  and Susa all touch **the Gulf** (Ur, a river port, by 140 km down the Euphrates and the marshes to the estuary,
+  `AttestedKm`; #527); the **Western Sea** is the open sea at the Aegean edge. Coastal hops join neighbouring
   waters along the shore, counterclockwise with the current (`Edge.current`: north along the Levant, west along Anatolia,
   east to west round Cyprus). Five **open-sea crossings** (`Edge.open`): Ugarit's waters and Byblos's to Enkomi's, Kalavasos's
   to Kizzuwatna's and to Lukka's, and the Western Sea to the Delta's, all with the current in the circuit's direction.

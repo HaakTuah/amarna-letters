@@ -47,7 +47,21 @@ estimates, ideally. The more the merrier, and try to get a consensus or average,
    or on a third of Sapinuwa, since in Hatti's larger land one levy's loss rounds to the same in both seasons; the
    Karkamish caravan's proceeds follow its larger town. Every check is kept; none is loosened.
 
+6. **The Gulf's head as it stood in the Late Bronze Age** (#527, folded in here by the orchestrator; archive items 175
+   and 176). The owner: "Yes, full agreement with both, expert!" and "But maybe don't prime it to make a assumption
+   instead of consulting the evidence?" The estimates (Sanlaville 1989 and 2005, Pournelle 2003 and 2013, Kennett 2006,
+   Heyvaert and Baeteman 2007, Potts 2009, Hansman 1978, Bogemans 2017, Geyer and Sauvage 2020) put the sea at Ur only
+   about 4500-2100 BCE. In the second millennium the head ran from about today's shore to an embayment south of Qurna, and
+   their middle is an estuary some 140 km below Ur. The map's old shore (`OldGulfShore`) moves there, the Euphrates' old bed
+   runs on through the Hammar's marshes (now drawn) to it, and Ur is a river port: its province, the land down to the
+   estuary, keeps the Gulf's waters, but its door to them is 140 km down the river (`AttestedKm`, [G]), not a harbour at
+   its walls.
+
 ## Readings taken
+
+- **Ur's province reaches the estuary; its city does not.** The province is the land down to the Gulf, as its drawn
+  border already is, so Babylonia keeps its Gulf door, as the Kassites, who held Dilmun, did. The door is the length of
+  the river below the city, not a new rule (principle: "Different data, same rules").
 
 - **Arwad's cisterns count from the siege's start,** not from a blockade: Strabo says it had water of its own, so it is
   no longer a city whose water comes by boat (the "Island" kind, Tyre's). An island whose cisterns count only from a

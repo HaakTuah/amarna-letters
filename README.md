@@ -202,7 +202,8 @@ own, varied a little in every game.
 **The opening by the best estimate.** Where no source speaks, the opening takes the middle of the published experts'
 estimates, cited in `docs/history/`: the realms' people, the size of towns reckoned from their area, how often the Nile
 fails and the plateau's rains, and how each city drinks under siege (Jerusalem's spring lay outside its walls, so a
-siege cuts it off; Arwad drinks from cisterns of its own). The debts on record at the start are the letters' own:
+siege cuts it off; Arwad drinks from cisterns of its own), and where the Gulf's head lay (an estuary some 140 km below Ur,
+a river port whose ships reach the sea down the Euphrates and through the marshes). The debts on record at the start are the letters' own:
 Egypt owes Mitanni and Babylonia, and Alashiya owes nothing. People of 1346 are "of" where the sources put them
 serving, since no source says where any was born; invented people are "born in" a place.
 
