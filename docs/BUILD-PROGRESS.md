@@ -57,9 +57,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **Done so far** (2 November 2026): the progress file under 20 KB (#388); the files every session reads (#390);
   `docs/` (#392: item 2's, 4's and 5+'s briefs and specs to `docs/archive/specs/`, built entries out of "Not built yet"; #393:
   design note 10 down to its live differences); the archive's `progress-done.md` split by kind (#394). **Left:** the code,
-  once the open lanes touching it merge (17++ B and C, export, model calls, fog); first find there: the conversion's
-  parity check (`src/game/src/parity.ts`, `src/batch/src/parity*.ts`, `--parity` in `src/batch`) compares against the C#
-  build removed on 27 October, so it is probably a leftover; `docs/DESIGN-NOTES.md` after its open lane merges.
+  once the open lanes touching it merge (17++ B and C, export, model calls, fog); the conversion's parity check removed
+  (#443); `docs/DESIGN-NOTES.md` after its open lane merges.
 
 ## Follow-ups
 

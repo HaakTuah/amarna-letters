@@ -26,7 +26,7 @@ commit `6a2ae7d`. Where each part went:
 | Pointers to the docs pass and the conversion | `specs/items/`. |
 | "Project folders stay separate" | `CLAUDE.md`, "Each game's files stay in its own repository". |
 | The owner's message log, its rebuild script and the hooks that ran it | Retired: cloud sessions have no local session files to rebuild from. The 9 instructions recorded nowhere else are in `instructions.md`; new ones are recorded there as they are given (`CLAUDE.md`). |
-| Three recorded model games | `tests/fixtures/replays/`, for the conversion's parity check. |
+| Three recorded model games | Were `tests/fixtures/replays/`, for the conversion's parity check; removed with it on 2 November 2026 (they stay in `develop`'s history). |
 
 Left on the computer and not copied: credentials, account state, app preferences, the message log itself (it has
 personal remarks), the simulation kit's isolation secrets, and the other runs in `sim/runs/`.
