@@ -211,6 +211,32 @@ function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: stri
   });
 }
 
+/**
+ * The troops a court sees: its own as their last reports place them, and others' where it sees. A report never puts two
+ * troops in one province: one shown where another stands (or is shown) is shown by an older report of its own whose place
+ * is free, and left out if it has none (never by where it truly is: that news has not come yet). Each unit is placed in
+ * turn, so two reported into one province never take the same older place.
+ */
+function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(province: string): boolean }, view: (u: Unit) => UnitView): UnitView[] {
+  const pairs: [Unit, UnitView | null][] = s.units.filter((u) => u.power === p || seen.has(u.province)).map((u) => [u, view(u)]);
+  for (const pair of pairs) {
+    const [u, x] = pair;
+    if (x === null || x.reported === 0 || u.power !== p || !pairs.some((y) => y !== pair && y[1]?.province === x.province)) continue;
+    if (u.trail.length === 0 || engine.wordTo(p, u.province) <= 0) continue;
+    pair[1] = null;
+    const taken = new HSet(pairs.filter((y) => y !== pair && y[1] !== null).map((y) => y[1]!.province));
+    const d = engine.wordTo(p, u.province);
+    for (let i = u.trail.length - 2 - d; i >= 0; i--) {
+      const r = trailEntry(u.trail[i]);
+      if (!taken.has(r.province)) {
+        pair[1] = { ...x, ...r, reported: s.turn - (u.trail.length - 1 - i) };
+        break;
+      }
+    }
+  }
+  return pairs.map(([, x]) => x).filter((x): x is UnitView => x !== null);
+}
+
 function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView {
   const m = map ?? WorldMap.default;
   const engine = new TurnEngine(s, m);
@@ -303,29 +329,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           tightness: x.power === p || s.owner.getOrDefault(x.province, null) === p ? engine.tightness(x) : null,
         }),
       ),
-    units: s.units
-      .filter((u) => u.power === p || seen.has(u.province))
-      .map((u) =>
-        u.power === p
-          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, buy: u.buy, chest: u.chest, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
-          : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
-      )
-      .map((x, _i, all) => {
-        // A report never puts two troops in one province: one shown where another stands (or is shown) is shown by an
-        // older report of it whose place is free, and left out if it has none (never by where it truly is: that news has
-        // not come yet).
-        if (x.reported === 0 || !all.some((y) => y !== x && y.province === x.province)) return x;
-        const u = s.units.find((v) => v.power === p && v.trail.length > 0 && engine.shownAt(v) === x.province && engine.wordTo(p, v.province) > 0);
-        if (u === undefined) return x;
-        const taken = new HSet(all.filter((y) => y !== x).map((y) => y.province));
-        const d = engine.wordTo(p, u.province);
-        for (let i = u.trail.length - 2 - d; i >= 0; i--) {
-          const r = trailEntry(u.trail[i]);
-          if (!taken.has(r.province)) return { ...x, ...r, reported: s.turn - (u.trail.length - 1 - i) };
-        }
-        return null;
-      })
-      .filter((x): x is UnitView => x !== null),
+    units: unitsSeen(s, engine, p, seen, (u) =>
+      u.power === p
+        ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, buy: u.buy, chest: u.chest, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
+        : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
+    ),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
     // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.
     fallen: isAlive(s, p) ? s.eliminated.filter((x) => (s.fallsHeard.tryGet(p) ?? []).includes(x)) : [...s.eliminated],
