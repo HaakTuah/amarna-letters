@@ -96,14 +96,21 @@ function read(value: unknown, schema: z.ZodType): unknown {
 }
 
 /**
- * The text of a choice outside any markup: what comes before its first "<" and after its last ">" (a value is a name or a
- * blank, never markup). One pass, with no pattern, so no reply can make it slow.
+ * The text of a choice with its markup taken out: each tag from "<" to its ">" dropped, the text between tags kept
+ * ('<parameter name="go">Egypt</parameter>' is Egypt), an unclosed tag dropped to the end. One pass, with no pattern, so
+ * no reply can make it slow.
  */
 function outsideMarkup(value: string): string {
-  const open = value.indexOf("<");
-  if (open < 0) return value;
-  const close = value.lastIndexOf(">");
-  return close < open ? value.slice(0, open) : value.slice(0, open) + value.slice(close + 1);
+  let out = "";
+  for (let at = 0; at < value.length; ) {
+    const open = value.indexOf("<", at);
+    if (open < 0) return out + value.slice(at);
+    out += value.slice(at, open);
+    const close = value.indexOf(">", open);
+    if (close < 0) return out;
+    at = close + 1;
+  }
+  return out;
 }
 
 /** A list given where one value was asked: empty means blank (null), one item means that item; else unchanged. */
