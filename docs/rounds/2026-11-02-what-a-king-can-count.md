@@ -72,13 +72,19 @@ None beyond those for Haakon below.
 
 ## Benchmarks and use against ignore
 
-20 games, seed 1, `--verify-replay`, on `bee4370` (part B on part A as it stood before the escalation's last fixes): every
-replay exact; a capital fell in 20 of 20 games, 308 kingdoms in all (part A's run beside it: 324), the first in season 4
-on the median (4 to 7), **none in its first two seasons**. Winners: Egypt 9, Lukka 3, Babylonia 2, and Nuhashshe, Kaska,
-Hatti, Assyria, Ashkelon and Amurru 1 each. The census and demand signals (`census`, `census-home`, `demand-share`,
-`demand-amount`) were added to the batch after this run; the next run counts them.
+**After round 1** (20 games, seed 1, `--verify-replay`, on `78fd012`): every replay exact; a capital fell in 20 of 20
+games, 308 kingdoms in all, the first in season 4 on the median (4 to 7), **none in its first two seasons**. Winners:
+Suteans, Azzi, Lukka, Hatti, Gath, Libya, Egypt and Assyria among the first eight seeds.
 
-**Use against ignore** (`--count-play-half`, 50 games, seed 1): to run (a run started in the session that built this part did not finish before it handed over; rerun `scripts/sim.sh --games 50 --seed 1 --count-play-half` on this head, with the new signals).
+**Use and success, by the batch's signals** (games in which it happened / times, over the 20): scribes sent to count a
+province (`census`) 20 / 13,316, counts come home (`census-home`) 20 / 13,035 (98%: the rest found the land lost or the
+game ended first); demands set as a share 20 / 15,576 and as an amount 20 / 14,301. Every script king counts and asks
+both ways in every game.
+
+Before round 1 (on `bee4370`, before the signals): 20 games, every replay exact, the first fall in season 4 on the
+median, none in the first two seasons.
+
+**Use against ignore** (`--count-play-half`, 50 games, seed 1): running on this head.
 
 ## The review
 
