@@ -75,7 +75,24 @@ estimates, ideally. The more the merrier, and try to get a consensus or average,
 
 ## Benchmarks
 
-`--versus solo`, seeds 1-40: see "Benchmarks, before and after" below.
+`--versus solo`, seeds 1-2 only (growth alone / as baseline, wins alone / as baseline), on `develop` at 16bec662 and on
+this branch at 0323b3e2. Forty seeds ran past the session's two-hour limit on every try, and two container restarts
+stopped the eight- and four-seed runs, so these show only that games stay playable, not a balance measurement; the
+balance pass (item 18) measures. Ur's way to the Gulf was 140 km in this run, now 150.
+
+| Power | Before | After |
+|---|---|---|
+| Egypt | 1.27 / 0.91, 100% / 0% | 1.25 / 0.95, 100% / 0% |
+| Hatti | 1.32 / 0.91, 0% / 0% | 2.23 / 0.91, 50% / 0% |
+| Babylonia | 1.29 / 0.57, 50% / 0% | 1.09 / 0.62, 0% / 0% |
+| Mitanni | 1.70 / 0.95, 100% / 0% | 1.45 / 1.39, 100% / 50% |
+| Assyria | 2.69 / 0.68, 100% / 0% | 2.62 / 0.72, 100% / 0% |
+| Arzawa | 1.17 / 0.41, 0% / 0% | 1.19 / 0.82, 0% / 0% |
+| Alashiya | 1.21 / 0.75, 50% / 0% | 1.34 / 0.77, 50% / 0% |
+| All kings | 2.65 / 1.11, 157% / 14% | 2.54 / 1.11, 150% / 14% |
+
+Hatti, with a third more people, grows faster alone; Babylonia, with less than half its people, slower. Both are as the
+estimates move them, and two seeds say no more than that.
 
 ## Helpers
 
