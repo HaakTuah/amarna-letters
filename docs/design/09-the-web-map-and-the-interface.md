@@ -1,6 +1,6 @@
 ## The web map and the interface (visual overhaul)
 
-Build order item 2 (`docs/prompts/VISUAL-OVERHAUL.md`; report `docs/archive/rounds/2026-10-19-visual-overhaul.md`).
+Build order item 2 (`docs/archive/specs/prompts/VISUAL-OVERHAUL.md`; report `docs/archive/rounds/2026-10-19-visual-overhaul.md`).
 Presentation only: no rule, state, view, prompt or balance changed, and seeds replay to the same logs byte for byte.
 Item 4 changed two things here: the engine's view now hides a foreign spy from the court it watches (fix (a), noted
 under "Each view sees only what its court knows"), and fix (b), phone performance, rewrote "Load size" and added
