@@ -39,16 +39,16 @@ export const AttestedKm: readonly Attested[] = [
   att("memphis", "akhetaten", 300, "the Nile road"),
   att("akhetaten", "thebes", 400, "the Nile road"),
   att("thebes", "redsea", 210, "Thebes by Coptos and the Wadi Hammamat to the shore at Mersa Gawasis, the road of the Punt expeditions"),
-  att("sinai", "redsea", 200, "across the Sinai to the Gulf of Suez, where the mining expeditions landed at el-Markha [G]"),
-  att("megiddo", "hazor", 60, "the road from Megiddo to Damascus by Hazor (160 km in all), its first part [G for the split]"),
-  att("hazor", "damascus", 100, "the road from Megiddo to Damascus by Hazor and the Jordan crossing, its second part [G for the split]"),
+  att("sinai", "redsea", 270, "across the Sinai to the Gulf of Suez, where the mining expeditions landed at el-Markha: the straight line and a quarter [G]"),
+  att("megiddo", "hazor", 75, "the road from Megiddo to Damascus by Hazor (185 km in all), its first part: 60 km straight and a quarter"),
+  att("hazor", "damascus", 110, "the road from Megiddo to Damascus by Hazor and the Jordan crossing, its second part: 88 km straight and a quarter"),
   att("byblos", "damascus", 120, "over the Lebanon and the Beqaa"),
   att("damascus", "qadesh", 140, "by the Beqaa"),
   att("carchemish", "harran", 110, "the Euphrates road to Harran"),
-  att("harran", "washukanni", 180, "across the Habur triangle"),
+  att("harran", "washukanni", 120, "across the Habur triangle to Tell Fakhariya, the likeliest Washukanni [C]: 93 km straight and a quarter"),
   att("hattusa", "nesa", 200, "the plateau road; Old Assyrian caravans covered about 25 km a marching day (Veenhof)"),
-  att("nesa", "kizzuwatna", 230, "by the Cilician Gates"),
-  att("ugaritwaters", "enkomiwaters", 130, "Cyprus to Ugarit in about a day (Ugarit's letters on ships to and from Alashiya)"),
+  att("nesa", "kizzuwatna", 290, "by the Cilician Gates to Tarsus: 232 km straight and a quarter"),
+  att("ugaritwaters", "enkomiwaters", 130, "Cyprus's eastern cape to Ugarit, about a day's sail [G] (the geography dossier's estimate from Casson and the Kyrenia II trials)"),
 ];
 
 /** Kilometres a day: on the road by the ground, at sea by the kind of passage. */

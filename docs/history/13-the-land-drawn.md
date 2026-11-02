@@ -21,7 +21,7 @@ which the elevation draws; where a period name is given, the source is named.
 | River | Course | Grade and source |
 | --- | --- | --- |
 | <a id="13-orontes"></a>**The Orontes** | From its springs in the northern Beqaa past Qadesh, Qatna's country and the Amuq plain to the sea | B. Bryce, Letters, p. 133: "Qatna lay east of the Orontes river, some 40 kilometres to the north-east of Kadesh" |
-| <a id="13-litani"></a>**The Litani** | From west of Baalbek down the southern Beqaa, round the foot of the Lebanon to the sea north of Tyre | B |
+| <a id="13-litani"></a>**The Litani** | From west of Baalbek down the southern Beqaa, round the foot of the Lebanon to the sea north of Tyre | B. Pleiades: a Roman bridge "crosses the Litani River (Leontes)", "approximately 10 km north of Tyre" (679506); Beaufort Castle "above the Litani River gorge in southern Lebanon" (812828781); named in Papyrus Anastasi I, 13th century (ANET, p. 477, Wilson): "Where is the stream of the Litani?" |
 | <a id="13-jordan"></a>**The Jordan** | From its springs at the foot of Hermon (by Dan and Banias) through Lake Huleh and the Sea of Galilee to the Dead Sea | A, thirteen centuries later. Josephus, *Jewish War* 3.10.7 (Whiston): "divides the marshes and fens of the lake Semechonitis ... passes through the middle of the lake Gennesareth ... into the lake Asphaltites" |
 | <a id="13-khabur"></a>**The Khabur** (*Habur*) | From the springs of Ras al-Ain, through Mitanni's heartland, to the Euphrates | B. Moran, index of names ("Hanigalbat"): "the political center lay between the Balih and Habur Rivers" |
 | <a id="13-balikh"></a>**The Balikh** (*Balih*) | From the spring of Ain al-Arus by Harran's plain to the Euphrates | B. Pleiades, "Balihu/Balissus (river)" |
@@ -37,7 +37,7 @@ which the elevation draws; where a period name is given, the source is named.
 | <a id="13-kalykadnos"></a>**The Kalykadnos** (Göksu) | Rough Cilicia, to the sea | B. Pleiades, "Calycadnus (river)": "The most important river of Cilicia Tracheia" |
 | <a id="13-hermos"></a>**The Hermos** (Gediz) | The Aegean side; the Seha River Land is placed on it or the Kaikos | B for the river; C for the Seha. Pleiades, "Hermus (river)": "The Gediz River" |
 | <a id="13-kaystros"></a>**The Kaystros** (Küçük Menderes) | The Aegean side, by Apasa ([02-geography.md](02-geography.md), `02-apasa-millawanda`) | B. Pleiades, "Cayster (river)": "The Küçükmenderes River" |
-| <a id="13-maeander"></a>**The Maeander** | The Aegean side | B |
+| <a id="13-maeander"></a>**The Maeander** | The Aegean side | B. Pleiades, "Maeander (river)" (599777): "The Maeander (modern Büyük Menderes River) is a river of Caria in southwestern Asia Minor" |
 
 ## Lakes and marshes of 1346
 
