@@ -1506,3 +1506,5 @@ Given in the design chat with Claude, answering the design questions of the cons
     kinds of change; a dependency only when newly added or moved up a major version, Dependabot's minor and patch
     updates left to CI and the dependency checks): "do it expertly!" Written into "Codex reviews" in
     `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
+178. **2 November 2026, 19:46 UTC**, on #458 (the licences lane), to the request for his yes to its `.github/` files
+    (`SECURITY.md`, point 3): "Yes to the .github/ changes." The PR merged on that yes.
