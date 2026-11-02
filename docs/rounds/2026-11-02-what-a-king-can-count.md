@@ -85,6 +85,10 @@ both ways in every game.
 Before round 1 (on `bee4370`, before the signals): 20 games, every replay exact, the first fall in season 4 on the
 median, none in the first two seasons.
 
+**After round 3** (20 games, seed 1, `--verify-replay`, on `13eef53`): every replay exact; a capital fell in 20 of 20
+games, 292 kingdoms in all, the first in season 4 on the median (4 to 5), none in its first two seasons; scribes sent 20 /
+13,367, counts home 20 / 13,099, demands as a share 20 / 15,527 and as an amount 20 / 14,345, levies by share 20 / 532.
+
 **Use against ignore after round 3** (`--count-play-half`, 50 games, seed 1, on `c701835`): kings that count, ask an amount
 by a fresh count and levy by share by an old one, against kings that never count and always ask a share: **0.97 growth to
 0.86, 26 wins to 24. Pays.** Use and success over the 50 games: scribes sent 50 / 15,504, counts home 49 / 15,147 (98%);
@@ -99,7 +103,7 @@ and amount numbers together.
 
 ## The review
 
-`Review: rules · Codex · P1×3 P2×1, clean, P1×2, (round 4) · design check · 4, (not recorded), 7, 9`
+`Review: rules · Codex · P1×3 P2×1, clean, P1×2, clean · design check · 4, (not recorded), 7, 9, 10`
 
 - **Round 1** (on `e9833c5`): the design check, 4: a share that could squeeze the farmers, levies not askable as a share,
   an amount for all one's land, no use-against-ignore numbers, exact counts leaking, news of lost land at once, a `tax-set`
@@ -116,7 +120,7 @@ and amount numbers together.
   reckoned from the men really there. All fixed in `c701835` and `13eef53`, with tests; the seat-view fault part C's games
   found (`8e8fa70`) came in the same round.
 - **Round 4** (on `13eef53`): the design check, 9, nothing blocking: this section, the PR's review line and its footer.
-  Fixed. This is a fourth round past the rule's three ("Reviews: only a 10 passes", point 4): round 3's points were
+  Fixed, and the same reviewer gave 10 with nothing open. Codex: clean ("Didn't find any major issues"). This is a fourth round past the rule's three ("Reviews: only a 10 passes", point 4): round 3's points were
   fixed rather than left open, and the round checks those fixes; anything a fourth round had left open would have gone
   to the escalation helper. Reading taken on the rule's purpose (an end to the rounds, a bar that does not slip).
 
