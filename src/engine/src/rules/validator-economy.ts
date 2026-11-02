@@ -24,7 +24,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (isBlank(order.province)) return `name the province whose grain to ${what}`;
       if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
       const name = Map.get(order.province).name;
-      if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${name}: at a foreign market you trade by a caravan (order trade) or a ship (order ship)`;
+      if (v.knownOwner(order.province) !== power) return `you do not hold ${name}: at a foreign market you trade by a caravan (order trade) or a ship (order ship)`;
       if (siegeOf(S, order.province) !== null) return `${name} is besieged: nothing goes in or out of its market`;
       if (!(order.amount > 0)) return "name how many measures of grain";
       if (order.type !== "purchase") return null;
@@ -36,7 +36,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (isBlank(order.from) || isBlank(order.to)) return "name the province the caravan sets out from and the one it goes to";
       for (const x of [order.from, order.to]) if (!Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;
       if (order.from === order.to) return "a caravan must go somewhere else";
-      if (S.owner.getOrDefault(order.from, null) !== power) return `you do not hold ${Map.get(order.from).name}`;
+      if (v.knownOwner(order.from) !== power) return `you do not hold ${Map.get(order.from).name}`;
       if (siegeOf(S, order.from) !== null) return `${Map.get(order.from).name} is besieged: no caravan can leave it`;
       if (!(order.amount > 0)) return "name how many measures of grain";
       return null;
@@ -45,9 +45,9 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
     case "trade": {
       if (isBlank(order.from) || isBlank(order.to)) return "name the province the caravan sets out from and the market it goes to";
       for (const x of [order.from, order.to]) if (!Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;
-      if (S.owner.getOrDefault(order.from, null) !== power) return `you do not hold ${Map.get(order.from).name}`;
+      if (v.knownOwner(order.from) !== power) return `you do not hold ${Map.get(order.from).name}`;
       if (siegeOf(S, order.from) !== null) return `${Map.get(order.from).name} is besieged: no caravan can leave it`;
-      if (S.owner.getOrDefault(order.to, null) === power) return `${Map.get(order.to).name} is your own market: sell or buy there with the orders sell and purchase`;
+      if (v.knownOwner(order.to) === power) return `${Map.get(order.to).name} is your own market: sell or buy there with the orders sell and purchase`;
       if (Map.get(order.to).kingless) return `${Map.get(order.to).name} has no town and no market to trade at`;
       if (!(order.grain >= 0) || !(order.gold >= 0) || order.grain + order.gold <= 0) return "name the grain it carries to sell, the gold it carries to buy with, or both";
       return spend(order.gold);
@@ -61,11 +61,11 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       const from = Map.get(order.from);
       const to = Map.get(order.to);
       if (harbourOf(from) <= 0) return `${from.name} has no harbour`;
-      if (S.owner.getOrDefault(order.from, null) !== power) return `you do not hold ${from.name}`;
+      if (v.knownOwner(order.from) !== power) return `you do not hold ${from.name}`;
       if (siegeOf(S, order.from) !== null) return `${from.name} is besieged: nothing is loaded there`;
       if (harbourOf(to) <= 0) return `${to.name} has no harbour`;
       if (order.from === order.to) return "a ship must sail somewhere else";
-      if (order.trade && S.owner.getOrDefault(order.to, null) === power) return `${to.name} is your own market: deliver there (trade false), and sell with the order sell`;
+      if (order.trade && v.knownOwner(order.to) === power) return `${to.name} is your own market: deliver there (trade false), and sell with the order sell`;
       if (order.trade && to.kingless) return `${to.name} has no town and no market to trade at`;
       if (!(order.grain >= 0) || !(order.gold >= 0) || order.grain + order.gold <= 0) return "name the grain it loads, the gold it carries, or both";
       if (order.grain > TradeData.shipCapacity) return `a fleet carries at most ${TradeData.shipCapacity} measures`;
@@ -77,7 +77,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
 
     case "toll": {
       if (order.province !== null && (!Map.exists(order.province) || Map.get(order.province).isSea)) return `there is no province called '${order.province}'`;
-      if (order.province !== null && S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${Map.get(order.province).name}`;
+      if (order.province !== null && v.knownOwner(order.province) !== power) return `you do not hold ${Map.get(order.province).name}`;
       if (order.partner !== null && (!AllPowers.includes(order.partner) || order.partner === power)) return `there is no other king called '${order.partner}'`;
       if (!(order.percent >= 0) || order.percent > TradeData.tollMost) return `a toll is a percent from 0 to ${TradeData.tollMost}`;
       const key = `${order.province ?? ""}|${order.partner ?? ""}`;
@@ -88,7 +88,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
 
     case "demand": {
       if (order.province !== null && (!Map.exists(order.province) || Map.get(order.province).isSea)) return `there is no province called '${order.province}'`;
-      if (order.province !== null && S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${Map.get(order.province).name}`;
+      if (order.province !== null && v.knownOwner(order.province) !== power) return `you do not hold ${Map.get(order.province).name}`;
       if (order.how !== "share" && order.how !== "amount") return "a demand is a share of the harvest or an amount of grain";
       if (order.how === "share" && (!Number.isInteger(order.n) || order.n < 0 || order.n > LandData.taxMost)) return `a share is a percent of the harvest from 0 to ${LandData.taxMost}`;
       if (order.how === "amount" && (!Number.isInteger(order.n) || order.n < 0)) return "an amount is a number of measures of grain a season, 0 or more";
@@ -101,7 +101,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
 
     case "census": {
       if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
-      if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${Map.get(order.province).name}`;
+      if (v.knownOwner(order.province) !== power) return `you do not hold ${Map.get(order.province).name}`;
       if (S.censuses.some((c) => c.power === power && c.province === order.province)) return `your scribes are already counting ${Map.get(order.province).name}`;
       if (taxesSet.has(`census:${order.province}`)) return `you had already sent scribes to ${Map.get(order.province).name} this season`;
       const refused = spend(CountData.gold);
@@ -117,7 +117,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
     case "deport": {
       if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
       const name = Map.get(order.province).name;
-      if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${name}`;
+      if (v.knownOwner(order.province) !== power) return `you do not hold ${name}`;
       const key = `${order.type}|${order.province}|${order.type === "returnRunaways" ? order.to : ""}`;
       if (peopleSet.has(key)) return `you had already given that order for ${name} this season`;
       if (order.type === "expel" && siegeOf(S, order.province) === null) return `${name} is not besieged`;
@@ -125,7 +125,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (order.type === "returnRunaways" && (!AllPowers.includes(order.to) || order.to === power)) return `you cannot send runaways to '${order.to}'`;
       if (order.type === "deport") {
         if (Map.isHome(power, order.province)) return `${name} is your own homeland: a king deports only from land he has taken`;
-        if (!Map.exists(order.to) || Map.get(order.to).isSea || S.owner.getOrDefault(order.to, null) !== power) return `you do not hold '${order.to}' to send them to`;
+        if (!Map.exists(order.to) || Map.get(order.to).isSea || v.knownOwner(order.to) !== power) return `you do not hold '${order.to}' to send them to`;
         if (order.to === order.province) return "deportees go to another province of yours";
         if (!Number.isInteger(order.number) || order.number <= 0) return "say how many people to deport";
       }

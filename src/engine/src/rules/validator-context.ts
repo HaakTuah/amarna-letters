@@ -35,6 +35,10 @@ export interface Checking {
   readonly counterIntel: boolean;
   heardFallen(x: Power): boolean;
   Sight(): HSet<string>;
+  /** Whether this court knows the province as its own: as it sees it, or as word last brought it. */
+  knownHeld(province: string): boolean;
+  /** Who this court knows holds the province (bug #467): as it sees it, or as word last brought it; null for none or the sea. */
+  knownOwner(province: string): Power | null;
   nobody(id: string): string;
   covered(c: Character): boolean;
   hireRefusal(h: HireOrder): [string | null, Character | null];

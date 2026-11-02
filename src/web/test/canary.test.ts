@@ -24,10 +24,13 @@ import {
   claimName,
   dispatch,
   formatMoney,
+  govern,
   newGame,
+  newOwnerChange,
   newTabletProposal,
   newUnit,
   serialize,
+  wordSeasons,
 } from "@amarna/engine";
 import {
   BlankMark,
@@ -85,17 +88,27 @@ interface Secret {
   may: (r: Reader) => boolean;
 }
 
-/** Assyria's script king, with the canary's envoy sent to Babylonia in the first season. */
+/**
+ * Assyria's script king, with the canary's envoy sent to Babylonia in the first season, and a governor sent to the far
+ * province it lost out of its sight (bug #467) in every season.
+ */
 class Planting extends ScriptLeader {
   // Played as a human's seat would be: its letter, mandate and tablet are a human player's words in the export.
   override readonly label = "Human";
   readonly envoy: string;
-  constructor(envoy: string) {
+  readonly lost: string;
+  readonly governor: string;
+  constructor(envoy: string, lost: string, governor: string) {
     super(Seed);
     this.envoy = envoy;
+    this.lost = lost;
+    this.governor = governor;
   }
   override async decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission> {
     const sub = await super.decide(view, signal);
+    sub.orders = sub.orders.filter((o) => !JSON.stringify(o).includes(`"${this.governor}"`) && !JSON.stringify(o).includes(`"${this.lost}"`));
+    // The court still believes the province its own: it sends it a governor until he is taken.
+    if (view.governors.every((g) => g.province !== this.lost)) sub.orders.push(govern(this.lost, this.governor));
     if (view.turn !== 1) return sub;
     sub.orders = sub.orders.filter((o) => !JSON.stringify(o).includes(`"${this.envoy}"`));
     sub.orders.push(
@@ -142,6 +155,9 @@ function planted(): {
   envoy: string;
   fog: string;
   fogOwner: Power;
+  lost: string;
+  lostTo: Power;
+  governor: string;
 } {
   const state = newGame(Seed, seasons(Seasons));
   state.treasuries.get("Babylonia").gold = Gold;
@@ -164,7 +180,23 @@ function planted(): {
     }),
   );
   const envoy = state.characters.find((c) => c.employer === "Assyria" && c.at === "Assyria" && c.status === "Employed")!.id;
-  return { state, envoy, fog, fogOwner };
+  // Bug #467: a far province Assyria held, lost in the second season out of its sight (by the log of who held it), whose word
+  // does not reach its court within the game: it still believes the province its own, and orders for it are checked so.
+  const court = map.landProvinces.find((x) => x.capital && x.home === "Assyria")!.id;
+  const lost = map.landProvinces
+    .map((x) => x.id)
+    .find(
+      (x) =>
+        x !== fog &&
+        !seen.has(x) &&
+        map.neighbors(x).every((n) => !seen.has(n)) &&
+        ![null, "Assyria"].includes(state.owner.getOrDefault(x, null)) &&
+        [1, 2].every((t) => wordSeasons(state.config.travelDays, map, x, court, t) > 1),
+    )!;
+  const lostTo = state.owner.get(lost)!;
+  state.ownerLog.push(newOwnerChange({ province: lost, turn: 0, owner: "Assyria" }), newOwnerChange({ province: lost, turn: 2, owner: lostTo }));
+  const governor = state.characters.find((c) => c.employer === "Assyria" && c.at === "Assyria" && c.status === "Employed" && c.id !== envoy)!.id;
+  return { state, envoy, fog, fogOwner, lost, lostTo, governor };
 }
 
 interface Played {
@@ -173,6 +205,8 @@ interface Played {
   envoy: string;
   fog: string;
   fogOwner: Power;
+  lost: string;
+  lostTo: Power;
 }
 
 /**
@@ -218,7 +252,7 @@ class Failing extends SimulatedApi {
 
 /** The canary's game: Mitanni and Babylonia played by models (a stand-in answers: no model is called), Assyria by its script king. */
 async function play(): Promise<Played> {
-  const { state, envoy, fog, fogOwner } = planted();
+  const { state, envoy, fog, fogOwner, lost, lostTo, governor } = planted();
   let runner: GameRunner | null = null;
   const choices = new SeatChoices();
   choices.leaders.set("Mitanni", "Haiku");
@@ -227,7 +261,7 @@ async function play(): Promise<Played> {
   choices.narrator = "Haiku";
   const api = new Failing();
   const set = buildSeats(choices, state, providersFor(choices, api, {}), () => runner!.log);
-  set.seats.set("Assyria", new Planting(envoy));
+  set.seats.set("Assyria", new Planting(envoy, lost, governor));
   const seats = new Map<Power, Inputs>();
   for (const p of AllPowers)
     if (Near.includes(p)) {
@@ -244,7 +278,7 @@ async function play(): Promise<Played> {
   // The planted failures, and nothing else, failed; a script stood in for each.
   Assert.equal(FailAt.length, api.failed);
   Assert.equal(FailAt.length, runner.errors.length);
-  return { runner, seats, envoy, fog, fogOwner };
+  return { runner, seats, envoy, fog, fogOwner, lost, lostTo };
 }
 
 /** The canary's game played, each season's state read back once. */
@@ -290,7 +324,19 @@ function secrets(g: Read): Secret[] {
       tokens: [String(ArmyMen), ArmyMen.toLocaleString("en-US")],
       may: (r) => seat(r, g.fogOwner),
     },
+    // Bug #467: no refusal may tell Assyria's court of the loss before word of it comes.
+    {
+      name: "the far province lost out of sight",
+      tokens: [`${g.lost} is not yours`, `do not hold ${WorldMap.default.get(g.lost).name}`],
+      may: (r) => !seat(r, "Assyria") || r.turn >= heardOfLoss(g),
+    },
   ];
+}
+
+/** The first season Assyria's court knows the far province lost (bug #467): past the game if word never comes in it. */
+function heardOfLoss(g: Read): number {
+  const t = g.states.findIndex((s) => Views.knownHolders(s, WorldMap.default, "Assyria").get(g.lost).owner !== "Assyria");
+  return t < 0 ? Seasons + 1 : t;
 }
 
 /** The secrets a text holds that its reader may not know. */
@@ -366,6 +412,7 @@ function shown(g: Read, frames: SeasonFrame[], sceneAt: (t: number, p: Power) =>
   // The cards of the provinces the secrets are about: the army's, and the capitals of the courts that keep them.
   for (const id of [
     g.fog,
+    g.lost,
     ...["Assyria", "Babylonia"].map((c) => WorldMap.default.landProvinces.find((x) => x.capital && s.owner.getOrDefault(x.id, null) === c)!.id),
   ])
     out.push({
@@ -552,6 +599,11 @@ describe("CanaryTests", () => {
     const own = Views.for(states[0], g.fogOwner);
     Assert.true(own.units.some((u) => u.province === g.fog && u.men === ArmyMen));
     Assert.true(has(situation(own), [String(ArmyMen), ArmyMen.toLocaleString("en-US")]));
+    // Bug #467: the far province is another's in truth while Assyria's court still holds it its own, and the governor it
+    // sent went (the order checked as the court knows the land), so no refusal had anything to say.
+    Assert.equal(g.lostTo, states[1].owner.get(g.lost));
+    Assert.true(heardOfLoss(g) > 1);
+    Assert.true(states.some((s) => s.characters.some((c) => c.duty === "Governing" && c.watchProvince === g.lost)));
 
     const found: string[] = [];
     // The season as it is played: what each seat is handed (a script king's input; a model seat's requests are built from it).

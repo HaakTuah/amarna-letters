@@ -76,8 +76,12 @@ on sealed tablets comes with item 9.
   province a traveller of its passed, as of when it passed, `TurnEngine.bringNews`). A province's age of news is
   therefore its distance in seasons, unless a traveller brought fresher news. A king who loses a province knows it at
   once (`TurnEngine.setOwner` writes it into his `known`), as his notice tells him. Engine rules (moves, purchases,
-  scoring) read the true holder; only the view is late, and a refusal can still tell a court a province changed hands
-  (an order on a province whose holder changed is refused with the reason, read next season: accepted in question 6).
+  scoring) read the true holder; the view is late, and so are an order's checks (bug #467, which replaced the reading
+  accepted in question 6, that a refusal could tell a court a province changed hands): the validator reads who holds a
+  province as the court knows it (`Checking.knownOwner`, `knownHeld`), so an order for land lost out of its sight goes
+  in, the engine carries it out by the true holder, and its failure comes home by the road (`TurnEngine.lostOrder`, by
+  `tell`; a scheduled one wakes its seat at once only where word is near). A governor granted such land sets out, finds
+  it another's and comes home as any governor of lost land does.
 - **Fallen kingdoms** (`GameState.fallsHeard`, `SeatView.fallen`): a court that sees the fallen capital hears at once,
   the rest by word; the fall's event is visible only to the fallen court and those that saw it. Until it hears, a court
   may still send an envoy or a spy to the fallen court, or close or open its roads to it (the validator accepts them):
