@@ -47,8 +47,16 @@ describe("StartingTermTests", () => {
     );
   }
 
+  /** The callings with an article of their own, or titles, that took another before #468. */
+  const OwnArticle = new RegExp(
+    `\\b(once|Served as) (${["the ruler's brother", "the ruler's son", "the governor of Alashiya", "a dispossessed lord", "a lord of the coast", "a man of Akka", "God's Father and Master of the Horse", "King's Son of Kush"].join("|")})`,
+    "g",
+  );
+
   function beforeOf(text: string): string {
     return text.replaceAll("as an interpreter", "as a interpreter").replaceAll("once an interpreter", "once a interpreter").replaceAll("Nesa", "Kanesh")
+      // A calling with an article of its own, or a title, no longer takes another (#468): put back the one it took then.
+      .replace(OwnArticle, (_m, w: string, k: string) => `${w} ${/^[aeiou]/i.test(k) ? "an" : "a"} ${k}`)
       // Every province a proper name (polish lane, 2 November 2026): the descriptions they replaced.
       .replaceAll("Tamassos", "the copper hills of Alashiya")
       .replaceAll("Enkomi", "the harbour of Alashiya")
