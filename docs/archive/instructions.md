@@ -1432,3 +1432,24 @@ Given in the design chat with Claude, answering the design questions of the cons
     owner's own code gets a licence): "Yes to alll! And we keep rights gated for now. Expertly to all!" Written into "Review guidelines" ("History holds") in `AGENTS.md`, `CLAUDE.md`,
     `docs/claude-and-codex.md` (the design check's brief; the monthly history spot-check), `SECURITY.md` point 10, and
     "Follow-ups" in `docs/BUILD-PROGRESS.md`; the same for versions and licences in Barkstreet Snakes.
+165. **2 November 2026, 16:15 UTC**, in the design chat, to the design session's takes on Amarna Letters' #459 (script
+    kings check a governor's word against their spy's, folded into item 17++ part C) and Barkstreet Snakes' #378:
+    "Yes, expertly to both!" Written into item 17++'s row in `docs/BUILD-PROGRESS.md`.
+166. **2 November 2026, 16:21 and 16:24 UTC**, in the design chat: "Is there anything more that should go into the father document? Anything at all? it will also read the repo, right, so some of it will be learn from analyzing and adapting it? Expert." Then, to the design session's answer (eight points
+    for the father's notes, a leaner prompt that points to the repositories, and orchestrators re-reading the rule files
+    when they change, so no update message is needed): "YEs, absolutely, expertly to absolutely all! Mastefully! Maestro!" Written into "The rules, re-read when they change" in
+    `docs/orchestrating.md`; the same in Barkstreet Snakes; the rest in the father's notes.
+167. **2 November 2026, 16:32 and 16:35 UTC**, in the design chat: "Is the History spot-check too limited in scope? It
+    caught 3 things and only looked at around 10? Expert." Then, to the design session's take (3 misses in 13 puts the
+    error rate between about 5% and 54%, so spot-checks are the wrong tool until the dossiers are clean: a full check
+    of every dossier now; a test that every real fact in the game names its dossier line; key facts quoting the few
+    words of their source; then a monthly spot-check of about 30 facts, with a full check of any dossier whose misses
+    pass one in fifteen): "Yes, expertly to all!" Written into "History holds" in `AGENTS.md`, "Reviews" in
+    `docs/claude-and-codex.md`, "Follow-ups" in `docs/BUILD-PROGRESS.md`, and item 17+++b (Build order, revision 216).
+168. **2 November 2026, 16:52 UTC**, in the design chat, to the design session's take on the licence audit's three
+    questions (#464 here, Barkstreet Snakes' #379 and #380): the allow-list exists so nothing can stop the owner
+    selling the game or oblige him to publish his code, and only what ships can do that, so point 10 splits in two:
+    what ships keeps the strict list, and tools that only run may be under any licence the Open Source Initiative
+    approves, copyleft included, with GitHub's own services under GitHub's terms while the repositories are public;
+    ffmpeg, libsndfile, matplotlib, npm and CodeQL kept. "Completely agree, go ahead expertly with all you said,
+    expert!" Written into `SECURITY.md` point 10; the same in Barkstreet Snakes.

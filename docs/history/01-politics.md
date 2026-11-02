@@ -118,7 +118,7 @@ is whose sphere the ruler is in during 1346.
 
 | Pair | 1346 | Grade | Evidence |
 | --- | --- | --- | --- |
-| Egypt-Mitanni | Brothers, allied by marriage; souring over gold | A | EA 17-29; Tushratta complains to Akhenaten that the solid-gold statues promised by Amenhotep III came as gilded wood, and that his envoys Mane and Keliya were detained (EA 27, 29) |
+| Egypt-Mitanni | Brothers, allied by marriage; souring over gold | A | EA 17-29; Tushratta complains to Akhenaten that the solid-gold statues promised by Amenhotep III came as gilded wood, and that his envoys Pirissi and Tulubri were held in Egypt for years, so he held Pharaoh's envoy Mane in answer (EA 28, 29) |
 | Egypt-Babylonia | Brothers, by marriage; quarrelsome | A | EA 2-14: gifts that shrink in the kiln (EA 7, EA 10), envoys held, his merchants killed at Hinnatuna in Canaan (EA 8) |
 | Egypt-Assyria | New brothers, by Assyria's claim | A | EA 15-16; Ashur-uballit asks for gold "as plentiful as dust" and complains Egypt's envoys gave too little |
 | Egypt-Hatti | Correct but wary | B/C | EA 41 (its "Huriya" may be Akhenaten, Smenkhkare or Tutankhamun) (Suppiluliuma asks why the new Pharaoh has not written), and Hittite pressure on Egypt's vassals (EA 55, EA 75, EA 126) |
