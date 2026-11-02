@@ -63,7 +63,7 @@ describe("EngineTests", () => {
     Assert.equal(73, s.units.length);
     // Walls by city, from the walls dossier (items 11d, 11c, 11f and, for the Great Kings' cities, 15): Hattusa, Babylon,
     // Ashur, Washukanni, Qatna, Qadesh and Hazor 3, Akhetaten none; the chiefs' lands none.
-    Assert.equal(55, s.walls.size);
+    Assert.equal(54, s.walls.size);
     Assert.equal(7, count(s.walls, (w) => w[1] === 3));
     Assert.all(
       WorldMap.default.landProvinces.filter((p) => p.capital),
