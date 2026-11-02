@@ -72,12 +72,19 @@ export function licenceOk(expression, allow) {
   }
 }
 
-/** Every package the lockfile installs (the workspaces' own code, linked, is the owner's and carries no licence). */
+/**
+ * Every package the lockfile installs. A link to one of the declared workspaces is the owner's own code, which carries no
+ * licence; any other link (a `file:` package) is checked by its target's licence, so a local package cannot slip past.
+ */
 function lockfilePackages() {
   const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
+  const workspaces = new Set(JSON.parse(readFileSync(join(root, "package.json"), "utf8")).workspaces);
   return Object.entries(lock.packages)
-    .filter(([path, entry]) => path.includes("node_modules/") && !entry.link)
-    .map(([path, entry]) => ({ name: path.slice(path.lastIndexOf("node_modules/") + 13), version: entry.version, license: entry.license }));
+    .filter(([path, entry]) => path.includes("node_modules/") && !(entry.link && workspaces.has(entry.resolved)))
+    .map(([path, entry]) => {
+      const target = entry.link ? lock.packages[entry.resolved] ?? {} : entry;
+      return { name: path.slice(path.lastIndexOf("node_modules/") + 13), version: target.version, license: target.license };
+    });
 }
 
 /**
