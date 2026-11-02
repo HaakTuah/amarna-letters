@@ -186,7 +186,7 @@ function upTo(pts: readonly Pt[], t: number): Pt[] {
 }
 
 /**
- * A unit's way from one province to another (item 11c+: Haakon, "the arrows for units show only the province it starts
+ * A unit's way from one province to another (item 11c+: the owner, "the arrows for units show only the province it starts
  * from and ends up in, but not which provinces they pass through"): along the roads through each province it passes,
  * as a travelling token goes, with a small mark at each province on the way and the mark of each crossing it takes.
  */
@@ -512,7 +512,7 @@ function reconcile(parent: SVGGElement, items: readonly Item[], known: Map<strin
 
 /**
  * The city a tap means, where the tap circles of several overlap (the Levant's towns on the whole board): the one whose
- * seal is nearest, not the one drawn last, so every small province can be clicked at every zoom (Haakon, 2 November 2026:
+ * seal is nearest, not the one drawn last, so every small province can be clicked at every zoom (the owner, 2 November 2026:
  * "Some of the provinces in the Levant are so small you can't even click on them").
  */
 function nearestCity(e: MouseEvent): Element | null {

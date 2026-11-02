@@ -148,7 +148,7 @@ describe("City-states as powers (item 11+)", () => {
   });
 
   test("The final score blends size and performance, and the highest wins", () => {
-    // Item 11e: size against the largest realm, performance as the rank; size weighs 5 percent since item 11f (Haakon's answer).
+    // Item 11e: size against the largest realm, performance as the rank; size weighs 5 percent since item 11f (the owner's answer).
     Assert.equal(0.5, finalScore(50, 1, 0));
     Assert.equal(0.75, finalScore(50, 0.5, 1));
     Assert.equal(0.25, finalScore(0, 1, 0.25));

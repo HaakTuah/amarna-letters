@@ -212,7 +212,7 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("A threat to a king's capital is always paid, from the reserve the budget keeps", async () => {
-    // Haakon, answering item 6c's review (built in item 7a): with the limit spent but for its reserve, an ordinary decision
+    // The owner, answering item 6c's review (built in item 7a): with the limit spent but for its reserve, an ordinary decision
     // is left to the script; one on a threat to the capital is still paid, until the whole limit is spent.
     const asker = new Asker(() => ({ choice: "x", pass_up: "", ask_counsel: "" }));
     let spent = 0.95;

@@ -278,7 +278,7 @@ twice. Reduced motion turns off every transition and animation.
    header the season being played.
 4. **Date-label formats.** The ending line uses the one label ("The age cannot end before Shemu, 1341 BCE (turn
    15).") rather than question 26's "turn 15 (Shemu, year 5)", since the prompt asks for one helper for every date.
-   The year BCE was added at Haakon's request (see "Owner's additions").
+   The year BCE was added at the owner's request (see "Owner's additions").
 5. **Foreign spies are never drawn in a court's view,** as the prompt says (its own spies, and foreign envoys only
    while at its court). The engine's own view still lists a spy posted at a court in that court's People panel with
    its employer (question 19, bug 4, an engine matter, recorded under "Characters" in the design notes); this round
@@ -318,7 +318,7 @@ twice. Reduced motion turns off every transition and animation.
 
 ## Owner's additions
 
-Haakon added two things to the item on 19 October, after the review:
+The owner added two things to the item on 19 October, after the review:
 
 1. **Years counted from 1345 BCE.** The first year of a game is 1345 BCE and each later year is one less, so the
    date-label helper shows the court's season, the year BCE and the turn: "Peret, 1344 BCE (turn 5)" at Egypt's

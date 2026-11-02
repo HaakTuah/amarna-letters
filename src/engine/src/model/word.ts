@@ -1,5 +1,5 @@
 /**
- * Word of foreign markets and tolls, carried (item 10+b, Haakon's answer of 28 October 2026: a court knows a foreign
+ * Word of foreign markets and tolls, carried (item 10+b, the owner's answer of 28 October 2026: a court knows a foreign
  * market's prices and the tolls set on it only as last reported to it, never posted). A caravan, a ship or an envoy
  * gathers it where it goes and the court learns it when it comes home; lost on the road, the word is lost with it.
  */

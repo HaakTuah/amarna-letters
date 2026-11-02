@@ -1,5 +1,5 @@
 /**
- * Finer geography close up (build order item 11c++; Haakon: "Yes, please! Expertly!"): the coasts, the small islands,
+ * Finer geography close up (build order item 11c++; the owner: "Yes, please! Expertly!"): the coasts, the small islands,
  * the lakes and the rivers of the Levant and Cyprus, the Nile and its Delta, and the Aegean coast from Natural Earth's
  * finest data (scripts/map-geography.ts), with the land of 1346 where it differs as the board draws it. Imported only when
  * the map is first zoomed in past about 6x, so the whole board stays light on a phone.

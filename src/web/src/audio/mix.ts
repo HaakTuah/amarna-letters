@@ -1,5 +1,5 @@
 /**
- * The soundscape's mix (Haakon, 1 November 2026: "your ears are being assaulted now. It plays dozens of sound effects at
+ * The soundscape's mix (the owner, 1 November 2026: "your ears are being assaulted now. It plays dozens of sound effects at
  * any one time"): three layers, the music leading, in the manner of Crusader Kings II. The event sounds (one seat's own
  * clicks and what happens to its realm) and the world's sounds (what happens on the map near the view) both sit under the
  * music, each capped: at most three sounding at once and the same sound not again within a few seconds, so a busy season

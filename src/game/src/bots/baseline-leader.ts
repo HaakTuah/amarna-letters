@@ -135,7 +135,7 @@ export class BaselineLeader implements ISeat {
     economy(view, m, rng, orders, destinations);
     diplomacy(view, m, rng, orders);
     court(view, m, rng, orders);
-    // Haakon's answers to item 11a: each errand is a job, offered to the man sent, at what he asks up to 40 a season.
+    // The owner's answers to item 11a: each errand is a job, offered to the man sent, at what he asks up to 40 a season.
     const gold = view.gold;
     jobsForErrands(view, orders, freeHere(view), (rate, spent) => rate <= 40 && gold - spent > rate * 4, true);
     m.lastOwner = view.owner.clone();
@@ -383,7 +383,7 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
 
 function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
   const me = v.power;
-  // Haakon's answers to item 11a: servants at court and the free people there, each sent offered the errand's job.
+  // The owner's answers to item 11a: servants at court and the free people there, each sent offered the errand's job.
   const ready = sortBy(
     [...v.court.filter((c) => c.ready), ...freeHere(v)],
     [(c) => c.id, cmpStr],

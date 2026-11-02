@@ -1,4 +1,4 @@
-# Fix pass: item 4's follow-up (Haakon, 20 October 2026, word for word)
+# Fix pass: item 4's follow-up (the owner, 20 October 2026, word for word)
 
 Review of item 4: accepted. From now on, build the whole Build order, item by item, reading each item and the builder rules fresh from the live document at https://claude.ai/code/artifact/7f857750-39dc-464a-a739-c9f59dfe3dcd. The document changed a lot tonight, including items 5, 6, 7, 8, 10, 11, 13, 16 and 18 and the builder rules, so do not rely on anything you read earlier.
 
@@ -18,7 +18,7 @@ First, a fix pass as item 4's follow-up, with its own branch, tests and report:
 
 Then item 5 onward, in order, to the end of the Build order.
 
-## Additions (Haakon, 20 October 2026)
+## Additions (the owner, 20 October 2026)
 
 Three additions from the live document, for the fix pass you're running now, since they touch the same files:
 1. New builder rule "Requests are rules too": no field in a request may imply something that isn't true. Apply it while fixing the request texts: ask only what applies, show no internal ids or numbers a king or character could repeat, and keep the engine's outcomes apart from a character's own words. Check the other request schemas for the same kind of nudge, not only the cases item 4 found.

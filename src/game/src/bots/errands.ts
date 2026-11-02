@@ -1,5 +1,5 @@
 /**
- * A script king's errands as jobs (Haakon's answers to items 11a and 11a+): every errand is a job, offered to the man who
+ * A script king's errands as jobs (the owner's answers to items 11a and 11a+): every errand is a job, offered to the man who
  * is to do it, which he takes or not. The court and the letters choose whom to send from the people at hand, its servants
  * at court and the free people standing there; then each envoy or spy sent is given the job for that errand: a new job for
  * a servant whose job was another, an offer for a free person. Each job carries the king's standing order to pay the rest

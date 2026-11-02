@@ -157,7 +157,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
           </div>
         );
       })}
-      {/* Haakon's answers to item 11b+: a job's order to pay the rest when it is done is a standing order of yours, to cancel like any. */}
+      {/* the owner's answers to item 11b+: a job's order to pay the rest when it is done is a standing order of yours, to cancel like any. */}
       {[...new Map([...v.court, ...v.known].filter((s) => s.ours && s.payOnDone).map((s) => [s.id, s])).values()].map((s) => (
         <div className="row" key={`paydone-${s.id}`}>
           <small>Pay {s.name} the rest of the fee when the job is done</small>

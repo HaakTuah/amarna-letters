@@ -1,6 +1,6 @@
 /**
  * The rulebook's WORK AND MONEY part (build order item 11a, "Jobs, not wages", "Work on any terms", "Fees clear the market",
- * "Lending to kings", "Debts are facts; repayment is a choice", "Gold is a lifeline", with Haakon's answers to items 11a
+ * "Lending to kings", "Debts are facts; repayment is a choice", "Gold is a lifeline", with the owner's answers to items 11a
  * and 11a+): jobs as errands, payments by order, records as news, prices agreed, borrowing, repaying and the tablets a
  * court holds, the hard acts, and what the score counts. The numbers are read from the
  * engine's data, so the text stays true if they change.

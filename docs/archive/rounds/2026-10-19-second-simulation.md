@@ -11,7 +11,7 @@ the first milestone; (c) a character with no employer and no location was given 
 owner added during the item, a counter of ids for each kind of object, so that a new kind of object leaves existing
 seeds' rolls unchanged. Then the second
 agent simulation: the `sim/` kit extended so that envoys and spies are agents too, isolated like the kings; seed 7 and
-one new seed for ten seasons with sleep on; and, before the review stop, the kit made playable for Haakon ("Local
+one new seed for ten seasons with sleep on; and, before the review stop, the kit made playable for the owner ("Local
 play on a Claude subscription": a human seat in the locally running game against file-seat kings answered by
 guarded, isolated king agents).
 
@@ -790,7 +790,7 @@ No agent was started and no model call was spent.
 ## Local play
 
 Commit `56be282` (the seat type, the bridge, the kit, the start prompt, the tests and the notes), with this section in
-a second. The last part of item 4: "Local play on a Claude subscription", so that at the review Haakon can start playing model
+a second. The last part of item 4: "Local play on a Claude subscription", so that at the review the owner can start playing model
 kings himself. A human seat in the locally running web app against kings answered by the simulation's guarded,
 isolated king agents in a Claude Code session, on the subscription instead of paid API calls. No engine rule, script
 king or number of the game changed, so the save version stays at 4 and script games play exactly as before. No agent
@@ -851,7 +851,7 @@ can take a few minutes." It names no king and gives no count, because that would
   runs.
 - The loop on `wait.js --play 540`: one agent per listed request, started in parallel. A request still unanswered after
   its agent finished gets one more start, then is left to the script.
-- The orchestrator's rule, and one rule more: Haakon is a player, so during the game he is told nothing about the other
+- The orchestrator's rule, and one rule more: the owner is a player, so during the game he is told nothing about the other
   kings, and he may read everything afterwards.
 - After the game: the audit and the usage.
 
@@ -929,7 +929,7 @@ No agent was started and no model call was spent.
 
 ### Left out, and why
 
-- **A live game.** No agent can start in this session (see the top of this report). The first real check is Haakon's
+- **A live game.** No agent can start in this session (see the top of this report). The first real check is the owner's
   first session from `docs/PLAY-PROMPT.md`, whose live isolation test comes before any game. (Agents did start later in
   this session, for the simulation, but no local game was played.)
 - **Characters as agents in local play.** Kings only, as the item says (see Readings).
@@ -1058,7 +1058,7 @@ carries events.
    blocked-attempt tests.
 2. **The first load is 7-10% faster, not "much faster" (no change).** Fix (b)'s section already says so, and names
    what would close the gap: a host that serves Brotli, relinking with wasm-tools (which needs admin rights), and
-   lazy loading. Which of these to pursue is Haakon's call.
+   lazy loading. Which of these to pursue is the owner's call.
 3. **One 0.6-0.8 s stretch is left at the first season (no change).** It is as reported under fix (b). From the
    second season on, the page is never busy for more than 0.33 s at a time.
 4. **A model character's script shadow ran on the page's thread (fixed).**

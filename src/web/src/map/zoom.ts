@@ -8,7 +8,7 @@ import { ReliefFrame } from "./relief-frame.ts";
 const MAP_W = BoardWidth, MAP_H = BoardHeight, MAX_ZOOM = 24;
 const states = new WeakMap();
 // The drawn world around the board (the relief and the lands beyond the game), as far as it reaches on every side of the
-// board alike: the view never shows past it, so the map never ends at a bare edge (Haakon, 31 October 2026).
+// board alike: the view never shows past it, so the map never ends at a bare edge (the owner, 31 October 2026).
 const WORLD_W = MAP_W + 2 * Math.min(-ReliefFrame.x, ReliefFrame.x + ReliefFrame.width - MAP_W);
 const WORLD_H = MAP_H + 2 * Math.min(-ReliefFrame.y, ReliefFrame.y + ReliefFrame.height - MAP_H);
 const reduced = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -218,7 +218,7 @@ function animate(st, change) {
 }
 
 // The camera stops at the board's edges, so an edge province can be centred, and never shows past the drawn world
-// around the board (the relief and the lands beyond the game), so the map never ends at a bare edge (Haakon,
+// around the board (the relief and the lands beyond the game), so the map never ends at a bare edge (the owner,
 // 31 October and 2 November 2026). Where the drawn world beyond the board is too narrow to centre an edge at this zoom,
 // the world's edge wins.
 function clamp(st) {

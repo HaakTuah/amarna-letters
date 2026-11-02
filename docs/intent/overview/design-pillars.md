@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Overview tab, revision 569 (2026-11-01). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 571 (2026-11-02). Do not edit: see docs/intent/INDEX.md. -->
 ## Design pillars
 
 Eight principles decide every feature; a mechanic that breaks one needs a strong reason.
@@ -18,7 +18,7 @@ Eight principles decide every feature; a mechanic that breaks one needs a strong
 
 **Models only where they matter** (decided 27 October 2026, a core tenet). A model call is spent only where a model's judgement can change what happens. The obvious, the routine and the mechanical are the engine's and the scripts', and standing answers carry out what a mind has already decided. So every decision an item adds says which rungs may take it, script, small model or large, and how the worth of a call to it is judged, and nothing calls a model because it can. It holds for every mind alike: kings, city-states, vassals and characters ("Minds follow what is at stake" under Engine and models).
 
-**Reason from the pillars** (decided 28 October 2026, a core tenet). Most questions a rule raises are answered by reasoning from what already holds, and a builder answers them so before asking. Haakon: "I feel like the principles answer most of these questions, if one just reasons."
+**Reason from the pillars** (decided 28 October 2026, a core tenet). Most questions a rule raises are answered by reasoning from what already holds, and a builder answers them so before asking. The owner: "I feel like the principles answer most of these questions, if one just reasons."
 
 - **Don't prohibit; give it its real cost.** An action people could realistically take is never closed off: what it costs and risks makes it as rare as it was ("not blocking off decisions people realistically could make, but reflect the incentive structures which also made them very rare occurrences").
 - **Information moves in physical time** (pillar 4). Every fact anyone learns, a price, a toll, a rumour, a fall, reaches him by someone carrying it or by his own eyes, never posted or known at once.

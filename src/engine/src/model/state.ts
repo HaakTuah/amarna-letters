@@ -146,7 +146,7 @@ export const feedsUnit = (s: GameState, u: Unit): boolean => {
 };
 
 /**
- * A standing order to hunt bands (Haakon's answers to items 11b and 11b+): whose, in which provinces (none named: the
+ * A standing order to hunt bands (the owner's answers to items 11b and 11b+): whose, in which provinces (none named: the
  * whole of its land), and the season it was given, from which talk of it travels out from its capital at the pace of the
  * roads, as any news, to the chiefs who might fear it.
  */
@@ -306,7 +306,7 @@ export interface GameState {
   marketsSeen: Dict<Power, Dict<string, MarketSeen>>;
   /** Item 11a: each party's record of paying what fell due, fees and loans ("A name made of outcomes"). */
   payRecords: Dict<string, PayRecord>;
-  /** Every promise to pay kept or broken, as news that travels (Haakon's answers to item 11a). */
+  /** Every promise to pay kept or broken, as news that travels (the owner's answers to item 11a). */
   payFacts: PayFact[];
   /**
    * Promises kept and broken folded out of {@link payFacts} once old news (`knower|party`): what each court had heard of
@@ -322,7 +322,7 @@ export interface GameState {
    * is here; script seats never have one). Recorded so experiments can report whether it was on.
    */
   councilOff: Power[];
-  /** Haakon's answers to items 11b and 11b+: the standing orders that armies fall on bands, by province or the whole land. */
+  /** The owner's answers to items 11b and 11b+: the standing orders that armies fall on bands, by province or the whole land. */
   hunts: StandingHunt[];
   /** The hunts ordered this season (`power|province`), carried out as the next season begins. */
   huntNow: string[];

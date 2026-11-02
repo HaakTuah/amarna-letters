@@ -176,13 +176,13 @@ P.revokeGrants = function (p, o) {
       }
   if (ended.length === 0 && !narrowed) return;
   const what = o.province !== null ? `in ${this.map.get(o.province).name}` : "in his land";
-  // Haakon's answers to item 11a: word of it travels to the grantee's court as any news does, never known there at once.
+  // The owner's answers to item 11a: word of it travels to the grantee's court as any news does, never known there at once.
   this.word(p, o.grantee, "Grant", `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what} (in season ${S.turn}). Troops of yours still standing there will take the land as any troop does, and he will count it an attack.`);
   logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p, o.grantee], "grant-revoked");
 };
 
 /**
- * A king grants another passage or basing by order (item 11a+, Haakon's answer to item 9's review), with no tablet: his
+ * A king grants another passage or basing by order (item 11a+, the owner's answer to item 9's review), with no tablet: his
  * border guards and garrisons obey him from next season, over land he holds now, and the news reaches the grantee's court
  * as fast as a messenger rides between the capitals; until then that court does not know of it.
  */

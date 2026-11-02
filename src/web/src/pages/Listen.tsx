@@ -1,6 +1,6 @@
 /**
  * The listening page (item 19+++): every piece and variation, every sound, sting and bed, with each piece's mood and when
- * the game plays it, so the music can be judged by ear. The player sees our own pieces' names and moods only (Haakon,
+ * the game plays it, so the music can be judged by ear. The player sees our own pieces' names and moods only (the owner,
  * 1 November 2026); the template they were made after is in docs/design/45-the-music-and-the-sounds.md. The game's own
  * music is hushed while the page is open, so only what is pressed plays.
  */

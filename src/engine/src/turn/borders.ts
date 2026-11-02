@@ -249,7 +249,7 @@ P.sendPeople = function (by, from, to, n, gold, freeable = false) {
 };
 
 /**
- * Deportees on the road (item 11a+, Haakon's answer to item 10+b's review: "Deportees walk the route like any company, so
+ * Deportees on the road (item 11a+, the owner's answer to item 10+b's review: "Deportees walk the route like any company, so
  * they can die, flee or be freed on the way"): each season they cover their share of the road, and where the stretch
  * they cover holds troops of a king who would free them, the deporter's guards give them up. He frees them who held the
  * land they were taken from as its homeland, or who closed his roads to the deporter's people. The freed are loose men

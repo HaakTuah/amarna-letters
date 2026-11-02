@@ -1,0 +1,50 @@
+# Nothing personal, ever (SECURITY.md, point 11). Fails a pull request whose files, commit messages, title or
+# description hold a term from the PERSONAL_TERMS secret: one term per line, set by the owner in the repository's
+# Actions secrets and never written into the repository, since the list itself would be personal. It prints only
+# where a term was found (file and line), never the term. Without the secret (a fork, Dependabot) it passes with a note.
+name: Personal terms
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, edited, synchronize, reopened]
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-terms-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Look for personal terms
+        env:
+          TERMS: ${{ secrets.PERSONAL_TERMS }}
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -z "$TERMS" ]; then echo "::notice::PERSONAL_TERMS is not set here, so nothing was checked."; exit 0; fi
+          umask 077
+          list="$RUNNER_TEMP/terms"
+          printf '%s\n' "$TERMS" | sed '/^[[:space:]]*$/d' > "$list"
+          found=0
+          hits=$(git grep -I -n -i -F -f "$list" -- . | cut -d: -f1,2 || true)
+          if [ -n "$hits" ]; then echo "A personal term is in these files (file:line):"; echo "$hits"; found=1; fi
+          if [ -n "$BASE" ]; then
+            # Only commits made since the rule (2 November 2026): older ones cannot be changed without rewriting history.
+            bad=$(git log --since='2026-11-02T17:30:00Z' --format='%h %B%x00' "$BASE..HEAD" | tr '\0\n' '\n ' | grep -i -F -f "$list" | cut -d' ' -f1 || true)
+            if [ -n "$bad" ]; then echo "A personal term is in these commits' messages:"; echo "$bad"; found=1; fi
+          fi
+          if grep -q -i -F -f "$list" <<< "$TITLE"$'\n'"$BODY"; then echo "A personal term is in the PR's title or description."; found=1; fi
+          rm -f "$list"
+          exit "$found"

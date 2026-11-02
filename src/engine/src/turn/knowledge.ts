@@ -41,7 +41,7 @@ P.saw = function (c, tabletId) {
 /**
  * A captor questions a captive. How much the questioning draws out is a roll on its courage and loyalty against what is
  * spent, and a court that holds its lover or family has a hold on it ("Skills set the odds; the character decides"). What
- * it then says is its own decision, the next season, in its own words (item 10+b, Haakon's answer of 28 October 2026):
+ * it then says is its own decision, the next season, in its own words (item 10+b, the owner's answer of 28 October 2026):
  * the tablets it gave way on, or a tablet that never was (questionedSays).
  */
 P.questionCaptive = function (host, c, co) {
@@ -127,7 +127,7 @@ P.questionedSays = function (host, c, tabletIds, lies, league, words) {
 
 /**
  * A captor hands its captive over to another court, like any good; any ransom it asked lapses. The captive travels under
- * the giver's guard like any company (item 10+b, Haakon's answer of 28 October 2026), so it can be intercepted or freed on
+ * the giver's guard like any company (item 10+b, the owner's answer of 28 October 2026), so it can be intercepted or freed on
  * the way (see convoyStopped); the other court holds it once it arrives.
  */
 P.handOver = function (host, c, to) {

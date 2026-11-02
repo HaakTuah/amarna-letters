@@ -44,7 +44,7 @@ describe("MapAndSeasTests", () => {
     for (const id of ["aleppo", "qatna", "alalakh", "nuhashshe", "jerusalem", "shechem", "arrapha", "sidon", "arwad", "nubia", "dilmun", "kaska", "steppe", "akko", "hazor", "gezer", "ashkelon", "lachish", "gath", "aijalon", "redsea"])
       Assert.true(Map.exists(id), id);
     // Names of their time; Kumidi stays within Damascus's land. Ṣumur is a province of its own on Amurru's coast, and Lukka
-    // a land without a king (item 8: Haakon's answers to item 7a's review).
+    // a land without a king (item 8: the owner's answers to item 7a's review).
     for (const id of ["mari", "kanesh", "ekallatum", "tamassos", "kumidi"]) Assert.false(Map.exists(id), id);
     Assert.equal(["Coast", "Land"], [Map.get("sumur").kind, Map.get("amurru").kind]);
     Assert.true(Map.areAdjacent("sumur", "amurru") && Map.areAdjacent("sumur", "ugarit") && Map.areAdjacent("sumur", "byblos"));

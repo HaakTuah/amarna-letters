@@ -1,5 +1,5 @@
 /**
- * Jobs (build order item 11a, "Jobs, not wages", reworked by Haakon's answers to items 11a and 11a+): a job is one errand,
+ * Jobs (build order item 11a, "Jobs, not wages", reworked by the owner's answers to items 11a and 11a+): a job is one errand,
  * what to do, where and by when, with a fee, the advance handed over when it is agreed and the rest due when the errand is
  * done. Nothing is paid unless the payer orders it, by hand or by his own standing order; unpaid is unpaid, and a promise
  * left unpaid a season counts as broken. When the job is done it ends: another errand is a new offer the man may refuse.
@@ -356,7 +356,7 @@ P.jobsDone = function (stood) {
     let paid = rest === 0;
     if (rest > 0 && k.payOnDone && !k.withheld) paid = this.settleRest(c, emp, false);
     if (!paid) this.fallsDue(c, emp, rest, `My job for ${land(emp)} is done${k.payOnDone && !k.withheld ? ", and the treasury could not pay the rest" : ""}.`);
-    // Haakon's answers to item 11b+: the stay this errand was given during goes on if its term has not run out; if it has,
+    // The owner's answers to item 11b+: the stay this errand was given during goes on if its term has not run out; if it has,
     // it is done too, and its rest is paid as its own standing order says, or falls due.
     const st = k.stay;
     if (st !== null && st.until >= S.turn) {
@@ -404,7 +404,7 @@ P.jobsDone = function (stood) {
 
 /**
  * Old news folded away, once a season: a promise kept or broken more than a dozen seasons ago, heard by every court, goes
- * into each court's record and into the old talk of each person who heard it (Haakon's answers to item 11b+: no rule
+ * into each court's record and into the old talk of each person who heard it (the owner's answers to item 11b+: no rule
  * forgets talk of promises).
  */
 export function foldOldPay(s: GameState, keep: number): void {

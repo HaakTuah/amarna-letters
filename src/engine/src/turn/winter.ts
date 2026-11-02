@@ -79,7 +79,7 @@ P.coastalConvoy = function (from, to) {
 };
 
 /**
- * Each dangerous crossing costs its troop men (item 11a+, Haakon's answer to item 9's review: "winter takes men by an
+ * Each dangerous crossing costs its troop men (item 11a+, the owner's answer to item 9's review: "winter takes men by an
  * army's size and supplies"): of a full unit, `winterArmyLoss` in a hundred (a fleet `winterFleetLoss`), in proportion
  * to its men, since a snowbound pass feeds nobody and a storm takes more of
  * a crowded fleet; half that where it carries a season's food (`WinterData.suppliedPercent`); the weather draws between
