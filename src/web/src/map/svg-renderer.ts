@@ -199,7 +199,8 @@ export class SvgMapRenderer implements MapRenderer {
         this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}:${s.sieges.some((x) => x.province === k) ? 1 : 0}`).join()}`, () => memoryLayer(s));
       },
       () => this.layer("fog", s, () => fog(s)),
-      () => this.layer("bands", s.frame, () => bands(s)),
+      // Keyed by the scene, not the frame: who holds what and the armies seen are the viewer's own.
+      () => this.layer("bands", s, () => bands(s)),
       () => {
         if (this.drawn.get("cities") !== s) {
           this.layer("cities", s, () => cities(s));

@@ -45,13 +45,24 @@ export function tints(s: MapScene, mode: MapMode): string {
 }
 
 export function bands(s: MapScene): string {
+  // The armies the seat sees now, by province (a unit remembered from an old report is not seen).
+  const armies = new Map<string, Set<Power>>();
+  for (const u of s.units) if (u.kind === "Army" && !u.ghost) armies.set(u.province, (armies.get(u.province) ?? new Set()).add(u.power));
   let sb = "";
   for (const [clip, group] of LandByClip) {
     sb += `<g class="bands" clip-path="${clip}">`;
     for (const p of group) {
       const o = s.owner.get(p.id) ?? null;
       if (o === null) continue;
-      const d = frontierPath(p.id, (across) => across.length === 0 || across.some((q) => (q === "~" ? null : (s.owner.get(q) ?? null)) !== o));
+      const other = (q: string): boolean => (q === "~" ? null : (s.owner.get(q) ?? null)) !== o;
+      // A frontier where armies of two powers stand face to face, one on each side: a wider, fainter stroke under the band.
+      const here = armies.get(p.id);
+      if (here !== undefined) {
+        const faced = (q: string): boolean => [...(armies.get(q) ?? [])].some((b) => [...here].some((a) => a !== b));
+        const c = frontierPath(p.id, (across) => across.some((q) => q !== "~" && other(q) && faced(q)));
+        if (c !== "") sb += `<path class="band contested b-${glyphId(o)}" d="${c}" clip-path="url(#cl-${p.id})"/>`;
+      }
+      const d = frontierPath(p.id, (across) => across.length === 0 || across.some(other));
       if (d !== "") sb += `<path class="band b-${glyphId(o)}" d="${d}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
     }
     sb += "</g>";
