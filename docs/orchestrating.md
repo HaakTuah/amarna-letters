@@ -9,9 +9,11 @@ For the orchestrator, the session that starts builder sessions. The builder's ow
 stood when it started. So on every wake, the hourly check included, it pulls `develop`, and if `AGENTS.md`, `CLAUDE.md`,
 `SECURITY.md`, `docs/claude-and-codex.md` or this file changed since it last read them, it re-reads the changed parts,
 passes what touches them on to its running builders in one message, and says so in one line to the owner. Nobody has
-to tell it. The same wake reads `docs/BUILD-PROGRESS.md`'s diff since it last looked: it acts on what is new there (an entry added or
-moved, an answer of the owner's, a lane opened or a bug put first), opening a lane where one is due, and skips the
-done-marks its own builders made (archive, 2 November 2026).
+to tell it. The same wake reads `docs/BUILD-PROGRESS.md`'s diff since it last looked: it acts on what is new there (an entry
+added or moved, an answer of the owner's, a lane opened or a bug put first), opening a lane where one is due, and skips
+the done-marks its own builders made (archive, 2 November 2026). **Its report on every wake counts the lanes:** the
+lanes open, and every independent entry it is not running, each with its reason ("waits on 2y's files" is one, none
+given is not), so a stall shows in one line.
 
 The aim (the owner, 1 November 2026): "We should do whatever is most effective at acheivein the goal, which is
 accomplishing them most possible, with the least tokens, without sacrifacing quality."
