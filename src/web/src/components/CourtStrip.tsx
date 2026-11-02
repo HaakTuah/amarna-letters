@@ -23,6 +23,7 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
   const god = scene.viewer === null;
   const heldBy = (p: Power): number => [...f.owner.values()].filter((o) => o === p).length;
   const sleepOf = (p: Power): FrameSleep | null => (god ? (f.sleep.get(p) ?? null) : null);
+  const otherNames = open !== null ? kingOtherNames(scene.viewer, open) : [];
   return (
     <div className="courtbar">
       <div className="courts" ref={sideScroll}>
@@ -58,7 +59,7 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
           {god || scene.viewer === open ? `, ${f.units.filter((u) => u.power === open).length} units` : ""}
           {f.eliminated.has(open) ? " · fallen" : ""}
           {/* His other names, on his card only (item 17+). */}
-          {kingOtherNames(scene.viewer, open).length > 0 && <div className="small muted">Also known as {kingOtherNames(scene.viewer, open).join("; ")}</div>}
+          {otherNames.length > 0 && <div className="small muted">Also known as {otherNames.join("; ")}</div>}
           {sleepOf(open) !== null ? (
             <div className="small">{sleepLine(sleepOf(open)!, null)}</div>
           ) : (
