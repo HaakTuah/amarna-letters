@@ -10,11 +10,8 @@
 import { describe, test } from "vitest";
 import {
   AllPowers,
-  type AudienceView,
   Dict,
-  AudienceViewSchema,
   type GameState,
-  type HostReply,
   type Power,
   type SeatView,
   SeatViewSchema,
@@ -56,43 +53,44 @@ interface Secret {
 }
 
 /** Assyria's script king, with the canary's envoy sent to Babylonia in the first season. */
-class Planting implements ISeat {
-  readonly label = "Script";
-  readonly #inner = new ScriptLeader(Seed);
+class Planting extends ScriptLeader {
   readonly envoy: string;
   constructor(envoy: string) {
+    super(Seed);
     this.envoy = envoy;
   }
-  async decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-    const sub = await this.#inner.decide(view, ct);
+  override async decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission> {
+    const sub = await super.decide(view, signal);
     if (view.turn !== 1) return sub;
     sub.orders = sub.orders.filter((o) => !JSON.stringify(o).includes(`"${this.envoy}"`));
     sub.orders.push(dispatch(this.envoy, "Babylonia", Letter, { mandate: Mandate, proposal: newTabletProposal({ text: Sealed }) }));
     return sub;
   }
-  hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-    return this.#inner.hostAudience(view, court, ct);
-  }
 }
 
-/** A seat as it plays, keeping everything it is handed: a script king's input, or what a model seat's request is built from. */
-class Recording implements ISeat {
-  readonly inputs: { turn: number; text: string }[] = [];
-  readonly inner: ISeat;
-  constructor(inner: ISeat) {
-    this.inner = inner;
-  }
-  get label(): string {
-    return this.inner.label;
-  }
-  decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-    this.inputs.push({ turn: view.turn, text: serialize(SeatViewSchema, view) });
-    return this.inner.decide(view, ct);
-  }
-  hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-    this.inputs.push({ turn: view.turn, text: serialize(AudienceViewSchema, view) + serialize(SeatViewSchema, court) });
-    return this.inner.hostAudience(view, court, ct);
-  }
+/** What a seat was handed, call by call, in the season it was played. */
+type Inputs = { turn: number; text: string }[];
+
+/** Plain text of whatever a seat is handed: views, audience views, alerts, phrasing requests. */
+const plain = (x: unknown): string =>
+  JSON.stringify(x, (_, v: unknown) => (v instanceof AbortSignal ? null : v instanceof Dict || v instanceof Map || v instanceof Set ? [...(v as Iterable<unknown>)] : v));
+
+/**
+ * The seat as it plays, every call it answers kept with what it was handed: a script king's whole input, or what a model
+ * seat's requests are built from. Each of the seat's own ways of being asked (holding court in one call, reading alerts,
+ * phrasing, sleeping) stays as it is, so the game takes the paths it takes with the seat unwrapped.
+ */
+function recording(seat: ISeat, turn: () => number, inputs: Inputs): ISeat {
+  return new Proxy(seat, {
+    get(target, key, receiver) {
+      const v: unknown = Reflect.get(target, key, receiver);
+      if (typeof v !== "function") return v;
+      return (...args: unknown[]) => {
+        inputs.push({ turn: turn(), text: plain(args) });
+        return (v as (...a: unknown[]) => unknown).apply(target, args);
+      };
+    },
+  });
 }
 
 /** The starting world with the army and the treasury planted; the envoy and the province of the army in the fog. */
@@ -112,7 +110,7 @@ function planted(): { state: GameState; envoy: string; fog: string; fogOwner: Po
 
 interface Played {
   runner: GameRunner;
-  seats: Map<Power, Recording>;
+  seats: Map<Power, Inputs>;
   envoy: string;
   fog: string;
   fogOwner: Power;
@@ -129,12 +127,12 @@ async function play(): Promise<Played> {
   choices.narrator = "Haiku";
   const set = buildSeats(choices, state, providersFor(choices, new SimulatedApi(), {}), () => runner!.log);
   set.seats.set("Assyria", new Planting(envoy));
-  const seats = new Map<Power, Recording>();
+  const seats = new Map<Power, Inputs>();
   for (const p of AllPowers)
     if (Near.includes(p)) {
-      const r = new Recording(set.seats.get(p));
-      seats.set(p, r);
-      set.seats.set(p, r);
+      const inputs: Inputs = [];
+      seats.set(p, inputs);
+      set.seats.set(p, recording(set.seats.get(p), () => runner!.state.turn, inputs));
     } else set.seats.set(p, new IdleSeat());
   runner = new GameRunner(state, set.seats, set.minds, set.narrator);
   await runner.prepare();
@@ -197,20 +195,22 @@ describe("CanaryTests", () => {
     const last = runner.stateAt(Seasons)!;
 
     // Each secret is there for whoever may know it.
-    const assyria = g.seats.get("Assyria")!.inputs.map((i) => i.text).join("");
+    const assyria = g.seats.get("Assyria")!.map((i) => i.text).join("");
     // Assyria's own record of the mandate and the tablet; the tablet offered to Babylonia; Babylonia's own treasury.
     Assert.contains("Zirtaqqu", assyria);
     Assert.contains("Ullazemmi", assyria);
-    const babylonia = g.seats.get("Babylonia")!.inputs.map((i) => i.text).join("");
+    const babylonia = g.seats.get("Babylonia")!.map((i) => i.text).join("");
     Assert.contains("Ullazemmi", babylonia);
     Assert.contains(String(Gold), serialize(SeatViewSchema, Views.for(runner.stateAt(0)!, "Babylonia")));
     Assert.true(Views.for(runner.stateAt(0)!, g.fogOwner).units.some((u) => u.province === g.fog && u.men === ArmyMen), "the army, to its own court");
     Assert.true(runner.log.calls.some((c) => c.role === `envoy:${g.envoy}` && c.prompt.includes("Zirtaqqu")), "the envoy's own mandate");
+    // Babylonia's model holds court in one call, as it does unwrapped, and reads the tablet offered there.
+    Assert.true(runner.log.calls.some((c) => c.key.includes("/court/Babylonia/") && c.prompt.includes("Ullazemmi")), "the tablet, at Babylonia's court");
 
     const found: string[] = [];
     // The season as it is played: what each seat is handed (a script king's input; a model seat's request is built from it).
-    for (const [p, seat] of g.seats)
-      for (const i of seat.inputs) for (const x of leaks(i.text, { seat: p }, runner.stateAt(i.turn - 1)!, list)) found.push(`season ${i.turn}, ${p}'s input: ${x}`);
+    for (const [p, inputs] of g.seats)
+      for (const i of inputs) for (const x of leaks(i.text, { seat: p }, runner.stateAt(Math.max(0, i.turn - 1))!, list).concat(leaks(i.text, { seat: p }, runner.stateAt(Math.min(Seasons, i.turn))!, list))) found.push(`season ${i.turn}, ${p}'s input: ${x}`);
     // What every model was asked: kings, hosts, envoys, spies, carriers, the characters' own lives, the chronicles.
     for (const c of runner.log.calls) {
       const s = runner.stateAt(Math.max(0, Math.min(Seasons, c.turn - 1)))!;
