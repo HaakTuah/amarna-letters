@@ -17,6 +17,7 @@ Codex: read its "For Codex" section at the start of every task.
 | --- | --- | --- |
 | Builder rules | `.claude/rules/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
 | Claude and Codex | `docs/claude-and-codex.md` | Who builds what, the hand-over, the fallback, the reviews' score. |
+| Running builder sessions and lanes | `docs/orchestrating.md` | For the orchestrator: sessions, the cache, hand-overs, lanes. |
 | Security | `SECURITY.md` | What is protected, and the rules every builder and reviewer keeps. |
 | Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |
@@ -42,55 +43,93 @@ Codex: read its "For Codex" section at the start of every task.
 5. Check weekly usage with `scripts/usage.sh`, and again after every commit ("Usage" in the builder rules). If it
    says "unknown", this session cannot see usage: say so in the first line of each PR you open, and carry on; Haakon
    then watches usage himself and pauses the work at about 90%.
-6. Read "Standing instructions" at the end of this file.
 
 ## How to work
 
-Haakon's rules, word for word (21 October 2026):
+Every rule here says what it is for. The aim behind them all: as much finished work of full quality as the week's
+usage allows, at the lowest cost now and later.
 
-- A question is a question. Answer it; don't act on it unless I say so.
-- Match effort to the task. Docs, READMEs, small fixes and config: one pass, no subagents.
-- Don't use more than 2 agents unless the build order's documented process calls for it.
-  Simulation runs and the build order's review steps may use as many agents as their
-  process calls for. Never stop to ask about this: pick the cheaper way, and say in
-  the PR what you chose.
-- Usage is limited. Prefer the cheapest approach that does the job well.
-- Read only the parts of large files the task needs. Round reports in docs/archive/
-  are history: read them only when I ask.
-- Long simulations: run them in the background and wait for the completion notice.
-  Don't poll, and don't keep agents alive just to wait for a run.
-- At each milestone, open a PR I can play, say in it what to try, and carry on with
-  the next item without waiting for me to review or merge.
-
-How to keep to them:
-
+- **A question is a question.** Answer it; act on it only when Haakon says so.
+- **Match effort to the task,** and take the cheapest approach that does the job well, since usage is limited. Docs,
+  READMEs, small fixes and config: one pass, no helpers.
 - **Read little.** Never read a file over 50 KB whole: grep for what you need, then read that line range. Don't
   re-read a file you just edited. The old round reports are in `docs/archive/rounds/`, except
   `docs/rounds/2026-10-18-sleep-and-simulation.md`, a specification (its "question N" plans): read it by the question
-  you need.
+  you need. Read `docs/archive/` only when a task points there.
 - **Print little.** Run tests with `scripts/test.sh` and script games with `scripts/sim.sh`: both print a summary and
   the failures, and keep the full log in a file. Run long ones in the background (the Bash tool's background mode) and
-  wait for the completion notice. Never paste a full log into the conversation.
-- **Helpers, effort and escalation:** Claude's are in `CLAUDE.md` ("Models, effort and helpers"). Codex uses no
-  helpers; its escalation and its part in the work are in `docs/claude-and-codex.md`.
+  wait for the completion notice: never poll, and keep no agent alive just to wait. Never paste a full log into the
+  conversation.
+- **Helpers, effort and escalation:** Claude's are in `CLAUDE.md` ("Models, effort and helpers", with when a helper
+  pays). Codex uses no helpers; its escalation and its part in the work are in `docs/claude-and-codex.md`. Simulation
+  runs and the build order's review steps may use as many agents as their process calls for.
 - **Edit in place.** Change the lines that need changing; never rewrite a large file to change part of it.
 - **Don't loop.** If the same approach fails twice, stop, write down what you tried, and take another approach, hand it to
   the escalation helper, or mark the step blocked and go on, as the builder rules say.
 - **One fact, one place.** Link to where a fact lives instead of copying it. Never edit `docs/intent/` or
   `.claude/rules/builder-rules.md`: if the design document seems wrong or unclear, take the most reasonable reading and
   list it under "Design questions" in the PR and in the item's report.
-- **Haakon's words are kept.** When Haakon gives an instruction in a session, quote it word for word in the item's
-  report. If it is a standing rule, also add it, dated, to "Standing instructions" below, with the quote in
-  `docs/archive/instructions.md`; it moves into the design document's builder rules when the copy is next refreshed.
+- **Keep it lean** (`docs/archive/instructions.md`, item 133). Every change removes what it replaces, in the same PR: no
+  commented-out code, no "old" copies, nothing it made unused (code, files, settings, assets, test helpers). Look for an
+  existing helper before writing one. A leftover is a finding in every review.
+- **Split by meaning** (item 134), so a reader loads only what it needs. Split along the lines people look things up
+  by (a power, a system, a screen, a tab of the design), never by size alone: about 50 KB is the signal to look for
+  such a split, not the place to cut. Where a family of things differs only in part (powers, characters, script
+  kings), write the shared part once and each difference as an override. Before a split, say in the PR what it saves
+  later; a split that saves nothing is not made. Each split goes in its own PR, with behaviour proven unchanged.
+- **Principles over rules** (item 134). Where a rule's letter would defeat what it is for, follow its purpose, say so
+  in the PR under "Readings taken", and flag the rule to be fixed. Never for the safety rules: `SECURITY.md`, `main`,
+  keys and secrets, spending, and no model games until the build order is done.
+- **The smallest game that tests the rule** (item 28), so checks stay fast as the world grows. Every test sets up a
+  few powers on part of the map, a handful of seasons and only the characters it needs. Full-size games run only in
+  the few tests that guard the whole (replays, the save round trip, a smoke game), and long measurements (benchmarks,
+  use against ignore) run in `scripts/sim.sh`, never in the suite. When an item grows the starting world, the tests'
+  default does not grow with it. Code-PR checks took about 10 minutes on 29 October; the workshop check measures
+  against that.
+- **A change a player sees updates the README** (item 86), in the same PR, as the rulebook and seat view already are.
+  Each milestone PR says in one line whether the README is current, and fixes it if not.
+- **Haakon's words are kept, in the archive.** Quote each instruction he gives word for word in the item's report and
+  in `docs/archive/instructions.md`, numbered and dated. A standing rule goes into the section of this file where it
+  applies (or `CLAUDE.md`, if only Claude uses it), said as briefly as it can be, with what it is for and its archive
+  item: never as a dated entry or a quote here, since every session pays to read this file. It moves into the design
+  document's builder rules when the copy is next refreshed.
 - **Each game's files stay in its own repository.** Never write this project's notes, logs or files into another
   project's repository or folders, above all Barkstreet Snakes' (Haakon: strictly forbidden).
 - **Sessions.** When sessions are started for you item by item (a Claude Code Project does this), stop when your item
   is merged and say what is next; otherwise carry on with the next item in the same session. A long item may end a
   session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md` saying where to pick up.
-- **Keep it lean** (Haakon, 1 November 2026; `docs/archive/instructions.md`, item 133). Every change removes what it replaces, in the same PR: no
-  commented-out code, no "old" copies, nothing it made unused (code, files, settings, assets, test helpers). Look for an
-  existing helper before writing one. Split code by responsibility and keep each file under about 50 KB; split a file
-  that grows past that in its own PR, with behaviour proven unchanged. A leftover is a finding in every review.
+
+## Questions and readings
+
+Haakon should never have to hunt for a question, nor answer one the design already settles (items 16 and 29).
+
+- **Settled questions are readings.** Before a question goes to Haakon, check it against "The game in one page" and
+  the item's sections. One they settle is a reading: list it under "Readings taken" with the principle it rests on,
+  and build it that way. Only what they leave open, or a matter of taste, goes to Haakon.
+- **Every question reaches him three ways:** the session's last message opens with "Questions for Haakon", each
+  numbered and answerable from a phone, with the reading taken and its alternative ("Questions for Haakon: none" if
+  there are none); the milestone PR's description opens with the same list; and it stays in the "For Haakon" table of
+  `docs/BUILD-PROGRESS.md` until he answers. A session that starts builder sessions passes each list on word for word,
+  never summed up as "readings in the report".
+
+## How work flows
+
+Waiting is lost time and, past an hour, a lost cache (item 22; the orchestrator's part is in `docs/orchestrating.md`).
+
+1. **Review in the background.** Open the PR, start its reviews (Codex's, and on build-order items Claude's design
+   check, at the same time: `docs/claude-and-codex.md`), and go on with what comes next: the next item's text, its
+   sections, the check for changes. Fix what the reviews find in one round, then merge at a 10.
+2. **The next item on top.** The next item depends on this one, so branch it from this item's PR branch, not from
+   `develop`, and merge this branch (or `develop`, once it is merged) into it before its own PR.
+3. **Lanes beside the items** (item 23). Independent work runs in parallel: different files from every open lane, no
+   shared measurement, no waiting on another's result. The numbered items stay one lane, one at a time; beside them run
+   splits and the workshop check, history dossiers, script play outside the current item's code, tests, and interface
+   polish on screens the item does not touch. Claim a lane first with a draft PR from a fresh branch off `develop`, its
+   title naming the entry, after checking the open PRs; merge `develop` into it before review; change the progress file
+   only when it merges; never stack it on another lane's branch.
+4. **The brake.** From about 85% of the weekly usage no new side lane opens and open ones finish; from about 90%, only
+   small things in the item lane ("Usage" in the builder rules). Only the measured share counts, not the app's warning;
+   a session that cannot read the share carries on.
 
 ## Commands
 
@@ -109,7 +148,10 @@ model games: no API key is set in cloud sessions, and the builder rules forbid t
 ## Git and GitHub
 
 Branches, merges and PRs follow the builder rules: the builder merges its own PRs, the milestone PR into `main`
-included, once CI is green, and never pushes to `main` directly. Cloud sessions can't use GitHub's GraphQL API, so `gh pr create`, `gh pr list` and `gh pr view` fail.
+included, once CI is green, and never pushes to `main` directly. Push the item's branch after every commit, even before
+its PR opens (a draft PR if it is not ready), so nothing is lost if a session dies or its machine is reclaimed (items 15
+and 84). At each milestone, open a PR Haakon can play, say in it what to try, and carry on with the next item without
+waiting for him to review or merge. Cloud sessions can't use GitHub's GraphQL API, so `gh pr create`, `gh pr list` and `gh pr view` fail.
 Use the REST API (repository `HaakTuah/amarna-letters`):
 
 ```bash
@@ -134,89 +176,4 @@ review what changed since; raise something new about unchanged code only as P0 o
 design check on the big items, and Claude's reviewer whenever Codex is unavailable) gives a score from 1 to 10 and
 everything that keeps the work from 10, and only a 10, a list with nothing open, passes. The whole method, with its
 guards against endless rounds and a slipping bar: "Codex reviews" and "Reviews" in `docs/claude-and-codex.md`.
-
-## Standing instructions
-
-Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last. (The
-refresh of 27 October 2026 moved that day's first two into the builder rules: "You merge, always" under "Branches" and
-"A pull request at every milestone", and "the build order is simply to guideline claude code" under "No stopgaps".
-Their words are in `docs/archive/instructions.md`, items 13 and 14.)
-
-- **27 October 2026: push as you go; 31 October 2026: after every commit** (`docs/archive/instructions.md`, items 15
-  and 84). Push the item's branch after every commit, even before its pull request opens, so nothing is lost if a
-  session dies, runs out of usage or its machine is reclaimed. A branch that is not ready yet is still pushed; mark its
-  PR as a draft.
-- **27 October 2026: questions come back to Haakon directly** (`docs/archive/instructions.md`, item 16). He should
-  never have to hunt for a question. Every question, design question or reading he should answer, of an item or of
-  anything else, reaches him three ways:
-  1. **The session's last message,** which the session that started it reads and relays, opens with "Questions for
-     Haakon". It lists each one, numbered, as a question he can answer from his phone, with the reading taken and its
-     alternative. If there are none, it says "Questions for Haakon: none".
-  2. **The milestone PR's description** opens with the same list.
-  3. **The list stays in the "For Haakon" table** of `docs/BUILD-PROGRESS.md` until he answers it.
-
-  A session that starts builder sessions passes each list on to Haakon word for word in its next update. It never sums
-  the list up as "readings in the report".
-- **28 October 2026: pipeline, don't wait.** "Yes, please, organize it expertly so we maximize token caching, time spent, and all other concerns." (to Claude's proposal; the words are in
-  `docs/archive/instructions.md`). Waiting is lost time and, past an hour, a lost cache, so:
-  1. **Review in the background.** Open the PR, start its review (Codex's: `docs/claude-and-codex.md`, "Codex reviews"; or Claude's reviewer as a
-     background agent), and go on meanwhile with what comes next: the next item's text, its sections, the check for
-     changes. Fix what the review finds when it returns, then merge.
-  2. **The next item on top.** The next item depends on this one, so branch it from this item's PR branch, not
-     from `develop`, and merge this branch (or `develop`, once it is merged) into it before its own PR.
-  3. **Bigger review fixes in a session of their own.** If a review asks for more than about an hour's work, the
-     orchestrator starts a fresh session for it with the PR, the review and nothing else, at the item's effort; the
-     builder goes on.
-  4. **Keep the cache warm.** One session per item, continued for its review fixes and its milestone while its context
-     is under an hour old, rather than a fresh session reading everything again. A new item goes to whichever does the
-     most work for the fewest tokens without losing quality (Haakon, 1 November 2026: "We should do whatever is most effective at acheivein the goal, which is accomplishing them most possible, with the least tokens, without sacrifacing quality."): a session already open when the item touches
-     the same files, its context is under an hour old and still small, and its last item has merged; otherwise a fresh
-     session, and always one when a session's context has grown large. Long runs and checks go in the background; no turn sits idle waiting. Files every
-     session reads stay small (the workshop check), since they are the start of every call.
-  5. **Hand over at once.** The last message says what merged and what is next. The orchestrator starts the next session
-     as soon as a item merges, woken by the PR's merge rather than a clock, with an hourly check as the fallback.
-  6. **The same helpers, used better.** Pipelining spends the same tokens sooner and adds no agents beyond "Models,
-     effort and helpers": a reviewer or search helper may run in the background while the builder works, and the Haiku
-     search helper, not the builder reading large files itself, is the cheap way to look across many files.
-- **28 October 2026: as many lanes as can run in parallel.** "Yes, allow for as many lanes as can be parallelized, expert." (the words are in `docs/archive/instructions.md`).
-  This replaces the limit of two agents in "How to work" for builders; each builder keeps its own limit of helpers.
-  1. **A lane is independent work:** it touches different files from every other open lane (or parts of one file
-     nobody else touches), shares no measurement with another, and does not wait on another's result. Here, the build order's numbered items stay one lane, one item at a time, since each builds on the last; beside it run independent work: file splits from the workshop check, history dossiers, script kings' play improved outside the current item's code, tests, and interface polish on screens the current item does not touch.
-  2. **Claim it on GitHub first.** Before starting, open a draft PR from a fresh branch off `develop`, its title naming
-     the entry, and push; that PR is the claim. Look at the open PRs before choosing, and take only what nobody has
-     claimed. The progress file is changed only when the work merges, so lanes never fight over it.
-  3. **Each lane on its own.** It merges `develop` into its branch before asking for review, is reviewed and merged by
-     the usual rules, and is not stacked on another lane's branch. A lane that finds it needs another's work waits,
-     says so in its PR, or folds into that lane.
-  4. **The orchestrator opens a lane for every independent entry it can see,** each a builder session with its own
-     brief and check-in, and passes on every lane's "Questions for Haakon" word for word.
-  5. **The brake closes lanes first.** From about 85% of the weekly usage, no new side lane opens and open ones finish;
-     from about 90%, as "Usage" says, only small things in the main lane.
-     Only the measured share counts (Haakon, 29 October 2026: "They weren't supposed to stop before 90%. We're still at
-     only 76%"): the app's weekly usage warning is not the brake, and a session that cannot read the share carries on.
-- **29 October 2026: the smallest game that tests the rule** (`docs/archive/instructions.md`, item 28). Every test sets
-  up the smallest game that still tests its rule: a few powers on part of the map, a handful of seasons and only the
-  characters it needs, never the full world by default. Full-size games, every power on the whole map, run only in a
-  few named tests that guard the whole (replays, the save round trip, a smoke game), and long measurements (benchmarks,
-  use against ignore) run in `scripts/sim.sh`, never in the suite. When an item grows the starting world (more powers,
-  provinces or characters), the tests' default does not grow with it. Code-PR checks took about 10 minutes on 29
-  October, with 30 powers in test games; the workshop check measures against that.
-- **29 October 2026: settled questions are readings** (`docs/archive/instructions.md`, item 29). Before a question goes
-  to "Questions for Haakon", check it against "The game in one page" and the item's sections. A question they settle is
-  a reading: list it under "Readings taken" with the principle it rests on, and build it that way. Only what they leave
-  open, or a matter of taste, goes to Haakon. On 28 October about half the questions sent to him were settled by the
-  page already.
-- **31 October 2026: a change a player sees updates the README** (`docs/archive/instructions.md`, item 86). Any item
-  or PR that changes what a player sees or does updates `README.md` in the same PR, as the rulebook and seat view
-  already are ("Every rule a king needs is in the rulebook or the seat view"). Each milestone PR says in one line
-  whether the README is current, and fixes it if not.
-- **1 November 2026: Claude and Codex build together** (`docs/archive/instructions.md`, item 123). Codex builds
-  beside Claude, on its own subscription, to spread the weekly usage, and the two review each other's work. Claude
-  orchestrates and keeps the decisions; Codex takes what tests can prove. The routing, the hand-over by the
-  `codex` label and Haakon's poller, the fallback when Codex is out of usage and the reviews' score: `docs/claude-and-codex.md`.
-- **1 November 2026: only a 10 passes** (`docs/archive/instructions.md`, item 132). Every review passes the work only at a 10, which for Codex
-  means no finding open, with guards against endless rounds and a slipping bar. The score follows from the list, and
-  later rounds judge the changes. After three rounds the escalation helper takes one look, and what is still open
-  leaves the PR blocked, never merged below 10. A blind re-review of a merged 10 every week and canaries now and then
-  are logged and reported. On the big items, Codex's review and Claude's design check start at the same time. The
-  method: `docs/claude-and-codex.md`, "Reviews".
+On build-order items, Codex's review and Claude's design check start at the same time.
