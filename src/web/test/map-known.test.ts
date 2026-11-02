@@ -103,8 +103,10 @@ describe("MapKnownTests", () => {
         bands: [band(people / 100)],
       });
     const fs = [at(0, "Egypt", "Egypt", 5000), at(1, "Hatti", "Egypt", 4000), at(2, "Hatti", "Egypt", 3000), at(3, "Hatti", "Hatti", 2000)];
-    // Held and known: the card tells everything, from the court's own view.
-    Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(fs, 0, "Egypt"), city.id)));
+    // Held and known, looking back at that season: the figures recorded then, never the live state of a later season.
+    Assert.equal(JSON.stringify({ live: false, age: 0, stores: 500, settled: 5000, fed: 900 }), JSON.stringify(ownEconomy(buildScene(fs, 0, "Egypt"), city.id)));
+    // Held and known at the latest season: the card tells everything, from the court's own view.
+    Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(fs.slice(0, 1), 0, "Egypt"), city.id)));
     for (const i of [1, 2]) {
       const scene = buildScene(fs, i, "Egypt");
       // Lost unawares: the stewards' last report (frame 0), with its age; never the live state or the new holder's figures.
@@ -120,10 +122,13 @@ describe("MapKnownTests", () => {
     Assert.null(ownEconomy(after, city.id));
     Assert.false(after.stores.has(city.id));
     Assert.false(after.bands.some((x) => x.province === city.id));
-    // God view, and the new holder that knows it holds it: everything, as it is.
-    Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(fs, 2, null), city.id)));
+    // God view, and the new holder that knows it holds it: everything, as it is, at the latest season; looking back, that
+    // season's figures (3,000 settled at season 2, not the 2,000 of season 3).
+    Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(fs, 3, null), city.id)));
+    Assert.equal(JSON.stringify({ live: false, age: 0, stores: 300, settled: 3000, fed: 900 }), JSON.stringify(ownEconomy(buildScene(fs, 2, null), city.id)));
     const hatti = fs.map((f) => ({ ...f, knownOwner: new Map([["Hatti" as Power, new Map([[city.id, { owner: (f.index >= 1 ? "Hatti" : "Egypt") as Power, turn: f.turn }]])]]) }));
-    Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(hatti, 2, "Hatti"), city.id)));
+    Assert.equal(JSON.stringify({ live: true }), JSON.stringify(ownEconomy(buildScene(hatti, 3, "Hatti"), city.id)));
+    Assert.equal(JSON.stringify({ live: false, age: 0, stores: 300, settled: 3000, fed: 900 }), JSON.stringify(ownEconomy(buildScene(hatti, 2, "Hatti"), city.id)));
   });
 
   test("Who holds a province is as the record has it: known ownerless stays so, and what the record lacks is no one", () => {
