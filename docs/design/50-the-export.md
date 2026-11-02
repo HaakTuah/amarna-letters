@@ -18,7 +18,8 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
   - the audits of lower rungs' decisions.
 - **Filters** leave parts out: the model calls, the shadow scripts, the audits, and a human player's words. Without
   his words, every word field of a human's decisions (`letter`, `mandate`, `notes`, `summary`, `entry`, `speech`,
-  `bribeAsk`, `say`, `reply`, `text`, `custom`, `commitments`) becomes a blank of the same length, each letter a `▒`
+  `bribeAsk`, `say`, `reply`, `text`, `custom`, `commitments`, a turned captive's `poison`, and `unreadable` and `reason`
+  for text the game could not read; a test holds every string field of his orders and answers to one side or the other) becomes a blank of the same length, each letter a `▒`
   and its spaces kept, and every quote of them is blanked wherever it stands: in a
   model's prompt, a character's report, the narrator's chronicle (a decision whose whole value is a text). A quote is any span, from a word's start, that
   matches the start of one of his texts or of one of its sentences for twelve letters or more, however soon it is cut

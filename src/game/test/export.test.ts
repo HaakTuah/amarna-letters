@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
-import { AllPowers, GameStateSchema, S, type AudienceView, type HostReply, type SeatView, type TurnSubmission, dispatch, first, newGame, newGameConfig, newHostReply, newTurnSubmission, serialize } from "@amarna/engine";
-import { BlankMark, Everything, GameLog, newAuthorship, GameRunner, type ISeat, ScriptMind, TemplateNarrator, exportJsonl, newAudit, newModelCall, newShadowDecision, newCharacterChoice } from "@amarna/game";
+import { AllPowers, GameStateSchema, HostReplySchema, S, TurnSubmissionSchema, type Schema, type AudienceView, type HostReply, type SeatView, type TurnSubmission, dispatch, first, newGame, newGameConfig, newHostReply, newTurnSubmission, serialize } from "@amarna/engine";
+import { BlankMark, Everything, GameLog, WordFields, newAuthorship, GameRunner, type ISeat, ScriptMind, TemplateNarrator, exportJsonl, newAudit, newModelCall, newShadowDecision, newCharacterChoice } from "@amarna/game";
 import { Assert, toDict } from "../../engine/test/support.ts";
 
 // One export, with filters (Engine and models, "Logging and replay"): what is sensitive is never in it, whatever the
@@ -20,10 +20,11 @@ describe("ExportTests", () => {
     ["an organisation id", "This request would exceed the rate limit for your organization (fb3a3f3e-7c4b-4d8e-9a1f-2b6c8d0e4f12) of 50,000 input tokens per minute."],
     ["an e-mail address", "account haakon.example@gmail.com has no credit left"],
     ["a device", "the bridge refused the request: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"],
+    ["a bridge address with a bracket in its token", "no local bridge answers at http://localhost:5190/?auth=]BRIDGE_TOKEN: fetch failed"],
     ["a bearer token", "authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc"],
   ];
   /** What none of the leaks may leave in an export. */
-  const Secrets = ["/home/", "/srv/", "haakon", "Haakon", "Sval", "øystein", "AIza", "sk-", "req_011", "fb3a3f3e", "gmail", "Macintosh", "Mozilla", "eyJ", "googleapis", "Ab1x"];
+  const Secrets = ["/home/", "/srv/", "BRIDGE_TOKEN", "haakon", "Haakon", "Sval", "øystein", "AIza", "sk-", "req_011", "fb3a3f3e", "gmail", "Macintosh", "Mozilla", "eyJ", "googleapis", "Ab1x"];
 
   function leaky(): GameLog {
     const log = new GameLog();
@@ -67,6 +68,46 @@ describe("ExportTests", () => {
     Assert.equal(["audit", "decision", "header", "shadow"], types(exportJsonl(log, { ...Everything, calls: false })));
     Assert.equal(["audit", "call", "decision", "header"], types(exportJsonl(log, { ...Everything, shadows: false })));
     Assert.equal(["call", "decision", "header", "shadow"], types(exportJsonl(log, { ...Everything, audits: false })));
+  });
+
+  /** The string fields a human's orders and answers hold that are orders the engine reads: ids, names it knows, kinds. */
+  const OrderFields = new Set([
+    "answers", "army", "avoidPower", "brings", "byAnswer", "cancelAnswers", "cancelStanding", "cede", "character", "checkClaim", "city",
+    "collect", "copies", "copy", "council", "court", "debt", "engage", "envoy", "fate", "fleet", "from", "grantee", "into", "kind", "lot",
+    "name", "named", "open", "partner", "person", "power", "province", "provinces", "seals", "supported", "target", "task", "to", "unit",
+    "vassal", "via", "what", "when", "where", "withdraw",
+  ]);
+
+  test("Every string a human's orders and answers can hold is either his words or an order", () => {
+    const unsorted = new Set<string>();
+    const seen = new Set<Schema>();
+    const walk = (s: Schema, key: string): void => {
+      switch (s.k) {
+        case "str":
+          if (!WordFields.has(key) && !OrderFields.has(key)) unsorted.add(key);
+          return;
+        case "opt":
+        case "list":
+        case "set":
+        case "dict":
+        case "computed":
+          return walk(s.of, key);
+        case "lazy":
+          return walk(s.get(), key);
+        case "obj":
+          if (seen.has(s)) return;
+          seen.add(s);
+          for (const [n, f] of s.fields) walk(f, n);
+          return;
+        case "poly":
+          for (const v of Object.values(s.variants)) walk(v, key);
+          return;
+      }
+    };
+    walk(TurnSubmissionSchema, "");
+    walk(HostReplySchema, "");
+    // A new string field must be put on one side: in WordFields (export.ts) if a player types it, here if the engine reads it.
+    Assert.equal([], [...unsorted]);
   });
 
   /** A human player's words, long enough to be looked for wherever they are quoted. */

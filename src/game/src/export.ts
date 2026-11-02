@@ -26,10 +26,12 @@ export const BlankMark = "▒";
 
 /**
  * The fields of a human player's decisions that hold his own words, by name: letters, mandates and speeches, notes,
- * summaries and ledger entries, his answers' words, a tablet's or a forgery's text, a custom greeting. Every other field
- * is an order the engine reads (ids, names it knows, numbers), and is never blanked, so the export replays.
+ * summaries and ledger entries, his answers' words, a tablet's or a forgery's text, a custom greeting, what a turned
+ * captive is to report home, and any text the game could not read as an order. Every other field is an order the engine
+ * reads (ids, names it knows, numbers), and is never blanked, so the export replays (`export.test.ts` holds each to one
+ * side, so a new field of words cannot be missed).
  */
-const WordFields = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments"]);
+export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments", "poison", "unreadable", "reason"]);
 
 /**
  * Where a human's words may be quoted in a decision: its word fields, and a decision whose whole value is a text (a

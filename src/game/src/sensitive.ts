@@ -11,7 +11,8 @@ const Patterns: [RegExp, string][] = [
   // A browser's or device's description: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 ...".
   [/\b(?:Mozilla|AppleWebKit|Chrome|Safari|Firefox|Edg|Gecko|Version|Mobile)\/[\w.]+(?:\s*\([^)]*\))?/g, "[device]"],
   // Any address: a provider's or the bridge's, whose path, query or user part may carry a token.
-  [/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'<>)\]]+/gi, "[address]"],
+  // Taken to the first space or quotation mark: "]" and ")" may stand in a URL's query, as part of a token.
+  [/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi, "[address]"],
   [/\b[\w.%+-]+@[\w-]+(?:\.[\w-]+)+\b/g, "[e-mail]"],
   // Keys: Anthropic's and OpenAI's ("sk-ant-...", "sk-proj-...", masked or not), Google's ("AIza..."), bearer tokens, and
   // any key or token named as one.
