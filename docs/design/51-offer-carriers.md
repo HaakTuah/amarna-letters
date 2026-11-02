@@ -1,7 +1,7 @@
 # Who carries a province's offer (item 17++, part D)
 
 The owner's answer to #431 (2 November 2026, archive items 157 and 158), written into "Whom a province obeys" (War,
-revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 45; the captor reading a caught offer (#553), 49.
+revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 45; the captor reading a caught offer (#553), 50.
 
 ## The offer is a letter (`turn/offers.ts`, `Journey` kind `Offer`)
 
