@@ -1383,3 +1383,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     PR (and, for Barkstreet Snakes, a milestone due whenever a change a player would notice has merged, at least daily):
     "Yes, expertly to both, if you advice." Written into `.github/dependabot.yml` (npm and GitHub Actions) and "Git and GitHub" in `AGENTS.md`; the same in
     Barkstreet Snakes (GitHub Actions only).
+156. **2 November 2026, 12:33 UTC**, in the design chat, to the design session's question whether CodeQL's check should
+    keep GitHub's default failure threshold (only high-severity findings, or code errors, turn a PR's check red, so a
+    false alarm at that level holds that one PR until the owner dismisses it) or never fail: "Keep the default." Nothing
+    changes in the files: the default is GitHub's own setting, and "Git and GitHub" in `AGENTS.md` already says a false
+    alarm is answered in the PR and left to the owner.
