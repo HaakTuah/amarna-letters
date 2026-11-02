@@ -448,7 +448,7 @@ the app installs to the home screen and starts from cache.
 
 ### Run locally
 
-You need Node 22 or later.
+You need Node 26 or later.
 
 ```bash
 npm ci
