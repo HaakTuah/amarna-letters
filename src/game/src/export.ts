@@ -6,6 +6,7 @@
  * What is sensitive is never a filter: the log never holds it (sensitive.ts).
  */
 import type { GameLog } from "./log.ts";
+import { withoutSensitive } from "./sensitive.ts";
 
 /** What an export holds: each part true to put it in. */
 export interface ExportParts {
@@ -132,7 +133,9 @@ function pieces(words: string[]): Quotes {
     for (const p of [w, ...w.split(/(?<=[.!?;:])\s+|\n+/)]) {
       const t = p.trim();
       if (t.length === 0) continue;
-      for (const form of [t, JSON.stringify(t).slice(1, -1)]) {
+      // As written, as the log keeps it in a call (anything sensitive replaced), and each inside a JSON string.
+      const cleaned = withoutSensitive(t);
+      for (const form of new Set([t, cleaned, JSON.stringify(t).slice(1, -1), JSON.stringify(cleaned).slice(1, -1)])) {
         texts.add(form);
         const runs = form.split(Reference);
         if (runs.length === 1) continue;
