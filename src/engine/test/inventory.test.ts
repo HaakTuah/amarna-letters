@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { host } from "../../game/src/bots/statecraft-letters.ts";
 import {
   AllPowers,
   type AudienceRecord,
@@ -7,7 +6,6 @@ import {
   Dict,
   type GameState,
   type HostReply,
-  I,
   type PendingAudience,
   type Power,
   type Tablet,

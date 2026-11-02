@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Near, smallSeats } from "./small-world.ts";
+import { smallSeats } from "./small-world.ts";
 import {
   AllPowers,
   CapReason,
@@ -9,7 +9,6 @@ import {
   MarchHeldUpTitle,
   TurnEngine,
   Views,
-  convoy,
   disband,
   dispatch,
   hold,
@@ -24,7 +23,6 @@ import {
   newTurnSubmission,
   raise,
   single,
-  support,
 } from "@amarna/engine";
 import { GameLog, GameRunner, HumanSeat, ScriptLeader, ScriptMind, TemplateNarrator, newLogHeader, playGame } from "@amarna/game";
 import { LlmLeaderSeat, Schemas, leaderRules, situation, sleepLine } from "@amarna/llm";
@@ -38,10 +36,8 @@ import { cap } from "./sleep-support.ts";
 import { play } from "./sleep-support.ts";
 import { enters } from "./sleep-support.ts";
 import { attackedOf } from "./sleep-support.ts";
-import { convoy as convoyOrder } from "@amarna/engine";
 import { first as firstOf } from "@amarna/engine";
 import { support as supportOrder } from "@amarna/engine";
-import { describe as describeOrder } from "@amarna/engine";
 
 // Sleeping seats: what the kings read, fresh orders, the stand-in, the switch and replays.
 describe("SleepTests", () => {
