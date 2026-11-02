@@ -8,10 +8,7 @@ home (`src/game/src/bots/script-mind.ts`). Part 1: `docs/rounds/2026-11-02-slop-
 
 - **The words move to their own file**, `src/game/src/bots/envoy-words.ts`, as part 1's moved to `voices.ts`. Each line
   comes in two or three forms, chosen by the season, the envoy and the court (`pick`, no random draw). An envoy now
-  addresses a city's ruler as "King of {Land}", not "Great King". An envoy swears by its own court's god (Amun for Egypt,
-  `06-style-egypt`; Marduk for Babylon, `06-style-babylonia-akkadian`; Ashur for Assyria, `14-courts-and-free-cities`),
-  otherwise by Shamash. It does so in an honest promise as well as an over-promise, so the oath marks the court, not
-  the lie.
+  addresses a city's ruler as "King of {Land}", not "Great King". An envoy swears by Shamash, witness of oaths in the rulebook, in an honest promise as well as an over-promise, so the oath marks no lie. (Court-specific gods were tried and dropped on Codex's review: the name dossiers source names, not oaths, and Akhenaten had closed Amun's temples.)
 - **Rewritten in place** (rare lines nothing reads): a character's hiring pitch and a captive's answers.
 - **What the kings and checks read stays the same.** `src/game/test/readings.ts` now holds the reading for both parts'
   tests, by who says a text:

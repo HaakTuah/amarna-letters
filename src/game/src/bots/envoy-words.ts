@@ -14,13 +14,7 @@ import { pick } from "./voices.ts";
 /** How an envoy addresses the king before it: a Great King as one, a city's ruler as the king of his city. */
 export const address = (host: Power, land: string): string => (tier(host) === "City" ? `King of ${land}` : "Great King");
 
-/**
- * The god an envoy swears by: its own court's (Amun for Egypt, `06-style-egypt`; Marduk for Babylon,
- * `06-style-babylonia-akkadian`; Ashur for Assyria, `14-courts-and-free-cities`), otherwise Shamash, witness of oaths.
- */
-export const godOf = (court: Power): string => (court === "Egypt" ? "Amun" : court === "Babylonia" ? "Marduk" : court === "Assyria" ? "Ashur" : "Shamash");
-
-/** An envoy's words abroad, by line; `{T}` is how it addresses the host, `{K}` its lord, `{G}` its god. */
+/** An envoy's words abroad, by line; `{T}` is how it addresses the host, `{K}` its lord. */
 export const Abroad = {
   servant: ["{T}, I bring the words of {K}, and I am your servant.", "{T}, your servant brings you the words of {K}."],
   open: ["Hear the words of {K}, {T}.", "{T}, {K} has sent me to you.", "I come from {K}, {T}, with his words."],
@@ -41,8 +35,8 @@ export const Abroad = {
   protest: ["My lord will hear how his messenger was treated here.", "Every court will hear how this house treats messengers."],
   sealIt: ["I seal it with my lord's seal, in his name.", "I set my lord's seal on it in his name."],
   carryIt: ["My lord gave me no leave for this; I will take it to him.", "This is beyond what I was sent to do; the king who sent me must see it."],
-  overpromise: ["By {G}, my lord will grant all of it.", "My lord will grant all of it; you have my oath."],
-  promise: ["By {G}, your words will reach him as you spoke them.", "I will set your words before him, every one."],
+  overpromise: ["By Shamash, my lord will grant all of it.", "My lord will grant all of it; you have my oath."],
+  promise: ["By Shamash, your words will reach him as you spoke them.", "I will set your words before him, every one."],
   meek: ["As you say, {T}; every word will reach him.", "It shall be as you say; I will carry it to him whole."],
   answer: ["The king who sent me will hear your answer.", "I will take your answer home."],
   thanks: ["{T}, I thank you.", "I am grateful, {T}.", "May the gods keep you."],
