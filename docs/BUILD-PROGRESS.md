@@ -1,13 +1,13 @@
 # Build progress
 
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
-`.claude/rules/builder-rules.md`, which also say how items are branched, merged and reviewed, and when work slows for
-usage). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
+`.claude/rules/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
+how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
 document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
 longer finds was history and is in `docs/archive/design-history.md`.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`;
-The owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
+the owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
 
 ## The polish lane
 
@@ -77,7 +77,12 @@ fixed.
 - ~~**First of all: what a game's export holds**~~ (done, #385): nothing sensitive in `tests/fixtures/`; one export
   with filters (calls, shadows, audits, human words), kept clean by design: failures logged as kind and code, each
   record giving only its listed fields, and without human words a game with a human seat blanks every text and still
-  replays. Open: #424, #427. Report: `docs/rounds/2026-11-02-export-audit.md`; note: `docs/design/50-the-export.md`.
+  replays. Report: `docs/rounds/2026-11-02-export-audit.md`; note: `docs/design/50-the-export.md`.
+- **The export's stand-in names and its gate** (the owner, 2 November 2026: "Yes to everything, expertly!", to #427 and
+  #424; "Logging and replay" under Engine and models). Under the human-words filter, a name a model invents in its
+  orders becomes a stand-in (Name-1, Name-2), the same wherever it appears, real names kept, and the export still
+  replays exactly; and while a human plays, "Export log" is offered only when the god view is. The canary test's
+  export part grows a line for each.
 - ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
   as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
   token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:

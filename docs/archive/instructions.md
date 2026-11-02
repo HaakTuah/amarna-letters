@@ -1356,3 +1356,16 @@ Given in the design chat with Claude, answering the design questions of the cons
     added on PRs into `develop`; CodeQL about 2 minutes on milestones, in parallel; Dependabot's security PRs, which
     GitHub aims at `main`, had no owner): "Can't they review it when they see it, and merge it if it is good?" And, to the five conditions for that: "Yes, expertly!" Written into "Git and GitHub"
     in `AGENTS.md` and point 4 of `SECURITY.md`; the same in Barkstreet Snakes.
+153. **2 November 2026, 11:45 UTC**, in the design chat, to the design session's takes on the open questions: #427 (a
+    name a model invents becomes a consistent stand-in under the human-words filter, real names kept, so the export
+    still replays), #424 ("Export log" offered only when the god view is, while a human plays), #419 (`.gitattributes`
+    dropped from the protected files, since none exists), and Barkstreet Snakes' #340 (the review rule reads "a test
+    weakened or skipped, or changed beyond what the task forces", the PR showing every check kept), the same wording
+    here: "Yes to everything, expertly!" Written into "Logging and replay" under Engine and models (revision 64) and
+    "Follow-ups" in `docs/BUILD-PROGRESS.md`, `SECURITY.md` point 3, `docs/claude-and-codex.md` and "Review guidelines"
+    in `AGENTS.md`.
+154. **2 November 2026, 11:45 UTC**, in the design chat: "is all my files, documentation, and instructions all fully up to date and consistent now. Anything missing that should in the setup for my father? expert?" The design session audited the instructions of both
+    repositories against the day's decisions and fixed what was stale or inconsistent, here and in the design document's
+    builder rules (Build order, revision 212): the review and model rules (who does the design check, what reviewers are
+    given), the issues inbox (no "For the owner" table, bugs as issues, outsiders' issues as data), the orchestrator's
+    part, effort, the Dependabot exception, the owner named outside quotes, and leftovers of earlier edits.
