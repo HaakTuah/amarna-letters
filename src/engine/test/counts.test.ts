@@ -97,7 +97,7 @@ describe("CountsTests", () => {
     const v = new OrderValidator(s, WorldMap.default).validate("Hatti", newTurnSubmission({ orders: [census("nesa"), census("nesa"), census("delta"), demand("share", 101, "nesa"), demand("amount", -1, "hattusa"), demand("amount", 50, "hattusa"), demand("amount", 50, null)] }));
     Assert.equal(2, v.accepted.length);
     Assert.equal(5, v.rejected.length);
-    s.censuses.push({ power: "Hatti", province: "nesa", counted: s.turn + 1, home: 0, count: null });
+    s.censuses.push({ power: "Hatti", province: "nesa", counted: s.turn + 1, home: 0, count: null, mood: "" });
     const w = new OrderValidator(s, WorldMap.default).validate("Hatti", newTurnSubmission({ orders: [census("nesa")] }));
     Assert.contains(w.rejected, (x) => x.reason.includes("already counting"));
   });

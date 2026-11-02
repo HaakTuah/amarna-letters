@@ -24,7 +24,7 @@ import { gain, newRisingView, remember, type Character } from "../model/people.t
 import { AllPowers, type Power } from "../model/power.ts";
 import { findCharacter, isAlive, logEvent, newId, newUnit, siegeOf, wallsOf, type Unit } from "../model/state.ts";
 import { newMindRequest } from "../model/exchanges.ts";
-import { UnrestData, moodWords } from "../model/unrest.ts";
+import { UnrestData } from "../model/unrest.ts";
 import { terrainOf } from "../model/geography.ts";
 import { levelOf } from "../model/works.ts";
 import { Views } from "../rules/views.ts";
@@ -639,8 +639,8 @@ function risenLose(e: TurnEngine, id: string, lost: number, own: number, followe
 }
 
 /**
- * Each governor reports his province's mood to his king, by courier, when it changes: in words, never the number. One who
- * wants the province himself says it is quiet (a governor "may misreport it").
+ * Each governor reports his province's mood to his king, by courier, every season, and writes him a letter of it when it
+ * changes: in words, never the number. One who wants the province himself says it is quiet (a governor "may misreport it").
  */
 function reports(e: TurnEngine): void {
   const S = e.s;
@@ -648,13 +648,14 @@ function reports(e: TurnEngine): void {
     const found = e.governorOf(g.province);
     if (found === null || found[0] !== g || S.owner.getOrDefault(g.province, null) !== g.power) continue;
     const c = found[1];
-    const truth = moodWords(S.restless.getOrDefault(g.province, 0), e.revoltAt(g.province));
-    const said = wants(c, g.power) ? "quiet" : truth;
-    if (said === g.mood) continue;
-    g.mood = said;
+    const said = wants(c, g.power) ? "quiet" : e.moodOf(g.province);
     // Item 17++: from his seat, so word of a far province of his reaches him late, and his letter reaches the king from there.
     const seat = seatOf(g);
-    e.tell(g.power, seat, "Notice", "Your governor writes", `${c.name}, your governor of ${e.map.get(g.province).name}, writes that its people are ${said}.`, courierSeasons(S, e.map, g.province, seat));
+    const late = courierSeasons(S, e.map, g.province, seat);
+    e.readMood({ power: g.power, province: g.province, mood: said, known: e.heardAt(g.power, seat, late), source: "governor" });
+    if (said === g.mood) continue;
+    g.mood = said;
+    e.tell(g.power, seat, "Notice", "Your governor writes", `${c.name}, your governor of ${e.map.get(g.province).name}, writes that its people are ${said}.`, late);
   }
 }
 

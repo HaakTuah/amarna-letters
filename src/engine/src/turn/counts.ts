@@ -107,7 +107,7 @@ P.sendCensus = function (p, o) {
   const t = S.treasuries.get(p);
   t.gold -= CountData.gold;
   this.spendAt(o.province, CountData.gold);
-  S.censuses.push({ power: p, province: o.province, counted: S.turn + CountData.seasons, home: 0, count: null });
+  S.censuses.push({ power: p, province: o.province, counted: S.turn + CountData.seasons, home: 0, count: null, mood: "" });
   notify(S, p, "Resolution", "A census", `Scribes set out to count ${this.map.get(o.province).name}, paid ${formatMoney(CountData.gold)}; their count will come home when they are done.`);
   logEvent(S, "census", `${p} sent scribes to count ${this.map.get(o.province).name}.`, [p], "census");
 };
@@ -134,18 +134,21 @@ P.censusSeason = function () {
       continue;
     }
     c.count = takeCount(S, this.map, c.province);
+    // Item 17++, part C: the scribes note its people's mood as they found it, which comes home with the count.
+    c.mood = this.moodOf(c.province);
     this.take(c.province, this.handOf(c.province, c.power), UnrestData.census);
   }
   for (const c of S.censuses) {
     if (c.count === null || S.turn < c.home || !isAlive(S, c.power)) continue;
     keepCount(S, c.power, c.count);
     const k = c.count;
+    this.readMood({ power: c.power, province: c.province, mood: c.mood, seen: k.turn, source: "census" });
     notify(
       S,
       c.power,
       "Notice",
       "A census",
-      `The count of ${this.map.get(c.province).name} has come home, as the scribes found it in ${dateLabel(k.turn, c.power)}: about ${people(k.town)} in the town and ${people(k.settled)} on its land (${people(k.men)} men of fighting age), ${people(k.loose)} loose; its last harvest ${k.harvest} measures, ${k.granary} in its farmers' granaries and ${k.crop} growing in its fields.`,
+      `The count of ${this.map.get(c.province).name} has come home, as the scribes found it in ${dateLabel(k.turn, c.power)}: about ${people(k.town)} in the town and ${people(k.settled)} on its land (${people(k.men)} men of fighting age), ${people(k.loose)} loose; its last harvest ${k.harvest} measures, ${k.granary} in its farmers' granaries and ${k.crop} growing in its fields; its people were ${c.mood}.`,
     );
     logEvent(S, "census-home", `${c.power}'s count of ${this.map.get(c.province).name} came home.`, [c.power], "census-home");
   }

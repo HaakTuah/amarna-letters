@@ -4,7 +4,7 @@ The item's text: `docs/intent/build-order/item-17.md`, "Then **17++**". Sections
 `docs/intent/war-travel-and-the-seas/command-at-a-distance.md`) and "Who holds what, and the mood of the land" (Interface,
 `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`), and "taken up, never thrust on anyone" ("Whom a
 province obeys", War, `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md`; decided 2 November 2026).
-Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 42.
+Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
 
 ## A governor over several provinces (`Governor.seat`, `seatOf`, `turn/governors.ts`)
 
@@ -68,12 +68,25 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 42.
 ## The map (`web/src/map/holding.ts`, `session/frames.ts`, `map/scene.ts`)
 
 - Frames carry `governed`, `bonds` (vassal to overlord, from sealed tablets), `knownBonds` (each court's, from the copies in
-  its archive), `moodRead` (each court's, from its governors' letters dated as they arrived, and its court's own city), and
-  `obeyed`.
+  its archive), `moodRead` (each court's, from `GameState.moodReads`: the reads that have reached it, the newest seen for
+  each province, aged from when it was seen), and `obeyed`.
+- The mood reads (`engine/src/model/moods.ts`, `turn/moods.ts`; save version 43): each `{ power, province, mood (the words
+  as said), seen, known, source }`. Sources, and when each reaches the court:
+  - `governor`: every season, for each province he governs, the same words as his letter (which he still writes only when
+    they change; one who wants the province says "quiet"), known when his letter would arrive (`heardAt`, as `tell`).
+  - `spy`: the watched province's mood he observed (none from a turned spy's report), known when his report arrives.
+  - `envoy`: the mood of the visited court's city, noticed by his gathering skill (its own stream, `observe-mood`), carried
+    in his cargo and known when he is home; the line is in his observations too.
+  - `census`: the counted province's mood as the scribes found it, known when the count comes home (and said in the notice).
+  - `travellers`: each season, for each held province within two hops of the court's city of which the court has nothing
+    seen in the last three seasons (`TalkData`, first guesses), the worst mood of it and the held land beside it, with
+    "near revolt" said as "restless", known a season later. No dice.
+  - `court`: the court's own city, if it holds it, each season as it begins (and at the start), known at once.
+  - Pruned each season: per court and province, the newest arrived read and every read still on its way.
 - Realms (the default): `tintClass` gives the holder's colour in full where ruled, `h-gov` lighter where governed, and the
   overlord's colour as a faint wash (`h-vassal`) over a vassal's land, its own border kept. Each governor's bloc is bounded
   by an inner line (his provinces eroded and cut from themselves, `#govbloc`), so no line runs between his own provinces.
   A seat sees its own governors and the bonds on its tablets; god view, all.
-- The mood of the land (the ◐ button): loyal, uneasy, restless or no word, each read fading with its age (opacity, at least
-  0.3); god view's from how fully each province obeys (900 and 600 thousandths). Presentation only.
+- The mood of the land (the ◐ button): loyal (quiet), uneasy, restless (restless or near revolt) or no word, each read
+  fading with its age (opacity, at least 0.3); god view's from how fully each province obeys (900 and 600 thousandths).
 - The province card names the governor and his seat, or the vassal's overlord.

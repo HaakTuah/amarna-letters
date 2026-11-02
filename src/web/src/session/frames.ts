@@ -10,6 +10,7 @@ import {
   Views,
   WorldMap,
   inboxOf,
+  moodsKnown,
   vassalTerms,
   vassalBonds,
   isAlive,
@@ -166,7 +167,7 @@ export interface FrameGovernor {
   seat: string;
 }
 
-/** A governor's words on his people's mood, in the four steps. */
+/** The words a court was told of a province's mood, in the four steps. */
 const moodOfWords = (said: string): Mood => (said === "quiet" ? "loyal" : said === "uneasy" ? "uneasy" : "restless");
 
 /** God view's step for how fully a province obeys, in thousandths (first guesses, presentation only). */
@@ -190,22 +191,10 @@ function holdings(s: GameState): Pick<SeasonFrame, "governed" | "bonds" | "known
     if (m === undefined) knownBonds.set(k.holder, (m = new Map()));
     m.set(v.vassal, v.overlord);
   }
+  // Each court's reads as they reached it, dated from when they were seen.
   const moodRead = new Map<Power, Map<string, { mood: Mood; turn: number }>>();
-  const map = WorldMap.default;
-  for (const p of AllPowers) {
-    if (!isAlive(s, p)) continue;
-    const m = new Map<string, { mood: Mood; turn: number }>();
-    for (const i of inboxOf(s, p)) {
-      if (i.title !== "Your governor writes") continue;
-      const x = /governor of (.+?), writes that its people are (quiet|uneasy|restless|near revolt)/.exec(i.body);
-      const prov = x !== null ? map.landProvinces.find((q) => q.name === x[1]) : undefined;
-      if (prov !== undefined) m.set(prov.id, { mood: moodOfWords(x![2]), turn: i.turn });
-    }
-    // His own eyes where he holds court.
-    const court = s.court.tryGet(p);
-    if (court !== undefined && s.owner.getOrDefault(court, null) === p) m.set(court, { mood: moodOfObeyed(s.obeyed.getOrDefault(court, 1000)), turn: s.turn });
-    moodRead.set(p, m);
-  }
+  for (const p of AllPowers)
+    if (isAlive(s, p)) moodRead.set(p, new Map([...moodsKnown(s, p)].map(([id, r]) => [id, { mood: moodOfWords(r.mood), turn: r.seen }] as const)));
   const obeyed = new Map<string, number>();
   for (const [id, holder] of s.owner.entries()) if (holder !== null) obeyed.set(id, s.obeyed.getOrDefault(id, 1000));
   return { governed, bonds, knownBonds, moodRead, obeyed };
