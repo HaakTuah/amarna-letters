@@ -64,7 +64,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 46):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
-  down the Euphrates and the marshes.
+  down the Euphrates and the marshes. Still due: the full `--versus solo` run, seeds 1-40, on save version 46, with the
+  next item's benchmarks (#523 measured two seeds only).
 
 - **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
   - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
