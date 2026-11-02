@@ -192,7 +192,7 @@ the audit's script finds.
 | Remnants folded (`fold`) | 135 times in 48 games | 135 |
 | Grain handed out (`feed`, scripts' and the land play's) | 74,255 in 50 games | every one given |
 | Commanders and governors turning with the men who follow them (`defect`) | 22 in 13 games | 22 |
-| A rival's gold stirring a people (`stir`) | 36 seasons in 10 games; after the escalation helper's fix, 32 seasons in 5 of 5 games (5 games, seed 1) | 1 province won (`stir-won`), against 0 before |
+| A rival's gold stirring a people (`stir`) | 36 seasons in 10 games; after the escalation helper's fix, 66 seasons in 12 of 20 games (20 games, seed 1, `1f8f1ff`) | 5 provinces won (`stir-won`), against 0 before |
 
 Few led revolts break out: the claimants of 1346 start graded below their kings (`stake` 30 against `home` 100 or `held`
 40, reading 4 and the sources' grades), so they lead only where their king's standing has fallen far, which is the rule
@@ -309,18 +309,22 @@ gates weigh only as next door, so love must do the rest), the rulebook was wrong
   play, the batch's line for `--freedom-play-half`; the stir-won test now drives a posted spy instead of writing the
   event's text by hand.
 
-## Where to pick up (hand-off, 2 November 2026, context)
+## After the escalation (2 November 2026)
 
-The builder's context is large; this session stops at a passed gate (round 3's fixes pushed, CI green to `50ef2ac`).
+20 games, seed 1, `--verify-replay`, on `f2ba040` (the helper's `1f8f1ff` merged with the hand-off): every replay exact; a
+capital fell in 20 of 20 games, 324 kingdoms in all (319 before the stirring fix), the first in season 4 on the median
+(4 to 7), **none in its first two seasons**; revolts 83 (all leaderless), 39 put down; stirring 66 seasons in 12 games, 5
+provinces won. Winners: Babylonia 8, Egypt 5, the Suteans 2, Mitanni, Hatti, Azzi, Assyria and Akko 1 each. The full
+suite passed on this head (1,340 tests) and CI is green. The ledger's use against ignore (`--freedom-play-half`, 21-29 on
+`fdb8d0a`) is rerun on part B's branch, since stirring changed, and its numbers go in part B's report.
 
-- **The review is past round 3**, and the escalation helper's look (above) left nothing open.
-- **Stirring**: rerun `scripts/sim.sh --games 20 --seed 1 --verify-replay` on this head for the table's count of `stir`
-  and `stir-won` (5 games gave 32 seasons and 1 won).
-- **Benchmarks on `ae1095c`** (20 games, every replay exact): no kingdom fell in its first two seasons in 20 of 20; 319
-  fell in all; first fall season 4. Rerun once more after the stirring patch, and the use-against-ignore runs if the
-  scripts' play changed much (folding pays 29-21; the ledger's play does not yet, 21-29).
-- Then merge at 10 (CI green), the milestone into `main` (check `merged_at` first), the progress file's 17++ row, and parts
-  B and C of 17++ (the report's opening paragraph), each branched from this one.
+Found while building part C, and fixed here since it is this part's code: a governor who refused his recall never took his
+province by refusing it, since `turnsWith` still counted his own regard among his king's love (he serves the king), so
+only a rising could carry it; now the man who turns is left out of his king's side (`loveOf`'s `except`), with a test.
+Scripts never recall a governor yet (the audit's find, part C), so the benchmarks above do not move.
+
+Review: rules · Claude · 5, 7, 8, then the escalation helper's look: nothing open (10). Codex · P1×6, P1×4, P1×2, then
+the helper's ruling on the last (the answer stands).
 
 Questions for Haakon: none.
 
