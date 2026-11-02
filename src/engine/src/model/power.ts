@@ -268,19 +268,19 @@ type Pairs<V> = Iterable<[string, V]>;
 
 /** Sets the name claims to a game's (`GameState.names`, `nameGiven`, `namesHeard` and the fallen, who claim nothing). */
 export function setNameClaims(
-  names: Pairs<{ name: string }>,
+  names: Pairs<string>,
   fallen: Iterable<Power>,
   given: Pairs<Pairs<string>> = [],
-  heard: Pairs<Pairs<string>> = [],
+  heard: Pairs<Pairs<{ name: string }>> = [],
 ): void {
   claimed.clear();
   fallenNow.clear();
   givenBy.clear();
   heardBy.clear();
-  for (const [p, c] of names) claimed.set(p, c.name);
+  for (const [p, name] of names) claimed.set(p, name);
   for (const p of fallen) fallenNow.add(p);
   for (const [court, m] of given) givenBy.set(court, new Map(m));
-  for (const [court, m] of heard) heardBy.set(court, new Map(m));
+  for (const [court, m] of heard) heardBy.set(court, new Map([...m].map(([q, h]) => [q, h.name])));
   byName.clear();
 }
 
@@ -364,7 +364,7 @@ export function house(p: Power): string {
  * Whom a court gives a contested name to: itself, if it claims it; else the claimant its greetings last named so
  * (`GameState.nameGiven`), if he still claims it as the court knows; else the power whose own land it is, if he still
  * claims it as the court knows (it has read no greeting of his claiming another); else nobody, and every claimant is
- * called by his house. Only a court gives names: the engine's notices and god view name each power by its own land.
+ * called by his house. Only a court gives names: the engine's logs and god view name each power by its own land.
  */
 export function nameGivenBy(viewer: Power, name: string): Power | null {
   const cs = claimantsOf(name, viewer);
@@ -373,8 +373,8 @@ export function nameGivenBy(viewer: Power, name: string): Power | null {
   if (cs.includes(viewer)) return viewer;
   const g = givenBy.get(viewer)?.get(name);
   if (g !== undefined && cs.includes(g)) return g;
-  // A claimant known by his own land's name is one the court has heard claim nothing else (`claimHeard` keeps no entry
-  // for a claim of one's own land), whatever he has claimed since out of its hearing.
+  // A claimant known by his own land's name is one whose newest greeting the court has read claims nothing else, whatever
+  // he has claimed since out of its hearing.
   return cs.find((p) => ownLand(p) === name) ?? null;
 }
 
@@ -387,11 +387,28 @@ export function landFor(viewer: Power, p: Power): string {
 
 /**
  * The land's name as it appears in letters (item 17+): as the court naming it knows and gives it, inside `asSeenBy`; else
- * the engine's own, each power by its own land's name, since the engine's notices name a power in a way every court
- * already knows, and a claim reaches a court only in the claimant's greetings.
+ * the engine's own, each power by its own land's name, which {@link namedFor} turns into the recipient's names when a
+ * notice is written to a court.
  */
 export function land(p: Power): string {
   return viewerNow === null ? ownLand(p) : landFor(viewerNow, p);
+}
+
+/**
+ * The engine's words, which name each power by its own land's name, with the names `viewer`'s court knows and gives
+ * (item 17+): so a name in a notice means the same power it means in the rest of what the court reads. A land's name
+ * joined to a word before it ("Bit-Hatti") is not a power's name and is left.
+ */
+export function namedFor(viewer: Power, text: string): string {
+  if (claimed.size === 0 && ![...heardBy.values()].some((m) => [...m].some(([p, n]) => n !== ownLand(p)))) return text;
+  const swaps = new Map<string, string>();
+  for (const p of AllPowers) {
+    const seen = landFor(viewer, p);
+    if (seen !== ownLand(p)) swaps.set(ownLand(p), seen);
+  }
+  if (swaps.size === 0) return text;
+  const names = [...swaps.keys()].sort((a, b) => b.length - a.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return text.replace(new RegExp(`(?<![\\p{L}-])(?:${names.join("|")})(?![\\p{L}])`, "gu"), (m) => swaps.get(m)!);
 }
 
 /** The reigning king (or chief), by the names the letters use: what foreign courts call him. */

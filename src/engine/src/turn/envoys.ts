@@ -213,6 +213,7 @@ P.dispatch = function (p, d) {
     authority,
     checkClaim: d.checkClaim ?? null,
     styled: claimedName(p),
+    sealed: S.turn,
     offers,
     collect: collect?.id ?? null,
   });
@@ -304,7 +305,7 @@ P.envoyArrivesAbroad = function (j) {
   const aud = newPendingAudience({ id: newId(S, "a"), envoyId: c.id, from: j.from, host: j.to, dispatch: j.dispatch! });
   S.audiences.push(aud);
   // Item 17+: the host reads in the sealed greeting the name the sender claims.
-  this.claimHeard(j.to, j.from, j.dispatch!.styled ?? null);
+  this.claimHeard(j.to, j.from, j.dispatch!.styled ?? null, j.dispatch!.sealed ?? 0);
   const trail = this.trail(j.dispatch!.trailId);
   if (trail !== null) trail.audienceTurn = S.turn;
 };

@@ -186,7 +186,7 @@ export class SessionCore {
           : {
               claims: [...r.state.names],
               given: [...r.state.nameGiven].map(([k, m]) => [k, [...m]] as [string, [string, string][]]),
-              heard: [...r.state.namesHeard].map(([k, m]) => [k, [...m]] as [string, [string, string][]]),
+              heard: [...r.state.namesHeard].map(([k, m]) => [k, [...m].map(([q, h]) => [q, { name: h.name }])] as [string, [string, { name: string }][]]),
               fallen: [...r.state.eliminated],
             },
       seats: r === null ? {} : Object.fromEntries([...r.log.header.seats]),

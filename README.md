@@ -214,8 +214,8 @@ in Egypt's own seat; his other names are on his card.
 A realm's name is a claim: you go by your land's name until you claim another, any realm's name, Pharaoh's included
 (Court: "Claim a realm's name"). A claim gives nothing by rule. Where two kings claim one name, each court gives it in
 its greetings: a greeting gives the recipient the name he claims, or, with "call them by their house", withholds it, and
-that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru). The Court section says which names
-are contested and whom your court gives each to.
+that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru), in its notices too. The Court section
+says which names are contested and whom your court gives each to.
 
 Between the great kingdoms lie the city-states, such as Ugarit, Gubla, Qadesh and Elam, and the Kaska,
 Lukka, Shasu and Sutean chiefs: forty powers of their own, most of them vassals of Egypt or Mitanni (a few of Hatti

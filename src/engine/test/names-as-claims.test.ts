@@ -3,11 +3,13 @@ import {
   asSeenBy,
   claimName,
   claimantsOf,
+  inboxOf,
   land,
   newGame,
   newGameConfig,
   newGreetingOptions,
   newTurnSubmission,
+  notify,
   OrderValidator,
   ownLand,
   renderGreeting,
@@ -35,15 +37,15 @@ describe("NamesAsClaims", () => {
   test("A claim is the claimant's own at once and reaches another court only in his greetings", () => {
     const [s, e] = game();
     e.claimName("Amurru", claimName("Gubla"));
-    Assert.equal("Gubla", s.names.get("Amurru").name);
+    Assert.equal("Gubla", s.names.get("Amurru"));
     Assert.equal(2, claimantsOf("Gubla", "Amurru").length);
-    // The engine's own notices name each power by its own land, which every court knows.
+    // The engine's own words name each power by its own land (a notice is put into its court's names: below).
     Assert.equal("Gubla", land("Byblos"));
     Assert.equal("Amurru", land("Amurru"));
     // A court that has read no greeting of his knows nothing of it.
     Assert.equal("Amurru", asSeenBy("Egypt", () => land("Amurru")));
     Assert.empty(Views.for(s, "Egypt").nameClaims);
-    e.claimHeard("Egypt", "Amurru", "Gubla");
+    e.claimHeard("Egypt", "Amurru", "Gubla", s.turn);
     Assert.equal(1, Views.for(s, "Egypt").nameClaims.length);
     // Nobody given the name yet: Egypt gives it to the power whose own land it is.
     Assert.equal("Gubla", asSeenBy("Egypt", () => land("Byblos")));
@@ -58,7 +60,7 @@ describe("NamesAsClaims", () => {
   test("A court still gives a name to the land's own power after he claims another out of its hearing", () => {
     const [s, e] = game();
     e.claimName("Amurru", claimName("Gubla"));
-    e.claimHeard("Egypt", "Amurru", "Gubla");
+    e.claimHeard("Egypt", "Amurru", "Gubla", s.turn);
     // Byblos claims Amurru's name; Egypt has read no greeting of his saying so.
     e.claimName("Byblos", claimName("Amurru"));
     Assert.equal("Gubla", asSeenBy("Egypt", () => land("Byblos")));
@@ -68,7 +70,7 @@ describe("NamesAsClaims", () => {
   test("A court's greeting gives the name, and one by his house takes it back", () => {
     const [s, e] = game();
     e.claimName("Amurru", claimName("Gubla"));
-    e.claimHeard("Egypt", "Amurru", "Gubla");
+    e.claimHeard("Egypt", "Amurru", "Gubla", s.turn);
     const text = renderGreeting("Egypt", "Amurru", newGreetingOptions());
     Assert.contains("king of Gubla", text);
     e.recordGreeting("Egypt", "Amurru", newGreetingOptions());
@@ -98,10 +100,42 @@ describe("NamesAsClaims", () => {
   test("A fallen court claims nothing, so a name it held is free", () => {
     const [s, e] = game();
     e.claimName("Amurru", claimName("Gubla"));
-    e.claimHeard("Egypt", "Amurru", "Gubla");
+    e.claimHeard("Egypt", "Amurru", "Gubla", s.turn);
     s.eliminated.push("Byblos");
     e.syncNames();
     Assert.equal(1, claimantsOf("Gubla", "Egypt").length);
     Assert.equal("Gubla", asSeenBy("Egypt", () => land("Amurru")));
+  });
+
+  // Issue #417 (i): a court keeps the newest greeting it has read, by the season it was sealed.
+  test("An older greeting arriving late does not set a court's knowledge of a claim back", () => {
+    const [s, e] = game();
+    e.claimName("Amurru", claimName("Gubla"));
+    e.claimHeard("Egypt", "Amurru", "Gubla", 5);
+    e.claimHeard("Egypt", "Amurru", null, 3);
+    Assert.equal("Bit-Aziru", asSeenBy("Egypt", () => land("Amurru")));
+    e.claimHeard("Egypt", "Amurru", null, 6);
+    Assert.equal("Amurru", asSeenBy("Egypt", () => land("Amurru")));
+    Assert.equal(6, s.namesHeard.get("Egypt").get("Amurru").sealed);
+  });
+
+  // Issue #417 (a): a notice names the powers as its recipient's court knows and gives them, so one name means one power
+  // in all a court reads; a notice about a name itself keeps it.
+  test("Notices name powers as their recipient's court does", () => {
+    const [s, e] = game();
+    e.claimName("Amurru", claimName("Gubla"));
+    const said = (p: string): string => inboxOf(s, p).at(-1)!.body;
+    Assert.equal("Your court now calls you the king of Gubla.", said("Amurru").split(" Another")[0]);
+    // A court that has read no claim reads the engine's names.
+    notify(s, "Egypt", "Notice", "News", "Amurru marches on Gubla.");
+    Assert.equal("Amurru marches on Gubla.", said("Egypt"));
+    e.claimHeard("Egypt", "Amurru", "Gubla", s.turn);
+    notify(s, "Egypt", "Notice", "News", "Amurru marches on Gubla.");
+    Assert.equal("Bit-Aziru marches on Gubla.", said("Egypt"));
+    // The claimant's own court gives the name to him, and the house name of the other is left as it is.
+    notify(s, "Amurru", "Notice", "News", "Amurru marches on Gubla, and Bit-Rib-Hadda is afraid.");
+    Assert.equal("Gubla marches on Bit-Rib-Hadda, and Bit-Rib-Hadda is afraid.", said("Amurru"));
+    // The god view keeps the engine's names.
+    Assert.equal("Amurru", land("Amurru"));
   });
 });
