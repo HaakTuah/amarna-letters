@@ -51,7 +51,7 @@ export const BlankMark = "▒";
  * numbers), and is never blanked, so the export replays (`export.test.ts` holds each to one side, so a new field of
  * words cannot be missed).
  */
-export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments", "poison", "unreadable", "reason", "words"]);
+export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments", "poison", "unreadable", "reason", "words", "terms"]);
 
 /**
  * The fields of a decision that hold a name the engine reads, which a player may make up: a pitch's `name`, the alias a

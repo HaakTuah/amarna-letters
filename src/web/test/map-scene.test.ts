@@ -41,9 +41,10 @@ describe("MapSceneTests", () => {
     return [runner, frames];
   }
 
-  const cache = new Map<number, Promise<Played>>();
+  const cache = new Map<number, Promise<Played & { state: GameState }>>();
 
-  // A game of script kings with a frame taken after every season, as the web session takes them.
+  // A game of script kings with a frame taken after every season, as the web session takes them. The powers risen in it are
+  // set again each time it is read, since other games played since replaced them.
   function play(seed: number, turns: number): Promise<Played> {
     let done = cache.get(seed);
     if (done === undefined) {
@@ -52,11 +53,14 @@ describe("MapSceneTests", () => {
         let [runner, frames] = runnerOf(state, seed);
         await runner.prepare();
         for (let i = 0; i < turns && !state.ended; i++) await runner.playTurn();
-        return { runner, frames };
+        return { runner, frames, state };
       })();
       cache.set(seed, done);
     }
-    return done;
+    return done.then((x) => {
+      setRisen(x.state.risen);
+      return x;
+    });
   }
 
   // The powers risen in play are the game's own: set them from the state read, since other games played since replaced them.

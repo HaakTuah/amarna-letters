@@ -160,7 +160,7 @@ describe("ExportTests", () => {
     "name", "named", "open", "partner", "person", "power", "province", "provinces", "seals", "supported", "target", "task", "to", "unit",
     "vassal", "via", "what", "when", "where", "withdraw",
     // A character's answers: courts, debts, offers and people by id, an alias it was offered.
-    "accept", "askDebts", "choice", "claimsToServe", "giveDebts", "go", "goAs", "kill", "league", "outlaw", "repay",
+    "accept", "askDebts", "choice", "claimsToServe", "crownId", "giveDebts", "go", "goAs", "kill", "league", "outlaw", "repay",
   ]);
 
   test("Every string a decision can hold is either words or an order", () => {

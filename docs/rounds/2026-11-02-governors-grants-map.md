@@ -166,14 +166,13 @@ other court.
 
 ## Benchmarks and use against ignore
 
-**Grants** (`--grant-play-half`, 50 games, seed 1): kings that grant against kings that never do: **0.87 growth to 0.87,
-24 wins to 26: even.** Use and success: grants offered in 32 of 50 games (85), 25 taken (17 games), 58 refused, 2 no
-longer possible when the word came; every taken grant became a seat of its own (`risen-granted` 25). Which of the item's
-two answers: **the land's multiple makes land too dear to give away**, rather than bad play. A king's strength counts his
-land at ten seasons of what it produces, as far as it obeys him, and a grant takes all of that out of his score at once,
-while the tribute joins it only as it arrives, three quarters of a year's yield a year; the scripts grant only where they
-lose least (restless, hungry or far land), and the refusals (ambitious men take three-quarter tribute, others only half)
-keep it rare. A finding for item 18: the land's multiple against tribute, and the men's terms.
+**Grants** (`--grant-play-half`, 50 games, seed 1, the final head): kings that grant against kings that never do:
+**0.94 growth to 0.86, 28 wins to 22: pays.** Use and success: kingships offered in 28 of 50 games (95), 24 taken (20
+games), 67 refused. An earlier head measured them even (0.87 to 0.87, 24 wins to 26), and the reading then was that the
+land's multiple makes land too dear to give away: a king's strength counts his land at ten seasons of what it produces,
+and a grant takes all of that out of his score at once while the tribute joins it only as it arrives. The scripts grant
+only where they lose least (restless, hungry or far land), and with the price now riding home with the answer and the
+region's seat kept, that pays. The land's multiple against tribute stays a finding for item 18.
 
 **Taking up** (`--take-up-play-half`, 50 games, seed 1, the final head): kings that take up the provinces that look to
 them where it pays and refuse the rest, against kings that take up every one: **0.94 growth to 0.86, 26 wins to 24:
@@ -184,8 +183,8 @@ took them up (`obey-taken`); the rest lapsed before his word arrived or were sti
 province beside his own, against kings that never do: **0.96 growth to 0.89, 33 wins to 17: pays.** Regions given in 49 of
 50 games (463).
 
-**The audit's finds** (`--audit-play-half`): running on the final head. On an earlier head (a0c18e5) they paid, 0.95
-growth to 0.82, 26 wins to 24; without find 3 (raise troops when rich), 0.94 to 0.86, 30 to 20. Find 3 is kept: the
+**The audit's finds** (`--audit-play-half`, the final head): **0.94 growth to 0.86, 27 wins to 23: pays.** On an
+earlier head (a0c18e5) they paid 0.95 growth to 0.82, 26 wins to 24; without find 3 (raise troops when rich), 0.94 to 0.86, 30 to 20. Find 3 is kept: the
 full set gains more growth, and the loss first measured (0.88 to 0.90) was on a head before round 2's fixes.
 
 ## The review
