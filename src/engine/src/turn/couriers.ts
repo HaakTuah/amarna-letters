@@ -40,7 +40,7 @@ declare module "./core.ts" {
      */
     sendOrders(p: Power, sub: TurnSubmission): TurnSubmission;
     /** A notice to a king from a place in his realm: at once within the season's reach, else when a courier brings it. */
-    tell(p: Power, province: string, kind: InboxKind, title: string, text: string): void;
+    tell(p: Power, province: string, kind: InboxKind, title: string, text: string, extra?: number): void;
     /** At the end of each season, each unit's place joins its trail, the reports its king's couriers bring. */
     keepTrails(): void;
   }
@@ -227,9 +227,9 @@ P.courierRead = function (p, to, o) {
   }
 };
 
-P.tell = function (p, province, kind, title, text) {
+P.tell = function (p, province, kind, title, text, extra = 0) {
   const S = this.s;
-  const d = this.map.exists(province) ? this.wordTo(p, province) : 0;
+  const d = (this.map.exists(province) ? this.wordTo(p, province) : 0) + (Number.isFinite(extra) ? extra : 0);
   if (d === 0 || !Number.isFinite(d)) {
     notify(S, p, kind, title, text);
     return;

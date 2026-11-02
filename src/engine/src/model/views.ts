@@ -682,6 +682,8 @@ export const WorkViewSchema: ObjSchema<WorkView> = obj("WorkView", newWorkView, 
 /** Item 13: one of the court's governorships, as the court knows it. */
 export interface GovernorView {
   province: string;
+  /** Item 17++: the province he sits in, from which he governs this one (the province itself for a governor of one). */
+  seat: string;
   character: string;
   from: number;
   levies: number;
@@ -690,10 +692,10 @@ export interface GovernorView {
 }
 
 export function newGovernorView(init: Partial<GovernorView> = {}): GovernorView {
-  return { province: "", character: "", from: 0, levies: 0, raised: 0, relieving: false, ...init };
+  return { province: "", seat: "", character: "", from: 0, levies: 0, raised: 0, relieving: false, ...init };
 }
 
-export const GovernorViewSchema: ObjSchema<GovernorView> = obj("GovernorView", newGovernorView, { province: S, character: S, from: I, levies: I, raised: I, relieving: B });
+export const GovernorViewSchema: ObjSchema<GovernorView> = obj("GovernorView", newGovernorView, { province: S, seat: S, character: S, from: I, levies: I, raised: I, relieving: B });
 
 /**
  * Item 16, "The royal council": one troop order or levy an advisor proposes, with its one-line reason and the brief numbers

@@ -88,6 +88,15 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       if (S.governors.some((g) => g.province === order.province && g.power === v.power && g.relieved === null)) return `${order.province} already has a governor: take the governorship back first (unseat)`;
       if (v.orders.some((o) => o.type === "govern" && o.province === order.province && v.orders.indexOf(o) < v.orders.indexOf(order))) return `${order.province} was already given a governor by an earlier order`;
       if (order.levies < 0 || order.levies > MostGovernorLevies) return `a governor may be allowed from 0 to ${MostGovernorLevies} levies`;
+      // Item 17++: a governor of ours may be given a province beside those he holds, governed from his seat.
+      const held = S.governors.filter((g) => g.character === order.character && g.power === v.power && g.relieved === null);
+      if (held.length > 0) {
+        const c = findCharacter(S, order.character);
+        if (c === null || c.status === "Dead" || c.duty !== "Governing") return v.nobody(order.character);
+        if (v.busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
+        if (!held.some((g) => v.Map.neighbors(g.province).includes(order.province))) return `${c.name} governs no province beside ${order.province}: one governor holds only neighbouring provinces`;
+        return null;
+      }
       return grantee(v, order.character, "a governorship");
     }
     case "unseat": {

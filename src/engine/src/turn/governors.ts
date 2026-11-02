@@ -7,13 +7,13 @@
  * grant back by sending word; a disloyal, ambitious governor refuses and turns with the levies he raised.
  */
 import { idiv } from "../core/num.ts";
-import { cmpStr, sortBy } from "../core/seq.ts";
-import { newGovernor, type Governor } from "../model/command.ts";
+import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
+import { newGovernor, seatOf, type Governor } from "../model/command.ts";
 import { raise, type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import { findCharacter, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
-import { wordFromKing } from "../rules/court.ts";
+import { courierSeasons, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
@@ -37,9 +37,23 @@ P.grantGovernorship = function (p, o) {
   const S = this.s;
   const c = findCharacter(S, o.character);
   if (c === null || S.owner.getOrDefault(o.province, null) !== p) return;
+  // Item 17++: a governor already holding provinces of ours takes this one beside them from his seat: the word reaches him
+  // there, and his word reaches the province from there.
+  const held = S.governors.find((g) => g.character === c.id && g.power === p && g.relieved === null);
+  if (held !== undefined) {
+    const seat = seatOf(held);
+    const toSeat = wordFromKing(S, this.map, p, seat);
+    const onward = courierSeasons(S, this.map, seat, o.province);
+    const from = S.turn + Math.max(1, (Number.isFinite(toSeat) ? toSeat : 1) + (Number.isFinite(onward) ? onward : 1));
+    S.governors.push(newGovernor({ province: o.province, seat, character: c.id, power: p, levies: o.levies, from }));
+    remember(c, S.turn, `The king of ${p} gave me the governorship of ${this.map.get(o.province).name} too, from my seat at ${this.map.get(seat).name}.`);
+    notify(S, p, "Resolution", "Governorship granted", `${c.name} governs ${this.map.get(o.province).name} too, from his seat at ${this.map.get(seat).name}, from turn ${from}${o.levies > 0 ? `, free to raise up to ${o.levies} levies there if foreign troops threaten it` : ""}.`, c.id);
+    logEvent(S, "governor", `${p} granted ${c.name} the governorship of ${this.map.get(o.province).name} beside his own.`, [p], "governor");
+    return;
+  }
   const seasons = wordFromKing(S, this.map, p, o.province);
   const from = S.turn + Math.max(1, Number.isFinite(seasons) ? seasons : 1);
-  S.governors.push(newGovernor({ province: o.province, character: c.id, power: p, levies: o.levies, from }));
+  S.governors.push(newGovernor({ province: o.province, seat: o.province, character: c.id, power: p, levies: o.levies, from }));
   c.duty = "Governing";
   c.at = null;
   c.grantedBy = p;
@@ -53,7 +67,8 @@ P.unseatGovernor = function (p, o) {
   const S = this.s;
   const g = S.governors.find((x) => x.province === o.province && x.power === p && x.relieved === null);
   if (g === undefined) return;
-  const seasons = wordFromKing(S, this.map, p, o.province);
+  // The word goes to him where he sits (item 17++).
+  const seasons = wordFromKing(S, this.map, p, seatOf(g));
   g.relieved = S.turn + Math.max(1, Number.isFinite(seasons) ? seasons : 1);
   notify(S, p, "Resolution", "Governorship taken back", `Word that you take back the governorship of ${this.map.get(o.province).name} is on its way; it reaches him in turn ${g.relieved}.`);
 };
@@ -75,7 +90,8 @@ P.governorsSeason = function () {
     const lost = S.owner.getOrDefault(g.province, null) !== g.power;
     if (gone || lost) {
       S.governors = S.governors.filter((x) => x !== g);
-      if (!gone && c !== null) this.leaveCommand(c, g.province);
+      // A governor of several keeps the rest (item 17++).
+      if (!gone && c !== null && !S.governors.some((x) => x.character === c.id)) this.leaveCommand(c, seatOf(g));
       continue;
     }
     if (g.relieved === null || S.turn < g.relieved) continue;
@@ -83,27 +99,38 @@ P.governorsSeason = function () {
     // the province in his own name (item 17, the new Idrimi), unless other troops of his king's stand there.
     const t = c!.traits;
     const disloyal = t.loyalty < 30 && t.ambition > 60;
-    // Item 17++: his levies follow him as far as their ledger stands with him, and the province only if its people would.
-    const turns = disloyal ? this.turnsWith(g.province, c!) : { province: false, levies: [] as Unit[] };
-    const levies = turns.levies;
-    const others = S.units.some((u) => u.power === g.power && u.province === g.province && !levies.includes(u));
+    // Item 17++: his levies follow him as far as their ledger stands with him, and each province he holds only if its people
+    // would (a governor of several turns with those of them whose ledger stands better with him than with his king).
+    const held = sortBy(
+      S.governors.filter((x) => x.character === g.character && x.power === g.power && S.owner.getOrDefault(x.province, null) === g.power),
+      [(x: Governor) => (x.province === seatOf(g) ? 0 : 1), cmpNum],
+      [(x: Governor) => x.province, cmpStr],
+    );
+    const levies: Unit[] = [];
+    const going: string[] = [];
+    for (const x of disloyal ? held : []) {
+      const turns = this.turnsWith(x.province, c!);
+      levies.push(...turns.levies);
+      const others = S.units.some((u) => u.power === g.power && u.province === x.province && !turns.levies.includes(u));
+      // In the city where his king holds court he cannot make it his own (a coup is not modelled).
+      if (turns.province && !others && this.courtAt(g.power) !== x.province) going.push(x.province);
+    }
     S.governors = S.governors.filter((x) => x !== g);
-    // In the city where his king holds court he cannot make it his own (a coup is not modelled): he turns with his levies
-    // as a band, as before item 17.
-    const court = this.courtAt(g.power) === g.province;
-    if (disloyal && (court || !turns.province || others) && levies.length > 0) {
+    if (disloyal && going.length === 0 && levies.length > 0) {
+      // He turns with his levies as a band, as before item 17.
       const u = levies[0];
       this.tell(g.power, g.province, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${this.map.get(g.province).name}, and turned with the ${u.men} men he raised there.`);
       logEvent(S, "defect", `${c!.name} refused his recall by ${g.power} and turned with the levies of ${this.map.get(g.province).name}.`, [g.power], "defect");
       this.armyToBand(u, c!, "commander");
       continue;
     }
-    if (disloyal && turns.province && !others && !court) {
+    if (disloyal && going.length > 0) {
       const name = this.map.get(g.province).name;
+      const lands = going.map((x) => this.map.get(x).name);
       const men = levies.reduce((a, u) => a + u.men, 0);
-      this.tell(g.power, g.province, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${name}, and turned${men > 0 ? ` with the ${men} men he raised there` : ""}: he rules it in his own name now.`);
-      logEvent(S, "defect", `${c!.name} refused his recall by ${g.power} and turned${men > 0 ? " with the levies" : ""} of ${name}.`, [g.power], "defect");
-      this.ruleOwn(g.province, c!, {
+      this.tell(g.power, g.province, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${name}, and turned${men > 0 ? ` with the ${men} men he raised` : ""}: he rules ${lands.join(", ")} in his own name now.`);
+      logEvent(S, "defect", `${c!.name} refused his recall by ${g.power} and turned${men > 0 ? " with the levies" : ""} of ${lands.join(", ")}.`, [g.power], "defect");
+      const own = this.ruleOwn(going[0], c!, {
         how: "turned",
         from: g.power,
         followers: levies,
@@ -111,13 +138,16 @@ P.governorsSeason = function () {
         rising: levies.length === 0,
         story: `Word came that the king of ${g.power} takes back your governorship of ${name}; you refused it.`,
         memory: `The king of ${g.power} took back my governorship of ${name}, and I refused it.`,
-        line: `${c!.name}, governor of ${name} for ${g.power}, refused his recall and rules it in his own name`,
+        line: `${c!.name}, governor of ${lands.join(", ")} for ${g.power}, refused his recall and rules in his own name`,
       });
+      // The rest of his provinces that would follow him go with him, ruled from the first.
+      for (const x of going.slice(1)) this.setOwner(x, own);
       continue;
     }
     remember(c!, S.turn, `I gave up the governorship of ${this.map.get(g.province).name}, as the king of ${g.power} ordered.`);
-    this.tell(g.power, g.province, "Resolution", "Governorship given up", `${c!.name} gave up the governorship of ${this.map.get(g.province).name} and is on the road to your court.`);
-    this.leaveCommand(c!, g.province);
+    const rest = S.governors.some((x) => x.character === c!.id);
+    this.tell(g.power, g.province, "Resolution", "Governorship given up", `${c!.name} gave up the governorship of ${this.map.get(g.province).name}${rest ? ", and governs the rest from his seat" : " and is on the road to your court"}.`);
+    if (!rest) this.leaveCommand(c!, seatOf(g));
   }
 };
 

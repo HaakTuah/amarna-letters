@@ -204,6 +204,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
         <div className="row" key={g.province}>
           <small>
             {provinceName(g.province)}: {name(g.character)}
+            {g.seat !== g.province ? `, from his seat at ${provinceName(g.seat)}` : ""}
             {g.from > v.turn ? ` (from turn ${g.from})` : ""}, levies {g.raised} of {g.levies}
           </small>
           {!g.relieving && (
@@ -230,6 +231,12 @@ export function CommandSection({ c }: { c: OrdersContext }) {
           {[...ready, ...v.known.filter((x) => x.status === "free" && x.where === "at your court")].map((x) => (
             <option key={x.id} value={x.id}>
               {x.name}
+            </option>
+          ))}
+          {/* Item 17++: a governor of ours may take a province beside those he holds, from his seat. */}
+          {[...new Set(v.governors.filter((g) => !g.relieving && (gov.province === "" || map.neighbors(g.province).includes(gov.province))).map((g) => g.character))].map((id) => (
+            <option key={`gov-${id}`} value={id}>
+              {name(id)} (governor, from his seat)
             </option>
           ))}
         </select>

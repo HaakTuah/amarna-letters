@@ -145,6 +145,11 @@ export function commandStrength(t: CommandTraits): number {
  */
 export interface Governor {
   province: string;
+  /**
+   * Item 17++ ("Governors": one governor may hold several neighbouring provinces): the province he sits in, his capital for
+   * every distance; the province itself for a governor of one.
+   */
+  seat: string;
   character: string;
   power: Power;
   levies: number;
@@ -157,11 +162,12 @@ export interface Governor {
 }
 
 export function newGovernor(init: Partial<Governor> = {}): Governor {
-  return { province: "", character: "", power: "Egypt", levies: 0, raised: 0, from: 0, skimmed: 0, relieved: null, mood: "quiet", ...init };
+  return { province: "", seat: "", character: "", power: "Egypt", levies: 0, raised: 0, from: 0, skimmed: 0, relieved: null, mood: "quiet", ...init };
 }
 
 export const GovernorSchema: ObjSchema<Governor> = obj("Governor", newGovernor, {
   province: S,
+  seat: S,
   character: S,
   power: S,
   levies: I,
@@ -171,6 +177,9 @@ export const GovernorSchema: ObjSchema<Governor> = obj("Governor", newGovernor, 
   relieved: opt(I),
   mood: S,
 });
+
+/** The province a governor sits in (item 17++): his seat, or his one province. */
+export const seatOf = (g: Governor): string => (g.seat === "" ? g.province : g.seat);
 
 /** The most levies a governor's mandate may allow him to raise on his own. */
 export const MostGovernorLevies = 3;

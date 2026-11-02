@@ -19,6 +19,7 @@ import { PointsPerDay, wordSeasons } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
 import { countOf } from "../model/counts.ts";
+import { seatOf } from "../model/command.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
@@ -229,7 +230,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     king: kingFor(p, p),
     courtAt: courtOf(s, m, p),
     courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
-    governors: s.governors.filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
+    governors: s.governors.filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, seat: seatOf(g), character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
     ended: s.ended,
     openAge: s.config.openAge,
     ageBand: ageBand(s.config.endMedian),
