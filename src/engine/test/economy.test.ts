@@ -1,6 +1,7 @@
 import { describe, test } from "vitest";
 import {
   Dict,
+  type Power,
   EconomyData,
   type GameState,
   TurnEngine,
@@ -33,18 +34,18 @@ import {
   paysUnit,
   Views,
 } from "@amarna/engine";
-import { Assert, armiesBefore13, last } from "./support.ts";
+import { Assert, armiesBefore13, last, smallWorld } from "./support.ts";
 
 // The economy at home (build order item 9+a): the harvest's tax into the stores, the mines' gold into the treasury, the
 // markets and their purses, troops' pay and food, hunger and mutiny, caravans, the siege's clock and the wealth of a realm.
 describe("EconomyTests", () => {
   const Map = WorldMap.default;
   // The armies as before item 13: these rules were measured on full levies.
-  const game = (): GameState => armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 })));
+  const game = (...powers: Power[]): GameState => smallWorld(armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 }))), ...(powers.length > 0 ? powers : ["Hatti"]));
   const notice = (s: GameState, title: string): string => last(inboxOf(s, "Hatti"), (i) => i.title === title).body;
 
   test("The harvest's tax goes into each province's stores and the mines' gold into the treasury", () => {
-    const s = game();
+    const s = game("Egypt", "Hatti");
     const e = new TurnEngine(s);
     const before = s.stores.getOrDefault("nesa", 0);
     const gold = s.treasuries.get("Egypt").gold;
@@ -85,7 +86,7 @@ describe("EconomyTests", () => {
   });
 
   test("Buying grain and feeding a town; only at one's own markets", () => {
-    const s = game();
+    const s = game("Hatti", "Babylonia");
     const e = new TurnEngine(s);
     s.stores.set("hattusa", 50);
     const m = s.markets.get("hattusa");
@@ -115,7 +116,7 @@ describe("EconomyTests", () => {
   });
 
   test("Troops with nothing to eat go hungry and mutiny; their men carry their savings home", () => {
-    const s = game();
+    const s = game("Hatti", "Egypt");
     const e = new TurnEngine(s);
     const u = single(s.units, (x) => x.province === "hattusa");
     u.province = "sinai";
@@ -219,7 +220,7 @@ describe("EconomyTests", () => {
   });
 
   test("A besieged city that cannot feed its people starves until its gate is opened from within; walls are breached only after long wear", () => {
-    const s = game();
+    const s = game("Hatti", "Carchemish");
     const e = new TurnEngine(s);
     // Hatti's army stands within the walls of Carchemish, a free city, its stores and market empty.
     const u = single(s.units, (x) => x.province === "hattusa");
@@ -256,7 +257,7 @@ describe("EconomyTests", () => {
   });
 
   test("A move into the desert finds nothing to forage", () => {
-    const s = game();
+    const s = game("Hatti", "Egypt");
     const e = new TurnEngine(s);
     const u = single(s.units, (x) => x.province === "hattusa");
     u.province = "gaza";

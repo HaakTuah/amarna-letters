@@ -64,8 +64,8 @@ describe("RansomTests", () => {
   }
 
   // <summary>One of 's people held captive by , its master aware of it.</summary>
-  function held(master: Power, jailer: Power, config: GameConfig | null = null): [GameState, Character] {
-    let s = smallWorld(newGame(4, config), master, jailer);
+  function held(master: Power, jailer: Power, config: GameConfig | null = null, ...others: Power[]): [GameState, Character] {
+    let s = smallWorld(newGame(4, config), master, jailer, ...others);
     let spy = first(s.characters, (c) => c.employer === master);
     spy.secretMaster = null;
     spy.status = "Captured";
@@ -366,7 +366,7 @@ describe("RansomTests", () => {
   });
 
   test("A captive put to death is rumoured to its king and to every court that still believes it serves it", () => {
-    let [s, spy] = held("Hatti", "Mitanni");
+    let [s, spy] = held("Hatti", "Mitanni", null, "Egypt");
     // Once Egypt's envoy, gone over to Hatti unknown to Egypt.
     spy.covers.push(newCover({ for: "Egypt", since: 1, believed: "Detained", dutyText: "has not returned from Hatti", whereText: "unknown", fee: 120 }));
     begin(s).resolve(orders("Mitanni", captive(spy.id, "Execute")));

@@ -29,14 +29,14 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { Assert, armiesBefore13 } from "./support.ts";
+import { Assert, armiesBefore13, smallWorld } from "./support.ts";
 
 // Structured press (build order item 8): clauses and their templates, the press modes, gold without an inventory, the
 // record of recognition, and promises of support kept.
 describe("PressTests", () => {
   /** Egypt's envoy sent to Alashiya with this order, and the game run until he stands at Alashiya's court. */
   function sent(order: (envoy: string) => ReturnType<typeof dispatch>, structured = false): [GameState, TurnEngine, PendingAudience] {
-    let s = newGame(5, newGameConfig({ catastropheChance: 0, pressMode: structured ? "structured" : "full" }));
+    let s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0, pressMode: structured ? "structured" : "full" })), "Egypt", "Alashiya");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let e = new TurnEngine(s);
@@ -80,7 +80,7 @@ describe("PressTests", () => {
   });
 
   test("The orders are checked for the inventory's fee as the engine charges it", () => {
-    let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    let s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Alashiya");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     let gold = ledger(s.treasuries.get("Egypt"));
     let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Alashiya", "Gold.", { gold })] }));
@@ -154,7 +154,7 @@ describe("PressTests", () => {
   });
 
   test("A support that keeps a promise made in a letter is an event", () => {
-    let s = armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 })));
+    let s = smallWorld(armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 }))), "Egypt", "Hatti");
     let e = new TurnEngine(s);
     let envoy = first(s.characters, (c) => c.employer === "Hatti");
     e.beginTurn();

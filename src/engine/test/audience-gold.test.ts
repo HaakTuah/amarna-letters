@@ -22,13 +22,13 @@ import {
   newTurnSubmission,
   single,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // <summary>Gold sent back and gifts across the two exchanges of one audience.</summary>
 describe("AudienceGoldTests", () => {
   // <summary>Egypt's envoy stands before Alashiya's king, carrying no gold.</summary>
   function atAudience(): [GameState, TurnEngine, Character, PendingAudience] {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt", "Alashiya");
     let envoy = s.characters.find((c) => c.employer === "Egypt")!;
     envoy.secretMaster = null;
     let e = new TurnEngine(s);

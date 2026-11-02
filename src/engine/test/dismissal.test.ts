@@ -28,7 +28,7 @@ import {
   release,
   single,
 } from "@amarna/engine";
-import { Assert, last, orderBy, homeJob } from "./support.ts";
+import { Assert, last, orderBy, homeJob, smallWorld } from "./support.ts";
 
 // <summary>Nobody is moved by a dismissal: a servant dismissed while away keeps going where it was going, and one held stays held.</summary>
 describe("DismissalTests", () => {
@@ -49,7 +49,7 @@ describe("DismissalTests", () => {
 
   // <summary>Babylon is two seasons from Egypt each way, so there is a season to dismiss someone on the road.</summary>
   function start(): [GameState, Character] {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt", "Babylonia", "Hatti");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     Assert.equal(2, new TurnEngine(s).travelTurns("Egypt", "Babylonia"));
@@ -181,7 +181,7 @@ describe("DismissalTests", () => {
   });
 
   test("A dismissed captive stays a captive", () => {
-    let s = newGame(4);
+    let s = smallWorld(newGame(4), "Hatti", "Mitanni");
     let spy = first(s.characters, (c) => c.employer === "Hatti");
     spy.status = "Captured";
     spy.heldBy = "Mitanni";
@@ -207,7 +207,7 @@ describe("DismissalTests", () => {
   });
 
   test("A captive dismissed in the season its captor turns it stays a captive and the captor is told", () => {
-    let s = newGame(4);
+    let s = smallWorld(newGame(4), "Hatti", "Mitanni");
     let spy = first(s.characters, (c) => c.employer === "Hatti");
     spy.secretMaster = null;
     spy.status = "Captured";
@@ -230,7 +230,7 @@ describe("DismissalTests", () => {
   });
 
   test("A province watcher dismissed on its way out reaches the province and walks back free", () => {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt");
     let spy = first(s.characters, (c) => c.employer === "Egypt");
     begin(s).resolve(orders("Egypt", placeSpy(spy.id, null, farProvince(s))));
     Assert.equal("SpyOutbound", spy.duty);
@@ -255,7 +255,7 @@ describe("DismissalTests", () => {
   }
 
   test("A dismissed spy is free where it watched and a province watcher walks back to the old court", () => {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt", "Babylonia");
     let [court, field] = [first(s.characters, (c) => c.employer === "Egypt"), last(s.characters, (c) => c.employer === "Egypt")];
     begin(s).resolve(orders("Egypt", placeSpy(court.id, "Babylonia"), placeSpy(field.id, null, "sinai")));
     while (court.duty !== "SpyPosted" || field.duty !== "SpyPosted") begin(s).resolve(none());
@@ -273,7 +273,7 @@ describe("DismissalTests", () => {
   });
 
   test("A spy dismissed on its way out arrives free at the court it was sent to watch", () => {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt", "Babylonia");
     let spy = first(s.characters, (c) => c.employer === "Egypt");
     begin(s).resolve(orders("Egypt", placeSpy(spy.id, "Babylonia")));
     begin(s).resolve(orders("Egypt", dismiss(spy.id)));
