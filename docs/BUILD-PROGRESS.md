@@ -62,6 +62,24 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **History: a full check of every dossier** (the owner, 2 November 2026; archive item 167). Due now, as a lane beside
+  the items, once #466 has merged, since it touches the same files. The first spot-check found 3 misses in 13 facts:
+  an error rate somewhere between about 5% and 54%, too high for spot-checks to watch.
+  1. Every claim in every dossier, and every real fact in the game's data that rests on one, is checked against the
+     source it cites, by Opus helpers at high effort, one dossier each, four at a time. Each is graded holds, wrong,
+     no source or unclear. The cast (`src/engine/src/rules/cast.ts`), `06-attested-people.md` and `01-politics.md` go
+     first.
+  2. One PR per dossier, with what it touches in the game, and one `bug` issue per dossier tracking its misses until
+     the fix is live.
+  3. The four notes #466 left open (Shum-Adda, Yapah-Hadda, Artatama II, and the dating of EA 28-29) are settled in
+     this pass.
+  4. Each line the game rests on gets an anchor and quotes the few words of its source it relies on: a letter's words
+     in its edition's translation, never a passage, or a study's page. A line left "no source" or "unclear" is
+     sourced, or the game marks what rests on it as invented.
+  5. A test, landing with the first PR: every real fact in the game's data names its anchor, the anchor exists, and
+     its line names the same entity. Anchors are data, never shown to a king or a model ("Requests are rules too").
+     Item 17+++b's "Learn more" check builds on it.
+
 - **Licences: audit, gate and notices** (the owner, 2 November 2026; `SECURITY.md`, point 10). (1) Audit every package,
   the ones packages pull in included, and every font, image, sound and data set, with its licence; anything off the list
   is a `question` issue with what would replace it. (2) A check on every pull request (GitHub's

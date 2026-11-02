@@ -1439,3 +1439,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     for the father's notes, a leaner prompt that points to the repositories, and orchestrators re-reading the rule files
     when they change, so no update message is needed): "YEs, absolutely, expertly to absolutely all! Mastefully! Maestro!" Written into "The rules, re-read when they change" in
     `docs/orchestrating.md`; the same in Barkstreet Snakes; the rest in the father's notes.
+167. **2 November 2026, 16:32 and 16:35 UTC**, in the design chat: "Is the History spot-check too limited in scope? It
+    caught 3 things and only looked at around 10? Expert." Then, to the design session's take (3 misses in 13 puts the
+    error rate between about 5% and 54%, so spot-checks are the wrong tool until the dossiers are clean: a full check
+    of every dossier now; a test that every real fact in the game names its dossier line; key facts quoting the few
+    words of their source; then a monthly spot-check of about 30 facts, with a full check of any dossier whose misses
+    pass one in fifteen): "Yes, expertly to all!" Written into "History holds" in `AGENTS.md`, "Reviews" in
+    `docs/claude-and-codex.md`, "Follow-ups" in `docs/BUILD-PROGRESS.md`, and item 17+++b (Build order, revision 216).

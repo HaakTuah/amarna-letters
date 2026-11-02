@@ -221,7 +221,10 @@ guards against endless rounds and a slipping bar: "Codex reviews" and "Reviews" 
 On build-order items, Codex's review and Claude's design check start at the same time.
 
 **History holds,** for every reviewer: report as P1 a real-world fact (a person, place, date, name, custom or event)
-the change adds or alters that has no source in `docs/history/`, or contradicts the source it cites.
+the change adds or alters that has no source in `docs/history/`, or contradicts the source it cites. Each real fact in
+the game's data names the dossier line it rests on by that line's anchor, and the line quotes the few words of its
+source it relies on; a test fails when an anchor is missing or its line names someone else (archive item 167; built
+by the full history check in "Follow-ups" in `docs/BUILD-PROGRESS.md`).
 
 **Hidden information,** for every reviewer: report as P1 any read of the true game state that a seat could not know,
 in what it is shown, what a model is asked, what a script king reads or what an export holds. Check every path: the
