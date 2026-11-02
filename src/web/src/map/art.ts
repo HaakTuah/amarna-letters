@@ -443,15 +443,35 @@ export function roadPath(pts: readonly Pt[]): string {
 /** A point a fraction of the way along a polyline. */
 export function along(pts: readonly Pt[], t: number): Pt {
   if (pts.length === 1) return pts[0];
-  let total = 0.0;
-  for (let i = 1; i < pts.length; i++) total += len(sub(pts[i], pts[i - 1]));
-  let want = Math.min(Math.max(t, 0), 1) * total;
+  let want = Math.min(Math.max(t, 0), 1) * lengthOf(pts);
   for (let i = 1; i < pts.length; i++) {
     const seg = len(sub(pts[i], pts[i - 1]));
     if (want <= seg || i === pts.length - 1) return add(pts[i - 1], mul(sub(pts[i], pts[i - 1]), seg < 1e-9 ? 0 : Math.min(1, want / seg)));
     want -= seg;
   }
   return pts[pts.length - 1];
+}
+
+/** A line's length along all its points. */
+export function lengthOf(pts: readonly Pt[]): number {
+  let total = 0.0;
+  for (let i = 1; i < pts.length; i++) total += len(sub(pts[i], pts[i - 1]));
+  return total;
+}
+
+/** The part of a line between two fractions of its length (from the first to the second, either way round). */
+export function between(pts: readonly Pt[], a: number, b: number): Pt[] {
+  if (a > b) return between(pts, b, a).reverse();
+  const out: Pt[] = [along(pts, a)];
+  const total = lengthOf(pts);
+  let at = 0.0;
+  for (let i = 1; i < pts.length - 1; i++) {
+    at += len(sub(pts[i], pts[i - 1]));
+    const f = total > 0 ? at / total : 0;
+    if (f > a && f < b) out.push(pts[i]);
+  }
+  out.push(along(pts, b));
+  return out;
 }
 
 /** A gentle curve between two points (arrows, routes), bowed to one side so opposite moves do not overlap. */
