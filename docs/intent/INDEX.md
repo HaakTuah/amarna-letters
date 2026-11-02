@@ -17,14 +17,14 @@ with the copy and say so in the report, and before opening the pull request read
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 569 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 212 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 213 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 66 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 64 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 26 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 34 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 93 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 94 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 20 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 26 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
@@ -61,7 +61,7 @@ session loads.
 | `docs/intent/build-order/item-14.md` | 14. Legends. The narrator's legends grow from the "follow this character" view i | 0.7 |
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 2.2 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
-| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 39.7 |
+| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 39.9 |
 | `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together | 6.5 |
 | `docs/intent/build-order/item-19.md` | 19. The living map | 14.5 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
@@ -105,7 +105,7 @@ session loads.
 | `docs/intent/land-people-and-economy/land-climate-and-rivers.md` | Land, climate and rivers | 6.9 |
 | `docs/intent/war-travel-and-the-seas/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/war-travel-and-the-seas/territory-and-military-part1.md` | Territory and military (part 1) | 24.5 |
-| `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md` | Territory and military (part 2) | 7.6 |
+| `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md` | Territory and military (part 2) | 7.9 |
 | `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 9.0 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.5 |

@@ -1388,3 +1388,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     false alarm at that level holds that one PR until the owner dismisses it) or never fail: "Keep the default." Nothing
     changes in the files: the default is GitHub's own setting, and "Git and GitHub" in `AGENTS.md` already says a false
     alarm is answered in the PR and left to the owner.
+157. **2 November 2026, 13:10 UTC**, in the design chat, to the builders' question in issue #431 (whether a province
+    may declare for a claimant who is not there; the builder's reading required him to stand in or near it) and the
+    design session's take (the design already settles it: "Whom a province obeys" has a province declare for one who
+    takes it up by letter, order or governor, as Pharaoh weighed the mayors' letters from afar): "Yes, expertly, if you
+    think it is best." Written into "Whom a province obeys" under War (revision 94) and item 17++ (revision 213), built
+    in part C.
