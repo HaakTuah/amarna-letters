@@ -54,7 +54,18 @@ valuable information for the king of the land, or his enemies." Written into "Wh
 
 ## Benchmarks and use against ignore
 
-Running: `--talk-play-half` (50 games, seed 1), with the offers' signals (sent, carried by whom, sold, arrived).
+`--talk-play-half` (50 games, seed 1, on b7df54d7; the later fixes change only when an offer is lost or which courts
+hear talk): kings that heed talk (relief for their own leaning land, warmth to a claimant a rival's people lean toward, a
+spy sent where they are talked of) against kings that ignore it: **0.86 growth to 0.86, 26 wins to 24: even.**
+
+Use and success: offers sent in 47 of 50 games (988); carried 31 (with a spy's reports 3, by the claimant's own men 14,
+paid from the people's purse 11, hired 3); arrived 27, in 15 games. Most offers are never carried, as the design means:
+only a people far gone pays, and few kings' men pass that way.
+
+Which of the two: **the feature matters little yet**, rather than bad play. An offer arrives in about a game in three, so
+the threat that talk warns its king of is rare, and the relief he gives costs him that land's yield whether or not it
+comes. Heeding talk should pay once more offers travel (caravans as carriers, #543) and taking a far province up from afar
+needs men sent to hold it (item 17). Listed for the running table and item 18.
 
 ## The review
 
