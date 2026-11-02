@@ -423,8 +423,14 @@ export class GameLog {
     this.calls.push(cleanCall(call));
   }
 
-  /** Logs a shadow, with anything sensitive in its error taken out. */
+  /** Logs a shadow, with anything sensitive in its texts taken out: its choices may quote a letter, its error a provider. */
   addShadow(shadow: ShadowDecision): void {
+    shadow.known = shadow.known.map(withoutSensitive);
+    for (const c of [shadow.model, shadow.script]) {
+      if (c === null) continue;
+      c.text = withoutSensitive(c.text);
+      c.commitments = withoutSensitive(c.commitments);
+    }
     shadow.error = withoutSensitiveOrNull(shadow.error);
     this.shadows.push(shadow);
   }

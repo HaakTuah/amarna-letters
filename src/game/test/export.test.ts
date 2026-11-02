@@ -34,7 +34,7 @@ describe("ExportTests", () => {
     Leaks.forEach(([, reason], i) => log.record(`t1/orders/p${i}`, S, "", newAuthorship({ kind: "fallback", name: "File seat", reason })));
     for (const [, error] of Leaks) {
       log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, role: "leader", model: "Haiku", prompt: "Your orders.", error }));
-      log.addShadow(newShadowDecision({ key: "t1/aud/present/c5", turn: 1, kind: "present", script: newCharacterChoice(), error }));
+      log.addShadow(newShadowDecision({ key: "t1/aud/present/c5", turn: 1, kind: "present", script: newCharacterChoice({ text: error }), model: newCharacterChoice({ commitments: error }), known: [error], error }));
     }
     return log;
   }
@@ -183,6 +183,8 @@ describe("ExportTests", () => {
     runner.log.addCall(newModelCall({ key: "t2/orders/Hatti", turn: 2, role: "leader", model: "Haiku", output: JSON.stringify({ notes: `Alashiya said: ${Speech}` }) }));
     // A letter naming a person by his id, delivered with his name in its place (the engine's scribe).
     runner.log.addCall(newModelCall({ key: "t3/orders/Hatti", turn: 3, role: "leader", model: "Haiku", prompt: `A letter: "${Scribed}" And another: "Bring the horses."` }));
+    // A shadow whose choices quote the note with the address in it.
+    runner.log.addShadow(newShadowDecision({ key: "t3/aud/report/c1", turn: 3, kind: "report", script: newCharacterChoice({ text: `I carried: "${Scribed}"` }) }));
     // A chronicle, a decision whose whole value is a text, quoting the letter.
     runner.log.record("t2/chronicle/Egypt", S, `Pharaoh wrote to Alashiya: "${Letter}"`, newAuthorship({ kind: "model", name: "Haiku narrator" }));
     // Prompts that carry the letter whole, a brief of it cut mid-word, and the short note.

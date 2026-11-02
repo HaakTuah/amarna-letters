@@ -59,8 +59,11 @@ export function exportJsonl(log: GameLog, parts: ExportParts = Everything): stri
     const type = typeOf(line);
     return !((type === "call" && !parts.calls) || (type === "shadow" && !parts.shadows) || (type === "audit" && !parts.audits));
   });
-  const clean = kept.map(withoutSensitiveWords);
-  return (parts.humanWords ? clean : withoutHumanWords(clean)).map((l) => l + "\n").join("");
+  // A human's words are found as he wrote them, before anything sensitive in them is taken out.
+  return (parts.humanWords ? kept : withoutHumanWords(kept))
+    .map(withoutSensitiveWords)
+    .map((l) => l + "\n")
+    .join("");
 }
 
 /**
