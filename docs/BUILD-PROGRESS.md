@@ -102,15 +102,12 @@ fixed.
   no-op `CityStarts` entry; (i) an older tablet arriving late sets a court's knowledge of a claim back. (b), the chiefs'
   lands falling in the first two seasons, is 17++'s and measured in its report.
 
-## For Haakon: review points
+## For Haakon
 
-Answered review points, and the rows of items 1 to 11c, are in `docs/archive/progress-done.md` (moved 28 October 2026,
-"The workshop check"; the review points of 11c to the improvement audit, without questions or answered, moved on 1 November 2026).
-
-| Item | Review question | Reading taken | State |
-|---|---|---|---|
-| (none open) | | | |
-
+Everything for Haakon is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Afor-haakon)
+(`for-haakon`) and [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aidea) (`idea`), by
+"Questions, readings and ideas" in `AGENTS.md`. Answered review points from before 2 November 2026:
+`docs/archive/progress-done.md`.
 
 ## Use against ignore
 
