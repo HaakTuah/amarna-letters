@@ -92,7 +92,8 @@ to Moran's, **(p)** where paraphrased.
 - <a id="09-ea-38"></a>**A neutral's denial (q):** "Men of Lukki, year by year, seize villages in my own country." (EA 38, Moran)
 - <a id="09-ea-35"></a>**Hard times (q):** "The hand of Nergal is now in my country; he has slain all the men of my country, and there is
   not a (single) copper-worker." (EA 35, Moran)
-- <a id="09-ea-32"></a>**Language (p):** Write to me in Hittite. (EA 32)
+- <a id="09-ea-32"></a>**Language (p):** Write to me in Hittite. (EA 32). EA 32 (Moran, lines 24-25): "The tablets that are brought here
+  always write in Hittite!"; Rainey: "keep writing (them) in Nesite (i.e. Hittite)"
 - <a id="09-ea-16-precedent"></a>**Precedent (p):** When my ancestor wrote to Egypt, twenty talents of gold were sent; send me as much. (EA 16). EA 16 (HIST
   1039): "When the Hanigalbatean king wrote to your father ... he sent twenty talents of gold to him"
 
