@@ -38,7 +38,7 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // <summary>One open demand per captive, known to the payer only once its rumour has arrived, and paid once.</summary>
 describe("RansomTests", () => {
@@ -65,7 +65,7 @@ describe("RansomTests", () => {
 
   // <summary>One of 's people held captive by , its master aware of it.</summary>
   function held(master: Power, jailer: Power, config: GameConfig | null = null): [GameState, Character] {
-    let s = newGame(4, config);
+    let s = smallWorld(newGame(4, config), master, jailer);
     let spy = first(s.characters, (c) => c.employer === master);
     spy.secretMaster = null;
     spy.status = "Captured";
