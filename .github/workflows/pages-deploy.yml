@@ -32,7 +32,7 @@ jobs:
           echo "Pages build type: $type"
           echo "branch=$([ "$type" = legacy ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.source.outputs.branch == 'false'
         with:
           ref: gh-pages
@@ -44,11 +44,11 @@ jobs:
           rm -rf site/.git
           [ -f site/index.html ] || { echo "gh-pages has no index.html at its root: not deploying"; exit 1; }
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         if: steps.source.outputs.branch == 'false'
         with:
           path: site
 
       - id: deployment
         if: steps.source.outputs.branch == 'false'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
