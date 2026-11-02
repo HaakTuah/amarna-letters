@@ -3,7 +3,8 @@
  * or troops, his enemies by courting the claimant". Travellers' talk that the people of a province of ours lean toward
  * another king reaches us at the roads' pace, and a script king treats that province as restless, easing what it is asked
  * (`freedom.ts`), before its offer reaches the other king and he takes it up. Talk that a rival's province leans toward
- * someone warms a script king to that claimant (`Brain.learn`). `--no-talk-play` and `--talk-play-half` ignore the talk,
+ * someone warms a script king to that claimant (`Brain.learn`); talk that one leans our way sends a spy of ours to watch it,
+ * whose reports bring its offer home (`statecraft-court.ts`). `--no-talk-play` and `--talk-play-half` ignore the talk,
  * only to measure what heeding it is worth.
  */
 import type { Power } from "@amarna/engine";
@@ -18,14 +19,26 @@ export const TalkPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me
   },
 };
 
-/** The provinces of ours that talk this season says lean toward another king. */
+/** Seasons a travellers' read of a province's unrest is acted on (a first guess). */
+const TalkHeeded = 4;
+
+/**
+ * The provinces of ours that travellers' talk, as last heard, calls restless or near revolt: talk of a people leaning
+ * toward another king is kept as such a read of the land (`SeatView.moods`), dated, until newer word replaces it.
+ */
 export function talkedAway(b: Board): string[] {
+  if (!TalkPlay.on(b.me)) return [];
+  return b.v.moods.filter((r) => r.source === "travellers" && (r.mood === "restless" || r.mood === "near revolt") && b.v.turn - r.seen <= TalkHeeded && b.ownerOf(r.province) === b.me).map((r) => r.province);
+}
+
+/** The provinces another king holds that talk this season says lean our way: where a spy of ours would bring their offer. */
+export function talkedOurWay(b: Board): string[] {
   if (!TalkPlay.on(b.me)) return [];
   const out: string[] = [];
   for (const m of b.v.inbox) {
-    if (!m.title.startsWith("Talk of ") || !m.body.includes(" lean toward ")) continue;
+    if (!m.title.startsWith("Talk of ") || !m.body.includes(" lean your way")) continue;
     const p = Board.Map.provinces.find((q) => q.name === m.title.slice("Talk of ".length));
-    if (p !== undefined && b.ownerOf(p.id) === b.me && !out.includes(p.id)) out.push(p.id);
+    if (p !== undefined && b.ownerOf(p.id) !== b.me && !out.includes(p.id)) out.push(p.id);
   }
   return out;
 }

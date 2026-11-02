@@ -18,13 +18,15 @@ valuable information for the king of the land, or his enemies." Written into "Wh
    in his service or owes his grant to him carries it for nothing; and only a people far gone in his favour (his weight
    past its holder's by `OfferData.farGone`) pays a traveller going that way, or a free person at the court there, from
    its own purse (`Market.purse`), at the letters' fees.
-3. **On the road**: the carrier shares the letter's fate (robbed or killed, it is lost); one who sells secrets sells word
-   of it to the land's king.
+3. **On the road**: the carrier shares the letter's fate (robbed or killed, it is lost); he remembers what he carries and
+   holds it as news to sell at other courts, by their kings' order (`buy_news`).
 4. **Fades**: when the declaration ends, an offer still waiting is dropped.
 5. **Talk**: talk of the leaning reaches the power, its holder and the kings holding land beside it, at the roads' pace
    from the province; it cannot be answered.
-6. **Script kings** treat a province of theirs that talk says leans away as restless and ease it (`bots/talk.ts`,
-   `freedom.ts`), and warm to a claimant that talk says a rival's people lean toward (`Brain.learn`); `--talk-play-half`. They answer an offer, as in part C, from the season it arrives.
+6. **Script kings** treat a province of theirs that talk says leans away as restless and ease it while the talk is fresh
+   (`bots/talk.ts`, `freedom.ts`); warm to a claimant that talk says a rival's people lean toward (`Brain.learn`); and,
+   told that a province leans their way, post a spy there whose reports bring its offer home (`statecraft-court.ts`);
+   `--talk-play-half`. They answer an offer, as in part C, from the season it arrives.
 7. Rulebook (`rules-freedom.ts`), design notes 49 and 51. Tests: `offers.test.ts`.
 
 ## Readings taken
@@ -55,6 +57,10 @@ Running: `--talk-play-half` (50 games, seed 1), with the offers' signals (sent, 
 
 ## The review
 
-Codex (`@codex review`) and the design check (Fable, medium), started together.
+Codex (`@codex review`) and the design check (Fable, medium), started together. The design check, round 1: 7. It found
+the sale an unordered act of the buyer (now news sold by the buyer's order), talk that never bent and lasted one season
+(now a dated travellers' read of the land's mood), the claimant not acting on talk (now a spy sent), the README, the
+carrier's own knowledge, and the spy and lost-carrier paths untested; all fixed. Its idea: an offer riding with a
+caravan or trader as well as with persons.
 
 Questions for the owner: none.

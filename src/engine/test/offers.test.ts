@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, OfferData, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newTraits, newUnit, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
+import { Dict, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newJourney, newTraits, newUnit, Waiting, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
 import { Assert, removeAll } from "./support.ts";
 
 // Item 17++, part D (#431, the owner: "Yes, expertly, if you think it is best"): a province's offer to an absent power
@@ -70,7 +70,6 @@ describe("OfferTests", () => {
     Assert.equal(c.id, offer(s).carrier);
     Assert.true(purse.purse < 10000);
     Assert.contains(s.events, (x) => x.signal === "offer-hired" || x.signal === "offer-paid");
-    Assert.true(OfferData.farGone > 0);
   });
 
   test("An offer nobody carried is not sent once the leaning ends", () => {
@@ -80,16 +79,41 @@ describe("OfferTests", () => {
     Assert.false(s.journeys.some((j) => j.kind === "Offer"));
   });
 
-  test("A carrier who sells secrets sells word of it to the land's king", () => {
+  test("A carrier knows what he carries: he remembers it, and holds it as news to sell at other courts", () => {
     const [s, e] = offered();
     farGone(s);
     e.market("babylon").purse = 10000;
-    const c = person(s, { status: "Free", at: "Babylonia", traits: newTraits({ loyalty: 10, greed: 90, ambition: 30, courage: 50, competence: 50 }) });
-    const gold = s.treasuries.get("Babylonia").gold;
+    const c = person(s, { status: "Free", at: "Babylonia" });
     e.carryLetters();
     Assert.equal(c.id, offer(s).carrier);
-    Assert.equal(gold - OfferData.sellPrice, s.treasuries.get("Babylonia").gold);
-    Assert.contains(s.events, (x) => x.signal === "offer-sold");
+    Assert.contains(c.news, (n) => n.court === "Egypt" && n.lines.some((l) => l.includes("have sent him their offer")));
+    Assert.contains(c.memory, (m) => m.text.includes("I carry the word of the people"));
+    // Nothing taken from the land's king's treasury: he buys it only by his own order, as any news.
+    Assert.doesNotContain(s.events, (x) => x.signal === "offer-sold");
+  });
+
+  test("His spy's report from there takes the offer with it", () => {
+    const [s, e] = offered();
+    const spy = person(s, { status: "Employed", employer: "Egypt", duty: "SpyPosted", watchProvince: "babylon" });
+    const carrier = person(s, { status: "Free", at: "Babylonia" });
+    s.journeys.push(newJourney({ id: newId(s, "j"), kind: "SpyReport", departTurn: s.turn, arriveTurn: Waiting, from: "Egypt", to: "Egypt", characterId: spy.id, waitAt: "babylon", carrier: carrier.id }));
+    e.carryLetters();
+    Assert.equal(carrier.id, offer(s).carrier);
+    Assert.contains(s.events, (x) => x.signal === "offer-spy");
+  });
+
+  test("An offer whose carrier is lost on the road never arrives", () => {
+    const [s, e, d] = offered();
+    const c = person(s, { status: "Employed", employer: "Egypt", at: "Babylonia" });
+    e.startTravel(c, "Egypt");
+    e.carryLetters();
+    Assert.equal(c.id, offer(s).carrier);
+    // Robbed and killed on the road: no walk home is left for it to share.
+    removeAll(s.journeys, (j) => j.characterId === c.id && j.kind !== "Offer");
+    c.status = "Dead";
+    e.lettersGo();
+    Assert.false(s.journeys.some((j) => j.kind === "Offer"));
+    Assert.equal(OfferUnheard, d.known);
   });
 
   test("Talk reaches the land king's enemies, by the game's marks of enmity, and not every neighbour", () => {

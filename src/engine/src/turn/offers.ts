@@ -5,13 +5,12 @@
  * holder's enemies, but the offer itself is a letter waiting in the province, as a spy's report waits ("Messengers are
  * errands"). His own spy watching it reports it with his reports; a man of his going that way carries it for nothing; and
  * only a people far gone in his favour, with the gold, pays a traveller going that way from its own purse, or a free person
- * at the court there to take it. A carrier knows whom he carries for and to whom, and one who sells secrets sells that to
- * the land's king. An offer nobody carries never arrives, and fades as the people's leaning does.
+ * at the court there to take it. A carrier knows whom he carries for and to whom, and may sell that as news. An offer nobody carries never arrives, and fades as the people's leaning does.
  */
 import { idiv } from "../core/num.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { OfferUnheard, type Declaration } from "../model/declarations.ts";
-import { gain, remember, type Character } from "../model/people.ts";
+import { gain, newNewsHeld, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import { newJourney, Waiting, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId } from "../model/state.ts";
@@ -25,9 +24,9 @@ import { isWalker } from "./travel.ts";
 
 /**
  * First guesses, for item 18: how far a people's lean toward a power must pass its holder's weight before it pays a
- * courier from its purse; and what the land's king pays a carrier who sells him word of it.
+ * courier from its purse.
  */
-export const OfferData = { farGone: 40, sellPrice: 20 } as const;
+export const OfferData = { farGone: 40 } as const;
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -63,6 +62,20 @@ function enemiesOf(e: TurnEngine, holder: Power, but: Power): Set<Power> {
   return new Set([...out].filter((p) => isAlive(S, p)));
 }
 
+/**
+ * A carrier knows whom he carries for and to whom (the owner: "this is also information he can pass on or sell"): he
+ * remembers it, and holds it as news to sell at any other court he stands at, by its king's order (`buy_news`), as anyone
+ * may sell what he knows; one in the claimant's own service sells it only if he would sell his master's secrets.
+ */
+function knows(e: TurnEngine, c: Character, at: string, p: Power, own: boolean): void {
+  const S = e.s;
+  const name = e.map.get(at).name;
+  remember(c, S.turn, `I carry the word of the people of ${name} to the court of ${p}: they lean his way and offer themselves to him.`);
+  if (own && !sellsSecrets(c)) return;
+  c.news = [...c.news.filter((n) => n.court !== p || !n.lines.some((l) => l.startsWith(`The people of ${name} `))), newNewsHeld({ court: p, turn: S.turn, lines: [`The people of ${name} lean toward ${p} and have sent him their offer.`] })];
+  logEvent(S, "letter", `${c.name} knows of the offer he carries, and may sell it.`, [], "offer-news");
+}
+
 /** The province an offer is from: written first in its letter. */
 const provinceOf = (j: Journey): string => (j.text ?? "").split("|")[0];
 
@@ -81,6 +94,8 @@ P.sendOffer = function (d, holder, text) {
   ];
   for (const [p, words] of told) {
     const seasons = this.travelTurnsBetween(d.province, this.courtAt(p));
+    // Talk bends as it travels: its holder keeps it as a travellers' read of the land's mood, dated, no more than restless.
+    if (p === holder) this.readMood({ power: p, province: d.province, mood: "restless", seen: S.turn, known: S.turn + 1 + (Number.isFinite(seasons) ? seasons : 1), source: "travellers" });
     S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + 1 + (Number.isFinite(seasons) ? seasons : 1), from: p, to: p, news: "Realm", text: `Rumor|Talk of ${name}|${words}` }));
   }
   logEvent(S, "declare", `Talk of ${name}'s leaning toward ${d.power} spread.`, [], "offer-talk");
@@ -105,6 +120,8 @@ P.carryOffer = function (letter) {
   if (report !== null) {
     letter.carrier = report.carrier;
     letter.border = report.border;
+    const c = findCharacter(S, report.carrier);
+    if (c !== null) knows(this, c, at, p, c.employer === p);
     logEvent(S, "letter", `The offer of ${this.map.get(at).name}'s people went to ${p} with its spy's reports.`, [], "offer-spy");
     return;
   }
@@ -159,13 +176,7 @@ P.carryOffer = function (letter) {
   letter.carrier = carrier.id;
   letter.fee = 0;
   logEvent(S, "letter", `${carrier.name} took the offer of ${this.map.get(at).name}'s people to ${p}.`, [], how);
-  // He knows whom he carries for and to whom, and one who sells secrets sells it to the land's king.
-  if (how !== "offer-own" && holder !== null && holder !== p && isAlive(S, holder) && sellsSecrets(carrier) && S.treasuries.get(holder).gold >= OfferData.sellPrice) {
-    S.treasuries.get(holder).gold -= OfferData.sellPrice;
-    gain(carrier, OfferData.sellPrice, "News");
-    this.tell(holder, at, "Rumor", "Word sold on the road", `${carrier.name}, carrying the word of the people of ${this.map.get(at).name} to ${p}, sold it to your men for ${formatMoney(OfferData.sellPrice)}: they offer themselves to ${p}.`);
-    logEvent(S, "letter", `${carrier.name} sold ${holder} word of the offer he carried.`, [holder], "offer-sold");
-  }
+  knows(this, carrier, at, p, how === "offer-own");
 };
 
 P.offerArrives = function (j) {
