@@ -1301,3 +1301,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     Written into `AGENTS.md` ("Questions, readings and ideas", replacing "Questions and readings") and
     `docs/BUILD-PROGRESS.md` ("For Haakon" points to the issues); the same in Barkstreet Snakes, whose noted ideas
     moved to issues.
+142. **2 November 2026, 08:44 and 08:46 UTC**, in the design chat, after GitHub's secret scanning flagged as a public
+    leak the made-up Google key in a test of the export lane (`src/game/test/export.test.ts`, PR #385): "auto security
+    scan has found issues", then, to the design session's take (fake keys built when the test runs, invented names in
+    test data): "Yes, expertly." Written into `SECURITY.md` ("Test data is never real"); the same in Barkstreet Snakes.
