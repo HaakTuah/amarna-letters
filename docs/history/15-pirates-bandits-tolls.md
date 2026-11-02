@@ -254,15 +254,15 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
 
 ### What policing cost
 
-- <a id="15-policing-cost"></a>**No court counts it** [S]. What is on record is size, not cost: tens of soldiers in a vassal town (EA 289, 244),
-  a corps of Medjay at the capital under one chief (Mahu's tomb; their numbers unknown [S]), a chain of about twenty
+- <a id="15-policing-cost"></a>**No court counts it** [S]. What is on record is size, not cost: tens of soldiers in a vassal town (EA 289, 244; EA 244, Moran: "a garrison of 100 men to guard his city"),
+  a corps of Medjay at the capital under one chief (Mahu's tomb, where fifteen run in one scene; their numbers unknown [S]), a chain of about twenty
   forts on the Ways of Horus about 1290 (see 12) [A, later].
 - **How it was paid** [B]: soldiers in rations and land (see 11, "Pay"), garrisons fed by the town they guarded
   (EA 324-325), the Medjay as state servants on rations [B: Deir el-Medina's Medjay, later, drew rations like the
   workmen]. **Reading [G]:** policing is paid as everything built is ("Paid in gold or in labour"), in men taken from
   the province's levy and their food, with gold as the alternative.
 - <a id="15-police-start"></a>**Start from** [G]: a province's police at the low end of a garrison's range, **20 men for a province on a main road
-  and 50 for one on the frontier or in bandit country**, the size of the garrisons the vassals asked for (EA 289); each
+  and 50 for one on the frontier or in bandit country**, the size of the garrisons the vassals asked for (EA 289, Moran: "50 men as a garrison"); each
   holds banditry down in that province only, and costs its men's rations as soldiers in garrison do (see 11). Those are
   first guesses for item 18 to tune.
 
