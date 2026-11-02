@@ -63,7 +63,7 @@ const ServantPlea: ((p: LetterParts) => string)[] = [
 /** The kings' own words for the letters they send most, one form more in each rotation: a gift and a grievance. */
 const OwnGift: Partial<Record<Power, string>> = {
   Egypt: "A gift goes to my brother with my messenger; in my house gold is not counted. Your news gladdened my heart; I rejoice.",
-  Babylonia: "I rejoice that my brother is well. I send a gift: weigh it, and send me one as heavy.",
+  Babylonia: "I rejoice that my brother is well. I send a gift; let yours be as heavy.",
   Mitanni: "My brother, I rejoice at your news. Here is a gift; let ours be greater than our fathers' gifts were.",
   Assyria: "Here is a gift from Assyria, sent as a Great King sends. Ashur has kept my brother well, and I rejoice.",
   Hatti: "Take this gift, my brother, and let my messenger come home quickly. I rejoice at the word he brought me.",
@@ -100,7 +100,7 @@ export const Letter = {
   alliance: (p: LetterParts): string =>
     L(p, "alliance", [
       () => "There has been peace between us, as there should be between brothers. Let us swear a closer oath: whoever is my enemy is yours, and whoever is yours is mine.",
-      () => "Between us there has been peace, my brother. Let Shamash witness a closer oath: that whoever rises against one of us rises against both.",
+      () => "Between us there has been peace, my brother. Let Shamash witness a closer oath: that the enemy of one shall be the enemy of both.",
     ]),
   peace: (p: LetterParts): string =>
     L(p, "peace", [
@@ -165,8 +165,8 @@ export const Letter = {
     ]),
   accuse: (p: LetterParts): string =>
     L(p, "accuse", [
-      (x) => `The gold your messenger brought me was ${x.amount} shekels light of the inventory you sealed. Did your hand hold it back, or his?`,
-      (x) => `I had your gold weighed against the inventory you sealed, and ${x.amount} shekels were missing. Your messenger knows where they are.`,
+      (x) => `The gold your messenger brought me was ${x.amount} shekels light of the inventory you sealed. Did your hand hold it back, or did your messenger lie to you and to me?`,
+      (x) => `I had your gold weighed against the inventory you sealed, and ${x.amount} shekels were missing. Your messenger lied to you and to me, or your hand was close.`,
     ]),
   support: (p: LetterParts): string =>
     L(p, "support", [
@@ -188,7 +188,7 @@ export const Letter = {
   offerBond: (p: LetterParts): string =>
     L(p, "offer", [
       (x) => `Serve me, and pay me ${x.amount} shekels each year, and I will guard your land as my own.`,
-      (x) => `Take me for your lord. For ${x.amount} shekels a year my chariots will guard your towns, and no enemy will take them.`,
+      (x) => `Accept me as your lord. For ${x.amount} shekels a year my chariots will guard your towns as they guard mine.`,
     ]),
   submit: (p: LetterParts): string =>
     L(p, "submit", [
@@ -210,13 +210,13 @@ export const Letter = {
     ),
   forged: (p: LetterParts): string =>
     L(p, "forged", [
-      (x) => `My brother, see what ${x.names} have sealed in secret. Here is the tablet itself. Read it, and weigh the friendship they offer you.`,
+      (x) => `My brother, see what ${x.names} have sealed in secret. Here is the tablet itself. Read it, and see what friendship they offer you.`,
       (x) => `My brother, this tablet was sealed in secret by ${x.names}. I send it to you whole. Read it, and judge their friendship yourself.`,
     ]),
   broken: (p: LetterParts): string =>
     L(p, "broken", [
       (x) => `${x.names} sealed this tablet with me before the gods, and broke it. Here is his seal; read it. Stand with me, and he will answer for that oath.`,
-      (x) => `Here is the tablet ${x.names} sealed with me before the gods. He broke it. Here is his seal, and here is his oath; stand with me against him.`,
+      (x) => `Here is the tablet ${x.names} sealed with me before the gods, and then broke. Here is his seal, and here is his oath; stand with me against him.`,
     ]),
 };
 
@@ -236,7 +236,7 @@ const Closings: Partial<Record<Power, readonly string[]>> = {
     "The house of Egypt's friend never lacks for gold.",
   ],
   Babylonia: [
-    "A Great King's gift is weighed by Great Kings.",
+    "A Great King's gift is judged by Great Kings.",
     "A small gift shames the king who sends it.",
     "My father's gifts were never counted out by the handful.",
     "Let the gifts between us be such as kings send.",
@@ -257,7 +257,7 @@ const Closings: Partial<Record<Power, readonly string[]>> = {
     "My chariots are many, and they ride for my friends.",
     "I do not leave my friends to stand alone.",
     "Ask the kings who stood with Hatti what my friendship was worth.",
-    "My friend's enemy will meet my chariots.",
+    "No friend of Hatti has ever stood alone.",
   ],
   Arzawa: [
     "Write to me in my own tongue; my friends do.",
@@ -287,7 +287,7 @@ export const Audience = {
   noGreatKing: ["And you deny me the title of Great King. My scribes have marked it.", "Nor am I called Great King. Let your lord think on that."],
   nameFirst: ["You put your own name before mine.", "Your lord writes his own name before mine."],
   modest: ["Your lord writes modestly to a Great King. It is well.", "Your lord knows how to write to a Great King."],
-  lightGold: ["Your lord sends light gold to a Great King.", "Either your lord's hand is close, or his messenger's is quick."],
+  lightGold: ["My scales say your lord sends light gold to a Great King.", "Either your lord's hand is close, or his messenger's hands are heavy with my gold."],
   smallGift: ["I have received your gift. It is small, for a Great King.", "Your gift has come. A Great King sends more.", "This gift is light for a Great King to send."],
   thanks: ["I have received your gift, and I thank my brother.", "The gift has come, and it pleases me; my brother is generous.", "My brother's gift has come, and I am glad of it."],
   copy: ["I have seen the tablet you show me. Whoever breaks oaths, or forges them, I will know him again.", "I have read the tablet you bring. I will know who made it."],

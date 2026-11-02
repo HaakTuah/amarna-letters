@@ -20,9 +20,18 @@ letters, customs and vocabulary" (`docs/intent/world-and-history/voice-of-the-ag
   (`pleasIn`); "my weighers found only X." is parsed (`Weighed`). Every new form was checked against the line it
   replaces with a script: the same warm and cold words, the same threats, the plea's sentence kept. The sealed tablets'
   texts, the mandates (requests a model reads), the two bribe asks and Finkel's parody are unchanged.
+- **Codex's review found three more readers** that the first check missed: the signals count accusations and blamed
+  messengers in the letters (`TextKit.isAccusation`, `blamesMessenger`), a thieving envoy hides the host's sentences
+  that speak of weighing (`TextKit.speaksOfWeighing`), and the character checks look for any threat (`TextKit.isThreat`).
+  The forms were fixed to read alike for them too, and the check became a test (below), so a later rewrite cannot drop
+  one unseen. A test that had been loosened to "walls" checks the promised sally again.
 - **The guard**, `src/game/test/letter-shapes.test.ts`: three script kings play ten seasons of the small world, and no
   sentence's shape (names and numbers blanked) may be in more than half of one king's letters, or of his words in
-  audience. It failed on the old text (Babylonia's closing line in 83% of its letters) and passes on the new.
+  audience. It failed on the old text (Babylonia's closing line in 83% of its letters) and passes on the new. Beside it,
+  "Every form of a line reads to the script kings as its first form does": every form of every letter, audience line,
+  answer to a plea and closing line, for every sender and option, gives the same warm and cold words (now exported from
+  `brain.ts` as `Warmth`), threats both ways, plain threats, weighing sentences, accusation and blamed messenger as its
+  first form. It fails when one is planted that drops "lied to you and to me".
 
 ## The review (fresh eyes, Opus at high effort; given only the text and the brief)
 

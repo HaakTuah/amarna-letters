@@ -151,7 +151,7 @@ describe("SiegePlayTests", () => {
       (d) => d.to === "Mitanni",
     );
     // Its words vary by season (voices.ts); the ally finds the siege in them below, and the walls' sally is promised.
-    Assert.true(/walls|come out/.test(plea.letter), plea.letter);
+    Assert.true(/come out|send out men|walls will open/.test(plea.letter), plea.letter);
     Assert.equal(0, plea.gold);
     // The ally reads it, as it would a model king's words.
     let b = new Board(Views.for(s, "Mitanni"));
