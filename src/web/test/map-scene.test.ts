@@ -12,6 +12,7 @@ import {
   newGame,
   newLossAbroad,
   single,
+  risenOf,
   setRisen,
 } from "@amarna/engine";
 import { GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
@@ -58,16 +59,24 @@ describe("MapSceneTests", () => {
       cache.set(seed, done);
     }
     return done.then((x) => {
+      finals.set(x.runner, x.state);
       setRisen(x.state.risen);
       return x;
     });
   }
 
-  // The powers risen in play are the game's own: set them from the state read, since other games played since replaced them.
-  const living = (s: GameState): Power[] => {
-    setRisen(s.risen);
-    return AllPowers.filter((p) => isAlive(s, p));
+  /** Each game `play` gave, by its runner: its last state, whose powers risen in play are every one its seasons name. */
+  const finals = new Map<GameRunner, GameState>();
+  // A season's state read back from a game. Reading it sets the powers risen in play to that season's, but its frame may
+  // already name one risen in the same season: the whole game's are set again, as the web page sets the live game's.
+  const stateAt = (runner: GameRunner, k: number): GameState | null => {
+    const s = runner.stateAt(k);
+    const last = finals.get(runner);
+    if (last !== undefined) setRisen(last.risen);
+    return s;
   };
+  // The living powers of a season's state: only those risen by then.
+  const living = (s: GameState): Power[] => AllPowers.filter((p) => isAlive(s, p) && (risenOf(p) === null || s.risen.some((r) => r.power === p)));
   const sorted = <T>(xs: Iterable<T>): string[] => [...xs].map((x) => JSON.stringify(x)).sort();
   const entries = (m: ReadonlyMap<string, unknown>): string[] => sorted(m.entries());
 
@@ -121,7 +130,7 @@ describe("MapSceneTests", () => {
     let shown = 0;
     for (let k = 0; k < frames.length; k++) {
       let f = frames[k];
-      let state = runner.stateAt(k)!;
+      let state = stateAt(runner, k)!;
       // Its risen powers registered as they were then (item 17++ makes risings common).
       new TurnEngine(state);
       for (const p of living(state)) {
@@ -166,9 +175,7 @@ describe("MapSceneTests", () => {
     let { runner, frames } = await play(seed, 16);
     let ghosts = 0;
     for (let k = 0; k < frames.length; k++) {
-      let state = runner.stateAt(k)!;
-      // The powers risen by then, as a loaded game's are (a power risen in play has its one province for its capital).
-      setRisen(state.risen);
+      let state = stateAt(runner, k)!;
       for (const p of living(state)) {
         let scene = buildScene(frames, k, p);
         let view = Views.for(state, p);
@@ -200,7 +207,7 @@ describe("MapSceneTests", () => {
       let scene = buildScene(frames, k, null);
       Assert.equal(0, scene.fogAge.size);
       Assert.equal(
-        runner.stateAt(k)!.units.length,
+        stateAt(runner, k)!.units.length,
         scene.units.reduce((n, u) => n + u.count, 0),
       );
       Assert.doesNotContain(scene.units, (u) => u.ghost);
@@ -213,7 +220,7 @@ describe("MapSceneTests", () => {
     for (let k = 0; k < frames.length; k++) {
       let f = frames[k];
       Assert.equal(entries(f.walls), entries(buildScene(frames, k, null).walls));
-      for (const p of living(runner.stateAt(k)!)) {
+      for (const p of living(stateAt(runner, k)!)) {
         let walls = buildScene(frames, k, p).walls;
         Assert.equal(entries(f.knownWalls.get(p)!), entries(walls));
         for (const id of [...f.sight.get(p)!].filter((id) => !WorldMap.default.get(id).isSea)) Assert.equal(f.walls.get(id) ?? 0, walls.get(id) ?? 0);
@@ -227,7 +234,7 @@ describe("MapSceneTests", () => {
   test("A court draws a drought only where it saw the land, as it was then, and god view draws it everywhere", async () => {
     let { runner, frames } = await play(7, 16);
     let k = frames.length - 1;
-    let p = living(runner.stateAt(k)!)[0];
+    let p = living(stateAt(runner, k)!)[0];
     let land = WorldMap.default.landProvinces.map((x) => x.id);
     let inSight = land.find((id) => frames[k].sight.get(p)!.has(id))!;
     let out = land.filter((id) => frames.every((f) => !f.sight.get(p)!.has(id)));
@@ -255,7 +262,7 @@ describe("MapSceneTests", () => {
     let bands = 0;
     let battles = 0;
     for (let k = 1; k < frames.length; k++) {
-      let state = runner.stateAt(k)!;
+      let state = stateAt(runner, k)!;
       Assert.equal(sorted(state.bands.map((b) => b.province)), sorted(buildScene(frames, k, null).bands.map((b) => b.province)));
       for (const p of living(state)) {
         let scene = buildScene(frames, k, p);
@@ -276,7 +283,7 @@ describe("MapSceneTests", () => {
   test("A court draws what is built in its own land as it stands and elsewhere as it last saw it", async () => {
     let { runner, frames } = await play(7, 16);
     let k = frames.length - 1;
-    let p = living(runner.stateAt(k)!)[0];
+    let p = living(stateAt(runner, k)!)[0];
     let land = WorldMap.default.landProvinces.map((x) => x.id);
     let own = land.find((id) => frames[k].owner.get(id) === p)!;
     let out = land.filter((id) => frames[k].owner.get(id) !== p && frames.every((f) => !f.sight.get(p)!.has(id)));
@@ -308,7 +315,7 @@ describe("MapSceneTests", () => {
     let k = frames.length - 1;
     let god = buildScene(frames, k, null).memory;
     let memorials = 0;
-    for (const p of living(runner.stateAt(k)!)) {
+    for (const p of living(stateAt(runner, k)!)) {
       let seat = buildScene(frames, k, p);
       // Every battlefield the court remembers is one god view remembers, with no more battles there.
       for (const [id, b] of seat.memory.memorials) {
@@ -336,7 +343,7 @@ describe("MapSceneTests", () => {
     let { runner, frames } = await play(7, 16);
     let drawn = 0;
     for (let k = 1; k < frames.length; k++)
-      for (const p of [null, ...living(runner.stateAt(k)!)]) {
+      for (const p of [null, ...living(stateAt(runner, k)!)]) {
         let scene = buildScene(frames, k, p);
         for (const markup of [seasonLayer(scene), roadsLayer(scene), worksAtCities(scene), memoryLayer(scene), lifeLayer(scene), ...scenesOf(frames[k - 1], frames[k], p).map(sceneMarkup)]) {
           Assert.false(markup.includes("undefined") || markup.includes("NaN"), markup.slice(0, 120));
@@ -350,7 +357,7 @@ describe("MapSceneTests", () => {
     let { runner, frames } = await play(7, 16);
     for (let k = 0; k < frames.length; k++) {
       // The state as it stood then, its risen powers registered as they were (a power rising later is not yet one).
-      const then = runner.stateAt(k)!;
+      const then = stateAt(runner, k)!;
       new TurnEngine(then);
       let again = frameFrom(then, k, k > 0 ? frames[k - 1] : null);
       let live = frames[k];
@@ -369,10 +376,10 @@ describe("MapSceneTests", () => {
   test("Every move of a season is in the god view and a court draws only what it saw", async () => {
     let { runner, frames } = await play(3, 16);
     for (let k = 1; k < frames.length; k++) {
-      let state = runner.stateAt(k)!;
+      let state = stateAt(runner, k)!;
       let god = buildScene(frames, k, null);
       // Every order seen by a court standing as the season began is among the season's moves.
-      for (const p of living(runner.stateAt(k - 1)!))
+      for (const p of living(stateAt(runner, k - 1)!))
         for (const o of state.lastSeen.tryGet(p) ?? [])
           Assert.contains(frames[k].moves, (m) => m.power === o.power && m.from === o.province && m.order === o.order);
       for (const p of living(state)) {
@@ -388,7 +395,7 @@ describe("MapSceneTests", () => {
     let { runner, frames } = await play(seed, 16);
     let captures = 0;
     for (let k = 1; k < frames.length; k++) {
-      let state = runner.stateAt(k)!;
+      let state = stateAt(runner, k)!;
       let prev = frames[k - 1];
       let god = buildScene(frames, k, null);
       for (const c of god.captures) {
@@ -427,7 +434,7 @@ describe("MapSceneTests", () => {
   test("A life read in a court holds only the messages that court sent or heard", async () => {
     let { runner, frames } = await play(7, 16);
     let k = frames.length - 1;
-    let state = runner.stateAt(k)!;
+    let state = stateAt(runner, k)!;
     let read = 0;
     let received = 0;
     for (const p of living(state)) {

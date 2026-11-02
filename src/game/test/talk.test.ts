@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import { TurnEngine, Views, newDeclaration, newGame, newGameConfig, notify } from "@amarna/engine";
+import { leaderRules } from "@amarna/llm";
 import { Board } from "../src/bots/board.ts";
 import { talkedAway, talkedOurWay, TalkPlay } from "../src/bots/talk.ts";
 import { Assert } from "../../engine/test/support.ts";
@@ -31,5 +32,11 @@ describe("TalkPlayTests", () => {
     } finally {
       TalkPlay.off = false;
     }
+  });
+
+  test("The rulebook says whom talk of a leaning reaches: the claimant, the land's king and his enemies, not his neighbours", () => {
+    const rules = leaderRules(false, newGameConfig());
+    Assert.contains("its holder and its holder's enemies (those whose troops stand in his land without his leave", rules);
+    Assert.false(rules.includes("the kings beside it"));
   });
 });

@@ -192,7 +192,7 @@ describe("OfferTests", () => {
     removeAll(s.units, (u) => u.province === theirs);
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: theirs }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Fleet", province: theirs }));
-    s.grants.push(newGrant({ grantor: "Babylonia", grantee: "Assyria", kind: "basing", province: theirs, from: s.turn - 1 }));
+    s.grants.push(newGrant({ grantor: "Babylonia", grantee: "Assyria", kind: "basing", province: theirs, sinceTurn: s.turn - 1 }));
     const d = newDeclaration({ province: "babylon", power: "Egypt" });
     s.declarations.push(d);
     e.sendOffer(d, "Babylonia", "The people declare for you.");
