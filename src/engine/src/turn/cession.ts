@@ -36,7 +36,7 @@ P.realmCeded = function (p, c) {
   const S = this.s;
   const name = this.map.get(c.province).name;
   if (S.owner.getOrDefault(c.province, null) !== p) {
-    this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it after movement.`, "you no longer held it", true);
+    this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it after movement.`, "you no longer held it");
     return;
   }
   // The agreement must still stand as the season resolves: a tablet repudiated or carried off since gives nothing.

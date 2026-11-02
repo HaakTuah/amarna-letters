@@ -131,6 +131,9 @@ fixed.
   again ($1.13 a season live against $1.34). Report: `docs/rounds/2026-11-02-counsel-plans-from-digest.md`.
 - ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
   armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
+- ~~**Order checks reveal a far loss (bug #467)**~~ (done, #515): the checks read who holds a province as the court
+  knows it, and an order that fails on land lost out of sight answers by the road; the governor's view completes with
+  #378; the rest of the far true state is bug #517. Report: `docs/rounds/2026-11-02-known-holding.md`.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); (a), (i) and a dismissed spy's stirring gold wait for #378:
   issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.

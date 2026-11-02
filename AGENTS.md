@@ -73,8 +73,10 @@ usage allows, at the lowest cost now and later.
   better: one thing spread over several files costs every reader more. Where a family differs only in part (powers,
   characters, script kings), write the shared part once and each difference as an override. Size is never the reason,
   only a warning: a file past about 20 KB probably holds more than one thing. Splitting an existing file goes in its
-  own PR, with behaviour proven unchanged and what it saves said in the PR. The workshop check and the file-by-file
-  reviews still run.
+  own PR, with behaviour proven unchanged and what it saves said in the PR. **Step 0:** before an item or lane changes
+  a file past about 50 KB, that file is split by meaning first, in its own PR; and new work for a file past the mark
+  goes in as a new file, never as more lines in it (archive item 172). The workshop check and the file-by-file reviews
+  still run.
 - **Principles over rules** (item 134). Where a rule's letter would defeat what it is for, follow its purpose, say so
   in the PR under "Readings taken", and flag the rule to be fixed. Never for the safety rules: `SECURITY.md`, `main`,
   keys and secrets, spending, and no model games until the build order is done.
