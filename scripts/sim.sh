@@ -4,7 +4,7 @@
 # for example: scripts/sim.sh --games 50 --seed 1 --verify-replay
 # Script games only: model games need ANTHROPIC_API_KEY, which is never set here, and the builder rules forbid them.
 cd "$(dirname "$0")/.." || exit 2
-command -v node >/dev/null 2>&1 || { echo "node is missing (Node 22 or later)"; exit 2; }
+command -v node >/dev/null 2>&1 || { echo "node is missing (Node 26 or later)"; exit 2; }
 [ -d node_modules ] || npm ci --silent >/dev/null 2>&1 || { echo "npm ci failed"; exit 2; }
 LOG="${TMPDIR:-/tmp}/amarna-sim-$(date +%Y%m%d-%H%M%S).log"
 node --experimental-strip-types --no-warnings src/batch/src/main.ts "$@" >"$LOG" 2>&1

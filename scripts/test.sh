@@ -3,7 +3,7 @@
 # The full log goes to $TMPDIR/amarna-test.log (or /tmp). Extra arguments go to `vitest run`,
 # for example: scripts/test.sh src/engine/test/siege.test.ts   or   scripts/test.sh -t "besieges"
 cd "$(dirname "$0")/.." || exit 2
-command -v node >/dev/null 2>&1 || { echo "node is missing (Node 22 or later)"; exit 2; }
+command -v node >/dev/null 2>&1 || { echo "node is missing (Node 26 or later)"; exit 2; }
 [ -d node_modules ] || npm ci --silent >/dev/null 2>&1 || { echo "npm ci failed"; exit 2; }
 LOG="${TMPDIR:-/tmp}/amarna-test.log"
 { npm run --silent typecheck && npm run --silent lint && npx vitest run --reporter=default "$@"; } >"$LOG" 2>&1
