@@ -2,6 +2,8 @@ import { describe, test } from "vitest";
 import { TextKit } from "../src/bots/textkit.ts";
 import { type Power, newCharacter, newExchange, newFact, newHomeCargo, newMessageTrail, newMindRequest, newTraits } from "@amarna/engine";
 import { ScriptMind, newMindContext } from "@amarna/game";
+import { Home } from "../src/bots/envoy-words.ts";
+import { saysOneOf } from "./readings.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 // <summary>What a bribed script envoy passes on of the host's request, including the requests model hosts made in the seed-7 agent games.</summary>
@@ -84,6 +86,6 @@ describe("BribedEnvoyTests", () => {
     // Of the host itself it already says as much.
     let host = await reportOf("Speak well of Hatti to your lord.");
     Assert.doesNotContain("saw for myself", host);
-    Assert.contains("The king of Hatti is a true friend to you, my lord, and wishes only peace.", host);
+    Assert.true(saysOneOf(host, Home.bought, { L: "Hatti" }), host);
   });
 });

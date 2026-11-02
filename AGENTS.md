@@ -151,7 +151,7 @@ Waiting is lost time and, past an hour, a lost cache (item 22; the orchestrator'
 
 ```bash
 scripts/cloud-setup.sh        # cloud machines: npm packages and Playwright's Chromium, if missing
-scripts/test.sh               # type-check, lint and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test.log)
+scripts/test.sh               # type-check, lint and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test-<pid>.log, one per run)
 scripts/sim.sh --games 50 --seed 1 --verify-replay   # the batch runner (src/batch), quiet; see README.md
 scripts/usage.sh              # weekly usage, if this session can read it
 npm run dev --workspace src/web                       # the web app at http://localhost:5183

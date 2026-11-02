@@ -44,6 +44,8 @@ import {
 } from "@amarna/game";
 import { type CallSpec, Footer, Heading, type JsonAsker, type JsonObject, LlmCharacterMind, ModelIds, safeName } from "@amarna/llm";
 import { FileCharacters } from "@amarna/llm/node";
+import { Abroad, Home } from "../src/bots/envoy-words.ts";
+import { saysOneOf } from "./readings.ts";
 import { Assert, orderBy, toDict } from "../../engine/test/support.ts";
 import { File, Directory, Path, SearchOption, delay } from "./io.ts";
 
@@ -170,7 +172,8 @@ describe("FileCharacterTests", () => {
     let shadow = Assert.single(runner.log.shadows, (x) => x.key === key);
     Assert.equal(["present", c.name], [shadow.kind, shadow.name]);
     Assert.equal("zq-words of " + stem, shadow.model!.text);
-    Assert.startsWith("Great King, I bring the words of", shadow.script.text);
+    // It opens with one of the envoy's openings (envoy-words.ts), whatever the host and its lord.
+    Assert.true(Abroad.open.some((o) => new RegExp("^" + o.split("{K}")[0].replace("{T}", "[^,]+")).test(shadow.script.text)), shadow.script.text);
     Assert.contains(runner.log.shadows, (x) => x.kind === "report");
     Assert.startsWith(`${c.traits.loyalty}/${c.traits.greed}/${c.traits.competence}/${c.traits.ambition}/${c.traits.courage}`, shadow.traits);
   });
@@ -472,7 +475,7 @@ describe("FileCharacterTests", () => {
     let shadow = await mission(loyal, true, 5);
     Assert.equal(["hid-gift", "hid-skim"], shadow.model!.flags);
     Assert.empty(shadow.script.flags);
-    Assert.doesNotContain("true friend", shadow.script.text);
+    Assert.false(saysOneOf(shadow.script.text, Home.bought, { L: "Hatti" }), shadow.script.text);
 
     // A greedy, disloyal one: the model kept nothing and refused; the script keeps 6 of the 40 shekels, takes the gift
     // and hides both, and passes on what the host asked for it.
@@ -481,7 +484,7 @@ describe("FileCharacterTests", () => {
     shadow = await mission(greedy, false, 0);
     Assert.empty(shadow.model!.flags);
     Assert.equal(["hid-gift", "hid-skim"], shadow.script.flags);
-    Assert.contains("The king of Hatti is a true friend to you", shadow.script.text);
+    Assert.true(saysOneOf(shadow.script.text, Home.bought, { L: "Hatti" }), shadow.script.text);
     Assert.contains('the king told me "My armies are few"', shadow.script.text);
   });
 });

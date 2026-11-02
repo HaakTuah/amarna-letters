@@ -8,7 +8,7 @@ import { AnswerGoldShare, WorldMap, type AudienceView, type GameConfig, type Pow
 import { z } from "zod";
 import { fieldsDiffer, type Ladder } from "./ladder.ts";
 import { Replies } from "./schemas.ts";
-import { object, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import type { Stakes } from "./spending.ts";
 
 /** A king's rungs beyond its own model, as the table set them. */

@@ -6,7 +6,7 @@
  */
 import { z } from "zod";
 import { AllPowers, land, newApproachMade, newLifeChoice, type LifeChoice, type LifeView, type Power } from "@amarna/engine";
-import { object, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import { Sb } from "./text.ts";
 
 /** The request's text: its situation, the people here, the courts it could go to, and what each choice means. */

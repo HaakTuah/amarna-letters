@@ -3,7 +3,7 @@
  * it reports home. Split from `character-mind.ts`, which reads them from the model's reply.
  */
 import { clause, land, type Clause, type MessageTrail } from "@amarna/engine";
-import type { JsonObject } from "./schemas.ts";
+import type { JsonObject } from "./schema-tools.ts";
 
 /** An envoy's report of an audience as given: the king's answers word for word, and nothing of the envoy's own. */
 export function asGiven(t: MessageTrail): string {
