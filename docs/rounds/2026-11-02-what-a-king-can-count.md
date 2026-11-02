@@ -84,7 +84,10 @@ both ways in every game.
 Before round 1 (on `bee4370`, before the signals): 20 games, every replay exact, the first fall in season 4 on the
 median, none in the first two seasons.
 
-**Use against ignore** (`--count-play-half`, 50 games, seed 1): running on this head.
+**Use against ignore** (`--count-play-half`, 50 games, seed 1, after round 1): kings that count and ask an amount while the
+count is fresh, against kings that never count and always ask a share: **0.96 growth to 0.89, 30 wins to 20. Pays.**
+Uneven by power (Hatti 1.05 against 1.28, Assyria 0.36 against 0.57, Azzi 1.62 against 0.97): item 18 looks at the share
+and amount numbers together.
 
 ## The review
 

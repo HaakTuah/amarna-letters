@@ -128,6 +128,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 15 | Roads and relay stations, policing, harbours, water works, repairs under siege and razing (`--works-play-half`; baseline builds only walls) | 0.79 growth to 0.76, 23 wins to 27, in 50 games (first build, before two script patches: 0.78 to 0.79, 28 to 22) | Pays in growth, wins within noise; Assyria grows less using it (0.57 to 0.86): re-measure in item 18 |
 | 17+ | Holding back pay from safe units in a lean season (`--upkeep-play-half`) | 0.74 growth to 0.74, 25 wins to 25, in 50 games | Neither pays nor costs yet: gold saved buys little until 17++'s demands and ledger give unpaid men a memory |
 | 17+ | A realm's name claimed by a city holding a greater realm's capital, contested names given by greetings | 3 claims in 20 games | n/a: a claim gives nothing by rule; its worth is the other kings' recognition |
+| 17++ B | Counting the land (census) and asking an amount by a fresh count (`--count-play-half`) | 0.96 growth to 0.89, 30 wins to 20, in 50 games | Pays |
 | 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
 | 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |
 
