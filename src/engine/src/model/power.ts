@@ -419,7 +419,7 @@ export function land(p: Power): string {
 }
 
 /** Someone's own words the engine quotes in a notice, marked where they are written (`quoteWords`) so no renaming touches them. */
-const Marked = /\uE000([\s\S]*?)\uE001/gu;
+const Marked = /"\uE000([\s\S]*?)\uE001"/gu;
 /** Words between double quotes the engine wrote without marking them: closed before a space, a stop or the end. */
 const Quoted = /(?<=^|[\s(])"[\s\S]*?"(?=$|[\s.,;:!?)\]\u2014])/gu;
 
@@ -461,7 +461,7 @@ function renamed(text: string, r: { swaps: Map<string, string>; name: RegExp }, 
   const one = (part: string, prior: string): string =>
     part.replace(r.name, (m: string, at: number) => {
       const seen = r.swaps.get(m)!;
-      return /(?:^|[.!?\n]\s*)$/u.test(prior + part.slice(0, at)) ? seen[0].toUpperCase() + seen.slice(1) : seen;
+      return /(?:^|[.!?]["')\]]*\s+|\n\s*)$/u.test(prior + part.slice(0, at)) ? seen[0].toUpperCase() + seen.slice(1) : seen;
     });
   let out = before;
   let from = 0;
@@ -484,7 +484,7 @@ export function namedFor(viewer: Power, text: string): string {
   let out = "";
   let from = 0;
   for (const q of text.matchAll(Marked)) {
-    out += renamed(text.slice(from, q.index), r, out) + q[1];
+    out += renamed(text.slice(from, q.index), r, out) + `"${q[1]}"`;
     from = q.index + q[0].length;
   }
   return out + renamed(text.slice(from), r, out);

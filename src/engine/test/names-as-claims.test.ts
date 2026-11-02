@@ -164,6 +164,9 @@ describe("NamesAsClaims", () => {
     // Words the engine marks as quoted stay whole, even with double quotes of their writer's own inside them.
     notify(s, "Amurru", "Audience", "Audience", `Amurru said: ${quoteWords('I, the "true" king of Gubla, say Amurru is mine.')} Gubla wept.`);
     Assert.equal('Gubla said: "I, the "true" king of Gubla, say Amurru is mine." Bit-Rib-Hadda wept.', said("Amurru"));
+    // The engine's narration between two quotations is its own, and renamed: an audience whose envoy promised something.
+    notify(s, "Amurru", "Audience", "Audience", `Addu said: ${quoteWords("hello")}\nOutcome: Gubla wept.\nAddu promised on behalf of Amurru: ${quoteWords("gold")}`);
+    Assert.equal('Addu said: "hello"\nOutcome: Bit-Rib-Hadda wept.\nAddu promised on behalf of Gubla: "gold"', said("Amurru"));
     // A fallen claimant claims nothing, once a court hears of the fall: before the word comes it names him as it did.
     s.eliminated.push("Amurru");
     e.syncNames();
@@ -178,8 +181,8 @@ describe("NamesAsClaims", () => {
     Assert.equal("Amurru has fallen; Gubla stands. The Kaska lands are quiet.", said("Egypt"));
     // A name beginning with "the" is found at the head of a sentence too.
     e.claimName("Hatti", claimName("the Kaska lands"));
-    notify(s, "Hatti", "Notice", "News", "The Kaska lands are quiet; Hatti waits. Hatti is patient.");
-    Assert.equal(`${asSeenBy("Hatti", () => land("Kaska"))} are quiet; the Kaska lands waits. The Kaska lands is patient.`, said("Hatti"));
+    notify(s, "Hatti", "Notice", "News", `The Kaska lands are quiet; Hatti waits. Hatti is patient. He said: ${quoteWords("wait.")} Hatti waits.`);
+    Assert.equal(`${asSeenBy("Hatti", () => land("Kaska"))} are quiet; the Kaska lands waits. The Kaska lands is patient. He said: "wait." The Kaska lands waits.`, said("Hatti"));
     // The god view keeps the engine's names.
     Assert.equal("Amurru", land("Amurru"));
   });
