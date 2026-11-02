@@ -148,15 +148,15 @@ marked [G].
 
 | Region | Style, with attested examples | Grade |
 | --- | --- | --- |
-| <a id="06-style-egypt"></a>Egypt | Theophoric names with Amun, Ra, Ptah, Thoth, under Akhenaten often the Aten: Ramose, Ptahmose, Meryra, Paatenemheb, Tutu, Nakht, Mahu, Huya, Penre | A |
-| <a id="06-style-babylonia-akkadian"></a>Babylonia (Akkadian) | Marduk-nadin-ahhe, Nabu-, Ili-, -iddina, Enlil-kidinni, Salmu | A |
-| <a id="06-style-babylonia-kassite"></a>Babylonia (Kassite) | Kadashman-, Kurigalzu, Burna-, Kudur-, -Buriash, -Harbe, Shagarakti- | A |
-| <a id="06-style-assyria"></a>Assyria | Ashur-, Enlil-, Adad-, -uballit, -nirari, Ninurta- | A |
-| <a id="06-style-hurrian"></a>Mitanni and Kizzuwatna, Nuzi (Hurrian) | -Teshup, Akit-, Kili-, Ehli-, Agib-, Tulubri, Pirissi, women's names in -hepa (Gilukhepa, Tadukhepa) | A |
-| <a id="06-style-indo-aryan"></a>Mitanni's elite (Indo-Aryan) | Tushratta, Artatama, Shuttarna, Biridashwa; also in the Levant: Biryawaza, Biridiya | A (the names), B (Indo-Aryan) |
+| <a id="06-style-egypt"></a>Egypt | Theophoric names with Amun, Ra, Ptah, Thoth, under Akhenaten often the Aten: Ramose, Ptahmose, Meryra, Paatenemheb, Tutu, Nakht, Mahu, Huya, Penre. Davies, *Rock Tombs of El Amarna* VI (1908): "the Chamberlain, Tutu" | A |
+| <a id="06-style-babylonia-akkadian"></a>Babylonia (Akkadian) | Marduk-nadin-ahhe, Nabu-, Ili-, -iddina, Enlil-kidinni, Salmu. EA 7 (Rainey): "Salmu, my envoy" | A |
+| <a id="06-style-babylonia-kassite"></a>Babylonia (Kassite) | Kadashman-, Kurigalzu, Burna-, Kudur-, -Buriash, -Harbe, Shagarakti-. Chronicle P: "Kurigalzu, son of Kadašman-harbe" | A |
+| <a id="06-style-assyria"></a>Assyria | Ashur-, Enlil-, Adad-, -uballit, -nirari, Ninurta-. EA 16 (Rainey): "my father Ashur-nadin-ahhe" | A |
+| <a id="06-style-hurrian"></a>Mitanni and Kizzuwatna, Nuzi (Hurrian) | -Teshup, Akit-, Kili-, Ehli-, Agib-, Tulubri, Pirissi, women's names in -hepa (Gilukhepa, Tadukhepa). EA 17 (Rainey): "Kelu-Heba, my sister" | A |
+| <a id="06-style-indo-aryan"></a>Mitanni's elite (Indo-Aryan) | Tushratta, Artatama, Shuttarna, Biridashwa; also in the Levant: Biryawaza, Biridiya. EA 7 (Rainey): "Biryawaza robbed" | A (the names), B (Indo-Aryan) |
 | <a id="06-style-hittite-luwian"></a>Hatti and Arzawa (Hittite, Luwian) | Arnuwanda, Tudhaliya, -ziti, Tarhunta-, Kurunta-, -muwa, Piyama-, Uhhaziti, Mashhuiluwa | A |
-| <a id="06-style-levant"></a>Levant (Canaanite, Amorite) | Abdi-, Rib-, -Hadda/Addu, Milk-, Milkilu, Zimri-, -Baʿlu, Yapahu, Shum-Adda, Ammunira | A |
-| <a id="06-style-ugarit"></a>Ugarit (Ugaritic) | Niqmaddu, Ammistamru, Ilimilku, Yarimanu, -Baʿlu | A |
+| <a id="06-style-levant"></a>Levant (Canaanite, Amorite) | Abdi-, Rib-, -Hadda/Addu, Milk-, Milkilu, Zimri-, -Baʿlu, Yapahu, Shum-Adda, Ammunira. EA 8 (Rainey): "Shum-Hadda son of Ba'lumme" | A |
+| <a id="06-style-ugarit"></a>Ugarit (Ugaritic) | Niqmaddu, Ammistamru, Ilimilku, Yarimanu, -Baʿlu. EA 49 (Rainey): "the message of Niqmaddu" | A |
 | <a id="06-style-alashiya"></a>Alashiya (Cypriot) | Kushmeshusha, Eshuwara; the island's own language (Cypro-Minoan) is unread | C |
 | <a id="06-style-elam"></a>Elam | Kidin-Hutran, Pahir-ishshan, Attar-kittah, Humban-, Shilhak-, Kutir- | A |
 | <a id="06-style-aegean"></a>Aegeans (Linear B, Greek) | a-ki-re-u (Akhileus), e-ke-ra-wo, a-pi-me-de, te-se-u (Theseus?), women a-re-ka-sa-da-ra (Alexandra) | A |
