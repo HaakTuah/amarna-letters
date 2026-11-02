@@ -1,0 +1,39 @@
+# The versions Dependabot cannot see (.github/versions.json), checked once a month by scripts/versions.mjs. When one is
+# behind, it opens an enhancement issue for the owner, or updates the open one, so there is never more than one. A
+# version it cannot read fails the run, which shows in Actions.
+name: Versions Dependabot cannot see
+
+on:
+  schedule:
+    - cron: "41 4 3 * *" # the 3rd of each month, 04:41 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # The runner's own Node: the script uses Node's own modules only.
+      - run: node scripts/versions.mjs "$RUNNER_TEMP/versions.md"
+      - name: Open or update the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: Versions Dependabot cannot see are behind
+        run: |
+          [ -f "$RUNNER_TEMP/versions.md" ] || { echo "Every version is current."; exit 0; }
+          open=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&labels=enhancement&per_page=100" \
+            --jq '.[] | select(.title == env.TITLE and .pull_request == null) | .number' | head -n 1)
+          if [ -n "$open" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$open" -F "body=@$RUNNER_TEMP/versions.md" --silent
+          else
+            gh api "repos/$GITHUB_REPOSITORY/issues" -f "title=$TITLE" -F "body=@$RUNNER_TEMP/versions.md" \
+              -f "labels[]=enhancement" -f "assignees[]=HaakTuah" --silent
+          fi
