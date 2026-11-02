@@ -169,6 +169,15 @@ export interface DemandOrder {
   how: "share" | "amount";
   n: number;
 }
+/**
+ * Item 17++ ("taken up, never thrust on anyone"): a king's answer to a province that declared for him, or that was ceded to
+ * him by treaty: take it up (`take`), a letter accepting it, or refuse it. The word travels to the province.
+ */
+export interface AnswerOrder {
+  type: "answer";
+  province: string;
+  take: boolean;
+}
 /** Send scribes to count a province of one's own (item 17++, "A census"): paid now, their count travels home dated. */
 export interface CensusOrder {
   type: "census";
@@ -643,6 +652,7 @@ export type Order =
   | TollOrder
   | DemandOrder
   | CensusOrder
+  | AnswerOrder
   | WelcomeOrder
   | DeportOrder
   | ExpelOrder
@@ -777,6 +787,7 @@ export const trade = (from: string, to: string, grain: number, gold: number, sne
 export const ship = (fleet: string, from: string, to: string, grain: number, gold: number, trade = true): ShipOrder => ({ type: "ship", fleet, from, to, grain, gold, trade });
 export const demand = (how: "share" | "amount", n: number, province: string | null = null): DemandOrder => ({ type: "demand", province, how, n });
 export const census = (province: string): CensusOrder => ({ type: "census", province });
+export const answer = (province: string, take: boolean): AnswerOrder => ({ type: "answer", province, take });
 export const welcome = (province: string): WelcomeOrder => ({ type: "welcome", province });
 export const deport = (province: string, to: string, number: number, purse = false): DeportOrder => ({ type: "deport", province, to, number, purse });
 export const expel = (province: string, percent = 50): ExpelOrder => ({ type: "expel", province, percent });
@@ -880,6 +891,8 @@ export function describe(o: Order): string {
       return `ask ${o.how === "share" ? `${o.n}% of the harvest` : `${o.n} measures of grain a season`} of ${o.province === null ? "all your land" : named(o.province)}`;
     case "census":
       return `send scribes to count ${named(o.province)}`;
+    case "answer":
+      return o.take ? `take up ${named(o.province)}, which looks to you` : `refuse ${named(o.province)}, which looks to you`;
     case "cede":
       return `cede ${o.province} to ${o.to}`;
     case "giftUnit":
@@ -1065,6 +1078,7 @@ export const OrderSchema = poly("Order", "type", {
   fold: v("FoldOrder", () => fold("", ""), { unit: S, into: S }),
   demand: v("DemandOrder", () => demand("share", 0), { province: opt(S), how: S, n: I }),
   census: v("CensusOrder", () => census(""), { province: S }),
+  answer: v("AnswerOrder", () => answer("", false), { province: S, take: B }),
   welcome: v("WelcomeOrder", () => welcome(""), { province: S }),
   deport: v("DeportOrder", () => deport("", "", 0), { province: S, to: S, number: I, purse: B }),
   expel: v("ExpelOrder", () => expel(""), { province: S, percent: I }),

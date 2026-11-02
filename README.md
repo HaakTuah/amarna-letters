@@ -128,7 +128,10 @@ rumours, and those can be late, shaded or false.
   in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. Marching in or
   storming the walls takes nothing by itself: as each season begins a province goes, by a clear margin, to a king whose
   troops stand in it (within its walls), to a man of standing there whose following outweighs you, if he chooses to lead
-  them (he rules it in his own name), or, if it bears you nothing, to nobody. A rising against your troops is fought as a
+  them (he rules it in his own name), or, if it bears you nothing, to nobody. Nothing is thrust on you: a province whose
+  people favour you while your troops are not there declares for you, and is yours only if you take it up (the orders
+  panel's "Provinces that look to you"); refusing it costs you a little of its people's regard. Land ceded to you by
+  treaty is the same: a claim its giver holds until you take it up. A rising against your troops is fought as a
   battle, and seven men among thousands who lean away are beaten. The men of your armies keep a ledger too: pay, plunder
   and victories bind them to the hand they see, so a commander or governor who turns takes only the men who follow him. A
   far weaker unit an army falls on is destroyed even where its land held the army out. Fold a remnant into larger troops

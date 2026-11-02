@@ -280,6 +280,8 @@ interface Rival {
   power: Power | null;
   character: Character | null;
   weight: number;
+  /** A power that took up a province that declared for him, or was ceded to him (`turn/declarations.ts`). */
+  taken?: boolean;
 }
 
 P.turnsWith = function (province, c) {
@@ -333,6 +335,12 @@ P.obeySeason = function () {
   // Every province reckoned before any changes hands, so that one change does not decide another.
   const strength = new Dict<Power, number>();
   const changes: [string, Rival | null][] = [];
+  const affirmed = new Set<string>();
+  const cleared = (prov: string) => (w: number, against: number): boolean => clears(this, prov, w, against);
+  const declared = (prov: string, holder: Power | null, against: number): void => {
+    const p = this.declareIn(prov, holder, against, affirmed, cleared(prov));
+    if (p !== null) changes.push([prov, { power: p, character: null, weight: 0, taken: true }]);
+  };
   S.restless.clear();
   S.obeyed.clear();
   for (const prov of sortBy([...this.map.landProvinces], [(x) => x.id, cmpStr])) {
@@ -346,6 +354,7 @@ P.obeySeason = function () {
       const rival = bestRival(this, prov.id, null);
       const inside = rival?.power != null && (wallsOf(S, prov.id) <= 0 || (S.breached.tryGet(prov.id) ?? null) === rival.power);
       if (inside && siegeOf(S, prov.id) === null && clears(this, prov.id, rival.weight, D.floor)) changes.push([prov.id, rival]);
+      else if (siegeOf(S, prov.id) === null) declared(prov.id, null, D.floor);
       continue;
     }
     const rival = bestRival(this, prov.id, holder);
@@ -367,8 +376,11 @@ P.obeySeason = function () {
     const against = rival?.power != null ? held + weakness(this, holder, strength) : held;
     if (rival !== null && clears(this, prov.id, rival.weight, against)) changes.push([prov.id, rival]);
     else if (held < D.floor) changes.push([prov.id, null]);
+    // Item 17++: a power its people favour whose troops are not there has it only by taking it up.
+    else declared(prov.id, holder, held + weakness(this, holder, strength));
   }
   for (const [id, rival] of changes) changeHands(this, id, rival);
+  this.declarationsLapse(affirmed, new Set(changes.map(([id]) => id)));
   reports(this);
   lawlessRulers(this);
 };
@@ -449,6 +461,10 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
   const holder = S.owner.getOrDefault(id, null);
   const name = e.map.get(id).name;
   const seeing = (extra: Power[]): Power[] => [...new Set([...AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, e.map, x).has(id)), ...extra])];
+  if (rival?.taken === true && rival.power !== null) {
+    e.provinceTakenUp(id, rival.power, seeing(holder === null ? [rival.power] : [holder, rival.power]));
+    return;
+  }
   if (holder === null) {
     if (rival?.power == null) return;
     const p = rival.power;

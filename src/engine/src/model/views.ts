@@ -679,6 +679,19 @@ export const WorkViewSchema: ObjSchema<WorkView> = obj("WorkView", newWorkView, 
   decay: I,
 });
 
+/** Item 17++: a province that looks to the court, as word of it has reached it (`SeatView.declared`). */
+export interface DeclaredView {
+  province: string;
+  from: Power | null;
+  takenUp: boolean;
+}
+
+export function newDeclaredView(init: Partial<DeclaredView> = {}): DeclaredView {
+  return { province: "", from: null, takenUp: false, ...init };
+}
+
+export const DeclaredViewSchema: ObjSchema<DeclaredView> = obj("DeclaredView", newDeclaredView, { province: S, from: opt(S), takenUp: B });
+
 /** Item 13: one of the court's governorships, as the court knows it. */
 export interface GovernorView {
   province: string;
@@ -892,6 +905,11 @@ export interface SeatView {
   counting: string[];
   /** The people it has offered a kingship whose answer has not yet come (item 17++, part C), by id. */
   crowning: string[];
+  /**
+   * Provinces that look to it (item 17++, "taken up, never thrust on anyone"), as word of them has reached it: declared for
+   * it by their people, or ceded to it by `from`; `takenUp` once its word taking one up has reached it.
+   */
+  declared: DeclaredView[];
   /** Its caravans on the road, and its fleets in cargo service. */
   caravans: CaravanView[];
   /** Foreign markets as it last knew them (item 9+b), by province. */
@@ -1020,6 +1038,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     provinces: [],
     counting: [],
     crowning: [],
+    declared: [],
     caravans: [],
     markets: new Dict(),
     tolls: [],
@@ -1110,6 +1129,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   provinces: list(() => ProvinceEconomyViewSchema),
   counting: list(S),
   crowning: list(S),
+  declared: list(() => DeclaredViewSchema),
   caravans: list(() => CaravanViewSchema),
   markets: dict(() => MarketSeenSchema),
   tolls: list(() => TollSchema),

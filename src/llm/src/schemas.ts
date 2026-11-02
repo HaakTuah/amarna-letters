@@ -123,6 +123,8 @@ export const OtherActions = [
   "ask_share",
   "ask_amount",
   "census",
+  "take_up_province",
+  "refuse_province",
   "welcome_loose",
   "deport",
   "return_runaways",
@@ -197,7 +199,7 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, raise_army_share, raise_fleet_share, cede_province, give_unit, build, build_corvee (your province), sell_grain, buy_grain, feed_town, feed_town_in_own_name (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, ask_share (the province it applies in; empty for all your land), ask_amount (the province it applies in), census (your province to count), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season), hunt_bands_always (a province your standing hunt covers; empty for all your land), the governorships and enlist_band (the province), move_court (where your court goes)." : null),
+      str(described ? "For raise, raise_army_share, raise_fleet_share, cede_province, give_unit, build, build_corvee (your province), sell_grain, buy_grain, feed_town, feed_town_in_own_name (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, ask_share (the province it applies in; empty for all your land), ask_amount (the province it applies in), census (your province to count), take_up_province, refuse_province (a province that looks to you), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season), hunt_bands_always (a province your standing hunt covers; empty for all your land), the governorships and enlist_band (the province), move_court (where your court goes)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back), or buy_news (the court whose news you buy)." : null)],

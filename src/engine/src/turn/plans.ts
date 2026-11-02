@@ -325,6 +325,7 @@ function scheduledPlace(o: Order): string | null {
     case "hunt":
     case "census":
     case "demand":
+    case "answer":
       return o.province;
     case "caravan":
     case "trade":

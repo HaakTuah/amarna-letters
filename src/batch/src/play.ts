@@ -19,6 +19,7 @@ import {
   RemnantPlay,
   CountPlay,
   GrantPlay,
+  TakeUpPlay,
   AuditPlay,
   OutlawPlay,
   VassalPlay,
@@ -129,6 +130,9 @@ export interface BatchOptions {
   /** Script kings never grant a kingship (item 17++, part C, `--no-grant-play`), or half of them (`--grant-play-half`). */
   noGrantPlay: boolean;
   grantPlayHalf: boolean;
+  /** Script kings take up every province that looks to them (item 17++, part C, `--no-take-up-play`), or half of them (`--take-up-play-half`). */
+  noTakeUpPlay: boolean;
+  takeUpPlayHalf: boolean;
   /** Script kings play as before the improvement audit's finds (item 17++, part C, `--no-audit-play`), or half of them (`--audit-play-half`). */
   noAuditPlay: boolean;
   auditPlayHalf: boolean;
@@ -245,7 +249,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.worksPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.freedomPlayHalf || o.councilPlayHalf || o.languagePlayHalf || o.upkeepPlayHalf || o.remnantPlayHalf || o.countPlayHalf || o.grantPlayHalf || o.auditPlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.worksPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.freedomPlayHalf || o.councilPlayHalf || o.languagePlayHalf || o.upkeepPlayHalf || o.remnantPlayHalf || o.countPlayHalf || o.grantPlayHalf || o.takeUpPlayHalf || o.auditPlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
@@ -270,6 +274,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   CountPlay.only = o.countPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   GrantPlay.off = o.noGrantPlay || o.grantPlayHalf;
   GrantPlay.only = o.grantPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  TakeUpPlay.off = o.noTakeUpPlay || o.takeUpPlayHalf;
+  TakeUpPlay.only = o.takeUpPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   AuditPlay.off = o.noAuditPlay || o.auditPlayHalf;
   AuditPlay.only = o.auditPlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   OutlawPlay.off = o.noOutlawPlay || o.outlawPlayHalf;

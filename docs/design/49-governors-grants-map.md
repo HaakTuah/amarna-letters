@@ -2,8 +2,9 @@
 
 The item's text: `docs/intent/build-order/item-17.md`, "Then **17++**". Sections: "Governors" (War,
 `docs/intent/war-travel-and-the-seas/command-at-a-distance.md`) and "Who holds what, and the mood of the land" (Interface,
-`docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`). Report: `docs/rounds/2026-11-02-governors-grants-map.md`.
-Save version 41.
+`docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`), and "taken up, never thrust on anyone" ("Whom a
+province obeys", War, `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md`; decided 2 November 2026).
+Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 42.
 
 ## A governor over several provinces (`Governor.seat`, `seatOf`, `turn/governors.ts`)
 
@@ -29,7 +30,30 @@ Save version 41.
 - No rule of its own decides whether it pays: tribute is the vassal's order like any promise; the king's troops left in
   the land weigh as his in "Whom a province obeys".
 
-## Script kings (`game/src/bots/crowns.ts`, `audit-play.ts`)
+## Taken up, never thrust on anyone (`GameState.declarations`, `Declaration`, `turn/declarations.ts`)
+
+- **A declaration** (`declareIn`, from `obeySeason`, where no rival takes the province by the season's rule and it is not
+  a court's city or under siege): the power its people weigh most of those with no army standing in it (love, and troops
+  next door), if that clears its holder's weight as a power rival must (or the floor, for land without a ruler), declares
+  for him. Word travels to his court (`known`, `tell`); it stays with its holder. One declaration a province: a new
+  favourite replaces the old.
+- **Taken up** (order `answer` with `take`; model action `take_up_province`; the web's "Take it up"): the word travels to
+  the province (`placeOf`, `scheduledPlace`); once there, it passes to him as the next season is reckoned if it still
+  leans his way (`provinceTakenUp`: no sack, the archive taken, `obey-taken`). **Refused** (`refuse_province`): the
+  declaration goes and the ledger takes `RefusedPoints` (20, first guess) from him. **Unanswered**, or no longer leaning
+  his way, it lapses (`declarationsLapse`).
+- **A cession** (`resolveTransfers`): with the receiver's army standing in it, it passes at once, as before (his troops
+  are his taking it); otherwise it is a claim (`from`, the giver), the giver holding it until the receiver takes it up,
+  then passing if the giver's troops are gone and the receiver's weight clears the floor. It lapses if the giver no longer
+  holds it. A capital ceded whole (item 11d) is unchanged: both sealed the tablet that gives it.
+- **Troops** standing in a province were sent to take or hold it, and go by the season's rule as before; **persons**
+  choose by their stakes (the "Rising" and "Crown" requests). The seat view lists `declared` from when word reaches it.
+
+## Script kings (`game/src/bots/crowns.ts`, `audit-play.ts`, `declarations.ts`)
+
+- **Taking up:** land ceded is taken up; a declaration is taken up unless its holder is a friend (`Brain.isFriend`) or it
+  lies more than three courier seasons from the court (`FarSeasons`, first guess), which are refused at once.
+  `--no-take-up-play`, `--take-up-play-half` take up everything.
 
 - **Grants:** a governor four seasons in office, over provinces with no army of ours, not the court's: keep = a year's
   yield less what a share hides at the count's age and distance (`hiddenPercent`), halved where his letters call the land

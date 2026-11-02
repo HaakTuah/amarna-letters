@@ -38,6 +38,7 @@ import {
   fold,
   demand,
   census,
+  answer,
   welcome,
   expel,
   deport,
@@ -506,6 +507,10 @@ function other(x: Node): Order | null {
       return demand("amount", amount, pr !== null ? province : null);
     case "census":
       return census(province);
+    case "take_up_province":
+      return answer(province, true);
+    case "refuse_province":
+      return answer(province, false);
     case "welcome_loose":
       return welcome(province);
     case "expel_mouths":

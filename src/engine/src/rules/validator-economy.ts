@@ -110,6 +110,18 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       return null;
     }
 
+    // Item 17++ ("taken up, never thrust on anyone"): a province that declared for the king, or was ceded to him, as he knows it.
+    case "answer": {
+      if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
+      const name = Map.get(order.province).name;
+      const d = S.declarations.find((x) => x.province === order.province && x.power === power && x.known <= S.turn);
+      if (d === undefined) return `${name} has not declared for you, nor been ceded to you`;
+      if (d.takenUp) return `you have already taken up ${name}`;
+      if (taxesSet.has(`answer:${order.province}`)) return `you had already answered ${name} this season`;
+      taxesSet.add(`answer:${order.province}`);
+      return null;
+    }
+
     // Item 10+b: people in a king's hands.
     case "welcome":
     case "expel":

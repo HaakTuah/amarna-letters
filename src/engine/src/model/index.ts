@@ -24,6 +24,7 @@ export * from "./works.ts";
 export { type Word, newWord, WordSchema, noteMarket, noteTolls } from "./word.ts";
 export * from "./land.ts";
 export * from "./counts.ts";
+export * from "./declarations.ts";
 export * from "./money.ts";
 export * from "./life.ts";
 export * from "./doors.ts";

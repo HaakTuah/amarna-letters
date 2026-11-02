@@ -10,6 +10,7 @@ import {
   enlist,
   govern,
   crown,
+  answer,
   mandateOrder,
   mandateText,
   moveCourt,
@@ -283,6 +284,25 @@ export function CommandSection({ c }: { c: OrdersContext }) {
         </button>
       </div>
       {v.crowning.length > 0 && <small>A kingship offered, the answer not yet come: {v.crowning.map(name).join(", ")}.</small>}
+      {/* Item 17++: provinces that look to you, declared for you by their people or ceded to you, taken up or refused. */}
+      {v.declared.map((d) => (
+        <div key={`decl-${d.province}`} className="row" style={{ gap: ".3rem" }}>
+          <small>
+            {provinceName(d.province)}: {d.from !== null ? `ceded to you by ${powerName(d.from)}` : "its people declare for you"}
+            {d.takenUp ? "; taken up, it answers to you as the season turns if they still accept you." : ""}
+          </small>
+          {!d.takenUp && (
+            <>
+              <button className="small" onClick={() => add(answer(d.province, true))}>
+                Take it up
+              </button>
+              <button className="small" onClick={() => add(answer(d.province, false))}>
+                Refuse it
+              </button>
+            </>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

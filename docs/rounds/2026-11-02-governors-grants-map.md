@@ -7,8 +7,10 @@ each"; "the grant of a vassal kingship under oath ... Scripts that grant are pla
 map shows it ... three steps of each power's colour ... the mood of the land as a view of its own"; and the audit's
 script-king finds (`docs/rounds/2026-10-31-improvement-audit.md`, finds 3, 3b, 4's script side, 9 and 11). Sections:
 "Governors" (War, `docs/intent/war-travel-and-the-seas/command-at-a-distance.md`) and "Who holds what, and the mood of the
-land" (Interface, `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`). Save version 40 so far (part
-B's); the governor's seat is a new field, so part C's PR takes save version 41.
+land" (Interface, `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`); and "every change of hands is
+taken up, never thrust on anyone" (War, "Whom a province obeys", `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md`;
+decided 2 November 2026, Haakon: "Yes ro absolutely all pt these! Extra expertly expertly!"; the item's text: "built in part C,
+or in a part of its own if part C has merged"). Save version 42 (the governor's seat, then the declarations).
 
 ## Built
 
@@ -34,6 +36,17 @@ B's); the governor's seat is a new field, so part C's PR takes save version 41.
    and the mood of the land (the ◐ button). Test: `web/test/map-holding.test.ts`.
 9. **The audit's finds 3, 3b and 4's script side** (`bots/audit-play.ts`, `statecraft-strategy.ts`,
    `statecraft-letters.ts`); `--audit-play-half`.
+10. **Taken up, never thrust on anyone** (`GameState.declarations`, `turn/declarations.ts`; design note 49): a province
+    whose people favour a power with no army in it, clearly over its holder (or the floor, without one), declares for him;
+    word reaches his court; it stays its holder's until his word taking it up (order `answer`, model actions
+    `take_up_province` and `refuse_province`, the orders panel's "Take it up" and "Refuse it") reaches it, then passes as
+    the next season is reckoned if it still leans his way. Refused, its ledger takes 20 from him; unanswered or no longer
+    leaning, it lapses. A cession is a claim the giver holds until the receiver takes it up and the giver's troops are gone
+    (his army already there takes it at once, as before). Seat view `declared`, the model's PROVINCES THAT LOOK TO YOU,
+    rulebook (UNREST AND FREE CITIES, and the cession line), README. Tests: `declarations.test.ts`.
+11. **Script kings take up what pays** (`bots/declarations.ts`): ceded land always; a declaration unless its holder is a
+    friend or it lies over three courier seasons from the court, refused at once; `--take-up-play-half` against kings
+    that take up everything.
 
 ## Readings taken
 
@@ -71,11 +84,30 @@ B's); the governor's seat is a new field, so part C's PR takes save version 41.
     the king knew; a competent player gives them too, and the engine's refusal is the news. No patch. Principle:
     "Information moves in physical time".
 
+11. **The acts of rule that take a province up**: the item names an order to take or hold it, a governor, a demand and a
+    letter accepting it. Troops standing in a province were sent to take or hold it, so they take it by the season's rule
+    as before. A governor and a demand can be given only for land one holds, so for land that looks to a king the act is
+    the letter accepting it, the order `answer`, which travels to the province as any order does. Principle: "No menus"
+    and "Information moves in physical time".
+12. **Who may be declared for**: a power with no army standing in the province, by the same weight and margin a rival
+    power must clear (or the floor, for land without a ruler); never a court's own city or a besieged one, which change
+    hands only to troops within or by the siege. Persons are never declared for: they choose by their stakes, as the
+    section says, through the "Rising" and "Crown" requests already built. Principle: "Different data, same rules".
+13. **A cession while the giver holds it**: "until then it stays with its old master", so the giver keeps the land, its
+    tax and its levies until the receiver takes it up; then the giver's officers withdraw, and it passes if his troops are
+    gone and its people accept the receiver (his weight above the floor, as land without a ruler weighs anyone). A capital
+    ceded whole (item 11d) is unchanged: both sealed the tablet that gives it, which is his taking it up. Principle: "A lever
+    and its counterweight are built together".
+14. **The script kings' sum**: taking up land from a friend breaks faith with him, and land past three seasons of road is
+    held only by its people's favour, its tax and defence coming late; both cost more than they bring, so the scripts
+    refuse them at once rather than leave them hanging. Principle: "Every feature is every seat's".
+
 ## First guesses (for item 18)
 
 Tribute asked three quarters of a year's yield; a governor four seasons in office before a script crowns him; the man's
 ambition 30; the mood steps 900 and 600; a rich king's muster: ten seasons' pay and food beyond his reserve, at most
-half his homeland in armies; recall after two restless letters within six seasons.
+half his homeland in armies; recall after two restless letters within six seasons; a refusal's entry in the ledger 20; three courier seasons as the
+farthest a script king takes up a declared province.
 
 ## Design questions
 

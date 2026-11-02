@@ -103,6 +103,7 @@ function placeOf(e: TurnEngine, p: Power, o: Order): { province: string; unit: U
     case "trade":
       return { province: o.from, unit: null };
     case "census":
+    case "answer":
       return { province: o.province, unit: null };
     case "demand":
     case "toll":
