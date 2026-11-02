@@ -1524,3 +1524,6 @@ Given in the design chat with Claude, answering the design questions of the cons
     for text a player reads, and a monthly fresh-eyes check of only the text changed since the last): "Yes, please,
     expertly!" Written into the review guidelines in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`; the same
     in Barkstreet Snakes.
+182. **2 November 2026, 22:00 UTC**, in the design chat, to the design session's takes on five ideas from the reviews
+    (#549, #550, #553 into part D, #554, #562): "Yes to all, expertly!" Written into "Follow-ups" in
+    `docs/BUILD-PROGRESS.md`.
