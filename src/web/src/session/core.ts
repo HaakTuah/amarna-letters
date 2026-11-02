@@ -26,7 +26,7 @@ import {
   type TurnSubmission,
   type GameConfig,
 } from "@amarna/engine";
-import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
+import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, realNames, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
 import { AnthropicId, BatchTransport, SdkBatchService, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { framesSince, toWire, type SeasonFrame, type WireFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
@@ -581,7 +581,7 @@ export class SessionCore {
         return this.changed();
       }
       case "export":
-        return this.post({ type: "export", id: m.id, name: `${this.gameId}.jsonl`, text: this.runner !== null ? exportJsonl(this.runner.log, m.parts) : "" });
+        return this.post({ type: "export", id: m.id, name: `${this.gameId}.jsonl`, text: this.runner !== null ? exportJsonl(this.runner.log, m.parts, realNames(this.runner.state)) : "" });
     }
   }
 }

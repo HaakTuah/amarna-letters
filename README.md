@@ -399,8 +399,10 @@ its key.
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly. The export ("Export log" in the menu)
 holds everything by default, every model call in full included; its boxes leave parts out, and unticking "Human players'
-words" blanks every text of a game a human played (models quote what they read), so the file can be shared and still
-replays. Keys, addresses, account and request ids, local paths and device details are never recorded, so never in it.
+words" blanks every text of a game a human played (models quote what they read) and turns every name made up in an
+order into a stand-in (Name-1, Name-2; real names stay), so the file can be shared and still replays. While a human
+plays, "Export log" is in the menu only when the board is open to him: "Reveal all" ticked, the game over, or his realm
+fallen. Keys, addresses, account and request ids, local paths and device details are never recorded, so never in it.
 
 ## Music and sound
 

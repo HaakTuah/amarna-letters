@@ -21,6 +21,7 @@ import {
   type TurnSubmission,
   Views,
   WorldMap,
+  claimName,
   dispatch,
   formatMoney,
   newGame,
@@ -30,10 +31,12 @@ import {
 } from "@amarna/engine";
 import {
   BlankMark,
+  NameFields,
   WordFields,
   Everything,
   exportJsonl,
   ExportFields,
+  realNames,
   type ExportParts,
   GameLog,
   GameRunner,
@@ -66,6 +69,8 @@ const Seasons = 3;
 const Mandate = "offer Zirtaqqu the river towns if he turns on his brother";
 const Letter = "the oxen of Nuribtash are counted and the ford is yours";
 const Sealed = "let the cedar of Ullazemmi pass untaxed for nine years";
+// A realm the human makes up and claims: the engine knows no such name, so the export's filter gives it a stand-in.
+const Claim = "the reed kingdom of Qirbashtu";
 const Gold = 987_659;
 const ArmyMen = 4_327;
 
@@ -98,6 +103,7 @@ class Planting extends ScriptLeader {
         mandate: Mandate,
         proposal: newTabletProposal({ text: Sealed }),
       }),
+      claimName(Claim),
     );
     return sub;
   }
@@ -483,9 +489,9 @@ function texts(read: Record<string, unknown>[]): Record<string, string[]> {
   };
 }
 
-/** Where two states differ, every string compared but where the second holds a blank. */
+/** Where two states differ, every string compared but where the second holds a blank or a made-up name's stand-in. */
 function differ(a: unknown, b: unknown, path: string): string[] {
-  if (typeof b === "string" && /[\u2580-\u259f]/.test(b)) return typeof a === "string" ? [] : [`${path}: a blank where there was no text`];
+  if (typeof b === "string" && /[\u2580-\u259f]|\bName-\d+\b/.test(b)) return typeof a === "string" ? [] : [`${path}: a blank or stand-in where there was no text`];
   if (a !== null && typeof a === "object" && b !== null && typeof b === "object")
     return [...new Set([...Object.keys(a), ...Object.keys(b)])].flatMap((k) =>
       differ((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], `${path}.${k}`),
@@ -493,8 +499,14 @@ function differ(a: unknown, b: unknown, path: string): string[] {
   return a === b ? [] : [`${path}: ${JSON.stringify(a)?.slice(0, 80)} became ${JSON.stringify(b)?.slice(0, 80)}`];
 }
 
-/** Every string of a record set to its blank: two exports are the same game in shape when these match. */
-const shape = (r: unknown): string => JSON.stringify(r, (_, v: unknown) => (typeof v === "string" ? v.replace(/\S/g, BlankMark) : v));
+/**
+ * Every string of a record set to its blank, and a name in a decision's value only as a name (it may be a stand-in): two
+ * exports are the same game in shape when these match.
+ */
+const shape = (r: Record<string, unknown>): string => {
+  const named = r.type === "decision" ? { ...r, value: JSON.parse(JSON.stringify(r.value, (k, v: unknown) => (NameFields.has(k) && typeof v === "string" ? "name" : v))) as unknown } : r;
+  return JSON.stringify(named, (_, v: unknown) => (typeof v === "string" ? v.replace(/\S/g, BlankMark) : v));
+};
 
 describe("CanaryTests", () => {
   test("No seat, model, script king or page is handed a secret, live, in past seasons or on replay", async () => {
@@ -577,7 +589,7 @@ describe("CanaryTests", () => {
   test("No export holds what is sensitive, under any filter; without human words a human seat's are gone and it still replays", async () => {
     const g = await game();
     const log = g.runner.log;
-    const human = ["Zirtaqqu", "Nuribtash", "Ullazemmi"];
+    const human = ["Zirtaqqu", "Nuribtash", "Ullazemmi", "Qirbashtu"];
     // The planted failures reached the code under test, whole, and are in the log as their kinds alone, beside a
     // character's call and its shadow; the human's words are in the log as he wrote them.
     for (const s of Sensitive)
@@ -607,7 +619,7 @@ describe("CanaryTests", () => {
         `no ${what} to blank`,
       );
     for (const parts of Filters) {
-      const text = exportJsonl(log, parts);
+      const text = exportJsonl(log, parts, realNames(g.runner.state));
       const read = records(text);
       const name = JSON.stringify(parts);
       sensitive(name, text, strings(read));
@@ -620,19 +632,24 @@ describe("CanaryTests", () => {
       Assert.equal(records(exportJsonl(log, { ...parts, humanWords: true })).map(shape), read.map(shape));
     }
     Assert.equal("", found.join("\n"));
+    // The name he made up is a stand-in, as it is wherever it appears (Engine and models, "Logging and replay").
+    Assert.contains(`{"type":"claimName","name":"Name-1"}`, exportJsonl(log, { ...Everything, humanWords: false }, realNames(g.runner.state)));
 
     // Without human words the export still replays to the same game: every string as it was, but where the replay holds a
     // blank (a text composed from blanked words may differ in its punctuation: the engine adds a full stop that a blank lacks).
-    const replay = await replayOf(GameLog.fromJsonl(exportJsonl(log, { ...Everything, humanWords: false })));
+    const replay = await replayOf(GameLog.fromJsonl(exportJsonl(log, { ...Everything, humanWords: false }, realNames(g.runner.state))));
     for (let t = 0; t <= Seasons; t++)
       Assert.equal("", differ(JSON.parse(g.runner.snapshots.get(t)!), JSON.parse(replay.snapshots.get(t)!), `season ${t}`).join("\n"));
   }, 60000);
 
-  test("A human seat has no god view while it plays, unless the table reveals all or the game is over", async () => {
+  test("A human seat has no god view and no export while it plays, unless the table reveals all, the game is over or his realm fell", async () => {
     // The page's session talks to its worker (one is started as the module loads); here nothing answers.
     const had = globalThis.Worker;
+    const asked: string[] = [];
     globalThis.Worker = class {
-      postMessage(): void {}
+      postMessage(m: { type: string }): void {
+        asked.push(m.type);
+      }
     } as unknown as typeof Worker;
     try {
       const { Session } = await import("../src/session/client.ts");
@@ -641,11 +658,18 @@ describe("CanaryTests", () => {
       s.setViewAs(null);
       Assert.false(s.canSeeAll);
       Assert.false(s.godView);
+      // Nor the export, the whole record: it is offered only when the god view is (Engine and models, "Logging and replay").
+      await s.export(Everything);
+      Assert.false(asked.includes("export"));
       for (const open of [() => s.setReveal(true), () => (s.live = { ...s.live, ended: true }), () => (s.live = { ...s.live, fallenToGod: true })]) {
         s.setReveal(false);
         s.live = { ...s.live, ended: false, fallenToGod: false };
         open();
         Assert.true(s.godView);
+        asked.length = 0;
+        // Nothing answers here, so the download is not awaited: the worker was asked for it.
+        void s.export(Everything);
+        Assert.true(asked.includes("export"));
       }
     } finally {
       globalThis.Worker = had;
