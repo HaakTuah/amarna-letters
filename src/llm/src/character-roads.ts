@@ -1,5 +1,5 @@
 /**
- * Haakon's answers to item 11b: a model chief decides raids, ships, the way back and whether to kill in a request of his
+ * The owner's answers to item 11b: a model chief decides raids, ships, the way back and whether to kill in a request of his
  * own, and a posted spy whose reports wait for a carrier decides whether to wait, pay or carry them home itself. Every
  * field is asked only where it applies, in the words of what it means ("Requests are rules too").
  */

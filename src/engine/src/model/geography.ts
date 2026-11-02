@@ -228,7 +228,7 @@ export type Water = "River" | "Rain" | "Arid";
 /**
  * Where a city drinks under siege (item 10+b, "Water too": set by where it stands, so the land and the sources decide how
  * long it can drink). Since item 11a+ each city's water comes from the water dossier (`docs/history/10-water.md`,
- * Haakon's answer to item 10+b's review): a river or canal at its walls, a spring inside its defences or a walled way
+ * The owner's answer to item 10+b's review): a river or canal at its walls, a spring inside its defences or a walled way
  * down to one, or wells reaching groundwater never fail; a spring outside the walls is cut off by the besieger, and the
  * city then drinks its cisterns, as one that never had more does: `CisternSeasons`; wells in arid ground `WellSeasons`.
  * A city on an island with no water of its own drinks what boats bring it: once its besieger's fleet holds its waters it

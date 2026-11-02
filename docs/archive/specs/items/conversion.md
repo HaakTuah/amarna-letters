@@ -1,6 +1,6 @@
 # Brief: the TypeScript conversion (item 5+, step 2 of 3)
 
-**Spec:** `docs/CONVERSION-PLAN.md`, Haakon's words, and item 5+ itself (`docs/intent/build-order/item-5plus.md`).
+**Spec:** `docs/CONVERSION-PLAN.md`, the owner's words, and item 5+ itself (`docs/intent/build-order/item-5plus.md`).
 The stack table and "Engine rules" are under Tech stack (`docs/intent/engine-and-models/tech-stack.md`). **Effort:** high.
 
 - **Parity data:** the recorded model games are in `tests/fixtures/replays/` (see its README).

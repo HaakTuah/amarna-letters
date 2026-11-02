@@ -6,7 +6,7 @@ import { cuesAt } from "../src/audio/situation.ts";
 import { schedule } from "../src/audio/schedule.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
 
-// The soundscape (Haakon, 1 November 2026): three layers, the music leading; event sounds for one seat only; both sound
+// The soundscape (the owner, 1 November 2026): three layers, the music leading; event sounds for one seat only; both sound
 // layers under the music and capped. Two hand-built frames, two powers, one province.
 function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
   return {

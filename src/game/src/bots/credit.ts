@@ -35,7 +35,7 @@ function lenders(v: SeatView): CharacterView[] {
 export function creditOrders(v: SeatView, p: Personality, gold: number, costs: number, losing: boolean, orders: Order[]): number {
   if (!MoneyPlay.on(v.power)) return 0;
   let net = 0;
-  // Haakon's answers to item 11a: carriers of its people's letters are paid on delivery only by its own standing order.
+  // The owner's answers to item 11a: carriers of its people's letters are paid on delivery only by its own standing order.
   if (!v.payCarriers) orders.push(payCarriers(true));
   // A tablet of someone else's debt in its archive (from a captive, the dead or a fall) is sold for half what is left to a
   // lender at its court, who has the gold; a borrower at its court is left to repay it there.
@@ -79,7 +79,7 @@ export function creditOrders(v: SeatView, p: Personality, gold: number, costs: n
       break;
     }
   }
-  // Haakon's answers to item 11a, a hard act at its real cost: a king who cannot pay a season of his costs, and finds no
+  // The owner's answers to item 11a, a hard act at its real cost: a king who cannot pay a season of his costs, and finds no
   // lender, seizes the largest hoard kept in his city, if a greedy king or one about to fall; people hear of it.
   if (!borrowed && costs > gold + net && (losing || p.greed > 0.6)) {
     const hoard = [...v.known].filter((c) => (c.hoardHere ?? 0) >= 50).sort((a, b) => b.hoardHere! - a.hoardHere! || a.id.localeCompare(b.id))[0];

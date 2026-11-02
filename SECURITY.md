@@ -80,6 +80,15 @@ vector and security concerns".
    A check on every pull request, Dependabot's included, fails one that adds a package, or updates one, to a licence
    off its list; one the owner wants anyway is a `question` issue, never merged on its own. The owner's own code
    carries no licence file, by his choice: all rights reserved. Never add one.
+11. **Nothing personal, ever** (archive: 2 November 2026). No file, commit message, PR, issue, comment, log or picture
+   holds personal information about the owner or anyone in his life: no names (he is "the owner"), no profession,
+   employer or workplace, no family, home or age, no health, memberships or money, and nothing else about his life
+   outside this project. His words in the archive are kept word for word except such details, which are left out as
+   "[…]". The one exception is the GitHub account in the repository's own address and links. Test data uses made-up
+   names. A check on every pull request (`.github/workflows/personal-terms.yml`) fails one whose files, new commit
+   messages, title or description hold a term from the Actions secret `PERSONAL_TERMS`, kept out of the repository
+   since the list itself is personal; it prints where, never what. Reviewers report a personal detail as P1. Commits
+   made before this rule keep what they hold: rewriting history is irreversible, and the owner's to decide.
 
 ## Reporting a weakness
 

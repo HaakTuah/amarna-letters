@@ -87,7 +87,7 @@ describe("BandTests", () => {
     const b = e.headRises(prov, 80, "crowd", e.r("test"));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: prov, home: prov, men: 5000, food: 20 }));
     s.turn++;
-    // No order: the army leaves it alone (Haakon's answers to item 11b).
+    // No order: the army leaves it alone (the owner's answers to item 11b).
     new TurnEngine(s).bandsSeason();
     Assert.false(s.events.some((x) => x.signal === "band-hunted"));
     b.province = prov;
@@ -207,7 +207,7 @@ describe("BandTests", () => {
     const near = new Set([prov, ...Map.neighbors(prov)]);
     s.units = s.units.filter((u) => !(u.power === "Egypt" && near.has(u.province)));
     Assert.true(e.chiefKills(b, servant, prov));
-    // Haakon's answers to item 11b+: every traveller is a witness who can name his robbers.
+    // The owner's answers to item 11b+: every traveller is a witness who can name his robbers.
     Assert.true(e.chiefKills(b, free, prov));
     // A standing hunt over the land, once talk of it has reached him: he lets the witness go.
     s.hunts.push({ power: "Egypt", provinces: [], since: s.turn - 20, until: null });

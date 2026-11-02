@@ -1,5 +1,5 @@
 /**
- * Every level of what is built, on the map (build order item 19, "Every level of what is built shows"; Haakon: "I think
+ * Every level of what is built, on the map (build order item 19, "Every level of what is built shows"; the owner: "I think
  * every investment level infrastructure reaches should reflect on the map. Docks appear. Roads of the wuality appears.
  * Walls. Etc!"). The levels are the engine's (item 15, `GameState.built`); the look of each is the walls dossier's
  * (`docs/history/12-walls-roads-harbours.md`): a track nobody keeps, a kept track, a road with bridges, wells and posts, a

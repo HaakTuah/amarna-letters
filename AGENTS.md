@@ -90,7 +90,8 @@ usage allows, at the lowest cost now and later.
 - **A change a player sees updates the README** (item 86), in the same PR, as the rulebook and seat view already are.
   Each milestone PR says in one line whether the README is current, and fixes it if not.
 - **The owner's words are kept, in the archive.** Quote each instruction he gives word for word in the item's report and
-  in `docs/archive/instructions.md`, numbered and dated. A standing rule goes into the section of this file where it
+  in `docs/archive/instructions.md`, numbered and dated, leaving out any personal detail as "[…]" (`SECURITY.md`, point
+  11: nothing personal, ever). A standing rule goes into the section of this file where it
   applies (or `CLAUDE.md`, if only Claude uses it), said as briefly as it can be, with what it is for and its archive
   item: never as a dated entry or a quote here, since every session pays to read this file. It moves into the design
   document's builder rules when the copy is next refreshed.

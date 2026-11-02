@@ -1,4 +1,4 @@
-// The soak test of item 17a: watches a whole Free game (script kings) at the top speed in the built app, as Haakon did when
+// The soak test of item 17a: watches a whole Free game (script kings) at the top speed in the built app, as the owner did when
 // the page went white, and records as it goes the season reached, the page's and the worker's heap, the frame times and
 // the time each season took. Any page error, console error or blank page is reported with the season it came at.
 //   node src/web/soak.mjs [--phone] [--throttle 4] [--heap 512] [--seed 1] [--minutes 30] [--log <file>] [--site <dir>] [--profile]

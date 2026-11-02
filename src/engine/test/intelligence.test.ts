@@ -180,7 +180,7 @@ describe("IntelligenceTests", () => {
     let e = begin(s);
     e.resolve(orders("Mitanni", captive(spy.id, "Ransom", 90)));
     Assert.contains(s.tasks, (t) => t.kind === "RansomDemand" && t.requester === "Hatti");
-    // Its word waits at Mitanni's court for a carrier (Haakon's answers to item 11b): here one sets out at once.
+    // Its word waits at Mitanni's court for a carrier (the owner's answers to item 11b): here one sets out at once.
     for (const j of s.journeys.filter((x) => x.news === "Ransom" && x.waitAt !== null)) [j.waitAt, j.arriveTurn] = [null, s.turn];
     // The same seasons with no ransom paid: the captor ends with that much less (its own costs are the same either way).
     let unpaid = clone(GameStateSchema, s);

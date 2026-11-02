@@ -627,7 +627,7 @@ const SwapInventory =
   "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
 
 /**
- * Item 11a+ (Haakon's answer to item 8's review, "Full press"): a model envoy may alter the letter's clauses as a script
+ * Item 11a+ (the owner's answer to item 8's review, "Full press"): a model envoy may alter the letter's clauses as a script
  * envoy can, in the same call: leave some out, state the gift as less, add a courtesy. Asked only of a letter with clauses,
  * the gift only where one names an amount.
  */

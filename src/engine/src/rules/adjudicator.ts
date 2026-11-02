@@ -66,7 +66,7 @@ export const FullUnit = 1000;
 
 /**
  * What a unit counts in battle, in thousandths: its men against a full levy of its kind (none known counts as full); a
- * levy of more men than a full unit (Haakon's answers to item 11a+, "the king chooses how many men a levy takes, up to
+ * levy of more men than a full unit (the owner's answers to item 11a+, "the king chooses how many men a levy takes, up to
  * all") counts for more.
  */
 export function unitWeight(u: { kind: UnitKind; men: number }, full: number): number {
