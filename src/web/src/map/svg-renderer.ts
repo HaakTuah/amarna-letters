@@ -394,7 +394,8 @@ export class SvgMapRenderer implements MapRenderer {
         [...e.querySelectorAll<SVGGraphicsElement>(sel)].flatMap((x) => {
           const r = x.getBoundingClientRect();
           if (r.width <= 0 || r.height <= 0) return [];
-          // A drawn figure (a siege's tent, <use>) strokes inside its symbol, at the symbol's own scale: its box holds it.
+          // A drawn figure (a siege's tent, <use>) strokes at its symbol's own scale: under a third of a board unit past its
+          // box, too small to pad.
           if (x instanceof SVGUseElement) return [r];
           const css = getComputedStyle(x);
           return [css.stroke === "none" ? r : grown(r, ((parseFloat(css.strokeWidth) || 0) * perUnit(x, r)) / 2)];

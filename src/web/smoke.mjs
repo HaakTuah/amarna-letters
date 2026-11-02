@@ -109,7 +109,7 @@ async function namesClear(p, name) {
           const r = e.getBoundingClientRect();
           const css = getComputedStyle(e);
           const b = e.getBBox();
-          // A drawn figure (a siege's tent) strokes inside its symbol, so its box already holds it.
+          // A drawn figure (a siege's tent) strokes at its symbol's own scale: under a third of a unit past its box, too small to pad.
           const by = css.stroke === "none" || b.width <= 0 || e.tagName === "use" ? 0 : ((parseFloat(css.strokeWidth) || 0) * (r.width / b.width)) / 2;
           return new DOMRect(r.x - by, r.y - by, r.width + 2 * by, r.height + 2 * by);
         });
