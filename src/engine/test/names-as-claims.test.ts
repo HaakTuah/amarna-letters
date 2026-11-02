@@ -3,6 +3,7 @@ import {
   asSeenBy,
   claimName,
   claimantsOf,
+  dispatch,
   inboxOf,
   land,
   newGame,
@@ -119,6 +120,20 @@ describe("NamesAsClaims", () => {
     Assert.equal(6, s.namesHeard.get("Egypt").get("Amurru").sealed);
   });
 
+  // The same through the envoys: the season a tablet is sealed rides with it, and its arrival brings it to the host.
+  test("A tablet sealed before the newest greeting a court read, arriving after it, sets nothing back", () => {
+    const [s, e] = game();
+    const c = s.characters.find((x) => x.employer === "Amurru" && x.status === "Employed" && x.duty === "None")!;
+    e.dispatch("Amurru", dispatch(c.id, "Egypt", "Greetings."));
+    const j = s.journeys.find((x) => x.characterId === c.id)!;
+    Assert.equal(s.turn, j.dispatch!.sealed);
+    e.claimName("Amurru", claimName("Gubla"));
+    e.claimHeard("Egypt", "Amurru", "Gubla", s.turn + 1);
+    e.envoyArrivesAbroad(j);
+    Assert.equal("Gubla", s.namesHeard.get("Egypt").get("Amurru").name);
+    Assert.equal("Bit-Aziru", asSeenBy("Egypt", () => land("Amurru")));
+  });
+
   // Issue #417 (a): a notice names the powers as its recipient's court knows and gives them, so one name means one power
   // in all a court reads; a notice about a name itself keeps it.
   test("Notices name powers as their recipient's court does", () => {
@@ -138,6 +153,16 @@ describe("NamesAsClaims", () => {
     // What the engine quotes stays as it was written: a sealed greeting, a letter, someone's words.
     notify(s, "Amurru", "Audience", "Audience", 'The sealed greeting reads: "Say to the king of Gubla, of Amurru your servant." Amurru said: "Gubla (the city) is mine".\nOutcome: Gubla wept.');
     Assert.equal('The sealed greeting reads: "Say to the king of Gubla, of Amurru your servant." Gubla said: "Gubla (the city) is mine".\nOutcome: Bit-Rib-Hadda wept.', said("Amurru"));
+    // A fallen claimant claims nothing: he goes by his own land's name again, and the name he claimed is its own power's.
+    s.eliminated.push("Amurru");
+    e.syncNames();
+    Assert.equal("Amurru", asSeenBy("Egypt", () => land("Amurru")));
+    notify(s, "Egypt", "Rumor", "A kingdom falls", "Amurru has fallen; Gubla stands. The Kaska lands are quiet.");
+    Assert.equal("Amurru has fallen; Gubla stands. The Kaska lands are quiet.", said("Egypt"));
+    // A name beginning with "the" is found at the head of a sentence too.
+    e.claimName("Hatti", claimName("the Kaska lands"));
+    notify(s, "Hatti", "Notice", "News", "The Kaska lands are quiet; Hatti waits.");
+    Assert.equal(`${asSeenBy("Hatti", () => land("Kaska"))[0].toUpperCase()}${asSeenBy("Hatti", () => land("Kaska")).slice(1)} are quiet; the Kaska lands waits.`, said("Hatti"));
     // The god view keeps the engine's names.
     Assert.equal("Amurru", land("Amurru"));
   });

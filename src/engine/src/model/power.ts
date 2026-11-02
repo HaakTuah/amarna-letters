@@ -110,6 +110,7 @@ export function setRisen(list: readonly RisenPower[]): void {
   PowerValues.forEach((p, i) => powerIndex.set(p, i));
   for (const r of list) addRisen(r);
   byName.clear();
+  renaming.clear();
 }
 
 /** Adds a power risen in play to the registry (the game state keeps it too). */
@@ -119,6 +120,7 @@ export function addRisen(r: RisenPower): void {
   powerIndex.set(r.power, live.length);
   live.push(r.power);
   byName.clear();
+  renaming.clear();
 }
 
 /** A power risen in play, or null for one the map starts with. */
@@ -263,6 +265,10 @@ const heardBy = new Map<string, Map<string, string>>();
 let viewerNow: Power | null = null;
 /** Each court's claimants by name, as it knows them, reckoned when first asked. */
 const byName = new Map<string, Map<string, Power[]>>();
+/** Each court's renaming of the engine's words ({@link namedFor}), reckoned when first asked; null: it renames nothing. */
+const renaming = new Map<string, { swaps: Map<string, string>; name: RegExp } | null>();
+/** Whether any power claims another name, or any court has read a claim of one: else nobody renames anything. */
+let anyClaim = false;
 
 type Pairs<V> = Iterable<[string, V]>;
 
@@ -282,6 +288,8 @@ export function setNameClaims(
   for (const [court, m] of given) givenBy.set(court, new Map(m));
   for (const [court, m] of heard) heardBy.set(court, new Map([...m].map(([q, h]) => [q, h.name])));
   byName.clear();
+  renaming.clear();
+  anyClaim = claimed.size > 0 || [...heardBy.values()].some((m) => [...m].some(([q, n]) => n !== ownLand(q)));
 }
 
 /**
@@ -380,6 +388,8 @@ export function nameGivenBy(viewer: Power, name: string): Power | null {
 
 /** A power's name as `viewer`'s court knows and gives it: the name it claims, or its house where the court gives that name to another. */
 export function landFor(viewer: Power, p: Power): string {
+  // A fallen power claims nothing: it goes by its own land's name, or by its house where another still claims that name.
+  if (fallenNow.has(p)) return claimantsOf(ownLand(p), viewer).length > 0 ? house(p) : ownLand(p);
   const name = knownName(viewer, p);
   if (claimantsOf(name, viewer).length < 2) return name;
   return nameGivenBy(viewer, name) === p ? name : house(p);
@@ -404,15 +414,24 @@ const Quoted = /(?<=^|[\s(])"[\s\S]*?"(?=$|[\s.,;:!?)\]\u2014])/gu;
  * written, and a land's name joined to a word before it ("Bit-Hatti") is not a power's name and is left.
  */
 export function namedFor(viewer: Power, text: string): string {
-  if (claimed.size === 0 && ![...heardBy.values()].some((m) => [...m].some(([p, n]) => n !== ownLand(p)))) return text;
-  const swaps = new Map<string, string>();
-  for (const p of AllPowers) {
-    const seen = landFor(viewer, p);
-    if (seen !== ownLand(p)) swaps.set(ownLand(p), seen);
+  if (!anyClaim) return text;
+  let r = renaming.get(viewer);
+  if (r === undefined) {
+    const swaps = new Map<string, string>();
+    for (const p of AllPowers) {
+      const own = ownLand(p);
+      const seen = landFor(viewer, p);
+      if (seen === own) continue;
+      swaps.set(own, seen);
+      // A name that begins with "the" begins a sentence with "The".
+      if (own.startsWith("the ")) swaps.set("T" + own.slice(1), seen[0].toUpperCase() + seen.slice(1));
+    }
+    const names = [...swaps.keys()].sort((x, y) => y.length - x.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    r = swaps.size === 0 ? null : { swaps, name: new RegExp(`(?<![\\p{L}-])(?:${names.join("|")})(?![\\p{L}])`, "gu") };
+    renaming.set(viewer, r);
   }
-  if (swaps.size === 0) return text;
-  const names = [...swaps.keys()].sort((a, b) => b.length - a.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const name = new RegExp(`(?<![\\p{L}-])(?:${names.join("|")})(?![\\p{L}])`, "gu");
+  if (r === null) return text;
+  const { swaps, name } = r;
   const rename = (part: string): string => part.replace(name, (m) => swaps.get(m)!);
   let out = "";
   let from = 0;
