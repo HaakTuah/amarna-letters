@@ -43,6 +43,14 @@ account until its usage is spent; on the main account the usage brake closes it 
   item 17+++ keeps every season ("Pace of play" under Interface); + and −, on the main keys and the number pad, step
   between Slow, Normal and Fast, by the character typed; never while a letter or a name is being typed; each shown in
   its button's tooltip. PR #293's added Very slow and fifth speed go before it merges. The rest of the keys come in item 17+++a.
+- **Next, from Haakon's notes of 2 November** (his words in `docs/archive/instructions.md`, item 134), one PR each:
+  every province a proper name, never a description (Tjehenu, not "the land of the Tjehenu"; where 1346 gives
+  none, the oldest name the sources give, such as Moab, the Negeb, Tamassos: "Places by their own names" under World); the camera stops at the play area's edges, so an edge province can
+  be centred; the tabs scroll with the mouse wheel and by dragging, or fit; the small provinces of the Levant can be seen
+  and clicked at the normal zoom (a minimum hit area, labels that grow as you zoom out); and, by "Following, travel
+  lines and borders" under Interface, Follow keeps the camera on the person, travel lines follow their roads (your
+  orders' whole path, others' only as reported), and borders are strong between powers and quiet within one (after
+  17++ part C merges, since it redraws the map's steps).
 - **Done:** the soundtracks and the Music page (#350), the soundscape (#351, #352); their briefs are in `docs/archive/progress-done.md`, "Side lanes".
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
@@ -61,10 +69,52 @@ account until its usage is spent; on the main account the usage brake closes it 
 Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one line each" (moved there on 1 November 2026,
 "The workshop check"; new fixes add their line there), with the finds still open.
 
+## The workshop lane
+
+- **The file-by-file review** (Haakon, 2 November 2026: "Need a full review and clean up where we look at every file,
+  especially the documents, and ask what does this state that it does, and does it do it? If something in it doesn't
+  then it needs to be somewhere else, if anywhere at all.", then "Yes ro absolutely all pt these! Extra expertly expertly!"). A side lane, after
+  the rules restructure (PR of 2 November). Every file, docs first: what does it say it is for, and does it do that?
+  What doesn't belong moves to where it does, or goes; code is checked against "Split by meaning" and "Keep it lean"
+  in `AGENTS.md`. The files every session reads first (`AGENTS.md`, `CLAUDE.md`, this file), then `docs/`, then the
+  code, in a few PRs, each with a table of every file it covered and what happened to it, behaviour proven unchanged.
+  Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
+  the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
+  next refresh.
+
 ## Follow-ups
 
 Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
 fixed.
+
+- **First of all: what a game's export holds** (Haakon, 2 November 2026: "And queue a job going fully over what the
+  export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
+  fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
+  session's `export`, `log.toJsonl()` and every record type in it: the header, calls, decisions, shadows) and
+  everything it could carry: API keys or anything from the key's storage, provider addresses with tokens in them,
+  request or organisation ids, e-mail addresses, local paths, browser or device details.
+  Anything sensitive is removed from the export, with a test that fails if it comes back, and **Haakon is alerted at
+  once**: the PR's first line and the session's "Questions for Haakon" say what was found and which files in
+  `tests/fixtures/` hold it, so they can be removed from the repository and its history. If nothing is found, the
+  report lists what the export holds, field by field. Then build **one export with filters** (Engine and models,
+  "Logging and replay"; Haakon, 2 November 2026): by default everything, every call in full with each model's notes,
+  plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
+  wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
+  in any export. A human player's own words are not sensitive in a normal export.
+- **First among the side lanes, beside the fog below (other files, so both run at once): model calls that get
+  through** (Haakon, 2 November 2026; Engine and models, "Calls that get through, live or in the background"). His
+  Haiku game of 1 November (seed 407184, two seasons, $0.52) lost 57 of the first season's 104 decisions to the
+  account's limit on calls in flight, paid about two thirds of that season for 25 copies of one cache, and had 26
+  answers refused for slips. Build the limiter and its retries, the cache written once, answers read as meant, the
+  background mode on the provider's batch service, and the cost estimate. No model games: checked against a stand-in
+  service that refuses calls past a limit, answers batches late and returns that game's slips. The report gives the
+  expected cost of a season, live and in the background. The game itself is in
+  `tests/fixtures/model-games/` (its README): its slips are the test cases, its token counts the estimate's start.
+- **First, before any other side lane: people moving in the fog** (Haakon, 2 November 2026: "Who are these people i can
+  see moving about in the fog of war when viewing a game as egypt? Different caravan and what looks like scout units or
+  something?"). Find what they are and why a seat sees them. If Egypt should not know of them, it is a leak ("Only what
+  the seat knows plays"): fix it in what the seat is shown and, if script or model kings get it too, in their view as
+  well, with the benchmarks before and after.
 
 - **From #348 (17+), round 2, not blocking; outside 17++'s text (names as claims), so a side lane takes them:** (a) engine
   notices name powers by their own land while a court's view may give a contested name to another, so one name can mean two
@@ -138,12 +188,16 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) in review, #376; part C (governors over regions, grants, the map, the audit's script finds) under way | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md` |
+| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) in review, #376; part C (governors over regions, grants, the map, the audit's script finds) under way; "taken up, never thrust on anyone" (2 November 2026) goes into part C, or a part of its own if C has merged | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md` |
+| 17++a | Something happens every season | not started (next after 17++) | | |
 | 17+++ | The season plays out | not started | | |
 | 17+++a | Keys for everything | not started | | |
+| 17+++b | History, search and names | not started | | |
 | 17++++ | A small state as a seat | not started | | |
+| 17++++a | Raiders from beyond the map | not started | | |
 | 17b | Every person on one scoreboard | not started | | |
 | 18 | The balance pass | not started | | |
+| 18a | The world in graphs | not started | | |
 | 19+ | Answers to 19's review | not started | | |
 | 19++ | The visual pass | not started | | |
 

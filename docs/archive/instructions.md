@@ -1108,3 +1108,173 @@ Given in the design chat with Claude, answering the design questions of the cons
     ("Keep it lean" under "How to work", replacing "Keep files small and organised", and the "Review guidelines"),
     `docs/claude-and-codex.md` (the definition of a 10 in "Reviews") and `docs/BUILD-PROGRESS.md` (the next workshop
     check); the same in Barkstreet Snakes, with its unused-code check.
+134. **2 November 2026, 06:36 and 06:48 UTC**, in the design chat. Haakon's notes, sent as a file ("Made some notes
+    while you were out of usage."); the parts about this project and how both games are built, word for word:
+
+    > Should we use a regular container codex imstance to review rather than naitve review when we get environments.
+    > Since reviewer we can't get proper feedback ans it can't run our project?
+    >
+    > Also, in amarna letters, if loyalty can shift to anyone. Can someone who don't want the city get it? What if
+    > babylon hands a city to egypt in a peace settlement? Should the person also have to claim the settlement, or is
+    > it natural that the pharoh then has to subdue it, or that a city changes alligance to a character, which suddenly
+    > throws him in the middle of a power battle he wasn't planing?
+    >
+    > Also, why does codex post as a bot while claude code posts under my name?
+    >
+    > is codex reviewing all of the PRs?
+    >
+    > does claude escelate a task to a agent/session with higher effort or fable if it can't manage it? Like with the ai
+    > stuff? Fable runs out of usage faster than the rest, so there must always be fallbacks
+    >
+    > should we become more lenient about workflows and helpers? Claude code seems to struggle now with getting the ai to
+    > use the new powers properly? I see it is not allowed much per Claude.md. And now that we are getting codex into the
+    > mix, we might not have to be as sparing? Remember the goal, get as much done with qualitt output, with as
+    > efficient toke usage as we can. That does not mean we drag out time, simply to drag out time. I see AGENT.md
+    > prohitbits the use of subagents outright. I want productive use of them, i think, unless you disagree as an
+    > expert? My impression is that they are not optimal for every task, but are of benefit for certain tasks? Maybe we
+    > can make an outline of criterias that actually make it use it optimally? Think carefully about any wording, we
+    > want that exact optimal balance!
+    >
+    > Is agents.md and these files that are always read really the best place for a timeline of decisions? Shouldn't
+    > they be purely condensed instructions, as much quality tokens as possible? Your take, expert?
+    >
+    > Have we split files where it doesn't make any difference? Like chatter? Like, splitting out chinese, i get. But
+    > have one zh and zh-more, how does an agent/session which to look in? Won't it just check both? If this gives
+    > nothing, then i suggest we establish a new rule. Be fully consistent and ruthless on breaking up and using
+    > inheritance whereever sensible and we can, so it aids in finding stuff and not ingesting needless tokens. But
+    > always ask if it gives any benefit down the line to break something. Maybe some of the issue we got, we have
+    > written rules instead of focusing on the principles. The principle is price and maintainability down the line, to
+    > help out on both those fronts. And if the a rule don't align with its stated principle, that should be flagged,
+    > and the principle overrules the rule. What is your take, expert? But i really think we should be much more
+    > ruthless where we can break up and have gains from it.
+    >
+    > Need a full review and clean up where we look at every file, especially the documents, and ask what does this
+    > state that it does, and does it do it? If something in it doesn't then it needs to be somewhere else, if anywhere
+    > at all.
+    >
+    > You can drag the camera further west or east than what the play area covers in amarna letters, even though the
+    > graphical map stretches further. The consequence is that you never can have the camera zoomed in on provinces at
+    > the edge in center
+    >
+    > The different tabs in the ui of amarna letters have become so many you have to scroll to see them all, but you
+    > can only scroll with arrow keys, not with dragging your mouse or mouse wheel
+    >
+    > Who are these people i can see moving about in the fog of war when viewing a game as egypt? Different caravan and
+    > what looks like scout units or something?
+    >
+    > Should have some way of viewing a titles history? You know, both crusader kings 2 and dwarf fortress have ledgers
+    > and history buttons where you can track the events of any province, title or character, should we have the same
+    > maybe?
+    >
+    > Some of the new province names, like "the copper hills of Alashiya" and "the land of the Tjehenu" looks really
+    > odd. I think every province should have a proper name, don't you, expert?
+    >
+    > Some of the provinces in the Levant are so small you can't even click on them or even see them when you are at the
+    > regular zoom out level
+    >
+    > The music transitions very frequently now, but we should probably wait with looking at that until the timing of
+    > the game switching seasons is addressed first.
+    >
+    > Still feel like almost nothing has happened in a game now that went to 50 seasons
+    >
+    > Need menus to search everything up in, like ck2. Titles, characters, etc. To filter everything by. Should use
+    > fuzzy search. Should be able to use both modern and historic names. Could be settings to have historic or modern
+    > names? Separate for each, with the default using historic for provinces and modern for realms. Also, should be
+    > filters, and so you can search for everything also. And you should see count of stuff (a count of how many you
+    > know anyways) of characters, realms, and such. Maybe we also should have graphs of different kinds of provincial,
+    > "national" and global progress over time by different metrics, like eu5 and civ?
+    >
+    > Borders need to be better distinguished with other entities, and less harsh within the same realm
+    >
+    > Can there come pirates and raiders from off map? Should there?
+    >
+    > Also, when there is a follow button, i sort of expect the camera to follow this person, like it does in ck2
+    >
+    > Some travel lines still show direct lime between start and end instead of the path it will take. Could learn from
+    > paradox and civ there. Show the lines for what we ordered and know, and should we see lines at all for others? Or
+    > more like how civ does it? But travelling takes time, so maybe makes sense to show it if we have report
+    >
+    > Pretty expensive now if the first 2 round was representative. A little over Half a dollar for those 2 seasons, and
+    > not all of the api calls got through
+    >
+    > Probably should spread them out then? And have it work in the background while you do your stuff? Might be that
+    > we have to do some major overhauls and make the characters without domains much more script based, so that only
+    > the talking bits are models. But we don't decide this yet. This was however a haiku only game, so any more
+    > expensive model as it stands, won't be financially feasible. Maybe i lost a bit too much sight of the core game,
+    > and have come to expand it so far. But now that we are this far along, i still want to finish shaping it into
+    > something, constraints manifests creativity, even if the game becomes different from originally envisioned.
+
+    The design session answered each and asked ten questions: (1) keep Codex's native review and add container checks
+    of a PR's measurements once environments work; (2) Fable as the last escalation step after Opus extra-high, blocked
+    as the fallback; (3) "Helpers: when they pay" in both games, at most four at a time; (4) the always-read files hold
+    rules, not a timeline, with the dated words only here; (5) split by meaning, and principles over rules, safety rules
+    excepted, starting with chatter (Barkstreet Snakes); (6) a file-by-file review in each game after 4 and 5; (7)
+    every change of hands an offer that must be taken up, into 17++; (8) a history ledger, search with filters and
+    counts, proper province names with the modern names as a setting, raiders from beyond the map, and graphs later, in
+    the design; (9) pace first, measured and fixed before more features; (10) the bugs queued as written. Haakon, to all
+    ten: "Yes ro absolutely all pt these! Extra expertly expertly!" The cost of model games was left undecided, as he
+    said ("But we don't decide this yet.").
+
+    Written into the design document (War, "Whom a province obeys" and "Pirates are bands at sea"; World, "Places by
+    their own names"; Interface, three new entries; Build order, 17++ and the new items 17++a, 17+++b, 17++++a and 18a),
+    and here into `AGENTS.md` (restructured: "Standing instructions" folded into the sections they belong to, with
+    "Split by meaning", "Principles over rules", "Questions and readings" and "How work flows"), `CLAUDE.md` (the
+    parallel helper, Fable as the last escalation, "Helpers: when they pay"), `docs/orchestrating.md` (new: the
+    orchestrator's part of items 22 and 23), `docs/claude-and-codex.md` (point 7 of "Codex reviews"; Fable after the
+    escalation helper) and `docs/BUILD-PROGRESS.md` (the new items, the fog first, the polish lane's next fixes, the
+    workshop lane's file-by-file review); the same, without this project's parts, in Barkstreet Snakes.
+
+    Moved here from `AGENTS.md`, where they stood word for word since 21 October 2026, now that it holds rules only:
+
+    > - A question is a question. Answer it; don't act on it unless I say so.
+    > - Match effort to the task. Docs, READMEs, small fixes and config: one pass, no subagents.
+    > - Don't use more than 2 agents unless the build order's documented process calls for it.
+    >   Simulation runs and the build order's review steps may use as many agents as their
+    >   process calls for. Never stop to ask about this: pick the cheaper way, and say in
+    >   the PR what you chose.
+    > - Usage is limited. Prefer the cheapest approach that does the job well.
+    > - Read only the parts of large files the task needs. Round reports in docs/archive/
+    >   are history: read them only when I ask.
+    > - Long simulations: run them in the background and wait for the completion notice.
+    >   Don't poll, and don't keep agents alive just to wait for a run.
+    > - At each milestone, open a PR I can play, say in it what to try, and carry on with
+    >   the next item without waiting for me to review or merge.
+
+    The limit of two agents is replaced by "Helpers: when they pay" (question 3).
+135. **2 November 2026, 07:10 and 07:15 UTC**, in the design chat. First, among other questions: "Where there
+    absolutely is no name, I'd rather they use a more modern name? But perhaps we should use some name closer to that
+    time, rather than the most modern name?" and "And the split by meaning of course means as small as sensible, this
+    we ideally do while building already, not wait for stuff to pass 20 kb. Agreed expert? Is the wording already
+    clear on that?" Then, to the design session's answers (the oldest name the sources give, in the region's own
+    languages, a modern one only where none survives: Moab, the Negeb, Tamassos; "Split by meaning, from the start",
+    with a file as small as one thing people look up, no smaller): "Yes, please, expertly! But we still keep the
+    occasional file optimizing runs, because you know even if it is in the instructions, there will be drift and
+    oversight, which accumulates. So while it is important to emphasize working smarter, that doesn't replacing the
+    occasional clean-ups and tracking." Written into the design document (World, "Places by their own names", revision
+    64), `AGENTS.md` ("Split by meaning, from the start", with the workshop check and the file-by-file reviews kept)
+    and `docs/BUILD-PROGRESS.md` (the polish lane's names fix); the same split rule in Barkstreet Snakes.
+136. **2 November 2026, 07:21 and 07:26 UTC**, in the design chat, with the record of his game of 1 November (seed
+    407184, every seat Haiku, two seasons) and the list of its failed calls: "This was the result from me trying to
+    watch 2 rounds of a game with only Haiku models last evening. I think batching might be what we have to do. Your
+    expert thoughts? Some investigation and fixing of this issue will have to be queued, I assume, expert?" Then, to
+    the design session's findings (156 calls refused for too many in flight, 25 copies of one cache written in the
+    first season, 26 answers refused for slips) and its two questions (a side lane ahead of the others; "in the
+    background", batched at half price, as a play mode beside live): "Yes, please, expertly to both!" Written into the
+    design document (Engine and models, "Calls that get through, live or in the background", revision 59) and
+    `docs/BUILD-PROGRESS.md` (the side lane, first beside the fog).
+137. **2 November 2026, 07:29 UTC**, in the design chat, to the design session's take that his game's export held
+    nothing sensitive (no keys, e-mail addresses, paths, account, organisation or request ids) and should go into
+    `tests/fixtures/` as the only real Haiku game on file: "Yes, expertly. And queue a job going fully over what the
+    export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
+    fixed, and we must be alerted, so we can remove this file." Written into `tests/fixtures/model-games/` (the game
+    and its README) and `docs/BUILD-PROGRESS.md` (the side lane "What a game's export holds", first of all, and the
+    model-calls lane pointed at the game).
+138. **2 November 2026, 07:32 and 07:35 UTC**, in the design chat, on the export check of item 137: "a human player's
+    own text is probably fine if they wrote in-game, but there should be an option export a version without, for this
+    exact purpose, to analyze it and keep in repo." Then: "Would also be nice if the export includes the full notes and
+    thinking and such of models, or at least there is an option for such an extensive export, so we really get the
+    full picture of everything and how the LLMs interact with the game, plan, and how well they understand it. Is that
+    already there? the best is probably instead of having multiple kinds of exports, maybe add some filters for what
+    you want to include. But like sensitive stuff, not just in-game messages, ALWAYS LEFT OUT!" Written into the design
+    document (Engine and models, "Logging and replay", revision 61: one export with filters, everything by default,
+    sensitive things never) and `docs/BUILD-PROGRESS.md` (the export lane builds the filters).
