@@ -53,6 +53,15 @@ early season, but the presets' Sonnet rungs and characters going up add to it):
 These are about twice the old figures, which assumed a 16,000-token rulebook; the kings' opening is 70,600 tokens now.
 The README's table gives the new ones.
 
+**Found: Counsel no longer costs less than Standard.** A plan call reads the kings' whole rulebook on Sonnet, so at
+the recorded sizes Counsel's plans (about one a king every three seasons) bring it to Standard's figure, though its
+kings' own calls cost less. Two tests had pinned the old figures ("a budget game costs about two dollars", "Counsel
+below Standard"); they now assert what the rebuilt estimate gives: Budget about $5 for 44 seasons and about half that in
+the background, Counsel's kings below Standard's and Counsel within a fifth of Standard. The design writes plans "from a
+digest of the year ... rather than the whole record" ("Passing up and asking advice"): a planner opening without the
+rulebook would make Counsel the cheaper table again. That belongs to the planning code, not this lane, and is noted
+here for the design session.
+
 ## Readings taken
 
 1. **The limiter's numbers** (start 4, most 32, halving once per crowd, patience ten minutes, waits 2 s to 60 s) are
