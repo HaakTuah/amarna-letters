@@ -316,8 +316,9 @@ P.deport = function (p, o) {
   const [n, men] = share(x, Math.max(0, o.number));
   if (why !== null || n <= 0) {
     const text = `Nobody was deported from ${from.name}: ${why ?? "it has no settled people left"}.`;
-    // Land lost out of the king's sight: word of it comes home by the road (bug #467).
+    // Land lost out of the king's sight, at either end: word of it comes home by the road (bug #467).
     if (S.owner.getOrDefault(o.province, null) !== p) this.lostOrder(p, o, o.province, "Order failed", text, "you no longer hold it");
+    else if (!Map.get(o.to).isSea && S.owner.getOrDefault(o.to, null) !== p && !Map.isHome(p, from.id)) this.lostOrder(p, o, o.to, "Order failed", text, why ?? "");
     else notify(S, p, "Rejected", "Order failed", text);
     return;
   }

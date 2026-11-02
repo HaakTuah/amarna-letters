@@ -1,6 +1,7 @@
 import { describe, test } from "vitest";
 import {
   build,
+  deport,
   govern,
   inboxOf,
   newGame,
@@ -52,5 +53,18 @@ describe("KnownHoldingTests", () => {
     const word = s.journeys.filter((j) => j.kind === "Word" && j.to === "Egypt" && (j.text ?? "").includes("Not built"));
     Assert.equal(1, word.length);
     Assert.true(word[0].arriveTurn > s.turn + 1);
+  });
+
+  test("Deporting to land lost out of sight fails by the road too", () => {
+    const { s } = farLoss();
+    // Ashkelon, land Egypt has taken (not its homeland), from which it deports to Nippur.
+    const from = "ashkelon";
+    s.owner.set(from, "Egypt");
+    Assert.false(WorldMap.default.isHome("Egypt", from));
+    const e = new TurnEngine(s);
+    const before = inboxOf(s, "Egypt").length;
+    e.deport("Egypt", deport(from, "nippur", 10));
+    Assert.equal(before, inboxOf(s, "Egypt").length);
+    Assert.equal(1, s.journeys.filter((j) => j.kind === "Word" && j.to === "Egypt" && (j.text ?? "").includes("Nobody was deported")).length);
   });
 });
