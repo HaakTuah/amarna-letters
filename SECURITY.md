@@ -56,6 +56,10 @@ vector and security concerns".
   `"AIza" + "Sy" + "x".repeat(33)`), never written out as a literal that looks real, so no scanner takes one for a
   leak. Sample names, paths and e-mail addresses are invented (`jdoe`, `/home/jdoe`, `jdoe@example.com`), never a
   real person's. A scanning alert on a test's fake is closed as "Used in tests" once the literal is gone.
+9. **Security alerts stay private until fixed.** The Security tab's alerts (code scanning, Dependabot, secret
+   scanning) are seen only by the owner, and no agent is given a token to read them. One he passes on is never copied
+   into an issue, a comment or a report: it is fixed in a PR that says what it hardens, never how to attack it. A real
+   secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
 
 ## Reporting a weakness
 

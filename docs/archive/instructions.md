@@ -1356,6 +1356,14 @@ Given in the design chat with Claude, answering the design questions of the cons
     added on PRs into `develop`; CodeQL about 2 minutes on milestones, in parallel; Dependabot's security PRs, which
     GitHub aims at `main`, had no owner): "Can't they review it when they see it, and merge it if it is good?" And, to the five conditions for that: "Yes, expertly!" Written into "Git and GitHub"
     in `AGENTS.md` and point 4 of `SECURITY.md`; the same in Barkstreet Snakes.
+152. **2 November 2026, 11:30 and 11:32 UTC**, in the design chat, on whether agents should read the Security tab:
+    "Why shouldn't they be able to read it, and do they get the full picture of its diagnosis right now, so they can
+    address them? The orchestrators already pull in bug reports, right? Does it also pull in everything from GitHub's
+    native analysis stuff?" Then, to the design session's answer (the alerts are private, and copying them into the
+    public repository or giving agents a token would expose them; CodeQL run on every PR so builders see their own
+    findings; the owner passing on the alerts already in the code, fixed quietly): "Yes, expertly to both!" Written into
+    `.github/workflows/codeql.yml`, "Git and GitHub" in `AGENTS.md` and point 9 of `SECURITY.md`; the same in
+    Barkstreet Snakes.
 153. **2 November 2026, 11:45 UTC**, in the design chat, to the design session's takes on the open questions: #427 (a
     name a model invents becomes a consistent stand-in under the human-words filter, real names kept, so the export
     still replays), #424 ("Export log" offered only when the god view is, while a human plays), #419 (`.gitattributes`

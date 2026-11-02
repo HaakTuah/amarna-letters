@@ -183,6 +183,11 @@ own. One that fails a condition is closed with the reason, and the update is mad
 and are ordinary small PRs: the next free lane takes one, runs the checks, gets Codex's review, reads the release notes
 for breaking changes, and merges it, or closes it with the reason.
 
+**CodeQL checks every PR** into `develop` and `main`, every push to them and once a week (`.github/workflows/codeql.yml`).
+A finding on your PR shows on it as a note: fix it in the same PR, or, if it is a false alarm, say why in the PR and
+leave the alert to the owner, who alone can dismiss it. Alerts already in the code are the owner's to pass on
+(`SECURITY.md`, point 9).
+
 Cloud sessions can't use GitHub's GraphQL API, so `gh pr create`, `gh pr list` and `gh pr view` fail.
 Use the REST API (repository `HaakTuah/amarna-letters`):
 
