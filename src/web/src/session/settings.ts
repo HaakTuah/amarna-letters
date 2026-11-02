@@ -216,9 +216,6 @@ export function settingsFromHeader(header: LogHeader, table: TableSettings | nul
   return s;
 }
 
-/** The human seats chosen. */
-export const humansOf = (s: GameSettings): Power[] => FixedPowers.filter((p) => s.leaders[p] === "Human");
-
 /**
  * A fallen player's game is over: once every human seat at the table has fallen, and the table's setting allows it (on by
  * default), the players watch the rest in god view. While one of them still plays, a fallen player on the same screen

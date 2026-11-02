@@ -108,12 +108,6 @@ export function wouldPay(p: Personality, rate: number, spare: number): boolean {
   return rate <= 15 + 25 * (1 - p.greed) && spare > rate * 3;
 }
 
-/**
- * Item 11a: the fee for a job of `term` seasons for one who asks `ask` a season: half handed over now, the rest when it is
- * done, made up for what the person does not count on from this court (its record of paying: v.trust).
- */
-export const offerFee = (ask: number, term: number, trust: number): number => feeFor(ask, term, 50, trust);
-
 const byReliability = (brain: Brain): [(c: CharacterView) => unknown, Cmp<never>][] => [
   [(c: CharacterView) => reliability(c), desc(cmpNum)],
   [(c: CharacterView) => brain.provenLoyal.has(c.id), desc(cmpBool)],

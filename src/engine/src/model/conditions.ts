@@ -8,7 +8,6 @@ import type { Power } from "./power.ts";
  * own people at its court, the tablets in its archive, its own provinces' stores. Until item 13 adds distance inside the realm, the seat's view is
  * known everywhere in its realm at once.
  */
-export const ConditionKindValues = ["TroopsIn", "TreasuryBelow", "TreasuryAtLeast", "EnvoyBack", "TabletSealed", "StoresAtLeast"] as const;
 export type ConditionKind =
   /** Troops of {@link Condition.power} (any foreign power's if null) stand in {@link Condition.province}, where the seat can see them. */
   | "TroopsIn"

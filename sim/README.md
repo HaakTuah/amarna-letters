@@ -238,10 +238,10 @@ the simulation-fixes round, `docs/archive/rounds/2026-10-19-simulation-fixes.md`
 
 - **"Your final message must be the single word done."** The agent file already said so, and it was not enough: 24 of
   the 280 game calls ended with a summary of the king's decision or plans, and 4 more with the reply path. *Done:*
-  every file-seat request now ends with a footer, `FileExchange.Footer`: "When you have written your reply file, your
+  every file-seat request now ends with a footer, `Footer` in `src/llm/src/exchange.ts`: "When you have written your reply file, your
   final message must be the single word done. Say nothing about your decision. Earlier reply files cannot be read:
   your record of earlier seasons is in this request." Only file seats and file characters get it; a model called
-  through the API sees no such line (tested in `FileSeatTests`).
+  through the API sees no such line (tested in `src/game/test/debrief-kit.test.ts`).
 - **Reply files cannot be read.** The guard lets an agent read only `*.request.md`. In run 1's debrief, four kings
   tried to open their own earlier replies; the guard blocked all six attempts, and `audit.js` counted them as
   violations. Run 2's debrief request said reply files are closed, and nobody tried. *Done* for game requests by the
