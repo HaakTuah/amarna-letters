@@ -32,7 +32,7 @@ It does not pay for small or one-pass work (docs, config, small fixes), for step
 briefing it would cost most of the work, or for waiting on a run. Give each helper the cheapest model that does its part
 well (the table above), a narrow brief and its own files, and check every result before you use it. At most four at a
 time, reviewers included; each lane's builder keeps its own four. The PR lists the helpers that ran and what each gave,
-so the rule can be checked against its cost. Never stop to ask about helpers: decide by these shapes.
+so the rule can be checked against its cost. Never stop to ask about helpers: decide by these shapes. Helpers are a builder's: an orchestrator gives each lane a builder session instead (`docs/orchestrating.md`).
 
 - **No workflows and no ultracode.** No agent kept alive to wait for a run: long runs go in the background (the Bash
   tool's background mode).

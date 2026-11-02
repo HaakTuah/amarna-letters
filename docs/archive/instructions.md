@@ -1278,3 +1278,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     you want to include. But like sensitive stuff, not just in-game messages, ALWAYS LEFT OUT!" Written into the design
     document (Engine and models, "Logging and replay", revision 61: one export with filters, everything by default,
     sensitive things never) and `docs/BUILD-PROGRESS.md` (the export lane builds the filters).
+139. **2 November 2026, 07:42 and 07:43 UTC**, in the design chat, after the first orchestrator of the week, started
+    from the design session's prompt, ran part of the work itself and gave lanes to its own helpers: "Why is the
+    orchestrator doing things directly?" Then, to the design session's answer (its start prompt never said lanes go to
+    builder sessions) and its question (write "the orchestrator builds nothing itself; each lane is a builder session,
+    and helpers belong to builders" into both games): "yes please, expertly!" Written into `docs/orchestrating.md` (at
+    its top) and `CLAUDE.md` ("Helpers: when they pay"); the same in Barkstreet Snakes.
