@@ -31,7 +31,11 @@ export const BlankMark = "▒";
  */
 const WordFields = new Set(["letter", "mandate", "notes", "summary", "entry", "speech", "bribeAsk", "say", "reply", "text", "custom", "commitments"]);
 
-/** Pieces of a human's words shorter than this are not looked for in other texts: too short to be his and not someone's. */
+/**
+ * How much of a human's text must match, from its start or a sentence's, for a match to count as his quote: a quote cut
+ * short (a prompt's brief of a letter keeps its first 120 letters) still counts. A text shorter than this counts only
+ * whole, between word boundaries.
+ */
 const MinQuoted = 12;
 
 /** A text blanked: every letter replaced by the mark, its spaces and its length kept. */
@@ -95,15 +99,36 @@ function blankFields(v: unknown, words: string[], key = ""): unknown {
   return v;
 }
 
-/** The pieces of a human's words to look for elsewhere: each whole text, and each sentence or line of it, longest first. */
+/** The texts to look for elsewhere: each whole text, and each sentence or line of it, longest first. */
 function pieces(words: string[]): string[] {
   const found = new Set<string>();
   for (const w of words)
     for (const p of [w, ...w.split(/(?<=[.!?;:])\s+|\n+/)]) {
       const t = p.trim();
-      if (t.length >= MinQuoted) found.add(t);
+      if (t.length > 0) found.add(t);
     }
   return [...found].sort((a, b) => b.length - a.length);
+}
+
+const isWord = (c: string | undefined): boolean => c !== undefined && /[\p{L}\p{N}_]/u.test(c);
+
+/**
+ * A string with every quote of the texts blanked: wherever one's start (its first {@link MinQuoted} letters) stands at a
+ * word's start, the span that goes on matching it is blanked, however soon it is cut off; a short text only whole.
+ */
+function blankIn(s: string, texts: string[]): string {
+  let out = s;
+  for (const t of texts) {
+    const head = t.slice(0, MinQuoted);
+    for (let i = out.indexOf(head); i >= 0; i = out.indexOf(head, i + 1)) {
+      if (isWord(out[i - 1])) continue;
+      let n = head.length;
+      while (n < t.length && out[i + n] === t[n]) n++;
+      if (t.length <= MinQuoted && isWord(out[i + n])) continue;
+      out = out.slice(0, i) + blank(out.slice(i, i + n)) + out.slice(i + n);
+    }
+  }
+  return out;
 }
 
 /** Ids and names in calls and shadows, never blanked: they say whose the record is. */
@@ -116,8 +141,7 @@ const Names = new Set(["type", "key", "role", "model", "character", "name", "tra
 function blankQuoted(v: unknown, quoted: string[], fields: ReadonlySet<string> | null, key: string, touched: { any: boolean }): unknown {
   if (typeof v === "string") {
     if (fields !== null ? !fields.has(key) : Names.has(key)) return v;
-    let s = v;
-    for (const q of quoted) if (s.includes(q)) s = s.split(q).join(blank(q));
+    const s = blankIn(v, quoted);
     if (s !== v) touched.any = true;
     return s;
   }

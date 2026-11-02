@@ -46,7 +46,8 @@ or header field is built from them. The header holds labels and model choices on
   nothing: no false hits.
 - `src/game/src/export.ts`: `exportJsonl(log, parts)`, one export, everything by default; parts `calls`, `shadows`,
   `audits` and `humanWords`. Without human words, his decisions' word fields are blanked to the same length (`▒`,
-  spaces kept) and each sentence of them (12 letters or more) wherever it is quoted, in any record; orders, ids and
+  spaces kept) and every quote of them, in any record: a span from a word's start matching the start of one of his
+  texts or sentences for 12 letters or more, however soon it is cut off (a short text only whole); orders, ids and
   names are never blanked.
 - The web app: "Export log" in the menu opens four boxes, all ticked (`src/web/src/components/ExportLog.tsx`); the
   worker builds the export with `exportJsonl`.
@@ -70,8 +71,8 @@ In `docs/design/50-the-export.md` ("What it holds").
    plans, ledger and standing orders are in every call's reply, which the export keeps whole.
 3. **"Names he typed"**: the only names a human types are realm names he claims (`claimName`), which the engine reads,
    so they are orders and never blanked. His words are the free-text fields listed in the note.
-4. **Quotes of a human's words elsewhere** are blanked by sentence, so a quote cut short or with a name put in by the
-   scribe is still caught sentence by sentence; a model's paraphrase is the model's words and stays.
+4. **Quotes of a human's words elsewhere** are found by their start (a whole text's or a sentence's), so a quote cut
+   short or with a name put in by the scribe is still caught; a model's paraphrase is the model's words and stays.
 5. **Old logs with no authors** (before item 6c) cannot tell a human's decisions; the filter blanks only decisions
    marked human.
 

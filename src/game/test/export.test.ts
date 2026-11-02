@@ -67,7 +67,7 @@ describe("ExportTests", () => {
 
   /** A human player's words, long enough to be looked for wherever they are quoted. */
   const Letter = "Greetings, my brother of Alashiya. I send you twelve horses and a chariot of gold.";
-  const Notes = "Alashiya must not learn of the horses before spring.";
+  const Notes = "Attack now";
   const Speech = "Your lord's horses are welcome here.";
 
   class HumanSender implements ISeat {
@@ -106,7 +106,9 @@ describe("ExportTests", () => {
     await runner.prepare();
     for (let i = 0; i < 4; i++) await runner.playTurn();
     // A model's prompt that carries the letter, as an envoy's or a court's request would.
+    // Prompts that carry the letter whole, a brief of it cut mid-word, and the short note.
     runner.log.addCall(newModelCall({ key: "t2/aud/react/c1", turn: 2, role: "character", model: "Haiku", prompt: `The letter you carry: "${Letter}"` }));
+    runner.log.addCall(newModelCall({ key: "t2/orders/Hatti", turn: 2, role: "leader", model: "Haiku", prompt: `A tablet from Egypt: ${Letter.slice(0, 50)}… Your spy read: Attack now. Attack nowhere else.` }));
 
     // The export as read: its strings unescaped.
     const read = (text: string): string => text.split("\n").filter((l) => l.length > 0).map((l) => JSON.stringify(JSON.parse(l))).join("\n");
@@ -115,7 +117,9 @@ describe("ExportTests", () => {
 
     const text = exportJsonl(runner.log, { ...Everything, humanWords: false });
     const kept = read(text);
-    for (const words of [Letter, Notes, Speech, "twelve horses", "learn of the horses"]) Assert.false(kept.includes(words), `"${words}" is still in the export`);
+    for (const words of [Letter, Speech, "twelve horses", "my brother of Alashiya", "Attack now."]) Assert.false(kept.includes(words), `"${words}" is still in the export`);
+    // A short text counts only whole: the same letters inside a longer word are not his.
+    Assert.true(kept.includes("Attack nowhere else."));
     // Each is a marked blank of its own length, its spaces kept.
     Assert.true(kept.includes(Letter.replace(/\S/g, BlankMark)));
     Assert.true(kept.includes(Notes.replace(/\S/g, BlankMark)));

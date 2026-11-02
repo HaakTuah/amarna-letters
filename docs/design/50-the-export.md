@@ -19,8 +19,10 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
 - **Filters** leave parts out: the model calls, the shadow scripts, the audits, and a human player's words. Without
   his words, every word field of a human's decisions (`letter`, `mandate`, `notes`, `summary`, `entry`, `speech`,
   `bribeAsk`, `say`, `reply`, `text`, `custom`, `commitments`) becomes a blank of the same length, each letter a `▒`
-  and its spaces kept, and every sentence of them of twelve letters or more is blanked wherever it is quoted: in a
-  model's prompt, a character's report, the narrator's chronicle. Orders, ids and names the engine reads are never
+  and its spaces kept, and every quote of them is blanked wherever it stands: in a
+  model's prompt, a character's report, the narrator's chronicle. A quote is any span, from a word's start, that
+  matches the start of one of his texts or of one of its sentences for twelve letters or more, however soon it is cut
+  off (a prompt's brief of a letter keeps its first 120 letters); a text shorter than that counts only whole. Orders, ids and names the engine reads are never
   blanked, so the export replays to the same game, his words blanked in it too (`src/game/test/export.test.ts`). A
   human's words are not sensitive: a normal export keeps them, since he wrote them in play.
 - **What is sensitive is never a filter and never in the log.** It reaches the log only through what a provider, the
