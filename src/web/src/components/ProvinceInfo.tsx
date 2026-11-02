@@ -1,3 +1,4 @@
+import { governorLine } from "../map/holding.ts";
 import {
   Crossings,
   WorldMap,
@@ -110,6 +111,12 @@ export function ProvinceInfo({
             {owner !== null ? `Held by ${powerName(owner)}` : "Held by no one"}
             {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(live ? Math.floor(state.reaped.getOrDefault(p.id, 0) / 3) : harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
             {p.home !== null && p.home !== owner ? `; part of the homeland of ${powerName(p.home)}` : ""}.
+            {(() => {
+              // Item 17++, part C: who stands between the king and the land, as the viewer knows it.
+              const h = scene.holding.get(p.id);
+              const gov = governorLine(scene, p.id);
+              return h?.kind === "vassal" ? ` A vassal of ${powerName(h.overlord)}, by a tablet sealed between them.` : gov !== null ? ` ${gov}` : "";
+            })()}
             {walls > 0 && (
               <span>
                 {" "}

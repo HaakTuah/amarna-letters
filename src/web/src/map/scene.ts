@@ -4,7 +4,7 @@
  * news that reached it), never from anything it could not know.
  */
 import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
-import { coverOf, isMove, ownerFor, ownerOf, type FrameBand, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
+import { coverOf, isMove, ownerFor, ownerOf, type FrameBand, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame, type FrameGovernor, type Mood, moodOfObeyed } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, city, route, type Pt } from "./art.ts";
 import { ownFiguresAt } from "./known.ts";
@@ -149,6 +149,35 @@ export interface MapScene {
   memory: Remembered;
   /** The frame before (null at the opening), for the season's small scenes. */
   prev: SeasonFrame | null;
+  /**
+   * Item 17++, part C ("Who holds what, and the mood of the land"): each held province's step, ruled from the king's own
+   * seat, governed, or a vassal's (washed by its overlord), as the viewer knows it: in god view as it is; in a seat its own
+   * governors, and the vassal bonds on the tablets in its archive.
+   */
+  holding: Map<string, Holding>;
+  /** The governor of each governed province the viewer knows of: his bloc is bounded on the map, his name on the card. */
+  governors: Map<string, FrameGovernor>;
+  /** The mood of the land as the viewer reads it, with the read's age in seasons (god view: as it is, age 0). */
+  mood: Map<string, { mood: Mood; age: number }>;
+}
+
+/** How a province is held: by its king from his own seat, through a governor, or by a vassal of `overlord`. */
+export type Holding = { kind: "ruled" } | { kind: "governed" } | { kind: "vassal"; overlord: Power };
+
+/** Item 17++, part C: the holding, governors and mood of the land, as the viewer knows them. */
+function holdingsFor(f: SeasonFrame, viewer: Power | null, owner: Map<string, Power | null>): Pick<MapScene, "holding" | "governors" | "mood"> {
+  const bonds = viewer === null ? f.bonds : (f.knownBonds.get(viewer) ?? new Map<Power, Power>());
+  const governors = new Map([...f.governed].filter(([id, g]) => (viewer === null || g.power === viewer) && owner.get(id) === g.power));
+  const holding = new Map<string, Holding>();
+  for (const [id, o] of owner) {
+    if (o === null) continue;
+    const over = bonds.get(o);
+    holding.set(id, over !== undefined ? { kind: "vassal", overlord: over } : governors.has(id) ? { kind: "governed" } : { kind: "ruled" });
+  }
+  const mood = new Map<string, { mood: Mood; age: number }>();
+  if (viewer === null) for (const [id, n] of f.obeyed) mood.set(id, { mood: moodOfObeyed(n), age: 0 });
+  else for (const [id, r] of f.moodRead.get(viewer) ?? []) mood.set(id, { mood: r.mood, age: Math.max(0, f.turn - r.turn) });
+  return { holding, governors, mood };
 }
 
 /**
@@ -288,7 +317,7 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const own = viewer === null ? new Map<string, { frame: SeasonFrame; age: number }>() : ownLand(frames, viewer, Math.min(Math.max(index, 0), frames.length - 1));
   const stores = viewer === null ? f.stores : storesOf(own);
   const bands: SceneBand[] = viewer === null ? f.bands.map((b) => ({ ...b, age: 0 })) : bandsOf(f, viewer, own);
-  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, own, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev };
+  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, own, built, builtKnown, stores, memory: remember(frames, index, viewer, new Set(bands.map((b) => b.province))), prev, ...holdingsFor(f, viewer, owner) };
 }
 
 /**
