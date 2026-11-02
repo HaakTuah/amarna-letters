@@ -1512,3 +1512,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     session's take (the design and its checks are not; the text no human reads is at risk, as the history's errors and
     the chatter's repeated templates show; a fresh-eyes audit of everything a player reads): "Yes, please, expertly! Do
     we need it for amarna also?" Written into "Follow-ups" in `docs/BUILD-PROGRESS.md`; the same in Barkstreet Snakes.
+179. **2 November 2026, 21:36 and 21:37 UTC**, in the design chat, on the slop audit: "Not 1 to 10 review here?" Then,
+    to the design session's take (each kind of text scored 1 to 10, only a 10 passing, with the usual guards and the
+    owner's read as the final word): "Yes, expertly!" Written into the slop audit in "Follow-ups" in
+    `docs/BUILD-PROGRESS.md`; the same in Barkstreet Snakes.
