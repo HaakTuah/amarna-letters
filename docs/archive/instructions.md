@@ -1308,3 +1308,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     `SECURITY.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md` and `docs/BUILD-PROGRESS.md` ("the owner";
     the label `for-haakon` renamed `for-owner`), and the private mentions removed from items 132, 133 and 141; the
     same in Barkstreet Snakes.
+144. **2 November 2026, 09:00 and 09:03 UTC**, in the design chat: "Is issues for both claude code and codex now?
+    should they write in the wiki instead of some of the stuff that are in the docs files?" Then, to the design
+    session's answer (Codex cannot file issues from its cloud, so it lists them in its report and the orchestrator
+    files them; the wiki has no branches or review, so the docs stay in the repository): "Okay, it does that if it
+    can't manage to post on its own. sometimes you don't fully know what access they have." Written into
+    `docs/claude-and-codex.md` ("For Codex": file them yourself if your access allows, otherwise in the report); the
+    same in Barkstreet Snakes.
