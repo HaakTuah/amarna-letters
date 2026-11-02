@@ -368,7 +368,7 @@ function pitch(ctx: MindContext): MindReply {
   const lines = [name === null ? `I am ${nameFrom(c)}, once ${calling(c)}.` : `I am ${name}.`];
   // What it says it can do is what it believes ("Seeing oneself"): the overconfident claim more.
   const believed = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
-  if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("I know every road and every court; no master of mine was ever let down.");
+  if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("I know every road and every court; no master of mine had cause to complain.");
   else if (believed < 45 && t.loyalty >= 55) lines.push("I am a plain servant and no great speaker, but I keep my word.");
   else lines.push("I know the courts of the Great Kings and their ways, and I carry a message as it was given.");
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
