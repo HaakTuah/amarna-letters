@@ -17,7 +17,7 @@ import {
   newUnit,
   wallsOf,
 } from "@amarna/engine";
-import { Assert, formerHomes, walled } from "./support.ts";
+import { Assert, formerHomes, smallWorld, walled } from "./support.ts";
 
 // A court sees the walls standing now only where it can see troops, and knows them elsewhere as it last saw them (at the
 // start, as the map gives them). Walls rise for gold and fall to an earthquake or unpaid upkeep out of other courts'
@@ -34,7 +34,7 @@ describe("WallSightTests", () => {
   });
 
   test("Walls raised out of a court s sight are not seen by it", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Babylonia");
     Assert.doesNotContain("thebes", Views.sight(s, WorldMap.default, "Babylonia"));
     let e = new TurnEngine(s);
     e.beginTurn();
@@ -49,7 +49,7 @@ describe("WallSightTests", () => {
   });
 
   test("A court sees walls where it sees troops and remembers them as last seen", () => {
-    let s = walled(formerHomes(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2);
+    let s = smallWorld(walled(formerHomes(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2), "Mitanni", "Egypt");
     Assert.contains("suhu", Views.sight(s, WorldMap.default, "Mitanni"));
     Assert.doesNotContain("suhu", Views.sight(s, WorldMap.default, "Egypt"));
 
@@ -83,7 +83,7 @@ describe("WallSightTests", () => {
   });
 
   test("Walls that fall for want of upkeep are seen only where troops are seen", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Babylonia");
     // Thebes walled two levels above the map's none, kept in gold with an empty treasury, and unpaid for so long that a
     // level falls this season (item 15: walls decay over a decade).
     s.walls.set("thebes", 2);
