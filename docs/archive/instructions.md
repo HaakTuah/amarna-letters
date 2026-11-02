@@ -1519,3 +1519,8 @@ Given in the design chat with Claude, answering the design questions of the cons
 180. **2 November 2026, 21:40 UTC**, in the design chat: "If all reviews follow this criteria, isn't it easier to write
     it one place, and point there?" The slop audit now points to "Reviews" in `docs/claude-and-codex.md` and keeps only
     what a 10 means for text; the same in Barkstreet Snakes.
+181. **2 November 2026, 21:48 and 21:49 UTC**, in the design chat, on the slop audit: "Will it be run again
+    occasionally?" Then, to the design session's take (the formula test on every PR, a line in the review guidelines
+    for text a player reads, and a monthly fresh-eyes check of only the text changed since the last): "Yes, please,
+    expertly!" Written into the review guidelines in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`; the same
+    in Barkstreet Snakes.
