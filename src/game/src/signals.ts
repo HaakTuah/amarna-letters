@@ -45,6 +45,8 @@ export const SignalKinds: readonly string[] = [
   // Item 17++: a province going over to a power by the season's rule, a remnant folded, grain handed out, a man asked whether
   // he leads a rising (and whether his traits say he would).
   "obey-power", "fold", "feed", "rising-asked", "rising-would", "stir-won",
+  // Item 17++, part B: scribes sent to count a province and their count come home; the king asking a share or an amount.
+  "census", "census-home", "demand-share", "demand-amount",
 ];
 
 const MessengerBlamed = rx(
