@@ -67,6 +67,9 @@ function bands(s: MapScene): string {
   return sb;
 }
 
+/** How far beyond a besieged city's outermost ring its siege camp's tents stand, to their middle; each is as wide again. */
+const TentRing = 2.6;
+
 function cities(s: MapScene): string {
   const sieges = new Set(s.sieges.map((x) => x.province));
   let sb = `<g class="cities">`;
@@ -86,7 +89,7 @@ function cities(s: MapScene): string {
     const siege = s.sieges.find((x) => x.province === p.id);
     if (siege !== undefined) {
       // Close in, so they stay within the gap a city's own counters keep from its outermost ring.
-      const r = ringOf(p.capital, walls) + 2.6;
+      const r = ringOf(p.capital, walls) + TentRing;
       for (let k = 0; k < 6; k++) {
         const a = (k * Math.PI) / 3 + Math.PI / 6;
         sb += `<use href="#fig-tent" class="tent t-${glyphId(siege.besieger)}" x="${F(Math.cos(a) * r - 2.6)}" y="${F(Math.sin(a) * r - 2.6)}" width="5.2" height="5.2"/>`;
@@ -365,7 +368,7 @@ function unitItems(units: readonly SceneUnit[], viewer: Power | null, scale: num
   return items;
 }
 
-function peopleAtCourts(input: MapInput): string {
+export function peopleAtCourts(input: MapInput): string {
   const s = input.scene;
   const byProvince = new Map<string, typeof s.people>();
   for (const p of s.people) {
@@ -375,8 +378,10 @@ function peopleAtCourts(input: MapInput): string {
   }
   let sb = "";
   // Each court's people stand in rows of three to the left of its city, clear of its outermost ring (--ring, app.css), and
-  // its news to the right, so neither touches the badge or the counters above it (item 11c++).
-  const ringAt = (province: string): string => F(ringOf(Map_.get(province).capital, s.walls.get(province) ?? 0));
+  // its news to the right, so neither touches the badge or the counters above it (item 11c++); round a besieged city, clear
+  // of the siege camp's tents too, which are part of its badge.
+  const besieged = new Set(s.sieges.map((x) => x.province));
+  const ringAt = (province: string): string => F(ringOf(Map_.get(province).capital, s.walls.get(province) ?? 0) + (besieged.has(province) ? 2 * TentRing : 0));
   for (const [province, list] of byProvince) {
     const c = city(province);
     sb += `<g class="court-at" data-court="${province}" transform="translate(${F(c.x)},${F(c.y)})"><g class="cring" style="--ring:${ringAt(province)}"><g class="sym">`;
