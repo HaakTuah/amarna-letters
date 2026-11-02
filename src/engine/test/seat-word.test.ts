@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { Dict, OrderValidator, TurnEngine, Views, WorldMap, crown, govern, inboxOf, type Order, newCharacter, newDeclaration, newGame, newGameConfig, newGovernor, newId, newTraits, newTurnSubmission, type GameState } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // Item 17++, part C (hidden information, the review of #378): a court's view keeps what it believes until word of the change
 // can be read at its court, in the same season as the notice that carries it: a governor's end, a kingship's answer, a
@@ -167,6 +167,8 @@ describe("SeatWordTests", () => {
   test("A governor whose seat moved writes where he now sits if loyal; one who wants the land says nothing (#480)", () => {
     const run = (loyal: boolean): [number, number, boolean] => {
       const [s, id] = governed();
+      // Only the two powers the rule needs (the rest of the world plays no part in it).
+      smallWorld(s, "Egypt", "Babylonia");
       const e = new TurnEngine(s);
       const c = s.characters.find((x) => x.id === id)!;
       if (!loyal) c.traits = newTraits({ loyalty: 10, greed: 50, ambition: 90, courage: 60, competence: 50 });

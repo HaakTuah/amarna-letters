@@ -102,7 +102,8 @@ rumours, and those can be late, shaded or false.
   against what your court knows: one for land lost out of your sight goes out, and you hear it failed when word comes.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
   holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
-  his seat. Or make a governor (or a man at your court) a vassal king over provinces of yours, by a grant under oath for
+  his seat; if he loses or gives up the province he sits in, he sits in another, and a loyal one writes to tell you where,
+  while one who wants his land for himself leaves you to hear it by the road. Or make a governor (or a man at your court) a vassal king over provinces of yours, by a grant under oath for
   a tribute and a price you name: if he takes it, the land is his, bound to you by a sealed vassal tablet.
 
 **The land and its people.**
