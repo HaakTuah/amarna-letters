@@ -69,7 +69,7 @@ function read(value: unknown, schema: z.ZodType): unknown {
       if (one === null) return options.includes("") ? "" : value;
       if (typeof one !== "string") return value;
       // Tool-call markup a model let into a value ('\n<parameter name="go_as">') is no part of any choice.
-      const t = one.replace(/<\/?[a-z_]+(\s[^>]*)?>/gi, "").trim();
+      const t = outsideMarkup(one).trim();
       if (isBlankWord(t) && options.includes("")) return "";
       return matchOption(t.replace(/^["'`](.*)["'`]$/, "$1"), options) ?? value;
     }
@@ -93,6 +93,17 @@ function read(value: unknown, schema: z.ZodType): unknown {
     default:
       return value;
   }
+}
+
+/**
+ * The text of a choice outside any markup: what comes before its first "<" and after its last ">" (a value is a name or a
+ * blank, never markup). One pass, with no pattern, so no reply can make it slow.
+ */
+function outsideMarkup(value: string): string {
+  const open = value.indexOf("<");
+  if (open < 0) return value;
+  const close = value.lastIndexOf(">");
+  return close < open ? value.slice(0, open) : value.slice(0, open) + value.slice(close + 1);
 }
 
 /** A list given where one value was asked: empty means blank (null), one item means that item; else unchanged. */
