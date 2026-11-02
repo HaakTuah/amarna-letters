@@ -52,11 +52,7 @@ describe("StartingTermTests", () => {
       // Every province a proper name (polish lane, 2 November 2026): the descriptions they replaced.
       .replaceAll("Tamassos", "the copper hills of Alashiya")
       .replaceAll("Enkomi", "the harbour of Alashiya")
-      .replaceAll("Sutu", "the Sutean steppe")
-      .replace(/(?<!the )\bTjehenu\b/g, "the land of the Tjehenu")
-      .replace(/(?<!the )\bKaska\b(?! lands)/g, "the Kaska lands")
-      .replaceAll("army of Seir", "army of the land of the Shasu")
-      .replaceAll("with Seir", "with the land of the Shasu");
+      .replaceAll("Sutu", "the Sutean steppe");
   }
 
   //

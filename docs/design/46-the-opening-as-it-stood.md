@@ -83,7 +83,9 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
 - **The modern name** (`ModernNames`, `modernOf`) is on the second line of the web's province card ("today Damascus") and in
   the models' list of provinces in the rulebook, each place once ("today Damascus"), so a model can place it; never in a
   letter, report or request. The README names the renamed places once.
-- **The powers' land names** (`land(p)`) follow: Gubla, Ṣurru, Karkamish, Hayasa, Tjehenu, Kaska, Sutu, Seir;
+- **The powers' land names** (`land(p)`) follow: Gubla, Ṣurru, Karkamish, Hayasa, the land of the Tjehenu, the Kaska lands
+  (still descriptions where the provinces now have proper names: renaming them changes how the script kings read letters,
+  so it waits for an item, not the polish lane);
   the Great Kings' realms keep the names the design document gives them (Egypt, Hatti, Karduniash, Mitanni, Assyria,
   Arzawa, Alashiya): a reading, listed in the report.
 - **People by the same rule:** foreign courts and every letter call Pharaoh Naphurureya (`king("Egypt")`, Moran's form, in
