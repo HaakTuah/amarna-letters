@@ -1320,3 +1320,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     names" under World (Tjehenu, Kaska, Sutu, Seir for what letters and seat views called the land of the Tjehenu, the
     Kaska lands, the Sutean steppe and the land of the Shasu) and into build order item 17++a, with the benchmarks
     before and after, since the script kings read letters by every name a king goes by.
+146. **2 November 2026, 10:09 and 10:11 UTC**, in the design chat, on the issue templates he had added that morning:
+    "There are 2 different kinds of submissions, features and bugs. can't they use them instead of using custom tags? i don't mind them tagging, but they should use the templates that exist?" Then, to the design session's three questions (ideas filed as Feature requests labelled `enhancement` and bugs as
+    Bug reports labelled `bug`, dropping `idea`; his questions under GitHub's own `question` label in place of
+    `for-owner`; the templates tailored, with their labels set): "Yes, expertly for all, and also, give me the fully updated prompts for both." Written into `AGENTS.md` ("One inbox", and
+    "Bugs don't wait for the owner"), `docs/claude-and-codex.md` ("For Codex"), `docs/BUILD-PROGRESS.md` and
+    `.github/ISSUE_TEMPLATE/`; the issues relabelled and the two custom labels removed; the same in Barkstreet Snakes.

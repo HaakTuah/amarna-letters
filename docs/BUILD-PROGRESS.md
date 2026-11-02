@@ -66,6 +66,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
 fixed.
 
+- ~~**The province card looking back** (the weekly blind re-review of #374): in a seat view on an earlier season the
+  card read the live state, the new holder's figures where the city has since fallen; it gives that season's recorded
+  figures now, with a test at a past season (#414).~~
 - **First of all: what a game's export holds** (the owner, 2 November 2026: "And queue a job going fully over what the
   export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
   fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
@@ -108,8 +111,9 @@ fixed.
 
 ## For the owner
 
-Everything for the owner is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Afor-owner)
-(`for-owner`) and [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aidea) (`idea`), by
+Everything for the owner is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aquestion)
+(`question`), [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aenhancement) (`enhancement`) and
+[bugs](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Abug) (`bug`), by
 "Questions, readings and ideas" in `AGENTS.md`. Answered review points from before 2 November 2026:
 `docs/archive/progress-done.md`.
 

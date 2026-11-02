@@ -182,6 +182,7 @@ The weekly blind re-reviews and the canaries, newest first ("Reviews", point 5).
 
 | Date | Check | PR | Reviewer checked | Misses | What changed |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-02 | Blind re-review | #374 | Codex | 1 blocking (province card reads the latest state when looking back) | Fixed in #414; second Codex miss in a row on seat views: interface goes to Claude's reviewer until its guidelines are tightened with Haakon |
 | 2026-11-01 | Blind re-review | #359 | Codex (and Claude's round 2) | 1 blocking (province panel leak) | Fixed in this PR; follow-up for the seat view's own early drop goes to item 17++ |
 | 2026-11-01 | Canary (before this rule) | Snakes #298 | Codex | 0 of 3 | None needed |
 
@@ -199,7 +200,7 @@ The weekly blind re-reviews and the canaries, newest first ("Reviews", point 5).
   a key or secret anywhere.
 - Your environment's setup script installs what the suites need. If something is missing, say what in your report
   instead of working around it.
-- **Questions, readings and ideas go to the issues** ("Questions, readings and ideas" in `AGENTS.md`): file each as an issue yourself, labelled `for-owner` or `idea` and assigned to `HaakTuah`, if your access allows it. If it does not, list them in your report under "Questions for the owner" and "Ideas", and the orchestrator files each as an issue and links it in the PR. Either way the PR carries only the links.
+- **Questions, readings and ideas go to the issues** ("Questions, readings and ideas" in `AGENTS.md`): file each as an issue yourself, with its template's headings and label (`question`, `enhancement` or `bug`) and assigned to `HaakTuah`, if your access allows it. If it does not, list them in your report under "Questions for the owner", "Ideas" and "Bugs", and the orchestrator files each as an issue and links it in the PR. Either way the PR carries only the links.
 - Your review of Claude's PRs follows "Reviews" above: the score, the list, blocking or not.
 
 ## Setup (1 November 2026)
