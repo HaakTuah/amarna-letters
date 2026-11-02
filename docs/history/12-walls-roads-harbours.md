@@ -49,7 +49,7 @@ or leave.
 | <a id="12-walls-shechem"></a>shechem | Shechem (Tell Balata) | The Middle Bronze "cyclopean" wall and East and North-West gates, rebuilt in part; a fortress temple | B | Wright; Campbell | 1 | 2 |
 | <a id="12-walls-jerusalem"></a>jerusalem | Jerusalem | The Middle Bronze wall on the eastern slope and the Spring Tower over the Gihon; the Late Bronze town small | C | Reich and Shukron | 1 | 1 |
 | <a id="12-walls-gaza"></a>gaza | Gaza | Egypt's base on the Ways of Horus; not excavated for this period | S | - | 2 | 2 [G], as a base |
-| <a id="12-walls-hazor"></a>- (not on the map; for comparison) | Hazor | The great Middle Bronze earth rampart round a lower city of about 70-80 ha, still used | A | Yadin; Ben-Tor | - | - |
+| <a id="12-walls-hazor"></a>hazor (on the map since item 11c) | Hazor | The great Middle Bronze earth rampart round a lower city of about 70-80 ha, still used | A | Yadin; Ben-Tor | - | - |
 | <a id="12-walls-memphis"></a>memphis | Memphis | The temple of Ptah's great enclosure and the "White Walls" of its name; the town itself open | B | Jeffreys, the Survey of Memphis | 2 | 1 |
 | <a id="12-walls-akhetaten"></a>akhetaten | Akhetaten (Amarna) | No city wall at all: the boundary stelae, the desert and the Medjay's patrol roads round it | A | Kemp | 3 | 0 |
 | <a id="12-walls-thebes"></a>thebes | Thebes | Temple enclosures, no city wall | B | - | 0 | 0 |

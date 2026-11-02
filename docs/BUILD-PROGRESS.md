@@ -80,9 +80,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   one PR and one `bug` issue per dossier (#473, #477, #479, #483, #485, #488, #490, #494, #499, #500, #501, #504,
   #506, #508, #510); the counts are in "Calibration" in `docs/claude-and-codex.md`. #466's four notes are settled
   (Yapah-Hadda and Artatama marked guesses, Shum-Adda has no town, EA 28-29 date to about 1352-1349). What remains:
-  - **Anchors for the rest of the game's data.** Every person and named ruler names its anchor, with the test
-    (`src/engine/test/history-anchors.test.ts`); the places, distances, waters, walls, armies, doors and tongues have
-    anchored lines in their dossiers but name none yet. Extend `src/engine/src/rules/anchors.ts` and its test to them.
+  - ~~**Anchors for the rest of the game's data.**~~ Done in #522: waters, walls, tongues, languages, doors, crossings,
+    distances, armies and fleets, harbours and rivers each name their line, checked by the anchors test; the guesses with
+    no dossier row are marked invented, for the unclear lines' lane to source or estimate.
   - **The lines left unclear** (213 of 1,447, mostly where the edition was out of reach: Beckman, Bryce's *Kingdom*,
     Veenhof, the excavation reports): source each, or mark what the game rests on it as invented.
 
