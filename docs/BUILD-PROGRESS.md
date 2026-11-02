@@ -58,7 +58,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   `docs/` (#392: item 2's, 4's and 5+'s briefs and specs to `docs/archive/specs/`, built entries out of "Not built yet"; #393:
   design note 10 down to its live differences); the archive's `progress-done.md` split by kind (#394). **Left:** the code,
   once the open lanes touching it merge (17++ B and C, export, model calls, fog); the conversion's parity check removed
-  (#PARITY); `docs/DESIGN-NOTES.md` after its open lane merges.
+  (#443); `docs/DESIGN-NOTES.md` after its open lane merges.
 
 ## Follow-ups
 
