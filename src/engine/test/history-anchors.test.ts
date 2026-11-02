@@ -1,0 +1,46 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { describe, test } from "vitest";
+import { AttestedCast, FirstCores, Invented, NamedScribes, NubianCast, PeopleOf1346, PersonAnchors } from "@amarna/engine";
+import { Assert } from "./support.ts";
+
+// <summary>Every real fact in the game's data names the dossier line it rests on, and that line names the same entity
+// (the full history check, archive item 167).</summary>
+describe("HistoryAnchorTests", () => {
+  const dir = fileURLToPath(new URL("../../../docs/history/", import.meta.url));
+  const lines = new Map<string, string>();
+  const repeated: string[] = [];
+  for (const file of readdirSync(dir).filter((f) => f.endsWith(".md")))
+    for (const line of readFileSync(dir + file, "utf8").split("\n"))
+      for (const m of line.matchAll(/<a id="([^"]+)"><\/a>/g)) {
+        if (lines.has(m[1]!)) repeated.push(m[1]!);
+        lines.set(m[1]!, line);
+      }
+
+  /** Names as the dossiers and the game may spell them apart: no diacritics, no ʿ or ', any case. */
+  const plain = (s: string): string => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[ʿʾ'’]/g, "").toLowerCase();
+
+  // Everyone the game presents as a real person of 1346: the cast, the first pool's attested envoys and the named scribes.
+  const people = [
+    ...AttestedCast.map((c) => c.name),
+    ...PeopleOf1346.map((c) => c.name),
+    ...NubianCast.map((c) => c.name),
+    ...FirstCores.keys(),
+    ...[...NamedScribes.values()].map((s) => s.name),
+  ];
+
+  test("Every anchor is unique", () => Assert.equal("", repeated.join(", ")));
+
+  test("Every real person names an anchor, or is marked invented", () =>
+    Assert.equal("", people.filter((n) => !PersonAnchors.has(n)).join(", ")));
+
+  test("Every anchor exists and its line names the same person", () => {
+    const wrong = [...PersonAnchors].filter(([name, id]) => id !== Invented && !plain(lines.get(id) ?? "").includes(plain(name)));
+    Assert.equal("", wrong.map(([name, id]) => `${name} -> ${id}${lines.has(id) ? "" : " (missing)"}`).join(", "));
+  });
+
+  test("A person marked attested is not marked invented", () => {
+    const attested = [...NamedScribes.values()].filter((s) => s.attested).map((s) => s.name);
+    Assert.equal("", attested.filter((n) => PersonAnchors.get(n) === Invented).join(", "));
+  });
+});
