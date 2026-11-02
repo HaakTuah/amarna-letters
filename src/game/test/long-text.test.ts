@@ -32,11 +32,11 @@ describe("LongTextTests", () => {
     expect(Weighed.exec(`Your weighers found ${formatMoney(80)}.`)?.[1]).toBe(formatMoney(80));
     const lot = EnvoyLot.exec(`He came home.\n\n[The inventory lists ${formatMoney(120)} of gold; your weighers found ${formatMoney(90)}.]`);
     expect([shekels(lot?.[1] ?? ""), shekels(lot?.[2] ?? "")]).toEqual([120, 90]);
-    expect(ForgerHand.exec("A forgery. The scribes trace it to the hand of Pawura, who brought it.")?.[1]).toBe("Pawura");
-    expect([..."Hatti has an army in Kadesh; Mitanni had a fleet in Ugarit.".matchAll(SpiedUnit)].map((m) => m[1])).toEqual(["Hatti", "Mitanni"]);
+    expect(ForgerHand.exec("A forgery. The scribes trace it to the hand of Testu, who brought it.")?.[1]).toBe("Testu");
+    expect([..."Northland has an army in Hillfort; Westland had a fleet in Bayport.".matchAll(SpiedUnit)].map((m) => m[1])).toEqual(["Northland", "Westland"]);
     expect(shekels("2 minas 15 shekels")).toBe(135);
-    const governor = GovernorWrites.exec("Ari, your governor of Amurru, writes that its people are near revolt.");
-    expect([governor?.[1], governor?.[2]]).toEqual(["Amurru", "near revolt"]);
+    const governor = GovernorWrites.exec("Testu, your governor of Hillfort, writes that its people are near revolt.");
+    expect([governor?.[1], governor?.[2]]).toEqual(["Hillfort", "near revolt"]);
     expect(TextKit.isAccusation("You broke the oath you swore.")).toBe(true);
     expect(TextKit.isAccusation("We have never lied to you.")).toBe(false);
     expect(TextKit.sentences('He said "Go!" Then he left.')).toEqual(['He said "Go!"', "Then he left."]);
