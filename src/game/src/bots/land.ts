@@ -6,7 +6,6 @@
  * measure what playing it is worth.
  */
 import {
-  EconomyData,
   LandData,
   WorldMap,
   countryNeed,
