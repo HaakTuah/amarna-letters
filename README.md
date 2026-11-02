@@ -100,7 +100,9 @@ rumours, and those can be late, shaded or false.
 - Your court is where you are, and you may move it. An order for a place your couriers cannot reach this season goes
   out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
-  holding it gives him, and you take it back by sending word.
+  holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
+  his seat. Or make a governor (or a man at your court) a vassal king over provinces of yours, by a grant under oath for
+  a tribute and a price you name: if he takes it, the land is his, bound to you by a sealed vassal tablet.
 
 **The land and its people.**
 - Each province's people farm, give the grain you ask of them into its stores, and eat what they keep. Ask a share of
@@ -364,7 +366,10 @@ each power in its colour with an emblem and a border line of its own (so it read
 colour), armies as chariots and fleets as ships. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
-uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow
+uncertain things (old sightings, rumours, spy reports) are drawn as such. Each realm shows in three steps of its colour:
+full where its king rules, lighter where a governor stands between, a faint wash over its vassals' land, each governor's
+provinces bounded by a thin line; the ◐ button shows the mood of the land as you last heard it (loyal, uneasy, restless,
+or no word), older reads fading. Tap anyone to follow
 their life: their path, their masters, their missions, what they said and reported.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
