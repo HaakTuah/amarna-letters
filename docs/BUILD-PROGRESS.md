@@ -87,6 +87,11 @@ fixed.
   plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
   wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
   in any export. A human player's own words are not sensitive in a normal export.
+  **Kept out by design, not scrubbed** (the owner, 2 November 2026, after #385's review rounds found a new leak in
+  every round: "Yes, expertly to 1!"; "Logging and replay" under Engine and models): nothing sensitive is recorded
+  (errors as kind and code), the export gives only the fields each record lists per filter, and with human words left
+  out a game with a human seat blanks all free text, keeping its shape. #385 stops scrubbing free text and is rebuilt
+  this way; the canary test for hidden information checks the export too.
 - ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
   as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
   token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:
