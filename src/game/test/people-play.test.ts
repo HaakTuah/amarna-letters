@@ -19,7 +19,7 @@ describe("PeoplePlayTests", () => {
     Assert.contains("In this game a land's people do not resist", leaderRules(true, newGameConfig({ peopleDefence: 0 })));
     const sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","command":[],"letters":[],"units":[{"unit":"Nesa","order":"settle","target":"","to":""}],"other_orders":[{"action":"ask_share","province":"Hattusa","power":"","person":"","amount":40,"term":0,"text":"","item":"","seals":[]},{"action":"ask_amount","province":"","power":"","person":"","amount":30,"term":0,"text":"","item":"","seals":[]},{"action":"census","province":"Nesa","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
+        `{"notes":"","command":[],"letters":[],"units":[{"unit":"Nesa","order":"settle","target":"","to":""}],"other_orders":[{"action":"ask_share","province":"Hattusa","power":"","person":"","amount":40,"term":0,"text":"","item":"","seals":[],"lands":[]},{"action":"ask_amount","province":"","power":"","person":"","amount":30,"term":0,"text":"","item":"","seals":[],"lands":[]},{"action":"census","province":"Nesa","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[],"lands":[]}]}`,
       )!,
     );
     Assert.equal([disband("nesa", true), demand("share", 40, "hattusa"), demand("amount", 30), census("nesa")], sub.orders);
