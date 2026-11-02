@@ -22,7 +22,8 @@ building, the routing below and Haakon's poller wait, and all building is Claude
 - **Escalation goes to the other model first:** a problem that has defeated Claude twice goes to Codex as a
   draft PR from the stuck branch, labelled `codex`, whose description is the brief (the problem, what was tried, the
   files and lines), merged into the stuck branch if it works; one that has defeated Codex goes to
-  Claude's escalation helper. Either way the orchestrator checks the answer.
+  Claude's escalation helper, and one that defeats that too goes to Fable, the last step (`CLAUDE.md`). Either way the
+  orchestrator checks the answer.
 - **Who merges is unchanged for Claude's work:** Claude's builders merge their own PRs, as the builder rules and "Git
   and GitHub" say, once the review's verdict ("Reviews" below) allows, and apply the score rules themselves. **Codex
   never merges:** the orchestrator merges its PRs. Codex never touches `main`, and never pushes to a branch it was not
@@ -126,6 +127,11 @@ goes to building. Its usage can run out like any other, and it may then not say 
    Codex's answer, so neither waits for the other, and the builder answers both lists in one round.
 6. **Docs-only PRs and the milestone PRs get no review,** as before. Codex's automatic review stays off in its settings
    for both repositories, so it reviews only when asked.
+7. **Checks that run the work, once Codex can build** (Haakon, 2 November 2026; `docs/archive/instructions.md`, item
+   134). The native review reads the diff but runs nothing, so it cannot check a claim such as "the script kings now
+   win 29 games of 50". When Codex's environments work ("Setup"), a Codex task in its container also reruns the
+   measurements a PR's claims rest on (its benchmarks and use-against-ignore table) and confirms or corrects them, beside
+   the native review, which stays for the diff. Until then CI and Claude's reviewer check them.
 
 ## Reviews: only a 10 passes
 
