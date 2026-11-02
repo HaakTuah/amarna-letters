@@ -12,7 +12,7 @@ and each door brings its own mix of names, tongues and reasons.
 | Door | Opens at (provinces) | Peoples beyond it | Their languages | Grade |
 | --- | --- | --- | --- | --- |
 | <a id="08-western-sea"></a>The western sea | Arzawa's coast (`apasa`, `seha`), Alashiya (`enkomi`, `tamassos`), `ugarit`, Egypt (`delta`) | Aegeans: the Mycenaean Greeks of Ahhiyawa and the Cretans (Keftiu), Knossos under Greek rule; Sherden and other western seafarers | Mycenaean Greek; the older Minoan tongue on Crete, fading; the Sherden's unknown | A for the peoples, C for Knossos's Greek rule and for the Sherden; Cline and Stannish 2011, p. 6: "Keftiu, identified as Crete" |
-| <a id="08-eastern-road"></a>The eastern road | `susa` | Elam's highland lands (Anshan), Marhashi (known from texts of the third and early second millennium; none of 1346 names it [S]), the Zagros highlanders (Lullubi, the Qutu or Guti); far beyond, the tin lands of Central Asia | Elamite; unknown highland tongues; the tin lands' unknown | B; Powell et al. 2022: "ores from Central Asia (Uzbekistan and Tajikistan)" |
+| <a id="08-eastern-road"></a>The eastern road | `susa` | Elam's highland lands (Anshan), Marhashi (known from texts of the third and early second millennium; none of 1346 names it [S]), the Zagros highlanders (Lullubi, the Qutu or Guti); far beyond, the tin lands, where is disputed (Central Asia, perhaps Afghanistan: "The tin lands" below) | Elamite; unknown highland tongues; the tin lands' unknown | B, C for where the tin lands lay; Powell et al. 2022: "ores from Central Asia (Uzbekistan and Tajikistan)"; Berger et al. 2023 dispute it |
 | <a id="08-gulf"></a>The Gulf | `ur`, Dilmun (item 7) | Dilmun's traders (Babylonia's own), Magan (Oman) | Dilmun's and Magan's own tongues, unknown; Akkadian among traders | B |
 | <a id="08-nile"></a>The Nile beyond Nubia | Nubia (item 7) | Kush beyond Egypt's reach, Irem, the Medjay of the eastern desert | Nubian tongues; Egyptian among those who traded with Egypt | B; EA 70, n. 2 (Moran): "'Meluhha' designated Nubia" |
 | <a id="08-red-sea"></a>The Red Sea (if added, "The Red Sea" under Ideas) | Egypt's Red Sea coast | Punt (the southern Red Sea coasts, Eritrea or Somalia) | Unknown | B (the voyages), C (where Punt was); Breasted, *ARE* II, §246: "an important expedition of the queen thither" |
@@ -79,8 +79,9 @@ across Iran [G].
   in no text of 1346 the dossiers use [S]. Their languages are unknown [S].
 - <a id="08-meluhha"></a>**Meluhha.** In the third millennium the Indus; in the Amarna letters, the name for Nubia (EA
   70, 95, 108, 112, 117, 132, 133; Kaši, Cush, in the same requests in EA 127 and 131, and as Meluhha's gloss in EA 133)
-  [B: an identification] (Moran, EA 70, n. 2: "'Meluhha' designated Nubia"). The Indus cities were gone by 1346 [B; no
-  source checked], so nobody comes from there.
+  [B: an identification] (Moran, EA 70, n. 2: "'Meluhha' designated Nubia"). The Indus cities were gone long before
+  1346 [B] (Wikipedia, "Indus Valley Civilisation": "by around 1700 BCE most of the cities had been abandoned"); that
+  nobody comes from there is the game's choice [G].
 - <a id="08-kush-irem-medjay"></a>**Kush, Irem and the Medjay.** Beyond Egypt's frontier at the Fourth Cataract lay Irem
   and other lands Egypt raided and traded with [B]; the Medjay, once desert nomads of the east, had become Egypt's
   police by name [B]. Names: Nubian, mostly unknown; Egyptian names among those who served Egypt [B].
