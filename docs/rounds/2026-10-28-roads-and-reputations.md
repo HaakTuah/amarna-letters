@@ -8,7 +8,7 @@ version 21. What was built, file by file: `docs/design/23-roads-and-reputations.
 
 The copy in `docs/intent/` was cut from Build order revision 75, Characters 20, War and the seas 59, Diplomacy 24, Work
 and money 11, Land and economy 29, Overview 561. The live document was asked for what changed since each at the start:
-nothing had. While the item was being built, Haakon's #117 and #118 merged into `develop` (Build order revision 80): they
+nothing had. While the item was being built, the owner's #117 and #118 merged into `develop` (Build order revision 80): they
 open item 11b with his answers to items 11a and 11a+. `develop` was merged into the branch; what was built of those answers
 is below.
 
@@ -19,7 +19,7 @@ Seeds 1-50 from `develop`, every king a script king, repeated item 11a+'s "after
 are the "before" figures below. The features that showed no use were those earlier audits explained (`reputation`,
 `pact-with-consequences`, `fee-withheld`, the captives' convoys, deals of tablets and collectors). One weakness of the
 script characters that predates this item was seen: free characters gather at one court (Alashiya in seed 1, some 40 of
-the 44 free at times). It is left for the rework of jobs that Haakon's answers ask for (below), which changes where people
+the 44 free at times). It is left for the rework of jobs that the owner's answers ask for (below), which changes where people
 seek work.
 
 ## What was built
@@ -47,7 +47,7 @@ seek work.
 - **Natural losses without old age**: the road, plague and famine where people stand; no persona states an age (tested).
 - **The leader's skill in the pace**: from a tenth less to a tenth more road a season by competence.
 - **The Idrimi line** in the kings' primer and the characters' requests.
-- **Haakon's answers to 11a and 11a+**: granaries rot like the king's stores, and a dismissal before the term ends is a
+- **The owner's answers to 11a and 11a+**: granaries rot like the king's stores, and a dismissal before the term ends is a
   broken promise on record. The rest is left for the next item that touches jobs (Design questions, below).
 - The rulebook has a new part, ROADS AND OUTLAWS; the travel and intelligence parts say what changed; the kings' view
   lists the bands they see and the news offered at their court; the web order form buys news.
@@ -138,11 +138,11 @@ their court could not see. Left as a design question: carriers' fees paid on del
 9. **A band that robs a traveller kills him 1 time in 10**, loose men never. (EA 8: merchants robbed and killed.)
 10. **Only free people sell news**; servants abroad do not sell what they see. (A servant's knowledge is its master's
     until it changes sides.) Alternative: envoys and spies may sell it too.
-11. **A court's record of paying is still known to all at once**, as 11a's question 3 left it; Haakon's answer (records
+11. **A court's record of paying is still known to all at once**, as 11a's question 3 left it; the owner's answer (records
     travel as news) is left for the rework of jobs (question 13).
 12. **The holder's troops halve what bands take**, as they halve the loose men's take; bands avoid land where any army
     stands. (Incentives, not quotas.)
-13. **Haakon's answers to items 11a and 11a+, mostly left for the next item that touches jobs.** Built here: granaries
+13. **The owner's answers to items 11a and 11a+, mostly left for the next item that touches jobs.** Built here: granaries
     rot; a dismissal before the term is a broken promise. Not built: jobs as errands offered through carriers anywhere;
     every payment by the payer's order; no going rate or floor; records, a tablet's end and grants as news; seizing a
     living man's hoard; kings collecting and selling tablets; characters dealing anywhere in a shared province; the
@@ -157,7 +157,7 @@ their court could not see. Left as a design question: carriers' fees paid on del
 16. **People die of plague** 5 in a hundred a season where it strikes, of famine 2 where the people had under half their
     food.
 17. **A carrier's fee is paid on delivery from the treasury by itself**, and counts against the record if the treasury
-    cannot pay it (the review's point 5). Haakon's answer that every payment is the payer's own order belongs to the rework
+    cannot pay it (the review's point 5). The owner's answer that every payment is the payer's own order belongs to the rework
     of jobs (question 13), which will move this payment with the others.
 18. **A report left at a watch post whose spy is gone is lost** after two seasons, with no court there to hire a carrier.
 19. **A chief taken by a king's army is a captive like any other**, but no court counts it as one of its people lost

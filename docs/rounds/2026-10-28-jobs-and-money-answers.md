@@ -1,4 +1,4 @@
-# Jobs and money: Haakon's answers to items 11a and 11a+ (28 October 2026)
+# Jobs and money: the owner's answers to items 11a and 11a+ (28 October 2026)
 
 The first part of build order item 11b+ ("Jobs as errands, and the answers to items 11a, 11a+ and 11b", added to the live
 design document while this was built; the copy in `docs/intent/` still lists these answers at the opening of 11b). Branch
@@ -9,11 +9,11 @@ Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session). Effor
 
 The copy was cut from Build order revision 80, Work and money 15, Overview 566. Asked at the start: nothing had changed.
 Asked again before the pull request: Build order is at revision 81, which adds item **11b+**: first these answers (and
-"carriers' fees paid on delivery by the payer's order", built here), then Haakon's answers to item 11b's review ("Agree to
+"carriers' fees paid on delivery by the payer's order", built here), then the owner's answers to item 11b's review ("Agree to
 all, expertly": ransom demands need a carrier, no rule moves a spy whose reports wait, the border hand-over after the walk,
 armies hunt bands only on order or standing order, a pardon is words or a sealed promise, a model chief's own request,
 robbers choosing whether to kill, anyone selling what he knows), then patching the script players' hunting and news
-buying. Those later parts are **not built here** (the brief: build only Haakon's answers to 11a and 11a+); they are the
+buying. Those later parts are **not built here** (the brief: build only the owner's answers to 11a and 11a+); they are the
 rest of 11b+, for the next session. Work and money and Overview were unchanged.
 
 ## The audit at the start
@@ -25,7 +25,7 @@ court for long stretches of seed 2), and they turn outlaw about 30 times a game 
 
 ## What was built
 
-Each of Haakon's answers, as the 11b row and item 11's text list them:
+Each of the owner's answers, as the 11b row and item 11's text list them:
 
 - **A job is an errand**: what (envoy to a court, spy on a court or province), where, by when, a part now and a part on
   completion. The servant goes only on that errand; another is a new job. A starting servant's first sending names its

@@ -3,7 +3,7 @@
 Presentation only: no rule, number, script play or save version changes, and the script games are identical. The game
 had no sound before this item.
 
-Haakon, 31 October 2026 (relayed by the orchestrator): "Keep the music lane (19+++) running. When the improvement audit
+The owner, 31 October 2026 (relayed by the orchestrator): "Keep the music lane (19+++) running. When the improvement audit
 is done, restart the music lane on Fable 5.1 at high effort for the composing; the current Opus session builds the sound
 system (playback, the layers that switch with the situation, the samples) until then and hands over what it built." The
 sound system was built first with placeholder pieces (handover in `docs/rounds/2026-10-31-music.md`); the pieces and
@@ -19,7 +19,7 @@ alternative, 2:44), Pawns 4:09 (and 5:57), Rivers 5:28, Shadows 6:04 (and 6:19),
 titles, lengths and the item's own list of situations (calm, rising tension, war, siege, battle, triumph, loss, the
 age's last seasons), and are listed as a reading. Ours: one piece for each, the same roles, three variations each, in
 `src/web/src/audio/catalogue.ts`. The player never sees the template: the Music page shows our own pieces' names and moods
-only (Haakon, 1 November 2026, answering the polish lane's question: our piece names and moods only; the template stays
+only (the owner, 1 November 2026, answering the polish lane's question: our piece names and moods only; the template stays
 in these notes).
 
 **The pieces** (`scripts/music/pieces_peace.py`, `pieces_war.py`; the idiom in `idiom.py`): the melodies are the
@@ -48,7 +48,7 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 
 ## How the music chooses (src/web/src/audio/situation.ts, player.ts)
 
-- **Only what the seat knows** (pillar 4; Haakon, 1 November 2026: "Important! The music must never reveal what's outside
+- **Only what the seat knows** (pillar 4; the owner, 1 November 2026: "Important! The music must never reveal what's outside
   the fog of war."): its own sight, the moves it saw resolve, the owners as it knows them, the news that reached it, the
   events it was shown. The mood, the shade, the stings, the great moments, the world's sounds and the event sounds all
   follow it, as it learns it: a battle or a fall it has not heard of plays nothing, even zoomed in on it. What the record
@@ -73,7 +73,7 @@ shorter than Empire Earth's long pieces, since the music changes with the situat
 
 ## The sounds
 
-**Three layers, the music leading** (Haakon, 1 November 2026: "your ears are being assaulted now. It plays dozens of
+**Three layers, the music leading** (the owner, 1 November 2026: "your ears are being assaulted now. It plays dozens of
 sound effects at any one time", then "But all the event stuff is for players only, or if you spectate a player, you hear
 specifically what they hear"; the sound lane, `docs/rounds/2026-11-01-sound-lane.md`), in the manner of Crusader Kings II:
 
@@ -110,7 +110,7 @@ are always heard. `hearing()` in `situation.ts`; the map's own sounds below are 
 
 **The world's bed**, under the music and very low, from the province at the map's centre, heard only zoomed in, rising
 from zoom 1.5 to whole at 3 (zoomed out, the music speaks for the whole board; before 1 November it was heard at every
-zoom). **As the seat's own map shows it** (Haakon, 1 November 2026: "you know where a sea is, so some things you can zoom
+zoom). **As the seat's own map shows it** (the owner, 1 November 2026: "you know where a sea is, so some things you can zoom
 in on and hear, without it revealing anything"): the land never changes and is known to all, so the water and the wind
 are heard wherever the view goes; a town sounds as the seat last knew it (`knownRuins` in `map/known.ts`, the rule the
 map's memory uses too, so ear and eye agree): its market until the seat learns
@@ -149,7 +149,7 @@ moment of its own on screen, `Cue.t` is the one number to take from it instead o
 
 ## The shade: a darker or brighter mode within a piece
 
-Haakon, 31 October 2026 (relayed): "Build the Civilization-style fallback alongside the Empire Earth pieces, and make
+The owner, 31 October 2026 (relayed): "Build the Civilization-style fallback alongside the Empire Earth pieces, and make
 some of each piece's variations a darker or brighter mode chosen as the situation worsens or improves." `shadeAt` gives
 the shade from what the seat knows: -2 in a battle or a siege, or within three seasons of its own capital or king fallen
 (mourning); -1 at war, on grave omens, or with hunger in its land; +1 at a feast, read as a season that brought it land
@@ -166,7 +166,7 @@ all the same, since the sign is what the player reads.
 ## The fallback: after the original Civilization (src/web/src/audio/synth/, tunings.ts)
 
 Three versions, chosen in the switches, in this order everywhere: "Orchestra" (the default), "Lyre and reed", "8-bit"
-(Haakon, 1 November 2026); the same moods, moments, stings, sounds, beds, placement and hearing by zoom serve all three, so
+(the owner, 1 November 2026); the same moods, moments, stings, sounds, beds, placement and hearing by zoom serve all three, so
 only the pieces change. **If the orchestra cannot load**, Lyre and reed plays instead of silence, since it needs no
 download (`Player.style()`): when an orchestra file fails (the element's `error`), when the browser says it is offline as a
 piece is chosen, or when a stream asked for is not heard within 12 s while the audio runs. It lasts until the browser is
@@ -225,14 +225,14 @@ back online or another version is chosen.
 - **Switches**: Music and Sound, each with a volume, in the game's menu and on the listening page, kept in this browser
   (`amarna-audio`). On by default at a regular volume (both at 70%), the first music of a visit rising from
   silence over six seconds from the moment it is first heard (a stage of its own, so the switches never undo it; the
-  listening page plays at once), so it never blasts at start-up (Haakon, 1 November 2026: "Agreed. Keep them on, regular
+  listening page plays at once), so it never blasts at start-up (the owner, 1 November 2026: "Agreed. Keep them on, regular
   volume, but don't blast someone when they start up, like say CK2, even though the main theme there was epice. SO i
   didn't really mind."). A browser that saved other volumes on an earlier visit keeps them. The pieces are
   mastered to one loudness for it, and the Hymn to Nikkal, the first piece heard, opens 7 dB under its height, so the
   fade lands on a quiet lyre and drone.
 - **The listening page**, `/listen` (the top bar's "Music"): every piece and variation with its mood and when it plays;
   the scores side by side in the three versions, with one line saying the Hurrian Hymn is Kilmer's reading, one of several
-  modern reconstructions (Haakon, 1 November 2026: keep Kilmer's reading, with that line); every sting, sound and bed; and
+  modern reconstructions (the owner, 1 November 2026: keep Kilmer's reading, with that line); every sting, sound and bed; and
   under "Extras" at the end, "The tuning's scale (a test)". The game's own music (the menu theme) fades out over 1.5 s on
   entering the page and stays out while it is open (`Player.hush`), so only what is pressed plays; leaving the page fades
   it back in over 3 s.

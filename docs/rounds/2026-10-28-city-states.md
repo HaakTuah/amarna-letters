@@ -160,7 +160,7 @@ Assyria 0.91 to 1.09), while tribute is about 500 shekels a game in all. Tribute
 so it moves score from vassal to overlord, never makes it; what the bond buys (no war, protection) shows only where the
 overlord would otherwise have attacked. Re-measure when command at a distance (13) and policing (15) make wars dearer.
 
-## Questions for Haakon
+## Questions for the owner
 
 1. The Kaska, Lukka and Sutean chiefs' lands start with walls 2 for their strongholds [G] (or no walls, as the sources
    give none, when Lukka fell in seasons 1-3 in every script game)?

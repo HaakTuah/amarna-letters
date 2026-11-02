@@ -1,7 +1,7 @@
 # Item 11c++: the map uncluttered (29 October 2026)
 
 A lane beside item 11f (#169), PR #180, branch `item/map-uncluttered`. The item's text is
-`docs/intent/build-order/item-11.md` ("11c++"), with Haakon's words there ("Yes, to all, expertly!"; "Yes, please!
+`docs/intent/build-order/item-11.md` ("11c++"), with the owner's words there ("Yes, to all, expertly!"; "Yes, please!
 Expertly!"; "Yes, please, expertly! If it needs access to something it can't get right now, then we will get it as soon as
 I am home."). Item 11c+'s report is [`2026-10-29-map-at-a-glance.md`](2026-10-29-map-at-a-glance.md). As built:
 [`docs/design/34-the-map-uncluttered.md`](../design/34-the-map-uncluttered.md); the land drawn and its sources:
@@ -39,7 +39,7 @@ revision 108, at the start and again before the PR was readied: none.
    the Nile and its Delta, and the Aegean coast, in a chunk of their own (103 KB, 40 KB compressed) imported the first time
    the map passes 6x, and swapped back below 4.5x.
 
-No data had to be fetched by Haakon: the elevation (AWS Open Data terrain tiles) and Natural Earth's files were reachable
+No data had to be fetched by the owner: the elevation (AWS Open Data terrain tiles) and Natural Earth's files were reachable
 from the session.
 
 ## Readings taken
@@ -105,7 +105,7 @@ second runs `node --experimental-strip-types scripts/map-borders.ts` again (17 s
 Before and after, phone and desktop, light and dark, at the opening and four seasons in: in the PR (branch
 `pictures/item-11c-plus-plus`). `node src/web/shots.mjs <dir>` takes them again from a build.
 
-## Questions for Haakon
+## Questions for the owner
 
 1. On a phone's opening view of the Levant, the lesser coast cities (Sidon, Tyre and the small cities of the southern coast) show as small seals
    and their armies are hidden until you zoom in one more step, as the item says. Reading taken: hide them, with a dark

@@ -1,6 +1,6 @@
 ## Money and work (item 11a)
 
-Reworked by Haakon's answers (`24-jobs-and-money-answers.md`, which wins where they differ): jobs are errands, the
+Reworked by the owner's answers (`24-jobs-and-money-answers.md`, which wins where they differ): jobs are errands, the
 going rate and notices are gone, every payment is an order, records travel as news.
 
 Build order item 11a. Save version 19. The report is `docs/rounds/2026-10-28-money-and-work.md`. First guesses are in

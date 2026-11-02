@@ -15,7 +15,7 @@ their JSX the old lines unchanged) and `rules.ts` (56 KB to 34 KB, two parts int
 Asked at the start (Build order since 73; Work, money and lending since 11; Characters since 20): nothing new. Asked again
 before the pull request (the same tabs, and Victory and the ending since 9, Land, people and economy since 29): the Build
 order is now at revision 75 and has a new item, **11a+, "Harvests in their season, and the answers to items 8 to 10+b"**,
-added after this item was begun. It carries Haakon's answer to the reviews of items 8, 9, 10+a and 10+b, word for word:
+added after this item was begun. It carries the owner's answer to the reviews of items 8, 9, 10+a and 10+b, word for word:
 
 > "You figure all this out, expert. You know me by now. But models must be able to alter clauses also. Remember,
 > everyone plays the same game!"
@@ -24,7 +24,7 @@ Item 11a+ builds what that answer changes (model envoys altering clauses, winter
 script kings posting province spies and sailing winter strokes, levies by the men a province has, runaways by what the
 farmers keep, the mouths a king chooses to put out, a water dossier, deportees as a company, robbing outside the walls,
 and the harvest in its season). None of it touches 11a's sections, so nothing of it is built here; the progress file
-gains its row, and the "For Haakon" rows of items 8 to 10+b are marked answered by it. `docs/BUILD-PROGRESS.md` held no
+gains its row, and the "For the owner" rows of items 8 to 10+b are marked answered by it. `docs/BUILD-PROGRESS.md` held no
 other answers.
 
 ## The audit at the start
@@ -70,7 +70,7 @@ the interception of captives under guard). Nothing new was found to patch.
 
 ## Readings taken and design questions
 
-Each is a question Haakon can answer; the reading taken comes first, the alternative in brackets, and the principle it
+Each is a question the owner can answer; the reading taken comes first, the alternative in brackets, and the principle it
 rests on ("Reason from the pillars").
 
 1. **A job is a post with a term**, one fee for the term, done when the term is served and the servant is home with no

@@ -1383,3 +1383,28 @@ Given in the design chat with Claude, answering the design questions of the cons
     PR (and, for Barkstreet Snakes, a milestone due whenever a change a player would notice has merged, at least daily):
     "Yes, expertly to both, if you advice." Written into `.github/dependabot.yml` (npm and GitHub Actions) and "Git and GitHub" in `AGENTS.md`; the same in
     Barkstreet Snakes (GitHub Actions only).
+156. **2 November 2026, 12:33 UTC**, in the design chat, to the design session's question whether CodeQL's check should
+    keep GitHub's default failure threshold (only high-severity findings, or code errors, turn a PR's check red, so a
+    false alarm at that level holds that one PR until the owner dismisses it) or never fail: "Keep the default." Nothing
+    changes in the files: the default is GitHub's own setting, and "Git and GitHub" in `AGENTS.md` already says a false
+    alarm is answered in the PR and left to the owner.
+157. **2 November 2026, 13:10 UTC**, in the design chat, to the builders' question in issue #431 (whether a province
+    may declare for a claimant who is not there; the builder's reading required him to stand in or near it) and the
+    design session's take (the design already settles it: "Whom a province obeys" has a province declare for one who
+    takes it up by letter, order or governor, as Pharaoh weighed the mayors' letters from afar): "Yes, expertly, if you
+    think it is best." Written into "Whom a province obeys" under War (revision 94) and item 17++ (revision 213), built
+    in part C.
+158. **2 November 2026, 13:14 to 13:19 UTC**, in the design chat, on who carries a province's offer to an absent
+    favourite (#431): "Is the messenger a character it hires then?", then "But characters don't live anywhere, so it
+    has to be a character who is paid or for some reason takes the mission for free on his own accord?", and, to the
+    design session's take (hired from the people's purse like a city-state's errand, carried unpaid by one whose stakes
+    it serves, or reported by the claimant's own envoy or spy; lost if nobody carries it): "Agreed, expertly. Though
+    this is also information he can pass on or sell. I guess even just a rumor can spread? Maybe the town must be really
+    into someone and have the means, if they commission a message and courier? And this is valuable information for the
+    king of the land, or his enemies." Written into "Whom a province obeys" under War (revision 95) and item 17++
+    (revision 214).
+159. **2 November 2026, 13:26 to 13:30 UTC**, in the design chat: "Oh, sorry. Looked at this: \"dependabot.yml is the empty template: its check fails on every commit #433\" but suddenly it was closed. how was it fixed? is it fixed in both? are all the issues that are closed fixed or being fixed, expert?" Then "What is best?", "Why should they be treated
+    differently?", and, to the design session's take (a question or an idea is done once answered, its work tracked
+    where it lives, so "open" means "needs the owner"; a bug is done only when its fix is live, closed by GitHub when a
+    "Fixes #n" commit reaches `main`): "agreed with your expert take." Written into "Questions, readings and ideas" in
+    `AGENTS.md`; #433 reopened until the next milestone; the same in Barkstreet Snakes.
