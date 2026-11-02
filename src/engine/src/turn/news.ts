@@ -104,10 +104,11 @@ P.buyNewsOrder = function (p, o) {
   if (!this.pay(p, n.price, `${c.name}'s news of ${o.court}`, o, "none was bought")) return;
   gain(c, n.price, "News");
   remember(c, S.turn, `I sold ${p} my news of ${o.court} for ${formatMoney(n.price)}.`);
-  // Who held the court's land when the seller stood there comes with it, as a spy's report brings it (as of then).
+  // Who held the court's land when the seller stood there comes with it, as a spy's report brings it (as of then); word he
+  // carried of it from elsewhere tells only its lines.
   let book = S.known.tryGet(p);
   if (book === undefined) S.known.set(p, (book = new Dict()));
-  for (const prov of ownedBy(S, o.court)) {
+  for (const prov of n.landSeen ? ownedBy(S, o.court) : []) {
     const had = book.tryGet(prov);
     if (had !== undefined && had.turn >= n.turn) continue;
     book.set(prov, newKnown({ owner: Views.ownerAt(S, this.map, prov, n.turn), turn: n.turn, source: c.name }));

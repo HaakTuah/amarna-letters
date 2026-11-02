@@ -25,7 +25,6 @@ import {
   firstBy,
   forge,
   formatMoney,
-  hire,
   hold,
   move,
   newGreetingOptions,
@@ -52,7 +51,6 @@ import {
   type SeatView,
   type TurnSubmission,
   type UnitView,
-  feeFor,
   menOf,
   type CharacterView,
 } from "@amarna/engine";

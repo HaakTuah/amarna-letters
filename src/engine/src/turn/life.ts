@@ -8,7 +8,6 @@
 import { clamp } from "../core/num.ts";
 import { cmpNum, count, sortBy, sum } from "../core/seq.ts";
 import { BandData } from "../model/bands.ts";
-import { Dict } from "../core/collections.ts";
 import { needOf, priceAt } from "../model/economy.ts";
 import { newApproachSeen, newCourtSeen, newDebtSeen, newLifeView, newPersonHere, type LifeChoice, type LifeView } from "../model/life.ts";
 import { debtLeft, isPowerParty, MoneyData, newApproach, newErrand, type Approach, type Debt } from "../model/money.ts";

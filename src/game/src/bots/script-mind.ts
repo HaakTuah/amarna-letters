@@ -27,7 +27,6 @@ import {
   type Traits,
   type Clause,
   clause,
-  isNews,
   renderClauses,
   checkClauses,
   withinAuthority,

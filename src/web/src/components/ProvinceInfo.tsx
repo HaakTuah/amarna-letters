@@ -4,7 +4,6 @@ import {
   WorldMap,
   capacityOf,
   EconomyData,
-  harvestIn,
   reapSeasonOf,
   reckonedOf,
   economyOf,

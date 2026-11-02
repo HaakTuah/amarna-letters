@@ -348,12 +348,12 @@ export function policeAt(s: GameState, province: string): number {
  * or basing grant that stands (an ally's guests are not an enemy).
  */
 export function hostileAt(s: GameState, province: string, holder: Power): boolean {
-  return s.units.some(
-    (u) =>
-      u.province === province &&
-      u.power !== holder &&
-      !s.grants.some((g) => g.grantor === holder && g.grantee === u.power && grantStands(g, s.turn) && (g.province === province || (g.kind === "passage" && g.province === null && g.lands.includes(province)))),
-  );
+  return s.units.some((u) => u.province === province && u.power !== holder && !bidden(s, u.power, province, holder));
+}
+
+/** Whether `power`'s troops stand in `holder`'s `province` by his leave: a passage or basing grant of his that stands. */
+export function bidden(s: GameState, power: Power, province: string, holder: Power): boolean {
+  return s.grants.some((g) => g.grantor === holder && g.grantee === power && grantStands(g, s.turn) && (g.province === province || (g.kind === "passage" && g.province === null && g.lands.includes(province))));
 }
 
 /** What police hold the loose and the bands down to, in percent of what they would take or dare unpoliced. */

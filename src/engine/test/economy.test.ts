@@ -174,7 +174,6 @@ describe("EconomyTests", () => {
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [upkeep(null, true)] })]]));
     Assert.equal("hattusa", Views.for(s, "Hatti").payHeld.join(","));
     s.turn++;
-    const gold = s.treasuries.get("Hatti").gold;
     const paidBefore = u.savings;
     e.beginTurn();
     Assert.equal(1, u.unpaid);
