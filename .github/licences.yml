@@ -18,14 +18,19 @@ allow-licenses:
   - Zlib
   - BlueOak-1.0.0
   - Python-2.0
-# Data, asset and font packages, each checked by hand to be one: the action lets them through, and scripts/licences.mjs
-# holds them to allow-licenses or assets-licenses. Adding one is a reviewed change to this file.
+# Data, asset and font packages, each checked by hand to be one: the action lets them through (it cannot tell their
+# purpose), and scripts/licences.mjs holds each to allow-licenses plus its purpose's licences below, and fails unless this
+# list is exactly data-packages and font-packages together. Adding one is a reviewed change to this file.
 allow-dependencies-licenses:
   - pkg:npm/caniuse-lite
-# Allowed only for the packages above (point 10: CC-BY for data and assets, OFL for fonts; PDDL is a public-domain
-# dedication for data). The action ignores this key.
-assets-licenses:
+# Data and asset packages: CC-BY for data and assets (point 10); PDDL is a public-domain dedication for data.
+data-packages:
+  - caniuse-lite
+data-licenses:
   - CC-BY-3.0
   - CC-BY-4.0
-  - OFL-1.1
   - PDDL-1.0
+# Font packages: OFL for fonts (point 10). None yet.
+font-packages: []
+font-licenses:
+  - OFL-1.1

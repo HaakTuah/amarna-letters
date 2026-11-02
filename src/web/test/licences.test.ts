@@ -19,11 +19,12 @@ describe("licences", () => {
     for (const bad of [undefined, "", "MIT AND", "(MIT", "MIT OR (", "Apache-2.0 WITH LLVM-exception"]) expect(licenceOk(bad, code)).toBe(false);
   });
 
-  it("allows CC-BY and OFL only for named data, asset and font packages, and the public domain for any", () => {
+  it("allows CC-BY only for named data packages, OFL only for named fonts, and the public domain for any", () => {
     expect(licenceOk("CC-BY-4.0", code)).toBe(false);
     expect(licenceOk("OFL-1.1", code)).toBe(false);
     expect(licenceOk("CC-BY-4.0", data)).toBe(true);
-    expect(licenceOk("OFL-1.1", data)).toBe(true);
+    expect(licenceOk("PDDL-1.0", data)).toBe(true);
+    expect(licenceOk("OFL-1.1", data)).toBe(false);
     expect(licenceOk("Public Domain", code)).toBe(true);
   });
 });

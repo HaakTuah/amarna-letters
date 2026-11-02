@@ -8,24 +8,30 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
-/** A YAML list in .github/licences.yml, by key. */
+/** A YAML list in .github/licences.yml, by key (`key: []` is an empty list). */
 function list(yml, key) {
+  if (new RegExp(`^${key}: \\[\\]$`, "mu").test(yml)) return [];
   const block = new RegExp(`^${key}:\\n((?:[ \\t]+- .+\\n?)+)`, "mu").exec(yml);
   if (!block) throw new Error(`.github/licences.yml has no ${key} list`);
   return block[1].split("\n").map((l) => l.replace(/^\s*- /u, "").trim()).filter(Boolean);
 }
 
 /**
- * The policy in .github/licences.yml: the licences any package may have, and the wider set (adding the data, asset and
- * font licences) for the packages named as data, assets or fonts. "Public Domain", which has no SPDX id, counts for any
- * package (point 10); the action cannot be told so and fails such a package until it is named in the file.
+ * The policy in .github/licences.yml: the licences any package may have, widened by the data licences for the packages
+ * named as data or assets and by the font licences for those named as fonts, never across. "Public Domain", which has no
+ * SPDX id, counts for any package (point 10); the action cannot be told so and fails such a package until it is named.
  */
 export function policy() {
   const yml = readFileSync(join(root, ".github/licences.yml"), "utf8");
   const any = new Set([...list(yml, "allow-licenses"), "Public Domain"]);
-  const assets = new Set([...any, ...list(yml, "assets-licenses")]);
-  const named = new Set(list(yml, "allow-dependencies-licenses").map((purl) => purl.replace(/^pkg:npm\//u, "").replace(/@[^@/]*$/u, "")));
-  return { allowedFor: (name) => (named.has(name) ? assets : any) };
+  const data = new Set(list(yml, "data-packages"));
+  const fonts = new Set(list(yml, "font-packages"));
+  const exempt = list(yml, "allow-dependencies-licenses").map((purl) => purl.replace(/^pkg:npm\//u, "")).sort();
+  if (exempt.join() !== [...data, ...fonts].sort().join())
+    throw new Error(".github/licences.yml: allow-dependencies-licenses must name exactly the data-packages and font-packages");
+  const forData = new Set([...any, ...list(yml, "data-licenses")]);
+  const forFonts = new Set([...any, ...list(yml, "font-licenses")]);
+  return { allowedFor: (name) => (data.has(name) ? forData : fonts.has(name) ? forFonts : any) };
 }
 
 /**
