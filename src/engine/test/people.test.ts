@@ -67,7 +67,8 @@ describe("PeopleTests", () => {
       s.turn = turn;
       const e = new TurnEngine(s);
       const before = e.harvestNow("sapinuwa");
-      Assert.true(e.levyMen("sapinuwa", LandData.armyMen));
+      // Three levies, so the loss shows past rounding in Hatti's land of 1.2 million (the people dossier, #492).
+      for (let k = 0; k < 3; k++) Assert.true(e.levyMen("sapinuwa", LandData.armyMen));
       return before - e.harvestNow("sapinuwa");
     };
     // Turn 2 is Peret, sown everywhere but the Anatolian plateau, which reaps and sows in Akhet (turn 1).

@@ -10,7 +10,7 @@ import { raw, write } from "@amarna/engine";
 import { AnthropicId, type ApiResult, type CallSpec, type Provider } from "./client.ts";
 import { ApiStatusError, retryAfterMs } from "./limiter.ts";
 import { ModelIds } from "./models.ts";
-import { jsonSchema, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { jsonSchema, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 
 export const FallbackBeta = "server-side-fallback-2026-07-01";
 

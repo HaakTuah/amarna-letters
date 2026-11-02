@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { land, newRisingChoice, type RisingChoice, type RisingView } from "@amarna/engine";
-import { object, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import { Sb } from "./text.ts";
 
 const Choices = { lead: "lead them", wait: "do not lead them" } as const;
