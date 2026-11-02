@@ -19,12 +19,12 @@ import {
   newToll,
   type Power,
 } from "@amarna/engine";
-import { Assert, armiesBefore13 } from "./support.ts";
+import { Assert, armiesBefore13, smallWorld } from "./support.ts";
 
 // The economy abroad (build order item 9+b): trading caravans and ships, tolls, smuggling, troops abroad by leave, and the sack.
 describe("TradeTests", () => {
   // The armies as before item 13: these rules were measured on full levies.
-  const game = (): GameState => armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 })));
+  const game = (): GameState => smallWorld(armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 }))), "Hatti", "Mitanni", "Alashiya", "Carchemish", "Ugarit");
   const notices = (s: GameState, p: Power, title: string): string => inboxOf(s, p).filter((i) => i.title === title).map((i) => i.body).join(" | ");
   /** Seasons go by until no caravan is on the road (or ten have passed). */
   const untilHome = (s: GameState, e: TurnEngine): void => {
@@ -89,7 +89,7 @@ describe("TradeTests", () => {
     let found = 0;
     let passed = 0;
     for (let seed = 1; seed <= 12; seed++) {
-      const s = newGame(seed, newGameConfig({ catastropheChance: 0 }));
+      const s = smallWorld(newGame(seed, newGameConfig({ catastropheChance: 0 })), "Hatti", "Mitanni");
       const e = new TurnEngine(s);
       s.stores.set("hattusa", 200);
       s.treasuries.get("Hatti").gold = 1000;

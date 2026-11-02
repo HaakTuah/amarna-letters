@@ -31,7 +31,7 @@ import {
   serialize,
   deserialize,
 } from "@amarna/engine";
-import { removeAll, Assert } from "./support.ts";
+import { removeAll, Assert, smallWorld } from "./support.ts";
 
 // Item 13+, Haakon's answers to item 13's review ("A kingdom falls with its capital" under War): a fallen realm comes
 // apart province by province as word of the fall reaches each, life there going on as before until then, and a governor
@@ -45,8 +45,10 @@ describe("FallAsNewsTests", () => {
 
   // Seed 1, no catastrophes: Assyria's army one season from Babylon's surrender; a governor of Babylonia's in Nippur with
   // an army of Babylonia's there, and a purse of `purse`.
-  function babylonFalls(purse: number): { s: GameState; governor: string } {
-    const s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+  function babylonFalls(purse: number, small = true): { s: GameState; governor: string } {
+    const w = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+    // The governors of the other kings stay in the small world, so theirs are kept (the removal below needs their characters).
+    const s = small ? smallWorld(w, "Assyria", "Babylonia", "Egypt", "Hatti", "Alashiya") : w;
     removeAll(s.units, (u) => u.province === "babylon" || u.province === "nippur");
     const army = newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "babylon", men: 3000 });
     s.units.push(army);
@@ -78,7 +80,7 @@ describe("FallAsNewsTests", () => {
     // Hatti falls to Assyria's army at Hattusa; the silver of Tuwanuwa, which word of the fall has not reached, goes to
     // Hattusa as before, and so to Assyria: against the same season with Hatti's other land held by nobody, Assyria's
     // income is the greater by it.
-    const s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+    const s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "Assyria", "Hatti");
     removeAll(s.units, (u) => u.province === "hattusa");
     const army = newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "hattusa", men: 3000 });
     s.units.push(army);
@@ -95,7 +97,8 @@ describe("FallAsNewsTests", () => {
   });
 
   test("When the word arrives, the land falls lawless and a governor rules his province with a seat of his own", () => {
-    const { s, governor } = babylonFalls(5000);
+    // On the whole world: with the small one, seven more powers rise (the single-risen check fails).
+    const { s, governor } = babylonFalls(5000, false);
     const fell = s.turn;
     season(s);
     while (s.turn <= fell + travelTurns(s.config, WorldMap.default, "babylon", "nippur", fell)) season(s);

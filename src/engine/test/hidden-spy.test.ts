@@ -30,7 +30,7 @@ import {
   serialize,
   single,
 } from "@amarna/engine";
-import { fresh, Assert, last, skilled } from "./support.ts";
+import { fresh, Assert, last, skilled, smallWorld } from "./support.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
 // A spy watches a court in secret: the court does not see it there, nor whom it serves, until its watchmen catch it
@@ -58,7 +58,7 @@ describe("HiddenSpyTests", () => {
 
   // <summary>Babylonia's spy, sent to watch Assyria, has just taken up its post there (the season's orders are still to come).</summary>
   function posted(seed: number = 8): [GameState, Character] {
-    let s = newGame(seed, newGameConfig({ catastropheChance: 0 }));
+    let s = smallWorld(newGame(seed, newGameConfig({ catastropheChance: 0 })), "Babylonia", "Assyria");
     let spy = first(s.characters, (c) => c.employer === "Babylonia");
     spy.secretMaster = null;
     begin(s).resolve(orders("Babylonia", placeSpy(spy.id, "Assyria")));

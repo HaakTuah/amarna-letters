@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { Dict, MoneyData, TurnEngine, WorldMap, first, foldOldPay, huntBands, newContract, newGame, newJobErrand, talkWeight, trustIn, type GameState } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 const Map = WorldMap.default;
 
@@ -16,7 +16,7 @@ function freeAt(s: GameState, p: "Egypt" | "Hatti") {
 // Haakon's answers to item 11b+ (build order item 11b++), each tested on the few people and provinces it needs.
 describe("AnswersTo11bPlusTests", () => {
   test("No rule forgets talk of promises: a script person weighs it less as it ages, and never as nothing", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Egypt", "Hatti");
     const c = freeAt(s, "Egypt");
     Assert.true(talkWeight(c, 0) === 1);
     Assert.true(talkWeight(c, 40) < talkWeight(c, 4));
@@ -36,7 +36,7 @@ describe("AnswersTo11bPlusTests", () => {
   });
 
   test("A captive who dies in his captor's hands leaves his purse to the captor's treasury", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Egypt");
     const c = freeAt(s, "Egypt");
     c.status = "Captured";
     c.heldBy = "Egypt";
@@ -50,7 +50,7 @@ describe("AnswersTo11bPlusTests", () => {
   });
 
   test("A stay at court is an errand: an errand given during it is its own job, and the stay goes on after it", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Egypt", "Hatti");
     const c = freeAt(s, "Egypt");
     c.status = "Employed";
     c.employer = "Egypt";
@@ -70,7 +70,7 @@ describe("AnswersTo11bPlusTests", () => {
   });
 
   test("A standing hunt names provinces; chiefs hear of it by talk at the pace of the roads", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Egypt");
     const mine = Map.landProvinces.filter((p) => s.owner.getOrDefault(p.id, null) === "Egypt").map((p) => p.id);
     const e = new TurnEngine(s);
     e.resolveCourt([["Egypt", huntBands(true, [mine[0]])]]);

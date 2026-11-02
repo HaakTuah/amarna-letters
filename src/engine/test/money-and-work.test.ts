@@ -33,7 +33,7 @@ import {
   trustIn,
   Wealth,
 } from "@amarna/engine";
-import { Assert, speaksAll } from "./support.ts";
+import { Assert, smallWorld, speaksAll } from "./support.ts";
 
 // <summary>Item 11a, "Money and work": jobs with a fee and a court's record, lending and debt tablets, the characters' own
 // seasons and their money, newcomers through the doors, and the strategy each plays for wealth.</summary>
@@ -49,7 +49,7 @@ describe("MoneyAndWorkTests", () => {
 
   // Egypt's first envoy, on a one-season job for 12 with 6 handed over; nobody seeks service, so the going rate stays put.
   function servant(): [GameState, Character] {
-    const s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    const s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Babylonia", "Mitanni");
     s.debts = []; // the opening debts between courts (item 17+) are not these tests' matter
     for (const c of s.characters) c.seeking = false;
     // One at court on a job (item 17++: not a governor on his grant nor a resident abroad).
@@ -165,7 +165,7 @@ describe("MoneyAndWorkTests", () => {
   });
 
   test("Characters in one place lend to each other by approach and answer, sealing a debt tablet", () => {
-    const s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    const s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Hatti", "Egypt", "Babylonia", "Mitanni");
     s.debts = []; // the opening debts between courts (item 17+) are not these tests' matter
     const [a, b] = s.characters.filter((c) => c.status === "Free" && c.duty === "None").slice(0, 2);
     for (const x of [a, b]) [x.at, x.purse, x.heldBy] = ["Hatti", 100, null];
@@ -323,7 +323,7 @@ describe("MoneyAndWorkTests", () => {
   });
 
   test("Characters are told the ending's rule in words, never its numbers", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Hatti");
     s.debts = []; // the opening debts between courts (item 17+) are not these tests' matter
     const words = endingWords(s, "hattusa");
     Assert.contains("Nobody knows which season is the last", words);

@@ -3,7 +3,7 @@
  * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
  */
 import { expect } from "vitest";
-import { AllPowers, Dict, newCharacter, newTraits, newWorkPlan, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
+import { AllPowers, Dict, alive, ownedBy, newCharacter, newTraits, newWorkPlan, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
 
 type Coll<T> = Iterable<T> | ArrayLike<T>;
 
@@ -337,6 +337,25 @@ export function oldWorld(s: GameState): GameState {
       c.status = "Free";
       c.contract = null;
     }
+  return s;
+}
+
+/**
+ * The smallest world that tests a rule ("The smallest game that tests the rule" in `AGENTS.md`): only the powers a test
+ * names, Great Kings or city-states. Every other power's land is held by no one (see {@link unruled}), its troops and
+ * tablets gone with it, and only the named powers' servants and the free people at their courts remain. The map stays
+ * whole; the named powers stand on their part of it. On the world before item 11+ write `smallWorld(oldWorld(s), ...)`.
+ * A season with two kings costs about a quarter of one in the whole world.
+ */
+export function smallWorld(s: GameState, ...powers: Power[]): GameState {
+  for (const p of alive(s))
+    if (!powers.includes(p)) {
+      unruled(s, ...ownedBy(s, p));
+      if (!s.eliminated.includes(p)) s.eliminated.push(p);
+      for (let i = s.units.length - 1; i >= 0; i--) if (s.units[i].power === p) s.units.splice(i, 1);
+    }
+  s.characters = s.characters.filter((c) => (c.employer !== null ? powers.includes(c.employer) : c.at !== null && powers.includes(c.at)));
+  s.governors = s.governors.filter((g) => s.characters.some((c) => c.id === g.character));
   return s;
 }
 

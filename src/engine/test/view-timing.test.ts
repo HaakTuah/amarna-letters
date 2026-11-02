@@ -23,7 +23,7 @@ import {
   placeSpy,
   single,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // <summary>Each servant away shows when it set out and when it is due back, as its master can reckon it; a cover keeps the same words.</summary>
 describe("ViewTimingTests", () => {
@@ -39,7 +39,7 @@ describe("ViewTimingTests", () => {
   }
 
   test("An envoy shows when it set out is received and is due back", () => {
-    let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    let s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let e = begin(s);
@@ -85,7 +85,7 @@ describe("ViewTimingTests", () => {
   });
 
   test("A detained envoy is due back in its lord s eyes as one sent home would be", () => {
-    let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    let s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Alashiya");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let e = begin(s);
@@ -110,7 +110,7 @@ describe("ViewTimingTests", () => {
   });
 
   test("A spy on its way shows when it is due at its post", () => {
-    let s = newGame(8, newGameConfig({ catastropheChance: 0 }));
+    let s = smallWorld(newGame(8, newGameConfig({ catastropheChance: 0 })), "Babylonia", "Egypt");
     let spy = first(s.characters, (c) => c.employer === "Babylonia");
     let e = begin(s);
     let travel = e.travelTurns("Babylonia", "Egypt");
@@ -119,7 +119,7 @@ describe("ViewTimingTests", () => {
   });
 
   test("Two troops reported into one province are each shown by an older report of their own, never twice by one", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Hatti", "Babylonia");
     const e = new TurnEngine(s);
     Assert.equal(1, e.wordTo("Hatti", "babylon"));
     Assert.equal(1, e.wordTo("Hatti", "nippur"));

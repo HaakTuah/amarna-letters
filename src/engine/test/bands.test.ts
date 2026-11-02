@@ -20,7 +20,7 @@ import {
   personaTemplate,
   type GameState,
 } from "@amarna/engine";
-import { Assert, subs } from "./support.ts";
+import { Assert, smallWorld, subs } from "./support.ts";
 
 const Map = WorldMap.default;
 
@@ -31,7 +31,7 @@ function quiet(s: GameState, holder: string | null = null): string {
 
 describe("BandTests", () => {
   test("A large crowd of loose men nobody polices raises a chief who leads them as a band", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Egypt", "Hatti");
     const prov = quiet(s);
     s.people.get(prov).loose = 40000;
     let found = false;
@@ -53,7 +53,7 @@ describe("BandTests", () => {
   });
 
   test("A crowd where its holder's troops stand raises nobody", () => {
-    const s = newGame(1);
+    const s = smallWorld(newGame(1), "Hatti");
     const holder = s.owner.getOrDefault(Map.capital("Hatti").id, null)!;
     const prov = Map.capital("Hatti").id;
     Assert.true(s.units.some((u) => u.province === prov && u.power === holder));
@@ -66,7 +66,7 @@ describe("BandTests", () => {
   });
 
   test("A band robs its province, its chief keeps the share, and nothing vanishes", () => {
-    const s = newGame(2);
+    const s = smallWorld(newGame(2), "Egypt");
     const prov = quiet(s, "Egypt");
     const e = new TurnEngine(s);
     const b = e.headRises(prov, 60, "crowd", e.r("test"));
@@ -81,7 +81,7 @@ describe("BandTests", () => {
   });
 
   test("The holder's army falls on a band where it stands only on his order, and drives it off", () => {
-    const s = newGame(3);
+    const s = smallWorld(newGame(3), "Egypt");
     const prov = quiet(s, "Egypt");
     const e = new TurnEngine(s);
     const b = e.headRises(prov, 80, "crowd", e.r("test"));
@@ -104,7 +104,7 @@ describe("BandTests", () => {
   });
 
   test("A band that cannot pay its men shrinks, and a chief whose band dwindles gives up the road", () => {
-    const s = newGame(4);
+    const s = smallWorld(newGame(4), "Egypt");
     const prov = quiet(s, "Egypt");
     const e = new TurnEngine(s);
     const b = e.headRises(prov, 150, "crowd", e.r("test"));
@@ -121,7 +121,7 @@ describe("BandTests", () => {
   });
 
   test("A spy's report from a foreign court waits for a carrier, and its spy carries it home in the end", () => {
-    const s = newGame(5);
+    const s = smallWorld(newGame(5), "Babylonia", "Hatti", "Egypt");
     const e = new TurnEngine(s);
     const spy = first(s.characters, (c) => c.employer === "Babylonia" && c.at === "Babylonia");
     spy.duty = "SpyPosted";
@@ -148,7 +148,7 @@ describe("BandTests", () => {
 
   test("One carrier takes every report waiting for the same court, for one fee", () => {
     // Seed 4: since item 11d (three more city-states) seed 5's world has no free person to carry the reports.
-    const s = newGame(4);
+    const s = smallWorld(newGame(4), "Babylonia", "Hatti", "Egypt");
     const spy = first(s.characters, (c) => c.employer === "Babylonia" && c.at === "Babylonia");
     spy.duty = "SpyPosted";
     spy.at = "Hatti";
@@ -178,7 +178,7 @@ describe("BandTests", () => {
   });
 
   test("A free person sells the news it saw at one court at another", () => {
-    const s = newGame(6);
+    const s = smallWorld(newGame(6), "Mitanni", "Hatti");
     const c = first(s.characters, (x) => x.status === "Free" && x.at !== null);
     c.at = "Mitanni";
     c.news = [newNewsHeld({ court: "Hatti", turn: s.turn, lines: ["Hatti had an army in Nesa."] })];
@@ -196,7 +196,7 @@ describe("BandTests", () => {
   });
 
   test("A ruthless chief kills a witness only where no army of the land stands near and he heard of no hunt; a careful one never", () => {
-    const s = newGame(8);
+    const s = smallWorld(newGame(8), "Egypt", "Hatti");
     const prov = quiet(s, "Egypt");
     const e = new TurnEngine(s);
     const b = e.headRises(prov, 60, "crowd", e.r("test"));
@@ -223,7 +223,7 @@ describe("BandTests", () => {
   });
 
   test("A ransom demand never carries a spy's reports, and one no longer standing is dropped unsent", () => {
-    const s = newGame(9);
+    const s = smallWorld(newGame(9), "Babylonia", "Hatti");
     const at = Map.capital("Hatti").id;
     const e = new TurnEngine(s);
     const demand = newPendingTask({ id: newId(s, "q"), kind: "RansomDemand", requester: "Babylonia", other: "Hatti", spend: 100, dueTurn: s.turn + 8 });
@@ -254,7 +254,7 @@ describe("BandTests", () => {
   test("A servant caught selling its master's secrets: word of it reaches its master by the roads", () => {
     let caught = false;
     for (let seed = 1; seed <= 40 && !caught; seed++) {
-      const s = newGame(seed);
+      const s = smallWorld(newGame(seed), "Hatti", "Mitanni");
       const c = first(s.characters, (x) => x.employer === "Hatti" && x.status === "Employed");
       c.at = "Mitanni";
       c.duty = "EnvoyAtCourt";
@@ -278,7 +278,7 @@ describe("BandTests", () => {
   });
 
   test("A person asks more of a court it heard loses its people abroad", () => {
-    const s = newGame(7);
+    const s = smallWorld(newGame(7), "Assyria", "Hatti", "Egypt");
     const c = first(s.characters, (x) => x.status === "Free");
     c.traits.courage = 20;
     const before = basePrice(c, "Assyria");

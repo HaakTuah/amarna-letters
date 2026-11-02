@@ -24,7 +24,7 @@ import {
   support,
   FullUnit,
 } from "@amarna/engine";
-import { Assert, oldWorld } from "./support.ts";
+import { Assert, oldWorld, smallWorld } from "./support.ts";
 
 // Terrain (Build order item 5, the siege package; question 5, plan step 14): rough ground, or a mountain pass or a great
 // river on the link an attack comes over, give a unit that stands its ground 1 more against that attack, at most 1 in all;
@@ -261,7 +261,7 @@ describe("TerrainTests", () => {
 
   test("The battle report gives the grounds share and the record marks what it decided", () => {
     // The people do not resist here, so the ground alone decides (item 11e: the land's men stand beside its troop).
-    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
+    let s = smallWorld(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }))), "Egypt", "Hatti", "Mitanni", "Arzawa", "Alashiya");
     // Hatti attacks Arzawa's Mira from Tuwanuwa with Lukka's support; Arzawa's army there holds.
     single(s.units, (u) => u.province === "hattusa").province = "tuwanuwa";
     single(s.units, (u) => u.province === "nesa").province = "lukka";
@@ -279,7 +279,7 @@ describe("TerrainTests", () => {
   });
 
   test("A storm report gives the grounds share of the defenders", () => {
-    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
+    let s = smallWorld(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "Egypt", "Hatti", "Mitanni", "Arzawa", "Alashiya");
     // Hatti, with three armies round Arzawa's Isuwa (walls 1, rough ground), gets in but cannot storm it: the garrison with
     // the ground's help and the city's own men, doubled by the walls (item 11e).
     s.owner.set("isuwa", "Arzawa");

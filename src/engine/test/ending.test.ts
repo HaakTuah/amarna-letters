@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { GameStateSchema, Views, canPlayOn, drawFinalSeason, endChanceAt, newGame, newGameConfig, playOn, serialize, AllPowers } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // The random ending (build order item 6a): the last season drawn once in secret at the start, the cap and the median as
 // settings, the open age, and nothing shown that reads the drawn season.
@@ -60,7 +60,7 @@ describe("EndingTests", () => {
   });
 
   test("Playing on opens the age after its end, keeps the winners and never ends again by itself", () => {
-    const s = newGame(5, newGameConfig({ capMin: 2, capMax: 2, endMedian: 10000 }));
+    const s = smallWorld(newGame(5, newGameConfig({ capMin: 2, capMax: 2, endMedian: 10000 })), "Hatti");
     Assert.false(canPlayOn(s));
     s.ended = true;
     s.endReason = "the age has run its course";
@@ -78,7 +78,7 @@ describe("EndingTests", () => {
   });
 
   test("An age that ended with one kingdom left cannot be played on", () => {
-    const s = newGame(5);
+    const s = smallWorld(newGame(5), "Hatti");
     s.ended = true;
     s.endReason = "only one kingdom remains";
     Assert.false(canPlayOn(s));

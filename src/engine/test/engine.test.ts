@@ -213,7 +213,7 @@ describe("EngineTests", () => {
 
   test("Game ends at its drawn last season, and always by the cap", () => {
     for (let seed = 1; seed <= 20; seed++) {
-      let s = playRandom(seed, 200, newGameConfig({ capMin: 40, capMax: 40 }));
+      let s = playRandom(seed, 200, newGameConfig({ capMin: 40, capMax: 40 }), "Egypt", "Hatti");
       Assert.true(s.ended);
       let last = max(s.scores, (x) => x.turn);
       Assert.inRange(last, 1, 40);

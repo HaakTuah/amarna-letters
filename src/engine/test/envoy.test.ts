@@ -39,11 +39,11 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { fresh, Assert, toDict, skilled, homeJob, oldWorld } from "./support.ts";
+import { fresh, Assert, toDict, skilled, homeJob, oldWorld, smallWorld } from "./support.ts";
 
 describe("EnvoyTests", () => {
   function start(): [GameState, Character] {
-    let s = oldWorld(newGame(5));
+    let s = smallWorld(oldWorld(newGame(5)), "Egypt", "Alashiya", "Assyria", "Hatti");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     return [s, envoy];
@@ -266,7 +266,7 @@ describe("EnvoyTests", () => {
   });
 
   test("Assay reveals debased gold", () => {
-    let s = oldWorld(newGame(5));
+    let s = smallWorld(oldWorld(newGame(5)), "Hatti", "Egypt");
     s.treasuries.get("Hatti").lots.push(newGoldLot({ id: "g900", from: "Egypt", stated: 100, face: 100, true: 60, arrivedTurn: 1 }));
     let e = begin(s);
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [assay("g900")] })]]));
@@ -275,7 +275,7 @@ describe("EnvoyTests", () => {
   });
 
   test("Background checks report public facts and deeper ones only by chance", () => {
-    let s = oldWorld(newGame(5));
+    let s = smallWorld(oldWorld(newGame(5)), "Hatti", "Egypt", "Alashiya");
     let target = first(s.characters, (c) => c.facts.some((f) => f.secrecy === "Deep") && c.secretMaster === null);
     let e = begin(s);
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [check(target.id, 10)] })]]));
@@ -287,7 +287,7 @@ describe("EnvoyTests", () => {
     let hidden = 0,
       deep = 0;
     for (let seed = 1; seed <= 60; seed++) {
-      let g = oldWorld(newGame(seed));
+      let g = smallWorld(oldWorld(newGame(seed)), "Hatti", "Egypt", "Alashiya");
       let who = first(g.characters, (c) => c.facts.some((f) => f.secrecy === "Deep") && c.secretMaster === null);
       let en = begin(g);
       en.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [check(who.id, 100)] })]]));
@@ -300,7 +300,7 @@ describe("EnvoyTests", () => {
   });
 
   test("Forgery can be exposed by paid authentication", () => {
-    let s = oldWorld(newGame(5));
+    let s = smallWorld(oldWorld(newGame(5)), "Assyria", "Hatti", "Egypt", "Mitanni");
     let forger = first(s.characters, (c) => c.employer === "Assyria");
     skilled(forger, 60);
     let e = begin(s);

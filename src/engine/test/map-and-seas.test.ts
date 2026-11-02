@@ -29,7 +29,7 @@ import {
   newUnit,
   unitAt,
 } from "@amarna/engine";
-import { Assert, last, oldWorld } from "./support.ts";
+import { Assert, last, oldWorld, smallWorld } from "./support.ts";
 
 // The map and the seas (build order item 7a): the map review's provinces, names and connections, the lengths of the
 // connections, each coast's waters, the open-sea crossings closed in winter, and the blockade deciding at sea.
@@ -155,7 +155,7 @@ describe("MapAndSeasTests", () => {
 
   test("A besieged coastal city is supplied by sea unless its besieger's fleet holds its waters", () => {
     // Egypt's army stands within the walls of Gaza (walls 2, held by no one) and besieges it.
-    const s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
+    const s = smallWorld(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "Egypt", "Hatti", "Babylonia", "Alashiya");
     s.units.push(newUnit({ id: "x1", power: "Egypt", kind: "Army", province: "gaza" }));
     season(s, "Egypt", besiege("gaza"));
     Assert.equal(0, s.sieges[0].progress);
