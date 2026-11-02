@@ -870,6 +870,8 @@ export interface Siege {
   blockaded: number;
   /** Item 17: the seasons it has starved under this siege; its gate opens from within after a few ("How long a siege lasts"). */
   hungry: number;
+  /** Bug #517: its progress at the end of each season since it began, so a far court reads it as word of it last came. */
+  history: number[];
 }
 
 export function newSiege(init: Partial<Siege> = {}): Siege {
@@ -881,6 +883,7 @@ export function newSiege(init: Partial<Siege> = {}): Siege {
     since: 0,
     blockaded: 0,
     hungry: 0,
+    history: [],
     ...init,
   };
 }
@@ -893,6 +896,7 @@ export const SiegeSchema: ObjSchema<Siege> = obj("Siege", newSiege, {
   since: I,
   blockaded: I,
   hungry: I,
+  history: list(I),
 });
 
 export interface Treasury {

@@ -367,7 +367,10 @@ P.sendTraders = function (orders, tell) {
       continue;
     }
     if (siegeOf(S, o.from) !== null) {
-      this.lostOrder(p, o, o.from, "Order failed", `Nothing set out from ${from.name}: it is besieged.`, "it is besieged");
+      // Near, told among the markets' lines as ever; one it may not have heard of, by the road (bug #517).
+      const d = this.wordTo(p, o.from);
+      if (d > 0 && Number.isFinite(d)) this.lostOrder(p, o, o.from, "Order failed", `Nothing set out from ${from.name}: it is besieged.`, "it is besieged");
+      else fail(`Nothing set out from ${from.name}: it is besieged.`, "it is besieged");
       continue;
     }
     let fleet: Unit | null = null;

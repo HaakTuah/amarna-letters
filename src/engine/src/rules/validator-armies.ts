@@ -9,7 +9,7 @@ import { countOf } from "../model/counts.ts";
 import { isAlive, unitAt } from "../model/state.ts";
 import { buildGold, landRefusal, levelOf, WorkKindValues, WorksData, workLevelText, workName } from "../model/works.ts";
 import type { Checking } from "./validator-context.ts";
-import { courtOf } from "./court.ts";
+import { courierSeasons, courtOf } from "./court.ts";
 
 /** Why the order is refused, null if it stands, or undefined if it is not one of these. */
 export function checkArmyOrder(v: Checking, order: Order): string | null | undefined {
@@ -102,8 +102,10 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (v.knownWalls(so.city) === 0) return `${name} has no walls to sally from`;
       if (v.knownWalls(so.city) < S.config.sallyMinWalls)
         return `the walls of ${name} stand at ${v.knownWalls(so.city)}: only walls of ${S.config.sallyMinWalls} or more can sally`;
+      // Troops within as the court sees them (bug #517): out of its sight it cannot know, and the order goes; walls with none
+      // to sally against do nothing.
       const inside = unitAt(S, so.city);
-      if (inside === null || inside.power === power) return `no foreign troops stand within the walls of ${name}`;
+      if (Sight().has(so.city) && (inside === null || inside.power === power)) return `no foreign troops stand within the walls of ${name}`;
       if (isBlank(so.from)) return "name the province the attack the walls support comes from";
       if (!Map.exists(so.from)) return `there is no province called '${so.from}'`;
       if (!Map.areAdjacent(so.from, so.city)) return `${so.from} is not next to ${name}`;
@@ -131,12 +133,13 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (v.knownOwner(p.id) !== power) return `you do not hold ${p.name}`;
       if (r.kind === "Fleet" && !p.isCoastal) return `${p.name} has no harbour for a fleet`;
       if (raisedIn.has(p.id)) return `you already raise a unit in ${p.name}`;
-      // The men at home as the court knows them (bug #517): where it sees, as they are; farther off, by its last count.
-      const men = v.Sight().has(p.id) ? menAvailable(S, p.id) : (countOf(S, power, p.id)?.men ?? menAvailable(S, p.id));
-      if (men < LandData.levyLeast) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (a levy takes ${LandData.levyLeast} at least of those at home and not carrying or building)`;
+      // The men at home as the court knows them (bug #517): within the season's reach, as they are; farther off, by its last
+      // count, or unchecked if it has none: the levy then fails there, and word of it comes by the road.
+      const men = courierSeasons(S, Map, courtOf(S, Map, power), p.id) === 0 ? menAvailable(S, p.id) : (countOf(S, power, p.id)?.men ?? null);
+      if (men !== null && men < LandData.levyLeast) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (a levy takes ${LandData.levyLeast} at least of those at home and not carrying or building)`;
       if (r.men != null && r.men < LandData.levyLeast) return `a levy takes ${LandData.levyLeast} men at least`;
       // Item 17++: the gold set aside is reckoned by the men the king knows of, his last count, never those really there.
-      const known = countOf(S, power, p.id)?.men ?? men;
+      const known = countOf(S, power, p.id)?.men ?? men ?? menOf(r.kind);
       return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(known, r.share != null ? Math.floor((known * r.share) / 100) : (r.men ?? menOf(r.kind)))));
     }
 

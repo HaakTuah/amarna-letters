@@ -42,7 +42,7 @@ interface Twin {
   seat: Power;
   /** The small world, the fact true (it happened out of the seat's sight) or false. */
   make(fact: boolean): GameState;
-  /** A fact that comes about later, after the seat's first orders set out: done in the true world as season `at` begins. */
+  /** A fact that comes about later, after the seat's first orders set out: done in the true world during season `at`. */
   later?: { at: number; happen(s: GameState): void };
   /** The orders the seat gives each season: the same in both worlds, since it sees the same. */
   orders: Order[];
@@ -53,6 +53,8 @@ interface Twin {
 
 const map = WorldMap.default;
 
+const isDict = (x: unknown): x is Record<string, unknown> => typeof x === "object" && x !== null && !Array.isArray(x);
+
 /** What differs between two seats' receipts: each view field that differs, and each notice only one of them got. */
 function differences(a: GameState, b: GameState, p: Power): string[] {
   const [va, vb] = [a, b].map((s) => JSON.parse(serialize(SeatViewSchema, Views.for(s, p))) as Record<string, unknown>);
@@ -61,7 +63,27 @@ function differences(a: GameState, b: GameState, p: Power): string[] {
   const [ia, ib] = [va, vb].map((v) => (v.inbox as { title: string; body: string }[]).map(notice));
   for (const x of ia.filter((x) => !ib.includes(x))) out.push(`only where true: ${x}`);
   for (const x of ib.filter((x) => !ia.includes(x))) out.push(`only where false: ${x}`);
-  for (const k of Object.keys(va)) if (k !== "inbox" && JSON.stringify(va[k]) !== JSON.stringify(vb[k])) out.push(`view.${k}: ${JSON.stringify(va[k]).slice(0, 300)} against ${JSON.stringify(vb[k]).slice(0, 300)}`);
+  // A list of places is compared place by place, so a known difference at one place hides nothing at another.
+  const place = (x: unknown): string => {
+    const o = x as Record<string, unknown>;
+    return String(o.province ?? o.from ?? JSON.stringify(x));
+  };
+  for (const k of Object.keys(va)) {
+    if (k === "inbox" || JSON.stringify(va[k]) === JSON.stringify(vb[k])) continue;
+    const [la, lb] = [va[k], vb[k]];
+    if (Array.isArray(la) && Array.isArray(lb) && [...la, ...lb].every((x) => typeof x === "object" && x !== null && ("province" in x || "from" in x))) {
+      for (const at of new Set([...la, ...lb].map(place))) {
+        const [xa, xb] = [la.filter((x) => place(x) === at), lb.filter((x) => place(x) === at)].map((l) => JSON.stringify(l));
+        if (xa !== xb) out.push(`view.${k}[${at}]: ${xa.slice(0, 300)} against ${xb.slice(0, 300)}`);
+      }
+    } else if (isDict(la) && isDict(lb)) {
+      // So is a dictionary by place, key by key.
+      for (const at of new Set([...Object.keys(la), ...Object.keys(lb)])) {
+        const [xa, xb] = [JSON.stringify(la[at] ?? null), JSON.stringify(lb[at] ?? null)];
+        if (xa !== xb) out.push(`view.${k}[${at}]: ${xa.slice(0, 300)} against ${xb.slice(0, 300)}`);
+      }
+    } else out.push(`view.${k}: ${JSON.stringify(la).slice(0, 300)} against ${JSON.stringify(lb).slice(0, 300)}`);
+  }
   const [wa, wb] = [a, b].map((s) => JSON.stringify(s.sleep.tryGet(p)?.pendingWake ?? []));
   if (wa !== wb) out.push(`wake: ${wa} against ${wb}`);
   return out;
@@ -72,9 +94,10 @@ function play(t: Twin): { line: string; difference: string }[] {
   const worlds = [t.make(true), t.make(false)];
   const found: { line: string; difference: string }[] = [];
   for (let season = 0; season < t.seasons; season++) {
-    if (t.later !== undefined && worlds[0].turn === t.later.at) t.later.happen(worlds[0]);
     for (const s of worlds) new TurnEngine(s).beginTurn();
     if (t.heard(worlds[0])) break;
+    // A later fact comes about during the season, as a capture in its movement would, before its orders are carried out.
+    if (t.later !== undefined && worlds[0].turn === t.later.at) t.later.happen(worlds[0]);
     for (const d of differences(worlds[0], worlds[1], t.seat)) found.push({ line: `season ${worlds[0].turn}, ${d}`, difference: d });
     for (const s of worlds) new TurnEngine(s).resolve(new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(t.orders) })]]));
   }
@@ -84,21 +107,27 @@ function play(t: Twin): { line: string; difference: string }[] {
 /** A small world of seed 1, no catastrophes, with only these powers. */
 const world = (...powers: Power[]): GameState => smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), ...powers);
 
-/** Egypt holds Nippur, far from its court; in the twin where the fact is true, Babylonia took it in the first season. */
+/**
+ * Nippur held by `p` from `turn`, its people favouring him, so that it stays his (a province answers to whom its people
+ * favour, item 17++), as the log of holders has it.
+ */
+function holds(s: GameState, p: Power, turn: number): void {
+  s.owner.set("nippur", p);
+  s.ownerLog.push(newOwnerChange({ province: "nippur", turn, owner: p }));
+  s.ledger.set("nippur", new Dict([[p, 5000]]));
+}
+
+/** Egypt holds Nippur, far from its court; in the twin where the fact is true, Babylonia takes it in the first season. */
 const farLoss: Twin = {
   name: "a far province lost out of sight",
   seat: "Egypt",
   seasons: 6,
-  make(fact) {
+  make() {
     const s = world("Egypt", "Babylonia");
-    s.owner.set("nippur", "Egypt");
-    s.ownerLog.push(newOwnerChange({ province: "nippur", turn: 0, owner: "Egypt" }));
-    if (fact) {
-      s.owner.set("nippur", "Babylonia");
-      s.ownerLog.push(newOwnerChange({ province: "nippur", turn: 1, owner: "Babylonia" }));
-    }
+    holds(s, "Egypt", 0);
     return s;
   },
+  later: { at: 1, happen: (s) => holds(s, "Babylonia", 1) },
   orders: [
     build("nippur", "Walls", 1, true),
     sell("nippur", 10),
@@ -122,8 +151,7 @@ const farSiege: Twin = {
   seasons: 2,
   make(fact) {
     const s = world("Egypt", "Babylonia");
-    s.owner.set("nippur", "Egypt");
-    s.ownerLog.push(newOwnerChange({ province: "nippur", turn: 0, owner: "Egypt" }));
+    holds(s, "Egypt", 0);
     s.units = s.units.filter((u) => u.province !== "nippur");
     if (fact) {
       s.units.push(newUnit({ id: "u990", power: "Babylonia", kind: "Army", province: "nippur", home: "babylon", men: 3000 }));
@@ -182,17 +210,7 @@ const lossAfterOrders: Twin = {
   ...farLoss,
   name: "a far province lost after orders for it set out",
   seasons: 8,
-  make(fact) {
-    void fact;
-    return farLoss.make(false);
-  },
-  later: {
-    at: 2,
-    happen(s) {
-      s.owner.set("nippur", "Babylonia");
-      s.ownerLog.push(newOwnerChange({ province: "nippur", turn: 2, owner: "Babylonia" }));
-    },
-  },
+  later: { at: 2, happen: (s) => holds(s, "Babylonia", 2) },
 };
 
 /** As `farSiege`, but the siege begins in the second season, after the seat's first orders set out. */
@@ -219,10 +237,12 @@ const siegeAfterOrders: Twin = {
  * totals, are shown as they are, not as last reported.
  */
 const Known: { issue: number; what: string; is: (difference: string) => boolean }[] = [
-  ...["provinces", "works", "caravans", "strength", "gold"].map((k) => ({ issue: 540, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
+  // Of the far province itself (Nippur, in every twin), and the realm's totals.
+  ...["provinces", "works"].map((k) => ({ issue: 540, what: `view.${k} of the far province`, is: (d: string) => d.startsWith(`view.${k}[nippur]: `) })),
+  { issue: 540, what: "a caravan to or from the far province", is: (d) => /^view\.caravans\[[a-z]+\]: /.test(d) && d.includes('"nippur"') },
+  ...["strength", "gold"].map((k) => ({ issue: 540, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
   { issue: 540, what: "the treasury notice", is: (d) => /^only where (true|false): The treasury: /.test(d) },
   { issue: 540, what: "the works notice", is: (d) => /^only where (true|false): Works: What you keep and build cost /.test(d) },
-  { issue: 540, what: "people moving", is: (d) => /^only where (true|false): People: .* fled /.test(d) },
   { issue: 540, what: "a caravan's arrival", is: (d) => /^only where (true|false): Markets and caravans: Your caravan reached /.test(d) },
 ];
 

@@ -378,12 +378,13 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {
-    if (!seen.has(prov.id) && !(s.owner.getOrDefault(prov.id, null) === p && known.tryGet(prov.id)?.owner === p)) continue;
+    if (!seen.has(prov.id) && known.tryGet(prov.id)?.owner !== p) continue;
     const full = harvestOf(prov);
     // Item 17++: what its last reaping brought in, a season's third of it, as the stewards (or the troops who saw the fields)
     // know it; never the hands there now, which only a count tells.
     v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * idiv(s.reaped.getOrDefault(prov.id, full * 3), 3), full));
-    const r = engine.resistance(prov.id, p);
+    // Its people's resistance only where it sees them (bug #517); its own land farther off, by its yields alone.
+    const r = seen.has(prov.id) ? engine.resistance(prov.id, p) : 0;
     if (r > 0) v.resistance.set(prov.id, r);
   }
   v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
@@ -391,7 +392,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   for (const c of s.caravans.filter((c) => c.power === p))
     v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning, gold: c.gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null }));
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
-  for (const [k, seen] of s.marketsSeen.tryGet(p)?.entries() ?? []) if (s.owner.getOrDefault(k, null) !== p) v.markets.set(k, { ...seen });
+  // Its own, as it knows its land (bug #517), are among its provinces instead.
+  for (const [k, seen] of s.marketsSeen.tryGet(p)?.entries() ?? []) if (known.tryGet(k)?.owner !== p) v.markets.set(k, { ...seen });
   // Its own tolls it knows; the others only as last reported to it (item 10+b), never posted.
   for (const t of s.tolls) if (t.holder === p) v.tolls.push({ ...t });
   for (const t of s.tollsKnown.tryGet(p) ?? []) if (t.holder !== p && isAlive(s, t.holder)) v.tolls.push({ ...t });

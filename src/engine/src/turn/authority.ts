@@ -189,10 +189,10 @@ P.revokeGrants = function (p, o) {
 P.grantByOrder = function (p, o) {
   const S = this.s;
   const Map = this.map;
+  // Given at court as the court knows its land (bug #517): a grant over land lost out of its sight is recorded all the
+  // same, and means nothing while another holds it (grantCovers reads the holder's grants), so it tells nothing at once.
   const why =
-    o.province !== null && S.owner.getOrDefault(o.province, null) !== p
-      ? "you no longer hold it"
-      : o.kind === "basing" && o.province === null
+    o.kind === "basing" && o.province === null
         ? "basing is granted in one city"
         : !isAlive(S, o.grantee)
           ? `${o.grantee} has fallen`
@@ -201,10 +201,7 @@ P.grantByOrder = function (p, o) {
             : null;
   const where = o.province !== null ? Map.get(o.province).name : "all your land";
   if (why !== null) {
-    const text = `No ${o.kind} was granted to ${o.grantee} in ${where}: ${why}.`;
-    // Land lost out of the king's sight: word of it comes home by the road (bug #467).
-    if (o.province !== null && S.owner.getOrDefault(o.province, null) !== p) this.lostOrder(p, o, o.province, "Order failed", text, why);
-    else notify(S, p, "Rejected", "Order failed", text);
+    notify(S, p, "Rejected", "Order failed", `No ${o.kind} was granted to ${o.grantee} in ${where}: ${why}.`);
     return;
   }
   const lands = o.province === null ? ownedBy(S, p).filter((x) => !Map.get(x).isSea) : [];

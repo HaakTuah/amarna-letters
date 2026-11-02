@@ -768,8 +768,14 @@ P.settleMarkets = function (orders) {
       this.lostOrder(p, o, prov, "Order failed", `${what} in ${Map.get(prov).name} did not happen: you no longer hold it.`, "the province was lost");
       return false;
     }
-    // A siege it may not have heard of: word of it comes home by the road (bug #517).
-    this.lostOrder(p, o, prov, "Order failed", `${what} in ${Map.get(prov).name} did not happen: it is besieged.`, "it is besieged");
+    // A siege: near, told among the markets' lines as ever; one it may not have heard of, by the road (bug #517).
+    const line = `${what} in ${Map.get(prov).name} did not happen: it is besieged.`;
+    const d = this.wordTo(p, prov);
+    if (d > 0 && Number.isFinite(d)) this.lostOrder(p, o, prov, "Order failed", line, "it is besieged");
+    else {
+      tell(p, prov, line);
+      this.scheduledFailed(p, o, "it is besieged");
+    }
     return false;
   };
   for (const p of AllPowers) S.treasuries.get(p).income = 0;

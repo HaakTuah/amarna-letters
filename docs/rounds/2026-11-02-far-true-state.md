@@ -58,6 +58,26 @@ stores of nippur: Nippur is besieged…".
 - **Units' own reports** (folding, giving troops, a unit gone when its order arrives) are left as they are: a king's far
   troops are known by their trail, a separate path the twin's "army out of sight" found sound.
 
+## Review, round 1
+
+- **Codex:** a siege lifted out of sight vanished at once (P1), and the walls of a court's own far cities were frozen
+  (P2). Both are fixed, and readings above.
+- **Claude's reviewer (Opus, high), 5/10.** It found the siege view's live progress, walls and ring; the web map and
+  events showing far sieges at once; the sally check reading the troops within; welcome, deport, expel and runaways told
+  at once; the twins comparing too little; the known list masking whole fields; and the levy check's "near".
+  - Fixed: progress as last reported (`Siege.history`), the web frames' `knownSieges`, siege events without a far
+    holder, the sally check, every borders outcome and people fleeing by the road, the levy check by courier reach.
+  - The far-loss twins were vacuous: Nippur fell back to Babylonia in both worlds, since a province answers to whom its
+    people favour. Now the people favour each world's holder, and the loss happens during a season, as a capture would.
+    The known list now matches field and place (`view.provinces[nippur]`), and dictionaries are compared key by key.
+  - What the real twins then found is fixed too: yields, markets and resistance kept by the true holder, and a grant's
+    instant failure, which is now recorded as given.
+  - Moved to #540, explicitly: the checks that read a far province's works (`levelOf` in `build` and `raze`).
+  - A near siege failure is a markets line again, as before this lane.
+- **Two clocks** (the reviewer's note): the view and the checks time word by `wordSeasons`, the notices by courier
+  (`tell`), and the two can differ by a season either way. Neither brings anything before word could come by its own
+  reckoning; making them one clock is a question for the realm's reports (#540). Kept, and noted here.
+
 ## Benchmarks
 
 BENCH

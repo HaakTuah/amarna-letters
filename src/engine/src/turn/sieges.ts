@@ -130,7 +130,7 @@ P.sieges = function (valid) {
             : `the walls of ${name} are down`;
     tell(x.power, x.province, `Your siege of ${name} is lifted: ${why}. A new siege starts again from the beginning.`);
     if (owner !== x.power) tell(owner, x.province, `${x.power}'s siege of your city of ${name} is lifted: ${why}.`);
-    logEvent(S, "siege", `${x.power}'s siege of ${name} was lifted.`, parties(x.power, owner));
+    logEvent(S, "siege", `${x.power}'s siege of ${name} was lifted.`, parties(this, x.province, x.power, owner));
   }
 
   for (const p of AllPowers.filter((p) => valid.has(p)))
@@ -142,7 +142,7 @@ P.sieges = function (valid) {
       const owner = S.owner.getOrDefault(b.unit, null);
       if (owner === p || wallsOf(S, b.unit) <= 0) continue;
       S.sieges.push(newSiege({ province: b.unit, power: p, unitId: unit.id, since: S.turn }));
-      logEvent(S, "siege", `${p} laid siege to ${Map.get(b.unit).name}${owner !== null ? `, held by ${owner}` : ""}.`, parties(p, owner), "siege-begun");
+      logEvent(S, "siege", `${p} laid siege to ${Map.get(b.unit).name}${owner !== null ? `, held by ${owner}` : ""}.`, parties(this, b.unit, p, owner), "siege-begun");
     }
 
   for (const x of sortBy(S.sieges, [(x: Siege) => x.since, cmpNum], [(x: Siege) => x.province, cmpStr])) {
@@ -189,7 +189,7 @@ P.sieges = function (valid) {
     const blockaded = waters !== null && S.units.some((u) => u.province === waters && u.kind === "Fleet" && u.power === x.power);
     const supplied = waters !== null && !blockaded && S.config.seaSupply > 0;
     const steps = Math.max(0, (supported ? 2 : 1) - (supplied ? S.config.seaSupply : 0));
-    if (waters !== null && S.config.seaSupply > 0) logEvent(S, "siege", `${name} was ${supplied ? "supplied by sea" : "blockaded"} while besieged by ${x.power}.`, parties(x.power, owner), supplied ? "sea-supplied" : "blockade");
+    if (waters !== null && S.config.seaSupply > 0) logEvent(S, "siege", `${name} was ${supplied ? "supplied by sea" : "blockaded"} while besieged by ${x.power}.`, parties(this, x.province, x.power, owner), supplied ? "sea-supplied" : "blockade");
     if (steps === 0) {
       tell(x.power, x.province, `Your siege of ${name} (walls ${walls}) did not advance: no fleet of yours holds ${Map.get(waters!).name}, so the city was supplied by sea and not worn down; it still eats from its stores. It stands at ${x.progress} of ${breach}.`);
       tell(owner, x.province, `${x.power}'s army besieges your city of ${name} (walls ${walls}), but no fleet of ${x.power}'s holds ${Map.get(waters!).name}: the city was supplied by sea and was not worn down. It stands at ${x.progress} of ${breach}. The city yields you nothing while it is besieged and eats from its market and stores; while its waters are open, your ships can bring it grain (order ship), and merchants' ships may sell it grain at what its market pays.`);
@@ -222,6 +222,8 @@ P.sieges = function (valid) {
     );
   }
 
+  // Each standing siege's progress this season, for courts that read it as word of it comes (bug #517).
+  for (const x of S.sieges) x.history.push(x.progress);
   for (const [p, lines] of sortBy(news.entries(), [([k]: [Power, string[]]) => k, cmpPower])) notify(S, p, "Battle", SiegesTitle, lines.map((l) => "- " + l).join("\n"));
 };
 
@@ -304,8 +306,14 @@ P.intercept = function (c, lord, siege, leaving, dispatch, cargo, due) {
 };
 
 /** The besieger and, if the city has one, its holder: who reads of a siege in the record. */
-function parties(besieger: Power, owner: Power | null): Power[] {
-  return owner !== null ? [besieger, owner] : [besieger];
+/**
+ * Who sees a siege's event: its besieger, and the city's holder where word of it reaches him within the season; a holder
+ * farther off reads of it in the notices that come by the road (bug #517).
+ */
+function parties(e: TurnEngine, province: string, besieger: Power, owner: Power | null): Power[] {
+  if (owner === null) return [besieger];
+  const d = e.wordTo(owner, province);
+  return d > 0 && Number.isFinite(d) ? [besieger] : [besieger, owner];
 }
 
 P.gateHolds = function (province) {
@@ -333,12 +341,12 @@ P.surrender = function (x, owner, tell, how) {
   const w = wallsOf(S, prov);
   const left = w > 0 ? `walls ${w}` : "no walls";
   const why = how === "gate" ? "its people starving, a gate opened from within" : how === "thirst" ? "its water gone" : "its walls breached";
-  if (how === "gate") logEvent(S, "siege", `${name}'s gate was opened from within to ${x.power}, its people starving.`, parties(x.power, owner), "siege-starved");
-  if (how === "thirst") logEvent(S, "siege", `${name} ran out of water and surrendered to ${x.power}.`, parties(x.power, owner), "siege-thirst");
+  if (how === "gate") logEvent(S, "siege", `${name}'s gate was opened from within to ${x.power}, its people starving.`, parties(this, x.province, x.power, owner), "siege-starved");
+  if (how === "thirst") logEvent(S, "siege", `${name} ran out of water and surrendered to ${x.power}.`, parties(this, x.province, x.power, owner), "siege-thirst");
   tell(x.power, x.province, `${name} surrendered to you after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}: it is yours, with its walls a level lower (${left}).`);
   if (owner !== null) {
     this.tell(owner, prov, "Battle", "Land lost", `${name} has surrendered to ${x.power} after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}.`);
-    logEvent(S, "conquest", `${x.power} took ${name} from ${owner}.`, [x.power, owner]);
+    logEvent(S, "conquest", `${x.power} took ${name} from ${owner}.`, parties(this, prov, x.power, owner));
   }
   // Word of it comes from the city to the besieger's court, as from any place (bug #517).
   this.tell(x.power, prov, "Battle", "Land taken", `${name} is now yours.`);

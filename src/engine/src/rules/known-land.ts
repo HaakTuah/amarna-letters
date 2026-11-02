@@ -91,18 +91,25 @@ export function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<s
 /**
  * The sieges a court knows of (bug #517): where it sees, as they are; one of its own cities, or of its own armies, farther
  * off from when word of its beginning, setting out the season it began, reaches the court until word of its end does
- * (GameState.siegesEnded keeps those ended lately). One it cannot see otherwise it does not know of.
+ * (GameState.siegesEnded keeps those ended lately), its progress as of the newest season whose word has come
+ * (Siege.history). One it cannot see otherwise it does not know of.
  */
 export function siegesKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Siege[] {
   const sightNow = seen ?? sight(s, map, p);
   const court = courtOf(s, map, p);
   const heard = (province: string, turn: number): boolean => turn + wordSeasons(s.config.travelDays, map, province, court, turn) <= s.turn;
-  const standing = s.sieges.filter(
-    (x) => sightNow.has(x.province) || ((x.power === p || s.owner.getOrDefault(x.province, null) === p) && heard(x.province, x.since)),
-  );
+  // The progress word last brought: as of the newest season since it began whose word has come.
+  const reported = (x: { province: string; since: number; progress: number; history: number[] }, until: number): number => {
+    for (let d = until; d >= x.since; d--) if (heard(x.province, d)) return x.history[d - x.since] ?? x.progress;
+    return 0;
+  };
+  const mine = (power: Power, holder: Power | null): boolean => power === p || holder === p;
+  const standing = s.sieges
+    .filter((x) => sightNow.has(x.province) || (mine(x.power, s.owner.getOrDefault(x.province, null)) && heard(x.province, x.since)))
+    .map((x) => (sightNow.has(x.province) ? x : { ...x, progress: reported(x, s.turn - 1) }));
   const ended = s.siegesEnded
-    .filter((e) => !sightNow.has(e.province) && (e.power === p || e.holder === p) && heard(e.province, e.since) && !heard(e.province, e.ended))
+    .filter((e) => !sightNow.has(e.province) && mine(e.power, e.holder) && heard(e.province, e.since) && !heard(e.province, e.ended))
     .filter((e) => !standing.some((x) => x.province === e.province))
-    .map((e) => newSiege({ province: e.province, power: e.power, progress: e.progress, since: e.since }));
+    .map((e) => newSiege({ province: e.province, power: e.power, progress: reported(e, e.ended), since: e.since }));
   return [...standing, ...ended];
 }

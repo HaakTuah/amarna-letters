@@ -86,11 +86,17 @@ on sealed tablets comes with item 9.
   sieges where it sees, and one of its own cities or its own armies farther off from when word of its beginning, setting
   out the season it began, reaches it until word of its end does (`GameState.siegesEnded`, `endSieges` in
   `model/sieges-ended.ts`, keeps those ended lately); the walls of the cities it knows it holds as its works stand, as its
-  view shows its works. The seat's view (`SeatView.sieges`) and the order checks read the same (`Checking.knownSiege`,
-  `knownWalls`); a levy's men far off are checked by the court's last count. The season's siege news of a far city, the
-  markets' lines (sales, purchases, grain to the towns, caravans, trade and ships) of a far province, a levy's outcome,
-  a cession and a disbanding there come home by the road (`TurnEngine.tell`); an order a siege foils far off fails as
-  one on lost land does (`TurnEngine.lostOrder`). The twin canary (`src/web/test/twin-canary.test.ts`) plays a seat's
+  view shows its works. A far siege's progress is as of the newest season whose word has come (`Siege.history`), its
+  holder and walls as the court knows them, its ring's tightness unknown. The seat's view (`SeatView.sieges`), the web
+  map (`SeasonFrame.knownSieges`) and the order checks read the same (`Checking.knownSiege`, `knownWalls`); a sally out
+  of sight is not refused for the troops within, and a levy's men far off are checked by the court's last count, or not
+  at all without one. The season's siege news of a far city, its siege events (a far holder is not among the events'
+  parties), the markets' lines (sales, purchases, grain to the towns, caravans, trade and ships) of a far province,
+  people fleeing into or out of it, a levy's outcome, a cession, a disbanding, and what welcome, deport, expel and
+  return runaways did there come home by the road (`TurnEngine.tell`); an order a siege foils far off fails as one on
+  lost land does (`TurnEngine.lostOrder`). A grant of passage or basing, given at court, is recorded as given even over
+  land lost out of sight: it means nothing while another holds the land (`grantCovers`). The yields, markets and
+  resistance in the view go by the land the court knows it holds; resistance only where it sees. The twin canary (`src/web/test/twin-canary.test.ts`) plays a seat's
   seasons twice, a hidden fact true and false, and finds any difference before word could come; what it still finds
   (bug #540: a far province's economy, works, people and caravans, and the realm's totals) it lists by issue.
 - **Fallen kingdoms** (`GameState.fallsHeard`, `SeatView.fallen`): a court that sees the fallen capital hears at once,
