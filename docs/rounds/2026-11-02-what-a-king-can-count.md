@@ -63,7 +63,13 @@ None beyond those for Haakon below.
 
 ## Benchmarks and use against ignore
 
-(To come.)
+20 games, seed 1, `--verify-replay`, on `bee4370` (part B on part A as it stood before the escalation's last fixes): every
+replay exact; a capital fell in 20 of 20 games, 308 kingdoms in all (part A's run beside it: 324), the first in season 4
+on the median (4 to 7), **none in its first two seasons**. Winners: Egypt 9, Lukka 3, Babylonia 2, and Nuhashshe, Kaska,
+Hatti, Assyria, Ashkelon and Amurru 1 each. The census and demand signals (`census`, `census-home`, `demand-share`,
+`demand-amount`) were added to the batch after this run; the next run counts them.
+
+**Use against ignore** (`--count-play-half`, 50 games, seed 1): (to come: running on this branch).
 
 ## The review
 
