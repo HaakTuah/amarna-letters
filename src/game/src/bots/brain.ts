@@ -585,12 +585,16 @@ function overdue(c: CharacterView): boolean {
   return c.duty.startsWith("has not returned");
 }
 
+/** The words a letter's warmth is read by (see sentiment), anywhere in a word. */
+export const Warmth = {
+  warm: ["brother", "love", "friend", "peace", "sealed", "gift", "rejoice", "gracious", "kindly"],
+  cold: ["not forgotten", "regret", "withdraw", "war", "punish", "liar", "false", "broke", "detain", "will not seal"],
+} as const;
+
 /** Crude reading of a letter's warmth: +1 friendly, -1 hostile. */
 function sentiment(text: string): number {
   const t = text.toLowerCase();
-  const warm = ["brother", "love", "friend", "peace", "sealed", "gift", "rejoice", "gracious", "kindly"];
-  const cold = ["not forgotten", "regret", "withdraw", "war", "punish", "liar", "false", "broke", "detain", "will not seal"];
-  return clamp(warm.filter((w) => t.includes(w)).length * 0.5 - cold.filter((w) => t.includes(w)).length, -2, 2) / 2;
+  return clamp(Warmth.warm.filter((w) => t.includes(w)).length * 0.5 - Warmth.cold.filter((w) => t.includes(w)).length, -2, 2) / 2;
 }
 
 /** Reads an amount written as "2 minas 15 shekels", "1 mina" or "45 shekels". */

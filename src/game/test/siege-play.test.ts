@@ -150,10 +150,8 @@ describe("SiegePlayTests", () => {
       sub.orders.filter((o): o is DispatchOrder => o.type === "dispatch"),
       (d) => d.to === "Mitanni",
     );
-    Assert.startsWith(
-      "My brother, the troops of Babylonia besiege my city of Ashur. Come to my aid: send your troops to drive them out, and my walls will sally to meet them.",
-      plea.letter,
-    );
+    // Its words vary by season (voices.ts); the ally finds the siege in them below, and the walls' sally is promised.
+    Assert.true(/come out|send out men|walls will open/.test(plea.letter), plea.letter);
     Assert.equal(0, plea.gold);
     // The ally reads it, as it would a model king's words.
     let b = new Board(Views.for(s, "Mitanni"));

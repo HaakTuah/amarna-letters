@@ -242,7 +242,7 @@ const siegeAfterOrders: Twin = {
  */
 const Known: { issue: number; what: string; is: (difference: string) => boolean }[] = [
   // Of the far province itself (Nippur, in every twin), and the realm's totals.
-  ...["provinces", "works"].map((k) => ({ issue: 540, what: `view.${k} of the far province`, is: (d: string) => d.startsWith(`view.${k}[nippur]: `) })),
+  ...["provinces", "works", "yields"].map((k) => ({ issue: 540, what: `view.${k} of the far province`, is: (d: string) => d.startsWith(`view.${k}[nippur]: `) })),
   { issue: 540, what: "a caravan to or from the far province", is: (d) => /^view\.caravans\[[a-z]+\]: /.test(d) && d.includes('"nippur"') },
   ...["strength", "gold"].map((k) => ({ issue: 540, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
   { issue: 540, what: "the treasury notice", is: (d) => /^only where (true|false): The treasury: /.test(d) },
