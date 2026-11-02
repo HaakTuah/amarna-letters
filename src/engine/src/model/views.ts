@@ -682,6 +682,20 @@ export const WorkViewSchema: ObjSchema<WorkView> = obj("WorkView", newWorkView, 
   decay: I,
 });
 
+/** Item 17++: a province's mood as the court last heard it (`SeatView.moods`). */
+export interface MoodSeenView {
+  province: string;
+  mood: string;
+  seen: number;
+  source: string;
+}
+
+export function newMoodSeenView(init: Partial<MoodSeenView> = {}): MoodSeenView {
+  return { province: "", mood: "", seen: 0, source: "", ...init };
+}
+
+export const MoodSeenViewSchema: ObjSchema<MoodSeenView> = obj("MoodSeenView", newMoodSeenView, { province: S, mood: S, seen: I, source: S });
+
 /** Item 17++: a province that looks to the court, as word of it has reached it (`SeatView.declared`). */
 export interface DeclaredView {
   province: string;
@@ -913,6 +927,11 @@ export interface SeatView {
    * it by their people, or ceded to it by `from`; `takenUp` once its word taking one up has reached it.
    */
   declared: DeclaredView[];
+  /**
+   * Item 17++ ("Who holds what, and the mood of the land"): the mood of each province as the court last heard it, its own
+   * and its rivals', in the words said, the season it was seen and by whom (governor, spy, envoy, census, travellers, court).
+   */
+  moods: MoodSeenView[];
   /** Its caravans on the road, and its fleets in cargo service. */
   caravans: CaravanView[];
   /** Foreign markets as it last knew them (item 9+b), by province. */
@@ -1042,6 +1061,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     counting: [],
     crowning: [],
     declared: [],
+    moods: [],
     caravans: [],
     markets: new Dict(),
     tolls: [],
@@ -1133,6 +1153,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   counting: list(S),
   crowning: list(S),
   declared: list(() => DeclaredViewSchema),
+  moods: list(() => MoodSeenViewSchema),
   caravans: list(() => CaravanViewSchema),
   markets: dict(() => MarketSeenSchema),
   tolls: list(() => TollSchema),

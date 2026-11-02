@@ -20,6 +20,7 @@ import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/ec
 import { reckonedOf, unitCarried } from "../model/land.ts";
 import { countOf } from "../model/counts.ts";
 import { declarationKnown } from "../model/declarations.ts";
+import { moodsKnown } from "../model/moods.ts";
 import { seatOf } from "../model/command.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
@@ -32,6 +33,7 @@ import {
   newSeatView,
   newGovernorView,
   newDeclaredView,
+  newMoodSeenView,
   newSiegeView,
   newTabletView,
   newUnitView,
@@ -442,6 +444,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   // A kingship offered stands in its view until word of its answer reaches the court.
   v.crowning = s.crowns.filter((k) => k.power === p && (k.heard === null || k.heard > s.turn)).map((k) => k.character);
   // As word of them has reached it: one ended stands until word of its end comes; taken up once word of that came home.
+  v.moods = [...moodsKnown(s, p).values()].map((r) => newMoodSeenView({ province: r.province, mood: r.mood, seen: r.seen, source: r.source }));
   v.declared = s.declarations.filter((d) => d.power === p && declarationKnown(d, s.turn)).map((d) => newDeclaredView({ province: d.province, from: d.from, takenUp: d.takenKnown !== null && d.takenKnown <= s.turn }));
   // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.

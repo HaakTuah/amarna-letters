@@ -139,6 +139,10 @@ export function countFigures(age: number | null): number {
 /** `n` to `figures` significant figures: 18,400 to two is 18,000; numbers with no more figures than that stay as they are. */
 export function toFigures(n: number, figures: number): number {
   if (n <= 0) return 0;
-  const step = 10 ** Math.max(0, Math.floor(Math.log10(n)) + 1 - figures);
+  // Integer steps only, so every engine rounds alike: the step is the power of ten below the last figure kept.
+  let top = 1;
+  for (let i = 0; i < figures; i++) top *= 10;
+  let step = 1;
+  while (Math.round(n / step) >= top) step *= 10;
   return Math.round(n / step) * step;
 }

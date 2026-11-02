@@ -70,9 +70,11 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
    among them; a man at court, neighbouring provinces of the king's, setting out with the word to the first named. Never
    the city the king holds court in (as a governor cannot turn it, item 17). Principle: "Everything is somewhere".
 2. **"Its price, tribute and terms are whatever the two sides agree"**: the king names tribute and price; the man answers
-   by his stakes (the season after the word reaches him, so a model may answer); no counter-offer in this part, since a
-   refused grant may be offered again on other terms, an ordinary order. Principle: "No menus" (one thing happens by rule,
-   then ordinary actions).
+   by his stakes (the season after the word reaches him, so a model may answer), and a refusal carries his own terms home
+   in his words (a model's reply; a script's "I would take it for N shekels of tribute a year"), which the king may offer
+   again as an ordinary order. What he weighs is the yield he can know: a governor of all of it what passed through his
+   hands, anyone else what the king's stewards report, to two figures (round 1). Principle: "No menus" and "Requests are
+   rules too".
 3. **The price travels**: paid from his purse when he takes it, carried to the king by courier from his seat. Principle:
    "Everything is somewhere" and "Nothing appears or vanishes without a cause".
 4. **The oath is a vassal tablet like any other** (tribute, service, protection), sealed at the grant, a copy in each
@@ -86,10 +88,15 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
 7. **The man's sum** (script): the price within his purse, the tribute and a quarter of the price within the land's yield
    a year, and ambition of 30 or more, or half the yield left him. First guesses. Principle: "Skills set the odds; the
    character decides".
-8. **What a seat sees on the map**: its own governors, and the vassal bonds on the tablets in its archive; others'
-   governors are not shown, since no news of them is carried yet. The mood read comes from its governors' letters, dated,
-   and its own eyes at its court; travellers' talk, spies, envoys and a census give no mood read yet, since none of them
-   carries one in the engine. God view: obedience of 900 thousandths loyal, 600 uneasy, below restless. Principle:
+8. **What a seat sees on the map**: its own governors, as it knows them (one whose end has not reached it still stands),
+   and the vassal bonds on the tablets in its archive (a third court keeps a bond it was never told was repudiated); others'
+   governors are not shown, since no news of them is carried yet. The mood of the land is a dated record each court
+   receives (`GameState.moodReads`, round 1): its governors' reports every season (as honest as they are), its spies' of
+   the provinces they watch, its envoys' of the city of a court they visit, its scribes' of the province they count, and
+   travellers' talk, a blurred word of land within two hops of its court that it has heard nothing of in three seasons,
+   a season late, the worst of the province and its neighbours, "near revolt" as "restless"; and its own eyes at its
+   court. Each read ages from when it was seen. The map, the model's prompt (THE MOOD OF THE LAND) and the seat view
+   (`moods`) show the same. God view: obedience of 900 thousandths loyal, 600 uneasy, below restless. Principle:
    "Information moves in physical time" (pillar 4).
 9. **The audit's find 4, script side**: a seat sees a province's gold only summed with the realm's, so a governor's
    skimming cannot be told province by province; the evidence a king has is his governor's own letters, and two restless
@@ -107,8 +114,9 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
     and "Information moves in physical time".
 12. **Who may be declared for**: a power with no army standing in the province, by the same weight and margin a rival
     power must clear (or the floor, for land without a ruler); never a court's own city or a besieged one, which change
-    hands only to troops within or by the siege. Persons are never declared for: they choose by their stakes, as the
-    section says, through the "Rising" and "Crown" requests already built. Principle: "Different data, same rules".
+    hands only to troops within or by the siege. Persons are asked through the "Rising" and "Crown" requests already built,
+    and only where they stand; whether a claimant should be offered a province whose people favour him where he does not
+    stand is a question for the owner (#431). Principle: "Different data, same rules".
 13. **A cession while the giver holds it**: "until then it stays with its old master", so the giver keeps the land, its
     tax and its levies until the receiver takes it up; then the giver's officers withdraw, and it passes if his troops are
     gone and its people accept the receiver (his weight above the floor, as land without a ruler weighs anyone). A capital
@@ -124,6 +132,15 @@ or in a part of its own if part C has merged"). Save version 42 (the governor's 
 16. **Where a corvée by share stands**: a share asked for one work, not a standing share of every work in a province,
     since each work's order already names its province and its pay. Principle: "No menus".
 
+17. **A court's view waits for word** (round 1, "Hidden information"): a governor's end (death, turning, the land lost,
+    his stepping down), a kingship's answer and the oath's copy, a declaration's end and its taking-up each reach the
+    court's view, the model's prompt, the map and the script kings only when their word does (`governorsGone`,
+    `Crown.heard`, `Declaration.gone` and `takenKnown`). A third court holding a copy of a vassal tablet keeps the bond,
+    since only its two parties are told of a repudiation. Principle: "Information moves in physical time".
+18. **A regional governor acts from his seat**: he levies against a threat to a far province of his as it stood when word
+    of it could reach his seat and his order come back; a turning governor's levies that follow him elsewhere leave the
+    king's service where they stand, loose, since they cannot reach him. Principle: "Everything is somewhere".
+
 ## First guesses (for item 18)
 
 Tribute asked three quarters of a year's yield; a governor four seasons in office before a script crowns him; the man's
@@ -134,7 +151,7 @@ other court.
 
 ## Design questions
 
-None.
+- #431: should a claimant be offered a province whose people favour him, even where he does not stand? (Reading 12.)
 
 ## Benchmarks and use against ignore
 
@@ -153,4 +170,6 @@ keep it rare. A finding for item 18: the land's multiple against tribute, and th
 
 (To come.)
 
-Questions for Haakon: none.
+Questions for the owner:
+
+- #431: should a claimant be offered a province whose people favour him, even where he does not stand?

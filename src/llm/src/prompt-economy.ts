@@ -142,6 +142,11 @@ export function peopleLines(v: SeatView): string[] {
     lines.push(
       `RESISTANCE your troops would meet from the people of land in sight, in units (in open land they add to any troop's hold, and a move must be stronger; on walls, the city's men before the walls multiply them): ${join("; ", groupBy(sortBy([...v.resistance.entries()], [([id]: [string, number]) => id, cmpStr]), ([, r]) => strengthWords(r)).map(([r, g]) => `${r}: ${join(", ", g.map(([id]) => `${id}${v.walls.getOrDefault(id, 0) > 0 ? " (walls)" : ""}`))}`))}.`,
     );
+  // Item 17++ ("Who holds what, and the mood of the land"): each read as heard, grouped by its words, oldest seasons noted.
+  if (v.moods.length > 0)
+    lines.push(
+      `THE MOOD OF THE LAND as you last heard it (from your governors, spies, envoys, scribes, travellers and your own eyes; it can be wrong): ${join("; ", groupBy(sortBy(v.moods, [(m) => m.mood, cmpStr], [(m) => m.province, cmpStr]), (m) => m.mood).map(([mood, g]) => `${mood}: ${join(", ", g.map((m) => `${m.province}${v.turn - m.seen > 1 ? ` (${v.turn - m.seen} seasons ago)` : ""}`))}`))}.`,
+    );
   // Item 17++ ("taken up, never thrust on anyone"): provinces that declared for this court, or were ceded to it.
   if (v.declared.length > 0)
     lines.push(`PROVINCES THAT LOOK TO YOU (take_up_province to take one up, refuse_province to turn it away; unanswered, an offer stands only while its people lean your way): ${join("; ", v.declared.map((d) => `${d.province} (${d.from !== null ? `ceded to you by ${d.from}` : "its people declare for you"}${d.takenUp ? ", taken up: it answers to you as the season turns, if they still accept you" : ""})`))}.`);
