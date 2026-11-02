@@ -50,6 +50,8 @@ declare module "./core.ts" {
     ruleOwn(province: string, c: Character, r: Rising): Power;
     /** A band's men become its chief's army as he comes to rule (the new Idrimi). */
     bandToArmy(b: Band, p: Power): Unit | null;
+    /** A further province of `c`'s goes to his realm `p` (item 17++): its people's regard for him is his realm's now. */
+    joinRealm(province: string, c: Character, p: Power): void;
   }
 }
 
@@ -130,11 +132,7 @@ P.ruleOwn = function (id, c, r) {
     if (men >= BandData.least && this.levyMen(id, men)) followed.push(newUnitFor(this, p, id, men));
   }
   // His people's regard for him is his realm's now: he rules in its name (item 17++).
-  const book = S.ledger.tryGet(id);
-  if (book !== undefined && book.has(c.id)) {
-    book.set(p, book.getOrDefault(p, 0) + book.get(c.id));
-    book.delete(c.id);
-  }
+  regardToRealm(this, id, c, p);
   S.startStrength.set(p, this.strength(p));
   const men = sum(followed, (u) => u.men);
   const troops = followed.length === 0 ? (r.followers.length === 0 ? "no troops stand with you" : "the troops there would not follow you, for you cannot pay them") : `${men} men follow you${followed.length < r.followers.length ? ", though not all: the rest you could not pay" : ""}`;
@@ -153,6 +151,20 @@ P.ruleOwn = function (id, c, r) {
   // Others hear of it as word travels from his city.
   for (const other of AllPowers.filter((x) => x !== p && isAlive(S, x) && !Views.sight(S, this.map, x).has(id))) this.word(p, other, "Realm", `Rumor|A new ruler|Word comes that ${r.line}.`);
   return p;
+};
+
+/** The people of `province`'s regard for `c` becomes his realm `p`'s. */
+function regardToRealm(e: TurnEngine, province: string, c: Character, p: Power): void {
+  const book = e.s.ledger.tryGet(province);
+  if (book !== undefined && book.has(c.id)) {
+    book.set(p, book.getOrDefault(p, 0) + book.get(c.id));
+    book.delete(c.id);
+  }
+}
+
+P.joinRealm = function (province, c, p) {
+  regardToRealm(this, province, c, p);
+  this.setOwner(province, p);
 };
 
 /** A unit of `men` men of `province`, standing there, its home. */

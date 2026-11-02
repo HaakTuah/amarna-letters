@@ -59,7 +59,7 @@ readings. The report: `docs/rounds/2026-11-02-what-a-king-can-count.md`. Save ve
   `turn/works.ts`; model action `build_corvee_share`; the web's share box beside "by corvée"): the men a work needs,
   named, as item 15 built it, or a share of the men of fighting age at home, less the same `hiddenIn` percent, never more
   than the work needs. The work goes as fast as the men who come: a share short of a project's need does that part of a
-  season's work (`WorkPlan.done`, in a hundred), carried on until it makes a season; a share short of the upkeep keeps
+  season's work (`WorkPlan.done`, in men-seasons, so even a few men add up), carried on until it makes a season; a share short of the upkeep keeps
   nothing that season. Script kings name the men while their count is fresh and ask a share sized to the work's need by
   an old count (`corveeShares`), within `--count-play-half`.
 - The seat view's `yields` are what the last reaping brought in, a season's third of it, never the hands there now.

@@ -264,7 +264,7 @@ export interface WorkPlan {
   share: number | null;
   /** Seasons of work done towards the next level. */
   progress: number;
-  /** In a hundred of a season's work, what a corvée by share short of the work's need has done towards the next season of it. */
+  /** Men-seasons a corvée by share short of the work's need has put towards the next season of it (a season's work is its need). */
   done: number;
   /** Seasons in a row a level stood unpaid (its decay). */
   neglect: number;

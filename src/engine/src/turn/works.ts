@@ -210,13 +210,14 @@ P.worksSeason = function () {
                 // Item 17++: the work goes as fast as the men who come; a share short of its need does part of a season's.
                 if (come >= need) done = true;
                 else {
-                  work.done += idiv(come * 100, need);
-                  if (work.done >= 100) {
-                    work.done -= 100;
+                  // Counted in men-seasons, so even a few men a season add up to a season's work in time.
+                  work.done += come;
+                  if (work.done >= need) {
+                    work.done -= need;
                     done = true;
                   } else {
                     part = true;
-                    say(id, `the ${workName(kind)} of ${prov.name}: the share you asked brought fewer men than the work needs, and it went at ${idiv(come * 100, need)} in a hundred of its pace`);
+                    say(id, `the ${workName(kind)} of ${prov.name}: the share you asked brought ${come} of the ${need} men the work needs, and it went at that pace`);
                   }
                 }
               }

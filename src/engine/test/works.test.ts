@@ -106,20 +106,27 @@ describe("WorksTests", () => {
     Assert.true(come > 0 && come < need);
     Assert.equal(others + come, s.corvee.get("thebes"));
     Assert.equal(0, planOf(s, "Walls", "thebes")!.progress);
-    Assert.equal(Math.floor((come * 100) / need), planOf(s, "Walls", "thebes")!.done);
-    Assert.contains("went at", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
+    Assert.equal(come, planOf(s, "Walls", "thebes")!.done);
+    Assert.contains("went at that pace", first(inboxOf(s, "Egypt"), (i) => i.title === "Works").body);
     const half = planOf(s, "Walls", "thebes")!.done;
     s.corvee.clear();
     e.worksSeason();
-    // The next season's men add to it: about two halves make a season of work done.
+    // The next season's men add to it, in men-seasons: once they reach the work's need, a season of it is done.
     const w = planOf(s, "Walls", "thebes")!;
-    Assert.inRange(w.progress * 100 + w.done, 2 * half - 5, 2 * half + 5);
+    Assert.inRange(w.progress * need + w.done, 2 * half - 5, 2 * half + 5);
     // Named, the men it needs come in full, as before.
     const t = game();
     new TurnEngine(t).setWorks("Egypt", build("thebes", "Walls", 1, true));
     new TurnEngine(t).worksSeason();
     Assert.equal(others + need, t.corvee.get("thebes"));
     Assert.equal(1, planOf(t, "Walls", "thebes")!.progress);
+    // A share bringing fewer than a hundredth of the need still adds up, in men-seasons.
+    const u = game();
+    const few = new TurnEngine(u);
+    u.people.get("thebes").men = 1000;
+    few.setWorks("Egypt", build("thebes", "Walls", 1, true, 1));
+    few.worksSeason();
+    Assert.true(planOf(u, "Walls", "thebes")!.done > 0);
     // A share is only by corvée, from 1 to 100.
     Assert.single(new OrderValidator(t).validate("Egypt", newTurnSubmission({ orders: [build("memphis", "Walls", 3, false, 20)] })).rejected);
     Assert.single(new OrderValidator(t).validate("Egypt", newTurnSubmission({ orders: [build("memphis", "Walls", 3, true, 120)] })).rejected);

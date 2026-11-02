@@ -102,7 +102,11 @@ P.crownsSeason = function () {
       }
       k.paidArrives = null;
     }
-    // Settled: kept, as its king knows it, until word of how it ended reaches his court.
+    // Settled: kept, as its king knows it, until word of how it ended reaches his court; taken, his copy of the oath with it.
+    if (k.heard !== null && S.turn >= k.heard && k.tablet !== "") {
+      if (isAlive(S, k.power)) S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: k.tablet, holder: k.power, acquiredTurn: S.turn, source: "sealed at the grant of a kingship" }));
+      k.tablet = "";
+    }
     if (k.heard !== null) {
       if (S.turn >= k.heard && k.paidArrives === null) S.crowns = S.crowns.filter((x) => x !== k);
       continue;
@@ -176,12 +180,14 @@ TurnEngine.prototype.crowned = function (k: Crown, c: Character, lands: string) 
     line: `${c.name} became king of ${lands} by a grant of ${k.power}, as its vassal`,
     bound: `You are ${k.power}'s vassal by your oath, sealed on a tablet: ${k.tribute} shekels of tribute a year, your service, and his protection. Sending the tribute is yours to order, as keeping any promise is; others will hear if you do not.`,
   });
-  for (const x of k.provinces.filter((y) => y !== k.seat)) this.setOwner(x, own);
+  for (const x of k.provinces.filter((y) => y !== k.seat)) this.joinRealm(x, c, own);
   // The oath, a vassal tablet like any other, sealed by both, a copy in each archive.
   const clauses = [clause("tribute", { amount: k.tribute }), clause("serve"), clause("askProtect")];
   const t = newTablet({ id: newId(S, "t"), text: renderClauses(clauses, own, k.power), proposedBy: own, partner: k.power, seals: [own, k.power], createdTurn: S.turn, sealedTurn: S.turn, vassal: own, clauses });
   S.tablets.push(t);
-  for (const holder of [own, k.power]) S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: t.id, holder, acquiredTurn: S.turn, source: "sealed at the grant of a kingship" }));
+  // His copy is in his archive at once; the king's rides home with the answer (hidden information).
+  S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: t.id, holder: own, acquiredTurn: S.turn, source: "sealed at the grant of a kingship" }));
+  k.tablet = t.id;
   k.price = price;
   k.paidArrives = S.turn + road(this, k.seat, this.courtAt(k.power));
   k.heard = S.turn + heardIn(this, k);

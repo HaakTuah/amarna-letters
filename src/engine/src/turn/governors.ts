@@ -128,8 +128,20 @@ P.governorsSeason = function () {
     }
     this.dropGovernor(g);
     if (disloyal && going.length === 0 && levies.length > 0) {
-      // He turns with his levies as a band, as before item 17.
+      // He turns with his levies as a band, as before item 17. A governor of several (item 17++): the levies of his that
+      // stand with him join it; those that follow him elsewhere leave the king's service where they stand, loose men, since
+      // they cannot reach him.
       const u = levies[0];
+      for (const o of levies.slice(1)) {
+        S.units.splice(S.units.indexOf(o), 1);
+        S.armies.delete(o.id);
+        if (o.province === u.province) {
+          u.men += o.men;
+          u.food += o.food;
+        } else this.peopleOf(o.province).loose += o.men;
+      }
+      // His other governorships end with his turning.
+      for (const x of S.governors.filter((y) => y.character === c!.id)) this.dropGovernor(x);
       this.tell(g.power, g.province, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${this.map.get(g.province).name}, and turned with the ${u.men} men he raised there.`);
       logEvent(S, "defect", `${c!.name} refused his recall by ${g.power} and turned with the levies of ${this.map.get(g.province).name}.`, [g.power], "defect");
       this.armyToBand(u, c!, "commander");
@@ -151,8 +163,8 @@ P.governorsSeason = function () {
         memory: `The king of ${g.power} took back my governorship of ${name}, and I refused it.`,
         line: `${c!.name}, governor of ${lands.join(", ")} for ${g.power}, refused his recall and rules in his own name`,
       });
-      // The rest of his provinces that would follow him go with him, ruled from the first.
-      for (const x of going.slice(1)) this.setOwner(x, own);
+      // The rest of his provinces that would follow him go with him, ruled from the first, their people's regard for him his realm's.
+      for (const x of going.slice(1)) this.joinRealm(x, c!, own);
       continue;
     }
     remember(c!, S.turn, `I gave up the governorship of ${this.map.get(g.province).name}, as the king of ${g.power} ordered.`);
@@ -162,13 +174,21 @@ P.governorsSeason = function () {
   }
 };
 
+/** Seasons by courier, a road that cannot be travelled counting as none (the levy then answers what stands now). */
+const seasonsOf = (n: number): number => (Number.isFinite(n) ? n : 0);
+
 P.governorsLevy = function () {
   const S = this.s;
   for (const g of sortBy([...S.governors], [(x: Governor) => x.province, cmpStr])) {
     if (g.raised >= g.levies || this.governorOf(g.province) === null) continue;
     if (S.owner.getOrDefault(g.province, null) !== g.power || unitAt(S, g.province) !== null) continue;
     const near = [g.province, ...this.map.neighbors(g.province)];
-    const threat = S.units.some((u) => u.power !== g.power && u.kind === "Army" && near.includes(u.province));
+    // Item 17++: a governor of several acts from his seat: word of a threat to a far province of his reaches him late, and
+    // his levy order goes back by the same road, so he raises now against the troops as they stood that many seasons ago.
+    const seat = seatOf(g);
+    const lag = seat === g.province ? 0 : seasonsOf(courierSeasons(S, this.map, g.province, seat)) + seasonsOf(courierSeasons(S, this.map, seat, g.province));
+    const placeThen = (u: Unit): string => (lag === 0 || u.trail.length === 0 ? u.province : u.trail[Math.max(0, u.trail.length - 1 - lag)].split("|")[0]);
+    const threat = S.units.some((u) => u.power !== g.power && u.kind === "Army" && near.includes(placeThen(u)));
     if (!threat) continue;
     const before = S.units.length;
     this.raise(g.power, raise(g.province, "Army"));

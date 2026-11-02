@@ -28,6 +28,8 @@ describe("CrownsTests", () => {
   test("A governor takes the kingship of the provinces he governs: the land is his, bound by a vassal tablet, and his price reaches the king", () => {
     const s = quiet();
     const id = governor(s, 70);
+    // What his people think of him in each province of the grant.
+    for (const x of ["tuwanuwa", "kizzuwatna"]) s.ledger.get(x).set(id, 150);
     const gold = s.treasuries.get("Hatti").gold;
     new TurnEngine(s).grantCrown("Hatti", crown(id, ["tuwanuwa", "kizzuwatna"], 20, 100));
     const k = s.crowns[0];
@@ -41,6 +43,15 @@ describe("CrownsTests", () => {
     const own = s.owner.get("tuwanuwa")!;
     Assert.notEqual("Hatti", own);
     Assert.equal(own, s.owner.get("kizzuwatna"));
+    // His people's regard for him is his realm's, in every province of the grant.
+    for (const x of ["tuwanuwa", "kizzuwatna"]) {
+      Assert.true(s.ledger.get(x).getOrDefault(own, 0) >= 150);
+      Assert.false(s.ledger.get(x).has(id));
+    }
+    // The oath's copy is in his archive at once; the king's comes home with his answer.
+    const oath = s.tablets.find((t) => t.vassal === own)!;
+    Assert.true(s.copies.some((c) => c.tabletId === oath.id && c.holder === own));
+    Assert.equal(s.copies.some((c) => c.tabletId === oath.id && c.holder === "Hatti"), s.turn > k.heard!);
     Assert.equal("granted", risenOf(own)!.how);
     Assert.equal(0, s.governors.filter((g) => g.character === id).length);
     const bond = vassalBonds(s.tablets).find((b) => b.vassal === own)!;
@@ -52,6 +63,7 @@ describe("CrownsTests", () => {
     seasons(s, 4);
     Assert.equal(gold + 100, s.treasuries.get("Hatti").gold);
     Assert.equal(0, s.crowns.length);
+    Assert.true(s.copies.some((c) => c.tabletId === oath.id && c.holder === "Hatti"));
   });
 
   test("A man who cannot pay the price, or whose traits would not have the crown, refuses, and keeps his governorship", () => {

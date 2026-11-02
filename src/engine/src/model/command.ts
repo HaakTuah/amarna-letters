@@ -226,10 +226,12 @@ export interface Crown {
   heard: number | null;
   /** Refused: the terms on which he would take it, in his own words, carried home with his answer (empty: none given). */
   terms: string;
+  /** Taken: the sealed vassal tablet whose copy rides home to the king with the answer (empty once delivered, or none). */
+  tablet: string;
 }
 
 export function newCrown(init: Partial<Crown> = {}): Crown {
-  return { id: "", power: "Egypt", character: "", provinces: [], seat: "", tribute: 0, price: 0, arrives: 0, answered: null, accept: false, paidArrives: null, heard: null, terms: "", ...init };
+  return { id: "", power: "Egypt", character: "", provinces: [], seat: "", tribute: 0, price: 0, arrives: 0, answered: null, accept: false, paidArrives: null, heard: null, terms: "", tablet: "", ...init };
 }
 
 export const CrownSchema: ObjSchema<Crown> = obj("Crown", newCrown, {
@@ -246,6 +248,7 @@ export const CrownSchema: ObjSchema<Crown> = obj("Crown", newCrown, {
   paidArrives: opt(I),
   heard: opt(I),
   terms: S,
+  tablet: S,
 });
 
 /**
