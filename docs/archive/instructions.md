@@ -1253,3 +1253,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     occasional clean-ups and tracking." Written into the design document (World, "Places by their own names", revision
     64), `AGENTS.md` ("Split by meaning, from the start", with the workshop check and the file-by-file reviews kept)
     and `docs/BUILD-PROGRESS.md` (the polish lane's names fix); the same split rule in Barkstreet Snakes.
+136. **2 November 2026, 07:21 and 07:26 UTC**, in the design chat, with the record of his game of 1 November (seed
+    407184, every seat Haiku, two seasons) and the list of its failed calls: "This was the result from me trying to
+    watch 2 rounds of a game with only Haiku models last evening. I think batching might be what we have to do. Your
+    expert thoughts? Some investigation and fixing of this issue will have to be queued, I assume, expert?" Then, to
+    the design session's findings (156 calls refused for too many in flight, 25 copies of one cache written in the
+    first season, 26 answers refused for slips) and its two questions (a side lane ahead of the others; "in the
+    background", batched at half price, as a play mode beside live): "Yes, please, expertly to both!" Written into the
+    design document (Engine and models, "Calls that get through, live or in the background", revision 59) and
+    `docs/BUILD-PROGRESS.md` (the side lane, first beside the fog).
