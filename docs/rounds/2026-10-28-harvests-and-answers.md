@@ -1,10 +1,10 @@
 # Item 11a+: harvests in their season, and the answers to items 8 to 10+b (28 October 2026)
 
-Build order item 11a+ (`docs/intent/build-order/item-11.md`, the 11a+ part), added by Haakon's PR #110. Branch
+Build order item 11a+ (`docs/intent/build-order/item-11.md`, the 11a+ part), added by the owner's PR #110. Branch
 `item/harvests-and-answers`. Save version 20. What was built, file by file: `docs/design/22-harvests-and-answers.md`.
 Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session). Effort: medium, as set.
 
-Haakon's words for this item, as the item quotes them (28 October 2026): "You figure all this out, expert. You know me by
+The owner's words for this item, as the item quotes them (28 October 2026): "You figure all this out, expert. You know me by
 now. But models must be able to alter clauses also. Remember, everyone plays the same game!"
 
 ## The check for changes
@@ -26,7 +26,7 @@ names in the first 10 games after.
 
 ## What was built
 
-First Haakon's answers to the reviews of items 8, 9, 10+a and 10+b, where they differ from what was built, then the
+First the owner's answers to the reviews of items 8, 9, 10+a and 10+b, where they differ from what was built, then the
 harvest in each land's own season. Details and names: `docs/design/22-harvests-and-answers.md`.
 
 - **Model envoys alter clauses** (item 8's question 3): in the call that phrases their words, a model envoy may leave
@@ -56,7 +56,7 @@ harvest in each land's own season. Details and names: `docs/design/22-harvests-a
 
 ## Readings taken and design questions
 
-Each with the principle it rests on ("Reason from the pillars"). None needs Haakon unless he disagrees; the questions
+Each with the principle it rests on ("Reason from the pillars"). None needs the owner unless he disagrees; the questions
 for him are the ones a matter of taste or that bend a pillar, listed first in the progress file and the milestone PR.
 
 1. **The harvest is reaped once a year, but the tax is taken from the granaries a third at a time**, reckoned from the

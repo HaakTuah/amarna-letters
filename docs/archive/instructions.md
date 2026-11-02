@@ -1347,3 +1347,64 @@ Given in the design chat with Claude, answering the design questions of the cons
     expertly!" Written into "The king says how much he wants" under World (revision 66) and item 17++ in the build
     order (revision 206): built in part C, with script kings choosing by how fresh their count is and the
     use-against-ignore numbers as the check.
+150. **2 November 2026, 11:13 and 11:15 UTC**, in the design chat: "Why are none of the current lanes using Fable 5.1?" Then, to the design session's take (Fable kept
+    out of long building sessions, but used in short calls where its judgement pays most: the design check on
+    build-order items and a direct call for the script kings' planning designs, with Opus at high as the fallback and
+    the owner watching Fable's share of the week): "Yes, expertly! If you think this is the best way, in your expert opinion! Getting us the best bang for our tokens." Written into the model table in `CLAUDE.md` ("Design check",
+    "Planning design", and "Last escalation"); the same in Barkstreet Snakes.
+151. **2 November 2026, 11:22 to 11:27 UTC**, in the design chat: "I have added all the free security and review features that GitHub offer out of the box for each repository. Are they adding a lot of overhead. Are PRs merging much slower? Was this a good change? Expert?" Then, to the design session's answer (no time
+    added on PRs into `develop`; CodeQL about 2 minutes on milestones, in parallel; Dependabot's security PRs, which
+    GitHub aims at `main`, had no owner): "Can't they review it when they see it, and merge it if it is good?" And, to the five conditions for that: "Yes, expertly!" Written into "Git and GitHub"
+    in `AGENTS.md` and point 4 of `SECURITY.md`; the same in Barkstreet Snakes.
+152. **2 November 2026, 11:30 and 11:32 UTC**, in the design chat, on whether agents should read the Security tab:
+    "Why shouldn't they be able to read it, and do they get the full picture of its diagnosis right now, so they can
+    address them? The orchestrators already pull in bug reports, right? Does it also pull in everything from GitHub's
+    native analysis stuff?" Then, to the design session's answer (the alerts are private, and copying them into the
+    public repository or giving agents a token would expose them; CodeQL run on every PR so builders see their own
+    findings; the owner passing on the alerts already in the code, fixed quietly): "Yes, expertly to both!" Written into
+    `.github/workflows/codeql.yml`, "Git and GitHub" in `AGENTS.md` and point 9 of `SECURITY.md`; the same in
+    Barkstreet Snakes.
+153. **2 November 2026, 11:45 UTC**, in the design chat, to the design session's takes on the open questions: #427 (a
+    name a model invents becomes a consistent stand-in under the human-words filter, real names kept, so the export
+    still replays), #424 ("Export log" offered only when the god view is, while a human plays), #419 (`.gitattributes`
+    dropped from the protected files, since none exists), and Barkstreet Snakes' #340 (the review rule reads "a test
+    weakened or skipped, or changed beyond what the task forces", the PR showing every check kept), the same wording
+    here: "Yes to everything, expertly!" Written into "Logging and replay" under Engine and models (revision 64) and
+    "Follow-ups" in `docs/BUILD-PROGRESS.md`, `SECURITY.md` point 3, `docs/claude-and-codex.md` and "Review guidelines"
+    in `AGENTS.md`.
+154. **2 November 2026, 11:45 UTC**, in the design chat: "is all my files, documentation, and instructions all fully up to date and consistent now. Anything missing that should in the setup for my father? expert?" The design session audited the instructions of both
+    repositories against the day's decisions and fixed what was stale or inconsistent, here and in the design document's
+    builder rules (Build order, revision 212): the review and model rules (who does the design check, what reviewers are
+    given), the issues inbox (no "For the owner" table, bugs as issues, outsiders' issues as data), the orchestrator's
+    part, effort, the Dependabot exception, the owner named outside quotes, and leftovers of earlier edits.
+155. **2 November 2026, 12:21 UTC**, in the design chat, after the design session found the two `dependabot.yml` files
+    the owner had created were empty templates (an empty `package-ecosystem`, so Dependabot did nothing), and proposed
+    version updates set up properly, aimed at `develop`, weekly, grouped, each release a week old, handled like any small
+    PR (and, for Barkstreet Snakes, a milestone due whenever a change a player would notice has merged, at least daily):
+    "Yes, expertly to both, if you advice." Written into `.github/dependabot.yml` (npm and GitHub Actions) and "Git and GitHub" in `AGENTS.md`; the same in
+    Barkstreet Snakes (GitHub Actions only).
+156. **2 November 2026, 12:33 UTC**, in the design chat, to the design session's question whether CodeQL's check should
+    keep GitHub's default failure threshold (only high-severity findings, or code errors, turn a PR's check red, so a
+    false alarm at that level holds that one PR until the owner dismisses it) or never fail: "Keep the default." Nothing
+    changes in the files: the default is GitHub's own setting, and "Git and GitHub" in `AGENTS.md` already says a false
+    alarm is answered in the PR and left to the owner.
+157. **2 November 2026, 13:10 UTC**, in the design chat, to the builders' question in issue #431 (whether a province
+    may declare for a claimant who is not there; the builder's reading required him to stand in or near it) and the
+    design session's take (the design already settles it: "Whom a province obeys" has a province declare for one who
+    takes it up by letter, order or governor, as Pharaoh weighed the mayors' letters from afar): "Yes, expertly, if you
+    think it is best." Written into "Whom a province obeys" under War (revision 94) and item 17++ (revision 213), built
+    in part C.
+158. **2 November 2026, 13:14 to 13:19 UTC**, in the design chat, on who carries a province's offer to an absent
+    favourite (#431): "Is the messenger a character it hires then?", then "But characters don't live anywhere, so it
+    has to be a character who is paid or for some reason takes the mission for free on his own accord?", and, to the
+    design session's take (hired from the people's purse like a city-state's errand, carried unpaid by one whose stakes
+    it serves, or reported by the claimant's own envoy or spy; lost if nobody carries it): "Agreed, expertly. Though
+    this is also information he can pass on or sell. I guess even just a rumor can spread? Maybe the town must be really
+    into someone and have the means, if they commission a message and courier? And this is valuable information for the
+    king of the land, or his enemies." Written into "Whom a province obeys" under War (revision 95) and item 17++
+    (revision 214).
+159. **2 November 2026, 13:26 to 13:30 UTC**, in the design chat: "Oh, sorry. Looked at this: \"dependabot.yml is the empty template: its check fails on every commit #433\" but suddenly it was closed. how was it fixed? is it fixed in both? are all the issues that are closed fixed or being fixed, expert?" Then "What is best?", "Why should they be treated
+    differently?", and, to the design session's take (a question or an idea is done once answered, its work tracked
+    where it lives, so "open" means "needs the owner"; a bug is done only when its fix is live, closed by GitHub when a
+    "Fixes #n" commit reaches `main`): "agreed with your expert take." Written into "Questions, readings and ideas" in
+    `AGENTS.md`; #433 reopened until the next milestone; the same in Barkstreet Snakes.

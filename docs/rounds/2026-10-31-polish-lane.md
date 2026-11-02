@@ -15,11 +15,11 @@ Each fix is its own PR from `develop`; this file keeps the running list.
   with the draft's default hold left out beside a unit another order names); #271 "settled N, land for M"; #272
   "shipments", not "shipment(s)"; #273 Legends' opening bonds as one undated line.
 
-**Resumed 31 October, 23:20 UTC** (the orchestrator, from Haakon: carry on from the pushed branches; merge #260 and the
+**Resumed 31 October, 23:20 UTC** (the orchestrator, from the owner: carry on from the pushed branches; merge #260 and the
 waiting PRs as CI goes green; then Space and the speed keys; then the remaining finds). Added: #293 (Space and the pace keys), #294 (the design note on province ownership), #295 (the audience panel's pointer to standing answers, audit 15),
 #296 ("(season 4)" dated on screen).
 
-**State when usage ran out (31 October, about 19:30 UTC; Haakon: "We are running out of usage. 97 percent. commit and
+**State when usage ran out (31 October, about 19:30 UTC; the owner: "We are running out of usage. 97 percent. commit and
 push.").** Merged into `develop`: #238, #256, #255 (and #239 if its merge below went through); milestone PR #260 carries
 them to `main`. Every other PR above is pushed, reviewed by one Opus reviewer with its findings fixed, and waiting on CI
 (congested): merge each once green, then this PR (#234), which carries every fix's progress line. #273 is not yet
@@ -79,6 +79,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - On the whole map a tap on a small city's seal opened whichever neighbour's tap circle was drawn last (Sidon's opened Ṣurru, Gezer's Ayyaluna: 23 of 71 seals on a computer, 31 on a phone); the nearest seal wins now (5 and 1 left, each a neighbour's army counter drawn over the seal, an open find).
 - The panel's tabs and the courts along the map scrolled only by touch or the arrow keys; with a mouse they scroll with the wheel and by dragging, and a drag never picks the tab or opens the court it started on.
 - Looking back at an earlier season, the province card gave the live state (in a seat view the new holder's figures where the city has since fallen); it gives that season's recorded figures (from the weekly blind re-review of #374).
+- A king's other names were never shown (#418): his card, from the courts along the map, now gives them under his name ("Also known as Akhenaten; Neferkheperure Waenre; Amenhotep IV"), every name but the one the viewer's court uses.
 
 ## Finds not yet fixed
 
@@ -119,7 +120,7 @@ away, checked in play: the order drafts and seals alone, and now reads "give the
 
 ## Space and the pace keys (#293)
 
-Haakon, 1 November 2026, on speeds: "I don't feel we should introduce 5, just to have 5. Paradox games have them because
+The owner, 1 November 2026, on speeds: "I don't feel we should introduce 5, just to have 5. Paradox games have them because
 they tick time. but we have rounds, akin to civilization.", then "Yes, please! expertly!" ("Pace of play" under
 Interface). The first version of #293 read "1 to 5 set the speed" as five speeds and added Very slow and Fast; that
 reading is dropped. Built: 1 Slow, 2 Normal (the default), 3 Fast, the game's three existing speeds as paces; + and −

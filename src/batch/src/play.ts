@@ -39,7 +39,6 @@ import {
   pressFor,
   TemplateNarrator,
   GameRunner,
-  attachParity,
   callSizes,
   characterReport,
   playGame,
@@ -53,7 +52,6 @@ import {
   SdkTransport,
   SeatChoices,
   SimulatedApi,
-  bodyText,
   buildSeats,
   checkJobs,
   providersFor,
@@ -84,7 +82,6 @@ export interface BatchOptions {
   folders: [Power, string][];
   characterFolders: [string, string][];
   fileTimeoutMinutes: number;
-  parityDir: string | null;
   sleepingScripts: boolean;
   /** Script kings that sleep schedule conditional orders ahead (off with --no-plan-ahead, to measure them). */
   planAhead: boolean;
@@ -251,7 +248,6 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   ClausePlay.on = o.clausePlay;
   InventoryPlay.on = o.inventoryPlay;
   let last: GameRunner | null = null;
-  let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
   const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf || o.landPlayHalf || o.borderPlayHalf || o.moneyPlayHalf || o.seasonPlayHalf || o.wallPlayHalf || o.worksPlayHalf || o.caravanPlayHalf || o.outlawPlayHalf || o.vassalPlayHalf || o.commandPlayHalf || o.freedomPlayHalf || o.councilPlayHalf || o.languagePlayHalf || o.upkeepPlayHalf || o.remnantPlayHalf || o.countPlayHalf || o.grantPlayHalf || o.takeUpPlayHalf || o.regionPlayHalf || o.auditPlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
@@ -340,26 +336,12 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
             );
       last = new GameRunner(pressFor(state, minds), seats, minds, set.narrator, { jobs: choices.jobs });
       last.writeChronicles = !o.noChronicles;
-      if (o.parityDir !== null) {
-        let drained = 0;
-        fingerprints = attachParity(
-          last,
-          simulated === null
-            ? null
-            : () => {
-                const bodies = simulated.requests.slice(drained).map(bodyText);
-                drained = simulated.requests.length;
-                return bodies;
-              },
-        );
-      }
       return last;
     },
     o.verify,
     o.config,
     (line) => console.error(line),
   );
-  if (o.parityDir !== null) writeFileSync(join(o.parityDir, `game-${s}.parity.tsv`), fingerprints!.join("\n") + "\n");
   const runner = last as GameRunner | null;
   // Sleeping seats are on by default, but only model and file seats sleep: a game of script kings keeps no runner for them.
   const sleepers = runner !== null && runner.state.sleep.size > 0;

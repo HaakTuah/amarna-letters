@@ -27,12 +27,12 @@ import {
   tabletLegends,
   type RisenPower,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // Legends, read from the record (build order item 14): tablets' histories, courts' rise and fall, biographies, the record
 // opened at the end, and the third plea for gold kept by the chronicle ("Finkel's version").
 describe("LegendsTests", () => {
-  const game = (): GameState => newGame(5, newGameConfig({ catastropheChance: 0 }));
+  const game = (): GameState => smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Alashiya", "Mitanni", "Assyria");
 
   /** Egypt's envoy sent to Alashiya asking gold, and the game run until he stands at Alashiya's court. */
   function plea(s: GameState): [TurnEngine, PendingAudience] {

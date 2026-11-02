@@ -5,6 +5,7 @@ import { AudiencePanel } from "../components/AudiencePanel.tsx";
 import { ChroniclePanel } from "../components/ChroniclePanel.tsx";
 import { CourtStrip } from "../components/CourtStrip.tsx";
 import { EventsPanel } from "../components/EventsPanel.tsx";
+import { ExportLog } from "../components/ExportLog.tsx";
 import { FollowPanel } from "../components/FollowPanel.tsx";
 import { LegendsPanel } from "../components/LegendsPanel.tsx";
 import { GameMap, type MapHandle, type MapView } from "../components/GameMap.tsx";
@@ -377,7 +378,8 @@ export function Play() {
               >
                 How it works
               </a>
-              <button onClick={() => void s.export()}>Export log</button>
+              {/* The export is the whole record: offered only when the god view is (Engine and models, "Logging and replay"). */}
+              {s.canSeeAll && <ExportLog onExport={(parts) => void s.export(parts)} />}
               <AudioSwitches />
               <label>
                 Pace{" "}

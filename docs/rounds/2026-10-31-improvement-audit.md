@@ -11,7 +11,7 @@ phone size; one-game probes of the engine in Node with the heap measured every t
 
 Finds are ranked by how much each would improve the game. Each names its lane (17a, 17+, 17++, 18, the item lane for
 script-king play, or polish), its evidence, and the fix suggested. Nothing here was built: a find that changes a rule or a
-number is a question for Haakon (the "Questions for Haakon" section and the "For Haakon" table of `docs/BUILD-PROGRESS.md`).
+number is a question for the owner (the "Questions for the owner" section and the "For the owner" table of `docs/BUILD-PROGRESS.md`).
 
 ## 1. The crash at high speed is the turn-by-turn snapshots (17a)
 
@@ -43,7 +43,7 @@ game's state is 16 MB of JSON at turn 102, of which `inbox` is 8.8 MB (every mes
 them, never pruned: 13,400 notices, 11,200 resolutions, 4,100 battle reports), `events` 3.2 MB (22,600) and `characters`
 2 MB (198 characters at about 10 KB each, mostly `facts` and `payOld`). So each snapshot is several MB and the sum is
 quadratic in the game's length. With the age now lasting about 80 to 160 seasons (item 17), a desktop browser reaches
-the renderer's limit at about season 80 to 110; a phone, with far less memory, much earlier. Haakon saw "a white page
+the renderer's limit at about season 80 to 110; a phone, with far less memory, much earlier. The owner saw "a white page
 with an error" on the live site: Chrome's own out-of-memory page is exactly that.
 
 **Suggested fix (behaviour unchanged).** Stop keeping a full state per season. The frames already carry what the map and
@@ -197,7 +197,7 @@ not take the job offered" 41, "declined your offer ...: they are not at your cou
 held 47. Each is a wasted order and, for a human reading god view, noise. The scripts should check the receiver's
 land, the town, the siege and the hire before ordering, as a competent player would.
 
-## 10. Troops of a few men linger as units (answered by Haakon: "A handful holds nothing by itself")
+## 10. Troops of a few men linger as units (answered by the owner: "A handful holds nothing by itself")
 
 At the end of eight games, 21 of 202 units had under 200 men, among them armies of 2, 6, 7, 8 and 15 men (Jerusalem's
 army of 2 in Jerusalem, Hebron's of 6 and 7, Amurru's of 15). The engine removes a unit only at 0 men
@@ -210,7 +210,7 @@ its men (`economy.ts:276`, `forMen`), keeps the script king from raising a levy 
 (`statecraft-strategy.ts:276`), and is listed and drawn as an army.
 
 The audit's first reading, a flat floor of a tenth of a levy below which a troop dissolves, was itself against the
-pillars ("Numbers come from their causes", never a flat share; "Incentives, not quotas"). Haakon answered on 31 October
+pillars ("Numbers come from their causes", never a flat share; "Incentives, not quotas"). The owner answered on 31 October
 2026 and the answer stands in the design copy on `develop`, War tab, "A handful holds nothing by itself"
 (`docs/intent/war-travel-and-the-seas/territory-and-military-part1.md`, item 17++): "no size makes a unit stop
 counting, and a small one fades by the rules already decided. A move into a far weaker unit is a battle it loses by
@@ -277,7 +277,7 @@ sealed, the answers should match it.
 - Fourteen audiences in one season for Egypt (find 8) are the fifteen opening vassal bonds each sending tribute at
   once; a reading of the data, not a rule.
 
-## Haakon's words during the audit
+## The owner's words during the audit
 
 Relayed by the orchestrator on 31 October 2026, word for word:
 
@@ -294,7 +294,7 @@ Relayed by the orchestrator on 31 October 2026, word for word:
 
 One Opus reviewer read the report against the code and found it blocking on one point, find 10's mechanism (units
 count by their men since 11a+, so a tiny troop does not hold or block), which was also the premise of the question
-sent to Haakon; the find and the question are rewritten above. Its other corrections, all applied: `catchUpFrames`
+sent to the owner; the find and the question are rewritten above. Its other corrections, all applied: `catchUpFrames`
 counts frames by the snapshots; a mid-game replay needs runner support; pruning the inbox would change what the Inbox
 tab shows and is not behaviour-neutral; a route cache is valid only where the cost function is fixed and a heap must
 keep the tie-break; 15 call sites, not 16; the log is 7.9 MB on disk; the app runs React 19; the baseline king plays
@@ -303,7 +303,7 @@ paragraph is meant for the human; the refusal of tribute comes from `answerLette
 `format.ts:25`. It found no suggested fix that changes a rule or a number except the two it struck (pruning the inbox,
 changing route tie-breaks).
 
-## Questions for Haakon
+## Questions for the owner
 
 Answered during the audit (31 October 2026): question 1, the tiny troops, by "A handful holds nothing by itself"
 (find 10). No question stands open.

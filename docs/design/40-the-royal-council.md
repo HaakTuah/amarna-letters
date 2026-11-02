@@ -13,7 +13,7 @@ The council is `src/game/src/bots/council.ts`, run by the runner (`src/game/src/
   a seat turns it off or on with its submission (`TurnSubmission.council`, "on" or "off", from the next season), which
   the engine keeps in `GameState.councilOff` and logs as a `council` event seen by that seat, so experiments can report
   whether it was on. The web page's toggle is at the top of the orders panel. Comparing model kings with and without it
-  waits until Haakon asks for model games, so no table setting turns it off for model seats.
+  waits until the owner asks for model games, so no table setting turns it off for model seats.
 - **Four advisors, the script king's planner with known tilts.** Each advisor is a script king's mind (`Brain`) for that
   seat, with the court's own temperament tilted, its own seed and its own memory of what the seat has seen (it reads the
   seat's view every season, asleep or awake). Each season it plays the script king's military season on the seat's

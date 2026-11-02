@@ -1,4 +1,4 @@
-## Jobs and money: Haakon's answers to items 11a and 11a+
+## Jobs and money: the owner's answers to items 11a and 11a+
 
 Built after item 11b, before 11+ (the 11b row of `docs/BUILD-PROGRESS.md`; `docs/intent/build-order/item-11.md`, the 11b
 opening; "The game in one page"). Save version 22. The report is `docs/rounds/2026-10-28-jobs-and-money-answers.md`. It

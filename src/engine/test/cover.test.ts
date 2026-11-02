@@ -40,7 +40,7 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { fresh, removeAll, Assert, firstOrNull, singleOrNull, skilled } from "./support.ts";
+import { fresh, removeAll, Assert, firstOrNull, singleOrNull, skilled, smallWorld } from "./support.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
 // News of a court's people abroad reaches it only by rumour or when they return: a servant who is held,
@@ -78,7 +78,7 @@ describe("CoverTests", () => {
 
   // <summary>Egypt's envoy stands before Alashiya's king; the state is cloned so the audience can end two ways.</summary>
   function atAudience(): [GameState, Character] {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt", "Alashiya", "Hatti", "Babylonia");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     // Enough in Alashiya's treasury to pay a defector's wage every season (item 10's attested envoys are paid by their own competence).
     s.treasuries.get("Alashiya").gold += 1000;
@@ -223,7 +223,7 @@ describe("CoverTests", () => {
   function caughtSpy(host: Power = "Assyria", province: string | null = null, firstSeed: number = 1): [GameState, GameState, string] {
     for (let seed = firstSeed; seed <= 40; seed++) {
       function game(): GameState {
-        let s = newGame(seed);
+        let s = smallWorld(newGame(seed), "Babylonia", host);
         let c = first(s.characters, (x) => x.employer === "Babylonia");
         c.secretMaster = null;
         skilled(c, 10);
@@ -345,7 +345,7 @@ describe("CoverTests", () => {
   });
 
   test("A turned province watcher goes back to its province", () => {
-    let s = newGame(4);
+    let s = smallWorld(newGame(4), "Hatti", "Mitanni");
     let spy = first(s.characters, (c) => c.employer === "Hatti");
     spy.status = "Captured";
     spy.heldBy = "Mitanni";
@@ -646,7 +646,7 @@ describe("CoverTests", () => {
   // ---------------------------------------------------------------- a fallen court
 
   test("A fallen court catches no spy and lets its prisoners go", () => {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Babylonia", "Hatti", "Egypt", "Assyria");
     let watcher = first(s.characters, (c) => c.employer === "Babylonia");
     let captive = first(s.characters, (c) => c.employer === "Hatti");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");

@@ -3,7 +3,7 @@
 **Since item 11a+** some of this is changed: see [`22-harvests-and-answers.md`](22-harvests-and-answers.md) (runaways by what they keep; mouths chosen; water from a dossier per city; deportees freed on the road; robbing outside a siege).
 
 Build order item 10+b ("Where people go", "Deportation", "People are worth having, not free to keep", "Bandits rob the
-purse"), opened by Haakon's answers carried from 10+a and the "Reason from the pillars" list that 10+a's text gained after
+purse"), opened by the owner's answers carried from 10+a and the "Reason from the pillars" list that 10+a's text gained after
 it was built. Save version 18. The report is `docs/rounds/2026-10-28-people-across-borders.md`. Every number is a first
 guess (item 18 tunes them): `LandData` (`model/land.ts`: `runPercent`, `refugeMargin`, `deportDead`, `expelPercent`,
 `policedPercent`, `lootSpentPercent`), `TradeData` (`model/trade.ts`: the sack), `WaterData` (`model/geography.ts`).
@@ -44,7 +44,7 @@ each man's take falls as they multiply and a robbed land has less to take; half 
 it spent each season at their province's market (`lootSpentPercent`), the rest carried as they drift. Holders read a
 line in the treasury notice; signal `robbed`. Bands gathering them are item 11b's.
 
-### Haakon's answers carried from 10+a
+### The owner's answers carried from 10+a
 
 - **Anyone's ships at a besieged harbour** (`tradeTogether`): a ship of any king may sell grain at a besieged harbour while
   no fleet of its besieger holds its waters, at what its starving market pays, buying none there; the besieger's fleet in
@@ -93,7 +93,7 @@ line in the treasury notice; signal `robbed`. Bands gathering them are item 11b'
   `CisternSeasons` 4 seasons in rain-fed land, `WellSeasons` 2 in arid ground, and then surrenders whatever its food
   (signal `siege-thirst`); an island city without water of its own (`IslandWater`: Tyre, Arwad) runs dry
   `IslandSeasons` 1 after its besieger's fleet holds its waters. Water works are item 15's.
-- **Not built here**: a harvest gathered in each land's own season (a question for Haakon in the report).
+- **Not built here**: a harvest gathered in each land's own season (a question for the owner in the report).
 
 ### What a king sees and orders
 

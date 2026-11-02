@@ -1,13 +1,13 @@
 # Build progress
 
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
-`.claude/rules/builder-rules.md`, which also say how items are branched, merged and reviewed, and when work slows for
-usage). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
+`.claude/rules/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
+how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
 document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
 longer finds was history and is in `docs/archive/design-history.md`.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`;
-The owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
+the owner's standing instructions given in chat, word for word, in `docs/archive/instructions.md`.
 
 ## The polish lane
 
@@ -57,9 +57,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **Done so far** (2 November 2026): the progress file under 20 KB (#388); the files every session reads (#390);
   `docs/` (#392: item 2's, 4's and 5+'s briefs and specs to `docs/archive/specs/`, built entries out of "Not built yet"; #393:
   design note 10 down to its live differences); the archive's `progress-done.md` split by kind (#394). **Left:** the code,
-  once the open lanes touching it merge (17++ B and C, export, model calls, fog); first find there: the conversion's
-  parity check (`src/game/src/parity.ts`, `src/batch/src/parity*.ts`, `--parity` in `src/batch`) compares against the C#
-  build removed on 27 October, so it is probably a leftover; `docs/DESIGN-NOTES.md` after its open lane merges.
+  once the open lanes touching it merge (17++ B and C, export, model calls, fog); the conversion's parity check removed
+  (#443); `docs/DESIGN-NOTES.md` after its open lane merges.
 
 ## Follow-ups
 
@@ -69,40 +68,25 @@ fixed.
 - ~~**The province card looking back** (the weekly blind re-review of #374): in a seat view on an earlier season the
   card read the live state, the new holder's figures where the city has since fallen; it gives that season's recorded
   figures now, with a test at a past season (#414).~~
-- **The canary test for hidden information** (the owner, 2 November 2026, after reviews missed seat-view leaks twice;
-  "Hidden information" under "Review guidelines" in `AGENTS.md`). A small game with secrets planted (an envoy's hidden
-  errand, a sealed tablet's words, an army in the fog, another court's treasury); every seat's view, model request,
-  script king's input and export is built along every path (the latest season, past seasons, a replay, the god view
-  where a seat has none) and none may hold a secret. A test lane beside the items.
-- **First of all: what a game's export holds** (the owner, 2 November 2026: "And queue a job going fully over what the
-  export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
-  fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
-  session's `export`, `log.toJsonl()` and every record type in it: the header, calls, decisions, shadows) and
-  everything it could carry: API keys or anything from the key's storage, provider addresses with tokens in them,
-  request or organisation ids, e-mail addresses, local paths, browser or device details.
-  Anything sensitive is removed from the export, with a test that fails if it comes back, and **The owner is alerted at
-  once**: the PR's first line and the session's "Questions for the owner" say what was found and which files in
-  `tests/fixtures/` hold it, so they can be removed from the repository and its history. If nothing is found, the
-  report lists what the export holds, field by field. Then build **one export with filters** (Engine and models,
-  "Logging and replay"; the owner, 2 November 2026): by default everything, every call in full with each model's notes,
-  plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
-  wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
-  in any export. A human player's own words are not sensitive in a normal export.
-  **Kept out by design, not scrubbed** (the owner, 2 November 2026, after #385's review rounds found a new leak in
-  every round: "Yes, expertly to 1!"; "Logging and replay" under Engine and models): nothing sensitive is recorded
-  (errors as kind and code), the export gives only the fields each record lists per filter, and with human words left
-  out a game with a human seat blanks all free text, keeping its shape. #385 stops scrubbing free text and is rebuilt
-  this way; the canary test for hidden information checks the export too.
+- ~~**The canary test for hidden information**~~ (done, #421): `src/web/test/canary.test.ts` plants an envoy's hidden
+  mandate, its letter, a sealed tablet, an army in the fog and another court's treasury, and reads every seat's input,
+  every model request, the chronicles, every view, map and panel the page shows, live, in past seasons and on replay; no
+  leak found; its export part (#430) plants sensitive failures and a human seat's words and exports them under all
+  sixteen filters: none found. Whether "Export log" should wait for "Reveal all" while a human plays: #424.
+- ~~**First of all: what a game's export holds**~~ (done, #385): nothing sensitive in `tests/fixtures/`; one export
+  with filters (calls, shadows, audits, human words), kept clean by design: failures logged as kind and code, each
+  record giving only its listed fields, and without human words a game with a human seat blanks every text and still
+  replays. Report: `docs/rounds/2026-11-02-export-audit.md`; note: `docs/design/50-the-export.md`.
+- ~~**The export's stand-in names and its gate**~~ (done, #436): under the human-words filter a name made up in an
+  order (a pitch's name, `goAs`, a claimed realm) is Name-1, Name-2, real names kept, and it still replays; "Export
+  log" is offered only when the god view is; the canary grows a line for each (`docs/rounds/2026-11-02-export-stand-ins.md`).
 - ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
   as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
   token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:
   `docs/rounds/2026-11-02-model-calls-get-through.md`.
-- **Counsel's plans from a digest** (found by "model calls that get through", 2 November 2026; Engine and models,
-  "Passing up and asking advice": the strong model writes the plan "from a digest of the year ... rather than the whole
-  record"). A plan call opens with the kings' whole 70,600-token rulebook on Sonnet, so at the recorded token counts
-  Counsel estimates about 5% above Standard, where the design has small models play and the large one only plan and
-  advise. Give the plan call its own short opening (the digest and what it needs of the rules), then restore the test's
-  old claim that Counsel costs less than Standard (`src/game/test/who-decides.test.ts`).
+- ~~**Counsel's plans from a digest**~~ (done, #437): the plan call opens with its own short rules (how a power wins,
+  the plan, standing answers), about 3,900 tokens where it read the kings' 70,600, so Counsel estimates below Standard
+  again ($1.13 a season live against $1.34). Report: `docs/rounds/2026-11-02-counsel-plans-from-digest.md`.
 - ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
   armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
 
@@ -110,9 +94,10 @@ fixed.
   issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.
 - **From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
   is over 50 KB (about 55 KB): split by responsibility in a PR of its own, behaviour proven unchanged by replays.
-- **From #376 (17++ B), round 1 (Codex, P1); test infrastructure outside the item:** the engine suite has no reduced-world
-  fixture, so every engine test builds the whole starting world; a small-world fixture (a few powers on part of the map)
-  for rule tests, as "the smallest game that tests the rule" asks.
+- ~~**From #376 (17++ B), round 1 (Codex, P1); test infrastructure outside the item:** the engine suite has no reduced-world
+  fixture, so every engine test builds the whole starting world~~ (#441: `smallWorld` in `src/engine/test/support.ts`,
+  the engine's rule tests on it, its suite 80 s to 44 s). Left for a later pass: the engine test files #378 changes
+  (`counts`, `crowns`, `declarations`, `governors-region`, `mood-reads`, `seat-word`, `who-they-are`, `works`).
 
 ## For the owner
 

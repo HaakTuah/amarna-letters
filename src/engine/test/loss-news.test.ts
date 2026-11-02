@@ -24,7 +24,7 @@ import {
   placeSpy,
   single,
 } from "@amarna/engine";
-import { Assert, last, skilled } from "./support.ts";
+import { Assert, last, skilled, smallWorld } from "./support.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
 // Losses abroad travel with people: a spy caught at a court, or put to death there, is the talk of that court, and other
@@ -56,7 +56,7 @@ describe("LossNewsTests", () => {
   // <summary>Babylonia's spy, too timid to keep its master's name to itself, is caught at Assyria's court, which pays its watchmen well.</summary>
   function caughtOf(from: number = 1): [GameState, Character] {
     for (let seed = from; seed <= from + 40; seed++) {
-      let s = newGame(seed, newGameConfig({ catastropheChance: 0 }));
+      let s = smallWorld(newGame(seed, newGameConfig({ catastropheChance: 0 })), "Babylonia", "Assyria", "Mitanni", "Egypt", "Hatti");
       let spy = atHome(s, "Babylonia", 10);
       spy.traits.courage = 0;
       s.treasuries.get("Assyria").gold = 100000;

@@ -22,7 +22,7 @@ import {
   single,
   terrainOf,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // Build order item 11f: the rest of the map's crossings and its missing places, and caravans that go anywhere, at risk.
 describe("MapCrossingsTests", () => {
@@ -85,7 +85,7 @@ describe("MapCrossingsTests", () => {
 
   /** Hatti's army in Aleppo, every land between it and home closed to Hatti, as Hatti has heard: no open road reaches it. */
   const closedRoad = (seed: number): { s: GameState; e: TurnEngine } => {
-    const s = game(seed);
+    const s = smallWorld(game(seed), "Hatti", "Mitanni", "Carchemish", "Alalakh", "Isuwa", "Aleppo");
     const e = new TurnEngine(s);
     single(s.units, (x) => x.province === "nesa").province = "aleppo";
     const shut = ["Carchemish", "Alalakh", "Isuwa", "Mitanni"] as const;
@@ -119,7 +119,7 @@ describe("MapCrossingsTests", () => {
   });
 
   test("A kingdom's caravan keeps to open roads while one reaches, however long", () => {
-    const s = game();
+    const s = smallWorld(game(), "Hatti", "Carchemish", "Alalakh", "Aleppo");
     const e = new TurnEngine(s);
     single(s.units, (x) => x.province === "nesa").province = "aleppo";
     for (const k of ["Carchemish", "Alalakh"] as const) s.roadsClosed.set(k, ["Hatti"]);
@@ -131,7 +131,7 @@ describe("MapCrossingsTests", () => {
     const taken = (besieged: boolean): number => {
       let n = 0;
       for (let seed = 1; seed <= 12; seed++) {
-        const s = game(seed);
+        const s = smallWorld(game(seed), "Hatti", "Mitanni");
         const e = new TurnEngine(s);
         // Hatti's caravan from Hattusa to its army in Nesa; Mitanni's army stands in Nesa, its roads closed to Hatti.
         s.stores.set("hattusa", 200);

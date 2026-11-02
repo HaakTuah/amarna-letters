@@ -16,10 +16,10 @@ none other.
 ## The check for changes
 
 Asked at the start (Build order since 64; Land, people and economy since 24; War, travel and the seas since 53; Victory
-and the ending since 9; Work, money and lending since 11): nothing new. Haakon had not answered the questions of items 8,
+and the ending since 9; Work, money and lending since 11): nothing new. The owner had not answered the questions of items 8,
 9, 9+a, 9+b or 10 in `docs/BUILD-PROGRESS.md`, so their readings stand.
 
-Asked again before the pull request (28 October 2026): Haakon had answered the reviews of items 9+a, 9+b and 10 in the
+Asked again before the pull request (28 October 2026): the owner had answered the reviews of items 9+a, 9+b and 10 in the
 design document, and item 10+a now opens with the answers that differ from what was built (Build order, revision 67;
 Land, people and economy, 26; War, travel and the seas, 54). Built here, since it touches this item's discharged men:
 
@@ -87,7 +87,7 @@ See `docs/design/19-people-at-home.md` for every formula. In short:
 
 ## Readings taken and design questions
 
-Each is a question Haakon can answer; the reading taken comes first, the alternative in brackets.
+Each is a question the owner can answer; the reading taken comes first, the alternative in brackets.
 
 1. **The people defend their land, and free cities keep their walls**: the brief says the people's resistance comes "in
    place of the walls a patron's gold buys a neutral city today". The walls are physical (they hold sieges, fall to

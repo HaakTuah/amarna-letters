@@ -3,12 +3,12 @@
 Weekly usage: unknown (this session cannot read it). The second session of item 19+++, a lane beside 17a: the first
 (`docs/rounds/2026-10-31-music.md`, #237) built the sound system with placeholder pieces and handed over; this one
 composed the pieces and the fallback's scores, on the branch `music/19-plus3-compose`. Worked from the copy in
-`docs/intent/` (no live design document on this account); the check for changes against `develop` found Haakon's
+`docs/intent/` (no live design document on this account); the check for changes against `develop` found the owner's
 answer of 1 November on the default volume (built here, below). Presentation only: no rule, number, script play or save
 version changed; the script games are identical.
 
 The orchestrator's message of 31 October (received while this session worked): "From the orchestrator, for your
-information. Haakon (31 October 2026): 'music and sound on by default at a regular volume, not quiet, with the first
+information. The owner (31 October 2026): 'music and sound on by default at a regular volume, not quiet, with the first
 music fading in at start-up so it never blasts. Item 19+++ and its progress row now say so.' The Opus sound-system
 session is making that change in a small PR of its own after #237. Don't build it yourself. Mix your pieces for a
 regular default volume, and make sure the opening piece suits a fade-in. Quote the instruction in your report." So the
@@ -16,7 +16,7 @@ default volume and the fade-in are not in this PR (a first draft of them was tak
 to one loudness (-18 LUFS) for a regular volume, and the Hymn to Nikkal, the first piece heard, opens 7 dB under its
 height, so a fade-in lands on a quiet lyre and drone.
 
-## Questions for Haakon
+## Questions for the owner
 
 1. The Hurrian Hymn's score (Ugarit's theme, in both of the fallback's versions, and the orchestra's hymn pieces) follows
    Anne Draffkorn Kilmer's reading of the notation: each named pair of the lyre's strings sounded together, the
@@ -24,9 +24,9 @@ height, so a fade-in lands on a quiet lyre and drone.
    the other and give another tune. Keep Kilmer's? (Reading taken: Kilmer's, the first published and the one the
    sound system was built on. Alternative: Dumbrill's melodic reading, which a later session could write in its place.)
 
-The rest is judged by ear: every piece, variation and score is on `/listen`, and any Haakon dislikes is redone.
+The rest is judged by ear: every piece, variation and score is on `/listen`, and any the owner dislikes is redone.
 
-## Haakon's words in this item
+## The owner's words in this item
 
 Relayed by the orchestrator, 31 October 2026:
 
@@ -135,7 +135,7 @@ chords); `Mode.chord` takes the fourth where a tuning's fifth is diminished.
    part is that the pieces suit them: one loudness, and a quiet opening to the first piece heard.
 9. **The pieces were judged without ears** (this session cannot listen): by `check.py` (ranges, phrase gaps), by the
     spectrogram, loudness curve and click count of `inspect_audio.py` on scratch renders, and by construction (modal
-    lines over drones and open chords, no clash by design). Haakon's ear is the judge; the PR says how to hear each.
+    lines over drones and open chords, no clash by design). The owner's ear is the judge; the PR says how to hear each.
 10. **Render once**: the 42 files were rendered once, after the scores passed the checks, since every render stays in the
     repository's history (about 28 MB a render).
 
@@ -177,7 +177,7 @@ changed).
 ## Where to pick up
 
 - The sound system's feed from 17a's event stream (#236) is still the first session's "What waits on 17a's event stream".
-- If Haakon's ear asks for another reading of the hymn (question 1), `HymnSung` and `HymnBeneath` in `score.ts` and
+- If the owner's ear asks for another reading of the hymn (question 1), `HymnSung` and `HymnBeneath` in `score.ts` and
   `NOTATION` in `hymn.py` are the two places to change; both versions follow.
 - Any piece he dislikes: its function in `pieces_peace.py` or `pieces_war.py`, `check.py` to look, `render.py music <id>`
   to render it alone.

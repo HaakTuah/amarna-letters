@@ -75,7 +75,7 @@ item 17 reworded so the norms are a shared language, whether to honour one each 
 1. **The chronology** is the Egyptian low chronology (HKW 2006): 1346 is about Akhenaten's year 8.
 2. **Suppiluliuma** is Hatti's king at the start, though on the shorter dating his predecessor still reigned.
 3. **Labaya was probably dead by 1346.** Reading: Shechem starts under his son Mut-Baal, with the quarrel with
-   Abdi-Heba inherited; or Labaya himself, as a marked stretch of about five years, if Haakon prefers the story.
+   Abdi-Heba inherited; or Labaya himself, as a marked stretch of about five years, if the owner prefers the story.
 4. **Arzawa's king in 1346 is unknown.** Tarhundaradu (EA 31-32) is kept, as the code already has him, marked as a
    doubt.
 5. **Ugarit starts in Egypt's sphere**, its Hittite treaty to come.
@@ -104,6 +104,6 @@ the [reply by Berger et al. 2023](https://www.frontiersin.org/journals/earth-sci
 [Labaya](https://en.wikipedia.org/wiki/Labaya); [Niqmaddu II](https://en.wikipedia.org/wiki/Niqmaddu_II). The rest
 rests on the works listed in the index, as the builder knows them.
 
-## Haakon's words in this session
+## The owner's words in this session
 
 None: the session ran from the item's start prompt.

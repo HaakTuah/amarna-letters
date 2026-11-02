@@ -326,7 +326,7 @@ Scripts never recall a governor yet (the audit's find, part C), so the benchmark
 Review: rules · Claude · 5, 7, 8, then the escalation helper's look: nothing open (10). Codex · P1×6, P1×4, P1×2, then
 the helper's ruling on the last (the answer stands).
 
-Questions for Haakon: none.
+Questions for the owner: none.
 
 ## History: round 1's hand-off (1 November 2026), done in round 2
 

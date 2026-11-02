@@ -1,17 +1,17 @@
 # Item 5+, step 2: the TypeScript conversion
 
 Branch `item-5plus/conversion`, merged into `develop`. Brief: `docs/items/conversion.md`; spec: `docs/CONVERSION-PLAN.md`
-(Haakon's words). This session ran below the high effort the step asks for, and `scripts/usage.sh` reports "unknown" in
+(the owner's words). This session ran below the high effort the step asks for, and `scripts/usage.sh` reports "unknown" in
 it, so weekly usage could not be checked.
 
-## Haakon's instructions for this step, word for word
+## The owner's instructions for this step, word for word
 
 From the task that started the session (27 October 2026):
 
 > Your item, and only this item: build order item 5+, step 2 — the TypeScript conversion. Its brief is
 > `docs/items/conversion.md` (spec: `docs/CONVERSION-PLAN.md`).
 
-> PR #29 ("Condense the design document") is open in Haakon's own session: don't edit it, and do the brief's check for
+> PR #29 ("Condense the design document") is open in the owner's own session: don't edit it, and do the brief's check for
 > changes against whatever is current.
 
 > This step is meant to run at high effort. If this session runs below high, say so in the first line of your PR and
@@ -154,7 +154,7 @@ for an error and could touch the new game (`step` in `src/web/src/session/core.t
 - The page's bundle (754 KB, 247 KB compressed) carries the engine as well as the worker's: size only.
 - Returning visitors see the cached C# app once more before the new one takes over, as with every update before.
 
-## Haakon's instruction after the milestone PR
+## The owner's instruction after the milestone PR
 
 Given at 04:20 UTC, once milestone PR #36 was open and green, word for word:
 

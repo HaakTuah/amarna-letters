@@ -1,11 +1,11 @@
 # Cities defended by their men, and a fair scoreboard (29 October 2026)
 
-Build order item 11e (`docs/intent/build-order/item-11.md`, the 11e part), added by Haakon's PR #151 answering item 11d's
+Build order item 11e (`docs/intent/build-order/item-11.md`, the 11e part), added by the owner's PR #151 answering item 11d's
 review. Branch `item/cities-defended`, PR #154. Save version 28. What was built, by file:
 `docs/design/31-cities-defended.md`. Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session). Effort:
 medium, as set.
 
-Haakon's words (29 October 2026, the item's own text): "didn't you say the millitary age male population will defend
+The owner's words (29 October 2026, the item's own text): "didn't you say the millitary age male population will defend
 their city when someone storms, or? Is it still that easy to storm?", and "Agreed to all! Implement expertly!" Added
 while it was built (PRs #152 and #153, the item's text and "One scoreboard for every power"): "I want to have a true
 winner, but I want each player to optimize to get the best positioning they can. Screwing over the one at the top isn't
@@ -16,7 +16,7 @@ still have no way to accurately measure how much each state fulfill each aggrega
 ## The check for changes
 
 The copy was cut from Build order revision 89, War 61, Victory 10. Asked at the start: nothing had changed. While the item
-was built, Haakon's PRs #152 and #153 refreshed the copy (Build order 91, Victory 12): the final score blends size and
+was built, the owner's PRs #152 and #153 refreshed the copy (Build order 91, Victory 12): the final score blends size and
 performance, every placement counts, and kings are told the goal in words and the weight once item 18 sets it. Built in
 this item (below). Asked again before the pull request (Build order 98, War 63, Victory 12): new items 11c+ and 11f (the map's drawing and its crossings and places, after this item) and the capitals' walls by the sources (item 15); nothing this item touches.
 
@@ -149,7 +149,7 @@ the view's comment and the movement rule say "outside walls"; the head-on fight 
 (14); `LeadFloor`'s new meaning is noted (15). **Measured as asked**: the people in open land have no cap now, so the
 falls per game and the spread of wins are below.
 
-## Questions for Haakon
+## Questions for the owner
 
 1. **The weight of size in the final score.** At equal weights (the first guess the text names) the Great Kings win 49
    of 50 games; by performance alone 12 of 50 (an even share is about 9), and at 15 percent for size 29 of 50. Reading

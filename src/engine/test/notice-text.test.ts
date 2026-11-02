@@ -16,12 +16,12 @@ import {
   single,
   unitAt,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, smallWorld } from "./support.ts";
 
 // <summary>Notices are read the season after they are written, and say so; failures are rejection notices.</summary>
 describe("NoticeTextTests", () => {
   test("News written as a season resolves speaks of last season", () => {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt", "Hatti");
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     let e = new TurnEngine(s);
     e.beginTurn();
@@ -39,7 +39,7 @@ describe("NoticeTextTests", () => {
   });
 
   test("The treasury notice says audience gold comes later", () => {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt");
     new TurnEngine(s).beginTurn();
     let notice = single(inboxOf(s, "Egypt"), (i) => i.title === "The treasury");
     Assert.contains("The treasury now holds", notice.body);
@@ -47,7 +47,7 @@ describe("NoticeTextTests", () => {
   });
 
   test("A payment the treasury cannot make is a rejection even when debased gold is found", () => {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Egypt", "Hatti");
     let e = new TurnEngine(s);
     e.beginTurn();
     // The ledger shows 150, but 100 of it was never fine gold: the levy is accepted, then cannot be paid.
@@ -62,7 +62,7 @@ describe("NoticeTextTests", () => {
   });
 
   test("Wake reasons and the digest name whose troops moved", () => {
-    let s = newGame(31, newGameConfig({ sleepingSeats: true, catastropheChance: 0 }));
+    let s = smallWorld(newGame(31, newGameConfig({ sleepingSeats: true, catastropheChance: 0 })), "Egypt", "Assyria", "Alashiya", "Babylonia");
     s.sleep.set("Alashiya", newSleepState({ asleep: true, wakeAt: 50 }));
     s.sleep.set("Babylonia", newSleepState({ asleep: true, wakeAt: 50 }));
     single(s.units, (u) => u.province === "delta" && u.kind === "Fleet").province = "lukkawaters";

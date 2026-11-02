@@ -10,7 +10,7 @@ their counts where it pays, measured against scripts that never count." Design n
 how much he wants" under The world. None of the three is in the repository's copy (`docs/intent/`, cut 1 November 2026),
 on this branch or on `develop`, and the live document refused this account ("forbidden", role), as it did for part A.
 Part B is built from the item's own text, which says what each does; the readings below fill the rest, and the first
-question for Haakon asks for the copy to be refreshed so that the next part, and a later review, can check against them.
+question for the owner asks for the copy to be refreshed so that the next part, and a later review, can check against them.
 
 ## What was built
 
@@ -37,7 +37,7 @@ question for Haakon asks for the copy to be refreshed so that the next part, and
    share of grain; or as a number of men, which the king gets from the men really there, every one if he asks that many,
    the fields losing their hands (item 11a+'s levy, unchanged). The corvée is not asked at all: each work names the men
    it needs (item 15), so it is an amount by nature, and a share of it would have to invent how a half-manned work
-   progresses, a rule no section gives. Principle: "No stopgaps". **Asked of Haakon** (question 2, narrowed to the corvée).
+   progresses, a rule no section gives. Principle: "No stopgaps". **Asked of the owner** (question 2, narrowed to the corvée).
 2. **What a share hides.** "lets it hide more the older his count and the farther it lies": a point of the share for every
    season since the count, two for every season of the word's road beyond the first, at most thirty; land never counted
    twenty before distance. First guesses. Principle: "Information time travel" (what a king knows is as old as its road).
@@ -69,7 +69,7 @@ question for Haakon asks for the copy to be refreshed so that the next part, and
 
 ## Design questions
 
-None beyond those for Haakon below.
+None beyond those for the owner below.
 
 ## Benchmarks and use against ignore
 
@@ -115,7 +115,7 @@ and amount numbers together.
   script kings, a share too small for a levy told as that, the seat's yields as the last reaping's); its score was not
   recorded, since the session that ran it ended before writing it down.
 - **Round 3** (on `2af5e43`): the design check, 7: the old yields wording left in the model's prompt and the view's
-  comment, a share levy's wake reason, no numbers after round 2's changes, the questions not reaching Haakon three ways.
+  comment, a share levy's wake reason, no numbers after round 2's changes, the questions not reaching the owner three ways.
   Codex, P1×2: a share could take the farmers' food from a granary already emptied, and a levy's reserved gold was
   reckoned from the men really there. All fixed in `c701835` and `13eef53`, with tests; the seat-view fault part C's games
   found (`8e8fa70`) came in the same round.

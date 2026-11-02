@@ -41,7 +41,7 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 
 - **`GameConfig.pressMode`**: `"full"` (the default, for model games) or `"structured"`. Structured press is required
   whenever the characters are script, so every table that starts a game sets it from its character layer (`pressFor` in
-  `runner.ts`, called by the web app, the batch runner, the measure and the parity worker); the log keeps it in the
+  `runner.ts`, called by the web app, the batch runner and the measure); the log keeps it in the
   config, so a replay keeps its press. Script games are therefore in structured press; a game with model or local agent
   characters is in full press.
 - **Full press.** Kings write words, and clauses beside them. Where the words and the clauses differ each reader goes by
@@ -62,7 +62,7 @@ local play, and a screen for a human seat's standing answers. The report is `doc
   reciting and 40 in reporting, was retired in item 12, "Retired with the chain": whether a message is altered is the
   envoy's choice, never his skill's; see [languages](30-languages.md).) One that kept gold leaves out the host's complaint
   that the gold weighed light. In structured press the envoy's speech and report are these clauses' words.
-- **Model envoys** alter clauses as script envoys can (item 11a+, Haakon's answer to item 8's review: "models must be
+- **Model envoys** alter clauses as script envoys can (item 11a+, the owner's answer to item 8's review: "models must be
   able to alter clauses also"): in the call that phrases their words, the clauses come numbered, and the reply may leave
   some out (`leave_out`), add good wishes (`add_courtesy`) and state a gift as less (`gift_stated`, never more than
   written); reporting home, leave answers out (`answers_left_out`) and report refusals as acceptance

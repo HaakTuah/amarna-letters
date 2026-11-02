@@ -2,7 +2,7 @@
 
 Weekly usage: unknown (this session cannot read it).
 
-What item 11b+ left unbuilt (its report, "Left for a session of its own"), by Haakon's answers to item 11b (item 11b+'s
+What item 11b+ left unbuilt (its report, "Left for a session of its own"), by the owner's answers to item 11b (item 11b+'s
 text in `docs/intent/build-order/item-11.md`): "a model chief decides raids, ships and the way back in a request of his
 own, like every character, and only a script chief by formula", and "no rule moves a spy whose reports wait for a
 carrier: he decides whether to wait, carry them home himself or pay a passing traveller, a script spy by his traits".
@@ -61,7 +61,7 @@ inland and the trusted carrier. Kept, as known limits in the design note: (6) th
 asked now counts these requests, which a script answers without a call; (7) the script's side of the shadow log says
 only "by its traits", since its formulas decide later in the engine.
 
-## Readings taken (each also in "For Haakon")
+## Readings taken (each also in "For the owner")
 
 1. **A chief's choices are taken the season after he makes them** (the request comes as a season begins, after his
    band's season), so a model chief's first season is decided by his traits, as a script chief's. Alternative: his band

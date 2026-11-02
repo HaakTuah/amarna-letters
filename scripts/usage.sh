@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Print this plan's weekly usage, as the status line last saw it (scripts/statusline.sh), and exit 0.
 # If no status line runs in this session, say so: then usage cannot be checked from inside the session,
-# and the builder says so in its report.
+# and the builder says so in the first line of each PR it opens.
 f="${TMPDIR:-/tmp}/claude-usage.json"
 [ -s "$f" ] || f="/tmp/claude-usage.json"
 if [ -s "$f" ] && command -v jq >/dev/null 2>&1; then
