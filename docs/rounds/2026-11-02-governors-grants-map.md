@@ -205,7 +205,16 @@ full set gains more growth, and the loss first measured (0.88 to 0.90) was on a 
   post; a governor of two whose rising decisions overwrote each other, so he never rose) and a P2 (a kingship's outcome
   shown in its king's events before its word came), fixed in 746e25a and 6fcc832. A man now decides on a rising once a
   season, for the first province he is asked about; round 6, a P2 (cession events shown to the parties before word
-  came), fixed with three tests whose setups the new cession and starting counts outdated; round 7 pending.
+  came), fixed with three tests whose setups the new cession and starting counts outdated; round 7, a P2 (orders on
+  governorships checked against live ones while the view keeps those ended out of sight), fixed in 2946e63
+  (`governorsKnown`).
+- **Escalation** ("Reviews", point 4, in `docs/claude-and-codex.md`: past three rounds, the escalation helper instead of
+  an eighth): Opus, high, with every round's findings and fixes in its brief, "History holds" and "Hidden information"
+  word for word. It found every earlier fix sound, and two P1s, both fixed in its round: a grant beside a governor whose
+  seat had moved out of sight showed the new seat (the record now carries the known seat, and the word goes there and
+  on); and round 7's guard refused a man back at court, and let a grant beside a governorship recalled in the same orders
+  pass the checks only to fail as it was carried out (now refused at once). Score **10**, nothing open. Its idea: a
+  governor's own letter could carry word of his moved seat.
 
 Questions for the owner: none new. #431 is answered (above); it stays open until the carriers are built. Filed: #467
 (a bug, outside this part: order checks that reveal a far loss).

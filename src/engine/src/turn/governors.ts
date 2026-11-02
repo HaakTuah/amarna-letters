@@ -45,20 +45,25 @@ P.grantGovernorship = function (p, o) {
   // anew; the grant fails where he was, and the road brings that home.
   const held = governorsKnown(S, S.turn).find((g) => g.character === c.id && g.power === p && g.relieved === null);
   const gone = governorsKnown(S, S.turn).find((g) => g.character === c.id && g.power === p && !S.governors.includes(g));
-  if ((held !== undefined && !S.governors.includes(held)) || (held === undefined && (gone !== undefined || c.at !== p))) {
+  if ((held !== undefined && !S.governors.includes(held)) || (held === undefined && c.at !== p)) {
     const where = held ?? gone;
-    this.tell(p, where !== undefined ? seatKnown(where, S.turn) : o.province, "Rejected", "Governorship not given", `${c.name} could not take the governorship of ${this.map.get(o.province).name}: he no longer governs for you.`);
+    if (where !== undefined) this.tell(p, seatKnown(where, S.turn), "Rejected", "Governorship not given", `${c.name} could not take the governorship of ${this.map.get(o.province).name}: he no longer governs for you.`);
+    else notify(S, p, "Rejected", "Governorship not given", `${c.name} could not take the governorship of ${this.map.get(o.province).name}: he is not at your court.`);
     return;
   }
   if (held !== undefined) {
+    // The word goes to the seat his king knows him in, and on to where he sits; the court is shown that seat until word
+    // of the move comes (hidden information).
     const seat = seatOf(held);
-    const toSeat = wordFromKing(S, this.map, p, seat);
+    const knownSeat = seatKnown(held, S.turn);
+    const toSeat = wordFromKing(S, this.map, p, knownSeat);
+    const forward = knownSeat === seat ? 0 : courierSeasons(S, this.map, knownSeat, seat);
     const onward = courierSeasons(S, this.map, seat, o.province);
-    const from = S.turn + Math.max(1, (Number.isFinite(toSeat) ? toSeat : 1) + (Number.isFinite(onward) ? onward : 1));
-    S.governors.push(newGovernor({ province: o.province, seat, character: c.id, power: p, levies: o.levies, from }));
+    const from = S.turn + Math.max(1, (Number.isFinite(toSeat) ? toSeat : 1) + (Number.isFinite(forward) ? forward : 1) + (Number.isFinite(onward) ? onward : 1));
+    S.governors.push(newGovernor({ province: o.province, seat, seatWas: held.seatWas, seatHeard: held.seatHeard, character: c.id, power: p, levies: o.levies, from }));
     remember(c, S.turn, `The king of ${p} gave me the governorship of ${this.map.get(o.province).name} too, from my seat at ${this.map.get(seat).name}.`);
-    notify(S, p, "Resolution", "Governorship granted", `${c.name} governs ${this.map.get(o.province).name} too, from his seat at ${this.map.get(seat).name}, from turn ${from}${o.levies > 0 ? `, free to raise up to ${o.levies} levies there if foreign troops threaten it` : ""}.`, c.id);
-    logEvent(S, "govern", `${p} gave ${c.name} the governorship of ${this.map.get(o.province).name} too, from his seat at ${this.map.get(seat).name}.`, [p], "govern-region");
+    notify(S, p, "Resolution", "Governorship granted", `${c.name} governs ${this.map.get(o.province).name} too, from his seat at ${this.map.get(knownSeat).name}, from turn ${from}${o.levies > 0 ? `, free to raise up to ${o.levies} levies there if foreign troops threaten it` : ""}.`, c.id);
+    logEvent(S, "govern", `${p} gave ${c.name} the governorship of ${this.map.get(o.province).name} too, from his seat at ${this.map.get(knownSeat).name}.`, [p], "govern-region");
     logEvent(S, "governor", `${p} granted ${c.name} the governorship of ${this.map.get(o.province).name} beside his own.`, [p], "governor");
     return;
   }

@@ -13,9 +13,9 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
 - Recalled, a disloyal and ambitious one turns with those of his provinces whose people would rather follow him
   (`turnsWith`), ruling them from the first (his seat if it goes); the rest stay his king's. Stepping down from one, he
   keeps the others; losing or giving up the province of his seat, he keeps the rest and sits in the first of them. His
-  king's view shows the old seat until word of the move can be read at his court (`seatWas`, `seatHeard`, `seatKnown`).
+  king's view shows the old seat until word of the move can be read at his court (`seatWas`, `seatHeard`, `seatKnown`), for a province granted beside him then too, whose word goes by the old seat.
   Orders on governorships (`govern`, `unseat`, `crown`) are checked and carried out against them as the court knows them
-  (`governorsKnown`): one ended out of sight still takes word of a recall, and a grant to him fails, told by the road.
+  (`governorsKnown`): one ended out of sight still takes word of a recall, and a grant to him fails, told by the road; one recalled by an order of the same season is no longer his to grant beside or to crown him in.
 
 ## A vassal king by grant (`GameState.crowns`, `Crown`, `turn/crowns.ts`)
 

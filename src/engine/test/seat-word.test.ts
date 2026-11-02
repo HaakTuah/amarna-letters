@@ -109,6 +109,47 @@ describe("SeatWordTests", () => {
     Assert.contains(s.journeys, (j) => (j.text ?? "").includes("Governorship not given"));
   });
 
+  test("A province granted beside a governor whose seat moved out of sight is shown from the seat his king knows", () => {
+    const [s, id] = governed();
+    const e = new TurnEngine(s);
+    e.setOwner("ur", "Egypt");
+    e.setOwner("susa", "Egypt");
+    s.governors.push(newGovernor({ province: "ur", seat: "nippur", character: id, power: "Egypt", from: 0 }));
+    s.turn += 3;
+    e.setOwner("nippur", "Babylonia");
+    e.governorsSeason();
+    const heard = e.heardAt("Egypt", "nippur");
+    e.grantGovernorship("Egypt", govern("susa", id, 0));
+    const seat = (): string => Views.for(s, "Egypt").governors.find((g) => g.province === "susa")!.seat;
+    Assert.equal(["ur", "nippur"], [s.governors.find((g) => g.province === "susa")!.seat, seat()]);
+    const told = inboxOf(s, "Egypt").find((i) => i.title === "Governorship granted")!.body;
+    Assert.true(told.includes("Nippur") && !told.includes("Urim"));
+    s.turn = heard;
+    Assert.equal("ur", seat());
+  });
+
+  test("A grant beside a governorship recalled in the same orders is refused, and one back at court is granted anew", () => {
+    const [s, id] = governed();
+    const e = new TurnEngine(s);
+    e.setOwner("ur", "Egypt");
+    s.turn += 3;
+    const check = (...os: Order[]): string[] => new OrderValidator(s, WorldMap.default).validate("Egypt", newTurnSubmission({ orders: os })).rejected.map((r) => r.reason);
+    Assert.contains(check({ type: "unseat", province: "nippur" }, govern("ur", id, 0)), (r) => r.includes("not at your court"));
+    Assert.contains(check({ type: "unseat", province: "nippur" }, crown(id, ["nippur"], 0)), (r) => r.includes("not at your court"));
+    // He gave up Nippur and stands at court again before word of it is read there: his king sees him, and may grant him anew.
+    const c = s.characters.find((x) => x.id === id)!;
+    const g = s.governors.find((x) => x.character === id)!;
+    g.relieved = s.turn;
+    e.dropGovernor(g);
+    Assert.true(s.governorsGone.some((x) => x.governor === g));
+    c.duty = "None";
+    c.at = "Egypt";
+    c.grantedBy = null;
+    Assert.equal([], check(govern("ur", id, 0)));
+    e.grantGovernorship("Egypt", govern("ur", id, 0));
+    Assert.equal(["Governing", "ur"], [c.duty, s.governors.find((x) => x.character === id)?.province ?? ""]);
+  });
+
   test("A province taken up again keeps the season word of the first taking up comes home", () => {
     const t = quiet();
     const f = new TurnEngine(t);

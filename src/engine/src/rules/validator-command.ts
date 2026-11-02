@@ -87,11 +87,13 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       if (S.owner.getOrDefault(order.province, null) !== v.power) return `${order.province} is not yours`;
       // The governorships as this court knows them (hidden information): one ended out of its sight still stands in its view.
       const known = governorsKnown(S, S.turn).filter((g) => g.power === v.power);
+      // A governorship taken back by an order of this season is not one to grant beside: the recall goes first.
+      const recalled = (g: { province: string }): boolean => v.orders.some((o) => o.type === "unseat" && o.province === g.province);
       if (known.some((g) => g.province === order.province && g.relieved === null)) return `${order.province} already has a governor: take the governorship back first (unseat)`;
       if (v.orders.some((o) => o.type === "govern" && o.province === order.province && v.orders.indexOf(o) < v.orders.indexOf(order))) return `${order.province} was already given a governor by an earlier order`;
       if (order.levies < 0 || order.levies > MostGovernorLevies) return `a governor may be allowed from 0 to ${MostGovernorLevies} levies`;
       // Item 17++: a governor of ours may be given a province beside those he holds, governed from his seat.
-      const held = known.filter((g) => g.character === order.character && g.relieved === null);
+      const held = known.filter((g) => g.character === order.character && g.relieved === null && !recalled(g));
       if (held.length > 0) {
         const c = findCharacter(S, order.character);
         if (c === null) return v.nobody(order.character);
@@ -129,7 +131,8 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       if (v.orders.some((o) => o.type === "crown" && v.orders.indexOf(o) < v.orders.indexOf(order) && o.provinces.some((x) => ps.includes(x)))) return "an earlier order already grants one of those provinces";
       // A governor of ours is granted the provinces he governs, his seat among them, as the court knows them (his
       // governorships ended and his seat moved only as word of it has come); anyone else stands at our court.
-      const held = governorsKnown(S, S.turn).filter((g) => g.character === order.character && g.power === v.power && g.relieved === null);
+      // A governorship taken back by an order of this season is not his to be granted: the recall goes first.
+      const held = governorsKnown(S, S.turn).filter((g) => g.character === order.character && g.power === v.power && g.relieved === null && !v.orders.some((o) => o.type === "unseat" && o.province === g.province));
       if (held.length > 0) {
         const c = findCharacter(S, order.character);
         if (c === null) return v.nobody(order.character);
