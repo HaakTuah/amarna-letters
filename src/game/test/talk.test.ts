@@ -1,9 +1,9 @@
 import { describe, test } from "vitest";
-import { Dict, TurnEngine, Views, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, notify } from "@amarna/engine";
+import { Dict, OfferCaught, TurnEngine, asSeenBy, land, quoteWords, setNameClaims, Views, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, notify } from "@amarna/engine";
 import { leaderRules } from "@amarna/llm";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
-import { CourtTrust, talkedAway, talkedOurWay, TalkPlay } from "../src/bots/talk.ts";
+import { CourtTrust, offersCaught, talkedAway, talkedOurWay, TalkPlay } from "../src/bots/talk.ts";
 import { Assert, removeAll } from "../../engine/test/support.ts";
 
 // Item 17++, part D: script kings act on talk of a province's leaning: its king eases it while the talk is fresh, and the
@@ -75,6 +75,25 @@ describe("TalkPlayTests", () => {
     s.turn = 1;
     seat("Hatti", rival);
     Assert.true(rival.rel.get("Egypt").trust >= unread.rel.get("Egypt").trust + CourtTrust * 0.9);
+  });
+
+  // Codex on #576: the notice names the claimant as the captor's court does; the script king knows him by that name.
+  test("A caught offer to a claimant the court calls by his house still warms it to him", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const e = new TurnEngine(s);
+    e.beginTurn();
+    try {
+      // Hatti has read Egypt's greeting claiming Mitanni's name, and gives that name to Mitanni: Egypt is Bit-... to it.
+      e.claimHeard("Hatti", "Egypt", "Mitanni", s.turn);
+      const house = asSeenBy("Hatti", () => land("Egypt"));
+      Assert.true(house.startsWith("Bit-"));
+      notify(s, "Hatti", "Notice", "A letter taken on the road", `${OfferCaught.opens}Ahmose${OfferCaught.people}Babili to Egypt: ${quoteWords("The people of Babylon declare for you.")}`);
+      const v = Views.for(s, "Hatti");
+      Assert.contains(v.inbox, (i) => i.body.includes(` to ${house}: `));
+      Assert.equal([{ province: "babylon", claimant: "Egypt" }], offersCaught(new Board(v)));
+    } finally {
+      setNameClaims([], []);
+    }
   });
 
   test("The rulebook says whom talk of a leaning reaches: the claimant, the land's king and his enemies, not his neighbours", () => {
