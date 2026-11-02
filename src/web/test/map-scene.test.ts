@@ -2,6 +2,8 @@ import { describe, test } from "vitest";
 import { scriptSeats } from "../../game/test/small-world.ts";
 import {
   AllPowers,
+  addRisen,
+  risenOf,
   type GameState,
   type Power,
   TurnEngine,
@@ -53,6 +55,14 @@ describe("MapSceneTests", () => {
         let [runner, frames] = runnerOf(state, seed);
         await runner.prepare();
         for (let i = 0; i < turns && !state.ended; i++) await runner.playTurn();
+        // Reading a past season's state sets the powers risen to that season's; the frames after it still name those
+        // risen since, so the game's whole list is kept after every read.
+        const at = runner.stateAt.bind(runner);
+        runner.stateAt = (k: number) => {
+          const then = at(k);
+          for (const r of state.risen) addRisen(r);
+          return then;
+        };
         return { runner, frames, state };
       })();
       cache.set(seed, done);
@@ -63,10 +73,11 @@ describe("MapSceneTests", () => {
     });
   }
 
-  // The powers risen in play are the game's own: set them from the state read, since other games played since replaced them.
+  // The powers risen in play are the game's own: add those of the state read, since other games played since replaced them,
+  // and keep any risen later in the same game, whose envoys and journeys the next season's frame already holds.
   const living = (s: GameState): Power[] => {
-    setRisen(s.risen);
-    return AllPowers.filter((p) => isAlive(s, p));
+    for (const r of s.risen) addRisen(r);
+    return AllPowers.filter((p) => isAlive(s, p) && (risenOf(p) === null || s.risen.some((r) => r.power === p)));
   };
   const sorted = <T>(xs: Iterable<T>): string[] => [...xs].map((x) => JSON.stringify(x)).sort();
   const entries = (m: ReadonlyMap<string, unknown>): string[] => sorted(m.entries());
