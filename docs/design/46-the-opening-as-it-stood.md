@@ -127,7 +127,7 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
 
 - **Who:** every attested person the dossiers mark alive and active in 1346 who passes both tests, the historical and the
   game's; the report lists every name weighed. Thirty-five are added: Egypt's great officers and commissioners (Ay, Nakht,
-  Panehesy, Huya, Thutmose, Paatenemheb, Pahanate, Pawura, Ha'ip, Rianap, Tahmashshi, Hatip), Zida of Hatti, the rival
+  Panehesy, Huya, Thutmose, Paatenemheb, Pahanate, Pawura, Ha'ip, Rianap, Tahmaya, Hatip), Zida of Hatti, the rival
   line of Mitanni (Artatama, Shuttarna), Babylonia's governors and envoy (Enlil-kidinni, Ili-ippashra, Shindishugab),
   Assyria's two envoys kept in the sun [G names], the governor of Alashiya [C name], and the Levant's claimants, brothers
   and men of action (Ilirabih, Pu-Baʿlu, Baʿluya, Akit-Teshup of Niya, Tagi, Yashdata, Endaruta, Shum-Adda, Shutatna,

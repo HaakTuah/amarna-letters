@@ -42,26 +42,27 @@ const person = (name: string, origin: string, court: Power, calling: string, cor
  * only their traits move towards what the sources say).
  */
 export const FirstCores: ReadonlyMap<string, Core> = new Map<string, Core>([
-  // Sent to Mitanni again and again, and held there for years without breaking (EA 19-29).
+  // Pharaoh's envoy to Mitanni again and again (EA 19-29); Tushratta held him back while his own envoys were kept in Egypt
+  // (EA 28-29).
   ["Mane", { loyalty: 80, courage: 70, competence: 70 }],
   // Tushratta's envoy to Egypt again and again (EA 19-29): trusted, able.
   ["Keliya", { loyalty: 75, competence: 75 }],
   // Envoys detained in Egypt (EA 27-29): they waited it out.
   ["Pirissi", { loyalty: 70, courage: 60 }],
   ["Tulubri", { loyalty: 70, courage: 60 }],
-  // Egypt's envoy (EA 20 names a Haamashshi): an envoy of standing.
+  // Egypt's envoy to Babylon and to Mitanni (EA 11, 27, 29): an envoy of standing.
   ["Haamashshi", { competence: 65 }],
   ["Artessupa", { loyalty: 60 }],
   ["Mazipalali", { loyalty: 60 }],
-  // A commissioner in charge of the grain at Yarimuta (EA 83-86): able, his own man in the vassals' eyes.
+  // A commissioner who handed out grain from Yarimuta to Gubla (EA 83, 85-86): able.
   ["Yanhamu", { competence: 75, ambition: 70, greed: 60 }],
 ]);
 
 /** The attested people added to the pool, in the dossier's order. */
 export const AttestedCast: readonly CastSeed[] = [
   cast("Hani", "Waset", "Egypt", "royal envoy", { loyalty: 75, competence: 70 }),
-  cast("Tutu", "Akhetaten", "Egypt", "chamberlain", { greed: 70, competence: 70, ambition: 70, loyalty: 45 }),
-  cast("Mahu", "Akhetaten", "Egypt", "chief of the Medjay", { courage: 75, loyalty: 70, competence: 65 }),
+  cast("Tutu", "Waset", "Egypt", "chamberlain", { greed: 70, competence: 70, ambition: 70, loyalty: 45 }),
+  cast("Mahu", "Waset", "Egypt", "chief of the Medjay", { courage: 75, loyalty: 70, competence: 65 }),
   cast("Amanappa", "Men-nefer", "Egypt", "palace official", { loyalty: 55 }),
   cast("Haya", "Men-nefer", "Egypt", "commissioner", { competence: 60 }),
   cast("Maya", "Waset", "Egypt", "commissioner"),
@@ -84,55 +85,60 @@ export const AttestedCast: readonly CastSeed[] = [
  * is his traits and his public facts, never a script. None led armed men of his own in 1346.
  */
 export const PeopleOf1346: readonly CastSeed[] = [
-  // Egypt's court (the courts dossier, "Egypt"): the great officers of Akhetaten and the commissioners in Canaan
-  person("Ay", "Akhetaten", "Egypt", "God's Father and Master of the Horse", { competence: 80, ambition: 80, loyalty: 65, greed: 55 }, 90, ["God's Father and Master of the Horse at Akhetaten: the chariotry and the king's household are his (his tomb at Amarna)."]),
-  person("Nakht", "Akhetaten", "Egypt", "vizier", { competence: 75, loyalty: 70, ambition: 55 }, 60, ["Vizier at Akhetaten, head of the administration (his house at Amarna)."]),
-  person("Panehesy", "Akhetaten", "Egypt", "chief servitor of the Aten", { loyalty: 75, competence: 60, ambition: 50 }, 40, ["Chief servitor of the Aten at Akhetaten (his tomb at Amarna); his name means 'the Nubian'."]),
-  person("Huya", "Akhetaten", "Egypt", "steward of Queen Tiye", { loyalty: 70, competence: 65, greed: 45 }, 40, ["Steward of Queen Tiye, the king's mother, whose household he runs (his tomb at Amarna)."]),
-  person("Thutmose", "Kush", "Egypt", "King's Son of Kush", { competence: 70, loyalty: 75, courage: 65 }, 60, ["King's Son of Kush, the viceroy who rules Nubia for Pharaoh and led his one campaign there (the Buhen and Amada stelae)."]),
+  // Egypt's court (the courts dossier, "Egypt"): the great officers of Akhetaten and the commissioners in Canaan. Where
+  // each was born no source says; not at Akhetaten, founded about three years before 1346, so at Waset [G]
+  person("Ay", "Waset", "Egypt", "God's Father and Master of the Horse", { competence: 80, ambition: 80, loyalty: 65, greed: 55 }, 90, ["God's Father and Overseer of All the Horses of His Majesty, a fan-bearer at the king's right hand (his tomb at Amarna)."]),
+  person("Nakht", "Waset", "Egypt", "vizier", { competence: 75, loyalty: 70, ambition: 55 }, 60, ["Vizier at Akhetaten, head of the administration (his house at Amarna)."]),
+  person("Panehesy", "Waset", "Egypt", "chief servitor of the Aten", { loyalty: 75, competence: 60, ambition: 50 }, 40, ["Chief servitor of the Aten at Akhetaten (his tomb at Amarna); his name means 'the Nubian'."]),
+  person("Huya", "Waset", "Egypt", "steward of Queen Tiye", { loyalty: 70, competence: 65, greed: 45 }, 40, ["Steward of Queen Tiye, the king's mother, whose household he runs (his tomb at Amarna)."]),
+  person("Thutmose", "Kush", "Egypt", "King's Son of Kush", { competence: 70, loyalty: 75, courage: 65 }, 60, ["King's Son of Kush, the viceroy who rules Nubia for Pharaoh; most take him for the viceroy of the year-12 campaign on the Buhen stela, whose name is lost there."]),
   person("Paatenemheb", "Men-nefer", "Egypt", "general", { courage: 70, competence: 65, loyalty: 65 }, 50, ["A general of Akhenaten's, overseer of the army (his tomb at Amarna)."]),
-  person("Pahanate", "Ṣumur", "Egypt", "commissioner at Ṣumur", { competence: 55, loyalty: 60 }, 30, ["Pharaoh's commissioner at Ṣumur, Egypt's base on Amurru's coast, whom Rib-Hadda of Gubla writes to (EA 60, 62, 68)."]),
-  person("Pawura", "Gubla", "Egypt", "commissioner", { courage: 60, competence: 55, loyalty: 65, greed: 50 }, 30, ["Pharaoh's commissioner in the north, with archers under him, who comes and goes between Gubla, Ṣumur and Egypt (EA 117, 124, 131-132)."]),
-  person("Ha'ip", "Ṣumur", "Egypt", "commissioner", { greed: 75, loyalty: 35, competence: 55 }, 40, ["An official of Pharaoh's in the north; Rib-Hadda says he handed Ṣumur to the sons of Abdi-Ashirta (EA 132)."]),
-  person("Rianap", "Hazzatu", "Egypt", "commissioner", { competence: 60, loyalty: 65, greed: 50 }, 25, ["Pharaoh's commissioner in the south, to whom the rulers of Gazru and the coast answer (EA 292, 315-326)."]),
-  person("Tahmashshi", "Hazzatu", "Egypt", "commissioner", { competence: 60, loyalty: 60 }, 25, ["Pharaoh's commissioner in Canaan, to whom Tagi writes (EA 265)."]),
-  person("Hatip", "Men-nefer", "Egypt", "royal envoy", { greed: 75, competence: 60, loyalty: 50 }, 35, ["Came to Amurru with Hani and, Aziru complains, took the gold that was meant for Pharaoh (EA 161)."]),
+  person("Pahanate", "Ṣumur", "Egypt", "commissioner at Ṣumur", { competence: 55, loyalty: 60 }, 30, ["Pharaoh's commissioner at Ṣumur, Egypt's base on Amurru's coast, to whom Abdi-Ashirta writes (EA 62); Abdi-Ashirta and Rib-Hadda both name him (EA 60, 68, 131)."]),
+  person("Pawura", "Gubla", "Egypt", "commissioner", { courage: 60, competence: 55, loyalty: 65, greed: 50 }, 30, ["Pharaoh's commissioner in the north, whom Rib-Hadda warned against Ha'ip (EA 132) and later reports killed (EA 362)."]),
+  person("Ha'ip", "Ṣumur", "Egypt", "commissioner", { greed: 75, loyalty: 35, competence: 55 }, 40, ["An official of Pharaoh's in the north; Rib-Hadda says he handed Ṣumur over (EA 132), and Abi-Milku says he gave it to Aziru (EA 149)."]),
+  person("Rianap", "Hazzatu", "Egypt", "commissioner", { competence: 60, loyalty: 65, greed: 50 }, 25, ["Pharaoh's commissioner in the south: the ruler of Gazru calls him his commissioner (EA 292), and Yidya of Ashqaluna says the king set him over the land (EA 326)."]),
+  person("Tahmaya", "Hazzatu", "Egypt", "commissioner", { competence: 60, loyalty: 60 }, 25, ["Pharaoh sent Tagi of Ginti-kirmil a gold goblet and linen garments in his care (EA 265)."]),
+  person("Hatip", "Men-nefer", "Egypt", "royal envoy", { greed: 75, competence: 60, loyalty: 50 }, 35, ["Pharaoh's man with Aziru, who says Hatip took all the gold and silver the king had given him (EA 161); Aziru and Hatip are to come to Pharaoh together (EA 164-166)."]),
   // Hatti
-  person("Zida", "Hattusa", "Hatti", "chief of the bodyguard", { courage: 80, loyalty: 85, competence: 70, ambition: 50 }, 40, ["Chief of the bodyguard, the king's brother, who commands the guard at the king's person and often an army (the Deeds of Suppiluliuma)."]),
-  // Mitanni: the rival line
-  person("Artatama", "Taidu", "Mitanni", "rival king of the Hurrians", { ambition: 90, loyalty: 10, competence: 65, courage: 60, greed: 55 }, 70, ["Calls himself king of the Hurri lands against Tushratta, with Hittite backing (the Shattiwaza treaty); the lands east of the Habur lean to him."], "washukanni"),
+  person("Zida", "Hattusa", "Hatti", "chief of the bodyguard", { courage: 80, loyalty: 85, competence: 70, ambition: 50 }, 40, ["Chief of the bodyguard, probably the king's brother, who commands the guard at the king's person and often an army (the Deeds of Suppiluliuma)."]),
+  // Mitanni: the rival line, whose seat before Tushratta's death no source gives: Taidu [G]
+  person("Artatama", "Taidu", "Mitanni", "rival king of the Hurrians", { ambition: 90, loyalty: 10, competence: 65, courage: 60, greed: 55 }, 70, ["King of the Hurri land against Tushratta, with a treaty with Suppiluliuma (the Shattiwaza treaty)."], "washukanni"),
   person("Shuttarna", "Taidu", "Mitanni", "son of the rival king", { ambition: 75, loyalty: 15, greed: 70, competence: 55 }, 30, ["Artatama's son and heir to his claim, who later gives the palace treasure to Assyria and Alshe (the Shattiwaza treaty)."], "washukanni"),
   // Babylonia
   person("Enlil-kidinni", "Nippur", "Babylonia", "governor of Nippur", { competence: 80, loyalty: 75, greed: 45 }, 60, ["Governor of Nippur, the kingdom's great official, keeping the city and its temple estates (the Nippur letters)."]),
-  person("Ili-ippashra", "Dilmun", "Babylonia", "governor of Dilmun", { competence: 55, loyalty: 65, courage: 45 }, 25, ["Governor of Dilmun in the Gulf, who writes to Enlil-kidinni of the island's troubles (the Dilmun letters from Nippur)."]),
+  person("Ili-ippashra", "Dilmun", "Babylonia", "governor of Dilmun", { competence: 55, loyalty: 65, courage: 45 }, 25, ["An official of Babylon's in Dilmun in the Gulf, who writes of the island's troubles to Ililiya, taken for Enlil-kidinni (the Dilmun letters from Nippur)."]),
   person("Shindishugab", "Babili", "Babylonia", "royal envoy", { competence: 60, loyalty: 70 }, 15, ["Burna-Buriash's envoy to Egypt (EA 10)."]),
   // Assyria: the envoys Ashur-uballit complains were kept standing in the sun at Pharaoh's court (EA 16), unnamed, so
   // named in the Assyrian style [G]
-  person("Ashur-iddin", "Ashur", "Assyria", "royal envoy", { loyalty: 70, courage: 60, competence: 60 }, 10, ["Ashur-uballit's envoy, kept standing in the sun at Pharaoh's court until the king complained of it (EA 16)."]),
-  person("Adad-iddina", "Ninua", "Assyria", "royal envoy", { loyalty: 65, competence: 55 }, 10, ["Ashur-uballit's envoy, kept standing in the sun at Pharaoh's court with his fellow (EA 16)."]),
-  // Alashiya: the governor who writes to his Egyptian counterpart (EA 40), unnamed, so named after a later governor [C]
-  person("Eshuwara", "Enkomi", "Alashiya", "the governor of Alashiya", { competence: 70, loyalty: 70, greed: 50 }, 40, ["The governor of Alashiya, a second voice of the island's state, who writes to Pharaoh's governor and sends gifts of his own (EA 40)."]),
+  person("Ashur-iddin", "Ashur", "Assyria", "royal envoy", { loyalty: 70, courage: 60, competence: 60 }, 10, ["One of Ashur-uballit's envoys to Pharaoh, whose king asks why his messengers are kept out in the sun (EA 16)."]),
+  person("Adad-iddina", "Ninua", "Assyria", "royal envoy", { loyalty: 65, competence: 55 }, 10, ["Another of Ashur-uballit's envoys to Pharaoh, whose king asks why his messengers are kept out in the sun (EA 16)."]),
+  // Alashiya: the governor who writes to his Egyptian counterpart (EA 40), unnamed, so named after a governor of the island a century and more later [G]
+  person("Eshuwara", "Enkomi", "Alashiya", "the governor of Alashiya", { competence: 70, loyalty: 70, greed: 50 }, 40, ["The governor of Alashiya, who writes to Pharaoh's governor as his brother and sends copper and ivory of his own (EA 40)."]),
   // The Levant: claimants, the brothers of rulers, the men of action, the rulers of towns too small for a province
-  person("Ilirabih", "Gubla", "Byblos", "the ruler's brother", { ambition: 80, loyalty: 20, competence: 60, courage: 55 }, 20, ["Rib-Hadda's younger brother, who shut him out of Gubla and wrote to Pharaoh as its ruler (EA 137-140, 162)."], "byblos"),
-  person("Pu-Baʿlu", "Amurru", "Amurru", "son of Abdi-Ashirta", { courage: 70, ambition: 70, loyalty: 45, greed: 60 }, 15, ["A son of Abdi-Ashirta and Aziru's brother, one of the sons who share Amurru and took the coast's towns (EA 104, 132)."], "amurru"),
-  person("Baʿluya", "Amurru", "Amurru", "son of Abdi-Ashirta", { loyalty: 70, courage: 60, competence: 50 }, 10, ["Aziru's brother, who kept Amurru and wrote to him while he was held in Egypt (EA 170)."], "amurru"),
+  person("Ilirabih", "Gubla", "Byblos", "the ruler's brother", { ambition: 80, loyalty: 20, competence: 60, courage: 55 }, 20, ["Writes to Pharaoh with the town of Gubla after Rib-Hadda's fall (EA 139-140); most take him for the younger brother who turned Gubla against Rib-Hadda (EA 137-138, 162)."], "byblos"),
+  person("Pu-Baʿlu", "Amurru", "Amurru", "son of Abdi-Ashirta", { courage: 70, ambition: 70, loyalty: 45, greed: 60 }, 15, ["A son of Abdi-Ashirta, so Aziru's brother, who broke into Ullassa (EA 104)."], "amurru"),
+  person("Baʿluya", "Amurru", "Amurru", "man of Aziru's house", { loyalty: 70, courage: 60, competence: 50 }, 10, ["With Bet-ili he wrote to Aziru while Aziru was in Egypt that Hittite troops had taken towns of Amqu (EA 170); perhaps Aziru's brother."], "amurru"),
   person("Akit-Teshup", "Niya", "Niya", "the ruler's brother", { ambition: 80, loyalty: 20, courage: 60, competence: 55 }, 10, ["Takuwa's brother, who turned Niya against him and against Hatti (the Shattiwaza treaty)."], "niya"),
-  person("Tagi", "Magidda", "Megiddo", "lord of Ginti-kirmil", { competence: 65, ambition: 60, loyalty: 40, greed: 60 }, 25, ["Rules his own town, Ginti-kirmil in the Carmel region, Labaya's ally and Milkilu's father-in-law (EA 249, 264-266)."], "megiddo"),
-  person("Yashdata", "Magidda", "Megiddo", "a dispossessed lord", { courage: 65, loyalty: 60, ambition: 55, greed: 40 }, 5, ["Driven from his town by Labaya's men, he stands with Biridiya at Magidda and asks Pharaoh for his land back (EA 245, 248)."], "megiddo"),
-  person("Endaruta", "Akka", "Akko", "lord of Akshapa", { competence: 55, loyalty: 60, courage: 50 }, 15, ["Rules Akshapa, a town near Akka, and writes to Pharaoh as his servant (EA 223, 366)."], "akko"),
-  person("Shum-Adda", "Akka", "Akko", "a man of Akka", { greed: 80, courage: 65, loyalty: 35, competence: 45 }, 20, ["Son of Balumme, a man of Akka who killed Babylon's merchants at Hinnatuna and took their silver, Burna-Buriash says (EA 8)."]),
-  person("Shutatna", "Akka", "Akko", "the ruler's son", { ambition: 65, greed: 65, loyalty: 50, courage: 55 }, 15, ["Son of Surata of Akka, who killed Babylon's merchants with Shum-Adda (EA 8); Akka's ruler after his father."], "akko"),
-  person("Yapah-Hadda", "Ṣiduna", "Sidon", "a lord of the coast", { ambition: 65, loyalty: 35, greed: 60, competence: 55 }, 20, ["A lord of the coast at feud with Rib-Hadda, who says he sides with Aziru and seizes Gubla's ships (EA 83, 85, 98, 113-114, 116)."], "sidon"),
-  person("Arzawiya", "Dimashqa", "Damascus", "lord of Ruhizzi", { ambition: 60, loyalty: 30, courage: 60, competence: 50 }, 15, ["Rules Ruhizzi in Upe and sides with Aitakama of Qadesh against Pharaoh's land, Akizzi says (EA 53-54, 191, 197)."], "damascus"),
-  person("Teuwatti", "Dimashqa", "Damascus", "lord of Lapana", { ambition: 55, loyalty: 30, courage: 55, competence: 50 }, 15, ["Rules Lapana in Upe and sides with Aitakama of Qadesh, Akizzi says (EA 53-54, 193)."], "damascus"),
-  person("Biridashwa", "Ashtartu", "Ashtaroth", "lord of Yanuamu", { ambition: 65, loyalty: 25, courage: 65, greed: 60 }, 20, ["Rules Yanuamu beyond the Jordan and took Biryawaza's chariots with Arzawiya, Biryawaza says (EA 197)."], "ashtaroth"),
+  person("Tagi", "Magidda", "Megiddo", "lord of Ginti-kirmil", { competence: 65, ambition: 60, loyalty: 40, greed: 60 }, 25, ["Holds the land of Ginti-kirmil by the Carmel (EA 289) and writes to Pharaoh as his servant (EA 264-266); Milkilu's father-in-law (EA 249)."], "megiddo"),
+  person("Yashdata", "Magidda", "Megiddo", "a dispossessed lord", { courage: 65, loyalty: 60, ambition: 55, greed: 40 }, 5, ["The men of Taanach robbed him and drove him out; he stays with Biridiya at Magidda (EA 248) and rode with him after Labaya (EA 245)."], "megiddo"),
+  person("Endaruta", "Akka", "Akko", "lord of Akshapa", { competence: 55, loyalty: 60, courage: 50 }, 15, ["Rules Akshapa and writes to Pharaoh as his servant (EA 223); with Surata of Akka he brought chariots to help Shuwardata (EA 366)."], "akko"),
+  // EA 8 gives Shum-Adda no town: at Akka beside Shutatna, his partner in the killing [G]
+  person("Shum-Adda", "Akka", "Akko", "son of Balumme", { greed: 80, courage: 65, loyalty: 35, competence: 45 }, 20, ["Son of Balumme, who with Shutatna of Akka sent his men to kill Babylon's merchants at Hinnatuna and take their silver, Burna-Buriash says (EA 8)."]),
+  person("Shutatna", "Akka", "Akko", "the ruler's son", { ambition: 65, greed: 65, loyalty: 50, courage: 55 }, 15, ["Son of Surata of Akka, who killed Babylon's merchants with Shum-Adda (EA 8); Akka's ruler after his father (EA 233-235)."], "akko"),
+  // No letter names Yapah-Hadda's town (Beirut is one reading [C]): at Ṣiduna beside Zimrida, with whom the letters pair
+  // him (EA 83, 106) [G]
+  person("Yapah-Hadda", "Ṣiduna", "Sidon", "a lord of the coast", { ambition: 65, loyalty: 35, greed: 60, competence: 55 }, 20, ["A lord of the coast at feud with Rib-Hadda, who says he sides with Aziru, seized one of Gubla's ships and kept its ships from Yarimuta (EA 105, 113-114, 116)."], "sidon"),
+  person("Arzawiya", "Dimashqa", "Damascus", "lord of Ruhizzi", { ambition: 60, loyalty: 30, courage: 60, competence: 50 }, 15, ["The man of Ruhizzi, who serves Aitakama of Qadesh against Pharaoh's land of Upe, Akizzi says (EA 53-54); with Biridashwa he is causing the loss of Upe, Biryawaza says (EA 197)."], "damascus"),
+  person("Teuwatti", "Dimashqa", "Damascus", "lord of Lapana", { ambition: 55, loyalty: 30, courage: 55, competence: 50 }, 15, ["The man of Lapana, who serves Aitakama of Qadesh against Pharaoh's land of Upe, Akizzi says (EA 53-54)."], "damascus"),
+  person("Biridashwa", "Ashtartu", "Ashtaroth", "lord of Yanuamu", { ambition: 65, loyalty: 25, courage: 65, greed: 60 }, 20, ["Turned Yanuamma against Biryawaza, took chariots at Ashtartu and gave them to the Habiru, and with Arzawiya is causing the loss of Upe, Biryawaza says (EA 196-197)."], "ashtaroth"),
   person("Yapahu", "Gazru", "Gezer", "noble of Gazru", { ambition: 60, loyalty: 55, competence: 55, greed: 50 }, 10, ["A man of Gazru who rules it after Milkilu, kin or not no letter says, and writes to Pharaoh as its ruler; his own younger brother went over to the Habiru (EA 297-300)."], "gezer"),
 ];
 
 /**
  * Item 17+: the court scribes the sources name, in place of the generated one at their courts: Ilimilku of Ugarit, who wrote
- * down the Baal cycle under Niqmaddu (the colophons) [A]; Abdi-Heba's scribe at Urusalim, trained in north Syria, by his hand
- * (EA 286-289), his name lost and given in the north Syrian style [G].
+ * down the Baal cycle under Niqmaddu (the colophons) [A], which Niqmaddu (II, about 1350, or a later one) is disputed [C];
+ * Abdi-Heba's scribe at Urusalim, trained in north Syria, by his hand (EA 286-289), his name lost and given in the north
+ * Syrian style [G].
  */
 export const NamedScribes: ReadonlyMap<Power, { name: string; origin: string; core: Core; attested: boolean }> = new Map([
   ["Ugarit", { name: "Ilimilku", origin: "Ugarit", core: { competence: 80, loyalty: 60, courage: 35 }, attested: true }],
@@ -296,12 +302,12 @@ export const Aliases: readonly string[] = [
  * grade: [A] named in office there, [B] the office attested there, [C] a reading of how far a district reached.
  */
 export const Governors1346: readonly { name: string | null; court: Power; province: string; grade: string }[] = [
-  { name: "Thutmose", court: "Egypt", province: "nubia", grade: "A: King's Son of Kush (the Buhen and Amada stelae)" },
-  { name: "Addaya", court: "Egypt", province: "gaza", grade: "A: Pharaoh's man at Hazzatu (EA 254, 285, 287)" },
-  { name: "Pahanate", court: "Egypt", province: "sumur", grade: "B: commissioner at Ṣumur (EA 60, 62, 68), Ṣumur still Egypt's in 1346" },
+  { name: "Thutmose", court: "Egypt", province: "nubia", grade: "B: King's Son of Kush (the Buhen stela, his name lost there)" },
+  { name: "Addaya", court: "Egypt", province: "gaza", grade: "A: Pharaoh's man, who put a garrison in his house at Hazzatu (EA 254, 285, 287, 289)" },
+  { name: "Pahanate", court: "Egypt", province: "sumur", grade: "C: commissioner at Ṣumur (EA 60, 62, 68), Ṣumur perhaps still Egypt's in 1346" },
   { name: "Enlil-kidinni", court: "Babylonia", province: "nippur", grade: "A: governor of Nippur (the Nippur letters)" },
-  { name: "Ili-ippashra", court: "Babylonia", province: "dilmun", grade: "A: governor of Dilmun (the Dilmun letters from Nippur)" },
-  { name: "Eshuwara", court: "Alashiya", province: "kalavasos", grade: "C: the governor of Alashiya (EA 40), over the copper hills, whose copper he sends" },
+  { name: "Ili-ippashra", court: "Babylonia", province: "dilmun", grade: "B: an official in Dilmun (the Dilmun letters from Nippur), \"governor\" a reading" },
+  { name: "Eshuwara", court: "Alashiya", province: "kalavasos", grade: "C: the governor of Alashiya (EA 40), over the copper hills, whose copper he sends; his name [G]" },
   { name: null, court: "Hatti", province: "tuwanuwa", grade: "B: a lord of the watchtower of the Lower Land, facing Arzawa" },
   { name: null, court: "Hatti", province: "samuha", grade: "B: a lord of the watchtower of the Upper Land, facing the Kaska" },
   { name: null, court: "Babylonia", province: "sippar", grade: "B: a provincial governor (šakin māti), the office attested under the Kassites" },
@@ -315,11 +321,11 @@ export const Governors1346: readonly { name: string | null; court: Power; provin
  * reporting home (`name` null: the commissioner at Kumidi, in the Egyptian style, marked invented). Graded as above.
  */
 export const Residents1346: readonly { name: string | null; province: string; grade: string }[] = [
-  { name: "Maya", province: "gezer", grade: "C: Maya in the south, who took Gazru's town (EA 300)" },
+  { name: "Maya", province: "gezer", grade: "C: Maya in the south, who took Gazru's town (EA 292)" },
   { name: "Haya", province: "amurru", grade: "C: a commissioner sent to Amurru (EA 101)" },
-  { name: "Rianap", province: "ashkelon", grade: "C: the coast's rulers answer to him (EA 315-326)" },
-  { name: "Tahmashshi", province: "megiddo", grade: "B: Tagi of the Carmel writes to him (EA 265)" },
-  { name: "Yanhamu", province: "byblos", grade: "B: over the grain at Yarimuta that fed Gubla (EA 83-86)" },
+  { name: "Rianap", province: "ashkelon", grade: "C: the king set him over the land (EA 292, 315, 326)" },
+  { name: "Tahmaya", province: "megiddo", grade: "B: sent by Pharaoh to Tagi of the Carmel (EA 265)" },
+  { name: "Yanhamu", province: "byblos", grade: "B: over the grain at Yarimuta that fed Gubla (EA 83, 85-86)" },
   { name: null, province: "damascus", grade: "A for the post at Kumidi in Upe (EA 116, 129, 132); the name is lost" },
 ];
 
