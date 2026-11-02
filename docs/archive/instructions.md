@@ -1435,3 +1435,7 @@ Given in the design chat with Claude, answering the design questions of the cons
 165. **2 November 2026, 16:15 UTC**, in the design chat, to the design session's takes on Amarna Letters' #459 (script
     kings check a governor's word against their spy's, folded into item 17++ part C) and Barkstreet Snakes' #378:
     "Yes, expertly to both!" Written into item 17++'s row in `docs/BUILD-PROGRESS.md`.
+166. **2 November 2026, 16:21 and 16:24 UTC**, in the design chat: "Is there anything more that should go into the father document? Anything at all? it will also read the repo, right, so some of it will be learn from analyzing and adapting it? Expert." Then, to the design session's answer (eight points
+    for the father's notes, a leaner prompt that points to the repositories, and orchestrators re-reading the rule files
+    when they change, so no update message is needed): "YEs, absolutely, expertly to absolutely all! Mastefully! Maestro!" Written into "The rules, re-read when they change" in
+    `docs/orchestrating.md`; the same in Barkstreet Snakes; the rest in the father's notes.
