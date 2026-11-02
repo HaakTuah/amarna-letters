@@ -223,7 +223,7 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
   frontier fortresses on the Ways of Horus (see 12) and in Nubia did the same [B].
 - <a id="15-canaan-garrisons"></a>**Garrisons on the roads of Canaan** [A]: Egyptian and Nubian soldiers held Gaza, Joppa (Yapu), Kumidi and Sumur
   [A: Gaza and Joppa EA 289, 294, 296; Sumur EA 62, 67, 76; Kumidi EA 116, 129, 197], while Beth-Shean's garrison was
-  men of Gath (EA 289) [A]; Yahtiru writes that he guards "the dry gate of Azzatu and the city gate of Yapu"
+  men of Gintu (EA 289: "men of Gintu are the garrison in Bitsanu") [A], which town Gintu was is read differently [C]; Yahtiru writes that he guards "the city gate of Azzatu and the city gate of Yapu"
   (EA 296, Moran) [A]. Vassals ask for garrisons in tens: Abdi-Heba asks for "50 men as a garrison to protect the land" (EA 289), Biridiya of
   Megiddo for a hundred (EA 244) [A] (see 11, "The city-states"). Vassals fed the king's troops when they passed and
   stocked their grain (EA 324-325) [A].
