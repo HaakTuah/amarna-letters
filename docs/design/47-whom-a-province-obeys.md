@@ -55,9 +55,11 @@ first guess in `UnrestData` (`src/engine/src/model/unrest.ts`), tuned in item 18
   armies' ledger, below); or, where the holder's weight is below `floor` -40, to nobody (lawless).
 - **Risings are fought** (`risingWins`): where the holder's troops stand, the men who rise (its men of fighting age by how
   far they lean to the leader over the master, `riseLeast` 10 in a hundred at the least; with nobody at their head, by how
-  far they hate him) and the leader's band, against the troops and one in `loyalShare` 4 of its men as far as they love
-  the master; the loser loses men by `battleLosses`, the dead among them (`BattleData.dead`) and the rest loose; troops
-  beaten stay where they stand; a rising beaten halves its leader's standing. A court's own city changes hands only to a
+  far they hate him), the leader's band and, a governor, those of his levies who follow him, against the troops and one
+  in `loyalShare` 4 of its men as far as they love the master; the loser loses men by `battleLosses` and the winner by its
+  winner's share, the dead among them (`BattleData.dead`) and the rest loose; troops beaten stay where they stand; a rising
+  beaten halves its leader's standing, and its levies, their losses taken, are their king's one unit again. A province
+  that goes over to a rival whose agents stirred it in the two years before logs `stir-won`. A court's own city changes hands only to a
   foe's troops standing within it; a besieged city is the siege's.
 - **Degrees** (`GameState.obeyed`, `obeyedIn`): the holder's lead over the best rival or the floor gives a third of the
   yield at nothing and all of it from `full` 60; the tax, the harvest's worth in his strength and the score read it.

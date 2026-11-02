@@ -462,6 +462,9 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
   if (rival !== null && rival.power !== null) {
     const p = rival.power;
     const how = e.forceIn(id, p) >= loveOf(e, id, p) ? `${p}'s men stand at its gates` : `its people favour ${p}`;
+    // A rival whose agents stirred its people these last two years has his reward (for the record, seen by nobody).
+    if (S.events.some((x) => x.kind === "stir" && x.turn >= S.turn - 8 && x.text.startsWith(`${p}'s agent`) && x.text.includes(`the people of ${name} against`)))
+      logEvent(S, "stir", `${name}, whose people ${p}'s agents stirred, now answers to ${p}.`, [], "stir-won");
     e.setOwner(id, p);
     // Taken by force: its taker's men carry off what they can, and a court's city gives up its archive.
     if (e.forceIn(id, p) > 0) e.sack(id, p, true);
@@ -561,11 +564,21 @@ function risingWins(e: TurnEngine, id: string, holder: Power, leader: Character 
   const garrison = troops.reduce((a, u) => a + shareOfFull(u.kind, u.men), 0) + wallMenOf(loyal, 100);
   const who = leader === null ? "with nobody at their head" : `behind ${leader.name}`;
   if (garrison >= rising) {
-    // Put down: the men who rose lose as a beaten side does, the dead among them, and the man who led them is followed by half as many.
+    // Put down: the men who rose (and the levies who followed him) lose as a beaten side does, the dead among them, and the
+    // man who led them is followed by half as many.
     const x = battleLosses(garrison, rising);
     const lost = idiv(risen * x.loserPercent, 100);
     e.killSettled(id, idiv(idiv(lost * BattleData.dead, 100) * 1000, Math.max(1, people.settled)), idiv(idiv(lost * (100 - BattleData.dead), 100) * 1000, Math.max(1, people.settled)));
-    for (const u of troops) u.men = Math.max(1, u.men - idiv(idiv(lost * x.winnerShare, 100) * u.men, Math.max(1, troops.reduce((a, t) => a + t.men, 0))));
+    // The levies who followed him were on the beaten side too: they lose as the men who rose do, the dead among them and
+    // the rest run.
+    let fell = lost;
+    for (const u of levies) {
+      const gone = idiv(u.men * x.loserPercent, 100);
+      people.loose += gone - idiv(gone * BattleData.dead, 100);
+      u.men = Math.max(1, u.men - gone);
+      fell += gone;
+    }
+    for (const u of troops) u.men = Math.max(1, u.men - idiv(idiv(fell * x.winnerShare, 100) * u.men, Math.max(1, troops.reduce((a, t) => a + t.men, 0))));
     const book = S.ledger.tryGet(id);
     if (leader !== null && book !== undefined && book.has(leader.id)) book.set(leader.id, idiv(book.get(leader.id), 2));
     e.tell(holder, id, "Battle", "A rising put down", `The people of ${name} rose against you, ${who}, and your troops there put them down.`);

@@ -18,6 +18,7 @@ import {
   feed,
   newBand,
   newGovernor,
+  logEvent,
   idiv,
   newMindReply,
   newRisingChoice,
@@ -217,7 +218,8 @@ describe("ObedienceTests", () => {
     Assert.equal("Hatti", s.owner.get(id));
     Assert.true(s.events.some((x) => x.signal === "revolt-crushed"));
     Assert.equal(2, s.units.filter((u) => u.province === id && u.power === "Hatti").length);
-    Assert.true(levy.men > 2000, `${levy.men}`);
+    // Those who followed him lost as a beaten side does before they rejoined; those who stayed lost nothing.
+    Assert.true(levy.men > 2000 && levy.men < 4000, `${levy.men}`);
   });
 
   test("A band's robbing is remembered against its chief, a point at least a season", () => {
@@ -339,7 +341,10 @@ describe("ObedienceTests", () => {
     new TurnEngine(s).obeySeason();
     Assert.equal("Byblos", s.owner.get("byblos"));
     s.breached.set("byblos", "Amurru");
+    // Its agents had stirred Gubla's people: the stirring is counted as having won it.
+    logEvent(s, "stir", `Amurru's agent spent 100 shekels stirring the people of ${WorldMap.default.get("byblos").name} against Byblos.`, ["Amurru"], "stir");
     new TurnEngine(s).obeySeason();
+    Assert.true(s.events.some((x) => x.signal === "stir-won"));
     Assert.equal("Amurru", s.owner.get("byblos"));
     Assert.true(s.inbox.get("Byblos").some((i) => i.body.includes("now answers to Amurru")));
   });
