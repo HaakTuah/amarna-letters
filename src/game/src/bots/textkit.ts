@@ -2,7 +2,7 @@
 import { AllPowers, isLetterOrDigit, isUpper, rx, split, trim, trimEnd, type Power } from "@amarna/engine";
 import { Names, cached } from "./names.ts";
 
-const SentenceSplit = rx(`(?<=[.!?]["'”’)\\]]*)\\s+`);
+const SentenceSplit = rx(`(?<=[.!?]["'”’)\\]]{0,4})\\s+`);
 const TokenRx = rx(`[\\p{L}\\p{N}][\\p{L}\\p{N}'-]*|[^\\s\\p{L}\\p{N}]`, "g");
 const ThreatSrc = `\\b(?:wars?|warfare|warriors?|warlike|attack(?:s|ed|ing|ers?)?|destroy(?:s|ed|ing|ers?)?|march(?:es|ed|ing)?|punish(?:es|ed|ing|ment)?|warn(?:s|ed|ing|ings)?|crush(?:es|ed|ing)?|burn(?:s|ed|ing|t)?|invad(?:e|es|ed|ing|ers?)|invasion|enem(?:y|ies)|regret(?:s|ted|table)?|or else|consequences?|betray(?:s|ed|ing|al|ers?)?)\\b`;
 const Threat = rx(ThreatSrc, "i");
@@ -11,7 +11,7 @@ const Threat = rx(ThreatSrc, "i");
 const Pledge = `oaths?|tablets?|seals?|words?|faith|promises?|peace|treat(?:y|ies)|pacts?|vows?|covenants?|agreements?|bonds?|brotherhood|alliances?`;
 
 const Accusation = rx(
-  `(?<!(?:\\bnever|\\bnot|\\bno|\\bnor|n't|\\bwithout)\\s+(?:(?:once|ever|yet|knowingly|willingly|have|has|had|be|been|was|were|is|am|are|did|do|does|will|would|shall|should|could|a|an|the)\\s+){0,2})\\b(?:` +
+  `(?<!(?:\\bnever|\\bnot|\\bno|\\bnor|n't|\\bwithout)\\s{1,8}(?:(?:once|ever|yet|knowingly|willingly|have|has|had|be|been|was|were|is|am|are|did|do|does|will|would|shall|should|could|a|an|the)\\s{1,8}){0,2})\\b(?:` +
     `liars?|lied` +
     `|(?:lie|lies|lying)\\s+to\\s+(?:me|us|him|her|them|you|thee|my|your|his|their|our|kings?|courts?|every|each|all|any|the\\s+(?:kings?|courts?|gods|great))\\b` +
     `|(?:are|is|am|was|were|be|been)\\s+lying\\b(?!\\s+(?:down|in|on|at|with|beside|between|near|under|within|beyond|still|asleep|idle|quiet|low|open|ahead|before|across|along|outside|inside|about|around|there|here|waste|fallow|empty)\\b)` +
@@ -23,7 +23,7 @@ const Accusation = rx(
     `|decei\\w*|decept\\w*|falsely|falsehoods?` +
     `|(?:is|are|was|were|be|been|proved?|proven)\\s+(?:surely\\s+|plainly\\s+|clearly\\s+|all\\s+|wholly\\s+|utterly\\s+)?false\\b` +
     `|false\\s+(?:friends?|brothers?|words?|tablets?|gold|oaths?|promises?|seals?|witness(?:es)?|kings?|ally|allies|tongues?|hearts?|messengers?|envoys?|scribes?|letters?|reports?|claims?|weights?|tales?|accounts?|servants?|vows?)\\b` +
-    `|(?<!\\b(?:see|know|judge|learn|show|tell|decide)s?\\s+who\\s+)(?:(?<=\\b(?:${Pledge})\\b[^;:.!?]*)(?:broke|broken)|(?:broke|broken)(?=[^;:.!?]*\\b(?:${Pledge})\\b))\\b` +
+    `|(?<!\\b(?:see|know|judge|learn|show|tell|decide)s?\\s{1,8}who\\s{1,8})(?:(?<=\\b(?:${Pledge})\\b[^;:.!?]{0,200})(?:broke|broken)|(?:broke|broken)(?=[^;:.!?]{0,200}\\b(?:${Pledge})\\b))\\b` +
     `|oath-?breakers?|betray(?:ed|s|als?|ers?|ing)|faithless\\w*` +
     `)`,
   "i",
