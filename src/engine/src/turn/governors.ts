@@ -9,7 +9,8 @@
 import { idiv } from "../core/num.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { governorsKnown, newGovernor, newGovernorGone, seatKnown, seatOf, type Governor } from "../model/command.ts";
-import { raise, type GovernOrder, type UnseatOrder } from "../model/orders.ts";
+import { raise } from "../model/order-makers.ts";
+import { type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import { findCharacter, isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";

@@ -5,7 +5,9 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { cmpNum, distinct, groupBy, sortBy } from "../core/seq.ts";
 import { eqIgnoreCase, isBlank, trim } from "../core/text.ts";
-import { characterOf, describe, newTurnSubmission, unitOf, type MoveOrder, type Order, type TurnSubmission } from "../model/orders.ts";
+import { characterOf, describe, unitOf } from "../model/order-reading.ts";
+import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
+import { type MoveOrder, type Order } from "../model/orders.ts";
 import { AllPowers, cmpPower, type Power } from "../model/power.ts";
 import {
   describeLevy,

@@ -150,8 +150,9 @@ fixed.
 
 - **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); (a), (i) and a dismissed spy's stirring gold wait for #378:
   issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.
-- **From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
-  is over 50 KB (about 55 KB): split by responsibility in a PR of its own, behaviour proven unchanged by replays.
+- ~~**From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
+  is over 50 KB (about 55 KB)~~ (#532: the order kinds, their makers, what they say, their JSON and the season's
+  submission, each in its own file; replays byte-identical).
 - ~~**From #376 (17++ B), round 1 (Codex, P1); test infrastructure outside the item:** the engine suite has no reduced-world
   fixture, so every engine test builds the whole starting world~~ (#441: `smallWorld` in `src/engine/test/support.ts`,
   the engine's rule tests on it, its suite 80 s to 44 s). Left for a later pass: the engine test files #378 changes
