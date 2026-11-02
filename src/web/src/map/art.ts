@@ -454,6 +454,22 @@ export function along(pts: readonly Pt[], t: number): Pt {
   return pts[pts.length - 1];
 }
 
+/** The part of a line between two fractions of its length (from the first to the second, either way round). */
+export function between(pts: readonly Pt[], a: number, b: number): Pt[] {
+  if (a > b) return between(pts, b, a).reverse();
+  const out: Pt[] = [along(pts, a)];
+  let total = 0.0;
+  for (let i = 1; i < pts.length; i++) total += len(sub(pts[i], pts[i - 1]));
+  let at = 0.0;
+  for (let i = 1; i < pts.length - 1; i++) {
+    at += len(sub(pts[i], pts[i - 1]));
+    const f = total > 0 ? at / total : 0;
+    if (f > a && f < b) out.push(pts[i]);
+  }
+  out.push(along(pts, b));
+  return out;
+}
+
 /** A gentle curve between two points (arrows, routes), bowed to one side so opposite moves do not overlap. */
 export function arc(a: Pt, b: Pt, bow = 0.12): string {
   const c = add(mul(add(a, b), 0.5), mul(normal(sub(b, a)), bow));

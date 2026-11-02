@@ -81,6 +81,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - Looking back at an earlier season, the province card gave the live state (in a seat view the new holder's figures where the city has since fallen); it gives that season's recorded figures (from the weekly blind re-review of #374).
 - A king's other names were never shown (#418): his card, from the courts along the map, now gives them under his name ("Also known as Akhenaten; Neferkheperure Waenre; Amenhotep IV"), every name but the one the viewer's court uses.
 - A post with an article of its own took another ("once a the ruler's brother", "Served as an a lord of the coast", "a King's Son of Kush"); such a post, or a title, now takes none (#468).
+- A followed person's line ran straight between the places the seat knew him at, across deserts and seas; it now runs along the roads between them, and stops at the last place known ("Following, travel lines and borders", second of three parts; a seat's own travellers already drew their whole road, and no one else's is drawn but as reported).
 
 ## Finds not yet fixed
 

@@ -15,7 +15,7 @@ import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, outerRing, ringOf, 
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { seasonLayer } from "./seasons.ts";
 import { holdingLayer, tintClass, type MapMode } from "./holding.ts";
-import { captureLine, unitKindName, type MapScene, type SceneTraveller, type SceneUnit } from "./scene.ts";
+import { captureLine, unitKindName, type MapScene, type SceneTraveller, traceOf, type SceneUnit } from "./scene.ts";
 import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
 
 const Map_ = WorldMap.default;
@@ -139,7 +139,7 @@ function roads(input: MapInput): string {
     sb += `<polyline class="road r-${glyphId(t.owner)}${t.believed ? " believed" : ""}${t.characterId !== null && t.characterId === input.followId ? " followed" : ""}" points="${points(route(t.fromProvince, t.toProvince))}"/>`;
   const path = input.followPath;
   if (path !== null && path.length > 0) {
-    const pts = points(path.map((x) => x.at));
+    const pts = points(traceOf(path));
     sb += `<g class="follow-path"><polyline class="trace-casing" points="${pts}"/><polyline class="trace" points="${pts}"/>`;
     path.forEach((step, i) => {
       const last = i === path.length - 1;

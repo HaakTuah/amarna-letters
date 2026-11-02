@@ -6,7 +6,7 @@
 import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
 import { coverOf, isMove, ownerFor, ownerOf, type FrameBand, type FrameClimate, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame, type FrameGovernor, type Mood, moodOfObeyed } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
-import { along, city, route, type Pt } from "./art.ts";
+import { along, between, city, route, type Pt } from "./art.ts";
 import { ownFiguresAt } from "./known.ts";
 import { remember, type Remembered } from "./memory.ts";
 
@@ -754,6 +754,8 @@ export interface PathStep {
   index: number;
   at: Pt;
   where: string;
+  /** Where he was: in a province, or on the road between two, so far along it. */
+  on: { province: string } | { from: string; to: string; progress: number };
 }
 
 /**
@@ -769,17 +771,44 @@ export function pathOf(frames: readonly SeasonFrame[], index: number, viewer: Po
     const [travellers, people] = viewer !== null ? seatPeople(f, viewer) : godPeople(f);
     const t = travellers.find((x) => x.characterId === id && x.kind !== "Gold");
     if (t !== undefined) {
-      path.push({ index: j, at: along(route(t.fromProvince, t.toProvince), t.progress), where: "on the road" });
+      path.push({ index: j, at: along(route(t.fromProvince, t.toProvince), t.progress), where: "on the road", on: { from: t.fromProvince, to: t.toProvince, progress: t.progress } });
       continue;
     }
     const s = people.find((x) => x.id === id);
     if (s !== undefined) {
-      path.push({ index: j, at: city(s.province), where: s.title });
+      path.push({ index: j, at: city(s.province), where: s.title, on: { province: s.province } });
       continue;
     }
     // At a court: god view knows everyone's place; a court knows its own people at home.
     const known = viewer === null || (c.employer === viewer && coverOf(c, viewer) === null && c.at === viewer);
-    if (known && c.at !== null && c.status !== "Dead") path.push({ index: j, at: city(Map_.capital(c.at).id), where: `at the court of ${powerName(c.at)}` });
+    if (known && c.at !== null && c.status !== "Dead") path.push({ index: j, at: city(Map_.capital(c.at).id), where: `at the court of ${powerName(c.at)}`, on: { province: Map_.capital(c.at).id } });
   }
   return path;
+}
+
+/**
+ * A follow line: the person's known places season by season, each joined to the next along the roads between them, never a
+ * straight line across the land, and never beyond the last place the seat knew ("Following, travel lines and borders").
+ */
+export function traceOf(path: readonly PathStep[]): Pt[] {
+  const pts: Pt[] = [];
+  const push = (seg: readonly Pt[]): void => {
+    for (const p of seg) {
+      const q = pts[pts.length - 1];
+      if (q === undefined || Math.abs(q.x - p.x) > 1e-6 || Math.abs(q.y - p.y) > 1e-6) pts.push(p);
+    }
+  };
+  path.forEach((step, i) => {
+    if (i === 0) return push([step.at]);
+    const a = path[i - 1].on;
+    const b = step.on;
+    if ("from" in a && "from" in b && a.from === b.from && a.to === b.to) return push(between(route(a.from, a.to), a.progress, b.progress));
+    // From where he was to where his next road began (or where he next stood), then along that road as far as he had come.
+    if ("from" in a) push(between(route(a.from, a.to), a.progress, 1));
+    const left = "from" in a ? a.to : a.province;
+    const next = "from" in b ? b.from : b.province;
+    if (left !== next) push(route(left, next));
+    push("from" in b ? between(route(b.from, b.to), 0, b.progress) : [step.at]);
+  });
+  return pts;
 }
