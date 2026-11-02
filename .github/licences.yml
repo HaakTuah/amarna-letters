@@ -7,7 +7,8 @@ fail-on-scopes: [runtime, development, unknown]
 # Two lists, by what reaches players (SECURITY.md, point 10). allow-licenses is the wider one, for tools that only run
 # (build, test, render, check, scan): every licence the Open Source Initiative approves, as the SPDX licence list marks
 # them (isOsiApproved, deprecated ids left out; the list of 28 October 2026), plus CC0-1.0 and PSF-2.0, on the
-# same terms. The action enforces it on every package, so nothing off both lists gets in. scripts/licences.mjs holds
+# same terms. Left out: BSD-ask-to-endorse, newer than the SPDX list the pinned action knows, which refuses the whole
+# file over an id it does not know; a tool under it is a question for the owner until the action is updated. The action enforces it on every package, so nothing off both lists gets in. scripts/licences.mjs holds
 # what ships, or may (everything the workspaces' `dependencies` pull in, worked out from the package.json files, and
 # what the web build bundles), to shipped-licenses.
 allow-licenses:
@@ -39,7 +40,6 @@ allow-licenses:
   - BSD-3-Clause
   - BSD-3-Clause-LBNL
   - BSD-3-Clause-Open-MPI
-  - BSD-ask-to-endorse
   - BSL-1.0
   - CAL-1.0
   - CAL-1.0-Combined-Work-Exception
