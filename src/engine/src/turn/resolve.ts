@@ -4,8 +4,9 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
-  type TurnSubmission } from "../model/orders.ts";
+import { describe } from "../model/order-reading.ts";
+import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
+import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
@@ -672,11 +673,14 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   for (const other of alive(S).filter((x) => x !== conqueror)) {
     const text = `Word spreads that the kingdom of ${land(p)} is no more: ${who}.`;
     if (seeing.includes(other)) {
-      notify(S, other, "Rumor", "A kingdom falls", text);
       S.fallsHeard.set(other, [...(S.fallsHeard.tryGet(other) ?? []), p]);
+      this.syncNames();
+      notify(S, other, "Rumor", "A kingdom falls", text);
     } else this.word(p, other, "KingdomFalls", text);
   }
   if (conqueror !== null) S.fallsHeard.set(conqueror, [...(S.fallsHeard.tryGet(conqueror) ?? []), p]);
+  // The fallen claim nothing, as each court that has heard of the fall knows (item 17+).
+  this.syncNames();
   if (conqueror !== null) {
     const winner = conqueror;
     const rest = passed.filter((x) => x !== capital.id).map((x) => this.map.get(x).name);

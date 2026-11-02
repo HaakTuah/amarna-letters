@@ -174,13 +174,6 @@ export class IncrementalReader {
   /** The characters of JSON parsed this season (new items). */
   private parsed = 0;
 
-  /** The tree of a snapshot's pieces. The root's one item is the state's object. */
-  private treeOf(refs: Uint32Array): Container {
-    const root: Container = { head: -1, items: [], tail: "", from: 0, to: refs.length };
-    this.treeInto([root], refs, 0, refs.length);
-    return root;
-  }
-
   /** Grows the tree from the pieces `from` to `to` (exclusive), the open containers on `stack`; returns `to`. */
   private treeInto(stack: Container[], refs: Uint32Array, from: number, to: number): number {
     const texts = this.texts;

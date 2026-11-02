@@ -167,7 +167,6 @@ export function tradeOrders(
   const usedFleets = new Set<string>();
   // Caravans abroad count against the cap; fleets are their own limit.
   let traders = v.caravans.filter((c) => c.trade && !c.ship).length;
-  const fleetUpkeep = v.prices.getOrDefault("fleetUpkeep", 25);
   const fleetCost = v.prices.getOrDefault("fleet", 150);
 
   // A besieged harbour of ours, its waters open, its stores short: a ship brings it grain first.

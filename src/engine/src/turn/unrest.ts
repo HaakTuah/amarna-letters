@@ -648,6 +648,7 @@ function risenLose(e: TurnEngine, id: string, lost: number, own: number, followe
  */
 function reports(e: TurnEngine): void {
   const S = e.s;
+  seatLetters(e);
   for (const g of sortBy([...S.governors], [(x) => x.province, cmpStr])) {
     const found = e.governorOf(g.province);
     if (found === null || found[0] !== g || S.owner.getOrDefault(g.province, null) !== g.power) continue;
@@ -664,15 +665,37 @@ function reports(e: TurnEngine): void {
 }
 
 /**
+ * A governor whose seat moved before his king heard of it (its province lost or given up, item 17++) says where he now
+ * sits in his letter (#480; the owner, 2 November 2026: "Sure"), as he chooses by his stakes: one loyal to his king writes
+ * from his new seat, and the king knows it when the letter comes, if sooner than word of the province; one who wants his
+ * land for himself says nothing of it, as he says its people are quiet, and his king learns of it only by the road.
+ */
+function seatLetters(e: TurnEngine): void {
+  const S = e.s;
+  const told = new Set<string>();
+  for (const g of sortBy([...S.governors], [(x) => x.province, cmpStr])) {
+    if (told.has(g.character) || g.seatHeard <= S.turn || g.seatWas === seatOf(g)) continue;
+    const c = findCharacter(S, g.character);
+    if (c === null || c.status === "Dead" || c.duty !== "Governing" || wants(c, g.power)) continue;
+    told.add(g.character);
+    const seat = seatOf(g);
+    const at = e.heardAt(g.power, seat);
+    if (at >= g.seatHeard) continue;
+    for (const x of S.governors.filter((y) => y.character === g.character)) x.seatHeard = Math.min(x.seatHeard, at);
+    e.tell(g.power, seat, "Notice", "Your governor writes", `${c.name}, your governor, writes that he now sits at ${e.map.get(seat).name}: ${e.map.get(g.seatWas).name} is no longer his to govern.`);
+  }
+}
+
+/**
  * Outside help: a spy watching a province for his master, with gold for it, spends a share among its people each season,
  * which they remember as his master's giving (it tells when his master's troops come); of what he hands out he keeps what his greed beyond his loyalty lets him.
  */
 function stirSeason(e: TurnEngine): void {
   const S = e.s;
   // Gold for stirring that one no longer on his errand still carries (caught on the road, dismissed, turned): his purse
-  // holds it now, on him wherever he is.
+  // holds it now, on him wherever he is: kept from an errand, not skimmed (as `capture` and the road home count it).
   for (const c of S.characters.filter((c) => c.stirGold > 0 && !(c.status === "Employed" && (c.duty === "SpyOutbound" || c.duty === "SpyPosted" || c.duty === "EnvoyHomebound")))) {
-    gain(c, c.stirGold, "Skimmed");
+    gain(c, c.stirGold, "Carried");
     c.stirGold = 0;
   }
   for (const c of sortBy(

@@ -1,7 +1,6 @@
 /**
  * Deterministic characters driven by their hidden traits. Every distortion has a motive the player can reason about: the
  * timid soften threats, the ambitious embellish and claim credit, the bribed speak well of whoever paid, the greedy skim.
- * (The careless dropping things was retired in item 12: language and skill cost time, never words.)
  */
 import {
   AllPowers,
@@ -27,7 +26,6 @@ import {
   type Traits,
   type Clause,
   clause,
-  isNews,
   renderClauses,
   checkClauses,
   withinAuthority,
@@ -215,7 +213,7 @@ export function recite(cs: readonly Clause[], t: Traits, fearful: boolean, fond:
 /**
  * The host's answer as a script envoy reports it home (item 8): the faithful word for word; the bribed and the timid leave
  * out the threats against their lord, and the bribed turn a refusal into acceptance and pass on the host's news as their
- * own. (The careless losing the last clause was retired in item 12: whether a message is altered is the envoy's choice.)
+ * own.
  */
 export function reportClauses(heard: readonly Clause[], bribeNews: readonly Clause[], t: Traits, faithful: boolean, bribed: boolean, fearful: boolean): Clause[] {
   let out = heard.map((x) => ({ ...x }));

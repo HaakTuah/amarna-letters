@@ -132,8 +132,13 @@ goes to building. Its usage can run out like any other, and it may then not say 
    Claude did on everything, two thirds of it on security reviews run with every round). Codex's security review is
    set to run only when asked, never with every code review. A builder asks for it once (`@codex security review`), on
    the round it expects to be the last, and only when the change touches what a security review is for: input from
-   players, models or files, a workflow, the network, saved files or exports, or a dependency. Every other PR gets the
-   code review alone.
+   players, models or files, a workflow, the network, saved files or exports, or a dependency newly added or moved up a
+   major version. Every other PR gets the code review alone, Dependabot's minor and patch updates included (CI, the
+   licence gate and GitHub's dependency review check those). Never for a change proven unchanged in what it does (a
+   split by meaning, unused code removed, a rename) nor for docs or the history dossiers: moving the code that writes
+   a save is not changing it. Once means once: a second ask only when a fix after the first changed the risky part
+   again, and the PR names that part. Codex's automatic review and automatic security review are both off in its settings, so nothing
+   runs unless a builder asks.
 7. **Checks that run the work, once Codex can build** (the owner, 2 November 2026; `docs/archive/instructions.md`, item
    134). The native review reads the diff but runs nothing, so it cannot check a claim such as "the script kings now
    win 29 games of 50". When Codex's environments work ("Setup"), a Codex task in its container also reruns the
@@ -182,6 +187,9 @@ The guards against both are part of the rule:
      fixed, and a `bug` issue tracks it until the fix is live. More than one miss in fifteen facts checked: every
      dossier a miss came from gets a full check. The first spot-check (#466) found 3 in 13, so the full check of every
      dossier ("Follow-ups" in `docs/BUILD-PROGRESS.md`) runs before the next one.
+   - **A slop check every month** (the owner, 2 November 2026): a fresh reviewer reads only the text a player reads
+     that changed since the last check, scored as every review is, a 10 meaning nothing reads machine-made; what it
+     finds is fixed in "Follow-ups". The slop audit's formula test runs on every PR.
    - **Logged and reported:** each check is a row in "Calibration" below, and each milestone PR says in one line the
      misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
      the owner, and the categories it reviews go back to the other reviewer meanwhile.

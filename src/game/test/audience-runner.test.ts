@@ -1,6 +1,4 @@
 import { describe, test } from "vitest";
-import { react } from "../../llm/src/parse.ts";
-import { present } from "../src/character-checks.ts";
 import {
   AllPowers,
   type AudienceView,
@@ -17,7 +15,6 @@ import {
   newHostReply,
   newTurnSubmission,
   single,
-  write,
 } from "@amarna/engine";
 import {
   type EnvoyContext,

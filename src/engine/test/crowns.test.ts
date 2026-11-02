@@ -1,12 +1,12 @@
 import { describe, test } from "vitest";
 import { OrderValidator, TurnEngine, WorldMap, crown, newCharacter, newGame, newGameConfig, newGovernor, newId, newTraits, newTurnSubmission, risenOf, vassalBonds, type GameState } from "@amarna/engine";
-import { Assert, removeAll } from "./support.ts";
+import { Assert, removeAll, smallWorld } from "./support.ts";
 
 // A vassal king by grant (item 17++, part C; "Governors" under War): the king names the man, the provinces, the tribute and
 // the price; the word reaches him at his seat; he answers by his stakes the season after; if he takes it, the land is his,
 // bound by a vassal tablet, and his price travels to the king. The starting world, with the steps called directly.
 describe("CrownsTests", () => {
-  const quiet = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+  const quiet = (): GameState => smallWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })), "Hatti");
   function governor(s: GameState, ambition: number, purse = 300): string {
     removeAll(s.governors, (g) => g.province === "tuwanuwa" || g.province === "kizzuwatna");
     removeAll(s.units, (u) => u.province === "tuwanuwa" || u.province === "kizzuwatna");
