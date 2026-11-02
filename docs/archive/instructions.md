@@ -1486,3 +1486,6 @@ Given in the design chat with Claude, answering the design questions of the cons
     (Dependabot's pinned version updates of actions already used need no yes when nothing else changes, CI is green and
     the review clean; everything that changes what a workflow can do still does): "yes, expertly, always!" Written into
     `SECURITY.md` point 3; the same in Barkstreet Snakes.
+174. **2 November 2026, 20:03 UTC**, in the design chat, to the design session's take on #520 (a twin canary: a seat's
+    season played with and without a hidden fact must read the same), with Barkstreet Snakes' #399 and #401: "Yes,
+    expertly to all!" Written into "Follow-ups" in `docs/BUILD-PROGRESS.md`.
