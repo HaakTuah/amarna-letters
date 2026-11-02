@@ -29,7 +29,7 @@ import { firstOrNull, orderBy, walled, oldWorld, smallWorld } from "./support.ts
 /** Seed 1 with no catastrophes, and Suhu walled 2 as Mari was before item 7a: the board the siege tests start from. */
 export function siegeBoard(...kings: Power[]): GameState {
   const g = newGame(1, newGameConfig({ catastropheChance: 0 }));
-  return walled(kings.length > 0 ? smallWorld(g, ...kings) : oldWorld(g), "suhu", 2);
+  return walled(kings.length > 0 ? smallWorld(oldWorld(g), ...kings) : oldWorld(g), "suhu", 2);
 }
 
 /**
@@ -38,7 +38,7 @@ export function siegeBoard(...kings: Power[]): GameState {
  */
 export function playRandom(seed: number, turns: number, config: GameConfig | null = null, ...kings: Power[]): GameState {
   const g = newGame(seed, config ?? newGameConfig({ capMin: 99, capMax: 99, endMedian: 10000 }));
-  let s = kings.length > 0 ? smallWorld(g, ...kings) : oldWorld(g);
+  let s = kings.length > 0 ? smallWorld(oldWorld(g), ...kings) : oldWorld(g);
   let map = WorldMap.default;
   for (let i = 0; i < turns && !s.ended; i++) {
     let e = new TurnEngine(s);

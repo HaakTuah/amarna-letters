@@ -32,7 +32,7 @@ import {
   unitAt,
   wallsOf,
 } from "@amarna/engine";
-import { removeAll, Assert, last, subs, walled, smallWorld, heldBy } from "./support.ts";
+import { removeAll, Assert, last, subs, walled, oldWorld, smallWorld, heldBy } from "./support.ts";
 import { siegeBoard } from "./games.ts";
 
 // Walls and sieges (Build order item 5): walls add nothing to a battle; a move into walls not its own takes the province
@@ -42,7 +42,7 @@ describe("SiegeTests", () => {
   // <summary>Seed 1 with no catastrophes, Babylonia's army in Sippar next to Suhu (walls 2 in these tests, a free city), Mitanni's in Terqa.</summary>
   function board(): GameState {
     // Suhu was Mari until item 7a's map review, which took Mari's walls away: the tests give them back.
-    let s = walled(smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Babylonia", "Mitanni", "Assyria", "Egypt", "Hatti"), "suhu", 2);
+    let s = walled(smallWorld(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "Babylonia", "Mitanni", "Assyria", "Egypt", "Hatti"), "suhu", 2);
     // Full stores and a stocked market (item 9+a): the city does not starve unless a test empties them.
     s.stores.set("suhu", 1000);
     s.markets.get("suhu").stock = 500;

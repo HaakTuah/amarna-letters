@@ -64,7 +64,7 @@ describe("IntelligenceTests", () => {
   }
 
   test("A forgery the scribes miss reads exactly as a genuine tablet", () => {
-    let s = smallWorld(newGame(5, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti", "Mitanni");
+    let s = smallWorld(oldWorld(newGame(5, newGameConfig({ catastropheChance: 0 }))), "Egypt", "Hatti", "Mitanni");
     s.tablets.push(newTablet({ id: "t900", text: "Peace.", proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti", "Egypt"], createdTurn: 1, sealedTurn: 1 }));
     // A master forger, examined cheaply: found 5% of the time.
     s.tablets.push(
@@ -96,7 +96,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("A spy watching a free city or its own king s province is never caught", () => {
-    let s = smallWorld(newGame(8, newGameConfig({ catastropheChance: 0 })), "Babylonia");
+    let s = smallWorld(oldWorld(newGame(8, newGameConfig({ catastropheChance: 0 }))), "Babylonia");
     let spies = s.characters.filter((c) => c.employer === "Babylonia" && c.at === "Babylonia" && c.contract !== null).slice(0, 2);
     for (const [spy, at] of spies.map((x, i) => [x, ["tyre", "babylon"][i]] as const)) {
       [spy.secretMaster, spy.traits.competence] = [null, 0];
@@ -113,7 +113,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("A posted spy sends reports home that arrive late", () => {
-    let s = smallWorld(newGame(8), "Babylonia", "Assyria");
+    let s = smallWorld(oldWorld(newGame(8)), "Babylonia", "Assyria");
     let spy = first(s.characters, (c) => c.employer === "Babylonia");
     spy.secretMaster = null;
     skilled(spy, 95);
@@ -127,7 +127,7 @@ describe("IntelligenceTests", () => {
   test("Heavy watch catches spies and captives can be turned", () => {
     let caught = false;
     for (let seed = 1; seed <= 15 && !caught; seed++) {
-      let s = smallWorld(newGame(seed), "Babylonia", "Assyria");
+      let s = smallWorld(oldWorld(newGame(seed)), "Babylonia", "Assyria");
       let spy = first(s.characters, (c) => c.employer === "Babylonia");
       spy.secretMaster = null;
       skilled(spy, 10);
@@ -156,7 +156,7 @@ describe("IntelligenceTests", () => {
 
   test("A captive whose kingdom has fallen cannot be turned", () => {
     // As when the spy's own kingdom falls while they are held: no master, still a captive.
-    let s = smallWorld(newGame(4), "Hatti", "Mitanni");
+    let s = smallWorld(oldWorld(newGame(4)), "Hatti", "Mitanni");
     let spy = first(s.characters, (c) => c.employer === "Hatti");
     spy.status = "Captured";
     spy.heldBy = "Mitanni";
@@ -171,7 +171,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Ransomed captives come home once paid", () => {
-    let s = smallWorld(newGame(4), "Hatti", "Mitanni");
+    let s = smallWorld(oldWorld(newGame(4)), "Hatti", "Mitanni");
     let spy = first(s.characters, (c) => c.employer === "Hatti");
     spy.status = "Captured";
     spy.heldBy = "Mitanni";
@@ -194,7 +194,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Candidates pitch and only the court where a person stands can hire it", () => {
-    let s = smallWorld(newGame(6), "Egypt", "Hatti");
+    let s = smallWorld(oldWorld(newGame(6)), "Egypt", "Hatti");
     let e = begin(s);
     e.resolve(
       new Dict([
@@ -230,7 +230,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("A wage below the asking price is refused", () => {
-    let s = smallWorld(newGame(6), "Egypt");
+    let s = smallWorld(oldWorld(newGame(6)), "Egypt");
     let free = first(s.characters, (c) => c.status === "Free");
     free.pitches.set("Egypt", "I am worth it.");
     free.askingPrice.set("Egypt", 50);
@@ -240,7 +240,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Tablet copies shown as evidence reach the third court", () => {
-    let s = smallWorld(newGame(9), "Egypt", "Hatti", "Alashiya");
+    let s = smallWorld(oldWorld(newGame(9)), "Egypt", "Hatti", "Alashiya");
     s.tablets.push(
       newTablet({
         id: "t900",
@@ -271,7 +271,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Spending debased gold exposes it", () => {
-    let s = smallWorld(newGame(9), "Egypt", "Hatti");
+    let s = smallWorld(oldWorld(newGame(9)), "Egypt", "Hatti");
     let t = s.treasuries.get("Hatti");
     // The ledger shows a levy's price and a little more; the levy passes validation but the true treasury cannot pay.
     const price = s.config.armyCost;
@@ -287,7 +287,7 @@ describe("IntelligenceTests", () => {
 
   test("Sworn allies can share the victory", () => {
     // Scored by performance alone (item 11e's size weight 0), so their gold lifts the pair above every other power.
-    let s = smallWorld(newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000, sharedVictory: true, sizeWeight: 0 })), "Arzawa", "Alashiya");
+    let s = smallWorld(oldWorld(newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000, sharedVictory: true, sizeWeight: 0 }))), "Arzawa", "Alashiya");
     s.tablets.push(
       newTablet({
         id: "t901",
@@ -309,7 +309,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Sworn allies do not share the victory unless the house rule is on", () => {
-    let s = smallWorld(newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000 })), "Arzawa", "Alashiya");
+    let s = smallWorld(oldWorld(newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000 }))), "Arzawa", "Alashiya");
     Assert.false(s.config.sharedVictory);
     s.tablets.push(
       newTablet({
