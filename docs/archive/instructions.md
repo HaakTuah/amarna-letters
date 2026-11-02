@@ -1415,3 +1415,20 @@ Given in the design chat with Claude, answering the design questions of the cons
     and bugs paying off, ideas thin; every reviewer to name one idea outside the change, or none; the father's notes to
     gain the afternoon's lessons): "Yes, address everything you just raised, masterfully!" Written into "Review guidelines" in `AGENTS.md` ("One idea, for every reviewer")
     and "Reviews" in `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
+162. **2 November 2026, 15:32 and 15:33 UTC**, in the design chat: "Should we limit them to just being able to suggest 1?", then, to the design session's take (one per review, with three guards: only reviews of changes to the game, new ideas only with repeats as comments, "none" the usual answer): "Yes, please, expertly!" Written into "One idea, for every reviewer"
+    in `AGENTS.md`; the same in Barkstreet Snakes.
+163. **2 November 2026, 15:50 and 15:53 UTC**, in the design chat: "Indeed. When I made the union salary presentation, I
+    found a neat trick was to make it source absolutely everything it says and every slide it is on. There is mattered
+    really. Might be overkill for this project, but could attaching a Wikipedia page to every real character, place, and
+    concept, maybe work the same? Then the player also has the oppertunity to easily read about it and learn about the
+    world?" Then, to the design session's take (a "Learn more" link on every real entity, everything invented marked as
+    invented, the truth kept in the dossiers, and a check that fails when a real entity lacks its link or dossier
+    reference, built in item 17+++b): "Yes please, expertly!" Written into "Learn more, and what is invented" under
+    Interface (revision 27) and item 17+++b (Build order, revision 215).
+164. **2 November 2026, 15:59 and 16:03 UTC**, in the design chat: "And there is source checking against to make sure we don't drift from historicity? Are the more components in the code relies on that we should update? Should we have standing orders to update stuff? But we must make sure every package we use has an license which permits free use without any restrictions, and that every update don't change that!" Then, to the design session's four questions
+    (each changed real-world fact checked against its dossier source, and a monthly spot-check of the dossiers against
+    their sources; every version where Dependabot reads it, PeerJS with an integrity hash, a monthly check for the rest;
+    a licence allow-list of permissive licences gated on every PR, with a notices file and a full audit; and whether the
+    owner's own code gets a licence): "Yes to alll! And we keep rights gated for now. Expertly to all!" Written into "Review guidelines" ("History holds") in `AGENTS.md`, `CLAUDE.md`,
+    `docs/claude-and-codex.md` (the design check's brief; the monthly history spot-check), `SECURITY.md` point 10, and
+    "Follow-ups" in `docs/BUILD-PROGRESS.md`; the same for versions and licences in Barkstreet Snakes.
