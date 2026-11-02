@@ -318,6 +318,11 @@ provinces won. Winners: Babylonia 8, Egypt 5, the Suteans 2, Mitanni, Hatti, Azz
 suite passed on this head (1,340 tests) and CI is green. The ledger's use against ignore (`--freedom-play-half`, 21-29 on
 `fdb8d0a`) is rerun on part B's branch, since stirring changed, and its numbers go in part B's report.
 
+Found while building part C, and fixed here since it is this part's code: a governor who refused his recall never took his
+province by refusing it, since `turnsWith` still counted his own regard among his king's love (he serves the king), so
+only a rising could carry it; now the man who turns is left out of his king's side (`loveOf`'s `except`), with a test.
+Scripts never recall a governor yet (the audit's find, part C), so the benchmarks above do not move.
+
 Review: rules · Claude · 5, 7, 8, then the escalation helper's look: nothing open (10). Codex · P1×6, P1×4, P1×2, then
 the helper's ruling on the last (the answer stands).
 

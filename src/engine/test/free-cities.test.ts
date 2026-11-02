@@ -181,6 +181,21 @@ describe("FreeCitiesTests", () => {
     Assert.equal(p, unitAt(s, "tuwanuwa")?.power);
   });
 
+  test("A governor who refuses his recall takes his province when its people love him more than his king, his own regard no longer counted for the king", () => {
+    const s = quiet();
+    removeAll(s.units, (u) => u.province === "tuwanuwa");
+    removeAll(s.governors, (g) => g.province === "tuwanuwa");
+    const c = newCharacter({ id: newId(s, "c"), name: "Hutupiyanza", traits: newTraits({ loyalty: 10, greed: 50, ambition: 90, courage: 60, competence: 50 }), status: "Employed", employer: "Hatti", duty: "Governing", watchProvince: "tuwanuwa", purse: 300 });
+    s.characters.push(c);
+    s.governors.push(newGovernor({ province: "tuwanuwa", character: c.id, power: "Hatti", from: 0, relieved: s.turn }));
+    ledger(s, "tuwanuwa").set("Hatti", 0);
+    ledger(s, "tuwanuwa").set(c.id, 150);
+    new TurnEngine(s).governorsSeason();
+    const p = s.owner.get("tuwanuwa")!;
+    Assert.equal("turned", risenOf(p)?.how);
+    Assert.equal(c.id, risenOf(p)?.ruler);
+  });
+
   test("A walled town without a ruler raises an elder; a chief who holds thin land long enough comes to rule it", () => {
     const s = quiet();
     kaskaTaken(s);

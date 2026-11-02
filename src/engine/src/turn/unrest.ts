@@ -229,10 +229,10 @@ P.forceIn = function (province, p, without = null) {
 };
 
 /** The love its people bear `p` and the men serving him there who do not want it for themselves. */
-function loveOf(e: TurnEngine, province: string, p: Power): number {
+function loveOf(e: TurnEngine, province: string, p: Power, except: string | null = null): number {
   let love = standing(e, province, p);
   for (const [actor, v] of e.s.ledger.tryGet(province)?.entries() ?? []) {
-    if (actor === p) continue;
+    if (actor === p || actor === except) continue;
     const c = findCharacter(e.s, actor);
     if (c !== null && c.employer === p && c.status === "Employed" && standsIn(e, c, province) && !chose(e, c, province)) love += v;
   }
@@ -304,7 +304,8 @@ P.turnsWith = function (province, c) {
     levies.push(u);
   }
   const strength = new Dict<Power, number>();
-  const held = this.forceIn(province, holder, (u) => levies.includes(u)) + loveOf(this, province, holder) - weakness(this, holder, strength);
+  // The man who turns no longer stands for his king: his own regard is his, not his master's.
+  const held = this.forceIn(province, holder, (u) => levies.includes(u)) + loveOf(this, province, holder, c.id) - weakness(this, holder, strength);
   return { province: characterWeight(this, province, c) > held + D.margin, levies, stayed };
 };
 
