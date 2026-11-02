@@ -69,6 +69,11 @@ fixed.
 - ~~**The province card looking back** (the weekly blind re-review of #374): in a seat view on an earlier season the
   card read the live state, the new holder's figures where the city has since fallen; it gives that season's recorded
   figures now, with a test at a past season (#414).~~
+- **The canary test for hidden information** (the owner, 2 November 2026, after reviews missed seat-view leaks twice;
+  "Hidden information" under "Review guidelines" in `AGENTS.md`). A small game with secrets planted (an envoy's hidden
+  errand, a sealed tablet's words, an army in the fog, another court's treasury); every seat's view, model request,
+  script king's input and export is built along every path (the latest season, past seasons, a replay, the god view
+  where a seat has none) and none may hold a secret. A test lane beside the items.
 - **First of all: what a game's export holds** (the owner, 2 November 2026: "And queue a job going fully over what the
   export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
   fixed, and we must be alerted, so we can remove this file."). Go through everything the export writes (the
@@ -96,14 +101,8 @@ fixed.
 - ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
   armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
 
-- **From #348 (17+), round 2, not blocking; outside 17++'s text (names as claims), so a side lane takes them:** (a) engine
-  notices name powers by their own land while a court's view may give a contested name to another, so one name can mean two
-  powers in its inputs (render notices as the recipient sees them); (c) `nameGivenBy` reads the true claims
-  (`!claimed.has(p)`) in the viewer case; (d) the spectator's record of contested names is unused; (e) 17+'s readings 29
-  and 33 stale against 30, 34-35 printed before 33; (f) the web Court section greys out both upkeep halves and every
-  province once one upkeep order is drafted; (g) a captive's stirring gold counted as skimmed rather than carried; (h) a
-  no-op `CityStarts` entry; (i) an older tablet arriving late sets a court's knowledge of a claim back. (b), the chiefs'
-  lands falling in the first two seasons, is 17++'s and measured in its report.
+- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); (a), (i) and a dismissed spy's stirring gold wait for #378:
+  issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.
 - **From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
   is over 50 KB (about 55 KB): split by responsibility in a PR of its own, behaviour proven unchanged by replays.
 - **From #376 (17++ B), round 1 (Codex, P1); test infrastructure outside the item:** the engine suite has no reduced-world
