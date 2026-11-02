@@ -4,7 +4,7 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
+import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
@@ -116,6 +116,7 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is MandateOrder => o.type === "mandate")) this.setMandate(p, o);
   for (const [p, o] of all((o): o is UnseatOrder => o.type === "unseat")) this.unseatGovernor(p, o);
   for (const [p, o] of all((o): o is GovernOrder => o.type === "govern")) this.grantGovernorship(p, o);
+  for (const [p, o] of all((o): o is CrownOrder => o.type === "crown")) this.grantCrown(p, o);
   this.resolveMovement(all(any).filter(([, o]) => o.type === "hold" || o.type === "move" || o.type === "support" || o.type === "convoy" || o.type === "besiege" || o.type === "sally"));
   // Supports that keep a promise made in a letter's clauses (item 8).
   this.promisesKept(all((o): o is SupportOrder => o.type === "support"));
@@ -180,6 +181,7 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is TollOrder => o.type === "toll")) this.setToll(p, o);
   for (const [p, o] of all((o): o is DemandOrder => o.type === "demand")) this.setDemand(p, o);
   for (const [p, o] of all((o): o is CensusOrder => o.type === "census")) this.sendCensus(p, o);
+  for (const [p, o] of all((o): o is AnswerOrder => o.type === "answer")) this.answerProvince(p, o);
   // People in a king's hands (item 10+b): runaways sent back first, then the loose settled, deportation, mouths put out.
   for (const [p, o] of all((o): o is ReturnRunawaysOrder => o.type === "returnRunaways")) this.returnRunaways(p, o);
   for (const [p, o] of all((o): o is WelcomeOrder => o.type === "welcome")) this.welcome(p, o);
@@ -485,10 +487,16 @@ P.resolveTransfers = function (cessions, gifts) {
       this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: your own troops still stood in it after movement.`, "your own troops stood there", false);
       continue;
     }
+    // Item 17++ ("taken up, never thrust on anyone"): a treaty gives the receiver the claim, never the province, unless his
+    // troops already stand in it, which is his taking it up.
+    if (!S.units.some((x) => x.power === c.to && x.kind === "Army" && x.province === c.province)) {
+      this.cededClaim(p, c.to, c.province);
+      continue;
+    }
     this.setOwner(c.province, c.to);
     this._cededNow.set(c.province, c.to);
-    notify(S, p, "Resolution", "Land ceded", `${Map.get(c.province).name} now belongs to ${c.to}.`);
-    notify(S, c.to, "Resolution", "Land received", `${p} has ceded ${Map.get(c.province).name} to you.`);
+    notify(S, p, "Resolution", "Land ceded", `${Map.get(c.province).name} now belongs to ${c.to}: his troops stand in it.`);
+    notify(S, c.to, "Resolution", "Land received", `${p} has ceded ${Map.get(c.province).name} to you, and your troops there hold it.`);
     logEvent(S, "cession", `${p} ceded ${Map.get(c.province).name} to ${c.to}.`, [p, c.to]);
     // A capital ceded is a capital taken: its archive lies in the city.
     this.takeArchive(c.to, c.province);
@@ -764,6 +772,8 @@ P.endOfTurn = function () {
     return;
   }
   S.turn++;
+  // Item 17++, part C: each court sees its own city's mood as the new season begins.
+  this.courtsSee();
 };
 
 P.finalScores = function () {

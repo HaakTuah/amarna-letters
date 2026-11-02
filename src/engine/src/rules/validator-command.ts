@@ -2,7 +2,7 @@
  * The checks of command at a distance (build order item 13): granting and taking back command of an army and the
  * governorship of a province, giving an army a mandate, and the king setting out with his court. Split from validator.ts.
  */
-import { EngageValues, MandateTaskValues, MostGovernorLevies, WithdrawValues, type Mandate } from "../model/command.ts";
+import { EngageValues, MandateTaskValues, governorsKnown, MostGovernorLevies, seatKnown, WithdrawValues, type Mandate } from "../model/command.ts";
 import type { Order } from "../model/orders.ts";
 import { coverOf, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
@@ -85,13 +85,66 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
     case "govern": {
       if (!v.Map.exists(order.province) || v.Map.get(order.province).isSea) return `there is no land province called '${order.province}'`;
       if (v.knownOwner(order.province) !== v.power) return `${order.province} is not yours`;
-      if (S.governors.some((g) => g.province === order.province && g.power === v.power && g.relieved === null)) return `${order.province} already has a governor: take the governorship back first (unseat)`;
+      // The governorships as this court knows them (hidden information): one ended out of its sight still stands in its view.
+      const known = governorsKnown(S, S.turn).filter((g) => g.power === v.power);
+      // A governorship taken back by an order of this season is not one to grant beside: the recall goes first.
+      const recalled = (g: { province: string }): boolean => v.orders.some((o) => o.type === "unseat" && o.province === g.province);
+      if (known.some((g) => g.province === order.province && g.relieved === null)) return `${order.province} already has a governor: take the governorship back first (unseat)`;
       if (v.orders.some((o) => o.type === "govern" && o.province === order.province && v.orders.indexOf(o) < v.orders.indexOf(order))) return `${order.province} was already given a governor by an earlier order`;
       if (order.levies < 0 || order.levies > MostGovernorLevies) return `a governor may be allowed from 0 to ${MostGovernorLevies} levies`;
+      // Item 17++: a governor of ours may be given a province beside those he holds, governed from his seat.
+      const held = known.filter((g) => g.character === order.character && g.relieved === null && !recalled(g));
+      if (held.length > 0) {
+        const c = findCharacter(S, order.character);
+        if (c === null) return v.nobody(order.character);
+        if (v.busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
+        if (!held.some((g) => v.Map.neighbors(g.province).includes(order.province))) return `${c.name} governs no province beside ${order.province}: one governor holds only neighbouring provinces`;
+        return null;
+      }
       return grantee(v, order.character, "a governorship");
     }
+    case "crown": {
+      const ps = order.provinces;
+      if (ps.length === 0) return "a grant of kingship names the provinces it covers";
+      if (new Set(ps).size !== ps.length) return "a province is named twice in the grant";
+      for (const x of ps) {
+        if (!v.Map.exists(x) || v.Map.get(x).isSea) return `there is no land province called '${x}'`;
+        // As the court knows it (hidden information): land lost out of its sight fails when the word arrives, and says so by the road.
+        if (v.knownOwner(x) !== v.power) return `${x} is not yours`;
+        if (courtOf(S, v.Map, v.power) === x) return `your court is in ${x}: a king does not grant away the city he holds court in`;
+        if (S.crowns.some((k) => k.power === v.power && (k.heard === null || k.heard > S.turn) && k.provinces.includes(x))) return `${x} is already in a grant on its way`;
+      }
+      // The provinces hang together: each beside another named, so one man rules them from one seat.
+      const reached = new Set([ps[0]]);
+      for (let grew = true; grew; ) {
+        grew = false;
+        for (const x of ps) {
+          if (reached.has(x) || !v.Map.neighbors(x).some((n) => reached.has(n))) continue;
+          reached.add(x);
+          grew = true;
+        }
+      }
+      if (reached.size !== ps.length) return "the provinces of a grant must lie beside one another";
+      if (!Number.isInteger(order.tribute) || order.tribute < 0) return "the tribute is a number of shekels a year, 0 or more";
+      if (!Number.isInteger(order.price) || order.price < 0) return "the price is a number of shekels, 0 or more";
+      if (S.crowns.some((k) => k.character === order.character && (k.heard === null || k.heard > S.turn))) return `a grant to ${order.character} is already on its way`;
+      if (v.orders.some((o) => o.type === "crown" && v.orders.indexOf(o) < v.orders.indexOf(order) && o.provinces.some((x) => ps.includes(x)))) return "an earlier order already grants one of those provinces";
+      // A governor of ours is granted the provinces he governs, his seat among them, as the court knows them (his
+      // governorships ended and his seat moved only as word of it has come); anyone else stands at our court.
+      // A governorship taken back by an order of this season is not his to be granted: the recall goes first.
+      const held = governorsKnown(S, S.turn).filter((g) => g.character === order.character && g.power === v.power && g.relieved === null && !v.orders.some((o) => o.type === "unseat" && o.province === g.province));
+      if (held.length > 0) {
+        const c = findCharacter(S, order.character);
+        if (c === null) return v.nobody(order.character);
+        if (v.busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
+        if (!ps.every((x) => held.some((g) => g.province === x))) return `${c.name} is granted only provinces he governs`;
+        if (!held.some((g) => ps.includes(seatKnown(g, S.turn)))) return `the grant must include ${c.name}'s seat`;
+        return null;
+      }
+      return grantee(v, order.character, "a kingship");
+    }
     case "unseat": {
-      const g = S.governors.find((x) => x.province === order.province && x.power === v.power) ?? null;
+      const g = governorsKnown(S, S.turn).find((x) => x.province === order.province && x.power === v.power) ?? null;
       if (g === null) return `you have no governor in ${order.province}`;
       if (g.relieved !== null) return `word taking back the governorship is already on its way`;
       return null;

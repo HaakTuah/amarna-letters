@@ -63,6 +63,8 @@ export interface BuildOrder {
   kind: WorkKind;
   level: number;
   labour: boolean;
+  /** Item 17++: by corvée, a share in a hundred of the men of fighting age at home rather than the men the work needs. */
+  share?: number | null;
 }
 /**
  * An army of the seat's standing in land another holds razes a level of what stands there: its roads, relay stations,
@@ -168,6 +170,15 @@ export interface DemandOrder {
   province: string | null;
   how: "share" | "amount";
   n: number;
+}
+/**
+ * Item 17++ ("taken up, never thrust on anyone"): a king's answer to a province that declared for him, or that was ceded to
+ * him by treaty: take it up (`take`), a letter accepting it, or refuse it. The word travels to the province.
+ */
+export interface AnswerOrder {
+  type: "answer";
+  province: string;
+  take: boolean;
 }
 /** Send scribes to count a province of one's own (item 17++, "A census"): paid now, their count travels home dated. */
 export interface CensusOrder {
@@ -402,6 +413,18 @@ export interface GovernOrder {
   character: string;
   levies: number;
 }
+/**
+ * Item 17++ ("Governors"): grant `character`, a governor or a character of the seat's, the kingship of `provinces` of the
+ * seat's under oath, as its vassal, for `tribute` shekels a year and a `price` he pays for it: the word reaches him at his
+ * seat; he takes it or not by his stakes; if he does, the land is his, bound by a vassal tablet.
+ */
+export interface CrownOrder {
+  type: "crown";
+  character: string;
+  provinces: string[];
+  tribute: number;
+  price: number;
+}
 /** Item 13: take back the governorship of `province` by sending word; he steps down when it reaches him, or refuses. */
 export interface UnseatOrder {
   type: "unseat";
@@ -608,6 +631,7 @@ export type Order =
   | MandateOrder
   | SupplyOrder
   | GovernOrder
+  | CrownOrder
   | UnseatOrder
   | CourtOrder
   | EnlistOrder
@@ -630,6 +654,7 @@ export type Order =
   | TollOrder
   | DemandOrder
   | CensusOrder
+  | AnswerOrder
   | WelcomeOrder
   | DeportOrder
   | ExpelOrder
@@ -681,6 +706,7 @@ export const relieve = (unit: string): RelieveOrder => ({ type: "relieve", unit 
 export const supply = (unit: string, buy: boolean, gold = 0): SupplyOrder => ({ type: "supply", unit, buy, gold });
 export const mandateOrder = (unit: string, mandate: Mandate | null): MandateOrder => ({ type: "mandate", unit, mandate });
 export const govern = (province: string, character: string, levies = 0): GovernOrder => ({ type: "govern", province, character, levies });
+export const crown = (character: string, provinces: string[], tribute: number, price = 0): CrownOrder => ({ type: "crown", character, provinces, tribute, price });
 export const unseat = (province: string): UnseatOrder => ({ type: "unseat", province });
 export const moveCourt = (to: string): CourtOrder => ({ type: "court", to });
 export const enlist = (province: string, fee: number, term: number): EnlistOrder => ({ type: "enlist", province, fee, term });
@@ -688,7 +714,7 @@ export const move = (unit: string, to: string, forced = false): MoveOrder => (fo
 export const support = (unit: string, supported: string, to: string | null = null): SupportOrder => ({ type: "support", unit, supported, to });
 export const convoy = (unit: string, army: string, to: string): ConvoyOrder => ({ type: "convoy", unit, army, to });
 export const besiege = (unit: string): BesiegeOrder => ({ type: "besiege", unit });
-export const build = (province: string, kind: WorkKind, level: number, labour = false): BuildOrder => ({ type: "build", province, kind, level, labour });
+export const build = (province: string, kind: WorkKind, level: number, labour = false, share: number | null = null): BuildOrder => ({ type: "build", province, kind, level, labour, ...(share !== null ? { share } : {}) });
 export const raze = (unit: string, kind: WorkKind): RazeOrder => ({ type: "raze", unit, kind });
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
 export const raise = (province: string, kind: UnitKind, men: number | null = null, share: number | null = null): RaiseOrder =>
@@ -763,6 +789,7 @@ export const trade = (from: string, to: string, grain: number, gold: number, sne
 export const ship = (fleet: string, from: string, to: string, grain: number, gold: number, trade = true): ShipOrder => ({ type: "ship", fleet, from, to, grain, gold, trade });
 export const demand = (how: "share" | "amount", n: number, province: string | null = null): DemandOrder => ({ type: "demand", province, how, n });
 export const census = (province: string): CensusOrder => ({ type: "census", province });
+export const answer = (province: string, take: boolean): AnswerOrder => ({ type: "answer", province, take });
 export const welcome = (province: string): WelcomeOrder => ({ type: "welcome", province });
 export const deport = (province: string, to: string, number: number, purse = false): DeportOrder => ({ type: "deport", province, to, number, purse });
 export const expel = (province: string, percent = 50): ExpelOrder => ({ type: "expel", province, percent });
@@ -810,6 +837,8 @@ export function describe(o: Order): string {
       return `grant ${o.character} the governorship of ${named(o.province)}${o.levies > 0 ? `, to raise up to ${o.levies} levies there if foreign troops threaten it` : ""}`;
     case "unseat":
       return `take back the governorship of ${named(o.province)}`;
+    case "crown":
+      return `grant ${o.character} the kingship of ${o.provinces.map(named).join(", ")} under oath as your vassal, for ${o.tribute} shekels of tribute a year${o.price > 0 ? ` and a price of ${o.price} shekels` : ""}`;
     case "court":
       return `set out with the court for ${named(o.to)}`;
     case "enlist":
@@ -827,7 +856,7 @@ export function describe(o: Order): string {
     case "unreadable":
       return o.text;
     case "build":
-      return `keep the ${workName(o.kind)} of ${named(o.province)} at ${workLevelText(o.kind, o.level)}, ${o.labour ? "by corvée" : "paid in gold"}`;
+      return `keep the ${workName(o.kind)} of ${named(o.province)} at ${workLevelText(o.kind, o.level)}, ${o.labour ? (o.share != null ? `by a corvée of ${o.share}% of the men at home` : "by corvée") : "paid in gold"}`;
     case "raze":
       return `${o.unit} razes a level of the ${workName(o.kind)} where it stands`;
     case "sally":
@@ -864,6 +893,8 @@ export function describe(o: Order): string {
       return `ask ${o.how === "share" ? `${o.n}% of the harvest` : `${o.n} measures of grain a season`} of ${o.province === null ? "all your land" : named(o.province)}`;
     case "census":
       return `send scribes to count ${named(o.province)}`;
+    case "answer":
+      return o.take ? `take up ${named(o.province)}, which looks to you` : `refuse ${named(o.province)}, which looks to you`;
     case "cede":
       return `cede ${o.province} to ${o.to}`;
     case "giftUnit":
@@ -980,6 +1011,7 @@ export function characterOf(o: Order): string | null {
       return o.envoy;
     case "command":
     case "govern":
+    case "crown":
       return o.character;
     case "release":
     case "dismiss":
@@ -1024,6 +1056,7 @@ export const OrderSchema = poly("Order", "type", {
   supply: v("SupplyOrder", () => supply("", false), { unit: S, buy: B, gold: I, named: opt(S) }),
   mandate: v("MandateOrder", () => mandateOrder("", null), { unit: S, mandate: opt(() => MandateSchema) }),
   govern: v("GovernOrder", () => govern("", ""), { province: S, character: S, levies: I }),
+  crown: v("CrownOrder", () => crown("", [], 0), { character: S, provinces: list(S), tribute: I, price: I }),
   unseat: v("UnseatOrder", () => unseat(""), { province: S }),
   court: v("CourtOrder", () => moveCourt(""), { to: S }),
   enlist: v("EnlistOrder", () => enlist("", 0, 0), { province: S, fee: I, term: I }),
@@ -1032,7 +1065,7 @@ export const OrderSchema = poly("Order", "type", {
   support: v("SupportOrder", () => support("", ""), { unit: S, supported: S, to: S }),
   convoy: v("ConvoyOrder", () => convoy("", "", ""), { unit: S, army: S, to: S }),
   besiege: v("BesiegeOrder", () => besiege(""), { unit: S }),
-  build: v("BuildOrder", () => build("", "Walls", 0), { province: S, kind: S, level: I, labour: B }),
+  build: v("BuildOrder", () => build("", "Walls", 0), { province: S, kind: S, level: I, labour: B, share: opt(I) }),
   raze: v("RazeOrder", () => raze("", "Roads"), { unit: S, kind: S }),
   sally: v("SallyOrder", () => sally("", ""), { city: S, from: S }),
   sell: v("SellOrder", () => sell("", 0), { province: S, amount: I }),
@@ -1047,6 +1080,7 @@ export const OrderSchema = poly("Order", "type", {
   fold: v("FoldOrder", () => fold("", ""), { unit: S, into: S }),
   demand: v("DemandOrder", () => demand("share", 0), { province: opt(S), how: S, n: I }),
   census: v("CensusOrder", () => census(""), { province: S }),
+  answer: v("AnswerOrder", () => answer("", false), { province: S, take: B }),
   welcome: v("WelcomeOrder", () => welcome(""), { province: S }),
   deport: v("DeportOrder", () => deport("", "", 0), { province: S, to: S, number: I, purse: B }),
   expel: v("ExpelOrder", () => expel(""), { province: S, percent: I }),

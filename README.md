@@ -101,7 +101,9 @@ rumours, and those can be late, shaded or false.
   out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped. Orders are checked
   against what your court knows: one for land lost out of your sight goes out, and you hear it failed when word comes.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
-  holding it gives him, and you take it back by sending word.
+  holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
+  his seat. Or make a governor (or a man at your court) a vassal king over provinces of yours, by a grant under oath for
+  a tribute and a price you name: if he takes it, the land is his, bound to you by a sealed vassal tablet.
 
 **The land and its people.**
 - Each province's people farm, give the grain you ask of them into its stores, and eat what they keep. Ask a share of
@@ -111,23 +113,29 @@ rumours, and those can be late, shaded or false.
   The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men on the
   roads may raise bands of their own.
 - You know your provinces' people only as your scribes last counted them, dated: the province card shows the town and
-  its land apart ("about 18,000 in the town; about 650,000 on its land"). Send scribes to count a province afresh (a
+  its land apart ("about 18,000 in the town; about 650,000 on its land"), two figures while the count is under a year
+  old and one once older ("some 600,000"), and your stores as your stewards round them. Egypt starts with recent counts,
+  the other courts with counts two years old. Send scribes to count a province afresh (a
   census, paid when they set out): their count comes home a season or more later, and being counted stirs the people a
   little.
 - Sell and buy grain and goods at your own markets, where prices follow supply; send caravans and trade abroad, and set
   tolls on your roads.
-- Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée: nothing is
+- Keep or raise your walls, roads, relay stations, harbours, police and water works, in gold or by corvée (the men a work
+  needs, or a share of the men at home, the work going as fast as the men who come): nothing is
   kept unless you order it, and an army in another's land can raze them.
 - **No province is owned by a flag: it obeys whoever it fears or loves most.** Fear is troops standing in it, weighed
   against its own men (twice as many in hill land); troops next door, or before walls they have not stormed, weigh a
   little, for every king alike. Love is what its people remember of each king, governor and man of standing: what he gave
   them (protection, a siege lifted, policing, grain handed out, asking little) against what he took (asking much, levies, a census,
   food taken, a sack, robbing, a famine under him); grain handed out where your governor stands is credited to him unless
-  you hand it out in your own name. Memory fades, and you never see the numbers: your governor and spies tell you the mood
-  in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. Marching in or
+  you hand it out in your own name. Memory fades, and you never see the numbers: your governor, spies, envoys and scribes
+  tell you the mood in words. A province held by a wide margin pays its tax in full, one held narrowly as little as a third. Marching in or
   storming the walls takes nothing by itself: as each season begins a province goes, by a clear margin, to a king whose
   troops stand in it (within its walls), to a man of standing there whose following outweighs you, if he chooses to lead
-  them (he rules it in his own name), or, if it bears you nothing, to nobody. A rising against your troops is fought as a
+  them (he rules it in his own name), or, if it bears you nothing, to nobody. Nothing is thrust on you: a province whose
+  people favour you while your troops are not there declares for you, and is yours only if you take it up (the orders
+  panel's "Provinces that look to you"); refusing it costs you a little of its people's regard. Land ceded to you by
+  treaty is the same: a claim its giver holds until you take it up. A rising against your troops is fought as a
   battle, and seven men among thousands who lean away are beaten. The men of your armies keep a ledger too: pay, plunder
   and victories bind them to the hand they see, so a commander or governor who turns takes only the men who follow him. A
   far weaker unit an army falls on is destroyed even where its land held the army out. Fold a remnant into larger troops
@@ -374,7 +382,12 @@ colour), armies as chariots and fleets as ships. On the whole map every city is 
 it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
-uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow
+uncertain things (old sightings, rumours, spy reports) are drawn as such. Each realm shows in three steps of its colour:
+full where its king rules, lighter where a governor stands between, a faint wash over its vassals' land, each governor's
+provinces bounded by a thin line; the ◐ button shows the mood of the land as you last heard it (loyal, uneasy, restless,
+or no word), older reads fading: your own city as you see it, your governors' reports each season, a spy's watched
+province, the city of a court your envoy visited, a province your scribes counted, and travellers' blurred talk of the
+land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow
 their life: their path, their masters, their missions, what they said and reported. Drag and zoom
 as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
 

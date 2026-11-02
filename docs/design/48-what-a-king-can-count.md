@@ -12,13 +12,17 @@ readings. The report: `docs/rounds/2026-11-02-what-a-king-can-count.md`. Save ve
 
 - A count is a province as a court's scribes found it in one season: the settled on its land, the men of fighting age
   among them, the loose, the people of its town, the last harvest, the farmers' granaries and the crop in the fields.
-- Every court starts with a count of the land it holds, dated the first season (`seedCounts`). Land taken later has no
-  count until the king sends scribes.
+- Every court starts with a count of the land it holds (`seedCounts`), dated as its sources suggest (`StartCountAge`,
+  part C): Egypt's two seasons before the first, every other court's two years. Land taken later has no count until the
+  king sends scribes.
 - **What a seat sees** (`rules/views.ts`, `provinceEconomy`): its provinces' people and fields from its last count, with
-  the count's season (`counted`, null where it has none, the figures then 0). Its stewards report the rest exactly: its
-  stores, its market, how its countryside ate, and what its demand brings in (`tax`). The model king's prompt says each
-  count's age and the land never counted; the web's province card and town marker show the seat's count in a seat view,
-  rounded to two figures ("about 18,000"), and the exact figures in god view. The engine always reckons with the exact.
+  the count's season (`counted`, null where it has none, the figures then 0). Its stewards report its stores, its market,
+  how its countryside ate, and what its demand brings in (`tax`). **What is shown of it** (part C, against "Counts as the
+  scribes knew them"): a count at two figures while under a year old ("about 650,000") and one once older ("some
+  600,000", `countFigures`, `toFigures`); a land never counted only as a rough guess, one figure of what its land carries;
+  stores and the demand's take as the stewards round them, to two figures ("about 440 measures"). The model king's
+  prompt, the province card, the orders panel and the town marker follow it in a seat view; god view shows the exact
+  figures. The engine always reckons with the exact.
 
 ## The census (`GameState.censuses`, `turn/counts.ts`)
 
@@ -50,7 +54,14 @@ readings. The report: `docs/rounds/2026-11-02-what-a-king-can-count.md`. Save ve
   runaways give, and the ledger's taking or giving against the usual share.
 - **Levies** (`raise` with `share`; model actions `raise_army_share`, `raise_fleet_share`): a share of the men of
   fighting age at home, less the same `hiddenIn` percent; or a number of men, as item 11a+ built it. A share that comes to
-  fewer than a levy takes is refused as that, never as a land without men. The corvée stays each work's need (item 15).
+  fewer than a levy takes is refused as that, never as a land without men.
+- **The corvée** (part C, the owner's answer to #411; `BuildOrder.share`, `WorkPlan.share`, `corveeMen` in
+  `turn/works.ts`; model action `build_corvee_share`; the web's share box beside "by corvée"): the men a work needs,
+  named, as item 15 built it, or a share of the men of fighting age at home, less the same `hiddenIn` percent, never more
+  than the work needs. The work goes as fast as the men who come: a share short of a project's need does that part of a
+  season's work (`WorkPlan.done`, in men-seasons, so even a few men add up), carried on until it makes a season; a share short of the upkeep keeps
+  nothing that season. Script kings name the men while their count is fresh and ask a share sized to the work's need by
+  an old count (`corveeShares`), within `--count-play-half`.
 - The seat view's `yields` are what the last reaping brought in, a season's third of it, never the hands there now.
 - Only a governor stands between king and province: where one stands, the ledger debits or credits him for what is
   asked, as the hand the people see (part A's rule), and nothing else comes between.

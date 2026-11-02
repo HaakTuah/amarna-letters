@@ -79,14 +79,20 @@ const waysKnown = new WeakMap<SeatView, Ways>();
 
 /** The seasons beyond the first a courier takes from the court to each province, by the ways the king knows. */
 export function courierSeasonsFrom(v: SeatView, ways: Ways): Map<string, { seasons: number; route: string[] }> {
-  const season = seasonOfTurn(v.turn);
   const out = new Map<string, { seasons: number; route: string[] }>();
   for (const [id, holder] of v.owner) {
     if (holder !== v.power || id === v.courtAt) continue;
-    const r = cheapestRoute(Board.Map, v.courtAt, id, (a, c) => legPoints(Board.Map, a, c, season, { sneaking: false, ways }));
-    if (r !== null) out.set(id, { seasons: Math.floor(r.cost / SeasonPoints), route: r.route });
+    const r = courierRoute(v, ways, id);
+    if (r !== null) out.set(id, r);
   }
   return out;
+}
+
+/** The courier's road from the court to `to` this season, in whole seasons, or null where none is known. */
+export function courierRoute(v: SeatView, ways: Ways, to: string): { seasons: number; route: string[] } | null {
+  const season = seasonOfTurn(v.turn);
+  const r = cheapestRoute(Board.Map, v.courtAt, to, (a, c) => legPoints(Board.Map, a, c, season, { sneaking: false, ways }));
+  return r === null ? null : { seasons: Math.floor(r.cost / SeasonPoints), route: r.route };
 }
 
 /**
@@ -101,8 +107,9 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
     [...v.owner].filter(([, o]) => o === b.me).map(([k]) => k),
     [(x: string) => x, cmpStr],
   );
-  // What stands in land we took is unkept until we order it: keep it as it is, by corvée (every script king does).
-  for (const w of v.works.filter((x) => x.level > 0 && x.keep === 0)) orders.push(build(w.province, w.kind, w.level, true));
+  // What stands in land we took is unkept until we order it: keep it as it is, by corvée (every script king does), where
+  // the land allows the work at all (the audit's find 9: walls ordered kept where no town stands, refused every season).
+  for (const w of v.works.filter((x) => x.level > 0 && x.keep === 0 && landRefusal(x.kind, Board.Map.get(x.province)) === null)) orders.push(build(w.province, w.kind, w.level, true));
   if (!WorksPlay.on(b.me)) return { orders, spent };
   const foreign = (id: string): boolean => b.units.some((u) => u.province === id && u.power !== b.me);
   const free = (id: string): boolean => b.siegeAt(id) === null && !foreign(id);

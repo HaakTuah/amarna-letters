@@ -29,6 +29,10 @@ import type { ISeat } from "../contracts.ts";
 import { ahead } from "./ahead.ts";
 import { Board } from "./board.ts";
 import { commandOrders, courtMove, enlistOrders, governorOrders } from "./generals.ts";
+import { crownOrders } from "./crowns.ts";
+import { answerOrders } from "./declarations.ts";
+import { unseatOrders } from "./audit-play.ts";
+import { spyCheckOrders } from "./spy-check.ts";
 import { nameClaims } from "./claims.ts";
 import { reliefOrders, supplyOrders } from "./freedom.ts";
 import { Brain } from "./brain.ts";
@@ -130,6 +134,14 @@ export class ScriptLeader implements ISeat {
     // A threatened province's governor before the season's grants of command: the levies he raises there need nobody's
     // order to travel (item 13's measures found command taking every free person first).
     governorOrders(board, brain, orders, busy);
+    // Item 17++, part C: a trusted governor made a vassal king where the tribute nets more than keeping his land.
+    crownOrders(board, orders, busy);
+    // Item 17++: provinces that look to us, taken up where they pay and refused where they cost more than they bring.
+    answerOrders(board, brain, orders);
+    // The audit's find 4: a governor whose reports keep calling his land restless, with no foe beside it, is recalled.
+    unseatOrders(board, brain, orders, busy);
+    // #459: a governor whose letters hide what our own spy finds there is recalled.
+    spyCheckOrders(board, orders, busy);
     commandOrders(board, brain, orders, busy);
     enlistOrders(board, brain, orders);
     courtMove(board, brain, orders);

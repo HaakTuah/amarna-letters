@@ -241,9 +241,9 @@ describe("SeasonRulebookTests", () => {
  "units":[{"unit":"memphis","order":"move","target":"","to":""},
           {"unit":"akhetaten","order":"support","target":"","to":"sinai"},
           {"unit":"deltawaters","order":"convoy","target":"memphis","to":""}],
- "other_orders":[{"action":"cede_province","province":"sinai","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]},
-                 {"action":"give_unit","province":"memphis","power":"the Hittites","person":"","amount":0,"term":0,"text":"","item":"","seals":[]},
-                 {"action":"place_spy","province":"","power":"Kush","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]},
+ "other_orders":[{"action":"cede_province","province":"sinai","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[],"lands":[]},
+                 {"action":"give_unit","province":"memphis","power":"the Hittites","person":"","amount":0,"term":0,"text":"","item":"","seals":[],"lands":[]},
+                 {"action":"place_spy","province":"","power":"Kush","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[],"lands":[]},
                  {"action":"forge","province":"","power":"","person":"c3","amount":0,"term":0,"text":"Peace.","item":"","seals":["Hatti","Kush"]}]}`,
       )!,
     );
@@ -272,7 +272,7 @@ describe("SeasonRulebookTests", () => {
   test("A spy order with nowhere to watch is refused with the reason rather than dropped", () => {
     let sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","units":[],"command":[],"letters":[],"other_orders":[{"action":"place_spy","province":"","power":"","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
+        `{"notes":"","units":[],"command":[],"letters":[],"other_orders":[{"action":"place_spy","province":"","power":"","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[],"lands":[]}]}`,
       )!,
     );
     Assert.equal(placeSpy("c3"), Assert.single(sub.orders));

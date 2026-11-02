@@ -40,7 +40,7 @@ declare module "./core.ts" {
      */
     sendOrders(p: Power, sub: TurnSubmission): TurnSubmission;
     /** A notice to a king from a place in his realm: at once within the season's reach, else when a courier brings it. */
-    tell(p: Power, province: string, kind: InboxKind, title: string, text: string): void;
+    tell(p: Power, province: string, kind: InboxKind, title: string, text: string, extra?: number): void;
     /**
      * An order that failed because its province was no longer the king's (bug #467): word of it comes home by the road, as
      * word of the loss does, never at once; a scheduled one wakes its seat when the word comes.
@@ -108,6 +108,7 @@ function placeOf(e: TurnEngine, p: Power, o: Order): { province: string; unit: U
     case "trade":
       return { province: o.from, unit: null };
     case "census":
+    case "answer":
       return { province: o.province, unit: null };
     case "demand":
     case "toll":
@@ -232,15 +233,15 @@ P.courierRead = function (p, to, o) {
   }
 };
 
-P.tell = function (p, province, kind, title, text) {
+P.tell = function (p, province, kind, title, text, extra = 0) {
   const S = this.s;
-  const d = this.map.exists(province) ? this.wordTo(p, province) : 0;
-  if (d === 0 || !Number.isFinite(d)) {
+  const at = this.heardAt(p, province, extra);
+  if (at === S.turn + S.deliveryOffset) {
     notify(S, p, kind, title, text);
     return;
   }
-  // A report from afar: a courier brings it, d seasons later than a near one's.
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: S.turn + 1 + d, from: p, to: p, news: "Realm", text: `${kind}|${title}|${text}` }));
+  // A report from afar: a courier brings it, a season or more later than a near one's.
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: p, to: p, news: "Realm", text: `${kind}|${title}|${text}` }));
 };
 
 P.lostOrder = function (p, order, province, title, text, why) {
