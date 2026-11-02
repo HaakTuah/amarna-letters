@@ -21,10 +21,10 @@ account until its usage is spent; on the main account the usage brake closes it 
   17++ part C merges, since it redraws the map's steps). Open from the notes' first four: the powers' land names
   (#403, for Haakon), and army counters standing over a neighbour's seal on the whole map (the lane's report).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
-  the soundtracks and the Music page (#350), the soundscape (#351, #352); from the notes of 2 November, every province
-  a proper name (#391), the camera to the play area's edges (#396), a seal's tap to its own city (#398) and the tabs
-  and courts scrolled by wheel and drag (#397); their briefs are in
-  `docs/archive/progress-done.md`, "Side lanes".
+  the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
+  `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
+  the camera to the play area's edges (#396), a seal's tap to its own city (#398), and the tabs and the courts scrolled
+  by wheel and drag (#397).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
