@@ -49,7 +49,8 @@ crosses"): the holder of a province rules its roads, its policing and its tolls.
   B that they were Nubians: Moran's index takes "Kashite" as the gentilic of Kashi, Nubia, and Rainey reads Cushites]. Robbery by the
   powerful, then denial, is the normal case, which the game already allows ("Deniable attacks").
 - <a id="15-compensation-demand"></a>**The demand was compensation and punishment, rarely war** [A]. Burna-Buriash asks for the silver back and the
-  killers dead, and warns that unpunished robbery will cut the messengers off (EA 8); no letter shows a war fought over
+  killers dead, and warns that unpunished robbery will cut the messengers off (EA 8; Moran: "Put to death the men who put
+  my servants to death", as in [09](09-the-letters.md); the silver and the warning not re-read); no letter shows a war fought over
   a robbed caravan [S]. **Reading [G]:** a robbed envoy or caravan is a grievance between the two courts, settled in
   words and silver, which item 15 needs no rule for: the game's envoys, tablets and gifts carry it.
 
@@ -60,8 +61,8 @@ crosses"): the holder of a province rules its roads, its policing and its tolls.
 | <a id="15-hittite-law-5"></a>The Hittite laws, §5 (old version) | "If anyone kills a merchant", he pays 100 minas of silver (if in Luwiya or Pala, and replaces the goods besides); in Hatti itself he must also bring the merchant (to burial) | A (the text); C (how the clauses read) | The Hittite laws (Hoffner, in Roth; Hoffner, *Laws*, p. 19: "he shall pay 4,000 shekels (lit. 100 minas) of silver") |
 | <a id="15-hittite-law-5-late"></a>The Hittite laws, the late version of §5 | Who kills a merchant for his goods pays a fine in silver and replaces the goods threefold; a killing in a quarrel, or by accident, costs less (240 and 80 shekels) | A (the text); C (the figures, as the late version is damaged) | The same (Hoffner, *Laws*, p. 20: "he shall replace his goods threefold") |
 | <a id="15-ini-teshub-edict"></a>Ugarit and Carchemish (Ini-Teshub's edict) | If a merchant of Carchemish is killed in Ugarit, or one of Ugarit in Carchemish's land, and the killers are caught, they pay 3 minas of silver for each man and restore the goods (threefold, by one reading [C]); if they are not caught, the town where he died pays for the man, but not for the goods | A, later (Ini-Teshub, about 1240-1210) | RS 17.146 and its fellows (Nougayrol, *PRU* IV); Hoffner, *Laws*, p. 174: "the community had to make compensation for the murdered man, but was not required to restore stolen goods" |
-| <a id="15-ura-merchants"></a>Hattusili III on the merchants of Ura | They may trade in Ugarit in the summer but go home for the winter, and may not buy houses or land there | A, later (about 1250) | RS 17.130 (*PRU* IV) |
-| <a id="15-hattusili-killers"></a>Hattusili III to Kadashman-Enlil | A killer of merchants is not put to death in Hatti; he pays, and if the kin refuse, he becomes theirs | A, later | KBo I 10 (Beckman, *HDT* no. 23, §10) |
+| <a id="15-ura-merchants"></a>Hattusili III on the merchants of Ura | They may trade in Ugarit in the summer but go home for the winter, and may not buy houses or land there | A, later (about 1250) | RS 17.130 (*PRU* IV); the edict itself not reached (searched twice: no edition or translation online), so the wording is unchecked [C], and one secondary summary seen in a search reads the land clause as a bar on taking houses and fields for debts |
+| <a id="15-hattusili-killers"></a>Hattusili III to Kadashman-Enlil | A killer of merchants is not put to death in Hatti; he pays, and if the kin refuse, he becomes theirs | A, later | KBo I 10 (Beckman, *HDT* no. 23, §10); Beckman not reached (searched twice), so the terms are unchecked [C]. That the complaint was of merchants killed abroad: Wikipedia, "Kadashman-Enlil II" (after Munn-Rankin, *CAH* II.2): "his traders were being killed in Amurru and Ugarit" |
 
 **What this gives the game** [B]: the norm that the land where a foreign merchant dies pays for him, by catching the
 killers or, failing that, out of the town's own silver, held from Burna-Buriash's demand (EA 8) to Ugarit's edicts. In
@@ -182,7 +183,10 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
   the messengers who passed"; the place is Erman's guess) [A, later].
 - <a id="15-toll-rates"></a>**The rates of the period are lost** [S]. The only rates on record are Old Assyrian, five centuries earlier [A,
   earlier]: at Kanesh the local palace took a tax on entry (*nishatum*) of about 2 shekels in 65 on tin (about 3%) and
-  5% on textiles, and the cities on the road took transit dues besides, in tin or cloth (Veenhof; Larsen). **Start
+  5% on textiles, and the cities on the road took transit dues besides, in tin or cloth (K. R. Veenhof, *Law and Trade in Ancient Mesopotamia and Anatolia: Selected Papers*, ed. N. Kouwenberg (Sidestone, 2020, [open access](https://sidestone.com/openaccess/9789088909153.pdf)), p. 59: "the
+  right to levy taxes on the imported tin (ca. 3 %) and textiles (5 %)"; p. 138: "import taxes (nisḫātum) amounting to five
+  percent of the textiles and four pounds of tin per standard donkey-load of 130 pounds of tin"; p. 119: "local import and
+  transit taxes"); Larsen not reached. **Start
   from:** a default rate of 3%, the low end, per border crossed, which a holder may raise or waive as the intent
   says; at 5% the goods of a Babylon-Egypt caravan crossing four or five holders would lose a fifth to tolls, which the
   record of merchants still trading that road does not suggest.
@@ -194,7 +198,9 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
 
 - <a id="15-smuggling"></a>**Smuggling is attested, but not in the period** [A, earlier]. Old Assyrian merchants took the "narrow road"
   (*harrān sūqinnim*) round the toll posts, or slipped goods past the palace at Kanesh; the palace confiscated what it
-  caught, and the merchants' letters warn each other not to be caught (Veenhof) [A, earlier]. For 1346 the sources are
+  caught, and the merchants' letters warn each other not to be caught (Veenhof) [A, earlier] (Veenhof, *Law and Trade*,
+  2020, p. 119, an order of the Kanesh colony: "Nobody shall smuggle tin or textiles"; p. 139: traders "try to evade
+  taxes by following by-roads"). For 1346 the sources are
   silent [S]; the game's smuggling is that old practice, made where tolls are.
 - <a id="15-shaushgamuwa-embargo"></a>**Contraband: what kings forbade** [A, later]. Tudhaliya IV's treaty with Shaushgamuwa of Amurru (about 1230) bars
   Amurru's merchants from going to Assyria and Assyria's from entering Amurru, and is read as barring Ahhiyawa's ships
@@ -241,16 +247,20 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
   manned and the scouts out and close the gates at night [A] (Miller). This is the Hittite form of
   item 15's policing.
 - <a id="15-fugitives"></a>**Fugitives** [A]: nearly every Hittite treaty has a clause for returning fugitives who cross the border
-  (Beckman: Sunashshura of Kizzuwatna, a generation or more before 1346, and Huqqana of Hayasa, under Suppiluliuma)
-  [A]. Runaways are the Habiru's source
+  (Beckman: Sunashshura of Kizzuwatna, a generation or more before 1346, and Huqqana of Hayasa, under Suppiluliuma;
+  Beckman not reached) [A]. Of Kizzuwatna's earlier treaties with Hatti, A. Trameri, *Kizzuwatna* (PhD thesis, NYU,
+  2020, [pdf](https://archive.nyu.edu/jspui/bitstream/2451/63928/3/Trameri_2020_PhD_Kizzuwatna.pdf)), p. 272:
+  "Questions of borders are very frequent, and involve trespassing of people or “fugitives”, who must be sent back". Runaways are the Habiru's source
   (see 14), so a king who returns them takes men from the road's bands [B]. **Reading [G]:** no rule; a sealed tablet
   may say it, and it binds by words.
 
 ### Ugarit and the merchant towns
 
-- <a id="15-tamkar-sharri"></a>Ugarit kept the king's merchants (*tamkār sharri*), who traded abroad under his name and on his credit, and his
+- <a id="15-tamkar-sharri"></a>Ugarit kept the king's merchants (*tamkār sharri*), who traded abroad under his name with the palace's goods, and his
   officials answered for foreign merchants in his land under the overlord's edicts (above) [A, later; B for 1346]
-  (van Soldt; Monroe). No police corps of Ugarit is named [S].
+  (van Soldt and Monroe not reached; J. Kelder and E. Cline, "In the Midst of the 'Great Green'", in J. Spier et al.
+  (eds.), *Beyond the Nile* (Getty, 2018), p. 25, of the *tamkaru ša šepe*: "These traders operated exclusively on
+  behalf of the palace and traded goods from the palace storerooms"; "exempt from taxes"). No police corps of Ugarit is named [S].
 
 ### What policing cost
 

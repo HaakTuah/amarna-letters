@@ -225,9 +225,9 @@ describe("ModelLayerTests", () => {
   "command":[],"letters": [ { "envoy": "c3", "to": "Hatti", "message": "Peace.", "mandate": "peace", "gold": 50, "purity": 70,
                  "call_brother": false, "call_them_great_king": true, "claim_great_king": true, "your_name_first": true,
                  "omit_greeting": false, "tablet_to_seal": "Peace forever.", "sworn_alliance": true, "show_tablet_copies": [] } ],
-  "other_orders": [ { "action": "raise_army", "province": "thebes", "power": "", "person": "", "amount": 0, "text": "", "item": "", "seals": [] },
-                    { "action": "place_spy", "province": "", "power": "Mitanni", "person": "c4", "amount": 0, "text": "", "item": "", "seals": [] },
-                    { "action": "forge", "province": "", "power": "", "person": "c4", "amount": 0, "text": "x", "item": "", "seals": ["Hatti","Assyria"] } ]
+  "other_orders": [ { "action": "raise_army", "province": "thebes", "power": "", "person": "", "amount": 0, "text": "", "item": "", "seals": [], "lands": [] },
+                    { "action": "place_spy", "province": "", "power": "Mitanni", "person": "c4", "amount": 0, "text": "", "item": "", "seals": [], "lands": [] },
+                    { "action": "forge", "province": "", "power": "", "person": "c4", "amount": 0, "text": "x", "item": "", "seals": ["Hatti","Assyria"], "lands": [] } ]
 }`,
     ) as JsonObject;
     let sub = Parse.orders(json);

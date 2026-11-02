@@ -73,7 +73,14 @@ export function answerLetter(view: AudienceView, b: Board, brain: Brain, reply: 
     answered.add(k);
     return true;
   };
+  // What the tablet we seal asks of us we grant by the seal (the audit's find 11): its words answer it as the seal does,
+  // never refusing a tribute the sealed tablet records.
+  const sealed = new Set<ClauseKind>(reply.sealProposal && view.proposal !== null ? view.proposal.clauses.map((x) => x.kind).filter((k) => k.startsWith("ask")) : []);
   for (const c of view.clauses) {
+    if (sealed.has(c.kind)) {
+      if (once(c.kind)) reply.clauses.push(answer("accept", c.kind));
+      continue;
+    }
     switch (c.kind) {
       case "askGold": {
         if (!once(c.kind)) break;

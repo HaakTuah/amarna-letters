@@ -24,7 +24,7 @@ export interface Remembered {
   /** Countrysides that went short last season, with how well they ate (thousandths): the viewer's own (all in god view). */
   famine: Map<string, number>;
   /** Towns, by their people: settled now, and a year ago: the viewer's own (all in god view). */
-  towns: Map<string, { now: number; before: number }>;
+  towns: Map<string, { now: number; before: number; countAge: number | null }>;
   caravans: FrameRoad[];
   walking: FrameRoad[];
 }
@@ -80,7 +80,7 @@ export function remember(frames: readonly SeasonFrame[], index: number, viewer: 
   const ruins = frames.length > 0 ? knownRuins(frames, Math.min(Math.max(index, 0), frames.length - 1), viewer) : new Set<string>();
   const wild = new Set<string>();
   const famine = new Map<string, number>();
-  const towns = new Map<string, { now: number; before: number }>();
+  const towns = new Map<string, { now: number; before: number; countAge: number | null }>();
   const at = Math.min(Math.max(index, 0), frames.length - 1);
   for (const p of Map_.landProvinces) {
     if (!sees(p.id)) continue;
@@ -94,9 +94,11 @@ export function remember(frames: readonly SeasonFrame[], index: number, viewer: 
     const fed = g.fed.get(p.id);
     if (fed !== undefined && fed < FamineBelow) famine.set(p.id, fed);
     // Its land's people (item 17++): exact in god view, a seat's as its scribes last counted them.
-    const people = (x: SeasonFrame): number | undefined => (viewer === null ? x.settled.get(p.id) : x.counted.get(viewer)?.get(p.id));
+    const people = (x: SeasonFrame): number | undefined => (viewer === null ? x.settled.get(p.id) : x.counted.get(viewer)?.get(p.id)?.settled);
     const now = people(g) ?? 0;
-    if (now > 0) towns.set(p.id, { now, before: people(frameAt(frames, Math.max(0, k - 3))) ?? now });
+    // The count's age in a seat view, which sets how many figures it shows (null in god view: exact).
+    const c = viewer === null ? undefined : g.counted.get(viewer)?.get(p.id);
+    if (now > 0) towns.set(p.id, { now, before: people(frameAt(frames, Math.max(0, k - 3))) ?? now, countAge: c === undefined ? null : g.turn - c.turn });
   }
   // A court knows its own caravans, as the engine's view tells it; deportees on a road it sees.
   const caravans = viewer === null ? f.caravans : f.caravans.filter((r) => r.power === viewer);

@@ -23,6 +23,7 @@ import {
   type UnitView,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { restless } from "./freedom.ts";
 import type { Brain } from "./brain.ts";
 
 /** Script kings grant commands and give mandates (`--no-command-play`), or half of them leave it (`--command-play-half`). */
@@ -113,11 +114,24 @@ export function courtMove(b: Board, _brain: Brain, orders: Order[]): void {
   if (safe.length > 0) orders.push(moveCourt(safe[0]));
 }
 
+/** The seasons a governor must have held his post before a script king trusts him with a province beside it. */
+const TrustSeasons = 4;
+
+/** Script kings that never give a governor a province beside his own (`--no-region-play`, `--region-play-half`). None by default. */
+export const RegionPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+  off: false,
+  only: null,
+  on(me: string): boolean {
+    return !(this.off && (this.only === null || this.only.has(me)));
+  },
+};
+
 /**
  * A script king's governors (item 13, "Governors"): a former ruler standing at his court is granted his old city back as
  * its governor (item 11d's "a governorship, a privilege"); and, while he keeps one person at court for his letters, he
  * grants the governorship of the province of his own most threatened by foreign armies beside it, away from his court and
- * with nobody governing it, allowing two levies there. He recalls a governor whose province yields less than it should
+ * with nobody governing it, allowing two levies there; a threatened province beside a trusted governor's goes to him,
+ * governed from his seat (item 17++). He recalls a governor whose province yields less than it should
  * only by what he hears: the bots see no skimming, so they keep their governors.
  */
 export function governorOrders(b: Board, _brain: Brain, orders: Order[], busy: HSet<string>): void {
@@ -133,12 +147,23 @@ export function governorOrders(b: Board, _brain: Brain, orders: Order[], busy: H
     busy.add(c.id);
     governed.add(city);
   }
+  const foes = b.others.filter((u) => u.kind === "Army").map((u) => u.province);
+  // Item 17++: a trusted governor (in office a while, his land not written of as restless) takes a threatened province
+  // beside his own from his seat, one man over a region, rather than a new man over each.
+  const unquiet = new Set(restless(b));
+  const trusted = RegionPlay.on(b.me) ? v.governors.filter((g) => !g.relieving && g.from <= v.turn - TrustSeasons && !unquiet.has(g.province) && !busy.has(g.character)) : [];
+  for (const x of sortBy(mine.filter((y) => y !== v.courtAt && !governed.has(y) && !Board.Map.get(y).isSea && Board.Map.neighbors(y).some((n) => foes.includes(n))), [(y: string) => y, cmpStr])) {
+    const g = trusted.find((t) => Board.Map.neighbors(t.province).includes(x));
+    if (g === undefined) continue;
+    orders.push(govern(x, g.character, 2));
+    busy.add(g.character);
+    governed.add(x);
+  }
   const ready = sortBy(
     v.court.filter((c) => c.ours && c.ready && !busy.has(c.id) && (c.errandWhat === null || c.errandDone || c.errandWhat === "stay")),
     [(c: CharacterView) => c.id, cmpStr],
   );
   if (ready.length < 2) return;
-  const foes = b.others.filter((u) => u.kind === "Army").map((u) => u.province);
   const threatened = sortBy(
     mine.filter((x) => x !== v.courtAt && !governed.has(x) && !Board.Map.get(x).isSea && Board.Map.neighbors(x).some((n) => foes.includes(n))),
     [(x: string) => -Board.Map.neighbors(x).filter((n) => foes.includes(n)).length, cmpNum],

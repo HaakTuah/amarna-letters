@@ -20,7 +20,7 @@ import { Views } from "../rules/views.ts";
 import { TurnEngine } from "./core.ts";
 
 /** How a character came to rule: see `RisenPower.how`. */
-export type RiseHow = "governor" | "turned" | "revolt" | "chief" | "elder";
+export type RiseHow = "governor" | "turned" | "revolt" | "chief" | "elder" | "granted";
 
 export interface Rising {
   how: RiseHow;
@@ -40,6 +40,8 @@ export interface Rising {
   memory: string;
   /** The line of the record and of the news: "X rules Y in his own name ...". */
   line: string;
+  /** What he owes, in place of "nobody owes you anything" (item 17++: a king by grant, bound by his oath). */
+  bound?: string;
 }
 
 declare module "./core.ts" {
@@ -48,6 +50,8 @@ declare module "./core.ts" {
     ruleOwn(province: string, c: Character, r: Rising): Power;
     /** A band's men become its chief's army as he comes to rule (the new Idrimi). */
     bandToArmy(b: Band, p: Power): Unit | null;
+    /** A further province of `c`'s goes to his realm `p` (item 17++): its people's regard for him is his realm's now. */
+    joinRealm(province: string, c: Character, p: Power): void;
   }
 }
 
@@ -92,7 +96,7 @@ P.ruleOwn = function (id, c, r) {
   S.kingTongues.set(p, kingTongues(p, id));
   S.court.set(p, id);
   S.fallsHeard.set(p, was !== null && !isAlive(S, was) ? [was] : []);
-  S.governors = S.governors.filter((x) => x.character !== c.id);
+  for (const g of S.governors.filter((x) => x.character === c.id)) this.dropGovernor(g);
   this.setOwner(id, p);
   c.employer = p;
   c.status = "Employed";
@@ -128,11 +132,7 @@ P.ruleOwn = function (id, c, r) {
     if (men >= BandData.least && this.levyMen(id, men)) followed.push(newUnitFor(this, p, id, men));
   }
   // His people's regard for him is his realm's now: he rules in its name (item 17++).
-  const book = S.ledger.tryGet(id);
-  if (book !== undefined && book.has(c.id)) {
-    book.set(p, book.getOrDefault(p, 0) + book.get(c.id));
-    book.delete(c.id);
-  }
+  regardToRealm(this, id, c, p);
   S.startStrength.set(p, this.strength(p));
   const men = sum(followed, (u) => u.men);
   const troops = followed.length === 0 ? (r.followers.length === 0 ? "no troops stand with you" : "the troops there would not follow you, for you cannot pay them") : `${men} men follow you${followed.length < r.followers.length ? ", though not all: the rest you could not pay" : ""}`;
@@ -142,7 +142,7 @@ P.ruleOwn = function (id, c, r) {
     p,
     "Notice",
     "You rule in your own name",
-    `${r.story} ${prov.name} is yours: you rule it in your own name now, with a seat of your own like any city's ruler${walls > 0 ? `, behind walls of level ${walls}` : ""}. ${troops.charAt(0).toUpperCase() + troops.slice(1)}. Your treasury is ${S.treasuries.get(p).gold} shekels. Nobody owes you anything, and you owe nobody: you may keep silent, or send envoys with whatever terms you like, to become a vassal, to pay to be left alone, or to serve another court${was !== null && isAlive(S, was) ? `; ${was} may come to take it back` : ""}.`,
+    `${r.story} ${prov.name} is yours: you rule it in your own name now, with a seat of your own like any city's ruler${walls > 0 ? `, behind walls of level ${walls}` : ""}. ${troops.charAt(0).toUpperCase() + troops.slice(1)}. Your treasury is ${S.treasuries.get(p).gold} shekels. ${r.bound ?? `Nobody owes you anything, and you owe nobody: you may keep silent, or send envoys with whatever terms you like, to become a vassal, to pay to be left alone, or to serve another court${was !== null && isAlive(S, was) ? `; ${was} may come to take it back` : ""}.`}`,
     c.id,
   );
   notify(S, p, "Notice", "The state of the realm", stateOfRealm(S, this.map, p));
@@ -151,6 +151,20 @@ P.ruleOwn = function (id, c, r) {
   // Others hear of it as word travels from his city.
   for (const other of AllPowers.filter((x) => x !== p && isAlive(S, x) && !Views.sight(S, this.map, x).has(id))) this.word(p, other, "Realm", `Rumor|A new ruler|Word comes that ${r.line}.`);
   return p;
+};
+
+/** The people of `province`'s regard for `c` becomes his realm `p`'s. */
+function regardToRealm(e: TurnEngine, province: string, c: Character, p: Power): void {
+  const book = e.s.ledger.tryGet(province);
+  if (book !== undefined && book.has(c.id)) {
+    book.set(p, book.getOrDefault(p, 0) + book.get(c.id));
+    book.delete(c.id);
+  }
+}
+
+P.joinRealm = function (province, c, p) {
+  regardToRealm(this, province, c, p);
+  this.setOwner(province, p);
 };
 
 /** A unit of `men` men of `province`, standing there, its home. */

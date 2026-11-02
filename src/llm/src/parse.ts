@@ -12,6 +12,7 @@ import {
   newMandate,
   govern,
   unseat,
+  crown,
   moveCourt,
   enlist,
   type MandateTask,
@@ -37,6 +38,7 @@ import {
   fold,
   demand,
   census,
+  answer,
   welcome,
   expel,
   deport,
@@ -472,10 +474,13 @@ function other(x: Node): Order | null {
     case "raise_fleet_share":
       return raise(province, "Fleet", null, amount);
     case "build":
-    case "build_corvee": {
+    case "build_corvee":
+    case "build_corvee_share": {
       const kind = workKindNamed(S(x, "item"));
       if (kind === null) return unreadable(`build in ${province}`, "name what to build in item: walls, roads, stations, harbour, police or water");
-      return build(province, kind, kind === "Policing" ? Math.round(Math.max(0, amount) / PoliceMenPerLevel) : amount, S(x, "action") === "build_corvee");
+      const action = S(x, "action");
+      // Item 17++: a corvée asked as a share of the men at home, in percent (share).
+      return build(province, kind, kind === "Policing" ? Math.round(Math.max(0, amount) / PoliceMenPerLevel) : amount, action !== "build", action === "build_corvee_share" ? I(x, "share") : null);
     }
     case "sell_grain":
       return sell(province, amount);
@@ -505,6 +510,10 @@ function other(x: Node): Order | null {
       return demand("amount", amount, pr !== null ? province : null);
     case "census":
       return census(province);
+    case "take_up_province":
+      return answer(province, true);
+    case "refuse_province":
+      return answer(province, false);
     case "welcome_loose":
       return welcome(province);
     case "expel_mouths":
@@ -562,6 +571,9 @@ function other(x: Node): Order | null {
       return govern(province, person, Math.max(0, I(x, "term")));
     case "take_back_governorship":
       return unseat(province);
+    case "grant_kingship":
+      // The tribute a year in gold, the price he pays in amount.
+      return crown(person, L(x, "lands").map(prov), Math.max(0, I(x, "gold")), Math.max(0, amount));
     case "move_court":
       return moveCourt(province);
     case "enlist_band":

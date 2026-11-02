@@ -648,6 +648,10 @@ P.wordArrives = function (j) {
     case "Job":
       notify(S, j.to, "Notice", "An offer abroad", j.text ?? "");
       break;
+    case "Foiled":
+      // Bug #467: a scheduled order foiled on land lost far away wakes its seat as the word of it comes (TurnEngine.lostOrder).
+      S.sleep.tryGet(j.to)?.pendingWake.push(j.text ?? "");
+      break;
     case "KingdomFalls": {
       const heard = new HSet<Power>(S.fallsHeard.tryGet(j.to) ?? []);
       heard.add(j.from);

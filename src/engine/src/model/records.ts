@@ -5,6 +5,7 @@ import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
 import { type Word, WordSchema, newWord } from "./word.ts";
 import { type JobErrand, JobErrandSchema } from "./people.ts";
+import { type MoodRead, MoodReadSchema } from "./moods.ts";
 
 /**
  * A job offered by a king to a person away from his court, carried by his envoy (the owner's answers to item 11a: "a job is
@@ -42,7 +43,7 @@ export type JourneyKind = (typeof JourneyKindValues)[number];
  * What a rumour about one of a court's own people tells it: news that ends a {@link Cover}. For word ("Word"), what it
  * tells a court of the world: a king closed or opened his roads to it, or a kingdom fell.
  */
-export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm"] as const;
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {
@@ -326,6 +327,8 @@ export interface HomeCargo {
   word: Word;
   /** Item 12: "home" if it left a court where nobody understood it, "lie" if it means to say it was heard; "" if heard. */
   unheard: string;
+  /** Item 17++, part C: the mood of the host's city as the envoy saw it, if it did; its court learns it when it is home. */
+  mood: MoodRead | null;
 }
 
 export function newHomeCargo(init: Partial<HomeCargo> = {}): HomeCargo {
@@ -341,6 +344,7 @@ export function newHomeCargo(init: Partial<HomeCargo> = {}): HomeCargo {
     claimHeld: false,
     word: newWord(),
     unheard: "",
+    mood: null,
     ...init,
   };
 }
@@ -357,6 +361,7 @@ export const HomeCargoSchema: ObjSchema<HomeCargo> = obj("HomeCargo", newHomeCar
   claimHeld: B,
   word: () => WordSchema,
   unheard: S,
+  mood: opt(() => MoodReadSchema),
 });
 
 export interface SpyReport {
@@ -389,6 +394,8 @@ export interface SpyReport {
   fee: number | null;
   purse: number | null;
   owed: Dict<Power, number> | null;
+  /** Item 17++, part C: the watched province's mood in words, as the spy heard it among its people; "" if none. */
+  mood: string;
 }
 
 export function newSpyReport(init: Partial<SpyReport> = {}): SpyReport {
@@ -407,6 +414,7 @@ export function newSpyReport(init: Partial<SpyReport> = {}): SpyReport {
     fee: null,
     purse: null,
     owed: null,
+    mood: "",
     ...init,
   };
 }
@@ -426,6 +434,7 @@ export const SpyReportSchema: ObjSchema<SpyReport> = obj("SpyReport", newSpyRepo
   fee: opt(I),
   purse: opt(I),
   owed: dict(I),
+  mood: S,
 });
 
 export interface PendingAudience {

@@ -10,7 +10,7 @@ import { outerRing } from "./markup.ts";
 import { FamineBelow } from "./memory.ts";
 import type { MapScene } from "./scene.ts";
 import type { FrameRoad, SeasonFrame } from "../session/frames.ts";
-import { about, powerName, provinceName } from "../ui/format.ts";
+import { counted, powerName, provinceName } from "../ui/format.ts";
 
 const Map_ = WorldMap.default;
 const esc = (s: string): string => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
@@ -49,7 +49,10 @@ export function lifeMarks(s: MapScene, province: string): { cls: string; inner: 
     out.push({
       cls: `town ${trend}`,
       inner: `<use href="#fig-houses" class="tw-houses" x="-5.5" y="-5.5" width="11" height="11"/>`,
-      text: `about ${about(economyOf(Map_.get(province)).town * 1000)} in the town and ${about(t.now)} on its land${s.viewer === null ? "" : " as last counted"}, ${trend} this year`,
+      text:
+        t.countAge === null
+          ? `${(economyOf(Map_.get(province)).town * 1000).toLocaleString("en")} in the town and ${t.now.toLocaleString("en")} on its land, ${trend} this year`
+          : `${counted(economyOf(Map_.get(province)).town * 1000, t.countAge)} in the town and ${counted(t.now, t.countAge)} on its land as last counted, ${trend} this year`,
     });
   }
   return out;

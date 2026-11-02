@@ -65,9 +65,14 @@ independent Assyria quarrel over Assyria's standing; Arzawa has passed its peak;
   if not later" (Introduction, sect. 6), so in 1346 they may still be to come [C]. His land is the Tigris triangle:
   Ashur, Nineveh, Arbela [B]. He later takes part of eastern Mitanni [B].
 - <a id="01-arzawa-lands"></a>**Arzawa.** The great power of western Anatolia in Amenhotep III's day: he sought a daughter of Tarhundaradu for his
-  harem, and their letters are in Hittite (EA 31-32) [A]. Its capital was Apasa (later Ephesus) [B]. By 1346 Hatti is
+  harem, and their letters are in Hittite (EA 31-32) [A]. EA 31 (Moran, Haas's translation): "Let us see the daughter
+  whom they will offer to my majesty in marriage". Its capital was Apasa (later Ephesus) [B: Mursili II's annals,
+  AhT 1A §17', p. 15: "Apasa, the city of Uhha-ziti"; Beckman, Bryce and Cline, *The Ahhiyawa Texts*, 2011, p. 46:
+  "His capital, Apasa, is generally recognized as the forerunner of Classical Ephesus"]. By 1346 Hatti is
   recovering at its expense; Mira, the Seha River Land, Hapalla and Wilusa are lands of the "Arzawa lands", each with
-  its own ruler, more allied than ruled [B: Bryce, Kingdom].
+  its own ruler, more allied than ruled [B: *The Ahhiyawa Texts*, p. 46: "The term 'Arzawa' is applied in Hittite
+  texts to a number of countries in western Anatolia, including Mira(-Kuwaliya), the Seha River Land, Hapalla, and
+  (sometimes) Wilusa"].
 - **Alashiya.** Cyprus, with a king who calls Pharaoh "brother" (EA 33-39) and pays his way in copper [A]. Where his
   seat was is disputed: Enkomi is the largest harbour town, but the clay of the Alashiya letters comes from the
   southern foothills of the Troodos, near Alassa and Kalavasos [C: Goren et al. 2003]. A royal official, the
@@ -110,17 +115,28 @@ is whose sphere the ruler is in during 1346.
 - <a id="01-lukka"></a>**Lukka** (`lukka`): the Lukka men raid Alashiya year by year (EA 38, Rainey: "year by year, are
   taking a small town in my land") [A]; no kingdom, later Hittite subjects in name.
 - <a id="01-hukkana"></a>**Azzi-Hayasa** (`azzi`, item 11f): the highlands beyond Isuwa (around Erzincan [C]) under Hukkana, who swore a treaty
-  with Suppiluliuma and married his sister (Beckman no. 3) [A]; when the treaty was sworn is not certain, early in the
-  reign [C], so the game opens with it sealed: Hatti's vassal. A generation before, its men sacked the Upper Land and
+  with Suppiluliuma and married his sister (Beckman no. 3) [A] (Diakonoff, *The Pre-history of the Armenian People*,
+  1984, p. 50, [attalus.org](https://www.attalus.org/armenian/diakph5.htm): "The Hittite king gave Hukkanas his sister in
+  marriage"); when the treaty was sworn is not certain, early in the reign [C] (Diakonoff, p. 50: in the preparations
+  for the war with Mitanni, "probably it was after this that a treaty was concluded"), so the game opens with it sealed: Hatti's vassal.
+  A generation before, its men sacked the Upper Land and
   made Samuha their frontier (KBo VI 28, Bryce, Letters, p. 171: "the Azzian enemy came and sacked all the Upper Lands
   and he made Samuha his frontier") [A]; its strongholds Aripsa and Dukkamma are a generation later (Mursili II's
-  annals) [A]. Its men's names: Mariya (in the treaty), Anniya (a later king) [A].
+  annals) [A]. Its men's names: Mariya (in the treaty), Anniya (a later king) [A]
+  (Diakonoff, pp. 50-53: "the people of Haiasa and Marias"; "Annias (son of Marias), the chief of Azzi").
 - <a id="01-samuha"></a>**Samuha** (`samuha`, item 11f): Hatti's own, in the Upper Land on the Marassantiya (Kayalıpınar near Sivas,
   an identification its tablet finds have made secure [B: O. Soysal, *ZA* 2019]), the royal residence and army base
   where Tudhaliya III held court while Hattusa lay burned [B: Bryce, Letters, p. 28: "Tudhaliya was forced to flee to
   a city called Samuha"].
-- <a id="01-libya"></a>**Libya** (`libya`, item 11f): the Tjehenu and Tjemehu west of the Delta, herders and raiders in Egypt's 18th-Dynasty
-  reliefs [A]; no king, no town; the names Didi and Kaper are chiefs Egypt named a century and more later [A, later].
+- <a id="01-libya"></a>**Libya** (`libya`, item 11f): the Tjehenu and Tjemehu west of the Delta, herders and Egypt's foes in its
+  18th-Dynasty texts [A]: Amun promises Amenhotep III, "I cause thee to seize the Tehenu (Tyhnw), (so that) there is no
+  remnant of them" (Breasted, *Ancient Records of Egypt* II, 1906, §892), and the Meshwesh, another Libyan people, are
+  "mentioned as a source of cattle provided to king Amenhotep III's palace at Malkata"
+  ([Wikipedia, "Meshwesh"](https://en.wikipedia.org/wiki/Meshwesh)); the groups' names: "the Tehenu, Temehu, Rebu and
+  Meshwesh" ([Wikipedia, "Ancient Libya"](https://en.wikipedia.org/wiki/Ancient_Libya)). No king, no town; the names
+  Didi and Kaper are chiefs Egypt named a century and more later [A, later]: Merneptah's "chief of Libya, Meryey, son of
+  Ded (Dy-d)" (Breasted III, the Merneptah war; Breasted IV, §43 n., cites it as "III, 579") and Ramesses III's "Meshwesh chieftains, Keper and
+  Meshesher, father and son" (Breasted IV, §83).
 - <a id="01-shasu"></a>**The Shasu** (`shasu`, item 11f): herders of the Negev and Edom, in Amenhotep III's lists at Soleb ("the land of the
   Shasu") [A]; Seti I fought them on the Ways of Horus a generation later [A]. No king, no town; their names do not
   survive [G for the style].
@@ -128,9 +144,19 @@ is whose sphere the ruler is in during 1346.
   War [A: Shattiwaza treaty; Luckenbill 1921, p. 164: "Ishuwa in its totality I devastated"]. Ruled by its own kings
   [B]; start it neutral.
 - <a id="01-hana"></a>**The middle Euphrates** (`mari`): by 1346 the land of Hana (Terqa its centre) under local kings, within Mitanni's
-  reach [B]. Mari itself is a ruin since Hammurabi (about 1760) [A].
-- <a id="01-elam"></a>**Susa** (`susa`): Elam under the dynasty of the Igihalkids [B], unconnected with the letters. A generation before
-  1346 a Kassite Kurigalzu took Susa [C: Kurigalzu I or II]; whether Babylonia still holds it in 1346 is unknown [C]. Start neutral, as now.
+  reach [B]. Terqa came "under the control of the Mitanni kingdom" in the mid-15th century, and after it kings calling
+  themselves "king of the land of Hana" ruled for seven or eight generations, the fourth, Isih-Dagan, in the "early
+  14th century" (Podany, *JNES* 73, 2014, as quoted in [Wikipedia, "Terqa"](https://en.wikipedia.org/wiki/Terqa)).
+  Mari itself has been little more than a village since Hammurabi destroyed it (about 1760) [A]: "destroyed by
+  Babylonia in c. 1761 BC, but it survived as a small settlement" ([Wikipedia, "Mari,
+  Syria"](https://en.wikipedia.org/wiki/Mari,_Syria)).
+- <a id="01-elam"></a>**Susa** (`susa`): Elam under the dynasty of the Igihalkids [B], unconnected with the letters: "Of the Igehalkids
+  (c. 1400 – 1210 BC), ten rulers are known" (McIntosh 2005, as cited in [Wikipedia, "Elam"](https://en.wikipedia.org/wiki/Elam)).
+  Two generations before 1346, about 1400, a Kassite Kurigalzu took Susa [C: Kurigalzu I or II]: Chronicle P credits
+  the conquest to the later Kurigalzu, but "it is now thought" that Kurigalzu I "conquered Susa and was perhaps
+  instrumental in the ascendancy of the Igehalkid dynasty over Elam, around 1400 BC" (Vallat, *Akkadica* 114-115,
+  2000, as cited in [Wikipedia, "Kurigalzu I"](https://en.wikipedia.org/wiki/Kurigalzu_I)); whether Babylonia still
+  holds it in 1346 is unknown [C]. Start neutral, as now.
 - <a id="01-kaska-and-suteans"></a>**Kaska lands, Sutean steppe** (item 7): tribes without kings ("The edges of the map").
 - **Habiru** (*'apiru*): not a people but outcasts, runaways and hired fighters, everywhere in the vassals' letters [B].
 
@@ -148,7 +174,7 @@ is whose sphere the ruler is in during 1346.
 | <a id="01-hatti-arzawa"></a>Hatti-Arzawa | Enemies | B | The old wars of Tudhaliya III (KBo VI 28, Bryce, Letters, p. 171: "From the Lower Land came the Arzawan enemy"); Arzawa on Hatti's west |
 | <a id="01-babylonia-assyria"></a>Babylonia-Assyria | Babylonia claims Assyria as vassal | A | EA 9 (Rainey: "as for the Assyrian, my vassal"; perhaps to Tutankhamun, see "Babylonia" above); later marriage and intervention |
 | <a id="01-mitanni-assyria"></a>Mitanni-Assyria | Former overlord and rebel | B | Assyria's independence was won from Mitanni; Shattiwaza calls the Assyrian king "the servant of his father" (6B, Luckenbill 1921, p. 172) |
-| <a id="01-babylonia-hatti"></a>Babylonia-Hatti | Distant, later marriage | B | Suppiluliuma later marries a Babylonian princess (his queen Tawananna) |
+| <a id="01-babylonia-hatti"></a>Babylonia-Hatti | Distant, later marriage | B | Suppiluliuma later marries a Babylonian princess (his queen Tawananna): Henti, mother of his sons, "was subsequently supplanted by a new chief wife, the Babylonian princess who assumed the name Tawananna as a personal name" (Beckman, Bryce and Cline, *The Ahhiyawa Texts*, 2011, p. 160) |
 | <a id="01-alashiya-hatti"></a>Alashiya-Hatti | No known relation in 1346 | C | Hatti had claimed Alashiya before: Arnuwanda I rebuked his vassal Madduwatta for raiding it, and Madduwatta answered that no king had told him "The land of Alasiya is mine" (the Indictment of Madduwatta, CTH 147, as in Beckman, Bryce and Cline, *The Ahhiyawa Texts*, 2011) [A]; the Hittite conquest comes later (Tudhaliya IV) |
 
 ## Design questions
