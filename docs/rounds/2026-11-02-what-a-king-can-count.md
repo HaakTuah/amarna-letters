@@ -85,6 +85,13 @@ both ways in every game.
 Before round 1 (on `bee4370`, before the signals): 20 games, every replay exact, the first fall in season 4 on the
 median, none in the first two seasons.
 
+**Use against ignore after round 3** (`--count-play-half`, 50 games, seed 1, on `c701835`): kings that count, ask an amount
+by a fresh count and levy by share by an old one, against kings that never count and always ask a share: **0.97 growth to
+0.86, 26 wins to 24. Pays.** Use and success over the 50 games: scribes sent 50 / 15,504, counts home 49 / 15,147 (98%);
+demands as a share 50 / 23,060, as an amount 50 / 16,744; **levies raised by share 49 / 568** (`levy-share`, round 2's
+feature; the signal counts the levies raised, so each one succeeded). Uneven by power as before (Hatti 1.16 against 1.32,
+Assyria 0.51 against 0.68, Libya 5.12 against 3.45): item 18.
+
 **Use against ignore** (`--count-play-half`, 50 games, seed 1, after round 1): kings that count and ask an amount while the
 count is fresh, against kings that never count and always ask a share: **0.96 growth to 0.89, 30 wins to 20. Pays.**
 Uneven by power (Hatti 1.05 against 1.28, Assyria 0.36 against 0.57, Azzi 1.62 against 0.97): item 18 looks at the share
