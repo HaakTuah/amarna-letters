@@ -112,6 +112,9 @@ describe("Calls that get through", () => {
     Assert.equal("n: gave nothing, where a number was asked", problems(read, z.object({ n: z.int() }))[0]);
     expect(readAsMeant({ to: ["'' "] }, z.object({ to: z.enum(["", "Assyria"]) }))).toEqual({ to: "" });
     expect(readAsMeant({ to: "none" }, z.object({ to: z.enum(["", "Assyria"]) }))).toEqual({ to: "" });
+    // Tool markup in a choice: dropped, and the choice it wraps kept.
+    expect(readAsMeant({ to: '\n<parameter name="go_as">' }, z.object({ to: z.enum(["", "Assyria"]) }))).toEqual({ to: "" });
+    expect(readAsMeant({ to: '<parameter name="to">Assyria</parameter>' }, z.object({ to: z.enum(["", "Assyria"]) }))).toEqual({ to: "Assyria" });
     // Two options the value could be: not guessed.
     expect(readAsMeant({ to: "Hatt" }, z.object({ to: z.enum(["Hatti", "Hattusa"]) }))).toEqual({ to: "Hatt" });
   });
