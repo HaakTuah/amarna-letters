@@ -74,6 +74,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The end of an age read "The age has ended (the gods have ended the age)"; it reads "The gods have ended the age." (or "Only one kingdom remains.", "The age has run its course."), and the header names the winners as the game shows them.
 - In the Standings tables a power's name could fall to the line below its emblem ("Carchemish" alone under its seal);
   emblem and name now stay on one line (#346).
+- The panel's tabs and the courts along the map scrolled only by touch or the arrow keys; with a mouse they scroll with the wheel and by dragging, and a drag never picks the tab or opens the court it started on.
 
 ## Finds not yet fixed
 
