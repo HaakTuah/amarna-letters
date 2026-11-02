@@ -64,7 +64,7 @@ export function GameMap({
   onPerson: (id: string) => void;
   onMark: (id: string, province: string | null) => void;
   onBlank: () => void;
-  /** The player dragged the map: the camera is theirs (a follow stops keeping it on its person). */
+  /** The player moved the camera (a drag, or the whole map shown): it is theirs, so a follow stops keeping it on its person. */
   onDrag?: () => void;
   children?: ReactNode;
   ref?: Ref<MapHandle>;
@@ -122,6 +122,8 @@ export function GameMap({
   const whole = (): void => {
     const r = renderer.current;
     if (r === null) return;
+    // The player moves the camera: a follow no longer keeps it on its person.
+    handlers.current.onDrag?.();
     const now = r.getView();
     if (back !== null) {
       r.setView(back.at, back.zoom, true);

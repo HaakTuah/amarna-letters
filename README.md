@@ -389,7 +389,7 @@ or no word), older reads fading: your own city as you see it, your governors' re
 province, the city of a court your envoy visited, a province your scribes counted, and travellers' blurred talk of the
 land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow
 their life: their path, their masters, their missions, what they said and reported; the camera keeps to them, where
-you last knew them, until you drag the map ("Keep the camera on them" takes it back). Drag and zoom
+you last knew them, until you move it yourself ("Keep the camera on them" takes it back). Drag and zoom
 as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's

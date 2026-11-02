@@ -131,7 +131,8 @@ export function Play() {
 
   // Follow keeps the camera on its person as the seasons go, where the seat last knew him ("Following, travel lines and
   // borders" under Interface), until the player drags the map or stops following.
-  const followAt = followId !== null && tracking && s.frames.length > 0 ? (pathOf(s.frames, s.shownIndex, viewerOf(), followId).at(-1)?.at ?? null) : null;
+  const followPath = followId !== null && s.frames.length > 0 ? pathOf(s.frames, s.shownIndex, viewerOf(), followId) : null;
+  const followAt = tracking ? (followPath?.at(-1)?.at ?? null) : null;
   useEffect(() => {
     if (followAt !== null) map.current?.focus(followAt, 1, true);
   }, [followAt?.x, followAt?.y]);
@@ -249,6 +250,8 @@ export function Play() {
   const fromList = (province: string): void => {
     const picking = draft?.selected != null;
     chosen(province);
+    // The camera goes to the province chosen: a follow no longer keeps it on its person.
+    setTracking(false);
     // A destination picked for an order: back to the orders, which now show it.
     if (picking && draft?.selected === null) setTab("orders");
     setSheet(false);
@@ -445,7 +448,7 @@ export function Play() {
             targets: useDraft ? draft!.targets() : null,
             arrows: useDraft ? draft!.arrows() : null,
             followId,
-            followPath: followId === null ? null : pathOf(s.frames, index, viewer, followId),
+            followPath,
           }}
           viewKey={`${live.gameId}:${viewer ?? "god"}`}
           opening={openingView(viewer)}
