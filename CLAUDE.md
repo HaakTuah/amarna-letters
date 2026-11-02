@@ -11,7 +11,7 @@ The same in both of Haakon's games; only the list of hard work differs.
 
 | Who | Model | Effort | For |
 | --- | --- | --- | --- |
-| You, the builder | Opus | medium; high for the TypeScript conversion and the fix pass after it | the item itself |
+| You, the builder | Opus | medium (high was for the TypeScript conversion and its fix pass, both done) | the item itself |
 | Search helper | Haiku (`model: "haiku"`) | as it comes | finding where things are across many files; it returns file:line and one-line conclusions |
 | Parallel helper | Sonnet (`model: "sonnet"`) for routine parts; Opus (`model: "opus"`) for parts that need design judgement | medium | one part of the work with a shape from "Helpers: when they pay" below, with a narrow brief and its own files |
 | Reviewer | Opus (`model: "opus"`, `effort: "high"`; `"medium"` for the design check) | high; medium for the design check | Codex's PRs; Claude's when Codex is unavailable; and the design check with a score on its build-order items (not the polish and sound lanes' small fixes) (`docs/claude-and-codex.md`, "Codex reviews"): every item, once, before it is merged (the builder rules): give it the diff, the item's text and "The game in one page", nothing else; it checks the diff against that page first, and sends the work back until it meets it |
