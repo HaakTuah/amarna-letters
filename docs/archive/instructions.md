@@ -1425,3 +1425,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     invented, the truth kept in the dossiers, and a check that fails when a real entity lacks its link or dossier
     reference, built in item 17+++b): "Yes please, expertly!" Written into "Learn more, and what is invented" under
     Interface (revision 27) and item 17+++b (Build order, revision 215).
+164. **2 November 2026, 15:59 and 16:03 UTC**, in the design chat: "And there is source checking against to make sure we don't drift from historicity? Are the more components in the code relies on that we should update? Should we have standing orders to update stuff? But we must make sure every package we use has an license which permits free use without any restrictions, and that every update don't change that!" Then, to the design session's four questions
+    (each changed real-world fact checked against its dossier source, and a monthly spot-check of the dossiers against
+    their sources; every version where Dependabot reads it, PeerJS with an integrity hash, a monthly check for the rest;
+    a licence allow-list of permissive licences gated on every PR, with a notices file and a full audit; and whether the
+    owner's own code gets a licence): "Yes to alll! And we keep rights gated for now. Expertly to all!" Written into "Review guidelines" ("History holds") in `AGENTS.md`, `CLAUDE.md`,
+    `docs/claude-and-codex.md` (the design check's brief; the monthly history spot-check), `SECURITY.md` point 10, and
+    "Follow-ups" in `docs/BUILD-PROGRESS.md`; the same for versions and licences in Barkstreet Snakes.

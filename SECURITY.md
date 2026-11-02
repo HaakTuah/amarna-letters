@@ -60,6 +60,15 @@ vector and security concerns".
    scanning) are seen only by the owner, and no agent is given a token to read them. One he passes on is never copied
    into an issue, a comment or a report: it is fixed in a PR that says what it hardens, never how to attack it. A real
    secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
+10. **Licences: free to use, kept that way.** Every package the game or its tools use, the ones they pull in included,
+   and every font, image, sound and data set, is under a licence on this list: MIT, MIT-0, ISC, BSD-2-Clause,
+   BSD-3-Clause, Apache-2.0, 0BSD, CC0-1.0, Unlicense, Zlib, BlueOak-1.0.0, Python-2.0, CC-BY-3.0 and CC-BY-4.0 (for
+   data and assets), OFL-1.1 (for fonts), or the public domain. Never copyleft (GPL, LGPL, AGPL, MPL, EPL, CDDL,
+   CC-BY-SA), never non-commercial or no-derivatives terms, never source-available terms (BSL, SSPL, Elastic, Commons
+   Clause), and never anything without a licence. A check on every pull request, Dependabot's included, fails one that
+   adds a package, or updates one, to a licence off the list; one the owner wants anyway is a `question` issue, never
+   merged on its own. What these licences ask, keeping their notices, is met by a third-party notices file shipped with
+   the game. The owner's own code carries no licence file, by his choice: all rights reserved. Never add one.
 
 ## Reporting a weakness
 
