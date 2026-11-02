@@ -1,4 +1,4 @@
-import { AllPowers, kingFor, type Power } from "@amarna/engine";
+import { AllPowers, kingFor, kingOtherNames, type Power } from "@amarna/engine";
 import { useState } from "react";
 import type { MapScene } from "../map/scene.ts";
 import type { FrameSleep } from "../session/frames.ts";
@@ -23,6 +23,7 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
   const god = scene.viewer === null;
   const heldBy = (p: Power): number => [...f.owner.values()].filter((o) => o === p).length;
   const sleepOf = (p: Power): FrameSleep | null => (god ? (f.sleep.get(p) ?? null) : null);
+  const otherNames = open !== null ? kingOtherNames(scene.viewer, open) : [];
   return (
     <div className="courtbar">
       <div className="courts" ref={sideScroll}>
@@ -57,6 +58,8 @@ export function CourtStrip({ scene }: { scene: MapScene }) {
           · {kingFor(scene.viewer, open)} · {heldBy(open)} provinces
           {god || scene.viewer === open ? `, ${f.units.filter((u) => u.power === open).length} units` : ""}
           {f.eliminated.has(open) ? " · fallen" : ""}
+          {/* His other names, on his card only (item 17+). */}
+          {otherNames.length > 0 && <div className="small muted">Also known as {otherNames.join("; ")}</div>}
           {sleepOf(open) !== null ? (
             <div className="small">{sleepLine(sleepOf(open)!, null)}</div>
           ) : (

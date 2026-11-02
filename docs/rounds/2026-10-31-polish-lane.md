@@ -79,6 +79,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - On the whole map a tap on a small city's seal opened whichever neighbour's tap circle was drawn last (Sidon's opened Ṣurru, Gezer's Ayyaluna: 23 of 71 seals on a computer, 31 on a phone); the nearest seal wins now (5 and 1 left, each a neighbour's army counter drawn over the seal, an open find).
 - The panel's tabs and the courts along the map scrolled only by touch or the arrow keys; with a mouse they scroll with the wheel and by dragging, and a drag never picks the tab or opens the court it started on.
 - Looking back at an earlier season, the province card gave the live state (in a seat view the new holder's figures where the city has since fallen); it gives that season's recorded figures (from the weekly blind re-review of #374).
+- A king's other names were never shown (#418): his card, from the courts along the map, now gives them under his name ("Also known as Akhenaten; Neferkheperure Waenre; Amenhotep IV"), every name but the one the viewer's court uses.
 
 ## Finds not yet fixed
 

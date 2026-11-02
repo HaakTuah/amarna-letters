@@ -167,7 +167,7 @@ const d = (land: string, king: string, adjective: string, tier: Tier = "City", h
 const Data: Record<FixedPower, PowerData> = {
   // Item 17+ ("Places by their own names"): foreign courts and their letters call Pharaoh Naphurureya, as the letters do;
   // Egypt's own seat says Akhenaten; his other names show only on his card.
-  Egypt: d("Egypt", "Naphurureya", "Egyptian", "Strong", "Akhenaten", ["Neferkheperure Waenre", "Amenhotep IV", "Naphurureya in the letters of other courts"]),
+  Egypt: d("Egypt", "Naphurureya", "Egyptian", "Strong", "Akhenaten", ["Neferkheperure Waenre", "Amenhotep IV"]),
   Hatti: d("Hatti", "Suppiluliuma", "Hittite", "Strong"),
   Babylonia: d("Karduniash", "Burna-Buriash", "Babylonian", "Strong"),
   Mitanni: d("Mitanni", "Tushratta", "Mitannian", "Middle"),
@@ -402,9 +402,15 @@ export function kingFor(viewer: Power | null, p: Power): string {
   return viewer === p && x.home !== null ? x.home : x.king;
 }
 
-/** A king's other names, shown only on his card when one clicks him, never in a letter, report or request (item 17+). */
-export function kingOtherNames(p: Power): readonly string[] {
-  return dataOf(p).others;
+/**
+ * A king's other names, shown only on his card when one clicks him, never in a letter, report or request (item 17+): every
+ * name the sources give him besides the one this viewer's court uses ({@link kingFor}): his own court's name for a
+ * foreign court, the letters' name for his own. Names from the sources, the same in every game, not a court's knowledge of the game.
+ */
+export function kingOtherNames(viewer: Power | null, p: Power): readonly string[] {
+  const x = dataOf(p);
+  const shown = kingFor(viewer, p);
+  return [x.home, x.king, ...x.others].filter((n): n is string => n !== null && n !== shown);
 }
 
 /** Whether the sources name the ruler: an unnamed one is "the king of ...", and is written so. */
