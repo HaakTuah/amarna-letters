@@ -1474,3 +1474,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     design session's take (yes: the progress file is the queue, so each wake reads its diff and acts on what is new,
     skipping its own builders' done-marks): "Yes, do it expertly if it is worth it in your expert opinion." Written into
     "The rules, re-read when they change" in `docs/orchestrating.md`; the same in Barkstreet Snakes.
+172. **2 November 2026, 19:28 and 19:36 UTC**, in the design chat: "Yes. It should probably do the step at every
+    milestone, before proceeding down the main lane, if they impact each other, no? and it is supposed to do it while
+    actually building. expert thoughts? and is it not queueing up every side lane it can? why not? are they not supposed
+    to?" Then, to the design session's take (a step 0 before any item or lane changes a file past about 50 KB, new work
+    for such a file going in as a new file, and the orchestrator's wake report counting its lanes and every independent
+    entry not running, with the reason): "Yes, expertly to all!" Written into "Split by meaning, from the start" in
+    `AGENTS.md` and "The rules, re-read when they change" in `docs/orchestrating.md`; the same in Barkstreet Snakes.
