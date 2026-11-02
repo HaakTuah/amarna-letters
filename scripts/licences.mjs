@@ -145,11 +145,13 @@ export function notices(dirs) {
 }
 
 /**
- * The npm settings in the repository that would make npm fetch from somewhere other than the address the lockfile names
- * (a registry of its own, or `replace-registry-host`), so `registryName` would vouch for what npm does not fetch.
+ * The lines of a committed `.npmrc` that are not one of a few settings known to leave where npm fetches from alone: npm
+ * reads keys in many spellings (quoted, scoped, from variables), so anything else, a registry or `replace-registry-host`
+ * above all, fails the check, and `registryName` only vouches for what npm really fetches.
  */
 export function registryOverrides(npmrc) {
-  return npmrc.split(/\r?\n/u).map((l) => l.trim()).filter((l) => /^(?:@[^:\s]+:)?registry\s*=|^replace-registry-host\s*=/u.test(l));
+  const harmless = /^(fund|audit|update-notifier|engine-strict|save-exact|progress|loglevel)\s*=\s*[\w.-]*$/u;
+  return npmrc.split(/\r?\n/u).map((l) => l.trim()).filter((l) => l && !/^[#;]/u.test(l) && !harmless.test(l));
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -159,7 +161,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const p of off) console.error(`off the list: ${p.name}@${p.version} (${p.license ?? "no licence"})`);
   const npmrcs = execFileSync("git", ["ls-files", "-z", "--", ":(glob)**/.npmrc"], { cwd: root, encoding: "utf8" }).split("\0").filter(Boolean);
   const overrides = npmrcs.flatMap((f) => registryOverrides(readFileSync(join(root, f), "utf8")).map((l) => `${f}: ${l}`));
-  for (const o of overrides) console.error(`registry changed (packages are named by the npm registry they come from): ${o}`);
+  for (const o of overrides) console.error(`npm setting not allowed (packages are named by the npm registry they come from): ${o}`);
   console.log(`${all.length} packages checked, ${off.length} off the list (SECURITY.md, point 10; .github/licences.yml)`);
   process.exit(off.length || overrides.length ? 1 : 0);
 }

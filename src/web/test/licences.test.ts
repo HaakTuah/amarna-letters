@@ -35,8 +35,9 @@ describe("licences", () => {
       expect(registryName(local)).toBeUndefined();
   });
 
-  it("finds npm settings that would fetch from another registry than the lockfile names", () => {
-    expect(registryOverrides("registry=https://example.com/\nreplace-registry-host=always\n@x:registry = https://example.com/")).toHaveLength(3);
-    expect(registryOverrides("fund=false\naudit=false\n# registry=https://example.com/")).toEqual([]);
+  it("refuses every npm setting but a few harmless ones, however its key is spelt", () => {
+    const npmrc = ["registry=https://example.com/", "replace-registry-host=always", "@x:registry = https://example.com/", '"registry"=https://example.com/', '"replace-registry-host"=always', "${KEY}=https://example.com/"];
+    expect(registryOverrides(npmrc.join("\n"))).toEqual(npmrc);
+    expect(registryOverrides("fund=false\naudit=false\n# registry=https://example.com/\n; registry=x\n")).toEqual([]);
   });
 });
