@@ -161,4 +161,16 @@ describe("OfferTests", () => {
     Assert.false(s.journeys.some((j) => j.kind === "Offer"));
     Assert.contains(s.events, (x) => x.signal === "offer-robbed");
   });
+
+  test("An offer joins a spy's report only while its carrier is still in the province, and no other letter's batch", () => {
+    const [s, e] = offered();
+    const spy = person(s, { status: "Employed", employer: "Egypt", duty: "SpyPosted", watchProvince: "babylon" });
+    // A carrier already gone from Babylon: the offer does not go with him.
+    const gone = person(s, { status: "Free", at: "Egypt" });
+    s.journeys.push(newJourney({ id: newId(s, "j"), kind: "SpyReport", departTurn: s.turn, arriveTurn: Waiting, from: "Egypt", to: "Egypt", characterId: spy.id, waitAt: "babylon", carrier: gone.id }));
+    // A ransom letter waiting there for Egypt, older: its carrier takes only its own kind.
+    s.journeys.unshift(newJourney({ id: "j0", kind: "Ransom", departTurn: s.turn, arriveTurn: Waiting, from: "Babylonia", to: "Egypt", waitAt: "babylon" }));
+    e.carryLetters();
+    Assert.null(offer(s).carrier);
+  });
 });

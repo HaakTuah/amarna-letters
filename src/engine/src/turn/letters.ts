@@ -200,7 +200,8 @@ P.carryLetters = function () {
     }
     if (carrier === null) continue;
     letter.fee = fee;
-    for (const l of waiting.filter((x) => x.carrier === null && x.waitAt === at && x.to === letter.to && (x.kind === "SpyReport") === !demand)) {
+    // A province's offer is never swept into another letter's carrier: it finds its own (`offers.ts`).
+    for (const l of waiting.filter((x) => x.carrier === null && x.kind !== "Offer" && x.waitAt === at && x.to === letter.to && (x.kind === "SpyReport") === !demand)) {
       l.carrier = carrier.id;
       l.border = border;
       S.lettersCarried.set(l.from, S.lettersCarried.getOrDefault(l.from, 0) + 1);

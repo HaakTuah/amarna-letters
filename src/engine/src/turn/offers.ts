@@ -127,7 +127,14 @@ P.carryOffer = function (letter) {
     return;
   }
   // His own spy watching it reports it with his reports: it goes with their carrier, whoever that is.
-  const report = S.journeys.find((j) => j.kind === "SpyReport" && j.waitAt === at && j.to === p && j.carrier !== null) ?? null;
+  // Only while that carrier is still there: at the court in the province, or setting out from it.
+  const here = (id: string | null): boolean => {
+    const c = findCharacter(S, id);
+    if (c === null) return false;
+    const walk = S.journeys.find((j) => isWalker(j) && j.characterId === c.id) ?? null;
+    return walk !== null ? walk.route[walk.leg] === at : c.at !== null && this.courtAt(c.at) === at;
+  };
+  const report = S.journeys.find((j) => j.kind === "SpyReport" && j.waitAt === at && j.to === p && j.carrier !== null && here(j.carrier)) ?? null;
   if (report !== null) {
     letter.carrier = report.carrier;
     letter.border = report.border;
