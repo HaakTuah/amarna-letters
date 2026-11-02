@@ -95,8 +95,7 @@ export class ScriptLeader implements ISeat {
   decideNow(view: SeatView): TurnSubmission {
     const brain = this.brain(view.power);
     brain.learn(view, new Board(view));
-    const board = new Board(view, brain.remembered(view), brain.treasury);
-    board.offersRead = brain.offersRead;
+    const board = new Board(view, brain.remembered(view), brain.treasury, brain.offersRead);
     const rng = brain.r(view.turn, "decide");
 
     heardRepudiations(board, brain);

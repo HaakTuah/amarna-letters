@@ -12,7 +12,7 @@ import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { OfferUnheard, type Declaration } from "../model/declarations.ts";
 import { gain, newNewsHeld, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { newJourney, offerWords, Waiting, type Journey } from "../model/records.ts";
+import { newJourney, offerWords, provinceOf, Waiting, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId } from "../model/state.ts";
 import { bidden } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -86,11 +86,8 @@ function knows(e: TurnEngine, c: Character, at: string, p: Power, own: boolean):
   logEvent(S, "letter", `${c.name} knows of the offer he carries, and may sell it.`, [], "offer-news");
 }
 
-/** The province an offer is from: written first in its letter. */
-const provinceOf = (j: Journey): string => (j.text ?? "").split("|")[0];
-
 /** What the power an offer reaches is told of answering it, after the people's words. */
-const OfferTerms = "It is yours only if you take it up (answer it: take it up, or refuse it); until then it stays as it is, and the offer stands only while they lean your way.";
+export const OfferTerms = "It is yours only if you take it up (answer it: take it up, or refuse it); until then it stays as it is, and the offer stands only while they lean your way.";
 
 P.sendOffer = function (d, holder, text) {
   const S = this.s;

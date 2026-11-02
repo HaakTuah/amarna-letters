@@ -8,7 +8,7 @@
  * talk of it would be. `--no-talk-play` and `--talk-play-half` ignore the talk and the offers caught, only to measure what
  * heeding them is worth.
  */
-import type { Power } from "@amarna/engine";
+import { AllPowers, landFor, OfferCaught, type Power } from "@amarna/engine";
 import { Board } from "./board.ts";
 
 /** Script kings that ignore talk of their land's leaning (`--no-talk-play`, `--talk-play-half`). None by default. */
@@ -20,8 +20,13 @@ export const TalkPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me
   },
 };
 
+/** The power a notice names, by the name our court knows and gives him (a house's, where it gives his name to another). */
+function named(b: Board, name: string): Power | null {
+  return AllPowers.find((q) => landFor(b.me, q) === name) ?? null;
+}
+
 /** Seasons a travellers' read of a province's unrest is acted on (a first guess). */
-const TalkHeeded = 4;
+export const TalkHeeded = 4;
 
 /**
  * The provinces of ours that travellers' talk, as last heard, calls restless or near revolt: talk of a people leaning
@@ -31,22 +36,17 @@ export function talkedAway(b: Board): string[] {
   if (!TalkPlay.on(b.me)) return [];
   const out = b.v.moods.filter((r) => r.source === "travellers" && (r.mood === "restless" || r.mood === "near revolt") && b.v.turn - r.seen <= TalkHeeded && b.ownerOf(r.province) === b.me).map((r) => r.province);
   // #553: and those whose people's own offer we read on a carrier we caught, for as long as talk of it would be heeded.
-  for (const [id, read] of b.offersRead) if (b.v.turn - read <= TalkHeeded && b.ownerOf(id) === b.me && !out.includes(id)) out.push(id);
+  for (const [id, read] of b.offersRead.entries()) if (b.v.turn - read <= TalkHeeded && b.ownerOf(id) === b.me && !out.includes(id)) out.push(id);
   return out;
 }
 
-/** "Among what X carried was the word of the people of P to C, which never reached him: ...": the notice of an offer caught. */
-const OfferOpens = "Among what ";
-const OfferPeople = " carried was the word of the people of ";
-const OfferEnds = ", which never reached him: ";
-
-/** The province's name and the claimant in the notice of an offer caught; null for any other notice. */
+/** The province's name and the claimant's in the notice of an offer caught (`OfferCaught`); null for any other notice. */
 function offerCaught(body: string): [string, string] | null {
-  if (!body.startsWith(OfferOpens)) return null;
-  const people = body.indexOf(OfferPeople);
-  const ends = people < 0 ? -1 : body.indexOf(OfferEnds, people);
+  if (!body.startsWith(OfferCaught.opens)) return null;
+  const people = body.indexOf(OfferCaught.people);
+  const ends = people < 0 ? -1 : body.indexOf(OfferCaught.words, people);
   if (ends < 0) return null;
-  const said = body.slice(people + OfferPeople.length, ends);
+  const said = body.slice(people + OfferCaught.people.length, ends);
   const to = said.lastIndexOf(" to ");
   return to < 0 ? null : [said.slice(0, to), said.slice(to + " to ".length)];
 }
@@ -59,7 +59,8 @@ export function offersCaught(b: Board): { province: string; claimant: Power }[] 
     if (m.title !== "A letter taken on the road") continue;
     const x = offerCaught(m.body);
     const p = x !== null ? Board.Map.provinces.find((q) => q.name === x[0]) : undefined;
-    if (p !== undefined) out.push({ province: p.id, claimant: x![1] as Power });
+    const claimant = p === undefined ? null : named(b, x![1]);
+    if (p !== undefined && claimant !== null) out.push({ province: p.id, claimant });
   }
   return out;
 }
@@ -88,8 +89,8 @@ export function claimantsTalkedOf(b: Board): Power[] {
     const at = m.body.indexOf(" lean toward ");
     const away = m.body.indexOf(", away from ");
     if (at < 0 || away < 0) continue;
-    const claimant = m.body.slice(at + " lean toward ".length, away) as Power;
-    if (claimant !== b.me && !out.includes(claimant)) out.push(claimant);
+    const claimant = named(b, m.body.slice(at + " lean toward ".length, away));
+    if (claimant !== null && claimant !== b.me && !out.includes(claimant)) out.push(claimant);
   }
   return out;
 }

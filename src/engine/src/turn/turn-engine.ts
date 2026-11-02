@@ -69,7 +69,7 @@ export { ClaimEstablishedTitle } from "./press.ts";
 export { RoadOdds, CaughtOnRoadTitle, RoadsTitle, isWalker, LeaderPace } from "./travel.ts";
 export { BandsTitle } from "./bands.ts";
 export { LetterData, selfWait } from "./letters.ts";
-export { OfferData } from "./offers.ts";
+export { OfferData, OfferTerms } from "./offers.ts";
 export { TalkData } from "./moods.ts";
 export { HeardData, lossKey } from "./news.ts";
 export { LanguageData, UnheardTitle, UnheardOutcome, UnheardOnArrival, tongueClaims } from "./languages.ts";
