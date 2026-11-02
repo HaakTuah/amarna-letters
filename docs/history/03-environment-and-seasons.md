@@ -6,19 +6,22 @@ For "Land and climate", "Rivers" and "Seasons" (travel's seasons in item 7; fiel
 **In one line:** two farming worlds share the board: the flood-irrigated valleys (Egypt and Nubia on the Nile, Babylonia
 on the Euphrates and Tigris) and the rain-fed lands (the Levant, north Syria, Assyria, Anatolia, Cyprus), and their
 calendars differ; Egypt's three seasons fit them all as four-month blocks, since in 1346 the civil calendar ran within
-about a week of the real year ("Seasons").
+a week or two of the real year, by the reckonings below ("Seasons").
 
 <a id="03-calendar"></a>The game's seasons, as months of the real year (Egyptian civil calendar near its alignment) [B]:
-**Akhet** about mid-July to mid-November, **Peret** mid-November to mid-March, **Shemu** mid-March to mid-July. A Sothic
-cycle, civil New Year on Sirius's rising, began in about 1322, so 1346 was some 6 days off: HKW, p. 443: "would have
-begun, in our terms, in 1322 BC"; the seasons, HKW, p. 47: "Akhet ... 'inundation'; Peret ... 'winter' ... Shemu ...
-'summer'".
+**Akhet** about mid-July to mid-November, **Peret** mid-November to mid-March, **Shemu** mid-March to mid-July. When the
+civil New Year last fell on Sirius's rising is a reckoning, not a record [C]: by Theon of Alexandria's count (ca. 335-405
+AD) a Sothic cycle began in 1322 BC, so 1346 was some 6 days off; HKW, p. 443: "would have begun, in our terms, in 1322
+BC". Krauss warns that a cycle's start reckoned back schematically "is astronomically incorrect by several days" (p.
+444), and on his own reconstruction "the cycle would not have started in 1322 BC ... but 10 x 4 years — 40 years later"
+(p. 445), which puts 1346 some 16 days off. Either way the four-month blocks hold to within a fortnight. The seasons,
+HKW, p. 47: "Akhet ... 'inundation'; Peret ... 'winter' ... Shemu ... 'summer'".
 
 ## Regions
 
 | Region (map ids) | Water | Sowing | Harvest | Winter | Summer | Grade and source |
 | --- | --- | --- | --- | --- | --- | --- |
-| <a id="03-egypt"></a>Egypt (`delta`, `memphis`, `akhetaten`, `thebes`, `sinai`) | The Nile's flood, basin irrigation; almost no rain south of the Delta | as the flood drains: late Akhet into Peret (Oct-Nov) | Shemu (Mar-May) | mild | hot, the flood | B: HKW, p. 374: "Ploughing and sowing were done as soon as the flood had receded"; harvest "as early as February and ended as late as in May" |
+| <a id="03-egypt"></a>Egypt (`delta`, `memphis`, `akhetaten`, `thebes`, `sinai`) | The Nile's flood; almost no rain south of the Delta. How the flood was led onto the fields is uncertain [C]: basin irrigation as in the 19th century AD is not shown for the New Kingdom (HKW, p. 371: "There is no indication that a fully developed system of basin irrigation existed in the NK or even earlier"; p. 374: "No NK sources support this idea"), and the flood may have reached the fields "after the Nile had breached the levees" (p. 374) | as the flood drains: late Akhet into Peret (Oct-Nov) | Shemu (Mar-May) | mild | hot, the flood | B: HKW, p. 374: "Ploughing and sowing were done as soon as the flood had receded"; harvest "as early as February and ended as late as in May" |
 | <a id="03-nubia"></a>Nubia (item 7) | The Nile only, a narrow strip of fields; desert either side | as Egypt, a little earlier | as Egypt | mild | very hot | G (by analogy with Egypt) |
 | <a id="03-babylonia"></a>Babylonia (`sippar`, `durkurigalzu`, `babylon`, `nippur`, `ur`) | Canal irrigation from the Euphrates and Tigris; under 200 mm of rain | Peret (Oct-Dec), barley above all | Shemu (Apr-May) | mild | very hot | B: [Wikipedia, Agriculture in Mesopotamia](https://en.wikipedia.org/wiki/Agriculture_in_Mesopotamia), citing Postgate 1992, pp. 167-170: "Sowing ... largely in October–November", harvest "In spring (April–May)"; rain: Baghdad's climate table, 124.7 mm |
 | <a id="03-elam"></a>Elam (`susa`) | Rain and irrigation on the Susiana plain | as Babylonia | as Babylonia | mild | very hot | G (by analogy with Babylonia) |
@@ -50,9 +53,12 @@ Hattusas" [A] ([EIEOL, Hittite lesson 5](https://lrc.la.utexas.edu/eieol/hitol/5
 - <a id="03-tigris-euphrates-floods"></a>**The Tigris and the Euphrates** rise with the snowmelt in the Taurus and
   Zagros, the Tigris peaking in April and the Euphrates in May, at or just before the harvest [B:
   [Wikipedia, Agriculture in Mesopotamia](https://en.wikipedia.org/wiki/Agriculture_in_Mesopotamia), citing Sanlaville
-  2000: "in April for the Tigris and in May for the Euphrates"], so their floods do harm, breaking dykes [A: Laws of
-  Hammurabi § 53, [Avalon](https://avalon.law.yale.edu/ancient/hamcode.asp): "if then the dam break and all the
-  fields be flooded"]. Salt was the south's worst problem [B: the same page, citing Huot 1989: "the salinisation of
+  2000: "in April for the Tigris and in May for the Euphrates"], so their floods were a danger the works were built against [B: the same page:
+  "The irrigation system was also designed to limit the risk of floods, by means of basins that could retain excess
+  water and canals that could drain it away, as well as dams"]; that a high spring flood breaks dykes is the game's
+  reading [G]. A broken dam is attested, but from its owner's neglect, not the season [A: Laws of Hammurabi § 53,
+  [Avalon](https://avalon.law.yale.edu/ancient/hamcode.asp): "If any one be too lazy to keep his dam in proper
+  condition, and does not so keep it; if then the dam break and all the fields be flooded"]. Salt was the south's worst problem [B: Wikipedia, Agriculture in Mesopotamia, citing Huot 1989: "the salinisation of
   the soil"]. **First guess [G]:** a damaging flood one Shemu in six on each river.
 - **The Orontes, Habur, Balikh and Halys** are smaller rivers with spring maxima; not navigable for trade [B].
 
@@ -72,8 +78,8 @@ Hattusas" [A] ([EIEOL, Hittite lesson 5](https://lrc.la.utexas.edu/eieol/hitol/5
 
 | Event | Where | When | Grade | Source |
 | --- | --- | --- | --- | --- |
-| <a id="03-famine-byblos"></a>Rib-Hadda writes of famine at Byblos: fields untilled because of war, sons and daughters sold for food, grain sought from Yarimuta | `byblos` | his early letters, before 1346: "probably Amenophis III was king" (Moran, Introduction, pp. xxxiii-xxxiv) | A | EA 74, 75, 81, 85, 86, 90. EA 85 (Moran): "we have no grain to eat", "sold in the land of Yarimuta for provisions" |
-| <a id="03-plague-alashiya"></a>"The hand of Nergal" (plague) kills the men of Alashiya; no copper-workers left | `enkomi`, `tamassos` | the letters' years; the reign is not fixed (Moran, Introduction, pp. xxxiii-xxxiv: "non liquet") | A | EA 35 (Moran): "he has slain all the men of my country, and there is not a (single) copper-worker" |
+| <a id="03-famine-byblos"></a>Rib-Hadda writes of famine at Byblos: fields untilled because of war, sons and daughters sold for food, grain sought from Yarimuta | `byblos` | his early letters (EA 68-95), probably before 1346 [C]: Moran, Introduction, p. xxxv: "probably Amenophis III was king"; but n. 127: "The assignment of EA 83-86 is also not without difficulties", "Putting the entire early period in the reign of Amenophis III is not universally accepted", and Wilhelm and Boese "would assign all vassal letters, or at least the vast majority, to the reign of Amenophis IV" | A (the famine) | EA 74, 75, 81, 85, 86, 90. EA 85 (Moran): "we have no grain to eat", "sold in the land of Yarimuta for provisions" |
+| <a id="03-plague-alashiya"></a>"The hand of Nergal" (plague) kills the men of Alashiya; no copper-workers left | `enkomi`, `tamassos` | the letters' years; the reign is not fixed (Moran, Introduction, p. xxxv: "again non liquet") | A | EA 35 (Moran): "he has slain all the men of my country, and there is not a (single) copper-worker" |
 | <a id="03-plague-megiddo"></a>Pestilence in a besieged city | `megiddo` | Labaya's siege | B | EA 244 (Moran): "the city is consumed by pestilence" |
 | <a id="03-plague-hatti"></a>Plague in Hatti for twenty years, brought by Egyptian prisoners of war | `hattusa` and all Hatti | from late in Suppiluliuma's reign (about 1325) | A (the date B) | Mursili II's second *Plague Prayer* (Singer, *Hittite Prayers*, 2002, no. 11): "For twenty years now people have been dying in Hatti"; "the prisoners of war brought the plague into Hatti" |
 | Poor health and early deaths among Akhetaten's common people | `akhetaten` | the city's years | B | The South Tombs Cemetery (Kemp; Dabbs and others) |
