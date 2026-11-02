@@ -55,6 +55,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
+- **Done so far** (2 November 2026): the progress file under 20 KB (#388); the files every session reads (#390);
+  `docs/` (#392: item 2's, 4's and 5+'s briefs and specs to `docs/archive/specs/`, built entries out of "Not built yet"; #393:
+  design note 10 down to its live differences); the archive's `progress-done.md` split by kind (#394). **Left:** the code,
+  once the open lanes touching it merge (17++ B and C, export, model calls, fog); first find there: the conversion's
+  parity check (`src/game/src/parity.ts`, `src/batch/src/parity*.ts`, `--parity` in `src/batch`) compares against the C#
+  build removed on 27 October, so it is probably a leftover; `docs/DESIGN-NOTES.md` after its open lane merges.
 
 ## Follow-ups
 
@@ -75,26 +81,18 @@ fixed.
   plans and its thinking whenever a model thinks; filters leave parts out, one blanking every word a human player
   wrote so the export can be kept in the repository and still replays; what is sensitive is never a filter and never
   in any export. A human player's own words are not sensitive in a normal export.
-- ~~**First among the side lanes, beside the fog below (other files, so both run at once): model calls that get
-  through** (Haakon, 2 November 2026; Engine and models, "Calls that get through, live or in the background"). His
-  Haiku game of 1 November (seed 407184, two seasons, $0.52) lost 57 of the first season's 104 decisions to the
-  account's limit on calls in flight, paid about two thirds of that season for 25 copies of one cache, and had 26
-  answers refused for slips. Build the limiter and its retries, the cache written once, answers read as meant, the
-  background mode on the provider's batch service, and the cost estimate. No model games: checked against a stand-in
-  service that refuses calls past a limit, answers batches late and returns that game's slips. The report gives the
-  expected cost of a season, live and in the background. The game itself is in
-  `tests/fixtures/model-games/` (its README): its slips are the test cases, its token counts the estimate's start.~~ Done: PR #386, report `docs/rounds/2026-11-02-model-calls-get-through.md`.
+- ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
+  as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
+  token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:
+  `docs/rounds/2026-11-02-model-calls-get-through.md`.
 - **Counsel's plans from a digest** (found by "model calls that get through", 2 November 2026; Engine and models,
   "Passing up and asking advice": the strong model writes the plan "from a digest of the year ... rather than the whole
   record"). A plan call opens with the kings' whole 70,600-token rulebook on Sonnet, so at the recorded token counts
   Counsel estimates about 5% above Standard, where the design has small models play and the large one only plan and
   advise. Give the plan call its own short opening (the digest and what it needs of the rules), then restore the test's
   old claim that Counsel costs less than Standard (`src/game/test/who-decides.test.ts`).
-- **First, before any other side lane: people moving in the fog** (Haakon, 2 November 2026: "Who are these people i can
-  see moving about in the fog of war when viewing a game as egypt? Different caravan and what looks like scout units or
-  something?"). Find what they are and why a seat sees them. If Egypt should not know of them, it is a leak ("Only what
-  the seat knows plays"): fix it in what the seat is shown and, if script or model kings get it too, in their view as
-  well, with the benchmarks before and after.
+- ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
+  armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
 
 - **From #348 (17+), round 2, not blocking; outside 17++'s text (names as claims), so a side lane takes them:** (a) engine
   notices name powers by their own land while a court's view may give a contested name to another, so one name can mean two
@@ -105,15 +103,12 @@ fixed.
   no-op `CityStarts` entry; (i) an older tablet arriving late sets a court's knowledge of a claim back. (b), the chiefs'
   lands falling in the first two seasons, is 17++'s and measured in its report.
 
-## For Haakon: review points
+## For Haakon
 
-Answered review points, and the rows of items 1 to 11c, are in `docs/archive/progress-done.md` (moved 28 October 2026,
-"The workshop check"; the review points of 11c to the improvement audit, without questions or answered, moved on 1 November 2026).
-
-| Item | Review question | Reading taken | State |
-|---|---|---|---|
-| (none open) | | | |
-
+Everything for Haakon is an issue: [questions and readings](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Afor-haakon)
+(`for-haakon`) and [ideas](https://github.com/HaakTuah/amarna-letters/issues?q=is%3Aopen+label%3Aidea) (`idea`), by
+"Questions, readings and ideas" in `AGENTS.md`. Answered review points from before 2 November 2026:
+`docs/archive/progress-done.md`.
 
 ## Use against ignore
 
