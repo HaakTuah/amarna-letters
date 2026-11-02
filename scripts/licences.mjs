@@ -4,7 +4,7 @@
 // shipped with the game (src/web/vite.config.ts). Node's own modules only, so the check needs no install.
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
-import { join, relative, sep } from "node:path";
+import { join, posix, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -159,14 +159,35 @@ const ASSETS = [
 ];
 
 /**
- * The third-party notices for the packages in `dirs` (each a package's folder under node_modules), with the licence each
- * ships; throws on one whose licence is off the list, so a build never ships one.
+ * The folder of the package a bundled module (`id`, an absolute path) comes from, or undefined for the owner's own code:
+ * under node_modules, that package's folder; elsewhere, the target of the nearest lockfile link holding it (a `file:`
+ * package, which the build reaches by its real path), unless that link is one of the declared `workspaces`.
  */
-export function notices(dirs) {
+export function packageDir(id, packages, workspaces, base = root) {
+  const at = id.lastIndexOf("/node_modules/");
+  if (at >= 0) {
+    const rest = id.slice(at + 14).split("/");
+    return id.slice(0, at + 14) + rest.slice(0, rest[0].startsWith("@") ? 2 : 1).join("/");
+  }
+  const top = base.split(sep).join("/");
+  const [link] = Object.values(packages)
+    .filter((entry) => entry.link)
+    .map((entry) => ({ target: entry.resolved, dir: posix.join(top, entry.resolved) }))
+    .filter(({ dir }) => id.startsWith(`${dir}/`))
+    .sort((a, b) => b.dir.length - a.dir.length);
+  return link && !workspaces.includes(link.target) ? link.dir : undefined;
+}
+
+/**
+ * The third-party notices for the packages the bundled modules `ids` come from (`packageDir`), with the licence each
+ * ships; throws on one whose licence is off the strict list, so a build never ships one.
+ */
+export function notices(ids) {
   const { allowedFor } = policy();
   const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8")).packages;
+  const workspaces = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).workspaces;
   const fetchedAs = (dir) => registryName(lock[relative(root, dir).split(sep).join("/")]?.resolved) ?? "";
-  const packages = [...new Set(dirs)]
+  const packages = [...new Set(ids.map((id) => packageDir(id, lock, workspaces)).filter((dir) => dir !== undefined))]
     .map((dir) => ({ dir, ...JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) }))
     .sort((a, b) => a.name.localeCompare(b.name));
   const off = packages.filter((p) => !licenceOk(p.license, allowedFor(fetchedAs(p.dir))));

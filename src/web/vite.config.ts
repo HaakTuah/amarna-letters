@@ -2,7 +2,7 @@ import react from "@vitejs/plugin-react";
 import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, sep } from "node:path";
+import { join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
 import { notices } from "../../scripts/licences.mjs";
@@ -43,19 +43,17 @@ function serviceWorker(): Plugin {
 }
 
 /**
- * The third-party notices (SECURITY.md, point 10): every package the build bundles, the worker's included, with its
- * licence, written to third-party-notices.txt beside the game; the build fails on a licence off the list.
+ * The third-party notices (SECURITY.md, point 10): every package the build bundles, the worker's included, local `file:`
+ * packages too, with its licence, written to third-party-notices.txt beside the game; the build fails on a licence off
+ * the strict list.
  */
 function thirdPartyNotices(): { main: Plugin; worker: Plugin } {
-  const dirs = new Set<string>();
+  const bundled = new Set<string>();
   const collect = (ids: Iterable<string>) => {
     for (const id of ids) {
       // Vite's own helpers (the preload helper) come in as virtual modules, but they are Vite's code.
-      if (id.startsWith("\0vite/")) dirs.add(dirname(fileURLToPath(import.meta.resolve("vite/package.json"))));
-      const at = id.lastIndexOf("/node_modules/");
-      if (at < 0 || id.startsWith("\0")) continue;
-      const rest = id.slice(at + 14).split("/");
-      dirs.add(id.slice(0, at + 14) + rest.slice(0, rest[0].startsWith("@") ? 2 : 1).join("/"));
+      if (id.startsWith("\0vite/")) bundled.add(fileURLToPath(import.meta.resolve("vite/package.json")));
+      else if (!id.startsWith("\0")) bundled.add(id);
     }
   };
   const worker: Plugin = { name: "amarna-notices-worker", apply: "build", buildEnd() { collect(this.getModuleIds()); } };
@@ -64,7 +62,7 @@ function thirdPartyNotices(): { main: Plugin; worker: Plugin } {
     apply: "build",
     generateBundle() {
       collect(this.getModuleIds());
-      this.emitFile({ type: "asset", fileName: "third-party-notices.txt", source: notices([...dirs]) });
+      this.emitFile({ type: "asset", fileName: "third-party-notices.txt", source: notices([...bundled]) });
     },
   };
   return { main, worker };

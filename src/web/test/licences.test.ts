@@ -2,7 +2,7 @@
 // data, asset and font licences allowed only for the packages named as such in .github/licences.yml.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { licenceOk, policy, registryName, registryOverrides, shippedPaths } from "../../../scripts/licences.mjs";
+import { licenceOk, packageDir, policy, registryName, registryOverrides, shippedPaths } from "../../../scripts/licences.mjs";
 
 const code = policy().allowedFor("some-library");
 const data = policy().allowedFor("caniuse-lite");
@@ -49,6 +49,29 @@ describe("licences", () => {
       expect(licenceOk(copyleft, code)).toBe(false);
     }
     for (const never of ["BUSL-1.1", "SSPL-1.0", "Elastic-2.0", "CC-BY-NC-4.0", "CC-BY-ND-4.0", undefined]) expect(licenceOk(never, tool)).toBe(false);
+  });
+
+  it("lets tools use every licence the Open Source Initiative approves, never one of its copyleft ones in what ships", () => {
+    const tool = policy().allowedFor("some-tool", false);
+    for (const osi of ["EUPL-1.2", "OSL-3.0", "CECILL-2.1", "MS-RL", "BSL-1.0", "Artistic-1.0-Perl"]) expect(licenceOk(osi, tool)).toBe(true);
+    for (const copyleft of ["EUPL-1.2", "OSL-3.0", "CECILL-2.1", "MS-RL"]) expect(licenceOk(copyleft, code)).toBe(false);
+  });
+
+  it("finds the package a bundled module comes from, a local file: package by its real path, never a workspace", () => {
+    const lock = {
+      "": { workspaces: ["src/web"] },
+      "node_modules/@amarna/web": { resolved: "src/web", link: true },
+      "node_modules/gpl-lib": { resolved: "vendor/gpl-lib", link: true },
+      "node_modules/inner": { resolved: "src/web/vendor/inner", link: true },
+      "vendor/gpl-lib": { version: "1.0.0", license: "GPL-3.0-only" },
+    };
+    const at = (id: string) => packageDir(id, lock, ["src/web"], "/repo/");
+    expect(at("/repo/vendor/gpl-lib/index.js")).toBe("/repo/vendor/gpl-lib");
+    expect(at("/repo/src/web/vendor/inner/a/b.js")).toBe("/repo/src/web/vendor/inner");
+    expect(at("/repo/src/web/src/main.tsx")).toBeUndefined();
+    expect(at("/repo/vendor/gpl-library/index.js")).toBeUndefined();
+    expect(at("/repo/node_modules/@scope/pkg/dist/x.js")).toBe("/repo/node_modules/@scope/pkg");
+    expect(at("/repo/vendor/gpl-lib/node_modules/dep/i.js?commonjs")).toBe("/repo/vendor/gpl-lib/node_modules/dep");
   });
 
   it("works out what ships from the workspaces' runtime dependencies, not the lockfile's own flags", () => {
