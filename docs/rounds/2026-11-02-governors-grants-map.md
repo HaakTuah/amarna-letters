@@ -166,6 +166,9 @@ other court.
 
 ## Benchmarks and use against ignore
 
+"The final head" below is 6e88338, after round 3. Round 4's fixes (4c63038) touch only views, order checks, a repeated
+answer and the growth baseline of a risen realm, not the choices these runs measure, so they were not run again.
+
 **Grants** (`--grant-play-half`, 50 games, seed 1, the final head): kings that grant against kings that never do:
 **0.94 growth to 0.86, 28 wins to 22: pays.** Use and success: kingships offered in 28 of 50 games (95), 24 taken (20
 games), 67 refused. An earlier head measured them even (0.87 to 0.87, 24 wins to 26), and the reading then was that the
@@ -195,6 +198,10 @@ full set gains more growth, and the loss first measured (0.88 to 0.90) was on a 
 - **Codex:** round 1, seven P1s (fixed in 379b716, among them the regional governor's levies and their lag, and a reduced
   world for the feature tests, answered as on part B); round 2, clean; round 3, four P1s (the kingship's price before
   its answer, a far refusal shown at once, a governor's lost seat, a ceded claim ended by a siege), fixed in 6e88338;
-  round 4 pending.
+  round 4, four P1s (the seat when its province is given up, a moved seat shown before word of it, a repeated taking up
+  that put its confirmation off, a granted realm's growth counted from its seat alone), a P2 (a grant refused for a loss
+  the court had not heard of) and a CodeQL warning (a backtracking pattern), fixed in 4c63038; the same leak in the
+  older `govern` check is filed as #467; round 5 pending.
 
-Questions for the owner: none new. #431 is answered (above); it stays open until the carriers are built.
+Questions for the owner: none new. #431 is answered (above); it stays open until the carriers are built. Filed: #467
+(a bug, outside this part: order checks that reveal a far loss).
