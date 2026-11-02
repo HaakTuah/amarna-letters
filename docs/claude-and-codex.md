@@ -185,6 +185,9 @@ The guards against both are part of the rule:
      fixed, and a `bug` issue tracks it until the fix is live. More than one miss in fifteen facts checked: every
      dossier a miss came from gets a full check. The first spot-check (#466) found 3 in 13, so the full check of every
      dossier ("Follow-ups" in `docs/BUILD-PROGRESS.md`) runs before the next one.
+   - **A slop check every month** (the owner, 2 November 2026): a fresh reviewer reads only the text a player reads
+     that changed since the last check, scored as every review is, a 10 meaning nothing reads machine-made; what it
+     finds is fixed in "Follow-ups". The slop audit's formula test runs on every PR.
    - **Logged and reported:** each check is a row in "Calibration" below, and each milestone PR says in one line the
      misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
      the owner, and the categories it reviews go back to the other reviewer meanwhile.

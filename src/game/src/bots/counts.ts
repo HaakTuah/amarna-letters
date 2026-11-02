@@ -6,7 +6,7 @@
  * `--count-play-half` never count, always ask a share of grain and name the corvée's men, only to measure what counting
  * is worth.
  */
-import { CountData, build, buildMen, census, demand, menOf, raise, upkeepMen, type Order, type ProvinceEconomyView, type SeatView, type UnitKind } from "@amarna/engine";
+import { CountData, build, buildMen, census, demand, menOf, raise, upkeepMen, type Order, type SeatView, type UnitKind } from "@amarna/engine";
 import { bearableShare, LandPlay, shareNow } from "./land.ts";
 
 /** Script kings that never count their land and always ask a share (`--no-count-play`, `--count-play-half`). None by default. */

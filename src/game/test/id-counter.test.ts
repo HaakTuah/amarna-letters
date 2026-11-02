@@ -1,9 +1,5 @@
 import { describe, test } from "vitest";
 import { scriptSeats, smallSeats } from "./small-world.ts";
-import { react } from "../../llm/src/parse.ts";
-import { court } from "../src/bots/statecraft-court.ts";
-import { host } from "../src/bots/statecraft-letters.ts";
-import { present } from "../src/character-checks.ts";
 import {
   AllPowers,
   type AudienceView,
@@ -27,7 +23,6 @@ import {
   newId,
   serialize,
   single,
-  write,
 } from "@amarna/engine";
 import {
   type EnvoyContext,
@@ -40,7 +35,7 @@ import {
   ScriptMind,
   TemplateNarrator,
 } from "@amarna/game";
-import { Assert, toDict } from "../../engine/test/support.ts";
+import { Assert } from "../../engine/test/support.ts";
 
 // Each kind of object counts its ids on its own (Build order item 4, fix (d)), so a kind of object added later, or more
 // objects of one kind, leaves the ids of every other kind, and with them every roll keyed by an id, where they were.

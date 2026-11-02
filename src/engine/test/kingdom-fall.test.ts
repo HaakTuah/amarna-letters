@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { orders } from "../../llm/src/parse.ts";
 import {
   Dict,
   type GameState,
@@ -12,7 +11,6 @@ import {
   WorldMap,
   EconomyData,
   cede,
-  first,
   inboxOf,
   land,
   move,

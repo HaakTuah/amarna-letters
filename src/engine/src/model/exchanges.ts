@@ -1,5 +1,6 @@
 import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
-import { type Order, OrderSchema } from "./orders.ts";
+import { type Order } from "./orders.ts";
+import { OrderSchema } from "./order-schema.ts";
 import { StandingAnswerRequestSchema, type StandingAnswerRequest } from "./answers.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";

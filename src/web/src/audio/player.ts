@@ -12,7 +12,7 @@ import { SynthDeck, type NextStretch } from "./synth/engine.ts";
 import type { Version } from "./synth/arrange.ts";
 import { synthPiece, type Shade, type SynthScore } from "./synth/score.ts";
 import { homeMode, shift, type Tuning } from "./tunings.ts";
-import { StartFade, audioSettings, onAudioSettings, scheduleStartFade, type MusicStyle } from "./settings.ts";
+import { audioSettings, onAudioSettings, scheduleStartFade, type MusicStyle } from "./settings.ts";
 import { Attack, Level, Mixer, type Layer } from "./mix.ts";
 import { MomentPieces, MoodPieces, type Bed, type Hearing, type Moment, type Mood, type SoundName, type Sting } from "./situation.ts";
 
@@ -78,7 +78,6 @@ class Player {
   private buffers = new Map<string, Promise<AudioBuffer | null>>();
   private bed: Bed = null;
   private bedSource: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
-  private timer: number | null = null;
   private stingUntil = 0;
   private lastSting = -1e9;
   /** The listening page plays one file at a time and the director stands aside. */
@@ -178,7 +177,7 @@ class Player {
       this.decks.push({ el, gain, piece: null, file: null, phrases: [], pauseTimer: null });
     }
     this.apply();
-    this.timer = window.setInterval(() => this.tick(), 250);
+    window.setInterval(() => this.tick(), 250);
   }
 
   private apply(): void {
