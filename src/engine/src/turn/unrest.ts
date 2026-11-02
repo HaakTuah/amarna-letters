@@ -163,8 +163,11 @@ function askLeaders(e: TurnEngine, province: string, holder: Power, held: number
     // A man in the holder's service there lends him his own following until he turns: weighed without it.
     const his = c.employer === holder && c.status === "Employed" && !chose(e, c, province) ? standing(e, province, c.id) : 0;
     if (w <= held - his + D.margin) continue;
-    // Asked this season already, or his choice to lead them stands for this one.
-    if (chose(e, c, province) || (c.risePlan !== null && c.risePlan.turn === S.turn && c.risePlan.province === province)) continue;
+    // Asked this season already, or his choice to lead a rising stands for this one. A man of standing in several
+    // provinces (a governor of a region, item 17++) decides once a season, for the first of them he is asked about: his
+    // choice to rise is kept until its own province is reckoned, never overwritten by the question of another.
+    const plan = c.risePlan;
+    if (plan !== null && (plan.turn === S.turn || chose(e, c, plan.province))) continue;
     c.risePlan = { turn: S.turn, province, rise: wants(c, holder) };
     // For the record (seen by nobody): a man asked whether he leads them, and what his traits would answer.
     logEvent(S, "rising", `${c.name} was asked whether he leads the people of ${e.map.get(province).name} against ${holder}.`, [], c.risePlan.rise ? "rising-would" : "rising-asked");

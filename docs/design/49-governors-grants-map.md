@@ -21,7 +21,8 @@ Report: `docs/rounds/2026-11-02-governors-grants-map.md`. Save version 43.
   kingship" row for a governor's provinces): a governor of ours over provinces he governs, his seat among them, or a man at
   our court over neighbouring provinces of ours; never the court's city. One grant per man at a time. Checked against what
   the court knows (`knownHeld`, the governorships and seat its view shows): land lost out of its sight fails on arrival,
-  told by the road.
+  told by the road. Only a man at the court sets out with it; a governor gone from his post before word of it came is
+  left as he is.
 - The word reaches him at his seat (`wordFromKing`); one at court sets out with it to the first province named. The season
   it arrives his traits answer (`wantsCrown`: he can pay the price, the land's yield a year covers the tribute and a quarter
   of the price, and he is ambitious (30+) or keeps half the yield) and a model character is asked ("Crown" request,

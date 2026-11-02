@@ -60,6 +60,21 @@ describe("SeatWordTests", () => {
     Assert.equal("ur", seat());
   });
 
+  test("A grant to a governor gone from his post before word of it came leaves him as he is", () => {
+    const [s, id] = governed();
+    const e = new TurnEngine(s);
+    const c = s.characters.find((x) => x.id === id)!;
+    // He has risen in Nippur on his own; his king still knows him as its governor.
+    e.dropGovernor(s.governors.find((g) => g.character === id)!);
+    c.duty = "Ruling";
+    c.grantedBy = null;
+    c.employer = null;
+    c.status = "Free";
+    Assert.true(Views.for(s, "Egypt").governors.some((g) => g.province === "nippur"));
+    e.grantCrown("Egypt", crown(id, ["nippur"], 0));
+    Assert.equal(["Ruling", null, "nippur"], [c.duty, c.grantedBy, s.crowns[0].seat]);
+  });
+
   test("A province taken up again keeps the season word of the first taking up comes home", () => {
     const t = quiet();
     const f = new TurnEngine(t);

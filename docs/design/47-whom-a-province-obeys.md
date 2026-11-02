@@ -49,7 +49,9 @@ first guess in `UnrestData` (`src/engine/src/model/unrest.ts`), tuned in item 18
   with his band there, a claimant, a town's ruler or a former ruler standing there and not in the holder's service) whose
   weight, his ledger and his band, would clear the holder's. **He chooses** ("Rising" request, `RisingView`,
   `Character.risePlan`): a model by its own judgement, a script by its traits (`wants`: ambition at least 50, and not loyal
-  to its holder); a rising he chose breaks out the next season if his weight still clears.
+  to its holder); a rising he chose breaks out the next season if his weight still clears. A man of standing in several
+  provinces (a governor of a region) is asked once a season, about the first of them, and his choice stands until that
+  province is reckoned.
 - **It changes hands** to the rival whose weight clears the holder's by `margin` 20 (exactly at it, the seeded dice): to a
   power ("Gubla now answers to Amurru: Amurru's men stand at its gates, and Byblos's hold on it was weak"); to a man, who
   rules it in his own name (`ruleOwn`, how `revolt`), with his band, or, a governor, those of his levies who follow him (the

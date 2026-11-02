@@ -8,7 +8,7 @@
  */
 import { idiv } from "../core/num.ts";
 import { clause } from "../model/clauses.ts";
-import { newCrown, newCrownView, seatOf, type Crown } from "../model/command.ts";
+import { newCrown, newCrownView, seatKnown, type Crown } from "../model/command.ts";
 import { toFigures } from "../model/counts.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { CrownOrder } from "../model/orders.ts";
@@ -35,13 +35,16 @@ P.grantCrown = function (p, o) {
   const S = this.s;
   const c = findCharacter(S, o.character);
   if (c === null) return;
-  const held = S.governors.find((g) => g.character === c.id && g.power === p && g.relieved === null && o.provinces.includes(seatOf(g)));
-  const seat = held !== undefined ? seatOf(held) : o.provinces[0];
+  // His seat as the court knows it: a governorship ended, or a seat moved, only as word of it has come.
+  const known = [...S.governors, ...S.governorsGone.filter((x) => x.until > S.turn).map((x) => x.governor)];
+  const held = known.find((g) => g.character === c.id && g.power === p && g.relieved === null && o.provinces.includes(seatKnown(g, S.turn)));
+  const seat = held !== undefined ? seatKnown(held, S.turn) : o.provinces[0];
   const seasons = wordFromKing(S, this.map, p, seat);
   const arrives = S.turn + Math.max(1, Number.isFinite(seasons) ? seasons : 1);
   S.crowns.push(newCrown({ id: newId(S, "kg"), power: p, character: c.id, provinces: [...o.provinces], seat, tribute: o.tribute, price: o.price, arrives }));
-  // One at court sets out with the word to the land he is offered.
-  if (held === undefined) {
+  // One at court sets out with the word to the land he is offered. A governor gone from his post before word of it came
+  // is left as he is: the grant fails when it reaches the land, and the road brings that home.
+  if (held === undefined && c.at === p) {
     c.duty = "Governing";
     c.at = null;
     c.grantedBy = p;

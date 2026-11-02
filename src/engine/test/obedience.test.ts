@@ -144,6 +144,27 @@ describe("ObedienceTests", () => {
     Assert.true(s.events.some((x) => x.signal === "revolt-led"));
   });
 
+  test("A governor of two provinces that would both follow him decides once a season, and rises", () => {
+    const s = small("Egypt");
+    const g = named(s, "Addaya");
+    g.traits.ambition = 90;
+    g.traits.loyalty = 10;
+    const other = WorldMap.default.neighbors("gaza").find((x) => s.owner.getOrDefault(x, null) === "Egypt" && !WorldMap.default.get(x).isSea && s.governors.every((y) => y.province !== x))!;
+    s.governors.push(newGovernor({ province: other, seat: "gaza", character: g.id, power: "Egypt", from: 0 }));
+    for (const id of ["gaza", other]) {
+      removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
+      s.ledger.get(id).set("Egypt", 0);
+      s.ledger.get(id).set(g.id, 500);
+    }
+    // Each season's question for one of them no longer overwrites his answer for the other before it is reckoned.
+    for (let k = 0; k < 3 && s.owner.get("gaza") === "Egypt" && s.owner.get(other) === "Egypt"; k++) {
+      new TurnEngine(s).obeySeason();
+      s.turn++;
+    }
+    Assert.true(s.owner.get("gaza") !== "Egypt" || s.owner.get(other) !== "Egypt");
+    Assert.true(s.events.some((x) => x.signal === "revolt-led"));
+  });
+
   test("A model who chooses not to lead them is not made to: the province stays its master's", () => {
     const s = small("Egypt");
     const id = "gaza";
