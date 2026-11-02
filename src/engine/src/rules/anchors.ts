@@ -6,6 +6,44 @@
 export const Invented = "invented";
 
 /**
+ * Every ruler of 1346 the sources name, by the name the letters use ({@link king}): the anchor of the politics dossier's line
+ * that names him (`docs/history/01-politics.md`), or the people dossier's for the Lady of the Lions.
+ */
+export const RulerAnchors: ReadonlyMap<string, string> = new Map<string, string>([
+  ["Naphurureya", "01-akhenaten"],
+  ["Suppiluliuma", "01-suppiluliuma"],
+  ["Burna-Buriash", "01-burna-buriash"],
+  ["Tushratta", "01-tushratta"],
+  ["Ashur-uballit", "01-ashur-uballit"],
+  ["Tarhundaradu", "01-tarhundaradu"],
+  ["Hukkana", "01-hukkana"],
+  ["Takuwa", "01-takuwa"],
+  ["Ammunira", "01-ammunira"],
+  ["Mut-Bahlu", "01-mut-bahlu"],
+  ["Ayyab", "01-ayyab"],
+  ["Itur-Addu", "01-itur-addu"],
+  ["Niqmaddu", "01-niqmaddu"],
+  ["Addu-nirari", "01-addu-nirari"],
+  ["Aitakama", "01-aitakama"],
+  ["Akizzi", "01-akizzi"],
+  ["Aziru", "01-aziru"],
+  ["Rib-Hadda", "01-rib-hadda"],
+  ["Zimrida", "01-zimrida"],
+  ["Biryawaza", "01-biryawaza"],
+  ["Abi-Milku", "01-abi-milku"],
+  ["Biridiya", "01-biridiya"],
+  ["Labaya", "01-labaya"],
+  ["Abdi-Heba", "01-abdi-heba"],
+  ["Surata", "01-cities-of-canaan"],
+  ["Abdi-Tirshi", "01-cities-of-canaan"],
+  ["Milkilu", "01-cities-of-canaan"],
+  ["Yidya", "01-cities-of-canaan"],
+  ["Zimreddi", "01-cities-of-canaan"],
+  ["Shuwardata", "01-cities-of-canaan"],
+  ["Baʿlat-nese", "06-balat-nese"],
+]);
+
+/**
  * Every person the game presents as of 1346, by name: the anchor of the people dossier's line that holds him
  * (`docs/history/06-attested-people.md`), or {@link Invented} where the letters keep no name and the game gave one: the
  * Assyrian envoys of EA 16, the governor of Alashiya of EA 40 (named after a later one), the Nubian captains, and

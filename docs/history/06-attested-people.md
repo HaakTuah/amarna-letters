@@ -178,4 +178,4 @@ marked [G].
 | <a id="06-style-suteans-habiru"></a>Suteans, Habiru | West Semitic names, as the Levant | B |
 
 <a id="06-women"></a>Women are attested chiefly as queens, princesses and brides, and as the writers of a few letters (EA 48, EA 273-274 from
-the "Lady of the Lions" (one reading of her name: Baʿlat-nese [C]), a ruler in southern Canaan) [A]. EA 273 (Rainey): "the message of 'Lady of the Lions,' your handmaid"
+<a id="06-balat-nese"></a>the "Lady of the Lions" (one reading of her name: Baʿlat-nese [C]), a ruler in southern Canaan) [A]. EA 273 (Rainey): "the message of 'Lady of the Lions,' your handmaid"

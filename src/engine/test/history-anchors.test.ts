@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, test } from "vitest";
-import { AttestedCast, FirstCores, Invented, NamedScribes, NubianCast, PeopleOf1346, PersonAnchors } from "@amarna/engine";
+import { AllPowers, AttestedCast, FirstCores, Invented, NamedScribes, NubianCast, PeopleOf1346, PersonAnchors, RulerAnchors, king, rulerNamed } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
 // <summary>Every real fact in the game's data names the dossier line it rests on, and that line names the same entity
@@ -36,6 +36,15 @@ describe("HistoryAnchorTests", () => {
 
   test("Every anchor exists and its line names the same person", () => {
     const wrong = [...PersonAnchors].filter(([name, id]) => id !== Invented && !plain(lines.get(id) ?? "").includes(plain(name)));
+    Assert.equal("", wrong.map(([name, id]) => `${name} -> ${id}${lines.has(id) ? "" : " (missing)"}`).join(", "));
+  });
+
+  // Every ruler the sources name: the politics dossier's line for him.
+  const rulers = AllPowers.filter(rulerNamed).map(king);
+
+  test("Every named ruler names an anchor, and its line names him", () => {
+    Assert.equal("", rulers.filter((n) => !RulerAnchors.has(n)).join(", "));
+    const wrong = [...RulerAnchors].filter(([name, id]) => !plain(lines.get(id) ?? "").includes(plain(name)));
     Assert.equal("", wrong.map(([name, id]) => `${name} -> ${id}${lines.has(id) ? "" : " (missing)"}`).join(", "));
   });
 
