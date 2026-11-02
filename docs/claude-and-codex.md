@@ -115,7 +115,7 @@ goes to building. Its usage can run out like any other, and it may then not say 
    with nothing open, its 👍 or "Didn't find any major issues", or every finding fixed or moved out as "Reviews"
    says. That is Codex's 10. P0 and P1 are fixed first.
 5. **The design check, with a score:** on its build-order items (not the polish and sound lanes' small fixes), the design check (`CLAUDE.md`, "Design check": Fable at
-   medium effort, Opus at high when Fable is out) checks the work against the design: given the diff and the PR's description and "The game in one page", it gives the score
+   medium effort, Opus at high when Fable is out) checks the work against the design: given the diff and the PR's description and "The game in one page", and the dossier passages the work cites when it adds or changes real-world content (a fact without a source, or against its source, blocks), it gives the score
    from 1 to 10 and what keeps it from 10, blocking or not ("Reviews" below), on the design alone, since Codex looks for
    faults and security. Smaller PRs get Codex's review alone. **Why it is enough:** a test PR with three planted faults
    (Barkstreet Snakes #298, 1 November 2026, never merged) got all three as P1 from Codex within four minutes: a bug
@@ -167,6 +167,10 @@ The guards against both are part of the rule:
      guidelines), a test PR with planted faults goes to each reviewer and is never merged. The faults are a bug, a
      broken standing rule, a security hole and a departure from the design, as on Snakes #298. Each fault not found is
      a miss.
+   - **A history spot-check every month** (the owner, 2 November 2026): a fresh reviewer picks about ten facts from the
+     dossiers in `docs/history/`, the ones the game uses most, and checks each against the source it cites (the letter,
+     the edition, the study). Every fact that does not hold is a miss: the dossier and the game are fixed, and a
+     `bug` issue tracks it until the fix is live.
    - **Logged and reported:** each check is a row in "Calibration" below, and each milestone PR says in one line the
      misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
      the owner, and the categories it reviews go back to the other reviewer meanwhile.

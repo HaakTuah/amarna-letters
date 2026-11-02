@@ -220,6 +220,9 @@ everything that keeps the work from 10, and only a 10, a list with nothing open,
 guards against endless rounds and a slipping bar: "Codex reviews" and "Reviews" in `docs/claude-and-codex.md`.
 On build-order items, Codex's review and Claude's design check start at the same time.
 
+**History holds,** for every reviewer: report as P1 a real-world fact (a person, place, date, name, custom or event)
+the change adds or alters that has no source in `docs/history/`, or contradicts the source it cites.
+
 **Hidden information,** for every reviewer: report as P1 any read of the true game state that a seat could not know,
 in what it is shown, what a model is asked, what a script king reads or what an export holds. Check every path: the
 latest season, past seasons, replays and the god view. The canary test ("Follow-ups" in `docs/BUILD-PROGRESS.md`)
