@@ -26,7 +26,8 @@ One export, with filters for what goes in (Engine and models, "Logging and repla
 - **What is sensitive is never a filter and never in the log.** It reaches the log only through what a provider, the
   bridge or the file system says when a call fails (a file seat's timeout names its reply file's full path; a
   provider's error can carry a request id, the organisation's id or a masked key). Every call's texts and every
-  shadow's error are read through `withoutSensitive` as they are logged, and as an old log is read back, and the
+  shadow's error, and a fallback decision's reason (its failed call's error again), are read through
+  `withoutSensitive` as they are logged, and as an old log is read back, and the
   header's labels, jobs and note as it is written; each piece becomes a marker that says what stood there: `[key]`
   (keys, masked or not, bearer tokens, a key named as one), `[address]` (any URL: a provider's or the bridge's may carry
   a token), `[id]` (request and organisation ids, any UUID), `[e-mail]`, `[path]` (absolute, home and Windows paths),

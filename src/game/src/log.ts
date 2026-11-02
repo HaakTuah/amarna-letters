@@ -394,6 +394,8 @@ export class GameLog {
       if (by !== null && by.kind !== "fallback")
         by = { ...by, kind: r.rung === "script" ? "script" : by.kind, name: r.rung === "script" ? `Script, for ${by.name}` : by.name, rung: r.rung, model: r.model, why: r.why };
     }
+    // A fallback's reason is its failed call's error, which may carry what is sensitive.
+    if (by !== null && by.reason.length > 0) by = { ...by, reason: withoutSensitive(by.reason) };
     const json = serialize(schema, value);
     this.index.set(key, json);
     this.decisions.push({ key, json, by });
@@ -476,7 +478,8 @@ export class GameLog {
           // The value's JSON as written: the rest of the line after its "value" key (the last in the line).
           const at = line.indexOf('"value":');
           const json = at < 0 ? "null" : line.slice(at + 8, line.length - 1);
-          const by = node.by !== undefined && node.by !== null ? deserialize<Authorship>(AuthorshipSchema, JSON.stringify(node.by)) : null;
+          let by = node.by !== undefined && node.by !== null ? deserialize<Authorship>(AuthorshipSchema, JSON.stringify(node.by)) : null;
+          if (by !== null && by.reason.length > 0) by = { ...by, reason: withoutSensitive(by.reason) };
           log.index.set(key, json);
           log.decisions.push({ key, json, by });
           if (by !== null) log.authors.set(key, by);

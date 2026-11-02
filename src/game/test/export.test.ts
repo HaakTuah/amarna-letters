@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
-import { AllPowers, GameStateSchema, type AudienceView, type HostReply, type SeatView, type TurnSubmission, dispatch, first, newGame, newGameConfig, newHostReply, newTurnSubmission, serialize } from "@amarna/engine";
-import { BlankMark, Everything, GameLog, GameRunner, type ISeat, ScriptMind, TemplateNarrator, exportJsonl, newAudit, newModelCall, newShadowDecision, newCharacterChoice } from "@amarna/game";
+import { AllPowers, GameStateSchema, S, type AudienceView, type HostReply, type SeatView, type TurnSubmission, dispatch, first, newGame, newGameConfig, newHostReply, newTurnSubmission, serialize } from "@amarna/engine";
+import { BlankMark, Everything, GameLog, newAuthorship, GameRunner, type ISeat, ScriptMind, TemplateNarrator, exportJsonl, newAudit, newModelCall, newShadowDecision, newCharacterChoice } from "@amarna/game";
 import { Assert, toDict } from "../../engine/test/support.ts";
 
 // One export, with filters (Engine and models, "Logging and replay"): what is sensitive is never in it, whatever the
@@ -25,6 +25,8 @@ describe("ExportTests", () => {
   function leaky(): GameLog {
     const log = new GameLog();
     log.header.note = "played from http://user:token@localhost:5190/";
+    // A fallback's reason is its failed call's error, copied into the decision's authorship.
+    Leaks.forEach(([, reason], i) => log.record(`t1/orders/p${i}`, S, "", newAuthorship({ kind: "fallback", name: "File seat", reason })));
     for (const [, error] of Leaks) {
       log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, role: "leader", model: "Haiku", prompt: "Your orders.", error }));
       log.addShadow(newShadowDecision({ key: "t1/aud/present/c5", turn: 1, kind: "present", script: newCharacterChoice(), error }));
@@ -46,7 +48,9 @@ describe("ExportTests", () => {
   });
 
   test("A log read back from an old file loses what is sensitive in it", () => {
-    const old = `{"version":38,"seed":1,"type":"header"}\n{"key":"t1/orders/Egypt","turn":1,"error":"${Leaks[0][1]}","type":"call"}\n`;
+    const old =
+      `{"version":38,"seed":1,"type":"header"}\n{"key":"t1/orders/Egypt","turn":1,"error":"${Leaks[0][1]}","type":"call"}\n` +
+      `{"type":"decision","key":"t1/orders/Egypt","by":{"kind":"fallback","name":"File seat","reason":"${Leaks[0][1]}"},"value":""}\n`;
     Assert.false(GameLog.fromJsonl(old).toJsonl().includes("/home/"));
   });
 
@@ -55,10 +59,10 @@ describe("ExportTests", () => {
     log.addAudit(newAudit({ key: "t1/orders/Egypt", turn: 1, kind: "orders" }));
     const types = (text: string): string[] => [...new Set(text.split("\n").filter((l) => l.length > 0).map((l) => (JSON.parse(l) as { type: string }).type))].sort();
     Assert.equal(log.toJsonl(), exportJsonl(log));
-    Assert.equal(["audit", "call", "header", "shadow"], types(exportJsonl(log)));
-    Assert.equal(["audit", "header", "shadow"], types(exportJsonl(log, { ...Everything, calls: false })));
-    Assert.equal(["audit", "call", "header"], types(exportJsonl(log, { ...Everything, shadows: false })));
-    Assert.equal(["call", "header", "shadow"], types(exportJsonl(log, { ...Everything, audits: false })));
+    Assert.equal(["audit", "call", "decision", "header", "shadow"], types(exportJsonl(log)));
+    Assert.equal(["audit", "decision", "header", "shadow"], types(exportJsonl(log, { ...Everything, calls: false })));
+    Assert.equal(["audit", "call", "decision", "header"], types(exportJsonl(log, { ...Everything, shadows: false })));
+    Assert.equal(["call", "decision", "header", "shadow"], types(exportJsonl(log, { ...Everything, audits: false })));
   });
 
   /** A human player's words, long enough to be looked for wherever they are quoted. */
