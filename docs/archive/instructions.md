@@ -1415,3 +1415,5 @@ Given in the design chat with Claude, answering the design questions of the cons
     and bugs paying off, ideas thin; every reviewer to name one idea outside the change, or none; the father's notes to
     gain the afternoon's lessons): "Yes, address everything you just raised, masterfully!" Written into "Review guidelines" in `AGENTS.md` ("One idea, for every reviewer")
     and "Reviews" in `docs/claude-and-codex.md`; the same in Barkstreet Snakes.
+162. **2 November 2026, 15:32 and 15:33 UTC**, in the design chat: "Should we limit them to just being able to suggest 1?", then, to the design session's take (one per review, with three guards: only reviews of changes to the game, new ideas only with repeats as comments, "none" the usual answer): "Yes, please, expertly!" Written into "One idea, for every reviewer"
+    in `AGENTS.md`; the same in Barkstreet Snakes.
