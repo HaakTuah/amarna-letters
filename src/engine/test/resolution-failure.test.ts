@@ -38,7 +38,7 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { Assert, join, skilled, homeJob, oldWorld } from "./support.ts";
+import { Assert, join, skilled, homeJob, smallWorld } from "./support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
 // Every order the validator accepts but the season cannot carry out is reported to its king next season, as a
@@ -46,7 +46,7 @@ import { describe as describeOrder } from "@amarna/engine";
 describe("ResolutionFailureTests", () => {
   // <summary>Babylonia holds the Shasu lands and Gaza with an army in each, next to Egypt's Sinai, where Egypt has an army too.</summary>
   function board(sleeping: boolean = false): GameState {
-    let s = oldWorld(newGame(4, newGameConfig({ catastropheChance: 0, sleepingSeats: sleeping })));
+    let s = smallWorld(newGame(4, newGameConfig({ catastropheChance: 0, sleepingSeats: sleeping })), "Egypt", "Hatti", "Babylonia", "Assyria");
     for (const [city, id] of [
       ["shasu", "u90"],
       ["gaza", "u91"],

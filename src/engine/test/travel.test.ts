@@ -23,7 +23,7 @@ import {
   roads,
   wordSeasons,
 } from "@amarna/engine";
-import { Assert, skilled, oldWorld } from "./support.ts";
+import { Assert, skilled, smallWorld } from "./support.ts";
 
 // Travel and news (build order item 7b): routes and the one pace rule, winter passes, rivers, the road check, closed roads
 // and sneaking, and news of distant land travelling.
@@ -62,7 +62,7 @@ describe("TravelTests", () => {
     // An army ordered over a pass in winter is accepted, and loses men (item 11a+): a full one with no food more than one
     // that carries a season's, a small levy fewer still.
     const cross = (g: number, men: number, food: number): number => {
-      const s = oldWorld(newGame(g));
+      const s = smallWorld(newGame(g), "Hatti");
       s.turn = 2;
       s.units = s.units.filter((u) => u.province !== "nesa" && u.province !== "kizzuwatna");
       s.units.push(newUnit({ id: "u-test", power: "Hatti", kind: "Army", province: "nesa", men, food }));
@@ -86,7 +86,7 @@ describe("TravelTests", () => {
     Assert.true(fed < hungry * 0.6 && fed > hungry * 0.4);
     Assert.true(small < 20 * 1000 * 0.1);
     // Outside winter the pass costs nothing.
-    const s = oldWorld(newGame(3));
+    const s = smallWorld(newGame(3), "Hatti");
     s.turn = 1;
     s.units = s.units.filter((u) => u.province !== "nesa" && u.province !== "kizzuwatna");
     s.units.push(newUnit({ id: "u-test", power: "Hatti", kind: "Army", province: "nesa" }));
@@ -107,7 +107,7 @@ describe("TravelTests", () => {
   });
 
   test("An envoy goes by a route of provinces and arrives when it has made the whole road", () => {
-    const s = oldWorld(newGame(5));
+    const s = smallWorld(newGame(5), "Babylonia", "Assyria");
     const envoy = first(s.characters, (c) => c.employer === "Babylonia");
     skilled(envoy, 100);
     const start = s.turn;
@@ -125,7 +125,7 @@ describe("TravelTests", () => {
   });
 
   test("A king closes his roads: the court hears it by word, and his men turn its travellers back at the border", () => {
-    const s = oldWorld(newGame(7));
+    const s = smallWorld(newGame(7), "Mitanni", "Babylonia");
     const e = season(s, new Dict([["Mitanni", newTurnSubmission({ orders: [roads("Babylonia", true)] })]]));
     Assert.true((s.roadsClosed.tryGet("Mitanni") ?? []).includes("Babylonia"));
     // Word from Mitanni (Babylonia's own couriers bring it reports of its own land too, item 17's among them).
@@ -144,7 +144,7 @@ describe("TravelTests", () => {
   });
 
   test("The road check's odds: hostile troops, sneaking found, outlaws, storms; skill takes off up to half", () => {
-    const s = oldWorld(newGame(9));
+    const s = smallWorld(newGame(9), "Egypt", "Hatti", "Mitanni");
     const envoy = first(s.characters, (c) => c.employer === "Egypt");
     season(s, new Dict([["Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Hatti", "Greetings.")] })]]));
     const j = first(s.journeys, (x) => x.characterId === envoy.id);
@@ -173,7 +173,7 @@ describe("TravelTests", () => {
   });
 
   test("Who holds distant land is known as late as word of it travels", () => {
-    const s = oldWorld(newGame(11));
+    const s = smallWorld(newGame(11), "Babylonia", "Assyria", "Egypt");
     s.turn = 6;
     // Babylonia's Ur passes to Assyria by the engine's hand: Egypt sees nothing of Ur, Babylonia sees it at once.
     const e = new TurnEngine(s);
@@ -191,7 +191,7 @@ describe("TravelTests", () => {
   });
 
   test("A spy caught on the road gives its master no sight of its post, and word that it has not returned", () => {
-    const s = oldWorld(newGame(13));
+    const s = smallWorld(newGame(13), "Egypt", "Hatti");
     const spy = first(s.characters, (c) => c.employer === "Egypt");
     season(s, new Dict([["Egypt", newTurnSubmission({ orders: [{ type: "spy", character: spy.id, court: null, province: "carchemish" }] })]]));
     const j = first(s.journeys, (x) => x.characterId === spy.id);

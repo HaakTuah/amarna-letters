@@ -28,7 +28,7 @@ import {
   unitAt,
   wallsOf,
 } from "@amarna/engine";
-import { removeAll, Assert, subs, oldWorld } from "./support.ts";
+import { removeAll, Assert, subs, smallWorld } from "./support.ts";
 
 // A kingdom falls with its capital (the design document's rule, built with the siege package, Build order item 5): its orders
 // lapse for the rest of the season. Since item 13 its realm comes apart: the capital and the land where the taker's troops
@@ -47,7 +47,7 @@ describe("KingdomFallTests", () => {
   }
 
   test("A capital stormed and then obeying its stormers brings down its kingdom, and the rest of its land falls lawless", () => {
-    let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
+    let s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "Arzawa", "Hatti", "Egypt");
     // Apasa's walls thrown down to level 1, its troops gone; Hatti's armies in Lukka and Mira.
     s.walls.set("apasa", 1);
     removeAll(s.units, (u) => u.power === "Arzawa");
@@ -101,7 +101,7 @@ describe("KingdomFallTests", () => {
   });
 
   test("A capital that surrenders to a siege brings down its kingdom", () => {
-    let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
+    let s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "Babylonia", "Assyria");
     removeAll(s.units, (u) => u.province === "ashur");
     let besieger = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(besieger);
@@ -119,7 +119,7 @@ describe("KingdomFallTests", () => {
 
   // <summary>Seed 1, no catastrophes: each pair's army stands in the other's capital, one season from its surrender.</summary>
   function sieges(...sieges: [Power, Power][]): GameState {
-    let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
+    let s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "Babylonia", "Assyria", "Mitanni");
     for (const [by, of] of sieges) {
       let capital = WorldMap.default.capital(of).id;
       removeAll(s.units, (u) => u.province === capital);
@@ -178,7 +178,7 @@ describe("KingdomFallTests", () => {
 
   test("A king cannot cede his own capital without a sealed tablet that gives it", () => {
     // Item 11d: by agreement on a sealed tablet only (answers-11plus.test.ts).
-    let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0 })));
+    let s = smallWorld(newGame(1, newGameConfig({ peopleDefence: 0 })), "Egypt", "Hatti");
     let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [cede("akhetaten", "Hatti"), cede("thebes", "Hatti")] }));
     Assert.contains("only as a sealed tablet", Assert.single(v.rejected).reason);
     Assert.single(v.accepted);

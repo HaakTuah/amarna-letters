@@ -23,7 +23,7 @@ import {
   newRisingChoice,
   wallsOf,
 } from "@amarna/engine";
-import { Assert, oldWorld, removeAll, subs } from "./support.ts";
+import { Assert, removeAll, subs } from "./support.ts";
 
 // Build order item 17++, "Whom a province obeys" and "Loyalty is a ledger" (War): no province is owned by a flag; it obeys
 // whoever it fears or loves most, by a clear margin, with degrees; the ledger starts as 1346 stood.

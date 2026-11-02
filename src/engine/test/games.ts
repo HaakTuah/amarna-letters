@@ -27,8 +27,9 @@ import { firstOrNull, orderBy, walled, oldWorld, smallWorld } from "./support.ts
 /** Games the ported tests share across files (the C# suite reached into SiegeTests and EngineTests for them). */
 
 /** Seed 1 with no catastrophes, and Suhu walled 2 as Mari was before item 7a: the board the siege tests start from. */
-export function siegeBoard(): GameState {
-  return walled(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2);
+export function siegeBoard(...kings: Power[]): GameState {
+  const g = newGame(1, newGameConfig({ catastropheChance: 0 }));
+  return walled(kings.length > 0 ? smallWorld(g, ...kings) : oldWorld(g), "suhu", 2);
 }
 
 /**
