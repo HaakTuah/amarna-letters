@@ -39,7 +39,7 @@ import { Board } from "./board.ts";
 import { worksOrders } from "./works.ts";
 import { depotFor, grainOrders, plainGrain, plainGrainOrders } from "./grain.ts";
 import { canLevy, levyCost, settleThere } from "./land.ts";
-import { censusOrders, demandOrders } from "./counts.ts";
+import { censusOrders, demandOrders, levyOrder } from "./counts.ts";
 import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import type { Brain } from "./brain.ts";
@@ -308,14 +308,14 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
     if (value < lifetime * (0.7 + 0.5 * p.caution) * (1.3 - 0.6 * p.aggression)) continue;
     if (gold - cost < reserve) continue;
     if (flow - upkeep < -(gold - cost - reserve) / Math.max(3, b.horizon)) continue;
-    orders.push(raise(spot.id, fleet ? "Fleet" : "Army"));
+    orders.push(levyOrder(v, me, spot.id, fleet ? "Fleet" : "Army"));
     spots.splice(spots.indexOf(spot), 1);
     gold -= cost;
     flow -= upkeep;
     raised++;
   }
   if (b.mine.length === 0 && spots.length > 0 && canLevy(v, spots[0].id, "Army") && gold - v.prices.get("army") >= reserve) {
-    orders.push(raise(spots[0].id, "Army"));
+    orders.push(levyOrder(v, me, spots[0].id, "Army"));
     gold -= v.prices.get("army");
   }
 

@@ -49,8 +49,9 @@ readings. The report: `docs/rounds/2026-11-02-what-a-king-can-count.md`. Save ve
   third, and stands wherever the tax rate stood: what the farmers keep, the land's appeal to those leaving, the reason
   runaways give, and the ledger's taking or giving against the usual share.
 - **Levies** (`raise` with `share`; model actions `raise_army_share`, `raise_fleet_share`): a share of the men of
-  fighting age at home, less the same `hiddenIn` percent; or a number of men, as item 11a+ built it. The corvée stays each
-  work's need (item 15).
+  fighting age at home, less the same `hiddenIn` percent; or a number of men, as item 11a+ built it. A share that comes to
+  fewer than a levy takes is refused as that, never as a land without men. The corvée stays each work's need (item 15).
+- The seat view's `yields` are what the last reaping brought in, a season's third of it, never the hands there now.
 - Only a governor stands between king and province: where one stands, the ledger debits or credits him for what is
   asked, as the hand the people see (part A's rule), and nothing else comes between.
 
@@ -61,5 +62,7 @@ readings. The report: `docs/rounds/2026-11-02-what-a-king-can-count.md`. Save ve
   as a share once it is older; land never counted keeps the usual share.
 - They send scribes to the richest provinces whose count is `StaleSeasons` (8) old or that were never counted, two a
   season at most, while the treasury holds ten times the fee.
+- A levy is a full unit's men while the count is fresh, and past it a share of the men at home sized to a full unit by
+  the old count (`levyOrder`).
 - `--no-count-play` / `--count-play-half`: kings that never count and always ask a share by their (ageing) count, for use
   against ignore.

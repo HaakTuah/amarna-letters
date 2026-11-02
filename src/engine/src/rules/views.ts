@@ -427,12 +427,14 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     }
   }
   v.counting = s.censuses.filter((c) => c.power === p).map((c) => c.province);
-  // Yields as the people bring them in now, and the people's resistance to this court's armies (item 10+a): where the
+  // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {
     if (!seen.has(prov.id) && !(s.owner.getOrDefault(prov.id, null) === p && known.tryGet(prov.id)?.owner === p)) continue;
     const full = harvestOf(prov);
-    v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * engine.harvestNow(prov.id, false), full));
+    // Item 17++: what its last reaping brought in, a season's third of it, as the stewards (or the troops who saw the fields)
+    // know it; never the hands there now, which only a count tells.
+    v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * idiv(s.reaped.getOrDefault(prov.id, full * 3), 3), full));
     const r = engine.resistance(prov.id, p);
     if (r > 0) v.resistance.set(prov.id, r);
   }

@@ -5,7 +5,7 @@
  * count has grown old, where the gold allows. `--no-count-play` and `--count-play-half` never count and always ask a
  * share, only to measure what counting is worth.
  */
-import { CountData, census, demand, type Order, type ProvinceEconomyView, type SeatView } from "@amarna/engine";
+import { CountData, census, demand, menOf, raise, type Order, type ProvinceEconomyView, type SeatView, type UnitKind } from "@amarna/engine";
 import { bearableShare, LandPlay, shareNow } from "./land.ts";
 
 /** Script kings that never count their land and always ask a share (`--no-count-play`, `--count-play-half`). None by default. */
@@ -67,3 +67,14 @@ export function censusOrders(v: SeatView, me: string, gold: number): Order[] {
   return orders;
 }
 
+
+/**
+ * A levy (item 17++, "The king says how much he wants"): a full unit's men while the count is fresh enough to judge them
+ * by; past that, a share of the men at home sized to a full unit by the old count, which can never take more men than are
+ * there, though the province hides part of it. Kings that never count ask a full unit as before.
+ */
+export function levyOrder(v: SeatView, me: string, province: string, kind: UnitKind): Order {
+  const x = v.provinces.find((y) => y.province === province);
+  if (!CountPlay.on(me) || x === undefined || x.counted === null || v.turn - x.counted <= FreshSeasons || x.men <= 0) return raise(province, kind);
+  return raise(province, kind, null, Math.max(1, Math.min(100, Math.ceil((menOf(kind) * 100) / x.men))));
+}
