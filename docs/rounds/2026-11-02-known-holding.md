@@ -14,23 +14,24 @@ news. The owner wanted it fixed now, as a P1 of "Hidden information".
   `deport` (both ends) (economy); `grant` (people).
 - **The answer by the road.** The order the court thinks valid goes in, and the engine carries it out by the true
   holder. Where that fails because the land is lost, the notice now comes home by the road (`TurnEngine.lostOrder`, a
-  `tell` from the province): works, levies, cessions (a province or the capital), welcome, expel, deport, runaways sent
-  back, deportations (either end lost), grants of passage or basing, the markets' sales, purchases, grain for the towns
+  `tell` from the province): works, levies, cessions (a province or the capital), welcome, expel, runaways sent back,
+  deportations (either end lost), grants of passage or basing, the markets' sales, purchases, grain for the towns
   and caravans, trade and ships; a unit disbanded to settle on land lost out of sight goes home, and that notice comes
   by the road too. A scheduled order foiled so wakes its seat when the word comes: the wake line
-  (`scheduledFailure`) travels as its own word (news `Foiled`) and `wordArrives` adds it to the seat's wake reasons. A sally from a city the king no longer
-  holds no longer reaches the battle (it had no check at resolution) and is told by the road too. A governor granted lost
+  (`scheduledFailure`) travels as its own word (news `Foiled`) and `wordArrives` adds it to the seat's wake reasons.
+  A sally from a city the king no longer holds no longer reaches the battle (it had no check at resolution) and is told by the road too. A governor granted lost
   land sets out, finds it another's and comes home as any governor of lost land does (`governorsSeason`).
 - **The canary** (`src/web/test/canary.test.ts`) grows a case: a far province of Assyria's, lost by the log of who held
   it in the second season, whose word does not reach its court within the game; Assyria's seat sends it a governor
-  every season. The refusal's words ("… is not yours", "do not hold …") may reach Assyria only once its view knows the
+  in the first season. The refusal's words ("… is not yours", "do not hold …") may reach Assyria only once its view knows the
   loss, and the test checks every path it already checks (each seat's input, every model call, the page's panels and
   map in every season, the province's card, the replay, the exports). Without the fix it fails: "season 2, Assyria's
   input: the far province lost out of sight". A positive control checks that the province is another's in truth, that
   Assyria's view still holds it, and that the governor went.
 - **An engine test** (`src/engine/test/known-holding.test.ts`): the checks accept a govern and a build for the far lost
   province and still refuse land the court knows another's; the governor sets out; the lapsed work's notice is a
-  courier's word, not an inbox line.
+  courier's word, not an inbox line; a deportation to lost land fails by the road; a scheduled order foiled far away
+  wakes its sleeping seat only when its word arrives.
 - Rulebook (`src/llm/src/rules-command.ts`), README, `docs/design/13-travel-and-news.md` ("News", replacing the reading
   of question 6 that a refusal could tell a court of a change of hands) and `docs/design/01-rules-as-implemented.md`.
   Save version 41.

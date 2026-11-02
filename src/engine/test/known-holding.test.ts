@@ -7,6 +7,7 @@ import {
   newGame,
   newGameConfig,
   newOwnerChange,
+  newSleepState,
   newTurnSubmission,
   OrderValidator,
   TurnEngine,
@@ -66,5 +67,22 @@ describe("KnownHoldingTests", () => {
     e.deport("Egypt", deport(from, "nippur", 10));
     Assert.equal(before, inboxOf(s, "Egypt").length);
     Assert.equal(1, s.journeys.filter((j) => j.kind === "Word" && j.to === "Egypt" && (j.text ?? "").includes("Nobody was deported")).length);
+  });
+
+  test("A scheduled order foiled far away wakes its seat when the word of it comes, not at once", () => {
+    const { s } = farLoss();
+    const e = new TurnEngine(s);
+    const o = build("nippur", "Walls", 1, true);
+    // A sleeping seat whose scheduled work runs this season.
+    const sl = newSleepState();
+    s.sleep.set("Egypt", sl);
+    e._scheduledNow.set("Egypt", [o]);
+    e.setWorks("Egypt", o);
+    Assert.equal(0, sl.pendingWake.length);
+    const wake = s.journeys.filter((j) => j.news === "Foiled" && j.to === "Egypt");
+    Assert.equal(1, wake.length);
+    Assert.equal(s.journeys.find((j) => (j.text ?? "").includes("Not built"))!.arriveTurn, wake[0].arriveTurn);
+    e.wordArrives(wake[0]);
+    Assert.equal(1, sl.pendingWake.length);
   });
 });

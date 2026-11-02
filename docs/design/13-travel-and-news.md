@@ -80,7 +80,7 @@ on sealed tablets comes with item 9.
   accepted in question 6, that a refusal could tell a court a province changed hands): the validator reads who holds a
   province as the court knows it (`Checking.knownOwner`), so an order for land lost out of its sight goes
   in, the engine carries it out by the true holder, and its failure comes home by the road (`TurnEngine.lostOrder`, by
-  `tell`; a scheduled one wakes its seat at once only where word is near). A governor granted such land sets out, finds
+  `tell`; a scheduled one wakes its seat when that word comes, its wake line travelling with it as news `Foiled`). A governor granted such land sets out, finds
   it another's and comes home as any governor of lost land does.
 - **Fallen kingdoms** (`GameState.fallsHeard`, `SeatView.fallen`): a court that sees the fallen capital hears at once,
   the rest by word; the fall's event is visible only to the fallen court and those that saw it. Until it hears, a court
