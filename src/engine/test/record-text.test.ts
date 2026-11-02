@@ -373,4 +373,17 @@ describe("RecordTextTests", () => {
         Assert.doesNotContain("once a interpreter", c.persona);
       }
   });
+
+  test("A calling with an article of its own, or a title, takes no other (#468)", () => {
+    Assert.equal("the ruler's brother", Personas.calling(newCharacter({ calling: "the ruler's brother" })));
+    Assert.equal("a lord of the coast", Personas.calling(newCharacter({ calling: "a lord of the coast" })));
+    Assert.equal("King's Son of Kush", Personas.calling(newCharacter({ calling: "King's Son of Kush" })));
+    Assert.equal("a prince of Miam", Personas.calling(newCharacter({ calling: "prince of Miam" })));
+    Assert.contains("once the ruler's brother. You are ", Personas.template(newCharacter({ calling: "the ruler's brother" })));
+    // No starting character of a whole game is "once a the …" or "Served as an a …".
+    for (const c of newGame(1).characters) {
+      Assert.false(/\b(a|an) (a|an|the) /.test(c.persona), c.persona);
+      Assert.doesNotContain(c.facts, (f) => /^Served as (a|an) (a|an|the|[A-Z])/.test(f.text));
+    }
+  });
 });
