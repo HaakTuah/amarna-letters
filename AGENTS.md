@@ -184,7 +184,9 @@ own. One that fails a condition is closed with the reason, and the update is mad
 
 **Dependabot's version updates** (`.github/dependabot.yml`: weekly, grouped, each release a week old) aim at `develop`
 and are ordinary small PRs: the next free lane takes one, runs the checks, gets Codex's review, reads the release notes
-for breaking changes, and merges it, or closes it with the reason.
+for breaking changes, and merges it, or closes it with the reason. A new major of `@types/node` is the cue to move Node
+itself: an even-numbered Node that is long-term support (from its October) moves CI's `node-version` and
+`scripts/cloud-setup.sh` in the same PR, with the types and the full suites; an odd one is closed with that reason.
 
 **CodeQL checks every PR** into `develop` and `main`, every push to them and once a week (`.github/workflows/codeql.yml`).
 A finding on your PR shows on it as a note: fix it in the same PR, or, if it is a false alarm, say why in the PR and

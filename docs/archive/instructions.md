@@ -1408,3 +1408,6 @@ Given in the design chat with Claude, answering the design questions of the cons
     where it lives, so "open" means "needs the owner"; a bug is done only when its fix is live, closed by GitHub when a
     "Fixes #n" commit reaches `main`): "agreed with your expert take." Written into "Questions, readings and ideas" in
     `AGENTS.md`; #433 reopened until the next milestone; the same in Barkstreet Snakes.
+160. **2 November 2026, 15:18 to 15:21 UTC**, in the design chat, on #451 (Dependabot ignoring major versions of the
+    Node types): "Why are we running an older version of Node?", then "Why should we ignore, if we update?", and, to the design session's take (no ignore rule: a new major of the Node types is the cue to move Node itself when it is long-term support, closed otherwise; Node 26 now, CI and the cloud setup together): "Yes, please, expertly, if you so expertly advice!" Written into "Git and GitHub" in `AGENTS.md` and "Follow-ups" in `docs/BUILD-PROGRESS.md`; #451
+    closed in favour of it; the same in Barkstreet Snakes.
