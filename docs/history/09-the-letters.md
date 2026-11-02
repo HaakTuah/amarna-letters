@@ -23,9 +23,9 @@ can know, with its letter; how much it weighs is item 10's to set.
 | <a id="09-tushratta-statues"></a>Tushratta | Egypt | grievance | The solid-gold statues Amenhotep III promised came from Akhenaten as gilded wood (EA 26, 27, 29). EA 26 (Moran): "Naphurreya, your son, has plated [statues] of wood" | A |
 | <a id="09-tushratta-envoys"></a>Tushratta | Egypt | grievance | His envoys Pirissi and Tulubri detained; he says he will hold Pharaoh's envoy Mane until they come home, and holds Pharaoh's envoys as long as his are held (EA 28, 29). EA 28 (Moran): "I am going to detain Mane" | A |
 | <a id="09-tushratta-hatti"></a>Tushratta | Hatti | grievance | A Hittite invasion of his land, which he says he beat, sending Pharaoh some of the booty (EA 17). EA 17 (Knudtzon): "aus der Beute vom Hatti-Land dir übersandt" | A |
-| <a id="09-burna-buriash-gold"></a>Burna-Buriash (Babylonia) | Egypt | grievance | Gold that came short: of 40 minas put in the kiln, not 10 came out (EA 7); of 20 minas, not 5 (EA 10). EA 10 (Moran): "When they put it into the kiln, not 5 minas of gold appeared" | A |
-| <a id="09-burna-buriash-illness"></a>Burna-Buriash | Egypt | grievance | Pharaoh did not send to ask after him when he was ill (EA 7). EA 7 (Oppenheim): "Why has he sent no messenger here and visited me" | A |
-| <a id="09-burna-buriash-caravans"></a>Burna-Buriash | Egypt | grievance | His envoy Salmu's caravan robbed twice in Pharaoh's lands; his merchants killed at Hinnatuna by the men of Shum-Adda and of Shutatna of Akko, for which he demands that the killers be put to death and the silver returned (EA 7, 8). EA 8 (Ebeling, in Moran's edition): "Put to death the men who put my servants to death" | A |
+| <a id="09-burna-buriash-gold"></a>Burna-Buriash (Babylonia) | Egypt | grievance | Gold that came short: of 40 minas put in the kiln, not even a small part came out (EA 7: the number is broken off, and Moran's "[10]" is "only a guess", his note 21); of 20 minas, not 5 (EA 10). EA 10 (Moran): "When they put it into the kiln, not 5 minas of gold appeared" | A |
+| <a id="09-burna-buriash-illness"></a>Burna-Buriash | Egypt | grievance | Pharaoh did not send to ask after him when he was ill (EA 7). EA 7 (Moran): "Why has he sent no messenger here and visited me" | A |
+| <a id="09-burna-buriash-caravans"></a>Burna-Buriash | Egypt | grievance | His envoy Salmu's caravan robbed twice in Pharaoh's lands; his merchants killed at Hinnatuna by the men of Shum-Adda and of Shutatna of Akko, for which he demands that the killers be put to death and the silver returned (EA 7, 8). EA 8 (Moran): "Put to death the men who put my servants to death" | A |
 | <a id="09-burna-buriash-assyrians"></a>Burna-Buriash | Egypt | grievance | Assyrians received at Pharaoh's court as if independent (EA 9). EA 9 (Moran): "Why on their own authority have they come to your country?" | A |
 | <a id="09-burna-buriash-escort"></a>Burna-Buriash | Egypt | grievance | Only five carriages sent to escort his daughter (EA 11). EA 11 (Knudtzon): "Mit 5 Wagen sollte man sie dir bringen?" | A |
 | <a id="09-burna-buriash-vassals"></a>Burna-Buriash | Assyria | claim | "My Assyrian vassals" (EA 9). EA 9 (Moran): "as for my Assyrian vassals, I was not the one who sent them to you" | A |
@@ -76,7 +76,7 @@ to Moran's, **(p)** where paraphrased.
   king's? (EA 4, Kadashman-Enlil to Amenhotep III, quoting Egypt's "no daughter of the king of Egypt is given to
   anyone"). EA 4 (Moran): "Send me a beautiful woman as if she were your daughter"
 - <a id="09-ea-7"></a>**Distance as an excuse (p):** My brother did not hear I was ill, because the road is long; I asked my own envoy, and
-  he said it is long. (EA 7). EA 7 (Oppenheim): "since I asked my own messenger and he said to me that the journey is
+  he said it is long. (EA 7). EA 7 (Moran): "since I asked my own messenger and he said to me that the journey is
   far I was not angry any longer"
 - <a id="09-ea-74"></a>**The begging letter (q):** "Like a bird in a trap, so am I in Byblos." (EA 74, 78, 79, 81, 90); "My field is a wife
   without a husband, lacking in cultivation." (EA 75, Moran). EA 74 (Knudtzon): "Wie Vögel, welche im Vogelnetz
