@@ -101,6 +101,12 @@ export interface Journey {
 /** The arrival of a letter still waiting for its carrier (item 11b): never, until one takes it. */
 export const Waiting = 1_000_000;
 
+/**
+ * The people's own words in a province's offer (a journey of kind `Offer`, item 17++ part D), written after its province:
+ * what the power it reaches reads, and what whoever catches its carrier reads as written (#553).
+ */
+export const offerWords = (j: Journey): string => (j.text ?? "").split("|").slice(1).join("|");
+
 export function newJourney(init: Partial<Journey> = {}): Journey {
   return {
     id: "",

@@ -1,7 +1,7 @@
 # Who carries a province's offer (item 17++, part D)
 
 The owner's answer to #431 (2 November 2026, archive items 157 and 158), written into "Whom a province obeys" (War,
-revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 45.
+revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 45; the captor reading a caught offer (#553), 47.
 
 ## The offer is a letter (`turn/offers.ts`, `Journey` kind `Offer`)
 
@@ -20,6 +20,10 @@ revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 4
   remembers it, and holds it as news (`Character.news`) to sell at any other court he stands at, by its king's order
   (`buy_news`), as anyone may sell what he knows; one in the claimant's own service only if he would sell his master's
   secrets (`sellsSecrets`) (`offer-news`).
+- **Caught** (#553, `lettersGo`): a carrier taken captive on the road by another than the claimant loses the offer to his
+  captor, who reads it as a caught spy's report is read ("A letter taken on the road"): the people's own words, quoted
+  (`quoteWords`, so the captor's court names nobody in them otherwise), and the claimant never hears it (`offer-read`).
+  The letter holds the people's words alone (`offerWords`); the terms of answering it are added only for the claimant.
 - **Arrived** (`offerArrives`): the declaration is known from that season, and the "A province looks to you" notice names
   who brought it (`offer-arrived`).
 - **Never carried**: when the declaration ends (its people no longer lean his way), its letter is dropped, waiting or on
@@ -39,4 +43,7 @@ revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 4
   (`statecraft-court.ts`): his reports bring its offer home. `--no-talk-play`, `--talk-play-half` for all three.
 - A king told that a rival's province leans toward someone warms to that claimant (`Brain.learn`, trust `CourtTrust`
   0.1, first guess): "his enemies by courting the claimant".
+- A king who reads an offer on a carrier he caught (#553, `offersCaught`) heeds it as he would talk of it: his own
+  province is eased as restless for four seasons (`Brain.offersRead`), a rival's warms him to its claimant. The same flags
+  measure it.
 - Answering an offer is part C's (`bots/declarations.ts`), from the season it arrives.

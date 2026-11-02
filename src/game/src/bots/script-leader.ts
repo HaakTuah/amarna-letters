@@ -96,6 +96,7 @@ export class ScriptLeader implements ISeat {
     const brain = this.brain(view.power);
     brain.learn(view, new Board(view));
     const board = new Board(view, brain.remembered(view), brain.treasury);
+    board.offersRead = brain.offersRead;
     const rng = brain.r(view.turn, "decide");
 
     heardRepudiations(board, brain);

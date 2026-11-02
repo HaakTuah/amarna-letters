@@ -116,6 +116,26 @@ describe("OfferTests", () => {
     Assert.equal(OfferUnheard, d.known);
   });
 
+  // #553: as a caught spy's report is read, so is a caught offer, in the people's own words.
+  test("Whoever catches an offer's carrier reads the offer, and it never arrives", () => {
+    const [s, e, d] = offered();
+    const c = person(s, { status: "Employed", employer: "Egypt", at: "Babylonia" });
+    e.startTravel(c, "Egypt");
+    e.carryLetters();
+    Assert.equal(c.id, offer(s).carrier);
+    // Taken by the land king's men on the road: held, his walk home ended.
+    removeAll(s.journeys, (j) => j.characterId === c.id && j.kind !== "Offer");
+    c.status = "Captured";
+    c.heldBy = "Babylonia";
+    e.lettersGo();
+    Assert.false(s.journeys.some((j) => j.kind === "Offer"));
+    Assert.equal(OfferUnheard, d.known);
+    const read = inboxOf(s, "Babylonia").find((i) => i.title === "A letter taken on the road")!;
+    Assert.equal(`Among what Ahmose carried was the word of the people of ${WorldMap.default.get("babylon").name} to Egypt, which never reached him: "The people of Babylon declare for you."`, read.body);
+    Assert.contains(s.events, (x) => x.signal === "offer-read");
+    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you");
+  });
+
   test("Talk reaches the land king's enemies, by the game's marks of enmity, and not every neighbour", () => {
     const s = quiet();
     const e = new TurnEngine(s);

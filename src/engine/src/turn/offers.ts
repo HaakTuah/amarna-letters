@@ -12,7 +12,7 @@ import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { OfferUnheard, type Declaration } from "../model/declarations.ts";
 import { gain, newNewsHeld, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { newJourney, Waiting, type Journey } from "../model/records.ts";
+import { newJourney, offerWords, Waiting, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId } from "../model/state.ts";
 import { bidden } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -30,7 +30,10 @@ export const OfferData = { farGone: 40 } as const;
 
 declare module "./core.ts" {
   interface TurnEngine {
-    /** A province declares for an absent power: its offer waits there for a carrier, and talk of its leaning spreads. */
+    /**
+     * A province declares for an absent power: its offer, the people's own words (`text`), waits there for a carrier, and
+     * talk of its leaning spreads.
+     */
     sendOffer(d: Declaration, holder: Power | null, text: string): void;
     /** Each season, with the letters: a waiting offer finds a carrier, or waits. */
     carryOffer(letter: Journey): void;
@@ -85,6 +88,9 @@ function knows(e: TurnEngine, c: Character, at: string, p: Power, own: boolean):
 
 /** The province an offer is from: written first in its letter. */
 const provinceOf = (j: Journey): string => (j.text ?? "").split("|")[0];
+
+/** What the power an offer reaches is told of answering it, after the people's words. */
+const OfferTerms = "It is yours only if you take it up (answer it: take it up, or refuse it); until then it stays as it is, and the offer stands only while they lean your way.";
 
 P.sendOffer = function (d, holder, text) {
   const S = this.s;
@@ -208,9 +214,8 @@ P.offerArrives = function (j) {
   const d = S.declarations.find((x) => x.province === province && x.power === j.to && x.gone === null && x.from === null) ?? null;
   if (d === null || !isAlive(S, j.to)) return;
   d.known = S.turn;
-  const [, ...text] = (j.text ?? "").split("|");
   const c = findCharacter(S, j.carrier);
-  notify(this, j.to, `${text.join("|")}${c !== null ? ` ${c.name} brought it.` : ""}`);
+  notify(this, j.to, `${offerWords(j)} ${OfferTerms}${c !== null ? ` ${c.name} brought it.` : ""}`);
   logEvent(S, "declare", `The offer of ${this.map.get(province).name}'s people reached ${j.to}.`, [j.to], "offer-arrived");
 };
 

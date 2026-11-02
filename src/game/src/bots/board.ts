@@ -55,6 +55,8 @@ export class Board {
   readonly horizon: number;
   readonly alive: HSet<Power>;
   private readonly treasuries: Dict<Power, number> | null;
+  /** #553: our provinces whose people's offer to another king we read on a carrier we caught, by the season (Brain.offersRead). */
+  offersRead: ReadonlyMap<string, number> = new Map();
   private readonly growthCache = new Dict<Power, number>();
   private leaderCache: Power | null = null;
   private ranked = false;

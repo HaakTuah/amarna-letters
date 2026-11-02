@@ -2,7 +2,8 @@ import { describe, test } from "vitest";
 import { TurnEngine, Views, newDeclaration, newGame, newGameConfig, notify } from "@amarna/engine";
 import { leaderRules } from "@amarna/llm";
 import { Board } from "../src/bots/board.ts";
-import { talkedAway, talkedOurWay, TalkPlay } from "../src/bots/talk.ts";
+import { Brain } from "../src/bots/brain.ts";
+import { CourtTrust, talkedAway, talkedOurWay, TalkPlay } from "../src/bots/talk.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 // Item 17++, part D: script kings act on talk of a province's leaning: its king eases it while the talk is fresh, and the
@@ -32,6 +33,36 @@ describe("TalkPlayTests", () => {
     } finally {
       TalkPlay.off = false;
     }
+  });
+
+  // #553: an offer read on a carrier caught is heeded as talk of it is: the land's king eases the land, a rival courts the
+  // claimant.
+  test("An offer read on a caught carrier eases the land's king's hand there while fresh, and warms a rival to its claimant", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const body = 'Among what Ahmose carried was the word of the people of Babili to Egypt, which never reached him: "The people of Babylon declare for you."';
+    notify(s, "Babylonia", "Notice", "A letter taken on the road", body);
+    notify(s, "Hatti", "Notice", "A letter taken on the road", body);
+    const seat = (p: "Babylonia" | "Hatti", brain: Brain): Board => {
+      const v = Views.for(s, p);
+      brain.learn(v, new Board(v));
+      const b = new Board(v);
+      b.offersRead = brain.offersRead;
+      return b;
+    };
+    const king = new Brain("Babylonia", 1);
+    Assert.contains(talkedAway(seat("Babylonia", king)), (x) => x === "babylon");
+    s.turn += 4;
+    Assert.contains(talkedAway(seat("Babylonia", king)), (x) => x === "babylon");
+    s.turn += 1;
+    Assert.doesNotContain(talkedAway(seat("Babylonia", king)), (x) => x === "babylon");
+    // Against the same rival that read nothing this season.
+    const rival = new Brain("Hatti", 1);
+    const unread = new Brain("Hatti", 1);
+    const quiet = Views.for(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti");
+    unread.learn(quiet, new Board(quiet));
+    s.turn = 1;
+    seat("Hatti", rival);
+    Assert.true(rival.rel.get("Egypt").trust >= unread.rel.get("Egypt").trust + CourtTrust * 0.9);
   });
 
   test("The rulebook says whom talk of a leaning reaches: the claimant, the land's king and his enemies, not his neighbours", () => {

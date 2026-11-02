@@ -2,7 +2,7 @@
  * A script king's memory and judgement: relations with every other king, the war it has chosen, the people it has checked,
  * the evidence it has sent. One per power, kept across seasons.
  */
-import { claimantsTalkedOf, CourtTrust } from "./talk.ts";
+import { claimantsTalkedOf, CourtTrust, offersCaught } from "./talk.ts";
 import {
   AllPowers,
   RoadsTitle,
@@ -93,6 +93,8 @@ export class Brain {
   readonly checked = new HSet<string>();
   readonly sentCopies = new HSet<string>();
   readonly heldSince = new Dict<string, number>();
+  /** #553: our provinces whose people's offer to another king we read on a carrier we caught, by the season read. */
+  readonly offersRead = new Map<string, number>();
   readonly authenticating = new HSet<string>();
   /** Captives we have asked a ransom for, and when: a demand stands until it is paid or lapses. */
   readonly ransomAsked = new Dict<string, number>();
@@ -231,6 +233,12 @@ export class Brain {
     const P = this.p;
     // Item 17++, part D: talk that a rival's land leans toward someone: we court him ("his enemies by courting the claimant").
     for (const x of claimantsTalkedOf(b)) if (this.rel.has(x)) this.rel.get(x).trust = Math.min(1, this.rel.get(x).trust + CourtTrust);
+    // #553: an offer read on a carrier we caught: ours, its people are kept easy as talk of it would; a rival's, we court
+    // its claimant as talk of it would have us do.
+    for (const o of offersCaught(b)) {
+      if (b.ownerOf(o.province) === this.me) this.offersRead.set(o.province, v.turn);
+      else if (o.claimant !== this.me && this.rel.has(o.claimant)) this.rel.get(o.claimant).trust = Math.min(1, this.rel.get(o.claimant).trust + CourtTrust);
+    }
     for (const g of v.governors) {
       const word = v.moods.find((x) => x.province === g.province);
       const bad = word !== undefined && word.source === "governor" && (word.mood === "restless" || word.mood === "near revolt");
