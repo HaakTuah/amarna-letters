@@ -62,6 +62,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in
+  `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact
+  true and once false (a far province lost or held, a siege, a death abroad, an army moving out of sight), and assert
+  that everything the seat receives (its input, notices, wakes and view) is identical until word of the fact could
+  reach it. It catches leaks nobody listed. Built in the lane fixing #517, or right after it.
+
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
   1. **Alashiya owes Egypt nothing at the start** (#476): the starting copper debt goes, as EA 35 shows none.
