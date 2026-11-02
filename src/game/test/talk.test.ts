@@ -3,7 +3,7 @@ import { Dict, OfferCaught, TurnEngine, asSeenBy, land, quoteWords, setNameClaim
 import { leaderRules } from "@amarna/llm";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
-import { CourtTrust, offersCaught, talkedAway, talkedOurWay, TalkPlay } from "../src/bots/talk.ts";
+import { claimantsTalkedOf, CourtTrust, offersCaught, talkedAway, talkedOurWay, TalkPlay } from "../src/bots/talk.ts";
 import { Assert, removeAll } from "../../engine/test/support.ts";
 
 // Item 17++, part D: script kings act on talk of a province's leaning: its king eases it while the talk is fresh, and the
@@ -91,6 +91,9 @@ describe("TalkPlayTests", () => {
       const v = Views.for(s, "Hatti");
       Assert.contains(v.inbox, (i) => i.body.includes(` to ${house}: `));
       Assert.equal([{ province: "babylon", claimant: "Egypt" }], offersCaught(new Board(v)));
+      // Talk of a rival's land leaning toward him finds him the same way.
+      notify(s, "Hatti", "Rumor", "Talk of Babili", "Travellers say the people of Babili lean toward Egypt, away from Babylonia.");
+      Assert.equal(["Egypt"], claimantsTalkedOf(new Board(Views.for(s, "Hatti"))));
     } finally {
       setNameClaims([], []);
     }

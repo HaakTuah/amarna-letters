@@ -1,6 +1,7 @@
 # A caught offer is read (#553)
 
-An accepted idea (the owner, 2 November 2026; archive item 182), into item 17++ part D (#538). When a king's troops or
+An accepted idea, into item 17++ part D (#538). The owner, 2 November 2026, to the design session's takes on five ideas
+from the reviews (archive item 182): "Yes to all, expertly!" When a king's troops or
 people catch the carrier of a province's offer, the king reads the offer, as a caught spy's report is read ("A letter
 taken on the road"). PR #576. Save version 50.
 
