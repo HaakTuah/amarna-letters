@@ -394,8 +394,10 @@ provinces bounded by a thin line; the ◐ button shows the mood of the land as y
 or no word), older reads fading: your own city as you see it, your governors' reports each season, a spy's watched
 province, the city of a court your envoy visited, a province your scribes counted, and travellers' blurred talk of the
 land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow their life: their
-path, along the roads between the places you knew them at, their masters, their missions, what they said and reported.
-Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
+path, along the roads between the places you knew them at, their masters, their missions, what they said and reported;
+the camera keeps to them, where you last knew them, until you move it yourself ("Keep the camera on them" takes it
+back). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
+centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
 gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a

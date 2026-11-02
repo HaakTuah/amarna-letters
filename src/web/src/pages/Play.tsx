@@ -72,6 +72,8 @@ export function Play() {
   const [tabRaw, setTab] = useState("");
   const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
   const [followId, setFollowId] = useState<string | null>(null);
+  // Whether a follow keeps the camera on its person: until the player moves the camera or stops following.
+  const [tracking, setTracking] = useState(false);
   const [sheet, setSheet] = useState(false);
   const [legend, setLegend] = useState(false);
   // Timed, as every step of a season on the page is (item 17a): from the start of this render to the DOM written.
@@ -126,6 +128,14 @@ export function Play() {
 
   // The music and the sounds follow the season shown, as this view knows it (item 19+++).
   useGameAudio(s.frames, s.shownIndex, viewerOf(), live.hasRunner ? live.gameId : "", () => map.current?.view() ?? null);
+
+  // Follow keeps the camera on its person as the seasons go, where the seat last knew him ("Following, travel lines and
+  // borders" under Interface), until the player moves the camera or stops following.
+  const followPath = followId !== null && s.frames.length > 0 ? pathOf(s.frames, s.shownIndex, viewerOf(), followId) : null;
+  const followAt = tracking ? (followPath?.at(-1)?.at ?? null) : null;
+  useEffect(() => {
+    if (followAt !== null) map.current?.focus(followAt, 1, true);
+  }, [followAt?.x, followAt?.y]);
 
   if (!live.hasRunner || s.frames.length === 0 || s.state === null) {
     // No game on screen yet: the pages' own bar stays, so the other pages are a tap away.
@@ -240,6 +250,8 @@ export function Play() {
   const fromList = (province: string): void => {
     const picking = draft?.selected != null;
     chosen(province);
+    // The camera goes to the province chosen: a follow no longer keeps it on its person.
+    setTracking(false);
     // A destination picked for an order: back to the orders, which now show it.
     if (picking && draft?.selected === null) setTab("orders");
     setSheet(false);
@@ -248,12 +260,14 @@ export function Play() {
   const follow = (id: string): void => {
     closeCards();
     setFollowId(id);
+    setTracking(true);
     setTab("follow");
     const path = pathOf(s.frames, s.shownIndex, viewer, id);
-    if (path.length > 0) map.current?.focus(path[path.length - 1].at, 1.6);
+    if (path.length > 0) map.current?.focus(path[path.length - 1].at, 1.6, true);
   };
   const stopFollowing = (): void => {
     setFollowId(null);
+    setTracking(false);
     setTab("season");
   };
 
@@ -434,11 +448,12 @@ export function Play() {
             targets: useDraft ? draft!.targets() : null,
             arrows: useDraft ? draft!.arrows() : null,
             followId,
-            followPath: followId === null ? null : pathOf(s.frames, index, viewer, followId),
+            followPath,
           }}
           viewKey={`${live.gameId}:${viewer ?? "god"}`}
           opening={openingView(viewer)}
           onProvince={clicked}
+          onCamera={() => setTracking(false)}
           onPerson={(id) => (carded ? closeCards() : follow(id))}
           onMark={markTapped}
           onBlank={closeCards}
@@ -653,7 +668,7 @@ export function Play() {
       case "people":
         return <PeoplePanel state={displayed} viewer={viewer} onPerson={follow} />;
       case "follow":
-        return <FollowPanel record={lifeRecord()} viewer={viewer} onProvince={clicked} onClose={stopFollowing} />;
+        return <FollowPanel record={lifeRecord()} viewer={viewer} onProvince={clicked} onClose={stopFollowing} onTrack={tracking ? null : () => setTracking(true)} />;
       case "provinces":
         return <ProvinceList scene={scene} selected={useDraft ? draft!.selected : selectedProvince} onProvince={fromList} />;
       case "standings":
