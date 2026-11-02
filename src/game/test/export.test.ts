@@ -86,6 +86,13 @@ describe("ExportTests", () => {
     Assert.equal("keys [key] and [key]", log.calls[0].error);
   });
 
+  test("A model's JSON reply is read with its escapes decoded", () => {
+    const log = new GameLog();
+    log.addCall(newModelCall({ key: "t1/orders/Egypt", turn: 1, output: '{"notes":"write to jane@b\\u00fccher.de","ledger":[]}' }));
+    const back = JSON.parse(JSON.parse(exportJsonl(log).split("\n")[1]).output) as { notes: string };
+    Assert.equal("write to [e-mail]", back.notes);
+  });
+
   test("A log read back from an old file loses what is sensitive in it", () => {
     const old =
       `{"version":38,"seed":1,"type":"header"}\n{"key":"t1/orders/Egypt","turn":1,"error":"${Leaks[0][1]}","type":"call"}\n` +

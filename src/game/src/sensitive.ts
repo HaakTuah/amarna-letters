@@ -61,6 +61,35 @@ export function withoutSensitive(text: string): string {
   return out;
 }
 
+/**
+ * A text that may be JSON (a model's reply) with anything sensitive taken out: its strings decoded first, since JSON may
+ * write any letter as an escape ("\\u00fc") that hides an address or a key from a scan of the raw text. Other text is
+ * read as it stands.
+ */
+export function withoutSensitiveJson(text: string): string {
+  const raw = withoutSensitive(text);
+  let node: unknown;
+  try {
+    node = JSON.parse(text);
+  } catch {
+    return raw;
+  }
+  if (node === null || typeof node !== "object") return raw;
+  let changed = false;
+  const walk = (v: unknown): unknown => {
+    if (typeof v === "string") {
+      const c = withoutSensitive(v);
+      if (c !== v) changed = true;
+      return c;
+    }
+    if (Array.isArray(v)) return v.map(walk);
+    if (v !== null && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  const back = walk(node);
+  return changed ? JSON.stringify(back) : raw;
+}
+
 /** The same, for a text that may be null (a call's or a shadow's error). */
 export function withoutSensitiveOrNull(text: string | null): string | null {
   return text === null ? null : withoutSensitive(text);

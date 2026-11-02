@@ -26,7 +26,7 @@ import {
   type Power,
   type Schema,
 } from "@amarna/engine";
-import { withoutSensitive, withoutSensitiveOrNull } from "./sensitive.ts";
+import { withoutSensitive, withoutSensitiveJson, withoutSensitiveOrNull } from "./sensitive.ts";
 
 export interface LogHeader {
   /** The rules version the game was played under ({@link CURRENT_VERSION} for a new game). */
@@ -515,7 +515,7 @@ function cleanAuthorship(by: Authorship): Authorship {
 function cleanCall(call: ModelCall): ModelCall {
   call.system = withoutSensitive(call.system);
   call.prompt = withoutSensitive(call.prompt);
-  call.output = withoutSensitive(call.output);
+  call.output = withoutSensitiveJson(call.output);
   call.error = withoutSensitiveOrNull(call.error);
   return call;
 }
