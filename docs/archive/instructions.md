@@ -1394,3 +1394,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     takes it up by letter, order or governor, as Pharaoh weighed the mayors' letters from afar): "Yes, expertly, if you
     think it is best." Written into "Whom a province obeys" under War (revision 94) and item 17++ (revision 213), built
     in part C.
+158. **2 November 2026, 13:14 to 13:19 UTC**, in the design chat, on who carries a province's offer to an absent
+    favourite (#431): "Is the messenger a character it hires then?", then "But characters don't live anywhere, so it
+    has to be a character who is paid or for some reason takes the mission for free on his own accord?", and, to the
+    design session's take (hired from the people's purse like a city-state's errand, carried unpaid by one whose stakes
+    it serves, or reported by the claimant's own envoy or spy; lost if nobody carries it): "Agreed, expertly. Though
+    this is also information he can pass on or sell. I guess even just a rumor can spread? Maybe the town must be really
+    into someone and have the means, if they commission a message and courier? And this is valuable information for the
+    king of the land, or his enemies." Written into "Whom a province obeys" under War (revision 95) and item 17++
+    (revision 214).

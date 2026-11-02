@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 94 (2026-11-02). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 95 (2026-11-02). Do not edit: see docs/intent/INDEX.md. -->
 ## Territory and military
 
 **Military.**
