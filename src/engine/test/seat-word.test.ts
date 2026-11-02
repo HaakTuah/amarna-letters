@@ -48,7 +48,7 @@ describe("SeatWordTests", () => {
     // Pending until the refusal is in the inbox, and from then on gone, in the same season.
     const first = rows.findIndex(([, heard]) => heard);
     Assert.true(first > 0);
-    for (const [k, [pending, heard]] of rows.entries()) Assert.equal(!heard, pending, `season ${k}`);
+    for (const [k, [pending, heard]] of rows.entries()) Assert.equal([k, !heard], [k, pending]);
   });
 
   test("A declaration ended stands in its court's view until word of the end can be read; taken up, until word of that", () => {
