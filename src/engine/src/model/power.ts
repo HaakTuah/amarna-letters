@@ -402,9 +402,15 @@ export function kingFor(viewer: Power | null, p: Power): string {
   return viewer === p && x.home !== null ? x.home : x.king;
 }
 
-/** A king's other names, shown only on his card when one clicks him, never in a letter, report or request (item 17+). */
-export function kingOtherNames(p: Power): readonly string[] {
-  return dataOf(p).others;
+/**
+ * A king's other names, shown only on his card when one clicks him, never in a letter, report or request (item 17+): every
+ * name the sources give him besides the one this viewer's court uses ({@link kingFor}), his own court's name among them
+ * for a foreign court. Names from the sources, the same in every game, not a court's knowledge of the game.
+ */
+export function kingOtherNames(viewer: Power | null, p: Power): readonly string[] {
+  const x = dataOf(p);
+  const shown = kingFor(viewer, p);
+  return [...(x.home !== null ? [x.home] : []), ...x.others].filter((n) => n !== shown && !n.startsWith(`${shown} `));
 }
 
 /** Whether the sources name the ruler: an unnamed one is "the king of ...", and is written so. */
