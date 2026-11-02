@@ -28,7 +28,7 @@ What each person is known for is a fact about him, for his traits ("Attested cha
 | Meryra II | Overseer of the royal harem | yes | A | His tomb shows the year-12 tribute |
 | Huya | Steward of Queen Tiye | yes | A | His tomb at Amarna |
 | Thutmose | Viceroy of Kush, the King's Son of Kush | yes | A | Akhenaten's stelae at Buhen and Amada, which name him |
-| Mane | Envoy to Mitanni, again and again | yes | A | EA 19-29; Tushratta complains he was detained |
+| Mane | Envoy to Mitanni, again and again | yes | A | EA 19-29; Tushratta held him until his own envoys were released (EA 28-29) |
 | Hani | Envoy to Aziru; later to Hatti | yes | A | EA 161; the *Deeds* (the Dahamunzu affair, later) |
 | Pahanate | Commissioner at Sumur | doubt | A | EA 60, 62, 68; Sumur's fall (about 1346) |
 | Yanhamu | Commissioner, in charge of the grain at Yarimuta; perhaps of Semitic birth | yes | A | EA 83, 85, 86, 118, 270, 296 |
@@ -76,7 +76,7 @@ Nubian names survive in Egyptian writing only [C], so invented Nubian personal n
 | Shuttarna III | Artatama's son | likely | A | The same |
 | Kili-Teshup (Shattiwaza) | Tushratta's son, later Hatti's vassal king | yes | A | His treaty (Beckman no. 6) |
 | Keliya | Envoy to Egypt, again and again | yes | A | EA 19-29 |
-| Pirissi, Tulubri | Envoys detained in Egypt | yes | A | EA 27-29 |
+| Pirissi, Tulubri | Envoys detained in Egypt | yes | A | EA 28 (named; likely the unnamed envoys of EA 27, 29) |
 | Artessupa, Asali | Envoys | likely | C | EA 17, 20 |
 | Akit-Teshup | Noble who fled with chariots to Babylon | later | A | The Shattiwaza treaty |
 
@@ -90,6 +90,7 @@ Nubian names survive in Egyptian writing only [C], so invented Nubian personal n
 | Ahutabu | Burna-Buriash's man (messenger or caravan leader) who went on to Egypt; the merchants left behind were killed at Hinnatuna | likely | A | EA 8 |
 | Enlil-kidinni | Governor of Nippur | yes | A | The Nippur letters |
 | Ili-ippashra | Governor of Dilmun, writing to Enlil-kidinni | likely | B | The Dilmun letters from Nippur |
+| Shindishugab | Burna-Buriash's messenger to Egypt | yes | A | EA 10 |
 | Kurigalzu (II) | A son or grandson, later king | yes (young) | B | Kassite chronicles |
 
 ## Assyria
@@ -131,7 +132,8 @@ The rulers are in the politics dossier's table; their families and men:
 | Pu-Baʿlu and his brothers | Sons of Abdi-Ashirta, Aziru's brothers | yes | A | EA 104, 132 |
 | Mut-Baal | Son of Labaya, at Pihil (Pella) | yes | A | EA 255-256; Pella's ruler in the game since item 11f (as Mut-Bahlu) |
 | Akit-Teshup | Brother of Takuwa of Niya, who turns Niya against him and Hatti | yes | A | The Shattiwaza treaty (Beckman no. 6A) |
-| Tagi | Ally of Labaya, in the Carmel region | yes | A | EA 249, 264-266 |
+| Tagi | Ally of Labaya, in the Carmel region (Ginti-kirmil); Milkilu's father-in-law | yes | A | EA 249, 264-266, 289 |
+| Yapahu | Gezer's ruler after Milkilu; how the two were related no letter says; his own youngest brother went over to the Habiru | yes (at Gezer; ruling later) | A (the letters), C (in 1346) | EA 297-300 |
 | Heba | Wife of Niqmaddu II of Ugarit? | doubt | B | EA 48 |
 | Ilimilku | Scribe at Ugarit, who wrote down the Baal cycle under Niqmaddu II | yes | A | Colophons of the Ugaritic myths |
 | Shum-Adda, Shutatna | Men of Akko who killed Babylon's merchants | yes | A | EA 8 |

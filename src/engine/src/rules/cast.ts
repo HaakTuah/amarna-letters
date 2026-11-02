@@ -105,7 +105,7 @@ export const PeopleOf1346: readonly CastSeed[] = [
   // Babylonia
   person("Enlil-kidinni", "Nippur", "Babylonia", "governor of Nippur", { competence: 80, loyalty: 75, greed: 45 }, 60, ["Governor of Nippur, the kingdom's great official, keeping the city and its temple estates (the Nippur letters)."]),
   person("Ili-ippashra", "Dilmun", "Babylonia", "governor of Dilmun", { competence: 55, loyalty: 65, courage: 45 }, 25, ["Governor of Dilmun in the Gulf, who writes to Enlil-kidinni of the island's troubles (the Dilmun letters from Nippur)."]),
-  person("Shindishugab", "Babili", "Babylonia", "royal envoy", { competence: 60, loyalty: 70 }, 15, ["Burna-Buriash's envoy to Egypt (EA 11)."]),
+  person("Shindishugab", "Babili", "Babylonia", "royal envoy", { competence: 60, loyalty: 70 }, 15, ["Burna-Buriash's envoy to Egypt (EA 10)."]),
   // Assyria: the envoys Ashur-uballit complains were kept standing in the sun at Pharaoh's court (EA 16), unnamed, so
   // named in the Assyrian style [G]
   person("Ashur-iddin", "Ashur", "Assyria", "royal envoy", { loyalty: 70, courage: 60, competence: 60 }, 10, ["Ashur-uballit's envoy, kept standing in the sun at Pharaoh's court until the king complained of it (EA 16)."]),
@@ -126,7 +126,7 @@ export const PeopleOf1346: readonly CastSeed[] = [
   person("Arzawiya", "Dimashqa", "Damascus", "lord of Ruhizzi", { ambition: 60, loyalty: 30, courage: 60, competence: 50 }, 15, ["Rules Ruhizzi in Upe and sides with Aitakama of Qadesh against Pharaoh's land, Akizzi says (EA 53-54, 191, 197)."], "damascus"),
   person("Teuwatti", "Dimashqa", "Damascus", "lord of Lapana", { ambition: 55, loyalty: 30, courage: 55, competence: 50 }, 15, ["Rules Lapana in Upe and sides with Aitakama of Qadesh, Akizzi says (EA 53-54, 193)."], "damascus"),
   person("Biridashwa", "Ashtartu", "Ashtaroth", "lord of Yanuamu", { ambition: 65, loyalty: 25, courage: 65, greed: 60 }, 20, ["Rules Yanuamu beyond the Jordan and took Biryawaza's chariots with Arzawiya, Biryawaza says (EA 197)."], "ashtaroth"),
-  person("Yapahu", "Gazru", "Gezer", "the ruler's brother", { ambition: 60, loyalty: 55, competence: 55, greed: 50 }, 10, ["Milkilu's brother at Gazru, who rules it after him and writes to Pharaoh as its ruler (EA 297-300)."], "gezer"),
+  person("Yapahu", "Gazru", "Gezer", "a lord of Gazru", { ambition: 60, loyalty: 55, competence: 55, greed: 50 }, 10, ["A man of Gazru who rules it after Milkilu, kin or not no letter says, and writes to Pharaoh as its ruler; his own youngest brother went over to the Habiru (EA 297-300)."], "gezer"),
 ];
 
 /**
