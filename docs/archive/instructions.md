@@ -1262,3 +1262,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     background", batched at half price, as a play mode beside live): "Yes, please, expertly to both!" Written into the
     design document (Engine and models, "Calls that get through, live or in the background", revision 59) and
     `docs/BUILD-PROGRESS.md` (the side lane, first beside the fog).
+137. **2 November 2026, 07:29 UTC**, in the design chat, to the design session's take that his game's export held
+    nothing sensitive (no keys, e-mail addresses, paths, account, organisation or request ids) and should go into
+    `tests/fixtures/` as the only real Haiku game on file: "Yes, expertly. And queue a job going fully over what the
+    export function includes, and ensuring it doesn't include anything sensitive, at all. If it does, it must all be
+    fixed, and we must be alerted, so we can remove this file." Written into `tests/fixtures/model-games/` (the game
+    and its README) and `docs/BUILD-PROGRESS.md` (the side lane "What a game's export holds", first of all, and the
+    model-calls lane pointed at the game).
