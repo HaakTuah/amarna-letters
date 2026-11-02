@@ -22,6 +22,8 @@ export { CharacterSystem, canForge, courtOf, kingOf, offerLine, selfText, traitL
 export * from "./character-recital.ts";
 export * from "./narrator.ts";
 export * from "./seat-setup.ts";
+export * from "./seat-presets.ts";
+export * from "./seat-cost.ts";
 export * from "./spending.ts";
 export * from "./ladder.ts";
 export * from "./king-ladder.ts";
