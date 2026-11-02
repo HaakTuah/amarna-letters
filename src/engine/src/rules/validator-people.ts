@@ -165,7 +165,7 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       if (!AllPowers.includes(order.grantee) || order.grantee === power || heardFallen(order.grantee)) return `you cannot grant passage to '${order.grantee}'`;
       if (order.kind !== "passage" && order.kind !== "basing") return "grant passage or basing";
       if (order.province === null && order.kind === "basing") return "basing is granted in one city: name the province";
-      if (order.province !== null && (!Map.exists(order.province) || Map.get(order.province).isSea || S.owner.getOrDefault(order.province, null) !== power)) return `you do not hold '${order.province}'`;
+      if (order.province !== null && (!Map.exists(order.province) || Map.get(order.province).isSea || v.knownOwner(order.province) !== power)) return `you do not hold '${order.province}'`;
       if (order.seasons !== null && (!Number.isInteger(order.seasons) || order.seasons < 1)) return "say for how many seasons, or none for until revoked";
       return null;
     }

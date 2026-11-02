@@ -147,9 +147,14 @@ P.resolveSeason = function (submissions) {
     if (u !== null && u.power === p) {
       const savings = u.savings;
       // Men settled as colonists where the unit stands, in a province of the king's own (item 10+a).
-      const settle = (d as Extract<Order, { type: "disband" }>).settle === true && S.owner.getOrDefault(u.province, null) === p && !this.map.get(u.province).isSea;
+      const asked = (d as Extract<Order, { type: "disband" }>).settle === true && !this.map.get(u.province).isSea;
+      const settle = asked && S.owner.getOrDefault(u.province, null) === p;
+      const where = u.province;
       const home = this.disbandUnit(u, settle);
-      notify(S, p, "Resolution", "Disbanded", `${unitLabel(u)} was disbanded` + (home !== "" ? `: ${home}` : "") + (savings > 0 ? `; their savings, ${formatMoney(savings)}, went into the purse of ${this.map.get(u.home).name}.` : "."));
+      const text = `${unitLabel(u)} was disbanded` + (home !== "" ? `: ${home}` : "") + (savings > 0 ? `; their savings, ${formatMoney(savings)}, went into the purse of ${this.map.get(u.home).name}.` : ".");
+      // Settling asked on land lost out of the king's sight (bug #467): the men go home, and word of it comes by the road.
+      if (asked && !settle) this.tell(p, where, "Resolution", "Disbanded", `${text} Its men could not settle as colonists in ${this.map.get(where).name}: you no longer held it.`);
+      else notify(S, p, "Resolution", "Disbanded", text);
     }
     // The unit moved by the seat's own orders, or was destroyed (which wakes the seat by itself).
     else this.failed(p, d, "Disband failed", `No unit of yours stood in ${this.map.get(unit).name} after movement, so none was disbanded.`, "the unit is gone", false);
@@ -201,7 +206,13 @@ P.resolveMovement = function (unitOrders) {
     if (at !== null) byProvince.set(at, o);
   }
 
-  const sallies = unitOrders.map(([, o]) => o).filter((o): o is SallyOrder => o.type === "sally");
+  // Walls sally only for their holder: an order for a city lost out of its king's sight (bug #467) finds it so, and word comes home.
+  const sallies: SallyOrder[] = [];
+  for (const [p, o] of unitOrders) {
+    if (o.type !== "sally") continue;
+    if (S.owner.getOrDefault(o.city, null) === p) sallies.push(o);
+    else this.lostOrder(p, o, o.city, "Order failed", `The walls of ${Map.get(o.city).name} did not sally: you no longer held the city.`, "you no longer held the city");
+  }
   // Winter closes nothing (item 9): a crossing it makes dangerous costs troops after the moves (winterCrossings).
   // Each army and fleet crosses its connection at its own pace (item 13): one that cannot make it this season marches on.
   const marching = this.paceMoves(byProvince);
@@ -333,8 +344,7 @@ P.resolveMovement = function (unitOrders) {
       }
     }
     // The walls of his cities that sallied: whether they found the attack they were to support.
-    for (const [, o] of unitOrders.filter(([q, o]) => q === p && o.type === "sally")) {
-      const w = o as SallyOrder;
+    for (const w of sallies.filter((o) => unitOrders.some(([q, x]) => q === p && x === o))) {
       const matched = adjudicator.sallyMatched(w);
       mine.push(`The walls of ${w.city} sally in support of the attack from ${w.from}: ${matched ? "given" : `void: no unit moved from ${w.from} to ${w.city}`}`);
       const won = result.moves.some((m) => m.from === w.from && m.to === w.city && m.succeeded);
@@ -464,9 +474,10 @@ P.resolveTransfers = function (cessions, gifts) {
       continue;
     }
     const name = Map.get(c.province).name;
-    // The validator refuses a second cession of one province, so land no longer held was lost in movement.
+    // The validator refuses a second cession of one province, so land no longer held was lost in movement, or before it
+    // out of the king's sight (bug #467): either way word of it comes home by the road.
     if (S.owner.getOrDefault(c.province, null) !== p) {
-      this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it after movement.`, "you no longer held it", true);
+      this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it after movement.`, "you no longer held it");
       continue;
     }
     const u = unitAt(S, c.province);
@@ -517,10 +528,11 @@ P.raise = function (p, r) {
         ? `you ceded ${prov.name} to ${to} last season, before the levy`
         : `you no longer held ${prov.name} after movement`;
   if (why !== null) {
-    notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`);
-    // Only land lost in movement is others' doing: a province the seat still holds that is not empty holds its own
-    // unit (any other troops there would have taken it), and a cession is its own.
-    if (S.owner.getOrDefault(prov.id, null) !== p && !this._cededNow.has(prov.id)) this.scheduledFailed(p, r, why);
+    const text = `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`;
+    // Only land lost in movement is others' doing, and its word comes home by the road (bug #467): a province the seat
+    // still holds that is not empty holds its own unit (any other troops there would have taken it), and a cession is its own.
+    if (S.owner.getOrDefault(prov.id, null) !== p && !this._cededNow.has(prov.id)) this.lostOrder(p, r, prov.id, "Levy failed", text, why);
+    else notify(S, p, "Rejected", "Levy failed", text);
     return;
   }
   // Sized by the men the province has (item 11a+): a full levy where it can, else every man at home; its price, pay and

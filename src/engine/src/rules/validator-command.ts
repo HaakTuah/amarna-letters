@@ -84,7 +84,7 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
     }
     case "govern": {
       if (!v.Map.exists(order.province) || v.Map.get(order.province).isSea) return `there is no land province called '${order.province}'`;
-      if (S.owner.getOrDefault(order.province, null) !== v.power) return `${order.province} is not yours`;
+      if (v.knownOwner(order.province) !== v.power) return `${order.province} is not yours`;
       if (S.governors.some((g) => g.province === order.province && g.power === v.power && g.relieved === null)) return `${order.province} already has a governor: take the governorship back first (unseat)`;
       if (v.orders.some((o) => o.type === "govern" && o.province === order.province && v.orders.indexOf(o) < v.orders.indexOf(order))) return `${order.province} was already given a governor by an earlier order`;
       if (order.levies < 0 || order.levies > MostGovernorLevies) return `a governor may be allowed from 0 to ${MostGovernorLevies} levies`;

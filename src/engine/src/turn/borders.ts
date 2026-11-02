@@ -217,8 +217,12 @@ P.welcome = function (p, o) {
   const x = this.peopleOf(o.province);
   const room = Math.max(0, reckonedOf(this.map, o.province).room - x.settled);
   const n = Math.min(x.loose, room);
-  if (S.owner.getOrDefault(o.province, null) !== p || n <= 0) {
-    notify(S, p, "Rejected", "Order failed", `No loose men were settled in ${name}: ${S.owner.getOrDefault(o.province, null) !== p ? "you no longer hold it" : x.loose <= 0 ? "it has none" : "it has no room"}.`);
+  if (S.owner.getOrDefault(o.province, null) !== p) {
+    this.lostOrder(p, o, o.province, "Order failed", `No loose men were settled in ${name}: you no longer hold it.`, "you no longer hold it");
+    return;
+  }
+  if (n <= 0) {
+    notify(S, p, "Rejected", "Order failed", `No loose men were settled in ${name}: ${x.loose <= 0 ? "it has none" : "it has no room"}.`);
     return;
   }
   const fled = [...(S.runaways.tryGet(o.province)?.entries() ?? [])].filter(([, r]) => r > 0).map(([k]) => k);
@@ -311,7 +315,11 @@ P.deport = function (p, o) {
   const x = this.peopleOf(o.province);
   const [n, men] = share(x, Math.max(0, o.number));
   if (why !== null || n <= 0) {
-    notify(S, p, "Rejected", "Order failed", `Nobody was deported from ${from.name}: ${why ?? "it has no settled people left"}.`);
+    const text = `Nobody was deported from ${from.name}: ${why ?? "it has no settled people left"}.`;
+    // Land lost out of the king's sight, at either end: word of it comes home by the road (bug #467).
+    if (S.owner.getOrDefault(o.province, null) !== p) this.lostOrder(p, o, o.province, "Order failed", text, "you no longer hold it");
+    else if (!Map.get(o.to).isSea && S.owner.getOrDefault(o.to, null) !== p && !Map.isHome(p, from.id)) this.lostOrder(p, o, o.to, "Order failed", text, why ?? "");
+    else notify(S, p, "Rejected", "Order failed", text);
     return;
   }
   const m = this.market(o.province);
@@ -347,8 +355,12 @@ P.returnRunaways = function (p, o) {
     [(x: string) => Map.hops(o.province, x), (a: number, b: number) => a - b],
     [(x: string) => x, cmpStr],
   )[0];
-  if (S.owner.getOrDefault(o.province, null) !== p || n <= 0 || home === undefined || !isAlive(S, o.to)) {
-    notify(S, p, "Rejected", "Order failed", `No runaways were sent back from ${name}: ${S.owner.getOrDefault(o.province, null) !== p ? "you no longer hold it" : n <= 0 ? `there are none from ${o.to}'s land there` : `${o.to} has no land to take them`}.`);
+  if (S.owner.getOrDefault(o.province, null) !== p) {
+    this.lostOrder(p, o, o.province, "Order failed", `No runaways were sent back from ${name}: you no longer hold it.`, "you no longer hold it");
+    return;
+  }
+  if (n <= 0 || home === undefined || !isAlive(S, o.to)) {
+    notify(S, p, "Rejected", "Order failed", `No runaways were sent back from ${name}: ${n <= 0 ? `there are none from ${o.to}'s land there` : `${o.to} has no land to take them`}.`);
     return;
   }
   const x = this.peopleOf(o.province);
@@ -373,8 +385,12 @@ P.expel = function (p, o) {
   const prov = this.map.get(o.province);
   const before = S.expelled.getOrDefault(o.province, 0);
   const after = Math.min(LandData.expelMost, before + idiv((100 - before) * clamp(o.percent, 0, 100), 100));
-  if (S.owner.getOrDefault(o.province, null) !== p || siegeOf(S, o.province) === null || after <= before) {
-    notify(S, p, "Rejected", "Order failed", `Nobody was put out of ${prov.name}: ${S.owner.getOrDefault(o.province, null) !== p ? "you no longer hold it" : siegeOf(S, o.province) === null ? "it is not besieged" : before > 0 && after <= before ? "only the fighting men and those who feed them are left" : "you named nobody to put out"}.`);
+  if (S.owner.getOrDefault(o.province, null) !== p) {
+    this.lostOrder(p, o, o.province, "Order failed", `Nobody was put out of ${prov.name}: you no longer hold it.`, "you no longer hold it");
+    return;
+  }
+  if (siegeOf(S, o.province) === null || after <= before) {
+    notify(S, p, "Rejected", "Order failed", `Nobody was put out of ${prov.name}: ${siegeOf(S, o.province) === null ? "it is not besieged" : before > 0 && after <= before ? "only the fighting men and those who feed them are left" : "you named nobody to put out"}.`);
     return;
   }
   S.expelled.set(o.province, after);
