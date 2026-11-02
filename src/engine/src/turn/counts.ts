@@ -6,6 +6,7 @@
 import { idiv } from "../core/num.ts";
 import { countOf, CountData, hiddenPercent, keepCount, takeCount } from "../model/counts.ts";
 import { EconomyData } from "../model/economy.ts";
+import { countryNeed, reckonedOf } from "../model/land.ts";
 import type { CensusOrder, DemandOrder } from "../model/orders.ts";
 import { type Power } from "../model/power.ts";
 import { isAlive, logEvent, notify } from "../model/state.ts";
@@ -49,18 +50,22 @@ P.hiddenIn = function (province) {
   const holder = S.owner.getOrDefault(province, null);
   if (holder === null || !isAlive(S, holder)) return 0;
   const c = countOf(S, holder, province);
-  return hiddenPercent(c === null ? null : S.turn - c.turn, courierSeasons(S, this.map, this.courtAt(holder), province));
+  return hiddenPercent(c === null ? null : S.turn - c.turn, courierSeasons(S, this.map, province, this.courtAt(holder)));
 };
 
 /**
  * The grain a province owes a season by its holder's demand, before how fully it obeys and its granaries' bounds: an
- * amount as asked, or a share of a season's third of its last harvest, less what it hides.
+ * amount as asked, or a share of a season's third of its last harvest, less what it hides. A share never squeezes the
+ * province: its farmers hold back what they eat before the share is reckoned from the rest.
  */
 P.grainAsked = function (province) {
   const amount = this.amountOf(province);
   if (amount !== null) return amount;
   const season = idiv(this.s.reaped.getOrDefault(province, 0), 3);
-  return idiv(idiv(season * this.shareOf(province), 100) * (100 - this.hiddenIn(province)), 100);
+  const asked = idiv(idiv(season * this.shareOf(province), 100) * (100 - this.hiddenIn(province)), 100);
+  const x = this.s.people.tryGet(province);
+  if (x === undefined || this.map.get(province).isSea) return asked;
+  return Math.min(asked, Math.max(0, season - countryNeed(this.map.get(province), x.settled, reckonedOf(this.map, province).settled)));
 };
 
 /** What the demand takes of a season's third of the harvest, in percent, from 0 up (an amount can take more than all of it). */
@@ -104,22 +109,26 @@ P.sendCensus = function (p, o) {
 /**
  * The scribes at work, at the season's end: those whose seasons are up count the province as it stands, stirring some
  * unrest, and send the count home; a count that reaches its court replaces the older one. Scribes in land their king no
- * longer holds come home with nothing.
+ * longer holds come home with nothing, their word travelling as a count would.
  */
 P.censusSeason = function () {
   const S = this.s;
   for (const c of S.censuses) {
+    // Scribes who found the land gone: their word reaches home as any word does.
+    if (c.count === null && c.home > 0) {
+      if (S.turn >= c.home && isAlive(S, c.power))
+        notify(S, c.power, "Notice", "A census", `The scribes sent to count ${this.map.get(c.province).name} came home with nothing: the land no longer obeyed you when they came to count it.`);
+      continue;
+    }
     if (c.count !== null || S.turn < c.counted) continue;
-    const name = this.map.get(c.province).name;
+    const away = courierSeasons(S, this.map, c.province, this.courtAt(c.power));
+    c.home = S.turn + (Number.isFinite(away) ? away : 4);
     if (S.owner.getOrDefault(c.province, null) !== c.power) {
-      c.home = S.turn;
-      notify(S, c.power, "Notice", "A census", `The scribes sent to count ${name} came home with nothing: the land no longer obeys you.`);
+      c.home = Math.max(S.turn + 1, c.home);
       continue;
     }
     c.count = takeCount(S, this.map, c.province);
     this.take(c.province, this.handOf(c.province, c.power), UnrestData.census);
-    const away = courierSeasons(S, this.map, this.courtAt(c.power), c.province);
-    c.home = S.turn + (Number.isFinite(away) ? away : 4);
   }
   for (const c of S.censuses) {
     if (c.count === null || S.turn < c.home || !isAlive(S, c.power)) continue;

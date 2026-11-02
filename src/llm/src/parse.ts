@@ -468,6 +468,10 @@ function other(x: Node): Order | null {
       return raise(province, "Army", amount > 0 ? amount : null);
     case "raise_fleet":
       return raise(province, "Fleet", amount > 0 ? amount : null);
+    case "raise_army_share":
+      return raise(province, "Army", null, amount);
+    case "raise_fleet_share":
+      return raise(province, "Fleet", null, amount);
     case "build":
     case "build_corvee": {
       const kind = workKindNamed(S(x, "item"));

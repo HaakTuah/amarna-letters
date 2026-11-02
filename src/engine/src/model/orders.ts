@@ -209,6 +209,12 @@ export interface RaiseOrder {
   kind: UnitKind;
   /** Haakon's answers to item 11a+: how many men the levy takes, up to every man of fighting age there; none: a unit's full size. */
   men?: number | null;
+  /**
+   * Item 17++ ("The king says how much he wants"): the levy asked as a share of the men of fighting age at home, in
+   * percent, instead of a number: it never takes more than are there, but the province hides part of it as its count ages
+   * and the farther it lies. None: `men` as asked.
+   */
+  share?: number | null;
 }
 export interface DisbandOrder {
   type: "disband";
@@ -699,7 +705,8 @@ export const besiege = (unit: string): BesiegeOrder => ({ type: "besiege", unit 
 export const build = (province: string, kind: WorkKind, level: number, labour = false): BuildOrder => ({ type: "build", province, kind, level, labour });
 export const raze = (unit: string, kind: WorkKind): RazeOrder => ({ type: "raze", unit, kind });
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
-export const raise = (province: string, kind: UnitKind, men: number | null = null): RaiseOrder => (men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men });
+export const raise = (province: string, kind: UnitKind, men: number | null = null, share: number | null = null): RaiseOrder =>
+  share !== null ? { type: "raise", province, kind, share } : men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men };
 export const disband = (unit: string, settle = false): DisbandOrder => (settle ? { type: "disband", unit, settle } : { type: "disband", unit });
 export const fold = (unit: string, into: string): FoldOrder => ({ type: "fold", unit, into });
 export const cede = (province: string, to: Power): CedeProvinceOrder => ({ type: "cede", province, to });
@@ -864,7 +871,7 @@ export function describe(o: Order): string {
     case "returnRunaways":
       return `send ${o.to}'s runaways in ${named(o.province)} back to ${o.to}`;
     case "raise":
-      return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}${o.men != null ? ` of ${o.men} men` : ""}`;
+      return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}${o.share != null ? ` of ${o.share}% of its men of fighting age` : o.men != null ? ` of ${o.men} men` : ""}`;
     case "disband":
       return o.settle === true ? `disband ${o.unit} and settle its men there as colonists` : `disband ${o.unit}`;
     case "fold":
@@ -1053,7 +1060,7 @@ export const OrderSchema = poly("Order", "type", {
   trade: v("TradeOrder", () => trade("", "", 0, 0), { from: S, to: S, grain: I, gold: I, sneak: B }),
   ship: v("ShipOrder", () => ship("", "", "", 0, 0), { fleet: S, from: S, to: S, grain: I, gold: I, trade: B }),
   toll: v("TollOrder", () => toll(0), { province: opt(S), partner: opt(S), percent: I }),
-  raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S, men: opt(I) }),
+  raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S, men: opt(I), share: opt(I) }),
   disband: v("DisbandOrder", () => disband(""), { unit: S, settle: opt(B) }),
   fold: v("FoldOrder", () => fold("", ""), { unit: S, into: S }),
   demand: v("DemandOrder", () => demand("share", 0), { province: opt(S), how: S, n: I }),

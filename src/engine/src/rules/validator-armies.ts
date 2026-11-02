@@ -121,6 +121,8 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
     case "raise": {
       const r = order;
       if (r.men != null && (!Number.isInteger(r.men) || r.men <= 0)) return "say how many men the levy takes, or leave it out for a unit's full size";
+      if (r.share != null && (!Number.isInteger(r.share) || r.share <= 0 || r.share > 100)) return "a levy's share is a percent of the men of fighting age at home, from 1 to 100";
+      if (r.share != null && r.men != null) return "ask a levy as a number of men or as a share, not both";
       if (!Map.exists(r.province)) return `there is no province called '${r.province}'`;
       const p = Map.get(r.province);
       if (!Map.isHome(power, p.id)) return `${p.name} is not part of your homeland`;
@@ -128,9 +130,9 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (r.kind === "Fleet" && !p.isCoastal) return `${p.name} has no harbour for a fleet`;
       if (raisedIn.has(p.id)) return `you already raise a unit in ${p.name}`;
       const men = menAvailable(S, p.id);
-      if (men < LandData.levyLeast) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (${LandData.levyLeast} at least, ${men} at home and not carrying or building)`;
+      if (men < LandData.levyLeast) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (a levy takes ${LandData.levyLeast} at least of those at home and not carrying or building)`;
       if (r.men != null && r.men < LandData.levyLeast) return `a levy takes ${LandData.levyLeast} men at least`;
-      return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(men, r.men ?? menOf(r.kind))));
+      return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(men, r.share != null ? Math.floor((men * r.share) / 100) : (r.men ?? menOf(r.kind)))));
     }
 
     case "disband": {

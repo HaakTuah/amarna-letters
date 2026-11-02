@@ -156,7 +156,7 @@ export function ProvinceInfo({
                 return (
                   <>
                     {c !== null ? `As your scribes counted it in ${when(c.turn, scene.viewer)}: ` : ""}about {about(n.town)} in the town; about {about(n.settled)} on its land ({about(n.men)} men of fighting age), its land carrying{" "}
-                    {about(reckonedOf(WorldMap.default, p.id).room)}; {about(n.loose)} loose. You ask {asked}; its last harvest {n.harvest} measures, a third of it a season; its farmers&apos; granaries
+                    {about(reckonedOf(WorldMap.default, p.id).room)}; {about(n.loose)} loose. {scene.viewer === null ? "Its king asks" : "You ask"} {asked}; its last harvest {n.harvest} measures, a third of it a season; its farmers&apos; granaries
                     held {n.granary}, and the crop in its fields {n.crop}, reaped in {reapSeasonOf(p.id) === 0 ? "Akhet" : reapSeasonOf(p.id) === 1 ? "Peret" : "Shemu"}
                     {state.fed.has(p.id) ? `; last season its countryside ate ${Math.round(state.fed.get(p.id) / 10)}% of its need` : ""}.
                   </>

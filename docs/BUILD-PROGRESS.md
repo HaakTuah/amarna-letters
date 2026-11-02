@@ -74,6 +74,11 @@ fixed.
   province once one upkeep order is drafted; (g) a captive's stirring gold counted as skimmed rather than carried; (h) a
   no-op `CityStarts` entry; (i) an older tablet arriving late sets a court's knowledge of a claim back. (b), the chiefs'
   lands falling in the first two seasons, is 17++'s and measured in its report.
+- **From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
+  is over 50 KB (about 55 KB): split by responsibility in a PR of its own, behaviour proven unchanged by replays.
+- **From #376 (17++ B), round 1 (Codex, P1); test infrastructure outside the item:** the engine suite has no reduced-world
+  fixture, so every engine test builds the whole starting world; a small-world fixture (a few powers on part of the map)
+  for rule tests, as "the smallest game that tests the rule" asks.
 
 ## For Haakon: review points
 
@@ -132,7 +137,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17++ | What a king can count | not started | | |
+| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) in review, #376; part C (governors over regions, grants, the map, the audit's script finds) under way | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md` |
 | 17+++ | The season plays out | not started | | |
 | 17+++a | Keys for everything | not started | | |
 | 17++++ | A small state as a seat | not started | | |

@@ -82,30 +82,39 @@ describe("PeopleTests", () => {
     Assert.contains(r.rejected, (x) => x.reason.includes("too few men of fighting age"));
   });
 
-  test("A heavy share empties the farmers' granaries, and the hungry leave the land in the season it bites", () => {
+  test("A heavy share never squeezes the farmers; a heavy amount empties their granaries, and the hungry leave the land", () => {
+    // Item 17++: a share is reckoned from what the farmers do not eat, so even four in five leaves them fed.
     const s = quiet();
-    // Item 17++: the land hides part of a share as its count ages, so the share that bites within the year is heavier.
     season(s, subs({ Hatti: { orders: [demand("share", 80, "nesa")] } }));
     Assert.equal(80, s.shares.get("nesa"));
-    // The granaries carry them for a while (item 11a+: the harvest comes once a year); before the year is out they run dry.
+    for (let k = 0; k < 6; k++) {
+      new TurnEngine(s).beginTurn();
+      Assert.false(s.fed.has("nesa"));
+      new TurnEngine(s).resolve(new Dict());
+    }
+    // An amount is taken as asked: four in five of a season's harvest bites before the year is out.
+    const t = quiet();
+    const asked = Math.floor((Math.floor(t.reaped.get("nesa") / 3) * 80) / 100);
+    season(t, subs({ Hatti: { orders: [demand("amount", asked, "nesa")] } }));
+    Assert.equal(asked, t.amounts.get("nesa"));
     let bit = false;
     for (let k = 0; k < 6 && !bit; k++) {
-      const before = s.people.get("nesa").settled;
-      const loose = s.people.get("nesa").loose;
-      new TurnEngine(s).beginTurn();
-      if ((s.fed.tryGet("nesa") ?? 1000) < 1000) {
+      const before = t.people.get("nesa").settled;
+      const loose = t.people.get("nesa").loose;
+      new TurnEngine(t).beginTurn();
+      if ((t.fed.tryGet("nesa") ?? 1000) < 1000) {
         bit = true;
-        Assert.true(s.people.get("nesa").settled < before);
+        Assert.true(t.people.get("nesa").settled < before);
         // The hungry leave the land: loose on its roads, or settled with its neighbours (since item 17+ left Nesa more people).
-        Assert.true(s.people.get("nesa").settled + s.people.get("nesa").loose < before + loose);
-      } else new TurnEngine(s).resolve(new Dict());
+        Assert.true(t.people.get("nesa").settled + t.people.get("nesa").loose < before + loose);
+      } else new TurnEngine(t).resolve(new Dict());
     }
     Assert.true(bit);
     // Its neighbours at the usual share ate their fill.
-    Assert.false(s.fed.has("hattusa"));
+    Assert.false(t.fed.has("hattusa"));
     // A province changing hands keeps no demand of its old holder's.
-    new TurnEngine(s).setOwner("nesa", "Mitanni");
-    Assert.false(s.shares.has("nesa"));
+    new TurnEngine(t).setOwner("nesa", "Mitanni");
+    Assert.false(t.amounts.has("nesa"));
   });
 
   test("Grain handed to a town's market feeds its countryside in a famine", () => {

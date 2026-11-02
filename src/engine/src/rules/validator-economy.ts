@@ -92,6 +92,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (order.how !== "share" && order.how !== "amount") return "a demand is a share of the harvest or an amount of grain";
       if (order.how === "share" && (!Number.isInteger(order.n) || order.n < 0 || order.n > LandData.taxMost)) return `a share is a percent of the harvest from 0 to ${LandData.taxMost}`;
       if (order.how === "amount" && (!Number.isInteger(order.n) || order.n < 0)) return "an amount is a number of measures of grain a season, 0 or more";
+      if (order.how === "amount" && order.province === null) return "an amount is asked of one province at a time";
       const key = order.province ?? "";
       if (taxesSet.has(key)) return "you had already said what that land gives this season";
       taxesSet.add(key);

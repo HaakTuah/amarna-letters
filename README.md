@@ -105,7 +105,8 @@ rumours, and those can be late, shaded or false.
 **The land and its people.**
 - Each province's people farm, give the grain you ask of them into its stores, and eat what they keep. Ask a share of
   the harvest (a third by default), which never squeezes them but lets them hide more the older your count and the
-  farther they lie, or an amount, which you get but can judge only by your count: too much and they go hungry and flee.
+  farther they lie, or an amount of one province, which you get but can judge only by your count: too much and they go
+  hungry and flee. A levy too may be asked as a share of the men at home, which the province hides part of in the same way.
   The harvest comes in its season; droughts, floods and low Niles cut it. People who go hungry flee, and loose men on the
   roads may raise bands of their own.
 - You know your provinces' people only as your scribes last counted them, dated: the province card shows the town and
