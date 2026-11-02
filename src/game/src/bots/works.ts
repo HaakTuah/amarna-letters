@@ -101,8 +101,9 @@ export function worksOrders(b: Board, plan: MilitaryPlan, spare: number): { orde
     [...v.owner].filter(([, o]) => o === b.me).map(([k]) => k),
     [(x: string) => x, cmpStr],
   );
-  // What stands in land we took is unkept until we order it: keep it as it is, by corvée (every script king does).
-  for (const w of v.works.filter((x) => x.level > 0 && x.keep === 0)) orders.push(build(w.province, w.kind, w.level, true));
+  // What stands in land we took is unkept until we order it: keep it as it is, by corvée (every script king does), where
+  // the land allows the work at all (the audit's find 9: walls ordered kept where no town stands, refused every season).
+  for (const w of v.works.filter((x) => x.level > 0 && x.keep === 0 && landRefusal(x.kind, Board.Map.get(x.province)) === null)) orders.push(build(w.province, w.kind, w.level, true));
   if (!WorksPlay.on(b.me)) return { orders, spent };
   const foreign = (id: string): boolean => b.units.some((u) => u.province === id && u.power !== b.me);
   const free = (id: string): boolean => b.siegeAt(id) === null && !foreign(id);

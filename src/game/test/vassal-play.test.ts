@@ -4,7 +4,7 @@ import { ScriptLeader } from "../src/bots/script-leader.ts";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
 import { bondWar, knownBonds, sealBond } from "../src/bots/vassals.ts";
-import { newTabletProposal, clause, newAudienceView, newHostReply } from "@amarna/engine";
+import { newTabletProposal, newTabletView, clause, newAudienceView, newHostReply } from "@amarna/engine";
 import { answerLetter } from "../src/bots/statecraft-clauses.ts";
 import { Assert } from "../../engine/test/support.ts";
 
@@ -49,7 +49,7 @@ describe("Script players and vassalage (item 11+)", () => {
     const brain = new Brain("Arwad", 1);
     brain.learn(view, b);
     const tablet = [clause("askTribute", { amount: 10 }), clause("protect"), clause("askServe")];
-    const audience = newAudienceView({ host: "Arwad", from: "Egypt", turn: s.turn, clauses: tablet, proposal: newTabletProposal({ text: "", vassal: "Arwad", clauses: tablet }) });
+    const audience = newAudienceView({ host: "Arwad", from: "Egypt", turn: s.turn, clauses: tablet, proposal: newTabletView({ vassal: "Arwad", clauses: tablet }) });
     const sealed = newHostReply({ sealProposal: true });
     answerLetter(audience, b, brain, sealed, () => {});
     Assert.true(sealed.clauses.some((c) => c.kind === "accept" && c.answers === "askTribute"));
