@@ -238,6 +238,12 @@ function dataOf(p: Power): PowerData {
   return d(r?.land ?? p, r?.king ?? `the ruler of ${p}`, r?.land ?? p, "City");
 }
 
+/** Every name a fixed power's table gives it: its id, its land's, its king's, his own court's and his others. */
+export function namesOf(p: FixedPower): string[] {
+  const x = Data[p];
+  return [p, x.land, x.king, ...(x.home !== null ? [x.home] : []), ...x.others];
+}
+
 /** The land's name a power started with, or rose with: the name it claims unless it claims another (item 17+). */
 export function ownLand(p: Power): string {
   return dataOf(p).land;

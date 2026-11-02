@@ -15,8 +15,10 @@ Side lane, 2 November 2026. PR #436, answering #427 and #424. Design: Engine and
 
 - **Stand-in names** (`src/game/src/export.ts`, `NameFields`, `StandIns`). Under the human-words filter, in a game with
   a human seat, a name made up in an order becomes Name-1, Name-2, in the order they first appear, the same name
-  (trimmed) always the same stand-in, wherever it appears. A real name stays: an alias the engine offers (`Aliases`), a
-  realm's name (`nameKnown`), or one of the game's people's, which the web app's worker passes from the game's state.
+  (trimmed) always the same stand-in, wherever it appears. A real name stays, in any case: an alias the engine offers
+  (`Aliases`), or one of the game's real names, which the web app's worker passes from the game's state (`realNames`:
+  every person's, and every power's id, land, ruler and his other names, a risen one's as it rose; `namesOf` in the
+  engine gives a fixed power's).
   The fields are those of every decision schema that hold a name the engine reads (found by walking the schemas the
   runner records): a pitch's `name` (`MindReply`), a traveller's `goAs` (`LifeChoice`) and a claimed realm
   (`claimName`'s `name`). A model's `goAs` is already held to the alias it was offered by its parser
@@ -44,8 +46,8 @@ Side lane, 2 November 2026. PR #436, answering #427 and #424. Design: Engine and
   replay holds the stand-in, as it already holds a blank where it echoes blanked words. The canary's replay comparison
   accepts a stand-in where it accepted a blank.
 - **Two checks changed because the design forces it, none loosened beyond that.** The canary's `shape` (each text as
-  long as it was) now compares a name field as a name, since a stand-in has a length of its own; every other string is
-  compared as before. Its `differ` accepts `Name-N` where it accepted a blank. Every other assertion is kept.
+  long as it was) now compares a name field in a decision's value as a name, since a stand-in has a length of its own;
+  every other string, an author's and a shadow's name included, is compared as before. Its `differ` accepts `Name-N` where it accepted a blank. Every other assertion is kept.
 - **The gate is in the page.** The worker cannot know "Reveal all" (the page holds it), and the god view is gated in
   the same place; the page is the human's own, so this is the same boundary as the god view's.
 
@@ -53,9 +55,16 @@ Side lane, 2 November 2026. PR #436, answering #427 and #424. Design: Engine and
 
 No script player decides anything new: the export is a tool for the table, not a rule. Nothing to measure.
 
+## Reviews
+
+- Codex: code review and security review, no findings.
+- Claude's reviewer (Opus, high): 8, four findings, all fixed in one round: real names (kings' names) were stood in
+  for and the check read engine globals (now `realNames` from the game's state, no globals); the canary's `shape` was
+  loosened beyond decision values (now only there); the doc's "reads any other as none" made precise; a test message.
+
 ## Helpers
 
-None: one-pass work in a few files.
+None beyond the reviewer: one-pass work in a few files.
 
 ## Questions for the owner
 

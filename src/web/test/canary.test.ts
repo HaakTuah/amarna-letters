@@ -36,6 +36,7 @@ import {
   Everything,
   exportJsonl,
   ExportFields,
+  realNames,
   type ExportParts,
   GameLog,
   GameRunner,
@@ -490,7 +491,7 @@ function texts(read: Record<string, unknown>[]): Record<string, string[]> {
 
 /** Where two states differ, every string compared but where the second holds a blank or a made-up name's stand-in. */
 function differ(a: unknown, b: unknown, path: string): string[] {
-  if (typeof b === "string" && /[\u2580-\u259f]|\bName-\d+\b/.test(b)) return typeof a === "string" ? [] : [`${path}: a blank where there was no text`];
+  if (typeof b === "string" && /[\u2580-\u259f]|\bName-\d+\b/.test(b)) return typeof a === "string" ? [] : [`${path}: a blank or stand-in where there was no text`];
   if (a !== null && typeof a === "object" && b !== null && typeof b === "object")
     return [...new Set([...Object.keys(a), ...Object.keys(b)])].flatMap((k) =>
       differ((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], `${path}.${k}`),
@@ -498,8 +499,14 @@ function differ(a: unknown, b: unknown, path: string): string[] {
   return a === b ? [] : [`${path}: ${JSON.stringify(a)?.slice(0, 80)} became ${JSON.stringify(b)?.slice(0, 80)}`];
 }
 
-/** Every string of a record set to its blank, a name only as a name (it may be a stand-in): two exports are the same game in shape when these match. */
-const shape = (r: unknown): string => JSON.stringify(r, (k, v: unknown) => (typeof v !== "string" ? v : NameFields.has(k) ? "name" : v.replace(/\S/g, BlankMark)));
+/**
+ * Every string of a record set to its blank, and a name in a decision's value only as a name (it may be a stand-in): two
+ * exports are the same game in shape when these match.
+ */
+const shape = (r: Record<string, unknown>): string => {
+  const named = r.type === "decision" ? { ...r, value: JSON.parse(JSON.stringify(r.value, (k, v: unknown) => (NameFields.has(k) && typeof v === "string" ? "name" : v))) as unknown } : r;
+  return JSON.stringify(named, (_, v: unknown) => (typeof v === "string" ? v.replace(/\S/g, BlankMark) : v));
+};
 
 describe("CanaryTests", () => {
   test("No seat, model, script king or page is handed a secret, live, in past seasons or on replay", async () => {
@@ -626,7 +633,7 @@ describe("CanaryTests", () => {
     }
     Assert.equal("", found.join("\n"));
     // The name he made up is a stand-in, as it is wherever it appears (Engine and models, "Logging and replay").
-    Assert.contains(`{"type":"claimName","name":"Name-1"}`, exportJsonl(log, { ...Everything, humanWords: false }));
+    Assert.contains(`{"type":"claimName","name":"Name-1"}`, exportJsonl(log, { ...Everything, humanWords: false }, realNames(g.runner.state)));
 
     // Without human words the export still replays to the same game: every string as it was, but where the replay holds a
     // blank (a text composed from blanked words may differ in its punctuation: the engine adds a full stop that a blank lacks).

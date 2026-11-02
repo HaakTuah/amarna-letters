@@ -8,7 +8,7 @@
  * sensitive is recorded (a failure is logged as its kind, failure.ts), and the export is built from the list of fields
  * each record may give, so a field no one listed stays out.
  */
-import { Aliases, nameKnown } from "@amarna/engine";
+import { Aliases, PowerValues, namesOf, type GameState } from "@amarna/engine";
 import { isFailure } from "./failure.ts";
 import type { GameLog } from "./log.ts";
 
@@ -56,26 +56,38 @@ export const WordFields: ReadonlySet<string> = new Set(["letter", "mandate", "no
 /**
  * The fields of a decision that hold a name the engine reads, which a player may make up: a pitch's `name`, the alias a
  * traveller gives (`goAs`) and the realm a king claims (`claimName`'s `name`). The engine takes only a name it knows (an
- * alias it offered, a realm's, a person's) and reads any other as none, so under the filter a made-up one is a stand-in
- * and the export still replays.
+ * alias it offered, a realm's) and reads any other as no false name (a pitch or a traveller gives its own, a claim is
+ * refused), so under the filter a made-up one is a stand-in and the export still replays.
  */
 export const NameFields: ReadonlySet<string> = new Set(["name", "goAs"]);
 
 /**
+ * The game's real names, from its state: every person's, and every power's (its id, its land's, its ruler's and his other
+ * names, a risen one's as it rose). With the aliases the engine offers, these are kept under the human-words filter.
+ */
+export function realNames(state: GameState): string[] {
+  return [
+    ...state.characters.map((c) => c.name),
+    ...PowerValues.flatMap(namesOf),
+    ...state.risen.flatMap((r) => [r.power, r.land, r.king]),
+  ];
+}
+
+/**
  * Stands in for the names a player made up: Name-1, Name-2, in the order they first appear, the same name always the same
- * stand-in. A real name is kept: an alias the engine offers, a realm's name, or one of the game's people's.
+ * stand-in. A real name, in any case, is kept: an alias the engine offers, or one of `realNames`.
  */
 class StandIns {
   private readonly given = new Map<string, string>();
   private readonly real: ReadonlySet<string>;
 
-  constructor(people: Iterable<string>) {
-    this.real = new Set([...Aliases, ...people]);
+  constructor(real: Iterable<string>) {
+    this.real = new Set([...Aliases, ...real].map((n) => n.toLowerCase()));
   }
 
   of(name: string): string {
     const n = name.trim();
-    if (n.length === 0 || this.real.has(n) || nameKnown(n) !== null) return name;
+    if (n.length === 0 || this.real.has(n.toLowerCase())) return name;
     let s = this.given.get(n);
     if (s === undefined) this.given.set(n, (s = `Name-${this.given.size + 1}`));
     return s;
@@ -96,8 +108,8 @@ class Blanker {
   private readonly ofShape = new Map<string, number>();
   readonly names: StandIns;
 
-  constructor(people: Iterable<string>) {
-    this.names = new StandIns(people);
+  constructor(real: Iterable<string>) {
+    this.names = new StandIns(real);
   }
 
   blank(text: string): string {
@@ -125,14 +137,14 @@ class Blanker {
 type Node = Record<string, unknown>;
 
 /**
- * The log as JSON lines, holding the parts asked for, each record giving only its listed fields. `people` are the names of
- * the game's people, kept as real names under the human-words filter.
+ * The log as JSON lines, holding the parts asked for, each record giving only its listed fields. `real` are the game's real
+ * names (`realNames`), kept under the human-words filter.
  */
-export function exportJsonl(log: GameLog, parts: ExportParts = Everything, people: Iterable<string> = []): string {
+export function exportJsonl(log: GameLog, parts: ExportParts = Everything, real: Iterable<string> = []): string {
   // Models quote and echo what they read, so under the filter a game with a human seat loses every text; a game with
   // none loses nothing.
   const blanking = !parts.humanWords && ([...log.header.seats].some(([, label]) => label === "Human") || log.decisions.some((d) => d.by?.kind === "human"));
-  const blanker = blanking ? new Blanker(people) : null;
+  const blanker = blanking ? new Blanker(real) : null;
   let out = "";
   for (const line of log.toJsonl().split("\n")) {
     if (line.length === 0) continue;
