@@ -225,6 +225,8 @@ in what it is shown, what a model is asked, what a script king reads or what an 
 latest season, past seasons, replays and the god view. The canary test ("Follow-ups" in `docs/BUILD-PROGRESS.md`)
 guards the same from the other side, since a reviewer can miss it.
 
-**One idea, for every reviewer:** end the review with one thing outside this change that would make the game better,
-or "none". It never blocks (a P3 at most). The builder files a real one as an `enhancement` issue and links it in the
-PR; nothing is built from it until the owner queues it.
+**One idea, for every reviewer** of a change to the game (not docs, design copies or Dependabot's updates): end the
+review with one thing outside this change that would make the game better, or "none", the usual answer when nothing is
+worth the owner's time. It never blocks (a P3 at most). The builder searches the open ideas first: a new one is filed as
+an `enhancement` issue and linked in the PR, a repeat becomes a comment on the existing issue, so the ones that keep
+coming up show. Nothing is built from it until the owner queues it.
