@@ -10,7 +10,7 @@
  * that would obey as won, and keeps an army standing in land it entered until the land obeys. `--no-occupy-play` and
  * `--occupy-play-half` turn this off, only to measure what it is worth.
  */
-import { LandData, UnrestData, terrainOf, type Power } from "@amarna/engine";
+import { LandData, UnrestData, menIn, terrainOf, type Power } from "@amarna/engine";
 import { Board } from "./board.ts";
 
 /** Script kings that do not reckon whether land would obey them (`--no-occupy-play`, `--occupy-play-half`). None by default. */
@@ -24,6 +24,9 @@ export const OccupyPlay: { off: boolean; only: ReadonlySet<string> | null; on: (
 
 /** The most seasons an army stands in land waiting for it to obey (a first guess). */
 export const OccupyMost = 6;
+
+/** The share of open land's worth an attack still counts where the land would not obey us within that time (a first guess). */
+const NeverShare = 0.3;
 
 /** Seasons a read of a province's mood is believed (a first guess). */
 const MoodHeeded = 6;
@@ -80,7 +83,7 @@ function reckon(b: Board, id: string, men: number, from: string): number {
   // Troops next door weigh a quarter, at most `nearMost`: the holder's against us, ours (but the army that goes in) with us.
   const next = new Set(Board.Map.neighbors(id));
   const nearOf = (x: Power): number => {
-    const near = b.units.filter((u) => u.power === x && u.kind === "Army" && u.province !== from && next.has(u.province)).reduce((s, u) => s + u.men, 0);
+    const near = b.units.filter((u) => u.power === x && u.kind === "Army" && u.province !== from && next.has(u.province)).reduce((s, u) => s + menIn(u), 0);
     return Math.min(UnrestData.nearMost, (UnrestData.force * near) / (4 * own));
   };
   const force = Math.min(UnrestData.forceMost, (UnrestData.force * men) / own + nearOf(b.me));
@@ -92,11 +95,14 @@ function reckon(b: Board, id: string, men: number, from: string): number {
   return Infinity;
 }
 
-/** What a province we would take is worth to us by whether it would obey: all of it at once, less the longer we wait, nothing if never. */
+/**
+ * What open land we would take is worth to us by whether it would obey: all of it at once, less the longer we wait, and a
+ * share if never, for the blow to its holder and the love that fades while we stand there beyond what we reckon.
+ */
 export function obeyShare(b: Board, id: string, men: number, from: string): number {
   if (!OccupyPlay.on(b.me)) return 1;
   const t = obeyIn(b, id, men, from);
-  return Number.isFinite(t) ? Math.pow(0.9, t) : 0;
+  return Number.isFinite(t) ? Math.pow(0.9, t) : NeverShare;
 }
 
 /** Whether `p`'s army standing in `id` would hold it in the look-ahead's picture: our own only where the land would obey. */

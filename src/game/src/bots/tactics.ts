@@ -22,6 +22,7 @@ import {
   support,
   toInt,
   idiv,
+  menIn,
   type Order,
   type Power,
   type UnitKind,
@@ -322,7 +323,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       const unit = b.unitAt.get(u);
       const owner = b.ownerOf(u);
       if (unit.kind !== "Army" || owner === me || b.walls(u) || (owner !== null && !isWilling(owner))) continue;
-      const t = obeyIn(b, u, unit.men);
+      const t = obeyIn(b, u, menIn(unit));
       if (Number.isFinite(t)) ops.push(op("occupy", b.value(u) * multiplier(owner) * woo(u) * Math.pow(0.9, t), u, u, []));
     }
 
@@ -378,9 +379,10 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       [(u: string) => (b.unitAt.get(u).kind === "Army" ? 0 : 1), cmpNum],
       [(u: string) => u, cmpStr],
     )[0];
-    // Item 17++a: the land is ours only if it would obey the army that stands in it, and the sooner the better.
+    // Item 17++a: open land is ours only if it would obey the army that stands in it, and the sooner the better (a city falls
+    // to its siege or storm instead).
     const leadUnit = b.unitAt.get(lead);
-    gain -= land * (1 - obeyShare(b, target, leadUnit.kind === "Army" ? leadUnit.men : 0, lead));
+    if (!walled) gain -= land * (1 - obeyShare(b, target, leadUnit.kind === "Army" ? menIn(leadUnit) : 0, lead));
     // The troop there has the ground's help, and the land's own men beside it outside walls (item 11e).
     if (occupant !== null) defence += b.ground(lead, target) + b.resistance(target);
     const required = Math.max(defence, contest) + 1;
