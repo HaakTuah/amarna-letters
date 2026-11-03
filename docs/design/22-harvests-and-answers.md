@@ -44,7 +44,8 @@ is `docs/rounds/2026-10-28-harvests-and-answers.md`. Every number is a first gue
   `winter-crossed`.
 - **Passage by order** (order `grant {grantee, kind, province, seasons}`, model `grant_passage`, `grant_basing`):
   a `Grant` with no tablet (`tabletId` ""), standing from next season over land held now; the grantee's court knows it
-  from `heardTurn`, the seasons a messenger takes between the capitals (`travelTurns`). It ends as a tablet's grant does;
+  from `heardTurn`, the seasons a messenger takes between the capitals (`travelTurns`), by a notice that travels with
+  it (bug #565: the season's event is the grantor's alone). It ends as a tablet's grant does;
   `revoke` ends one not yet begun too (`grantLive`). Signal `granted-by-order`. The web app's Court has a "Grant passage /
   Grant basing" row.
 - **Levies sized by men** (`levySize`, `model/land.ts`): a full levy (5,000 men, a fleet 2,000) where the province has
