@@ -85,6 +85,8 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - A followed person's line ran straight between the places the seat knew him at, across deserts and seas; it now runs along the roads between them, and stops at the last place known ("Following, travel lines and borders", second of three parts; a seat's own travellers already drew their whole road, and no one else's is drawn but as reported).
 - Follow brought the camera to its person once and stayed put; the camera now keeps to the person, where the seat last knew him, season after season, until the player moves the camera (a drag, a province chosen from the list, the whole map shown; "Keep the camera on them" in the Follow tab takes it back) or stops following ("Following, travel lines and borders", first of three parts).
 - The small seal of a land with no great town of its time (Kaska, Lukka, Nesa, the steppe, Libya, the Shasu) was drawn 1.43 times as wide as the box the placement kept clear for it, so a caravan's mark could touch it (#525); it now shrinks to the small seal's share of its own size.
+- A quiet frontier and one where two powers' armies stood face to face looked the same (#549); the latter now has a faint wider stroke under its band, drawn only from the armies the seat sees now. The bands layer is redrawn per scene, not per frame, so switching whose eyes the map is seen through redraws the borders too.
+- The map kept a seal's fill clear of other markers but not its rim, so the thick dark rim of a crowded or besieged small seal could touch a neighbour (#562); the placement and the smoke test now measure each seal with its rim.
 
 ## Finds not yet fixed
 

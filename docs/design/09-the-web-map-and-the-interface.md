@@ -48,7 +48,9 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   50+).
 - **Powers without colour.** Each power has a colour from the Late Bronze palette, an emblem (Egypt a lotus, Hatti
   a sun, Babylon an eight-pointed star, Mitanni a winged disc, Assyria a spearhead, Arzawa a crescent, Alashiya a
-  jug) shown on every city it holds and every unit, and a border line of its own (solid, dashed, dotted, dash-dot …), drawn only along the realm's frontiers (where its province meets another's, no one's land, the sea or the board's edge), each ring's frontier one unbroken line (`frontierPath` in `art.ts`).
+  jug) shown on every city it holds and every unit, and a border line of its own (solid, dashed, dotted, dash-dot …), drawn only along the realm's frontiers (where its province meets another's, no one's land, the sea or the board's edge), each ring's frontier one unbroken line (`frontierPath` in `art.ts`). Where the viewer sees, now, an army on each side of
+  a frontier and the two are of different powers, a wider faint stroke of the realm's colour lies under the band
+  (`bands` in `land-layers.ts`): drawn from the scene's units, never a remembered one, so it shows only what the seat sees.
   Armies are chariots on square tokens and fleets ships on round ones; envoys are clay tablets, spies eyes,
   captives fetters, gold an oxhide ingot.
 - **What the map shows each season** comes from a frame taken at every snapshot (`SeasonFrame`): owners, units,

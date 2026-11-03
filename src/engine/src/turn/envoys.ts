@@ -4,7 +4,6 @@ import { distinct } from "../core/seq.ts";
 import { isBlank } from "../core/text.ts";
 import type { AudienceRecord, AudienceRound, AudienceView } from "../model/exchanges.ts";
 import { newAudienceView, newEnvoyReaction, newHostReply } from "../model/exchanges.ts";
-import { hire } from "../model/order-makers.ts";
 import { type DispatchOrder } from "../model/orders.ts";
 import { factsKnownTo, gain, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
 import { courtSpeaks } from "../model/languages.ts";

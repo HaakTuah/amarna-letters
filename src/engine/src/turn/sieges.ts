@@ -23,7 +23,7 @@ import { EconomyData } from "../model/economy.ts";
 import type { Dispatch, HomeCargo } from "../model/records.ts";
 import { newLossAbroad, newTabletCopy } from "../model/records.ts";
 import { stormed, strengthWords, wallsDefence, type Assault } from "../model/outcomes.ts";
-import { LandData, menAvailable } from "../model/land.ts";
+import { LandData } from "../model/land.ts";
 import { remember, type Character } from "../model/people.ts";
 import { AllPowers, cmpPower, land, type Power, quoteWords } from "../model/power.ts";
 import { isAlive, logEvent, newGoldLot, newId, newSiege, notify, siegeOf, unitAt, wallsOf, type Siege } from "../model/state.ts";

@@ -12,7 +12,6 @@ import {
   OrderValidator,
   harvestOf,
   legPoints,
-  menOf,
   disband,
   feed,
   move,

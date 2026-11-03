@@ -167,6 +167,9 @@ Waset (Thebes), Egypt's great southern city, about 70,000 people.
 - **Terrain.** A unit standing its ground on rough ground, behind a mountain pass or a great
   river, or against a landing from the sea, gets +1. An army in desert land its king did not hold
   pays 30 shekels a season for supplies.
+- **Long roads.** Where a road takes longer than its line on the map suggests, its crossing's mark
+  says why: the Ways of Horus across the Sinai, the Wadi Hammamat road to the Red Sea. Ur is a
+  river port, and its province card says how many days its ships take down to the Gulf.
 
 ### Winning
 
@@ -230,7 +233,8 @@ A realm's name is a claim: you go by your land's name until you claim another, a
 (Court: "Claim a realm's name"). A claim gives nothing by rule. Where two kings claim one name, each court gives it in
 its greetings: a greeting gives the recipient the name he claims, or, with "call them by their house", withholds it, and
 that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru), in its notices too. The Court section
-says which names are contested and whom your court gives each to.
+says which names are contested, whom your court gives each to, and the season each rival claimant's newest greeting
+your court has read was sealed (the date on the tablet, not when it arrived).
 
 Between the great kingdoms lie the city-states, such as Ugarit, Gubla, Qadesh and Elam, and the Kaska,
 Lukka, Shasu and Sutean chiefs: forty powers of their own, most of them vassals of Egypt or Mitanni (a few of Hatti
@@ -393,7 +397,8 @@ promises and more. After the game, compare two nations' self-serving annals with
 
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
 each power in its colour with an emblem and a border line of its own along its frontiers (so it reads without
-colour), armies as chariots and fleets as ships. On the whole map every city is a seal, and a tap on
+colour), a border that glows faintly where you see two powers' armies face to face across it, armies as chariots and
+fleets as ships. On the whole map every city is a seal, and a tap on
 it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
