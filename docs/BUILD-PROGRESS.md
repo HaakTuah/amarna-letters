@@ -95,7 +95,7 @@ the workshop check): among them the history check's lines still unclear for a re
   - **#550:** under NAMES CLAIMED, in the seat view, the Court section and the models' line, the season each claim was
     heard from its sealed greeting. Done, #574 (`docs/rounds/2026-11-02-names-season.md`).
   - **#554:** a short note, from its sourced basis, on each connection whose travel days are not the plain distance
-    (Ur's river to the Gulf, the Ways of Horus, the Wadi Hammamat road).
+    (Ur's river to the Gulf, the Ways of Horus, the Wadi Hammamat road). Done, the history lane's PR (`docs/rounds/2026-11-03-connection-notes.md`).
   - **#549, the polish lane:** a faint accent on a frontier where the seat itself sees two powers' armies on either
     side, drawn only from what it sees.
   - **#562, the polish lane:** placement and the smoke test pad each seal's box by half its stroke, so no rim touches

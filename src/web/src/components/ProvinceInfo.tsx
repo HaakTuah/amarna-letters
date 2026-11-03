@@ -3,6 +3,8 @@ import {
   Crossings,
   WorldMap,
   capacityOf,
+  connectionDays,
+  connectionNote,
   EconomyData,
   reapSeasonOf,
   reckonedOf,
@@ -42,6 +44,9 @@ function groundText(state: GameState, p: Province, terrain: Terrain, crossings: 
   if (p.waters !== null) {
     const waters = WorldMap.default.get(p.waters).name;
     lines.push(`An army lands here from the sea only when no enemy fleet holds ${waters}.`);
+    // A port whose way to its waters is longer than the map draws it (#554): what makes it so, and the voyage's days.
+    const note = connectionNote(p.id, p.waters);
+    if (note !== null) lines.push(`${note} A ship takes about ${Math.round(connectionDays(WorldMap.default, p.id, p.waters))} days to reach ${waters}.`);
     if (state.config.seaSupply > 0) lines.push(`Besieged, the city is supplied by sea, and worn down more slowly, unless its besieger's fleet holds ${waters}.`);
   }
   // The desert feeds nobody (item 9+a): an army here lives on its baggage, its king's stores and his caravans.

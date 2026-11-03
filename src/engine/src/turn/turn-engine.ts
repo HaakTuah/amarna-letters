@@ -33,6 +33,7 @@ import "./press.ts";
 import "./winter.ts";
 import "./authority.ts";
 import "./economy.ts";
+import "./caravans.ts";
 import "./people.ts";
 import "./counts.ts";
 import "./moods.ts";

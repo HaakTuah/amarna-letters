@@ -53,7 +53,7 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
   colours. Each city-state's troops and treasury follow the rule of item 11+ (50 men a shekel of yield; 250 for the
   chiefs' lands). Par is unmeasured for them until regenerated.
 
-## Caravans go anywhere, at risk (`turn/trade.ts`, `turn/economy.ts`)
+## Caravans go anywhere, at risk (`turn/trade.ts`, `turn/caravans.ts`)
 
 - **A kingdom's caravan** (order `caravan`) keeps to land open to it while any such road reaches its destination, however
   long; where none does, it is routed through land its king has heard is closed to him with no passage there
