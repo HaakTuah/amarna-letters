@@ -66,13 +66,18 @@ export interface Remittance {
   due: number;
   /** Coming home to the treasury (its province was lost or besieged when it arrived), not going out. */
   home: boolean;
+  /**
+   * It reached its coffer; kept only until word of that reaches the court (`due`), so the court's list of gold sent
+   * changes when word comes, never when the gold arrives far off (Codex, #635).
+   */
+  landed: boolean;
 }
 
 export function newRemittance(init: Partial<Remittance> = {}): Remittance {
-  return { power: "Egypt", province: "", gold: 0, due: 0, home: false, ...init };
+  return { power: "Egypt", province: "", gold: 0, due: 0, home: false, landed: false, ...init };
 }
 
-export const RemittanceSchema: ObjSchema<Remittance> = obj("Remittance", newRemittance, { power: S, province: S, gold: I, due: I, home: B });
+export const RemittanceSchema: ObjSchema<Remittance> = obj("Remittance", newRemittance, { power: S, province: S, gold: I, due: I, home: B, landed: B });
 
 /** A bill's whole sum. */
 export const billTotal = (b: Bill): number => b.works + b.units.reduce((a, x) => a + x.gold, 0);

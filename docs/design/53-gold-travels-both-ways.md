@@ -48,8 +48,9 @@ of the province are paid when the bill is; the troops' pay goes into their packs
 `send` (a province of the king's and the shekels; the rulebook's `send_gold`) is given at court: the gold leaves the
 treasury now and travels with the couriers (`GameState.sent`), reaching the coffer when word would. If the province is
 lost or besieged by then, the couriers bring it back, as long again. A province within the season's reach refuses it
-(the treasury pays there at once). The seat view lists the gold on its way (`SeatView.goldSent`); the gold coming back it
-learns of when it arrives.
+(the treasury pays there at once). The seat view lists the gold it sent (`SeatView.goldSent`) until word of what became of it
+comes, arrived (`Remittance.landed`, kept until then) or come back, and gives no day of arrival, which would tell it the
+roads before any word did. Gold a fleet takes far out at sea stays with its men, with their savings.
 
 ### Caravans carry their pay
 

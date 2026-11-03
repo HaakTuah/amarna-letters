@@ -338,8 +338,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     if (r > 0) v.resistance.set(prov.id, r);
   }
   v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
-  // #587: only the gold going out, as the court sent it; gold coming back it learns of when it arrives.
-  v.goldSent = s.sent.filter((x) => x.power === p && !x.home).map((x) => ({ province: x.province, gold: x.gold, at: x.due }));
+  // #587: the gold the court sent, until word of what became of it comes (it reached the coffer, or came back), with no
+  // day of arrival, which would tell it the roads before any word of them (Codex, #635).
+  v.goldSent = s.sent.filter((x) => x.power === p).map((x) => ({ province: x.province, gold: x.gold }));
   // Bug #540: walking home to the land it knows it holds; its caravans as their reports have come.
   const homeward = s.walking.filter((w) => known.tryGet(w.home)?.owner === p && (w.from === "" || wordCame(engine, p, w.departs, w.from)));
   v.walking = sum(homeward.filter((w) => !w.deported), (w) => w.men);

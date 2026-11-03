@@ -144,7 +144,7 @@ P.sendGold = function (p, o) {
   }
   if (!this.pay(p, o.gold, `the gold for ${name}`, o, "none was sent")) return;
   S.sent.push(newRemittance({ power: p, province: o.province, gold: o.gold, due: S.turn + d }));
-  notify(S, p, "Resolution", "Gold sent", `${formatMoney(o.gold)} left your treasury with your couriers for the coffer of ${name}; it reaches there in turn ${S.turn + d}, if the province is still yours and open.`);
+  notify(S, p, "Resolution", "Gold sent", `${formatMoney(o.gold)} left your treasury with your couriers for the coffer of ${name}; word will come when it reaches there, if the province is still yours and open by then.`);
   logEvent(S, "gold-sent", `${p} sent gold to ${name}.`, [p], "gold-sent");
 };
 
@@ -159,6 +159,8 @@ P.goldArrives = function () {
   S.sent = S.sent.filter((x) => x.due > S.turn);
   for (const x of due) {
     const name = this.map.get(x.province).name;
+    // Word of its arrival has come: it leaves the court's list.
+    if (x.landed) continue;
     if (!isAlive(S, x.power)) {
       this.spendAt(x.province, x.gold);
       continue;
@@ -172,6 +174,7 @@ P.goldArrives = function () {
     if (held && siegeOf(S, x.province) === null) {
       intoCoffer(this, this.cofferOf(x.power, x.province, true)!, x.gold);
       this.tell(x.power, x.province, "Notice", "Gold sent", `The ${formatMoney(x.gold)} you sent reached the coffer of ${name}.`);
+      S.sent.push(newRemittance({ power: x.power, province: x.province, gold: x.gold, due: this.heardAt(x.power, x.province), landed: true }));
       continue;
     }
     // Home again as word from there comes.
@@ -296,7 +299,7 @@ P.coffersSettle = function () {
 /** A realm's gold on the road with its couriers, out to a far coffer or back (`TurnEngine.holdings`). */
 export function goldSent(e: TurnEngine, p: Power): number {
   return sum(
-    e.s.sent.filter((x) => x.power === p),
+    e.s.sent.filter((x) => x.power === p && !x.landed),
     (x) => x.gold,
   );
 }

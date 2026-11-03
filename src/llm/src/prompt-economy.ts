@@ -57,7 +57,7 @@ export function economyLines(v: SeatView): string[] {
     lines.push(`- Your troops' grain: ${join(", ", mine.map((u) => `${kind(u.kind)} ${u.province} ${u.food}/${u.carried}${u.hungry > 0 ? `, hungry ${u.hungry}` : ""}${u.unpaid > 0 ? `, unpaid ${u.unpaid}` : ""}${u.kind === "Army" ? `, ${u.buy ? "buys" : "takes"} its food${u.chest > 0 ? ` (carries ${u.chest} shekels for it)` : ""}` : ""}`))}.`);
   }
   // Item 17: words on the armies' food, with gold, still on the road.
-  if (v.goldSent.length > 0) lines.push(`- Gold on the road with your couriers to your far coffers: ${join(", ", v.goldSent.map((g) => `${g.gold} shekels to ${g.province}, arriving turn ${g.at}`))}.`);
+  if (v.goldSent.length > 0) lines.push(`- Gold sent with your couriers to your far coffers, not yet heard of: ${join(", ", v.goldSent.map((g) => `${g.gold} shekels to ${g.province}`))}.`);
   if (v.foodSent.length > 0) lines.push(`- Words on your armies' food on the road: ${join(", ", v.foodSent.map((f) => `to ${f.province}, ${f.buy ? "buy" : "take"}${f.gold > 0 ? `, ${f.gold} shekels` : ""}, arriving turn ${f.at}`))}.`);
   if (v.caravans.length > 0)
     lines.push(

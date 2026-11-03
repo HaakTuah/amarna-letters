@@ -193,12 +193,14 @@ P.caravansTravel = function () {
       caravanGone(S, c);
       const kept = Math.min(c.grain, unitCarried(taker) - taker.food);
       taker.food += Math.max(0, kept);
-      this.credit(taker.power, c.gold + c.pay, taker.province, false);
+      // At sea, far off, no coffer or road holds it: the fleet's men keep it with their savings (Codex, #635).
+      if (this.map.get(taker.province).isSea && this.isFar(taker.power, taker.province)) taker.savings += c.gold + c.pay;
+      else this.credit(taker.power, c.gold + c.pay, taker.province, false);
       const where = this.map.get(taker.province).name;
       // A captured archive on the road (item 10+b) is the taker's now.
       if (c.archive.length > 0) this.archiveArrives(taker.power, c.archive, c.archiveOf, where);
       this.caravanTell(c, taker.province, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${taker.power}'s ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; a loaded ship fights badly, and the fleet is lost" : ""}.`);
-      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${c.power}'s ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${kept} measures for their own baggage` : ""}${c.gold + c.pay > 0 ? (this.isFar(taker.power, taker.province) ? ", the gold to go home to your treasury" : ", the gold for your treasury") : ""}.`);
+      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${c.power}'s ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${kept} measures for their own baggage` : ""}${c.gold + c.pay > 0 ? (!this.isFar(taker.power, taker.province) ? ", the gold for your treasury" : this.map.get(taker.province).isSea ? ", the gold kept by its men" : ", the gold to go home to your treasury") : ""}.`);
       logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [...this.caravanNear(c, taker.province), taker.power], "caravan-taken");
       continue;
     }

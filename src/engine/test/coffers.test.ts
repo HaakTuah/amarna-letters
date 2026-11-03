@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, OrderValidator, TurnEngine, build, caravan, inboxOf, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, newCaravan, newWorkPlan, purchase, send, setLevel, trade } from "@amarna/engine";
+import { Dict, type GameState, OrderValidator, Views, TurnEngine, build, caravan, inboxOf, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, newCaravan, newWorkPlan, purchase, send, setLevel, trade } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Gold travels both ways (#587, "One treasury, many stores"): what is done far off is paid only from gold that is there.
@@ -89,6 +89,11 @@ describe("CofferTests", () => {
     e.goldArrives();
     Assert.equal(300, e.cofferOf("Egypt", "nippur")?.gold ?? 0);
     Assert.equal(after, t.gold);
+    // The court still lists it, with no day of arrival, until word of its arrival comes.
+    Assert.equal(1, Views.for(s, "Egypt").goldSent.length);
+    s.turn = s.sent[0].due;
+    e.goldArrives();
+    Assert.empty(s.sent);
     // Sent again, but Nippur is lost before it arrives: the couriers bring it home, as long again.
     e.sendGold("Egypt", send("nippur", 100));
     s.owner.set("nippur", "Babylonia");
@@ -96,6 +101,8 @@ describe("CofferTests", () => {
     e.goldArrives();
     Assert.equal(after - 100, t.gold);
     Assert.true(s.sent[0].home);
+    // Turned back, it looks to the court as gold still on its way: nothing tells it the province was lost.
+    Assert.equal(1, Views.for(s, "Egypt").goldSent.length);
     s.turn = s.sent[0].due;
     e.goldArrives();
     Assert.equal(after, t.gold);
