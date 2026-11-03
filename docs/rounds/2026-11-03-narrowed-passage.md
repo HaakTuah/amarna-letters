@@ -10,27 +10,32 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `llm/src/pro
 
 ## What changed
 
-- **The view** (`model/authority.ts`, `rules/views.ts`): `GrantView.lands`, the provinces a passage through all the
-  land covers, as the court knows them; empty for a grant in one province.
-- **The narrowing** (`turn/authority.ts`, `revokeGrants`): the grant ends and a new one stands over the rest. The
-  grantor's view shows the new one at once; the grantee's shows the old one until the word of the revocation comes
-  (`Grant.endHeard`) and the new one from then (`Grant.heardTurn`, which the view now reads for every grant, not only
-  those by order). A grant its grantee ended already by repudiation (#609) is only narrowed as its grantor reads it.
+- **The view** (`model/authority.ts`, `rules/views.ts`): `GrantView.cut`, the provinces a passage through all the
+  land was revoked in, as the court has heard (`Grant.cut`). Never the land itself: it is the grantor's true holdings
+  when it was given, which neither court may read whole (round 1).
+- **The narrowing** (`turn/authority.ts`, `revokeGrants`): the grant ends and a new one stands over the rest, in the
+  old one's place in the list (so passage read before basing stays so, round 1). The grantor's view shows it at once;
+  the grantee's shows the old one until the word of the revocation comes (`Grant.endHeard`) and the new one from then
+  (`Grant.heardTurn`, which the view now reads for every grant, not only those by order). Narrowed to nothing, it is
+  revoked in full. A grant its grantee repudiated already (#609) is only narrowed as its grantor reads it.
+- **A repudiation after a narrowing** (`repudiate`): the repudiating grantee knows at once that the old grant ended too,
+  though the word of the narrowing has not come (round 1).
 - **The lines a king reads** (`grantPlace`): the Court (`web/src/ui/format.ts`) and the model's PASSAGE AND BASING
-  (`llm/src/prompts.ts`) name the provinces: "Egypt's troops may pass through your land at Nesa, Tuwanuwa and Hattusa".
-  Before, "all your land", which was not true after a revocation, nor of land won since the grant.
-- **The script kings** (`game/src/bots/freedom.ts`, `authority.ts`): a passage through all the land opens only the
-  provinces it lists (`grantOpens`, which the engine's `grantCovers` uses too), so a king no longer counts on passage
-  in a province revoked or won since.
-- **Design note:** 15. **Save version 56:** a narrowing now makes a new grant, which takes an id.
-- **Tests:** an engine test of the narrowing, the grantor's land at once and the grantee's with the word
-  (`authority.test.ts`); the twin "a grant narrowed by a revocation" still holds with the land in the view.
+  (`llm/src/prompts.ts`): "Egypt's troops may pass through all your land but Nesa", "Your troops may pass through all
+  his land but Nesa, by leave of Hatti". Before, "all your land" after the revocation too.
+- **The script kings** (`game/src/bots/freedom.ts`, `authority.ts`): a passage through all the land opens every
+  province of its grantor's but those it was revoked in (`grantOpens`), so a king no longer counts on a revoked one.
+- **Design note:** 15. **Save version 56:** `Grant.cut`, and a narrowing now makes a new grant, which takes an id.
+- **Tests** (`authority.test.ts`): the narrowing season by season, its line by name, a second narrowing, one to nothing,
+  passage before basing kept in order; a tablet's grant narrowed and then repudiated by its grantee before the word,
+  and narrowed again by its grantor; the twin "a grant narrowed by a revocation" holds.
 
 ## Readings taken
 
-1. **The land is named, never "all your land".** A passage through all the land covers the land held when it was given;
-   land won since is not in it, so "all" was not true even before a revocation. Principle: requests are rules too; no
-   field may imply something that is not true.
+1. **"All your land but Nesa", not the provinces covered.** The land a passage through all covers is what its grantor
+   held when he gave it; naming it would tell both courts his true holdings then, including far land lost out of his
+   sight. What was revoked, both learn by word. Principle: "Hidden information". Land won since the grant is still not
+   covered, as before (design note 15), and the line does not say so: left as it stood.
 2. **A narrowing is a new grant.** Its grantee learns of it as of any grant, by word; the grant he knew stands in his
    view until then. Principle: "Hidden information".
 
@@ -38,8 +43,22 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `llm/src/pro
 
 To come.
 
-## Review
+## Review, round 1
 
-To come.
+Codex: three P1s. Claude's reviewer (Opus, high): 6 of 10, two blocking, four not.
+
+1. **The land in the view told the grantor's true holdings** (Codex P1; Opus, blocking): the view carries the
+   provinces revoked instead (`cut`), the engine's own check unchanged.
+2. **A grantee repudiating after a narrowing still saw the old grant** (Codex P1; Opus, blocking): `repudiate` tells
+   him at once; a test.
+3. **Narrowing moved passage behind basing** (Codex P1): the new grant takes the old one's place; a test.
+4. **Narrowed to nothing read "at none"** (Opus, not blocking): revoked in full; the "none" is gone with the list.
+5. **Untested cases** (not blocking): a second narrowing, one to nothing, a repudiated grant narrowed, the order of
+   repudiation and word, a tablet's grant still shown: tested. The expected line is a literal.
+6. **`bidden` and the revoke check repeat `grantOpens`** (not blocking): no longer, since `grantOpens` reads a view
+   (`cut`) and those read the engine's grant (`lands`), as `grantCovers` does.
+7. **"Hatti's land … by leave of Hatti"** (not blocking): "his land".
+
+One idea (Opus): none.
 
 Questions for the owner: none.

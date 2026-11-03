@@ -7,7 +7,7 @@
 import { renderClauses } from "../rules/clauses.ts";
 import { isBlank } from "../core/text.ts";
 import { cap } from "../rules/greeting.ts";
-import { grantLive, grantLiveFor, grantOpens, grantStands, grantsIn, newGrant, withinAuthority, type Grant } from "../model/authority.ts";
+import { grantLive, grantLiveFor, grantStands, grantsIn, newGrant, withinAuthority, type Grant } from "../model/authority.ts";
 import type { Dispatch, HomeCargo, MessageTrail, Tablet } from "../model/records.ts";
 import { newTablet, newTabletCopy } from "../model/records.ts";
 import type { EnvoyReaction, HostReply } from "../model/exchanges.ts";
@@ -124,7 +124,7 @@ P.grantCovers = function (grantor, grantee, province) {
   if (grantor === null || grantor === grantee) return null;
   for (const g of S.grants) {
     if (g.grantor !== grantor || g.grantee !== grantee || !grantStands(g, S.turn)) continue;
-    if (grantOpens(g, province)) return g;
+    if (g.kind === "basing" ? g.province === province : g.province === null ? g.lands.includes(province) : g.province === province) return g;
   }
   return null;
 };
@@ -176,14 +176,17 @@ P.revokeGrants = function (p, o) {
   for (const g of ended) this.endKnown(g, heard);
   // One province of a passage through all his land: the grant stands for the rest, as a new grant over the rest that
   // the grantee's court learns of with the word, the old one standing in its view until then (bug #611). One its grantee
-  // ended already is only narrowed as its grantor reads it.
+  // ended already is only narrowed as its grantor reads it. Narrowed to nothing, it is revoked in full.
   const cut = o.province === null ? [] : known.filter((g) => g.province === null && g.lands.includes(o.province!));
   for (const g of cut) {
     const lands = g.lands.filter((x) => x !== o.province);
-    if (!grantLive(g, S.turn)) g.lands = lands;
+    const was = [...g.cut, o.province!];
+    if (lands.length === 0) this.endKnown(g, heard);
+    else if (!grantLive(g, S.turn)) Object.assign(g, { lands, cut: was });
     else {
       this.endGrant(g, heard);
-      if (lands.length > 0) S.grants.push(newGrant({ ...g, id: newId(S, "p"), lands, heardTurn: Math.max(g.heardTurn, heard), endedTurn: null, endHeard: 0, endedBy: null }));
+      // In the old one's place, so it is read in the same order beside basing granted after it (`grantCovers`).
+      S.grants.splice(S.grants.indexOf(g) + 1, 0, newGrant({ ...g, id: newId(S, "p"), lands, cut: was, heardTurn: Math.max(g.heardTurn, heard), endedTurn: null, endHeard: 0, endedBy: null }));
     }
   }
   if (ended.length === 0 && cut.length === 0) return;
@@ -266,7 +269,10 @@ P.repudiate = function (p, o) {
   const heard = S.turn + this.travelTurns(p, other);
   t.repudiatedTurn = S.turn;
   t.repudiatedHeard = heard;
-  for (const g of S.grants) if (g.tabletId === t.id && grantStands(g, S.turn)) this.endGrant(g, heard, p);
+  for (const g of S.grants)
+    if (g.tabletId === t.id && grantStands(g, S.turn)) this.endGrant(g, heard, p);
+    // One its grantor ended already (a narrowing, word of which has not come): the repudiating king knows it ended now.
+    else if (g.tabletId === t.id && grantLiveFor(g, p, S.turn) && !grantLive(g, S.turn)) g.endHeard = S.turn;
   const text =
     `The king of ${land(p)} repudiates the tablet his envoy ${t.byHand ?? ""} sealed in his name (${quoteWords(cap(t.text, 160))}): he says it went beyond the envoy's authority, and it does not bind him. What it granted, either way, has ended.` +
     (t.credentialsShown ? ` His envoy showed you its credentials: by them the tablet lay ${t.within ? "within" : "beyond"} his authority.` : "");

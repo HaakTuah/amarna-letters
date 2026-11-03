@@ -79,7 +79,7 @@ export function heardIn(heard: SeatView["nameClaims"][number]["heard"], me: Powe
 
 /** A grant of passage or basing as its two kings read it (item 9). */
 export function grantLine(g: GrantView, me: Power): string {
-  const where = grantPlace(g, g.grantor === me ? "your" : `${powerName(g.grantor)}'s`, (id) => WorldMap.default.get(id).name);
+  const where = grantPlace(g, g.grantor === me ? "your" : "his", (id) => WorldMap.default.get(id).name);
   const what = g.kind === "passage" ? `pass through ${where}` : `stand within the walls of ${where}`;
   const who = g.grantor === me ? `${powerName(g.grantee)}'s troops may ${what}` : `Your troops may ${what}, by leave of ${powerName(g.grantor)}`;
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : ", until revoked"} (${g.tablet}).`;

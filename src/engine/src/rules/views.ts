@@ -192,7 +192,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
-        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, lands: [...g.lands], sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
+        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, cut: [...g.cut], sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
       }),
     walls: wallsKnown(s, m, p, seen),
     worksSeen: [...seen]

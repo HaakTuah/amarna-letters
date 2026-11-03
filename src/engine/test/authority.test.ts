@@ -28,6 +28,7 @@ import {
   newEnvoyReaction,
   newGame,
   newGrant,
+  newGrantView,
   newHostReply,
   newTabletProposal,
   newTurnSubmission,
@@ -262,29 +263,62 @@ describe("AuthorityTests", () => {
     Assert.true(grantee().inbox.some((i) => i.title === "Passage and basing" && i.body.includes("revoked")));
   });
 
-  test("A passage narrowed by a revocation reads its land: the grantor's at once, the grantee's with the word (bug #611)", () => {
+  test("A passage narrowed by a revocation reads where it was revoked: the grantor at once, the grantee with the word (bug #611)", () => {
     const s = smallWorld(newGame(9), "Egypt", "Hatti");
     const lands = ownedBy(s, "Hatti").filter((x) => !Map.get(x).isSea);
+    Assert.true(lands.length >= 3 && lands.includes("nesa"));
     s.grants.push(newGrant({ id: "p990", grantor: "Hatti", grantee: "Egypt", lands, sinceTurn: 0 }));
-    const read = (p: Power) => single(Views.for(s, p).grants).lands;
-    Assert.equal(lands, read("Egypt"));
+    const read = (p: Power) => single(Views.for(s, p).grants).cut;
+    Assert.empty(read("Egypt"));
     new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [revoke("Egypt", "nesa")] })]]));
-    const rest = lands.filter((x) => x !== "nesa");
-    Assert.equal(rest, read("Hatti"));
+    Assert.equal(["nesa"], read("Hatti"));
     // The engine: Nesa is shut at once, the rest still open.
+    const rest = lands.filter((x) => x !== "nesa");
     Assert.null(new TurnEngine(s).grantCovers("Hatti", "Egypt", "nesa"));
     Assert.notNull(new TurnEngine(s).grantCovers("Hatti", "Egypt", rest[0]));
     const heard = s.grants.find((g) => g.id === "p990")!.endHeard;
     Assert.true(heard > s.turn);
     for (; s.turn < heard; new TurnEngine(s).beginTurn()) {
-      Assert.equal(lands, read("Egypt"));
+      Assert.empty(read("Egypt"));
       new TurnEngine(s).resolve(new Dict());
     }
-    Assert.equal(rest, read("Egypt"));
-    Assert.equal(rest, read("Hatti"));
-    // Read by name: the provinces it still covers.
+    Assert.equal(["nesa"], read("Egypt"));
+    // Read by name, never by the land the grantor holds.
     const name = (id: string) => Map.get(id).name;
-    Assert.equal(`your land at ${rest.map(name).join(", ").replace(/, ([^,]*)$/, " and $1")}`, grantPlace(single(Views.for(s, "Hatti").grants), "your", name));
-    Assert.equal(name("nesa"), grantPlace(newGrant({ province: "nesa" }), "your", name));
+    Assert.equal(`all your land but ${name("nesa")}`, grantPlace(single(Views.for(s, "Hatti").grants), "your", name));
+    Assert.equal("all his land", grantPlace(newGrantView(), "his", name));
+    Assert.equal(`all his land but ${name("nesa")} and ${name(rest[0])}`, grantPlace(newGrantView({ cut: ["nesa", rest[0]] }), "his", name));
+    // Passage before basing in one province keeps its place when narrowed elsewhere (Codex's find on #623).
+    s.grants.push(newGrant({ id: "p991", kind: "basing", grantor: "Hatti", grantee: "Egypt", province: rest[0], sinceTurn: 0 }));
+    Assert.true(new TurnEngine(s).passageFor("Hatti", "Egypt", rest[0]));
+    new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", rest[rest.length - 1]) as RevokeOrder);
+    Assert.true(new TurnEngine(s).passageFor("Hatti", "Egypt", rest[0]));
+    s.grants = s.grants.filter((g) => g.id !== "p991");
+    rest.pop();
+    // A second narrowing adds to it; the last province revoked ends it in full, with no grant over nothing.
+    for (const x of rest.slice(0, -1)) new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", x) as RevokeOrder);
+    Assert.equal(lands.slice(0, -1).length, read("Hatti").length);
+    new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", rest[rest.length - 1]) as RevokeOrder);
+    Assert.empty(Views.for(s, "Hatti").grants);
+    Assert.false(s.grants.some((g) => g.endedTurn === null && g.grantor === "Hatti"));
+  });
+
+  test("A tablet's passage narrowed, then repudiated by its grantee before the word: he knows it ended at once (bug #611)", () => {
+    const s = smallWorld(newGame(9), "Egypt", "Hatti");
+    const lands = ownedBy(s, "Hatti").filter((x) => !Map.get(x).isSea);
+    s.tablets.push(newTablet({ id: "t990", text: "Passage for Egypt.", clauses: [clause("passage")], proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", byHand: "Ipy", within: false }));
+    for (const holder of ["Egypt", "Hatti"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    s.grants.push(newGrant({ id: "p990", grantor: "Hatti", grantee: "Egypt", lands, sinceTurn: 0, tabletId: "t990" }));
+    // A tablet's grant (heard at 0) shows to its grantee as before.
+    Assert.equal(1, Views.for(s, "Egypt").grants.length);
+    new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", "nesa") as RevokeOrder);
+    Assert.equal(1, Views.for(s, "Egypt").grants.length);
+    new TurnEngine(s).repudiate("Egypt", repudiate("k990E") as RepudiateOrder);
+    Assert.empty(Views.for(s, "Egypt").grants);
+    // Hatti, not yet told of the repudiation, keeps the narrowed grant; narrowing it again reads as before.
+    Assert.equal(["nesa"], single(Views.for(s, "Hatti").grants).cut);
+    const next = lands.find((x) => x !== "nesa")!;
+    new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", next) as RevokeOrder);
+    Assert.equal(["nesa", next], single(Views.for(s, "Hatti").grants).cut);
   });
 });

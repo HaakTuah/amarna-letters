@@ -73,8 +73,9 @@ report brings no holders.
   passage or basing you granted"), and a script grantor counts it no wrong. The grantee's travellers are not turned back
   at the border of the land granted nor seized by the grantor's troops there (`passageFor`, in `closedTo`), even where his
   roads are closed to them. Passage through all one's land is the land held when the tablet is sealed (`Grant.lands`); a
-  revocation of one province narrows it: the grant ends and a new one stands over the rest, which the grantee's view
-  shows when the word of the revocation comes, the old one until then (`heardTurn`, bug #611; save version 56). A
+  revocation of one province narrows it: the grant ends and a new one stands over the rest in its place (`Grant.cut`
+  names the provinces revoked), which the grantee's view shows when the word of the revocation comes, the old one until
+  then (`heardTurn`, bug #611; save version 56); narrowed to nothing, it is revoked in full. A
   guest's move goes in through the gates: it storms no walls (the adjudicator's `guests`), and a move on the grantor's
   own troops is an attack, not a guest's entry (`guestAt`).
 - **Ending**: at the season it names; by the grantor's `RevokeOrder` (`revoke`: a king, and a province or none), resolved
@@ -86,7 +87,8 @@ report brings no holders.
   above); until then he may revoke it (`grantLiveFor`, as his view shows it), which ends nothing more, and from then he
   knows it ended (`endKnown`).
 - **The view**: `SeatView.grants` (`GrantView`, the tablet by its name; for passage through all the land, the provinces
-  it covers, `GrantView.lands`, read by name in the Court and the model's view, `grantPlace`), shown to each king once
+  it was revoked in, `GrantView.cut`, never the land itself, which would tell what the grantor truly holds; read "all
+  your land but Nesa" in the Court and the model's view, `grantPlace`), shown to each king once
   he holds a copy of the tablet; the model's view has PASSAGE AND BASING, the rulebook AUTHORITY AND PASSAGE (`llm/src/rules-authority.ts`).
 - **The web app**: the letter's seal, limits and credentials; at an audience, the seal and credentials shown and a tablet
   of one's own for the envoy to seal; the grants, with Revoke; Repudiate for tablets sealed by one's envoys; the archive
