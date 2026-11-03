@@ -87,3 +87,6 @@ export function grantLine(g: GrantView, me: Power): string {
 
 /** "of Gubla" after a person's name, or nothing when the name already says it ("Abdi-Ashtarti of Ta-Mehu"). */
 export const fromWhere = (c: { name: string; origin: string }): string => (nameFrom(c) === c.name ? "" : `of ${c.origin}`);
+
+/** "of Gubla, scribe of the treasury", or only the calling when the name says the place. */
+export const fromAndCalling = (c: { name: string; origin: string; calling: string }): string => [fromWhere(c), c.calling].filter((x) => x !== "").join(", ");

@@ -5,7 +5,7 @@
  */
 import { Greeting, Views, WorldMap, characterLegend, findCharacter, type Character, type CharacterView, type GameState, type Power } from "@amarna/engine";
 import type { MapScene, ScenePerson } from "../map/scene.ts";
-import { cap, dated, fromWhere, powerName, provinceName, shekels, when } from "../ui/format.ts";
+import { cap, dated, fromAndCalling, fromWhere, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { coverOf, type FramePerson, type SeasonFrame } from "./frames.ts";
 
 /** One dated line of a life: when it began, when it ended (if it did), and what it was. */
@@ -219,7 +219,7 @@ export function buildLifeRecord(
   return {
     id,
     name: c.name,
-    subtitle: viewer === null ? [fromWhere(c), c.calling].filter((x) => x !== "").join(", ") : fromWhere(c),
+    subtitle: viewer === null ? fromAndCalling(c) : fromWhere(c),
     now,
     employer: viewer === null ? c.employer : seen!.employer,
     sections,
