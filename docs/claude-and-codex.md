@@ -99,7 +99,7 @@ Codex's usage can run out with no alert, so the orchestrator never waits on Code
   test task gets through, tried at most every few hours (not in use while Codex cannot build: "Status").
   Meanwhile the work is Claude's alone, as before Codex came.
   A take-back for a slow PR alone does not count: the next lane still goes to Codex.
-- The times were set from the first test: adjust them from what the first weeks show, and say so
+- The times were set from the first test (archive item 124): adjust them from what the first weeks show, and say so
   here.
 
 ## Codex reviews
@@ -213,7 +213,7 @@ guards: the rounds come to an end, and what a 10 means never slips (archive item
      edition, the study) where it can reach it. Every fact that does not hold is a miss: the dossier and the game are
      fixed, and a `bug` issue tracks it until the fix is live. More than one miss in fifteen facts checked: every
      dossier a miss came from gets a full check.
-   - **A slop check every month** (archive items 178 and 181): a fresh reviewer reads only the text a player reads
+   - **A slop check every month** (archive items 178, the second of that number, at 21:14 UTC, and 181): a fresh reviewer reads only the text a player reads
      that changed since the last check, scored as every review is, a 10 meaning nothing reads machine-made; what it
      finds is fixed in "Follow-ups". The slop audit's formula test runs on every PR.
    - **Logged and reported:** each check is a row in the calibration log, `docs/calibration.md`, and each milestone

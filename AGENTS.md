@@ -92,7 +92,7 @@ usage allows, at the lowest cost now and later.
   in `docs/archive/instructions.md`, numbered and dated, leaving out personal details as `SECURITY.md`, point 11,
   says. A standing rule goes where it applies in this file
   (or `CLAUDE.md`, if only Claude uses it), as briefly as it can be said, with what it is for and its archive item; it moves into
-  the builder rules at the next refresh of the design document's copy. Rule files state rules, never quotes or dates,
+  the builder rules at the next refresh of the design document's copy. Rule files state rules, never quotes or dated history (a date a measurement or a status needs may stay),
   with at most a pointer to the archive, "(archive item N)": every session pays to read them, and the archive keeps
   his words.
 - **Each game's files stay in its own repository.** Never write this project's notes, logs or files into another
