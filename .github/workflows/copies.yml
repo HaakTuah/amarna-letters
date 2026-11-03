@@ -19,8 +19,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0 # the base branch too, for its baseline
           persist-credentials: false # nothing after the checkout needs the token
+      - name: The base branch's latest commit, for its baseline (not the whole history)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/$BASE:refs/remotes/origin/$BASE"
       - name: No new copies
         env:
           COPIES_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
