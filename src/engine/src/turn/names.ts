@@ -7,7 +7,7 @@
 import { cmpNum, sortBy } from "../core/seq.ts";
 import type { GiftOrder } from "../model/orders.ts";
 import { coverOf, falseNameAt, gain, hiddenAt, newDeclared, newFact, remember, type Character, type Declared, type Fact } from "../model/people.ts";
-import { AllPowers, land, type Power } from "../model/power.ts";
+import { AllPowers, land, type Power, powerName } from "../model/power.ts";
 import { newDispatch, newMessageTrail, newPendingAudience, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -82,8 +82,8 @@ P.nameHeard = function (j) {
   const f = c?.facts.find((x) => x.id === j.taskId) ?? null;
   if (c === null || f === null || f.knownBy.includes(j.to)) return;
   f.knownBy.push(j.to);
-  if (f.tag === "sold-report") notify(S, j.to, "Notice", "Sold what belonged in a report", `Word has come that ${c.name}, in your service, sold another king what their errand asked of them, which belongs in their report under the job: evidence of a broken job, yours to act on and to tell others.`, c.id);
-  if (f.tag === "outlaw") notify(S, j.to, "Notice", "Robbers named", `Word has come: ${j.text ?? ""} ${c.name} rode with the Habiru.`, c.id);
+  if (f.tag === "sold-report") notify(S, j.to, "Notice", "Sold what belonged in a report", `Word has come that ${c.name}, in your service, sold to another king what belonged in their report to you, breaking the terms of their job.`, c.id);
+  if (f.tag === "outlaw") notify(S, j.to, "Notice", "Robbers named", j.text !== null ? `Word has come: ${j.text} He rode with the Habiru.` : `Word has come that ${c.name} rode with the Habiru.`, c.id);
   if (f.tag === "sold-secrets") notify(S, j.to, "Notice", "Secrets sold", `Word has come that ${c.name}, in your service, sold what they know of your court to another king.`, c.id);
   const seasons = Math.max(0, j.arriveTurn - j.departTurn);
   const delta = f.tag === "outcome" ? Math.round(NameGain * (1 + TaleGrowth * seasons)) : f.tag === "outcome-bad" || f.tag === "impostor" ? -NameLoss : 0;
@@ -130,7 +130,7 @@ P.declare = function (c, court, name, envoyOf) {
       court,
       "Notice",
       "An envoy without a letter",
-      `${asName} has come to your court, saying they are an envoy of the king of ${land(envoyOf!)}, though they bring no letter and no tablet. You receive them in audience as any envoy; you may send to the king of ${land(envoyOf!)} to ask whether they serve him.`,
+      `${asName} has come to your court, saying they are an envoy of the king of ${powerName(envoyOf!)}, though they bring no letter and no tablet. You receive them in audience as any envoy; you may send to the king of ${powerName(envoyOf!)} to ask whether they serve him.`,
       c.id,
     );
     this.pretendedAudience(c, court, envoyOf!);
@@ -163,7 +163,7 @@ P.expose = function (c, d, how) {
         ? `Posed as an envoy of ${land(d.employer)} ${where}.`
         : `Posed as ${d.name}, an envoy of ${land(d.employer)}, ${where}.`;
   remember(c, S.turn, `At the court of ${land(d.court)} they saw through me: ${how}.`);
-  notify(S, d.court, "Notice", ImpostorTitle, `The person who came to you as ${d.name}${d.employer !== null ? `, envoy of ${d.employer}` : ""}, is ${c.name}: ${how}.`, c.id);
+  notify(S, d.court, "Notice", ImpostorTitle, `The person who came to you as ${d.name}${d.employer !== null ? `, envoy of ${powerName(d.employer)}` : ""}, is ${c.name}: ${how}.`, c.id);
   logEvent(S, "impostor", `${d.court} saw through ${c.name}, who had posed as ${d.name}${d.employer !== null ? `, envoy of ${d.employer}` : ""} (${how}).`, [d.court], "impostor-exposed");
   this.meet(c, d.court);
   const f = newFact({ id: newId(S, "f"), text: posed, secrecy: "Hidden", tag: "impostor", knownBy: [d.court] });
@@ -188,7 +188,7 @@ P.impostors = function () {
       const real = d.as !== null ? findCharacter(S, d.as) : null;
       const seen = (real !== null && (real.met.includes(d.court) || real.at === d.court)) || c.met.includes(d.court);
       const envoys = d.employer !== null && S.characters.some((x) => x.employer === d.employer && x.at === d.court && (x.duty === "EnvoyAtCourt" || x.duty === "Detained"));
-      if (envoys && rng.chance(EnvoySeenThrough)) this.expose(c, d, `the envoys of ${d.employer} at your court do not know them`);
+      if (envoys && rng.chance(EnvoySeenThrough)) this.expose(c, d, `the envoys of ${powerName(d.employer!)} at your court do not know them`);
       else if (seen && rng.chance(SeenThrough)) this.expose(c, d, real !== null ? `someone at your court has seen the real ${d.name}` : "someone at your court knew their face");
       // Nothing exposes it by chance with nobody looking (decided 28 October 2026, "Deceit is information").
     }

@@ -8,10 +8,11 @@
  * then withdraws, and its people still weigh the receiver. Troops sent to stand in a province are themselves an order to
  * take or hold it, and go by the season's rule as before; persons choose by their stakes (the "Rising" request).
  */
+import { upper } from "../rules/wording.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { newDeclaration, RefusedPoints, type Declaration } from "../model/declarations.ts";
 import type { AnswerOrder } from "../model/orders.ts";
-import { AllPowers, type Power } from "../model/power.ts";
+import { AllPowers, type Power, powerName, whose } from "../model/power.ts";
 import { isAlive, logEvent, notify } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { Views } from "../rules/views.ts";
@@ -54,7 +55,7 @@ P.declareIn = function (province, holder, against, affirmed, clears) {
     // Taken up, and the giver's troops still there a season on: the treaty that bound him to withdraw is broken.
     if (claim.takenUp && giverThere && !claim.broken && claim.takenKnown !== null && S.turn > claim.takenKnown) {
       claim.broken = true;
-      this.tell(claim.power, province, "Notice", "A cession not kept", `${claim.from}'s troops still stand in ${name}, which he ceded to you and you took up: the treaty bound him to withdraw, and he has not.`);
+      this.tell(claim.power, province, "Notice", "A cession not kept", `${upper(whose(claim.from!))} troops still stand in ${name}, which he ceded to you and you took up: the treaty bound him to withdraw, and he has not.`);
       // Seen by those who see the land; its receiver learns of it by the road (hidden information).
       logEvent(S, "cession", `${claim.from} has not withdrawn from ${name}, which he ceded to ${claim.power}.`, AllPowers.filter((x) => isAlive(S, x) && Views.sight(S, this.map, x).has(province)), "cession-unkept");
     }
@@ -78,9 +79,8 @@ P.declareIn = function (province, holder, against, affirmed, clears) {
   if (d === undefined) {
     const nd = newDeclaration({ province, power: p });
     S.declarations.push(nd);
-    const from = holder === null ? "it has no ruler" : `${holder}'s hold on it is weak`;
-    // Part D (#431): its offer reaches him only if someone carries it.
-    this.sendOffer(nd, holder, `The people of ${name} declare for you: they favour you, and ${from}.`);
+    // Part D (#431): its offer reaches him only if someone carries it, in the people's own words.
+    this.sendOffer(nd, holder, `We declare for you: ${holder === null ? "we have no ruler" : `${whose(holder)} hold on us is weak`}.`);
     logEvent(S, "declare", `The people of ${name} declared for ${p}.`, [], "declare");
     return null;
   }
@@ -107,8 +107,8 @@ P.cededClaim = function (giver, to, province) {
   const name = this.map.get(province).name;
   for (const d of S.declarations) if (d.province === province && d.gone === null) end(this, d);
   S.declarations.push(newDeclaration({ province, power: to, from: giver, known: knownBy(this, to, province) }));
-  notify(S, giver, "Resolution", "Land ceded", `You ceded ${name} to ${to}: it stays in your hands until ${to} takes it up, and then your officers withdraw. Keep your troops out of it, or he cannot.`);
-  this.tell(to, province, "Resolution", "Land ceded to you", `${giver} has ceded ${name} to you. It is yours to take up (answer it), or refuse; until you do, it stays in ${giver}'s hands, and once you do, its people still weigh you.`);
+  notify(S, giver, "Resolution", "Land ceded", `You ceded ${name} to ${powerName(to)}: it stays in your hands until ${powerName(to)} takes it up, and then your officers withdraw. Keep your troops out of it, or he cannot.`);
+  this.tell(to, province, "Resolution", "Land ceded to you", `${upper(powerName(giver))} has ceded ${name} to you. It is yours to take up (answer it), or refuse; until you do, it stays in ${whose(giver)} hands, and once you do, its people still weigh you.`);
   // The giver's own act; the receiver learns of it by the road (hidden information).
   logEvent(S, "cession", `${giver} ceded ${name} to ${to}.`, [giver]);
 };
@@ -127,7 +127,7 @@ P.answerProvince = function (p, o) {
     d.takenUp = true;
     // Word that his word reached it comes home by the road.
     d.takenKnown = knownBy(this, p, o.province);
-    this.tell(p, o.province, "Resolution", "A province taken up", `Your word taking up ${name} reached it: it answers to you as the season turns after it came, if its people still favour you${d.from !== null ? ` and ${d.from}'s troops have left it` : ""}.`);
+    this.tell(p, o.province, "Resolution", "A province taken up", `Your word taking up ${name} reached it. It will be yours from next season, if its people still favour you${d.from !== null ? ` and ${whose(d.from)} troops have left it` : ""}.`);
     logEvent(S, "declare", `${p} took up ${name}.`, [], "declare-taken");
     return;
   }
@@ -154,12 +154,12 @@ P.provinceTakenUp = function (province, p, seeing) {
   this.setOwner(province, p);
   this.takeArchive(p, province);
   if (ceded !== null) {
-    this.tell(p, province, "Battle", "A province won", `${name}, which ${ceded} ceded to you, now answers to you: you took it up, and its people accept you.`);
-    if (holder !== null && isAlive(S, holder)) this.tell(holder, province, "Battle", "A province handed over", `${name}, which you ceded to ${p}, now answers to him: he took it up, and your officers withdrew.`);
+    this.tell(p, province, "Battle", "A province won", `${name}, which ${powerName(ceded)} ceded to you, now answers to you: you took it up, and its people accept you.`);
+    if (holder !== null && isAlive(S, holder)) this.tell(holder, province, "Battle", "A province handed over", `${name}, which you ceded to ${powerName(p)}, now answers to him: he took it up, and your officers withdrew.`);
     logEvent(S, "obey", `${name}, ceded by ${ceded}, now answers to ${p}, who took it up.`, seeing, "obey-taken");
     return;
   }
   this.tell(p, province, "Battle", "A province won", `${name} now answers to you: its people declared for you, and you took it up.`);
-  if (holder !== null && isAlive(S, holder)) this.tell(holder, province, "Battle", "A province lost", `${name} now answers to ${p}: its people declared for him, and he took it up.`);
+  if (holder !== null && isAlive(S, holder)) this.tell(holder, province, "Battle", "A province lost", `${name} now answers to ${powerName(p)}: its people declared for him, and he took it up.`);
   logEvent(S, "obey", `${name} now answers to ${p}: its people declared for him, and he took it up.`, seeing, "obey-taken");
 };

@@ -1,10 +1,9 @@
 # Running builder sessions and lanes
 
 For the orchestrator, the session that starts builder sessions. The builder's own part is "How work flows" in
-`AGENTS.md`. The owner's words are in `docs/archive/instructions.md`, items 22 and 23.
+`AGENTS.md`. Its pipeline and lanes rest on archive items 22 and 23; each section cites its own.
 
-**The orchestrator builds nothing itself** (the owner, 2 November 2026: "Why is the orchestrator doing things
-directly?", then "yes please, expertly!"). Every lane, the item or main lane included, goes to a builder session of its
+**The orchestrator builds nothing itself** (archive item 139). Every lane, the item or main lane included, goes to a builder session of its
 own, with its own brief, at the builder's effort (for Claude: `CLAUDE.md`). Helpers belong to builders, never to the
 orchestrator: a lane is never a helper of the orchestrator's. The orchestrator keeps its own context small, for what
 only it does: claims, starting and handing over sessions, merging Codex's work, and the owner's questions word for
@@ -13,20 +12,18 @@ hard work more effort inside its own session (`docs/claude-and-codex.md`, "Who d
 builder sessions at all does it say so and stop, and the owner starts them. Why: its context is re-read on every turn,
 so building in it costs the most; it runs at its own effort, not the work's; and if it dies, every lane stops with it.
 
-**The rules, re-read when they change** (the owner, 2 November 2026). A running orchestrator remembers the rules as they
-stood when it started. So on every wake, the hourly check included, it pulls `develop`, and if `AGENTS.md`, `CLAUDE.md`,
-`SECURITY.md`, `docs/claude-and-codex.md` or this file changed since it last read them, it re-reads the changed parts,
+**The rules, re-read when they change** (archive item 166). A running orchestrator remembers the rules as they
+stood when it started. So on every wake, the hourly check included, it pulls `develop`, and if any rule file among the protected files (`SECURITY.md`, rule 3: `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`, the threat model, the rule docs and this file, and the builder rules) changed since it last read them, it re-reads the changed parts,
 passes what touches them on to its running builders in one message, and says so in one line to the owner. Nobody has
 to tell it. The same wake reads `docs/BUILD-PROGRESS.md`'s diff since it last looked: it acts on what is new there (an entry
 added or moved, an answer of the owner's, a lane opened or a bug put first), opening a lane where one is due, and skips
-the done-marks its own builders made (archive, 2 November 2026). **Its report on every wake counts the lanes:** the
+the done-marks its own builders made (archive item 171). **Its report on every wake counts the lanes:** the
 lanes open, and every independent entry it is not running, each with its reason ("waits on 2y's files" is one, none
 given is not), so a stall shows in one line, the Codex security reviews asked since the last wake, each with its PR and why it qualified, so overuse shows the same
 night, and every PR merged since then on the security gate's fallback, or without passing the security gate ("Codex
 reviews", point 6, in `docs/claude-and-codex.md`), so a gap shows too.
 
-The aim (the owner, 1 November 2026): "We should do whatever is most effective at acheivein the goal, which is
-accomplishing them most possible, with the least tokens, without sacrifacing quality."
+The aim: as much work done as possible, for the fewest tokens, without losing quality (archive item 115).
 
 - **Keep the cache warm.** One session per item, continued for its review fixes and its milestone while its context
   is under an hour old, rather than a fresh session reading everything again. A new item goes to whichever session does

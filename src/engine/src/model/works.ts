@@ -25,7 +25,7 @@ export type WorkKind = (typeof WorkKindValues)[number];
 
 /** A kind as kings name it. */
 export function workName(kind: WorkKind): string {
-  return kind === "Stations" ? "relay stations" : kind === "Water" ? "water works" : kind.toLowerCase();
+  return kind === "Stations" ? "relay stations" : kind === "Water" ? "water works" : kind === "Policing" ? "watch" : kind.toLowerCase();
 }
 
 /** A level as kings read it: policing in men, everything else by its level. */

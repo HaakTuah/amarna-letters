@@ -12,6 +12,7 @@
  * archives, covers, events, inventories), each adding its methods to this class; import the class from "./turn-engine.ts",
  * which loads them all.
  */
+import { listed } from "../rules/wording.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv, roundEven, toInt } from "../core/num.ts";
 import { Rng } from "../core/rng.ts";
@@ -24,7 +25,7 @@ import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
-import { setNameClaims, setRisen, type Power } from "../model/power.ts";
+import { powerName, setNameClaims, setRisen, type Power } from "../model/power.ts";
 import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -165,19 +166,19 @@ export class TurnEngine {
   incomeAndUpkeep(): void {
     const S = this.s;
     const notes = this.harvestSeason();
+    // Gold sent to far coffers arrives, and bills from afar are paid (#587), before the troops are.
+    for (const [p, l] of this.goldArrives().entries()) notes.set(p, [...notes.getOrDefault(p, []), ...l]);
     this.townsEat();
     for (const p of alive(S)) {
       const t = S.treasuries.get(p);
       const troops = this.payTroops(p);
       // Written before the season's audiences and envoys' returns: their gold comes after this figure.
       const lines = notes.getOrDefault(p, []);
-      lines.push(
-        `Gold in since your last orders: ${formatMoney(t.income)}, from your mines and your sales at your markets. Paid: your troops ${formatMoney(troops.paid)}.` +
-          ` The treasury now holds ${formatMoney(ledger(t))}; gold received at audiences or brought home by your envoys this season is added later.`,
-      );
+      if (troops.paid > 0) lines.push(`Your troops were paid ${formatMoney(troops.paid)}.`);
+      lines.push(ledger(t) >= 0.5 ? `The treasury now holds ${formatMoney(ledger(t))}.` : "The treasury is empty.");
       if (troops.unpaid.length > 0)
-        lines.push(`Not paid this season: ${troops.unpaid.join(", ")}. Missing pay acts slowly: a unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`);
-      if (troops.held.length > 0) lines.push(`Held back from pay by your standing order: ${troops.held.join(", ")}; they count it as a season of missing pay.`);
+        lines.push(`Not paid this season: ${listed(troops.unpaid)}. A unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`);
+      if (troops.held.length > 0) lines.push(`Held back from pay by your standing order: ${listed(troops.held)}; they count it as a season of missing pay.`);
       notes.set(p, lines);
       if (troops.unpaid.length > 0) logEvent(S, "unpaid", `${p} could not pay its troops: ${troops.unpaid.join(", ")}.`, [p], "unpaid");
     }
@@ -324,16 +325,16 @@ export class TurnEngine {
     const t = S.treasuries.get(p);
     if (!t.lots.some((l) => l.face > l.true)) return;
     const missing = sum(t.lots, (l) => l.face - l.true);
-    const sources = distinct(t.lots.filter((l) => l.face > l.true).map((l) => l.from)).join(", ");
+    const from = distinct(t.lots.filter((l) => l.face > l.true).map((l) => l.from));
     t.lots.length = 0;
     notify(
       S,
       p,
       "Assay",
       "The treasury is short",
-      `Paying for ${what}, your treasurers found the treasury lighter than the ledger: ${formatMoney(missing)} of gold received from ${sources} was never fine gold.`,
+      `Paying for ${what}, your treasurers found the treasury lighter than the ledger: ${formatMoney(missing)} of gold received from ${listed(from.map(powerName))} was never fine gold.`,
     );
-    logEvent(S, "debasement", `${p} discovers ${formatMoney(missing)} of debased gold from ${sources}.`, [p], "debasement-found");
+    logEvent(S, "debasement", `${p} discovers ${formatMoney(missing)} of debased gold from ${from.join(", ")}.`, [p], "debasement-found");
   }
 
   /**

@@ -50,6 +50,10 @@ export interface Checking {
   errandRefusal(o: { what?: string | null; where?: string | null }): string | null;
   errandFits(id: string, what: string, where: string): string | null;
   spend(cost: number): string | null;
+  /** #587: as `spend` for a cost paid where its province is; beyond the season's reach, its coffer or a bill pays it: nothing is reserved. */
+  spendAt(province: string, cost: number): string | null;
+  /** Whether a province lies beyond the season's reach of this court, where gold that is there pays (#587). */
+  far(province: string): boolean;
   ownUnit(province: string): [string | null, Unit | null];
   ownCharacter(id: string, mustBeHome?: boolean): string | null;
 }

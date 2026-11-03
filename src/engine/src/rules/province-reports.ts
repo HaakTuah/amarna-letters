@@ -52,6 +52,9 @@ function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: stri
     granary: c?.granary ?? 0,
     crop: c?.crop ?? 0,
     reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
+    // #587: its holder's coffer there, as its officials report it.
+    coffer: holder === null ? 0 : (engine.cofferOf(holder, id)?.gold ?? 0),
+    owed: holder === null ? 0 : (engine.cofferOf(holder, id)?.owed ?? 0),
   });
 }
 
@@ -63,7 +66,10 @@ export function provinceWorth(engine: TurnEngine, id: string): number {
 /** A province's purse, stores and market at reference prices (`TurnEngine.holdings`). */
 export function provinceHolding(engine: TurnEngine, id: string): number {
   const m = engine.market(id);
-  return m.purse + grainWorth(engine.stores(id) + m.stock);
+  // #587: and its holder's coffer there.
+  const holder = engine.s.owner.getOrDefault(id, null);
+  const coffer = holder === null ? 0 : (engine.cofferOf(holder, id)?.gold ?? 0);
+  return m.purse + coffer + grainWorth(engine.stores(id) + m.stock);
 }
 
 /** What men or a caravan carry at reference prices: their grain and their gold (`TurnEngine.holdings`, `SeatView.strength`). */

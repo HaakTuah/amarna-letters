@@ -1623,3 +1623,48 @@ Given in the design chat with Claude, answering the design questions of the cons
     models, effort, helpers and tools. The security gate gained a fallback (a reading for the owner to confirm), the
     rule files and the calibration log joined the protected files, the calibration log moved to `docs/calibration.md`,
     and the builder rules point to `SECURITY.md`, rule 4, for Dependabot's conditions (Build order, revision 349).
+199. **26 October 2026**, in the design chat, while the repositories were set up for building in the cloud, on writing
+    this project's notes, logs or files into another project's repository or folders, above all Barkstreet Snakes':
+    "strictly forbidden". Until 3 November 2026 this was quoted in `AGENTS.md` ("Each game's files stay in its own
+    repository"; first written into `CLAUDE.md` in commit `0871900a`), and was set down here when the rule files
+    stopped quoting the owner.
+200. **3 November 2026, 12:29 UTC**, in the design chat: "Why should they not be split cleanly between "concerns
+    only Claude Code" and "concerns all" now, expert? Do we need to have my quoted words in every instruction file that
+    is ingested every session start? I get it is probably to make sure the wording doesn't sway too far from my intent,
+    but I write to you in haste, not in the most clear and concise manner. Is there not a better way of doing thing?
+    You're the expert, you figure it out or make the calls. My first idea would be to reference somewhere where my
+    wording is, in another document, as I think every agent that passes through needs exact instructions. Sourcing is
+    only interesting for any edits of principles, and for reviews ensuring it has not drifted no, expert?" And, on the
+    security gate's fallback: "Agreed, expertly. Codex could run out of usage or be unavailable. I believe we have
+    already written it so there are always fallbacks, no, expert?" The builder rules moved to `docs/builder-rules.md`
+    (imported by `CLAUDE.md`, read by every builder), and they and the rule files now state rules plainly, with no
+    quotes or dated history and at most a pointer here (Build order, revision 350); a reviewer checks a change to a
+    rule file against the words it cites; the security gate's fallback stands.
+201. **3 November 2026, 12:56 and 12:57 UTC**, in the design chat: "Should we have another audit, or would you advice
+    against it, expert?" Then, to the design session's advice (no third full audit now; a targeted check of the
+    quote-removal diffs against the archived words, its findings fixed; a full rules audit with the workshop check a
+    week on, then only when the rules change a lot): "Do all you adviced, expertly!" The check found six points in
+    about 87 removals, all fixed; the workshop check gained its sixth mark, a fresh audit of the rule files at the first
+    milestone after 10 November 2026 and then whenever more than about a fifth of their lines changed (Build order,
+    revision 351).
+202. **3 November 2026, 13:21 to 13:26 UTC**, in the design chat, on reporting weaknesses: "I see that SECURITY.md
+    says to only report some stuff to me, but Codex security review has no way of doing that, has it, expert?", then
+    "What private vulnerability reporting?", then "But these are just games. This would matter to my […], but why
+    shouldn't it just go into issues and be fixed, if it is already in main? and if it is in an PR, then it blocks it,
+    no?", and, to the design session's take (public `bug` issues by default; private handling only for what could
+    reach the owner's accounts, players' API keys, or one player's attack on another): "If they can post it there, I
+    have no idea if they can. And the most important thing is that reports reach and are picked up. So you can write
+    that as first course of actions, for the most risky as you described, but if they can' issues it is, agreed
+    expert?" Written into `SECURITY.md`, rule 9 and "Reporting a weakness".
+203. **3 November 2026**, in the design chat, to the design session's question whether item 202's private-first
+    handling should reach wider: "Why should it be wider, expert?", then "Okay, expert, exercise your best judgement and
+    make the call here, security and efficiency expert." The call: the precise wording stands (private first only for
+    what could reach what the threat model protects beyond its lower stakes, or whose kind the owner has not stated; a
+    `bug` issue for the rest), since a wider private path would slow fixes for weaknesses that put nothing at stake.
+204. **3 November 2026, 13:56 UTC**, in the design chat, to the design session's advice on two questions (#621: a
+    fresh session fixes the one open case in #612, a scheduled order for a far unit lost out of sight, and it is
+    reviewed again before it merges, after the usage reset; #650: the hired courier of #601 is done, since the script
+    kings use it well where it helps, and item 18 measures it again): "Agreed with your takes on the questions. Do it
+    expertly. But what is a "hired rider"? I need context when you throw this stuff at me. You present things with
+    agent invented titles I have no idea what refers to. Remember that." Written into `AGENTS.md`, "Questions,
+    readings and ideas": everything put to the owner says in plain words what it is, by the game's own names.

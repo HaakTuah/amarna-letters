@@ -7,7 +7,7 @@
  * explain a quiet report's lag. `--no-spy-check-play` and `--spy-check-play-half` read the governor alone, only to measure
  * what checking is worth.
  */
-import { cmpStr, sortBy, unseat, type GovernorView, type HSet, type InboxItem, type Order } from "@amarna/engine";
+import { cmpStr, powerNameFor, sortBy, unseat, type GovernorView, type HSet, type InboxItem, type Order } from "@amarna/engine";
 import { Board } from "./board.ts";
 
 /** Script kings that read their governor's word alone (`--no-spy-check-play`, `--spy-check-play-half`). None by default. */
@@ -27,7 +27,7 @@ function spyFinds(m: InboxItem, name: string, me: string): boolean {
   const at = m.body.indexOf(lead);
   if (at < 0) return false;
   const rest = m.body.slice(at + lead.length);
-  return bad(rest) && rest.slice(0, rest.indexOf(".") < 0 ? rest.length : rest.indexOf(".")).endsWith(` under ${me}`);
+  return bad(rest) && rest.slice(0, rest.indexOf(".") < 0 ? rest.length : rest.indexOf(".")).endsWith(` under ${powerNameFor(me, me)}`);
 }
 
 /**

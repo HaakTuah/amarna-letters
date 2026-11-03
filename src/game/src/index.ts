@@ -46,6 +46,7 @@ export { LanguagePlay } from "./bots/tongues.ts";
 export { SeasonPlay } from "./bots/land.ts";
 export { WallPlay } from "./bots/board.ts";
 export { WorksPlay } from "./bots/works.ts";
+export { CofferPlay } from "./bots/coffers.ts";
 export { scriptLife, handsOver, rateAsked } from "./bots/life-mind.ts";
 export { CharacterChecks } from "./character-checks.ts";
 export * from "./human-seat.ts";

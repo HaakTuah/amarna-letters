@@ -13,7 +13,7 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 
 | What | Where | Notes |
 | --- | --- | --- |
-| Builder rules | `.claude/rules/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
+| Builder rules | `docs/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
 | Claude and Codex | `docs/claude-and-codex.md` | Who builds what, the hand-over, the fallback, the reviews' score. |
 | Running builder sessions and lanes | `docs/orchestrating.md` | For the orchestrator: sessions, the cache, hand-overs, lanes. |
 | Developing | `docs/developing.md` | GitHub's REST calls, Dependabot and CodeQL. |
@@ -63,12 +63,12 @@ usage allows, at the lowest cost now and later.
   to escalation, or mark the step blocked in the PR and `docs/BUILD-PROGRESS.md`, with its brief ready for a later
   session (the problem, what was tried, the files and lines), and go on, as the builder rules say.
 - **One fact, one place.** Link to where a fact lives instead of copying it. Never edit `docs/intent/` or
-  `.claude/rules/builder-rules.md`: if the design document seems wrong or unclear, take the most reasonable reading and
+  `docs/builder-rules.md`: if the design document seems wrong or unclear, take the most reasonable reading and
   list it under "Readings taken"; a matter of taste is a `question` issue ("Questions, readings and ideas").
-- **Keep it lean** (`docs/archive/instructions.md`, item 133). Every change removes what it replaces, in the same PR: no
+- **Keep it lean** (archive item 133). Every change removes what it replaces, in the same PR: no
   commented-out code, no "old" copies, nothing it made unused (code, files, settings, assets, test helpers). Look for an
   existing helper before writing one. A leftover is a finding in every review.
-- **Split by meaning, from the start** (items 134 and 135), so a reader loads only what it needs. Each file holds one
+- **Split by meaning, from the start** (archive items 134 and 135), so a reader loads only what it needs. Each file holds one
   thing people look up on its own (a power, a system, a screen, a tab of the design), as small as that thing is; new
   work goes into its own file as it is written, never into a big file to be split later. Smaller than that is not
   better: one thing spread over several files costs every reader more. Where a family differs only in part (powers,
@@ -78,30 +78,32 @@ usage allows, at the lowest cost now and later.
   a file past about 50 KB, that file is split by meaning first, in its own PR; and new work for a file past the mark
   goes in as a new file, never as more lines in it (archive item 172). The workshop check and the file-by-file reviews
   still run.
-- **Principles over rules** (item 134). Where a rule's letter would defeat what it is for, follow its purpose, say so
+- **Principles over rules** (archive item 134). Where a rule's letter would defeat what it is for, follow its purpose, say so
   in the PR under "Readings taken", and flag the rule to be fixed. Never for the safety rules: `SECURITY.md`, `main`,
   keys and secrets, spending, and no model games until the build order is done.
-- **The smallest game that tests the rule** (item 28), so checks stay fast as the world grows. Every test sets up a
+- **The smallest game that tests the rule** (archive item 28), so checks stay fast as the world grows. Every test sets up a
   few powers on part of the map, a handful of seasons and only the characters it needs. Full-size games run only in
   the few tests that guard the whole (replays, the save round trip, a smoke game), and long measurements (benchmarks,
   use against ignore) run in `scripts/sim.sh`, never in the suite. When an item grows the starting world, the tests'
   default does not grow with it. The workshop check measures against code-PR checks of about 10 minutes (29 October).
-- **A change a player sees updates the README** (item 86), in the same PR, as the rulebook and seat view already are.
+- **A change a player sees updates the README** (archive item 86), in the same PR, as the rulebook and seat view already are.
   Each milestone PR says in one line whether the README is current, and fixes it if not.
 - **The owner's words are kept, in the archive.** Quote each instruction he gives word for word in the item's report and
   in `docs/archive/instructions.md`, numbered and dated, leaving out personal details as `SECURITY.md`, point 11,
   says. A standing rule goes where it applies in this file
-  (or `CLAUDE.md`, if only Claude uses it), as briefly as it can be said, with what it is for and its archive item, never
-  as a dated entry or a quote; it moves into the builder rules at the next refresh of the design document's copy.
+  (or `CLAUDE.md`, if only Claude uses it), as briefly as it can be said, with what it is for and its archive item; it moves into
+  the builder rules at the next refresh of the design document's copy. Rule files state rules, never quotes or dated history (a date a measurement or a status needs may stay),
+  with at most a pointer to the archive, "(archive item N)": every session pays to read them, and the archive keeps
+  his words.
 - **Each game's files stay in its own repository.** Never write this project's notes, logs or files into another
-  project's repository or folders, above all Barkstreet Snakes' (the owner: strictly forbidden).
+  project's repository or folders, above all Barkstreet Snakes': never, for any reason (archive item 199).
 - **Sessions.** Started item by item (as a Claude Code Project does), stop when your item is merged and say what is
   next; otherwise carry on with the next item. A long item may end a
   session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md` saying where to pick up.
 
 ## Questions, readings and ideas
 
-Everything the owner should see lives in this repository's issues, so nothing is lost or said twice (items 16, 29, 141).
+Everything the owner should see lives in this repository's issues, so nothing is lost or said twice (archive items 16, 29 and 141).
 
 - **Settled questions are readings.** Before a question goes to the owner, check it against "The game in one page" and
   the item's sections. One they settle is a reading: list it under "Readings taken" with the principle it rests on,
@@ -111,7 +113,8 @@ Everything the owner should see lives in this repository's issues, so nothing is
   Feature request (`enhancement`); a bug the task at hand will not fix is a Bug report (`bug`). An idea or a bug
   takes its template's headings and label (`.github/ISSUE_TEMPLATE/`; through the API, copy the headings into the body).
   Search the open issues first and add to one rather than file twice. Each issue holds the whole of it, answerable from a
-  phone.
+  phone, and says in plain words what each thing is and why it matters, by the game's own names, never only by a title a
+  builder made up; so does each line that points to one (archive item 204).
 - **Everywhere else, only a pointer.** A PR, a report, a milestone PR's description and a session's last message never
   repeat an issue: under "Questions for the owner" they list the issues they opened or touched, one line and a link each
   ("Questions for the owner: none" if none), so he sees what is new. An orchestrator passes every new link on to him.
@@ -131,7 +134,7 @@ Everything the owner should see lives in this repository's issues, so nothing is
 
 ## How work flows
 
-Waiting is lost time and, past an hour, a lost cache (item 22; the orchestrator's part is in `docs/orchestrating.md`).
+Waiting is lost time and, past an hour, a lost cache (archive item 22; the orchestrator's part is in `docs/orchestrating.md`).
 
 1. **Review in the background.** When the work is done, mark its draft PR ready (`docs/developing.md`), which starts
    its one automatic security review; ask for the code review and the design check when the PR gets them, at once
@@ -142,7 +145,7 @@ Waiting is lost time and, past an hour, a lost cache (item 22; the orchestrator'
    `docs/claude-and-codex.md`).
 2. **The next item on top.** The next item depends on this one, so branch it from this item's PR branch, not from
    `develop`, and merge this branch (or `develop`, once it is merged) into it before its own PR.
-3. **Lanes beside the items** (item 23). Independent work runs in parallel: different files from every open lane, no
+3. **Lanes beside the items** (archive item 23). Independent work runs in parallel: different files from every open lane, no
    shared measurement, no waiting on another's result. The numbered items stay one lane, one at a time; beside them run
    splits and the workshop check, history dossiers, script play outside the current item's code, tests, and interface
    polish on screens the item does not touch. Claim a lane first with a draft PR from a fresh branch off `develop`, its
@@ -170,7 +173,7 @@ model games: no API key is set in cloud sessions, and the builder rules forbid t
 
 Branches, merges and PRs follow the builder rules: the builder merges its own PRs, item PRs once their reviews pass
 ("How work flows", point 1) and the milestone PR into `main` once CI is green, and never pushes to `main` directly. Push after every commit, even before the PR opens (a draft
-if not ready), so nothing is lost if a session dies (items 15, 84). At each milestone, open a PR the owner can play, say
+if not ready), so nothing is lost if a session dies (archive items 15 and 84). At each milestone, open a PR the owner can play, say
 what to try, and carry on without waiting for him.
 
 **Dependabot, CodeQL and GitHub's REST calls:** `docs/developing.md`. Dependabot's security PRs are the one other

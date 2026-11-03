@@ -11,9 +11,10 @@ import { debtLeft, isPowerParty, MoneyData, newDebt, type Debt } from "../model/
 import type { BorrowOrder, RepayOrder, SeizeHoardOrder, SellDebtOrder } from "../model/orders.ts";
 import { gain, hiddenAt, newFact, remember, spend, type Character } from "../model/people.ts";
 import { newLossAbroad } from "../model/records.ts";
-import { land, type Power } from "../model/power.ts";
+import { land, type Power, powerName } from "../model/power.ts";
 import { char, findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
+import { pick } from "../rules/wording.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { trustIn } from "./jobs.ts";
 
@@ -43,7 +44,7 @@ const P = TurnEngine.prototype;
 
 /** A party's name in a notice: a king by his land, a character by its name. */
 P.partyName = function (x) {
-  if (isPowerParty(x)) return `the king of ${land(x)}`;
+  if (isPowerParty(x)) return `the king of ${powerName(x)}`;
   return findCharacter(this.s, x)?.name ?? x;
 };
 
@@ -147,8 +148,13 @@ P.borrowOrder = function (p, o) {
   // What it asks back: its rate a season, for the seasons named.
   const asked = amount + Math.ceil((amount * offer.perHundred * seasons) / (100 * Math.max(1, offer.seasons)));
   const repay = Math.max(o.repay, 0);
-  if (amount <= 0 || repay < asked) {
-    this.failed(p, o, "No loan", `${c.name} will not lend ${formatMoney(amount)} for ${formatMoney(repay)} back in ${seasons} seasons: they ask ${formatMoney(asked)} back.`, `they ask ${formatMoney(asked)} back`, true, c.id);
+  if (amount <= 0) {
+    const why = o.amount <= 0 ? "you asked for no gold" : "they have no gold left to lend";
+    this.failed(p, o, "No loan", `${c.name} lent you nothing: ${why}.`, why, true, c.id);
+    return;
+  }
+  if (repay < asked) {
+    this.failed(p, o, "No loan", `${c.name} will not lend ${formatMoney(amount)} to be repaid ${formatMoney(repay)} in ${seasons === 1 ? "a season" : `${seasons} seasons`}; they ask ${formatMoney(asked)} back.`, `they ask ${formatMoney(asked)} back`, true, c.id);
     return;
   }
   // Gold lent leaves the purse (counted as spent), and what is repaid comes back as dealt.
@@ -157,7 +163,11 @@ P.borrowOrder = function (p, o) {
   offer.amount = Math.max(0, offer.amount - amount);
   const d = this.sealDebt(c.id, p, amount, repay, seasons);
   remember(c, S.turn, `I lent the king of ${land(p)} ${formatMoney(amount)}, to be repaid ${formatMoney(repay)} by season ${d.dueTurn}; I hold the tablet.`);
-  notify(S, p, "Notice", "A loan", `${c.name} lent you ${formatMoney(amount)}: a debt tablet sealed by both says you owe ${formatMoney(repay)}, to be repaid by turn ${d.dueTurn} (debt ${d.id}). Nothing forces you to repay; ${c.name} holds the tablet, which anyone can read.`, c.id);
+  const lent = [
+    `${c.name} lent you ${formatMoney(amount)}. The tablet you both sealed says you owe ${formatMoney(repay)} by turn ${d.dueTurn}; ${c.name} keeps it (order repay, debt ${d.id}).`,
+    `You borrowed ${formatMoney(amount)} from ${c.name}, to repay ${formatMoney(repay)} by turn ${d.dueTurn}. ${c.name} keeps the sealed tablet (order repay, debt ${d.id}).`,
+  ];
+  notify(S, p, "Notice", "A loan", pick(lent, `${S.turn}|${p}|${c.id}|loan`), c.id);
   logEvent(S, "loan", `${c.name} lent ${p} ${amount}.`, [p], "loan");
 };
 
@@ -171,20 +181,20 @@ P.repayOrder = function (p, o) {
   }
   const h = d.holder === null || isPowerParty(d.holder) ? null : findCharacter(S, d.holder);
   if (h === null || h.at !== p || h.status === "Dead" || (h.heldBy !== null && h.heldBy !== p)) {
-    this.failed(p, o, "Nothing repaid", `Nobody holding the tablet of debt ${d.id} stands at your court to be paid.`, "the tablet's holder is not at your court", true);
+    this.failed(p, o, "Nothing repaid", `Nobody holding the tablet of your debt of ${formatMoney(debtLeft(d))} stands at your court to be paid.`, "the tablet's holder is not at your court", true);
     return;
   }
   const t = S.treasuries.get(p);
   const amount = Math.min(o.amount, t.gold);
   if (amount <= 0) {
-    this.failed(p, o, "Nothing repaid", `The treasury could not repay anything on debt ${d.id}.`, "the treasury is empty", false);
+    this.failed(p, o, "Nothing repaid", `The treasury had nothing to pay on your debt of ${formatMoney(debtLeft(d))}.`, "the treasury is empty", false);
     return;
   }
   t.gold -= amount;
   const paid = this.payDebt(d, p, amount);
   t.gold += amount - paid;
   remember(h, S.turn, `The king of ${land(p)} paid me ${formatMoney(paid)} on the tablet I hold${d.ended !== null ? ", the whole debt; the tablet is his again" : ""}.`);
-  notify(S, p, "Notice", "A debt repaid", d.ended !== null ? `You repaid debt ${d.id} in full to ${h.name}: the tablet is yours, and the debt is settled.` : `You repaid ${formatMoney(paid)} on debt ${d.id} to ${h.name}; ${formatMoney(debtLeft(d))} is left.`, h.id);
+  notify(S, p, "Notice", "A debt repaid", d.ended !== null ? `You repaid ${h.name} the last ${formatMoney(paid)} of your debt, and ${h.name} handed the tablet over to you.` : `You repaid ${h.name} ${formatMoney(paid)} of your debt; ${formatMoney(debtLeft(d))} is still owed (debt ${d.id}).`, h.id);
   logEvent(S, "repaid", `${p} repaid ${paid} to ${h.name}.`, [p], "repaid");
 };
 
@@ -232,7 +242,7 @@ P.debtsSeason = function () {
       if (present) {
         d.presented = S.turn;
         if (isPowerParty(d.borrower) && isAlive(S, d.borrower))
-          notify(S, d.borrower, "Notice", "A debt presented", `${h!.name} stands at your court with the tablet of your debt ${d.id}, past its season: ${formatMoney(debtLeft(d))} is left to repay (order repay).`, h!.id);
+          notify(S, d.borrower, "Notice", "A debt presented", `${h!.name} stands at your court with the tablet of your debt, past its season: ${formatMoney(debtLeft(d))} is left to repay (order repay, debt ${d.id}).`, h!.id);
       }
       continue;
     }
@@ -240,7 +250,15 @@ P.debtsSeason = function () {
     d.defaulted = true;
     this.recordPay(d.borrower, false, h?.at ?? null, h);
     if (h !== null) remember(h, S.turn, `${this.partyName(d.borrower)} has not repaid by the season agreed: ${formatMoney(debtLeft(d))} is still owed on the tablet I hold.`);
-    if (isPowerParty(d.borrower) && isAlive(S, d.borrower)) notify(S, d.borrower, "Notice", "A debt past its season", `Debt ${d.id}, ${formatMoney(debtLeft(d))} to ${this.partyName(d.holder ?? d.lender)}, was to be repaid by turn ${d.dueTurn}. Those who lend hear of it.`);
+    if (isPowerParty(d.borrower) && isAlive(S, d.borrower)) {
+      const left = formatMoney(debtLeft(d));
+      const to = this.partyName(d.holder ?? d.lender);
+      const late = [
+        `Your debt to ${to} was due by turn ${d.dueTurn}, and ${left} is still owed. Lenders will hear of it.`,
+        `Your debt to ${to} is past its season, with ${left} still owed. Word of it reaches those who lend.`,
+      ];
+      notify(S, d.borrower, "Notice", "A debt past its season", pick(late, `${S.turn}|${d.borrower}|${d.id}|late`));
+    }
     logEvent(S, "default", `${this.partyName(d.borrower)} let a debt pass its season unpaid.`, isPowerParty(d.borrower) ? [d.borrower] : [], "default");
   }
 };
@@ -351,7 +369,7 @@ P.takePurse = function (p, c) {
   remember(c, S.turn, `The king of ${land(p)} took what I carried, ${formatMoney(gold)}.`);
   const tablets = S.debts.filter((d) => d.ended === null && d.holder === c.id && d.kept === "Person");
   for (const d of tablets) this.passTablet(d, p, "Archive");
-  notify(S, p, "Notice", "A captive's purse", `You took what ${c.name} carried: ${formatMoney(gold)}${tablets.length > 0 ? `, and ${tablets.length === 1 ? "a debt tablet" : `${tablets.length} debt tablets`} (${tablets.map((d) => `${this.partyName(d.borrower)} owes ${formatMoney(debtLeft(d))}, debt ${d.id}`).join("; ")}): whoever holds a tablet holds the claim` : ""}.`, c.id);
+  notify(S, p, "Notice", "A captive's purse", `You took what ${c.name} carried: ${formatMoney(gold)}${tablets.length > 0 ? `, and ${tablets.length === 1 ? "a debt tablet" : `${tablets.length} debt tablets`}: ${tablets.map((d) => `${this.partyName(d.borrower)} owes ${formatMoney(debtLeft(d))} (debt ${d.id})`).join("; ")}` : ""}.`, c.id);
   logEvent(S, "purse-taken", `${p} took ${c.name}'s purse.`, [p], "purse-taken");
 };
 
@@ -376,7 +394,7 @@ P.seizeHoard = function (p, o) {
   c.facts.push(newFact({ id: newId(S, "f"), text: `Had a hoard of ${formatMoney(gold)} seized by the king of ${land(p)} (season ${S.turn}).`, secrecy: "Public", tag: "seized" }));
   remember(c, S.turn, `The king of ${land(p)} seized my hoard there, ${formatMoney(gold)}.`);
   S.losses.push(newLossAbroad({ kind: "Seized", court: p, master: null, characterId: c.id, turn: S.turn }));
-  notify(S, p, "Notice", "A hoard seized", `You seized ${c.name}'s hoard, ${formatMoney(gold)}, with any tablets kept in it. It is known at your court, and those who hear of it will remember it.`, c.id);
+  notify(S, p, "Notice", "A hoard seized", `You seized ${c.name}'s hoard, ${formatMoney(gold)}, with any tablets kept in it. Word of it will spread.`, c.id);
   logEvent(S, "hoard-seized", `${p} seized ${c.name}'s hoard of ${gold}.`, [p], "hoard-seized");
 };
 
@@ -390,7 +408,7 @@ P.sellDebtOrder = function (p, o) {
   const d = S.debts.find((x) => x.id === o.debt) ?? null;
   const c = char(S, o.character);
   if (d === null || d.ended !== null || d.holder !== p) {
-    this.failed(p, o, "Tablet not sold", `You hold no tablet of a standing debt ${o.debt}.`, "no such tablet in your archive", true);
+    this.failed(p, o, "Tablet not sold", `You hold no tablet of a standing debt marked ${o.debt}.`, "no such tablet in your archive", true);
     return;
   }
   if (c.at !== p || c.heldBy !== null || c.status === "Dead" || hiddenAt(c, p)) {
@@ -400,7 +418,7 @@ P.sellDebtOrder = function (p, o) {
   const worth = idiv(debtLeft(d) * trustIn(S, d.borrower, c), 100);
   if (o.price <= 0 || o.price > worth || c.purse < o.price || d.borrower === c.id) {
     const why = d.borrower === c.id ? "it is their own debt" : c.purse < o.price ? "they do not have the gold" : `they would give at most ${formatMoney(worth)} for a claim of ${formatMoney(debtLeft(d))} on ${this.partyName(d.borrower)}`;
-    this.failed(p, o, "Tablet not sold", `${c.name} would not buy the tablet of debt ${d.id} for ${formatMoney(o.price)}: ${why}.`, why, true, c.id);
+    this.failed(p, o, "Tablet not sold", `${c.name} would not pay ${formatMoney(o.price)} for the tablet on which ${this.partyName(d.borrower)} owes ${formatMoney(debtLeft(d))}: ${why}.`, why, true, c.id);
     return;
   }
   c.purse -= o.price;
@@ -408,7 +426,7 @@ P.sellDebtOrder = function (p, o) {
   S.treasuries.get(p).gold += o.price;
   this.passTablet(d, c.id, "Person");
   remember(c, S.turn, `I bought from the king of ${land(p)} the tablet of a debt of ${this.partyName(d.borrower)}, ${formatMoney(debtLeft(d))} left to repay, for ${formatMoney(o.price)}.`);
-  notify(S, p, "Notice", "A tablet sold", `You sold ${c.name} the tablet of debt ${d.id} (${this.partyName(d.borrower)} owes ${formatMoney(debtLeft(d))}) for ${formatMoney(o.price)}. The claim is theirs.`, c.id);
+  notify(S, p, "Notice", "A tablet sold", `You sold ${c.name} the tablet on which ${this.partyName(d.borrower)} owes ${formatMoney(debtLeft(d))}, for ${formatMoney(o.price)}. The claim is theirs now.`, c.id);
   logEvent(S, "tablet-sold", `${p} sold debt ${d.id} to ${c.name}.`, [p], "tablet-sold");
 };
 

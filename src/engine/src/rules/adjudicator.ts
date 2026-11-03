@@ -244,7 +244,7 @@ export class Adjudicator {
           else why = sup.kind === "Move" && sup.target === o.to ? null : `no unit moved from ${this.nm(o.target!)} to ${this.nm(o.to)}`;
         }
         if (why !== null) {
-          o.voided = `supports ${this.nm(o.target!)}${o.to === null ? " holding" : " -> " + this.nm(o.to)}`;
+          o.voided = `was to support ${o.to === null ? `the hold at ${this.nm(o.target!)}` : `the move from ${this.nm(o.target!)} to ${this.nm(o.to)}`}`;
           o.voidWhy = why;
           o.kind = "Hold";
         }
@@ -258,7 +258,7 @@ export class Adjudicator {
           this.orders[t].target === o.to &&
           this.orders[t].unitKind === "Army";
         if (!ok) {
-          o.voided = `convoys ${this.nm(o.target!)} -> ${this.nm(o.to!)}`;
+          o.voided = `was to carry the army from ${this.nm(o.target!)} to ${this.nm(o.to!)}`;
           o.voidWhy = this.map.get(o.at).isSea ? `no army moved from ${this.nm(o.target!)} to ${this.nm(o.to!)} by sea` : "a fleet convoys only at sea";
           o.kind = "Hold";
         }
@@ -535,7 +535,7 @@ export class Adjudicator {
           const assault = moved ? this.assaultBy(o) : null;
           if (assault !== null) r.assaults.push(assault);
           r.lines.push(
-            line(o.at, o.power, `${label} -> ${name(o.target!)}${o.viaConvoy ? " (by sea)" : ""}: ${moved ? "succeeds" : "fails"}`, moved, {
+            line(o.at, o.power, moved ? `${label} ${o.unitKind === "Fleet" ? "sailed" : o.viaConvoy ? "crossed by sea" : "marched"} to ${name(o.target!)}` : `${label} did not reach ${name(o.target!)}${o.viaConvoy ? " by sea" : ""}`, moved, {
               target: o.target,
               failure: this.explain && !moved ? this.whyFailed(o) : null,
               assault,
@@ -553,26 +553,27 @@ export class Adjudicator {
           }
           // A unit that is destroyed gives no support: that is not a cut.
           const cutFrom = !given && !dislodged && this.explain ? (this.cutBy(o)?.at ?? null) : null;
-          const failed = dislodged ? "void: the supporting unit was beaten from its place" : cutFrom !== null ? `cut (attacked from ${name(cutFrom)})` : "cut";
+          const backed = o.to === null ? `the hold at ${name(o.target!)}` : `the move from ${name(o.target!)} to ${name(o.to)}`;
+          const failed = dislodged ? "it was driven from its place" : cutFrom !== null ? `an attack from ${name(cutFrom)} cut it` : "the support was cut";
           r.lines.push(
-            line(o.at, o.power, `${label} supports ${name(o.target!)}${o.to === null ? " holding" : " -> " + name(o.to)}: ${given ? "given" : failed}`, given, {
+            line(o.at, o.power, given ? `${label} supported ${backed}` : `${label} was to support ${backed}, but ${failed}`, given, {
               cut: given || dislodged || !this.explain ? null : cutFrom !== null ? `the support was cut by an attack from ${name(cutFrom)}` : "the support was cut",
             }),
           );
           break;
         }
         case "Convoy":
-          r.lines.push(line(o.at, o.power, `${label} convoys ${name(o.target!)} -> ${name(o.to!)}`, this.result[o.index]));
+          r.lines.push(line(o.at, o.power, this.result[o.index] ? `${label} carried the army from ${name(o.target!)} to ${name(o.to!)}` : `${label} was to carry the army from ${name(o.target!)} to ${name(o.to!)}, but could not`, this.result[o.index]));
           break;
         default:
           r.lines.push(
             o.voided !== null
-              ? line(o.at, o.power, `${label} ${o.voided}: void`, false, { void: this.explain ? o.voidWhy : null })
-              : line(o.at, o.power, `${label} ${o.besieging ? "besieges the city" : "holds"}`, true),
+              ? line(o.at, o.power, `${label} ${o.voided}, in vain`, false, { void: this.explain ? o.voidWhy : null })
+              : line(o.at, o.power, `${label} ${o.besieging ? "besieged the city" : "held"}`, true),
           );
           break;
       }
-      if (dislodged) r.lines.push(line(o.at, o.power, `${label} is dislodged`, false));
+      if (dislodged) r.lines.push(line(o.at, o.power, `${label} was beaten from its place`, false));
     }
     for (const o of this.orders) {
       const f = o.kind === "Move" ? this.fightOf(o) : null;

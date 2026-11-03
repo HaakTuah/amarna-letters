@@ -2,6 +2,7 @@ import {
   assay,
   caravan,
   feed,
+  send,
   harbourOf,
   priceForTen,
   ship,
@@ -150,6 +151,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           <option value="share">Ask a share of the harvest</option>
           <option value="amount">Ask an amount of grain</option>
           <option value="census">Send scribes to count it</option>
+          <option value="send">Send gold to its coffer (far provinces)</option>
         </select>
         <select value={f.grainAt} onChange={(e) => set({ grainAt: e.target.value })}>
           <option value="">{f.grainAction === "caravan" ? "from…" : "at…"}</option>
@@ -162,7 +164,9 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
                 <option key={id} value={id}>
                   {f.grainAction === "census"
                     ? `${provinceName(id)} (${x.counted === null ? "never counted" : `counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""})`
-                    : f.grainAction === "share" || f.grainAction === "amount"
+                    : f.grainAction === "send"
+                      ? `${provinceName(id)} (${!v.far.includes(id) ? "within your couriers' season: the treasury pays there" : `coffer ${shekels(x.coffer)}${x.owed > 0 ? `, owing ${shekels(x.owed)}` : ""}${x.reported !== null ? ` as reported ${when(x.reported, me)}` : ""}`})`
+                      : f.grainAction === "share" || f.grainAction === "amount"
                       ? `${provinceName(id)} (asked ${x.amount !== null ? `${x.amount} a season` : `${x.share}%`}, ${x.counted === null ? "never counted" : `harvest ${counted(x.harvest, v.turn - x.counted)} as counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
                       : `${provinceName(id)} (stores about ${about(x.stores)}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
                 </option>
@@ -183,7 +187,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
           </select>
         )}
         {f.grainAction !== "census" && (
-          <input type="number" min={f.grainAction === "share" || f.grainAction === "amount" ? 0 : 1} placeholder={f.grainAction === "share" ? "percent" : f.grainAction === "amount" ? "a season" : "measures"} value={f.grainAmount} onChange={(e) => set({ grainAmount: e.target.value })} style={{ width: "6rem" }} />
+          <input type="number" min={f.grainAction === "share" || f.grainAction === "amount" ? 0 : 1} placeholder={f.grainAction === "share" ? "percent" : f.grainAction === "amount" ? "a season" : f.grainAction === "send" ? "shekels" : "measures"} value={f.grainAmount} onChange={(e) => set({ grainAmount: e.target.value })} style={{ width: "6rem" }} />
         )}
         <button
           className="small"
@@ -205,7 +209,9 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
                       ? demand(f.grainAction, n, f.grainAt)
                       : f.grainAction === "census"
                         ? census(f.grainAt)
-                        : caravan(f.grainAt, f.grainTo, n),
+                        : f.grainAction === "send"
+                          ? send(f.grainAt, n)
+                          : caravan(f.grainAt, f.grainTo, n),
             );
           }}
         >

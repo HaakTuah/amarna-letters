@@ -88,7 +88,7 @@ describe("KingdomFallTests", () => {
     let word = single(s.journeys, (j) => j.kind === "Word" && j.to === "Egypt" && j.news === "KingdomFalls");
     while (s.turn < word.arriveTurn) season(s, subs({}));
     new TurnEngine(s).beginTurn();
-    Assert.contains("Hatti took its capital, Apasa", single(inboxOf(s, "Egypt"), (i) => i.title === "A kingdom falls").body);
+    Assert.contains("Word spreads that Hatti has taken Apasa, and the kingdom of Arzawa is no more.", single(inboxOf(s, "Egypt"), (i) => i.title === "A kingdom falls").body);
     Assert.contains(Views.for(s, "Egypt").fallen, (p) => p === "Arzawa");
     Assert.contains(
       s.events,

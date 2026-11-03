@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import {
+  counted,
   Dict,
   HomelandReason,
   TurnEngine,
@@ -28,22 +29,25 @@ describe("NoticeTextTests", () => {
     e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [move("memphis", "sinai"), dispatch(envoy.id, "Hatti", "Greetings, brother.")] })]]));
     // As long as its route makes it (item 7b).
     let travel = first(s.journeys, (j) => j.characterId === envoy.id).arriveTurn - s.turn + 1;
+    const road = travel === 1 ? "a season" : `${counted(travel)} seasons`;
 
     let inbox = inboxOf(s, "Egypt");
-    Assert.contains(inbox, (i) => i.kind === "Battle" && i.title === "Movements last season" && i.body.includes("army in Men-nefer -> the Ways of Horus: succeeds"));
+    Assert.contains(inbox, (i) => i.kind === "Battle" && i.title === "Movements last season" && i.body.includes("Your army in Men-nefer marched to the Ways of Horus."));
     Assert.contains(
       inbox,
-      (i) => i.title === "Envoy dispatched" && i.body === `${envoy.name} set out for Hatti last season; the journey should take about ${travel} ${travel === 1 ? "season" : "seasons"}.`,
+      (i) =>
+        i.title === "Envoy dispatched" &&
+        [`set out for Hatti last season; the road there takes ${road}.`, `left for Hatti last season and will reach it in ${road}.`, `took the road to Hatti last season, ${road} of travel.`].includes(i.body.slice(envoy.name.length + 1)),
     );
     Assert.doesNotContain(inbox, (i) => i.title.includes("this season"));
   });
 
-  test("The treasury notice says audience gold comes later", () => {
+  test("The treasury notice gives the treasury without the rulebook's timing", () => {
     let s = smallWorld(newGame(5), "Egypt");
     new TurnEngine(s).beginTurn();
     let notice = single(inboxOf(s, "Egypt"), (i) => i.title === "The treasury");
     Assert.contains("The treasury now holds", notice.body);
-    Assert.contains("gold received at audiences or brought home by your envoys this season is added later", notice.body);
+    Assert.doesNotContain("audiences", notice.body);
   });
 
   test("A payment the treasury cannot make is a rejection even when debased gold is found", () => {

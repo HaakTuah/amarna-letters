@@ -4,7 +4,7 @@ import { ClauseSchema } from "./clauses.ts";
 import { GreetingOptionsSchema, TabletProposalSchema } from "./records.ts";
 import { AuthoritySchema } from "./authority.ts";
 import { MandateSchema } from "./command.ts";
-import { hold, command, relieve, supply, mandateOrder, govern, crown, unseat, moveCourt, enlist, move, support, convoy, besiege, build, raze, sally, raise, disband, fold, cede, giftUnit, dispatch, release, seekCandidates, hire, renew, seize, sellDebt, payCarriers, upkeep, hunt, huntBands, payFee, borrow, repay, buyNews, dismiss, check, sell, purchase, feed, caravan, trade, ship, demand, census, answer, welcome, deport, expel, returnRunaways, toll, placeSpy, recall, counterIntel, roads, claimName, revoke, grant, repudiate, assay, authenticate, forge, captive, steal, giftTo, payRansom, unreadable } from "./order-makers.ts";
+import { hold, command, relieve, supply, mandateOrder, govern, crown, unseat, moveCourt, enlist, move, support, convoy, besiege, build, raze, sally, raise, disband, fold, cede, giftUnit, dispatch, release, seekCandidates, hire, renew, seize, sellDebt, payCarriers, upkeep, hunt, huntBands, payFee, borrow, repay, buyNews, dismiss, check, sell, purchase, feed, send, caravan, trade, ship, demand, census, answer, welcome, deport, expel, returnRunaways, toll, placeSpy, recall, counterIntel, roads, claimName, revoke, grant, repudiate, assay, authenticate, forge, captive, steal, giftTo, payRansom, unreadable } from "./order-makers.ts";
 
 const v = <T>(name: string, make: () => T, fields: Parameters<typeof obj>[2]): ObjSchema<unknown> => obj(name, make, fields) as ObjSchema<unknown>;
 
@@ -29,6 +29,7 @@ export const OrderSchema = poly("Order", "type", {
   sell: v("SellOrder", () => sell("", 0), { province: S, amount: I }),
   purchase: v("PurchaseOrder", () => purchase("", 0), { province: S, amount: I }),
   feed: v("FeedOrder", () => feed("", 0), { province: S, amount: I, own: opt(B) }),
+  send: v("SendOrder", () => send("", 0), { province: S, gold: I }),
   caravan: v("CaravanOrder", () => caravan("", "", 0), { from: S, to: S, amount: I }),
   trade: v("TradeOrder", () => trade("", "", 0, 0), { from: S, to: S, grain: I, gold: I, sneak: B }),
   ship: v("ShipOrder", () => ship("", "", "", 0, 0), { fleet: S, from: S, to: S, grain: I, gold: I, trade: B }),

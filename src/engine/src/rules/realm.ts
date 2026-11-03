@@ -4,9 +4,10 @@
  * roads and coasts touch, and where it stands among the powers, with the vassal bonds of the opening relations. Each later
  * phase of the economy may add its part.
  */
+import { listed, upper } from "./wording.ts";
 import { economyOf, grainWorth, harvestOf, needOf } from "../model/economy.ts";
 import type { WorldMap } from "../model/map.ts";
-import { cmpPower, land, type Power } from "../model/power.ts";
+import { cmpPower, land, type Power, powerName, whose } from "../model/power.ts";
 import { alive, type GameState } from "../model/state.ts";
 import { vassalBonds } from "../model/vassals.ts";
 
@@ -21,7 +22,7 @@ export function stateOfRealm(s: GameState, map: WorldMap, p: Power): string {
   const crop = held.reduce((a, x) => a + grainWorth(harvestOf(x)), 0);
   const metal = held.reduce((a, x) => a + economyOf(x).mine, 0);
   lines.push(
-    `${land(p)} holds ${held.length === 1 ? held[0].name : `${held.length} provinces (${held.map((x) => x.name).join(", ")})`}; its land brings in about ${crop + metal} shekels' worth a season at reference prices${metal > 0 ? `, ${metal} of it gold and silver from its mines` : ""}.`,
+    `${upper(powerName(p))} holds ${held.length === 1 ? `one province, ${held[0].name}` : `${held.length} provinces (${listed(held.map((x) => x.name))})`}; its land brings in about ${crop + metal} shekels' worth a season at the usual prices${metal > 0 ? `, ${metal} of it gold and silver from its mines` : ""}.`,
   );
   // What it lacks.
   const need = held.reduce((a, x) => a + needOf(x), 0);
@@ -43,7 +44,7 @@ export function stateOfRealm(s: GameState, map: WorldMap, p: Power): string {
       if (!names.includes(map.get(n).name)) names.push(map.get(n).name);
       touch.set(o, names);
     }
-  lines.push(touch.size === 0 ? "No land road leads from it to another power's land: its neighbours are across the sea." : `Its roads lead into the land of ${[...touch.entries()].map(([o, ns]) => (ns.length === 1 && ns[0] === o ? o : `${o} (${ns.join(", ")})`)).join(", ")}.`);
+  lines.push(touch.size === 0 ? "No land road leads from it to another power's land: its neighbours are across the sea." : `Its roads lead into the land of ${listed([...touch.entries()].map(([o, ns]) => (ns.length === 1 && ns[0] === powerName(o) ? ns[0] : `${powerName(o)} (${listed(ns)})`)))}.`);
   // Where it stands among the powers.
   const ranked = [...alive(s)].sort((a, b) => s.startStrength.get(b) - s.startStrength.get(a) || cmpPower(a, b));
   const rank = ranked.indexOf(p) + 1;
@@ -51,8 +52,8 @@ export function stateOfRealm(s: GameState, map: WorldMap, p: Power): string {
   const bonds = vassalBonds(s.tablets, { p, turn: s.turn });
   const over = bonds.filter((b) => b.vassal === p);
   const under = bonds.filter((b) => b.overlord === p);
-  if (over.length > 0) lines.push(`It is ${over.map((b) => `${b.overlord}'s vassal by a sealed tablet${b.tribute > 0 ? `, which names ${b.tribute} shekels of tribute a year` : ""}`).join(", and ")}.`);
-  if (under.length > 0) lines.push(`Its vassals by sealed tablets: ${under.map((b) => `${b.vassal}${b.tribute > 0 ? ` (${b.tribute} a year)` : ""}`).join(", ")}.`);
+  if (over.length > 0) lines.push(`It is ${over.map((b) => `${whose(b.overlord)} vassal by a sealed tablet${b.tribute > 0 ? `, which names ${b.tribute} shekels of tribute a year` : ""}`).join(", and ")}.`);
+  if (under.length > 0) lines.push(`Its vassals by sealed tablets: ${listed(under.map((b) => `${powerName(b.vassal)}${b.tribute > 0 ? ` (${b.tribute} shekels a year)` : ""}`))}.`);
   return lines.join(" ");
 }
 
