@@ -69,6 +69,8 @@ export interface Grant {
   heardTurn: number;
   /** The season it was revoked or repudiated, or null while it stands (until untilTurn). */
   endedTurn: number | null;
+  /** Bug #565: the season word of its end reaches the grantee's court; until then he counts on it. Its grantor knows at once. */
+  endHeard: number;
 }
 
 export function newGrant(init: Partial<Grant> = {}): Grant {
@@ -84,6 +86,7 @@ export function newGrant(init: Partial<Grant> = {}): Grant {
     tabletId: "",
     heardTurn: 0,
     endedTurn: null,
+    endHeard: 0,
     ...init,
   };
 }
@@ -100,10 +103,17 @@ export const GrantSchema: ObjSchema<Grant> = obj("Grant", newGrant, {
   tabletId: S,
   heardTurn: I,
   endedTurn: opt(I),
+  endHeard: I,
 });
 
 /** Does the grant stand in this season? */
 export const grantStands = (g: Grant, turn: number): boolean => g.endedTurn === null && g.sinceTurn <= turn && (g.untilTurn === null || turn <= g.untilTurn);
+
+/**
+ * Does the grant stand in this season as `p`, its grantor or grantee, knows it (bug #565)? The grantee learns of its end
+ * only when word of it comes; until then he counts on it.
+ */
+export const grantStandsFor = (g: Grant, p: Power, turn: number): boolean => grantStands(g.grantee === p && g.endHeard > turn ? { ...g, endedTurn: null } : g, turn);
 
 /**
  * The rights a sealed tablet grants, by its clauses, as `writer` wrote them to `reader`: a passage or basing clause opens
