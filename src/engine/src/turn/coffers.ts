@@ -125,7 +125,7 @@ P.payFar = function (p, province, amount, unit = null) {
   let b = S.bills.find((x) => x.power === p && x.province === province && x.turn === S.turn) ?? null;
   // Due when word of this season's doings there could reach the court (`heardAt`).
   if (b === null) S.bills.push((b = newBill({ power: p, province, turn: S.turn, due: this.heardAt(p, province) })));
-  if (unit !== null) b.units.push({ unit: unit.id, gold: rest, label: unitLabel(unit) });
+  if (unit !== null) b.units.push({ unit: unit.id, gold: rest, label: unitLabel(unit), missed: unit.unpaid });
   else b.works += rest;
   return { coffer: have, credit: rest };
 };
@@ -193,7 +193,7 @@ P.goldArrives = function () {
     // The troops' pay first: unpaid men mutiny, unpaid workmen only stop.
     const short: string[] = [];
     let paid = 0;
-    for (const { unit: id, gold, label } of b.units) {
+    for (const { unit: id, gold, label, missed } of b.units) {
       const u = S.units.find((x) => x.id === id && x.power === b.power) ?? null;
       if (t.gold >= gold) {
         t.gold -= gold;
@@ -201,7 +201,8 @@ P.goldArrives = function () {
         // Carried out to the men with the next courier, kept in their packs; their unit gone, its men's people at home take it.
         if (u !== null) {
           u.savings += gold;
-          u.unpaid = 0;
+          // Paid at last: its missing pay is cleared only if it missed none since the bill was made.
+          if (u.unpaid === missed) u.unpaid = 0;
         } else this.spendAt(b.province, gold);
       } else if (u !== null) {
         u.unpaid++;
@@ -216,7 +217,13 @@ P.goldArrives = function () {
     const owed = b.works - works;
     if (owed > 0) {
       const c = this.cofferOf(b.power, b.province, true);
-      if (c !== null) c.owed += owed;
+      // What the coffer already holds pays it first; the rest is owed.
+      if (c !== null) {
+        const now = Math.min(c.gold, owed);
+        c.gold -= now;
+        this.spendAt(b.province, now);
+        c.owed += owed - now;
+      }
     }
     const of = [b.works > 0 ? "its works and levies" : "", b.units.length > 0 ? "the pay of your troops there" : ""].filter((x) => x !== "").join(" and ");
     let l = `A bill came home from ${name} for ${of}, done on credit in turn ${b.turn}: ${formatMoney(total)}`;

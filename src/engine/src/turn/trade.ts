@@ -319,6 +319,12 @@ P.caravanHome = function (c) {
   // proceeds do (item 13), its word with them; with nothing to carry, its word comes home as word does, when the word of
   // its homecoming could (`caravanWordsHome`). Near, they reach the court now.
   const far = this.wordTo(c.power, at) > 0;
+  // #587: with no road on to the court, its gold stays where it came home, in the coffer there (gold that is there).
+  if (far && c.gold > 0 && this.tradeRoute(c.power, at, this.courtAt(c.power), false) === null) {
+    parts.push(`${formatMoney(c.gold)} kept there, with no road on to the court`);
+    this.receiveAt(c.power, at, c.gold);
+    c.gold = 0;
+  }
   const load = c.gold > 0 || c.archive.length > 0;
   const onRoad = far && load && this.lootHome(c.power, at, c.gold, c.archive, c.archiveOf);
   if (onRoad) {
@@ -326,8 +332,7 @@ P.caravanHome = function (c) {
     c.word = newWord();
     if (c.gold > 0) parts.push(`${formatMoney(c.gold)} sent on to the treasury`);
   } else if (far && load) {
-    // No road on to the court: its load reaches it at once, as loot does (TurnEngine.lootHome); its word as word does.
-    if (c.gold > 0) parts.push(`${formatMoney(c.gold)} into the treasury`);
+    // No road on to the court: a captured archive reaches it at once, as loot does (TurnEngine.lootHome); its word as word does.
   } else if (far) {
     // Kept with the caravan's last report among those gone (GameState.caravansGone) until its word comes.
   } else {

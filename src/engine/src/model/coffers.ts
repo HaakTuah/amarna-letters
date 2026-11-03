@@ -46,9 +46,11 @@ export interface BillUnit {
   gold: number;
   /** The unit as the bill names it, where it stood when the bill was made. */
   label: string;
+  /** Its seasons of missing pay when the bill was made. */
+  missed: number;
 }
 
-export const BillUnitSchema: ObjSchema<BillUnit> = obj("BillUnit", (init: Partial<BillUnit> = {}) => ({ unit: "", gold: 0, label: "", ...init }), { unit: S, gold: I, label: S });
+export const BillUnitSchema: ObjSchema<BillUnit> = obj("BillUnit", (init: Partial<BillUnit> = {}) => ({ unit: "", gold: 0, label: "", missed: 0, ...init }), { unit: S, gold: I, label: S, missed: I });
 
 export function newBill(init: Partial<Bill> = {}): Bill {
   return { power: "Egypt", province: "", turn: 0, due: 0, works: 0, units: [], ...init };

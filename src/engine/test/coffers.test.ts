@@ -43,9 +43,12 @@ describe("CofferTests", () => {
     e.payFar("Egypt", "nippur", 20, u);
     s.treasuries.get("Egypt").gold = 0;
     s.treasuries.get("Egypt").lots.length = 0;
+    // Its mines filled the coffer a little before the bill came: that pays the debt first.
+    e.receiveAt("Egypt", "nippur", 10);
     s.turn = s.bills[0].due;
     e.goldArrives();
-    Assert.equal(30, e.cofferOf("Egypt", "nippur")?.owed ?? 0);
+    Assert.equal(20, e.cofferOf("Egypt", "nippur")?.owed ?? 0);
+    Assert.equal(0, e.cofferOf("Egypt", "nippur")?.gold ?? 0);
     Assert.equal(1, u.unpaid);
     // With a debt there, its next season's pay finds no credit either.
     e.payTroops("Egypt");
@@ -177,5 +180,17 @@ describe("CofferTests", () => {
     // The next season's pay goes on credit again, and does not wipe out what the bill left unpaid.
     e.payTroops("Egypt");
     Assert.equal(1, u.unpaid);
+  });
+
+  test("A bill paid late clears a unit's missing pay only if it missed none since", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    const u = newUnit({ id: "u902", power: "Egypt", kind: "Army", province: "babylon", home: "nippur", men: 1000 });
+    s.units.push(u);
+    e.payTroops("Egypt");
+    u.unpaid = 2;
+    s.turn = s.bills[0].due;
+    e.goldArrives();
+    Assert.equal(2, u.unpaid);
   });
 });
