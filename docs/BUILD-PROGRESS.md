@@ -65,6 +65,23 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The owner's answers of 3 November, morning** (archive item 185):
+  - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
+    honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
+    borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
+    kings' trust readings still behave well.
+  - **#616, one clock for one road:** a far province's report and its notices come by one function, the couriers'
+    seasons from the place to the court, with a test that the same season's both arrive together. A save version.
+  - **#601, a fast courier, hired:** a king may hire a carrier to bring one far province's report home this season.
+    It is a job like any other ("Jobs, not wages"): the carrier asks his price by what he has heard such a job pays
+    and by how badly he is wanted, and the king may haggle; no fixed price, no menu.
+  - **#586, the polish lane:** a province's card lists, for each glowing frontier, the armies the seat sees on the
+    other side.
+  - **#618, after item 17++a:** word of a conquest, a fall or a revolt reaches courts beyond sight by the road: a
+    vassal reports to his overlord what his court saw, an ally to the king he is bound to.
+  - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
+    land's king, or keep it back.
+
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
