@@ -68,8 +68,9 @@ take account of every way in and every security concern: a review that finds one
    - **In merged code, where it could reach the owner's accounts or tokens (a workflow, a CI permission, a secret), leak a player's API key, or let
      one player attack another (a shared save or link that runs in someone else's browser):** reported privately first, if the reporter can (an outsider through
      "Reporting a weakness" below, an agent in its session's own report to the owner), and fixed before any other work,
-     in a PR that says what it hardens, never how to attack it. A reporter who cannot report privately opens an issue
-     instead: a report that reaches the owner and gets fixed matters more than keeping it quiet.
+     in a PR that says what it hardens, never how to attack it. A reporter who cannot report privately opens an issue instead, saying only that a weakness exists and which part it
+     touches, with no steps or details, and the owner follows it up privately: a report that reaches him matters most,
+     but not at the price of publishing how to attack.
    - **Any other weakness in merged code:** a `bug` issue, fixed with priority.
    - A real secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
 10. **Licences: free to use, kept that way** (archive item 164). Two lists, by what reaches players.
@@ -107,5 +108,6 @@ take account of every way in and every security concern: a review that finds one
 ## Reporting a weakness
 
 Use GitHub's private vulnerability reporting: the repository's Security tab, "Report a vulnerability", which only the
-owner sees. If you cannot, open an issue: a report that reaches the owner matters most. How each kind is handled:
+owner sees. If you cannot, open an issue that says only that a weakness exists and which part it touches, with no steps or
+details; the owner follows it up privately. How each kind is handled:
 rule 9.
