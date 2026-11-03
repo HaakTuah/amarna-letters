@@ -11,6 +11,8 @@ import {
   hire,
   inboxOf,
   newCharacter,
+  newContract,
+  renew,
   newGame,
   newGameConfig,
   newId,
@@ -83,6 +85,19 @@ describe("RideTests", () => {
     Assert.equal(g.ask, g.least);
   });
 
+  test("A servant renewed for a ride asks as any rider does (#601)", () => {
+    const { s, c } = world(0);
+    new TurnEngine(s, map).beginTurn();
+    c.status = "Employed";
+    c.employer = "Egypt";
+    c.contract = newContract({ fee: 10, startTurn: 0, untilTurn: 0 });
+    const { least } = new TurnEngine(s, map).rideAsk(c, "Egypt", "nippur", 1);
+    new TurnEngine(s, map).renew("Egypt", renew(c.id, least - 1, 1, least - 1, { what: "ride", where: "nippur" }));
+    Assert.true(inboxOf(s, "Egypt").some((i) => i.title === "Not renewed" && i.body.includes("for the ride")));
+    new TurnEngine(s, map).renew("Egypt", renew(c.id, least, 1, least, { what: "ride", where: "nippur" }));
+    Assert.equal("ride", c.contract!.errand?.what);
+  });
+
   test("A ride is offered for a far province of the king's own, at his court (#601)", () => {
     const { s, c } = world();
     const why = (o: Order): string => {
@@ -92,5 +107,6 @@ describe("RideTests", () => {
     Assert.equal("", why(ride(c, 50)));
     Assert.true(why(hire(c.id, 50, 1, 50, { what: "ride", where: "memphis" })).includes("without a rider"));
     Assert.true(why(hire(c.id, 50, 1, 50, { what: "ride", where: "babylon" })).includes("you do not hold"));
+    Assert.true(why(hire(c.id, 50, 3, 50, { what: "ride", where: "nippur" })).includes("its term is 1"));
   });
 });

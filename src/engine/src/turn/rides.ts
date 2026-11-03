@@ -11,7 +11,7 @@ import { cmpNum, sortBy } from "../core/seq.ts";
 import { MoneyData } from "../model/money.ts";
 import { remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { isAlive, logEvent, newKnown, notify } from "../model/state.ts";
+import { isAlive, logEvent, newKnown, notify, type GameState } from "../model/state.ts";
 import { Dict } from "../core/collections.ts";
 import { ownerAt, riderSource } from "../rules/known-land.ts";
 import { basePrice } from "./court.ts";
@@ -38,6 +38,13 @@ const P = TurnEngine.prototype;
  * for the greediest).
  */
 export const RideData = { sooner: 20, scarce: 50, give: 25 } as const;
+
+/** Those standing where a ride was agreed hear what it paid, and what they would ask for one moves part of the way to it. */
+export function hearRide(s: GameState, at: string | null, fee: number): void {
+  if (at === null) return;
+  for (const x of s.characters)
+    if (x.status !== "Dead" && x.at === at && x.heldBy === null) x.heardRide = x.heardRide === null ? fee : toInt(Math.round((x.heardRide * (100 - MoneyData.heardWeight) + fee * MoneyData.heardWeight) / 100));
+}
 
 /** The title of the notice. */
 export const RiderBackTitle = "A rider's report";
@@ -79,7 +86,7 @@ P.ridersBack = function () {
     S.journeys = S.journeys.filter((j) => !brought.includes(j));
     for (const j of brought) this.wordArrives(j);
     const name = this.map.get(x).name;
-    notify(S, p, "Notice", RiderBackTitle, `${c.name} rode to ${name} and back with its report of season ${t}${owner === p ? "" : `: it answers to ${owner === null ? "no king" : owner} now`}.`, c.id);
+    notify(S, p, "Notice", RiderBackTitle, `${c.name} rode to ${name} and back with its report of season ${t}${owner === p ? "" : `: when he was there it answered to ${owner === null ? "no king" : owner}`}.`, c.id);
     remember(c, S.turn, `I rode to ${name} for ${p} and brought its report home.`);
     logEvent(S, "ride", `${c.name} rode to ${name} for ${p} and brought its report home.`, [p], "ride-back");
   }

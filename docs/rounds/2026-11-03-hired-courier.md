@@ -54,7 +54,9 @@ the script kings ride for it, haggle, and offer more after a refusal when it doe
   would ride), and how many rides that court asks for this season against the free people there.
 - **Haggling** is one offer a season: below his least he declines and names his ask; the king may offer again. A ride
   offered below his ask and above his least is taken: that is the haggle won.
-- **A servant renewed for a ride** asks his usual price for a job, as any renewal does.
+- **A servant renewed for a ride** asks as any rider does (`rideAsk`), so both paths keep the owner's rule.
+- **A ride's term is one season** (the validator): it is there and back within it, and a longer term would make what is
+  heard of a ride's pay a longer job's.
 - **A ride is offered at court, never by an envoy**: the rider sets out from the court that hires him.
 - **The rider is not stopped on the road** (first guess): a fast rider travels light, by the king's own roads.
 - **His fee is paid as any job's is**: the advance from the treasury at court, the rest when he is back (coordination

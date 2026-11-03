@@ -113,6 +113,7 @@ export class OrderValidator {
       if (via === null && c.at !== power && c.heldBy !== power)
         return [`${c.name} is not at your court: an offer to a person elsewhere goes with an envoy you send this season to where they are (via)`, c];
       if (via !== null && h.what === "ride") return ["a ride is offered at your court, where the rider sets out from: name no envoy (via)", c];
+      if (h.what === "ride" && h.term !== 1) return ["a ride is there and back within the season: its term is 1", c];
       if (via !== null) {
         const d = orders.find((o) => o.type === "dispatch" && o.envoy === via) ?? null;
         if (d === null || d.type !== "dispatch") return [`you send no envoy '${via}' this season to carry the offer`, c];

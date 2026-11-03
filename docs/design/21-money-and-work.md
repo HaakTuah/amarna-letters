@@ -46,7 +46,7 @@ Build order item 11a. Save version 19. The report is `docs/rounds/2026-10-28-mon
   rides agreed where he stands), raised by `RideData` (first guesses) for each season sooner the report comes beyond the
   first (20 in a hundred) and for the rides the court offers this season against the free people at its court (50 in a
   hundred when they are as many, less as there are more); he takes down to 25 in a hundred less from a man of no greed,
-  nothing less from the greediest, and declining names his ask. A servant renewed for a ride asks his usual price. Script
+  nothing less from the greediest, and declining names his ask. A servant renewed for a ride asks as any rider does; a ride's term is 1. Script
   kings (`bots/rides.ts`): at most one ride a season, for the oldest report of a far province with a siege known there or land
   beside it held by a king hostile to them or who attacked them within 4 seasons, offered at 85 in a hundred of what they reckon he asks, the whole fee in hand, and 15
   in a hundred more than the refused offer the next season; `--no-ride-play`, `--ride-play-half` turn it off.

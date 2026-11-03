@@ -87,6 +87,7 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       if (rn.advance < 0 || rn.advance > rn.fee) return "the advance must be between nothing and the whole fee";
       const ee = errandRefusal(rn);
       if (ee !== null) return ee;
+      if (rn.what === "ride" && rn.term !== 1) return "a ride is there and back within the season: its term is 1";
       if (renewed.has(c.id)) return `${c.name} was already renewed by an earlier order`;
       return spend(rn.advance);
     }
