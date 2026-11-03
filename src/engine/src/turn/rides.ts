@@ -39,6 +39,9 @@ const P = TurnEngine.prototype;
  */
 export const RideData = { sooner: 20, scarce: 50, give: 25 } as const;
 
+/** The rides each court offers at home this season, by hire and renewal (`resolveCourt`), for `rideAsk`. */
+export const ridesAsked = new WeakMap<TurnEngine, Dict<Power, number>>();
+
 /** Those standing where a ride was agreed hear what it paid, and what they would ask for one moves part of the way to it. */
 export function hearRide(s: GameState, at: string | null, fee: number): void {
   if (at === null) return;
@@ -55,7 +58,8 @@ P.rideAsk = function (c, p, province, rides) {
   let price = basePrice(c, p);
   if (c.heardRide !== null) price = Math.max(1, toInt(roundEven((price * (100 - MoneyData.heardWeight) + c.heardRide * MoneyData.heardWeight) / 100)));
   // How badly he is wanted: the seasons sooner the report comes, and the rides asked for against those free to take them.
-  const sooner = Math.max(1, this.wordTo(p, province));
+  // The road home, which the report comes by (#616's `wordFrom`).
+  const sooner = Math.max(1, this.wordFrom(p, province));
   const free = Math.max(1, S.characters.filter((x) => x.status === "Free" && x.at === p && x.heldBy === null && x.duty === "None").length);
   const want = 100 + RideData.sooner * (sooner - 1) + idiv(RideData.scarce * Math.min(rides, free), free);
   const ask = Math.max(1, idiv(price * want, 100));

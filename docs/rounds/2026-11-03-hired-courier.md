@@ -49,12 +49,18 @@ the script kings ride for it, haggle, and offer more after a refusal when it doe
 - **A ride is used where it can be, and that is rare in script games** (the builder rules: "a feature they never use ...
   is not done"). The letter would have the script kings ride where there is nothing to ride for, which is no competent
   play; the rule's purpose, that every seat can use every feature, is met by the scenario test. Flagged for the rule's
-  wording ("Principles over rules").
+  wording ("Principles over rules"), and put to the owner as #650.
 - **"How badly he is wanted"** is what a man standing at a court can know: how much sooner the report comes (the road he
   would ride), and how many rides that court asks for this season against the free people there.
 - **Haggling** is one offer a season: below his least he declines and names his ask; the king may offer again. A ride
   offered below his ask and above his least is taken: that is the haggle won.
 - **A servant renewed for a ride** asks as any rider does (`rideAsk`), so both paths keep the owner's rule.
+- **The ride goes by the road home** (`wordFrom`, #616): how much sooner the report comes, and whether a rider is needed
+  at all, are reckoned on the road the report comes by; no ride where no road brings word.
+- **Word that came to the place from farther off** (a governor's letter about a farther province) stays on its road: a
+  rider brings only word of the place itself (`tell` tags only that).
+- **A ride is never offered again by standing order** (no `offer_again`): each ride is priced anew.
+- **A ride's fee is heard as what a ride pays**, never as a job's pay a season (`heardRide`, not `heardRate`).
 - **A ride's term is one season** (the validator): it is there and back within it, and a longer term would make what is
   heard of a ride's pay a longer job's.
 - **A ride is offered at court, never by an envoy**: the rider sets out from the court that hires him.
@@ -64,4 +70,4 @@ the script kings ride for it, haggle, and offer more after a refusal when it doe
 
 ## Questions for the owner
 
-None.
+- #650: a feature script kings never meet in script games: is the hired rider done?

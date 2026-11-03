@@ -114,6 +114,7 @@ export class OrderValidator {
         return [`${c.name} is not at your court: an offer to a person elsewhere goes with an envoy you send this season to where they are (via)`, c];
       if (via !== null && h.what === "ride") return ["a ride is offered at your court, where the rider sets out from: name no envoy (via)", c];
       if (h.what === "ride" && h.term !== 1) return ["a ride is there and back within the season: its term is 1", c];
+      if (h.what === "ride" && h.offerAgain === true) return ["a ride is offered for one season's report: offer each ride anew (no offer_again)", c];
       if (via !== null) {
         const d = orders.find((o) => o.type === "dispatch" && o.envoy === via) ?? null;
         if (d === null || d.type !== "dispatch") return [`you send no envoy '${via}' this season to carry the offer`, c];
@@ -141,7 +142,10 @@ export class OrderValidator {
       if (what === "ride") {
         if (!Map.exists(where) || Map.get(where).isSea) return `there is no province called '${where}'`;
         if (knownOwner(where) !== power) return `a ride brings the report of a province of yours: you do not hold ${Map.get(where).name}`;
-        return courierSeasons(S, Map, courtOf(S, Map, power), where) === 0 ? `${Map.get(where).name}'s report reaches you this season without a rider` : null;
+        // By the road home, which the report comes by (#616).
+        const home = courierSeasons(S, Map, where, courtOf(S, Map, power));
+        if (!Number.isFinite(home)) return `no road brings word from ${Map.get(where).name} to your court`;
+        return home === 0 ? `${Map.get(where).name}'s report reaches you this season without a rider` : null;
       }
       return `a job's errand is "envoy", "spy", "stay" or "ride", not '${what}'`;
     };

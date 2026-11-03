@@ -263,7 +263,9 @@ P.courierRead = function (p, to, o) {
 };
 
 P.tell = function (p, province, kind, title, text, extra = 0) {
-  this.tellAt(p, this.heardAt(p, province, extra), kind, title, text, province);
+  // Tagged with its place only if it is word of that place itself (no `extra`): word that came there from farther off
+  // (a governor's letter) a rider there could not bring before it came (#601).
+  this.tellAt(p, this.heardAt(p, province, extra), kind, title, text, extra === 0 ? province : undefined);
 };
 
 P.tellAt = function (p, at, kind, title, text, from) {

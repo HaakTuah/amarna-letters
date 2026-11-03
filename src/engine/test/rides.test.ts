@@ -48,17 +48,21 @@ describe("RideTests", () => {
     const t = s.turn;
     // A notice told from Nippur in the ride's season, which would come by the road later.
     new TurnEngine(s, map).tell("Egypt", "nippur", "Notice", "From Nippur", "Word from Nippur.");
+    // Word that came to Nippur from farther off (a governor's letter, told with a delay) stays on its road.
+    new TurnEngine(s, map).tell("Egypt", "nippur", "Notice", "From beyond Nippur", "Word from beyond.", 2);
     new TurnEngine(s, map).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [ride(c, 500)] })]]));
     Assert.equal("Employed", c.status);
     Assert.false(inboxOf(s, "Egypt").some((i) => i.title === "From Nippur"));
     new TurnEngine(s, map).beginTurn();
     Assert.true(inboxOf(s, "Egypt").some((i) => i.title === RiderBackTitle));
     Assert.true(inboxOf(s, "Egypt").some((i) => i.title === "From Nippur"));
+    Assert.false(inboxOf(s, "Egypt").some((i) => i.title === "From beyond Nippur"));
     const k = Views.knownHolders(s, map, "Egypt").get("nippur");
     Assert.equal(t, k.turn);
     Assert.equal("your rider Ahmose", k.source);
-    // His job is done: back at court, paid off by the season's end of jobs.
-    Assert.false(c.status === "Employed" && c.contract?.errand?.done === false);
+    // His job is done: he is back at court, free once it is settled.
+    Assert.equal("Egypt", c.at);
+    Assert.equal("Free", c.status);
   });
 
   test("The rider takes less than he asks if the king haggles, down to his least; below it he declines and names his price (#601)", () => {
@@ -85,6 +89,26 @@ describe("RideTests", () => {
     Assert.equal(g.ask, g.least);
   });
 
+  test("A rider brings the province as he left it, lost in his season, and a rider taken on the road brings nothing (#601)", () => {
+    const lost = world();
+    new TurnEngine(lost.s, map).beginTurn();
+    const t = lost.s.turn;
+    new TurnEngine(lost.s, map).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [ride(lost.c, 500)] })]]));
+    // Babylonia took Nippur in the ride's season.
+    lost.s.owner.set("nippur", "Babylonia");
+    lost.s.ownerLog.push(newOwnerChange({ province: "nippur", turn: t, owner: "Babylonia" }));
+    new TurnEngine(lost.s, map).beginTurn();
+    Assert.equal("Babylonia", Views.knownHolders(lost.s, map, "Egypt").get("nippur").owner);
+    Assert.true(inboxOf(lost.s, "Egypt").some((i) => i.title === RiderBackTitle && i.body.includes("when he was there it answered to Babylonia")));
+    const taken = world();
+    new TurnEngine(taken.s, map).beginTurn();
+    new TurnEngine(taken.s, map).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [ride(taken.c, 500)] })]]));
+    taken.c.heldBy = "Babylonia";
+    new TurnEngine(taken.s, map).beginTurn();
+    Assert.false(inboxOf(taken.s, "Egypt").some((i) => i.title === RiderBackTitle));
+    Assert.false(Views.knownHolders(taken.s, map, "Egypt").get("nippur").source.startsWith("your rider"));
+  });
+
   test("A servant renewed for a ride asks as any rider does (#601)", () => {
     const { s, c } = world(0);
     new TurnEngine(s, map).beginTurn();
@@ -108,5 +132,6 @@ describe("RideTests", () => {
     Assert.true(why(hire(c.id, 50, 1, 50, { what: "ride", where: "memphis" })).includes("without a rider"));
     Assert.true(why(hire(c.id, 50, 1, 50, { what: "ride", where: "babylon" })).includes("you do not hold"));
     Assert.true(why(hire(c.id, 50, 3, 50, { what: "ride", where: "nippur" })).includes("its term is 1"));
+    Assert.true(why(hire(c.id, 50, 1, 50, { what: "ride", where: "nippur", offerAgain: true })).includes("no offer_again"));
   });
 });
