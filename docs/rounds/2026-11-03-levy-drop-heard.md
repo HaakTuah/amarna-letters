@@ -43,11 +43,15 @@ the order, so the drop this PR fixes cannot hide behind them.
 
 ## Benchmarks
 
-(at the final code: below)
+`scripts/sim.sh --games 20 --seed 1 --verify-replay`, each run alone: before on `develop` at `042b626d`, after on this
+branch at the final code. Every game replays exactly, 20 of 20, before and after, and the two logs are the same line for
+line (only the run's time differs): the same 20 winners and lengths, 319 kingdoms fallen, the first fall in season 4.5 on
+the median, none in the first two seasons. The batch's script kings schedule no levies for later seasons, so the change
+reaches none of these games. No balance was tuned; a bug fix adds no feature, so there is no use against ignore.
 
 ## Review, round 1
 
-Codex: (below). Claude's reviewer (Opus, high): 7 of 10, one blocking, three not, all fixed:
+Codex: one P1, the README (its "Sleeping seats" now says a far levy's orders wait for its word). Claude's reviewer (Opus, high): 7 of 10, one blocking, three not, all fixed:
 
 1. **A levy the court knows failed at once** (blocking): refused at court, short of gold or not given after all, its
    orders' drop was timed by the road all the same, so a seat told "not enough gold" still saw the levy's army in its
@@ -63,4 +67,12 @@ Codex: (below). Claude's reviewer (Opus, high): 7 of 10, one blocking, three not
 One idea (Opus): a far province's report comes home a season before a notice told from the same province, two clocks
 for one road; aligning them would close the twins' one-season blind gap.
 
-Questions for the owner: none.
+## Review, rounds 2 and 3
+
+Codex: clean. Claude's reviewer: 9 of 10 in round 2, every round-1 point fixed, two not blocking: the levies' word kept
+for the engine's season is cleared after use (`levyWord.delete`), and "ceded" joins the design note's list of failures
+that wait for word. Round 3: 10 of 10, nothing open. One idea: #616 (one clock for a province's reports and notices).
+
+Review: rules · Claude · 7, 9, 10 · Codex · P1×1, clean
+
+Questions for the owner: none. Filed: #616 (idea).
