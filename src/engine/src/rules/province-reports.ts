@@ -66,6 +66,9 @@ export function provinceHolding(engine: TurnEngine, id: string): number {
   return m.purse + grainWorth(engine.stores(id) + m.stock);
 }
 
+/** What men or a caravan carry at reference prices: their grain and their gold (`TurnEngine.holdings`, `SeatView.strength`). */
+export const carriedWorth = (grain: number, gold: number): number => grainWorth(grain) + gold;
+
 /**
  * The province as it is now, as its officials report it as of season `turn`: a siege begun after that is not yet in it
  * (as `siegesKnown` dates a siege by its beginning).

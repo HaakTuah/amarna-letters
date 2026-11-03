@@ -10,7 +10,9 @@ and the one part left is question #587.
 `src/engine/src/turn/economy.ts` was 50.1 KB on `develop` when the lane began (49.4 KB in the brief). Its changes here are
 lines changed in place (the harvest's report split near and far, a caravan's end and setting out through one helper each,
 its notices and events by the road); the new work is in new files (`rules/province-reports.ts`, `rules/caravans-known.ts`,
-`model/province-reports.ts`). `resolve.ts` lost `ledgerStrength`, now unused.
+`model/province-reports.ts`). `resolve.ts` lost `ledgerStrength`, now unused. Round 1's review held that a file past the
+mark must be split first, in its own PR: #599 moved the caravans on the road to `turn/caravans.ts` (17 KB), behaviour
+proven unchanged, leaving `economy.ts` at 34 KB; this lane's caravan changes went in there.
 
 ## What changed
 
@@ -60,6 +62,35 @@ its notices and events by the road); the new work is in new files (`rules/provin
 7. **The porters' pay of a far caravan** is left as it was, since fixing it changes a rule: question #587. The twin canary
    lists `view.gold` and `view.strength` under it.
 
+## Review, round 1
+
+Codex (three P1) and Claude's reviewer (Opus, high: 5 of 10, eight blocking, five not) found, and this round fixed:
+
+1. **The web map drew a seat's own caravans as they are** (Opus 1): the map now draws them as the view does
+   (`Views.caravansKnown`, `SeasonFrame.knownCaravans`); its tooltip and the README say so.
+2. **Far works paid in gold left the treasury at once** (Opus 2): the same rule as the porters' pay, so question #587 now
+   asks it too; the twin canary plays far works paid in gold, and its #587 mask holds only in the twins whose orders
+   spend far off, and names the treasury notice's sum.
+3. **The map card was a season behind** (Codex, Opus 3): a frame of turn T holds the land as season T - 1 ended; a test
+   of dated far land now proves it.
+4. **A caravan home to a far province heard its word at once** when it carried no gold (Opus 4): its word goes on as a
+   load too, handed off, the old caravan given a fresh one (Opus 12).
+5. **The setting-out gate read the current route** (Codex, Opus 5): the trail keeps the first report, and the gate and
+   the caravan's notices and events (`caravanTell`, `caravanNear`) read it.
+6. **Strength read far troops' savings and walkers as they are** (Opus 6): the trail carries savings, and walkers count
+   once word of their setting out could come.
+7. **A caravan's place had no date** (Opus 7): `CaravanView.reported`, and "as reported in turn N" in the seat view.
+8. **Leftovers** (Opus 8): `Views.provinceEconomy` and `Views.ownKnown` removed.
+9. **A report newer than the word** (Opus 9): never; none known instead.
+10. **Save size** (Opus 10): reports are 25% of a turn-13 state in memory (the save is the log); kept seven seasons, as
+    far back as `knownHolders` looks.
+11. **The strength formula copied** (Opus 11): the province and carried worths are one function each, used by the engine
+    and the view.
+12. **Step 0** (Codex): split first, #599.
+13. **Outside #540** (Opus 13): a far unit destroyed out of sight leaves the view at once, bug #600.
+
+One idea (Opus): an express report, filed as #601.
+
 ## Benchmarks
 
 `scripts/sim.sh --games 20 --seed 1 --verify-replay`, each run alone on the machine (#552): before on `develop` at
@@ -76,4 +107,6 @@ None for the build: the twin canary did the finding. The reviews are listed belo
 
 ## Questions for the owner
 
-- #587: who pays a far caravan's porters before the court hears it set out (new).
+- #587: who pays for what is done far off (a caravan's porters, works in gold) before the court hears of it (new).
+- #600: a far unit destroyed out of sight leaves its king's view at once (bug, new).
+- #601: an express report (idea, new).

@@ -14,7 +14,7 @@ import { idiv, roundEven, toInt } from "../core/num.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { newCaravan, newMarket, setOut, type Market } from "../model/caravans.ts";
-import { buyAlongCurve, capacityOf, economyOf, EconomyData, grainWorth, needOf, sellAlongCurve } from "../model/economy.ts";
+import { buyAlongCurve, capacityOf, economyOf, EconomyData, needOf, sellAlongCurve } from "../model/economy.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { climateOf, reapSeasonOf, terrainOf } from "../model/geography.ts";
 import { forMen, LandData, unitCarried, unitFood } from "../model/land.ts";
@@ -30,6 +30,7 @@ import { Views } from "../rules/views.ts";
 import { obeyedIn, TurnEngine } from "./core.ts";
 import { CommandData } from "../model/command.ts";
 import { TakenBook } from "./supply.ts";
+import { carriedWorth, provinceHolding, provinceWorth } from "../rules/province-reports.ts";
 
 /** The notice of a king's economy each season: harvest, mines, pay and food. */
 export const EconomyTitle = "The treasury";
@@ -608,10 +609,7 @@ P.settleMarkets = function (orders) {
  * 10+a: a ravaged or emptied province is worth less at once) and the mines, as far as it obeys its holder.
  */
 P.landWorth = function (p) {
-  return sum(ownedBy(this.s, p), (id) => {
-    const prov = this.map.get(id);
-    return toInt(roundEven((grainWorth(this.harvestNow(id, false)) + economyOf(prov).mine) * obeyedIn(this.s, id)));
-  });
+  return sum(ownedBy(this.s, p), (id) => provinceWorth(this, id));
 };
 
 /**
@@ -620,14 +618,10 @@ P.landWorth = function (p) {
  */
 P.holdings = function (p) {
   const S = this.s;
-  let w = 0;
-  for (const id of ownedBy(S, p)) {
-    const m = this.market(id);
-    w += m.purse + grainWorth(this.stores(id) + m.stock);
-  }
-  for (const u of S.units) if (u.power === p) w += grainWorth(u.food) + u.savings;
+  let w = sum(ownedBy(S, p), (id) => provinceHolding(this, id));
+  for (const u of S.units) if (u.power === p) w += carriedWorth(u.food, u.savings);
   // Discharged men walking home carry their savings to a province of this realm (item 10+a).
   for (const x of S.walking) if (S.owner.getOrDefault(x.home, null) === p) w += x.savings;
-  for (const c of S.caravans) if (c.power === p) w += grainWorth(c.grain) + c.gold + (c.ship !== null ? grainWorth(c.ship.food) + c.ship.savings : 0);
+  for (const c of S.caravans) if (c.power === p) w += carriedWorth(c.grain, c.gold) + (c.ship !== null ? carriedWorth(c.ship.food, c.ship.savings) : 0);
   return w;
 };

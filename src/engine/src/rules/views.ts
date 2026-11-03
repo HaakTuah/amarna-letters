@@ -4,7 +4,7 @@ import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { cmpStr, split } from "../core/text.ts";
-import { seasonOfTurn, WorldMap } from "../model/map.ts";
+import { WorldMap } from "../model/map.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
@@ -13,46 +13,21 @@ import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf } from "../model/works.ts";
-import { alive, huntNow, inboxOf, isAlive, ledger, ownedBy, upkeepOf, wallsOf, type GameState, type Unit } from "../model/state.ts";
+import { huntNow, inboxOf, isAlive, ledger, upkeepOf, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import { PointsPerDay } from "../model/travel.ts";
-import { EconomyData, grainWorth, harvestOf } from "../model/economy.ts";
+import { EconomyData, harvestOf } from "../model/economy.ts";
 import { strength as scoringStrength } from "./scoring.ts";
 import { unitCarried } from "../model/land.ts";
 import { declarationKnown } from "../model/declarations.ts";
 import { moodsKnown } from "../model/moods.ts";
 import { governorsKnown, seatKnown } from "../model/command.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
-import {
-  type CaravanView,
-  newCharacterView,
-  newNewsOffer,
-  newBandSeen,
-  newDebtView,
-  newLotView,
-  newSeatView,
-  newGovernorView,
-  newDeclaredView,
-  newMoodSeenView,
-  newSiegeView,
-  newTabletView,
-  newUnitView,
-  type UnitView,
-  newLetterView,
-  type ProvinceEconomyView,
-  landGrowth,
-  type CharacterView,
-  type DebtView,
-  type LandStanding,
-  type LetterView,
-  type SeatView,
-  type TabletView,
-  newWorkView,
-} from "../model/views.ts";
+import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtView, newLotView, newSeatView, newGovernorView, newDeclaredView, newMoodSeenView, newSiegeView, newTabletView, newUnitView, type UnitView, newLetterView, landGrowth, type CharacterView, type DebtView, type LandStanding, type LetterView, type SeatView, type TabletView, newWorkView } from "../model/views.ts";
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
 import { courtOf } from "./court.ts";
-import { ownKnown } from "./province-reports.ts";
+import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { knownHolders, ownerAt, SeenSource, siegesKnown, sight, wallsKnown, WordSource } from "./known-land.ts";
 
@@ -373,9 +348,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     sum([...own.values()], (x) => x.worth),
     ledger(t),
     sum([...own.values()], (x) => x.holding) +
-      sum(v.units.filter((u) => u.power === p), (u) => grainWorth(u.food) + u.savings) +
+      sum(v.units.filter((u) => u.power === p), (u) => carriedWorth(u.food, u.savings)) +
       sum(homeward, (w) => w.savings) +
-      sum(v.caravans, (c) => grainWorth(c.grain) + c.gold),
+      sum(v.caravans, (c) => carriedWorth(c.grain, c.gold)),
   );
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
   // Its own, as it knows its land (bug #517), are among its provinces instead.

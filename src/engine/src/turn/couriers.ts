@@ -22,7 +22,7 @@ import { cheapestRoute, legPoints } from "../model/travel.ts";
 import { RoadOdds } from "./travel.ts";
 import { asItStands } from "./plans.ts";
 import { TurnEngine } from "./core.ts";
-import { reportCaravan } from "../model/caravans.ts";
+import { readCaravanReport, reportCaravan, type Caravan } from "../model/caravans.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -56,6 +56,10 @@ declare module "./core.ts" {
      * event there, a farther court reading of it only in the word that comes by the road (bug #517).
      */
     nearOf(province: string, ...ps: (Power | null)[]): Power[];
+    /** Bug #540: what befell a caravan at a place, told its king by the road, never before word of its setting out. */
+    caravanTell(c: Caravan, province: string, kind: InboxKind, title: string, text: string): void;
+    /** Its king, where he reads at once what befell his caravan there (`nearOf`, and word of its setting out has come). */
+    caravanNear(c: Caravan, province: string): Power[];
     /** At the end of each season, each unit's place joins its trail, the reports its king's couriers bring. */
     keepTrails(): void;
   }
@@ -274,6 +278,24 @@ P.wakeFrom = function (p, order, province, why) {
 
 P.nearOf = function (province, ...ps) {
   return ps.filter((p): p is Power => p !== null && this.heardAt(p, province) === this.s.turn + this.s.deliveryOffset);
+};
+
+/** When a caravan's king hears of its setting out: its first report's place and season (Caravan.trail). */
+function setOutHeard(e: TurnEngine, c: Caravan): number {
+  const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : { turn: c.since, at: c.route[0] ?? c.from };
+  const d = e.map.exists(first.at) ? e.wordTo(c.power, first.at) : 0;
+  return d === 0 || !Number.isFinite(d) ? first.turn + e.s.deliveryOffset : first.turn + 1 + d;
+}
+
+P.caravanTell = function (c, province, kind, title, text) {
+  const here = this.heardAt(c.power, province);
+  const after = setOutHeard(this, c) - here;
+  // Held back until then (where the place itself is near, a season later still: a word from there takes one).
+  this.tell(c.power, province, kind, title, text, Math.max(0, after));
+};
+
+P.caravanNear = function (c, province) {
+  return setOutHeard(this, c) <= this.s.turn + this.s.deliveryOffset ? this.nearOf(province, c.power) : [];
 };
 
 P.keepTrails = function () {

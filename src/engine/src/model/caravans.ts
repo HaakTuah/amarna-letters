@@ -105,10 +105,10 @@ export function readCaravanReport(t: string): { turn: number; at: string; grain:
   return { turn: Number(turn), at, grain: Number(grain), gold: Number(gold), returning: returning === "1", gone: gone === "1" };
 }
 
-/** Adds a report to a caravan's trail, keeping the newest few. */
+/** Adds a report to a caravan's trail, keeping the first (its setting out, which no turn-around changes) and the newest few. */
 export function reportCaravan(c: Caravan, turn: number, gone = false): void {
   c.trail.push(caravanReport(c, turn, gone));
-  if (c.trail.length > CaravanTrailKept) c.trail.splice(0, c.trail.length - CaravanTrailKept);
+  if (c.trail.length > CaravanTrailKept) c.trail.splice(1, c.trail.length - CaravanTrailKept);
 }
 
 /** A caravan sets out: on the road, with its first report. */

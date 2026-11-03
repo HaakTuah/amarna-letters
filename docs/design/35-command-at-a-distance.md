@@ -84,17 +84,21 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   when word comes. Mines and sales beyond the reach send their gold to the court as a load that can be waylaid.
 - **Far land as last reported** (bug #540; `rules/province-reports.ts`, `rules/caravans-known.ts`): as each season begins,
   every held province's report of the season just ended is kept (`GameState.reports`: its economy, works, worth, holdings
-  and last reaping, eight seasons; the first, labelled 0, is the land as the game began). A court shows a province it
+  and last reaping, seven seasons; the first, labelled 0, is the land as the game began). A court shows a province it
   knows it holds beyond its sight as the report of the season the word of its holder is from (`knownHolders`), the same
   clock, dated (`ProvinceEconomyView.reported`); a siege begun after that season is not in the report. Its works, walls
   (`wallsKnown`), yields and the `build` check read the same (`ownWorks`, `knownLevel`). Its strength is reckoned from what
   it knows: its land and stores so, its troops and caravans as their reports have them, walkers bound for land it knows it
   holds, gold by its ledger. Caravans keep a report as they set out and as each season ends (`Caravan.trail`); one ended
-  is kept a while (`GameState.caravansGone`); a court knows one once word of its setting out could come (`Caravan.since`
-  at its first province), then by its newest report whose word has come, and drops it once word of its end comes. Their
-  notices and events, the harvest and the grain lost for room of a far province, and what a far province's works cost
-  come home by the road (`tell`, `nearOf`); a caravan that comes home to a far province sends its gold, word and archive
-  on as a load. Still open: a far caravan's porters are paid from the treasury at once (question #587).
+  is kept a while (`GameState.caravansGone`); a court knows one once word of its setting out could come (its first
+  report, which the trail always keeps), then by its newest report whose word has come, dated (`CaravanView.reported`),
+  and drops it once word of its end comes; its notices and events are never told before that word (`caravanTell`,
+  `caravanNear`). The web map draws a seat's own caravans the same way (`Views.caravansKnown`, `SeasonFrame.knownCaravans`).
+  The harvest and the grain lost for room of a far province, and what a far province's works cost, come home by the
+  road (`tell`, `nearOf`); a caravan that comes home to a far province sends its gold, word and archive on as a load.
+  A unit's trail carries its men's savings; men walking home count once word of their setting out could come
+  (`Walk.departs`, `Walk.from`). Still open: what the treasury pays for far off, a far caravan's porters and far works
+  paid in gold, leaves it at once (question #587).
 - **Moving the court** (order `court`, `move_court`; `turn/kings.ts`): 20 shekels and 5 for every ten days of road, at the
   pace of a company of 300. Each season the king goes on, his court where he got to. Envoys, servants and reports that
   reach a court the king has left are sent on after him (`ForwardedKinds`). He is taken, and his kingdom falls, where the

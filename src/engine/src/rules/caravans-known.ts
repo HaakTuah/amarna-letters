@@ -32,7 +32,8 @@ export function caravansKnown(engine: TurnEngine, p: Power): CaravanView[] {
   };
   for (const c of [...s.caravans, ...s.caravansGone]) {
     // Known once word of its setting out could have come: one hurrying home from far off is never ahead of that word.
-    if (c.power !== p || !came(c.since, c.route[0])) continue;
+    const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : null;
+    if (c.power !== p || (first !== null && !came(first.turn, first.at))) continue;
     const live = s.caravans.includes(c);
     if (live && engine.wordTo(p, caravanAt(c)) === 0) {
       out.push(viewOf(c, caravanAt(c), c.grain, c.gold, c.returning, null));
