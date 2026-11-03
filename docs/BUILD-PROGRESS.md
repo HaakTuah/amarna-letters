@@ -68,6 +68,11 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
+- ~~**Far land as last reported (bugs #540, #589)**~~ (done, #579): a far province's economy, works, yields and
+  caravans, and the realm's strength, as last reported; far harvests, works' costs and caravan news by the road. Save
+  version 50. Left open: question #587 (a far caravan's porters paid at once). Report:
+  `docs/rounds/2026-11-03-far-as-reported.md`.
+
 - **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
   - **#566:** the twin canary (`src/web/test/twin-canary.test.ts`) plays each hidden fact at a second place too, a far
     province of another power or one reached only by winter roads or by sea; the place a parameter, not a constant.
