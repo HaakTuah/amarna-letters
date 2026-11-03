@@ -70,7 +70,7 @@ the workshop check): among them the history check's lines still unclear for a re
 
 - ~~**Far land as last reported (bugs #540, #589)**~~ (done, #579): a far province's economy, works, yields and
   caravans, and the realm's strength, as last reported; far harvests, works' costs and caravan news by the road. Save
-  version 50. Left open: question #587 (a far caravan's porters paid at once). Report:
+  version 51. Left open: question #587 (what the treasury pays far off, paid at once). Report:
   `docs/rounds/2026-11-03-far-as-reported.md`.
 
 - **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):

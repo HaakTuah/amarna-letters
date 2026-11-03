@@ -41,7 +41,7 @@ proven unchanged, leaving `economy.ts` at 34 KB; this lane's caravan changes wen
   from (`ownFiguresAt`), never newer.
 - **Rulebook, seat view, README, design notes:** the rulebook's command rules and the seat view's provinces ("as reported in
   turn N"), the README's map paragraph, `docs/design/35-command-at-a-distance.md` ("Far land as last reported"), 47 and 01.
-- **Save version 50** (49 went to #548).
+- **Save version 51** (49 and 50 went to #548 and #576).
 
 ## Readings taken
 
