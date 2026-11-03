@@ -93,17 +93,41 @@ One idea (Opus): an express report, filed as #601.
 
 ## Benchmarks
 
-`scripts/sim.sh --games 20 --seed 1 --verify-replay`, each run alone on the machine (#552): before on `develop` at
-`954bf746`, after on this branch at `1bd2bd58`. Every game replays exactly, 20 of 20, before and after, and every game
-lasts as many seasons as before. 13 of the 20 have a different winner, since the script kings read their view (their far
-land, caravans and strength as last reported). Kingdoms fallen: 320 against 306. The first fall still comes in season 4.5
-on the median (range 4-5), and no kingdom falls in the first two seasons, so play stays playable. Seats risen in play: 49
-against 29. No balance was tuned, as the frozen-balance rule asks. A bug fix adds no feature, so there is no use against
-ignore to measure.
+`scripts/sim.sh --games 20 --seed 1 --verify-replay`, each run alone on the machine (#552), at the final code: before on
+`develop` at `c61580c4` (with #599), after on this branch at `de4dea31`. Every game replays exactly, 20 of 20, before
+and after, and every game lasts as many seasons as before. 12 of the 20 have a different winner, since the script kings
+read their view (their far land, caravans and strength as last reported). Kingdoms fallen: 326 against 333. The first
+fall still comes in season 4.5 on the median (range 4-5), and no kingdom falls in the first two seasons, so play stays
+playable. Seats risen in play: 41 against 49. No balance was tuned, as the frozen-balance rule asks. A bug fix adds no
+feature, so there is no use against ignore to measure. (The first measurement, before round 1, at `1bd2bd58` against
+`954bf746`: 320 against 306 fallen, 13 winners different, every game replaying.)
+
+## Review, round 2
+
+Claude's reviewer: 8 of 10, every round-1 point confirmed fixed; two blocking and four not, all fixed:
+
+1. **A word-only load was a new rule** (blocking): a caravan home to a far province with no gold or archive sent its word
+   on as an empty load that paid porters. Now its word stays with its last report among the caravans gone and is heard
+   when word of its homecoming could come (`caravanWordsHome`); loads carry gold and archives only.
+2. **Benchmarks before round 1's changes** (blocking): rerun at the final code, above.
+3. **The #587 mask hid the whole treasury notice:** the twin canary now compares the notice's balance as `view.gold`,
+   so the mask excuses nothing else in it.
+4. **A near caravan's notice a season late:** `caravanTell` delivers at the season word of its setting out comes
+   (`tellAt`).
+5. **Untested paths:** an engine test (`caravans-known.test.ts`) of a turn-around in near land and of a far
+   homecoming's word.
+6. **Wording:** "as reported in turn N" on the map too.
+
+Codex (one P1): word once come could go back as the year's roads lengthen (`wordTo` reckons today's season). Fixed:
+`courierSeasons` takes the season, and `wordCame` and the setting-out word read the road of the report's own season;
+tested with a caravan set out at Hattusa.
+
+Save version 51: 49 and 50 went to #548 and #576 while this was in review.
 
 ## Helpers
 
-None for the build: the twin canary did the finding. The reviews are listed below as they run.
+None for the build: the twin canary did the finding. The reviews: Codex's, and Claude's reviewer (Opus, high), who
+reproduced each leak with copies of the twin canary; its round 1 found five leaks the canary had missed.
 
 ## Questions for the owner
 
