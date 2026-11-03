@@ -167,6 +167,9 @@ Waset (Thebes), Egypt's great southern city, about 70,000 people.
 - **Terrain.** A unit standing its ground on rough ground, behind a mountain pass or a great
   river, or against a landing from the sea, gets +1. An army in desert land its king did not hold
   pays 30 shekels a season for supplies.
+- **Long roads.** Where a road takes longer than its line on the map suggests, its crossing's mark
+  says why: the Ways of Horus across the Sinai, the Wadi Hammamat road to the Red Sea. Ur is a
+  river port, and its province card says how many days its ships take down to the Gulf.
 
 ### Winning
 
