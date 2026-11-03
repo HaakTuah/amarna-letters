@@ -1605,3 +1605,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     problems and about thirty smaller ones; the fixes are in `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`,
     `docs/threat-model.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md` and the new `docs/developing.md`. Two
     findings (taste readings' route, and `AGENTS.md` in the workshop check's second mark) wait on the design document.
+196. **3 November 2026, 11:28 UTC**, the same instruction as item 195 ("Yes, do it expertly!"), for the two audit
+    findings in the builder rules, made in the design document (Build order, revision 348): a reading that is a matter
+    of taste goes to the owner as a `question` issue when it is taken ("Unattended work"), and `AGENTS.md` joins the
+    files every session reads in the workshop check's second mark.
