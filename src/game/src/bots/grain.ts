@@ -132,6 +132,8 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
     if (x.stores + x.tax < n) wants.push([k, n - x.stores]);
   }
   let caravans = 0;
+  // The treasury's gold left for the caravans' pay this season, each planned one's taken from it (#587).
+  let funds = gold;
   for (const [to, n] of wants) {
     // A depot of ours whose market holds more than its own need buys the grain there: it costs nothing in strength (the
     // gold stays in our people's purse), where a caravan's porters eat a share of the load and must be paid.
@@ -155,7 +157,10 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
     if (r === null || r.seasons > 2) continue;
     // What the porters will eat on the way.
     const amount = Math.ceil((n * 100) / (100 - EconomyData.caravanEatPercent * r.seasons));
-    if (spare(source) < amount || !fundedThere(source, payFor(amount, 0, r.seasons, false), gold)) continue;
+    const pay = payFor(amount, 0, r.seasons, false);
+    if (spare(source) < amount || !fundedThere(source, pay, funds)) continue;
+    if (source.reported === null) funds -= pay;
+    else source.coffer -= pay;
     orders.push(caravan(source.province, to, amount));
     source.stores -= amount;
     sending.add(to);

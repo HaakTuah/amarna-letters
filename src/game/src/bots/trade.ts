@@ -206,7 +206,7 @@ export function tradeOrders(
     const caravansFull = traders >= MaxTraders;
     const free = spare(home);
     // What its grain would fetch at home, and what grain costs there now.
-    let best: { order: Order; gain: number; grain: number; gold: number; fleet: string | null } | null = null;
+    let best: { order: Order; gain: number; grain: number; gold: number; far: number; fleet: string | null } | null = null;
     const budget = Math.max(0, Math.min(150, gold - spent - costs * (2 + p.caution)));
     for (const [k, m] of markets) {
       const normal = normalOf(m);
@@ -259,6 +259,7 @@ export function tradeOrders(
           gain,
           grain: n,
           gold: goldOut + (home.reported === null ? pay : 0),
+          far: home.reported === null ? 0 : pay + goldOut,
           fleet: how === "ship" ? fleet!.province : null,
         };
       }
@@ -267,6 +268,8 @@ export function tradeOrders(
     orders.push(best.order);
     home.stores -= best.grain;
     spent += best.gold;
+    // A far coffer pays the departure's pay and gold (#587): what is left there for the next one.
+    home.coffer -= best.far;
     if (best.fleet !== null) {
       plan.orders.delete(best.fleet);
       usedFleets.add(best.fleet);

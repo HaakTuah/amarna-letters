@@ -62,6 +62,8 @@ Fifty script games, seed 1, each.
   want of gold there for their pay, against about 42,000 that did. Most were city-states with small treasuries, whose
   script did not set the porters' pay aside. The script kings now reckon a departure's pay from the gold there (the
   treasury near, the coffer far) before sending it. After the patch, 31 (use against ignore) and 35 (benchmark) failed.
+  After the measurements, the reviewer's last note was taken too: each caravan or trader planned in a season now takes
+  its pay and gold from what is left for the next. A 3-game check gave the same 2, 1 and 0 failures as before.
   Departures fell from 19,807 to 16,051 for traders, and from 24,771 to 22,041 for caravans, since the pay now costs
   gold up front.
 
