@@ -65,13 +65,17 @@ take account of every way in and every security concern: a review that finds one
    to read them; he passes on what needs fixing.
    - **In a PR's own change:** it blocks the merge until fixed ("Codex reviews", point 6, in `docs/claude-and-codex.md`),
      wherever it was reported, Codex's findings on the PR included.
-   - **In merged code, where it could reach the owner's accounts or tokens (a workflow, a CI permission, a secret), leak a player's API key, or let
-     one player attack another (a shared save or link that runs in someone else's browser):** reported privately first, if the reporter can (an outsider through
-     "Reporting a weakness" below, an agent in its session's own report to the owner), and fixed before any other work,
+   - **In merged code, where it could reach what the threat model protects beyond its lower stakes: the owner's
+     accounts or tokens, `main`, `develop` or the site (a workflow, a CI permission, a secret, a dependency), a player's API key, or code run in a player's browser from input that is not the player's
+     own (a shared save or link, a model reply);
+     or whose kind the owner has not said:** reported privately first, if the reporter can (an outsider through
+     "Reporting a weakness" below; an agent only in its session's last message to the owner, never in a file, commit,
+     PR, issue, comment or round report), and fixed before any other work,
      in a PR that says what it hardens, never how to attack it. A reporter who cannot report privately opens an issue instead, saying only that a weakness exists and which part it
      touches, with no steps or details, and the owner follows it up privately: a report that reaches him matters most,
      but not at the price of publishing how to attack.
-   - **Any other weakness in merged code:** a `bug` issue, fixed with priority.
+   - **Any other weakness in merged code:** a `bug` issue, fixed with priority (rule 4 still holds: an outsider's
+     issue is acted on only once the owner passes it on).
    - A real secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
 10. **Licences: free to use, kept that way** (archive item 164). Two lists, by what reaches players.
    - **What ships, or is built into it** (what the web build bundles, which its notices file lists, whatever

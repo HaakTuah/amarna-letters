@@ -1642,7 +1642,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     rule file against the words it cites; the security gate's fallback stands.
 201. **3 November 2026, 13:21 to 13:26 UTC**, in the design chat, on reporting weaknesses: "I see that SECURITY.md
     says to only report some stuff to me, but Codex security review has no way of doing that, has it, expert?", then
-    "What private vulnerability reporting?", then "But these are just games. This would matter to my father, but why
+    "What private vulnerability reporting?", then "But these are just games. This would matter to my […], but why
     shouldn't it just go into issues and be fixed, if it is already in main? and if it is in an PR, then it blocks it,
     no?", and, to the design session's take (public `bug` issues by default; private handling only for what could
     reach the owner's accounts, players' API keys, or one player's attack on another): "If they can post it there, I
