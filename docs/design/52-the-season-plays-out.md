@@ -85,7 +85,8 @@ Everything the season shows is a fixed slot (part G): two a river's fields, two 
 of its own (its spate), three bands of the snow and the storms. A look the season leaves keeps its class, marked `gone`
 (`classFor`), and a pattern keeps its fill, so it fades out as it was; a slot never shown is `none`. The stylesheet
 (`map-living.css`) times every change by `--move`, which the renderer sets on the season's layer while a season plays out
-(`moveSeason`) and clears otherwise (stepping, jumping, reduced motion: the season then shows at once). Each slot comes or
+(`moveSeason`, with the class `moving`) and clears otherwise (Fast, stepping, jumping, reduced motion: the season then
+shows at once). Each slot comes or
 goes over the last 0.4 of `--move` after a lag of up to 0.6 of it (`--lag`, 0 first to 1 last); a look appearing fades in
 from nothing (`@starting-style`), one changing crosses its colour:
 
@@ -98,8 +99,9 @@ from nothing (`@starting-style`), one changing crosses its colour:
 | The Nile's flood | rises from the south up its valley (`nile-rise`: the field revealed from its southern end over 0.8 of `--move`) | #03-nile-rise-north: "Flooding reached Aswan about a week earlier than modern Cairo" |
 | A river in spate, the storms, the harvest | at once, fading in | |
 
-`--move` is half the season's playout, at least 0.4 s and at most 5 s (first guesses): about 0.5 s at Fast, 3 s at Normal,
-5 s at Slow. The order is only the drawing's: the engine's seasons change at once, as before. Nothing new reaches the page:
+`--move` is half the season's playout, at most 5 s, and nothing under 1 s (first guesses): about 2 to 3 s at Normal, 5 s
+at Slow, and none at Fast, where the routine compresses and the land changes at once (on the phone profile, moving it
+there cost a fifth more long frames). Only while the layer is marked `moving` do the transitions exist at all. The order is only the drawing's: the engine's seasons change at once, as before. Nothing new reaches the page:
 the looks are what the season layer already drew (the calendar for every seat, droughts and floods as the seat last saw
 them), and the order is read from the map alone.
 

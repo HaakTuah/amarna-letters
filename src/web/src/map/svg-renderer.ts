@@ -391,6 +391,7 @@ export class SvgMapRenderer implements MapRenderer {
   private moveSeason(ms: number): void {
     const g = this.layers.get("season");
     if (g === undefined) return;
+    g.classList.toggle("moving", ms > 0);
     if (ms <= 0) g.style.removeProperty("--move");
     else g.style.setProperty("--move", `${Math.round(ms)}ms`);
   }

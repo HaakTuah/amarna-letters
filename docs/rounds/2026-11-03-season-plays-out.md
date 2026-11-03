@@ -103,9 +103,10 @@ realms (part D)".
   spreading with the rains"**: from the coast inland, and **"browning from its edges"**: from the inland edges toward the
   coast, both on #03-levant's "less inland"; the order is counted in borders from the nearest coastal province, since
   the game has no rainfall per province. Principle: history holds; a real-world order on the map rests on a dossier line.
-- **The change moves while the season plays, and only then**: stepping, jumping and reduced
-  motion show the season at once, as the pieces do (Part B); a replay plays it as it plays the pieces. At Fast the change takes half a second ("the routine
-  compresses"). Principle: pace by meaning, never faster than can be read.
+- **The change moves while the season plays at Normal and Slow, and only then**: stepping, jumping and reduced motion
+  show the season at once, as the pieces do (Part B); a replay plays it as it plays the pieces. At Fast, a second of
+  highlights a season, the land changes at once ("at fast speed the routine compresses"), which also kept the phone's
+  long frames from growing a fifth (below). Principle: pace by meaning, and smooth on a phone.
 - **Its own drawing**: the season's change repaints the season only, not the realms over it, at the cost of one more
   layer to composite. Principle: smooth on a phone (part G's bar); measured below.
 - **Hidden information**: nothing new reaches the page; the looks are those the layer already drew (the calendar for
@@ -114,12 +115,26 @@ realms (part D)".
 
 ### First guesses (presentation only)
 
-`--move` half the season's playout, at least 0.4 s and at most 5 s; each slot's change over the last 0.4 of it after a lag
+`--move` half the season's playout, at most 5 s, and none under 1 s (so none at Fast); each slot's change over the last 0.4 of it after a lag
 of up to 0.6; frost at mid-lag; the Nile's rise over 0.8 of it; the snow bands cut at depths 160 and 96 of 255.
 
 ### Frame times
 
-SOAK_PLACEHOLDER
+Soak tool, seed 1, phone profile (390x844, CPU 4x), two minutes a run. The machine carried other lanes' suites (load 6 to
+25), so Part G's own build was rebuilt and run beside this part's at the same time, pair by pair; a single run of the same
+build varied between 9% and 20%.
+
+| Run | Part G's build: frames over 50 ms | Part D's build |
+|---|---|---|
+| Fast, five pairs | 1,920 of 14,628 (13.1%; 9.0 to 17.3% a run) | 2,018 of 14,241 (14.2%; 9.1 to 19.0% a run) |
+| Normal, two pairs | 617 of 9,072 (6.8%) | 622 of 7,472 (8.3%) |
+
+At Fast the land changes at once, as before; the first build, which moved it there too (half a second a season), had a
+fifth more long frames than Part G's beside it (23.4% against 19.5%), so at Fast the routine compresses (`MoveMs`: no
+move under a second). What is left at Fast, about one point, is within the runs' spread but showed in four pairs of
+five; one drawing more to composite is the likeliest cause (season and tints in one drawing measured the same at Fast
+and worse at Normal, so the season keeps its own). At Normal the long frames are as many as before (622 against 617);
+fewer frames are drawn while the land moves, each painting the season's drawing, so their share rises.
 
 Questions for the owner: none.
 
