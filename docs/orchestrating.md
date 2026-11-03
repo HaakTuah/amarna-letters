@@ -1,7 +1,7 @@
 # Running builder sessions and lanes
 
 For the orchestrator, the session that starts builder sessions. The builder's own part is "How work flows" in
-`AGENTS.md`. Its rules rest on archive items 22 and 23.
+`AGENTS.md`. Its pipeline and lanes rest on archive items 22 and 23; each section cites its own.
 
 **The orchestrator builds nothing itself** (archive item 139). Every lane, the item or main lane included, goes to a builder session of its
 own, with its own brief, at the builder's effort (for Claude: `CLAUDE.md`). Helpers belong to builders, never to the
@@ -13,8 +13,7 @@ builder sessions at all does it say so and stop, and the owner starts them. Why:
 so building in it costs the most; it runs at its own effort, not the work's; and if it dies, every lane stops with it.
 
 **The rules, re-read when they change** (archive item 166). A running orchestrator remembers the rules as they
-stood when it started. So on every wake, the hourly check included, it pulls `develop`, and if `AGENTS.md`, `CLAUDE.md`,
-`SECURITY.md`, `docs/claude-and-codex.md` or this file changed since it last read them, it re-reads the changed parts,
+stood when it started. So on every wake, the hourly check included, it pulls `develop`, and if any rule file among the protected files (`SECURITY.md`, rule 3: `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`, the threat model, the rule docs and this file, and the builder rules) changed since it last read them, it re-reads the changed parts,
 passes what touches them on to its running builders in one message, and says so in one line to the owner. Nobody has
 to tell it. The same wake reads `docs/BUILD-PROGRESS.md`'s diff since it last looked: it acts on what is new there (an entry
 added or moved, an answer of the owner's, a lane opened or a bug put first), opening a lane where one is due, and skips

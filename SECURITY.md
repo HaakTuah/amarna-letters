@@ -2,9 +2,7 @@
 
 The rules every builder and reviewer keeps. Who might attack, what is protected and where they could get in is the
 threat model, `docs/threat-model.md`; Codex's security review reads that as its threat model and this file as its
-instructions. A break of a rule here is **blocking** in every review, and P0 or P1 in Codex's terms. The rules
-take account of every way in and every security concern: a review that finds one no rule covers reports it too
-(archive item 129).
+instructions. A break of a rule here is **blocking** in every review, and P0 or P1 in Codex's terms. The rules are written to take account of every way in and every security concern (archive item 129).
 
 ## The rules
 
