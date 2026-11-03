@@ -29,10 +29,13 @@ export class ValidationResult {
 export class OrderValidator {
   private readonly s: GameState;
   private readonly map: WorldMap;
+  /** Bug #600: the unit gone, whose end the court has not heard of, that an order of this season names (`Checking.gone`). */
+  private readonly gone: (o: Order) => Unit | null;
 
-  constructor(state: GameState, map: WorldMap | null = null) {
+  constructor(state: GameState, map: WorldMap | null = null, gone: (o: Order) => Unit | null = () => null) {
     this.s = state;
     this.map = map ?? WorldMap.default;
+    this.gone = gone;
   }
 
   static readonly MaxOrders = 80;
@@ -209,6 +212,7 @@ export class OrderValidator {
       get dispatches() { return dispatches; },
       get seekCount() { return seekCount; },
       get counterIntel() { return counterIntel; },
+      gone: this.gone,
       heardFallen, Sight, knownOwner, knownSiege, knownWalls, knownWork, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
     };
     const check = (order: Order): string | null => {

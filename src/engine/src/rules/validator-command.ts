@@ -6,7 +6,7 @@ import { EngageValues, MandateTaskValues, governorsKnown, MostGovernorLevies, se
 import type { Order } from "../model/orders.ts";
 import { coverOf, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import { findCharacter, unitAt } from "../model/state.ts";
+import { findCharacter, unitAt, type Unit } from "../model/state.ts";
 import type { Checking } from "./validator-context.ts";
 import { courtMoveRefusal, courtOf } from "./court.ts";
 
@@ -42,16 +42,18 @@ function mandateRefusal(v: Checking, m: Mandate): string | null {
 /** The checks for item 13's orders; undefined for any other order. */
 export function checkCommandOrder(v: Checking, order: Order): string | null | undefined {
   const S = v.S;
-  const own = (province: string): string | null => {
-    if (!v.Map.exists(province)) return `there is no province called '${province}'`;
-    const u = unitAt(S, province);
-    return u === null || u.power !== v.power ? `you have no unit in ${province}` : null;
+  // The unit the order names: one standing there, or one gone whose end the court has not heard of (bug #600).
+  const unitOf = (o: Order & { unit: string }): Unit | null => v.gone(o) ?? unitAt(S, o.unit);
+  const own = (o: Order & { unit: string }): string | null => {
+    if (!v.Map.exists(o.unit)) return `there is no province called '${o.unit}'`;
+    const u = unitOf(o);
+    return u === null || u.power !== v.power ? `you have no unit in ${o.unit}` : null;
   };
   switch (order.type) {
     case "command": {
-      const why = own(order.unit);
+      const why = own(order);
       if (why !== null) return why;
-      const u = unitAt(S, order.unit)!;
+      const u = unitOf(order)!;
       // A grant is never revoked at a distance at once: a new commander is named only once the old one has stepped down.
       if (u.commander !== null && u.relieveAt !== null) return `the unit in ${order.unit} has a commander until word taking back his command reaches him (turn ${u.relieveAt})`;
       if (u.commander !== null) return `the unit in ${order.unit} already has a commander: take the command back first (relieve)`;
@@ -59,25 +61,25 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       return grantee(v, order.character, "command");
     }
     case "relieve": {
-      const why = own(order.unit);
+      const why = own(order);
       if (why !== null) return why;
-      const u = unitAt(S, order.unit)!;
+      const u = unitOf(order)!;
       if (u.commander === null) return `nobody commands the unit in ${order.unit}`;
       if (u.relieveAt !== null) return `word taking back its command is already on its way`;
       return null;
     }
     case "mandate": {
-      const why = own(order.unit);
+      const why = own(order);
       if (why !== null) return why;
       // "No commander, no mandate": a mandate is given to the man who leads the unit.
       const granted = v.orders.some((o) => o.type === "command" && o.unit === order.unit);
-      if (order.mandate !== null && unitAt(S, order.unit)!.commander === null && !granted) return `nobody commands the unit in ${order.unit}: grant its command first, then give it a mandate`;
+      if (order.mandate !== null && unitOf(order)!.commander === null && !granted) return `nobody commands the unit in ${order.unit}: grant its command first, then give it a mandate`;
       return order.mandate === null ? null : mandateRefusal(v, order.mandate);
     }
     case "supply": {
-      const why = own(order.unit);
+      const why = own(order);
       if (why !== null) return why;
-      if (unitAt(S, order.unit)!.kind !== "Army") return "only an army buys or takes its food from the land";
+      if (unitOf(order)!.kind !== "Army") return "only an army buys or takes its food from the land";
       if (v.orders.some((o) => o !== order && o.type === "supply" && o.unit === order.unit && v.orders.indexOf(o) < v.orders.indexOf(order))) return `the army in ${order.unit} was already sent word on its food by an earlier order`;
       if (order.gold < 0) return "the gold sent cannot be negative";
       return order.gold > 0 ? v.spend(order.gold) : null;

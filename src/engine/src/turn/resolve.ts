@@ -68,7 +68,7 @@ P.resolve = function (submissions) {
 
 P.resolveSeason = function (submissions) {
   const S = this.s;
-  const validator = new OrderValidator(S, this.map);
+  const validator = new OrderValidator(S, this.map, (o) => this._goneNow.get(o) ?? null);
   const valid = new Dict<Power, ValidationResult>();
   this._stealing.clear();
   this._scheduledNow.clear();
@@ -77,6 +77,7 @@ P.resolveSeason = function (submissions) {
   this._mandatedNow.clear();
   this._marchNow.clear();
   this._cededNow.clear();
+  this._goneNow.clear();
   // Each living court remembers the walls as it saw them when it gave its orders (its view's), for when it no longer sees them.
   for (const p of alive(S)) S.wallsSeen.set(p, Views.wallsKnown(S, this.map, p));
   // And who held the land it saw (item 7b): elsewhere it knows only what word and its travellers bring.

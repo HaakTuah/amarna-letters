@@ -111,6 +111,33 @@ the season it ended, while the view reads today's roads, on which its province h
 `heardFrom` now reads it known where the couriers reach now, as the view shows the place, and `unitsSeen` keeps the
 map's one unit to a province, a gone unit with no older report free left out rather than shown over a live one.
 
+## Review, round 3, and the escalation
+
+Claude's reviewer, round 3: 7 of 10, two blocking (command, relieve, mandate or supply alone for a gone unit was still
+refused at once, since the courier path left the order in the submission; and such an order brought no notice at all,
+where one for a unit that stands brings "Command taken back", "Mandate sent" or "Command granted" in its season), one not
+(a gone unit hidden by the one-unit-to-a-province guard changed the count). Codex, round 3: the first, and the order
+lookup reading a gone unit's newest report where the view shows it at an older one.
+
+The escalation helper (Opus, high) fixed all four:
+
+1. **The order stays in the season's orders,** checked and carried out on the gone unit's copy as on a unit that stands
+   (`TurnEngine._goneNow`, `commandedUnit`, the validator's `Checking.gone`): the same refusals, the same notices, the
+   man setting out; its word then rides out and finds the unit gone (`goneWord`, `orderMissed`). `sendOrders` never
+   hands back the submission as given (an order stopped on the road, or renamed, was in it before).
+2. **One placement for the view and the orders** (`ownPlaces` in `rules/units-known.ts`, used by `unitsSeen` and
+   `unitShownAt`; `shownAt` removed): units in id order, live or gone alike, so neither the view nor the orders depends
+   on whether a unit is gone. Reading: a far unit, live or gone, with no free older report where its newest shares a
+   place is left out of the view and cannot be ordered until its reports part, as before for live units.
+3. **Tests:** two twins (an army lost out of sight, then `relieve` alone, and `mandate` alone; `orders` may now be a
+   function of the season), and engine tests of the four orders' receipts lost or standing and of Codex's case.
+
+Left out, as #615's: a live far army's recall shows at once in the view.
+
+The helper found that its worktree's packages pointed at this lane's other worktree, so earlier probes there tested
+that one; and so did #613's benchmark, run in a third worktree linked the same way: #613's proof is rerun on `develop`
+as it now stands (below).
+
 Also: the first benchmark run crashed (a script king keyed its own troops by province, and a gone army's report could
 share one with a live army); a gone unit now moves to an older report like any far unit (`reportIndex`).
 

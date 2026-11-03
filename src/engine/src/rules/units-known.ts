@@ -4,10 +4,13 @@
  * from it is long. A unit is known once word of its raising could have come, and one that left the game
  * (GameState.unitsGone) stands, as last reported, until word of its end could come.
  */
+import { HSet } from "../core/collections.ts";
+import { cmpStr, sortBy } from "../core/seq.ts";
 import type { Power } from "../model/power.ts";
 import { newLevyRef, type PlannedOrder } from "../model/sleep.ts";
 import type { Unit } from "../model/state.ts";
 import { wordCame } from "./caravans-known.ts";
+import { sight } from "./known-land.ts";
 import type { TurnEngine } from "../turn/turn-engine.ts";
 
 /**
@@ -86,6 +89,38 @@ export function reportIndex(engine: TurnEngine, u: Unit): number | null {
   if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return null;
   const lag = u.goneTurn > 0 ? engine.s.turn - u.goneTurn : 0;
   return Math.min(u.trail.length - 1, Math.max(0, u.trail.length - 1 - d + lag));
+}
+
+/**
+ * Where the court's view shows each of its own known units, and so the unit its orders name there (bug #600): one its
+ * couriers reach within the season where it stands (`at` null); one farther off by its newest report, unless other troops
+ * it knows of are shown there too, when it gives way to its newest older report whose place none takes, or is left out if
+ * it has none (never shown where it truly is: that news has not come yet), so a report never puts two troops in one
+ * province. Each is placed in turn, in order of their ids, whether they stand or are gone, so a gone unit is placed as it
+ * would be if it stood. In the order of `ownUnitsKnown`.
+ */
+export function ownPlaces(engine: TurnEngine, p: Power, seen: { has(province: string): boolean } = sight(engine.s, engine.map, p)): { unit: Unit; at: number | null; province: string }[] {
+  const known = ownUnitsKnown(engine, p);
+  const placed = new Map<Unit, { unit: Unit; at: number | null; province: string }>();
+  for (const u of known) {
+    const at = reportIndex(engine, u);
+    placed.set(u, { unit: u, at, province: at === null ? u.province : trailEntry(u.trail[at]).province });
+  }
+  // Others' troops where it sees them stand where they are.
+  const others = engine.s.units.filter((u) => u.power !== p && seen.has(u.province)).map((u) => u.province);
+  for (const u of sortBy(known, [(x: Unit) => x.id, cmpStr])) {
+    const x = placed.get(u)!;
+    const taken = new HSet([...others, ...[...placed.values()].filter((y) => y !== x).map((y) => y.province)]);
+    if (x.at === null || !taken.has(x.province)) continue;
+    placed.delete(u);
+    for (let i = x.at - 1; i >= 0; i--) {
+      const province = trailEntry(u.trail[i]).province;
+      if (taken.has(province)) continue;
+      placed.set(u, { unit: u, at: i, province });
+      break;
+    }
+  }
+  return known.flatMap((u) => placed.get(u) ?? []);
 }
 
 /** The season a unit's report `i` is labelled with, as the view dates it ("as reported in turn N"). */

@@ -8,7 +8,7 @@
  * and of his land and troops farther off he knows only their last report, as old as the road is long.
  */
 import { hostileAt, levelOf, waysOf } from "../model/works.ts";
-import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
+import { cmpNum, sortBy } from "../core/seq.ts";
 import { newCourier } from "../model/command.ts";
 import { describe, unitOf } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
@@ -25,19 +25,21 @@ import { TurnEngine } from "./core.ts";
 import { readCaravanReport, reportCaravan, type Caravan } from "../model/caravans.ts";
 import { newWord } from "../model/word.ts";
 import { wordCame } from "../rules/caravans-known.ts";
-import { ownUnitsKnown, reportIndex } from "../rules/units-known.ts";
+import { ownPlaces } from "../rules/units-known.ts";
 import { newPlannedOrder, type PlannedOrder } from "../model/sleep.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
     /** The seasons the king's couriers take to a province: 0 within the season. */
     wordTo(p: Power, province: string): number;
-    /** Where an own unit stands as its king last heard (item 13): where it stood as many seasons ago as the road is long. */
-    shownAt(u: Unit): string;
     /** The own unit the king names by a province, as he sees his units. */
     unitShownAt(p: Power, province: string): Unit | null;
     /** Bug #600: an order that reached the place of a unit gone: its king reads so when word comes back from there. */
     orderMissed(p: Power, plan: PlannedOrder): void;
+    /** The unit an order of command, recall, mandate or food names: one standing there, or a gone one's copy (bug #600). */
+    commandedUnit(o: Order & { unit: string }): Unit | null;
+    /** Bug #600: the word of such an order, carried out for a unit gone, rides out and finds it gone (`orderMissed`). */
+    goneWord(p: Power, o: Order, u: Unit): void;
     /**
      * The own unit an order of the king's names by a province: one that truly stands there within the season's reach (as
      * he sees it now), else the one his reports show there.
@@ -84,17 +86,10 @@ P.wordTo = function (p, province) {
   return courierSeasons(this.s, this.map, courtOf(this.s, this.map, p), province);
 };
 
-P.shownAt = function (u) {
-  const i = reportIndex(this, u);
-  return i === null ? u.province : u.trail[i].split("|")[0];
-};
-
 P.unitShownAt = function (p, province) {
-  // Bug #600: and one gone far off whose end its king has not heard of: an order for it rides out and fails there.
-  // Its own live units first: where a gone one's report shares a place with one, the live one is meant.
-  const byId = (l: Unit[]): Unit[] => sortBy(l, [(u: Unit) => u.id, cmpStr]);
-  const own = [...byId(this.s.units.filter((u) => u.power === p)), ...byId(ownUnitsKnown(this, p).filter((u) => !this.s.units.includes(u)))];
-  return own.find((u) => this.shownAt(u) === province) ?? null;
+  // Bug #600: where its view shows it, and one gone far off whose end its king has not heard of too: an order for it
+  // rides out and fails there.
+  return ownPlaces(this, p).find((x) => x.province === province)?.unit ?? null;
 };
 
 P.orderMissed = function (p, plan) {
@@ -103,6 +98,16 @@ P.orderMissed = function (p, plan) {
   if (u === undefined) return;
   const name = this.map.get(u.province).name;
   this.tell(p, u.province, "Rejected", "Order failed", `Your order could not be carried out: your ${u.kind === "Army" ? "army" : "fleet"} no longer stood in ${name}. The order: ${describe(plan.order)}.`);
+};
+
+P.commandedUnit = function (o) {
+  return this._goneNow.get(o) ?? unitAt(this.s, o.unit);
+};
+
+P.goneWord = function (p, o, u) {
+  const S = this.s;
+  if (S.units.includes(u)) return;
+  S.couriers.push(newCourier({ power: p, plan: newPlannedOrder({ order: o, unitId: u.id, given: S.turn }), given: S.turn, arrives: S.turn + Math.max(1, this.wordTo(p, u.province)) }));
 };
 
 P.orderedUnit = function (p, province) {
@@ -170,13 +175,12 @@ P.sendOrders = function (p, sub) {
     // stands, and are given at once.
     if (o.type === "command" || o.type === "relieve" || o.type === "mandate" || o.type === "supply") {
       const u = this.orderedUnit(p, o.unit);
-      // Bug #600: for a unit gone that its king still knows, the word rides out and finds it gone (`orderMissed`).
-      if (u !== null && !S.units.includes(u)) {
-        S.couriers.push(newCourier({ power: p, plan: newPlannedOrder({ order: { ...o, unit: u.province }, unitId: u.id, given: S.turn }), given: S.turn, arrives: S.turn + Math.max(1, this.wordTo(p, u.province)) }));
-        continue;
-      }
       // Item 17: the word on an army's food keeps where its king named it, for what his view shows on the road.
-      keep.push(u !== null && u.province !== o.unit ? (o.type === "supply" ? { ...o, unit: u.province, named: o.unit } : { ...o, unit: u.province }) : o);
+      const named = u !== null && u.province !== o.unit ? (o.type === "supply" ? { ...o, unit: u.province, named: o.unit } : { ...o, unit: u.province }) : o;
+      // Bug #600: one for a unit gone that its king still knows is checked and given on its copy, as for one that stands,
+      // and its word rides out and finds it gone (`goneWord`).
+      if (u !== null && !S.units.includes(u)) this._goneNow.set(named, u);
+      keep.push(named);
       continue;
     }
     const at = placeOf(this, p, o);
@@ -214,7 +218,7 @@ P.sendOrders = function (p, sub) {
   }
   if (sent.length > 0) notify(S, p, "Resolution", "Orders on the road", `These orders went with your couriers to places they cannot reach this season, and are carried out when they arrive: ${sent.join("; ")}.`);
   void lost;
-  if (arrived.length === 0 && sent.length === 0) return sub;
+  // Never the submission as given: an order sent, stopped or named anew is not in it as it was (bug #600).
   return newTurnSubmission({ ...sub, orders: [...arrived, ...keep] });
 };
 

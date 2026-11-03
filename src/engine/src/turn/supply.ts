@@ -13,7 +13,7 @@ import { cmpStr, sortBy } from "../core/seq.ts";
 import type { SupplyOrder } from "../model/orders.ts";
 import { gain, remember } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, notify, type Unit } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
@@ -33,7 +33,7 @@ const P = TurnEngine.prototype;
 
 P.setSupply = function (p, o) {
   const S = this.s;
-  const u = unitAt(S, o.unit);
+  const u = this.commandedUnit(o);
   if (u === null || u.power !== p) return;
   const gold = Math.max(0, o.gold);
   if (gold > 0 && !this.pay(p, gold, `food for your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}`, o, "no word was sent")) return;
@@ -49,6 +49,7 @@ P.setSupply = function (p, o) {
     "Word on the army's food",
     `Word that your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name} is to ${o.buy ? "buy its food where it stands by leave" : "take its food from the land"}${gold > 0 ? `, with ${gold} shekels for it,` : ""} is on its way; it holds from turn ${at}.${o.buy && gold === 0 ? " Without gold for food it takes what it must." : ""}`,
   );
+  this.goneWord(p, o, u);
 };
 
 P.foodArrives = function () {

@@ -15,7 +15,7 @@ import { Uncommanded, mandateText, type CommandTraits, type Mandate } from "../m
 import type { CommandOrder, EnlistOrder, MandateOrder, Order, RelieveOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { findCharacter, logEvent, newId, newUnit, notify, unitAt, type Unit, loseUnit } from "../model/state.ts";
+import { findCharacter, logEvent, newId, newUnit, notify, type Unit, loseUnit } from "../model/state.ts";
 import { newJourney } from "../model/records.ts";
 import { courtOf, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
@@ -71,7 +71,7 @@ P.commandOf = function (u) {
 
 P.grantCommand = function (p, o) {
   const S = this.s;
-  const u = unitAt(S, o.unit);
+  const u = this.commandedUnit(o);
   const c = findCharacter(S, o.character);
   if (u === null || u.power !== p || c === null) return;
   // He sets out from the court with the grant, and commands from the season he reaches the army (at once where it stands
@@ -87,20 +87,22 @@ P.grantCommand = function (p, o) {
   remember(c, S.turn, `The king of ${p} granted me the command of his ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}.`);
   notify(S, p, "Resolution", "Command granted", `${c.name} set out to take command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}, and commands it from turn ${u.commandFrom}.`, c.id);
   logEvent(S, "command", `${p} granted ${c.name} the command of its ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}.`, [p], "command");
+  this.goneWord(p, o, u);
 };
 
 P.relieveCommand = function (p, o) {
   const S = this.s;
-  const u = unitAt(S, o.unit);
+  const u = this.commandedUnit(o);
   if (u === null || u.power !== p || u.commander === null) return;
   const seasons = wordFromKing(S, this.map, p, u.province);
   u.relieveAt = S.turn + (Number.isFinite(seasons) ? Math.max(1, seasons) : 1);
   notify(S, p, "Resolution", "Command taken back", `Word that you take back the command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is on its way; it reaches him in turn ${u.relieveAt}.`);
+  this.goneWord(p, o, u);
 };
 
 P.setMandate = function (p, o) {
   const S = this.s;
-  const u = unitAt(S, o.unit);
+  const u = this.commandedUnit(o);
   if (u === null || u.power !== p) return;
   const seasons = wordFromKing(S, this.map, p, u.province);
   u.mandate = o.mandate;
@@ -114,6 +116,7 @@ P.setMandate = function (p, o) {
       ? `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has no mandate now.`
       : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has its mandate from turn ${u.mandateFrom}: ${mandateText(o.mandate)}.`,
   );
+  this.goneWord(p, o, u);
 };
 
 P.commandSeason = function () {

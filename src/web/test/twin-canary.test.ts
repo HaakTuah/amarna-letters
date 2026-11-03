@@ -36,9 +36,13 @@ import {
   grant,
   hunt,
   hold,
+  loseUnit,
+  mandateOrder,
   move,
+  newMandate,
   supply,
   support,
+  relieve,
   revoke,
   roads,
   raise,
@@ -56,8 +60,8 @@ interface Twin {
   make(fact: boolean): GameState;
   /** A fact that comes about later, after the seat's first orders set out: done in the true world during season `at`. */
   later?: { at: number; happen(s: GameState): void };
-  /** The orders the seat gives each season: the same in both worlds, since it sees the same. */
-  orders: Order[];
+  /** The orders the seat gives each season, or in season `turn`: the same in both worlds, since it sees the same. */
+  orders: Order[] | ((turn: number) => Order[]);
   /** Another king's orders in season `at` (the first, if none), in the world where the fact is true: his doing is the fact. */
   others?: { power: Power; orders: Order[]; at?: number };
   /** The orders the seat schedules in its first season, for later seasons. */
@@ -127,7 +131,8 @@ function play(t: Twin): { line: string; difference: string }[] {
     if (t.later !== undefined && worlds[0].turn === t.later.at) t.later.happen(worlds[0]);
     for (const d of differences(worlds[0], worlds[1], t.seat)) found.push({ line: `season ${worlds[0].turn}, ${d}`, difference: d });
     for (const s of worlds) {
-      const subs = new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(t.orders), scheduled: s.turn === 1 ? structuredClone(t.scheduled ?? []) : [] })]]);
+      const orders = typeof t.orders === "function" ? t.orders(s.turn) : t.orders;
+      const subs = new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(orders), scheduled: s.turn === 1 ? structuredClone(t.scheduled ?? []) : [] })]]);
       if (s === worlds[0] && t.others !== undefined && s.turn === (t.others.at ?? 1)) subs.set(t.others.power, newTurnSubmission({ orders: structuredClone(t.others.orders) }));
       new TurnEngine(s).resolve(subs);
     }
@@ -271,7 +276,7 @@ const siegeAfterOrders: Twin = {
  */
 const SpendFar = ["a far province lost after orders for it set out", "a far siege begun after orders set out", "far works paid in gold, the province lost after orders set out", "far works paid in gold, a siege begun after orders set out"];
 /** The twins whose far troops are raised or gone: the treasury pays them as they are. */
-const FarTroops = ["a far levy that raised nothing", "a far army beaten out of sight"];
+const FarTroops = ["a far levy that raised nothing", "a far army beaten out of sight", "a far army lost out of sight, its command taken back", "a far army lost out of sight, given a mandate"];
 const Known: { issue: number; what: string; twins: string[]; is: (difference: string) => boolean }[] = [
   ...["strength", "gold"].map((k) => ({ issue: 587, what: `view.${k}`, twins: [...SpendFar, ...FarTroops], is: (d: string) => d.startsWith(`view.${k}: `) })),
   // The pay of a far army leaves the treasury as the army truly is, raised or gone, not as its king last heard of it (#587).
@@ -411,7 +416,37 @@ const farUnitBeaten: Twin = {
   heard: (s) => (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Battle"),
 };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, farUnitBeaten];
+/**
+ * Egypt's king holds court at Nippur, two seasons of couriers from Nubia, where his army stands under one of his own. In the
+ * twin where the fact is true, it is lost out of his sight (to mutiny or plague) in the second season; in the third, his
+ * only order takes back its command, as for one that stands (bug #600).
+ */
+const farUnitRelieved: Twin = {
+  name: "a far army lost out of sight, its command taken back",
+  seat: "Egypt",
+  seasons: 6,
+  make() {
+    const s = world("Egypt", "Babylonia");
+    holds(s, "Egypt", 0);
+    s.court.set("Egypt", "nippur");
+    s.units = s.units.filter((u) => u.province !== "nubia");
+    const c = s.characters.find((x) => x.employer === "Egypt" && x.status === "Employed" && x.at === "Egypt")!;
+    c.at = null;
+    c.duty = "Commanding";
+    c.watchProvince = "nubia";
+    s.units.push(newUnit({ id: "u990", power: "Egypt", kind: "Army", province: "nubia", home: "thebes", men: 1000, commander: c.id }));
+    return s;
+  },
+  later: { at: 2, happen: (s) => loseUnit(s, s.units.find((u) => u.id === "u990")!) },
+  orders: (turn) => (turn === 3 ? [relieve("nubia")] : []),
+  // Once word of its end could come: a season, and the couriers' two from Nubia, after it.
+  heard: (s) => s.turn >= 5,
+};
+
+/** As `farUnitRelieved`, but the king's only order in the third season gives the army a mandate. */
+const farUnitMandated: Twin = { ...farUnitRelieved, name: "a far army lost out of sight, given a mandate", orders: (turn) => (turn === 3 ? [mandateOrder("nubia", newMandate({ task: "guard" }))] : []) };
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, farUnitBeaten, farUnitRelieved, farUnitMandated];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

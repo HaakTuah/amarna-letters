@@ -25,7 +25,7 @@ import type { HireOrder, Order } from "../model/orders.ts";
 import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
 import { setNameClaims, setRisen, type Power } from "../model/power.ts";
-import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState } from "../model/state.ts";
+import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState, type Unit } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { SeatView } from "../model/views.ts";
@@ -69,6 +69,11 @@ export class TurnEngine {
   readonly _foodNow = new Dict<string, number>();
   /** Provinces ceded while this season resolves, and to whom: a levy there later in the season is told so. */
   readonly _cededNow = new Dict<string, Power>();
+  /**
+   * Bug #600: the season's orders of command, recall, mandate and food for a unit gone whose end its king has not heard of,
+   * each with that unit's copy: checked and carried out on it as for one that stands (`sendOrders`).
+   */
+  readonly _goneNow = new Map<Order, Unit>();
   /** The season's battle, once the moves are resolved. */
   _battle: AdjudicationResult | null = null;
   /** The unit orders of the season, by the province of the unit. */

@@ -1,6 +1,6 @@
 /** What each court sees: the seat view, sight, the walls it knows, and how it sees each person and tablet. */
 import { newsOffered } from "./news.ts";
-import { Dict, HSet } from "../core/collections.ts";
+import { Dict } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { cmpStr, split } from "../core/text.ts";
@@ -29,7 +29,7 @@ import { formatMoney, season } from "./calendar.ts";
 import { courtOf } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
-import { ownUnitsKnown, plannedAsKnown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
+import { ownPlaces, plannedAsKnown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
 import { knownHolders, ownerAt, SeenSource, siegesKnown, sight, wallsKnown, WordSource } from "./known-land.ts";
 
 export { SeenSource, WordSource };
@@ -84,35 +84,13 @@ function routineTreasury(i: InboxItem): boolean {
 }
 
 /**
- * The troops a court sees: its own as their last reports place them, and others' where it sees. A report never puts two
- * troops in one province: one shown where another stands (or is shown) is shown by an older report of its own whose place
- * is free, and left out if it has none (never by where it truly is: that news has not come yet). Each unit is placed in
- * turn, so two reported into one province never take the same older place.
+ * The troops a court sees: its own where its orders name them (`ownPlaces`: by their last reports, never two in one
+ * province), and others' where it sees them.
  */
 function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(province: string): boolean }, view: (u: Unit) => UnitView): UnitView[] {
-  // Bug #600: its own as it knows them (raised, and not yet heard to be gone), others' where it sees them.
-  const units = [...ownUnitsKnown(engine, p), ...s.units.filter((u) => u.power !== p && seen.has(u.province))];
-  const pairs: [Unit, UnitView | null][] = units.map((u) => [u, view(u)]);
-  // Where two reports share a place, a gone unit's gives way first: the live one is the one its orders name there.
-  for (const pair of [...pairs.filter(([u]) => u.goneTurn > 0), ...pairs.filter(([u]) => u.goneTurn === 0)]) {
-    const [u, x] = pair;
-    if (x === null || x.reported === 0 || u.power !== p || !pairs.some((y) => y !== pair && y[1]?.province === x.province)) continue;
-    const at = reportIndex(engine, u);
-    if (at === null) continue;
-    pair[1] = null;
-    const taken = new HSet(pairs.filter((y) => y !== pair && y[1] !== null).map((y) => y[1]!.province));
-    for (let i = at - 1; i >= 0; i--) {
-      const r = trailEntry(u.trail[i]);
-      if (!taken.has(r.province)) {
-        pair[1] = { ...x, ...r, reported: reportedAt(engine, u, i) };
-        break;
-      }
-    }
-  }
-  // One unit to a province, as on the map: a gone unit with no report left to give way to is not shown over a live one.
-  const held = new HSet(pairs.filter(([u, x]) => u.power === p && u.goneTurn === 0 && x !== null).map(([, x]) => x!.province));
-  for (const pair of pairs) if (pair[0].power === p && pair[0].goneTurn > 0 && pair[1] !== null && !held.add(pair[1].province)) pair[1] = null;
-  return pairs.map(([, x]) => x).filter((x): x is UnitView => x !== null);
+  // Bug #600: its own as it knows them (raised, and not yet heard to be gone), each by the report that places it.
+  const own = ownPlaces(engine, p, seen).map(({ unit, at }) => (at === null || at === reportIndex(engine, unit) ? view(unit) : { ...view(unit), ...trailEntry(unit.trail[at]), reported: reportedAt(engine, unit, at) }));
+  return [...own, ...s.units.filter((u) => u.power !== p && seen.has(u.province)).map(view)];
 }
 
 function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView {

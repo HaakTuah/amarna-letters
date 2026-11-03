@@ -34,6 +34,11 @@ export interface Checking {
   readonly dispatches: number;
   readonly seekCount: number;
   readonly counterIntel: boolean;
+  /**
+   * Bug #600: the court's unit gone, whose end it has not heard of, that an order of command, recall, mandate or food names
+   * (TurnEngine.sendOrders): checked as one that stands; null for any other.
+   */
+  gone(o: Order): Unit | null;
   heardFallen(x: Power): boolean;
   Sight(): HSet<string>;
   /** Who this court knows holds the province (bug #467): as it sees it, or as word last brought it; null for none or the sea. */
