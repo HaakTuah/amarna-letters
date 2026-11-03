@@ -166,6 +166,8 @@ export class TurnEngine {
   incomeAndUpkeep(): void {
     const S = this.s;
     const notes = this.harvestSeason();
+    // Gold sent to far coffers arrives, and bills from afar are paid (#587), before the troops are.
+    for (const [p, l] of this.goldArrives().entries()) notes.set(p, [...notes.getOrDefault(p, []), ...l]);
     this.townsEat();
     for (const p of alive(S)) {
       const t = S.treasuries.get(p);

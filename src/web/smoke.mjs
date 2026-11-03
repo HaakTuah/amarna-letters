@@ -148,6 +148,9 @@ async function watch(viewport, name) {
   await p.waitForSelector(".game .timebar", { timeout: 60000 });
   await shot(p, `${name}-start`);
   await namesClear(p, `${name}, the opening`);
+  // Part D: the season's ground lies under the realms' colours, and both under the relief, so no border is drawn over by it.
+  const order = await p.evaluate(() => [...document.querySelectorAll(".mapzoom > svg.map")].map((x) => x.classList[1]).join(" "));
+  if (!/map-lower map-ground map-realms map-relief/.test(order)) throw new Error(`${name}: the map's drawings are out of order: ${order}`);
   await slowMotion(p);
   const t0 = Date.now();
   for (let i = 0; i < 4; i++) {

@@ -137,6 +137,19 @@ P.worksSeason = function () {
     const say = (id: string, line: string): void => {
       said.set(id, [...said.getOrDefault(id, []), line]);
     };
+    // #587: near, the treasury pays; far, the province's coffer, and what it lacks on a bill carried home.
+    const payGold = (id: string, cost: number): boolean => {
+      if (!this.isFar(p, id)) {
+        if (t.gold < cost) return false;
+        t.gold -= cost;
+        this.spendAt(id, cost);
+        return true;
+      }
+      const r = this.payFar(p, id, cost);
+      if (r === null) return false;
+      this.spendAt(id, r.coffer);
+      return true;
+    };
     // Nearest the court first: what the treasury cannot keep goes unpaid far away first, as walls did since item 5.
     for (const id of sortBy(ownedBy(S, p), [(x: string) => Map.hops(court, x), cmpNum], [(x: string) => x, cmpStr])) {
       const prov = Map.get(id);
@@ -175,9 +188,7 @@ P.worksSeason = function () {
             }
           } else {
             const cost = upkeepGold(kind, kept);
-            if (t.gold >= cost) {
-              t.gold -= cost;
-              this.spendAt(id, cost);
+            if (payGold(id, cost)) {
               gold += cost;
               paid = true;
             }
@@ -243,14 +254,12 @@ P.worksSeason = function () {
               }
             } else {
               const cost = buildGold(kind, id, hire);
-              if (t.gold >= cost) {
-                t.gold -= cost;
-                this.spendAt(id, cost);
+              if (payGold(id, cost)) {
                 gold += cost;
                 done = true;
               }
             }
-            if (!done && !part) say(id, `no work was done on ${named(kind, prov.name)}: ${labour ? (plan?.share != null ? "the share you asked brought no men" : "too few men at home") : "too little gold"}`);
+            if (!done && !part) say(id, `no work was done on ${named(kind, prov.name)}: ${labour ? (plan?.share != null ? "the share you asked brought no men" : "too few men at home") : this.isFar(p, id) ? this.noCredit(p, id) : "too little gold"}`);
             else if (done) {
               work.progress++;
               const seasons = WorksData[kind].seasons;

@@ -16,7 +16,7 @@
 /* Crossings and rough ground: a mark of each kind, on a pale disc, tappable. */
 .map .xmark { cursor: pointer; }
 .map .xmark .tap-hit { fill: transparent; stroke: none; }
-.map .xm-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .8; opacity: .92; }
+.map .xm-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .8; fill-opacity: .92; stroke-opacity: .92; }
 .map .xm-line { fill: none; stroke: var(--bitumen); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .map .xm-line.ford { stroke: var(--river); stroke-width: 2; }
 .map .xm-dot { fill: var(--sand); }

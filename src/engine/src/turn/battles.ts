@@ -188,6 +188,6 @@ function battleNews(engine: TurnEngine, f: Fight, a: Unit, d: Unit, margin: numb
     seeing,
     "battle",
   );
-  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${whose(d.power)} ${kind(d)} at ${at} and ${f.won ? won : ["was narrowly beaten", "was beaten", "was badly beaten"][degree]}; your ${kind(a)} lost ${aLost > 0 ? `${aLost} men` : "no men"}.`);
-  engine.tell(d.power, f.at, "Battle", "Battle", `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} attacked your ${kind(d)} at ${at} and ${f.won ? won : ["was narrowly thrown back", "was thrown back", "was thrown back with heavy loss"][degree]}; your ${kind(d)} lost ${dLost > 0 ? `${dLost} men` : "no men"}.`);
+  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${whose(d.power)} ${kind(d)} at ${at} and ${f.won ? won : ["was narrowly beaten", "was beaten", "was badly beaten"][degree]}; your ${kind(a)} lost ${aLost > 0 ? `${aLost} ${aLost === 1 ? "man" : "men"}` : "no men"}.`);
+  engine.tell(d.power, f.at, "Battle", "Battle", `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} attacked your ${kind(d)} at ${at} and ${f.won ? won : ["was narrowly thrown back", "was thrown back", "was thrown back with heavy loss"][degree]}; your ${kind(d)} lost ${dLost > 0 ? `${dLost} ${dLost === 1 ? "man" : "men"}` : "no men"}.`);
 }

@@ -32,7 +32,8 @@ export interface Moment {
  * How a speed paces a season, in milliseconds ("Pace of play" under Interface): `season`, about how long its playout lasts
  * (a quiet season at least `least`), shared among the marching, the sieges and its great moments, each of which lasts
  * between `shortest` and `great`, `together` at once, at most `most` of them; then `close` on the result. With `flash`, the
- * great moments but the biggest flash all at once for that long after the marching (Fast: a second of highlights).
+ * great moments but the biggest flash all at once for that long after the marching (Fast: a second of highlights). With
+ * `ground`, the land's change of season moves (part D); without it, the land changes at once (Fast: the routine compresses).
  */
 export interface Pace {
   season: number;
@@ -45,6 +46,7 @@ export interface Pace {
   most: number;
   flash: number;
   close: number;
+  ground: boolean;
 }
 
 /**
@@ -53,10 +55,10 @@ export interface Pace {
  * taking a beat. Simulate draws nothing (session/client.ts: `simulating`), so it has no pace; its row is never played.
  */
 export const Paces: readonly Pace[] = [
-  { season: 15000, least: 9000, march: 3000, siege: 1500, great: 3500, shortest: 2000, together: 1, most: 6, flash: 0, close: 4000 },
-  { season: 6000, least: 3500, march: 1200, siege: 500, great: 1800, shortest: 1000, together: 1, most: 4, flash: 0, close: 2000 },
-  { season: 1000, least: 0, march: 450, siege: 0, great: 1000, shortest: 1000, together: 1, most: 2, flash: 550, close: 0 },
-  { season: 0, least: 0, march: 0, siege: 0, great: 0, shortest: 0, together: 1, most: 0, flash: 0, close: 0 },
+  { season: 15000, least: 9000, march: 3000, siege: 1500, great: 3500, shortest: 2000, together: 1, most: 6, flash: 0, close: 4000, ground: true },
+  { season: 6000, least: 3500, march: 1200, siege: 500, great: 1800, shortest: 1000, together: 1, most: 4, flash: 0, close: 2000, ground: true },
+  { season: 1000, least: 0, march: 450, siege: 0, great: 1000, shortest: 1000, together: 1, most: 2, flash: 550, close: 0, ground: false },
+  { season: 0, least: 0, march: 0, siege: 0, great: 0, shortest: 0, together: 1, most: 0, flash: 0, close: 0, ground: false },
 ];
 
 /** A moment's place in the season's time: from `at`, for `ms`. */
@@ -78,6 +80,8 @@ export interface Timeline<M extends Moment> {
   /** When the closing line shows, and when the season is over and the next may begin. */
   closeAt: number;
   total: number;
+  /** Whether the land's change of season moves at this pace (`Pace.ground`). */
+  ground: boolean;
   moments: M[];
 }
 
@@ -121,7 +125,7 @@ export function paceSeason<M extends Moment>(moments: readonly M[], pace: Pace):
     t += Math.ceil(playing.length / pace.together) * ms;
   }
   const closeAt = Math.max(t, pace.least);
-  return { beats, marchAt, marchMs, landAt, closeAt, total: closeAt + pace.close, moments: [...moments] };
+  return { beats, marchAt, marchMs, landAt, closeAt, total: closeAt + pace.close, ground: pace.ground, moments: [...moments] };
 }
 
 const Numbers = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];

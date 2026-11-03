@@ -37,6 +37,7 @@ import {
   economyOf,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { cofferOrders } from "./coffers.ts";
 import { worksOrders } from "./works.ts";
 import { depotFor, grainOrders, plainGrain, plainGrainOrders } from "./grain.ts";
 import { canLevy, levyCost, settleThere } from "./land.ts";
@@ -362,6 +363,10 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   corveeShares(b.v, b.me, works.orders);
   orders.push(...works.orders);
   gold -= works.spent;
+  // #587: gold sent ahead to far coffers that owe a debt or run short (see coffers.ts).
+  const coffers = cofferOrders(b, gold - reserve);
+  orders.push(...coffers.orders);
+  gold -= coffers.spent;
   brain.spareGold = gold - reserve;
 
   // Land we cannot keep goes to a friend rather than to a rival ahead of us (see cession).

@@ -103,6 +103,10 @@ rumours, and those can be late, shaded or false.
   out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped. Orders are checked
   against what your court knows: one for land lost or besieged out of your sight goes out, and you hear how it went when
   word comes, as you hear of a siege of a far city of yours.
+- Gold travels both ways. A far province pays its own way: its mines and sales fill its coffer, which pays its works,
+  levies, purchases, caravans and the troops standing there, and sends the rest home as a load. What the coffer lacks
+  is done on credit, with a bill that comes home with the word, and an unpaid bill stops credit there until the debt is
+  paid. Send gold ahead with your couriers to fund a far province up front; caravans carry their porters' pay with them.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
   holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
   his seat; if he loses or gives up the province he sits in, he sits in another, and a loyal one writes to tell you where,
@@ -429,7 +433,10 @@ the emblems on their cities, so the ground and the figures show through (the moo
 centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
-gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
+gold in Shemu, rivers in spate and storms on the open sea. The season lies on the ground under the realms' colours, and
+its change moves as the season plays: the snow creeps down from the heights and melts from below, the Nile rises from
+the south up its valley, the green spreads inland from the coast with the rains, and the land browns from its inland
+edges. Droughts and floods show where your court last saw them, a
 battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
 you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.

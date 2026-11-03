@@ -239,6 +239,8 @@ const Closings: Partial<Record<Power, readonly string[]>> = {
     "As your father was a friend to my father, let my brother be ten times more to me.",
     "Let the friendship between my brother and me be greater than our fathers had.",
     "Ask your elders, my brother: no friend of your house was ever nearer than mine.",
+    "Between my brother's house and mine let the friendship never grow cold.",
+    "May the gods keep my brother and me friends of one heart.",
   ],
   Assyria: [
     "I am a Great King, as you are; my house stands level with yours.",

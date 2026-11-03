@@ -108,6 +108,16 @@ export interface FeedOrder {
   own?: boolean;
 }
 /**
+ * Send gold with the realm's couriers to the coffer of a far province of the king's ("One treasury, many stores", #587):
+ * it leaves the treasury now and pays for what is done there once it arrives, so its works, levies and troops need no
+ * credit.
+ */
+export interface SendOrder {
+  type: "send";
+  province: string;
+  gold: number;
+}
+/**
  * Send a caravan with grain from a province's stores to another province through the king's own land (item 9+a,
  * "Caravans carry a kingdom's goods"): it fills the baggage of his troops standing there and puts the rest in its stores.
  */
@@ -644,6 +654,7 @@ export type Order =
   | GiftOrder
   | PurchaseOrder
   | FeedOrder
+  | SendOrder
   | CaravanOrder
   | TradeOrder
   | ShipOrder

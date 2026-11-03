@@ -1661,3 +1661,19 @@ Given in the design chat with Claude, answering the design questions of the cons
     make the call here, security and efficiency expert." The call: the precise wording stands (private first only for
     what could reach what the threat model protects beyond its lower stakes, or whose kind the owner has not stated; a
     `bug` issue for the rest), since a wider private path would slow fixes for weaknesses that put nothing at stake.
+204. **3 November 2026, 13:56 UTC**, in the design chat, to the design session's advice on two questions (#621: a
+    fresh session fixes the one open case in #612, a scheduled order for a far unit lost out of sight, and it is
+    reviewed again before it merges, after the usage reset; #650: the hired courier of #601 is done, since the script
+    kings use it well where it helps, and item 18 measures it again): "Agreed with your takes on the questions. Do it
+    expertly. But what is a "hired rider"? I need context when you throw this stuff at me. You present things with
+    agent invented titles I have no idea what refers to. Remember that." Written into `AGENTS.md`, "Questions,
+    readings and ideas": everything put to the owner says in plain words what it is, by the game's own names.
+205. **3 November 2026, 15:47 to 15:50 UTC**, in the design chat, on model kings: "If scripts can manage a game, a
+    model should also manage to play it, even if not very competently?", then, to the design session's answer (models
+    play through text, so their failures can come from how the game tells them things): "Agreed. And interesting is
+    what I want it to be. The models should absolutely aim to play as competently as they can. that's what we
+    incentivize. but if they make interesting mistakes, i don't see that as an issue. I just want the source of that
+    to be from the genuine complexity of the scenario, not the game communicating badly." And, to writing it as a
+    rule (every model mistake sorted by whether a careful player with the same seat view could have known better):
+    "Yes, please, expertly!" Written into the builder rules, "No model games until the build order is done" (Build
+    order, revision 352).
