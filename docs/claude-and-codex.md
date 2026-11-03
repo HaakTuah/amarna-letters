@@ -1,12 +1,11 @@
 # Claude and Codex
 
-Decided 1 November 2026 (`docs/archive/instructions.md`, item 123). Two builders spread the weekly usage, Claude and Codex
-(OpenAI's), each on its own subscription, and review each other: different models have different blind spots. This file is the whole
-arrangement; `AGENTS.md` points here, and nothing here is repeated there.
+Two builders spread the weekly usage, Claude and Codex (OpenAI's), each on its own subscription, and review each
+other: different models have different blind spots (archive item 123). This file is the whole arrangement; `AGENTS.md` points here, and nothing here is repeated there.
 
 **Status (3 November 2026): Codex reviews, Claude builds.** Codex's code review works on these repositories, but it
 cannot build yet: its GitHub tasks and its command line need a "Codex Cloud (Legacy)" environment, which cannot be
-created. So no lane goes to Codex until the owner says it can build; until then the building and the routing below wait, and all building is Claude's. Nothing on the owner's machine starts Codex, ever (the owner, 3 November 2026): once its tasks work, it is started from the pull request itself.
+created. So no lane goes to Codex until the owner says it can build; until then the building and the routing below wait, and all building is Claude's. Nothing on the owner's machine starts Codex, ever (archive item 193): once its tasks work, it is started from the pull request itself.
 **Dormant until the owner says Codex can build:** the sections from "What goes to Codex" to "When Codex is not there",
 and the orchestrator's Codex hand-over (merging Codex's work, in `docs/orchestrating.md`).
 
@@ -100,7 +99,7 @@ Codex's usage can run out with no alert, so the orchestrator never waits on Code
   test task gets through, tried at most every few hours (not in use while Codex cannot build: "Status").
   Meanwhile the work is Claude's alone, as before Codex came.
   A take-back for a slow PR alone does not count: the next lane still goes to Codex.
-- The times were set from the first test (1 November 2026): adjust them from what the first weeks show, and say so
+- The times were set from the first test: adjust them from what the first weeks show, and say so
   here.
 
 ## Codex reviews
@@ -124,33 +123,31 @@ goes to building. Its usage can run out like any other, and it may then not say 
    sections it names go there, and it follows the "Review guidelines" in `AGENTS.md` and `SECURITY.md`. Its security
    review is not part of this: it runs by itself once, when the PR is ready (point 6). **Write the Codex mention only
    to ask for a review:** `@codex review` or `@codex security review`, alone at the start of a comment. Any other
-   request to it fails (its tasks need an environment for the repository; tried 1 November 2026, and again on
-   3 November, when it answered "create an environment for this repo"), and its bot answers every mention it finds,
+   request to it fails (its tasks need an environment for the repository, which cannot be created: "Status"; tried twice), and its bot answers every mention it finds,
    even in backticks, so text that only talks about it says "the Codex mention".
-2. **It starts within seconds** (its 👀 reaction and a "Codex Review Summary" comment; seen in 20 seconds on
-   1 November 2026) **and finishes within minutes** (seen in under two). No sign within about **5 minutes,** or an
+2. **It starts within seconds** (its 👀 reaction and a "Codex Review Summary" comment; seen in 20
+   seconds) **and finishes within minutes** (seen in under two). No sign within about **5 minutes,** or an
    answer that is not a review (no usage left, an error): the fallback reviewer takes the PR at once.
 3. **Still running after about 15 minutes:** ask once more with `@codex review`. No finished review about 5 minutes
    after that: the fallback reviewer takes it. Either way, a late Codex review is still read, but nothing waits for it.
-4. **It gives findings, not a score:** its format is its own, whatever it is asked (seen on Snakes #289,
-   1 November 2026). Each finding has a priority from P0 to P3, and **every one counts:** a Codex review passes only
+4. **It gives findings, not a score:** its format is its own, whatever it is asked (seen on Snakes
+   #289). Each finding has a priority from P0 to P3, and **every one counts:** a Codex review passes only
    with nothing open, its 👍 or "Didn't find any major issues", or every finding fixed or moved out as "Reviews"
    says. That is Codex's 10. P0 and P1 are fixed first.
 5. **The design check, with a score:** on the build-order items, once each before it is merged (the builder rules),
    the design checker ("Who does what") checks the work against the design: given its brief ("Reviews", point 7), it
    gives the score from 1 to 10 and what keeps it from 10, blocking or not ("Reviews" below), on the design alone, since Codex looks for
    faults and security. Smaller PRs get Codex's review alone. **Why it is enough:** a test PR with three planted faults
-   (Barkstreet Snakes #298, 1 November 2026, never merged) got all three as P1 from Codex within four minutes: a bug
+   (Barkstreet Snakes #298, never merged) got all three as P1 from Codex within four minutes: a bug
    (an off-by-one in the board's bounds), a break of a rule that is not a bug (a renamed storage key, citing `AGENTS.md`)
    and a security hole (a peer's name as HTML, citing `SECURITY.md`); it also saw through the PR's false reasons. What
-   it does not give is the broad feedback on the design, which the design check gives. The owner agreed ("I agree with
-   your assesment").
+   it does not give is the broad feedback on the design, which the design check gives (archive item 131).
    **Both at once:** the design check starts in the same turn as the request to Codex, in the background, never after
    Codex's answer, so neither waits for the other, and the builder answers both lists in one round.
 6. **Codex reviews only when asked** ("Setup"; which PRs: the list above).
-   **Security reviews: one by itself when a PR is ready, one more only when asked** (the owner, 2 and 3 November
-   2026: Codex spent as much of its week on reviews as Claude did on everything, two thirds of it on security reviews
-   run with every round). Codex's settings ("Setup") run one security review by itself when a pull request is opened for review or a draft is marked ready, never while it is a draft;
+   **Security reviews: one by itself when a PR is ready, one more only when asked** (archive items
+   175, 177, 183 and 189): Codex spent as much of its week on reviews as Claude did on everything, two thirds of it on security reviews
+   run with every round. Codex's settings ("Setup") run one security review by itself when a pull request is opened for review or a draft is marked ready, never while it is a draft;
    it reads `SECURITY.md` as its instructions. A builder never asks for a security review before the PR is ready, and
    asks for one more (the Codex mention followed by "security review", alone in a comment) only when
    a commit after the opening review changed what a security review is for: input from players, models or files, a
@@ -166,11 +163,11 @@ goes to building. Its usage can run out like any other, and it may then not say 
    in a comment); if still none about 15 minutes later, the fallback reviewer ("Who does what") reviews the diff
    against `SECURITY.md` and `docs/threat-model.md`, the PR says so, it may merge on that review, and the next wake
    reports it to the owner. A PR with an open security finding never merges. Codex does not
-   review a commit twice: an ask on an already reviewed commit runs a code review alone. (Tested 3 November 2026: a
+   review a commit twice: an ask on an already reviewed commit runs a code review alone. (Tested: a
    draft gets none, a draft marked ready gets one; an ask runs one only while Codex's "Review" setting for the
    repository is "Team PRs", and with "Follow personal preferences", or the feature off, it runs a code review
    alone.)
-7. **Checks that run the work, once Codex can build** (the owner, 2 November 2026; `docs/archive/instructions.md`, item
+7. **Checks that run the work, once Codex can build** (archive item
    134). The native review reads the diff but runs nothing, so it cannot check a claim such as "the script kings now
    win 29 games of 50". When Codex's environments work ("Setup"), a Codex task in its container also reruns the
    measurements a PR's claims rest on (its benchmarks and use-against-ignore table) and confirms or corrects them, beside
@@ -178,9 +175,8 @@ goes to building. Its usage can run out like any other, and it may then not say 
 
 ## Reviews: only a 10 passes
 
-Every review, in either direction, passes the work only at a 10 (for Codex, nothing open). The owner (1 November 2026):
-"I want 3 stricter, though we should have a measure there to ensure not endless loop, or lowering of what a 10 is."
-The guards against both are part of the rule:
+Every review, in either direction, passes the work only at a 10 (for Codex, nothing open), and the rule holds two
+guards: the rounds come to an end, and what a 10 means never slips (archive item 132):
 
 1. **The list decides the score.** The reviewer lists everything that keeps the work from 10, each point concrete (a
    file and line, or a design section) and marked **blocking** (against the design, the item's text, its tests or the
@@ -211,13 +207,13 @@ The guards against both are part of the rule:
      guidelines), a test PR with planted faults goes to each reviewer and is never merged. The faults are a bug, a
      broken standing rule, a security hole and a departure from the design, as on Snakes #298. Each fault not found is
      a miss.
-   - **A history spot-check every month** (the owner, 2 November 2026; archive items 164 and 167): a fresh reviewer
+   - **A history spot-check every month** (archive items 164 and 167): a fresh reviewer
      picks about 30 facts from `docs/history/`, two from each dossier and the rest among those the game uses most, and
      checks each against the words of its source that its line quotes, and against the source itself (the letter, the
      edition, the study) where it can reach it. Every fact that does not hold is a miss: the dossier and the game are
      fixed, and a `bug` issue tracks it until the fix is live. More than one miss in fifteen facts checked: every
      dossier a miss came from gets a full check.
-   - **A slop check every month** (the owner, 2 November 2026): a fresh reviewer reads only the text a player reads
+   - **A slop check every month** (archive items 178 and 181): a fresh reviewer reads only the text a player reads
      that changed since the last check, scored as every review is, a 10 meaning nothing reads machine-made; what it
      finds is fixed in "Follow-ups". The slop audit's formula test runs on every PR.
    - **Logged and reported:** each check is a row in the calibration log, `docs/calibration.md`, and each milestone
@@ -237,6 +233,9 @@ The guards against both are part of the rule:
    - **The design checker's:** the same brief and, when the item adds or changes real-world content, the dossier
      passages it cites. It checks the diff against "The game in one page" first; a fact without a source, or against
      its source, blocks; and it sends the work back until it meets the page.
+   - **A change to a rule file** (the rules among the protected files, `SECURITY.md`, rule 3) is checked by its reviewer
+     against the archived words it cites (`docs/archive/instructions.md`), so a rule does not drift from what the owner
+     said.
    - **A later round's** adds the earlier rounds' lists and the builder's answers (point 3); **an escalation's** is in
      "Who does what".
 
@@ -256,7 +255,7 @@ The guards against both are part of the rule:
 - **Questions, readings and ideas go to the issues** ("Questions, readings and ideas" in `AGENTS.md`): file each as an issue yourself, with its template's headings and label (`question`, `enhancement` or `bug`) and assigned to `HaakTuah`, if your access allows it. If it does not, list them in your report under "Questions for the owner", "Ideas" and "Bugs", and the orchestrator files each as an issue and links it in the PR. Either way the PR carries only the links.
 - Your review of Claude's PRs gives findings by priority, as "Review guidelines" in `AGENTS.md` says; every one counts.
 
-## Setup (1 November 2026)
+## Setup
 
 - Codex on its own subscription, its GitHub app given HaakTuah's two game repositories. Its own Code Review is set to
   automatic review off.
