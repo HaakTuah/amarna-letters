@@ -1,6 +1,6 @@
 /**
  * Rides (#601): a script king hires a rider to bring home the report of a far province of his that may be in danger, when
- * its last report is old: foreign troops last seen in it or beside it, or a siege known there. He haggles: he offers less
+ * its last report is old: a siege known there, or land beside it held by a king hostile to him or who attacked him lately. He haggles: he offers less
  * than he reckons the rider asks (the court list's price a season, more for each season sooner the report comes, more as
  * few stand at court to ride), the whole fee in hand so that it counts in full, and offers more next season if he was
  * refused. `--no-ride-play` and `--ride-play-half` turn this off, only to measure what it is worth.
@@ -26,9 +26,16 @@ export const RideTerms = { age: 2, haggle: 85, raise: 115 } as const;
 export function rideOrders(b: Board, brain: Brain, busy: HSet<string>, spare: number): Order[] {
   const v = b.v;
   if (!RidePlay.on(b.me)) return [];
-  const foreign = (x: string): boolean => v.units.some((u) => u.power !== b.me && (u.province === x || Board.Map.neighbors(x).includes(u.province)));
+  // Beside it, land of a king hostile to us or who attacked us lately: troops near a far province are out of our sight.
+  const threatened = (x: string): boolean =>
+    Board.Map.neighbors(x).some((n) => {
+      const o = v.owner.getOrDefault(n, null);
+      if (o === null || o === b.me) return false;
+      const r = brain.rel.get(o);
+      return r.hostile || v.turn - r.lastAttackedUs <= 4;
+    });
   const far = [...v.ownerAsOf.entries()]
-    .filter(([x, asOf]) => v.owner.getOrDefault(x, null) === (b.me as Power) && v.turn - asOf >= RideTerms.age && (v.sieges.some((s) => s.province === x) || foreign(x)))
+    .filter(([x, asOf]) => v.owner.getOrDefault(x, null) === (b.me as Power) && v.turn - asOf >= RideTerms.age && (v.sieges.some((s) => s.province === x) || threatened(x)))
     .sort((a, b2) => a[1] - b2[1] || (a[0] < b2[0] ? -1 : 1));
   if (far.length === 0) return [];
   const [x, asOf] = far[0];

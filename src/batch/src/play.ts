@@ -151,6 +151,7 @@ export interface BatchOptions {
   /** Script kings name a war on a king at peace with them and never fight it, as before item 17++a (`--no-war-play`), or half of them (`--war-play-half`). */
   noWarPlay: boolean;
   warPlayHalf: boolean;
+  /** #601: script kings never hire a rider for a far province's report (all of them, or half, alternating by seed). */
   noRidePlay: boolean;
   ridePlayHalf: boolean;
   /** Script kings read their governor's word alone, never checked against their spy's (#459, `--no-spy-check-play`), or half of them (`--spy-check-play-half`). */
