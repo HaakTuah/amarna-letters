@@ -58,6 +58,9 @@ export function ownerAt(s: GameState, map: WorldMap, province: string, turn: num
 /** What a court knows was so of a province it did not see itself: word of it, from its land, reaches the court that late. */
 export const WordSource = "word from abroad";
 export const SeenSource = "seen";
+/** A rider's report (#601): the source a court's record of the province names, "your rider" and his name. */
+export const riderSource = (name: string): string => `your rider ${name}`;
+export const isRiderSource = (source: string): boolean => source.startsWith("your rider ");
 
 /**
  * Who a court knows holds each land province, with the season it was so and where the knowledge came from (build order
@@ -94,12 +97,20 @@ export function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<s
  * The sieges a court knows of (bug #517): where it sees, as they are; one of its own cities, or of its own armies, farther
  * off from when word of its beginning, setting out the season it began, reaches the court until word of its end does
  * (GameState.siegesEnded keeps those ended lately), its progress as of the newest season whose word has come
- * (Siege.history). One it cannot see otherwise it does not know of.
+ * (Siege.history), or as fresh as what its own people last saw or brought from there (GameState.known, a rider's report
+ * among them). One it cannot see otherwise it does not know of.
  */
 export function siegesKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Siege[] {
   const sightNow = seen ?? sight(s, map, p);
   const court = courtOf(s, map, p);
-  const heard = (province: string, turn: number): boolean => turn + wordSeasons(s.config.travelDays, map, province, court, turn) <= s.turn;
+  // By word from there, or by what its own people saw or brought from there since (GameState.known): one who passed or
+  // looked in a season saw it before that season's sieges began; a rider's report (#601) is of the season's end.
+  const book = s.known.tryGet(p);
+  const since = (province: string, turn: number): boolean => {
+    const k = book?.tryGet(province);
+    return k !== undefined && (k.turn > turn || (k.turn === turn && isRiderSource(k.source)));
+  };
+  const heard = (province: string, turn: number): boolean => turn + wordSeasons(s.config.travelDays, map, province, court, turn) <= s.turn || since(province, turn);
   // The progress word last brought: as of the newest season since it began whose word has come.
   const reported = (x: { province: string; since: number; progress: number; history: number[] }, until: number): number => {
     for (let d = until; d >= x.since; d--) if (heard(x.province, d)) return x.history[d - x.since] ?? x.progress;

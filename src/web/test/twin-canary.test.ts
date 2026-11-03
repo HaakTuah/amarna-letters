@@ -45,6 +45,9 @@ import {
   sell,
   toll,
   welcome,
+  hire,
+  newCharacter,
+  newTraits,
 } from "@amarna/engine";
 import { Assert, smallWorld } from "../../engine/test/support.ts";
 
@@ -426,7 +429,26 @@ const grantRepudiatedByGrantee: Twin = {
   heard: (s) => (s.inbox.tryGet("Libya") ?? []).some((i) => i.title === "A tablet repudiated"),
 };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee];
+/**
+ * Egypt hires a rider at its court to bring Nippur's report home in the first season (#601); in the twin where the fact
+ * is true, Babylonia takes Nippur in the second, after he rode. His report is of the first season: it tells nothing of
+ * the second.
+ */
+const rideBeforeLoss: Twin = {
+  ...farLoss,
+  name: "a far province lost after a rider brought its report",
+  seasons: 6,
+  make() {
+    const s = farLoss.make(true);
+    for (const x of s.characters) if (x.status === "Free" && x.at === "Egypt") x.at = "Babylonia";
+    s.characters.push(newCharacter({ id: "c990", name: "Ahmose", status: "Free", at: "Egypt", traits: newTraits({ loyalty: 60, greed: 40, ambition: 30, courage: 50, competence: 50 }), tongues: new Dict([["Egyptian", 100]]) }));
+    return s;
+  },
+  later: { at: 2, happen: (s) => holds(s, "Babylonia", 2) },
+  orders: [hire("c990", 500, 1, 500, { what: "ride", where: "nippur" })],
+};
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, rideBeforeLoss];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

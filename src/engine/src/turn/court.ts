@@ -1,4 +1,5 @@
 /** Court business: hiring, new jobs and dismissal of servants, and the tasks the engine owes courts. */
+import { Dict } from "../core/collections.ts";
 import { clamp, idiv, roundEven, toInt } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
@@ -113,7 +114,7 @@ P.resolveCourt = function (orders) {
 
 /** A job's errand as an order names it, or null for none. */
 export function errandOf(o: { what?: JobWhat | null; where?: string | null }): JobErrand | null {
-  return o.what === "envoy" || o.what === "spy" || o.what === "stay" ? newJobErrand({ what: o.what, where: o.where ?? "" }) : null;
+  return o.what === "envoy" || o.what === "spy" || o.what === "stay" || o.what === "ride" ? newJobErrand({ what: o.what, where: o.where ?? "" }) : null;
 }
 
 /**
@@ -126,6 +127,9 @@ export function errandOf(o: { what?: JobWhat | null; where?: string | null }): J
 P.hireAll = function (hires, carriedTo = null) {
   const S = this.s;
   const carried = carriedTo !== null;
+  // How many rides each court offers at home this season (#601): how badly it wants riders.
+  const rides = new Dict<Power, number>();
+  if (!carried) for (const { p, h } of hires) if (h.what === "ride") rides.set(p, rides.getOrDefault(p, 0) + 1);
   for (const [key, group] of groupBy(hires, (x) => x.h.character)) {
     const c = char(S, key);
     if (c.status !== "Free" || c.errand !== null) {
@@ -149,8 +153,11 @@ P.hireAll = function (hires, carriedTo = null) {
       return this.courtHears(c, b.p, false).heard;
     };
     for (const b of group) if (present(b) && b.h.term > 0) c.offers.set(b.p, rateOf(b.h.fee, term(b)));
+    // A ride (#601) is priced by how badly he is wanted, and he takes less if the king haggles, down to his least.
+    const ride = (b: { p: Power; h: HireOrder }): { ask: number; least: number } | null => (b.h.what === "ride" && !carried ? this.rideAsk(c, b.p, b.h.where ?? "", rides.getOrDefault(b.p, 0)) : null);
+    const asks = (b: { p: Power; h: HireOrder }): number => ride(b)?.least ?? askingPrice(c, b.p) * term(b);
     const bids = sortBy(
-      group.filter((b) => present(b) && heard(b) && value(b) >= askingPrice(c, b.p) * term(b) && fits(b) === null && afford(b)),
+      group.filter((b) => present(b) && heard(b) && value(b) >= asks(b) && fits(b) === null && afford(b)),
       [(b: { p: Power; h: HireOrder }) => rateOf(value(b), term(b)), desc(cmpNum)],
       [(b: { p: Power; h: HireOrder }) => c.traits.sympathy === b.p, desc(cmpBool)],
       [(b: { p: Power; h: HireOrder }) => b.p, cmpPower],
@@ -159,13 +166,16 @@ P.hireAll = function (hires, carriedTo = null) {
       // Why, as the person would say it: not there to be offered it, the price it asks this court, the errand's length, or
       // that another court's offer won.
       const ask = askingPrice(c, lost.p);
-      const short = value(lost) < ask * term(lost);
+      const short = value(lost) < asks(lost);
+      const rideAsk = ride(lost);
       const why = !present(lost)
         ? c.heldBy !== null
           ? `they are held at the court of ${c.heldBy}`
           : carried
             ? "they were no longer there when your envoy came"
             : "they are not at your court: send the offer with an envoy going where they are (via)"
+        : short && rideAsk !== null
+          ? `they ask ${formatMoney(rideAsk.ask)} for the ride, counting what is not handed over now only as far as they trust your court to pay it`
         : short
           ? `they ask ${formatMoney(ask)} a season of the term, ${formatMoney(feeFor(ask, term(lost), idiv(Math.min(lost.h.advance, lost.h.fee) * 100, Math.max(1, lost.h.fee)), trustIn(S, lost.p, c)))} for this one with this advance, counting the rest only as far as they trust your court to pay it, from what they have heard`
           : !heard(lost)
@@ -196,6 +206,7 @@ P.hireAll = function (hires, carriedTo = null) {
     c.employer = winner;
     c.contract = newContract({ fee: hire.fee, advance, startTurn: S.turn, untilTurn: S.turn + term(bids[0]), errand: errandOf(hire), payOnDone: hire.payOnDone === true, offerAgain: hire.offerAgain === true });
     if (c.contract.errand?.what === "stay") logEvent(S, "job", `${c.name} took ${winner}'s job to stay at its court.`, [winner], "stay-hired");
+    if (c.contract.errand?.what === "ride") logEvent(S, "job", `${c.name} took ${winner}'s job to ride for a far province's report.`, [winner], "ride-hired");
     c.duty = "None";
     c.heldBy = null;
     c.waited = 0;
@@ -207,6 +218,8 @@ P.hireAll = function (hires, carriedTo = null) {
     // Those standing there hear what the job pays (the owner's answers: what others were paid is what a person has heard).
     const rate = rateOf(hire.fee, term(bids[0]));
     for (const x of S.characters) if (x.status !== "Dead" && x.at !== null && x.at === c.at && x.heldBy === null) this.heardFee(x, rate);
+    // And what a ride pays, a fee for the ride (#601).
+    if (c.contract.errand?.what === "ride") for (const x of S.characters) if (x.status !== "Dead" && x.at !== null && x.at === c.at && x.heldBy === null) x.heardRide = x.heardRide === null ? hire.fee : toInt(Math.round((x.heardRide * (100 - MoneyData.heardWeight) + hire.fee * MoneyData.heardWeight) / 100));
     const errand = errandWords(c.contract.errand, (x) => this.map.exists(x) ? this.map.get(x).name : x);
     remember(c, S.turn, `I took a job with ${land(winner)}${errand}, within ${term(bids[0])} seasons, for ${formatMoney(hire.fee)}, ${formatMoney(advance)} of it handed over now.`);
     logEvent(S, "hire", `${winner} hired ${c.name}${carried ? " by an envoy's offer" : ""}.`, [winner], carried ? "hire-abroad" : "hire");
@@ -240,6 +253,7 @@ P.hireAll = function (hires, carriedTo = null) {
 export function errandWords(e: JobErrand | null, name: (x: string) => string): string {
   if (e === null) return "";
   if (e.what === "stay") return " to stay at court";
+  if (e.what === "ride") return ` to ride to ${name(e.where)} and bring its report home this season`;
   return e.what === "envoy" ? ` as envoy to ${e.where}` : ` to watch ${isPowerParty(e.where) ? `the court of ${e.where}` : name(e.where)}`;
 }
 

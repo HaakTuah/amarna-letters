@@ -166,7 +166,7 @@ export function describe(o: Order): string {
 
 /** A job's errand and standing orders in words, for an order's line. */
 function jobText(o: HireOrder | RenewOrder): string {
-  const errand = o.what === "envoy" ? ` as envoy to ${o.where ?? "?"}` : o.what === "spy" ? ` to watch ${o.where ?? "?"}` : o.what === "stay" ? " to stay at court" : "";
+  const errand = o.what === "envoy" ? ` as envoy to ${o.where ?? "?"}` : o.what === "spy" ? ` to watch ${o.where ?? "?"}` : o.what === "stay" ? " to stay at court" : o.what === "ride" ? ` to ride to ${o.where ?? "?"} and bring its report home` : "";
   return errand + (o.payOnDone === true ? ", the rest paid when it is done" : "") + (o.offerAgain === true ? ", offered again when done" : "");
 }
 

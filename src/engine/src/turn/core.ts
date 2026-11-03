@@ -99,6 +99,8 @@ export class TurnEngine {
     this._missedPayNow.clear();
     // Bug #540: each held province's report of the season just ended, which goes to its holder as word does.
     recordReports(this);
+    // #601: riders hired last season are back with their provinces' reports.
+    this.ridersBack();
     this.caravanWordsHome();
     // A siege whose army is gone since it was last pressed (disbanded, given away, lost to plague) is over: it costs nothing.
     this.liftLostSieges();
