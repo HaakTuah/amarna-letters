@@ -362,8 +362,8 @@ function questioned(ctx: MindContext): MindReply {
 /**
  * What a candidate says of his trade: a boast, a modest word and a plain one, each in a few forms; the form is the person's
  * own, the kind his temper's, and each names where he comes from ({in}: "in Tunip", {In} at a sentence's head, {o}:
- * "Tunip") and how long he served ({y}: "nine years"). Form and years both come from his id's number, so two people of one
- * trade and place say the same line only if their numbers lie 54 apart.
+ * "Tunip") and how long he served ({y}: "many years"). Form and years both come from his id's number, so two people of one
+ * trade and place say the same line only if their numbers lie nine apart.
  */
 type Words = readonly [boast: readonly string[], modest: readonly string[], plain: readonly string[]];
 const TradeWords: readonly (readonly [RegExp, Words])[] = [
@@ -460,8 +460,11 @@ function tradeWords(calling: string): Words {
   return TradeWords.find(([pattern]) => pattern.test(calling))?.[1] ?? ServantWords;
 }
 
-/** Years of service as a candidate speaks of them, three to twenty. */
-const Years = ["three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
+/**
+ * How long a candidate says he served: never a count, since many in the pool are real people of the age and a figure
+ * would read as a fact of their lives ("History holds"); a boast is his own word, true or not.
+ */
+const Years = ["many years", "long years", "a good many years"];
 
 /** One of a trade's forms for this person, with his own place and years put in. */
 function personal(forms: readonly string[], c: { id: string; origin: string }): string {
@@ -472,7 +475,7 @@ function personal(forms: readonly string[], c: { id: string; origin: string }): 
     .replaceAll("{in}", o === "" ? "at home" : `in ${o}`)
     .replaceAll("{In}", o === "" ? "At home" : `In ${o}`)
     .replaceAll("{o}", o === "" ? "my own land" : o)
-    .replaceAll("{y}", `${Years[Math.floor(n / forms.length) % Years.length]} years`);
+    .replaceAll("{y}", Years[Math.floor(n / forms.length) % Years.length]);
 }
 
 function pitch(ctx: MindContext): MindReply {
