@@ -306,15 +306,14 @@ P.caravanHome = function (c) {
   // its homecoming could (`caravanWordsHome`). Near, they reach the court now.
   const far = this.wordTo(c.power, at) > 0;
   const load = c.gold > 0 || c.archive.length > 0;
-  if (far && load && this.lootHome(c.power, at, c.gold, c.archive, c.archiveOf)) {
+  const onRoad = far && load && this.lootHome(c.power, at, c.gold, c.archive, c.archiveOf);
+  if (onRoad) {
     S.caravans[S.caravans.length - 1].word = c.word;
     c.word = newWord();
     if (c.gold > 0) parts.push(`${formatMoney(c.gold)} sent on to the treasury`);
   } else if (far && load) {
-    // No road on to the court: it reaches it at once, as loot does (TurnEngine.lootHome).
+    // No road on to the court: its load reaches it at once, as loot does (TurnEngine.lootHome); its word as word does.
     if (c.gold > 0) parts.push(`${formatMoney(c.gold)} into the treasury`);
-    this.hearWord(c.power, c.word);
-    c.word = newWord();
   } else if (far) {
     // Kept with the caravan's last report among those gone (GameState.caravansGone) until its word comes.
   } else {
@@ -330,7 +329,7 @@ P.caravanHome = function (c) {
   }
   c.gold = 0;
   const fleet = this.rejoinFleet(c);
-  caravanGone(S, c, far && !load);
+  caravanGone(S, c, far && !onRoad);
   const lostLine = c.grain > 0 ? ` The other ${c.grain} measures had nowhere to go and were lost.` : "";
   this.caravanTell(
     c,

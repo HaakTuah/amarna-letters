@@ -124,6 +124,16 @@ tested with a caravan set out at Hattusa.
 
 Save version 51: 49 and 50 went to #548 and #576 while this was in review.
 
+## Review, round 3
+
+Claude's reviewer: 9 of 10, every round-2 point confirmed fixed and nothing blocking; its one point, a stale "50" in the
+PR's description, is fixed. Codex (one P1): a caravan lost on the road (robbed, seized, sunk) kept its word, and
+`caravanWordsHome` would have delivered it once word of its end came. Fixed: `caravanGone` clears what a caravan learned
+abroad unless it came home to a far province with it; tested. The escalation helper (Opus, high), as the review rule asks
+after a third round, ruled it fixed on every path a caravan ends by, and found one narrow case left since round 1: a far
+homecoming with a load but no road on to the court heard its word at once. Fixed the same way: the word waits for the
+word of the homecoming whenever it does not go on with a load.
+
 ## Helpers
 
 None for the build: the twin canary did the finding. The reviews: Codex's, and Claude's reviewer (Opus, high), who
