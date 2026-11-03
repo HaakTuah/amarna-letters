@@ -18,12 +18,12 @@ Presentation only, built in parts, each its own pull request.
 | Part | What | State |
 |---|---|---|
 | A | A mind's own words kept season by season and shown (the record) | merged, #627 |
-| B | The season in sequence: the next season computed while this one plays, pace by meaning, a closing line | this PR |
+| B | The season in sequence: the next season computed while this one plays, pace by meaning, a closing line | merged, #645 |
 | C | Zoom shapes the realms' colours (full, then a wash, then borders and banners) | merged, #634 |
 | D | The land's season under the realms, and its change moving | not started |
 | E | Units drawn as what they are, with weight; the world acting on them | not started |
-| F | Threads to watch and the director camera (spectator) | not started |
-| G | Smooth on a phone: frame times in the busiest season, with a recording | this PR (bar not met on the phone profile; see Part G) |
+| F | Threads to watch and the director camera (spectator) | merged, #664 |
+| G | Smooth on a phone: frame times in the busiest season, with a recording | this PR (bar not met on the phone profile: #666) |
 
 ## Part A: a mind's own words
 
@@ -149,6 +149,55 @@ Fast, a capital falling taking a second more; Simulate draws nothing.
   button, paused, so the player chooses where to watch from and at what pace.
 - **The biggest events at Fast are a capital falling**: the engine records no king's death as an event yet, so there is
   none to give a beat.
+
+## Part F: threads to watch and the director camera
+
+The Threads tab lists the few live stories with most at stake this season for the eyes the page sees through, each a
+click away (follow the person, open the message trail in god view, show the place on the map); the director camera, a
+checkbox there and off by default, takes the map to the highest-stakes scene as each season plays out. The narrator's
+words are kept in the record the first time and read back; the game's owner may have them, and the annals, told anew
+beside the first telling. Design note: `docs/design/52-the-season-plays-out.md`, "Threads to watch and the director camera".
+
+- `src/game/src/threads.ts`: `worldThreads`, `seatThreads`, `findThreads`, `byStake`, `threadsFor`, `readThreads`.
+- `src/game/src/bots/thread-words.ts`: the template's words; `INarrator.threads` (`contracts.ts`), the template, model and
+  replay narrators.
+- `src/game/src/runner.ts`: `threads` (each season, kept under `t<n>/threads`), `tellings`, `tellThreadsAnew`,
+  `tellChroniclesAnew`, `chroniclesAnew`; `recorded`'s `told`; the batch runner tells none (`tellThreads`).
+- `src/game/src/log.ts`: a save's threads checked as written when it loads.
+- `src/web/src/map/director.ts`: `directorShot`; `components/ThreadsPanel.tsx`; `Play.tsx` (the tab, the camera);
+  `TrailPanel` opens one trail; `ChroniclePanel` shows the annals told anew; `core.ts` and `client.ts`: the `threads` and
+  `chroniclesAnew` messages.
+- Tests: `src/game/test/threads.test.ts` (the ranking; a capital about to fall leading god view and its holder, unknown
+  to a far court; a bribed envoy god view's story, his king seeing only his letter away; told once and replayed without
+  telling again; told anew keeping the first, through a save and a replay; the annals anew; an older record without
+  threads; a malformed save failing to load); `src/web/test/director.test.ts`; the canary checks every telling through
+  each seat and that the export blanks the threads' words; the export test sorts the thread's fields; the smoke test opens
+  the tab and turns the camera on and off.
+
+### Readings taken
+
+- **The stake, read for one story in the viewer's own terms.** The ladder's measures (`ordersStakes`, `courtStakes`)
+  weigh a king's whole decision; a thread is one story, so their quantities are reused for it: a province's share of the
+  land, +0.1 for a season from falling (a reason that wakes a king), the gold against the treasury, 0.5 for a tablet, 0.3
+  for tablets shown, and troops in one's own capital first. For a seat they are measured from its own view (its land, its
+  treasury), so even the order of its threads tells it nothing it does not know (hidden information).
+- **The engine finds and ranks; the narrator words.** "Find the thread, don't make it": the narrator receives only the
+  facts the engine released for each thread and phrases them. The model narrator uses the template's words until it is
+  given its own call (no model games until the build order is done; a call every season costs).
+- **A human king during play sees no threads at all**, only once the record opens to him (the age's end, Reveal all, or
+  his fall into god view): "the narrator illuminates; it never steers", and a ranked list of his own stakes is advice.
+- **A seat's threads come only from its own view**: the sieges it knows of, and its own envoys away, placed at the court he
+  was sent to, never where he is on his road. A rising (asked in secret, seen by nobody) and a bribe are god view's alone.
+- **Kept per pair of eyes**: god view's and each living seat's few, as decisions in the log rather than a record of a
+  new type, so the export's filters and its blanking already hold them; a save's are checked as written on loading.
+- **The game's owner** is the table that holds and plays the game; a loaded replay is read only, so it offers no Tell anew.
+  The annals are told anew the same way; a persona is not, since it plays the character and a new one would change the game.
+- **An older record without threads** has them told when it is watched: "the first time it is written" is then.
+- **One shot a season for the director**: the moment where the top thread is, at its beat, or the top thread's place as
+  the season begins, or the greatest moment; a follow keeps the camera instead. One move a season stays readable.
+- **First guesses**: four threads for each pair of eyes; the director's zoom of 2.2.
+
+Questions for the owner: none.
 
 ## Part G: smooth on a phone
 

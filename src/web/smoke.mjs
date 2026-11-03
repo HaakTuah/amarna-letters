@@ -166,6 +166,14 @@ async function watch(viewport, name) {
     await p.getByRole("button", { name: tab, exact: true }).click();
     await p.waitForTimeout(150);
   }
+  // Item 17+++, part F: the threads to watch, as told for god view, with the director camera turned on and off again.
+  await p.getByRole("button", { name: "Threads", exact: true }).click();
+  const threads = await p.waitForFunction(() => document.querySelector(".side")?.textContent?.match(/(Reading…)/) === null, null, { timeout: 10000 }).then(() => p.locator(".item.thread").count()).catch(() => -1);
+  if (threads < 0) failures.push(`${name}: the threads to watch were never read`);
+  else report.push(`${name}: ${threads} threads to watch this season`);
+  await p.getByLabel("Director camera").check();
+  await p.waitForTimeout(150);
+  await p.getByLabel("Director camera").uncheck();
   // Follow keeps the camera on its person until the player moves it ("Following, travel lines and borders"): a drag frees
   // the camera, and "Keep the camera on them" takes it back.
   await p.getByRole("button", { name: "People", exact: true }).click();

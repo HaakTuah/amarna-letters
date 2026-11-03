@@ -400,6 +400,15 @@ the tabs and the courts along the map scroll with the wheel or by dragging. The 
 steps back through the seasons; signals mark sealed tablets, accusations, forgeries, broken
 promises and more. After the game, compare two nations' self-serving annals with the true record.
 
+The **Threads** tab, open wherever the whole record is (a game without a human, or once the age ends), lists the few
+live stories with the most at stake this season, as the narrator picks them: a city a season from falling, an envoy
+on his road with gold or a tablet (and, in god view, whose pay he is really in), a people ready to rise behind a man.
+Each is a click away: follow the person, open his message trail (god view), or show the place on the map. Through a
+power's eyes it lists only what that court knows. Tick **Director camera** and the map goes, as each season plays out,
+to the scene with the most at stake; it is off by default. The narrator's words are kept in the saved game the first
+time, so watching it again reads them back; **Tell anew** has the narrator tell them again, keeping the first telling
+beside the new, as the Chronicles tab does for the annals. A king played by a human sees no threads during play.
+
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
 each power in its colour with an emblem and a border line of its own along its frontiers (so it reads without
 colour), a border that glows faintly where you see two powers' armies face to face across it (the province's card
