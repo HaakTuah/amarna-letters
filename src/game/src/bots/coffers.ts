@@ -5,7 +5,7 @@
  * seasons of what its works in gold and his troops there cost, so its works and levies are not stopped by a bill he
  * could not pay when it came. Every figure is the engine's own; what it knows is its view.
  */
-import { buildGold, cmpNum, cmpStr, desc, forMen, send, sortBy, upkeepGold, WorksData, type Order } from "@amarna/engine";
+import { buildGold, cmpNum, cmpStr, desc, EconomyData, forMen, send, sortBy, upkeepGold, WorksData, type Order, type ProvinceEconomyView } from "@amarna/engine";
 import type { Board } from "./board.ts";
 
 /** Whether a script king sends gold ahead (off for half of them in the measure of using it against ignoring it, `--coffer-play-half`). */
@@ -46,4 +46,15 @@ export function cofferOrders(b: Board, spare: number): { orders: Order[]; spent:
     spent += w.gold;
   }
   return { orders, spent };
+}
+
+/**
+ * Whether a caravan of `grain` (and `gold`) can set out from a province of ours for `seasons` of road, there and back if
+ * `both`: near, the treasury's checks decide; far, its coffer as last reported must hold its porters' pay and the gold
+ * (the audit of #587: departures from far provinces with an empty coffer kept failing).
+ */
+export function fundedThere(x: ProvinceEconomyView, grain: number, gold: number, seasons: number, both: boolean): boolean {
+  if (x.reported === null) return true;
+  const pay = Math.max(1, Math.ceil((grain + Math.floor(gold / 10)) / EconomyData.caravanPayPer)) * Math.max(1, seasons) * (both ? 2 : 1);
+  return x.coffer >= pay + gold;
 }

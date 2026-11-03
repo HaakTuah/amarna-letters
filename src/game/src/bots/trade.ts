@@ -5,6 +5,7 @@
  * own while its waters are open, and sells grain at a starving foreign harbour like any dear market; and it sets its tolls, none on the partners it promised free passage to on a sealed tablet
  * nor on its allies. Every number below is a first guess of the script's own.
  */
+import { fundedThere } from "./coffers.ts";
 import { knownWays } from "./works.ts";
 import {
   EconomyData,
@@ -250,6 +251,7 @@ export function tradeOrders(
         if (best !== null && gain <= best.gain) continue;
         const goldOut = buyGold > 0 && bought.taken > 0 ? Math.min(buyGold, Math.ceil((bought.paid * 100) / Math.max(1, keep))) : 0;
         if (n <= 0 && goldOut <= 0) continue;
+        if (how !== "ship" && !fundedThere(home, n, goldOut, way.seasons, true)) continue;
         best = {
           order: how === "ship" ? ship(fleet!.province, home.province, k, n, goldOut, true) : trade(home.province, k, n, goldOut, how === "smuggle"),
           gain,
