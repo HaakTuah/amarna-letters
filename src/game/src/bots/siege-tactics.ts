@@ -91,11 +91,34 @@ export function relieving(b: Board, brain: Brain, city: string, isWilling: (p: P
 export function willing(b: Board, brain: Brain, owner: Power, leader: Power | null): boolean {
   if (owner === b.me) return false;
   if (owner === brain.betraying) return true;
+  if (owner === brain.warTarget && WarPlay.on(b.me)) return true;
   if (brain.isFriend(owner)) return false;
   if (owner === brain.warTarget || brain.rel.get(owner).hostile || brain.swornFoes(b).has(owner)) return true;
   if (owner === leader) return brain.p.aggression > 0.25;
   // While another king runs away with the game, only the most warlike still pick fights among the rest.
   return brain.p.aggression > (leader !== null && leader !== b.me ? 0.8 : 0.55);
+}
+
+/**
+ * Script kings wage the war they choose (item 17++a, "something happens every season"). A plain peace is a price the choice
+ * of a war weighs (`strategy`: its worth to an honest king, and the trust it carries), not a bar: a king fights the war he
+ * chose on a king at peace with him, breaking the peace. An ally who broke no oath, his overlord and a vassal who pays are
+ * kept whatever a war would win, and are never the war. Before, a king named a war on a king at peace with him, his choice
+ * weighed and made, and then never fought it, while the war he would fight waited. `--no-war-play` and `--war-play-half`
+ * turn this off, only to measure what it is worth.
+ */
+export const WarPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+  off: false,
+  only: null,
+  on(me: string): boolean {
+    return !(this.off && (this.only === null || this.only.has(me)));
+  },
+};
+
+/** Bonds a king keeps whatever a war would win: an ally who broke no oath to him, his overlord, a vassal who pays. */
+export function keptBond(brain: Brain, x: Power): boolean {
+  const r = brain.rel.get(x);
+  return (r.allied && r.oathsBroken === 0) || brain.bondFriends.has(x);
 }
 
 /**

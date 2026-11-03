@@ -1,4 +1,5 @@
 /** Plays games unattended and summarizes winners and signals across them (the batch runner's shared half). */
+import { pulseOf, pulseReport, type Pulse } from "./pulse.ts";
 import {
   ClauseKindValues,
   standingOf,
@@ -87,6 +88,8 @@ export interface GameSummary {
    * or a Great King made another's vassal ("vassal"), whichever came first, or null (older summaries have none).
    */
   greatWar?: string | null;
+  /** Item 17++a: how much happened, season by season and king by king (`pulse.ts`); older summaries have none. */
+  pulse?: Pulse;
   /** What every character gained in the game, by source, the dead included. */
   gained: Earnings;
   /** The press in clauses (item 8): counts by what was written, recited, answered and reported (see pressOf). */
@@ -335,6 +338,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     seed,
     falls: fallsOf(s),
     greatWar: greatWarOf(s),
+    pulse: pulseOf(s),
     turns: s.scores.length === 0 ? 0 : max(s.scores, (x) => x.turn),
     winners: [...s.winners],
     growth,
@@ -625,6 +629,11 @@ export function batchReport(games: readonly GameSummary[]): string {
     lines.push(
       `The age: median ${lengths[Math.floor((lengths.length - 1) / 2)]} seasons; a Great King's war decided in ${decided.length} of ${games.length} ages (his capital taken first ${decided.filter((g) => g.greatWar === "capital").length}, made another's vassal first ${decided.filter((g) => g.greatWar === "vassal").length}).`,
     );
+  }
+  {
+    // Item 17++a: how much happened, against the first-guess target.
+    const pulse = pulseReport(games.flatMap((g) => (g.pulse !== undefined ? [g.pulse] : [])));
+    if (pulse !== "") lines.push(pulse);
   }
   lines.push("");
   lines.push("Wins by power (shared wins count for each partner):");

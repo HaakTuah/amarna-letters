@@ -10,7 +10,8 @@
 
 **Keeping a war.** The current target is dropped when any of these holds:
 
-- he has fallen or is a friend;
+- he has fallen, or is a bond the king keeps: an ally who broke no oath to him, his overlord or a vassal who pays (a plain
+  peace is no bar, only a price, below: item 17++a);
 - the prize is 0;
 - more than eight seasons have passed since he was chosen;
 - he has more than one troop more than we do, has not attacked us in the last three seasons (this season or the two before), and is not a sworn foe;
@@ -29,5 +30,5 @@
 - − 350 × trust, if trust is positive;
 - − 60 for each support he has given us (at most three).
 
-A rival is skipped altogether while a tablet we sent him is at most two seasons old, he has not answered it (there is no treaty), and he has not attacked us since. The best-scoring rival becomes the war target if his score beats 140 × (1 − aggression) + 40. In the first year (turns 1–3), the bar rises by 80 × (1 − aggression). For Hatti's archetype the bar is 61 (73 in the first year); for Alashiya's, 166 (238).
+A bond the king keeps (above) is never the war. A rival is skipped altogether while a tablet we sent him is at most two seasons old, he has not answered it (there is no treaty), and he has not attacked us since. The best-scoring rival becomes the war target if his score beats 140 × (1 − aggression) + 40. In the first year (turns 1–3), the bar rises by 80 × (1 − aggression). For Hatti's archetype the bar is 61 (73 in the first year); for Alashiya's, 166 (238).
 

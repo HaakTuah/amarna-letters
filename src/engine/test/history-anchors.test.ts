@@ -3,9 +3,9 @@ import { fileURLToPath } from "node:url";
 import { describe, test } from "vitest";
 import {
   AllPowers, ArmyAnchors, AttestedCast, AttestedKm, CityWaters, CrossedRivers, CrossingAnchors, Crossings, DistanceAnchors,
-  DoorAnchors, Doors, FirstCores, FleetAnchors, HarbourAnchors, Invented, LanguageAnchors, NamedScribes, NubianCast, PeopleOf1346, PersonAnchors,
+  DoorAnchors, Doors, FirstCores, LandAnchors, FleetAnchors, HarbourAnchors, Invented, LanguageAnchors, NamedScribes, NubianCast, PeopleOf1346, PersonAnchors,
   RiverAnchors, Rivers, RulerAnchors, StartUnits, StartWalls, TongueAnchors, WallAnchors, WaterAnchors, WorldMap, beyondTongue, isGreatKing, king,
-  modernOf, peopleSpeak, rulerNamed, startHarbour,
+  land, modernOf, peopleSpeak, rulerNamed, startHarbour,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -53,6 +53,14 @@ describe("HistoryAnchorTests", () => {
     ...FirstCores.keys(),
     ...[...NamedScribes.values()].map((s) => s.name),
   ];
+
+  test("Every land named for its people names an anchor whose line names it (#403)", () => {
+    const wrong = [...LandAnchors].filter(([name, id]) => !names(subject(id, -1), name));
+    Assert.equal("", wrong.map(([name, id]) => `${name} -> ${id}${lines.has(id) ? "" : " (missing)"}`).join(", "));
+    // And each is a land the game gives a power: none named without its anchor.
+    Assert.equal([...LandAnchors.keys()].sort(), ["Kaska", "Seir", "Sutu", "Tjehenu"]);
+    Assert.equal("", [...LandAnchors.keys()].filter((n) => !AllPowers.some((p) => land(p) === n)).join(", "));
+  });
 
   test("Every anchor is unique", () => Assert.equal("", repeated.join(", ")));
 

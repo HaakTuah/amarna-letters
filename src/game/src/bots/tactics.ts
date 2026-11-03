@@ -22,6 +22,7 @@ import {
   support,
   toInt,
   idiv,
+  menIn,
   type Order,
   type Power,
   type UnitKind,
@@ -33,6 +34,7 @@ import {
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { SeasonPlay } from "./land.ts";
+import { OccupyPlay, obeyIn, obeyShare } from "./occupy.ts";
 import { grantedTo } from "./authority.ts";
 import type { Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
@@ -313,6 +315,18 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     return op("attack", 0.85 * gain - exposure(lead) - 6 * helpers.length - (b.unitAt.get(lead).kind === "Army" ? b.desertCost(target) : 0), target, lead, helpers);
   };
 
+  // ---- Occupy (item 17++a): an army standing in land not ours stays there until its people obey us, if they would within
+  // a few seasons; worth the land, the less the longer it takes. A blow elsewhere or our own land's need may outbid it.
+  const occupying = new HSet<string>();
+  if (OccupyPlay.on(me))
+    for (const u of sortBy([...free], [(x: string) => x, cmpStr])) {
+      const unit = b.unitAt.get(u);
+      const owner = b.ownerOf(u);
+      if (unit.kind !== "Army" || owner === me || b.walls(u) || (owner !== null && !isWilling(owner))) continue;
+      const t = obeyIn(b, u, menIn(unit));
+      if (Number.isFinite(t)) ops.push(op("occupy", b.value(u) * multiplier(owner) * woo(u) * Math.pow(0.9, t), u, u, []));
+    }
+
   // ---- Attack: every reachable province we would gain from.
   const targets = distinct([...free].flatMap((u) => Board.Sail.movesFrom(b.unitAt.get(u).kind, u))).filter((t) => !Board.Map.get(t).isSea);
   for (const target of targets) {
@@ -344,8 +358,9 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const rivals = musters.length === 0 ? 0 : max(musters, (x) => x);
     const contest = rivals === 0 ? 0 : p.caution > 0.5 ? rivals : Math.max(0, rivals - 1);
 
-    let gain = (owner === me ? 0 : b.value(target)) * multiplier(owner) * woo(target) + (occupant !== null ? 120 : 0);
-    if (owner !== null && owner !== me && Board.Map.get(target).capital) gain += 60;
+    let land = (owner === me ? 0 : b.value(target)) * multiplier(owner) * woo(target);
+    if (owner !== null && owner !== me && Board.Map.get(target).capital) land += 60;
+    let gain = land + (occupant !== null ? 120 : 0);
     // Our own city besieged: driving the besieger out saves it.
     if (besieged) gain += 0.9 * b.value(target);
 
@@ -364,6 +379,11 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       [(u: string) => (b.unitAt.get(u).kind === "Army" ? 0 : 1), cmpNum],
       [(u: string) => u, cmpStr],
     )[0];
+    // Item 17++a: empty open land is ours only if it would obey the army that stands in it, and the sooner the better (a city
+    // falls to its siege or storm instead; a blow at a troop is worth its land as before, since the troop beaten no longer
+    // keeps its people's love for their holder).
+    const leadUnit = b.unitAt.get(lead);
+    if (!walled && occupant === null) gain -= land * (1 - obeyShare(b, target, leadUnit.kind === "Army" ? menIn(leadUnit) : 0, lead));
     // The troop there has the ground's help, and the land's own men beside it outside walls (item 11e).
     if (occupant !== null) defence += b.ground(lead, target) + b.resistance(target);
     const required = Math.max(defence, contest) + 1;
@@ -653,6 +673,10 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
         assign(plan, free, o.lead, o.lead === o.target ? hold(o.lead) : move(o.lead, o.target), o.kind);
         plan.destinations.add(o.target);
         break;
+      case "occupy":
+        stay.add(o.lead);
+        occupying.add(o.lead);
+        break;
       case "siege":
         assign(plan, free, o.lead, besiege(o.lead), "siege");
         for (const h of helpers) assign(plan, free, h, support(h, o.lead), "support");
@@ -740,7 +764,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
   // ---- Everyone else: hold if threatened, otherwise move towards where the value is.
   for (const u of sortBy([...free], [(x: string) => x, cmpStr])) {
     if (threat.has(u) || stay.has(u)) {
-      assign(plan, free, u, hold(u), "hold");
+      assign(plan, free, u, hold(u), occupying.has(u) ? "occupy" : "hold");
       continue;
     }
     const step = approach(b, brain, u, plan.destinations, isWilling, threat);
