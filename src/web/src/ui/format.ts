@@ -1,5 +1,5 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, countFigures, dateLabel, describe, formatMoney, land, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, countFigures, dateLabel, describe, formatMoney, land, nameFrom, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
@@ -84,3 +84,6 @@ export function grantLine(g: GrantView, me: Power): string {
   const who = g.grantor === me ? `${powerName(g.grantee)}'s troops may ${what}` : `Your troops may ${what}, by leave of ${powerName(g.grantor)}`;
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : ", until revoked"} (${g.tablet}).`;
 }
+
+/** "of Gubla" after a person's name, or nothing when the name already says it ("Abdi-Ashtarti of Ta-Mehu"). */
+export const fromWhere = (c: { name: string; origin: string }): string => (nameFrom(c) === c.name ? "" : `of ${c.origin}`);

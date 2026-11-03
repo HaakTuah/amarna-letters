@@ -1,5 +1,5 @@
 import { type CharacterView, type Power } from "@amarna/engine";
-import { dated, shekels } from "../ui/format.ts";
+import { dated, fromWhere, shekels } from "../ui/format.ts";
 import { powerName } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 
@@ -8,7 +8,7 @@ export function Person({ c, court, onFollow }: { c: CharacterView; court: Power 
   return (
     <div className="item">
       <h4>
-        <Emblem power={c.employer} /> {c.name} <small className="muted">of {c.origin}</small> <span className="pill">{c.status}</span>{" "}
+        <Emblem power={c.employer} /> {c.name} {fromWhere(c) !== "" && <small className="muted">{fromWhere(c)}</small>} <span className="pill">{c.status}</span>{" "}
         {c.heldByYou && <span className="pill">held by you</span>}
         {onFollow && (
           <button className="small link" onClick={() => onFollow(c.id)}>
