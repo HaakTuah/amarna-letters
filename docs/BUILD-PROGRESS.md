@@ -94,10 +94,6 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   for item 18), so the build a king sees reads both at once. Where there are several roads, characters choose by appetite for risk.
   Built with the first item whose errands use them; a save version.
 
-- ~~**Gold travels both ways**~~ (done, #635; `docs/design/53-gold-travels-both-ways.md`, report
-  `docs/rounds/2026-11-03-gold-travels-both-ways.md`): far provinces pay from their coffers, credit with bills carried
-  home, gold sent ahead, caravans carrying their pay; the twin canary's #587 leak is gone. Save version 61.
-
 - **The owner's answers of 3 November, morning** (archive item 185):
   - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
     honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
@@ -120,27 +116,6 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
-
-- ~~**A narrowed passage read by where it was revoked (bug #611)**~~ (done, #623): a passage through all the land,
-  revoked in one province, reads "all your land but Nesa" (`GrantView.cut`, never the land itself); the grantee reads
-  it when the word comes. Save version 56. Report: `docs/rounds/2026-11-03-narrowed-passage.md`.
-
-- ~~**A repudiation by word (bug #609)**~~ (done, #619): the tablet's other king learns of a repudiation when word of
-  it comes, his tablet, grants, vassal bonds and cession keeping it till then; a third court never; a grantor revokes a
-  grant its grantee repudiated as he knows it. Save version 55. Report: `docs/rounds/2026-11-03-repudiation-heard.md`.
-
-- ~~**A far levy's dropped orders by word (bug #569)**~~ (done, #610): a levy that failed in its province drops the
-  orders waiting on its army when word of it comes, in the season of its "Levy failed"; till then they stay listed,
-  unable to run. Save version 53. Report: `docs/rounds/2026-11-03-levy-drop-heard.md`.
-
-- ~~**A grant and its end by word (bug #565)**~~ (done, #606): a grant by order, a revocation and closed roads reach
-  the grantee's court by word, its view keeping the grant until then. Save version 52. Filed: #609 (repudiation, the
-  same leak), #611. Report: `docs/rounds/2026-11-03-grants-heard.md`.
-
-- ~~**Far land as last reported (bugs #540, #589)**~~ (done, #579): a far province's economy, works, yields and
-  caravans, and the realm's strength, as last reported; far harvests, works' costs and caravan news by the road. Save
-  version 51. Left open: question #587 (what the treasury pays far off, paid at once). Report:
-  `docs/rounds/2026-11-03-far-as-reported.md`.
 
 - **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
   - **#566:** the twin canary (`src/web/test/twin-canary.test.ts`) plays each hidden fact at a second place too, a far
