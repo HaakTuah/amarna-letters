@@ -19,11 +19,12 @@ export function raisedKnown(engine: TurnEngine, p: Power, u: Unit, now: number =
 }
 
 /**
- * Whether word from `at` of season `turn` has reached the court (`wordCame`); from a place its couriers cannot reach at
- * all, at once, as a unit there is shown as it is (`reportOf`).
+ * Whether word from `at` of season `turn` has reached the court (`wordCame`); from a place its couriers reach within the
+ * season now, or cannot reach at all, at once, as a unit there is shown as it is (`reportOf`, on today's roads).
  */
 function heardFrom(engine: TurnEngine, p: Power, turn: number, at: string, now: number): boolean {
-  return !Number.isFinite(engine.wordTo(p, at)) || wordCame(engine, p, turn, at, now);
+  const d = engine.wordTo(p, at);
+  return d === 0 || !Number.isFinite(d) || wordCame(engine, p, turn, at, now);
 }
 
 /**

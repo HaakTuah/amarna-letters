@@ -106,7 +106,10 @@ Claude's reviewer: 7 of 10; round 1's points closed but two blocking, four not, 
 
 The second benchmark run crashed too: a part of an army kept by a defecting commander in a province its king's couriers
 cannot reach at all stayed shown, since word never comes from there. A unit's raising and its end there are known at
-once, as a unit there is shown as it is (`heardFrom`).
+once, as a unit there is shown as it is (`heardFrom`). A third crash: a gone army's end was timed on the road as it was
+the season it ended, while the view reads today's roads, on which its province had come within the couriers' season;
+`heardFrom` now reads it known where the couriers reach now, as the view shows the place, and `unitsSeen` keeps the
+map's one unit to a province, a gone unit with no older report free left out rather than shown over a live one.
 
 Also: the first benchmark run crashed (a script king keyed its own troops by province, and a gone army's report could
 share one with a live army); a gone unit now moves to an older report like any far unit (`reportIndex`).

@@ -109,6 +109,9 @@ function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(provi
       }
     }
   }
+  // One unit to a province, as on the map: a gone unit with no report left to give way to is not shown over a live one.
+  const held = new HSet(pairs.filter(([u, x]) => u.power === p && u.goneTurn === 0 && x !== null).map(([, x]) => x!.province));
+  for (const pair of pairs) if (pair[0].power === p && pair[0].goneTurn > 0 && pair[1] !== null && !held.add(pair[1].province)) pair[1] = null;
   return pairs.map(([, x]) => x).filter((x): x is UnitView => x !== null);
 }
 
