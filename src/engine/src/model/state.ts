@@ -88,7 +88,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 53;
+export const CURRENT_VERSION = 54;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -1067,6 +1067,7 @@ export const IdKinds: ReadonlyMap<string, string> = new Map([
   ["h", "approach between characters"],
   ["j", "journey"],
   ["k", "copy of a tablet"],
+  ["kg", "kingship offered to a man"],
   ["m", "message trail"],
   ["p", "grant of passage or basing"],
   ["pf", "promise to pay kept or broken, as news"],

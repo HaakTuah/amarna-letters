@@ -44,6 +44,17 @@ export const RulerAnchors: ReadonlyMap<string, string> = new Map<string, string>
 ]);
 
 /**
+ * Item 17++a (#403, "Places by their own names"): the four lands named for their peoples' own names, each with the line that
+ * names it: the land of the Tjehenu, the Kaska's hills, the Shasu's Seir, and the Suteans' steppe.
+ */
+export const LandAnchors: ReadonlyMap<string, string> = new Map<string, string>([
+  ["Tjehenu", "01-libya"],
+  ["Kaska", "01-kaska-and-suteans"],
+  ["Seir", "02-nb-shasu"],
+  ["Sutu", "01-sutu"],
+]);
+
+/**
  * Every person the game presents as of 1346, by name: the anchor of the people dossier's line that holds him
  * (`docs/history/06-attested-people.md`), or {@link Invented} where the letters keep no name and the game gave one: the
  * Assyrian envoys of EA 16, the governor of Alashiya of EA 40 (named after a later one), the Nubian captains, and

@@ -176,7 +176,7 @@ const Data: Record<FixedPower, PowerData> = {
   Assyria: d("Assyria", "Ashur-uballit", "Assyrian", "Middle"),
   Arzawa: d("Arzawa", "Tarhundaradu", "Arzawan", "Weak"),
   Alashiya: d("Alashiya", "the King of Alashiya", "Alashiyan", "Weak"),
-  Kaska: d("the Kaska lands", "the chief of the Kaska", "Kaskan"),
+  Kaska: d("Kaska", "the chief of the Kaska", "Kaskan"),
   Lukka: d("Lukka", "the chief of the Lukka men", "Lukkan"),
   // Item 11d: Arzawa's lands with their own rulers, and Hana under Mitanni (the politics dossier names no ruler of 1346)
   Seha: d("the Seha River Land", "the king of the Seha River Land", "Sehan"),
@@ -192,8 +192,8 @@ const Data: Record<FixedPower, PowerData> = {
   Beirut: d("Biruta", "Ammunira", "Beirutite"),
   Pella: d("Pihil", "Mut-Bahlu", "Pellan"),
   Ashtaroth: d("Ashtartu", "Ayyab", "Ashtarothite"),
-  Shasu: d("the land of the Shasu", "the chief of the Shasu", "Shasu"),
-  Libya: d("the land of the Tjehenu", "the chief of the Tjehenu", "Libyan"),
+  Shasu: d("Seir", "the chief of the Shasu", "Shasu"),
+  Libya: d("Tjehenu", "the chief of the Tjehenu", "Libyan"),
   Carchemish: d("Karkamish", "the king of Karkamish", "Carchemishite"),
   Alalakh: d("Mukish", "Itur-Addu", "Mukishite"),
   Aleppo: d("Halab", "the king of Halab", "Halabite"),
@@ -221,7 +221,7 @@ const Data: Record<FixedPower, PowerData> = {
   // which the dossiers do not show as a polity in 1346, is Babylonia's land.
   Gath: d("Gimti", "Shuwardata", "Gittite"),
   Aijalon: d("Ayyaluna", "Baʿlat-nese", "Ayyalunite"),
-  Suteans: d("the Sutean steppe", "the chief of the Suteans", "Sutean"),
+  Suteans: d("Sutu", "the chief of the Suteans", "Sutean"),
   Arrapha: d("Arrapha", "the king of Arrapha", "Arraphan"),
   Elam: d("Elam", "the king of Elam", "Elamite"),
 };
