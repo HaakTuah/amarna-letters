@@ -48,6 +48,8 @@ import {
   ReplayNarrator,
   ReplaySeat,
   ScriptLeader,
+  isThreadsKey,
+  threadsFor,
 } from "@amarna/game";
 import { ApiStatusError, type ApiResult, type JsonObject, SeatChoices, SimulatedApi, buildSeats, providersFor, situation } from "@amarna/llm";
 import { IdleSeat, Near, seasons } from "../../game/test/small-world.ts";
@@ -63,6 +65,7 @@ import { PeoplePanel } from "../src/components/PeoplePanel.tsx";
 import { ProvinceInfo } from "../src/components/ProvinceInfo.tsx";
 import { SeasonPanel } from "../src/components/SeasonPanel.tsx";
 import { StandingsPanel } from "../src/components/StandingsPanel.tsx";
+import { ThreadsPanel } from "../src/components/ThreadsPanel.tsx";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -395,6 +398,23 @@ function shown(g: Read, frames: SeasonFrame[], sceneAt: (t: number, p: Power) =>
       what: "events",
       text: markup(createElement(EventsPanel, { state: s, upTo: t, viewer: p })),
     },
+    // Item 17+++: the threads to watch as told through the seat, every telling of the season.
+    {
+      what: "threads",
+      text: markup(
+        createElement(ThreadsPanel, {
+          tellings: g.runner.tellings(t).map((told) => threadsFor(told, p)),
+          trails: false,
+          director: false,
+          canTellAnew: true,
+          onPerson: none,
+          onTrail: none,
+          onPlace: none,
+          onDirector: none,
+          onTellAnew: none,
+        }),
+      ),
+    },
   ];
   // The envoy followed, as the seat knows him.
   const record = buildLifeRecord(frames, (i) => sceneAt(i, p), t, s, p, g.envoy);
@@ -535,6 +555,12 @@ function texts(read: Record<string, unknown>[]): Record<string, string[]> {
     "an author's why": of("decision").flatMap((r) => strings((r.by as Record<string, unknown> | undefined)?.why)),
     "a shadow's choice text or commitments": choices.flatMap((c) => strings([c.text, c.commitments])),
     "a shadow's known": of("shadow").flatMap((r) => strings(r.known)),
+    // Item 17+++: a model king's own pages, which quote what he read.
+    "a mind's page": of("mind").map((r) => String(r.text)),
+    // Item 17+++: the narrator's words for the threads to watch, which name what it was given.
+    "a thread's words": of("decision")
+      .filter((r) => isThreadsKey(String(r.key)))
+      .flatMap((r) => (r.value as { text: string }[]).map((x) => x.text)),
   };
 }
 

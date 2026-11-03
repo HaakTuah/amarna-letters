@@ -108,6 +108,21 @@ on sealed tablets comes with item 9.
   the envoy turns back on arrival. Ceding land or giving troops to it is still refused, which tells the court (a known
   leak, kept so that no land or troops go to a dead kingdom). ENVOY TRAVEL lists every court not heard to have fallen.
   An envoy at an audience weighs whether its lord looks doomed by what the host's court knows.
+- **Word from vassals and allies** (#618, `turn/tidings.ts`, save version 58): at the season's end
+  (`TurnEngine.sendTidings`, after `keepTrails`) each province that changed hands in it (`GameState.ownerLog`), unless it
+  passed with a kingdom's fall (which travels as `KingdomFalls`), is reported by every court that sees it (`Views.sight`)
+  to the kings it is bound to as it knows the bonds (`reportsTo`): its overlords by a vassal tablet (`vassalBonds`), its
+  allies by a sealed tablet marked as an alliance or with the `alliance` clause, neither forged nor repudiated as it knows
+  (`repudiationKnown`), of which it holds a copy (`GameState.copies`: one its envoy sealed abroad, once his copy is home).
+  Not to a king who sees the land or took it, nor to the one who held it unless this word would come before his own from
+  there. The word arrives when word from the
+  reporter's court could reach the receiving court (`TurnEngine.heardAt`, the road home by `wordHomeAt`, #616; none where no road leads),
+  the earliest of several reporters kept; it names the old holder only if the reporter saw it last season or this. On
+  arrival (news `Tidings`) it writes the holder as of the season it set out into the court's `known`, its source "your
+  vassal X" or "your ally X" (`ownerFrom`, "heard in turn N, from your vassal X"), sends a notice ("Word from beyond your
+  sight") and an event `tidings` visible to that court alone, which the pulse (`game/src/pulse.ts`, `HeardKinds`) counts as
+  a change of the map heard. Script kings read it as any word of holders (`bots/tidings.ts`; `--no-tidings-play`,
+  `--tidings-play-half` leave it unread, keeping the holder known before, to measure it).
 - **Structured**: each holder comes with its season and source ("seen", "word from abroad", or a traveller's name), shown
   in the rulebook's LANDS ("heard in turn N, from Hani") and on the web map. Sharing reports with other courts ("Attach a
   report") is not built: it needs the structured press of item 8 and the carriers of item 11b.

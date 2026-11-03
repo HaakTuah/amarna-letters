@@ -145,7 +145,7 @@ const otherOrder = (described = true): ReplySchema =>
     ["lands", array(str(), described ? "grant_kingship: the provinces of yours, beside one another, he is made king of (a governor's own, his seat among them). Otherwise empty." : null)],
     [
       "errand",
-      enumOf(["", "envoy", "spy", "stay"], described ? "hire, renew: the job's errand: envoy (to the court named in power), spy (on the court in power, or the province in province), or stay (at your own court until the term ends: power is your own). Else empty." : null),
+      enumOf(["", "envoy", "spy", "stay", "ride"], described ? "hire, renew: the job's errand: envoy (to the court named in power), spy (on the court in power, or the province in province), stay (at your own court until the term ends: power is your own), or ride (to the far province of yours in province, bringing its report home this season). Else empty." : null),
     ],
     [
       "standing",

@@ -544,7 +544,7 @@ function other(x: Node): Order | null {
       const standing = S(x, "standing");
       const via = S(x, "action") === "hire" ? empty(S(x, "item")) : null;
       const job = {
-        what: what === "envoy" || what === "spy" || what === "stay" ? what : null,
+        what: what === "envoy" || what === "spy" || what === "stay" || what === "ride" ? what : null,
         where: power ?? (pr !== null ? province : named || null),
         payOnDone: standing === "pay_on_done" || standing === "both",
         offerAgain: standing === "offer_again" || standing === "both",

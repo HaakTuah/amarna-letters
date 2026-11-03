@@ -7,6 +7,7 @@ import type { MapMode } from "./holding.ts";
 import type { UnitKind } from "@amarna/engine";
 import type { Pt } from "./art.ts";
 import type { MapScene, PathStep } from "./scene.ts";
+import type { SeasonPlay } from "./moments.ts";
 
 /** What the map shows besides the scene: the selected province, an order's reachable provinces and the draft's arrows. */
 export interface MapInput {
@@ -18,6 +19,8 @@ export interface MapInput {
   followPath: PathStep[] | null;
   /** Item 17++, part C: the map's view, who holds what (default) or the mood of the land. */
   mode?: MapMode;
+  /** Item 17+++: the season shown, playing out since `began` (`performance.now()`), if it is. */
+  playout?: { play: SeasonPlay; began: number } | null;
 }
 
 export interface MapHandlers {

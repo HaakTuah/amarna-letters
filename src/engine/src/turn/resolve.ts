@@ -642,6 +642,8 @@ P.endOfTurn = function () {
   const S = this.s;
   // Item 13: where each unit stood this season, for the reports its king's couriers bring.
   this.keepTrails();
+  // #618: what a vassal's or ally's court saw change hands goes as word to the king it is bound to.
+  this.sendTidings();
   for (const p of AllPowers)
     S.scores.push(
       newScoreRow({

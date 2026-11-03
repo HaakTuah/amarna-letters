@@ -46,6 +46,7 @@ import { SeasonPlay } from "./land.ts";
 import { shekels, type Brain } from "./brain.ts";
 import { atHand, oursFirst, fewAtHand, freeAtCourt } from "./errands.ts";
 import { MoneyPlay } from "./credit.ts";
+import { rideOrders } from "./rides.ts";
 import { bridgesWanted } from "./tongues.ts";
 import { byLeave, stirGold, watchedProvinces } from "./freedom.ts";
 import { willing } from "./siege-tactics.ts";
@@ -180,6 +181,12 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     spare -= Math.trunc(fee / 2);
     // One bridge a season: he carries every envoy's words that he can.
     break;
+  }
+
+  // #601: a rider for the report of a far province that may be in danger.
+  for (const o of rideOrders(b, brain, busy, spare)) {
+    orders.push(o);
+    if (o.type === "hire") spare -= o.advance;
   }
 
   // Item 10: a careful king checks the person it would most likely send before offering it an errand.

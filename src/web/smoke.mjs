@@ -156,12 +156,24 @@ async function watch(viewport, name) {
     await p.waitForFunction((b) => Number(document.querySelector(".slider").max) > b, before, { timeout: 60000 });
   }
   report.push(`${name}: 4 script seasons in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  // Item 17+++: each season played out closes with a short line of what changed.
+  const closing = await p.waitForSelector(".season-close", { timeout: 20000 }).then((el) => el.textContent()).catch(() => null);
+  if (closing === null || closing.trim() === "") failures.push(`${name}: no line closed the season played`);
+  else report.push(`${name}: the season closed with "${closing}"`);
   await namesClear(p, `${name}, a game in progress, in slow motion`);
   // Every tab opens without an error.
   for (const tab of ["Trail", "People", "Provinces", "Standings", "Events", "Rules", "Season"]) {
     await p.getByRole("button", { name: tab, exact: true }).click();
     await p.waitForTimeout(150);
   }
+  // Item 17+++, part F: the threads to watch, as told for god view, with the director camera turned on and off again.
+  await p.getByRole("button", { name: "Threads", exact: true }).click();
+  const threads = await p.waitForFunction(() => document.querySelector(".side")?.textContent?.match(/(Reading…)/) === null, null, { timeout: 10000 }).then(() => p.locator(".item.thread").count()).catch(() => -1);
+  if (threads < 0) failures.push(`${name}: the threads to watch were never read`);
+  else report.push(`${name}: ${threads} threads to watch this season`);
+  await p.getByLabel("Director camera").check();
+  await p.waitForTimeout(150);
+  await p.getByLabel("Director camera").uncheck();
   // Follow keeps the camera on its person until the player moves it ("Following, travel lines and borders"): a drag frees
   // the camera, and "Keep the camera on them" takes it back.
   await p.getByRole("button", { name: "People", exact: true }).click();

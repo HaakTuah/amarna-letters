@@ -1571,3 +1571,55 @@ Given in the design chat with Claude, answering the design questions of the cons
     off, `@codex security review` ran a code review alone; on Barkstreet Snakes' #463, with it on, a security review.
     Written into "The threat model" in `SECURITY.md`, "Codex reviews" in `docs/claude-and-codex.md`, and "Follow-ups"
     in `docs/BUILD-PROGRESS.md`.
+190. **3 November 2026, 09:40 and 09:41 UTC**, in the design chat, on where Codex's security review finds its threat
+    model, `SECURITY.md` being already read as its review instructions: "But then it reads needless stuff to get to
+    the threat model stuff?" Then, to the design session's take (move the threat model into a file of its own and
+    point the settings there): "Yes, please! Expertly!" Moved into `docs/threat-model.md`, with a pointer in
+    `SECURITY.md`, and the file added to the protected files (`SECURITY.md`, rule 3).
+191. **3 November 2026, 09:52 and 09:53 UTC**, in the design chat, on the threat model: "Does it also mention this is
+    an open repo, so anyone can attack, so expect anyone? Is that relevant, expert?" Then, to the design session's take
+    (say in the threat model that every file and its whole history are public, so nothing rests on being hidden and
+    anything committed stays public): "Yes, please, expertly! Outmost importance we keep it at its most observant!"
+    Written into `docs/threat-model.md`, "Everything is public".
+192. **3 November 2026, 10:02 UTC**, in the design chat: "Also, if we now are repeating ourselves (duplication, which
+    opens for drift and needless tokens usage) between threat-model and SECURITY, then we need to keep stuff to one or
+    the other, and rather refer, if something truly needs to be in both. You are the expert, make the expert
+    determinations here, security expert master!" Split: `docs/threat-model.md` holds what is public, who might
+    attack, what is protected and what they want of it, the ways in and the lower stakes; `SECURITY.md` holds only the
+    rules, alerts, licences and reporting, and points to it.
+193. **3 November 2026, 10:13 UTC**, in the design chat, on the poller the rules described on the owner's PC: "Remove
+    it, you coded it and gave it to me. But I refused it on the grounds stated, so it was never in use. So we can
+    remove all references to it. Fix the others expertly once we can. Does it still work to ask for a security
+    review?" Earlier the same morning: "Nope, we don't run anything locally with a poller. Security risk for my
+    system." Removed from `docs/claude-and-codex.md`, `SECURITY.md` and `docs/threat-model.md`: nothing on the owner's
+    machine starts Codex; once its tasks work, it is started from the pull request itself.
+194. **3 November 2026, 10:36 to 10:44 UTC**, in the design chat, showing Codex's personal code-review settings (no
+    security option there), then, after setting the repositories' security review back to "Team PRs" with its trigger
+    "On PR open": "I have updated it." Tested on Barkstreet Snakes' #468: a draft got no security review, the draft
+    marked ready got one by itself (no findings, so no comment, only the summary's 🔒 row), and an ask on that same
+    commit ran a code review alone. Written into "Codex reviews" in `docs/claude-and-codex.md`.
+195. **3 November 2026, 11:27 and 11:28 UTC**, in the design chat: "So everything is perfectly consistent and perfectly
+    set-up no? No contradictions, no duplications, no unclear instructions, and the loop is 100% consistent and
+    masterfully crafted to be perfect, perfect expert?" Then, to the design session's take (an independent fresh-eyes
+    audit of both repositories' rule files, and fix what it finds): "Yes, do it expertly!" The audit found five blocking
+    problems and about thirty smaller ones; the fixes are in `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`,
+    `docs/threat-model.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md` and the new `docs/developing.md`. Two
+    findings (taste readings' route, and `AGENTS.md` in the workshop check's second mark) wait on the design document.
+196. **3 November 2026, 11:28 UTC**, the same instruction as item 195 ("Yes, do it expertly!"), for the two audit
+    findings in the builder rules, made in the design document (Build order, revision 348): a reading that is a matter
+    of taste goes to the owner as a `question` issue when it is taken ("Unattended work"), and `AGENTS.md` joins the
+    files every session reads in the workshop check's second mark.
+197. **3 November 2026**, under item 195's instruction ("Yes, do it expertly!"): Codex's automatic security review on
+    #665 found that the new `docs/developing.md`, which holds the GitHub calls builders run with the repository's
+    credentials, was not a protected file, so a Codex lane steered by planted text could change them unseen. It joins the
+    protected files (`SECURITY.md`, rule 3). #665 had been merged with the finding open, against "Codex reviews": the fix
+    is this PR.
+198. **3 November 2026, 11:54 UTC**, in the design chat, on the reviewer's brief having moved into `CLAUDE.md`: "Will
+    Codex get these then when it becomes available for builder session delegations? Everything should be made provider
+    agnostic, so it is ready for that, no? CLAUDE.md only having stuff unique to Claude Code, then pointing to
+    AGENT.md, expert? And you may run another expert audit." A second fresh-eyes audit, with that lens, found seven
+    blocking problems and nineteen smaller ones. Every process rule now lives in the shared files, naming roles;
+    `docs/claude-and-codex.md`, "Who does what", alone says who fills each role; `CLAUDE.md` keeps only Claude Code's
+    models, effort, helpers and tools. The security gate gained a fallback (a reading for the owner to confirm), the
+    rule files and the calibration log joined the protected files, the calibration log moved to `docs/calibration.md`,
+    and the builder rules point to `SECURITY.md`, rule 4, for Dependabot's conditions (Build order, revision 349).

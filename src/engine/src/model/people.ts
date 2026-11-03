@@ -162,15 +162,16 @@ export const MemoryEntrySchema: ObjSchema<MemoryEntry> = obj("MemoryEntry", newM
 
 /**
  * What a job's errand is (the owner's answers to item 11a): carrying a mission to a court, or watching a court or a province;
- * and (the owner's answers to item 11b+) staying at the employer's court until the term's end, an errand like any other.
+ * and (the owner's answers to item 11b+) staying at the employer's court until the term's end, an errand like any other;
+ * and (#601) riding to a far province of the employer's to bring its report home within the season.
  */
-export const JobWhatValues = ["envoy", "spy", "stay"] as const;
+export const JobWhatValues = ["envoy", "spy", "stay", "ride"] as const;
 export type JobWhat = (typeof JobWhatValues)[number];
 
 /**
  * A job's errand ("A job is always an errand", the owner's answers to items 11a and 11a+): what to do and where; the term is
- * by when. `where` is the court an envoy goes to, the court or province a spy watches, or the employer's own court for a
- * stay. `done`: the envoy has had its audience there, or the spy has come home from its post; a stay is done at its term.
+ * by when. `where` is the court an envoy goes to, the court or province a spy watches, the employer's own court for a
+ * stay, or the province a rider brings the report of. `done`: the envoy has had its audience there, or the spy has come home from its post; a stay is done at its term.
  */
 export interface JobErrand {
   what: JobWhat;
@@ -377,6 +378,8 @@ export interface Character {
   payOld: PayOld[];
   /** What it has heard a job pays a season, from the jobs agreed where it stood and from those it met; null if nothing. */
   heardRate: number | null;
+  /** What it has heard a ride to bring a far province's report home pays (#601, `turn/rides.ts`); null if nothing. */
+  heardRide: number | null;
   /** Item 10: the true skills the engine rolls on. */
   skills: Skills;
   /**
@@ -644,6 +647,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     heardPay: [],
     payOld: [],
     heardRate: null,
+    heardRide: null,
     skills: newSkills(),
     inclination: 0,
     belief: newSkills(),
@@ -724,6 +728,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   heardPay: list(S),
   payOld: list(() => PayOldSchema),
   heardRate: opt(I),
+  heardRide: opt(I),
   skills: () => SkillsSchema,
   inclination: I,
   belief: () => SkillsSchema,

@@ -1,6 +1,6 @@
 /** The messages between the page and the engine's worker. The engine is the only state: the page shows what it is sent. */
 import type { GameConfig, Power, RisenPower } from "@amarna/engine";
-import type { ExportParts, MindPage, SeasonFallbacks, SnapshotDelta, TrailAuthors } from "@amarna/game";
+import type { ExportParts, MindPage, SeasonFallbacks, SnapshotDelta, Thread, TrailAuthors } from "@amarna/game";
 import type { WireFrame } from "./frames.ts";
 import type { GameSettings, TableSettings } from "./settings.ts";
 
@@ -12,7 +12,10 @@ export type ToWorker =
   | { type: "load"; text: string; continuePlay: boolean; keys: Keys; table: TableSettings | null; id?: string | null }
   | { type: "step" }
   | { type: "auto"; on: boolean }
-  | { type: "delay"; ms: number }
+  /** Item 17+++: the page has played out the season of this frame index, of this game (Live.generation). */
+  | { type: "played"; generation: number; index: number }
+  /** Item 17+++: Simulate, the worker playing on as fast as it can without waiting for the page. */
+  | { type: "simulate"; on: boolean }
   | { type: "budget"; by: number }
   /** With the spending limit the table set by hand for the open age, where one is needed (handLimitNeeded). */
   | { type: "playOn"; budgetUsd: number | null }
@@ -24,7 +27,14 @@ export type ToWorker =
   | { type: "wake"; power: Power }
   | { type: "export"; id: number; parts: ExportParts }
   /** Item 17+++: a mind's own words as they stood at the end of a season (asked only when the record is open to the page). */
-  | { type: "mind"; id: number; who: Power; turn: number };
+  | { type: "mind"; id: number; who: Power; turn: number }
+  /**
+   * Item 17+++: a season's threads to watch for one pair of eyes (a seat's, or god view's: null), as first told and as told
+   * anew; with `anew`, the game's owner asks the narrator to tell them anew first, keeping the first telling.
+   */
+  | { type: "threads"; id: number; turn: number; viewer: Power | null; anew: boolean }
+  /** Item 17+++: the game's owner asks for the annals to be told anew, beside the first telling. */
+  | { type: "chroniclesAnew" };
 
 /** A human seat's question, as JSON the page reads with the engine's schemas. */
 export interface Pending {
@@ -73,6 +83,8 @@ export interface Live {
   seats: Record<string, string>;
   snapshots: number;
   chronicles: Record<string, string>;
+  /** Each court's annals told anew at the game's owner's asking, oldest first (item 17+++). */
+  chroniclesAnew: Record<string, string[]>;
   humans: Power[];
   /** The human seats asleep now: seasons pass without asking them until something concerns them or they wake. */
   humansAsleep: Power[];
@@ -89,4 +101,5 @@ export interface Live {
 export type FromWorker =
   | { type: "update"; live: Live; frames: WireFrame[]; reset: boolean }
   | { type: "export"; id: number; name: string; text: string }
-  | { type: "mind"; id: number; pages: MindPage[] };
+  | { type: "mind"; id: number; pages: MindPage[] }
+  | { type: "threads"; id: number; tellings: Thread[][] };

@@ -4,7 +4,7 @@ PR #635. The lane "Gold travels both ways" under "Follow-ups" in `docs/BUILD-PRO
 is "One treasury, many stores" under Land, people and economy (revision 35; the live document had no change since). The
 owner, 3 November 2026: "Contracts with characters can stipulate one pay upfront and one after. Paying infrastructure
 work would presumably require pay or labour as tax upfront, no?", then "Yes, expertly". The full rule as built is
-`docs/design/52-gold-travels-both-ways.md`.
+`docs/design/53-gold-travels-both-ways.md`.
 
 ## Step 0
 
@@ -30,7 +30,7 @@ No file changed was past 50 KB. The new work went into new files: `model/coffers
 - **The order checks** reserve treasury gold only for provinces within the season's reach.
 - **What the seat sees.** Coffers and debts come in each far province's report. The seat view also shows the gold it has
   sent (`goldSent`), counted in its strength, and each caravan's gold with its pay. Bills are lines in the treasury
-  notice. The rulebook has a new "Gold far off" entry, and the README is updated. **Save version 58.**
+  notice. The rulebook has a new "Gold far off" entry, and the README is updated. **Save version 60.**
 - **Twin canary:** the #587 entries are gone from `Known`. Two new twins cover gold sent ahead together with a far
   market's sale and purchase, with the province lost or besieged after the orders set out.
 - **Script kings** send gold ahead to far coffers that owe a debt or hold less than two seasons' need. They no longer
@@ -38,7 +38,32 @@ No file changed was past 50 KB. The new work went into new files: `model/coffers
 
 ## Measurements
 
-MEASUREMENTS
+Fifty script games, seed 1, each.
+
+- **Benchmark before and after**, all script kings, `develop` before the lane against the lane's head, the Great Kings'
+  mean growth and wins:
+
+  | Power | Growth before → after | Wins before → after |
+  |---|---|---|
+  | Egypt | 1.06 → 1.00 | 9 → 9 |
+  | Hatti | 1.54 → 1.58 | 9 → 10 |
+  | Babylonia | 1.32 → 1.22 | 24 → 20 |
+  | Mitanni | 0.25 → 0.33 | 0 → 1 |
+  | Assyria | 0.25 → 0.48 | 2 → 5 |
+  | Arzawa | 0.89 → 0.89 | 0 → 0 |
+  | Alashiya | 0.95 → 0.95 | 0 → 0 |
+
+  A capital fell in all 50 games either way (1,132 kingdoms fell before, 1,113 after). Units unpaid: 2,308 before,
+  2,260 after; mutinies 1,072 before, 1,157 after. No regression.
+- **Use against ignore** (`--coffer-play-half`): kings that send gold ahead grew 0.81 against 0.72, and won 21 games
+  against 29. It pays in growth, not in wins. It is seldom used: 32 sends in 15 games. Credit covers most far costs;
+  24 bills went unpaid in 10 games.
+- **Weaknesses found and patched.** The first run showed 1,960 caravans, traders and ships that could not set out for
+  want of gold there for their pay, against about 42,000 that did. Most were city-states with small treasuries, whose
+  script did not set the porters' pay aside. The script kings now reckon a departure's pay from the gold there (the
+  treasury near, the coffer far) before sending it. After the patch, 31 (use against ignore) and 35 (benchmark) failed.
+  Departures fell from 19,807 to 16,051 for traders, and from 24,771 to 22,041 for caravans, since the pay now costs
+  gold up front.
 
 ## Readings taken
 
@@ -61,11 +86,11 @@ MEASUREMENTS
 ## Reviews
 
 Review: rules · Codex + Claude.
-- **Claude's reviewer (Opus, high):** 6, then 7, then 9 with only the measurements open.
+- **Claude's reviewer (Opus, high):** 6, then 7, then 9 with only the measurements open; they are now in.
 - **Codex:** P1×6 in round 1, clean in round 2, P1×3 in round 3, plus two late P1s on the last fix.
 - **Escalation helper (Opus, high):** after the third round it ruled every late point fixed. The one remaining notice
   gap it named was fixed as it said.
-- **Codex's security review** was asked for twice and never ran (no "Codex Security Review" comment). The PR says so.
+- **Codex's security review** ran when the draft was marked ready (the 🔒 row completed on 04bd11f); asking for it in a comment had started only a code review.
 
 Helpers: the reviewer and the escalation helper; nothing else.
 
