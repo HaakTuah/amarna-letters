@@ -18,6 +18,7 @@ import {
   clause,
   dispatch,
   grant,
+  grantPlace,
   inboxOf,
   move,
   hold,
@@ -281,5 +282,9 @@ describe("AuthorityTests", () => {
     }
     Assert.equal(rest, read("Egypt"));
     Assert.equal(rest, read("Hatti"));
+    // Read by name: the provinces it still covers.
+    const name = (id: string) => Map.get(id).name;
+    Assert.equal(`your land at ${rest.map(name).join(", ").replace(/, ([^,]*)$/, " and $1")}`, grantPlace(single(Views.for(s, "Hatti").grants), "your", name));
+    Assert.equal(name("nesa"), grantPlace(newGrant({ province: "nesa" }), "your", name));
   });
 });
