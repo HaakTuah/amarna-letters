@@ -151,8 +151,7 @@ Waiting is lost time and, past an hour, a lost cache (archive item 22; the orche
    (which PR gets which: "Codex reviews" in `docs/claude-and-codex.md`); go on with what comes next: the next item's
    text, its sections, the check for changes. Fix what the reviews find in one round. Merge only at a 10 from each
    review it gets (a PR with no review merges on green checks), and only past the security gate, as point 6 of "Codex reviews" in `docs/claude-and-codex.md` sets it.
-2. **The next item on top.** The next item depends on this one, so branch it from this item's PR branch, not from
-   `develop`, and merge this branch (or `develop`, once it is merged) into it before its own PR.
+2. **The next item on top,** branched as "Branches" in the builder rules says, so it goes on while this one is reviewed.
 3. **Lanes beside the items** (archive item 23). Independent work runs in parallel: different files from every open lane, no
    shared measurement, no waiting on another's result. The numbered items stay one lane, one at a time; beside them run
    splits and the workshop check, history dossiers, script play outside the current item's code, tests, and interface
