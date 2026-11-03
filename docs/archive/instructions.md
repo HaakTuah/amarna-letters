@@ -1540,3 +1540,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     about the script characters." On #601: "paying for a courier is always a supply to demand issue, a negotiation,
     no?" On the ideas: "Agreed to all, expertly!" Written into "Follow-ups" in `docs/BUILD-PROGRESS.md`; #587 and
     characters' pace are still open in the design chat.
+186. **3 November 2026, 06:58 and 07:08 UTC**, in the design chat, on #587: "As for number 2, I have to understand first
+    when does this happen? Contracts with characters can stipulate one pay upfront and one after. Paying infrastructure
+    work would presumably require pay or labour as tax upfront, no? What is your take, expert?" Then, to the design
+    session's take (gold travels both ways: a far cost is paid only from gold that is there), and to adding a hidden
+    endurance trait and route choice by appetite for risk: "Yes, expertly to both! Should we also have an
+    strength/robustness trait, which impacts how likely you are to die and such?" Written into "One treasury, many
+    stores" under Land, people and economy (revision 35) and "Follow-ups" in `docs/BUILD-PROGRESS.md`; the traits wait
+    on his answer about robustness.
