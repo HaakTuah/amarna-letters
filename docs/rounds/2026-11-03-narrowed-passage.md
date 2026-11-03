@@ -38,6 +38,10 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `llm/src/pro
    covered, as before (design note 15), and the line does not say so: left as it stood.
 2. **A narrowing is a new grant.** Its grantee learns of it as of any grant, by word; the grant he knew stands in his
    view until then. Principle: "Hidden information".
+3. **A narrowing is judged by the land its grantor knows.** He may revoke the passage in any province he knows as his
+   and has not revoked it in, even one lost out of his sight before the grant, or one won since (which it never
+   covered): it is recorded in `cut` and told by word, and changes nothing the engine opens. Refusing it would tell him
+   of a loss he cannot know. Principle: "Hidden information"; a revocation is the grantor's own act on what he knows.
 
 ## Review, round 2
 
@@ -50,11 +54,22 @@ narrowed to no land opens nothing but stands, read by what was revoked; its test
 
 Claude's reviewer: 9 of 10, one blocking: revoking the passage in a province its grantor lost out of sight before the
 grant was refused (the order check and the narrowing read the true land), which told him of the loss. Fixed: both read
-what he knows (a province he knows as his, not revoked already); its test, which fails with the old check.
+what he knows (a province he knows as his, not revoked already); its test, which fails with the old check. Codex's
+round 3 (on the round-2 fix): clean. The round-3 point went to the escalation helper (Opus, high), as the rules ask
+after three rounds: closed, 10 of 10, nothing open; it took a province won since the grant, revocable and only
+recorded, as a reading (reading 3).
+
+Review: rules · Claude · 6, 10, 9, escalation 10 · Codex · P1×3, P1×1, clean
 
 ## Benchmarks
 
-To come.
+`scripts/sim.sh --games 20 --seed 1 --verify-replay`, each run alone: before on `develop` with #619 (bug #609) at
+`e7286db6`, after on this branch at `6fc7caf6` (round 1). Every game replays exactly, 20 of 20, before and after, and
+the two logs are the same line for line (only the run's time differs): the script kings revoke a grant only whole,
+never in one province, so no narrowing happens in their games, and a passage through all the land opens the same
+provinces to them as before. The round-2 and round-3 changes touch only the narrowing and the order check for it, so
+they change no script game either. Save version 56 all the same, for `Grant.cut`. No balance was tuned. A bug fix adds
+no feature, so there is no use against ignore to measure.
 
 ## Review, round 1
 
