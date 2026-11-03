@@ -38,12 +38,12 @@ describe("NoticeTextTests", () => {
     Assert.doesNotContain(inbox, (i) => i.title.includes("this season"));
   });
 
-  test("The treasury notice says audience gold comes later", () => {
+  test("The treasury notice gives the treasury without the rulebook's timing", () => {
     let s = smallWorld(newGame(5), "Egypt");
     new TurnEngine(s).beginTurn();
     let notice = single(inboxOf(s, "Egypt"), (i) => i.title === "The treasury");
     Assert.contains("The treasury now holds", notice.body);
-    Assert.contains("before what this season's audiences and envoys bring in", notice.body);
+    Assert.doesNotContain("audiences", notice.body);
   });
 
   test("A payment the treasury cannot make is a rejection even when debased gold is found", () => {

@@ -69,7 +69,7 @@ describe("BordersTests", () => {
     e.refuge(from, 1000, "hunger");
     Assert.equal(before + 1000, e.peopleOf(to).loose);
     Assert.equal(1000, s.runaways.get(to).get(a));
-    Assert.contains(inboxOf(s, b), (i) => i.title === "People" && i.body.includes("fled hunger"));
+    Assert.contains(inboxOf(s, b), (i) => i.title === "People" && i.body.includes("fleeing hunger"));
     // Land no better than home by a tenth draws nobody: they stay loose at home.
     s.fed.set(to, 520);
     const home = e.peopleOf(from).loose;

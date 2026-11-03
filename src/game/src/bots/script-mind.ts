@@ -36,6 +36,7 @@ import { Abroad, Home, address, say } from "./envoy-words.ts";
 import { AuthorityPlay } from "./authority.ts";
 import { newPresentResult, type EnvoyContext, type ICharacterMind, type MindContext, type PresentResult } from "../contracts.ts";
 import { TextKit } from "./textkit.ts";
+import { pick } from "./voices.ts";
 import { scriptLife, wantsFalseName } from "./life-mind.ts";
 
 const R = (seed: number, turn: number, what: string, id: string): Rng => Rng.for(seed, turn, "mind:" + what, id);
@@ -352,25 +353,26 @@ function questioned(ctx: MindContext): MindReply {
 }
 
 /**
- * What a candidate says of itself, from its own trade or past: the boast of the overconfident, the plain word of the
- * modest and loyal, and the middle line of the rest. The first family whose pattern the calling matches speaks.
+ * What a candidate says of itself, from its own trade or past: the boast of the overconfident (one of two, chosen by the
+ * person, so two of one trade need not boast alike), the plain word of the modest and loyal, and the middle line of the
+ * rest. The first family whose pattern the calling matches speaks.
  */
-const TradeWords: readonly (readonly [RegExp, readonly [string, string, string]])[] = [
-  [/scribe/, ["I write the tongue of the courts as the great kings' scribes write it, and no tablet of mine was ever sent back.", "I am slow of speech, but I copy a tablet word for word.", "I read and write the tongue of the courts, and I keep a tally true."]],
-  [/interpreter|envoy/, ["I have stood before kings in three courts and put their words into each other's tongues.", "I am no great speaker, but I give a king's words as he said them.", "I know the tongues of the courts, and I carry a message as it was given."]],
-  [/caravan|herdsman|wanderer/, ["I have taken loads across the steppe and lost none to robbers.", "I know the wells and the stages of the road, and I keep to them.", "I know the roads, their wells and their tolls."]],
-  [/merchant|trader/, ["I have traded in every market between the sea and the rivers, and never come home at a loss.", "I am a plain trader, but my weights are true.", "I know the markets and what each of them will pay."]],
-  [/chariot/, ["I have driven in a king's battle line and brought my horses home.", "I am a horseman, not a speaker; I go where I am sent.", "I know horses, and how a king's chariots march and camp."]],
-  [/soldier/, ["I have stood in a king's line of battle and come home every time.", "I am a soldier, not a speaker; I go where I am sent.", "I know how armies march and where they camp."]],
-  [/sailor/, ["I have sailed the length of the coast and never lost a cargo.", "I know ships and harbours, and little else.", "I know the harbours of the coast and the men in them."]],
-  [/priest|physician/, ["Kings have sought my counsel, and the gods have heard me.", "I served in the temple, and I keep my word as I kept its rites.", "I know the temples and the people who come to them."]],
-  [/steward/, ["I kept a palace's stores, and not a jar went missing in my years.", "I kept a household's stores; I count well and say little.", "I know how a court is run, and who runs it."]],
-  [/chief|elder|ruler/, ["I have led men, and they followed me.", "I have little to say for myself, but my word holds.", "I know how men are led, and what they will bear."]],
+const TradeWords: readonly (readonly [RegExp, readonly [readonly [string, string], string, string]])[] = [
+  [/scribe/, [["I write the tongue of the courts as the great kings' scribes write it, and no tablet of mine was ever sent back.", "I have written letters for kings to their brothers, and none was ever misread."], "I am slow of speech, but I copy a tablet word for word.", "I read and write the tongue of the courts, and I keep a tally true."]],
+  [/interpreter|envoy/, [["I have stood before kings in three courts and put their words into each other's tongues.", "I have carried a king's greeting to his brother and brought back gold with the answer."], "I am no great speaker, but I give a king's words as he said them.", "I know the tongues of the courts, and I carry a message as it was given."]],
+  [/caravan|herdsman|wanderer/, [["I have taken loads across the steppe and lost none to robbers.", "I have crossed the desert in the dry season and brought every donkey home."], "I know the wells and the stages of the road, and I keep to them.", "I know the roads, their wells and their tolls."]],
+  [/merchant|trader/, [["I have traded in every market between the sea and the rivers, and never come home at a loss.", "I have bought copper off the ships and sold it inland at twice the price."], "I am a plain trader, but my weights are true.", "I know the markets and what each of them will pay."]],
+  [/chariot/, [["My team has carried a king's bowman through the press and out again.", "I have driven my horses through a rout and turned them before the enemy did."], "I am a horseman, not a speaker; I go where I am sent.", "I know horses, and how a king's chariots march and camp."]],
+  [/soldier/, [["I have stood in the front rank against the spears and come home every time.", "I was on the walls when the town was stormed, and I am still here."], "I am a soldier, not a speaker; I go where I am sent.", "I know how armies march and where they camp."]],
+  [/sailor/, [["I have sailed the length of the coast and never lost a cargo.", "I have brought a ship through a winter storm with her hold dry."], "I know ships and harbours, and little else.", "I know the harbours of the coast and the men in them."]],
+  [/priest|physician/, [["Kings have sought my counsel, and the gods have heard me.", "I have healed men the other physicians gave up for dead."], "I served in the temple, and I keep my word as I kept its rites.", "I know the temples and the people who come to them."]],
+  [/steward/, [["I kept a palace's stores, and not a jar went missing in my years.", "I ran a great house through a lean year, and nobody in it went hungry."], "I kept a household's stores; I count well and say little.", "I know how a court is run, and who runs it."]],
+  [/chief|elder|ruler/, [["Men left their villages to follow me, and none went back.", "I held my people together through a bad year, and they still call me lord."], "I have little to say for myself, but my word holds.", "I know how men are led, and what they will bear."]],
 ];
 
-function tradeWords(calling: string): readonly [string, string, string] {
+function tradeWords(calling: string): readonly [readonly [string, string], string, string] {
   return TradeWords.find(([pattern]) => pattern.test(calling))?.[1] ?? [
-    "I have served great men, and none had cause to complain of me.",
+    ["I have served great men, and none had cause to complain of me.", "Every master I served kept me until he had no more use for a man."],
     "I am a plain servant and no great speaker, but I keep my word.",
     "I know the courts of the Great Kings and their ways, and I carry a message as it was given.",
   ];
@@ -395,7 +397,7 @@ function pitch(ctx: MindContext): MindReply {
   // What it says it can do is what it believes ("Seeing oneself"): the overconfident claim more.
   const believed = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
   const words = tradeWords(c.calling);
-  lines.push(t.greed >= 60 || t.ambition >= 65 || believed >= 75 ? words[0] : believed < 45 && t.loyalty >= 55 ? words[1] : words[2]);
+  lines.push(t.greed >= 60 || t.ambition >= 65 || believed >= 75 ? pick(words[0], `0|${c.id}`) : believed < 45 && t.loyalty >= 55 ? words[1] : words[2]);
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
   if (defected !== null && t.loyalty < 50 && name === null) lines.push("I left my last master; I had cause.");
   // Item 11a, "Hiring as a negotiation": it plays courts against each other, citing a real offer, and a greedy, disloyal one

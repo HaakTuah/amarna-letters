@@ -88,7 +88,7 @@ P.peopleSeason = function (food) {
     this.spendAt(w.home, w.savings);
     const holder = owner(w.home);
     if (w.deported && holder !== null && holder !== w.by)
-      say(holder, `${people(w.men)} people sent on the road by ${w.by}, deported or sent back as runaways, reached ${Map.get(w.home).name} and settled there.`);
+      say(holder, `Those sent on the road by ${w.by}, deported or sent back as runaways, reached ${Map.get(w.home).name} and settled there: ${people(w.men)} people.`);
   }
   S.walking = S.walking.filter((w) => w.arrives > S.turn);
   S.corvee.clear();
@@ -254,7 +254,9 @@ P.peopleSeason = function (food) {
 
 /** A count of people as a king reads it. */
 export function people(n: number): string {
-  return n >= 10_000 ? `${Math.round(n / 1000)} thousand` : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")} thousand` : `${n}`;
+  if (n < 1000) return `${n}`;
+  const k = n >= 10_000 ? `${Math.round(n / 1000)}` : (n / 1000).toFixed(1).replace(/\.0$/, "");
+  return k === "1" ? "a thousand" : `${k} thousand`;
 }
 
 /** A levy takes its `n` men from the men of fighting age of the province: false, taking none, if it has too few. */
@@ -290,7 +292,7 @@ P.menHome = function (u, settle) {
     shift(this.peopleOf(u.province), men, men);
     this.spendAt(u.province, savings);
     logEvent(S, "colonists", `${u.power} settled the men of its ${u.kind === "Army" ? "army" : "fleet"} in ${where.name} as colonists.`, [u.power], "colonists");
-    return `its ${people(men)} men settled in ${where.name} as colonists`;
+    return `its men settled in ${where.name} as colonists, ${people(men)} of them`;
   }
   if (u.province === u.home) {
     shift(this.peopleOf(u.home), men, men);

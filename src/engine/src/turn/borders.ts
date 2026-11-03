@@ -91,9 +91,9 @@ P.refuge = function (from, n, why) {
   const nameA = Map.get(from).name;
   const nameB = Map.get(best).name;
   // Word of it comes from each land to its king's court, by the road if far (bug #517).
-  if (a !== null && isAlive(S, a)) this.tell(a, from, "Notice", PeopleTitle, `${people(n)} people of ${nameA} fled ${why} into ${nameB}${b !== null ? `, ${b}'s land` : ""}.`);
+  if (a !== null && isAlive(S, a)) this.tell(a, from, "Notice", PeopleTitle, `From ${nameA}, ${people(n)} people fled ${why} into ${nameB}${b !== null ? `, ${b}'s land` : ""}.`);
   if (b !== null && isAlive(S, b))
-    this.tell(b, best, "Notice", PeopleTitle, `${people(n)} people fled ${why} from ${nameA}${a !== null ? `, ${a}'s land,` : ""} into ${nameB}. You may settle them (order welcome)${a !== null ? ` or send them back (order return runaways)` : ""}.`);
+    this.tell(b, best, "Notice", PeopleTitle, `Into ${nameB} came ${people(n)} people fleeing ${why} from ${nameA}${a !== null ? `, ${a}'s land` : ""}. You may settle them (order welcome)${a !== null ? ` or send them back (order return runaways)` : ""}.`);
   logEvent(S, "refugees", `${people(n)} people fled ${why} from ${nameA} into ${nameB}.`, [...this.nearOf(from, a), ...this.nearOf(best, b)], "refugees");
 };
 

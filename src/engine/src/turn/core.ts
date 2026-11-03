@@ -170,7 +170,7 @@ export class TurnEngine {
       // Written before the season's audiences and envoys' returns: their gold comes after this figure.
       const lines = notes.getOrDefault(p, []);
       if (troops.paid > 0) lines.push(`Your troops were paid ${formatMoney(troops.paid)}.`);
-      lines.push(`The treasury now holds ${formatMoney(ledger(t))}, before what this season's audiences and envoys bring in.`);
+      lines.push(`The treasury now holds ${formatMoney(ledger(t))}.`);
       if (troops.unpaid.length > 0)
         lines.push(`Not paid this season: ${troops.unpaid.join(", ")}. A unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`);
       if (troops.held.length > 0) lines.push(`Held back from pay by your standing order: ${troops.held.join(", ")}; they count it as a season of missing pay.`);

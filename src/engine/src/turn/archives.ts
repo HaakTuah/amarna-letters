@@ -159,7 +159,7 @@ P.archiveArrives = function (holder, tabletIds, court, place) {
  */
 P.copyLine = function (copy) {
   const t = this.s.tablets.find((x) => x.id === copy.tabletId)!;
-  return `${Views.tabletName(t, this.archive(copy.holder))} (your copy ${copy.id})`;
+  return `${Views.tabletName(t, this.archive(copy.holder))} (marked ${copy.id} in your archive)`;
 };
 
 const CopyMark = rx("\\b(?:(?:the\\s+)?(?:tablet|copy)\\s+)?(?<id>k\\d+)\\b", "gi");
@@ -237,5 +237,5 @@ export function goldName(holder: Power, lot: GoldLot, lots: Iterable<GoldLot>): 
 /** The line the engine adds to a spy's report for the copies that came home with it. */
 P.copiesLine = function (spy, court, copyIds) {
   const S = this.s;
-  return `[With this report came copies ${spy.name} made in the archive of ${court}, now in your archive: ${[...copyIds].map((id) => this.copyLine(S.copies.find((k) => k.id === id)!)).join(", ")}.]`;
+  return `[With this report came copies ${spy.name} made in the archive of ${court}: ${[...copyIds].map((id) => this.copyLine(S.copies.find((k) => k.id === id)!)).join(", ")}.]`;
 };
