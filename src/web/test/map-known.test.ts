@@ -11,11 +11,11 @@ import { ownerFor, type SeasonFrame } from "../src/session/frames.ts";
 // hand-built seasons, two powers and one city.
 function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
   return {
-    index, turn: index + 1, ended: false, endReason: null, winners: [], owner: new Map(), walls: new Map(), knownWalls: new Map(),
+    index, turn: index + 1, ended: false, endReason: null, winners: [], owner: new Map(), walls: new Map(), knownWalls: new Map(), knownSieges: new Map(),
     knownOwner: new Map(), sieges: [], units: [], moves: [], seenBy: new Map(), sight: new Map(), journeys: [], people: new Map(),
     sleep: new Map(), eliminated: new Set(), events: [], news: [], inboxCount: new Map(), openAge: false, ageBand: "Usual",
     ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), counted: new Map(), fed: new Map(),
-    unrest: new Map(), caravans: [], walking: [], omen: "Quiet", governed: new Map(), governedKnown: new Map(), bonds: new Map(), knownBonds: new Map(), moodRead: new Map(), obeyed: new Map(), ...over,
+    unrest: new Map(), caravans: [], knownCaravans: new Map(), walking: [], omen: "Quiet", governed: new Map(), governedKnown: new Map(), bonds: new Map(), knownBonds: new Map(), moodRead: new Map(), obeyed: new Map(), ...over,
   } as SeasonFrame;
 }
 
@@ -85,6 +85,16 @@ describe("MapKnownTests", () => {
     // Hatti, which took it unseen by Egypt but knows it holds it, sees it as it is.
     const hatti = fs.map((f) => ({ ...f, knownOwner: new Map([["Hatti" as Power, new Map([[city.id, { owner: (f.index >= 1 ? "Hatti" : "Egypt") as Power, turn: f.turn }]])]]) }));
     Assert.equal(3000, remember(hatti, 2, "Hatti", new Set()).towns.get(city.id)?.now);
+  });
+
+  test("A far city the seat holds shows the figures of the season its word is from, as the engine's reports do (bug #540)", () => {
+    // Egypt holds the city throughout, out of its sight; word from it is a season old (report i - 1 in frame i). A frame of
+    // turn T holds the land as season T - 1 ended, so report i - 1 is frame i - 1; the first, report 0, is frame 0.
+    const fs = [0, 1, 2, 3].map((i) => frame(i, { owner: new Map([[city.id, "Egypt"]]), knownOwner: word("Egypt", Math.max(0, i - 1)), stores: new Map([[city.id, 10 * i]]) }));
+    Assert.equal(0, ownFiguresAt(fs, 0, "Egypt", city.id));
+    Assert.equal(0, ownFiguresAt(fs, 1, "Egypt", city.id));
+    Assert.equal(1, ownFiguresAt(fs, 2, "Egypt", city.id));
+    Assert.equal(2, ownFiguresAt(fs, 3, "Egypt", city.id));
   });
 
   test("A province card tells of a city lost out of sight only what the stewards last sent; nothing of its new holder", () => {

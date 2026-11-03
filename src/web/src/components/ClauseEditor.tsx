@@ -1,6 +1,7 @@
 import { AllPowers, WorldMap, clause, renderClause, type Clause, type ClauseKind, type Power } from "@amarna/engine";
 import { useState } from "react";
 import { powerName } from "../ui/format.ts";
+import { num } from "./orders/form.ts";
 
 /** The fields each kind of clause uses (item 8: the templates of structured press). */
 const Uses: Record<ClauseKind, readonly ("king" | "province" | "into" | "season" | "gold" | "answers")[]> = {
@@ -64,7 +65,6 @@ const Groups: [string, [ClauseKind, string][]][] = [
 ];
 
 const Answerable: ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing", "tollFree", "fugitives", "askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "askPassage", "askBasing", "askTollFree", "gift"];
-const num = (s: string): number => (s.trim() === "" || !Number.isFinite(Number(s)) ? 0 : Math.trunc(Number(s)));
 
 /**
  * Builds a letter's, a tablet's or an answer's clauses from the templates (build order item 8). Each clause shows its words

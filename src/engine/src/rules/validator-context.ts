@@ -9,6 +9,7 @@ import type { HireOrder, Order } from "../model/orders.ts";
 import type { Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import type { GameState, Unit } from "../model/state.ts";
+import type { WorkKind } from "../model/works.ts";
 
 export interface Checking {
   readonly S: GameState;
@@ -37,6 +38,12 @@ export interface Checking {
   Sight(): HSet<string>;
   /** Who this court knows holds the province (bug #467): as it sees it, or as word last brought it; null for none or the sea. */
   knownOwner(province: string): Power | null;
+  /** Whether this court knows the province besieged (bug #517): as it sees it, or as word of the siege has come. */
+  knownSiege(province: string): boolean;
+  /** The walls of the province as this court knows them (bug #517): as it sees them, or as it last saw them. */
+  knownWalls(province: string): number;
+  /** The level of a kind in a province of its own as this court knows it (bug #540): as its view shows its works. */
+  knownWork(kind: WorkKind, province: string): number;
   nobody(id: string): string;
   covered(c: Character): boolean;
   hireRefusal(h: HireOrder): [string | null, Character | null];

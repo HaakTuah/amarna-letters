@@ -283,7 +283,7 @@ P.menHome = function (u, settle) {
   if (u.home === "") return "";
   const where = this.map.get(u.province);
   if (where.isSea) {
-    S.walking.push({ home: u.home, men, arrives: S.turn + 1, savings, deported: false, by: "", route: [], departs: S.turn, from: "" });
+    S.walking.push({ home: u.home, men, arrives: S.turn + 1, savings, deported: false, by: "", route: [], departs: S.turn, from: u.province });
     return "its crews sail home with their savings";
   }
   if (settle) {
@@ -304,7 +304,7 @@ P.menHome = function (u, settle) {
   const kept = men <= 0 ? savings : savings - idiv(savings * lost, men);
   this.peopleOf(u.province).loose += lost;
   const seasons = Math.max(1, Math.ceil((Number.isFinite(days) ? days : S.config.travelDays) / Math.max(1, S.config.travelDays)));
-  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons, savings: kept, deported: false, by: "", route: [], departs: S.turn, from: "" });
+  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons, savings: kept, deported: false, by: "", route: [], departs: S.turn, from: u.province });
   return `its men walk home to ${this.map.get(u.home).name} with their savings, ${seasons === 1 ? "next season" : `in ${seasons} seasons`}` + (lost > 0 ? `; ${people(lost)} of them never set out and stay as loose men in ${where.name}` : "");
 };
 

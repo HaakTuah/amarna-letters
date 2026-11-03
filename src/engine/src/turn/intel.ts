@@ -8,7 +8,7 @@ import { cmpStr, isBlank } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, ForgeOrder } from "../model/orders.ts";
 import { coverOf, gain, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
-import { AllPowers, land, type Power } from "../model/power.ts";
+import { AllPowers, land, type Power, quoteWords } from "../model/power.ts";
 import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
 import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -736,7 +736,7 @@ P.finishAuthentication = function (task) {
     task.requester,
     "Authentication",
     "Examination of a tablet",
-    `${Views.capitalized(Views.tabletName(tablet, this.archive(task.requester)))} (your copy ${copy.id}): "${tablet.text}" — ${result}`,
+    `${Views.capitalized(Views.tabletName(tablet, this.archive(task.requester)))} (your copy ${copy.id}): ${quoteWords(tablet.text)} — ${result}`,
   );
   logEvent(S, "authenticate", `${task.requester} paid to authenticate a tablet.`, [task.requester], "authentication");
 };

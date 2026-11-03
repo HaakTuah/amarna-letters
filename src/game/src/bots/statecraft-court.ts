@@ -27,7 +27,6 @@ import {
   placeSpy,
   recall,
   release,
-  renew,
   roundEven,
   seekCandidates,
   sortBy,

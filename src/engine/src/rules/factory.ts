@@ -222,15 +222,14 @@ function openingBonds(s: GameState): void {
  * treasuries, since the letters give weights of gold the game does not reckon in. From the letters dossier ("Between the
  * Great Kings"): the solid-gold statues Amenhotep III promised Tushratta, which came from Akhenaten as gilded wood (EA
  * 26, 27, 29) [A the claim]; the silver of Burna-Buriash's merchants killed at Hinnatuna and the goods of Salmu's caravan
- * robbed twice in Pharaoh's lands, which he demands made good (EA 7-8) [A]; and copper from Alashiya to Egypt, which EA 35
- * does not show as a debt (the king calls his five hundred talents a gift, few for the plague, and asks for the value of
- * the timber Egypt takes), kept as built until the owner decides (#476). Each falls due within the first year, as
- * the letters press for it now; nothing enforces it ("Debts are facts; repayment is a choice").
+ * robbed twice in Pharaoh's lands, which he demands made good (EA 7-8) [A]. Alashiya owes Egypt nothing: EA 35 calls its
+ * five hundred talents of copper a gift, few for the plague, and asks for the value of the timber Egypt takes (the owner,
+ * #476). Each falls due within the first year, as the letters press for it now; nothing enforces it ("Debts are facts;
+ * repayment is a choice").
  */
 const StartDebts: readonly { lender: Power; borrower: Power; owed: number; due: number }[] = [
   { lender: "Mitanni", borrower: "Egypt", owed: 200, due: 4 },
   { lender: "Babylonia", borrower: "Egypt", owed: 60, due: 4 },
-  { lender: "Egypt", borrower: "Alashiya", owed: 80, due: 4 },
 ];
 
 function openingDebts(s: GameState): void {
@@ -246,15 +245,15 @@ interface Seed {
 
 const seed = (name: string, origin: string, attested: boolean): Seed => ({ name, origin, attested });
 
-// Names attested in the Amarna letters (envoys and officials), then regional name styles.
+// Names attested in the Amarna letters (envoys and officials), each of the court he served (#486), then regional name styles.
 const Attested: Seed[] = [
-  seed("Mane", "Waset", true),
+  seed("Mane", "Akhetaten", true),
   seed("Keliya", "Washukanni", true),
   seed("Pirissi", "Washukanni", true),
-  seed("Tulubri", "Taidu", true),
-  seed("Haamashshi", "Men-nefer", true),
+  seed("Tulubri", "Washukanni", true),
+  seed("Haamashshi", "Akhetaten", true),
   seed("Artessupa", "Washukanni", true),
-  seed("Mazipalali", "Harran", true),
+  seed("Mazipalali", "Washukanni", true),
   seed("Yanhamu", "Gubla", true),
 ];
 
@@ -515,7 +514,9 @@ function create(s: GameState, rng: Rng, sd: Seed, callingAs: string | null = nul
     c.facts.push(newFact({ id: newId(s, "f"), text, secrecy, tag }));
   };
 
-  add(`Born in ${c.origin}.`, "Public", "origin");
+  // A person of 1346 is shown where the sources put him serving, since none of them gives a birthplace; an invented one where
+  // he was born (#486).
+  add(sd.attested ? `Of ${c.origin}.` : `Born in ${c.origin}.`, "Public", "origin");
   add(`Served as ${calling(c)}.`, "Public", "calling");
   if (sd.attested) add("Known by name at more than one royal court.", "Public", "renown");
 

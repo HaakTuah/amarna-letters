@@ -21,7 +21,7 @@ which the elevation draws; where a period name is given, the source is named.
 | River | Course | Grade and source |
 | --- | --- | --- |
 | <a id="13-orontes"></a>**The Orontes** | From its springs in the northern Beqaa past Qadesh, Qatna's country and the Amuq plain to the sea | B. Bryce, Letters, p. 133: "Qatna lay east of the Orontes river, some 40 kilometres to the north-east of Kadesh" |
-| <a id="13-litani"></a>**The Litani** | From west of Baalbek down the southern Beqaa, round the foot of the Lebanon to the sea north of Tyre | B |
+| <a id="13-litani"></a>**The Litani** | From west of Baalbek down the southern Beqaa, round the foot of the Lebanon to the sea north of Tyre | B. Pleiades: a Roman bridge "crosses the Litani River (Leontes)", "approximately 10 km north of Tyre" (679506); Beaufort Castle "above the Litani River gorge in southern Lebanon" (812828781); named in Papyrus Anastasi I, 13th century (ANET, p. 477, Wilson): "Where is the stream of the Litani?" |
 | <a id="13-jordan"></a>**The Jordan** | From its springs at the foot of Hermon (by Dan and Banias) through Lake Huleh and the Sea of Galilee to the Dead Sea | A, thirteen centuries later. Josephus, *Jewish War* 3.10.7 (Whiston): "divides the marshes and fens of the lake Semechonitis ... passes through the middle of the lake Gennesareth ... into the lake Asphaltites" |
 | <a id="13-khabur"></a>**The Khabur** (*Habur*) | From the springs of Ras al-Ain, through Mitanni's heartland, to the Euphrates | B. Moran, index of names ("Hanigalbat"): "the political center lay between the Balih and Habur Rivers" |
 | <a id="13-balikh"></a>**The Balikh** (*Balih*) | From the spring of Ain al-Arus by Harran's plain to the Euphrates | B. Pleiades, "Balihu/Balissus (river)" |
@@ -37,7 +37,7 @@ which the elevation draws; where a period name is given, the source is named.
 | <a id="13-kalykadnos"></a>**The Kalykadnos** (Göksu) | Rough Cilicia, to the sea | B. Pleiades, "Calycadnus (river)": "The most important river of Cilicia Tracheia" |
 | <a id="13-hermos"></a>**The Hermos** (Gediz) | The Aegean side; the Seha River Land is placed on it or the Kaikos | B for the river; C for the Seha. Pleiades, "Hermus (river)": "The Gediz River" |
 | <a id="13-kaystros"></a>**The Kaystros** (Küçük Menderes) | The Aegean side, by Apasa ([02-geography.md](02-geography.md), `02-apasa-millawanda`) | B. Pleiades, "Cayster (river)": "The Küçükmenderes River" |
-| <a id="13-maeander"></a>**The Maeander** | The Aegean side | B |
+| <a id="13-maeander"></a>**The Maeander** | The Aegean side | B. Pleiades, "Maeander (river)" (599777): "The Maeander (modern Büyük Menderes River) is a river of Caria in southwestern Asia Minor" |
 
 ## Lakes and marshes of 1346
 
@@ -48,6 +48,10 @@ Where the water of 1346 differs from today's, drawn as follows (latitude, longit
 - <a id="13-faiyum-lake"></a>**The Faiyum's lake** (Lake Moeris to the Greeks), of which Birket Qarun (about 29.38-29.60 N, 30.35-30.95 E) is the remnant [B]; how much larger it was in the New Kingdom, and its shore then, no source checked gives [C]. Pleiades, "Moeris (lake)": "its surviving modern remnant is Birket Qarun"
 - <a id="13-lake-mareotis"></a>**Lake Mareotis** behind Egypt's western coast, then a lagoon fed more by the sea than by the Nile [B for the lagoon, C for its outline]. C. Flaux et al., *Quaternary Science Reviews* 78 (2013): "A fully marine-like signature is recorded from ~3.8 to ~2.8 ka cal. BP"
 - <a id="13-delta-lagoons"></a>**The lagoons of the Delta's shore** (Idku, Burullus, and in the north-east where Lake Manzala lies), and in north-west Sinai a lagoon into which the Pelusiac branch's forerunners emptied [B for lagoons and marshes along the shore, C for their outlines]. H. Howa and D. J. Stanley, *Journal of Coastal Research* (1991): "coastal ridges, behind which back-barrier marshes and lagoons formed", their peats about 7500-1700 years BP in the north-central delta and "about 4000 to 2500 years BP" in the north-east; J. Hoffmeier (2023), on Tell el-Borg: "the paleo-lagoon that had direct access to the Mediterranean"
+- <a id="13-hammar"></a>**The Hammar's marshes** below Ur, between the river port and the estuary of 1346 (about 30.65-30.95 N,
+  46.5-47.45 E): freshwater reed beds by Kassite times, a Kassite-period settlement (Tel Aqram, about 30.75 N, 46.9 E) on
+  dry land at their southern edge (Hansman, *Geographical Journal* 144, 1978, pp. 58-59), the marsh last marine about
+  4300 years ago (Sanlaville and Dalongeville 2005) [G for the outline].
 - <a id="13-gulf-head-marshes"></a>**The marshes at the Gulf's head**: reed beds and standing water round Lagash and Girsu, east of Ur and along the lower Tigris towards Susa's plain (about 30.95-31.95 N, 46.2-47.8 E), with the Gulf's head further north than today's ([02-geography.md](02-geography.md), `02-gulf-head`) [C: the evidence checked is for the Early Dynastic period, about 2900-2350 BC, and the wetlands shrank in the later third and second millennia, so the marshes of 1346, and their reach towards Girsu and Susa, are read back]. E. Hammer, *Journal of Anthropological Archaeology* 68 (2022), as reported by *Science News*, of Early Dynastic Lagash: "a vast urban settlement called Lagash largely consisted of four marsh islands"
 
 ## Relief

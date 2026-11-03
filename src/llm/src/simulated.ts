@@ -4,7 +4,8 @@
  */
 import type { ApiTransport } from "./anthropic.ts";
 import type { ApiResult } from "./client.ts";
-import { ReportText, ReportToSender, type JsonObject } from "./schemas.ts";
+import type { JsonObject } from "./schema-tools.ts";
+import { ReportText, ReportToSender } from "./schemas-audience.ts";
 
 export class SimulatedApi implements ApiTransport {
   readonly requests: JsonObject[] = [];

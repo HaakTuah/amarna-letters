@@ -8,7 +8,7 @@ import { parsePower, trim, trimStart, type Power } from "@amarna/engine";
 import { failing, type ModelCall } from "@amarna/game";
 import type { CallSpec, JsonAsker } from "./client.ts";
 import { King, converse, requestText } from "./exchange.ts";
-import type { JsonObject } from "./schemas.ts";
+import type { JsonObject } from "./schema-tools.ts";
 
 export const DefaultAddress = "http://localhost:5190";
 

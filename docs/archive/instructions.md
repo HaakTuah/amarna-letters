@@ -1524,3 +1524,14 @@ Given in the design chat with Claude, answering the design questions of the cons
     for text a player reads, and a monthly fresh-eyes check of only the text changed since the last): "Yes, please,
     expertly!" Written into the review guidelines in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`; the same
     in Barkstreet Snakes.
+182. **2 November 2026, 22:00 UTC**, in the design chat, to the design session's takes on five ideas from the reviews
+    (#549, #550, #553 into part D, #554, #562): "Yes to all, expertly!" Written into "Follow-ups" in
+    `docs/BUILD-PROGRESS.md`.
+183. **2 November 2026, 22:26 and 22:29 UTC**, in the design chat: "How are we doing with the codex reviews now?" Then,
+    to the design session's finding (13 of 16 PRs asked for a security review, splits, cleanups and history batches
+    among them, some three times) and take (never for proven-unchanged refactors, docs or history; once means once;
+    the wake report counts the asks): "Yes, expertly sir!" Written into "Codex reviews" in `docs/claude-and-codex.md`
+    and the wake report in `docs/orchestrating.md`; the same in Barkstreet Snakes.
+184. **2 November 2026, 23:08 UTC**, in the design chat, to the design session's takes on four ideas from
+    the reviews (#566, #539, #543 after part D's follow-ups, #578): "Yes to all, expertly!" Written into "Follow-ups" in
+    `docs/BUILD-PROGRESS.md`.

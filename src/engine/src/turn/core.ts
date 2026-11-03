@@ -15,26 +15,24 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv, roundEven, toInt } from "../core/num.ts";
 import { Rng } from "../core/rng.ts";
-import { cmpNum, count, desc, distinct, groupBy, sortBy, sum } from "../core/seq.ts";
-import { cmpStr } from "../core/text.ts";
+import { cmpNum, count, distinct, sortBy, sum } from "../core/seq.ts";
 import type { GameConfig } from "../model/config.ts";
 import { newMindRequest, type MindRequest } from "../model/exchanges.ts";
-import { terrainOf } from "../model/geography.ts";
-import { StartWalls, WorldMap } from "../model/map.ts";
-import { EconomyData, harvestOf, taxOf } from "../model/economy.ts";
+import { WorldMap } from "../model/map.ts";
+import { EconomyData } from "../model/economy.ts";
 import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
 import { setNameClaims, setRisen, type Power } from "../model/power.ts";
-import { Views } from "../rules/views.ts";
-import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
+import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { SeatView } from "../model/views.ts";
 import type { PlannedOrder } from "../model/sleep.ts";
 import { wordSeasons } from "../model/travel.ts";
 import type { Firing } from "./plans.ts";
+import { recordReports } from "../rules/province-reports.ts";
 
 export class TurnEngine {
   readonly s: GameState;
@@ -47,7 +45,7 @@ export class TurnEngine {
     // The powers risen in play are the state's (item 13+): a loaded or replayed game brings its own.
     setRisen(state.risen);
     // And the names they claim (item 17+), which the functions naming a power read.
-    setNameClaims(state.names, state.eliminated, state.nameGiven, state.namesHeard);
+    setNameClaims(state.names, state.eliminated, state.nameGiven, state.namesHeard, state.fallsHeard);
   }
 
   /** The stream for a roll this season. */
@@ -99,6 +97,9 @@ export class TurnEngine {
     S.audiences.length = 0;
     S.counterIntel.clear();
     this._missedPayNow.clear();
+    // Bug #540: each held province's report of the season just ended, which goes to its holder as word does.
+    recordReports(this);
+    this.caravanWordsHome();
     // A siege whose army is gone since it was last pressed (disbanded, given away, lost to plague) is over: it costs nothing.
     this.liftLostSieges();
     this.incomeAndUpkeep();
@@ -161,7 +162,6 @@ export class TurnEngine {
    */
   incomeAndUpkeep(): void {
     const S = this.s;
-    const Map = this.map;
     const notes = this.harvestSeason();
     this.townsEat();
     for (const p of alive(S)) {
@@ -268,9 +268,6 @@ export class TurnEngine {
     const S = this.s;
     const old = S.owner.getOrDefault(province, null);
     if (old === owner) return;
-    // Item 17++: the old holder's last report of it, as his officials sent it before the loss, if his couriers cannot
-    // bring him word of the loss within the season.
-    const report = old !== null && this.wordTo(old, province) > 0 && isAlive(S, old) && !this.map.get(province).isSea ? Views.provinceEconomy(S, this, this.map, province) : null;
     S.owner.set(province, owner);
     // Item 17: when it changed hands. What its people remember of each actor stays with them (item 17++).
     S.takenAt.set(province, S.turn);
@@ -281,16 +278,12 @@ export class TurnEngine {
     S.shares.delete(province);
     S.amounts.delete(province);
     // The king who lost it knows at once, as his notice tells him, though it leaves his sight; since item 13 only where
-    // his couriers bring word within the season (farther off, word of it comes as word does).
+    // his couriers bring word within the season (farther off, word of it comes as word does, and his officials' last
+    // reports stand in his view until then: bug #540, GameState.reports).
     if (old !== null && this.wordTo(old, province) === 0) {
       let book = S.known.tryGet(old);
       if (book === undefined) S.known.set(old, (book = new Dict()));
       book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));
-    } else if (old !== null && report !== null) {
-      // Out of his couriers' reach: that report stands in his view until word arrives.
-      let last = S.ownLast.tryGet(old);
-      if (last === undefined) S.ownLast.set(old, (last = new Dict()));
-      last.set(province, report);
     }
     S.ownerLog.push(newOwnerChange({ province, turn: S.turn, owner }));
     // Item 17++: how firmly it obeys its new holder, reckoned now, not inherited from the old.

@@ -5,19 +5,21 @@ import { type GameConfig, GameConfigSchema, newGameConfig } from "./config.ts";
 import { type UnitKind, WorldMap } from "./map.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import { type Character, CharacterSchema } from "./people.ts";
-import { AllPowers, type Power, type RisenPower, cmpPower } from "./power.ts";
+import { AllPowers, type Power, type RisenPower, cmpPower, namedFor, unmarked } from "./power.ts";
 import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
-import { type Claim, ClaimSchema, type NameClaim, NameClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
+import { type Claim, ClaimSchema, type HeardName, HeardNameSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 import { type Grant, GrantSchema } from "./authority.ts";
 import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
 import { type Toll, TollSchema } from "./trade.ts";
-import { type MarketSeen, MarketSeenSchema, type ProvinceEconomyView, ProvinceEconomyViewSchema } from "./views.ts";
+import { type MarketSeen, MarketSeenSchema } from "./views.ts";
 import type { People } from "./land.ts";
 import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts";
 import { type MoodRead, MoodReadSchema } from "./moods.ts";
 import { type Declaration, DeclarationSchema } from "./declarations.ts";
+import { type SiegeEnded, SiegeEndedSchema } from "./sieges-ended.ts";
+import { type ProvinceReport, ProvinceReportSchema } from "./province-reports.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
 import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, type GovernorGone, GovernorGoneSchema, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
@@ -42,7 +44,8 @@ export interface Walk {
    * Item 11a+ ("Deportation": deportees walk the route like any company, so they can be freed on the way): for deportees,
    * the road they walk, the season they set out and the province they were taken from. A king whose troops stand on the
    * stretch they walk this season and who is not the deporter's friend frees them: the king whose land they were taken
-   * from, or one who closed his roads to the deporter. Empty for everyone else.
+   * from, or one who closed his roads to the deporter (`route` empty for everyone else). Bug #540: for discharged men too,
+   * the season they set out and where from, so their king counts them once word of it could come.
    */
   route: string[];
   departs: number;
@@ -85,7 +88,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 45;
+export const CURRENT_VERSION = 53;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -197,14 +200,17 @@ export interface GameState {
   /** Who called whom brother and granted whom the title, in the greetings sent (item 8). */
   recognition: Recognition[];
   /**
-   * Item 17+ ("A power's name is a claim"): the name each power claims where it claims another than its own land's, and
-   * the season it claimed it. A claim gives nothing by rule.
+   * Item 17+ ("A power's name is a claim"): the name each power claims where it claims another than its own land's. A
+   * claim gives nothing by rule.
    */
-  names: Dict<Power, NameClaim>;
+  names: Dict<Power, string>;
   /** Item 17+: whom each court gives a contested name to, as its greetings last named him (court, then name, to claimant). */
   nameGiven: Dict<Power, Dict<string, Power>>;
-  /** Item 17+: the name each court last read a claimant styled by in his sealed greetings (court, then claimant, to name). */
-  namesHeard: Dict<Power, Dict<Power, string>>;
+  /**
+   * Item 17+: the name each court last read a claimant styled by in his sealed greetings, with the season it was sealed
+   * (court, then claimant, to name), his own land's included.
+   */
+  namesHeard: Dict<Power, Dict<Power, HeardName>>;
   /**
    * The season the age ended in, when the table chose to play on into an open age after it ("An open age"); its winners
    * and reason stay recorded in {@link winners} and {@link endReason}. Null otherwise.
@@ -253,6 +259,8 @@ export interface GameState {
   fallsHeard: Dict<Power, Power[]>;
   /** The sieges under way: a foreign army standing in a walled city, ordered to besiege it. */
   sieges: Siege[];
+  /** Sieges ended lately, kept until word of their end has reached every court (bug #517; model/sieges-ended.ts). */
+  siegesEnded: SiegeEnded[];
   /**
    * Item 17++ ("Loyalty is a ledger"): each province's people's ledger, by actor (a power, or a character's id), in points:
    * what he gave them less what he took, fading each season (`UnrestData`). Never shown as a number to anyone.
@@ -264,10 +272,10 @@ export interface GameState {
    */
   obeyed: Dict<string, number>;
   /**
-   * Item 17++: each court's last report of a province of its own lost out of its sight, until word of the loss arrives: its
-   * seat view goes on showing it as it last knew it (the engine's view follows what the court knows, as its map does).
+   * Bug #540: each held province's reports to its holder, a season each, the newest last, for as long as any word could
+   * take (model/province-reports.ts): a court shows its land beyond its couriers' season as their word brings it.
    */
-  ownLast: Dict<Power, Dict<string, ProvinceEconomyView>>;
+  reports: Dict<string, ProvinceReport[]>;
   /**
    * The grain in each land province's stores, in measures (build order item 9+a, "Production is local"): the tax in goods
    * goes in, armies standing there by their king's leave eat from it, caravans carry it away, and it falls with the
@@ -306,6 +314,8 @@ export interface GameState {
   fed: Dict<string, number>;
   /** The caravans on the road (item 9+a, "Caravans carry a kingdom's goods"), and ships in cargo service (item 9+b). */
   caravans: Caravan[];
+  /** Bug #540: caravans whose journey ended lately, each with its last report, kept until word of the end could come. */
+  caravansGone: Caravan[];
   /** The tolls each power sets on goods entering its land (item 9+b, "Tolls and smuggling"); standing until changed. */
   tolls: Toll[];
   /** Foreign markets as each court last knew them (item 9+b): seen where it sees the land, or found by its traders. */
@@ -497,12 +507,14 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     grants: [],
     fallsHeard: new Dict(),
     sieges: [],
+    siegesEnded: [],
     ledger: new Dict(),
     obeyed: new Dict(),
-    ownLast: new Dict(),
+    reports: new Dict(),
     stores: new Dict(),
     markets: new Dict(),
     caravans: [],
+    caravansGone: [],
     tolls: [],
     marketsSeen: new Dict(),
     payRecords: new Dict(),
@@ -596,9 +608,9 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   finalByCap: B,
   claims: list(() => ClaimSchema),
   recognition: list(() => RecognitionSchema),
-  names: dict(() => NameClaimSchema),
+  names: dict(S),
   nameGiven: dict(dict(S)),
-  namesHeard: dict(dict(S)),
+  namesHeard: dict(dict(() => HeardNameSchema)),
   ageEndedTurn: opt(I),
   ageWinners: list(S),
   owner: dict(opt(S)),
@@ -613,9 +625,10 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   grants: list(() => GrantSchema),
   fallsHeard: dict(list(S)),
   sieges: list(() => SiegeSchema),
+  siegesEnded: list(() => SiegeEndedSchema),
   ledger: dict(dict(I)),
   obeyed: dict(I),
-  ownLast: dict(dict(() => ProvinceEconomyViewSchema)),
+  reports: dict(list(() => ProvinceReportSchema)),
   stores: dict(I),
   markets: dict(() => MarketSchema),
   people: dict(() => PeopleSchema),
@@ -630,6 +643,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   corvee: dict(I),
   fed: dict(I),
   caravans: list(() => CaravanSchema),
+  caravansGone: list(() => CaravanSchema),
   tolls: list(() => TollSchema),
   marketsSeen: dict(dict(() => MarketSeenSchema)),
   payRecords: dict(() => PayRecordSchema),
@@ -865,6 +879,8 @@ export interface Siege {
   blockaded: number;
   /** Item 17: the seasons it has starved under this siege; its gate opens from within after a few ("How long a siege lasts"). */
   hungry: number;
+  /** Bug #517: its progress at the end of each season since it began, so a far court reads it as word of it last came. */
+  history: number[];
 }
 
 export function newSiege(init: Partial<Siege> = {}): Siege {
@@ -876,6 +892,7 @@ export function newSiege(init: Partial<Siege> = {}): Siege {
     since: 0,
     blockaded: 0,
     hungry: 0,
+    history: [],
     ...init,
   };
 }
@@ -888,6 +905,7 @@ export const SiegeSchema: ObjSchema<Siege> = obj("Siege", newSiege, {
   since: I,
   blockaded: I,
   hungry: I,
+  history: list(I),
 });
 
 export interface Treasury {
@@ -1004,7 +1022,13 @@ export function inboxOf(s: GameState, p: Power): InboxItem[] {
   return list;
 }
 
-export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null): void {
+/**
+ * A notice to a court: its powers named as that court knows and gives them (item 17+, {@link namedFor}), unless `named` is
+ * false, for a notice that speaks of a name itself rather than the power it names.
+ */
+export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null, named = true): void {
+  title = named ? namedFor(p, title) : unmarked(title);
+  body = named ? namedFor(p, body) : unmarked(body);
   // A person the court knows by a false name (item 10) is named to it by that name.
   const c = subject === null ? null : (s.characters.find((x) => x.id === subject) ?? null);
   const alias = c === null ? null : (c.declared.find((d) => d.court === p && d.exposed === null)?.name ?? null);
@@ -1043,6 +1067,7 @@ export const IdKinds: ReadonlyMap<string, string> = new Map([
   ["h", "approach between characters"],
   ["j", "journey"],
   ["k", "copy of a tablet"],
+  ["kg", "kingship offered to a man"],
   ["m", "message trail"],
   ["p", "grant of passage or basing"],
   ["pf", "promise to pay kept or broken, as news"],

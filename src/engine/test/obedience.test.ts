@@ -417,6 +417,8 @@ describe("ObedienceTests", () => {
     Assert.false(Views.for(s, "Egypt").provinces.some((x) => x.province === "susa"));
     // Once it knows it holds it, and then loses it out of its sight, it keeps its last report until word of the loss.
     s.known.set("Egypt", new Dict([["susa", newKnown({ owner: "Egypt", turn: s.turn, source: "seen" })]]));
+    // A season begins: its officials' report of the season just ended is kept (bug #540).
+    e.beginTurn();
     Assert.true(Views.for(s, "Egypt").provinces.some((x) => x.province === "susa"));
     const before = Views.for(s, "Egypt").provinces.find((x) => x.province === "susa")!;
     e.setOwner("susa", "Elam");

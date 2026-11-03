@@ -155,10 +155,15 @@ export interface ProvinceEconomyView {
   granary: number;
   crop: number;
   reapsIn: number;
+  /**
+   * Bug #540: the season of the report this is, for a province of the court's beyond its couriers' season (its officials'
+   * report as that season ended, 0 for the start); null when it is as it is now.
+   */
+  reported: number | null;
 }
 
 export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
-  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, counted: null, settled: 0, men: 0, loose: 0, town: 0, room: 0, share: 0, amount: null, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, ...init };
+  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, counted: null, settled: 0, men: 0, loose: 0, town: 0, room: 0, share: 0, amount: null, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, reported: null, ...init };
 }
 
 export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
@@ -185,6 +190,7 @@ export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("Pr
   granary: I,
   crop: I,
   reapsIn: I,
+  reported: opt(I),
 });
 
 /** One of the court's caravans on the road (item 9+a), or ships in cargo service (item 9+b). */
@@ -200,10 +206,12 @@ export interface CaravanView {
   trade: boolean;
   sneak: boolean;
   ship: boolean;
+  /** Bug #540: the season of the report this is, beyond the court's couriers' season; null when it is as it is now. */
+  reported: number | null;
 }
 
 export function newCaravanView(init: Partial<CaravanView> = {}): CaravanView {
-  return { from: "", to: "", grain: 0, at: "", returning: false, gold: 0, trade: false, sneak: false, ship: false, ...init };
+  return { from: "", to: "", grain: 0, at: "", returning: false, gold: 0, trade: false, sneak: false, ship: false, reported: null, ...init };
 }
 
 export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newCaravanView, {
@@ -216,6 +224,7 @@ export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newC
   trade: B,
   sneak: B,
   ship: B,
+  reported: opt(I),
 });
 
 export { type MarketSeen, newMarketSeen, MarketSeenSchema } from "./word.ts";
@@ -973,12 +982,26 @@ export interface NameClaimView {
   name: string;
   claimants: Power[];
   givenTo: Power | null;
+  /**
+   * The claimants whose claim the court read in a sealed greeting, each with the season that greeting was sealed (#550);
+   * a claimant to his own land's name, and the court's own king, need no greeting and have no entry.
+   */
+  heard: HeardClaimView[];
 }
 
-export const NameClaimViewSchema: ObjSchema<NameClaimView> = obj("NameClaimView", () => ({ name: "", claimants: [], givenTo: null }), {
+/** A claim a court read in the claimant's newest sealed greeting to it, and the season that greeting was sealed. */
+export interface HeardClaimView {
+  claimant: Power;
+  sealed: number;
+}
+
+export const HeardClaimViewSchema: ObjSchema<HeardClaimView> = obj("HeardClaimView", () => ({ claimant: "", sealed: 0 }), { claimant: S, sealed: I });
+
+export const NameClaimViewSchema: ObjSchema<NameClaimView> = obj("NameClaimView", () => ({ name: "", claimants: [], givenTo: null, heard: [] }), {
   name: S,
   claimants: list(S),
   givenTo: opt(S),
+  heard: list(() => HeardClaimViewSchema),
 });
 
 export function newSeatView(init: Partial<SeatView> = {}): SeatView {

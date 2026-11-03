@@ -1,9 +1,8 @@
 import { describe, test } from "vitest";
 import { Near, scriptSeats, smallSeats } from "./small-world.ts";
-import { court } from "../src/bots/statecraft-court.ts";
-import { AllPowers, type AudienceView, CURRENT_VERSION, type HostReply, type SeatView, type TurnSubmission, newGame, newGameConfig } from "@amarna/engine";
+import { type AudienceView, CURRENT_VERSION, type HostReply, type SeatView, type TurnSubmission, newGame, newGameConfig } from "@amarna/engine";
 import { GameLog, GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator, playGame } from "@amarna/game";
-import { Assert, toDict } from "../../engine/test/support.ts";
+import { Assert } from "../../engine/test/support.ts";
 
 describe("SaveVersionTests", () => {
   // <summary>A script king in a seat that may sleep, so a game with sleeping seats on has sleepers to replay.</summary>
@@ -36,7 +35,7 @@ describe("SaveVersionTests", () => {
   }
 
   test("New games are saved under the current version", async () => {
-    Assert.equal(45, CURRENT_VERSION);
+    Assert.equal(53, CURRENT_VERSION);
     Assert.equal(CURRENT_VERSION, newGame(1).version);
     let log = await playedLog(4, 1);
     Assert.equal(CURRENT_VERSION, log.header.version);

@@ -11,7 +11,7 @@ import { newAudit, type Audit, type Route } from "@amarna/game";
 import { z } from "zod";
 import type { CallSpec, JsonAsker } from "./client.ts";
 import type { PriceTable } from "./models.ts";
-import { object, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { object, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 import { Spending, callCost, type Rung, type RungOption, type Stakes } from "./spending.ts";
 
 /** What the small rung reads after its request: what it may do besides answering. */

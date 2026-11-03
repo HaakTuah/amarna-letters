@@ -232,6 +232,8 @@ export interface SeasonFrame {
   /** Who each court knows holds each land province, and the season that news dates from (item 7b). */
   knownOwner: Map<Power, Map<string, { owner: Power | null; turn: number }>>;
   sieges: FrameSiege[];
+  /** The sieges as each court knows them (bug #517: `Views.siegesKnown`), with the walls it knows. */
+  knownSieges: Map<Power, FrameSiege[]>;
   units: FrameUnit[];
   /** Every order of the season just resolved (the union of what each court saw). */
   moves: FrameMove[];
@@ -282,6 +284,8 @@ export interface SeasonFrame {
   unrest: Map<string, number>;
   /** Item 19: the caravans, and the people carried off (deportees), on the road, each between the provinces it is between. */
   caravans: FrameRoad[];
+  /** Bug #540: each court's own caravans as it knows them (`Views.caravansKnown`), placed where it knows them to be. */
+  knownCaravans: Map<Power, FrameRoad[]>;
   walking: FrameRoad[];
   /** Item 19: the diviners' tier of the omens of the end this season, the same for every court; null in an open age. */
   omen: OmenTier | null;
@@ -393,6 +397,14 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
   const knownOwner = new Map<Power, Map<string, { owner: Power | null; turn: number }>>(
     AllPowers.map((p) => [p, new Map([...Views.knownHolders(s, map, p).entries()].map(([k, x]) => [k, { owner: x.owner, turn: x.turn }] as const))] as const),
   );
+  const knownSieges = new Map<Power, FrameSiege[]>(
+    AllPowers.map((p) => [
+      p,
+      isAlive(s, p)
+        ? Views.siegesKnown(s, map, p).map((x) => ({ province: x.province, besieger: x.power, progress: x.progress, walls: knownWalls.get(p)?.get(x.province) ?? 0, since: x.since }))
+        : [],
+    ] as const),
+  );
   const sleep = new Map<Power, FrameSleep>();
   for (const [p, x] of s.sleep) {
     const woke = x.history.filter((h) => h.wokeAt > 0);
@@ -416,6 +428,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     owner: new Map(s.owner.entries()),
     walls: new Map(s.walls.entries()),
     sieges: s.sieges.map((x) => ({ province: x.province, besieger: x.power, progress: x.progress, walls: wallsOf(s, x.province), since: x.since })),
+    knownSieges,
     units: s.units.map((u) => ({ id: u.id, power: u.power, kind: u.kind, province: u.province, men: u.men })),
     moves,
     seenBy,
@@ -466,6 +479,19 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
       const next = Math.min(i + 1, c.route.length - 1);
       return { power: c.power, from: c.route[i], to: c.route[next], progress: Math.min(0.9, c.points / 100), what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}` };
     }),
+    // Bug #540: each court's own as it knows them (a far one where its last report has it), as its view shows them.
+    knownCaravans: new Map<Power, FrameRoad[]>(
+      AllPowers.filter((p) => isAlive(s, p)).map((p) => [
+        p,
+        Views.caravansKnown(s, p, map).map((c) => ({
+          power: p,
+          from: c.at,
+          to: c.at,
+          progress: 0,
+          what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}${c.reported !== null ? `, as reported in turn ${c.reported}` : ""}`,
+        })),
+      ] as const),
+    ),
     // Only deportees walk a known road (the engine's `Walk.route`); men discharged home are not placed on one.
     walking: s.walking.filter((w) => w.deported && w.route.length > 1).map((w) => {
       const span = Math.max(1, w.arrives - w.departs);

@@ -14,7 +14,7 @@ import type { EnvoyReaction, HostReply } from "../model/exchanges.ts";
 import type { GrantOrder, RepudiateOrder, RevokeOrder } from "../model/orders.ts";
 import type { Character } from "../model/people.ts";
 import { remember } from "../model/people.ts";
-import { land, type Power } from "../model/power.ts";
+import { land, type Power, quoteWords } from "../model/power.ts";
 import type { Clause } from "../model/clauses.ts";
 import { isAlive, logEvent, newId, notify, ownedBy, type Unit } from "../model/state.ts";
 import { TurnEngine } from "./core.ts";
@@ -28,6 +28,7 @@ declare module "./core.ts" {
     passageFor(host: Power | null, master: Power, province: string): boolean;
     guestAt(province: string, power: Power): boolean;
     revokeGrants(p: Power, o: RevokeOrder): void;
+    endGrant(g: Grant, heard: number): void;
     grantByOrder(p: Power, o: GrantOrder): void;
     repudiate(p: Power, o: RepudiateOrder): void;
     endGrants(grantor: Power, grantee: Power, why: string): void;
@@ -164,9 +165,13 @@ P.guestAt = function (province, power) {
 /** The king ends what he granted another (in one province, or all of it): from next season the guests must be gone. */
 P.revokeGrants = function (p, o) {
   const S = this.s;
+  // The owner's answers to item 11a: word of it travels to the grantee's court as any news does, never known there at
+  // once; until it comes, his view keeps the grant as it was (bug #565).
+  const heard = S.turn + this.travelTurns(p, o.grantee);
   const ended = S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && (o.province === null || g.province === o.province));
-  for (const g of ended) g.endedTurn = S.turn;
-  // One province of a passage through all his land: the grant stands for the rest.
+  for (const g of ended) this.endGrant(g, heard);
+  // One province of a passage through all his land: the grant stands for the rest. (The view shows a grant without its
+  // land, so the grantee's court reads nothing of this before the word.)
   let narrowed = false;
   if (o.province !== null)
     for (const g of S.grants)
@@ -176,9 +181,14 @@ P.revokeGrants = function (p, o) {
       }
   if (ended.length === 0 && !narrowed) return;
   const what = o.province !== null ? `in ${this.map.get(o.province).name}` : "in his land";
-  // The owner's answers to item 11a: word of it travels to the grantee's court as any news does, never known there at once.
   this.word(p, o.grantee, "Grant", `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what} (in season ${S.turn}). Troops of yours still standing there will take the land as any troop does, and he will count it an attack.`);
-  logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p, o.grantee], "grant-revoked");
+  logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p], "grant-revoked");
+};
+
+/** A grant ends this season; its grantee hears of it at `heard` (bug #565). */
+P.endGrant = function (g, heard) {
+  g.endedTurn = this.s.turn;
+  g.endHeard = heard;
 };
 
 /**
@@ -189,10 +199,10 @@ P.revokeGrants = function (p, o) {
 P.grantByOrder = function (p, o) {
   const S = this.s;
   const Map = this.map;
+  // Given at court as the court knows its land (bug #517): a grant over land lost out of its sight is recorded all the
+  // same, and means nothing while another holds it (grantCovers reads the holder's grants), so it tells nothing at once.
   const why =
-    o.province !== null && S.owner.getOrDefault(o.province, null) !== p
-      ? "you no longer hold it"
-      : o.kind === "basing" && o.province === null
+    o.kind === "basing" && o.province === null
         ? "basing is granted in one city"
         : !isAlive(S, o.grantee)
           ? `${o.grantee} has fallen`
@@ -201,27 +211,29 @@ P.grantByOrder = function (p, o) {
             : null;
   const where = o.province !== null ? Map.get(o.province).name : "all your land";
   if (why !== null) {
-    const text = `No ${o.kind} was granted to ${o.grantee} in ${where}: ${why}.`;
-    // Land lost out of the king's sight: word of it comes home by the road (bug #467).
-    if (o.province !== null && S.owner.getOrDefault(o.province, null) !== p) this.lostOrder(p, o, o.province, "Order failed", text, why);
-    else notify(S, p, "Rejected", "Order failed", text);
+    notify(S, p, "Rejected", "Order failed", `No ${o.kind} was granted to ${o.grantee} in ${where}: ${why}.`);
     return;
   }
   const lands = o.province === null ? ownedBy(S, p).filter((x) => !Map.get(x).isSea) : [];
   const since = S.turn + 1;
   const heard = S.turn + Math.max(1, this.travelTurns(p, o.grantee));
   S.grants.push(newGrant({ id: newId(S, "p"), kind: o.kind, grantor: p, grantee: o.grantee, province: o.province, lands, sinceTurn: since, untilTurn: o.seasons !== null ? since + Math.max(1, o.seasons) - 1 : null, tabletId: "", heardTurn: heard }));
-  notify(S, p, "Resolution", GrantTitle, `From next season ${o.grantee}'s troops may ${o.kind === "passage" ? "pass through" : "stand within the walls of"} ${where} by your order${o.seasons !== null ? `, for ${o.seasons} seasons` : ", until you revoke it"}. Word of it reaches ${o.grantee}'s court as fast as a messenger rides.`);
-  logEvent(S, "passage", `${p} granted ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing within the walls of"} ${o.province !== null ? Map.get(o.province).name : `all the land of ${p}`}, by order.`, [p, o.grantee], "granted-by-order");
+  const term = o.seasons !== null ? `, for ${o.seasons} seasons` : ", until you revoke it";
+  notify(S, p, "Resolution", GrantTitle, `From next season ${o.grantee}'s troops may ${o.kind === "passage" ? "pass through" : "stand within the walls of"} ${where} by your order${term}. Word of it reaches ${o.grantee}'s court as fast as a messenger rides.`);
+  // The grantee learns of it by that word, as his view does (bug #565), never from the season's events.
+  const there = o.province !== null ? Map.get(o.province).name : "all his land";
+  this.word(p, o.grantee, "Grant", `The king of ${land(p)} has granted your troops ${o.kind === "passage" ? "passage through" : "leave to stand within the walls of"} ${there} from season ${since}${o.seasons !== null ? `, for ${o.seasons} seasons` : ", until he revokes it"}.`);
+  logEvent(S, "passage", `${p} granted ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing within the walls of"} ${o.province !== null ? Map.get(o.province).name : `all the land of ${p}`}, by order.`, [p], "granted-by-order");
 };
 
 /** Closing one's roads to a court ends what one granted it. */
 P.endGrants = function (grantor, grantee, why) {
   const S = this.s;
   const ended = S.grants.filter((g) => g.grantor === grantor && g.grantee === grantee && grantLive(g, S.turn));
-  for (const g of ended) g.endedTurn = S.turn;
+  // The grantee hears of it with the word of the closed roads (`roads`).
+  for (const g of ended) this.endGrant(g, S.turn + this.travelTurns(grantor, grantee));
   if (ended.length === 0) return;
-  logEvent(S, "passage", `${grantor} ended the passage and basing it granted ${grantee}: ${why}.`, [grantor, grantee], "grant-revoked");
+  logEvent(S, "passage", `${grantor} ended the passage and basing it granted ${grantee}: ${why}.`, [grantor], "grant-revoked");
 };
 
 /**
@@ -235,14 +247,14 @@ P.repudiate = function (p, o) {
   const t = copy === undefined ? undefined : S.tablets.find((x) => x.id === copy.tabletId);
   if (t === undefined || t.byHandOf !== p || t.repudiatedTurn !== null) return;
   t.repudiatedTurn = S.turn;
-  for (const g of S.grants) if (g.tabletId === t.id && grantStands(g, S.turn)) g.endedTurn = S.turn;
+  for (const g of S.grants) if (g.tabletId === t.id && grantStands(g, S.turn)) this.endGrant(g, S.turn);
   const other = t.proposedBy === p ? t.partner! : t.proposedBy;
   notify(
     S,
     other,
     "Notice",
     RepudiatedTitle,
-    `The king of ${land(p)} repudiates the tablet his envoy ${t.byHand ?? ""} sealed in his name ("${cap(t.text, 160)}"): he says it went beyond the envoy's authority, and it does not bind him. What it granted, either way, has ended.` +
+    `The king of ${land(p)} repudiates the tablet his envoy ${t.byHand ?? ""} sealed in his name (${quoteWords(cap(t.text, 160))}): he says it went beyond the envoy's authority, and it does not bind him. What it granted, either way, has ended.` +
       (t.credentialsShown ? ` His envoy showed you its credentials: by them the tablet lay ${t.within ? "within" : "beyond"} his authority.` : ""),
   );
   logEvent(S, "tablet", `${p} repudiated the tablet its envoy ${t.byHand ?? ""} sealed with ${other}, as beyond his authority.`, [p, other], "repudiated");

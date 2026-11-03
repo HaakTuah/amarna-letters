@@ -18,9 +18,14 @@ export interface Attested {
   readonly b: string;
   readonly km: number;
   readonly basis: string;
+  /**
+   * What a player reads where the connection's days are shown, when its length is not what the map's line suggests: the
+   * road or river that makes it so, from the same dossier line (#554).
+   */
+  readonly note?: string;
 }
 
-const att = (a: string, b: string, km: number, basis: string): Attested => ({ a, b, km, basis });
+const att = (a: string, b: string, km: number, basis: string, note?: string): Attested => (note === undefined ? { a, b, km, basis } : { a, b, km, basis, note });
 
 /**
  * The voyage from a closed sea's far shore to its harbour, where a desert road ends on that shore (item 11c): from el-Markha
@@ -34,22 +39,28 @@ export const ShoreVoyages: readonly { a: string; b: string; days: number; basis:
 /** The connections whose length the sources attest, or that the dossier reckons by a known road. */
 export const AttestedKm: readonly Attested[] = [
   // The Ways of Horus run through the Sinai (item 11f+): Tjaru to Gaza 250 km, the Delta's road to Tjaru added
-  att("delta", "sinai", 160, "the Delta to Tjaru and on along the Ways of Horus, its first part [G for the split]"),
-  att("sinai", "gaza", 120, "Thutmose III's army, Tjaru to Gaza in 10 days (his Annals, first campaign): the Ways of Horus, its second part [G for the split]"),
+  att("delta", "sinai", 160, "the Delta to Tjaru and on along the Ways of Horus, its first part [G for the split]", "The Ways of Horus, Egypt's army road out of the Delta at Tjaru, a chain of forts and wells across the desert."),
+  att("sinai", "gaza", 120, "Thutmose III's army, Tjaru to Gaza in 10 days (his Annals, first campaign): the Ways of Horus, its second part [G for the split]", "The Ways of Horus on to Gaza: Thutmose III's army marched it from Tjaru in ten days."),
   att("memphis", "akhetaten", 300, "the Nile road"),
   att("akhetaten", "thebes", 400, "the Nile road"),
-  att("thebes", "redsea", 210, "Thebes by Coptos and the Wadi Hammamat to the shore at Mersa Gawasis, the road of the Punt expeditions"),
-  att("sinai", "redsea", 200, "across the Sinai to the Gulf of Suez, where the mining expeditions landed at el-Markha [G]"),
-  att("megiddo", "hazor", 60, "the road from Megiddo to Damascus by Hazor (160 km in all), its first part [G for the split]"),
-  att("hazor", "damascus", 100, "the road from Megiddo to Damascus by Hazor and the Jordan crossing, its second part [G for the split]"),
+  att("thebes", "redsea", 210, "Thebes by Coptos and the Wadi Hammamat to the shore at Mersa Gawasis, the road of the Punt expeditions", "The road of the Punt expeditions, by Coptos and the Wadi Hammamat over the Eastern Desert to the harbour at Mersa Gawasis."),
+  att("sinai", "redsea", 270, "across the Sinai to the Gulf of Suez, where the mining expeditions landed at el-Markha: the straight line and a quarter [G]", "Across the Sinai to el-Markha on the Gulf of Suez, where the expeditions to the mines of Serabit el-Khadim landed."),
+  att("megiddo", "hazor", 75, "the road from Megiddo to Damascus by Hazor (185 km in all), its first part: 60 km straight and a quarter"),
+  att("hazor", "damascus", 110, "the road from Megiddo to Damascus by Hazor and the Jordan crossing, its second part: 88 km straight and a quarter"),
   att("byblos", "damascus", 120, "over the Lebanon and the Beqaa"),
   att("damascus", "qadesh", 140, "by the Beqaa"),
   att("carchemish", "harran", 110, "the Euphrates road to Harran"),
-  att("harran", "washukanni", 180, "across the Habur triangle"),
+  att("harran", "washukanni", 120, "across the Habur triangle to Tell Fakhariya, the likeliest Washukanni [C]: 93 km straight and a quarter"),
   att("hattusa", "nesa", 200, "the plateau road; Old Assyrian caravans covered about 25 km a marching day (Veenhof)"),
-  att("nesa", "kizzuwatna", 230, "by the Cilician Gates"),
-  att("ugaritwaters", "enkomiwaters", 130, "Cyprus to Ugarit in about a day (Ugarit's letters on ships to and from Alashiya)"),
+  att("nesa", "kizzuwatna", 290, "by the Cilician Gates to Tarsus: 232 km straight and a quarter"),
+  att("ur", "gulf", 150, "Ur, a river port on the Euphrates in 1346, down the river's drawn bed through the marshes to the estuary at the Gulf's head, some 140 km in a straight line (02-gulf-head) [G]", "Ur is a river port: its ships go down the Euphrates and through the marshes to the Gulf's head, some 150 km."),
+  att("ugaritwaters", "enkomiwaters", 130, "Cyprus's eastern cape to Ugarit, about a day's sail [G] (the geography dossier's estimate from Casson and the Kyrenia II trials)"),
 ];
+
+/** What a player reads of why a connection takes the time it does (`Attested.note`), or null where the map's line says it. */
+export function connectionNote(a: string, b: string): string | null {
+  return AttestedKm.find((x) => (x.a === a && x.b === b) || (x.a === b && x.b === a))?.note ?? null;
+}
 
 /** Kilometres a day: on the road by the ground, at sea by the kind of passage. */
 export const Pace = { open: 25, rough: 15, desert: 20, pass: 15, coasting: 70, openSea: 100 } as const;
