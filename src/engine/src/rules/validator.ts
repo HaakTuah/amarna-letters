@@ -19,7 +19,7 @@ import type { Checking } from "./validator-context.ts";
 import { checkEconomyOrder } from "./validator-economy.ts";
 import { checkPeopleOrder } from "./validator-people.ts";
 import { knownLevel, ownWorks } from "./province-reports.ts";
-import { courierSeasons, courtOf } from "./court.ts";
+import { courierSeasons, courtOf, wordHomeAt } from "./court.ts";
 import type { WorkKind } from "../model/works.ts";
 
 export class ValidationResult {
@@ -198,9 +198,9 @@ export class OrderValidator {
       return null;
     };
 
-    // #587: far as the court knows it, as its view shows it (beyond its sight, known by report), never by roads it has not
-    // heard of (Codex, #635); where the true road out differs, the engine pays as it finds it.
-    const far = (province: string): boolean => !Sight().has(province);
+    // #587: far as the court knows it, by the clock its view and its sight use (word home within the season, #616), never
+    // by roads it has not heard of (Codex, #635); where the road out differs, the engine pays as it finds it.
+    const far = (province: string): boolean => wordHomeAt(S, this.map, courtOf(S, this.map, power), province, S.turn) !== S.turn;
     const spendAt = (province: string, cost: number): string | null => (far(province) ? (cost < 0 ? "a cost cannot be negative" : null) : spend(cost));
 
     const ownUnit = (province: string): [string | null, Unit | null] => {

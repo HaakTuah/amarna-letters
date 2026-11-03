@@ -236,4 +236,17 @@ describe("CofferTests", () => {
     // Told with its homecoming, as word of it comes.
     Assert.contains("of its porters' pay unused, kept in the coffer there", s.journeys.map((j) => j.text).join(" "));
   });
+
+  test("The order checks and the engine agree on which provinces are far: gold may be sent to every one the engine pays from a coffer", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    for (const id of e.map.landProvinces.map((x) => x.id)) {
+      s.owner.set(id, "Egypt");
+    }
+    const sight = Views.sight(s, e.map, "Egypt");
+    const edge = e.map.landProvinces.map((x) => x.id).filter((id) => sight.has(id) && e.isFar("Egypt", id));
+    Assert.notEmpty(edge);
+    const v = new OrderValidator(s, e.map).validate("Egypt", newTurnSubmission({ orders: edge.map((id) => send(id, 1)) }));
+    Assert.equal(edge.length, v.accepted.length);
+  });
 });
