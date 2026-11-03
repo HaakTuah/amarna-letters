@@ -16,7 +16,7 @@ import { type Order } from "../model/orders.ts";
 import { quoteWords, type Power } from "../model/power.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
 import { isAlive, logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
-import { courierSeasons, courtOf } from "../rules/court.ts";
+import { courierSeasons, courtOf, wordHomeAt } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
 import { RoadOdds } from "./travel.ts";
@@ -30,6 +30,8 @@ declare module "./core.ts" {
   interface TurnEngine {
     /** The seasons the king's couriers take to a province: 0 within the season. */
     wordTo(p: Power, province: string): number;
+    /** Bug #616: the whole seasons beyond the first word takes home from a province to a king's court (the road home, as `wordHomeAt`): 0 where it comes within the season. For news; `wordTo` is the road out, for orders and loads. */
+    wordFrom(p: Power, province: string): number;
     /** Where an own unit stands as its king last heard (item 13): where it stood as many seasons ago as the road is long. */
     shownAt(u: Unit): string;
     /** The own unit the king names by a province, as he sees his units. */
@@ -83,8 +85,12 @@ P.wordTo = function (p, province) {
   return courierSeasons(this.s, this.map, courtOf(this.s, this.map, p), province);
 };
 
+P.wordFrom = function (p, province) {
+  return courierSeasons(this.s, this.map, province, courtOf(this.s, this.map, p));
+};
+
 P.shownAt = function (u) {
-  const d = this.wordTo(u.power, u.province);
+  const d = this.wordFrom(u.power, u.province);
   if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return u.province;
   const at = u.trail[Math.max(0, u.trail.length - 1 - d)];
   return at.split("|")[0];
@@ -100,7 +106,7 @@ P.unitShownAt = function (p, province) {
 
 P.orderedUnit = function (p, province) {
   const here = unitAt(this.s, province);
-  if (here !== null && here.power === p && this.wordTo(p, province) === 0) return here;
+  if (here !== null && here.power === p && this.wordFrom(p, province) === 0) return here;
   return this.unitShownAt(p, province) ?? (here !== null && here.power === p ? here : null);
 };
 
@@ -295,9 +301,9 @@ P.nearOf = function (province, ...ps) {
 /** When a caravan's king hears of its setting out: its first report's place and season (Caravan.trail). */
 function setOutHeard(e: TurnEngine, c: Caravan): number {
   const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : { turn: c.since, at: c.route[0] ?? c.from };
-  // The road as it was in that season (`wordCame`).
-  const d = e.map.exists(first.at) ? courierSeasons(e.s, e.map, courtOf(e.s, e.map, c.power), first.at, first.turn) : 0;
-  return d === 0 || !Number.isFinite(d) ? first.turn + e.s.deliveryOffset : first.turn + 1 + d;
+  // The road home as it was in that season, by the one clock (wordHomeAt, as `wordCame`).
+  const at = e.map.exists(first.at) ? wordHomeAt(e.s, e.map, courtOf(e.s, e.map, c.power), first.at, first.turn) : first.turn;
+  return at === first.turn || !Number.isFinite(at) ? first.turn + e.s.deliveryOffset : at;
 }
 
 P.caravanTell = function (c, province, kind, title, text) {

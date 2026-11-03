@@ -32,9 +32,9 @@ of the old round report). Save version 11. Why, what it cost and what was found:
   percent of risk over a whole season a careful traveller (courage 0) gives 25 points (2.5 days), a bold one (100) 5
   (`RiskWeight`; "Bold or careful, one goal"). Risk is the road check's odds as its court knows the place (below). The route is chosen when it sets out and again when it is turned back at a
   border (winter closes no connection since item 9). Model characters' own choice of route comes with item 11b (reading in the report).
-- **Word** (`wordSeasons`, `TurnEngine.travelTurns`): reports, rumours, overdue notices, ransoms and word of the world
-  (`JourneyKind` "Word": roads closed or opened, a kingdom's fall) go by the fastest road, in whole seasons, at least
-  one (an island's in winter too, since item 9). They are never stopped. Since item 11b a spy's report from abroad
+- **Word** (`wordSeasons`, `TurnEngine.travelTurns`; from a province home, `wordHomeAt`, note 35): reports, rumours,
+  overdue notices, ransoms and word of the world (`JourneyKind` "Word": roads closed or opened, a kingdom's fall) go
+  by the fastest road, in whole seasons, at least one (an island's in winter too, since item 9). They are never stopped. Since item 11b a spy's report from abroad
   needs a carrier, and free travellers walk the road ([roads and reputations](23-roads-and-reputations.md)).
 
 ### The road check
@@ -70,9 +70,9 @@ on sealed tablets comes with item 9.
 ### News
 
 - **Who holds what** (`Views.knownHolders`, `SeatView.owner`, `ownerAsOf`, `ownerFrom`): a court sees the holders of the
-  land in its sight (`Views.sight`) as they are; elsewhere the newest of word (the holder as of `turn − wordSeasons` from
-  that province to its capital, from `GameState.ownerLog`, which `TurnEngine.setOwner` writes at every change) and what
-  its own people saw or brought home (`GameState.known`: its sight at the start of each season's resolution, and each
+  land in its sight (`Views.sight`) as they are; elsewhere the newest of word (the holder, from `GameState.ownerLog`,
+  which `TurnEngine.setOwner` writes at every change, as of the newest season whose word has come home by the couriers'
+  clock, `wordHomeAt`: bug #616, note 35) and what its own people saw or brought home (`GameState.known`: its sight at the start of each season's resolution, and each
   province a traveller of its passed, as of when it passed, `TurnEngine.bringNews`). A province's age of news is
   therefore its distance in seasons, unless a traveller brought fresher news. A king who loses a province knows it at
   once (`TurnEngine.setOwner` writes it into his `known`), as his notice tells him. Engine rules (moves, purchases,

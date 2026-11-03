@@ -35,12 +35,12 @@ Build order item 11a. Save version 19. The report is `docs/rounds/2026-10-28-mon
   broken promise of its own, and 20 off its name there. An envoy who goes over to a host at an audience takes a six-season
   job there, half handed over now (`jobOffer` is a fee a season).
 
-- **A ride** (#601, `turn/rides.ts`, save version 57; the owner: "paying for a courier is always a supply to demand issue,
+- **A ride** (#601, `turn/rides.ts`, save version 59; the owner: "paying for a courier is always a supply to demand issue,
   a negotiation, no?"): a job whose errand is `ride` to a province the court knows it holds, beyond the season's reach
   (the validator; offered at court, never by an envoy). The rider sets out as he takes it and is back at the next season's
   start (`ridersBack`, after `recordReports`): the court's record of the province (`GameState.known`) is then as of the
   ride's season, its source "your rider" and his name, so its holder, its officials' report (`reportKnown`) and the
-  sieges there (`siegesKnown`, which reads such a record from the season's end) are as of then; the notices told from
+  sieges there (`siegesKnown`, which reads the court's record, #616) are as of then; the notices told from
   there by then (`TurnEngine.tell` tags its word with the place) arrive with him. His price: his price a season for a job
   (`basePrice`), moved half way to what he has heard a ride pays (`Character.heardRide`, set as `heardRate` is, from the
   rides agreed where he stands), raised by `RideData` (first guesses) for each season sooner the report comes beyond the
