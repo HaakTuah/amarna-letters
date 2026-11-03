@@ -35,6 +35,10 @@ desert's edge (a strait once the rules have one, item 11f); every rough province
 its row in the legend. A tap opens a card that says, from the engine's own numbers (`legPoints`, `connectionKm`, `Pace`,
 `TravelData`, `snowbound`, the game's `terrainDefence` and `winterArmyLoss`): the journey's days in each season against
 open ground, the ferry and the flood, winter's danger on a snowbound pass, and whether it helps a defender who stands.
+Where the road's length is attested and longer than its line suggests, the card says why in one sentence, the
+attested distance's `note` (`connectionNote`, from the same dossier line as its length: the Ways of Horus, the Wadi
+Hammamat, the Sinai to el-Markha; #554). A port whose way to its waters is such a connection (Ur, a river port down
+the Euphrates to the Gulf) says it on its province card, with the voyage's days.
 
 ## Names, counters and arrows (`svg-renderer.ts`, `markup.ts`)
 

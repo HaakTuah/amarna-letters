@@ -16,6 +16,7 @@ import {
   WinterSeason,
   WorldMap,
   connectionKm,
+  connectionNote,
   legPoints,
   newGameConfig,
   snowbound,
@@ -103,6 +104,8 @@ export function markText(m: MapMark, config: GameConfig = newGameConfig()): { ti
       ? `The journey takes ${days(bySeason[0])} in every season, against ${days(open)} on open ground.`
       : `The journey takes ${bySeason.map((x, s) => `${days(x)} in ${SeasonNames[s]}`).join(", ")}, against ${days(open)} on open ground.`,
   );
+  const note = connectionNote(a, b);
+  if (note !== null) lines.push(note);
   if (c.kind === "River") {
     const river = [...Rivers, ...CrossedRivers].find((r) => r.id === c.river);
     lines.push(
