@@ -330,7 +330,7 @@ P.caravanHome = function (c) {
   }
   c.gold = 0;
   const fleet = this.rejoinFleet(c);
-  caravanGone(S, c);
+  caravanGone(S, c, far && !load);
   const lostLine = c.grain > 0 ? ` The other ${c.grain} measures had nowhere to go and were lost.` : "";
   this.caravanTell(
     c,

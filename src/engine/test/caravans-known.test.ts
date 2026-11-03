@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, TurnEngine, Views, newCaravan, newGame, newGameConfig, newMarketSeen, newOwnerChange, newWord, reportCaravan, setOut, type GameState } from "@amarna/engine";
+import { Dict, TurnEngine, Views, caravanGone, newCaravan, newGame, newGameConfig, newMarketSeen, newOwnerChange, newWord, reportCaravan, setOut, type GameState } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Bug #540 ("Distance inside your own realm"): a court knows its caravan far off only as word of it comes, never before
@@ -62,5 +62,15 @@ describe("CaravansKnownTests", () => {
     }
     new TurnEngine(s).caravanWordsHome();
     Assert.equal(123, s.marketsSeen.get("Egypt").get("babylon").price);
+  });
+
+  test("A caravan lost on the road takes what it learned with it: its word never reaches its court", () => {
+    const s = world(5);
+    const c = newCaravan({ id: "v903", power: "Egypt", from: "nippur", to: "babylon", route: ["babylon", "nippur"], at: 1, returning: true, since: 3 });
+    c.word = newWord({ markets: new Dict([["babylon", newMarketSeen({ price: 123, turn: 4 })]]) });
+    setOut(s, c);
+    caravanGone(s, c);
+    for (s.turn = 6; s.turn <= 10; s.turn++) new TurnEngine(s).caravanWordsHome();
+    Assert.false(s.marketsSeen.tryGet("Egypt")?.has("babylon") ?? false);
   });
 });

@@ -119,11 +119,13 @@ export function setOut(s: GameState, c: Caravan): void {
 
 /**
  * A caravan's journey ends (home, lost, seized or handed over): off the road, kept with its last report among the caravans
- * gone (GameState.caravansGone) until any word of its end could have come.
+ * gone (GameState.caravansGone) until any word of its end could have come. What it learned abroad goes with it, unless it
+ * came home to a far province with it (`keepWord`), whose word comes to its court when word of the homecoming does.
  */
-export function caravanGone(s: GameState, c: Caravan): void {
+export function caravanGone(s: GameState, c: Caravan, keepWord = false): void {
   const i = s.caravans.indexOf(c);
   if (i >= 0) s.caravans.splice(i, 1);
+  if (!keepWord) c.word = newWord();
   reportCaravan(c, s.turn, true);
   s.caravansGone = [...s.caravansGone.filter((x) => readCaravanReport(x.trail[x.trail.length - 1]).turn > s.turn - CaravanTrailKept), c];
 }
