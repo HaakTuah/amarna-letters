@@ -36,24 +36,30 @@ fills each today. The models and effort Claude Code gives each of its roles: `CL
 - **Helpers: when they pay** (archive item 134), for every builder: Claude's helpers and, once it can build,
   Codex's subagents. A helper starts cold, rereads what it needs and returns only a summary, so it is worth its cost
   only when the work has one of these shapes:
-  - *Parallel and independent:* parts that touch different files and need nothing from each other. Helpers that
-    write run in parallel only when their briefs already fix every choice their parts share (the tests, interfaces,
-    names and formats); otherwise one writer does the work, since each parallel writer makes choices the others never
-    see, and their work clashes (archive item 214).
-  - *Competing approaches, judged by measurement:* several candidate fixes for one problem, each tried in its own
+  - *Parallel and independent:* about three parts or more that touch different files and need nothing from each
+    other, a helper for each. Helpers that write run in parallel only when their briefs already fix every choice their
+    parts share (the tests, interfaces, names and formats); otherwise one writer does the work, since each parallel
+    writer makes choices the others never see, and their work clashes (archive item 214).
+  - *Competing approaches, judged by measurement:* two to four candidate fixes for one problem, each tried in its own
     worktree and measured the same way (benchmarks, use against ignore); the best is kept, the rest dropped.
-  - *Bulk to brief:* many files read to answer one narrow question; the helper returns file:line and a sentence, so
-    the builder's context stays clean.
-  - *Fresh eyes:* a review, or a problem that has beaten the builder twice.
+  - *Bulk to brief:* about ten files or more read to answer one narrow question, a search helper for each question or
+    area; it returns file:line and a sentence, so the builder's context stays clean.
+  - *Fresh eyes:* a review, or a problem that has beaten the builder twice, with one fresh helper each.
 
   It does not pay for small or one-pass work (docs, config, small fixes), for steps that depend on each other, when
-  briefing it would cost most of the work, or for waiting on a run. Give each helper the cheapest model that does its
-  part well (Claude's: `CLAUDE.md`; Codex's: "For Codex") and a brief that stands alone, since it sees nothing else:
-  its goal; what it returns, and in what form (file:line and a sentence, a diff in its own worktree, a measured
-  table); the files it may change and the sources it reads; and where its task ends. A vague brief brings back
-  duplicated work and gaps. Check every result before using it. At most four at a time, reviewers included; each
-  lane's builder keeps its own four. The PR lists the helpers that ran and what each gave, so the rule can be checked
-  against its cost. Never stop to ask about helpers: decide by these shapes.
+  briefing it would cost most of the work, or for waiting on a run. **How many:** one for each part, candidate or
+  question the work has, and at most five at a time, reviewers included, the most that published practice runs at once;
+  a wider sweep runs in waves of five, and each lane's builder keeps its own five (archive item 215). Give each helper
+  the cheapest model that does its part well (Claude's: `CLAUDE.md`; Codex's: "For Codex") and a brief that stands
+  alone, since it sees nothing else: its goal; what it returns, and in what form (file:line and a sentence, a diff in
+  its own worktree, a measured table); the files it may change and the sources it reads; and where its task ends. A
+  vague brief brings back duplicated work and gaps. Check every result before using it. Never stop to ask about helpers:
+  decide by these shapes.
+
+  **Measured:** every PR lists the helpers that ran and what each gave. The first milestone PR of each week sums the
+  week's lists up in one line: helpers per PR, the shapes they had, what paid and what did not, and how often the
+  cap held work back. A shape that never pays, or a cap that often holds work back, becomes a `question` issue for the
+  owner, so the rule and its cap are tuned by what they cost and gave.
 - **Escalation:** a problem that has defeated a builder twice goes to a fresh solver with a self-contained brief (the
   problem, what was tried, the files and lines); the builder who was stuck applies and checks the answer. The other
   model comes first once Codex can build (the status above): a problem that has defeated Claude goes to Codex as a
@@ -92,7 +98,8 @@ Items stay one at a time, in order, as the builder rules say: a Codex lane runs 
 files. **Trials:** in the first week Codex can build, one art task to Codex if one comes up, compared against Claude's;
 after the first week, one build-order item split the long way (Claude writes the rule and its tests, Codex implements,
 Claude reviews), and if it scores well, more items follow. Codex's first task with a part of a helper's shape uses its
-subagents, so that PR shows whether they start in its cloud and what they give.
+subagents, so that PR shows whether they start in its cloud, whether they keep to five at a time (Codex's own default
+allows six; if not, its settings set five), and what they give.
 
 ## Handing work to Codex
 
