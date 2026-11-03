@@ -97,3 +97,7 @@ each was changed and measured (the numbers are in the item's report, "Part G"):
   instead of showing every marker and hiding them again; and while a season's results are held back, the names wait for
   them, so they are placed once a season. The layers' steps start at the next frame, never in the task of the worker's
   message or React's redraw.
+
+On the phone profile at Fast the frames over 50 ms fell from about a fifth to an eighth; the bar is met on desktop but for
+a few frames a game, not yet on the phone profile, where the browser's own layerization and paint of a map of thousands
+of SVG elements is what remains (the report's "What is left").

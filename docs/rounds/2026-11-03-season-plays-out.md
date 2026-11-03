@@ -23,7 +23,7 @@ Presentation only, built in parts, each its own pull request.
 | D | The land's season under the realms, and its change moving | not started |
 | E | Units drawn as what they are, with weight; the world acting on them | not started |
 | F | Threads to watch and the director camera (spectator) | not started |
-| G | Smooth on a phone: frame times in the busiest season, with a recording | not started |
+| G | Smooth on a phone: frame times in the busiest season, with a recording | this PR (bar not met on the phone profile; see Part G) |
 
 ## Part A: a mind's own words
 
@@ -149,4 +149,70 @@ Fast, a capital falling taking a second more; Simulate draws nothing.
   button, paused, so the player chooses where to watch from and at what pace.
 - **The biggest events at Fast are a capital falling**: the engine records no king's death as an event yet, so there is
   none to give a beat.
+
+## Part G: smooth on a phone
+
+The item's text: "Smooth on a phone, measured as item 19 measures it, in the busiest season, and held to 17a's bar: no
+frame over about 50 ms while a season plays, at every speed, on desktop and on a throttled phone, with the frame times and
+a short recording in the PR." Design note: `docs/design/52-the-season-plays-out.md`, "Smooth on a phone (part G)".
+
+### The causes found (phone profile, Fast, the timeline kept whole with the soak tool's new `--trace-file`)
+
+- **The state's read ran past its budget**: a field was one step, and the characters and the provinces' reports (433 KB of
+  new text a season, since every report was parsed again as a lone piece) took up to 200 ms in one task.
+- **Each layer step was one long frame**: the step's own draw (tints 38 to 95 ms, the season's washes 26 to 54, the works
+  at the cities 30 to 63, bands 25), then its parse, style, layerization and paint, since the layer was written whole.
+  The first step ran inside the worker's message task, with React's redraw.
+- **The names were placed about three times a season** (the pieces drawn, the slide ended, the results landed), and each
+  placement showed and hid every marker again: some 1,700 elements restyled, 60 to 90 ms a placement.
+
+### What changed
+
+- `src/web/src/session/incremental.ts`: `value` is a generator paused between items when the step's time is spent;
+  `leaf` keeps and reuses a lone piece of 48 characters or more (`LeafReuse`).
+- `src/web/src/map/morph.ts` (new): `patch` (write only the elements and attributes that differ) and `patchParts` (a
+  layer in parts, only the changed parts parsed); `svg-renderer.ts`: `layer` patches (the arrows still written whole),
+  takes an in-place `update`; `stepSoon` starts the steps at the next frame; names wait while the results are held back
+  (`landPending`); `placeNamesNow` hides and shows only what changed, reads each stroke width once a kind, and keeps each
+  name's box while the view stands still (`nameBoxes`).
+- `land-layers.ts`: `tintsKey` and `retint`; a band traced again only when what it is traced from changes (`BandsDrawn`).
+  `seasons.ts`: fixed slots and `reseason`. `built.ts`: roads traced once; the works at the cities in parts.
+- Tests: `src/web/test/map-morph.test.ts` (patch and parts, on a stand-in DOM), `realm-borders.test.ts` (a kept band is
+  the band traced afresh); `history.test.ts` already reads with a 1 ms budget, so every field pauses mid-way.
+
+### Frame times (soak tool, seed 1, two minutes a run; a busy machine, load 2 to 5 from other lanes)
+
+| Run | Before: frames over 50 ms, worst after the opening | After: frames over 50 ms, worst after the opening |
+|---|---|---|
+| phone (CPU 4x), Fast | 611 of 3,091 (19.8%), about 300 ms (22.3% in a second run beside this one) | 483 of 4,025 (12.0%), 250 to 300 ms |
+| phone (CPU 4x), Normal | 163 of 6,125 (2.7%), 283 ms | 138 of 6,304 (2.2%), 267 ms |
+| desktop, Slow | 22 of 7,148 (0.3%), 33 ms in play (Part B) | 15 of 7,179 (0.2%), 100 ms |
+| desktop, Normal | 37 of 6,982 (0.5%), 100 ms (Part B) | 19 of 7,089 (0.3%), 83 ms |
+| desktop, Fast | 184 of 5,539 (3.3%), 83 ms (Part B) | 179 of 5,371 (3.3%), 150 ms |
+| desktop, Simulate | 4 of 7,243 (0.06%), 17 ms (Part B) | 9 of 7,239 (0.1%), 83 ms |
+
+Per step on the phone at Fast, before and after (mean ms): the season's washes 47 to 4, the tints 51 to 13, the names 92
+to 50 and placed 0.65 times a season instead of 2.7, the steps run in the message task 29 to 0.8; the seasons reached in
+two minutes 50 to 65. The opening's first draw, outside the bar, costs 2.5 to 3 s on the phone profile and 0.55 to 0.65 s
+on desktop, as before. The desktop rows' "before" are Part B's, measured on a quieter machine; the after runs had other
+lanes' test suites beside them, so the desktop numbers say "no worse", not "better".
+
+### What is left
+
+The bar is met on desktop but for a few frames a game, and **not on the phone profile**: there one frame in eight at Fast
+and one in forty-five at Normal is over 50 ms. What remains is the browser's own work whenever the map changes, which no
+JavaScript mark sees: layerization (20 to 60 ms a frame; the map's thousands of SVG elements each carry a transform or a
+clip, so the whole page is layerized again), paint, and the frames of the pieces' slide, which software raster paints
+on the main thread; and the step draws still over 15 ms on the phone (the works at the cities, whose granaries' tooltips
+change every season, the bands where holders change, the cities, the names). Meeting it would take a map with far fewer
+paint chunks (the cities, names and pieces drawn without a transform each, or on a canvas), a larger change than this
+part; it is left as a follow-up for the item's pull request to file, not built here.
+
+### Readings taken
+
+- **"While a season plays" excludes the opening's first draw**, as Part B and item 17a read it.
+- **The phone profile is a worst case**: the soak tool's software raster and CPU slowed four times in a headless browser
+  overstate a phone's cost (17a's note), so the remaining long frames are reported, not chased with a rewrite.
+- **The tints' tooltips and the works' tooltips are kept as they were**: a lighter tooltip would have made the writes
+  cheaper but changes what a player reads (presentation the item does not ask to change).
 

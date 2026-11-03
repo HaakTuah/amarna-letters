@@ -584,7 +584,9 @@ export class SvgMapRenderer implements MapRenderer {
       const works = [...view.querySelectorAll(".map-upper .works-at")].map((e) => ({ e, rs: rects(e, ".wk-bg") }));
       // The names stand still unless the view moves or a city's walls push its name out: each is measured again only then
       // (part G: measuring every name's box was much of a placement's cost on a slow phone).
-      const at = `${view.querySelector<HTMLElement>(".mapzoom")?.style.transform}|${view.style.cssText}|${view.className}|${view.dataset.medium}|${(({ x, y, width, height }) => `${x},${y},${width},${height}`)(view.getBoundingClientRect())}`;
+      // Where the map stands as drawn now (mid-glide too), and what sizes its names.
+      const box = view.querySelector(".map-marks")!.getBoundingClientRect();
+      const at = `${box.x},${box.y},${box.width},${box.height}|${view.style.cssText}|${view.className}|${view.dataset.medium}`;
       const still = (t: Element, key: string): DOMRect => {
         const kept = this.nameBoxes.get(t);
         if (kept !== undefined && kept.key === key) return kept.r;
