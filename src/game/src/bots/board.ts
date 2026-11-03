@@ -55,15 +55,18 @@ export class Board {
   readonly horizon: number;
   readonly alive: HSet<Power>;
   private readonly treasuries: Dict<Power, number> | null;
+  /** #553: our provinces whose people's offer to another king we read on a carrier we caught, by the season (Brain.offersRead). */
+  readonly offersRead: Dict<string, number>;
   private readonly growthCache = new Dict<Power, number>();
   private leaderCache: Power | null = null;
   private ranked = false;
 
-  /** `treasuries`: what this court reckons each rival holds in gold (see Brain.treasury). */
-  constructor(v: SeatView, remembered: Iterable<UnitView> | null = null, treasuries: Dict<Power, number> | null = null) {
+  /** `treasuries`: what this court reckons each rival holds in gold (see Brain.treasury); `offersRead`: Brain.offersRead. */
+  constructor(v: SeatView, remembered: Iterable<UnitView> | null = null, treasuries: Dict<Power, number> | null = null, offersRead: Dict<string, number> = new Dict()) {
     this.v = v;
     this.me = v.power;
     this.treasuries = treasuries;
+    this.offersRead = offersRead;
     Board.Sail = seasonOfTurn(v.turn) === WinterSeason ? Board.Map.winter : Board.Map;
     this.units = [...v.units, ...[...(remembered ?? [])].filter((g) => v.units.every((u) => u.province !== g.province))];
     this.unitAt = new Dict();
