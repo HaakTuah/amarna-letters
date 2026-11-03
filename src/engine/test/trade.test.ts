@@ -52,7 +52,7 @@ describe("TradeTests", () => {
     Assert.true(m.purse < purse);
     // Less what the porters ate on the longer road across the Marassantiya (item 11f).
     Assert.contains("sold 69 measures of grain for", notices(s, "Hatti", "Markets and caravans"));
-    Assert.contains("came home to Hattusa. It ", notices(s, "Hatti", "Markets and caravans"));
+    Assert.contains("came home to Hattusa. It put", notices(s, "Hatti", "Markets and caravans"));
     Assert.true(s.events.some((x) => x.signal === "sale-abroad"));
     // Karkamish of 7,000 people, at 175 a hectare (the people dossier, #492).
     Assert.contains("came home to Hattusa with 1 mina 25 shekels into the treasury", notices(s, "Hatti", "Markets and caravans"));
