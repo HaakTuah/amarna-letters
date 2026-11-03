@@ -6,6 +6,7 @@
  * spend their pay and buy their food only where they stand by leave, and a province taken by force is sacked ("Where gold
  * comes from and where it goes").
  */
+import { homeRoad } from "./coffers.ts";
 import { policeAt, waysOf } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { sortBy } from "../core/seq.ts";
@@ -320,7 +321,7 @@ P.caravanHome = function (c) {
   // its homecoming could (`caravanWordsHome`). Near, they reach the court now.
   const far = this.wordTo(c.power, at) > 0;
   // #587: with no road on to the court, its gold stays where it came home, in the coffer there (gold that is there).
-  if (far && c.gold > 0 && this.tradeRoute(c.power, at, this.courtAt(c.power), false) === null) {
+  if (far && c.gold > 0 && !homeRoad(this, c.power, at)) {
     parts.push(`${formatMoney(c.gold)} kept there, with no road on to the court`);
     this.receiveAt(c.power, at, c.gold);
     c.gold = 0;

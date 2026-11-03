@@ -60,7 +60,7 @@ function intoCoffer(e: TurnEngine, c: Coffer, gold: number): void {
 }
 
 /** Whether a load can go from the province to the king's court by road (`lootHome` puts it in the treasury at once otherwise). */
-const homeRoad = (e: TurnEngine, p: Power, province: string): boolean => {
+export const homeRoad = (e: TurnEngine, p: Power, province: string): boolean => {
   const cap = e.courtAt(p);
   return province !== cap && e.s.owner.getOrDefault(cap, null) === p && e.tradeRoute(p, province, cap, false) !== null;
 };
