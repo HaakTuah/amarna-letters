@@ -90,7 +90,7 @@ P.unseatGovernor = function (p, o) {
   // The word goes to him where he sits (item 17++).
   const seasons = wordFromKing(S, this.map, p, seatKnown(g, S.turn));
   g.relieved = S.turn + Math.max(1, Number.isFinite(seasons) ? seasons : 1);
-  notify(S, p, "Resolution", "Governorship taken back", `Word that you take back the governorship of ${this.map.get(o.province).name} is on its way; it reaches him in turn ${g.relieved}.`);
+  notify(S, p, "Resolution", "Governorship taken back", `Your word taking back the governorship of ${this.map.get(o.province).name} is on its way to ${findCharacter(S, g.character)?.name ?? "your governor"}, and reaches him in turn ${g.relieved}.`);
 };
 
 P.governorOf = function (province) {
@@ -234,7 +234,7 @@ P.governorsLevy = function () {
     if (S.units.length > before) {
       g.raised++;
       const c = findCharacter(S, g.character)!;
-      this.tell(g.power, g.province, "Resolution", "A governor's levy", `${c.name}, your governor of ${this.map.get(g.province).name}, raised a levy there on his own, as his mandate allows, against the foreign troops beside it (${g.raised} of ${g.levies}).`);
+      this.tell(g.power, g.province, "Resolution", "A governor's levy", `${c.name}, your governor of ${this.map.get(g.province).name}, raised a levy there on his own against the foreign troops beside it, as his mandate allows: ${g.raised} of the ${g.levies} he may raise.`);
     }
   }
 };

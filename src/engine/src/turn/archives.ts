@@ -120,7 +120,7 @@ P.takeArchive = function (taker, province) {
   const lost = S.copies.filter((k) => k.holder === court).length;
   S.copies = S.copies.filter((k) => k.holder !== court);
   if (lost > 0 && isAlive(S, court))
-    notify(S, court, "Notice", "Your archive taken", `With ${prov.name}, ${taker} carried off your archive: the ${lost} tablet${lost === 1 ? "" : "s"} it held are no longer yours.`);
+    notify(S, court, "Notice", "Your archive taken", `With ${prov.name}, ${taker} carried off your archive and the ${lost === 1 ? "one tablet" : `${lost} tablets`} in it.`);
   logEvent(S, "archive-taken", `${taker} took the archive of ${court} with ${prov.name}.`, [taker], "archive-taken");
   if (tablets.length === 0) {
     notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${court}; it held no tablet you did not hold already.`);
@@ -149,7 +149,7 @@ P.archiveArrives = function (holder, tabletIds, court, place) {
     ArchiveTakenTitle,
     taken.length === 0
       ? `The archive of ${court} reached you; it held no tablet you did not hold already.`
-      : `The archive of ${court} reached you: copies of ${taken.length} tablet${taken.length === 1 ? "" : "s"} you did not hold are now in your archive: ${taken.map((k) => this.copyLine(k)).join(", ")}.`,
+      : `The archive of ${court} reached you: ${taken.length === 1 ? "one tablet" : `${taken.length} tablets`} new to your own, ${taken.map((k) => this.copyLine(k)).join("; ")}.`,
   );
 };
 

@@ -143,7 +143,7 @@ P.peopleSeason = function (food) {
     if (o !== null && leave > 0) hungry.set(o, [...hungry.getOrDefault(o, []), `${prov.name} (${people(leave)} left the land, ${people(dead)} of them dead)`]);
   }
   for (const [p, l] of hungry.entries()) {
-    say(p, `Hunger: ${l.join("; ")}. Grain on sale at a province's market feeds its countryside; a lighter tax leaves the farmers more.`);
+    say(p, `Hunger: ${l.join("; ")}.`);
     logEvent(S, "famine", `Hunger in ${p}'s land: ${l.join("; ")}.`, [p], "famine");
   }
   // They weigh the land they would cross to by how it fed its people last season, as word of it reached them.
@@ -227,9 +227,9 @@ P.peopleSeason = function (food) {
   }
 
   // The loose men rob the purse and the stores (item 10+b).
-  for (const [p, l] of this.robbing().entries()) say(p, `Loose men robbed ${l.join("; ")}. Your troops standing in a province halve what they take.`);
+  for (const [p, l] of this.robbing().entries()) say(p, `Loose men robbed ${l.join("; ")}.`);
   // Item 11b: the bands, gathered from them by chiefs; an army of yours standing where one works falls on it.
-  for (const [p, l] of this.bandsSeason().entries()) say(p, `${l.join(" ")} An army of yours falls on a band where it stands only on your order: hunt_bands (a province, next season) or hunt_bands_always (standing).`);
+  for (const [p, l] of this.bandsSeason().entries()) say(p, l.join(" "));
 
   // The loose drift freely towards richer land, across borders too.
   const drift: [string, string, number][] = [];
@@ -254,7 +254,7 @@ P.peopleSeason = function (food) {
 
 /** A count of people as a king reads it. */
 export function people(n: number): string {
-  return n >= 10_000 ? `${Math.round(n / 1000)} thousand` : n >= 1000 ? `${(n / 1000).toFixed(1)} thousand` : `${n}`;
+  return n >= 10_000 ? `${Math.round(n / 1000)} thousand` : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")} thousand` : `${n}`;
 }
 
 /** A levy takes its `n` men from the men of fighting age of the province: false, taking none, if it has too few. */
@@ -290,7 +290,7 @@ P.menHome = function (u, settle) {
     shift(this.peopleOf(u.province), men, men);
     this.spendAt(u.province, savings);
     logEvent(S, "colonists", `${u.power} settled the men of its ${u.kind === "Army" ? "army" : "fleet"} in ${where.name} as colonists.`, [u.power], "colonists");
-    return `its ${people(men)} men were settled in ${where.name} as colonists, their savings into its purse`;
+    return `its ${people(men)} men settled in ${where.name} as colonists`;
   }
   if (u.province === u.home) {
     shift(this.peopleOf(u.home), men, men);
@@ -396,7 +396,7 @@ P.climateSeason = function () {
     for (const p of AllPowers.filter((p) => isAlive(S, p))) {
       const mine = c.provinces.filter((x) => S.owner.getOrDefault(x, null) === p);
       if (mine.length > 0) {
-        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}: for three seasons ${mine.map((x) => Map.get(x).name).join(", ")} will reap only ${c.percent} in a hundred of their harvest.`);
+        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}: for three seasons ${mine.map((x) => Map.get(x).name).join(", ")} will reap only ${c.percent} in a hundred of a full harvest.`);
         continue;
       }
       if (c.provinces.some((x) => sight.get(p).has(x))) notify(S, p, "Notice", "News from nearby", `Travellers say ${c.kind === "Drought" ? `the rains have failed over ${c.name}` : `${c.name} has flooded badly`}.`);

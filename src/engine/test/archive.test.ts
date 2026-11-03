@@ -192,7 +192,7 @@ describe("ArchiveTests", () => {
 
     let notice = single(inboxOf(s, "Babylonia"), (i) => i.title === ArchiveTakenTitle && i.body.startsWith("The archive of Assyria reached you"));
     Assert.equal(
-      `The archive of Assyria reached you: copies of 1 tablet you did not hold are now in your archive: the tablet sealed by Assyria and Hatti, dated turn 1 (your copy ${taken[0].id}).`,
+      `The archive of Assyria reached you: one tablet new to your own, the tablet sealed by Assyria and Hatti, dated turn 1 (your copy ${taken[0].id}).`,
       notice.body,
     );
     for (const p of AllPowers.filter((p) => p !== "Babylonia")) Assert.doesNotContain(inboxOf(s, p), (i) => i.title === ArchiveTakenTitle);

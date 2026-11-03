@@ -350,6 +350,31 @@ function questioned(ctx: MindContext): MindReply {
   return newMindReply({ text: lies ? "My lord has friends you do not know of. That is all I will say." : "Spare me, and I will tell you what I saw.", lies });
 }
 
+/**
+ * What a candidate says of itself, from its own trade or past: the boast of the overconfident, the plain word of the
+ * modest and loyal, and the middle line of the rest. The first family whose pattern the calling matches speaks.
+ */
+const TradeWords: readonly (readonly [RegExp, readonly [string, string, string]])[] = [
+  [/scribe/, ["I write the tongue of the courts as the great kings' scribes write it, and no tablet of mine was ever sent back.", "I am slow of speech, but I copy a tablet word for word.", "I read and write the tongue of the courts, and I keep a tally true."]],
+  [/interpreter|envoy/, ["I have stood before kings in three courts and put their words into each other's tongues.", "I am no great speaker, but I give a king's words as he said them.", "I know the tongues of the courts, and I carry a message as it was given."]],
+  [/caravan|herdsman|wanderer/, ["I have taken loads across the steppe and lost none to robbers.", "I know the wells and the stages of the road, and I keep to them.", "I know the roads, their wells and their tolls."]],
+  [/merchant|trader/, ["I have traded in every market between the sea and the rivers, and never come home at a loss.", "I am a plain trader, but my weights are true.", "I know the markets and what each of them will pay."]],
+  [/chariot/, ["I have driven in a king's battle line and brought my horses home.", "I am a horseman, not a speaker; I go where I am sent.", "I know horses, and how a king's chariots march and camp."]],
+  [/soldier/, ["I have stood in a king's line of battle and come home every time.", "I am a soldier, not a speaker; I go where I am sent.", "I know how armies march and where they camp."]],
+  [/sailor/, ["I have sailed the length of the coast and never lost a cargo.", "I know ships and harbours, and little else.", "I know the harbours of the coast and the men in them."]],
+  [/priest|physician/, ["Kings have sought my counsel, and the gods have heard me.", "I served in the temple, and I keep my word as I kept its rites.", "I know the temples and the people who come to them."]],
+  [/steward/, ["I kept a palace's stores, and not a jar went missing in my years.", "I kept a household's stores; I count well and say little.", "I know how a court is run, and who runs it."]],
+  [/chief|elder|ruler/, ["I have led men, and they followed me.", "I have little to say for myself, but my word holds.", "I know how men are led, and what they will bear."]],
+];
+
+function tradeWords(calling: string): readonly [string, string, string] {
+  return TradeWords.find(([pattern]) => pattern.test(calling))?.[1] ?? [
+    "I have served great men, and none had cause to complain of me.",
+    "I am a plain servant and no great speaker, but I keep my word.",
+    "I know the courts of the Great Kings and their ways, and I carry a message as it was given.",
+  ];
+}
+
 function pitch(ctx: MindContext): MindReply {
   const c = ctx.self;
   const t = c.traits;
@@ -368,9 +393,8 @@ function pitch(ctx: MindContext): MindReply {
   const lines = [name === null ? `I am ${nameFrom(c)}, once ${calling(c)}.` : `I am ${name}.`];
   // What it says it can do is what it believes ("Seeing oneself"): the overconfident claim more.
   const believed = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
-  if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("I know every road and every court; no master of mine had cause to complain.");
-  else if (believed < 45 && t.loyalty >= 55) lines.push("I am a plain servant and no great speaker, but I keep my word.");
-  else lines.push("I know the courts of the Great Kings and their ways, and I carry a message as it was given.");
+  const words = tradeWords(c.calling);
+  lines.push(t.greed >= 60 || t.ambition >= 65 || believed >= 75 ? words[0] : believed < 45 && t.loyalty >= 55 ? words[1] : words[2]);
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
   if (defected !== null && t.loyalty < 50 && name === null) lines.push("I left my last master; I had cause.");
   // Item 11a, "Hiring as a negotiation": it plays courts against each other, citing a real offer, and a greedy, disloyal one

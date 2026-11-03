@@ -52,7 +52,7 @@ describe("FailureNoticeTests", () => {
     let notice = single(inboxOf(s, "Assyria"), (i) => i.title === "Not hired");
     Assert.equal("Rejected", notice.kind);
     Assert.equal(
-      `${other.name} declined your offer of ${formatMoney(60)} for 6 seasons: they ask 20 shekels a season of the term, ${formatMoney(feeFor(20, 6, 100, 80))} for this one with this advance, counting the rest only as far as they trust your court to pay it, from what they have heard.`,
+      `${other.name} declined your offer of ${formatMoney(60)} for 6 seasons: they ask ${formatMoney(feeFor(20, 6, 100, 80))} for this term with this advance (20 shekels a season).`,
       notice.body,
     );
     Assert.doesNotContain(inboxOf(s, "Hatti"), (i) => i.title === "Not hired");

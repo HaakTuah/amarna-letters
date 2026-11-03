@@ -1,6 +1,15 @@
 /** The offline narrator: template personas, plain check reports, and boastful annals. */
 import { groupBy, king, land, personaTemplate, risenOf, trim, trimEnd, year, type Character, type GameEvent, type Power } from "@amarna/engine";
 import type { CheckContext, ChronicleContext, INarrator } from "../contracts.ts";
+import { pick } from "./voices.ts";
+
+/** How a check's report is framed, chosen by the person asked after, so reports read differently from one person to the next. */
+const Inquiries: readonly ((name: string, facts: string) => string)[] = [
+  (name, facts) => `Inquiries in the markets and temples tell this of ${name}: ${facts} More than this, no one would say.`,
+  (name, facts) => `Of ${name}, the merchants and temple servants say this: ${facts} They knew nothing more.`,
+  (name, facts) => `Your scribes asked after ${name} at the gate and in the market. ${facts} That is all they learned.`,
+  (name, facts) => `What is said of ${name}: ${facts} Nobody would add to it.`,
+];
 
 export class TemplateNarrator implements INarrator {
   readonly label: string = "Template narrator";
@@ -12,7 +21,7 @@ export class TemplateNarrator implements INarrator {
   checkReport(ctx: CheckContext, _signal?: AbortSignal): Promise<string> {
     if (ctx.facts.length === 0)
       return Promise.resolve(`Your inquiries into ${ctx.subject.name} turned up nothing of note. The markets know the name and little more.`);
-    return Promise.resolve(`Inquiries in the markets and temples tell this of ${ctx.subject.name}: ${ctx.facts.join(" ")} More than this, no one would say.`);
+    return Promise.resolve(pick(Inquiries, `0|${ctx.subject.id}`)(ctx.subject.name, ctx.facts.join(" ")));
   }
 
   chronicle(ctx: ChronicleContext, _signal?: AbortSignal): Promise<string> {

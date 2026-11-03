@@ -219,7 +219,7 @@ P.fallsDue = function (c, p, amount, what) {
   c.owedDue.set(p, S.turn);
   remember(c, S.turn, `${what} The king of ${land(p)} owes me ${formatMoney(amount)}.`);
   if (isAlive(S, p))
-    notify(S, p, "Notice", FeeDueTitle, `${c.name}: ${what} You owe them ${formatMoney(c.owed.get(p))}. Nothing is paid unless you order it: pay_fee pays it while they stand at your court; unpaid by the end of next season, it is a broken promise others will hear of.`, c.id);
+    notify(S, p, "Notice", FeeDueTitle, `You owe ${c.name} ${formatMoney(c.owed.get(p))}, to be paid while they are at your court (order pay_fee). Unpaid by the end of next season, it is a broken promise others will hear of.`, c.id);
 };
 
 /**
@@ -352,9 +352,11 @@ P.jobsDone = function (stood) {
     if (!isAlive(S, emp)) continue;
     const k = c.contract!;
     const rest = k.captured ? 0 : restOf(k);
-    const back = stood.getOrDefault(c.id, null) !== emp ? " is back at your court and" : "";
+    const back = stood.getOrDefault(c.id, null) !== emp;
     let paid = rest === 0;
     if (rest > 0 && k.payOnDone && !k.withheld) paid = this.settleRest(c, emp, false);
+    const done = (what: string): string =>
+      `${c.name} ${back ? `is back at your court, the ${what} done` : `has done the ${what}`}${rest > 0 ? `; the rest of the fee, ${formatMoney(rest)}, ${paid ? "was paid" : "is due"}` : ""}.`;
     if (!paid) this.fallsDue(c, emp, rest, `My job for ${land(emp)} is done${k.payOnDone && !k.withheld ? ", and the treasury could not pay the rest" : ""}.`);
     // The owner's answers to item 11b+: the stay this errand was given during goes on if its term has not run out; if it has,
     // it is done too, and its rest is paid as its own standing order says, or falls due.
@@ -362,7 +364,7 @@ P.jobsDone = function (stood) {
     if (st !== null && st.until >= S.turn) {
       c.contract = newContract({ fee: st.rest, advance: 0, startTurn: S.turn, untilTurn: st.until, errand: newJobErrand({ what: "stay", where: emp }), payOnDone: st.payOnDone, knownFrom: k.knownFrom });
       remember(c, S.turn, `My errand for ${land(emp)} is done; I stay at its court until season ${st.until}, as agreed before.`);
-      notify(S, emp, "Notice", NoticeTitle, `${c.name}${back} has done their errand${rest > 0 ? (paid ? `, and was paid the rest of its fee, ${formatMoney(rest)}` : `; the rest of its fee, ${formatMoney(rest)}, is due`) : ""}. They stay at your court until turn ${st.until}, as their earlier job said.`, c.id);
+      notify(S, emp, "Notice", NoticeTitle, `${done("errand")} They stay at your court until turn ${st.until}, as agreed before.`, c.id);
       continue;
     }
     if (st !== null && st.rest > 0) {
@@ -379,7 +381,7 @@ P.jobsDone = function (stood) {
       c.contract = newContract({ ...k, carried: 0, startTurn: S.turn, untilTurn: S.turn + term, errand: k.errand === null ? null : { ...k.errand, done: false } });
       this.heardFee(c, rateOf(k.fee, term));
       remember(c, S.turn, `My job for ${land(emp)} is done, and I took the same job again, as offered, for ${formatMoney(k.fee)}.`);
-      notify(S, emp, "Notice", "The same job again", `${c.name}${back} has done their job${rest > 0 ? (paid ? `, and was paid the rest of the fee, ${formatMoney(rest)}` : "") : ""}. As you offered with it, they took the same job again, through turn ${S.turn + term}, for ${formatMoney(k.fee)}, of which ${formatMoney(k.advance)} was handed over now.`, c.id);
+      notify(S, emp, "Notice", "The same job again", `${done("job")} As you offered, they took the same job again, through turn ${S.turn + term}, for ${formatMoney(k.fee)}${k.advance > 0 ? `, ${formatMoney(k.advance)} of it paid now` : ""}.`, c.id);
       continue;
     }
     c.status = "Free";
@@ -395,7 +397,7 @@ P.jobsDone = function (stood) {
       emp,
       "Notice",
       NoticeTitle,
-      `${c.name}${back} has done their job${rest > 0 ? (paid ? `, and was paid the rest of the fee, ${formatMoney(rest)}` : `; the rest of the fee, ${formatMoney(rest)}, is due`) : ""}. The job has ended: they are free at your court, and another errand is a new offer (order hire), which they may take or not.${k.offerAgain && !paid ? " They would not take the same job again unpaid." : ""}`,
+      `${done("job")} They are free to take another job (order hire).${k.offerAgain && !paid ? " Unpaid, they would not take the same job again." : ""}`,
       c.id,
     );
     logEvent(S, "job-done", `${c.name}'s job for ${emp} is done.`, [emp], "job-done");
