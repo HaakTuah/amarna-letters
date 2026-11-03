@@ -143,7 +143,7 @@ P.handOver = function (host, c, to) {
   S.journeys.push(j);
   this.setOut(j, this.courtAt(host), this.courtAt(to));
   remember(c, S.turn, `${land(host)} handed me over to ${land(to)}, and its guards are taking me there.`);
-  notify(S, host, "Notice", "A captive handed over", `You handed ${c.name} over to the king of ${land(to)}; your guards are taking them there, due in season ${j.arriveTurn}.`, c.id);
+  notify(S, host, "Notice", "A captive handed over", `You handed ${c.name} over to the king of ${land(to)}; your guards will bring them there in turn ${j.arriveTurn}.`, c.id);
   notify(S, to, "Notice", "A captive on the way", `The king of ${land(host)} is sending you ${c.name} as a captive, under his guard.`, c.id);
   logEvent(S, "captive-handed", `${host} handed ${c.name} over to ${to}, sent under guard.`, [host, to], "captive-handed");
 };

@@ -154,7 +154,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       const [why, unit] = ownUnit(order.unit);
       if (why !== null || unit === null) return why;
       const [whyInto, into] = ownUnit(order.into);
-      if (whyInto !== null || into === null) return whyInto === null ? null : `no troops of yours to join in ${order.into}: ${whyInto}`;
+      if (whyInto !== null || into === null) return whyInto === null ? null : `they cannot join the troops in ${Map.exists(order.into) ? Map.get(order.into).name : order.into}: ${whyInto}`;
       if (into === unit) return "a unit cannot fold into itself";
       if (unit.commander !== null) return "it has a commander: relieve him first, or fold the other troops into his";
       if (unit.hiredMen > 0) return "the band hired into it serves on its own terms: it cannot be folded into other troops";

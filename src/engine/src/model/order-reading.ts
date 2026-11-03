@@ -3,6 +3,7 @@ import { isBlank } from "../core/text.ts";
 import { workLevelText, workName } from "./works.ts";
 import { mandateText } from "./command.ts";
 import type { HireOrder, RenewOrder, Order } from "./orders.ts";
+import { WorldMap } from "./map.ts";
 
 /** A name the order left blank, as a refusal shows it. */
 function named(s: string | null | undefined): string {
@@ -162,6 +163,39 @@ export function describe(o: Order): string {
     case "payRansom":
       return `pay the ransom for ${o.character}`;
   }
+}
+
+/**
+ * The order as a notice tells it to its king: troops by where they stand and every place by the map's name, a move in
+ * words ("the troops in Carchemish march to Harran"), not the order's own shorthand. People keep their ids, which the
+ * orders that answer a notice need.
+ */
+export function told(o: Order): string {
+  const map = WorldMap.default;
+  const at = (id: string | null | undefined): string => (isBlank(id) ? "?" : map.exists(id!) ? map.get(id!).name : placesNamed(id!));
+  // A unit named by where it stands, or as an order to come names it ("the army to be raised in Sippar in turn 3").
+  const troops = (id: string, plural: string, one: string): string => (map.exists(id) ? `the troops in ${at(id)} ${plural}` : `${at(id)} ${one}`);
+  switch (o.type) {
+    case "hold":
+      return troops(o.unit, "hold", "holds");
+    case "move":
+      return `${troops(o.unit, "march", "marches")} to ${at(o.to)}${o.forced === true ? " by forced march" : ""}`;
+    case "support":
+      return `${troops(o.unit, "support", "supports")} ${o.to === null || o.to === undefined ? `the hold at ${at(o.supported)}` : `the move from ${at(o.supported)} to ${at(o.to)}`}`;
+    case "convoy":
+      return `the fleet in ${at(o.unit)} carries the army from ${at(o.army)} to ${at(o.to)}`;
+    case "besiege":
+      return `${troops(o.unit, "besiege", "besieges")} the city`;
+
+    default:
+      return placesNamed(describe(o)).replace(/(\d+)%/g, "$1 in a hundred");
+  }
+}
+
+/** Engine words with each province's key ("durkurigalzu") given the map's name (Dur-Kurigalzu), as a king reads it. */
+export function placesNamed(text: string): string {
+  const map = WorldMap.default;
+  return text.replace(/\b[a-z]+\b/g, (w) => (map.exists(w) ? map.get(w).name : w));
 }
 
 /** A job's errand and standing orders in words, for an order's line. */

@@ -25,6 +25,7 @@ import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/trav
 import { formatMoney } from "../rules/calendar.ts";
 import { Views } from "../rules/views.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { whose } from "./battles.ts";
 
 /**
  * The odds of the road check, in percent for one season (first guesses, tuned in item 18). A king's troops (army or
@@ -457,7 +458,7 @@ P.convoyStopped = function (j, c, province, stop) {
             [(u) => idNumber(u.id), cmpNum],
           )[0].power
         : S.owner.getOrDefault(province, null)!;
-    notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${land(giver)} was sending you under guard, was taken from the guards in ${name} by ${taker}'s men.`, c.id);
+    notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${land(giver)} was sending you under guard, was taken from the guards in ${name} by ${whose(taker)} men.`, c.id);
     if (taker === lord) {
       c.duty = "None";
       this.releaseCaptive(taker, c);
@@ -470,7 +471,7 @@ P.convoyStopped = function (j, c, province, stop) {
     c.duty = "None";
     this.meet(c, taker);
     remember(c, S.turn, `${land(taker)}'s men took me from ${land(giver)}'s guards in ${name}; I am their captive now.`);
-    notify(S, taker, "Notice", "A captive taken on the road", `Your men in ${name} stopped ${land(giver)}'s guards taking ${c.name} to ${land(meant)} and took the captive from them. You may question, ransom, execute or release them.`, c.id);
+    notify(S, taker, "Notice", "A captive taken on the road", `Your men in ${name} stopped ${whose(giver)} guards taking ${c.name} to ${land(meant)} and took the captive from them. You may question, ransom, execute or release them.`, c.id);
     logEvent(S, "captive", `${taker}'s men took ${c.name} from ${giver}'s guards in ${name}.`, [taker, giver], "captive-taken");
     return;
   }

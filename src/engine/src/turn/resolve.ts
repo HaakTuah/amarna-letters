@@ -5,7 +5,7 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe } from "../model/order-reading.ts";
+import { placesNamed, told } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
 import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
@@ -14,11 +14,12 @@ import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
 import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit } from "../model/state.ts";
+import { upper, whose } from "./battles.ts";
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
 import { WorldMap } from "../model/map.ts";
-import { forMen, LandData, levySize, menAvailable, menOf, shareOfFull } from "../model/land.ts";
+import { forMen, LandData, levySize, menAvailable, menOf } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { commandStrength } from "../model/command.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -93,7 +94,7 @@ P.resolveSeason = function (submissions) {
     const v = validator.validate(p, sub);
     valid.set(p, v);
     if (v.rejected.length > 0)
-      notify(S, p, "Rejected", "Orders that could not be carried out", v.rejected.map((r) => `- ${describe(r.order)}: ${r.reason}`).join("\n"));
+      notify(S, p, "Rejected", "Orders that could not be carried out", v.rejected.map((r) => `- ${upper(told(r.order))}: ${placesNamed(r.reason)}`).join("\n"));
     this.afterValidation(p, sub, v);
   }
 
@@ -271,7 +272,7 @@ P.resolveMovement = function (unitOrders) {
         o.destroyed = to === undefined || to === null;
         o.fellBack = to ?? null;
       }
-    for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" is dislodged")) l.text = l.text.replace(/ is dislodged$/, to === undefined || to === null ? " is destroyed" : ` falls back to ${Map.get(to).name}`);
+    for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" was beaten from its place")) l.text = l.text.replace(/ was beaten from its place$/, to === undefined || to === null ? " was destroyed" : ` was beaten back to ${Map.get(to).name}`);
   }
   for (const u of gone) {
     S.units.splice(S.units.indexOf(u), 1);
@@ -333,14 +334,12 @@ P.resolveMovement = function (unitOrders) {
         // strength stopped does not.
         const mv = byProvince.tryGet(l.province);
         if (this.stoppedByOthers(p, f) && mv !== undefined) this.scheduledFailed(p, mv, why);
-        // Where the unit now stands, in plain words: it stayed where it was (unless it was destroyed there, which
-        // its own line says).
-        const still = S.units.find((u) => u.power === p && u.province === l.province);
-        const stays = still ? `; so your ${still.kind === "Army" ? "army" : "fleet"} stays in ${Map.get(l.province).name}` : "";
-        mine.push(`${l.text}: ${why}${stays}`);
-      } else if (l.assault !== null) mine.push(`${l.text}: ${this.assaultText(l.assault)}`);
+        // Where the unit now stands: it stayed where it was, unless it was destroyed there, which its own line says.
+        const stays = S.units.some((u) => u.power === p && u.province === l.province) ? `; it stays in ${Map.get(l.province).name}` : "";
+        mine.push(`Your ${l.text}: ${why}${stays}.`);
+      } else if (l.assault !== null) mine.push(`Your ${l.text}: ${this.assaultText(l.assault)}.`);
       else {
-        mine.push(l.void !== null ? `${l.text}: ${l.void}` : l.text);
+        mine.push(`Your ${l.text}${l.void !== null ? `: ${l.void}` : ""}.`);
         // So does a scheduled support that a foreign attack cut; not a support or convoy that matched no move,
         // which tells only that the seat guessed another unit's orders wrong.
         const help = byProvince.tryGet(l.province);
@@ -350,7 +349,7 @@ P.resolveMovement = function (unitOrders) {
     // The walls of his cities that sallied: whether they found the attack they were to support.
     for (const w of sallies.filter((o) => unitOrders.some(([q, x]) => q === p && x === o))) {
       const matched = adjudicator.sallyMatched(w);
-      mine.push(`The walls of ${w.city} sally in support of the attack from ${w.from}: ${matched ? "given" : `void: no unit moved from ${w.from} to ${w.city}`}`);
+      mine.push(`The walls of ${Map.get(w.city).name} ${matched ? "sallied" : "were to sally"} in support of the attack from ${Map.get(w.from).name}${matched ? "" : `, in vain: no unit moved from ${Map.get(w.from).name} to ${Map.get(w.city).name}`}.`);
       const won = result.moves.some((m) => m.from === w.from && m.to === w.city && m.succeeded);
       logEvent(
         S,
@@ -366,18 +365,18 @@ P.resolveMovement = function (unitOrders) {
       .filter((l) => l.power !== p && l.power !== null && (sight.has(l.province) || (l.target !== null && sight.has(l.target))))
       .map(
         (l) =>
-          `${l.power}: ${l.text}${
+          `${upper(whose(l.power!))} ${l.text}${
             l.assault !== null && l.assault.owner !== p
               ? assaultStormed(l.assault)
                 ? ` (it stormed the walls of ${Map.get(l.assault.province).name})`
                 : ` (it stands within the walls of ${Map.get(l.assault.province).name} and does not take it)`
               : ""
-          }`,
+          }.`,
       );
     if (mine.length + seen.length === 0) continue;
     let body = mine.map((x) => "- " + x).join("\n");
     if (seen.length > 0) body += "\nSeen nearby:\n" + seen.map((x) => "- " + x).join("\n");
-    notify(S, p, "Battle", "Movements last season", body.trim());
+    notify(S, p, "Battle", "Movements last season", placesNamed(body.trim()));
   }
 };
 
@@ -389,7 +388,7 @@ P.resolveMovement = function (unitOrders) {
 function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, sight: HSet<string>): string {
   const seen = f.power !== null && (sight.has(f.province) || (f.movingTo !== null && sight.has(f.movingTo)));
   const kind = f.kind === "Army" ? "army" : "fleet";
-  const whose = f.power === viewer ? `your own ${kind}` : `${land(f.power!)}'s ${kind}`;
+  const whom = f.power === viewer ? `your own ${kind}` : f.power !== null ? `${whose(f.power)} ${kind}` : "";
   const nm = (id: string): string => (WorldMap.default.exists(id) ? WorldMap.default.get(id).name : id);
   const strengths = `; your strength ${strengthWords(f.strength)} against ${strengthWords(f.against)}`;
   // The ground that helped the unit that held it off, in the strength it had to beat.
@@ -403,15 +402,15 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
         ? `your own ${kind} in ${nm(f.province)} was moving the other way, and you cannot dislodge your own unit`
         : `your own ${kind} in ${nm(f.province)} did not leave, and you cannot dislodge your own unit`;
     case "HeadToHead":
-      return `it met the unit from ${nm(f.province)}${seen ? ` (${whose})` : ""} coming the other way${strengths}`;
+      return `it met the unit from ${nm(f.province)}${seen ? ` (${whom})` : ""} coming the other way${strengths}`;
     case "Held":
-      return `the unit holding ${nm(f.province)}${seen ? ` (${whose})` : ""} kept its place${held}`;
+      return `the unit holding ${nm(f.province)}${seen ? ` (${whom})` : ""} kept its place${held}`;
     case "Stayed":
-      return `the unit in ${nm(f.province)}${seen ? ` (${whose})` : ""} could not leave, so it kept its place${held}`;
+      return `the unit in ${nm(f.province)}${seen ? ` (${whom})` : ""} could not leave, so it kept its place${held}`;
     case "Bounced":
-      return `it met a move into ${nm(to)} from ${nm(f.province)}${seen ? ` by ${whose}` : ""}${strengths}`;
+      return `it met a move into ${nm(to)} from ${nm(f.province)}${seen ? ` by ${whom}` : ""}${strengths}`;
     case "Resisted":
-      return `the people of ${nm(to)} rose against it and held it off${strengths}: a land's men of fighting age resist an invader by their number, more on rough ground`;
+      return `the people of ${nm(to)} rose against it and held it off${strengths}`;
     default:
       return "it was stopped";
   }
@@ -510,8 +509,9 @@ P.resolveTransfers = function (cessions, gifts) {
       continue;
     }
     u.power = g.to;
-    notify(S, p, "Resolution", "Troops given", `${unitLabel(u)} now serves ${g.to}.`);
-    notify(S, g.to, "Resolution", "Troops received", `${p} has placed ${unitLabel(u)} under your command.`);
+    notify(S, p, "Resolution", "Troops given", `Your ${unitLabel(u)} now serves ${land(g.to)}.`);
+    notify(S, g.to, "Resolution", "Troops received", `${p} has placed its ${unitLabel(u)} under your command.`);
+
     logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [p, g.to]);
   }
   // A king who cedes his own capital this season can receive none: whichever were reckoned first would decide it.
@@ -532,7 +532,7 @@ P.raise = function (p, r) {
   const why =
     S.owner.getOrDefault(prov.id, null) === p
       ? unitAt(S, prov.id) !== null
-        ? `${prov.name} was not empty after movement`
+        ? `troops still stood in ${prov.name} when the moves were done`
         : null
       : to !== undefined
         ? `you ceded ${prov.name} to ${to} last season, before the levy`
@@ -565,7 +565,8 @@ P.raise = function (p, r) {
   this.levyMen(prov.id, men);
   const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });
   S.units.push(u);
-  this.tell(p, prov.id, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ": all the men of fighting age the province had to give" : ""}, so it counts for ${strengthWords(shareOfFull(r.kind, men))} of a full ${kind} in battle, and costs and eats in proportion` : ""}.`);
+  this.tell(p, prov.id, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ", every man of fighting age the province could give" : ""}` : ""}.`
+);
   if (r.share != null) logEvent(S, "levy", `${p} raised a ${kind} in ${prov.name} by a share of its men.`, this.nearOf(prov.id, p), "levy-share");
   this.levyRaised(p, u);
 };

@@ -38,11 +38,11 @@ describe("SeasonOrderTests", () => {
     let someone = first(s.characters, (c) => c.employer === "Hatti").id;
 
     let refused = refusedOf(s, "Egypt", check(someone, 100), check(someone, 100));
-    Assert.equal("not enough gold: it needs 100 shekels; orders listed before it had reserved 100, and 50 was left", Assert.single(refused).reason);
+    Assert.equal("not enough gold: it needs 1 mina 40 shekels, and the orders listed before it left only 50 shekels", Assert.single(refused).reason);
 
     s.treasuries.get("Egypt").gold = 50;
     refused = refusedOf(s, "Egypt", check(someone, 100), check(someone, 40));
-    Assert.equal("not enough gold: it needs 100 shekels, and your treasury held 50 by your ledger", Assert.single(refused).reason);
+    Assert.equal("not enough gold: it needs 1 mina 40 shekels, and your treasury held 50 shekels by your ledger", Assert.single(refused).reason);
   });
 
   test("A person offered a job may be sent on its errand the same season, and on no other", () => {
@@ -131,8 +131,8 @@ describe("SeasonOrderTests", () => {
     let failed = inboxOf(s, "Egypt")
       .filter((i) => i.title === "Levy failed")
       .map((i) => [i.kind, i.body] as const);
-    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in the Ways of Horus: the Ways of Horus was not empty after movement. No gold was paid.");
-    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in Waset: Waset was not empty after movement. No gold was paid.");
+    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in the Ways of Horus: troops still stood in the Ways of Horus when the moves were done. No gold was paid.");
+    Assert.contains(failed, (f) => f[0] === "Rejected" && f[1] === "No army was raised in Waset: troops still stood in Waset when the moves were done. No gold was paid.");
     Assert.equal(gold, s.treasuries.get("Egypt").gold);
   });
 

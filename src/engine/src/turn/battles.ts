@@ -17,6 +17,17 @@ import { remember } from "../model/people.ts";
 import type { AdjudicationResult, Fight } from "../rules/adjudicator.ts";
 import { TurnEngine } from "./core.ts";
 
+/** A land's name with its possessive, as a notice writes it: "Hatti's", "the Suteans'". */
+export function whose(p: Power): string {
+  const n = land(p);
+  return n.endsWith("s") ? `${n}'` : `${n}'s`;
+}
+
+/** A line's first letter capitalised, for a sentence that opens with a land's name ("The Suteans' army ..."). */
+export function upper(s: string): string {
+  return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
+}
+
 declare module "./core.ts" {
   interface TurnEngine {
     /**
@@ -133,7 +144,7 @@ P.battles = function (result, sightBefore) {
     c.intercepted = true;
     this.meet(c, taker);
     remember(c, S.turn, `My army in ${this.map.get(u.province).name} was destroyed, and ${taker}'s men took me.`);
-    notify(S, taker, "Battle", "A commander taken", `Your men took ${c.name}, who commanded ${u.power}'s ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}: you may execute, question, ransom or release him.`, c.id);
+    notify(S, taker, "Battle", "A commander taken", `Your men took ${c.name}, who commanded ${whose(u.power)} ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}: you may execute, question, ransom or release him.`, c.id);
   }
   return destroyed;
 };
@@ -172,6 +183,6 @@ function battleNews(engine: TurnEngine, f: Fight, a: Unit, d: Unit, margin: numb
     seeing,
     "battle",
   );
-  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${land(d.power)}'s ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten"} ${by}: it lost ${aLost} men.`);
-  engine.tell(d.power, f.at, "Battle", "Battle", `${land(a.power)}'s ${kind(a)} from ${engine.map.get(f.from).name} attacked your ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten back"} ${by}: your ${kind(d)} lost ${dLost} men.`);
+  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${whose(d.power)} ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten"} ${by}: it lost ${aLost} men.`);
+  engine.tell(d.power, f.at, "Battle", "Battle", `${upper(whose(a.power))} ${kind(a)} from ${engine.map.get(f.from).name} attacked your ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten back"} ${by}: your ${kind(d)} lost ${dLost} men.`);
 }
