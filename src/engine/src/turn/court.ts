@@ -213,7 +213,9 @@ P.hireAll = function (hires, carriedTo = null) {
     if (!carried) {
       c.at = winner;
       this.meet(c, winner);
-      notify(S, winner, "Notice", "Hired", `${c.name} took your job${errand} for ${formatMoney(hire.fee)}, within ${term(bids[0])} seasons. ${advance > 0 ? `You paid ${formatMoney(advance)} now` : "Nothing was paid now"}${hire.fee > advance ? `; the rest, ${formatMoney(hire.fee - advance)}, is due when the job is done${hire.payOnDone === true ? ", and will be paid then, as you ordered" : " (order pay_fee)"}` : ""}. They can be sent on the errand now.`, c.id);
+      const due = `due when the job is done${hire.payOnDone === true ? ", as you ordered" : " (order pay_fee)"}`;
+      const terms = hire.fee <= advance ? "paid in full now" : advance > 0 ? `${formatMoney(advance)} paid now and ${formatMoney(hire.fee - advance)} ${due}` : `all of it ${due}`;
+      notify(S, winner, "Notice", "Hired", `${c.name} took your job${errand} for ${formatMoney(hire.fee)}, within ${term(bids[0])} seasons, ${terms}. They can be sent on the errand now.`, c.id);
       continue;
     }
     // Hired abroad: a spy whose post is where it stands takes it up at once; anyone else sets out for its master's court.

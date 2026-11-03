@@ -5,10 +5,10 @@ import { pick } from "./voices.ts";
 
 /** How a check's report is framed, chosen by the person asked after, so reports read differently from one person to the next. */
 const Inquiries: readonly ((name: string, facts: string) => string)[] = [
-  (name, facts) => `Inquiries in the markets and temples tell this of ${name}: ${facts} More than this, no one would say.`,
-  (name, facts) => `Of ${name}, the merchants and temple servants say this: ${facts} They knew nothing more.`,
-  (name, facts) => `Your scribes asked after ${name} at the gate and in the market. ${facts} That is all they learned.`,
-  (name, facts) => `What is said of ${name}: ${facts} Nobody would add to it.`,
+  (name, facts) => `What the markets and temples say of ${name}: ${facts} No one would say more.`,
+  (name, facts) => `Of ${name}, the merchants and temple servants say: ${facts} They knew nothing more.`,
+  (name, facts) => `Your scribes asked after ${name} at the gate and in the market, and learned this: ${facts} That was all.`,
+  (name, facts) => `Those who know ${name} by repute say: ${facts} They had nothing to add.`,
 ];
 
 export class TemplateNarrator implements INarrator {

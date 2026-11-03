@@ -215,7 +215,7 @@ P.harvestSeason = function () {
     if (t + over > 0) l.push(`The grain tax brought ${measures(t)} into your stores` + (over > 0 ? `; they had no room for ${measures(over)} more, and it was lost` : "") + ".");
     const got = S.treasuries.get(p).income;
     const fromMines = mined.getOrDefault(p, 0);
-    if (got > fromMines) l.push(`Gold in since your last orders: ${formatMoney(got)}${fromMines > 0 ? `, ${formatMoney(fromMines)} of it from your mines` : ""}.`);
+    if (got > fromMines) l.push(`Since your last orders ${formatMoney(got)} came into the treasury${fromMines > 0 ? `, ${formatMoney(fromMines)} of it from your mines` : ""}.`);
     else if (fromMines > 0) l.push(`Your mines yielded ${formatMoney(fromMines)} for the treasury.`);
     lines.set(p, l);
   }

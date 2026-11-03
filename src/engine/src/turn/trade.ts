@@ -300,7 +300,7 @@ P.caravanHome = function (c) {
   if (c.grain > 0 && S.owner.getOrDefault(at, null) === c.power && open) {
     const before = c.grain;
     c.grain = this.putInStores(at, c.grain);
-    if (before > c.grain) parts.push(`${measures(before - c.grain)} of grain into the stores`);
+    if (before > c.grain) parts.push(`put ${measures(before - c.grain)} of grain into the stores`);
   }
   // Bug #540: home beyond the couriers' season, its gold and any archive go on to the court as a load, as a far market's
   // proceeds do (item 13), its word with them; with nothing to carry, its word comes home as word does, when the word of
@@ -311,10 +311,10 @@ P.caravanHome = function (c) {
   if (onRoad) {
     S.caravans[S.caravans.length - 1].word = c.word;
     c.word = newWord();
-    if (c.gold > 0) parts.push(`${formatMoney(c.gold)} sent on to the treasury`);
+    if (c.gold > 0) parts.push(`sent ${formatMoney(c.gold)} on to the treasury`);
   } else if (far && load) {
     // No road on to the court: its load reaches it at once, as loot does (TurnEngine.lootHome); its word as word does.
-    if (c.gold > 0) parts.push(`${formatMoney(c.gold)} into the treasury`);
+    if (c.gold > 0) parts.push(`put ${formatMoney(c.gold)} into the treasury`);
   } else if (far) {
     // Kept with the caravan's last report among those gone (GameState.caravansGone) until its word comes.
   } else {
@@ -322,7 +322,7 @@ P.caravanHome = function (c) {
       const t = S.treasuries.get(c.power);
       t.gold += c.gold;
       t.income += c.gold;
-      parts.push(`${formatMoney(c.gold)} into the treasury`);
+      parts.push(`put ${formatMoney(c.gold)} into the treasury`);
     }
     // What it learned abroad of markets and tolls, its court learns now; a captured archive it carried is its king's now.
     this.hearWord(c.power, c.word);
@@ -331,13 +331,14 @@ P.caravanHome = function (c) {
   c.gold = 0;
   const fleet = this.rejoinFleet(c);
   caravanGone(S, c, far && !onRoad);
+  const brought = parts.length === 2 && parts[1].startsWith("put ") ? `${parts[0]} and ${parts[1].slice(4)}` : parts.join(" and ");
   const lostLine = c.grain > 0 ? ` The stores had no room for the last ${measures(c.grain)} of grain, and it was lost.` : "";
   this.caravanTell(
     c,
     at,
     "Notice",
     MarketsTitle,
-    `Your ${c.ship !== null ? "ship" : "caravan"} came home to ${name}${parts.length > 0 ? ` with ${parts.join(" and ")}` : ""}.${lostLine}` +
+    `Your ${c.ship !== null ? "ship" : "caravan"} came home to ${name}.${parts.length > 0 ? ` It ${brought}.` : ""}${lostLine}` +
       (c.ship !== null ? (fleet !== null ? ` The fleet is back in ${this.map.get(fleet).name}, ready for war.` : " Its waters and the seas near them were held, so its crew went home.") : ""),
   );
   logEvent(S, "caravan", `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} came home to ${name}.`, [...this.caravanNear(c, at)], "caravan");
