@@ -12,7 +12,7 @@ import { caravanAt, caravanGone, type Caravan } from "../model/caravans.ts";
 import { EconomyData, grainWorth } from "../model/economy.ts";
 import { unitCarried } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
-import { land, type Power } from "../model/power.ts";
+import { type Power } from "../model/power.ts";
 import { isAlive, logEvent, notify, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { legPoints, PointsPerDay, boatDays, type Company } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
