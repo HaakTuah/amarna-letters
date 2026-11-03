@@ -295,12 +295,11 @@ describe("AuthorityTests", () => {
     Assert.true(new TurnEngine(s).passageFor("Hatti", "Egypt", rest[0]));
     s.grants = s.grants.filter((g) => g.id !== "p991");
     rest.pop();
-    // A second narrowing adds to it; the last province revoked ends it in full, with no grant over nothing.
-    for (const x of rest.slice(0, -1)) new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", x) as RevokeOrder);
-    Assert.equal(lands.slice(0, -1).length, read("Hatti").length);
-    new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", rest[rest.length - 1]) as RevokeOrder);
-    Assert.empty(Views.for(s, "Hatti").grants);
-    Assert.false(s.grants.some((g) => g.endedTurn === null && g.grantor === "Hatti"));
+    // A second narrowing adds to it; the last province revoked leaves a grant that opens nothing, still read as the court
+    // knows it, never ended for the land it lacks (which would tell of land lost out of sight).
+    for (const x of rest) new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", x) as RevokeOrder);
+    Assert.equal(lands.length, read("Hatti").length);
+    for (const x of lands) Assert.null(new TurnEngine(s).grantCovers("Hatti", "Egypt", x));
   });
 
   test("A tablet's passage narrowed, then repudiated by its grantee before the word: he knows it ended at once (bug #611)", () => {

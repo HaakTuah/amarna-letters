@@ -176,13 +176,13 @@ P.revokeGrants = function (p, o) {
   for (const g of ended) this.endKnown(g, heard);
   // One province of a passage through all his land: the grant stands for the rest, as a new grant over the rest that
   // the grantee's court learns of with the word, the old one standing in its view until then (bug #611). One its grantee
-  // ended already is only narrowed as its grantor reads it. Narrowed to nothing, it is revoked in full.
+  // ended already is only narrowed as its grantor reads it. One left with no land opens nothing, but stands as the courts
+  // know it: ending it would tell its grantor that land he thought his was not in it (Codex's find on #623).
   const cut = o.province === null ? [] : known.filter((g) => g.province === null && g.lands.includes(o.province!));
   for (const g of cut) {
     const lands = g.lands.filter((x) => x !== o.province);
     const was = [...g.cut, o.province!];
-    if (lands.length === 0) this.endKnown(g, heard);
-    else if (!grantLive(g, S.turn)) Object.assign(g, { lands, cut: was });
+    if (!grantLive(g, S.turn)) Object.assign(g, { lands, cut: was });
     else {
       this.endGrant(g, heard);
       // In the old one's place, so it is read in the same order beside basing granted after it (`grantCovers`).

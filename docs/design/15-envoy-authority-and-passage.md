@@ -75,7 +75,8 @@ report brings no holders.
   roads are closed to them. Passage through all one's land is the land held when the tablet is sealed (`Grant.lands`); a
   revocation of one province narrows it: the grant ends and a new one stands over the rest in its place (`Grant.cut`
   names the provinces revoked), which the grantee's view shows when the word of the revocation comes, the old one until
-  then (`heardTurn`, bug #611; save version 56); narrowed to nothing, it is revoked in full. A
+  then (`heardTurn`, bug #611; save version 56); narrowed to no land, it opens nothing but stands as the courts know it,
+  since ending it would tell its grantor of land lost out of his sight. A
   guest's move goes in through the gates: it storms no walls (the adjudicator's `guests`), and a move on the grantor's
   own troops is an attack, not a guest's entry (`guestAt`).
 - **Ending**: at the season it names; by the grantor's `RevokeOrder` (`revoke`: a king, and a province or none), resolved

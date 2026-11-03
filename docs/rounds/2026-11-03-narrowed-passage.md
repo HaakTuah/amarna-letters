@@ -16,8 +16,8 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `llm/src/pro
 - **The narrowing** (`turn/authority.ts`, `revokeGrants`): the grant ends and a new one stands over the rest, in the
   old one's place in the list (so passage read before basing stays so, round 1). The grantor's view shows it at once;
   the grantee's shows the old one until the word of the revocation comes (`Grant.endHeard`) and the new one from then
-  (`Grant.heardTurn`, which the view now reads for every grant, not only those by order). Narrowed to nothing, it is
-  revoked in full. A grant its grantee repudiated already (#609) is only narrowed as its grantor reads it.
+  (`Grant.heardTurn`, which the view now reads for every grant, not only those by order). Narrowed to no land, it opens
+  nothing but stands as the courts know it (round 2). A grant its grantee repudiated already (#609) is only narrowed as its grantor reads it.
 - **A repudiation after a narrowing** (`repudiate`): the repudiating grantee knows at once that the old grant ended too,
   though the word of the narrowing has not come (round 1).
 - **The lines a king reads** (`grantPlace`): the Court (`web/src/ui/format.ts`) and the model's PASSAGE AND BASING
@@ -27,7 +27,7 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `llm/src/pro
   province of its grantor's but those it was revoked in (`grantOpens`), so a king no longer counts on a revoked one.
 - **Design note:** 15. **Save version 56:** `Grant.cut`, and a narrowing now makes a new grant, which takes an id.
 - **Tests** (`authority.test.ts`): the narrowing season by season, its line by name, a second narrowing, one to nothing,
-  passage before basing kept in order; a tablet's grant narrowed and then repudiated by its grantee before the word,
+  passage before basing kept in order, a grant narrowed to no land; a tablet's grant narrowed and then repudiated by its grantee before the word,
   and narrowed again by its grantor; the twin "a grant narrowed by a revocation" holds.
 
 ## Readings taken
@@ -38,6 +38,13 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `llm/src/pro
    covered, as before (design note 15), and the line does not say so: left as it stood.
 2. **A narrowing is a new grant.** Its grantee learns of it as of any grant, by word; the grant he knew stands in his
    view until then. Principle: "Hidden information".
+
+## Review, round 2
+
+Claude's reviewer: 10 of 10, every round-1 point confirmed fixed, nothing open; one idea: none. Codex: one P1, new:
+revoking the last province of a grant whose true land lacked a far province lost out of sight ended it in full, which
+told the grantor of the loss (the grant vanished where, had he kept the province, it would stay). Fixed: a grant
+narrowed to no land opens nothing but stands, read by what was revoked; its test.
 
 ## Benchmarks
 
@@ -52,7 +59,8 @@ Codex: three P1s. Claude's reviewer (Opus, high): 6 of 10, two blocking, four no
 2. **A grantee repudiating after a narrowing still saw the old grant** (Codex P1; Opus, blocking): `repudiate` tells
    him at once; a test.
 3. **Narrowing moved passage behind basing** (Codex P1): the new grant takes the old one's place; a test.
-4. **Narrowed to nothing read "at none"** (Opus, not blocking): revoked in full; the "none" is gone with the list.
+4. **Narrowed to nothing read "at none"** (Opus, not blocking): the "none" is gone with the list (round 2 keeps such a
+   grant, read by what was revoked).
 5. **Untested cases** (not blocking): a second narrowing, one to nothing, a repudiated grant narrowed, the order of
    repudiation and word, a tablet's grant still shown: tested. The expected line is a literal.
 6. **`bidden` and the revoke check repeat `grantOpens`** (not blocking): no longer, since `grantOpens` reads a view
