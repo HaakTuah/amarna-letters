@@ -41,9 +41,10 @@ export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**
  * What a rumour about one of a court's own people tells it: news that ends a {@link Cover}. For word ("Word"), what it
- * tells a court of the world: a king closed or opened his roads to it, or a kingdom fell.
+ * tells a court of the world: a king closed or opened his roads to it, a kingdom fell, or ("Tidings", #618) a vassal or ally
+ * reports a change of hands its court saw.
  */
-export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled"] as const;
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "Tidings"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {

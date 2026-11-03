@@ -36,6 +36,7 @@ import { spyCheckOrders } from "./spy-check.ts";
 import { nameClaims } from "./claims.ts";
 import { reliefOrders, supplyOrders } from "./freedom.ts";
 import { Brain } from "./brain.ts";
+import { asRead } from "./tidings.ts";
 import { Contingencies } from "./contingencies.ts";
 import { personalityFor, type Personality } from "./personality.ts";
 import { roadPolicy } from "./roads.ts";
@@ -79,8 +80,10 @@ export class ScriptLeader implements ISeat {
    * Reads a season's view of a seat it may have to stand in for, deciding nothing, so that it remembers what that seat has
    * seen when it must play it. At most once a season.
    */
-  observe(view: SeatView): void {
-    this.brain(view.power).learn(view, new Board(view));
+  observe(seen: SeatView): void {
+    const brain = this.brain(seen.power);
+    const view = asRead(seen, brain.lastOwner);
+    brain.learn(view, new Board(view));
   }
 
   /** The memory this bot keeps for a power, if it has played or watched it. */
@@ -92,8 +95,9 @@ export class ScriptLeader implements ISeat {
     return Promise.resolve(this.decideNow(view));
   }
 
-  decideNow(view: SeatView): TurnSubmission {
-    const brain = this.brain(view.power);
+  decideNow(seen: SeatView): TurnSubmission {
+    const brain = this.brain(seen.power);
+    const view = asRead(seen, brain.lastOwner);
     brain.learn(view, new Board(view));
     const board = new Board(view, brain.remembered(view), brain.treasury, brain.offersRead);
     const rng = brain.r(view.turn, "decide");
@@ -184,8 +188,9 @@ export class ScriptLeader implements ISeat {
     });
   }
 
-  hostAudience(view: AudienceView, court: SeatView, _signal?: AbortSignal): Promise<HostReply> {
+  hostAudience(view: AudienceView, seen: SeatView, _signal?: AbortSignal): Promise<HostReply> {
     const brain = this.brain(view.host);
+    const court = asRead(seen, brain.lastOwner);
     brain.learn(court, new Board(court));
     const board = new Board(court, null, brain.treasury);
     const rng = Rng.for(this.seeds.tryGet(view.host) ?? this.seedFor(view.host), view.turn, "bot:host", `${view.host}:${view.audienceId}:${view.round}`);
