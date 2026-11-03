@@ -270,7 +270,7 @@ describe("TerrainTests", () => {
     new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [move("tuwanuwa", "mira"), support("lukka", "tuwanuwa", "mira")] })]]));
     let hatti = single(inboxOf(s, "Hatti"), (i) => i.title === "Movements last season").body;
     Assert.contains(
-      "- Your army in Tuwanuwa did not reach Mira: the unit holding Mira (Arzawa's army) kept its place; your strength 2 against 2, 1 of it for the rough ground of Mira; it stays in Tuwanuwa",
+      "Your army in Tuwanuwa did not reach Mira: the unit holding Mira (Arzawa's army) kept its place; your strength 2 against 2, 1 of it for the rough ground of Mira; it stays in Tuwanuwa",
       hatti,
     );
     let e = Assert.single(s.events, (x) => x.kind === "terrain");

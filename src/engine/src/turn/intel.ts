@@ -10,7 +10,7 @@ import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, Fo
 import { coverOf, gain, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
 import { AllPowers, land, type Power, quoteWords } from "../model/power.ts";
 import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
-import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
+import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy, type Unit } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
@@ -22,6 +22,7 @@ import { learn } from "../rules/skills.ts";
 import { legPoints, PointsPerDay } from "../model/travel.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { StealRisk } from "./knowledge.ts";
+import { named, upper } from "./battles.ts";
 
 /** How long a court talks of a servant it put to death: the season of the death and this many after. */
 export const LossNewsSeasons = 3;
@@ -355,7 +356,7 @@ P.spyObserve = function (c, rng) {
       S.units.filter((u) => near.has(u.province)),
       [(u) => u.province, cmpStr],
     ))
-      if (rng.chance(0.35 + skill * 0.6)) obs.push(`${u.power} has ${u.kind === "Army" ? "an army" : "a fleet"} in ${Map.get(u.province).name}.`);
+      if (rng.chance(0.35 + skill * 0.6)) obs.push(sighting(u, Map.get(u.province).name, obs.length));
     if (rng.chance(skill)) {
       const g = S.treasuries.get(court).gold;
       const lo = Math.max(0, Math.trunc(g * (0.75 + rng.nextDouble() * 0.2)));
@@ -386,7 +387,7 @@ P.spyObserve = function (c, rng) {
       S.units.filter((u) => watched.has(u.province)),
       [(u) => u.province, cmpStr],
     ))
-      if (rng.chance(0.5 + skill * 0.5)) obs.push(`${u.power} has ${u.kind === "Army" ? "an army" : "a fleet"} in ${Map.get(u.province).name}.`);
+      if (rng.chance(0.5 + skill * 0.5)) obs.push(sighting(u, Map.get(u.province).name, obs.length));
     // Item 17: the people's mood there, in words, as anyone living among them hears it (its holder never sees the number).
     const holder = S.owner.getOrDefault(wp, null);
     if (holder !== null) obs.push(`The people of ${Map.get(wp).name} are ${this.moodOf(wp)} under ${holder}.`);
@@ -394,6 +395,18 @@ P.spyObserve = function (c, rng) {
   if (obs.length === 0) obs.push("Nothing of note this season.");
   return obs;
 };
+
+/**
+ * Troops a spy saw, in one of three shapes taken in turn down his report, so that several do not read as a list. The
+ * script kings read each shape (`SpiedUnit` in the game's brain).
+ */
+function sighting(u: Unit, place: string, i: number): string {
+  const one = u.kind === "Army" ? "an army" : "a fleet";
+  const who = named(u.power);
+  if (i % 3 === 0) return `${upper(who)} ${who === u.power ? "has" : "have"} ${one} in ${place}.`;
+  if (i % 3 === 1) return `In ${place} there is ${one} of ${who}.`;
+  return `${upper(one)} of ${who} ${u.kind === "Army" ? "is camped" : "lies"} in ${place}.`;
+}
 
 /**
  * What a carrier (an envoy received at `court`, or a spy posted there) hears of the servants of other courts caught or put

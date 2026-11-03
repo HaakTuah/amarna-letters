@@ -112,7 +112,7 @@ export class OrderValidator {
       if (via === null && (c.status !== "Free" || c.errand !== null)) return [`${c.name} is not available for hire`, c];
       if (via === null && c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
       if (via === null && c.at !== power && c.heldBy !== power)
-        return [`${c.name} is not at your court: an offer to a person elsewhere goes with an envoy you send this season to where they are (via)`, c];
+        return [`${c.name} is not at your court; an offer to a person elsewhere goes with an envoy you send this season to where they are (via)`, c];
       if (via !== null) {
         const d = orders.find((o) => o.type === "dispatch" && o.envoy === via) ?? null;
         if (d === null || d.type !== "dispatch") return [`you send no envoy '${via}' this season to carry the offer`, c];
@@ -127,9 +127,9 @@ export class OrderValidator {
     // A job's errand as an order names it: an envoy to a living court not one's own, or a spy on such a court or a province.
     const errandRefusal = (o: { what?: string | null; where?: string | null }): string | null => {
       const what = o.what ?? null;
-      if (what === null) return "name the job's errand: what (envoy, spy or stay) and where";
+      if (what === null) return "name the job's errand, what (envoy, spy or stay) and where";
       const where = o.where ?? "";
-      if (what === "envoy") return AllPowers.includes(where as Power) && where !== power && !heardFallen(where as Power) ? null : `an envoy's errand is to a court other than your own: '${where}' is not one`;
+      if (what === "envoy") return AllPowers.includes(where as Power) && where !== power && !heardFallen(where as Power) ? null : `an envoy's errand is to a court other than your own; '${where}' is not one`;
       if (what === "spy") {
         if (AllPowers.includes(where as Power)) return where !== power && !heardFallen(where as Power) ? null : `you cannot spy on ${where}`;
         return Map.exists(where) && !Map.get(where).isSea ? null : `there is no court or province called '${where}'`;
@@ -175,8 +175,8 @@ export class OrderValidator {
       if (cost < 0) return "a cost cannot be negative";
       if (cost > budget) {
         return ledgerGold > budget
-          ? `not enough gold: it needs ${formatMoney(cost)}, and the orders listed before it left only ${formatMoney(budget)}`
-          : `not enough gold: it needs ${formatMoney(cost)}, and your treasury held ${formatMoney(budget)} by your ledger`;
+          ? `not enough gold, for it needs ${formatMoney(cost)} and the orders listed before it left only ${formatMoney(budget)}`
+          : `not enough gold, for it needs ${formatMoney(cost)} and your treasury held ${formatMoney(budget)} by your ledger`;
       }
       budget -= cost;
       return null;

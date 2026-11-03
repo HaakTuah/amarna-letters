@@ -230,7 +230,7 @@ describe("SleepTests", () => {
       noticeOf(s, "Babylonia", standingFiredTitle("s3")).body,
     );
     // Only the refused order fails; the one replaced by s1 is no second order for the unit. A refusal wakes nobody.
-    Assert.equal("- The troops in Suhu march to Urim: an army in Suhu cannot reach Urim", noticeOf(s, "Babylonia", "Orders that could not be carried out").body);
+    Assert.equal("- The troops in Suhu march to Urim: an army in Suhu cannot reach Urim.", noticeOf(s, "Babylonia", "Orders that could not be carried out").body);
     Assert.empty(sleep.pendingWake);
   });
 

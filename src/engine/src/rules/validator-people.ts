@@ -82,7 +82,7 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       // A new job is offered at your court, where the man stands; a servant abroad whose fate this court has not heard
       // of counts as away.
       const home = cover === null && c.status === "Employed" && c.duty === "None" && c.at === power;
-      if (!home) return `${c.name} is not at your court: a new job is offered where the man stands`;
+      if (!home) return `${c.name} is not at your court; a new job is offered where the man stands`;
       if (rn.fee <= 0 || rn.term <= 0) return "fee and term must be positive";
       if (rn.advance < 0 || rn.advance > rn.fee) return "the advance must be between nothing and the whole fee";
       const ee = errandRefusal(rn);
@@ -101,18 +101,18 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       const ps = order;
       // In the rulebook's words: a spy must be one of your own people at your court, sent to watch a court or a province.
       const e = ownCharacter(ps.character);
-      if (e !== null) return `a spy must be one of your own people at your court: ${e}`;
+      if (e !== null) return `a spy must be one of your own people at your court; ${e}`;
       const court = ps.court ?? null;
       const province = ps.province ?? null;
-      if (court === null && province === null) return "a spy must be sent to watch a court or a province: you named neither";
-      if (court !== null && province !== null) return "a spy must be sent to watch a court or a province: name only one";
+      if (court === null && province === null) return "a spy must be sent to watch a court or a province; you named neither";
+      if (court !== null && province !== null) return "a spy must be sent to watch a court or a province; name only one";
       const sfit = errandFits(ps.character, "spy", court ?? province!);
       if (sfit !== null) return sfit;
       if (court !== null && (court === power || heardFallen(court))) return `you cannot spy on ${court}`;
       if (province !== null && (!Map.exists(province) || Map.get(province).isSea)) return `there is no province called '${province}'`;
       const stir = ps.stir ?? 0;
       if (stir < 0) return "the gold to stir a province cannot be negative";
-      if (stir > 0 && province === null) return "a spy stirs the people of a province he watches: name a province, not a court";
+      if (stir > 0 && province === null) return "a spy stirs the people of a province he watches; name a province, not a court";
       return stir > 0 ? spend(stir) : null;
     }
 

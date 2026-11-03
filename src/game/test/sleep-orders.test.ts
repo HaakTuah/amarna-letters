@@ -413,8 +413,8 @@ describe("SleepTests", () => {
     let notice = noticeOf(r.state, "Babylonia", LostTroopsTitle);
     Assert.equal(3, notice.turn);
     Assert.endsWith(
-      ":\n- turn 4: durkurigalzu -> nippur\n- turn 4: sippar supports durkurigalzu holding\n- standing order s1 (when your unit that stood in durkurigalzu is attacked)" +
-        "\n- from standing order s2: durkurigalzu -> susa\n- standing order s3 (when foreign troops enter suhu)",
+      "yours no longer.\n- The troops in Dur-Kurigalzu march to Nippur (for turn 4)\n- The troops in Sippar support the hold at Dur-Kurigalzu (for turn 4)\n- Standing order s1 (when your unit that stood in Dur-Kurigalzu is attacked)" +
+        "\n- From standing order s2: the troops in Dur-Kurigalzu march to Shushan\n- Standing order s3 (when foreign troops enter Suhu)",
       notice.body,
     );
     // The seat disbanded the unit itself: dropping its orders wakes nobody (since the review of the fix pass after item 4;

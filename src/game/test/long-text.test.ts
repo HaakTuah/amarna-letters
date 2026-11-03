@@ -34,6 +34,9 @@ describe("LongTextTests", () => {
     expect([shekels(lot?.[1] ?? ""), shekels(lot?.[2] ?? "")]).toEqual([120, 90]);
     expect(ForgerHand.exec("A forgery. The scribes trace it to the hand of Testu, who brought it.")?.[1]).toBe("Testu");
     expect([..."Northland has an army in Hillfort; Westland had a fleet in Bayport.".matchAll(SpiedUnit)].map((m) => m[1])).toEqual(["Northland", "Westland"]);
+    expect(
+      [..."The Hillmen have an army in Hillfort. In Bayport there is a fleet of Westland. An army of the Hillmen is camped in Ford.".matchAll(SpiedUnit)].map((m) => m[1] ?? m[2]),
+    ).toEqual(["Hillmen", "Westland", "Hillmen"]);
     expect(shekels("2 minas 15 shekels")).toBe(135);
     const governor = GovernorWrites.exec("Testu, your governor of Hillfort, writes that its people are near revolt.");
     expect([governor?.[1], governor?.[2]]).toEqual(["Hillfort", "near revolt"]);

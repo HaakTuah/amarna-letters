@@ -308,17 +308,17 @@ function report(ctx: MindContext): MindReply {
 
   const observations = cargo.observations.filter((o) => !(bribed && host !== null && o.startsWith(host)));
   // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, and vouches for it as
-  // something it saw for itself, ahead of what it saw. Asked to speak well of a king, it calls him a friend.
+  // something it saw for itself, first among what it saw. Asked to speak well of a king, it calls him a friend.
   if (ctx.structured && bribed && host !== null) {
     const news = answer.slice(answer.length - bribeNews.length);
-    if (news.length > 0) lines.push(`I was at the court of ${land(host)}, and I saw for myself: ${renderClauses(news, host, lord)}`);
+    if (news.length > 0) observations.unshift(`At the court of ${land(host)} I saw for myself that it is so: ${renderClauses(news, host, lord)}`);
   } else if (bribed && host !== null && trail !== null) {
     const asked = askedOf(trail);
     const claim = TextKit.claim(asked, lord);
-    if (claim !== null) lines.push(`At the court of ${land(host)} the king told me "${claim}", and I saw for myself that it is so.`);
+    if (claim !== null) observations.unshift(`At the court of ${land(host)} the king told me "${claim}", and I saw for myself that it is so.`);
     else {
       const praised = TextKit.praised(asked, lord);
-      if (praised !== null && praised !== host) lines.push(`At the court of ${land(host)} I saw for myself that ${land(praised)} is a true friend to you.`);
+      if (praised !== null && praised !== host) observations.unshift(`At the court of ${land(host)} I saw for myself that ${land(praised)} is a true friend to you.`);
     }
   }
   if (observations.length > 0) lines.push("What I saw: " + observations.join(" "));

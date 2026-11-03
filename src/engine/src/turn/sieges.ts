@@ -31,7 +31,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import type { ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine } from "./core.ts";
-import { upper, whose } from "./battles.ts";
+import { cameFrom, named, upper, whose } from "./battles.ts";
 import { learn } from "../rules/skills.ts";
 import { openToSea } from "./trade.ts";
 
@@ -222,7 +222,7 @@ P.sieges = function (valid) {
       x.power,
       x.province,
       begun
-        ? `Your siege of ${name} (walls ${walls}, held by ${owner !== null ? land(owner) : "no one"}) has begun and wore the city down ${how}. It stands at ${worn()}.${water}`
+        ? `Your siege of ${name} (walls ${walls}, held by ${owner !== null ? named(owner) : "no one"}) has begun and wore the city down ${how}. It stands at ${worn()}.${water}`
         : `The siege of ${name} wore the city down ${how}. It stands at ${worn()}.${water}`,
     );
     tell(
@@ -353,7 +353,7 @@ P.surrender = function (x, owner, tell, how) {
   if (how === "thirst") logEvent(S, "siege", `${name} ran out of water and surrendered to ${x.power}.`, parties(this, x.province, x.power, owner), "siege-thirst");
   tell(x.power, x.province, `${name} surrendered to you after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}: it is yours, with its walls a level lower (${left}).`);
   if (owner !== null) {
-    this.tell(owner, prov, "Battle", "Land lost", `${name} has surrendered to ${land(x.power)} after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}.`);
+    this.tell(owner, prov, "Battle", "Land lost", `${name} has surrendered to ${named(x.power)} after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}.`);
     logEvent(S, "conquest", `${x.power} took ${name} from ${owner}.`, parties(this, prov, x.power, owner));
   }
   // Word of it comes from the city to the besieger's court, as from any place (bug #517).
@@ -401,7 +401,7 @@ function groundShare(a: Assault): string {
  * (the walls and the defenders), the strengths, and what came of it.
  */
 P.ownWallsText = function (a) {
-  const who = `${whose(a.power)} ${a.kind === "Army" ? "army" : "fleet"} from ${this.map.get(a.from).name}`;
+  const who = `${whose(a.power)} ${a.kind === "Army" ? "army" : "fleet"}${cameFrom(a.power, this.map.get(a.from).name)}`;
   const strengths = `its strength ${strengthWords(a.strength)} against your walls ${strengthWords(a.walls)} and ${defendersText(a)}`;
   const name = this.map.get(a.province).name;
   return stormed(a)

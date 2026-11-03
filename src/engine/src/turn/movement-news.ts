@@ -3,9 +3,9 @@
  * (GameState.lastSeen) and the notice "Movements last season", with why each of its moves failed.
  */
 import type { Dict, HSet } from "../core/collections.ts";
-import type { MoveFailure } from "../model/outcomes.ts";
+import type { MoveFailure, ReportLine } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
-import { land, type Power } from "../model/power.ts";
+import type { Power } from "../model/power.ts";
 import { alive, logEvent, notify } from "../model/state.ts";
 import type { Order, SallyOrder } from "../model/orders.ts";
 import { groundText } from "../model/geography.ts";
@@ -32,12 +32,17 @@ P.movementNews = function (result, sightBefore, byProvince, sallies, unitOrders,
       result.outcomes.filter((o) => o.power === p || sightBefore.get(p).has(o.province) || (o.target !== null && sightBefore.get(p).has(o.target))),
     );
 
+  // A unit that held but was beaten from its place has a second line, which says what became of it: its hold goes untold.
+  const beaten = (l: ReportLine): boolean => result.lines.some((x) => x !== l && !x.ok && x.failure === null && x.void === null && x.province === l.province && x.power === l.power);
   for (const p of alive(S)) {
     const sight = sightBefore.get(p);
     // Its own orders, each failed move and void support with the reason; foreign orders where the unit stood, or moved to, in sight before the moves.
     const mine: string[] = [];
+    const myHolds: ReportLine[] = [];
     for (const l of result.lines.filter((l) => l.power === p)) {
-      if (l.failure !== null) {
+      if (heldPlace(l) !== null) {
+        if (!beaten(l)) myHolds.push(l);
+      } else if (l.failure !== null) {
         const f = l.failure;
         const why = whyMoveFailed(p, l.province, l.target!, f, sight);
         // A scheduled move that others stopped wakes its sleeping seat, with the reason; one its own orders or
@@ -71,8 +76,12 @@ P.movementNews = function (result, sightBefore, byProvince, sallies, unitOrders,
     }
     // An assault on a walled city of the king's own: his side of it, with the strengths, among his own lines.
     for (const a of result.assaults.filter((a) => a.owner === p)) mine.push(this.ownWallsText(a));
-    const seen = result.lines
-      .filter((l) => l.power !== p && l.power !== null && (sight.has(l.province) || (l.target !== null && sight.has(l.target))))
+    mine.push(...holdsText("Your", myHolds));
+    // Foreign troops each name their power, so they need no heading: what they did, then those that held, by power.
+    const seenLines = result.lines.filter((l) => l.power !== p && l.power !== null && (sight.has(l.province) || (l.target !== null && sight.has(l.target))));
+    const held = seenLines.filter((l) => heldPlace(l) !== null && !beaten(l));
+    const seen = seenLines
+      .filter((l) => heldPlace(l) === null)
       .map(
         (l) =>
           `${upper(whose(l.power!))} ${l.text}${
@@ -83,12 +92,33 @@ P.movementNews = function (result, sightBefore, byProvince, sallies, unitOrders,
               : ""
           }.`,
       );
+    for (const q of new Set(held.map((l) => l.power!))) seen.push(...holdsText(upper(whose(q)), held.filter((l) => l.power === q)));
     if (mine.length + seen.length === 0) continue;
-    let body = mine.map((x) => "- " + x).join("\n");
-    if (seen.length > 0) body += "\nSeen nearby:\n" + seen.map((x) => "- " + x).join("\n");
-    notify(S, p, "Battle", "Movements last season", placesNamed(body.trim()));
+    notify(S, p, "Battle", "Movements last season", placesNamed([...mine, ...seen].join("\n")));
   }
 };
+
+/** Where a unit that only held its ground stood, from its report line ("army in Apasa held"); null for any other line. */
+function heldPlace(l: ReportLine): string | null {
+  if (l.failure !== null || l.assault !== null || l.void !== null) return null;
+  return /^(?:army|fleet) in (.+) held$/.exec(l.text)?.[1] ?? null;
+}
+
+/** The units of one side that held their ground, armies then fleets, each kind in one sentence ("Your armies held their ground in Apasa and Mira."). */
+function holdsText(side: string, holds: readonly ReportLine[]): string[] {
+  const out: string[] = [];
+  for (const [kind, kinds, did, done] of [
+    ["army", "armies", "held its ground in", "held their ground in"],
+    ["fleet", "fleets", "stayed in", "stayed in"],
+  ] as const) {
+    const of = holds.filter((l) => l.text.startsWith(kind + " "));
+    if (of.length === 0) continue;
+    const places = [...new Set(of.map((l) => heldPlace(l)!))];
+    const where = places.length === 1 ? places[0] : `${places.slice(0, -1).join(", ")} and ${places[places.length - 1]}`;
+    out.push(`${side} ${of.length === 1 ? `${kind} ${did}` : `${kinds} ${done}`} ${where}.`);
+  }
+  return out;
+}
 
 /**
  * Why one of the viewer's own moves failed, in plain words, with the strengths the engine compared. The other side's

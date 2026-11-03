@@ -366,7 +366,7 @@ describe("CourtAsleepTests", () => {
     Assert.equal("Babylonia", char(r.state, second!).missionTarget);
     Assert.equal(0, ledger(r.state.treasuries.get("Alashiya")));
     let refused = Assert.single(inboxOf(r.state, "Alashiya"), (i) => i.kind === "Rejected").body;
-    Assert.equal("- Spend 1 on watching for spies: not enough gold: it needs 1 shekel, and the orders listed before it left only 0 shekels", refused);
+    Assert.equal("- Spend 1 on watching for spies: not enough gold, for it needs 1 shekel and the orders listed before it left only 0 shekels.", refused);
   });
 
   // ------------------------------------------------------------ what the king reads

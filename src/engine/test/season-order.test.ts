@@ -38,11 +38,11 @@ describe("SeasonOrderTests", () => {
     let someone = first(s.characters, (c) => c.employer === "Hatti").id;
 
     let refused = refusedOf(s, "Egypt", check(someone, 100), check(someone, 100));
-    Assert.equal("not enough gold: it needs 1 mina 40 shekels, and the orders listed before it left only 50 shekels", Assert.single(refused).reason);
+    Assert.equal("not enough gold, for it needs 1 mina 40 shekels and the orders listed before it left only 50 shekels", Assert.single(refused).reason);
 
     s.treasuries.get("Egypt").gold = 50;
     refused = refusedOf(s, "Egypt", check(someone, 100), check(someone, 40));
-    Assert.equal("not enough gold: it needs 1 mina 40 shekels, and your treasury held 50 shekels by your ledger", Assert.single(refused).reason);
+    Assert.equal("not enough gold, for it needs 1 mina 40 shekels and your treasury held 50 shekels by your ledger", Assert.single(refused).reason);
   });
 
   test("A person offered a job may be sent on its errand the same season, and on no other", () => {
@@ -92,18 +92,18 @@ describe("SeasonOrderTests", () => {
     let own = first(s.characters, (c) => c.employer === "Egypt");
     let stranger = first(s.characters, (c) => c.status === "Free");
 
-    Assert.equal("a spy must be one of your own people at your court: you named nobody", single(refusedOf(s, "Egypt", placeSpy("", "Hatti"))).reason);
+    Assert.equal("a spy must be one of your own people at your court; you named nobody", single(refusedOf(s, "Egypt", placeSpy("", "Hatti"))).reason);
     Assert.equal(
-      `a spy must be one of your own people at your court: ${stranger.name} is not in your service`,
+      `a spy must be one of your own people at your court; ${stranger.name} is not in your service`,
       single(refusedOf(s, "Egypt", placeSpy(stranger.id, "Hatti"))).reason,
     );
-    Assert.equal("a spy must be sent to watch a court or a province: you named neither", single(refusedOf(s, "Egypt", placeSpy(own.id))).reason);
-    Assert.equal("a spy must be sent to watch a court or a province: name only one", single(refusedOf(s, "Egypt", placeSpy(own.id, "Hatti", "gaza"))).reason);
+    Assert.equal("a spy must be sent to watch a court or a province; you named neither", single(refusedOf(s, "Egypt", placeSpy(own.id))).reason);
+    Assert.equal("a spy must be sent to watch a court or a province; name only one", single(refusedOf(s, "Egypt", placeSpy(own.id, "Hatti", "gaza"))).reason);
 
     own.duty = "EnvoyOutbound";
     own.at = null;
     Assert.equal(
-      `a spy must be one of your own people at your court: ${own.name} is not at your court`,
+      `a spy must be one of your own people at your court; ${own.name} is not at your court`,
       single(refusedOf(s, "Egypt", placeSpy(own.id, "Hatti"))).reason,
     );
   });
