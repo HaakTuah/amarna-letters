@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, type Power, TidingsTitle, TurnEngine, Views, WorldMap, clause, inboxOf, newGame, newGameConfig, newOwnerChange, newTablet, newTurnSubmission } from "@amarna/engine";
+import { Dict, type GameState, type Power, TidingsTitle, TurnEngine, Views, WorldMap, clause, inboxOf, newGame, newGameConfig, newKnown, newOwnerChange, newTablet, newTurnSubmission } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 const map = WorldMap.default;
@@ -87,6 +87,19 @@ describe("TidingsTests", () => {
     const s = world("ally");
     play(s, 6);
     Assert.false(inboxOf(s, "Elam").some((i) => i.title === TidingsTitle));
+  });
+
+  test("Word of a season's end replaces what the court saw as that season began (#618)", () => {
+    const s = world("ally");
+    const e = new TurnEngine(s, map);
+    e.beginTurn();
+    s.known.set("Egypt", new Dict([["ashur", newKnown({ owner: null, turn: s.turn, source: "seen" })]]));
+    s.owner.set("ashur", "Elam");
+    s.ownerLog.push(newOwnerChange({ province: "ashur", turn: s.turn, owner: "Elam" }));
+    e.sendTidings();
+    const j = s.journeys.find((x) => x.to === "Egypt" && x.news === "TidingsAlly")!;
+    e.tidingsArrive(j);
+    Assert.equal("Elam", s.known.get("Egypt").get("ashur").owner);
   });
 
   test("A court reports by a bond only once it holds the tablet (#618)", () => {

@@ -130,7 +130,8 @@ P.tidingsArrive = function (j) {
   j.seen.forEach((x, i) => {
     const turn = j.reached[i] ?? j.departTurn;
     const had = book!.tryGet(x);
-    if (this.map.exists(x) && (had === undefined || had.turn < turn)) book!.set(x, newKnown({ owner: ownerAt(S, this.map, x, turn), turn, source }));
+    // Its own sight of that season was as the season began (`seeLand`); the word is of its end.
+    if (this.map.exists(x) && (had === undefined || had.turn < turn || (had.turn === turn && had.source === SeenSource))) book!.set(x, newKnown({ owner: ownerAt(S, this.map, x, turn), turn, source }));
   });
   notify(S, j.to, "Rumor", TidingsTitle, j.text ?? "");
   // Dated, as its notice is, to the season it is read in (word that comes within the season is read in the next).
