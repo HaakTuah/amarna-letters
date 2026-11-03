@@ -41,6 +41,13 @@ import type { OrdersContext } from "./use-orders.ts";
 /** The orders panel's Court: servants, candidates, jobs and their fees, lenders and debts, inquiries and captives. */
 export function CourtSection({ c }: { c: OrdersContext }) {
   const { draft, v, me, f, set, wage, ready, reserved, others, add, term, addSpy } = c;
+  // #601: the far provinces of yours a rider can bring the report of, and the job's errand and its words.
+  const far = [...v.ownerAsOf.keys()].filter((x) => v.owner.getOrDefault(x, null) === me && !map.get(x).isSea);
+  const rideTo = f.errandWhat === "ride" && !far.includes(f.errandWhere) ? (far[0] ?? "") : f.errandWhere;
+  const errand = { what: f.errandWhat, where: f.errandWhat === "stay" ? me : f.errandWhat === "ride" ? rideTo : f.errandWhere, payOnDone: f.payOnDone };
+  const errandLabel =
+    f.errandWhat === "stay" ? "to stay at court" : f.errandWhat === "ride" ? `to ride for ${provinceName(rideTo)}'s report` : `${f.errandWhat} ${f.errandWhat === "envoy" ? "to" : "on"} ${powerName(f.errandWhere as Power)}`;
+  const jobTerm = f.errandWhat === "ride" ? 1 : term;
   // The upkeep order's pay or food half, drafted in a season either for all the troops or province by province: the
   // orders apply in turn, so a whole order after a province's would clear it, and a province's choices after a whole
   // order are worded against the order as the season began.
@@ -163,12 +170,22 @@ export function CourtSection({ c }: { c: OrdersContext }) {
       <div className="row" style={{ marginTop: ".4rem", flexWrap: "wrap" }}>
         <label>
           A job offered:{" "}
-          <select value={f.errandWhat} onChange={(e) => set({ errandWhat: e.target.value as "envoy" | "spy" | "stay" })}>
+          <select value={f.errandWhat} onChange={(e) => set({ errandWhat: e.target.value as "envoy" | "spy" | "stay" | "ride" })}>
             <option value="envoy">envoy to</option>
             <option value="spy">spy on</option>
             <option value="stay">stay at my court until the term ends</option>
+            {far.length > 0 && <option value="ride">ride this season for the report of</option>}
           </select>{" "}
-          {f.errandWhat !== "stay" && (
+          {f.errandWhat === "ride" && (
+            <select value={rideTo} onChange={(e) => set({ errandWhere: e.target.value })}>
+              {far.map((x) => (
+                <option key={x} value={x}>
+                  {provinceName(x)}
+                </option>
+              ))}
+            </select>
+          )}
+          {f.errandWhat !== "stay" && f.errandWhat !== "ride" && (
             <select value={f.errandWhere} onChange={(e) => set({ errandWhere: e.target.value })}>
               {AllPowers.filter((p) => p !== me).map((p) => (
                 <option key={p} value={p}>
@@ -198,9 +215,9 @@ export function CourtSection({ c }: { c: OrdersContext }) {
               <button
                 className="small"
                 disabled={c.where !== "at your court"}
-                onClick={() => add(hire(c.id, wage(c.id, c.askingPrice ?? 15), term, null, { what: f.errandWhat, where: f.errandWhat === "stay" ? me : f.errandWhere, payOnDone: f.payOnDone }))}
+                onClick={() => add(hire(c.id, wage(c.id, c.askingPrice ?? 15), jobTerm, null, errand))}
               >
-                Offer the job ({f.errandWhat === "stay" ? "to stay at court" : `${f.errandWhat} ${f.errandWhat === "envoy" ? "to" : "on"} ${powerName(f.errandWhere as Power)}`}), half now
+                Offer the job ({errandLabel}), half now
               </button>
               {c.hoardHere !== null && (
                 <button className="small danger" disabled={draft.other.some((o) => o.type === "seize" && o.character === c.id)} onClick={() => add(seize(c.id))}>
@@ -235,9 +252,9 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             <button
               className="small"
               disabled={draft.other.some((o) => o.type === "renew" && o.character === c.id)}
-              onClick={() => add(renew(c.id, wage(c.id, Math.trunc((c.fee ?? 90) / 6)), term, null, { what: f.errandWhat, where: f.errandWhat === "stay" ? me : f.errandWhere, payOnDone: f.payOnDone }))}
+              onClick={() => add(renew(c.id, wage(c.id, Math.trunc((c.fee ?? 90) / 6)), jobTerm, null, errand))}
             >
-              Offer a new job ({f.errandWhat === "stay" ? "to stay at court" : `${f.errandWhat} ${f.errandWhat === "envoy" ? "to" : "on"} ${powerName(f.errandWhere as Power)}`}), half now
+              Offer a new job ({errandLabel}), half now
             </button>
             <button className="small" disabled={draft.other.some((o) => o.type === "payFee" && o.character === c.id)} onClick={() => add(payFee(c.id, false))}>
               Withhold the rest of the fee
