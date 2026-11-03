@@ -65,6 +65,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **#612, decided** (the owner, 3 November 2026; archive item 204): after the usage reset, a fresh session fixes the
+  one case left open (a scheduled or standing order for a far unit lost out of sight is refused at once, through
+  `TurnEngine.bind` and the standing-order target check), the PR is reviewed again, and it merges at a clean review.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) #612 has had four Codex
   rounds, past the three that "Codex reviews" holds: no fifth; take it to escalation as that section says. (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the

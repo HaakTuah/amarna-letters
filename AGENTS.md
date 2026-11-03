@@ -113,7 +113,8 @@ Everything the owner should see lives in this repository's issues, so nothing is
   Feature request (`enhancement`); a bug the task at hand will not fix is a Bug report (`bug`). An idea or a bug
   takes its template's headings and label (`.github/ISSUE_TEMPLATE/`; through the API, copy the headings into the body).
   Search the open issues first and add to one rather than file twice. Each issue holds the whole of it, answerable from a
-  phone.
+  phone, and says in plain words what each thing is and why it matters, by the game's own names, never only by a title a
+  builder made up; so does each line that points to one (archive item 204).
 - **Everywhere else, only a pointer.** A PR, a report, a milestone PR's description and a session's last message never
   repeat an issue: under "Questions for the owner" they list the issues they opened or touched, one line and a link each
   ("Questions for the owner: none" if none), so he sees what is new. An orchestrator passes every new link on to him.
