@@ -48,7 +48,7 @@ export function stateOfRealm(s: GameState, map: WorldMap, p: Power): string {
   const ranked = [...alive(s)].sort((a, b) => s.startStrength.get(b) - s.startStrength.get(a) || cmpPower(a, b));
   const rank = ranked.indexOf(p) + 1;
   lines.push(`Of the ${ranked.length} powers, it is the ${ordinal(rank)} in wealth.`);
-  const bonds = vassalBonds(s.tablets);
+  const bonds = vassalBonds(s.tablets, { p, turn: s.turn });
   const over = bonds.filter((b) => b.vassal === p);
   const under = bonds.filter((b) => b.overlord === p);
   if (over.length > 0) lines.push(`It is ${over.map((b) => `${b.overlord}'s vassal by a sealed tablet${b.tribute > 0 ? `, which names ${b.tribute} shekels of tribute a year` : ""}`).join(", and ")}.`);

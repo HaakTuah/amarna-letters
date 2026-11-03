@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import type { Power } from "@amarna/engine";
 import { frontierPath } from "../src/map/art.ts";
-import { bands } from "../src/map/land-layers.ts";
+import { bands, facedAcross } from "../src/map/land-layers.ts";
 import type { MapScene, SceneUnit } from "../src/map/scene.ts";
 
 // Borders strong between powers, quiet within one ("Following, travel lines and borders"): a province's band runs only along
@@ -53,5 +53,10 @@ describe("RealmBorders", () => {
     expect(accent.length).toBeLessThan(band.length);
     // Fleets do not face each other across a land frontier.
     expect(contested([army("Egypt", "sapinuwa"), { ...army("Hatti", "hattusa"), kind: "Fleet" }])).toBe(0);
+    // The province's card lists the same provinces across (#586): the glow's own test, from the armies seen now only.
+    expect(facedAcross(scene([army("Egypt", "sapinuwa"), army("Hatti", "hattusa")]), "sapinuwa")).toEqual(["hattusa"]);
+    expect(facedAcross(scene([army("Egypt", "sapinuwa"), army("Hatti", "hattusa", true)]), "sapinuwa")).toEqual([]);
+    expect(facedAcross(scene([army("Egypt", "sapinuwa"), army("Hatti", "hattusa")], "Egypt"), "sapinuwa")).toEqual([]);
+    expect(facedAcross(scene([army("Hatti", "hattusa")]), "sapinuwa")).toEqual([]);
   });
 });

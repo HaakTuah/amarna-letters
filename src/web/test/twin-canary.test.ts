@@ -17,6 +17,14 @@ import {
   WorldMap,
   newGame,
   newGameConfig,
+  newGrant,
+  newTablet,
+  repudiate,
+  clause,
+  ownedBy,
+  newScheduledOrders,
+  newSleepState,
+  type ScheduledOrders,
   endSieges,
   newOwnerChange,
   newSiege,
@@ -30,6 +38,10 @@ import {
   feed,
   grant,
   hunt,
+  revoke,
+  roads,
+  move,
+  raise,
   sell,
   toll,
   welcome,
@@ -46,6 +58,10 @@ interface Twin {
   later?: { at: number; happen(s: GameState): void };
   /** The orders the seat gives each season: the same in both worlds, since it sees the same. */
   orders: Order[];
+  /** Another king's orders in the first season, in the world where the fact is true: his doing is the fact. */
+  others?: { power: Power; orders: Order[] };
+  /** The orders the seat schedules in its first season, for later seasons. */
+  scheduled?: ScheduledOrders[];
   /** Whether the seat could know the fact by now, in the world where it is true: the twins may differ from then. */
   heard(s: GameState): boolean;
   seasons: number;
@@ -59,7 +75,8 @@ const isDict = (x: unknown): x is Record<string, unknown> => typeof x === "objec
 function differences(a: GameState, b: GameState, p: Power): string[] {
   const [va, vb] = [a, b].map((s) => JSON.parse(serialize(SeatViewSchema, Views.for(s, p))) as Record<string, unknown>);
   const out: string[] = [];
-  const notice = (i: { title: string; body: string }) => `${i.title}: ${i.body}`;
+  // The treasury's balance in its notice is `view.gold`'s, compared there: a known gold leak (#587) excuses only that.
+  const notice = (i: { title: string; body: string }) => `${i.title}: ${i.body.replace(/The treasury now holds [^;]*;/, "The treasury now holds (as view.gold);")}`;
   const [ia, ib] = [va, vb].map((v) => (v.inbox as { title: string; body: string }[]).map(notice));
   for (const x of ia.filter((x) => !ib.includes(x))) out.push(`only where true: ${x}`);
   for (const x of ib.filter((x) => !ia.includes(x))) out.push(`only where false: ${x}`);
@@ -103,7 +120,11 @@ function play(t: Twin): { line: string; difference: string }[] {
     // A later fact comes about during the season, as a capture in its movement would, before its orders are carried out.
     if (t.later !== undefined && worlds[0].turn === t.later.at) t.later.happen(worlds[0]);
     for (const d of differences(worlds[0], worlds[1], t.seat)) found.push({ line: `season ${worlds[0].turn}, ${d}`, difference: d });
-    for (const s of worlds) new TurnEngine(s).resolve(new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(t.orders) })]]));
+    for (const s of worlds) {
+      const subs = new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(t.orders), scheduled: s.turn === 1 ? structuredClone(t.scheduled ?? []) : [] })]]);
+      if (s === worlds[0] && t.others !== undefined && s.turn === 1) subs.set(t.others.power, newTurnSubmission({ orders: structuredClone(t.others.orders) }));
+      new TurnEngine(s).resolve(subs);
+    }
   }
   return found;
 }
@@ -236,26 +257,27 @@ const siegeAfterOrders: Twin = {
 };
 
 /**
- * Leaks still open, each with its issue: a difference matching one is not counted here, and each must still be found, so
- * the list shrinks as they are fixed. Bug #540: a far province's economy, works, people and caravans, and the realm's
- * totals, are shown as they are, not as last reported.
+ * Leaks still open, each with its issue and the twins it may show in: a difference matching one there is not counted
+ * here, and each must still be found, so the list shrinks as they are fixed. Question #587: what the treasury pays for far
+ * off (a far caravan's porters, a far province's works paid in gold) leaves it before word of the order's outcome could
+ * come, so its gold and the strength reckoned from it differ (the treasury notice's balance is compared as `view.gold`);
+ * only in the twins whose orders spend far off, so no other leak of gold hides behind it.
  */
-const Known: { issue: number; what: string; is: (difference: string) => boolean }[] = [
-  // Of the far province itself (Nippur, in every twin), and the realm's totals.
-  ...["provinces", "works", "yields"].map((k) => ({ issue: 540, what: `view.${k} of the far province`, is: (d: string) => d.startsWith(`view.${k}[nippur]: `) })),
-  { issue: 540, what: "a caravan to or from the far province", is: (d) => /^view\.caravans\[[a-z]+\]: /.test(d) && d.includes('"nippur"') },
-  ...["strength", "gold"].map((k) => ({ issue: 540, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
-  { issue: 540, what: "the treasury notice", is: (d) => /^only where (true|false): The treasury: /.test(d) },
-  { issue: 540, what: "the works notice", is: (d) => /^only where (true|false): Works: (Your works took|Upkeep and building cost|This season the works cost) /.test(d) },
-  { issue: 540, what: "a caravan's arrival", is: (d) => /^only where (true|false): Markets and caravans: Your caravan reached /.test(d) },
-  { issue: 540, what: "the realm's reaping event", is: (d) => /^only where (true|false): event: Egypt's land reaped its harvest: /.test(d) },
-  { issue: 540, what: "a works event of the far province", is: (d) => /^only where (true|false): event: Egypt (raised|repaired) [^.]*Nippur/.test(d) },
-  { issue: 540, what: "a caravan's arrival event", is: (d) => /^only where (true|false): event: Egypt's caravan reached /.test(d) },
+const SpendFar = ["a far province lost after orders for it set out", "a far siege begun after orders set out", "far works paid in gold, the province lost after orders set out", "far works paid in gold, a siege begun after orders set out"];
+const Known: { issue: number; what: string; twins: string[]; is: (difference: string) => boolean }[] = [
+  ...["strength", "gold"].map((k) => ({ issue: 587, what: `view.${k}`, twins: [...SpendFar, "a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}: `) })),
+  // The pay of a far levy's army leaves the treasury at once, as the levy's price does (#587).
+  { issue: 587, what: "the treasury notice's troops' pay", twins: ["a far levy that raised nothing"], is: (d: string) => /^only where (true|false): The treasury: .*Paid: your troops/.test(d) },
+  // A far levy's army is shown at once, its upkeep counted and the orders waiting for it bound to it, before word of its
+  // raising could come (#600, the far unit known by its reports).
+  ...["units", "upkeep"].map((k) => ({ issue: 600, what: `view.${k} (a far levy's army)`, twins: ["a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}`) })),
+  // Only the order named by its levy or by its army: an order missing from one twin's list is a leak of its own (#569).
+  { issue: 600, what: "view.scheduled (a far levy's army)", twins: ["a far levy that raised nothing"], is: (d: string) => /^view\.scheduled: \[\{"turn":5,.* against \[\{"turn":5,/.test(d) },
 ];
 
 /** Every difference a twin's seasons show, each with the known leak it is, if any. */
 function found(t: Twin): { line: string; known: (typeof Known)[number] | undefined }[] {
-  return play(t).map((x) => ({ line: x.line, known: Known.find((k) => k.is(x.difference)) }));
+  return play(t).map((x) => ({ line: x.line, known: Known.find((k) => k.twins.includes(t.name) && k.is(x.difference)) }));
 }
 
 /** A far city of Egypt's under a siege it has long known of; in the twin where the fact is true, the siege is lifted. */
@@ -293,7 +315,118 @@ const siegeFallen: Twin = {
   heard: farLoss.heard,
 };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen];
+/** Far works paid in gold, not by corvée: the same twins, the treasury paying for what it builds far off. */
+const goldWorks: Order[] = [build("nippur", "Walls", 2, false), build("nippur", "Roads", 1, false)];
+const goldAfterLoss: Twin = { ...lossAfterOrders, name: "far works paid in gold, the province lost after orders set out", orders: goldWorks };
+const goldAfterSiege: Twin = { ...siegeAfterOrders, name: "far works paid in gold, a siege begun after orders set out", orders: goldWorks };
+
+/**
+ * Egypt's king holds court at Nippur, far from his homeland (all of it beyond his sight); he schedules a levy in Nubia
+ * and a march for the army it is to raise. In the twin where the fact is true, Nubia's men are gone (fled, or dead of plague) in the
+ * levy's season, so it raises nothing.
+ */
+const levyUnraised: Twin = {
+  name: "a far levy that raised nothing",
+  seat: "Egypt",
+  seasons: 8,
+  make() {
+    const s = world("Egypt", "Babylonia");
+    holds(s, "Egypt", 0);
+    s.court.set("Egypt", "nippur");
+    s.units = s.units.filter((u) => u.province !== "nubia");
+    s.sleep.tryAdd("Egypt", newSleepState());
+    return s;
+  },
+  later: {
+    at: 3,
+    happen(s) {
+      s.people.get("nubia").men = 0;
+    },
+  },
+  orders: [],
+  scheduled: [newScheduledOrders({ turn: 3, orders: [raise("nubia", "Army")] }), newScheduledOrders({ turn: 5, orders: [move("nubia", "thebes")] })],
+  // Once word of the levy's season in Nubia has come: its report (the land as last reported), or the levy's own notice.
+  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3 || (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Levy failed"),
+};
+
+/** Egypt and Babylonia, Babylonia the seat; in the twin where the fact is true, Egypt grants it passage by order. */
+const grantGiven: Twin = {
+  name: "a grant by order",
+  seat: "Babylonia",
+  seasons: 6,
+  make: () => world("Egypt", "Babylonia"),
+  others: { power: "Egypt", orders: [grant("Babylonia", "passage")] },
+  orders: [],
+  // Once word of it, or of its end, has reached Babylon: by its notice, or the closed roads'.
+  heard: (s) => (s.inbox.tryGet("Babylonia") ?? []).some((i) => i.title === "Passage and basing" || i.title === "Roads"),
+};
+
+/** As `grantGiven`, but Babylonia has long known of Egypt's passage through all its land, and Egypt revokes it. */
+const grantRevoked: Twin = {
+  ...grantGiven,
+  name: "a grant revoked",
+  make() {
+    const s = world("Egypt", "Babylonia");
+    s.grants.push(newGrant({ id: "p990", grantor: "Egypt", grantee: "Babylonia", lands: ownedBy(s, "Egypt"), sinceTurn: 0 }));
+    return s;
+  },
+  others: { power: "Egypt", orders: [revoke("Babylonia")] },
+};
+
+/** As `grantRevoked`, but Egypt revokes the passage in one province only. */
+const grantNarrowed: Twin = { ...grantRevoked, name: "a grant narrowed by a revocation", others: { power: "Egypt", orders: [revoke("Babylonia", "memphis")] } };
+
+/** As `grantRevoked`, but Egypt closes its roads to Babylonia's people, which ends what it granted. */
+const grantRoadsClosed: Twin = { ...grantRevoked, name: "a grant ended by closed roads", others: { power: "Egypt", orders: [roads("Babylonia", true)] } };
+
+/**
+ * As `grantGiven`, but Babylonia has long held a tablet Egypt's envoy sealed in its name, granting Babylonia passage
+ * through the delta, and Egypt repudiates it (bug #609).
+ */
+const tabletRepudiated: Twin = {
+  ...grantGiven,
+  name: "a tablet repudiated",
+  make() {
+    const s = world("Egypt", "Babylonia");
+    s.tablets.push(
+      newTablet({ id: "t990", text: "Passage through the delta.", clauses: [clause("askPassage", { province: "delta" })], proposedBy: "Babylonia", partner: "Egypt", seals: ["Babylonia", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", byHand: "Ipy", within: false }),
+    );
+    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    s.grants.push(newGrant({ id: "p990", grantor: "Egypt", grantee: "Babylonia", province: "delta", sinceTurn: 0, tabletId: "t990" }));
+    return s;
+  },
+  others: { power: "Egypt", orders: [repudiate("k990E")] },
+  heard: (s) => (s.inbox.tryGet("Babylonia") ?? []).some((i) => i.title === "A tablet repudiated"),
+};
+
+/**
+ * A grant its grantee ended by repudiation, which its grantor, not yet told, revokes (bug #609, Codex's find): Libya
+ * granted Elam passage on a tablet Elam's envoy sealed, Elam repudiates it, and Libya revokes the grant in its second
+ * season. Elam and Libya lie three seasons apart, so the revocation's outcome comes before the word (a revocation
+ * resolves before a repudiation in the same season).
+ */
+const grantRepudiatedByGrantee: Twin = {
+  name: "a grant its grantee repudiated, revoked before word comes",
+  seat: "Libya",
+  seasons: 6,
+  make() {
+    const s = world("Elam", "Libya");
+    const at = ownedBy(s, "Libya").find((x) => !map.get(x).isSea)!;
+    s.tablets.push(
+      newTablet({ id: "t990", text: "Passage for Elam.", clauses: [clause("passage", { province: at })], proposedBy: "Libya", partner: "Elam", seals: ["Libya", "Elam"], sealedTurn: 0, byHandOf: "Elam", byHand: "Kutir", within: false }),
+    );
+    for (const holder of ["Elam", "Libya"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    s.grants.push(newGrant({ id: "p990", grantor: "Libya", grantee: "Elam", province: at, sinceTurn: 0, tabletId: "t990" }));
+    s.sleep.tryAdd("Libya", newSleepState());
+    return s;
+  },
+  others: { power: "Elam", orders: [repudiate("k990E")] },
+  orders: [],
+  scheduled: [newScheduledOrders({ turn: 2, orders: [revoke("Elam")] })],
+  heard: (s) => (s.inbox.tryGet("Libya") ?? []).some((i) => i.title === "A tablet repudiated"),
+};
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

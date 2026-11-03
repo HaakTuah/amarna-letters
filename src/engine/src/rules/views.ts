@@ -4,57 +4,31 @@ import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { cmpStr, split } from "../core/text.ts";
-import { seasonOfTurn, WorldMap } from "../model/map.ts";
-import { reapSeasonOf } from "../model/geography.ts";
+import { WorldMap } from "../model/map.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, king, kingFor, land, nameGivenBy, ownLand, type Power } from "../model/power.ts";
-import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
+import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, type Power } from "../model/power.ts";
+import { type PendingTask, repudiationKnown, type Tablet, type TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
-import { levelOf, worksOfPower } from "../model/works.ts";
-import { alive, huntNow, inboxOf, isAlive, ledger, ownedBy, upkeepOf, wallsOf, type GameState, type Unit } from "../model/state.ts";
+import { levelOf } from "../model/works.ts";
+import { huntNow, inboxOf, isAlive, ledger, upkeepOf, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import { PointsPerDay } from "../model/travel.ts";
-import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
-import { reckonedOf, unitCarried } from "../model/land.ts";
-import { countOf } from "../model/counts.ts";
+import { EconomyData, harvestOf } from "../model/economy.ts";
+import { strength as scoringStrength } from "./scoring.ts";
+import { unitCarried } from "../model/land.ts";
 import { declarationKnown } from "../model/declarations.ts";
 import { moodsKnown } from "../model/moods.ts";
 import { governorsKnown, seatKnown } from "../model/command.ts";
-import { caravanAt } from "../model/caravans.ts";
-import { grantStands, newGrantView } from "../model/authority.ts";
-import {
-  newCharacterView,
-  newNewsOffer,
-  newBandSeen,
-  newDebtView,
-  newLotView,
-  newSeatView,
-  newGovernorView,
-  newDeclaredView,
-  newMoodSeenView,
-  newSiegeView,
-  newTabletView,
-  newUnitView,
-  type UnitView,
-  newLetterView,
-  newProvinceEconomyView,
-  type ProvinceEconomyView,
-  newCaravanView,
-  landGrowth,
-  type CharacterView,
-  type DebtView,
-  type LandStanding,
-  type LetterView,
-  type SeatView,
-  type TabletView,
-  newWorkView,
-} from "../model/views.ts";
+import { grantStandsFor, newGrantView } from "../model/authority.ts";
+import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtView, newLotView, newSeatView, newGovernorView, newDeclaredView, newMoodSeenView, newSiegeView, newTabletView, newUnitView, type UnitView, newLetterView, landGrowth, type CharacterView, type DebtView, type LandStanding, type LetterView, type SeatView, type TabletView, newWorkView } from "../model/views.ts";
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
 import { courtOf } from "./court.ts";
+import { carriedWorth, ownKnown } from "./province-reports.ts";
+import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { knownHolders, ownerAt, SeenSource, siegesKnown, sight, wallsKnown, WordSource } from "./known-land.ts";
 
 export { SeenSource, WordSource };
@@ -108,42 +82,6 @@ function routineTreasury(i: InboxItem): boolean {
   return i.kind === "Notice" && i.title === "The treasury" && !i.body.includes("deserted") && !i.body.includes("Could not pay");
 }
 
-/** A province's economy as its holder's officials report it this season (item 9+a; its people, item 10+a). */
-function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: string): ProvinceEconomyView {
-  const prov = m.get(id);
-  const mk = engine.market(id);
-  const holder = s.owner.getOrDefault(id, null);
-  const c = holder === null ? null : countOf(s, holder, id);
-  return newProvinceEconomyView({
-    province: id,
-    stores: engine.stores(id),
-    capacity: capacityOf(prov),
-    tax: engine.effectiveYield(id),
-    need: engine.townNeed(id),
-    stock: mk.stock,
-    purse: mk.purse,
-    price: priceAt(mk.stock, needOf(prov)),
-    // Its people and fields (item 10+a), as its holder's scribes last counted them (item 17++).
-    counted: c?.turn ?? null,
-    settled: c?.settled ?? 0,
-    men: c?.men ?? 0,
-    loose: c?.loose ?? 0,
-    town: c?.town ?? 0,
-    room: reckonedOf(m, id).room,
-    share: engine.shareOf(id),
-    amount: engine.amountOf(id),
-    // A season's share of the last harvest, what the demand is reckoned from (item 11a+).
-    harvest: idiv(c?.harvest ?? 0, 3),
-    fed: s.fed.getOrDefault(id, 1000),
-    // Item 10+b.
-    runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
-    expelled: s.expelled.getOrDefault(id, 0),
-    granary: c?.granary ?? 0,
-    crop: c?.crop ?? 0,
-    reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
-  });
-}
-
 /**
  * The troops a court sees: its own as their last reports place them, and others' where it sees. A report never puts two
  * troops in one province: one shown where another stands (or is shown) is shown by an older report of its own whose place
@@ -175,6 +113,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const engine = new TurnEngine(s, m);
   const seen = sight(s, m, p);
   const known = knownHolders(s, m, p, seen);
+  const own = ownKnown(s, engine, m, p, seen, known);
   const t = s.treasuries.get(p);
   const v = newSeatView({
     claims: s.claims.map((c) => ({ ...c })),
@@ -211,8 +150,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     unassayedGold: t.lots.map((l) => newLotView({ id: l.id, from: l.from, stated: l.stated, weighed: l.face, arrivedTurn: l.arrivedTurn })),
     income: engine.income(p),
     upkeep: engine.upkeep(p),
+    // Bug #540: its works as it knows its land, those farther off as last reported.
     ...(() => {
-      const works = worksOfPower(s, ownedBy(s, p));
+      const works = [...own.values()].flatMap((x) => x.works);
       return { works, worksUpkeep: works.reduce((a, w) => a + w.upkeepGold + w.buildGold, 0) };
     })(),
     feesDue: engine.feesDue(p),
@@ -231,7 +171,6 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     huntWhere: huntNow(s, p)?.provinces ?? [],
     debts: debtViews(s, p),
     debtsHeld: claimViews(s, p),
-    strength: engine.ledgerStrength(p),
     startStrength: s.startStrength.getOrDefault(p, 0),
     provinceWeight: s.config.provinceWeight,
     owner: new Dict([...known.entries()].map(([k, x]) => [k, x.owner] as const)),
@@ -242,16 +181,18 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     grants: s.grants
       // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
-      // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him.
+      // A grant by order (item 11a+), or a passage narrowed by a revocation (bug #611): its grantor knows it from the
+      // order; its grantee once the news reaches him. Its end reaches the grantee by word too (bug #565).
       .filter(
         (g) =>
           (g.grantor === p || g.grantee === p) &&
-          (grantStands(g, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
-          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+          (grantStandsFor(g, p, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
+          (g.grantor === p || g.heardTurn <= s.turn) &&
+          (g.tabletId === "" || s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
       )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
-        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
+        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, cut: [...g.cut], sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
       }),
     walls: wallsKnown(s, m, p, seen),
     worksSeen: [...seen]
@@ -344,7 +285,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   for (const copy of s.copies.filter((x) => x.holder === p)) {
     const tab = s.tablets.find((x) => x.id === copy.tabletId);
     if (tab === undefined) continue;
-    v.tablets.push(tabletView(tab, copy));
+    v.tablets.push(tabletView(tab, copy, s.turn));
     archive.push(tab);
   }
   // Named as every court names them, with their opening words where the archive holds two of the same seals and date.
@@ -373,14 +314,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("winterArmyLoss", s.config.winterArmyLoss);
   v.prices.set("winterFleetLoss", s.config.winterFleetLoss);
   // The economy at home (item 9+a): its own provinces' stores and markets, its caravans. Item 17++: the provinces it knows
-  // it holds, a lost one out of its sight as it last knew it until word of the loss arrives, a gained one once it hears.
-  for (const id of m.landProvinces.map((x) => x.id).filter((x) => known.tryGet(x)?.owner === p)) {
-    if (s.owner.getOrDefault(id, null) === p) v.provinces.push(provinceEconomy(s, engine, m, id));
-    else {
-      const last = s.ownLast.tryGet(p)?.tryGet(id);
-      if (last !== undefined) v.provinces.push(last);
-    }
-  }
+  // it holds; bug #540: those beyond its couriers' season as their last report has them, a lost one until word of the
+  // loss arrives, a gained one once it hears.
+  for (const x of own.values()) v.provinces.push(x.economy);
   v.counting = s.censuses.filter((c) => c.power === p).map((c) => c.province);
   // A kingship offered stands in its view until word of its answer reaches the court.
   v.crowning = s.crowns.filter((k) => k.power === p && (k.heard === null || k.heard > s.turn)).map((k) => k.character);
@@ -390,19 +326,34 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {
-    if (!seen.has(prov.id) && known.tryGet(prov.id)?.owner !== p) continue;
+    if (!seen.has(prov.id) && !own.has(prov.id)) continue;
     const full = harvestOf(prov);
     // Item 17++: what its last reaping brought in, a season's third of it, as the stewards (or the troops who saw the fields)
     // know it; never the hands there now, which only a count tells.
-    v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * idiv(s.reaped.getOrDefault(prov.id, full * 3), 3), full));
+    // Bug #540: its own land farther off, by its officials' last report.
+    const reaped = (own.has(prov.id) ? own.get(prov.id).reaped : s.reaped.tryGet(prov.id)) ?? full * 3;
+    v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * idiv(reaped, 3), full));
     // Its people's resistance only where it sees them (bug #517); its own land farther off, by its yields alone.
     const r = seen.has(prov.id) ? engine.resistance(prov.id, p) : 0;
     if (r > 0) v.resistance.set(prov.id, r);
   }
   v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
-  v.walking = sum(s.walking.filter((w) => !w.deported && s.owner.getOrDefault(w.home, null) === p), (w) => w.men);
-  for (const c of s.caravans.filter((c) => c.power === p))
-    v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning, gold: c.gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null }));
+  // Bug #540: walking home to the land it knows it holds; its caravans as their reports have come.
+  const homeward = s.walking.filter((w) => known.tryGet(w.home)?.owner === p && (w.from === "" || wordCame(engine, p, w.departs, w.from)));
+  v.walking = sum(homeward.filter((w) => !w.deported), (w) => w.men);
+  v.caravans.push(...caravansKnown(engine, p));
+  // Its strength as it reckons it: its gold by its ledger, which counts unassayed lots at their weight (a seat must never
+  // see true strength, or it could read debased gold off the difference); bug #540: from what it knows, its land and
+  // their stores as last reported, its troops and caravans as their reports have them.
+  v.strength = scoringStrength(
+    s.config,
+    sum([...own.values()], (x) => x.worth),
+    ledger(t),
+    sum([...own.values()], (x) => x.holding) +
+      sum(v.units.filter((u) => u.power === p), (u) => carriedWorth(u.food, u.savings)) +
+      sum(homeward, (w) => w.savings) +
+      sum(v.caravans, (c) => carriedWorth(c.grain, c.gold)),
+  );
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
   // Its own, as it knows its land (bug #517), are among its provinces instead.
   for (const [k, seen] of s.marketsSeen.tryGet(p)?.entries() ?? []) if (known.tryGet(k)?.owner !== p) v.markets.set(k, { ...seen });
@@ -811,7 +762,7 @@ function opening(text: string): string {
   return words.length <= 8 ? words.join(" ") : words.slice(0, 8).join(" ") + "…";
 }
 
-function tabletView(t: Tablet, copy: TabletCopy): TabletView {
+function tabletView(t: Tablet, copy: TabletCopy, turn: number): TabletView {
   // Item 12, "Reading a tablet": a tablet nobody at the court has read waits for a reader; its seals are plain to see.
   const unread = copy.unread === true;
   return newTabletView({
@@ -832,13 +783,13 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
     byHand: t.byHand,
     byHandOf: t.byHandOf,
     within: copy.holder === t.byHandOf || (copy.holder === t.proposedBy && t.credentialsShown) ? t.within : null,
-    repudiatedTurn: t.repudiatedTurn,
+    // Bug #609: as its holder knows of it, by word for the other king; a third court is never told.
+    repudiatedTurn: repudiationKnown(t, copy.holder, turn) ? t.repudiatedTurn : null,
   });
 }
 
 /** The views of the game: what each court sees (the C# build's static class Views). */
 export const Views = {
-  provinceEconomy,
   landStandings,
   looksDoomed,
   sight,
@@ -846,6 +797,8 @@ export const Views = {
   ownerAt,
   knownHolders,
   siegesKnown,
+  // Bug #540: a court's caravans as it knows them, for the map as for its view.
+  caravansKnown: (s: GameState, p: Power, map: WorldMap | null = null): CaravanView[] => caravansKnown(new TurnEngine(s, map ?? WorldMap.default), p),
   // Item 17+: a court's view names every power as that court gives its name.
   for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map)),
   letters,
@@ -876,7 +829,10 @@ function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays
  * Item 13: an own unit beyond what a courier brings within the season is shown as its last report has it: where it stood
  * and with how many men, as many seasons ago as the road from it is long.
  */
-/** One season's report of a unit: where it stood, its men, food, hunger and pay owed (older saves carry only the first two). */
+/**
+ * One season's report of a unit: where it stood, its men, food, hunger and pay owed, its chest and whether it buys, and
+ * its men's savings (bug #540); older saves carry fewer.
+ */
 function trailEntry(t: string): {
   province: string;
   men: number;
@@ -885,10 +841,12 @@ function trailEntry(t: string): {
   unpaid?: number;
   chest?: number;
   buy?: boolean;
+  savings?: number;
 } {
-  const [province, men, food, hungry, unpaid, chest, buy] = t.split("|");
+  const [province, men, food, hungry, unpaid, chest, buy, savings] = t.split("|");
   const fed = food === undefined ? { province, men: Number(men) } : { province, men: Number(men), food: Number(food), hungry: Number(hungry), unpaid: Number(unpaid) };
-  return chest === undefined ? fed : { ...fed, chest: Number(chest), buy: buy === "1" };
+  const chested = chest === undefined ? fed : { ...fed, chest: Number(chest), buy: buy === "1" };
+  return savings === undefined ? chested : { ...chested, savings: Number(savings) };
 }
 
 function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {

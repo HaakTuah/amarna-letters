@@ -44,7 +44,8 @@ Since item 11c, 36: six cities of Canaan joined, each Egypt's vassal ([the true 
   `serve` (the writer takes up no arms against the reader or his friends, and sends troops when called), and their
   requests `askProtect` and `askServe` (a giving clause). `vassalTerms` reads a marked, sealed tablet from the side of
   whoever proposed it: the vassal, the overlord, the tribute a year, whether it protects and serves. `vassalBonds` lists
-  those standing (sealed, neither forged nor repudiated).
+  those standing (sealed, neither forged nor repudiated); given a court, those standing as it knows them, a repudiation
+  counting once word of it has come (bug #609, note 15).
 - **Opening bonds** (`StartVassals`, `openingBonds` in `rules/factory.ts`): Egypt's vassals Ugarit, Qadesh, Qatna, Amurru,
   Byblos, Sidon, Damascus, Tyre, Megiddo, Shechem and Jerusalem; Mitanni's Carchemish, Alalakh, Aleppo, Nuhashshe, Suhu
   and Arrapha; each a tablet sealed by both before the age began, proposed by the vassal (tribute, serve, askProtect),

@@ -8,7 +8,7 @@ import { isBlank } from "../core/text.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import { coverOf, falseNameAt, hiddenAt } from "../model/people.ts";
 import { AllPowers, claimedName, nameKnown } from "../model/power.ts";
-import { grantLive } from "../model/authority.ts";
+import { grantLiveFor } from "../model/authority.ts";
 import { findCharacter } from "../model/state.ts";
 import type { Checking } from "./validator-context.ts";
 
@@ -148,14 +148,17 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
       // Passage and basing granted on sealed tablets (item 9).
       if (!AllPowers.includes(order.grantee) || order.grantee === power) return `you granted nothing to '${order.grantee}'`;
       if (order.province !== null && !Map.exists(order.province)) return `there is no province called '${order.province}'`;
-      // Only what it knows it granted: the tablet's copy is in its archive.
+      // Only what it knows it granted: the tablet's copy is in its archive; and as it knows it, a grant its grantee ended by
+      // repudiation standing until word of it comes (bug #609).
       const stands = S.grants.some(
         (g) =>
           g.grantor === power &&
           g.grantee === order.grantee &&
-          grantLive(g, S.turn) &&
+          grantLiveFor(g, power, S.turn) &&
           (g.tabletId === "" || S.copies.some((k) => k.holder === power && k.tabletId === g.tabletId)) &&
-          (order.province === null || g.province === order.province || (g.province === null && g.lands.includes(order.province))),
+          // A passage through all his land, in a province he knows as his and has not revoked it in: never by its true land,
+          // which would tell him of a province lost out of his sight (bug #611).
+          (order.province === null || g.province === order.province || (g.province === null && !g.cut.includes(order.province) && v.knownOwner(order.province) === power)),
       );
       return stands ? null : `you have granted ${order.grantee} no passage or basing${order.province !== null ? ` in ${order.province}` : ""} that still stands`;
     }

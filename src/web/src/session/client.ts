@@ -20,7 +20,7 @@ import {
   type SeatView,
   type TurnSubmission,
 } from "@amarna/engine";
-import { SnapshotHistory, type ExportParts } from "@amarna/game";
+import { SnapshotHistory, type ExportParts, type MindPage } from "@amarna/game";
 import { buildScene, type MapScene } from "../map/scene.ts";
 import { IncrementalReader, ReadReplaced } from "./incremental.ts";
 import { fromWire, sameMap, samePerson, sameSet, type SeasonFrame } from "./frames.ts";
@@ -373,6 +373,16 @@ export class Session {
     if (!this.canSeeAll) return;
     const m = await this.request({ type: "export", id: this.nextId++, parts });
     if (m.type === "export" && m.text !== "") download(m.name, m.text);
+  }
+
+  /**
+   * Item 17+++: a mind's own words as they stood at the end of a season, page by page: only while the record is open to the
+   * page (a spectator, or once the game ends), never another seat's during play.
+   */
+  async mind(who: Power, turn: number): Promise<MindPage[]> {
+    if (!this.canSeeAll) return [];
+    const m = await this.request({ type: "mind", id: this.nextId++, who, turn });
+    return m.type === "mind" ? m.pages : [];
   }
 
   showTurn(turn: number | null): void {

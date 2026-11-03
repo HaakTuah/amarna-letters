@@ -71,7 +71,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (v.knownOwner(f.province) !== power) return `you do not hold ${prov.name}`;
       const data = WorksData[f.kind];
       if (!Number.isInteger(f.level) || f.level < 0 || f.level > data.most) return `the ${workName(f.kind)} go from 0 to ${workLevelText(f.kind, data.most)}`;
-      const level = levelOf(S, f.kind, f.province);
+      const level = v.knownWork(f.kind, f.province);
       const land = landRefusal(f.kind, prov);
       if (land !== null && f.level > level) return land;
       if (f.share != null && (!f.labour || !Number.isInteger(f.share) || f.share <= 0 || f.share > 100)) return "a corvée's share is a percent of the men of fighting age at home, from 1 to 100, and only by corvée";
@@ -169,7 +169,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (v.knownOwner(cp.province) !== power) return "you can only cede what you hold";
       if (cp.to === power || !isAlive(S, cp.to)) return `you cannot cede land to ${cp.to}`;
       // Item 11d: a capital only by agreement on a sealed tablet, and the realm goes with it.
-      if (cp.province === courtOf(S, Map, power) && !cessionAgreed(S.tablets, power, cp.to, cp.province))
+      if (cp.province === courtOf(S, Map, power) && !cessionAgreed(S.tablets, power, cp.to, cp.province, S.turn))
         return `you can cede your capital only as a sealed tablet between you and ${cp.to} says ("I give you the land of ${Map.get(cp.province).name}"): your whole realm passes with it, and you live on as a man without a throne`;
       if (ceded.has(cp.province)) return `${Map.get(cp.province).name} was already ceded by an earlier order`;
       return null;

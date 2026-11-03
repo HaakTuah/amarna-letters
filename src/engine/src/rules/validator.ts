@@ -20,6 +20,8 @@ import { checkCommandOrder } from "./validator-command.ts";
 import type { Checking } from "./validator-context.ts";
 import { checkEconomyOrder } from "./validator-economy.ts";
 import { checkPeopleOrder } from "./validator-people.ts";
+import { knownLevel, ownWorks } from "./province-reports.ts";
+import type { WorkKind } from "../model/works.ts";
 
 export class ValidationResult {
   readonly accepted: Order[] = [];
@@ -86,6 +88,9 @@ export class OrderValidator {
     const knownSiege = (province: string): boolean => (besieged ??= new HSet(Views.siegesKnown(S, Map, power, Sight()).map((x) => x.province))).has(province);
     let walls: ReturnType<typeof Views.wallsKnown> | null = null;
     const knownWalls = (province: string): number => (walls ??= Views.wallsKnown(S, Map, power, Sight())).getOrDefault(province, 0);
+    // Bug #540: its own works as it knows them, as its view shows them.
+    let works: ReturnType<typeof ownWorks> | null = null;
+    const knownWork = (kind: WorkKind, province: string): number => knownLevel((works ??= ownWorks(S, Map, power, Sight(), (holders ??= Views.knownHolders(S, Map, power, Sight())))), kind, province);
 
     const nobody = (id: string): string => (isBlank(id) ? "you named nobody" : `there is nobody called '${id}'`);
 
@@ -205,7 +210,7 @@ export class OrderValidator {
       get dispatches() { return dispatches; },
       get seekCount() { return seekCount; },
       get counterIntel() { return counterIntel; },
-      heardFallen, Sight, knownOwner, knownSiege, knownWalls, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
+      heardFallen, Sight, knownOwner, knownSiege, knownWalls, knownWork, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
     };
     const check = (order: Order): string | null => {
       for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder]) {

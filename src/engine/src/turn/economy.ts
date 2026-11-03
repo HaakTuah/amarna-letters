@@ -13,8 +13,8 @@ import { Dict } from "../core/collections.ts";
 import { idiv, roundEven, toInt } from "../core/num.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
-import { newCaravan, newMarket, type Market } from "../model/caravans.ts";
-import { buyAlongCurve, capacityOf, economyOf, EconomyData, grainWorth, needOf, sellAlongCurve } from "../model/economy.ts";
+import { newCaravan, newMarket, setOut, type Market } from "../model/caravans.ts";
+import { buyAlongCurve, capacityOf, economyOf, EconomyData, needOf, sellAlongCurve } from "../model/economy.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { climateOf, reapSeasonOf, terrainOf } from "../model/geography.ts";
 import { forMen, LandData, unitCarried, unitFood } from "../model/land.ts";
@@ -30,6 +30,7 @@ import { Views } from "../rules/views.ts";
 import { obeyedIn, TurnEngine } from "./core.ts";
 import { CommandData } from "../model/command.ts";
 import { TakenBook } from "./supply.ts";
+import { carriedWorth, provinceHolding, provinceWorth } from "../rules/province-reports.ts";
 
 /** The notice of a king's economy each season: harvest, mines, pay and food. */
 export const EconomyTitle = "The treasury";
@@ -129,15 +130,17 @@ P.harvestSeason = function () {
   const S = this.s;
   const season = seasonOfTurn(S.turn);
   const lines = new Dict<Power, string[]>();
-  const taxed = new Dict<Power, number>();
-  const lost = new Dict<Power, number>();
-  const reaped = new Dict<Power, [string, number][]>();
+  // Bug #540: by the court a province reports to, its couriers' season (the holder) or farther ("holder@province"), whose
+  // report comes home by the road.
+  const taxed = new Dict<string, number>();
+  const lost = new Dict<string, number>();
+  const reaped = new Dict<string, [string, number][]>();
   this._foodNow.clear();
-  // What the mines yielded, and of it what reached the treasury at once (the rest travels as a load).
+  // What the mines yielded into the treasury at once (gold from farther mines travels as a load, reported as one).
   const mined = new Dict<Power, number>();
-  const minedIn = new Dict<Power, number>();
   for (const prov of this.map.landProvinces) {
     const owner = S.owner.getOrDefault(prov.id, null);
+    const book = owner === null || this.wordTo(owner, prov.id) === 0 ? owner : `${owner}@${prov.id}`;
     // The fields grow by this season's hands and weather; in its season the crop is reaped into the granaries.
     const crop = S.crop.getOrDefault(prov.id, 0) + this.harvestNow(prov.id);
     let granary = S.granary.getOrDefault(prov.id, 0);
@@ -147,7 +150,7 @@ P.harvestSeason = function () {
       S.reaped.set(prov.id, harvest);
       granary += harvest;
       S.crop.set(prov.id, 0);
-      if (owner !== null) reaped.set(owner, [...reaped.getOrDefault(owner, []), [prov.name, harvest]]);
+      if (book !== null) reaped.set(book, [...reaped.getOrDefault(book, []), [prov.name, harvest]]);
     } else S.crop.set(prov.id, crop);
     // Land nobody holds collects no tax: its people keep their whole harvest ("Land without a ruler", item 11+; until then
     // a free city's tax filled its own stores). Under a leader the Kaska lands, Lukka and the steppe are taxed like any land.
@@ -161,8 +164,8 @@ P.harvestSeason = function () {
       const tax = Math.min(Math.max(0, granary - this.shareReserve(prov.id)), due);
       granary -= tax;
       const over = this.putInStores(prov.id, tax);
-      taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
-      lost.set(owner, lost.getOrDefault(owner, 0) + over);
+      taxed.set(book!, taxed.getOrDefault(book!, 0) + tax - over);
+      lost.set(book!, lost.getOrDefault(book!, 0) + over);
       // Item 13: the yield passes through a governor's hands, and he may keep some of it.
       const metal = this.throughGovernor(prov.id, toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id))));
       if (metal > 0) {
@@ -180,9 +183,8 @@ P.harvestSeason = function () {
             const t = S.treasuries.get(to);
             t.gold += metal;
             t.income += metal;
-            minedIn.set(to, minedIn.getOrDefault(to, 0) + metal);
+            mined.set(to, mined.getOrDefault(to, 0) + metal);
           }
-          mined.set(to, mined.getOrDefault(to, 0) + metal);
         }
       }
     }
@@ -212,12 +214,20 @@ P.harvestSeason = function () {
     const over = lost.getOrDefault(p, 0);
     if (t + over > 0) l.push(`The grain tax brought ${measures(t)} into your stores` + (over > 0 ? `; they had no room for ${measures(over)} more, and it was lost` : "") + ".");
     const got = S.treasuries.get(p).income;
-    const fromMines = minedIn.getOrDefault(p, 0);
+    const fromMines = mined.getOrDefault(p, 0);
     if (got > fromMines) l.push(`Gold in since your last orders: ${formatMoney(got)}${fromMines > 0 ? `, ${formatMoney(fromMines)} of it from your mines` : ""}.`);
     else if (fromMines > 0) l.push(`Your mines yielded ${formatMoney(fromMines)} for the treasury.`);
-    const onRoad = mined.getOrDefault(p, 0) - fromMines;
-    if (onRoad > 0) l.push(`${formatMoney(onRoad)} from your farther mines is on the road to your court.`);
     lines.set(p, l);
+  }
+  // Farther off, a province's harvest, or grain lost for want of room, comes home by the road as its report (its stores
+  // show the tax; its mines' gold goes as a load).
+  for (const book of new Set([...reaped.keys(), ...lost.keys()].filter((k) => k.includes("@")))) {
+    const [p, id] = book.split("@") as [Power, string];
+    if (!isAlive(S, p) || (!reaped.has(book) && lost.getOrDefault(book, 0) <= 0)) continue;
+    const harvest = reaped.tryGet(book)?.[0]?.[1];
+    const over = lost.getOrDefault(book, 0);
+    const tax = `the grain tax brought ${measures(taxed.getOrDefault(book, 0))} into its stores` + (over > 0 ? `, which had no room for ${measures(over)} more` : "");
+    this.tell(p, id, "Notice", EconomyTitle, `From ${this.map.get(id).name}: ${harvest !== undefined ? `its harvest of ${measures(harvest)} is in the farmers' granaries; ` : ""}${tax}.`);
   }
   return lines;
 };
@@ -604,7 +614,7 @@ P.settleMarkets = function (orders) {
       this.wakeFrom(p, o, o.from, "the stores were empty");
       continue;
     }
-    S.caravans.push(newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, route, since: S.turn }));
+    setOut(S, newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, route, since: S.turn }));
     tell(p, o.from, `A caravan of ${measures(grain)} of grain set out from ${Map.get(o.from).name} for ${Map.get(o.to).name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
     logEvent(S, "caravan-out", `${p} sent a caravan from ${Map.get(o.from).name}.`, this.nearOf(o.from, p), "caravan-out");
   }
@@ -624,10 +634,7 @@ P.settleMarkets = function (orders) {
  * 10+a: a ravaged or emptied province is worth less at once) and the mines, as far as it obeys its holder.
  */
 P.landWorth = function (p) {
-  return sum(ownedBy(this.s, p), (id) => {
-    const prov = this.map.get(id);
-    return toInt(roundEven((grainWorth(this.harvestNow(id, false)) + economyOf(prov).mine) * obeyedIn(this.s, id)));
-  });
+  return sum(ownedBy(this.s, p), (id) => provinceWorth(this, id));
 };
 
 /**
@@ -636,14 +643,10 @@ P.landWorth = function (p) {
  */
 P.holdings = function (p) {
   const S = this.s;
-  let w = 0;
-  for (const id of ownedBy(S, p)) {
-    const m = this.market(id);
-    w += m.purse + grainWorth(this.stores(id) + m.stock);
-  }
-  for (const u of S.units) if (u.power === p) w += grainWorth(u.food) + u.savings;
+  let w = sum(ownedBy(S, p), (id) => provinceHolding(this, id));
+  for (const u of S.units) if (u.power === p) w += carriedWorth(u.food, u.savings);
   // Discharged men walking home carry their savings to a province of this realm (item 10+a).
   for (const x of S.walking) if (S.owner.getOrDefault(x.home, null) === p) w += x.savings;
-  for (const c of S.caravans) if (c.power === p) w += grainWorth(c.grain) + c.gold + (c.ship !== null ? grainWorth(c.ship.food) + c.ship.savings : 0);
+  for (const c of S.caravans) if (c.power === p) w += carriedWorth(c.grain, c.gold) + (c.ship !== null ? carriedWorth(c.ship.food, c.ship.savings) : 0);
   return w;
 };

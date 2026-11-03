@@ -116,6 +116,11 @@ export class LlmLeaderSeat implements ISeat {
     return this.journalOf;
   }
 
+  /** Item 17+++: the king's own words as they stand, for the record (`LeaderJournal.pages`). */
+  mindPages(): Record<string, string> {
+    return this.journalOf.pages();
+  }
+
   /** The rulebook: the table's settings, with the age open once the view says so (the table may play on past its end). */
   private shared(view: SeatView): string {
     return leaderRules(this.primer, this.configOf(view));

@@ -10,7 +10,7 @@ import { idiv } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import { land, quoteWords, type Power } from "../model/power.ts";
-import { OfferCaught, offerWords, Waiting, type Journey } from "../model/records.ts";
+import { OfferCaught, offerWords, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";

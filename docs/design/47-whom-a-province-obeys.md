@@ -106,6 +106,6 @@ commander or with a hired band.
 ## The seat view follows what the court knows (`rules/views.ts`)
 
 A court's own provinces in its view (`provinces`, the yields) are those it knows it holds (`knownHolders`): one gained
-out of its sight appears once word comes, and one lost out of its sight stays as its officials last reported it
-(`GameState.ownLast`, kept by `setOwner` when the court's couriers cannot bring the news within the season) until word of
-the loss arrives, as the web map does since #356 and #359 (`src/web/src/map/known.ts`).
+out of its sight appears once word comes, and one lost out of its sight stays as its officials last reported it until
+word of the loss arrives, as every far province of its own is shown since bug #540 (`GameState.reports`, "Far land as
+last reported" in `35-command-at-a-distance.md`), and as the web map does (`src/web/src/map/known.ts`).

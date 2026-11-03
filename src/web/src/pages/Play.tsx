@@ -13,6 +13,7 @@ import { AudioSwitches } from "../audio/AudioSwitches.tsx";
 import { player } from "../audio/player.ts";
 import { useGameAudio } from "../audio/use-game-audio.ts";
 import { InboxPanel } from "../components/InboxPanel.tsx";
+import { MindPanel } from "../components/MindPanel.tsx";
 import { MapLegend } from "../components/MapLegend.tsx";
 import { MarkInfo } from "../components/MarkInfo.tsx";
 import { OrdersPanel } from "../components/OrdersPanel.tsx";
@@ -34,6 +35,7 @@ import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
 import { useSession } from "../ui/use-session.ts";
 import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
+import { authorKind } from "@amarna/game";
 
 /** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
 const PhaseWords: Record<string, string> = {
@@ -202,6 +204,9 @@ export function Play() {
   if (tab === "inbox" && viewer === null) tab = "";
   if (tab === "trail" && !s.godView) tab = "";
   if (tab === "legends" && !s.godView) tab = "";
+  // Item 17+++: a model king's own words, where the record is open to the page and a seat is watched.
+  const minded = viewer !== null && s.canSeeAll && authorKind(live.seats[viewer] ?? "Human") === "model";
+  if (tab === "mind" && !minded) tab = "";
   if (tab === "follow" && followId === null) tab = "";
   if (tab === "") tab = pendingAudience !== null ? "audience" : pendingOrders !== null ? "orders" : "season";
   if (tab !== tabRaw) queueMicrotask(() => setTab(tab));
@@ -494,6 +499,11 @@ export function Play() {
               Inbox
             </button>
           )}
+          {minded && (
+            <button className={tabClass("mind")} onClick={() => pick("mind")}>
+              Own words
+            </button>
+          )}
           {s.godView && (
             <button className={tabClass("trail")} onClick={() => pick("trail")}>
               Trail
@@ -663,6 +673,8 @@ export function Play() {
         );
       case "inbox":
         return <InboxPanel state={displayed} power={viewer!} />;
+      case "mind":
+        return <MindPanel power={viewer!} turn={s.shownIndex} session={s} />;
       case "trail":
         return <TrailPanel state={displayed} authors={live.trailAuthors} onPerson={follow} />;
       case "people":
