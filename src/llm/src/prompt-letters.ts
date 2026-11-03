@@ -52,18 +52,13 @@ export function letterBrief(l: LetterView): string {
 
 /**
  * A battle report without the units that held: they stand where they stood, as the map shows. A report of nothing but
- * holds keeps its first line.
+ * holds says so in one line.
  */
 export function withoutHolds(body: string): string {
-  // Item 17+: units are written as the reports name them ("army in Men-nefer holds", "Assyria: fleet in the Western Sea holds").
-  const hold = /^- (?:[^:]+: )?(?:army|fleet) in [^:>]+ holds$/;
-  const lines = body.split("\n");
-  const first = /^(.*?:) (- (?:army|fleet) in [^:>]+ holds)$/.exec(lines[0]);
-  if (first !== null && hold.test(first[2])) lines[0] = first[1];
-  const kept = lines.filter((l, i) => i === 0 || !hold.test(l));
-  const shown = kept.filter((l, i) => !(l === "Seen nearby:" && (i === kept.length - 1 || !kept[i + 1].startsWith("- "))));
-  if (first !== null && shown.length === 1) return `${shown[0]} every unit you saw held.`;
-  return joinS("\n", shown);
+  // The holds as the report groups them ("Your armies held their ground in Apasa and Mira.", "Assyria's fleet stayed in the Western Sea.").
+  const hold = /^[^:.]*\b(?:army|armies|fleet|fleets) (?:held (?:its|their) ground|stayed) in [^:.]+\.$/;
+  const kept = body.split("\n").filter((l) => !hold.test(l));
+  return kept.length > 0 ? joinS("\n", kept) : "Every unit you saw held its ground.";
 }
 
     /// <summary>

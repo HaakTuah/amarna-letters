@@ -99,7 +99,7 @@ Codex's usage can run out with no alert, so the orchestrator never waits on Code
   test task gets through, tried at most every few hours (not in use while Codex cannot build: "Status").
   Meanwhile the work is Claude's alone, as before Codex came.
   A take-back for a slow PR alone does not count: the next lane still goes to Codex.
-- The times were set from the first test: adjust them from what the first weeks show, and say so
+- The times were set from the first test (archive item 124): adjust them from what the first weeks show, and say so
   here.
 
 ## Codex reviews
@@ -145,28 +145,28 @@ goes to building. Its usage can run out like any other, and it may then not say 
    **Both at once:** the design check starts in the same turn as the request to Codex, in the background, never after
    Codex's answer, so neither waits for the other, and the builder answers both lists in one round.
 6. **Codex reviews only when asked** ("Setup"; which PRs: the list above).
-   **Security reviews: one by itself when a PR is ready, one more only when asked** (archive items
-   175, 177, 183 and 189): Codex spent as much of its week on reviews as Claude did on everything, two thirds of it on security reviews
-   run with every round. Codex's settings ("Setup") run one security review by itself when a pull request is opened for review or a draft is marked ready, never while it is a draft;
-   it reads `SECURITY.md` as its instructions. A builder never asks for a security review before the PR is ready, and
-   asks for one more (the Codex mention followed by "security review", alone in a comment) only when
-   a commit after the opening review changed what a security review is for: input from players, models or files, a
-   workflow, the network, saved files or exports, or a dependency newly added or moved up a major version; and then
-   once, on the round it expects to be the last. Never for a change proven unchanged in what it does (a split by
-   meaning, unused code removed, a rename) nor for docs or the history dossiers: moving the code that writes a save is
-   not changing it. Once means once: another ask only when a fix after the last one changed the risky part again, and
-   the PR names that part. **A security review ran only if Codex's review summary on the PR lists "🔒 Security Review" as completed on its
-   latest commit, or on the last commit that changed the risky part;** one with no findings posts nothing else. Its
-   findings count as a code review's do: each is fixed, or moved out as "Reviews" says, before the merge. **The
-   security gate:** a PR merges only once its security review has run, as just said. If no completed security review
-   appears within about 15 minutes of the ready mark, ask once (the Codex mention followed by "security review", alone
-   in a comment); if still none about 15 minutes later, the fallback reviewer ("Who does what") reviews the diff
-   against `SECURITY.md` and `docs/threat-model.md`, the PR says so, it may merge on that review, and the next wake
-   reports it to the owner. A PR with an open security finding never merges. Codex does not
-   review a commit twice: an ask on an already reviewed commit runs a code review alone. (Tested: a
-   draft gets none, a draft marked ready gets one; an ask runs one only while Codex's "Review" setting for the
-   repository is "Team PRs", and with "Follow personal preferences", or the feature off, it runs a code review
-   alone.)
+   **Security reviews: one by itself when a PR is ready; after that, the fallback reviewer** (archive items
+   175, 177, 183 and 189): Codex spent
+   as much of its week on reviews as Claude did on everything, two thirds of it on security reviews run with every
+   round. Codex's settings ("Setup") run one security review by itself when a pull request is opened for review or a
+   draft is marked ready, never while it is a draft; it reads `SECURITY.md` as its instructions. Asking Codex for
+   another does not work under these settings: the Codex mention followed by "security review" runs a code review
+   alone (tested on Amarna Letters #674 and #677, 3 November 2026), so no builder asks for one. When a commit after
+   the opening review changes what a security review is for (input from players, models or files, a workflow, the
+   network, saved files or exports, or a dependency newly added or moved up a major version), or fixes a security
+   finding, the fallback reviewer ("Who does what") reviews that change against `SECURITY.md` and
+   `docs/threat-model.md`, once, on the round the builder expects to be the last, and the PR says so. Never for a
+   change proven unchanged in what it does (a split by meaning, unused code removed, a rename) nor for docs or the
+   history dossiers: moving the code that writes a save is not changing it. **A security review ran only if Codex's
+   review summary on the PR lists "🔒 Security Review" as completed, or the fallback reviewer's review is in the PR;**
+   one with no findings posts nothing else. Its findings count as a code review's do: each is fixed, or moved out as
+   "Reviews" says, before the merge; a Codex finding fixed by a later commit is closed by the fallback reviewer's check
+   of that commit, its thread answered and resolved. **The security gate:** a PR merges only once its security review
+   has run, as just said. If no completed security review appears within about 30 minutes of the ready mark (one took
+   that long), the fallback reviewer reviews the diff against `SECURITY.md` and `docs/threat-model.md`, the PR says so,
+   it may merge on that review, and the next wake reports it to the owner. A PR with an open security finding never
+   merges. (Tested: a draft gets none, a draft marked ready gets one; Codex never reviews a commit twice; a request runs
+   a security review only while Codex's "Review" setting is "Team PRs" and its trigger "Whenever code review runs".)
 7. **Checks that run the work, once Codex can build** (archive item
    134). The native review reads the diff but runs nothing, so it cannot check a claim such as "the script kings now
    win 29 games of 50". When Codex's environments work ("Setup"), a Codex task in its container also reruns the
@@ -213,7 +213,7 @@ guards: the rounds come to an end, and what a 10 means never slips (archive item
      edition, the study) where it can reach it. Every fact that does not hold is a miss: the dossier and the game are
      fixed, and a `bug` issue tracks it until the fix is live. More than one miss in fifteen facts checked: every
      dossier a miss came from gets a full check.
-   - **A slop check every month** (archive items 178 and 181): a fresh reviewer reads only the text a player reads
+   - **A slop check every month** (archive items 178, the second of that number, at 21:14 UTC, and 181): a fresh reviewer reads only the text a player reads
      that changed since the last check, scored as every review is, a 10 meaning nothing reads machine-made; what it
      finds is fixed in "Follow-ups". The slop audit's formula test runs on every PR.
    - **Logged and reported:** each check is a row in the calibration log, `docs/calibration.md`, and each milestone

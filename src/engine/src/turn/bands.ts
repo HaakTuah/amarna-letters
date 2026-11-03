@@ -8,6 +8,7 @@
  * number sets how many bands a land holds or how large they grow. A chief's share is his own gold. Its holder's armies
  * hunt it where they stand on his order or standing order. Everything is drawn from seeded streams ("Deterministic").
  */
+import { listed } from "../rules/wording.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { policeAt, policedShare, policePercent } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
@@ -21,6 +22,7 @@ import { coverOf, gain, newCharacter, newFact, newTraits, remember, type Charact
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { alive, huntCovers, huntNow, isAlive, logEvent, newId, siegeOf } from "../model/state.ts";
 import { Styles } from "../rules/cast.ts";
+import { formatMoney, measures } from "../rules/calendar.ts";
 import { personaTemplate } from "../rules/personas.ts";
 import { drawSkills } from "../rules/skills.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
@@ -333,7 +335,7 @@ P.bandsSeason = function () {
       remember(chief, S.turn, `${land(holder)}'s army fell on my band in ${prov.name}: ${lost} of my men were lost.`);
       logEvent(S, "band", `${holder}'s army fell on ${chief.name}'s band in ${prov.name}: ${lost} men lost${taken ? ", and the chief taken" : ""}.`, [holder], "band-hunted");
       if (taken) {
-        say(holder, `Your army in ${prov.name} fell on ${chief.name}'s band, killing or scattering ${lost} men, and took the chief captive: you may execute, question or release him (nobody would ransom him).`);
+        say(holder, `Your army in ${prov.name} fell on ${chief.name}'s band, killing or scattering ${lost} men, and took the chief captive. Nobody will ransom him: you may execute, question or release him.`);
         chief.status = "Captured";
         chief.heldBy = holder;
         chief.at = holder;
@@ -385,7 +387,10 @@ P.bandsSeason = function () {
     if (grain > 0) this.takeFromStores(b.province, grain);
     if (country > 0) S.granary.set(b.province, S.granary.get(b.province) - country);
     const take = gold + grainWorth(grain + country) + b.take;
-    if (gold + grain + country > 0) say(holder, `${chief.name}'s band robbed ${here.name}: ${gold} shekels from its people's purse${grain > 0 ? `, ${grain} measures from your stores` : ""}${country > 0 ? `, ${country} measures from the farmers' granaries` : ""}.`);
+    if (gold + grain + country > 0) {
+      const taken = [gold > 0 ? `${formatMoney(gold)} from its people's purse` : "", grain > 0 ? `${measures(grain)} from your stores` : "", country > 0 ? `${measures(country)} from the farmers' granaries` : ""];
+      say(holder, `${chief.name}'s band robbed ${here.name}: ${listed(taken.filter((x) => x !== ""))}.`);
+    }
     // The grain it eats; what it robbed of gold, and on the roads, is the chief's, who pays his men from it.
     gain(chief, gold, "Loot");
     const cost = bandCost(b.men);
@@ -564,7 +569,7 @@ P.robbersNamed = function (victim, b, province) {
   const holder = this.map.get(province).isSea ? null : S.owner.getOrDefault(province, null);
   const from = holder ?? victim.employer;
   if (from === null || !isAlive(S, from)) return;
-  const text = `${victim.name} was robbed in ${this.map.get(province).name} in season ${S.turn} by the band of ${chief.name}, and names him.`;
+  const text = `${victim.name} was robbed in ${this.map.get(province).name} in turn ${S.turn}, and names the band's chief: ${chief.name}.`;
   logEvent(S, "band", `${victim.name} named ${chief.name} as his robber.`, [], "robbers-named");
   for (const to of [...new Set([holder, victim.employer])])
     if (to !== null && isAlive(S, to) && !f.knownBy.includes(to)) {

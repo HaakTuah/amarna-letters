@@ -1,4 +1,5 @@
 /** Envoys: dispatch, travel, audience, return and report. (Recruitment and contracts are in court.ts.) */
+import { notTaken, pick, seasonsWords, upper } from "../rules/wording.ts";
 import { clamp, roundEven, toInt } from "../core/num.ts";
 import { distinct } from "../core/seq.ts";
 import { isBlank } from "../core/text.ts";
@@ -8,7 +9,7 @@ import { type DispatchOrder } from "../model/orders.ts";
 import { factsKnownTo, gain, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
 import { courtSpeaks } from "../model/languages.ts";
 import { errandOf } from "./court.ts";
-import { claimedName, land, type Power, quoteWords } from "../model/power.ts";
+import { claimedName, land, type Power, quoteWords, powerName, whose, courtHead } from "../model/power.ts";
 import { SealedOutcome, newDispatch, newExchange, newGreetingOptions, newHomeCargo, newJobOffer, newJourney, newMessageTrail, newPendingAudience, newTablet, newTabletCopy, newTabletProposal, type Exchange, type HomeCargo, type JobOffer, type Journey, type MessageTrail, type PendingAudience } from "../model/records.ts";
 import { char, findCharacter, isAlive, logEvent, newGoldLot, newId, notify, ownedBy } from "../model/state.ts";
 import { authorityText, newAuthority } from "../model/authority.ts";
@@ -62,7 +63,7 @@ const P = TurnEngine.prototype;
 /** A letter's, tablet's or answer's clauses that stand (item 8); the writer is told of any left out, and why. */
 P.clausesOf = function (writer, to, cs, what) {
   const r = checkClauses(cs, writer, to, this.s.turn);
-  if (r.dropped.length > 0) notify(this.s, writer, "Notice", "Clauses left out", `In your ${what} to ${to} the scribes left out what could not stand: ${r.dropped.join("; ")}.`);
+  if (r.dropped.length > 0) notify(this.s, writer, "Notice", "Clauses left out", `In your ${what} to ${powerName(to)} the scribes left out what could not stand: ${r.dropped.join("; ")}.`);
   return r.kept;
 };
 
@@ -84,12 +85,12 @@ P.dispatch = function (p, d) {
   // The owner's answers to item 11a: a job is one errand. One offered a job this season that it did not take, or whose job is
   // another errand, does not go.
   if (c.employer !== p || c.status !== "Employed") {
-    this.failed(p, d, "Envoy not sent", `${c.name} is not in your service: they did not take the job offered.`, "not in your service", true, c.id);
+    this.failed(p, d, "Envoy not sent", notTaken(c.name, `${S.turn}|${c.id}|envoy`), "not in your service", true, c.id);
     return;
   }
   const job = c.contract?.errand ?? null;
   if (job !== null && (job.what !== "envoy" || job.where !== d.to || job.done)) {
-    this.failed(p, d, "Envoy not sent", `${c.name}'s job is not to carry a mission to ${d.to}: another errand is a new job (order renew).`, "not the errand of their job", true, c.id);
+    this.failed(p, d, "Envoy not sent", `${c.name}'s job is not to carry a mission to ${powerName(d.to)}: another errand is a new job (order renew).`, "not the errand of their job", true, c.id);
     return;
   }
   // From a besieged capital (the siege package): an envoy whose courage the siege outweighs will not go this season.
@@ -99,7 +100,7 @@ P.dispatch = function (p, d) {
       p,
       d,
       "An envoy would not leave",
-      `${c.name} would not leave ${Map.get(this.courtAt(p)).name} while ${siege[0].power}'s army besieges it: the siege is too tight for ${c.name}'s courage this season. No gold was paid.`,
+      `${c.name} would not leave ${Map.get(this.courtAt(p)).name} while ${whose(siege[0].power)} army besieges it: the siege is too tight for their courage this season. No gold was paid.`,
       "the siege was too tight for the envoy's courage",
       true,
       c.id,
@@ -121,7 +122,7 @@ P.dispatch = function (p, d) {
   // The scribe's fee for the tablet to seal, and for the inventory of any gold, unless it goes without one (item 8).
   const inventory = d.gold > 0 && d.noInventory !== true;
   const fee = (d.proposal ? S.config.tabletFee : 0) + (inventory ? S.config.inventoryFee : 0);
-  if (!this.pay(p, fine + fee, `${c.name}'s mission to ${d.to}`, d, `${c.name} stayed at your court`)) return;
+  if (!this.pay(p, fine + fee, `${c.name}'s mission to ${powerName(d.to)}`, d, `${c.name} stayed at your court`)) return;
   // A starting servant's first errand names its job's errand.
   if (c.contract !== null && c.contract.errand === null) c.contract.errand = newJobErrand({ what: "envoy", where: d.to });
   // Offers of jobs it carries, their advances in its hands, and a debt tablet to present.
@@ -168,7 +169,7 @@ P.dispatch = function (p, d) {
   const tabletClauses = d.proposal ? this.clausesOf(p, d.to, d.proposal.clauses, "tablet") : [];
   // A vassal mark names one of the two kings (item 11+); one naming a third is left off, and the writer told why.
   if (d.proposal && d.proposal.vassal !== null && d.proposal.vassal !== p && d.proposal.vassal !== d.to)
-    notify(S, p, "Notice", "Clauses left out", `Your tablet to ${d.to} is not marked as a vassal treaty: it can name only you or ${d.to} the vassal, not ${d.proposal.vassal}.`);
+    notify(S, p, "Notice", "Clauses left out", `Your tablet to ${powerName(d.to)} is not marked as a vassal treaty: it can name only you or ${powerName(d.to)} the vassal, not ${powerName(d.proposal.vassal)}.`);
   const proposal = d.proposal
     ? newTabletProposal({
         text: structured || isBlank(d.proposal.text) ? renderClauses(tabletClauses, p, d.to) : this.scribe(p, cap(d.proposal.text, 1200)),
@@ -259,8 +260,15 @@ P.dispatch = function (p, d) {
     "Notice",
     "Envoy dispatched",
     composed.seasons > 0
-      ? `${c.name} needs ${composed.seasons} ${composed.seasons === 1 ? "season" : "seasons"} to take in your words${d.proposal ? " and have the tablet written" : ""} before setting out for ${land(d.to)}; the mission should reach it in about ${travel} season(s).`
-      : `${c.name} set out for ${land(d.to)} last season; the journey should take about ${travel} ${travel === 1 ? "season" : "seasons"}.`,
+      ? `${c.name} needs ${seasonsWords(composed.seasons)} to take in your words${d.proposal ? " and have the tablet written" : ""} before setting out for ${powerName(d.to)}, and will reach it in ${seasonsWords(travel)}.`
+      : pick(
+          [
+            `${c.name} set out for ${powerName(d.to)} last season; the road there takes ${seasonsWords(travel)}.`,
+            `${c.name} left for ${powerName(d.to)} last season and will reach it in ${seasonsWords(travel)}.`,
+            `${c.name} took the road to ${powerName(d.to)} last season, ${seasonsWords(travel)} of travel.`,
+          ],
+          `${S.turn}|${c.id}|dispatched`,
+        ),
     c.id,
   );
   // Out of a besieged capital: the besiegers may catch it as it slips out (its king believes it on its way).
@@ -463,7 +471,7 @@ P.applyAudience = function (record) {
     t.lots.push(newGoldLot({ id: newId(S, "g"), from: sender, stated, face: weighed, true: fine, arrivedTurn: S.turn }));
   }
   // The inventory, sealed when the envoy set out, or its forgery, goes into the host's archive.
-  if (d.gold > 0 && d.inventory) this.inventory(c, sender, host, stated, trail.turn, swapped, `the inventory brought by ${c.name}, envoy of ${sender}`);
+  if (d.gold > 0 && d.inventory) this.inventory(c, sender, host, stated, trail.turn, swapped, `the inventory brought by ${c.name}, envoy of ${powerName(sender)}`);
   // Item 12: with gifts he presented while nobody understood him, if any.
   trail.goldDelivered = a.presented + weighed;
   trail.goldFine = (a.presented > 0 ? trail.goldFine : 0) + fine;
@@ -513,13 +521,13 @@ P.applyAudience = function (record) {
           c.handed.push({ by: host, turn: S.turn });
           remember(c, S.turn, `The king of ${land(host)} gave me ${formatMoney(h.bribe)}` + (isBlank(h.bribeAsk) ? "." : `, asking: ${h.bribeAsk}`));
           c.facts.push(newFact({ id: newId(S, "f"), text: `Took ${formatMoney(h.bribe)} from the king of ${land(host)}.`, secrecy: "Hidden", tag: "bribe", knownBy: [host] }));
-          trail.outcomes.push(`accepted ${formatMoney(h.bribe)} from ${host}` + (isBlank(h.bribeAsk) ? "" : ` (asked: ${h.bribeAsk})`));
+          trail.outcomes.push(`accepted ${formatMoney(h.bribe)} from ${powerName(host)}` + (isBlank(h.bribeAsk) ? "" : ` (asked: ${h.bribeAsk})`));
           logEvent(S, "bribe", `${c.name}, envoy of ${sender}, took ${formatMoney(h.bribe)} from ${host}.`, [host], d.pretended ? "false-envoy-paid" : "bribe");
         } else {
           remember(c, S.turn, `The king of ${land(host)} promised me gold that never came.`);
-          trail.outcomes.push(`agreed to take ${formatMoney(h.bribe)} from ${host}, but the treasury could not pay it`);
+          trail.outcomes.push(`agreed to take ${formatMoney(h.bribe)} from ${powerName(host)}, but the treasury could not pay it`);
         }
-      } else trail.outcomes.push(`refused a gift of ${formatMoney(h.bribe)} from ${host}`);
+      } else trail.outcomes.push(`refused a gift of ${formatMoney(h.bribe)} from ${powerName(host)}`);
     }
 
     if (h.jobOffer > 0 && e.acceptJob && !defected) {
@@ -539,9 +547,9 @@ P.applyAudience = function (record) {
       // A false envoy served nobody: it simply enters the host's service.
       if (!d.pretended) c.facts.push(newFact({ id: newId(S, "f"), text: `Abandoned the service of ${land(sender)} for ${land(host)}.`, secrecy: "Public", tag: "defected" }));
       remember(c, S.turn, d.pretended ? `The king of ${land(host)} took me into his service for ${formatMoney(h.jobOffer)} a season.` : `I left the service of ${land(sender)} and now serve ${land(host)} for ${formatMoney(h.jobOffer)} a season.`);
-      trail.outcomes.push(`entered the service of ${host}`);
+      trail.outcomes.push(`entered the service of ${powerName(host)}`);
       if (!d.pretended) logEvent(S, "defection", `${c.name}, envoy of ${sender}, entered the service of ${host}.`, [host], "defection");
-    } else if (h.jobOffer > 0) trail.outcomes.push(`declined an offer of service from ${host}`);
+    } else if (h.jobOffer > 0) trail.outcomes.push(`declined an offer of service from ${powerName(host)}`);
 
     const tid = d.proposalTabletId;
     const tablet = h.sealProposal && tid !== null ? S.tablets.find((t) => t.id === tid) : undefined;
@@ -577,17 +585,17 @@ P.applyAudience = function (record) {
   if (!detained && !defected && goldBack > 0) {
     const purity = clamp(goldBackPurity, 10, 100);
     const backFine = toInt(roundEven((goldBack * purity) / 100.0));
-    if (this.pay(host, backFine, `gifts for ${sender}`, null, `none went home with ${c.name}`)) {
+    if (this.pay(host, backFine, `gifts for ${powerName(sender)}`, null, `none went home with ${c.name}`)) {
       cargo.gold = goldBack;
       cargo.goldStated = goldBack;
       cargo.purityPercent = purity;
-      trail.outcomes.push(`${host} sent back ${formatMoney(goldBack)}`);
+      trail.outcomes.push(`${upper(powerName(host))} sent back ${formatMoney(goldBack)}`);
     }
   }
 
   const answered = record.rounds[0]?.host?.byAnswer ?? null;
   const audienceText = (answered !== null ? `Your standing answer ${answered} received him in your name. ` : "") + this.audienceTranscript(a, c, trail, stated, weighed, unseen);
-  notify(S, host, "Audience", `Audience with ${c.name}, envoy of ${sender}`, audienceText, c.id);
+  notify(S, host, "Audience", `Audience with ${c.name}, envoy of ${powerName(sender)}`, audienceText, c.id);
   remember(c, S.turn, `I was received by the king of ${land(host)}. ` + trail.exchanges.map((x) => `He said: "${cap(x.host, 300)}" I answered: "${cap(x.envoy, 200)}"`).join(" "));
 
   // A false envoy (item 10+b) keeps what it was given for "its king", stays at the court and is nobody's to wait for.
@@ -601,7 +609,7 @@ P.applyAudience = function (record) {
       }
       c.at = host;
       c.duty = "None";
-      if (detained) trail.outcomes.push(`kept at the court of ${host}`);
+      if (detained) trail.outcomes.push(`kept at the court of ${powerName(host)}`);
     }
     return;
   }
@@ -615,7 +623,7 @@ P.applyAudience = function (record) {
   } else if (detained) {
     c.duty = "Detained";
     c.heldBy = host;
-    trail.outcomes.push(`detained by ${host}`);
+    trail.outcomes.push(`detained by ${powerName(host)}`);
     remember(c, S.turn, `The king of ${land(host)} will not let me leave.`);
     logEvent(S, "detention", `${host} detained ${c.name}, envoy of ${sender}.`, [host], "detention");
     this.overdue(sender, c, host, expectedHome);
@@ -641,7 +649,7 @@ P.overdue = function (sender, c, host, when, place = null) {
       to: sender,
       characterId: c.id,
       news: "Overdue",
-      text: `${c.name} has not returned from ${place ?? `the court of ${host}`}. No word has come.`,
+      text: `${c.name} has not returned from ${place ?? `the court of ${powerName(host)}`}. No word has come.`,
     }),
   );
 };
@@ -669,7 +677,7 @@ P.audienceTranscript = function (a, c, trail, stated, weighed, unseen) {
   if (outcomes.length > 0) lines.push("Outcome: " + outcomes.join("; ") + ".");
   for (const o of trail.outcomes) {
     const promised = commitment(o);
-    if (promised !== null) lines.push(`${c.name} promised on behalf of ${a.from}: ${quoteWords(promised)}`);
+    if (promised !== null) lines.push(`${c.name} promised on behalf of ${powerName(a.from)}: ${quoteWords(promised)}`);
   }
   return lines.join("\n");
 };
@@ -687,15 +695,15 @@ P.observe = function (c, court) {
   const hears = skill * (0.25 + (0.75 * c.tongues.getOrDefault(courtSpeaks(court, capital), 0)) / 100);
   const nearby = S.units.filter((u) => u.power === court && Map.hops(capital, u.province) <= 2);
   if (rng.chance(skill))
-    obs.push(`${court} keeps ${nearby.filter((u) => u.kind === "Army").length} army and ${nearby.filter((u) => u.kind === "Fleet").length} fleet near its capital.`);
+    obs.push(`${courtHead(court)} keeps ${nearby.filter((u) => u.kind === "Army").length} army and ${nearby.filter((u) => u.kind === "Fleet").length} fleet near its capital.`);
   if (rng.chance(hears * 0.8)) {
     const gold = S.treasuries.get(court).gold;
     const wealth = gold < 150 ? "the treasury looks thin" : gold < 400 ? "the court lives comfortably" : gold < 800 ? "the court is rich" : "the court glitters with gold";
-    obs.push(`At the court of ${court}, ${wealth}.`);
+    obs.push(`At the court of ${powerName(court)}, ${wealth}.`);
   }
   const others = S.characters.filter((x) => x.id !== c.id && x.at === court && x.employer !== null && x.employer !== court && (x.duty === "EnvoyAtCourt" || x.duty === "Detained"));
-  for (const o of others) if (rng.chance(skill)) obs.push(`${o.name}, envoy of ${o.employer}, was also at the court${o.duty === "Detained" ? ", held there against their will" : ""}.`);
-  for (const cat of S.catastrophes.filter((x) => x.power === court && x.startTurn <= S.turn + 1 && x.endTurn >= S.turn)) if (rng.chance(0.4 + hears / 2)) obs.push(`In ${court}: ${cat.text}`);
+  for (const o of others) if (rng.chance(skill)) obs.push(`${o.name}, envoy of ${powerName(o.employer!)}, was also at the court${o.duty === "Detained" ? ", held there against their will" : ""}.`);
+  for (const cat of S.catastrophes.filter((x) => x.power === court && x.startTurn <= S.turn + 1 && x.endTurn >= S.turn)) if (rng.chance(0.4 + hears / 2)) obs.push(`In ${powerName(court)}: ${cat.text}`);
   // The captives the court holds, noticed as other envoys at court are; its executions, as its catastrophes are.
   obs.push(...this.lossesHeard(c, court, skill, 0.4 + hears / 2));
   if (court === c.traits.sympathy) c.traits.sympathyStrength = Math.min(100, c.traits.sympathyStrength + 5);
@@ -705,7 +713,7 @@ P.observe = function (c, court) {
   let mood: MoodRead | null = null;
   if (holder !== null && c.employer !== null && this.r("observe-mood", c.id).chance(skill)) {
     mood = newMoodRead({ power: c.employer, province: capital, mood: this.moodOf(capital), seen: S.turn, source: "envoy" });
-    obs.push(`The people of ${Map.get(capital).name} are ${mood.mood} under ${holder}.`);
+    obs.push(`The people of ${Map.get(capital).name} are ${mood.mood} under ${powerName(holder)}.`);
   }
   return { observations: obs, mood };
 };

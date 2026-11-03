@@ -293,7 +293,7 @@ describe("SleepTests", () => {
     [
       "Catastrophe",
       "Catastrophe: Plague",
-      "The hand of Nergal is on the land. Plague will cut income by a quarter for two seasons, and it has destroyed your A babylon.",
+      "The hand of Nergal is on the land: plague. For two seasons your land will bring in a quarter less, and the sickness has carried off your A babylon.",
       "plague destroyed troops of yours",
     ],
     ["Notice", "The treasury", "A ur mutinied, unpaid 3 seasons running, and disbanded: its men went home.", "troops of yours mutinied"],
@@ -328,7 +328,7 @@ describe("SleepTests", () => {
     Assert.equal([1, 6], sleeper.calls);
     Assert.equal([CapReason], sleeper.views[1].wokenBecause);
     Assert.contains("turn 4: an order was refused or failed (Orders that could not be carried out)", sleeper.views[1].digest);
-    Assert.contains(sleeper.views[1].inbox.concat(sleeper.views[1].whileAsleep), (i) => i.body.includes("- sippar -> memphis: "));
+    Assert.contains(sleeper.views[1].inbox.concat(sleeper.views[1].whileAsleep), (i) => i.body.includes("troops in Sippar march to Men-nefer: "));
     // The seat's view showed it what it had scheduled, and nobody else's view does.
     Assert.empty(Views.for(r.state, "Assyria").scheduled);
   });
@@ -370,7 +370,7 @@ describe("SleepTests", () => {
       inboxOf(r.state, "Babylonia"),
       (i) =>
         i.title === "Movements last season" &&
-        i.body.includes("Sippar -> Suhu: succeeds: it got within the walls of Suhu but did not storm them (strength 1 against walls 1 and no defenders on the walls)"),
+        i.body.includes("Your army in Sippar marched to Suhu: it got within the walls of Suhu but did not storm them (strength 1 against walls 1 and no defenders on the walls)"),
     );
     Assert.null(r.state.owner.get("suhu"));
 
@@ -431,7 +431,7 @@ describe("SleepTests", () => {
     );
     Assert.contains(
       sleeper.views[1].inbox,
-      (i) => i.title === "Movements last season" && i.body.includes("Dur-Kurigalzu supports Sippar holding: cut (attacked from Ekallate)"),
+      (i) => i.title === "Movements last season" && i.body.includes("Your army in Dur-Kurigalzu was to support the hold at Sippar, but an attack from Ekallate cut it"),
     );
   });
 
@@ -459,7 +459,7 @@ describe("SleepTests", () => {
     );
     let r = await play("Babylonia", sleeper, 3);
     Assert.equal([1], sleeper.calls);
-    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.turn === 2 && i.title === "Movements last season" && i.body.includes("Dur-Kurigalzu -> Ekallate: fails"));
+    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.turn === 2 && i.title === "Movements last season" && i.body.includes("Your army in Dur-Kurigalzu did not reach Ekallate"));
     Assert.empty(r.state.sleep.get("Babylonia").pendingWake);
   });
 

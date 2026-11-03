@@ -8,7 +8,7 @@
  * talk of it would be. `--no-talk-play` and `--talk-play-half` ignore the talk and the offers caught, only to measure what
  * heeding them is worth.
  */
-import { AllPowers, landFor, OfferCaught, type Power } from "@amarna/engine";
+import { AllPowers, OfferCaught, powerNameFor, type Power } from "@amarna/engine";
 import { Board } from "./board.ts";
 
 /** Script kings that ignore talk of their land's leaning (`--no-talk-play`, `--talk-play-half`). None by default. */
@@ -22,7 +22,7 @@ export const TalkPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me
 
 /** The power a notice names, by the name our court knows and gives him (a house's, where it gives his name to another). */
 function named(b: Board, name: string): Power | null {
-  return AllPowers.find((q) => landFor(b.me, q) === name) ?? null;
+  return AllPowers.find((q) => powerNameFor(b.me, q) === name) ?? null;
 }
 
 /** Seasons a travellers' read of a province's unrest is acted on (a first guess). */
