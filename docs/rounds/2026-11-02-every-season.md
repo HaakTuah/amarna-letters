@@ -52,8 +52,19 @@ On the same 12 games (seed 1, 50 seasons), changes of hands a game (conquest + o
 | Native love 60 (was 100), margin 10 (was 20) | 14.8 | |
 | Both | 14.6 | Hatti's map changes every 7.2 seasons (was 12.1); the rest about the same |
 
-The numbers alone barely move it: the cause is the script kings' play (cause 2), which the next fix addresses. No number
-is changed by this item unless a measured fix needs it.
+The numbers alone barely move it. No number is changed by this item unless a measured fix needs it.
+
+**Script kings that judge obedience and occupy** (a helper's build on `cand/occupy`, three versions; the switch
+`OccupyPlay`, `--occupy-play-half`): an estimate, from the seat's view only, of the seasons until a province would obey
+our army there; attacks on open land scaled by it, the look-ahead no longer counting land that would never obey as ours,
+and an "occupy" choice holding an army in land until it obeys. With every king using it, changes of hands fell to 11.2 a
+game and battles from about 94 to 75; game length unchanged. It wins use against ignore (9 wins of 12, 0.88 growth to
+0.82), but not the pulse: a probe found armies rarely stand in open foreign land at all (a lone army will not enter land
+whose people resist, and most foreign land is walled), so judging obedience mainly removed attacks that made battles.
+Not adopted for the pulse.
+
+**Where it stands**: two approaches measured and set aside, so, by "Don't loop", the fix went to the escalation helper
+(Opus, high) with the conversion from battles to entries to obedience, and sieges to falls, to trace and fix.
 
 ## The four lands (#403)
 
