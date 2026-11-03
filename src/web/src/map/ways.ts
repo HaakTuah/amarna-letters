@@ -170,22 +170,33 @@ export function outlaws(s: MapScene): string {
   for (const [province, bands] of byProvince) {
     const at = city(province);
     const ring = ringOf(Map_.get(province).capital, s.walls.get(province) ?? 0);
-    const told = (b: SceneBand): string =>
-      `${b.ship ? "A pirate crew" : "A band"} of ${b.men} men in ${provinceName(province)}${b.chief !== "" ? `, led by ${b.chief}` : ""}${b.age > 0 ? `: as your people last told of it, ${b.age} season${b.age === 1 ? "" : "s"} ago` : ""}`;
+    const ago = (age: number): string => `as your people last told of it, ${age} season${age === 1 ? "" : "s"} ago`;
+    const led = (b: SceneBand): string => (b.chief !== "" ? `, led by ${b.chief}` : "");
     const mark = (k: number, cls: string, text: string, inner: string): void => {
       sb += `<g class="band-mark${cls}" data-province="${province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ring)}">${title(text)}`;
       sb += `<g class="sym"><g transform="translate(${k * 18},0)"><circle class="band-bg" r="8"/>${inner}</g></g></g>`;
     };
+    // Word from land lost without the court's knowing is old: drawn faded, like a unit last seen, with its age.
+    const old = (age: number): string => (age > 0 ? ` ghost age${Math.min(4, age)}` : "");
     // Three marks at most below a city, so a province full of outlaws keeps its row within its own land: past that, the
     // third mark counts the rest, and its title tells each of them.
     const shown = bands.length > 3 ? bands.slice(0, 2) : bands;
-    shown.forEach((b, k) => {
-      // Word from land lost without the court's knowing is old: drawn faded, like a unit last seen, with its age.
-      const old = b.age > 0 ? ` ghost age${Math.min(4, b.age)}` : "";
-      mark(k, `${b.ship ? " pirate" : ""}${old}`, told(b), `<use href="${b.ship ? "#fig-fleet-levant" : "#fig-fire"}" class="band-icon" x="-6.4" y="-6.4" width="12.8" height="12.8"/>`);
-    });
+    shown.forEach((b, k) =>
+      mark(
+        k,
+        `${b.ship ? " pirate" : ""}${old(b.age)}`,
+        `${b.ship ? "A pirate crew" : "A band"} of ${b.men} men in ${provinceName(province)}${led(b)}${b.age > 0 ? `: ${ago(b.age)}` : ""}`,
+        `<use href="${b.ship ? "#fig-fleet-levant" : "#fig-fire"}" class="band-icon" x="-6.4" y="-6.4" width="12.8" height="12.8"/>`,
+      ),
+    );
     const rest = bands.slice(shown.length);
-    if (rest.length > 0) mark(2, " more", `${rest.length} more in ${provinceName(province)}:\n${rest.map(told).join("\n")}`, `<text class="band-count" y="3.2">+${rest.length}</text>`);
+    if (rest.length > 0) {
+      const ships = rest.filter((b) => b.ship).length;
+      const what = ships === 0 ? "bands" : ships === rest.length ? "pirate crews" : "bands and pirate crews";
+      const age = Math.max(...rest.map((b) => b.age));
+      const lines = rest.map((b) => `${b.men} men${b.ship && ships < rest.length ? " with a ship" : ""}${led(b)}`);
+      mark(2, old(age), `${rest.length} more ${what} in ${provinceName(province)}${age > 0 ? `, ${ago(age)}` : ""}:\n${lines.join("\n")}`, `<text class="band-count" y="3.2">+${rest.length}</text>`);
+    }
   }
   return sb;
 }

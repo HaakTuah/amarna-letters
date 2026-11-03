@@ -87,7 +87,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The small seal of a land with no great town of its time (Kaska, Lukka, Nesa, the steppe, Libya, the Shasu) was drawn 1.43 times as wide as the box the placement kept clear for it, so a caravan's mark could touch it (#525); it now shrinks to the small seal's share of its own size.
 - A quiet frontier and one where two powers' armies stood face to face looked the same (#549); the latter now has a faint wider stroke under its band, drawn only from the armies the seat sees now. The bands layer is redrawn per scene, not per frame, so switching whose eyes the map is seen through redraws the borders too.
 - The map kept a seal's fill clear of other markers but not its rim, so the thick dark rim of a crowded or besieged small seal could touch a neighbour (#562); the placement and the smoke test now measure each seal with its rim.
-- A province with many bands drew their campfires in one row from its city, eight of them running across the next province and into the Gulf (Urim, late in a game); below a city stand three marks at most, the third counting the rest ("+6"), its title telling each of them.
+- A province with many bands drew their campfires in one row from its city, eight of them running across the next province and into the Gulf (Urim, late in a game); below a city stand three marks at most, the third counting the rest ("+6"), its title telling each of them ("6 more bands in Urim:", then their men and chiefs).
 
 ## Finds not yet fixed
 
