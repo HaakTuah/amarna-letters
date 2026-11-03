@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, Views, setLevel, wordHomeAt, type ScheduledOrders, TurnEngine, UnraisedTitle, WorldMap, inboxOf, move, newGame, newGameConfig, newOwnerChange, newScheduledOrders, newSleepState, newTurnSubmission, raise } from "@amarna/engine";
+import { Dict, type GameState, Views, newUnit, setLevel, wordHomeAt, type ScheduledOrders, TurnEngine, UnraisedTitle, WorldMap, inboxOf, move, newGame, newGameConfig, newOwnerChange, newScheduledOrders, newSleepState, newTurnSubmission, raise } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 /**
@@ -113,5 +113,16 @@ describe("LevyWordTests", () => {
     for (const p of WorldMap.default.landProvinces) for (const k of ["Roads", "Stations"] as const) setLevel(s, k, p.id, 0);
     Assert.true(wordHomeAt(s, WorldMap.default, "hattusa", "babylon", lost) > fast);
     Assert.equal("Elam", read().owner);
+  });
+
+  test("An own unit where the road out is near but the road home is not is shown as last reported (bug #616)", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const e = new TurnEngine(s, WorldMap.default);
+    // Pharaoh's court at Akhetaten: his orders reach Hattusa within the season, word from there takes a season more.
+    Assert.equal(0, e.wordTo("Egypt", "hattusa"));
+    Assert.equal(1, e.wordFrom("Egypt", "hattusa"));
+    const u = newUnit({ id: "u990", power: "Egypt", province: "hattusa", trail: ["nesa", "hattusa"] });
+    s.units.push(u);
+    Assert.equal("nesa", e.shownAt(u));
   });
 });

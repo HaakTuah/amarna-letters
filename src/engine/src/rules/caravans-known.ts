@@ -37,7 +37,7 @@ export function caravansKnown(engine: TurnEngine, p: Power): CaravanView[] {
     const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : null;
     if (c.power !== p || (first !== null && !came(first.turn, first.at))) continue;
     const live = s.caravans.includes(c);
-    if (live && engine.wordTo(p, caravanAt(c)) === 0) {
+    if (live && engine.wordFrom(p, caravanAt(c)) === 0) {
       out.push(viewOf(c, caravanAt(c), c.grain, c.gold, c.returning, null));
       continue;
     }

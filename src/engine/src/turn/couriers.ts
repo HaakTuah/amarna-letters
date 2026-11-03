@@ -30,6 +30,8 @@ declare module "./core.ts" {
   interface TurnEngine {
     /** The seasons the king's couriers take to a province: 0 within the season. */
     wordTo(p: Power, province: string): number;
+    /** Bug #616: the whole seasons beyond the first word takes home from a province to a king's court (the road home, as `wordHomeAt`): 0 where it comes within the season. For news; `wordTo` is the road out, for orders and loads. */
+    wordFrom(p: Power, province: string): number;
     /** Where an own unit stands as its king last heard (item 13): where it stood as many seasons ago as the road is long. */
     shownAt(u: Unit): string;
     /** The own unit the king names by a province, as he sees his units. */
@@ -80,8 +82,12 @@ P.wordTo = function (p, province) {
   return courierSeasons(this.s, this.map, courtOf(this.s, this.map, p), province);
 };
 
+P.wordFrom = function (p, province) {
+  return courierSeasons(this.s, this.map, province, courtOf(this.s, this.map, p));
+};
+
 P.shownAt = function (u) {
-  const d = this.wordTo(u.power, u.province);
+  const d = this.wordFrom(u.power, u.province);
   if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return u.province;
   const at = u.trail[Math.max(0, u.trail.length - 1 - d)];
   return at.split("|")[0];
@@ -97,7 +103,7 @@ P.unitShownAt = function (p, province) {
 
 P.orderedUnit = function (p, province) {
   const here = unitAt(this.s, province);
-  if (here !== null && here.power === p && this.wordTo(p, province) === 0) return here;
+  if (here !== null && here.power === p && this.wordFrom(p, province) === 0) return here;
   return this.unitShownAt(p, province) ?? (here !== null && here.power === p ? here : null);
 };
 
