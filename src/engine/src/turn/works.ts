@@ -15,7 +15,7 @@ import { LandData, menAvailable, unitCarried } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import type { BuildOrder, RazeOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import { alive, logEvent, notify, ownedBy, siegeOf, unitAt, type Unit } from "../model/state.ts";
+import { alive, logEvent, notify, ownedBy, siegeOf, unitAt, type Unit, loseUnit } from "../model/state.ts";
 import {
   buildGold,
   buildMen,
@@ -308,7 +308,7 @@ P.harboursWinter = function () {
       u.food = Math.min(u.food, unitCarried(u));
       left -= share;
     }
-    for (const u of fleets.filter((x) => x.men < LandData.levyLeast)) S.units.splice(S.units.indexOf(u), 1);
+    for (const u of fleets.filter((x) => x.men < LandData.levyLeast)) loseUnit(S, u);
     notify(S, power, "Resolution", "Winter at sea", `Your fleets in ${Map.get(waters).name} had harbour room for ${room} men of their ${men}; wintering on open beaches, the storms took ${lost} of them.`);
     logEvent(S, "winter", `${power}'s fleets in ${Map.get(waters).name} lost ${lost} men to winter storms on open beaches.`, [power], "harbour-short");
   }

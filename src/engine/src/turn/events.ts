@@ -8,7 +8,7 @@ import { cmpStr } from "../core/text.ts";
 import { land, type Power } from "../model/power.ts";
 import { newCatastrophe } from "../model/records.ts";
 import { LandData } from "../model/land.ts";
-import { alive, logEvent, newId, notify, ownedBy, unitLabel, wallsOf, type Unit } from "../model/state.ts";
+import { alive, logEvent, newId, notify, ownedBy, unitLabel, wallsOf, type Unit, loseUnit } from "../model/state.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine } from "./core.ts";
 
@@ -46,7 +46,7 @@ TurnEngine.prototype.worldEvents = function () {
           [(u: Unit) => u.id, cmpStr],
         );
         const lost = victim.length > 0 ? rng.pick(victim) : null;
-        if (lost !== null) S.units.splice(S.units.indexOf(lost), 1);
+        if (lost !== null) loseUnit(S, lost);
         // It kills peasants across the realm (item 10+a).
         for (const x of owned) this.killSettled(x, LandData.plagueDead * 10);
         exact = "The hand of Nergal is on the land. Plague will cut income by a quarter for two seasons" + (lost !== null ? `, and it has destroyed your ${unitLabel(lost)}.` : ".");

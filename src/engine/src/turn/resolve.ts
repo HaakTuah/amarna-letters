@@ -12,7 +12,7 @@ import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
-import { alive, isAlive, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit } from "../model/state.ts";
+import { alive, isAlive, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit, loseUnit } from "../model/state.ts";
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
@@ -271,11 +271,12 @@ P.resolveMovement = function (unitOrders) {
     for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" is dislodged")) l.text = l.text.replace(/ is dislodged$/, to === undefined || to === null ? " is destroyed" : ` falls back to ${Map.get(to).name}`);
   }
   for (const u of gone) {
-    S.units.splice(S.units.indexOf(u), 1);
+    loseUnit(S, u);
     result.newPositions.delete(u.id);
     // Some of its men die, and the rest run and turn loose where it fell (item 10+a).
     this.unitDestroyed(u);
-    logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), u.power]);
+    // Its own king reads of it here only where his couriers reach; farther off, by the battle's word (bug #600).
+    logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), ...this.nearOf(u.province, u.power)]);
   }
   // Moves the people of a land held off (item 10+a).
   for (const l of result.lines.filter((x) => x.failure?.stop === "Resisted"))
@@ -359,7 +360,7 @@ P.foldUnit = function (p, o) {
     this.armyEntry(into, a, v - (joined?.getOrDefault(a, 0) ?? 0));
   }
   S.armies.delete(u.id);
-  S.units.splice(S.units.indexOf(u), 1);
+  loseUnit(S, u);
   this.liftSiegesOf(u.id);
   logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, [p], "fold");
   notify(S, p, "Resolution", "Troops joined", `${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, ${into.men} men strong now.`);
@@ -461,7 +462,7 @@ P.raise = function (p, r) {
   this.spendAt(prov.id, cost);
   // Its men come from the province's men of fighting age (item 10+a).
   this.levyMen(prov.id, men);
-  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });
+  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men, since: S.turn });
   S.units.push(u);
   this.tell(p, prov.id, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ": all the men of fighting age the province had to give" : ""}, so it counts for ${strengthWords(shareOfFull(r.kind, men))} of a full ${kind} in battle, and costs and eats in proportion` : ""}.`);
   if (r.share != null) logEvent(S, "levy", `${p} raised a ${kind} in ${prov.name} by a share of its men.`, this.nearOf(prov.id, p), "levy-share");

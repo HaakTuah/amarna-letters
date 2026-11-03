@@ -13,7 +13,7 @@ import { raise } from "../model/order-makers.ts";
 import { type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { findCharacter, isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
+import { findCharacter, isAlive, logEvent, notify, unitAt, type Unit, loseUnit } from "../model/state.ts";
 import { courierSeasons, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
 
@@ -169,7 +169,7 @@ P.governorsSeason = function () {
       // they cannot reach him.
       const u = levies[0];
       for (const o of levies.slice(1)) {
-        S.units.splice(S.units.indexOf(o), 1);
+        loseUnit(S, o);
         S.armies.delete(o.id);
         if (o.province === u.province) {
           u.men += o.men;

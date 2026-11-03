@@ -18,7 +18,7 @@ import { Rng } from "../core/rng.ts";
 import { cmpNum, count, distinct, sortBy, sum } from "../core/seq.ts";
 import type { GameConfig } from "../model/config.ts";
 import { newMindRequest, type MindRequest } from "../model/exchanges.ts";
-import { WorldMap } from "../model/map.ts";
+import { type UnitKind, WorldMap } from "../model/map.ts";
 import { EconomyData } from "../model/economy.ts";
 import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
@@ -207,11 +207,12 @@ export class TurnEngine {
   }
 
   /** The pay of a power's troops a season in gold, and the cost of each siege it presses (GameConfig.siegeUpkeep). */
-  upkeep(p: Power): number {
+  /** What its troops and sieges cost a season: its troops as they are, or as given (its view's, as it knows them: bug #600). */
+  upkeep(p: Power, units: readonly { kind: UnitKind; men: number }[] = this.s.units.filter((u) => u.power === p)): number {
     const S = this.s;
     return (
       sum(
-        S.units.filter((u) => u.power === p),
+        units,
         // In proportion to its men (item 11a+).
         (u) => forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men),
       ) +

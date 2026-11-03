@@ -15,7 +15,7 @@ import { Uncommanded, mandateText, type CommandTraits, type Mandate } from "../m
 import type { CommandOrder, EnlistOrder, MandateOrder, Order, RelieveOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { findCharacter, logEvent, newId, newUnit, notify, unitAt, type Unit } from "../model/state.ts";
+import { findCharacter, logEvent, newId, newUnit, notify, unitAt, type Unit, loseUnit } from "../model/state.ts";
 import { newJourney } from "../model/records.ts";
 import { courtOf, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
@@ -144,7 +144,7 @@ P.commandSeason = function () {
         continue;
       }
       if (going < u.men) {
-        const stay = newUnit({ id: newId(S, "u"), power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
+        const stay = newUnit({ id: newId(S, "u"), since: u.since, power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
         u.food -= stay.food;
         u.men = going;
         S.units.push(stay);
@@ -178,7 +178,7 @@ P.commandSeason = function () {
     chief.watchProvince = land;
     S.bands.push(newBand({ id: newId(S, "b"), leaderId: chief.id, province: land, men, since: S.turn, rose: "outlaw" }));
     this.tell(u.power, land, "Resolution", "A band's service ends", `The term of ${chief.name}'s band is over: his ${men} men left your army in ${this.map.get(land).name} as his band again.`);
-    if (u.men <= 0) S.units.splice(S.units.indexOf(u), 1);
+    if (u.men <= 0) loseUnit(S, u);
   }
   // Commanders whose army is gone (destroyed, disbanded, given away, mutinied) go home.
   for (const c of sortBy(
@@ -212,8 +212,7 @@ P.leaveCommand = function (c, at) {
 
 P.armyToBand = function (u, c, rose) {
   const S = this.s;
-  const i = S.units.indexOf(u);
-  if (i >= 0) S.units.splice(i, 1);
+  loseUnit(S, u);
   const was = u.power;
   c.formerEmployer = c.employer ?? was;
   c.employer = null;

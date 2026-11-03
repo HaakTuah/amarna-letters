@@ -88,7 +88,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 52;
+export const CURRENT_VERSION = 54;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -401,6 +401,11 @@ export interface GameState {
    */
   starving: string[];
   units: Unit[];
+  /**
+   * Bug #600: units that left the game lately (destroyed, disbanded, mutinied, lost to winter or plague), each with its
+   * reports, kept until word of its end could reach its king; till then he knows it as its last report has it.
+   */
+  unitsGone: Unit[];
   treasuries: Dict<Power, Treasury>;
   startStrength: Dict<Power, number>;
   eliminated: Power[];
@@ -549,6 +554,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     tollsKnown: new Dict(),
     starving: [],
     units: [],
+    unitsGone: [],
     treasuries: new Dict(),
     startStrength: new Dict(),
     eliminated: [],
@@ -678,6 +684,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   tollsKnown: dict(list(() => TollSchema)),
   starving: list(S),
   units: list(() => UnitSchema),
+  unitsGone: list(() => UnitSchema),
   treasuries: dict(() => TreasurySchema),
   startStrength: dict(I),
   eliminated: list(S),
@@ -766,6 +773,10 @@ export interface Unit {
    */
   buy: boolean;
   chest: number;
+  /** Bug #600: the season it was raised (0 for the troops a game begins with): its king knows of it once word could come. */
+  since: number;
+  /** Bug #600: the season it left the game, 0 while it stands (GameState.unitsGone). */
+  goneTurn: number;
   // computed in C#: $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}"
 }
 
@@ -794,6 +805,8 @@ export function newUnit(init: Partial<Unit> = {}): Unit {
     hiredChief: null,
     buy: false,
     chest: 0,
+    since: 0,
+    goneTurn: 0,
     ...init,
   };
 }
@@ -822,8 +835,26 @@ export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
   hiredChief: opt(S),
   buy: B,
   chest: I,
+  since: I,
+  goneTurn: I,
   label: computed(S, (o: Unit) => unitLabel(o)),
 });
+
+/** Bug #600: how many seasons a unit that left the game is kept among those gone: longer than any word takes. */
+export const UnitsGoneKept = 8;
+
+/**
+ * A unit leaves the game (destroyed, disbanded, mutinied, lost to winter or plague, folded into another). Bug #600: one
+ * its king has reports of is kept among those gone, with them, so his view keeps it as last reported until word of its
+ * end could come.
+ */
+export function loseUnit(s: GameState, u: Unit): void {
+  const i = s.units.indexOf(u);
+  if (i < 0) return;
+  s.units.splice(i, 1);
+  u.goneTurn = s.turn;
+  s.unitsGone = [...s.unitsGone.filter((x) => x.goneTurn > s.turn - UnitsGoneKept), ...(u.trail.length > 0 || u.since === 0 ? [u] : [])];
+}
 
 /**
  * The fall of a kingdom with its capital: the season, the power that took the capital, and the land that passed to it.

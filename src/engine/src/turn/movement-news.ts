@@ -2,11 +2,13 @@
  * The season's movement news (moved from resolve.ts, by meaning): what each king's troops did, as the outcomes it may see
  * (GameState.lastSeen) and the notice "Movements last season", with why each of its moves failed.
  */
-import type { Dict, HSet } from "../core/collections.ts";
+import { Dict, type HSet } from "../core/collections.ts";
 import type { MoveFailure } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { land, type Power } from "../model/power.ts";
-import { alive, logEvent, notify } from "../model/state.ts";
+import { alive, logEvent, newId, notify } from "../model/state.ts";
+import { newJourney } from "../model/records.ts";
+import { ownLoss } from "./sleep.ts";
 import type { Order, SallyOrder } from "../model/orders.ts";
 import { groundText } from "../model/geography.ts";
 import { WorldMap } from "../model/map.ts";
@@ -24,38 +26,51 @@ const P = TurnEngine.prototype;
 P.movementNews = function (result, sightBefore, byProvince, sallies, unitOrders, adjudicator) {
   const S = this.s;
   const Map = this.map;
-  for (const p of alive(S))
+  // Bug #600: its own troops' outcomes where its couriers reach within the season; farther off, a loss wakes a sleeping
+  // seat when word of it comes (`ownLoss`), and the lines come home by the road (below).
+  const near = (p: Power, province: string): boolean => this.nearOf(province, p).length > 0;
+  for (const p of alive(S)) {
     S.lastSeen.set(
       p,
-      result.outcomes.filter((o) => o.power === p || sightBefore.get(p).has(o.province) || (o.target !== null && sightBefore.get(p).has(o.target))),
+      result.outcomes.filter((o) => (o.power === p && near(p, o.province)) || sightBefore.get(p).has(o.province) || (o.target !== null && sightBefore.get(p).has(o.target))),
     );
+    for (const o of result.outcomes.filter((x) => x.power === p && !near(p, x.province) && !sightBefore.get(p).has(x.province))) {
+      const lost = ownLoss(o);
+      if (lost !== null && S.sleep.has(p)) S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: this.heardAt(p, o.province), from: p, to: p, news: "Foiled", text: lost }));
+    }
+  }
 
   for (const p of alive(S)) {
     const sight = sightBefore.get(p);
     // Its own orders, each failed move and void support with the reason; foreign orders where the unit stood, or moved to, in sight before the moves.
     const mine: string[] = [];
+    // Bug #600: the lines of its troops beyond its couriers' season come home by the road, each from where it stood.
+    const far = new Dict<string, string[]>();
     for (const l of result.lines.filter((l) => l.power === p)) {
+      if (!near(p, l.province) && !far.has(l.province)) far.set(l.province, []);
+      const lines = near(p, l.province) ? mine : far.get(l.province);
       if (l.failure !== null) {
         const f = l.failure;
         const why = whyMoveFailed(p, l.province, l.target!, f, sight);
         // A scheduled move that others stopped wakes its sleeping seat, with the reason; one its own orders or
         // strength stopped does not.
         const mv = byProvince.tryGet(l.province);
-        if (this.stoppedByOthers(p, f) && mv !== undefined) this.scheduledFailed(p, mv, why);
+        if (this.stoppedByOthers(p, f) && mv !== undefined) this.wakeFrom(p, mv, l.province, why);
         // Where the unit now stands, in plain words: it stayed where it was (unless it was destroyed there, which
         // its own line says).
         const still = S.units.find((u) => u.power === p && u.province === l.province);
         const stays = still ? `; so your ${still.kind === "Army" ? "army" : "fleet"} stays in ${Map.get(l.province).name}` : "";
-        mine.push(`${l.text}: ${why}${stays}`);
-      } else if (l.assault !== null) mine.push(`${l.text}: ${this.assaultText(l.assault)}`);
+        lines.push(`${l.text}: ${why}${stays}`);
+      } else if (l.assault !== null) lines.push(`${l.text}: ${this.assaultText(l.assault)}`);
       else {
-        mine.push(l.void !== null ? `${l.text}: ${l.void}` : l.text);
+        lines.push(l.void !== null ? `${l.text}: ${l.void}` : l.text);
         // So does a scheduled support that a foreign attack cut; not a support or convoy that matched no move,
         // which tells only that the seat guessed another unit's orders wrong.
         const help = byProvince.tryGet(l.province);
-        if (l.cut !== null && help !== undefined) this.scheduledFailed(p, help, l.cut);
+        if (l.cut !== null && help !== undefined) this.wakeFrom(p, help, l.province, l.cut);
       }
     }
+    for (const [at, lines] of far) this.tell(p, at, "Battle", "Movements last season", lines.map((x) => "- " + x).join("\n"));
     // The walls of his cities that sallied: whether they found the attack they were to support.
     for (const w of sallies.filter((o) => unitOrders.some(([q, x]) => q === p && x === o))) {
       const matched = adjudicator.sallyMatched(w);
@@ -70,7 +85,10 @@ P.movementNews = function (result, sightBefore, byProvince, sallies, unitOrders,
       );
     }
     // An assault on a walled city of the king's own: his side of it, with the strengths, among his own lines.
-    for (const a of result.assaults.filter((a) => a.owner === p)) mine.push(this.ownWallsText(a));
+    for (const a of result.assaults.filter((a) => a.owner === p)) {
+      if (near(p, a.province)) mine.push(this.ownWallsText(a));
+      else this.tell(p, a.province, "Battle", "Movements last season", "- " + this.ownWallsText(a));
+    }
     const seen = result.lines
       .filter((l) => l.power !== p && l.power !== null && (sight.has(l.province) || (l.target !== null && sight.has(l.target))))
       .map(

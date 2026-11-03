@@ -11,7 +11,7 @@ import { distinct } from "../core/seq.ts";
 import { crossingBetween } from "../model/geography.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
+import { logEvent, notify, unitLabel, type Unit, loseUnit } from "../model/state.ts";
 import { idiv } from "../core/num.ts";
 import { LandData, shareOfFull, unitCarried, unitFood, WinterData } from "../model/land.ts";
 import { CommandData } from "../model/command.ts";
@@ -113,7 +113,7 @@ P.loseToWinter = function (crossings, sightBefore) {
     if (deserted > 0) this.peopleOf(x.from).loose += deserted;
     u.men -= gone;
     u.food = Math.min(u.food, unitCarried(u));
-    if (whole) S.units.splice(i, 1);
+    if (whole) loseUnit(S, u);
     const why = x.how === "pass" ? "cold, hunger and desertion" : "the storms";
     const where = x.how === "pass" ? `crossing ${crossing} into ${Map.get(x.to).name} in winter` : `crossing the open sea to ${Map.get(x.to).name} in winter`;
     notify(

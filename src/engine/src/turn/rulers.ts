@@ -171,7 +171,7 @@ P.joinRealm = function (province, c, p) {
 
 /** A unit of `men` men of `province`, standing there, its home. */
 function newUnitFor(e: TurnEngine, p: Power, province: string, men: number): Unit {
-  const u = newUnit({ id: newId(e.s, "u"), power: p, kind: "Army", province, home: province, men });
+  const u = newUnit({ id: newId(e.s, "u"), power: p, kind: "Army", province, home: province, men, since: e.s.turn });
   e.s.units.push(u);
   return u;
 }

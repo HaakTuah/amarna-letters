@@ -35,7 +35,8 @@ const P = TurnEngine.prototype;
 P.battles = function (result, sightBefore) {
   const S = this.s;
   const unit = (id: string): Unit | undefined => S.units.find((u) => u.id === id);
-  const seeing = (provinces: string[], ...sides: Power[]): Power[] => [...new HSet([...AllPowers.filter((p) => provinces.some((x) => sightBefore.get(p)?.has(x))), ...sides])];
+  // Those who saw it, and each side where its couriers reach; a side farther off reads of it by the road (bug #600).
+  const seeing = (provinces: string[], ...sides: Power[]): Power[] => [...new HSet([...AllPowers.filter((p) => provinces.some((x) => sightBefore.get(p)?.has(x))), ...sides.filter((p) => provinces.some((x) => this.nearOf(x, p).length > 0))])];
   // The men each unit loses, and in which battle's province, in the order the battles were fought (the map's order of moves).
   const lost = new Dict<string, number>();
   const where = new Dict<string, string>();
