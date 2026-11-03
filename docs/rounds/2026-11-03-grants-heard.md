@@ -40,10 +40,24 @@ four twins for it, each failing on `develop` and passing here.
 
 ## Benchmarks
 
-(below, at the final code)
+`scripts/sim.sh --games 20 --seed 1 --verify-replay`, each run alone: before on `develop` at `042b626d`, after on this
+branch at the final code. Every game replays exactly, 20 of 20, before and after, and the two logs are the same line
+for line (only the run's time differs): every game lasts as many seasons, the same 20 winners, 319 kingdoms fallen, the
+first fall in season 4.5 on the median, none in the first two seasons, 46 seats risen. The script kings granted nothing
+by order in these games and revoked once, so the new word changes none of them. No balance was tuned. A bug fix adds no
+feature, so there is no use against ignore to measure.
 
-## Review
+## Review, round 1
 
-(below)
+Codex: one P1, the save version (fixed: 52). Claude's reviewer (Opus, high): 8 of 10, one blocking, three not:
 
-Questions for the owner: none.
+1. **Save version** (blocking): 52, with design note 15 and the save-version test.
+2. **The narrowing's split did no work** (the view shows no land): the land is cut in place again, as before; filed the
+   reviewer's find that a narrowed passage still reads "all your land" as bug #611.
+3. **Benchmarks and review sections empty:** filled.
+4. **No test that the notice and the view's grant arrive together:** an engine test of a grant by order and its
+   revocation, season by season.
+
+One idea (Opus): give `GrantView` the land it covers: filed as bug #611, since the grantor's own view is wrong today.
+
+Questions for the owner: none. Filed: #609, #611 (bugs).
