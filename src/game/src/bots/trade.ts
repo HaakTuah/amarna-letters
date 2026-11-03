@@ -253,13 +253,13 @@ export function tradeOrders(
         const goldOut = buyGold > 0 && bought.taken > 0 ? Math.min(buyGold, Math.ceil((bought.paid * 100) / Math.max(1, keep))) : 0;
         if (n <= 0 && goldOut <= 0) continue;
         const pay = payFor(n, goldOut, way.seasons, true, how === "ship" ? fleetUpkeep : null);
-        if (!fundedThere(home, pay + goldOut, gold - spent)) continue;
+        if (!fundedThere(v, home, pay + goldOut, gold - spent)) continue;
         best = {
           order: how === "ship" ? ship(fleet!.province, home.province, k, n, goldOut, true) : trade(home.province, k, n, goldOut, how === "smuggle"),
           gain,
           grain: n,
-          gold: goldOut + (home.reported === null ? pay : 0),
-          far: home.reported === null ? 0 : pay + goldOut,
+          gold: goldOut + (!v.far.includes(home.province) ? pay : 0),
+          far: !v.far.includes(home.province) ? 0 : pay + goldOut,
           fleet: how === "ship" ? fleet!.province : null,
         };
       }

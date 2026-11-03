@@ -66,7 +66,8 @@ porters are owed it (`Caravan.bill`), a bill they carry home, paid on arrival fr
 
 ### What the seat sees
 
-The coffer and the debt of each far province come with its report (`ProvinceEconomyView.coffer`, `owed`), dated like the
+Which of its provinces are far comes as a list (`SeatView.far`), by the court's one clock for its land (word home within
+the season, `TurnEngine.isFar` = `wordFrom`), the same line its sight, its order checks and the engine draw. The coffer and the debt of each far province come with its report (`ProvinceEconomyView.coffer`, `owed`), dated like the
 rest; they count in its holdings, so the strength a seat reckons sees them as reported. The bills, when they come, are
 lines in the treasury notice; gold arriving at a coffer is told by the road. The twin canary's #587 leak is gone.
 

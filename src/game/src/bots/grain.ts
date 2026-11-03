@@ -158,8 +158,8 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
     // What the porters will eat on the way.
     const amount = Math.ceil((n * 100) / (100 - EconomyData.caravanEatPercent * r.seasons));
     const pay = payFor(amount, 0, r.seasons, false);
-    if (spare(source) < amount || !fundedThere(source, pay, funds)) continue;
-    if (source.reported === null) funds -= pay;
+    if (spare(source) < amount || !fundedThere(b.v, source, pay, funds)) continue;
+    if (!b.v.far.includes(source.province)) funds -= pay;
     else source.coffer -= pay;
     orders.push(caravan(source.province, to, amount));
     source.stores -= amount;

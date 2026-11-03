@@ -182,7 +182,7 @@ P.harvestSeason = function () {
           const at = fall === null ? this.courtAt(to) : fall.capital;
           // #587: a far province's gold goes into its coffer, which pays what is done there and sends the rest home.
           if (fall === null && this.isFar(to, prov.id)) this.receiveAt(to, prov.id, metal);
-          else if (courierSeasons(S, this.map, at, prov.id) >= 1) this.lootHome(to, prov.id, metal, [], "", at);
+          else if (courierSeasons(S, this.map, prov.id, at) >= 1) this.lootHome(to, prov.id, metal, [], "", at);
           else {
             const t = S.treasuries.get(to);
             t.gold += metal;

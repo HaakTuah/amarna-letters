@@ -326,7 +326,8 @@ P.caravanHome = function (c) {
   // Bug #540: home beyond the couriers' season, its gold and any archive go on to the court as a load, as a far market's
   // proceeds do (item 13), its word with them; with nothing to carry, its word comes home as word does, when the word of
   // its homecoming could (`caravanWordsHome`). Near, they reach the court now.
-  const far = this.wordTo(c.power, at) > 0;
+  // By the road home, as everything a court is paid or told from afar (#587, #616).
+  const far = this.isFar(c.power, at);
   // #587: with no road on to the court, its gold stays where it came home, in the coffer there (gold that is there).
   if (far && c.gold > 0 && !homeRoad(this, c.power, at)) {
     parts.push(`kept ${formatMoney(c.gold)} there, with no road on to the court`);

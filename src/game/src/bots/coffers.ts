@@ -5,7 +5,7 @@
  * seasons of what its works in gold and his troops there cost, so its works and levies are not stopped by a bill he
  * could not pay when it came. Every figure is the engine's own; what it knows is its view.
  */
-import { buildGold, cmpNum, cmpStr, desc, EconomyData, forMen, send, sortBy, upkeepGold, WorksData, type Order, type ProvinceEconomyView } from "@amarna/engine";
+import { buildGold, cmpNum, cmpStr, desc, EconomyData, forMen, send, sortBy, upkeepGold, WorksData, type Order, type ProvinceEconomyView, type SeatView } from "@amarna/engine";
 import type { Board } from "./board.ts";
 
 /** Whether a script king sends gold ahead (off for half of them in the measure of using it against ignoring it, `--coffer-play-half`). */
@@ -37,7 +37,7 @@ export function cofferOrders(b: Board, spare: number): { orders: Order[]; spent:
     return gold;
   };
   const wants = v.provinces
-    .filter((x) => x.reported !== null && !v.goldSent.some((g) => g.province === x.province))
+    .filter((x) => v.far.includes(x.province) && !v.goldSent.some((g) => g.province === x.province))
     .map((x) => ({ id: x.province, gold: x.owed + Math.max(0, 2 * need(x.province) - x.coffer), owed: x.owed }))
     .filter((x) => x.gold > 0 && (x.owed > 0 || need(x.id) > 0));
   for (const w of sortBy(wants, [(x: { owed: number }) => x.owed, desc(cmpNum)], [(x: { id: string }) => x.id, cmpStr])) {
@@ -62,6 +62,6 @@ export function payFor(grain: number, gold: number, seasons: number, both: boole
  * king has left to spend); far, from its coffer as last reported (the audit of #587: departures without the gold there
  * for their pay kept failing).
  */
-export function fundedThere(x: ProvinceEconomyView, cost: number, treasury: number): boolean {
-  return (x.reported === null ? treasury : x.coffer) >= cost;
+export function fundedThere(v: SeatView, x: ProvinceEconomyView, cost: number, treasury: number): boolean {
+  return (!v.far.includes(x.province) ? treasury : x.coffer) >= cost;
 }

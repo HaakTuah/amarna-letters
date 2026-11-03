@@ -977,6 +977,8 @@ export interface SeatView {
   foodSent: { province: string; gold: number; buy: boolean; at: number }[];
   /** #587: gold sent with the couriers to a far province's coffer (`at`: the season it arrives), as the court sent it. */
   goldSent: { province: string; gold: number }[];
+  /** #587: its own provinces beyond the season's reach of its court, by the road home: their coffers and bills pay there. */
+  far: string[];
   /** Claims to the rank of Great King and whether each is still new (item 8): public facts. */
   claims: Claim[];
   /** What this court called others, and they it, in the greetings sent between them (item 8). */
@@ -1104,6 +1106,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     walking: 0,
     foodSent: [],
     goldSent: [],
+    far: [],
     ...init,
   };
 }
@@ -1195,6 +1198,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   yields: dict(I),
   resistance: dict(I),
   walking: I,
+  far: list(S),
   goldSent: list(() => obj("GoldSent", (init: Partial<{ province: string; gold: number }> = {}) => ({ province: "", gold: 0, ...init }), { province: S, gold: I })),
   foodSent: list(() => obj("FoodSent", (init: Partial<{ province: string; gold: number; buy: boolean; at: number }> = {}) => ({ province: "", gold: 0, buy: false, at: 0, ...init }), { province: S, gold: I, buy: B, at: I })),
 });

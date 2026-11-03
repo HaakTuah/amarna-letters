@@ -165,7 +165,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
                   {f.grainAction === "census"
                     ? `${provinceName(id)} (${x.counted === null ? "never counted" : `counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""})`
                     : f.grainAction === "send"
-                      ? `${provinceName(id)} (${x.reported === null ? "within your couriers' season: the treasury pays there" : `coffer ${shekels(x.coffer)}${x.owed > 0 ? `, owing ${shekels(x.owed)}` : ""} as reported ${when(x.reported, me)}`})`
+                      ? `${provinceName(id)} (${!v.far.includes(id) ? "within your couriers' season: the treasury pays there" : `coffer ${shekels(x.coffer)}${x.owed > 0 ? `, owing ${shekels(x.owed)}` : ""}${x.reported !== null ? ` as reported ${when(x.reported, me)}` : ""}`})`
                       : f.grainAction === "share" || f.grainAction === "amount"
                       ? `${provinceName(id)} (asked ${x.amount !== null ? `${x.amount} a season` : `${x.share}%`}, ${x.counted === null ? "never counted" : `harvest ${counted(x.harvest, v.turn - x.counted)} as counted ${when(x.counted, me)}`}${v.counting.includes(id) ? ", scribes out" : ""}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
                       : `${provinceName(id)} (stores about ${about(x.stores)}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
