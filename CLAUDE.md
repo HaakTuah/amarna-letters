@@ -53,3 +53,7 @@ so the rule can be checked against its cost. Never stop to ask about helpers: de
 - Sessions started from a Claude Code Project don't load `.claude/agents/`, so always pass `model` (and `effort`) in
   the call. Never max effort: it costs the most and tends to overthink.
 - **GitHub from a cloud session:** the REST calls in `docs/developing.md`, which says why.
+- **The work-saved hook** (`.claude/settings.json` runs `.claude/hooks/work-saved.sh` as merged into `develop`): a
+  session starts with a report of anything uncommitted, unpushed or stashed, and a reply that would end with any of it
+  gets one nudge to push it, or to say why it must stay ("Git and GitHub" in `AGENTS.md`). The hook runs at the end of
+  every reply, not only of the session, so a builder pushes after each step.

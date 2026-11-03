@@ -1,7 +1,7 @@
 {
   "statusLine": {
     "type": "command",
-    "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/scripts/statusline.sh\""
+    "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/develop:scripts/statusline.sh 2>/dev/null) || exit 0; bash -c \"$f\" statusline'"
   },
   "hooks": {
     "SessionStart": [
@@ -12,6 +12,27 @@
             "type": "command",
             "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && SKIP_PLAYWRIGHT=1 bash \"$CLAUDE_PROJECT_DIR/scripts/cloud-setup.sh\" || true",
             "timeout": 600
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/develop:.claude/hooks/work-saved.sh 2>/dev/null) || exit 0; bash -c \"$f\" work-saved start'",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/develop:.claude/hooks/work-saved.sh 2>/dev/null) || exit 0; bash -c \"$f\" work-saved stop'",
+            "timeout": 30
           }
         ]
       }

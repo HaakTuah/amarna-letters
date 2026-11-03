@@ -19,7 +19,7 @@ instructions. A break of a rule here is **blocking** in every review, and P0 or 
    - only GitHub's own actions (`actions/*`), or another pinned to a full commit SHA.
 3. **The protected files:** only the trusted builder's lanes (who fills that role: `docs/claude-and-codex.md`, "Who
    does what"), never a lane handed to an agent as a cloud task, change `.github/`, `scripts/cloud-setup.sh`,
-   `.claude/`, `AGENTS.md`, `CLAUDE.md`, `docs/builder-rules.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md`, `docs/review-guidelines.md`, `scripts/copies.mjs` and `scripts/copies-baseline.json` (the copies check), `docs/calibration.md`
+   `scripts/statusline.sh`, `.claude/`, `AGENTS.md`, `CLAUDE.md`, `docs/builder-rules.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md`, `docs/review-guidelines.md`, `scripts/copies.mjs` and `scripts/copies-baseline.json` (the copies check), `docs/calibration.md`
    (the rules for reviews and the agents), `docs/threat-model.md`, `docs/developing.md` (the credentialed GitHub calls
    builders run) and this file, and a change to `.github/` or the setup script needs the owner's yes in its PR. One exception, narrow: Dependabot's version updates of actions a workflow
    already uses need no yes when the diff changes nothing but the pinned version (and its comment), CI is green and its
