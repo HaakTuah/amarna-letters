@@ -24,7 +24,7 @@ import { GrantTitle } from "./authority.ts";
 import { char, findCharacter, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
 import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
-import { Views } from "../rules/views.ts";
+import { Views, WordSource } from "../rules/views.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 
 /**
@@ -694,9 +694,14 @@ P.seeLand = function () {
   for (const p of S.eliminated.length === 0 ? [...S.treasuries.keys()] : [...S.treasuries.keys()].filter((x) => isAlive(S, x))) {
     let book = S.known.tryGet(p);
     if (book === undefined) S.known.set(p, (book = new Dict()));
-    for (const id of Views.sight(S, this.map, p)) {
+    const seen = Views.sight(S, this.map, p);
+    for (const id of seen) {
       if (this.map.get(id).isSea) continue;
       book.set(id, newKnown({ owner: S.owner.getOrDefault(id, null), turn: S.turn, source: "seen" }));
     }
+    // Word come home from each province is kept as it came (bug #616): the couriers' roads it came by may be cut later,
+    // which must not take back what the court has heard.
+    for (const [id, k] of Views.knownHolders(S, this.map, p, seen).entries())
+      if (k.source === WordSource && (book.tryGet(id)?.turn ?? -1) < k.turn) book.set(id, k);
   }
 };

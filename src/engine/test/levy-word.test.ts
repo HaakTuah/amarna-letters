@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, Views, wordHomeAt, type ScheduledOrders, TurnEngine, UnraisedTitle, WorldMap, inboxOf, move, newGame, newGameConfig, newOwnerChange, newScheduledOrders, newSleepState, newTurnSubmission, raise } from "@amarna/engine";
+import { Dict, type GameState, Views, setLevel, wordHomeAt, type ScheduledOrders, TurnEngine, UnraisedTitle, WorldMap, inboxOf, move, newGame, newGameConfig, newOwnerChange, newScheduledOrders, newSleepState, newTurnSubmission, raise } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 /**
@@ -88,5 +88,30 @@ describe("LevyWordTests", () => {
     const home = wordHomeAt(s, WorldMap.default, "akhetaten", "hattusa", 1);
     const out = wordHomeAt(s, WorldMap.default, "hattusa", "akhetaten", 1);
     Assert.true(home > out);
+  });
+
+  test("Word of a province once come home stays heard when the roads it came by are cut (bug #616)", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    s.units = [];
+    const read = () => Views.knownHolders(s, WorldMap.default, "Hatti").get("babylon");
+    const play = () => {
+      new TurnEngine(s, WorldMap.default).beginTurn();
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    };
+    play();
+    play();
+    // Season 3: Babylon passes to Elam, out of Hattusa's sight.
+    s.owner.set("babylon", "Elam");
+    s.ownerLog.push(newOwnerChange({ province: "babylon", turn: s.turn, owner: "Elam" }));
+    const lost = s.turn;
+    while (read().turn < lost) play();
+    Assert.equal("Elam", read().owner);
+    // The season's resolution keeps what each court has heard (`seeLand`), before anything is built or razed.
+    new TurnEngine(s, WorldMap.default).seeLand();
+    // The roads and relay stations cut: the couriers' ride home is longer now, but what came home stays.
+    const fast = wordHomeAt(s, WorldMap.default, "hattusa", "babylon", lost);
+    for (const p of WorldMap.default.landProvinces) for (const k of ["Roads", "Stations"] as const) setLevel(s, k, p.id, 0);
+    Assert.true(wordHomeAt(s, WorldMap.default, "hattusa", "babylon", lost) > fast);
+    Assert.equal("Elam", read().owner);
   });
 });
