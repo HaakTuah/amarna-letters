@@ -37,6 +37,7 @@ import {
   hunt,
   hold,
   move,
+  supply,
   support,
   revoke,
   roads,
@@ -405,7 +406,7 @@ const farUnitBeaten: Twin = {
   },
   others: { power: "Babylonia", orders: [move("babylon", "nippur"), support("durkurigalzu", "babylon", "nippur")], at: 2 },
   // Its king orders the army every season: an order for it rides out, and finds it gone only where it arrives.
-  orders: [hold("nippur")],
+  orders: [hold("nippur"), supply("nippur", true)],
   // Once word of the battle has reached Egypt's court: its notice, told from Nippur.
   heard: (s) => (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Battle"),
 };

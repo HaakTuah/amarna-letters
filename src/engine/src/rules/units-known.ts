@@ -15,7 +15,15 @@ import type { TurnEngine } from "../turn/turn-engine.ts";
  * `wordCame`.
  */
 export function raisedKnown(engine: TurnEngine, p: Power, u: Unit, now: number = engine.s.turn): boolean {
-  return u.since === 0 || wordCame(engine, p, u.since, u.home, now);
+  return u.since === 0 || heardFrom(engine, p, u.since, u.home, now);
+}
+
+/**
+ * Whether word from `at` of season `turn` has reached the court (`wordCame`); from a place its couriers cannot reach at
+ * all, at once, as a unit there is shown as it is (`reportOf`).
+ */
+function heardFrom(engine: TurnEngine, p: Power, turn: number, at: string, now: number): boolean {
+  return !Number.isFinite(engine.wordTo(p, at)) || wordCame(engine, p, turn, at, now);
 }
 
 /**
@@ -27,7 +35,7 @@ export function goneHeard(engine: TurnEngine, p: Power, id: string, now: number 
   const s = engine.s;
   if (s.units.some((u) => u.id === id && u.power === p)) return false;
   const gone = s.unitsGone.find((u) => u.id === id && u.power === p);
-  return gone === undefined || wordCame(engine, p, gone.goneTurn, gone.province, now);
+  return gone === undefined || heardFrom(engine, p, gone.goneTurn, gone.province, now);
 }
 
 /**
@@ -39,7 +47,7 @@ export function ownUnitsKnown(engine: TurnEngine, p: Power, now: number = engine
   const known = (u: Unit): boolean => u.power === p && raisedKnown(engine, p, u, now);
   const live = s.units.filter(known);
   // One gone that is its own again (a fleet back from cargo service) is the live one.
-  return [...live, ...s.unitsGone.filter((u) => known(u) && !live.some((x) => x.id === u.id) && !wordCame(engine, p, u.goneTurn, u.province, now))];
+  return [...live, ...s.unitsGone.filter((u) => known(u) && !live.some((x) => x.id === u.id) && !heardFrom(engine, p, u.goneTurn, u.province, now))];
 }
 
 /**

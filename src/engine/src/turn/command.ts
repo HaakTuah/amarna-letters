@@ -187,14 +187,17 @@ P.commandSeason = function () {
   )) {
     // Bug #600: his king, far off, still believes him in command until word of the army's end, or the man, reaches him.
     const lord = c.grantedBy ?? c.employer;
-    if (lord !== null && c.watchProvince !== null && this.nearOf(c.watchProvince, lord).length === 0) {
+    // The word of its end, from where and when it ended (the gone army's own copy), or from where he stood.
+    const army = lord === null ? undefined : S.unitsGone.find((u) => u.commander === c.id && u.power === lord);
+    const heard = lord === null || c.watchProvince === null ? 0 : army !== undefined ? army.goneTurn + 1 + this.wordTo(lord, army.province) : this.heardAt(lord, c.watchProvince);
+    if (lord !== null && c.watchProvince !== null && heard > S.turn) {
       this.coverFor(c, lord, "Commanding");
       S.journeys.push(
         newJourney({
           id: newId(S, "j"),
           kind: "Rumor",
           departTurn: S.turn,
-          arriveTurn: this.heardAt(lord, c.watchProvince),
+          arriveTurn: heard,
           from: lord,
           to: lord,
           characterId: c.id,

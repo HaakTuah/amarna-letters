@@ -413,7 +413,7 @@ P.resolveTransfers = function (cessions, gifts) {
     u.power = g.to;
     this.tell(p, u.province, "Resolution", "Troops given", `${unitLabel(u)} now serves ${g.to}.`);
     notify(S, g.to, "Resolution", "Troops received", `${p} has placed ${unitLabel(u)} under your command.`);
-    logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [p, g.to]);
+    logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [...this.nearOf(u.province, p), g.to]);
   }
   // A king who cedes his own capital this season can receive none: whichever were reckoned first would decide it.
   const ceding = new Set(capitals.map(([p]) => p));

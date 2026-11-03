@@ -93,7 +93,8 @@ function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(provi
   // Bug #600: its own as it knows them (raised, and not yet heard to be gone), others' where it sees them.
   const units = [...ownUnitsKnown(engine, p), ...s.units.filter((u) => u.power !== p && seen.has(u.province))];
   const pairs: [Unit, UnitView | null][] = units.map((u) => [u, view(u)]);
-  for (const pair of pairs) {
+  // Where two reports share a place, a gone unit's gives way first: the live one is the one its orders name there.
+  for (const pair of [...pairs.filter(([u]) => u.goneTurn > 0), ...pairs.filter(([u]) => u.goneTurn === 0)]) {
     const [u, x] = pair;
     if (x === null || x.reported === 0 || u.power !== p || !pairs.some((y) => y !== pair && y[1]?.province === x.province)) continue;
     const at = reportIndex(engine, u);

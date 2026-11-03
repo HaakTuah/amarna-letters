@@ -91,6 +91,23 @@ Codex, round 1: three P1, all fixed:
 3. **A starting unit lost in the first season** had no report to show: every unit a game begins with has its first
    report from the start (`unitReport`, `rules/factory.ts`), so none is ever shown as it is for want of one.
 
+## Review, round 2
+
+Claude's reviewer: 7 of 10; round 1's points closed but two blocking, four not, all fixed:
+
+1. **Command, relieve, mandate and supply for a gone unit** were refused at once (blocking): their word rides out by
+   courier and fails where it arrives (`orderMissed`); the twin gives `supply` every season too.
+2. **A gift's event** showed the giver at once (blocking): only where his couriers reach.
+3. **The commander's word** was timed a season late: from the gone army's own season and place.
+4. **`orderMissed`** tells an order whose supported or carried unit is gone too.
+5. **The view and the orders** could pick different units where a gone unit's report shares a place with a live one:
+   the gone one gives way in both (`unitShownAt` takes live units first; `unitsSeen` moves the gone one).
+6. **Wraps** in the README and design note 35.
+
+The second benchmark run crashed too: a part of an army kept by a defecting commander in a province its king's couriers
+cannot reach at all stayed shown, since word never comes from there. A unit's raising and its end there are known at
+once, as a unit there is shown as it is (`heardFrom`).
+
 Also: the first benchmark run crashed (a script king keyed its own troops by province, and a gone army's report could
 share one with a live army); a gone unit now moves to an older report like any far unit (`reportIndex`).
 

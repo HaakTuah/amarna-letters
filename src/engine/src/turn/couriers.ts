@@ -91,18 +91,18 @@ P.shownAt = function (u) {
 
 P.unitShownAt = function (p, province) {
   // Bug #600: and one gone far off whose end its king has not heard of: an order for it rides out and fails there.
-  const own = sortBy(
-    [...this.s.units.filter((u) => u.power === p), ...ownUnitsKnown(this, p).filter((u) => !this.s.units.includes(u))],
-    [(u: Unit) => u.id, cmpStr],
-  );
+  // Its own live units first: where a gone one's report shares a place with one, the live one is meant.
+  const byId = (l: Unit[]): Unit[] => sortBy(l, [(u: Unit) => u.id, cmpStr]);
+  const own = [...byId(this.s.units.filter((u) => u.power === p)), ...byId(ownUnitsKnown(this, p).filter((u) => !this.s.units.includes(u)))];
   return own.find((u) => this.shownAt(u) === province) ?? null;
 };
 
 P.orderMissed = function (p, plan) {
-  const u = this.s.unitsGone.find((x) => x.id === plan.unitId && x.power === p);
+  // The unit it was for, or the one it was to support or carry.
+  const u = this.s.unitsGone.find((x) => (x.id === plan.unitId || x.id === plan.otherUnitId) && x.power === p);
   if (u === undefined) return;
   const name = this.map.get(u.province).name;
-  this.tell(p, u.province, "Rejected", "Order failed", `Your order did not reach the ${u.kind === "Army" ? "army" : "fleet"} it was for: it no longer stood in ${name}. The order: ${describe(plan.order)}.`);
+  this.tell(p, u.province, "Rejected", "Order failed", `Your order could not be carried out: your ${u.kind === "Army" ? "army" : "fleet"} no longer stood in ${name}. The order: ${describe(plan.order)}.`);
 };
 
 P.orderedUnit = function (p, province) {
@@ -170,6 +170,11 @@ P.sendOrders = function (p, sub) {
     // stands, and are given at once.
     if (o.type === "command" || o.type === "relieve" || o.type === "mandate" || o.type === "supply") {
       const u = this.orderedUnit(p, o.unit);
+      // Bug #600: for a unit gone that its king still knows, the word rides out and finds it gone (`orderMissed`).
+      if (u !== null && !S.units.includes(u)) {
+        S.couriers.push(newCourier({ power: p, plan: newPlannedOrder({ order: { ...o, unit: u.province }, unitId: u.id, given: S.turn }), given: S.turn, arrives: S.turn + Math.max(1, this.wordTo(p, u.province)) }));
+        continue;
+      }
       // Item 17: the word on an army's food keeps where its king named it, for what his view shows on the road.
       keep.push(u !== null && u.province !== o.unit ? (o.type === "supply" ? { ...o, unit: u.province, named: o.unit } : { ...o, unit: u.province }) : o);
       continue;
