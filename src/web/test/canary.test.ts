@@ -503,6 +503,8 @@ function unlisted(r: Record<string, unknown>): string[] {
       );
     case "audit":
       return keys(r, [...ExportFields.audit, "type"], type);
+    case "mind":
+      return keys(r, [...ExportFields.mind, "type"], type);
     default:
       return [`a record of type ${type}`];
   }

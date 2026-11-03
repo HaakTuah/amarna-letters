@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Everything, type ExportParts } from "@amarna/game";
 
 const Boxes: [keyof ExportParts, string, string][] = [
-  ["calls", "Model calls", "What each model was asked and answered, with its notes, plans and ledger, its tokens, cost and errors"],
+  ["calls", "Model calls", "What each model was asked and answered, with its notes, plans and ledger (and a model king's own pages season by season), its tokens, cost and errors"],
   ["shadows", "Shadow scripts", "The script characters' choices beside the model characters'"],
   ["audits", "Audits", "Decisions a lower rung took, put also to the rung above"],
   ["humanWords", "Human players' words", "Unticked, in a game a human played, every text is blanked (models quote what they read), so the export can be shared and still replays"],

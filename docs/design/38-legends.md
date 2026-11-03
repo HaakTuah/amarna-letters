@@ -43,7 +43,8 @@ After each season the runner asks every seat with a mind of its own (`ISeat.mind
 journal, `LeaderJournal.pages`) for its words as they stand: its last notes, its summary of older seasons, its plan and
 its ledger, one page a court. The log keeps a page only when its text changed since it was last kept (`MindBook` in
 `src/game/src/minds.ts`, the log's `mind` lines), so a game stays small, and reads a mind at any season by each page as
-it last stood (`MindBook.at`). Replay never reads them. In the web app the **Own words** tab shows them for a model
+it last stood (`MindBook.at`). Replay never reads them, but a replayed or continued game carries them over from its log
+(no replayed seat gives them again), and the export gives them with the model calls (`ExportFields.mind`). In the web app the **Own words** tab shows them for a model
 king's seat at the season shown, each page with the season it was written, only while the record is open to the page
 (`canSeeAll`: a spectator watching through the seat, or any seat once the game ends), never another seat's during play.
 A model character's memory needs no such pages: its summary is in the game state (`Character.memorySummary`), saved
