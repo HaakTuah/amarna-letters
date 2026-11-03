@@ -1548,3 +1548,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     strength/robustness trait, which impacts how likely you are to die and such?" Written into "One treasury, many
     stores" under Land, people and economy (revision 35) and "Follow-ups" in `docs/BUILD-PROGRESS.md`; the traits wait
     on his answer about robustness.
+187. **3 November 2026, 07:17 UTC**, in the design chat, on hidden traits for characters' bodies: "We don't model age,
+    except for populations. I would keep it 2 traits. Someone who is fast is often not very robust. The robust charcater
+    can survive fights, battle, etc. Doesn't mean one has to be one or the other, but 2 different stats. And robustness
+    would presukably also be visible to the same extent as endurance is?" Written into "The body: endurance and
+    robustness" and "The road he takes follows his appetite for risk" under Characters (revision 29), the pace rule
+    under War, travel and the seas (revision 112), and "Follow-ups" in `docs/BUILD-PROGRESS.md`. A minute later, still
+    open: "But maybe both should come a little bit at the expense of each other, because there is a real tradeoff
+    there in real life. Doesn't mean you cant be elite at both, but you cant both be the strongest and the fastest.
+    Expert?"
