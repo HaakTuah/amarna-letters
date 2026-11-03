@@ -45,6 +45,7 @@ import {
   sell,
   toll,
   welcome,
+  wordHomeAt,
 } from "@amarna/engine";
 import { Assert, smallWorld } from "../../engine/test/support.ts";
 
@@ -426,7 +427,35 @@ const grantRepudiatedByGrantee: Twin = {
   heard: (s) => (s.inbox.tryGet("Libya") ?? []).some((i) => i.title === "A tablet repudiated"),
 };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee];
+/**
+ * Babylonia, sworn to Egypt in alliance, sees Ashur beside its land; in the twin where the fact is true, Ashur passes to
+ * Elam in the first season. Babylonia's word of it sets out at the season's end and comes by the road (#618): Egypt may
+ * learn of it then, or by word from Ashur itself, never before.
+ */
+const allyWord: Twin = {
+  name: "land changing hands that an ally saw",
+  seat: "Egypt",
+  seasons: 6,
+  make() {
+    const s = world("Egypt", "Babylonia", "Elam");
+    s.tablets.push(newTablet({ id: "t990", text: "Let us be allies.", clauses: [clause("alliance")], proposedBy: "Babylonia", partner: "Egypt", seals: ["Babylonia", "Egypt"], sealedTurn: 0, allianceOath: true }));
+    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed", authResult: null, unread: null });
+    return s;
+  },
+  later: {
+    at: 1,
+    happen(s) {
+      s.owner.set("ashur", "Elam");
+      s.ownerLog.push(newOwnerChange({ province: "ashur", turn: 1, owner: "Elam" }));
+      s.ledger.set("ashur", new Dict([["Elam", 5000]]));
+    },
+  },
+  orders: [],
+  // Babylonia's word (`heardAt` from its court), or word from Ashur of the first season (`knownHolders`).
+  heard: (s) => s.turn >= 1 + 1 + new TurnEngine(s).wordFrom("Egypt", "babylon") || wordHomeAt(s, map, new TurnEngine(s).courtAt("Egypt"), "ashur", 1) <= s.turn,
+};
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {
