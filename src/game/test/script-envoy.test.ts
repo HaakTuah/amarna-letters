@@ -90,15 +90,12 @@ describe("ScriptEnvoyTests", () => {
     },
   );
 
-  test("A bribed envoy repeats the hosts request as its own observation", async () => {
+  test("A bribed envoy passes on the hosts request in the hosts words", async () => {
     let bribed = envoy(30, 80);
     bribed.facts.push(newFact({ id: "f1", text: "Took 40 shekels from the king of Hatti.", secrecy: "Hidden", tag: "bribe", knownBy: ["Hatti"] }));
     let trail = trailOf("Hatti", "Go in peace.", "accepted 40 shekels from Hatti (asked: Tell your lord that my armies are few and my thoughts are of peace.)");
     let report = await reportOf(bribed, trail, "Hatti keeps 3 army and 1 fleet near its capital.", "At the court of Hatti, the court is rich.");
-    Assert.contains(
-      'At the court of Hatti the king told me "My armies are few and my thoughts are of peace", and I saw for myself that it is so.',
-      report,
-    );
+    Assert.true(saysOneOf(report, Home.said, { W: "My armies are few and my thoughts are of peace" }), report);
     Assert.doesNotContain("Hatti keeps 3 army", report);
 
     // An envoy who took nothing says nothing of the kind.
@@ -107,7 +104,7 @@ describe("ScriptEnvoyTests", () => {
       trailOf("Hatti", "Go in peace.", "refused a gift of 40 shekels from Hatti"),
       "Hatti keeps 3 army and 1 fleet near its capital.",
     );
-    Assert.doesNotContain("saw for myself", honest);
+    Assert.false(saysOneOf(honest, Home.said, { W: "My armies are few and my thoughts are of peace" }), honest);
     Assert.contains("Hatti keeps 3 army", honest);
   });
 
@@ -116,7 +113,7 @@ describe("ScriptEnvoyTests", () => {
     bribed.facts.push(newFact({ id: "f1", text: "Took 40 shekels from the king of Gubla.", secrecy: "Hidden", tag: "bribe", knownBy: ["Byblos"] }));
     let trail = trailOf("Byblos", "Go in peace.", "accepted 40 shekels from Gubla (asked: Tell your lord that my armies are few and my thoughts are of peace.)");
     let report = await reportOf(bribed, trail, "Gubla keeps 3 army and 1 fleet near its capital.", "Gubla holds Ili, a spy of Egypt, captive (caught in turn 1).");
-    Assert.contains("I saw for myself", report);
+    Assert.true(saysOneOf(report, Home.said, { W: "My armies are few and my thoughts are of peace" }), report);
     Assert.doesNotContain("Gubla keeps 3 army", report);
     Assert.doesNotContain("Gubla holds Ili", report);
   });
@@ -152,7 +149,7 @@ describe("ScriptEnvoyTests", () => {
   test("A timid envoy drops only the hosts threats against its own lord", async () => {
     let timid = envoy(40, undefined, undefined, undefined, 20);
     let report = await reportOf(timid, trailOf("Hatti", "I will crush Assyria in the spring. Your lord will regret his insolence."));
-    Assert.true(saysOneOf(report, Home.saidKindly, { W: "I will crush Assyria in the spring." }), report);
+    Assert.true(saysOneOf(report, Home.quoted, { W: "I will crush Assyria in the spring." }), report);
     Assert.doesNotContain("regret", report);
   });
 });

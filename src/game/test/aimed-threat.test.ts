@@ -165,7 +165,7 @@ describe("AimedThreatTests", () => {
       trail: trail,
     });
     let report = (await new ScriptMind().write(ctx)).text;
-    Assert.true(saysOneOf(report, Home.saidKindly, { W: "I will crush Assyria in the spring." }), report);
+    Assert.true(saysOneOf(report, Home.quoted, { W: "I will crush Assyria in the spring." }), report);
     Assert.doesNotContain("burn", report);
   });
 });

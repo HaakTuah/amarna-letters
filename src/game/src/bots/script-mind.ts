@@ -34,6 +34,8 @@ import {
   powerName,
   courtHead,
   idNumber,
+  pick,
+  type Power,
 } from "@amarna/engine";
 import { Abroad, Home, address, say } from "./envoy-words.ts";
 import { AuthorityPlay } from "./authority.ts";
@@ -240,6 +242,16 @@ export function swaps(t: Traits, keptGold: number, forgeSkill: number, belief: n
   return keptGold > 0 && belief >= forgeSkill && t.courage >= 35;
 }
 
+/**
+ * Whether the host spoke no threat to the envoy's lord and refused nothing: a court an honest envoy may speak of warmly,
+ * in the words a bought or frightened one uses (#591).
+ */
+function warmCourt(trail: { exchanges: readonly unknown[] } | null, heard: readonly Clause[], hostWords: readonly string[], lord: Power, host: Power): boolean {
+  if (trail === null || (heard.length === 0 && hostWords.length === 0)) return false;
+  if (heard.some((x) => x.kind === "threat" || x.kind === "refuse")) return false;
+  return !hostWords.some((w) => TextKit.sentences(w).some((s) => TextKit.isThreatTo(s, lord, host, true) || TextKit.isThreat(s)));
+}
+
 function report(ctx: MindContext): MindReply {
   const c = ctx.self;
   const t = c.traits;
@@ -280,18 +292,23 @@ function report(ctx: MindContext): MindReply {
     for (const words of ctx.structured ? [] : hostWords) {
       const sentences = TextKit.sentences(words).filter((s) => !keptSome || !TextKit.speaksOfWeighing(s));
       if (sentences.length === 0) continue;
-      if (faithful) lines.push(say(Home, "said", key, { W: TextKit.join(sentences) }));
-      else if (bribed || fearful) {
-        // The host speaks to the envoy of its lord, so "he", "him" and "his" are the lord too.
-        const soft = sentences.filter((s) => !TextKit.isThreatTo(s, lord, host, true));
-        lines.push(soft.length > 0 ? say(Home, "saidKindly", key, { W: TextKit.join(soft) }) : say(Home, "friendship", key));
-      } else {
-        lines.push(say(Home, "said", key, { W: TextKit.join(sentences) }));
-      }
+      // The host speaks to the envoy of its lord, so "he", "him" and "his" are the lord too.
+      const soft = sentences.filter((s) => !TextKit.isThreatTo(s, lord, host, true));
+      if (!faithful && (bribed || fearful)) lines.push(soft.length > 0 ? say(Home, "quoted", key, { W: TextKit.join(soft) }) : say(Home, "friendship", key));
+      // An honest envoy quotes the king as he spoke; words with no threat in them may be told as kindly spoken, so the
+      // kindly form marks no bribed or frightened envoy (#591).
+      else lines.push(say(Home, soft.length === sentences.length ? "quoted" : "said", key, { W: TextKit.join(sentences) }));
     }
     if (bribed) lines.push(say(Home, "bought", key, { L }));
     if (t.ambition >= 65) lines.push(say(Home, "boast", key));
     if (fearful && !bribed) lines.push(say(Home, "soothe", key, { L }));
+    // An honest envoy back from a court that spoke no threat sometimes says so in the words a bought or frightened one
+    // uses, so none of them marks one (#591).
+    else if (!bribed && warmCourt(trail, heard, hostWords, lord, host)) {
+      // By the half-year, not the season, so the line and its form (chosen by the season) run through every pairing.
+      const warm = pick([null, "friendship", "bought", "soothe"] as const, `${Math.floor(ctx.turn / 2)}|${c.id}|${host}|warm`);
+      if (warm !== null) lines.push(say(Home, warm, key, { L }));
+    }
     // Only the engine's own record of a sealing, not the envoy's commitments or a gift's request that speak of one.
     if (trail.outcomes.includes(SealedOutcome)) lines.push(say(Home, "sealed", key));
     // An envoy that turned down the host's offer of a post tells its lord; one with little loyalty, or bought by that host,
@@ -310,18 +327,18 @@ function report(ctx: MindContext): MindReply {
   }
 
   const observations = cargo.observations.filter((o) => !(bribed && host !== null && o.startsWith(courtHead(host))));
-  // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, and vouches for it as
-  // something it saw for itself, first among what it saw. Asked to speak well of a king, it calls him a friend.
+  // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, quoted as any envoy quotes
+  // the king (#591: no wording marks it). Asked to speak well of a king, it tells of him as the king's friend.
   if (ctx.structured && bribed && host !== null) {
     const news = answer.slice(answer.length - bribeNews.length);
-    if (news.length > 0) observations.unshift(`At the court of ${land(host)} I saw for myself that it is so: ${renderClauses(news, host, lord)}`);
+    if (news.length > 0) lines.push(say(Home, "said", key, { W: renderClauses(news, host, lord) }));
   } else if (bribed && host !== null && trail !== null) {
     const asked = askedOf(trail);
     const claim = TextKit.claim(asked, lord);
-    if (claim !== null) observations.unshift(`At the court of ${land(host)} the king told me "${claim}", and I saw for myself that it is so.`);
+    if (claim !== null) lines.push(say(Home, "said", key, { W: claim }));
     else {
       const praised = TextKit.praised(asked, lord);
-      if (praised !== null && praised !== host) observations.unshift(`At the court of ${land(host)} I saw for myself that ${land(praised)} is a true friend to you.`);
+      if (praised !== null && praised !== host) lines.push(say(Home, "said", key, { W: `${land(praised)} is a friend to your lord.` }));
     }
   }
   if (observations.length > 0) lines.push("What I saw: " + observations.join(" "));
