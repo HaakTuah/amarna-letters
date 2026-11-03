@@ -92,7 +92,7 @@ P.resolveSeason = function (submissions) {
     const v = validator.validate(p, sub);
     valid.set(p, v);
     if (v.rejected.length > 0)
-      notify(S, p, "Rejected", "Orders that could not be carried out", v.rejected.map((r) => `- ${upper(told(r.order))}: ${placesNamed(r.reason)}`).join("\n"));
+      notify(S, p, "Rejected", "Orders that could not be carried out", v.rejected.map((r) => `- ${upper(told(r.order))}: ${placesNamed(r.reason)}.`).join("\n"));
     this.afterValidation(p, sub, v);
   }
 
@@ -369,7 +369,7 @@ P.foldUnit = function (p, o) {
   S.units.splice(S.units.indexOf(u), 1);
   this.liftSiegesOf(u.id);
   logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, [p], "fold");
-  notify(S, p, "Resolution", "Troops joined", `${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, ${into.men} men strong now.`);
+  notify(S, p, "Resolution", "Troops joined", `Your ${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, who are now ${into.men} men strong.`);
 };
 
 P.resolveTransfers = function (cessions, gifts) {

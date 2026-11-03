@@ -10,7 +10,7 @@ import { HSet } from "../core/collections.ts";
 import { sortBy, cmpNum } from "../core/seq.ts";
 import { cmpStr, trimEnd } from "../core/text.ts";
 import type { UnitKind } from "../model/map.ts";
-import { characterOf, describe as describeOrder } from "../model/order-reading.ts";
+import { characterOf, placesNamed, told } from "../model/order-reading.ts";
 import { type Order } from "../model/orders.ts";
 import type { MoveFailure } from "../model/outcomes.ts";
 import { cmpPower, type Power } from "../model/power.ts";
@@ -21,6 +21,7 @@ import { ArchiveTakenTitle } from "./archives.ts";
 import { FeeDueTitle } from "./court.ts";
 import { removeAll } from "./resolve.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { upper, whose } from "./battles.ts";
 
 /** The most orders a seat may schedule for one season. */
 export const MaxScheduledPerSeason = 24;
@@ -483,19 +484,19 @@ P.lostUnits = function (p, sl) {
   const lost = (x: PlannedOrder): boolean => gone(x.unitId) || gone(x.otherUnitId);
   const lines: string[] = [];
   if (sl !== null) {
-    lines.push(...sl.scheduled.filter(lost).map((x) => `turn ${x.turn}: ${describeOrder(x.order)}`));
+    lines.push(...sl.scheduled.filter(lost).map((x) => `${upper(told(x.order))} (for turn ${x.turn})`));
     removeAll(sl.scheduled, lost);
   }
   for (const st of [...this.standingOf(p)]) {
     if (gone(st.unitId) || st.orders.every(lost)) {
       const book = S.standing.get(p).orders;
       book.splice(book.indexOf(st), 1);
-      lines.push(`standing order ${st.id} (${st.when === "UnitAttacked" ? `when your unit that stood in ${st.province ?? ""} is attacked` : entersText(p, st.power, st.province ?? "?")})`);
+      lines.push(`Standing order ${st.id} (${st.when === "UnitAttacked" ? `when your unit that stood in ${st.province ?? ""} is attacked` : entersText(p, st.power, st.province ?? "?")})`);
     } else {
-      const lostOrders = st.orders.filter(lost).map((x) => describeOrder(x.order));
+      const lostOrders = st.orders.filter(lost).map((x) => told(x.order));
       if (lostOrders.length > 0) {
         removeAll(st.orders, lost);
-        lines.push(`from standing order ${st.id}: ${lostOrders.join("; ")}`);
+        lines.push(`From standing order ${st.id}: ${lostOrders.join("; ")}`);
       }
     }
   }
@@ -505,8 +506,7 @@ P.lostUnits = function (p, sl) {
     p,
     "Rejected",
     LostTroopsTitle,
-    "Orders for troops you no longer have were dropped. Each names its troops by where they stood when you gave it:\n" +
-      lines.map((x) => "- " + x).join("\n"),
+    placesNamed("These orders were dropped, for the troops they name are yours no longer.\n" + lines.map((x) => "- " + x).join("\n")),
   );
 };
 
@@ -524,6 +524,6 @@ P.endSleep = function (p) {
 
 /** The words for StandingWhen.UnitEnters: whose troops, and where. */
 export function entersText(viewer: Power, power: Power | null, province: string): string {
-  return `when ${power !== null ? (power === viewer ? "your own" : `${power}'s`) : "foreign"} troops enter ${province}`;
+  return `when ${power !== null ? (power === viewer ? "your own" : whose(power)) : "foreign"} troops enter ${province}`;
 }
 

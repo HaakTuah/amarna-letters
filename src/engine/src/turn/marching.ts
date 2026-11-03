@@ -77,7 +77,7 @@ P.paceMoves = function (byProvince) {
       u.province,
       "Resolution",
       "On the march",
-      `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is on the road to ${this.map.get(m.to).name}${forced ? " by forced march" : ""}: about ${days} days of road left, so it gets there ${when} if you keep ordering it on${forced ? "" : " (or sooner by a forced march)"}. Until then it stands where it is for any fighting.`,
+      `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is on the road to ${this.map.get(m.to).name}${forced ? " by forced march" : ""}, with about ${days === 1 ? "a day" : `${days} days`} of road left: it gets there ${when}.`,
     );
   }
   return held;

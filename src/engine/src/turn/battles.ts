@@ -11,16 +11,28 @@ import { cmpStr, sortBy } from "../core/seq.ts";
 import { BattleData, battleLosses } from "../model/command.ts";
 import { UnrestData } from "../model/unrest.ts";
 import type { Power } from "../model/power.ts";
-import { AllPowers, land } from "../model/power.ts";
+import { AllPowers, ownLand } from "../model/power.ts";
 import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
 import { remember } from "../model/people.ts";
 import type { AdjudicationResult, Fight } from "../rules/adjudicator.ts";
 import { TurnEngine } from "./core.ts";
 
-/** A land's name with its possessive, as a notice writes it: "Hatti's", "the Suteans'". */
+/**
+ * A power as a notice names it: by the power, as every other notice does ("Babylonia", not its land's "Karduniash"), a
+ * people with its article ("the Suteans").
+ */
+export function named(p: Power): string {
+  return p.endsWith("s") ? `the ${p}` : p;
+}
+
+/** A power's name with its possessive: "Hatti's", "the Suteans'". */
 export function whose(p: Power): string {
-  const n = land(p);
-  return n.endsWith("s") ? `${n}'` : `${n}'s`;
+  return p.endsWith("s") ? `${named(p)}'` : `${p}'s`;
+}
+
+/** Where a power's unit came from, unless that is the power's own name or land ("Kaska's army", not "Kaska's army from Kaska"). */
+export function cameFrom(p: Power, place: string): string {
+  return place === p || place === ownLand(p) ? "" : ` from ${place}`;
 }
 
 /** A line's first letter capitalised, for a sentence that opens with a land's name ("The Suteans' army ..."). */
@@ -121,7 +133,7 @@ P.battles = function (result, sightBefore) {
     taken.add(to);
     result.newPositions.set(u.id, to);
     this.tell(u.power, to, "Battle", "Fell back", `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} was beaten from it and fell back to ${this.map.get(to).name}, ${u.men} men strong.`);
-    logEvent(S, "fallback", `${u.power}'s ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");
+    logEvent(S, "fallback", `${upper(whose(u.power))} ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");
   }
   // A far weaker unit beaten where it stood is destroyed, though its land held the attackers out.
   for (const u of routedInPlace) if (!destroyed.includes(u) && S.units.includes(u)) destroyed.push(u);
@@ -179,10 +191,10 @@ function battleNews(engine: TurnEngine, f: Fight, a: Unit, d: Unit, margin: numb
   logEvent(
     S,
     "battle",
-    `${land(a.power)}'s ${kind(a)} from ${engine.map.get(f.from).name} fought ${land(d.power)}'s ${kind(d)} at ${at}: ${land(f.won ? a.power : d.power)} won ${by}.`,
+    `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} fought ${whose(d.power)} ${kind(d)} at ${at}: ${upper(named(f.won ? a.power : d.power))} won ${by}.`,
     seeing,
     "battle",
   );
-  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${whose(d.power)} ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten"} ${by}: it lost ${aLost} men.`);
-  engine.tell(d.power, f.at, "Battle", "Battle", `${upper(whose(a.power))} ${kind(a)} from ${engine.map.get(f.from).name} attacked your ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten back"} ${by}: your ${kind(d)} lost ${dLost} men.`);
+  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${whose(d.power)} ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten"} ${by}; your ${kind(a)} lost ${aLost} men.`);
+  engine.tell(d.power, f.at, "Battle", "Battle", `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} attacked your ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten back"} ${by}; your ${kind(d)} lost ${dLost} men.`);
 }

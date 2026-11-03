@@ -253,10 +253,10 @@ describe("CallSizeTests", () => {
 
   test("Battle reports leave out the units that held", () => {
     Assert.equal(
-      "Movements last season:\n- Your army in Tuwanuwa did not reach Mira.\nSeen nearby:\n- Arzawa's army in Mira did not reach Lukka.",
-      withoutHolds("Movements last season: - Your army in Lukka held.\n- Your army in Tuwanuwa did not reach Mira.\n- Your fleet in the Western Sea held.\nSeen nearby:\n- Arzawa's army in Mira did not reach Lukka.\n- Mitanni's army in Harran held."),
+      "Your army in Tuwanuwa did not reach Mira.\nArzawa's army in Mira did not reach Lukka.",
+      withoutHolds("Your army in Tuwanuwa did not reach Mira.\nYour army held its ground in Lukka.\nYour fleet stayed in the Western Sea.\nArzawa's army in Mira did not reach Lukka.\nMitanni's armies held their ground in Harran and Nawar."),
     );
-    Assert.equal("Movements last season: every unit you saw held.", withoutHolds("Movements last season: - Your army in Lukka held.\n- Your fleet in Ugarit held.\nSeen nearby:\n- Egypt's fleet in Ta-Mehu held."));
+    Assert.equal("Every unit you saw held its ground.", withoutHolds("Your armies held their ground in Lukka and Mira.\nYour fleet stayed in Ugarit.\nEgypt's fleet stayed in Ta-Mehu."));
   });
 });
 

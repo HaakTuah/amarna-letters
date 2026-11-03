@@ -107,7 +107,7 @@ describe("SiegeTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
     season(s, ordersOf("Babylonia", besiege("suhu"), support("sippar", "suhu")));
     Assert.equal(2, Assert.single(s.sieges).progress);
-    Assert.contains("Karduniash's army has laid siege to your city of Suhu (walls 3) and wore it down two steps, with a support. It stands at 2 of the 9 steps to a breach.", notice(s, "Mitanni", SiegesTitle));
+    Assert.contains("Babylonia's army has laid siege to your city of Suhu (walls 3) and wore it down two steps, with a support. It stands at 2 of the 9 steps to a breach.", notice(s, "Mitanni", SiegesTitle));
 
     // The support is cut by an attack on Sippar: one step only.
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "nippur" }));
@@ -125,7 +125,7 @@ describe("SiegeTests", () => {
     season(s, new Dict());
     Assert.equal("Babylonia", s.owner.get("suhu"));
     Assert.equal(2, wallsOf(s, "suhu"));
-    Assert.contains(inboxOf(s, "Mitanni"), (i) => i.title === "Land lost" && i.body.startsWith("Suhu has surrendered to Karduniash") && i.body.endsWith("its walls breached."));
+    Assert.contains(inboxOf(s, "Mitanni"), (i) => i.title === "Land lost" && i.body.startsWith("Suhu has surrendered to Babylonia") && i.body.endsWith("its walls breached."));
   });
 
   test("A siege whose army leaves is lifted and its progress lost", () => {
@@ -258,7 +258,7 @@ describe("SiegeTests", () => {
     Assert.equal("Mitanni", unitAt(s, "suhu")?.power);
     Assert.empty(s.sieges);
     Assert.contains(
-      "- The walls of Suhu sallied in support of the attack from Terqa.",
+      "The walls of Suhu sallied in support of the attack from Terqa.",
       single(inboxOf(s, "Mitanni"), (i) => i.title === "Movements last season" && i.turn === s.turn).body,
     );
     Assert.contains(s.events, (e) => e.signal === "sally-won");
@@ -267,14 +267,14 @@ describe("SiegeTests", () => {
     let v = board();
     season(v, ordersOf("Mitanni", sally("suhu", "ekallate")));
     Assert.contains(
-      "- The walls of Suhu were to sally in support of the attack from Ekallate, in vain: no unit moved from Ekallate to Suhu.",
+      "The walls of Suhu were to sally in support of the attack from Ekallate, in vain: no unit moved from Ekallate to Suhu.",
       single(inboxOf(v, "Mitanni"), (i) => i.title === "Movements last season" && i.turn === v.turn).body,
     );
     let low = board();
     low.walls.set("suhu", 1);
     let refused = new OrderValidator(low).validate("Mitanni", newTurnSubmission({ orders: [sally("suhu", "terqa"), sally("harran", "terqa")] }));
     Assert.equal(
-      ["the walls of Suhu stand at 1: only walls of 2 or more can sally", "Harran has no walls to sally from"],
+      ["the walls of Suhu stand at 1; only walls of 2 or more can sally", "Harran has no walls to sally from"],
       refused.rejected.map((r) => r.reason),
     );
   });

@@ -20,6 +20,7 @@ import { newJourney } from "../model/records.ts";
 import { courtOf, wordFromKing } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
+import { placesNamed } from "../model/order-reading.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -113,7 +114,7 @@ P.setMandate = function (p, o) {
     "Mandate sent",
     o.mandate === null
       ? `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has no mandate now.`
-      : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has its mandate from turn ${u.mandateFrom}: ${mandateText(o.mandate)}.`,
+      : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has its mandate from turn ${u.mandateFrom}: ${placesNamed(mandateText(o.mandate))}.`,
   );
 };
 

@@ -217,7 +217,7 @@ describe("StandingForEverySeatTests", () => {
     Assert.equal("Assyria", unitAt(r.state, "suhu")?.power);
     Assert.equal("Babylonia", unitAt(r.state, "durkurigalzu")?.power);
     Assert.startsWith(
-      "Your standing order s1 (when your army in Suhu is attacked) fired in turn 2: Karduniash's army set out from Dur-Kurigalzu for Suhu. It gave these orders: the troops in Ekallate support the hold at Suhu. They replaced these orders you gave for turn 2: the troops in Ekallate march to Dur-Kurigalzu.",
+      "Your standing order s1 (when your army in Suhu is attacked) fired in turn 2: Babylonia's army set out from Dur-Kurigalzu for Suhu. It gave these orders: the troops in Ekallate support the hold at Suhu. They replaced these orders you gave for turn 2: the troops in Ekallate march to Dur-Kurigalzu.",
       notice(r.state, "Assyria", standingFiredTitle("s1")).body,
     );
     // Babylonia's fired all the same, on the move as Assyria ordered it.
@@ -262,7 +262,7 @@ describe("StandingForEverySeatTests", () => {
     let left = Assert.single(standingOf(s, "Babylonia"));
     Assert.equal(["s2", 1], [left.id, left.orders.length]);
     Assert.endsWith(
-      ":\n- standing order s1 (when your unit that stood in sippar is attacked)\n- from standing order s2: sippar supports babylon holding",
+      "yours no longer.\n- Standing order s1 (when your unit that stood in Sippar is attacked)\n- From standing order s2: the troops in Sippar support the hold at Babili",
       notice(s, "Babylonia", LostTroopsTitle).body,
     );
   });

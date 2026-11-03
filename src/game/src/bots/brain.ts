@@ -408,7 +408,7 @@ export class Brain {
       if (b.provinces(x) === 0 && seen === 0) this.armySeen.set(x, [0, v.turn]);
     }
     for (const item of v.inbox.filter((i) => i.kind === "SpyReport"))
-      for (const [key, g] of groupBy([...item.body.matchAll(SpiedUnit)], (m) => m[1])) {
+      for (const [key, g] of groupBy([...item.body.matchAll(SpiedUnit)], (m) => m[1] ?? m[2])) {
         const spied = parsePower(key);
         if (spied !== null && spied !== this.me) this.armySeen.set(spied, [Math.max(g.length, this.armySeen.getOrDefault(spied, [0, 0])[0]), v.turn]);
       }
@@ -586,8 +586,8 @@ export const Weighed = /weighers found ([^.]{1,80})\./;
 export const EnvoyLot = /\[The inventory lists ([^;\]\n]{1,80}) of gold; your weighers found ([^\]\n]{1,80})\.\]/;
 /** The forger our scribes name, who brought the inventory. */
 export const ForgerHand = /trace it to the hand of ([^,\n]{1,80}), who brought it/;
-/** A king the spy saw with an army or a fleet somewhere. */
-export const SpiedUnit = /(?<![\p{L}\p{Mn}\p{Nd}\p{Pc}])([\p{L}\p{Mn}\p{Nd}\p{Pc}]+) (?:has|had) (?:an army|a fleet) in/gu;
+/** A king the spy saw with an army or a fleet somewhere ("Hatti has an army in", "an army of Hatti", "a fleet of the Suteans"): his name is the first or the second group. */
+export const SpiedUnit = /(?<![\p{L}\p{Mn}\p{Nd}\p{Pc}])([\p{L}\p{Mn}\p{Nd}\p{Pc}]+) (?:has|have|had) (?:an army|a fleet) in|(?<![\p{L}\p{Mn}\p{Nd}\p{Pc}])(?:[Aa]n army|[Aa] fleet) of (?:the )?([\p{L}\p{Mn}\p{Nd}\p{Pc}]+)/gu;
 
 /** One of our people whose line reads that they have not returned: the overdue word has come, and nothing since. */
 function overdue(c: CharacterView): boolean {
