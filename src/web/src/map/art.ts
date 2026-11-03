@@ -338,12 +338,6 @@ function arcRun(refs: readonly number[], close: boolean): string {
   return close ? sb + "Z" : sb;
 }
 
-/**
- * A land province's frontier: its border where `meets` says what lies across is not its own side (given the provinces
- * across, none on a coast or the board's edge), so a realm's band is drawn only where it meets another ("Following,
- * travel lines and borders": strong between powers, quiet within one). Each ring's frontier arcs are joined into one
- * line, closed when the whole ring is frontier, so the band's dashes run on unbroken.
- */
 /** The provinces across a province's border arcs, each once (no one's land and the sea left out). */
 export function arcNeighbours(id: string): string[] {
   const out = new Set<string>();
@@ -351,6 +345,12 @@ export function arcNeighbours(id: string): string[] {
   return [...out];
 }
 
+/**
+ * A land province's frontier: its border where `meets` says what lies across is not its own side (given the provinces
+ * across, none on a coast or the board's edge), so a realm's band is drawn only where it meets another ("Following,
+ * travel lines and borders": strong between powers, quiet within one). Each ring's frontier arcs are joined into one
+ * line, closed when the whole ring is frontier, so the band's dashes run on unbroken.
+ */
 export function frontierPath(id: string, meets: (across: readonly string[]) => boolean): string {
   let sb = "";
   for (const ring of ProvinceRings[id] ?? []) {

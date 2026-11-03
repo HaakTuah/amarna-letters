@@ -202,7 +202,7 @@ export function ProvinceInfo({
           {u.ghost ? `: last seen here in ${when(u.seenAt + 1, scene.viewer)}; it may have gone` : " stands here"}.
         </p>
       ))}
-      {faced.length > 0 && <p className="small">Its border glows: armies face {p.name} across it, as you see them now.</p>}
+      {faced.length > 0 && <p className="small">Its border glows where two powers' armies face each other across it. Across it, as you see them this season:</p>}
       {faced.map(({ q, armies }) => (
         <p className="small" key={q}>
           In {provinceName(q)}:{" "}
