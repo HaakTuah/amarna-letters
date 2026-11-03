@@ -17,6 +17,8 @@ import {
   WorldMap,
   newGame,
   newGameConfig,
+  newGrant,
+  ownedBy,
   endSieges,
   newOwnerChange,
   newSiege,
@@ -30,6 +32,8 @@ import {
   feed,
   grant,
   hunt,
+  revoke,
+  roads,
   sell,
   toll,
   welcome,
@@ -46,6 +50,8 @@ interface Twin {
   later?: { at: number; happen(s: GameState): void };
   /** The orders the seat gives each season: the same in both worlds, since it sees the same. */
   orders: Order[];
+  /** Another king's orders in the first season, in the world where the fact is true: his doing is the fact. */
+  others?: { power: Power; orders: Order[] };
   /** Whether the seat could know the fact by now, in the world where it is true: the twins may differ from then. */
   heard(s: GameState): boolean;
   seasons: number;
@@ -104,7 +110,11 @@ function play(t: Twin): { line: string; difference: string }[] {
     // A later fact comes about during the season, as a capture in its movement would, before its orders are carried out.
     if (t.later !== undefined && worlds[0].turn === t.later.at) t.later.happen(worlds[0]);
     for (const d of differences(worlds[0], worlds[1], t.seat)) found.push({ line: `season ${worlds[0].turn}, ${d}`, difference: d });
-    for (const s of worlds) new TurnEngine(s).resolve(new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(t.orders) })]]));
+    for (const s of worlds) {
+      const subs = new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(t.orders) })]]);
+      if (s === worlds[0] && t.others !== undefined && s.turn === 1) subs.set(t.others.power, newTurnSubmission({ orders: structuredClone(t.others.orders) }));
+      new TurnEngine(s).resolve(subs);
+    }
   }
   return found;
 }
@@ -293,7 +303,37 @@ const goldWorks: Order[] = [build("nippur", "Walls", 2, false), build("nippur", 
 const goldAfterLoss: Twin = { ...lossAfterOrders, name: "far works paid in gold, the province lost after orders set out", orders: goldWorks };
 const goldAfterSiege: Twin = { ...siegeAfterOrders, name: "far works paid in gold, a siege begun after orders set out", orders: goldWorks };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege];
+/** Egypt and Babylonia, Babylonia the seat; in the twin where the fact is true, Egypt grants it passage by order. */
+const grantGiven: Twin = {
+  name: "a grant by order",
+  seat: "Babylonia",
+  seasons: 6,
+  make: () => world("Egypt", "Babylonia"),
+  others: { power: "Egypt", orders: [grant("Babylonia", "passage")] },
+  orders: [],
+  // Once word of it, or of its end, has reached Babylon: by its notice, or the closed roads'.
+  heard: (s) => (s.inbox.tryGet("Babylonia") ?? []).some((i) => i.title === "Passage and basing" || i.title === "Roads"),
+};
+
+/** As `grantGiven`, but Babylonia has long known of Egypt's passage through all its land, and Egypt revokes it. */
+const grantRevoked: Twin = {
+  ...grantGiven,
+  name: "a grant revoked",
+  make() {
+    const s = world("Egypt", "Babylonia");
+    s.grants.push(newGrant({ id: "p990", grantor: "Egypt", grantee: "Babylonia", lands: ownedBy(s, "Egypt"), sinceTurn: 0 }));
+    return s;
+  },
+  others: { power: "Egypt", orders: [revoke("Babylonia")] },
+};
+
+/** As `grantRevoked`, but Egypt revokes the passage in one province only. */
+const grantNarrowed: Twin = { ...grantRevoked, name: "a grant narrowed by a revocation", others: { power: "Egypt", orders: [revoke("Babylonia", "memphis")] } };
+
+/** As `grantRevoked`, but Egypt closes its roads to Babylonia's people, which ends what it granted. */
+const grantRoadsClosed: Twin = { ...grantRevoked, name: "a grant ended by closed roads", others: { power: "Egypt", orders: [roads("Babylonia", true)] } };
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

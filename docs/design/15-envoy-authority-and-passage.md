@@ -73,7 +73,11 @@ report brings no holders.
   `guests`), and a move on the grantor's own troops is an attack, not a guest's entry (`guestAt`).
 - **Ending**: at the season it names; by the grantor's `RevokeOrder` (`revoke`: a king, and a province or none), resolved
   at the end of the season with the roads, so guests have that season to leave (event `grant-revoked`, a notice to the
-  grantee); by closing one's roads to the grantee (`endGrants`); or by repudiation.
+  grantee); by closing one's roads to the grantee (`endGrants`); or by repudiation. Bug #565: the grantee learns of a
+  revocation or closed roads by the word that travels (`Grant.endHeard`, `grantStandsFor`); until then his view keeps
+  the grant as it was, and the events of it are its grantor's alone. A revocation in one province of a passage through
+  all the land ends the grant and leaves a new one over the rest, which the grantee knows from the same word
+  (`heardTurn`).
 - **The view**: `SeatView.grants` (`GrantView`, the tablet by its name), shown to each king once he holds a copy of the
   tablet; the model's view has PASSAGE AND BASING, the rulebook AUTHORITY AND PASSAGE (`llm/src/rules-authority.ts`).
 - **The web app**: the letter's seal, limits and credentials; at an audience, the seal and credentials shown and a tablet

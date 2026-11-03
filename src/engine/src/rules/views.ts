@@ -21,7 +21,7 @@ import { unitCarried } from "../model/land.ts";
 import { declarationKnown } from "../model/declarations.ts";
 import { moodsKnown } from "../model/moods.ts";
 import { governorsKnown, seatKnown } from "../model/command.ts";
-import { grantStands, newGrantView } from "../model/authority.ts";
+import { grantStandsFor, newGrantView } from "../model/authority.ts";
 import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtView, newLotView, newSeatView, newGovernorView, newDeclaredView, newMoodSeenView, newSiegeView, newTabletView, newUnitView, type UnitView, newLetterView, landGrowth, type CharacterView, type DebtView, type LandStanding, type LetterView, type SeatView, type TabletView, newWorkView } from "../model/views.ts";
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
@@ -181,12 +181,14 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     grants: s.grants
       // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
-      // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him.
+      // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him. Its
+      // end, or a narrowing, reaches the grantee by word too (bug #565).
       .filter(
         (g) =>
           (g.grantor === p || g.grantee === p) &&
-          (grantStands(g, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
-          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+          (grantStandsFor(g, p, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
+          (g.grantor === p || g.heardTurn <= s.turn) &&
+          (g.tabletId === "" || s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
       )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);

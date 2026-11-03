@@ -8,9 +8,11 @@ import {
   type Power,
   TurnEngine,
   type TurnSubmission,
+  Views,
   WorldMap,
   clause,
   dispatch,
+  grantStandsFor,
   inboxOf,
   move,
   hold,
@@ -164,5 +166,21 @@ describe("AuthorityTests", () => {
     e.roads("Hatti", { type: "roads", court: "Egypt", close: true });
     Assert.notNull(single(s.grants).endedTurn);
     Assert.true(e.closedTo("Hatti", j, "nesa"));
+  });
+
+  test("A revocation in one province narrows the grant at once; the grantee's court sees it only when word comes (bug #565)", () => {
+    const s = smallWorld(newGame(9), "Egypt", "Hatti");
+    s.grants.push(newGrant({ id: "p90", kind: "passage", grantor: "Hatti", grantee: "Egypt", lands: ["tuwanuwa", "nesa", "hattusa"], sinceTurn: 0 }));
+    const e = new TurnEngine(s);
+    e.revokeGrants("Hatti", revoke("Egypt", "nesa"));
+    Assert.null(e.grantCovers("Hatti", "Egypt", "nesa"));
+    Assert.notNull(e.grantCovers("Hatti", "Egypt", "tuwanuwa"));
+    // Its grantor knows at once: one grant, still standing elsewhere.
+    Assert.equal(1, Views.for(s, "Hatti").grants.length);
+    const heard = s.turn + e.travelTurns("Hatti", "Egypt");
+    // Its grantee counts on the grant as it was until the word comes, and then on what is left of it.
+    Assert.equal("p90", single(s.grants.filter((g) => grantStandsFor(g, "Egypt", heard - 1) && g.heardTurn <= heard - 1)).id);
+    Assert.notEqual("p90", single(s.grants.filter((g) => grantStandsFor(g, "Egypt", heard) && g.heardTurn <= heard)).id);
+    Assert.equal(1, Views.for(s, "Egypt").grants.length);
   });
 });

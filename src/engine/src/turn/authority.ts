@@ -28,6 +28,7 @@ declare module "./core.ts" {
     passageFor(host: Power | null, master: Power, province: string): boolean;
     guestAt(province: string, power: Power): boolean;
     revokeGrants(p: Power, o: RevokeOrder): void;
+    endGrant(g: Grant, heard: number): void;
     grantByOrder(p: Power, o: GrantOrder): void;
     repudiate(p: Power, o: RepudiateOrder): void;
     endGrants(grantor: Power, grantee: Power, why: string): void;
@@ -164,21 +165,28 @@ P.guestAt = function (province, power) {
 /** The king ends what he granted another (in one province, or all of it): from next season the guests must be gone. */
 P.revokeGrants = function (p, o) {
   const S = this.s;
+  // The owner's answers to item 11a: word of it travels to the grantee's court as any news does, never known there at
+  // once; until it comes, his view keeps the grant as it was (bug #565).
+  const heard = S.turn + this.travelTurns(p, o.grantee);
   const ended = S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && (o.province === null || g.province === o.province));
-  for (const g of ended) g.endedTurn = S.turn;
-  // One province of a passage through all his land: the grant stands for the rest.
-  let narrowed = false;
-  if (o.province !== null)
-    for (const g of S.grants)
-      if (g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && g.province === null && g.lands.includes(o.province)) {
-        g.lands = g.lands.filter((x) => x !== o.province);
-        narrowed = true;
-      }
-  if (ended.length === 0 && !narrowed) return;
+  for (const g of ended) this.endGrant(g, heard);
+  // One province of a passage through all his land: the grant stands for the rest, as a grant its grantee hears of with
+  // the revocation.
+  const narrowed = o.province === null ? [] : S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && g.province === null && g.lands.includes(o.province!));
+  for (const g of narrowed) {
+    this.endGrant(g, heard);
+    S.grants.push(newGrant({ ...g, id: newId(S, "p"), lands: g.lands.filter((x) => x !== o.province), heardTurn: Math.max(g.heardTurn, heard), endedTurn: null, endHeard: 0 }));
+  }
+  if (ended.length === 0 && narrowed.length === 0) return;
   const what = o.province !== null ? `in ${this.map.get(o.province).name}` : "in his land";
-  // The owner's answers to item 11a: word of it travels to the grantee's court as any news does, never known there at once.
   this.word(p, o.grantee, "Grant", `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what} (in season ${S.turn}). Troops of yours still standing there will take the land as any troop does, and he will count it an attack.`);
-  logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p, o.grantee], "grant-revoked");
+  logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p], "grant-revoked");
+};
+
+/** A grant ends this season; its grantee hears of it at `heard` (bug #565). */
+P.endGrant = function (g, heard) {
+  g.endedTurn = this.s.turn;
+  g.endHeard = heard;
 };
 
 /**
@@ -208,17 +216,22 @@ P.grantByOrder = function (p, o) {
   const since = S.turn + 1;
   const heard = S.turn + Math.max(1, this.travelTurns(p, o.grantee));
   S.grants.push(newGrant({ id: newId(S, "p"), kind: o.kind, grantor: p, grantee: o.grantee, province: o.province, lands, sinceTurn: since, untilTurn: o.seasons !== null ? since + Math.max(1, o.seasons) - 1 : null, tabletId: "", heardTurn: heard }));
-  notify(S, p, "Resolution", GrantTitle, `From next season ${o.grantee}'s troops may ${o.kind === "passage" ? "pass through" : "stand within the walls of"} ${where} by your order${o.seasons !== null ? `, for ${o.seasons} seasons` : ", until you revoke it"}. Word of it reaches ${o.grantee}'s court as fast as a messenger rides.`);
-  logEvent(S, "passage", `${p} granted ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing within the walls of"} ${o.province !== null ? Map.get(o.province).name : `all the land of ${p}`}, by order.`, [p, o.grantee], "granted-by-order");
+  const term = o.seasons !== null ? `, for ${o.seasons} seasons` : ", until you revoke it";
+  notify(S, p, "Resolution", GrantTitle, `From next season ${o.grantee}'s troops may ${o.kind === "passage" ? "pass through" : "stand within the walls of"} ${where} by your order${term}. Word of it reaches ${o.grantee}'s court as fast as a messenger rides.`);
+  // The grantee learns of it by that word, as his view does (bug #565), never from the season's events.
+  const there = o.province !== null ? Map.get(o.province).name : "all his land";
+  this.word(p, o.grantee, "Grant", `The king of ${land(p)} has granted your troops ${o.kind === "passage" ? "passage through" : "leave to stand within the walls of"} ${there} from season ${since}${o.seasons !== null ? `, for ${o.seasons} seasons` : ", until he revokes it"}.`);
+  logEvent(S, "passage", `${p} granted ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing within the walls of"} ${o.province !== null ? Map.get(o.province).name : `all the land of ${p}`}, by order.`, [p], "granted-by-order");
 };
 
 /** Closing one's roads to a court ends what one granted it. */
 P.endGrants = function (grantor, grantee, why) {
   const S = this.s;
   const ended = S.grants.filter((g) => g.grantor === grantor && g.grantee === grantee && grantLive(g, S.turn));
-  for (const g of ended) g.endedTurn = S.turn;
+  // The grantee hears of it with the word of the closed roads (`roads`).
+  for (const g of ended) this.endGrant(g, S.turn + this.travelTurns(grantor, grantee));
   if (ended.length === 0) return;
-  logEvent(S, "passage", `${grantor} ended the passage and basing it granted ${grantee}: ${why}.`, [grantor, grantee], "grant-revoked");
+  logEvent(S, "passage", `${grantor} ended the passage and basing it granted ${grantee}: ${why}.`, [grantor], "grant-revoked");
 };
 
 /**
@@ -232,7 +245,7 @@ P.repudiate = function (p, o) {
   const t = copy === undefined ? undefined : S.tablets.find((x) => x.id === copy.tabletId);
   if (t === undefined || t.byHandOf !== p || t.repudiatedTurn !== null) return;
   t.repudiatedTurn = S.turn;
-  for (const g of S.grants) if (g.tabletId === t.id && grantStands(g, S.turn)) g.endedTurn = S.turn;
+  for (const g of S.grants) if (g.tabletId === t.id && grantStands(g, S.turn)) this.endGrant(g, S.turn);
   const other = t.proposedBy === p ? t.partner! : t.proposedBy;
   notify(
     S,
