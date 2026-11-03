@@ -6,6 +6,10 @@ import {
   OrderValidator,
   type PendingAudience,
   type RepudiateOrder,
+  type RevokeOrder,
+  newTablet,
+  repudiationKnown,
+  vassalBonds,
   type Power,
   TurnEngine,
   type TurnSubmission,
@@ -14,7 +18,6 @@ import {
   clause,
   dispatch,
   grant,
-  grantStandsFor,
   inboxOf,
   move,
   hold,
@@ -36,6 +39,7 @@ import {
   type Authority,
   type HostReply,
 } from "@amarna/engine";
+import { cessionAgreed } from "../src/model/cession.ts";
 import { Assert, smallWorld } from "./support.ts";
 
 const Map = WorldMap.default;
@@ -129,11 +133,45 @@ describe("AuthorityTests", () => {
     Assert.equal(0, new OrderValidator(s, Map).validate("Egypt", newTurnSubmission({ orders: [repudiate("k-test")] })).accepted.length);
   });
 
-  test("A grant its grantee ended by repudiation stands for its grantor until the word comes (bug #609)", () => {
-    const g = newGrant({ grantor: "Hatti", grantee: "Egypt", sinceTurn: 1, endedTurn: 4, endHeard: 6, endedBy: "Egypt" });
-    Assert.false(grantStandsFor(g, "Egypt", 4));
-    Assert.true(grantStandsFor(g, "Hatti", 5));
-    Assert.false(grantStandsFor(g, "Hatti", 6));
+  test("A grant its grantee repudiated stands for its grantor until the word comes, and he may still revoke it (bug #609)", () => {
+    const s = smallWorld(newGame(9), "Egypt", "Hatti");
+    const t = newTablet({ id: "t990", text: "Passage for Egypt.", clauses: [clause("passage", { province: "nesa" })], proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", byHand: "Ipy", within: false });
+    s.tablets.push(t);
+    for (const holder of ["Egypt", "Hatti"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    s.grants.push(newGrant({ id: "p990", grantor: "Hatti", grantee: "Egypt", province: "nesa", sinceTurn: 0, tabletId: "t990" }));
+    new TurnEngine(s).repudiate("Egypt", repudiate("k990E") as RepudiateOrder);
+    const g = single(s.grants);
+    Assert.equal("Egypt", g.endedBy);
+    Assert.equal(t.repudiatedHeard, g.endHeard);
+    Assert.true(g.endHeard > s.turn);
+    Assert.empty(Views.for(s, "Egypt").grants);
+    Assert.equal(1, Views.for(s, "Hatti").grants.length);
+    // Hatti, not yet told, revokes it: the order stands, and from then Hatti knows it ended; it stays as Egypt ended it.
+    Assert.equal(1, new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [revoke("Egypt")] })).accepted.length);
+    const ended = g.endedTurn;
+    new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt") as RevokeOrder);
+    Assert.equal(ended, g.endedTurn);
+    Assert.equal("Egypt", g.endedBy);
+    Assert.empty(Views.for(s, "Hatti").grants);
+    Assert.true(s.events.some((e) => e.signal === "grant-revoked" && e.visibleTo.includes("Hatti")));
+  });
+
+  test("A cession and a vassal bond stand as the court knows the tablet: repudiated once word comes (bug #609)", () => {
+    const t = newTablet({ id: "t991", proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", clauses: [clause("askCede", { province: "memphis" })], repudiatedTurn: 3, repudiatedHeard: 5 });
+    // Egypt, the repudiating king, knows at once; Hatti from season 5; a third court never.
+    Assert.true(repudiationKnown(t, "Egypt", 3));
+    Assert.false(repudiationKnown(t, "Hatti", 4));
+    Assert.true(repudiationKnown(t, "Hatti", 5));
+    Assert.false(repudiationKnown(t, "Babylonia", 9));
+    Assert.false(cessionAgreed([t], "Egypt", "Hatti", "memphis", 3));
+    const v = newTablet({ id: "t992", proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", vassal: "Hatti", clauses: [clause("serve")], repudiatedTurn: 3, repudiatedHeard: 5 });
+    Assert.empty(vassalBonds([v]));
+    Assert.equal(1, vassalBonds([v], { p: "Hatti", turn: 4 }).length);
+    Assert.empty(vassalBonds([v], { p: "Hatti", turn: 5 }));
+    // A cession by Hatti on a tablet Egypt repudiated stands for Hatti until the word.
+    const c = newTablet({ ...t, id: "t993", clauses: [clause("cede", { province: "nesa" })] });
+    Assert.true(cessionAgreed([c], "Hatti", "Egypt", "nesa", 4));
+    Assert.false(cessionAgreed([c], "Hatti", "Egypt", "nesa", 5));
   });
 
   test("A guest passing through takes no land; one that stays a season under passage alone takes it; basing lets it stay", () => {

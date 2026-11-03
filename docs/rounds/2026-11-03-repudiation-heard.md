@@ -28,8 +28,15 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `model/recor
   god view only.
 - **Rulebook** (`llm/src/rules-authority.ts`): word of a repudiation goes to the other king as fast as a messenger
   rides; until it comes, he still counts on the tablet. **Design note:** 15.
-- **Tests:** the engine test of repudiation now plays it season by season (the other king's tablet, grant and notice
-  wait for the word, then come together), a test of a grant ended by its grantee, and the twin.
+- **A grant its grantee repudiated** stands for its grantor until the word comes: he may still revoke it, or close his
+  roads, as his view shows it (`grantLiveFor` in the order check, `revokeGrants` and `endGrants`); it ends nothing more,
+  his event is logged as for any revocation, and from then he knows it ended (`endKnown`).
+- **README:** the Tablets list says a king may repudiate, and that word of it rides to the other king.
+- **Tests:** the engine test of repudiation plays it season by season (the other king's tablet, grant and notice wait
+  for the word, then come together); a grant its grantee repudiated, revoked by its grantor before the word; who knows a
+  repudiation, a cession and a vassal bond by it; and two twins ("a tablet repudiated"; "a grant its grantee
+  repudiated, revoked before word comes", between Elam and Libya, three seasons apart, since a revocation resolves
+  before a repudiation in the same season).
 - **Save version 54:** two new fields, and the word journey a repudiation now sends.
 
 ## Readings taken
@@ -45,8 +52,21 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `model/recor
 
 To come.
 
-## Review
+## Review, round 1
 
-To come.
+Codex: two P1s. Claude's reviewer (Opus, high): 6 of 10, two blocking, four not.
+
+1. **The grantor's revocation told of the repudiation** (Codex P1; Opus, blocking): the order check, and the
+   revocation's and closed roads' own events, read the true grant. Fixed: they read it as the grantor knows it
+   (`grantLiveFor`, `endKnown`), with the second twin, which fails with the old order check.
+2. **The README** (Codex P1): fixed, under Tablets.
+3. **The save-version test** (Opus, blocking): 54.
+4. **No engine test of the grantee's repudiation** (not blocking): added, with the revocation after it.
+5. **No test of the cession and vassal readings** (not blocking): added (`repudiationKnown`, `cessionAgreed`,
+   `vassalBonds` by court).
+6. **Stale design notes** (not blocking): notes 15, 26 and 29.
+7. **The report's empty sections** (not blocking): filled.
+
+One idea (Opus): none.
 
 Questions for the owner: none.

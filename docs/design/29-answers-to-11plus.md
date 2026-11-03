@@ -27,7 +27,7 @@ is essentially game over." Report: `docs/rounds/2026-10-29-answers-to-11plus.md`
   plus what it will still yield over the seasons it believes are left (`horizon`, from the age's words), so the land's
   worth to it falls as the end draws near; once the omens (item 16) darken, they feed the same belief.
 - **A capital ceded whole** (`model/cession.ts`, `turn/cession.ts`). A king may order his own capital ceded when a
-  sealed tablet between him and the receiver, not repudiated, gives it (his "I give you the land of ..." or the
+  sealed tablet between him and the receiver, not repudiated as he knows it (bug #609, note 15), gives it (his "I give you the land of ..." or the
   receiver's "Give me the land of ...", sealed by both); without one the order is refused and says so. It resolves after
   the season's other cessions and gifts of troops, so a king may give his troops away first. His kingdom falls as one
   whose capital was taken, to the receiver (`fall(..., ceded)`): all his land passes as land ceded (no new absorption;
