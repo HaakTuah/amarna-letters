@@ -802,7 +802,7 @@ label.volume input[type="range"] { width: 7rem; vertical-align: middle; }
     .legend-btn { min-height: 44px; padding-inline: .8rem; }
     .menu summary { min-width: 40px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
     .menu-body > a { min-height: 44px; margin-block: -.25rem; display: flex; align-items: center; }
-    .menu-body select, .menu-body input[type=range] { min-height: 44px; }
+    .menu-body input[type=range] { min-height: 44px; }
     .gctl { gap: .25rem; }
     .gctl select { min-height: 44px; }
     /* The pages' bar: a taller target without a taller bar. */

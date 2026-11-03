@@ -87,7 +87,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The small seal of a land with no great town of its time (Kaska, Lukka, Nesa, the steppe, Libya, the Shasu) was drawn 1.43 times as wide as the box the placement kept clear for it, so a caravan's mark could touch it (#525); it now shrinks to the small seal's share of its own size.
 - A quiet frontier and one where two powers' armies stood face to face looked the same (#549); the latter now has a faint wider stroke under its band, drawn only from the armies the seat sees now. The bands layer is redrawn per scene, not per frame, so switching whose eyes the map is seen through redraws the borders too.
 - The map kept a seal's fill clear of other markers but not its rim, so the thick dark rim of a crowded or besieged small seal could touch a neighbour (#562); the placement and the smoke test now measure each seal with its rim.
-- The game menu's volume sliders were the browser's blue beside the game's brown checkboxes, and its two links were 22 px tall on a phone; every slider takes the game's accent, and with a finger its links, selects and sliders are 44 px targets.
+- The game menu's volume sliders were the browser's blue beside the game's brown checkboxes, and its two links were 22 px tall on a phone; every slider takes the game's accent, and with a finger its links and sliders are 44 px targets.
 
 ## Finds not yet fixed
 
