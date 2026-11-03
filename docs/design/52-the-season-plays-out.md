@@ -1,4 +1,4 @@
-# The season plays out (item 17+++, part B)
+# The season plays out (item 17+++, parts B, D and G)
 
 The owner (31 October 2026): "the player needs to feel the weight of the whole world, or it becomes meaningless to
 him/her." A season is no longer a new picture but a passage of time on the map, paced by meaning; the next season is
@@ -71,6 +71,37 @@ way, at least 0.7 s a season.
 The closing line (`closingLine`) says what changed, the greatest first: "Sumur fell to Amurru; battles at Gubla and
 Qadesh; an envoy reached Babylon; two columns on the march; word came of plague in Mitanni." A seat's quiet season is
 "A quiet season, as far as word has reached you."
+
+## The land's season under the realms (part D)
+
+The item: "The season is the land's own state beneath the realms: snow, flood, green and drought are drawn on the ground
+under the realm colours, which lie over it as a light wash with clear borders so that nothing bleeds through, and the
+change moves". The season (`map/seasons.ts`) is its own drawing, `map-ground`, between the land and the realms' colours
+(`map-realms`, the tints), which wash over it at part C's strength by zoom; the realm bands and the relief stay above both,
+so a border stays sharp whatever the season draws under it. Being its own drawing, the season's change repaints only
+itself, never the realms.
+
+Everything the season shows is a fixed slot (part G): two a river's fields, two a province, one a river with a flood season
+of its own (its spate), three bands of the snow and the storms. A look the season leaves keeps its class, marked `gone`
+(`classFor`), and a pattern keeps its fill, so it fades out as it was; a slot never shown is `none`. The stylesheet
+(`map-living.css`) times every change by `--move`, which the renderer sets on the season's layer while a season plays out
+(`moveSeason`) and clears otherwise (stepping, jumping, reduced motion: the season then shows at once). Each slot comes or
+goes over the last 0.4 of `--move` after a lag of up to 0.6 of it (`--lag`, 0 first to 1 last); a look appearing fades in
+from nothing (`@starting-style`), one changing crosses its colour:
+
+| Change | Order (`--lag`) | Grounded in |
+|---|---|---|
+| The green of the winter rains, the river fields sown | from the coast inland (`--r`: `Inland`, borders crossed from the nearest coastal province, 0 to 1) | #03-levant: "400-1,000 mm on the coast and western slopes, less inland" |
+| The summer's brown, a drought, a look leaving | from the inland edges to the coast (1 − `--r`) | the same |
+| The snow | down from the heights: three bands by depth over the snow line (`snow-high`, `-mid`, `-low`, `--b`), the heights first; it melts from below | the snow line by elevation (`43-the-living-map.md`) |
+| Frost | midway | |
+| The Nile's flood | rises from the south up its valley (`nile-rise`: the field revealed from its southern end over 0.8 of `--move`) | #03-nile-rise-north: "Flooding reached Aswan about a week earlier than modern Cairo" |
+| A river in spate, the storms, the harvest | at once, fading in | |
+
+`--move` is half the season's playout, at least 0.4 s and at most 5 s (first guesses): about 0.5 s at Fast, 3 s at Normal,
+5 s at Slow. The order is only the drawing's: the engine's seasons change at once, as before. Nothing new reaches the page:
+the looks are what the season layer already drew (the calendar for every seat, droughts and floods as the seat last saw
+them), and the order is read from the map alone.
 
 ## Smooth on a phone (part G)
 

@@ -98,11 +98,13 @@ export class SvgMapRenderer implements MapRenderer {
     this.handlers = handlers;
     const zoom = document.createElement("div");
     zoom.className = "mapzoom";
-    // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
-    // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
+    // Stacked drawings, each its own compositing layer: the land below (heavy to paint, and painted only when another season
+    // is shown), the season's ground over it (part D: painted while its change moves, without the realms), who holds what,
+    // the relief, the marks, and the pieces above (light). The upper ones let taps through where they have nothing.
     zoom.innerHTML =
       `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}</svg>` +
-      `<svg class="map map-season" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="tints"></g><g data-layer="season"></g></svg>` +
+      `<svg class="map map-ground" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="season"></g></svg>` +
+      `<svg class="map map-realms" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="tints"></g></svg>` +
       `<svg class="map map-relief" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${Relief}</svg>` +
       `<svg class="map map-marks" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="works"></g><g data-layer="memory"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
       `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g data-layer="life"></g><g data-layer="scenes"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
@@ -355,6 +357,7 @@ export class SvgMapRenderer implements MapRenderer {
     this.holdLand = null;
     this.march(null);
     this.closingLine(null);
+    this.moveSeason(0);
     if (playout === null || playout === undefined || last === null || last.index !== s.index - 1 || last.viewer !== s.viewer || s.prev === null) return;
     const { timeline: t, line } = playout.play;
     const now = performance.now();
@@ -364,6 +367,8 @@ export class SvgMapRenderer implements MapRenderer {
       this.closingLine(line);
       return;
     }
+    // The land's change moves over the season's first half, within bounds (part D, first guesses).
+    this.moveSeason(Math.min(SvgMapRenderer.MoveMs[1], Math.max(SvgMapRenderer.MoveMs[0], (t.total - gone) / 2)));
     if (t.landAt - gone > 0) this.holdLand = { index: s.index, viewer: s.viewer, until: now + t.landAt - gone };
     if (t.marchMs > 0 || t.total === 0) {
       this.march({ at: t.marchAt - gone, ms: t.marchMs });
@@ -375,6 +380,17 @@ export class SvgMapRenderer implements MapRenderer {
       this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), Math.max(0, t.closeAt - gone) + 100);
     }
     this.closeTimer = window.setTimeout(() => this.closingLine(line), Math.max(0, t.closeAt - gone));
+  }
+
+  /** The shortest and the longest the land's change takes while a season plays (part D, first guesses). */
+  private static readonly MoveMs = [400, 5000] as const;
+
+  /** How long the season's change takes on the land (map-living.css: `--move`); 0 shows it at once. */
+  private moveSeason(ms: number): void {
+    const g = this.layers.get("season");
+    if (g === undefined) return;
+    if (ms <= 0) g.style.removeProperty("--move");
+    else g.style.setProperty("--move", `${Math.round(ms)}ms`);
   }
 
   /** The marching's time for the pieces' slide (app.css: `--march-at`, `--march-ms`), or the ordinary slide. */

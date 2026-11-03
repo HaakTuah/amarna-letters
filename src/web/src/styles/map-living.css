@@ -5,8 +5,9 @@
 .map .pap-v { stroke: #7a5a2a; stroke-width: .8; opacity: .3; }
 
 .map .season { pointer-events: none; }
-/* A slot the season leaves bare (seasons.ts: each province keeps its slots, hidden, so a season writes only their looks). */
-.map .season .none { display: none; }
+/* A slot the season leaves bare (seasons.ts: each province keeps its slots, hidden, so a season writes only their looks);
+   one it has just left keeps its look, marked gone, and fades out as it was. */
+.map .season [data-slot].none, .map .season [data-slot].gone { display: none; opacity: 0; }
 :is(.map, .legend) .season .dry { fill: #c08f4c; opacity: .3; }
 :is(.map, .legend) .season .green { fill: #6f9d48; opacity: .3; }
 :is(.map, .legend) .season .frost { fill: #f5f7f6; opacity: .4; }
@@ -132,3 +133,26 @@
 .legend .tw-houses { fill: #8b6a44; }
 .legend .life-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: 1; }
 .legend .life-icon { fill: #4a3524; }
+
+/* The change moves (item 17+++, part D; design/52-the-season-plays-out.md). The renderer sets --move on the season's layer
+   while a season plays (0 otherwise: stepping, jumping, reduced motion), and each slot comes and goes over the last 0.4 of
+   it, after a lag of up to 0.6 by its place in the spreading (--lag, from 0 the first to 1 the last): the green from the
+   coast inland (--r, how far inland a province lies), the brown from the inland edges, the snow from the heights down
+   (--b, its band) and melting from below. The Nile's flood rises from the south up its valley. */
+.map .season [data-slot] {
+  --lag: 0;
+  transition-property: opacity, fill, display;
+  transition-behavior: allow-discrete;
+  transition-duration: calc(var(--move, 0s) * .4);
+  transition-delay: calc(var(--move, 0s) * .6 * var(--lag));
+  transition-timing-function: ease-in-out;
+}
+@starting-style { .map .season [data-slot] { opacity: 0; } }
+.map .season :is(.green, .sown) { --lag: var(--r, 0); }
+.map .season :is(.dry, .drought) { --lag: calc(1 - var(--r, 1)); }
+.map .season .frost { --lag: .5; }
+.map .season .snow { --lag: var(--b, 0); }
+.map .season [data-slot].gone { --lag: calc(1 - var(--r, var(--b, 1))); }
+.map .season-0 :is([data-slot].inundation, [data-slot].inundation + .ripples) { animation: nile-rise calc(var(--move, 0s) * .8) ease-out both; }
+@keyframes nile-rise { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .map .season [data-slot] { transition: none; } .map .season-0 [data-slot] { animation: none; } }

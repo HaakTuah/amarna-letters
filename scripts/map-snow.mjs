@@ -1,9 +1,11 @@
-// Writes the winter snow on the board (src/web/src/map/snow.png) from real elevation data (build order item 19, "The look,
+// Writes the winter snow on the board (src/web/src/map/snow-high.png, snow-mid.png, snow-low.png) from real elevation data (build order item 19, "The look,
 // in time": snow on the Taurus and Zagros passes in Peret). The same public-domain terrain tiles as the relief
 // (map-dem.mjs, map-relief.mjs), at zoom 7, on the board's own projection, at half the relief's resolution: white where the
 // land stands above the winter snow line, which falls as the latitude rises (about 1,300 metres at 40 degrees north, 2,000
 // at 33, so Hermon and the Lebanon are white and the Judaean hills are not), softened at its edge. The drawing lays it
-// over the land in Peret only, under the relief, so the shading still models the ranges (svg-renderer.ts, season layer).
+// over the land in Peret only, under the realms' colours and the relief, so the shading still models the ranges
+// (seasons.ts). It is written in three bands by depth over the snow line, so the snow can creep down from the heights as
+// winter comes and melt from below as it goes (item 17+++, part D); the three together are the whole cover.
 //   node scripts/map-snow.mjs <tile cache dir>      (the relief's tiles, fetched once)
 import { createRequire } from "node:module";
 import { writeFileSync } from "node:fs";
@@ -57,27 +59,32 @@ for (let j = 0; j < H; j++)
     // In eight steps, which the eye does not tell from a smooth edge at this size and which keep the image small.
     soft[j * W + i] = Math.min(255, Math.round(sum / n / 32) * 32);
   }
+// The bands, by the cover's depth in its eight steps: the heights (160 and over), the slopes (96 to 128), the foot (below 96).
+const Bands = { high: [160, 256], mid: [96, 160], low: [1, 96] };
 const browser = await chromium.launch();
 const page = await browser.newPage();
-const url = await page.evaluate(
-  ({ W, H, data }) => {
-    const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
-    const img = new ImageData(W, H);
-    for (let k = 0; k < W * H; k++) {
-      img.data[4 * k] = 250;
-      img.data[4 * k + 1] = 251;
-      img.data[4 * k + 2] = 253;
-      img.data[4 * k + 3] = bytes[k];
-    }
-    const c = document.createElement("canvas");
-    c.width = W;
-    c.height = H;
-    c.getContext("2d").putImageData(img, 0, 0);
-    return c.toDataURL("image/png");
-  },
-  { W, H, data: Buffer.from(soft).toString("base64") },
-);
+for (const [name, [lo, hi]] of Object.entries(Bands)) {
+  const band = soft.map((a) => (a >= lo && a < hi ? a : 0));
+  const url = await page.evaluate(
+    ({ W, H, data }) => {
+      const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+      const img = new ImageData(W, H);
+      for (let k = 0; k < W * H; k++) {
+        img.data[4 * k] = 250;
+        img.data[4 * k + 1] = 251;
+        img.data[4 * k + 2] = 253;
+        img.data[4 * k + 3] = bytes[k];
+      }
+      const c = document.createElement("canvas");
+      c.width = W;
+      c.height = H;
+      c.getContext("2d").putImageData(img, 0, 0);
+      return c.toDataURL("image/png");
+    },
+    { W, H, data: Buffer.from(band).toString("base64") },
+  );
+  const png = Buffer.from(url.split(",")[1], "base64");
+  writeFileSync(new URL(`../src/web/src/map/snow-${name}.png`, import.meta.url), png);
+  console.log(`snow-${name}: ${W}x${H} pixels, ${(png.length / 1024).toFixed(0)} KB`);
+}
 await browser.close();
-const png = Buffer.from(url.split(",")[1], "base64");
-writeFileSync(new URL("../src/web/src/map/snow.png", import.meta.url), png);
-console.log(`snow: ${W}x${H} pixels, ${(png.length / 1024).toFixed(0)} KB`);

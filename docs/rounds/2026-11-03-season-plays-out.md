@@ -20,7 +20,7 @@ Presentation only, built in parts, each its own pull request.
 | A | A mind's own words kept season by season and shown (the record) | merged, #627 |
 | B | The season in sequence: the next season computed while this one plays, pace by meaning, a closing line | this PR |
 | C | Zoom shapes the realms' colours (full, then a wash, then borders and banners) | merged, #634 |
-| D | The land's season under the realms, and its change moving | not started |
+| D | The land's season under the realms, and its change moving | this PR |
 | E | Units drawn as what they are, with weight; the world acting on them | not started |
 | F | Threads to watch and the director camera (spectator) | not started |
 | G | Smooth on a phone: frame times in the busiest season, with a recording | this PR (bar not met on the phone profile; see Part G) |
@@ -61,6 +61,65 @@ nearer); nothing changed there.
 - **Steps, not a smooth fade**: eight steps keep the heavy layer from being painted at every settle on a phone (17a's 50 ms
   bar), and each step is small enough not to jump.
 - **First guesses** (item 18 may tune them): the ends 1.6 and 0.2, the scales 0.45 and 3, eight steps.
+
+Questions for the owner: none.
+
+## Part D: the land's season under the realms, and its change moving
+
+The item's text: "The season is the land's own state beneath the realms: snow, flood, green and drought are drawn on the
+ground under the realm colours, which lie over it as a light wash with clear borders so that nothing bleeds through, and
+the change moves (snow creeping down from the passes, the Nile rising along its banks, green spreading with the rains,
+the land browning from its edges)". Design note: `docs/design/52-the-season-plays-out.md`, "The land's season under the
+realms (part D)".
+
+### What was built
+
+- `svg-renderer.ts`: the season is its own drawing, `map-ground`, under the realms' colours (`map-realms`, was
+  `map-season`, which held the tints under the season); `moveSeason` sets `--move` on the season's layer while a season
+  plays out (half its playout, 0.4 to 5 s) and clears it otherwise.
+- `map/seasons.ts`: everything the season shows is a fixed slot, the spates, the snow and the storms too (they were
+  written anew each season); a look the season leaves is marked `gone` and keeps its look and fill (`classFor`); each
+  province's slots carry how far inland it lies (`Inland`, `--r`), each snow band its depth (`--b`).
+- `map-living.css`: the slots' transitions (opacity, fill, display), timed by `--move` and a lag by place; a look appearing
+  fades in from nothing (`@starting-style`); the Nile's flood rises from the south (`nile-rise`); none with reduced motion.
+- `scripts/map-snow.mjs`: the snow in three bands by depth (`snow-high.png`, `snow-mid.png`, `snow-low.png`, 52 KB in all,
+  replacing `snow.png`'s 66 KB); the bands were cut from the committed `snow.png` exactly as the script now cuts them (its
+  alpha is already in eight steps), since the terrain tiles are not on this machine.
+- `docs/history/03-environment-and-seasons.md`: `#03-nile-rise-north`, the flood seen first at Aswan and about a week
+  later at Cairo [B].
+- Test: `src/web/test/season-ground.test.ts` (every season draws the same slots; a look leaving is marked gone; coast first,
+  ranks from 0 to 1). README: the map's season paragraph.
+
+### Readings taken
+
+- **"Under the realm colours, which lie over it as a light wash with clear borders so that nothing bleeds through"**: the
+  season moves under the tints, at part C's strength by zoom, with the realm bands and the relief above both; nothing new
+  is drawn for the borders, which were already their own sharp layer. Principle: build the least that meets the text
+  (keep it lean); part C already set how light the wash is.
+- **"Snow creeping down from the passes"** is read as the snow coming by depth over the snow line, the heights first
+  (the passes lie among them), and melting from below: the snow is drawn from real elevation, so its depth is the honest
+  order. **"The Nile rising along its banks"**: from the south up its valley, as the flood came (#03-nile-rise-north),
+  the black land along both banks filling as it rises; the Delta, of which the source says nothing, last [G]. **"Green
+  spreading with the rains"**: from the coast inland, and **"browning from its edges"**: from the inland edges toward the
+  coast, both on #03-levant's "less inland"; the order is counted in borders from the nearest coastal province, since
+  the game has no rainfall per province. Principle: history holds; a real-world order on the map rests on a dossier line.
+- **The change moves while the season plays, and only then**: stepping, jumping and reduced
+  motion show the season at once, as the pieces do (Part B); a replay plays it as it plays the pieces. At Fast the change takes half a second ("the routine
+  compresses"). Principle: pace by meaning, never faster than can be read.
+- **Its own drawing**: the season's change repaints the season only, not the realms over it, at the cost of one more
+  layer to composite. Principle: smooth on a phone (part G's bar); measured below.
+- **Hidden information**: nothing new reaches the page; the looks are those the layer already drew (the calendar for
+  every seat, droughts and floods as the seat last saw them) and the order comes from the map alone, so the canary test
+  needed no new case.
+
+### First guesses (presentation only)
+
+`--move` half the season's playout, at least 0.4 s and at most 5 s; each slot's change over the last 0.4 of it after a lag
+of up to 0.6; frost at mid-lag; the Nile's rise over 0.8 of it; the snow bands cut at depths 160 and 96 of 255.
+
+### Frame times
+
+SOAK_PLACEHOLDER
 
 Questions for the owner: none.
 
