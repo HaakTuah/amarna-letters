@@ -59,4 +59,16 @@ describe("RealmBorders", () => {
     expect(facedAcross(scene([army("Egypt", "sapinuwa"), army("Hatti", "hattusa")], "Egypt"), "sapinuwa")).toEqual([]);
     expect(facedAcross(scene([army("Hatti", "hattusa")]), "sapinuwa")).toEqual([]);
   });
+
+  test("A band kept from an earlier season is the band traced afresh (part G)", () => {
+    const scene = (owners: [string, Power][]): MapScene => ({ owner: new Map<string, Power | null>(owners), units: [] }) as unknown as MapScene;
+    const a = scene([["sapinuwa", "Egypt"], ["hattusa", "Hatti"]]);
+    const b = scene([["sapinuwa", "Egypt"], ["hattusa", "Egypt"]]);
+    const first = bands(a);
+    const other = bands(b);
+    // Hattusa joined Sapinuwa's holder: their shared border is no frontier any more, and both bands are traced again.
+    expect(other).not.toBe(first);
+    expect(bands(a)).toBe(first);
+    expect(bands(b)).toBe(other);
+  });
 });

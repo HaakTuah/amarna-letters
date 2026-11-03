@@ -114,3 +114,41 @@ highest-stakes thread is, at its beat; else, when a thread weighs more than ever
 season begins; else the season's greatest moment (a fall, a battle, a disaster, an arrival). It reads only the viewer's
 threads and the moments of its own scene, so it shows no seat more than it knows, and a follow keeps the camera on its
 person instead. A replay plays each season out the same way, so the camera works there too.
+
+## Smooth on a phone (part G)
+
+The bar is item 17a's (`44-the-crash-and-speed.md`, "Smoothness, measured"): no frame over about 50 ms while a season
+plays, at every speed, on desktop and on the phone profile (`soak.mjs --phone`: 390x844, the CPU slowed four times,
+software raster). The phone profile's timeline (`--trace`, and `--trace-file` to keep it whole) named three causes, and
+each was changed and measured (the numbers are in the item's report, "Part G"):
+
+- **The state's read ran past its budget.** A field was read whole in one step, and the characters and the provinces'
+  reports took up to 200 ms at once on the phone. Now a field is read item by item and pauses where its budget runs out
+  (`IncrementalReader`: `value` is a generator, resumed by the next task), and a piece read by itself and long enough
+  (`LeafReuse`, 48 characters) is kept and reused while it recurs, as containers already were: a province's reports, a
+  memory. The new text a season read fell by about a half.
+- **A layer written whole cost its parse, its style and its repaint.** A layer is now patched (`map/morph.ts`: `patch`):
+  the markup is parsed off the page and only the elements and attributes that differ are written. The tints and the
+  season's washes are written in place without parsing at all (`retint`, `reseason`): the season layer keeps a fixed pair
+  of slots over each river's fields and each province, hidden where the land shows nothing, and a season writes only
+  their looks; the tints are drawn only when what they show changes (`tintsKey`). The works at the cities are written in
+  parts, a city each (`patchParts`); the season's arrows are still written whole, since each plays its drawing anew. A
+  province's band is traced again only when its holder, its neighbours' or the armies facing it change, and each road's
+  path is traced once.
+- **The names were placed three times a season, and each time restyled every marker.** Placing them now hides only what
+  must give way and shows only what may come back (a hidden marker keeps its box, so it is measured where it stands),
+  instead of showing every marker and hiding them again; and while a season's results are held back, the names wait for
+  them, so they are placed once a season. The layers' steps start at the next frame, never in the task of the worker's
+  message or React's redraw.
+- **The browser layerized more than the map needs.** Every frame that changes the map's markup has the whole page's paint
+  chunks layerized again, and an element's own `opacity` makes its own chunk and effect. A single shape fades by
+  `fill-opacity` or `stroke-opacity` instead (the map's stylesheets), which looks the same; `opacity` stays only on groups
+  (a ghost unit, news, a person or traveller only believed to be where it is drawn) and on what animates. An animation
+  that ends at the element's own look (the arrows drawn, the support lines, the burst, the capture's ring) fills
+  `backwards`, not `both`: a finished animation that still holds its last frame keeps the element on a compositing layer
+  of its own, and every piece drawn over it on another (56 layers on the paused map, 25 now). The pieces' slide already
+  runs on the compositor (a CSS transition of `transform`).
+
+On the phone profile at Fast the frames over 50 ms fell from about a fifth to an eighth; the bar is met on desktop at Slow,
+Normal and Simulate, not at Fast (3.3% of frames) and not on the phone profile (#666), where the browser's own layerization and paint of a map of thousands
+of SVG elements is what remains (the report's "What is left", with the measured way to the bar).

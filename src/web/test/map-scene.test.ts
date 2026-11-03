@@ -346,7 +346,7 @@ describe("MapSceneTests", () => {
     for (let k = 1; k < frames.length; k++)
       for (const p of [null, ...living(stateAt(runner, k)!)]) {
         let scene = buildScene(frames, k, p);
-        for (const markup of [seasonLayer(scene), roadsLayer(scene), worksAtCities(scene), memoryLayer(scene), lifeLayer(scene), ...seasonPlay(scene, 1).timeline.beats.map((b) => momentMarkup(b.moment, b.at, b.ms)), seasonPlay(scene, 1).line]) {
+        for (const markup of [seasonLayer(scene), roadsLayer(scene), worksAtCities(scene).join(""), memoryLayer(scene), lifeLayer(scene), ...seasonPlay(scene, 1).timeline.beats.map((b) => momentMarkup(b.moment, b.at, b.ms)), seasonPlay(scene, 1).line]) {
           Assert.false(markup.includes("undefined") || markup.includes("NaN"), markup.slice(0, 120));
           drawn += markup.length;
         }

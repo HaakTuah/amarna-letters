@@ -1,32 +1,34 @@
 /* The living map (build order item 19): the papyrus, the seasons and the land as this game has left it (seasons.ts). */
 
-.map .papyrus { pointer-events: none; opacity: .075; }
+.map .papyrus { pointer-events: none; fill-opacity: .075; }
 .map .pap-h { stroke: #7a5a2a; stroke-width: 1.1; opacity: .55; }
 .map .pap-v { stroke: #7a5a2a; stroke-width: .8; opacity: .3; }
 
 .map .season { pointer-events: none; }
-:is(.map, .legend) .season .dry { fill: #c08f4c; opacity: .3; }
-:is(.map, .legend) .season .green { fill: #6f9d48; opacity: .3; }
-:is(.map, .legend) .season .frost { fill: #f5f7f6; opacity: .4; }
-:is(.map, .legend) .season .ripe { fill: #dcaa2c; opacity: .34; }
+/* A slot the season leaves bare (seasons.ts: each province keeps its slots, hidden, so a season writes only their looks). */
+.map .season .none { display: none; }
+:is(.map, .legend) .season .dry { fill: #c08f4c; fill-opacity: .3; }
+:is(.map, .legend) .season .green { fill: #6f9d48; fill-opacity: .3; }
+:is(.map, .legend) .season .frost { fill: #f5f7f6; fill-opacity: .4; }
+:is(.map, .legend) .season .ripe { fill: #dcaa2c; fill-opacity: .34; }
 .map .sheaf { fill: none; stroke: #8a6a1c; stroke-width: .7; stroke-linecap: round; opacity: .6; }
-:is(.map, .legend) .season .sown { fill: #8db55c; opacity: .55; }
-:is(.map, .legend) .season .ripe-field { fill: #d4ab3a; opacity: .6; }
-:is(.map, .legend) .season .inundation, :is(.map, .legend) .season .flooded { fill: #6c9eb0; opacity: .8; }
-:is(.map, .legend) .season .flooded { opacity: .32; }
+:is(.map, .legend) .season .sown { fill: #8db55c; fill-opacity: .55; }
+:is(.map, .legend) .season .ripe-field { fill: #d4ab3a; fill-opacity: .6; }
+:is(.map, .legend) .season .inundation, :is(.map, .legend) .season .flooded { fill: #6c9eb0; fill-opacity: .8; }
+:is(.map, .legend) .season .flooded { fill-opacity: .32; }
 .map .flood-wave { fill: none; stroke: #f4f0e2; stroke-width: .8; opacity: .8; }
-:is(.map, .legend) .season .drought { fill: #b6773a; opacity: .3; }
+:is(.map, .legend) .season .drought { fill: #b6773a; fill-opacity: .3; }
 .map .crack { fill: none; stroke: #5e3f1f; stroke-width: .75; stroke-linejoin: round; opacity: .55; }
-:is(.map, .legend) .season .spate { fill: none; stroke: #8a8a6e; stroke-linecap: round; stroke-linejoin: round; opacity: .5; }
+:is(.map, .legend) .season .spate { fill: none; stroke: #8a8a6e; stroke-linecap: round; stroke-linejoin: round; stroke-opacity: .5; }
 :is(.map, .legend) .season .snow { opacity: .92; }
 .map .storm-wave { fill: none; stroke: #2e4c57; stroke-width: .8; stroke-linecap: round; opacity: .22; }
 :is(.map, .legend) .season .season-name { font-size: 7.6px; letter-spacing: .24em; fill: var(--peak); text-anchor: middle; font-weight: 600; font-style: italic; }
 /* In the legend, the washes over the card's paper, a little stronger so their colour reads at that size. */
 .legend .season svg { background: var(--land); border-radius: 2px; }
 .legend .season .lg-frost { fill: #fff; opacity: .9; stroke: #8fa0a6; stroke-width: .8; }
-.map .season .drought.low { opacity: .22; }
-:is(.map, .legend) .season .spoiled { fill: #8f8a72; opacity: .32; }
-.map .season .storms path { fill: none; stroke-width: 44; stroke-linecap: round; opacity: .9; }
+.map .season .drought.low { fill-opacity: .22; }
+:is(.map, .legend) .season .spoiled { fill: #8f8a72; fill-opacity: .32; }
+.map .season .storms path { fill: none; stroke-width: 44; stroke-linecap: round; stroke-opacity: .9; }
 
 /* Pass 2: the armies, fleets, people, battles, bands and sieges (figures.ts). */
 /* Bands stand below their city, clear of its outermost ring, as units stand above it. */
@@ -52,17 +54,17 @@
 .map .works-roads { pointer-events: none; }
 .map .road-net { fill: none; stroke: #6b4a2a; stroke-linecap: round; stroke-linejoin: round; }
 /* Their widths and dashes follow the zoom (--k), as the moves' arrows do, so a road stays a road close up. */
-:is(.map, .legend) .road-net.unknown { stroke-width: calc(.9px * var(--k)); stroke-dasharray: calc(1px * var(--k)) calc(4px * var(--k)); opacity: .35; }
-:is(.map, .legend) .road-net.q0 { stroke-width: calc(.9px * var(--k)); stroke-dasharray: calc(1px * var(--k)) calc(3px * var(--k)); opacity: .55; }
-:is(.map, .legend) .road-net.q1 { stroke-width: calc(1.2px * var(--k)); stroke-dasharray: calc(4px * var(--k)) calc(3px * var(--k)); opacity: .6; }
-:is(.map, .legend) .road-net.q2 { stroke-width: calc(1.6px * var(--k)); opacity: .65; }
-:is(.map, .legend) .road-net.q3 { stroke-width: calc(2.6px * var(--k)); opacity: .8; stroke: #5a3b1e; }
+:is(.map, .legend) .road-net.unknown { stroke-width: calc(.9px * var(--k)); stroke-dasharray: calc(1px * var(--k)) calc(4px * var(--k)); stroke-opacity: .35; }
+:is(.map, .legend) .road-net.q0 { stroke-width: calc(.9px * var(--k)); stroke-dasharray: calc(1px * var(--k)) calc(3px * var(--k)); stroke-opacity: .55; }
+:is(.map, .legend) .road-net.q1 { stroke-width: calc(1.2px * var(--k)); stroke-dasharray: calc(4px * var(--k)) calc(3px * var(--k)); stroke-opacity: .6; }
+:is(.map, .legend) .road-net.q2 { stroke-width: calc(1.6px * var(--k)); stroke-opacity: .65; }
+:is(.map, .legend) .road-net.q3 { stroke-width: calc(2.6px * var(--k)); stroke-opacity: .8; stroke: #5a3b1e; }
 .map .station { fill: var(--paper); stroke: #5a3b1e; stroke-width: .7; transform: scale(var(--sym)); transform-box: fill-box; transform-origin: center; }
 .lod0 .map .station { display: none; }
 /* The works at a city: only close up, in a row to its right below its news, clear of its outermost ring. */
 .lod0 .map .works-at, .lod1 .map .works-at { display: none; }
 .map .wring { transform: translate(calc(1px * (var(--ring) * var(--cs) + 4 * var(--sym))), calc(13px * var(--sym))); transform-box: view-box; transform-origin: 0 0; }
-.map .wk-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .7; opacity: .92; }
+.map .wk-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .7; fill-opacity: .92; stroke-opacity: .92; }
 :is(.map, .legend) .hb-sand { fill: none; stroke: var(--sand); stroke-width: 1.4; stroke-linecap: round; }
 :is(.map, .legend) .hb-mole { fill: none; stroke: #6b6355; stroke-width: 1.8; stroke-linecap: round; }
 :is(.map, .legend) .hb-quay { fill: #8b7b60; }
@@ -83,12 +85,12 @@
 /* Pass 4: the map that remembers, life on it, the realm's medium and the omens (memory.ts, life.ts). */
 .map .memory { pointer-events: none; }
 .map .thorn { fill: none; stroke: #5d5a2e; stroke-width: .8; stroke-linecap: round; opacity: .55; }
-.map .wild { opacity: .8; }
+.map .wild { fill-opacity: .8; }
 .map .memorial { pointer-events: auto; }
 .map .stele { fill: #8f8676; stroke: var(--bitumen); stroke-width: 1.4; paint-order: stroke; }
 .lod0 .map .memorial { display: none; }
 .map .ruin-crack { fill: none; stroke: var(--bitumen); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.map .ruin-smoke { fill: none; stroke: #6e6a64; stroke-width: 1.8; stroke-linecap: round; opacity: .55; }
+.map .ruin-smoke { fill: none; stroke: #6e6a64; stroke-width: 1.8; stroke-linecap: round; stroke-opacity: .55; }
 :is(.map, .legend) .fm-dome { fill: #6b5a43; stroke: var(--bitumen); stroke-width: .7; }
 :is(.map, .legend) .fm-crack { fill: none; stroke: var(--paper); stroke-width: .8; }
 .map .tw-houses { fill: #8b6a44; }
