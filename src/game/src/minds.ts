@@ -28,10 +28,15 @@ export class MindBook {
   readonly pages: MindPage[] = [];
   private readonly last = new Map<string, string>();
 
-  /** Keeps the pages that changed since they were last kept (an empty page that was never written is not kept). */
+  /**
+   * Keeps the pages that changed since they were last kept (an empty page that was never written is not kept). A page the
+   * mind no longer gives (a ledger line it struck out) is kept as an empty page, so it no longer reads as standing.
+   */
   keep(turn: number, who: string, pages: Readonly<Record<string, string>>): void {
-    for (const page of Object.keys(pages).sort()) {
-      const text = pages[page];
+    const struck = [...this.last].filter(([key, text]) => text !== "" && key.startsWith(`${who}\u0000`) && !(key.slice(who.length + 1) in pages));
+    const now: Record<string, string> = { ...Object.fromEntries(struck.map(([key]) => [key.slice(who.length + 1), ""])), ...pages };
+    for (const page of Object.keys(now).sort()) {
+      const text = now[page];
       const key = `${who}\u0000${page}`;
       if ((this.last.get(key) ?? "") === text) continue;
       this.add(newMindPage({ turn, who, page, text }));

@@ -16,6 +16,12 @@ describe("MindTests", () => {
     Assert.equal(["notes: Watch Hatti. (1)", "plan: Take Gaza. (2)"], book.at("Egypt", 2).map((p) => `${p.page}: ${p.text} (${p.turn})`));
     Assert.equal(3, book.at("Egypt", 3).length);
     Assert.equal([], book.at("Hatti", 3));
+    // A ledger line struck out no longer stands, though its history stays.
+    book.keep(4, "Egypt", { notes: "Hatti marches.", summary: "Two quiet years.", plan: "Take Gaza.", "ledger:Hatti": "Owes 50." });
+    book.keep(5, "Egypt", { notes: "Hatti marches.", summary: "Two quiet years.", plan: "Take Gaza." });
+    Assert.equal("Owes 50.", book.at("Egypt", 4).find((p) => p.page === "ledger:Hatti")?.text);
+    Assert.equal(undefined, book.at("Egypt", 5).find((p) => p.page === "ledger:Hatti"));
+    Assert.equal(1, book.pages.filter((p) => p.turn === 5).length);
   });
 
   test("The runner keeps a minded seat's pages each season, and the log carries them through a save", async () => {
