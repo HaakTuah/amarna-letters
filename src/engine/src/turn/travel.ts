@@ -12,7 +12,6 @@
 import { hostileAt, levelOf, policeAt, policeFound, waysOf } from "../model/works.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
-import { BandData } from "../model/bands.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { terrainOf } from "../model/geography.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";

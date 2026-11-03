@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { spy } from "../src/character-checks.ts";
 import {
   AllPowers,
   Dict,

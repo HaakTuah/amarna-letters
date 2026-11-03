@@ -1,4 +1,3 @@
-import type { Dict } from "../core/collections.ts";
 import { eqIgnoreCase, isBlank, trim } from "../core/text.ts";
 import { isGreatKing, risenOf, type Power } from "./power.ts";
 import { crossingBetween } from "./geography.ts";

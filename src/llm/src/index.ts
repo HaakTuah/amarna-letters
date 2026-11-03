@@ -1,6 +1,9 @@
 export * from "./text.ts";
 export * from "./models.ts";
-export { Schemas, Replies, OtherActions, ReportText, ReportToSender, jsonSchema, measure, problems, type AudienceAsks, type JsonObject, type ReplySchema, type SchemaMeasure, type LeaderOrdersReply } from "./schemas.ts";
+export { jsonSchema, measure, problems, type JsonObject, type ReplySchema, type SchemaMeasure } from "./schema-tools.ts";
+export { OtherActions } from "./schemas-orders.ts";
+export { ReportText, ReportToSender, type AudienceAsks } from "./schemas-audience.ts";
+export { Schemas, Replies, type LeaderOrdersReply } from "./schemas.ts";
 export { Parse } from "./parse.ts";
 export * from "./journal.ts";
 export * from "./prompts.ts";
@@ -24,6 +27,8 @@ export { CharacterSystem, canForge, courtOf, kingOf, offerLine, selfText, traitL
 export * from "./character-recital.ts";
 export * from "./narrator.ts";
 export * from "./seat-setup.ts";
+export * from "./seat-presets.ts";
+export * from "./seat-cost.ts";
 export * from "./spending.ts";
 export * from "./ladder.ts";
 export * from "./king-ladder.ts";

@@ -14,6 +14,8 @@ import {
   newTraits,
 } from "@amarna/engine";
 import { ScriptMind, newEnvoyContext, newMindContext } from "@amarna/game";
+import { Abroad, Home } from "../src/bots/envoy-words.ts";
+import { saysOneOf } from "./readings.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 describe("ScriptEnvoyTests", () => {
@@ -69,7 +71,7 @@ describe("ScriptEnvoyTests", () => {
       ambitious,
       trailOf("Hatti", "Swear to me that your lord will keep the peace.", "the envoy committed: promised that my lord will agree to whatever the king asks"),
     );
-    Assert.contains("I gave him such assurances as you would wish.", overreached);
+    Assert.true(saysOneOf(overreached, Home.assured), overreached);
   });
 
   test.each([
@@ -129,7 +131,7 @@ describe("ScriptEnvoyTests", () => {
     );
     Assert.contains("Hatti is our common enemy, and we will march against him in the spring.", speech);
     Assert.doesNotContain("you will regret it", speech);
-    Assert.contains("My lord hopes that no quarrel will ever come between your houses.", speech);
+    Assert.true(saysOneOf(speech, Abroad.noQuarrel), speech);
 
     // A proposal to march on a third king reaches the host whole, with no wish for peace put in its place.
     let proposal = await delivered(timid, "Babylonia", "Hatti is our common enemy. Let us march together against him.");
@@ -140,7 +142,7 @@ describe("ScriptEnvoyTests", () => {
   test("A timid envoy drops only the hosts threats against its own lord", async () => {
     let timid = envoy(40, undefined, undefined, undefined, 20);
     let report = await reportOf(timid, trailOf("Hatti", "I will crush Assyria in the spring. Your lord will regret his insolence."));
-    Assert.contains('The king spoke kindly: "I will crush Assyria in the spring."', report);
+    Assert.true(saysOneOf(report, Home.saidKindly, { W: "I will crush Assyria in the spring." }), report);
     Assert.doesNotContain("regret", report);
   });
 });
