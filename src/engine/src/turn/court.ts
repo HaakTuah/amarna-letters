@@ -13,7 +13,7 @@ import { char, findCharacter, logEvent, newId, notify, upkeepOf } from "../model
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { feeFor, jobValue, rateOf, restOf, trustIn } from "./jobs.ts";
-import { hearRide, ridesAsked } from "./rides.ts";
+import { hearRide, rideQuotes } from "./rides.ts";
 
 /** The title of the notice that a servant's job is done. */
 export const NoticeTitle = "A job done";
@@ -38,10 +38,17 @@ P.resolveCourt = function (orders) {
   // Names claimed first (item 17+), so the season's greetings carry them.
   for (const [p, o] of orders) if (o.type === "claimName") this.claimName(p, o);
   // Jobs first (the owner's answers to item 11a): a man offered a job at court this season can be sent on its errand at once.
-  // How many rides each court offers at home this season, by hire and renewal alike (#601): how badly it wants riders.
+  // Every ride offered at home this season, by hire and renewal alike, priced at once (#601): how badly each court wants
+  // riders is how many it asks for; no settled offer moves another's price.
+  const rideOffers = orders.filter(([, o]) => ((o.type === "hire" && (o.via ?? null) === null) || o.type === "renew") && o.what === "ride") as [Power, HireOrder | RenewOrder][];
   const rides = new Dict<Power, number>();
-  for (const [p, o] of orders) if ((o.type === "hire" && (o.via ?? null) === null) || o.type === "renew") if (o.what === "ride") rides.set(p, rides.getOrDefault(p, 0) + 1);
-  ridesAsked.set(this, rides);
+  for (const [p] of rideOffers) rides.set(p, rides.getOrDefault(p, 0) + 1);
+  const quotes = new Map<string, { ask: number; least: number }>();
+  for (const [p, o] of rideOffers) {
+    const c = findCharacter(S, o.character);
+    if (c !== null) quotes.set(`${p}|${c.id}`, this.rideAsk(c, p, o.where ?? "", rides.getOrDefault(p, 0)));
+  }
+  rideQuotes.set(this, quotes);
   this.hireAll(orders.filter(([, o]) => o.type === "hire" && ((o as HireOrder).via ?? null) === null).map(([p, o]) => ({ p, h: o as HireOrder })));
   for (const [p, o] of orders) if (o.type === "renew") this.renew(p, o);
   // Offers carried abroad go with the envoys named, sent this season.
@@ -132,8 +139,7 @@ export function errandOf(o: { what?: JobWhat | null; where?: string | null }): J
 P.hireAll = function (hires, carriedTo = null) {
   const S = this.s;
   const carried = carriedTo !== null;
-  const rides = ridesAsked.get(this) ?? new Dict<Power, number>();
-  for (const [key, group] of groupBy(hires, (x) => x.h.character)) {
+for (const [key, group] of groupBy(hires, (x) => x.h.character)) {
     const c = char(S, key);
     if (c.status !== "Free" || c.errand !== null) {
       for (const { p, h } of group)
@@ -157,7 +163,8 @@ P.hireAll = function (hires, carriedTo = null) {
     };
     for (const b of group) if (present(b) && b.h.term > 0) c.offers.set(b.p, rateOf(b.h.fee, term(b)));
     // A ride (#601) is priced by how badly he is wanted, and he takes less if the king haggles, down to his least.
-    const ride = (b: { p: Power; h: HireOrder }): { ask: number; least: number } | null => (b.h.what === "ride" && !carried ? this.rideAsk(c, b.p, b.h.where ?? "", rides.getOrDefault(b.p, 0)) : null);
+    const ride = (b: { p: Power; h: HireOrder }): { ask: number; least: number } | null =>
+      b.h.what === "ride" && !carried ? (rideQuotes.get(this)?.get(`${b.p}|${c.id}`) ?? this.rideAsk(c, b.p, b.h.where ?? "", 1)) : null;
     const asks = (b: { p: Power; h: HireOrder }): number => ride(b)?.least ?? askingPrice(c, b.p) * term(b);
     const bids = sortBy(
       group.filter((b) => present(b) && heard(b) && value(b) >= asks(b) && fits(b) === null && afford(b)),
@@ -282,7 +289,12 @@ P.renew = function (p, r) {
   const k = cover === null ? c.contract! : null;
   const errand = errandOf(r);
   // A ride (#601) is priced as any ride is, whoever rides.
-  const ride = errand?.what === "ride" ? this.rideAsk(c, p, errand.where, ridesAsked.get(this)?.getOrDefault(p, 1) ?? 1) : null;
+  const ride = errand?.what === "ride" ? (rideQuotes.get(this)?.get(`${p}|${c.id}`) ?? this.rideAsk(c, p, errand.where, 1)) : null;
+  // A ride sets out from the court: one sent away this season (to command, to govern) cannot also ride.
+  if (ride !== null && (cover !== null || c.at !== p || c.duty !== "None")) {
+    notify(S, p, "Rejected", "Not renewed", `${c.name} is not at your court to ride: they were sent elsewhere this season.`, c.id);
+    return;
+  }
   if (jobValue(r.fee, advance, trustIn(S, p, c)) < (ride?.least ?? price * term)) {
     const asks = ride !== null ? `they ask ${formatMoney(ride.ask)} for the ride` : `they ask ${formatMoney(price)} a season`;
     notify(S, p, "Rejected", "Not renewed", `${c.name} will not take a new job for ${formatMoney(r.fee)} within ${term} seasons with ${formatMoney(advance)} now; ${asks}, counting the rest only as far as they trust your court to pay it, from what they have heard.`, c.id);

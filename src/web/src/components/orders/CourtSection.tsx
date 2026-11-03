@@ -40,7 +40,7 @@ import type { OrdersContext } from "./use-orders.ts";
 
 /** The orders panel's Court: servants, candidates, jobs and their fees, lenders and debts, inquiries and captives. */
 export function CourtSection({ c }: { c: OrdersContext }) {
-  const { draft, v, me, f, set, wage, ready, reserved, others, add, term, addSpy } = c;
+  const { draft, v, me, f, set, wage, jobTerm, ready, reserved, others, add, addSpy } = c;
   // #601: the far provinces of yours a rider can bring the report of, and the job's errand and its words.
   // Its report two seasons old or more, as a ride can make fresher (the validator refuses the rest).
   const far = [...v.ownerAsOf.entries()].filter(([x, asOf]) => v.owner.getOrDefault(x, null) === me && v.turn - asOf >= 2 && !map.get(x).isSea).map(([x]) => x);
@@ -48,7 +48,6 @@ export function CourtSection({ c }: { c: OrdersContext }) {
   const errand = { what: f.errandWhat, where: f.errandWhat === "stay" ? me : f.errandWhat === "ride" ? rideTo : f.errandWhere, payOnDone: f.payOnDone };
   const errandLabel =
     f.errandWhat === "stay" ? "to stay at court" : f.errandWhat === "ride" ? `to ride for ${provinceName(rideTo)}'s report` : `${f.errandWhat} ${f.errandWhat === "envoy" ? "to" : "on"} ${powerName(f.errandWhere as Power)}`;
-  const jobTerm = f.errandWhat === "ride" ? 1 : term;
   // The upkeep order's pay or food half, drafted in a season either for all the troops or province by province: the
   // orders apply in turn, so a whole order after a province's would clear it, and a province's choices after a whole
   // order are worded against the order as the season began.
@@ -197,7 +196,13 @@ export function CourtSection({ c }: { c: OrdersContext }) {
           )}
         </label>
         <label>
-          within <input type="number" min="1" max="30" value={f.term} onChange={(e) => set({ term: num(e.target.value) })} /> seasons
+          {f.errandWhat === "ride" ? (
+            "within this season"
+          ) : (
+            <>
+              within <input type="number" min="1" max="30" value={f.term} onChange={(e) => set({ term: num(e.target.value) })} /> seasons
+            </>
+          )}
         </label>
         <label>
           <input type="checkbox" checked={f.payOnDone} onChange={(e) => set({ payOnDone: e.target.checked })} /> pay the rest when it is done

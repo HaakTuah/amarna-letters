@@ -109,6 +109,31 @@ describe("RideTests", () => {
     Assert.false(Views.knownHolders(taken.s, map, "Egypt").get("nippur").source.startsWith("your rider"));
   });
 
+  test("Two rides offered at once are priced together: the order they are settled in decides nothing (#601)", () => {
+    const hired = (reverse: boolean): string[] => {
+      const { s, c } = world(100);
+      const d = newCharacter({ id: newId(s, "c"), name: "Kha", status: "Free", at: "Egypt", traits: newTraits({ loyalty: 60, greed: 100, ambition: 30, courage: 50, competence: 50 }), tongues: new Dict([["Egyptian", 100]]) });
+      s.characters.push(d);
+      new TurnEngine(s, map).beginTurn();
+      const e = new TurnEngine(s, map);
+      const offers = [c, d].map((x) => ride(x, e.rideAsk(x, "Egypt", "nippur", 2).ask));
+      new TurnEngine(s, map).resolve(new Dict([["Egypt", newTurnSubmission({ orders: reverse ? offers.reverse() : offers })]]));
+      return [c, d].filter((x) => x.status === "Employed").map((x) => x.name);
+    };
+    Assert.equal(["Ahmose", "Kha"], hired(false));
+    Assert.equal(["Ahmose", "Kha"], hired(true));
+  });
+
+  test("A rider sent elsewhere in his season does not ride (#601)", () => {
+    const { s, c } = world();
+    new TurnEngine(s, map).beginTurn();
+    new TurnEngine(s, map).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [ride(c, 500)] })]]));
+    c.duty = "Commanding";
+    c.at = null;
+    new TurnEngine(s, map).beginTurn();
+    Assert.false(inboxOf(s, "Egypt").some((i) => i.title === RiderBackTitle));
+  });
+
   test("A servant renewed for a ride asks as any rider does (#601)", () => {
     const { s, c } = world(0);
     new TurnEngine(s, map).beginTurn();

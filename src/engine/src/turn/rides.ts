@@ -39,8 +39,11 @@ const P = TurnEngine.prototype;
  */
 export const RideData = { sooner: 20, scarce: 50, give: 25 } as const;
 
-/** The rides each court offers at home this season, by hire and renewal (`resolveCourt`), for `rideAsk`. */
-export const ridesAsked = new WeakMap<TurnEngine, Dict<Power, number>>();
+/**
+ * What each rider asks, by court and person (`${court}|${id}`), reckoned for all the season's ride offers at once before
+ * any is settled (`resolveCourt`), so the order they are settled in changes no price.
+ */
+export const rideQuotes = new WeakMap<TurnEngine, Map<string, { ask: number; least: number }>>();
 
 /** Those standing where a ride was agreed hear what it paid, and what they would ask for one moves part of the way to it. */
 export function hearRide(s: GameState, at: string | null, fee: number): void {
@@ -78,7 +81,8 @@ P.ridersBack = function () {
     const x = k.errand!.where;
     const t = k.startTurn;
     k.errand!.done = true;
-    if (!isAlive(S, p) || c.heldBy !== null || !this.map.exists(x)) continue;
+    // Back at court with nothing else on his hands: one sent elsewhere the same season did not ride.
+    if (!isAlive(S, p) || c.heldBy !== null || c.at !== p || c.duty !== "None" || !this.map.exists(x)) continue;
     // The report of the season he rode in, as its officials gave it then (GameState.reports), and who held the land then.
     let book = S.known.tryGet(p);
     if (book === undefined) S.known.set(p, (book = new Dict()));
