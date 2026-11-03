@@ -50,6 +50,10 @@ describe("PacingTests", () => {
     const beat = fast.beats.find((b) => b.moment === fall)!;
     Assert.true(beat.ms >= 1000 && beat.at >= Fast.flash, "the fall takes its own beat after the flash");
     Assert.equal(fast.landAt, beat.at);
+    // Two capitals falling run a Fast season past two seconds, and still the land changes at once there (part D).
+    const two = paceSeason([m("march", "routine", "a"), fall, { ...m("fall", "great", "Sumur fell to Amurru"), big: true }], Fast);
+    Assert.true(two.total > 2000);
+    Assert.equal([true, true, false], [paceSeason(season, Slow).ground, normal.ground, two.ground]);
     Assert.equal("Hattusa fell to Mitanni; battles at A, B, C and two more.", closingLine(season, false));
   });
 

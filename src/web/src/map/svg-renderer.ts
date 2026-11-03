@@ -367,10 +367,11 @@ export class SvgMapRenderer implements MapRenderer {
       this.closingLine(line);
       return;
     }
-    // The land's change moves over the season's first half, at most 5 s; at Fast, where that is under a second, the routine
-    // compresses and the land changes at once (part D, first guesses: moving there cost a slow phone more long frames).
+    // The land's change moves over the season's first half, at least 1 s and at most 5 s, at the paces that move it (Slow and
+    // Normal); at Fast the routine compresses and the land changes at once, however long the season's great moments run
+    // (part D, first guesses: moving it there cost a slow phone more long frames).
     const move = (t.total - gone) / 2;
-    this.moveSeason(move < SvgMapRenderer.MoveMs[0] ? 0 : Math.min(SvgMapRenderer.MoveMs[1], move));
+    this.moveSeason(!t.ground || move < SvgMapRenderer.MoveMs[0] ? 0 : Math.min(SvgMapRenderer.MoveMs[1], move));
     if (t.landAt - gone > 0) this.holdLand = { index: s.index, viewer: s.viewer, until: now + t.landAt - gone };
     if (t.marchMs > 0 || t.total === 0) {
       this.march({ at: t.marchAt - gone, ms: t.marchMs });
