@@ -203,4 +203,19 @@ describe("CofferTests", () => {
     for (const id of route) setLevel(s, "Roads", id, 3);
     Assert.equal(before, e.payLoad(c));
   });
+
+  test("An unpaid bill names its troops as the bill does, whether or not they are still there", () => {
+    const told = (gone: boolean): string => {
+      const s = game();
+      const e = new TurnEngine(s);
+      s.units.push(newUnit({ id: "u903", power: "Egypt", kind: "Army", province: "babylon", home: "nippur", men: 1000 }));
+      e.payTroops("Egypt");
+      if (gone) s.units = s.units.filter((u) => u.id !== "u903");
+      s.treasuries.get("Egypt").gold = 0;
+      s.treasuries.get("Egypt").lots.length = 0;
+      s.turn = s.bills[0].due;
+      return e.goldArrives().get("Egypt").join(" ");
+    };
+    Assert.equal(told(false), told(true));
+  });
 });

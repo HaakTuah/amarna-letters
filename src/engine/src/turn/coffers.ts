@@ -204,10 +204,13 @@ P.goldArrives = function () {
           // Paid at last: its missing pay is cleared only if it missed none since the bill was made.
           if (u.unpaid === missed) u.unpaid = 0;
         } else this.spendAt(b.province, gold);
-      } else if (u !== null) {
-        u.unpaid++;
-        this.armyEntry(u, u.power, -UnrestData.unpaid);
+      } else {
+        // Named as the bill names it, whether or not the unit is still there: the bill says only what it says (Codex, #635).
         short.push(label);
+        if (u !== null) {
+          u.unpaid++;
+          this.armyEntry(u, u.power, -UnrestData.unpaid);
+        }
       }
     }
     const works = Math.min(Math.max(0, t.gold), b.works);
