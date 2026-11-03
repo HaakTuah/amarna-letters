@@ -2,7 +2,8 @@
 # Nothing is lost ("Git and GitHub" in AGENTS.md): Claude Code runs this when a session starts ("start") and whenever
 # a reply is about to end ("stop"). start reports work left uncommitted, unpushed or stashed; stop keeps the reply from
 # ending while any is, once: a second stop in a row goes through, so a push that cannot be made never traps a session.
-# It reads the repository and fetches, nothing more.
+# It reads the repository and fetches, nothing more. Claude Code runs the copy on develop, never the working tree's
+# (.claude/settings.json), so a hook edited in a session cannot run before it is reviewed and merged.
 mode=$1
 input=$(cat 2>/dev/null || true)
 cd "${CLAUDE_PROJECT_DIR:-.}" 2>/dev/null || exit 0

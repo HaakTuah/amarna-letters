@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/work-saved.sh\" start",
+            "command": "bash -c 'f=$(git -C \"$CLAUDE_PROJECT_DIR\" show origin/develop:.claude/hooks/work-saved.sh 2>/dev/null) || exit 0; bash -c \"$f\" work-saved start'",
             "timeout": 30
           }
         ]
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/work-saved.sh\" stop",
+            "command": "bash -c 'f=$(git -C \"$CLAUDE_PROJECT_DIR\" show origin/develop:.claude/hooks/work-saved.sh 2>/dev/null) || exit 0; bash -c \"$f\" work-saved stop'",
             "timeout": 30
           }
         ]
