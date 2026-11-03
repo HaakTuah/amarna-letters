@@ -53,4 +53,22 @@ describe("MindTests", () => {
     Assert.equal(r.log.minds.pages, replay.log.minds.pages);
     Assert.equal(r.log.minds.pages, GameLog.fromJsonl(exportJsonl(r.log)).minds.pages);
   });
+
+  test("A shared log whose own words are malformed fails to load, cleanly", () => {
+    const good = '{"turn":2,"who":"Egypt","page":"plan","text":"Take Gaza.","type":"mind"}';
+    Assert.equal("Take Gaza.", GameLog.fromJsonl(good).minds.at("Egypt", 2)[0].text);
+    for (const bad of [
+      '{"turn":2,"who":"Egypt","page":null,"text":"x","type":"mind"}',
+      '{"turn":-1,"who":"Egypt","page":"plan","text":"x","type":"mind"}',
+      '{"turn":2,"who":"","page":"plan","text":"x","type":"mind"}',
+      '{"turn":2,"who":"Egypt","page":"secrets","text":"x","type":"mind"}',
+      `{"turn":2,"who":"Egypt","page":"plan","text":"${"x".repeat(9000)}","type":"mind"}`,
+      // Of the wrong type, which a converting reader would have turned into something it is not.
+      '{"type":"mind","turn":null,"who":123,"page":["notes"],"text":{"x":"hello"}}',
+      '{"type":"mind","turn":"2","who":"Egypt","page":"plan","text":"x"}',
+      '{"type":"mind","turn":2.5,"who":"Egypt","page":"plan","text":"x"}',
+      '{"type":"mind","who":"Egypt","page":"plan","text":"x"}',
+    ])
+      Assert.throws(() => GameLog.fromJsonl(bad));
+  });
 });

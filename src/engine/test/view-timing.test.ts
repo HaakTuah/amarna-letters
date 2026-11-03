@@ -14,8 +14,10 @@ import {
   newAudienceRecord,
   newAudienceRound,
   newEnvoyReaction,
+  WorldMap,
   newGame,
   newGameConfig,
+  wordHomeAt,
   newHostReply,
   newMindReply,
   newTurnSubmission,
@@ -121,9 +123,10 @@ describe("ViewTimingTests", () => {
   test("Two troops reported into one province are each shown by an older report of their own, never twice by one", () => {
     const s = smallWorld(newGame(1), "Hatti", "Babylonia");
     const e = new TurnEngine(s);
-    Assert.equal(1, e.wordTo("Hatti", "babylon"));
-    Assert.equal(1, e.wordTo("Hatti", "nippur"));
-    s.turn = 5;
+    s.turn = 6;
+    // Word home from Babylon and Nippur takes a season beyond the first in this season (the road home, bug #616).
+    Assert.equal(1, e.wordFrom("Hatti", "babylon"));
+    Assert.equal(1, e.wordFrom("Hatti", "nippur"));
     // Both last reported at Babylon; before that, one at Sippar and the other at Ur. The first placed takes its own older place.
     s.units.push(newUnit({ id: "u-a", power: "Hatti", kind: "Army", province: "babylon", home: "hattusa", men: 900, trail: ["sippar|900|0|0|0|0|0", "babylon|900|0|0|0|0|0", "babylon|900|0|0|0|0|0"] }));
     s.units.push(newUnit({ id: "u-b", power: "Hatti", kind: "Army", province: "nippur", home: "hattusa", men: 800, trail: ["ur|800|0|0|0|0|0", "babylon|800|0|0|0|0|0", "nippur|800|0|0|0|0|0"] }));
@@ -131,5 +134,16 @@ describe("ViewTimingTests", () => {
     Assert.equal(2, shown.length);
     Assert.equal(["babylon", "sippar"], shown.map((u) => u.province).sort());
     Assert.equal([800, 900], shown.map((u) => u.men).sort());
+  });
+
+  test("Every land province has a road home to every court in every season, so a notice and the holder it tells of come by one clock (bug #648)", () => {
+    // Where no road led home, a notice would be told at once (TurnEngine.heardAt takes no road for near) while the holder
+    // in the view waited for word that never came (knownHolders). The map keeps the case from arising; this guards it.
+    const s = newGame(1);
+    const map = WorldMap.default;
+    const cut: string[] = [];
+    for (const court of map.landProvinces)
+      for (const x of map.landProvinces) for (const t of [1, 2, 3]) if (!Number.isFinite(wordHomeAt(s, map, court.id, x.id, t))) cut.push(`${x.id} to ${court.id} in season ${t}`);
+    Assert.equal("", cut.slice(0, 5).join(", "));
   });
 });

@@ -13,6 +13,11 @@ vector and security concerns".
 - **The branches and the site:** `main` (the live game), `develop`, the workflows that deploy, and GitHub Pages.
 - **Players:** their browsers, their saved records, and their API keys.
 
+## The threat model
+
+Who might attack, what they want and where they could get in: `docs/threat-model.md`, which Codex's security
+review reads as its threat model.
+
 ## The rules
 
 1. **Nothing secret in the repository,** its history, a PR, an issue, a comment, a log or a picture: no key, token,
@@ -27,7 +32,7 @@ vector and security concerns".
      it through `env:` and quote it;
    - only GitHub's own actions (`actions/*`), or another pinned to a full commit SHA.
 3. **The protected files:** only Claude's builders change `.github/`, `scripts/cloud-setup.sh`,
-   `.claude/`, `AGENTS.md`, `CLAUDE.md` and this file, never a Codex lane, and a change to `.github/` or the setup
+   `.claude/`, `AGENTS.md`, `CLAUDE.md`, `docs/threat-model.md` and this file, never a Codex lane, and a change to `.github/` or the setup
    script needs the owner's yes in its PR. One exception, narrow: Dependabot's version updates of actions a workflow
    already uses need no yes when the diff changes nothing but the pinned version (and its comment), CI is green and its
    review is clean; the reviewer checks that the diff is only that. A new workflow, a changed trigger or permission, a

@@ -11,6 +11,12 @@ import { GreatKings, type GameState } from "@amarna/engine";
 /** Event kinds that change who holds land: a change of the map. */
 export const MapKinds: ReadonlySet<string> = new Set(["conquest", "obey", "cession", "revolt", "rise", "fall", "defect"]);
 
+/**
+ * Word of a change of the map from a vassal or ally (#618): heard by the king it reached, in the season it came, as a
+ * change of the map and so as an event worth a letter; never counted as a change anywhere, since the change itself is.
+ */
+export const HeardKinds: ReadonlySet<string> = new Set(["tidings"]);
+
 /** Event kinds worth a letter: the map's, and battles, sieges, treaties, men's fates, disasters, and wealth moved in earnest. */
 export const LetterKinds: ReadonlySet<string> = new Set([
   ...MapKinds,
@@ -40,6 +46,7 @@ export function pulseOf(s: GameState): Pulse {
   const last = s.turn;
   const seasons = Array.from({ length: Math.max(0, last) }, (_, i) => i + 1);
   const worth = s.events.filter((e) => LetterKinds.has(e.kind) && e.turn >= 1 && e.turn <= last);
+  const word = s.events.filter((e) => HeardKinds.has(e.kind) && e.turn >= 1 && e.turn <= last);
   const letter: Record<string, number> = {};
   const lived: Record<string, number> = {};
   const mapHeard: Record<string, number> = {};
@@ -48,7 +55,8 @@ export function pulseOf(s: GameState): Pulse {
     const fell = s.falls.find((f) => f.power === p)?.turn ?? null;
     const alive = seasons.filter((t) => fell === null || t <= fell);
     if (alive.length === 0) continue;
-    const heard = (kinds: ReadonlySet<string>): number => alive.filter((t) => worth.some((e) => e.turn === t && kinds.has(e.kind) && e.visibleTo.includes(p))).length;
+    const heard = (kinds: ReadonlySet<string>): number =>
+      alive.filter((t) => [...worth, ...word].some((e) => e.turn === t && (kinds.has(e.kind) || HeardKinds.has(e.kind)) && e.visibleTo.includes(p))).length;
     letter[p] = Math.round((100 * heard(LetterKinds)) / alive.length);
     lived[p] = alive.length;
     mapHeard[p] = heard(MapKinds);
@@ -61,7 +69,7 @@ export function pulseOf(s: GameState): Pulse {
     worldLetter: seasons.length === 0 ? 0 : Math.round((100 * any(LetterKinds)) / seasons.length),
     worldMap: seasons.length === 0 ? 0 : Math.round((100 * any(MapKinds)) / seasons.length),
     unseen: worth.length === 0 ? 0 : Math.round((100 * worth.filter((e) => e.visibleTo.length === 0).length) / worth.length),
-    kinds: worth.filter((e) => e.visibleTo.some((p) => GreatKings.includes(p))).reduce<Record<string, number>>((a, e) => ({ ...a, [e.kind]: (a[e.kind] ?? 0) + 1 }), {}),
+    kinds: [...worth, ...word].filter((e) => e.visibleTo.some((p) => GreatKings.includes(p))).reduce<Record<string, number>>((a, e) => ({ ...a, [e.kind]: (a[e.kind] ?? 0) + 1 }), {}),
   };
 }
 

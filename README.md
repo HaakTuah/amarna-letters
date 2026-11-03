@@ -424,9 +424,14 @@ gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods s
 battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
 you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
+Your vassals and allies send you word of land they see change hands, so news of a far conquest or revolt reaches you
+as a notice, sometimes before your own word from there: it comes by the road from their court, and your map then shows
+the land's new holder.
 Your land beyond a season's courier ride is shown the same way while you hold it: its stores, people, works and
 harvest as its officials last reported them, your caravans there as their last word has them, and your strength
-reckoned from what you know. Click such a city and its card gives only what your stewards last reported and how many
+reckoned from what you know. To know sooner, hire a rider at your court to fetch one far province's report this
+season: he names his price by what he has heard a ride pays and how badly you want him, and takes less if you haggle,
+up to a point. Click such a city and its card gives only what your stewards last reported and how many
 seasons ago, never its new holder's affairs; a band your people last told of there is drawn faded, with the age of that word. Looking back at an
 earlier season, a card gives the figures recorded in that season, never today's.
 Figures on the roads in the fog are your own: your caravans, near as they are and farther off where their last word

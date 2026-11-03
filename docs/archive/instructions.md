@@ -1561,3 +1561,23 @@ Given in the design chat with Claude, answering the design questions of the cons
     (a shared ceiling for endurance and robustness, with a man's visible build running from lean to broad, a first
     guess of 160 of 200 for item 18 to tune): "Yes, expertly!" Written into "One body, one budget" under Characters
     (revision 31) and the "Follow-ups" entry "The body and the road" in `docs/BUILD-PROGRESS.md`.
+189. **3 November 2026, 08:33 to 08:52 UTC**, in the design chat, on Codex's reviews: "How are they doing with the
+    codex reviews, by the way?", then "Where does it say @codex security review is the command?", then "Try to load it
+    again and do a thorough investigation on how to trigger it manually.", then, showing Codex's settings (Auto security
+    review, its trigger, a threat model file and the severities): "We can set criterias here.", and to the design
+    session's takes (test the command with the feature on; point the threat model at `SECURITY.md` with a short threat
+    model section; tell the orchestrator to stop #612's rounds, fix the open code-scanning alert in a side lane, and
+    hold the no-review rule for docs and history): "Yes, expertly to all!" Tested: on #547, with Auto security review
+    off, `@codex security review` ran a code review alone; on Barkstreet Snakes' #463, with it on, a security review.
+    Written into "The threat model" in `SECURITY.md`, "Codex reviews" in `docs/claude-and-codex.md`, and "Follow-ups"
+    in `docs/BUILD-PROGRESS.md`.
+190. **3 November 2026, 09:40 and 09:41 UTC**, in the design chat, on where Codex's security review finds its threat
+    model, `SECURITY.md` being already read as its review instructions: "But then it reads needless stuff to get to
+    the threat model stuff?" Then, to the design session's take (move the threat model into a file of its own and
+    point the settings there): "Yes, please! Expertly!" Moved into `docs/threat-model.md`, with a pointer in
+    `SECURITY.md`, and the file added to the protected files (`SECURITY.md`, rule 3).
+191. **3 November 2026, 09:52 and 09:53 UTC**, in the design chat, on the threat model: "Does it also mention this is
+    an open repo, so anyone can attack, so expect anyone? Is that relevant, expert?" Then, to the design session's take
+    (say in the threat model that every file and its whole history are public, so nothing rests on being hidden and
+    anything committed stays public): "Yes, please, expertly! Outmost importance we keep it at its most observant!"
+    Written into `docs/threat-model.md`, "Everything is public".

@@ -193,6 +193,8 @@ P.heardFee = function (c, rate) {
 P.jobFits = function (c, p, k, term) {
   const e = k.errand;
   if (e === null) return null;
+  // A ride (#601) is there and back within the season, from the court where he is hired.
+  if (e.what === "ride") return null;
   const from = c.at ?? p;
   // A stay: to reach the court and stand there at least a season before its deadline.
   if (e.what === "stay") {
