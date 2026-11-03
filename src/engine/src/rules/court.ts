@@ -50,9 +50,9 @@ export function courtMoveRefusal(v: Checking, order: CourtOrder): string | null 
  * else the whole seasons beyond the first it takes, at the pace of a lone traveller on the fastest road. Infinity where no
  * road leads.
  */
-export function courierSeasons(s: GameState, map: WorldMap, from: string, to: string): number {
+export function courierSeasons(s: GameState, map: WorldMap, from: string, to: string, turn: number = s.turn): number {
   if (from === to || s.config.realmDistance <= 0) return 0;
-  const cost = courierPoints(map, waysOf(s), from, seasonOfTurn(s.turn)).get(to);
+  const cost = courierPoints(map, waysOf(s), from, seasonOfTurn(turn)).get(to);
   if (cost === undefined) return Infinity;
   return Math.floor(cost / (s.config.travelDays * PointsPerDay));
 }

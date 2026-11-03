@@ -13,6 +13,7 @@ import {
   moodsKnown,
   vassalTerms,
   vassalBonds,
+  repudiationKnown,
   isAlive,
   wallsOf,
   type CharacterStatus,
@@ -198,10 +199,8 @@ function holdings(s: GameState): Pick<SeasonFrame, "governed" | "governedKnown" 
   const knownBonds = new Map<Power, Map<Power, Power>>();
   for (const k of s.copies) {
     const t = s.tablets.find((x) => x.id === k.tabletId);
-    // Only its two parties are told of a repudiation (turn/authority.ts); a third court holding a copy keeps the bond as
-    // its tablet says (hidden information).
-    const party = t !== undefined && (k.holder === t.proposedBy || k.holder === t.partner);
-    const v = t === undefined || (t.repudiatedTurn !== null && party) ? null : vassalTerms(t);
+    // A repudiation as the holder knows it: the other king by word of it, a third court never (bug #609).
+    const v = t === undefined || repudiationKnown(t, k.holder, s.turn) ? null : vassalTerms(t);
     if (v === null) continue;
     let m = knownBonds.get(k.holder);
     if (m === undefined) knownBonds.set(k.holder, (m = new Map()));
@@ -284,6 +283,8 @@ export interface SeasonFrame {
   unrest: Map<string, number>;
   /** Item 19: the caravans, and the people carried off (deportees), on the road, each between the provinces it is between. */
   caravans: FrameRoad[];
+  /** Bug #540: each court's own caravans as it knows them (`Views.caravansKnown`), placed where it knows them to be. */
+  knownCaravans: Map<Power, FrameRoad[]>;
   walking: FrameRoad[];
   /** Item 19: the diviners' tier of the omens of the end this season, the same for every court; null in an open age. */
   omen: OmenTier | null;
@@ -477,6 +478,19 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
       const next = Math.min(i + 1, c.route.length - 1);
       return { power: c.power, from: c.route[i], to: c.route[next], progress: Math.min(0.9, c.points / 100), what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}` };
     }),
+    // Bug #540: each court's own as it knows them (a far one where its last report has it), as its view shows them.
+    knownCaravans: new Map<Power, FrameRoad[]>(
+      AllPowers.filter((p) => isAlive(s, p)).map((p) => [
+        p,
+        Views.caravansKnown(s, p, map).map((c) => ({
+          power: p,
+          from: c.at,
+          to: c.at,
+          progress: 0,
+          what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}${c.reported !== null ? `, as reported in turn ${c.reported}` : ""}`,
+        })),
+      ] as const),
+    ),
     // Only deportees walk a known road (the engine's `Walk.route`); men discharged home are not placed on one.
     walking: s.walking.filter((w) => w.deported && w.route.length > 1).map((w) => {
       const span = Math.max(1, w.arrives - w.departs);

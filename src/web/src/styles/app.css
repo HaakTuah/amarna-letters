@@ -805,6 +805,18 @@ label.volume input[type="range"] { width: 7rem; vertical-align: middle; }
     .menu-body input[type=range] { min-height: 44px; }
     .gctl { gap: .25rem; }
     .gctl select { min-height: 44px; }
+    /* The courts: each chip a 44px target, its pill drawn inside it at the height it has with a mouse. */
+    .courtbar { padding-block: 0; }
+    .court, .court.me, .court.on { min-height: 44px; min-width: 44px; justify-content: center; position: relative; isolation: isolate; background: none; border: none; box-shadow: none; outline: none; -webkit-tap-highlight-color: transparent; }
+    .court::before { content: ""; position: absolute; inset: 11px 2px; z-index: -1; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .court.me::before { border-color: var(--accent); }
+    @media (hover: hover) { .court:hover::before { border-color: var(--accent); } }
+    .court.on::before { box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+    .court:focus-visible { outline: none; }
+    .court:focus-visible::before { outline: 2px solid var(--accent); outline-offset: 0; }
+    .game .court-pop { top: calc(100% + .2rem); }
+    /* Where the strip lies over the map, the season tag stands below it. */
+    @media (min-width: 900px) and (min-aspect-ratio: 1/1), (orientation: landscape) and (max-height: 560px) { .game .season-tag { top: 3.4rem; } }
     /* The pages' bar: a taller target without a taller bar. */
     .topbar nav a { display: inline-block; padding-block: .7rem; margin-block: -.7rem; }
 }

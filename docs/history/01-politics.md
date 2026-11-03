@@ -158,6 +158,11 @@ is whose sphere the ruler is in during 1346.
   2000, as cited in [Wikipedia, "Kurigalzu I"](https://en.wikipedia.org/wiki/Kurigalzu_I)); whether Babylonia still
   holds it in 1346 is unknown [C]. Start neutral, as now.
 - <a id="01-kaska-and-suteans"></a>**Kaska lands, Sutean steppe** (item 7): tribes without kings ("The edges of the map").
+- <a id="01-sutu"></a>**Sutu**, the Suteans' land (`steppe`; the land's name since item 17++a): "The Suteans (Akkadian:
+  Sutī’ū, possibly from Amorite: Šetī’u) were a Semitic-speaking nomadic people"; "Suteans are mentioned in 8 preserved
+  tablets of the Amarna letters", and "Amarna Letter EA 195 mentions Biryawaza of Dimasqu utilizing Suteans and 'Apiru in
+  his troops" ([Wikipedia, "Suteans"](https://en.wikipedia.org/wiki/Suteans)) [B]. "Sutu" is the game's short form of
+  the Akkadian name [G].
 - **Habiru** (*'apiru*): not a people but outcasts, runaways and hired fighters, everywhere in the vassals' letters [B].
 
 ## Opening relations between the Great Kings

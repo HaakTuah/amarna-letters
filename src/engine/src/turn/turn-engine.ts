@@ -3,6 +3,7 @@
  * methods before the engine is used.
  */
 import "./resolve.ts";
+import "./movement-news.ts";
 import "./battles.ts";
 import "./marching.ts";
 import "./command.ts";
@@ -33,6 +34,7 @@ import "./press.ts";
 import "./winter.ts";
 import "./authority.ts";
 import "./economy.ts";
+import "./caravans.ts";
 import "./people.ts";
 import "./counts.ts";
 import "./moods.ts";
@@ -69,7 +71,7 @@ export { ClaimEstablishedTitle } from "./press.ts";
 export { RoadOdds, CaughtOnRoadTitle, RoadsTitle, isWalker, LeaderPace } from "./travel.ts";
 export { BandsTitle } from "./bands.ts";
 export { LetterData, selfWait } from "./letters.ts";
-export { OfferData } from "./offers.ts";
+export { OfferData, OfferTerms } from "./offers.ts";
 export { TalkData } from "./moods.ts";
 export { HeardData, lossKey } from "./news.ts";
 export { LanguageData, UnheardTitle, UnheardOutcome, UnheardOnArrival, tongueClaims } from "./languages.ts";

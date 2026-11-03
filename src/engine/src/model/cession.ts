@@ -4,17 +4,18 @@
  * ("Keeping a promise is an act"), and the engine only checks that such a tablet stands.
  */
 import type { Power } from "./power.ts";
-import { isSealedAgreement, type Tablet } from "./records.ts";
+import { isSealedAgreement, repudiationKnown, type Tablet } from "./records.ts";
 
 /**
- * Whether a sealed tablet between `giver` and `receiver`, not repudiated, gives `province` to the receiver: the giver
- * writing "I give you" it, or the receiver writing "Give me" it, sealed by both.
+ * Whether a sealed tablet between `giver` and `receiver`, not repudiated as the giver knows by `turn` (bug #609: the
+ * cession is his own order), gives `province` to the receiver: the giver writing "I give you" it, or the receiver writing
+ * "Give me" it, sealed by both.
  */
-export function cessionAgreed(tablets: readonly Tablet[], giver: Power, receiver: Power, province: string): boolean {
+export function cessionAgreed(tablets: readonly Tablet[], giver: Power, receiver: Power, province: string, turn: number): boolean {
   return tablets.some(
     (t) =>
       isSealedAgreement(t) &&
-      t.repudiatedTurn === null &&
+      !repudiationKnown(t, giver, turn) &&
       t.seals.includes(giver) &&
       t.seals.includes(receiver) &&
       t.clauses.some(

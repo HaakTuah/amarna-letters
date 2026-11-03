@@ -369,7 +369,7 @@ P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, s
   const tablet = tid !== null ? S.tablets.find((t) => t.id === tid) : undefined;
   if (tid !== null && tablet !== undefined) {
     // Item 12: a tablet in a language nobody at the court could read this season is sealed, if at all, on trust.
-    view.proposal = Views.tablet(tablet, newTabletCopy({ id: "", tabletId: tid, holder: a.host, source: `proposed by ${a.from}`, unread: !a.proposalRead }));
+    view.proposal = Views.tablet(tablet, newTabletCopy({ id: "", tabletId: tid, holder: a.host, source: `proposed by ${a.from}`, unread: !a.proposalRead }), S.turn);
     // Sealed at an earlier exchange (the first that chose to seal it seals it when the audience is applied).
     view.proposalSealed = past.some((x) => x.host !== null && x.host.sealProposal);
   }
@@ -378,7 +378,7 @@ P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, s
     const tab = copy === undefined ? undefined : S.tablets.find((t) => t.id === copy.tabletId);
     if (tab === undefined) continue;
     const read = this.readable(a.host, this.tabletTongue(tab), `${a.id}|${copyId}`);
-    view.copiesShown.push(Views.tablet(tab, newTabletCopy({ id: "", tabletId: tab.id, holder: a.host, source: `shown by ${a.from}`, unread: !read })));
+    view.copiesShown.push(Views.tablet(tab, newTabletCopy({ id: "", tabletId: tab.id, holder: a.host, source: `shown by ${a.from}`, unread: !read }), S.turn));
   }
   // Item 9: whether it carries its king's seal is plain to see; its limits and mandate only if it shows its credentials.
   const authority = a.dispatch.authority;

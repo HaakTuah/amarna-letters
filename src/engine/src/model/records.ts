@@ -101,6 +101,21 @@ export interface Journey {
 /** The arrival of a letter still waiting for its carrier (item 11b): never, until one takes it. */
 export const Waiting = 1_000_000;
 
+/** The province a province's offer is from (a journey of kind `Offer`, item 17++ part D): written first in its letter. */
+export const provinceOf = (j: Journey): string => (j.text ?? "").split("|")[0];
+
+/**
+ * The people's own words in a province's offer, written after its province: what the power it reaches reads, and what
+ * whoever catches its carrier reads as written (#553).
+ */
+export const offerWords = (j: Journey): string => (j.text ?? "").split("|").slice(1).join("|");
+
+/**
+ * How the notice of an offer caught on the road opens (#553): "Among what Ahmose carried, and so never delivered, was the
+ * word of the people of Babili to Egypt: "...""; script kings read it by the same words.
+ */
+export const OfferCaught = { opens: "Among what ", people: " carried, and so never delivered, was the word of the people of ", words: ': "' } as const;
+
 export function newJourney(init: Partial<Journey> = {}): Journey {
   return {
     id: "",
@@ -532,6 +547,8 @@ export interface Tablet {
   credentialsShown: boolean;
   /** The season the king whose envoy sealed it repudiated it, as beyond his authority; null if he has not. */
   repudiatedTurn: number | null;
+  /** Bug #609: the season word of the repudiation reaches the tablet's other king; null for none (or a save from before). */
+  repudiatedHeard: number | null;
   /** Item 12, "Composing": the language it is written in; "" for its proposer's court's own written language. */
   tongue: string;
 }
@@ -558,6 +575,7 @@ export function newTablet(init: Partial<Tablet> = {}): Tablet {
     within: null,
     credentialsShown: false,
     repudiatedTurn: null,
+    repudiatedHeard: null,
     tongue: "",
     ...init,
   };
@@ -584,6 +602,7 @@ export const TabletSchema: ObjSchema<Tablet> = obj("Tablet", newTablet, {
   within: opt(B),
   credentialsShown: B,
   repudiatedTurn: opt(I),
+  repudiatedHeard: opt(I),
   tongue: S,
   isSealedAgreement: computed(B, (o: Tablet) => isSealedAgreement(o)),
 });
@@ -971,6 +990,17 @@ export const ScoreRowSchema: ObjSchema<ScoreRow> = obj("ScoreRow", newScoreRow, 
 
 /** The outcome the engine records when the host seals the tablet the envoy carried: the only sealing on a mission. */
 export const SealedOutcome = "the tablet was sealed by both kings";
+
+/**
+ * Does `p` know by `turn` that the tablet was repudiated (bug #609)? Its repudiating king at once; its other king when
+ * word of it reaches his court; a third court holding a copy is never told.
+ */
+export function repudiationKnown(t: Tablet, p: Power, turn: number): boolean {
+  if (t.repudiatedTurn === null) return false;
+  if (p === t.byHandOf) return true;
+  const other = t.proposedBy === t.byHandOf ? t.partner : t.proposedBy;
+  return p === other && (t.repudiatedHeard === null || t.repudiatedHeard <= turn);
+}
 
 export function isSealedAgreement(t: Tablet): boolean {
   return !t.forged && t.sealedTurn !== null && t.partner !== null && t.seals.length >= 2;
