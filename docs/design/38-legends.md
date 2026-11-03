@@ -48,8 +48,10 @@ it last stood (`MindBook.at`). Replay never reads them, but a replayed or contin
 king's seat at the season shown, each page with the season it was written, only while the record is open to the page
 (`canSeeAll`: a spectator watching through the seat, or any seat once the game ends), never another seat's during play.
 A model character's memory needs no such pages: its summary is in the game state (`Character.memorySummary`), saved
-with every season. The narrator's writings were already kept in the record the first time they are written (personas,
-the chronicles) and read back on replay, never written again.
+with every season. The narrator's writings are kept in the record the first time they are written (personas, the
+chronicles, the threads to watch) and read back on replay, never written again; the game's owner may have the chronicles
+and the threads told anew beside the first telling ("Threads to watch and the director camera" in
+`52-the-season-plays-out.md`).
 
 ## The two echoes
 

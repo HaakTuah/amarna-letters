@@ -40,6 +40,7 @@ import {
   MindPageSchema,
   ShadowDecisionSchema,
   TemplateNarrator,
+  ThreadSchema,
   WordFields,
   exportJsonl,
   realNames,
@@ -163,6 +164,8 @@ describe("ExportTests", () => {
     "collect", "copies", "copy", "council", "court", "debt", "engage", "envoy", "fate", "fleet", "from", "grantee", "how", "into", "kind", "lot",
     "name", "named", "open", "partner", "person", "power", "province", "provinces", "seals", "supported", "target", "task", "to", "unit",
     "vassal", "via", "what", "when", "where", "withdraw",
+    // Item 17+++: a thread to watch names a court, a person and a message trail by id.
+    "trail",
     // A character's answers: courts, debts, offers and people by id, an alias it was offered.
     "accept", "askDebts", "choice", "claimsToServe", "crownId", "giveDebts", "go", "goAs", "kill", "league", "outlaw", "repay",
   ]);
@@ -194,7 +197,7 @@ describe("ExportTests", () => {
       }
     };
     // Every schema the runner records a decision under (strings and flags are values of their own).
-    for (const schema of [TurnSubmissionSchema, HostReplySchema, MindReplySchema, PresentResultSchema, EnvoyReactionSchema]) walk(schema, "");
+    for (const schema of [TurnSubmissionSchema, HostReplySchema, MindReplySchema, PresentResultSchema, EnvoyReactionSchema, ThreadSchema]) walk(schema, "");
     // A new string field must be put on one side: in WordFields (export.ts) if a player types it, here if the engine reads it.
     Assert.equal([], [...unsorted]);
   });
