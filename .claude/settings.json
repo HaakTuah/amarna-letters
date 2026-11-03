@@ -1,4 +1,10 @@
 {
+  "permissions": {
+    "deny": [
+      "Edit(//**/.git/**)",
+      "Edit(//**/.git)"
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/develop:scripts/statusline.sh 2>/dev/null) || exit 0; bash -c \"$f\" statusline'"
@@ -10,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && SKIP_PLAYWRIGHT=1 bash \"$CLAUDE_PROJECT_DIR/scripts/cloud-setup.sh\" || true",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] || exit 0; bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/develop:scripts/cloud-setup.sh 2>/dev/null) || { echo \"Not run: the cloud setup runs only its copy merged into develop, and refs/remotes/origin/develop has none. Fetch develop (git fetch origin develop), and start a new session.\"; exit 0; }; SKIP_PLAYWRIGHT=1 bash -c \"$f\" \"${CLAUDE_PROJECT_DIR:-.}/scripts/cloud-setup.sh\"'",
             "timeout": 600
           }
         ]
@@ -20,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/develop:.claude/hooks/work-saved.sh 2>/dev/null) || exit 0; bash -c \"$f\" work-saved start'",
+            "command": "bash -c 'f=$(git -C \"${CLAUDE_PROJECT_DIR:-.}\" --no-replace-objects show refs/remotes/origin/develop:.claude/hooks/work-saved.sh 2>/dev/null) || { echo \"Not run: the work-saved hook runs only its copy merged into develop, and refs/remotes/origin/develop has none. Fetch develop (git fetch origin develop), and it runs from the next reply on.\"; exit 0; }; bash -c \"$f\" work-saved start'",
             "timeout": 30
           }
         ]
