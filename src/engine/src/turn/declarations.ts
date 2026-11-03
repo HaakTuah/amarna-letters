@@ -80,7 +80,7 @@ P.declareIn = function (province, holder, against, affirmed, clears) {
     S.declarations.push(nd);
     const from = holder === null ? "it has no ruler" : `${holder}'s hold on it is weak`;
     // Part D (#431): its offer reaches him only if someone carries it.
-    this.sendOffer(nd, holder, `The people of ${name} declare for you: they favour you, and ${from}. It is yours only if you take it up (answer it: take it up, or refuse it); until then it stays as it is, and the offer stands only while they lean your way.`);
+    this.sendOffer(nd, holder, `The people of ${name} declare for you: they favour you, and ${from}.`);
     logEvent(S, "declare", `The people of ${name} declared for ${p}.`, [], "declare");
     return null;
   }

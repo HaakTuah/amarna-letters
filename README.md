@@ -139,7 +139,8 @@ rumours, and those can be late, shaded or false.
   panel's "Provinces that look to you"); refusing it costs you a little of its people's regard. Its offer reaches you
   only if someone carries it: your spy watching it, a man of yours going your way, or one its people pay if they are far
   gone in your favour (the notice says who brought it). Talk of its leaning comes first, to you, its king and his
-  enemies alike; it is no offer, and a carrier may sell what he knows. Land ceded to you by
+  enemies alike; it is no offer, and a carrier may sell what he knows. A carrier caught on the road loses it to his
+  captor, who reads the people's words as they wrote them. Land ceded to you by
   treaty is the same: a claim its giver holds until you take it up. A rising against your troops is fought as a
   battle, and seven men among thousands who lean away are beaten. The men of your armies keep a ledger too: pay, plunder
   and victories bind them to the hand they see, so a commander or governor who turns takes only the men who follow him. A

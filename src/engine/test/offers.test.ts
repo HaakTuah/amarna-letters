@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newGrant, newJourney, newTraits, newUnit, Waiting, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
+import { Dict, OfferTerms, OfferUnheard, TurnEngine, inboxOf, newCharacter, newDeclaration, newGame, newGameConfig, newId, newGrant, newJourney, newTraits, newUnit, Waiting, WorldMap, type Character, type Declaration, type GameState } from "@amarna/engine";
 import { Assert, removeAll } from "./support.ts";
 
 // Item 17++, part D (#431, the owner: "Yes, expertly, if you think it is best"): a province's offer to an absent power
@@ -54,6 +54,8 @@ describe("OfferTests", () => {
     e.offerArrives(j);
     Assert.equal(s.turn, d.known);
     Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you" && i.body.includes("Ahmose brought it"));
+    // The people's words, then the terms of answering them, which only the power it reaches is told (#553).
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you" && i.body.startsWith(`The people of Babylon declare for you. ${OfferTerms}`));
   });
 
   test("Only a people far gone in his favour pays a courier from its purse", () => {
@@ -114,6 +116,27 @@ describe("OfferTests", () => {
     e.lettersGo();
     Assert.false(s.journeys.some((j) => j.kind === "Offer"));
     Assert.equal(OfferUnheard, d.known);
+  });
+
+  // #553: as a caught spy's report is read, so is a caught offer, in the people's own words.
+  test("Whoever catches an offer's carrier reads the offer, and it never arrives", () => {
+    const [s, e, d] = offered();
+    const c = person(s, { status: "Employed", employer: "Egypt", at: "Babylonia" });
+    e.startTravel(c, "Egypt");
+    e.carryLetters();
+    Assert.equal(c.id, offer(s).carrier);
+    // Taken by the land king's men on the road: held, his walk home ended.
+    removeAll(s.journeys, (j) => j.characterId === c.id && j.kind !== "Offer");
+    c.status = "Captured";
+    c.heldBy = "Babylonia";
+    e.lettersGo();
+    Assert.false(s.journeys.some((j) => j.kind === "Offer"));
+    Assert.equal(OfferUnheard, d.known);
+    const read = inboxOf(s, "Babylonia").find((i) => i.title === "A letter taken on the road")!;
+    Assert.equal(`Among what Ahmose carried, and so never delivered, was the word of the people of ${WorldMap.default.get("babylon").name} to Egypt: "The people of Babylon declare for you."`, read.body);
+    Assert.doesNotContain(OfferTerms, read.body);
+    Assert.contains(s.events, (x) => x.signal === "offer-read");
+    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you");
   });
 
   test("Talk reaches the land king's enemies, by the game's marks of enmity, and not every neighbour", () => {
