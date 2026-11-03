@@ -35,6 +35,25 @@ taken on the road"). PR #576. Save version 50.
 - **No new rule for what the captor may do with it:** he knows, and acts as he would on talk. Sending it on or selling it
   is a new lever, and the reviewer's idea below.
 
+## Benchmarks
+
+`--versus solo`, seeds 1-4, on `develop` at d2740ad3 and on this branch at 87837fb9, that commit merged in. Four seeds,
+as the session's limit allows (forty overran it, `docs/rounds/2026-11-02-history-owner-answers.md`), so this shows only
+that games stay playable and the bots unchanged where nothing is caught; it is not a balance measurement.
+
+- **Every king, before and after:** the same, but for one city-state. All kings 2.25 / 1.07 (growth alone / as
+  baseline), wins 111% / 14%.
+- **Of the great kings:**
+  - Egypt 1.27 / 0.91
+  - Hatti 2.64 / 0.92
+  - Babylonia 1.18 / 0.62
+  - Mitanni 1.37 / 1.12
+  - Assyria 1.91 / 0.78
+  - Arzawa 0.65 / 0.75
+  - Alashiya 1.08 / 0.87
+- **The one difference:** Carchemish alone, 1.53 before and 1.48 after (wins 25% both). That is where talk now finds a
+  claimant by the name its court gives him (`named`), or where an offer was read.
+
 ## Use against ignore
 
 `--talk-play-half`, 50 games, seed 1. Kings that heed talk and caught offers, against kings that ignore both:
