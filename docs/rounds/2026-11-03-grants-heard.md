@@ -60,4 +60,10 @@ Codex: one P1, the save version (fixed: 52). Claude's reviewer (Opus, high): 8 o
 
 One idea (Opus): give `GrantView` the land it covers: filed as bug #611, since the grantor's own view is wrong today.
 
+## Review, round 2
+
+Codex: clean (its 👍). Claude's reviewer: 10 of 10, every round-1 point confirmed fixed, nothing open; one idea: none.
+
+Review: rules · Claude · 8, 10; Codex · P1×1, clean
+
 Questions for the owner: none. Filed: #609, #611 (bugs).
