@@ -1,7 +1,7 @@
 # Build progress
 
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
-`.claude/rules/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
+`docs/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
 how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
 document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
 longer finds was history and is in `docs/archive/design-history.md`.
@@ -69,9 +69,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   rounds, past the three that "Codex reviews" holds: no fifth; take it to escalation as that section says. (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`
   rule 9 says: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
-  only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if
-  Codex's "🛡️ Codex Security Review" comment says so ("Codex reviews"); report any ask that came back as a code
-  review alone.
+  only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if Codex's review summary shows its completed "🔒 Security Review" row ("Codex
+  reviews"); report a PR that lacks it.
 
 - **The body and the road** (the owner, 3 November 2026; archive item 187; "The body: endurance and robustness" and
   "The road he takes follows his appetite for risk" under Characters, revision 31, and "What sets a company's pace",

@@ -3,7 +3,7 @@
 
 The design document (Claude Docs, doc 7f857750-39dc-464a-a739-c9f59dfe3dcd) is the source of intent. It has one
 tab per system (TABS below, in the document's order). This script turns the tabs' markdown exports into
-docs/intent/<tab>/ (one file per section) and .claude/rules/builder-rules.md (the "Rules for the builder" block in
+docs/intent/<tab>/ (one file per section) and docs/builder-rules.md (the "Rules for the builder" block in
 the Build order tab, which every session loads). Every output file starts with one generated-header line; without
 those lines the files of a tab, in manifest order, reproduce its export byte for byte, and the script checks that
 before it exits.
@@ -22,7 +22,7 @@ import argparse, json, os, re, shutil, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'docs', 'intent')
-RULES = os.path.join(ROOT, '.claude', 'rules', 'builder-rules.md')
+RULES = os.path.join(ROOT, 'docs', 'builder-rules.md')
 DOC = '7f857750-39dc-464a-a739-c9f59dfe3dcd'
 TABS = [  # (folder, tab name, the tab's body node), in the document's order
     ('overview', 'Overview', '320f0886-6acf'),
@@ -62,7 +62,7 @@ def sections(lines):
 
 
 def build_order_parts(chunk, done_through):
-    """Cut the Build order section: intro, builder rules (to .claude/rules), done items, one file per item, not yet."""
+    """Cut the Build order section: intro, builder rules (to docs/builder-rules.md), done items, one file per item, not yet."""
     rules_at = next(i for i, l in enumerate(chunk) if l.startswith('**Rules for the builder.**'))
     order_at = next(i for i, l in enumerate(chunk) if l.startswith('**The order.**'))
     notyet_at = next(i for i, l in enumerate(chunk) if l.startswith('**Not yet in the order,**'))
@@ -216,15 +216,15 @@ def write_index(m, rows):
          'payload `{"kind":"view","sinceRev":<rev>}`). Only changed blocks come back. Where they differ from the copy,',
          'the live document wins. If the docs connector is not available (a session on another account, say), go on',
          'with the copy and say so in the report, and before opening the pull request read the copy on `develop` again:',
-         '`git fetch origin develop`, then `git diff <the commit the item started from>..origin/develop -- docs/intent .claude/rules`.',
+         '`git fetch origin develop`, then `git diff <the commit the item started from>..origin/develop -- docs/intent docs/builder-rules.md`.',
          '',
          '| Tab | Folder | Node | Revision |',
          '| --- | --- | --- | --- |']
     for tab, info in t.items():
         L.append(f"| {info['name']} | `docs/intent/{tab}/` | `{info['node']}` | {info['rev']} |")
     L += ['',
-          'Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent .claude/rules`.',
-          'Entries start with a bold title. The builder rules are in `.claude/rules/builder-rules.md`, which every',
+          'Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent docs/builder-rules.md`.',
+          'Entries start with a bold title. The builder rules are in `docs/builder-rules.md`, which every',
           'session loads.',
           '',
           '| File | Holds | KB |',

@@ -12,12 +12,12 @@ tabs your item's sections are in (Claude Docs `read`, container
 payload `{"kind":"view","sinceRev":<rev>}`). Only changed blocks come back. Where they differ from the copy,
 the live document wins. If the docs connector is not available (a session on another account, say), go on
 with the copy and say so in the report, and before opening the pull request read the copy on `develop` again:
-`git fetch origin develop`, then `git diff <the commit the item started from>..origin/develop -- docs/intent .claude/rules`.
+`git fetch origin develop`, then `git diff <the commit the item started from>..origin/develop -- docs/intent docs/builder-rules.md`.
 
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 571 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 344 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 350 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 83 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 68 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
@@ -30,8 +30,8 @@ with the copy and say so in the report, and before opening the pull request read
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 18 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 22 |
 
-Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent .claude/rules`.
-Entries start with a bold title. The builder rules are in `.claude/rules/builder-rules.md`, which every
+Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent docs/builder-rules.md`.
+Entries start with a bold title. The builder rules are in `docs/builder-rules.md`, which every
 session loads.
 
 | File | Holds | KB |
@@ -43,7 +43,7 @@ session loads.
 | `docs/intent/overview/prototype-scope.md` | Prototype scope | 3.0 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
-| `.claude/rules/builder-rules.md` | Rules for the builder | 11.7 |
+| `docs/builder-rules.md` | Rules for the builder | 11.3 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.8 |

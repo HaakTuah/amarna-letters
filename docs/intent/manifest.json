@@ -17,11 +17,11 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 344,
+   "rev": 350,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
-    ".claude/rules/builder-rules.md",
+    "docs/builder-rules.md",
     "docs/intent/build-order/items-1-to-5-done.md",
     "docs/intent/build-order/item-5plus.md",
     "docs/intent/build-order/item-6.md",

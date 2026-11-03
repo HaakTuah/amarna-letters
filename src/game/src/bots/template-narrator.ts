@@ -1,6 +1,7 @@
-/** The offline narrator: template personas, plain check reports, and boastful annals. */
+/** The offline narrator: template personas, plain check reports, boastful annals, and the threads to watch in plain words. */
 import { groupBy, king, land, personaTemplate, risenOf, trim, trimEnd, year, type Character, type GameEvent, type Power } from "@amarna/engine";
-import type { CheckContext, ChronicleContext, INarrator } from "../contracts.ts";
+import type { CheckContext, ChronicleContext, INarrator, ThreadContext } from "../contracts.ts";
+import { threadWords } from "./thread-words.ts";
 import { pick } from "./voices.ts";
 
 /** How a check's report is framed, chosen by the person asked after, so reports read differently from one person to the next. */
@@ -49,6 +50,10 @@ export class TemplateNarrator implements INarrator {
         ? `Of all the kings of the world, none grew as His Majesty did. The gods of ${land(p)} are pleased.`
         : `Though lesser kings boasted, the land of ${land(p)} endured, beloved of its gods, and its king lacked nothing.`) + "\n";
     return Promise.resolve(sb);
+  }
+
+  threads(ctx: ThreadContext, _signal?: AbortSignal): Promise<string[]> {
+    return Promise.resolve(ctx.threads.map((t) => threadWords(t, ctx.names)));
   }
 }
 

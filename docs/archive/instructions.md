@@ -1593,3 +1593,50 @@ Given in the design chat with Claude, answering the design questions of the cons
     review?" Earlier the same morning: "Nope, we don't run anything locally with a poller. Security risk for my
     system." Removed from `docs/claude-and-codex.md`, `SECURITY.md` and `docs/threat-model.md`: nothing on the owner's
     machine starts Codex; once its tasks work, it is started from the pull request itself.
+194. **3 November 2026, 10:36 to 10:44 UTC**, in the design chat, showing Codex's personal code-review settings (no
+    security option there), then, after setting the repositories' security review back to "Team PRs" with its trigger
+    "On PR open": "I have updated it." Tested on Barkstreet Snakes' #468: a draft got no security review, the draft
+    marked ready got one by itself (no findings, so no comment, only the summary's 🔒 row), and an ask on that same
+    commit ran a code review alone. Written into "Codex reviews" in `docs/claude-and-codex.md`.
+195. **3 November 2026, 11:27 and 11:28 UTC**, in the design chat: "So everything is perfectly consistent and perfectly
+    set-up no? No contradictions, no duplications, no unclear instructions, and the loop is 100% consistent and
+    masterfully crafted to be perfect, perfect expert?" Then, to the design session's take (an independent fresh-eyes
+    audit of both repositories' rule files, and fix what it finds): "Yes, do it expertly!" The audit found five blocking
+    problems and about thirty smaller ones; the fixes are in `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`,
+    `docs/threat-model.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md` and the new `docs/developing.md`. Two
+    findings (taste readings' route, and `AGENTS.md` in the workshop check's second mark) wait on the design document.
+196. **3 November 2026, 11:28 UTC**, the same instruction as item 195 ("Yes, do it expertly!"), for the two audit
+    findings in the builder rules, made in the design document (Build order, revision 348): a reading that is a matter
+    of taste goes to the owner as a `question` issue when it is taken ("Unattended work"), and `AGENTS.md` joins the
+    files every session reads in the workshop check's second mark.
+197. **3 November 2026**, under item 195's instruction ("Yes, do it expertly!"): Codex's automatic security review on
+    #665 found that the new `docs/developing.md`, which holds the GitHub calls builders run with the repository's
+    credentials, was not a protected file, so a Codex lane steered by planted text could change them unseen. It joins the
+    protected files (`SECURITY.md`, rule 3). #665 had been merged with the finding open, against "Codex reviews": the fix
+    is this PR.
+198. **3 November 2026, 11:54 UTC**, in the design chat, on the reviewer's brief having moved into `CLAUDE.md`: "Will
+    Codex get these then when it becomes available for builder session delegations? Everything should be made provider
+    agnostic, so it is ready for that, no? CLAUDE.md only having stuff unique to Claude Code, then pointing to
+    AGENT.md, expert? And you may run another expert audit." A second fresh-eyes audit, with that lens, found seven
+    blocking problems and nineteen smaller ones. Every process rule now lives in the shared files, naming roles;
+    `docs/claude-and-codex.md`, "Who does what", alone says who fills each role; `CLAUDE.md` keeps only Claude Code's
+    models, effort, helpers and tools. The security gate gained a fallback (a reading for the owner to confirm), the
+    rule files and the calibration log joined the protected files, the calibration log moved to `docs/calibration.md`,
+    and the builder rules point to `SECURITY.md`, rule 4, for Dependabot's conditions (Build order, revision 349).
+199. **26 October 2026**, in the design chat, while the repositories were set up for building in the cloud, on writing
+    this project's notes, logs or files into another project's repository or folders, above all Barkstreet Snakes':
+    "strictly forbidden". Until 3 November 2026 this was quoted in `AGENTS.md` ("Each game's files stay in its own
+    repository"; first written into `CLAUDE.md` in commit `0871900a`), and was set down here when the rule files
+    stopped quoting the owner.
+200. **3 November 2026, 12:29 UTC**, in the design chat: "Why should they not be split cleanly between "concerns
+    only Claude Code" and "concerns all" now, expert? Do we need to have my quoted words in every instruction file that
+    is ingested every session start? I get it is probably to make sure the wording doesn't sway too far from my intent,
+    but I write to you in haste, not in the most clear and concise manner. Is there not a better way of doing thing?
+    You're the expert, you figure it out or make the calls. My first idea would be to reference somewhere where my
+    wording is, in another document, as I think every agent that passes through needs exact instructions. Sourcing is
+    only interesting for any edits of principles, and for reviews ensuring it has not drifted no, expert?" And, on the
+    security gate's fallback: "Agreed, expertly. Codex could run out of usage or be unavailable. I believe we have
+    already written it so there are always fallbacks, no, expert?" The builder rules moved to `docs/builder-rules.md`
+    (imported by `CLAUDE.md`, read by every builder), and they and the rule files now state rules plainly, with no
+    quotes or dated history and at most a pointer here (Build order, revision 350); a reviewer checks a change to a
+    rule file against the words it cites; the security gate's fallback stands.

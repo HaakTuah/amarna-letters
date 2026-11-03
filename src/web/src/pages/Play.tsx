@@ -15,6 +15,8 @@ import { player } from "../audio/player.ts";
 import { useGameAudio } from "../audio/use-game-audio.ts";
 import { InboxPanel } from "../components/InboxPanel.tsx";
 import { MindPanel } from "../components/MindPanel.tsx";
+import { ThreadsPanel } from "../components/ThreadsPanel.tsx";
+import { directorShot } from "../map/director.ts";
 import { MapLegend } from "../components/MapLegend.tsx";
 import { MarkInfo } from "../components/MarkInfo.tsx";
 import { OrdersPanel } from "../components/OrdersPanel.tsx";
@@ -36,7 +38,7 @@ import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
 import { useSession } from "../ui/use-session.ts";
 import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
-import { authorKind } from "@amarna/game";
+import { authorKind, type Thread } from "@amarna/game";
 
 /** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
 const PhaseWords: Record<string, string> = {
@@ -144,6 +146,32 @@ export function Play() {
     if (followAt !== null) map.current?.focus(followAt, 1, true);
   }, [followAt?.x, followAt?.y]);
 
+  // Item 17+++, part F: the season's threads to watch for the eyes the page sees through, read while their tab is open or
+  // the director camera is on, and only while the record is open to the page; the camera, off by default, takes the map
+  // to the season's highest-stakes scene as it plays out, unless a follow holds it.
+  const [director, setDirector] = useState(false);
+  const [threads, setThreads] = useState<{ key: string; tellings: Thread[][] } | null>(null);
+  const [trailOnly, setTrailOnly] = useState<string | null>(null);
+  const threadsAt = `${live.gameId}:${live.generation}:${s.shownIndex}:${viewerOf() ?? ""}`;
+  const wantThreads = live.hasRunner && s.canSeeAll && (tabRaw === "threads" || director);
+  const readThreads = (anew: boolean): (() => void) => {
+    let on = true;
+    void s.threads(s.shownIndex, viewerOf(), anew).then((tellings) => on && setThreads({ key: threadsAt, tellings }));
+    return () => {
+      on = false;
+    };
+  };
+  useEffect(() => (wantThreads ? readThreads(false) : undefined), [wantThreads, threadsAt]);
+  const tellings = wantThreads && threads?.key === threadsAt ? threads.tellings : null;
+  const playout = s.playoutAt(s.shownIndex, viewerOf());
+  useEffect(() => {
+    if (!director || playout === null || tellings === null || tracking) return;
+    const shot = directorShot(playout.play.timeline, tellings[0] ?? []);
+    if (shot === null) return;
+    const timer = window.setTimeout(() => map.current?.focus(shot.at, 2.2, true), Math.max(0, shot.time - (performance.now() - playout.began)));
+    return () => window.clearTimeout(timer);
+  }, [director, playout?.began, tellings, tracking]);
+
   // Simulate draws nothing while it runs (item 17+++): a progress bar and the count of seasons, and the way back to watching.
   if (live.hasRunner && s.simulating)
     return (
@@ -220,6 +248,7 @@ export function Play() {
   if (tab === "inbox" && viewer === null) tab = "";
   if (tab === "trail" && !s.godView) tab = "";
   if (tab === "legends" && !s.godView) tab = "";
+  if (tab === "threads" && !s.canSeeAll) tab = "";
   // Item 17+++: a model king's own words, where the record is open to the page and a seat is watched.
   const minded = viewer !== null && s.canSeeAll && authorKind(live.seats[viewer] ?? "Human") === "model";
   if (tab === "mind" && !minded) tab = "";
@@ -521,6 +550,11 @@ export function Play() {
               Own words
             </button>
           )}
+          {s.canSeeAll && (
+            <button className={tabClass("threads")} onClick={() => pick("threads")}>
+              Threads
+            </button>
+          )}
           {s.godView && (
             <button className={tabClass("trail")} onClick={() => pick("trail")}>
               Trail
@@ -693,7 +727,30 @@ export function Play() {
       case "mind":
         return <MindPanel power={viewer!} turn={s.shownIndex} session={s} />;
       case "trail":
-        return <TrailPanel state={displayed} authors={live.trailAuthors} onPerson={follow} />;
+        return <TrailPanel state={displayed} authors={live.trailAuthors} onPerson={follow} only={trailOnly} onAll={() => setTrailOnly(null)} />;
+      case "threads":
+        return (
+          <ThreadsPanel
+            tellings={tellings}
+            trails={s.godView}
+            director={director}
+            canTellAnew={!live.readOnly}
+            onPerson={follow}
+            onTrail={(id) => {
+              setTrailOnly(id);
+              setTab("trail");
+            }}
+            onPlace={(province) => {
+              setTracking(false);
+              setSheet(false);
+              setMark(null);
+              setSelectedProvince(province);
+              map.current?.focus(city(province), 2.2);
+            }}
+            onDirector={setDirector}
+            onTellAnew={() => void readThreads(true)}
+          />
+        );
       case "people":
         return <PeoplePanel state={displayed} viewer={viewer} onPerson={follow} />;
       case "follow":
@@ -727,7 +784,7 @@ export function Play() {
           </>
         );
       case "chronicle":
-        return <ChroniclePanel state={state} chronicles={live.chronicles} />;
+        return <ChroniclePanel state={state} chronicles={live.chronicles} anew={live.chroniclesAnew} onTellAnew={live.readOnly ? null : () => s.chroniclesAnew()} />;
       case "legends":
         return <LegendsPanel state={displayed} onProvince={clicked} />;
       case "events":
