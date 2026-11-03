@@ -1581,3 +1581,9 @@ Given in the design chat with Claude, answering the design questions of the cons
     (say in the threat model that every file and its whole history are public, so nothing rests on being hidden and
     anything committed stays public): "Yes, please, expertly! Outmost importance we keep it at its most observant!"
     Written into `docs/threat-model.md`, "Everything is public".
+192. **3 November 2026, 10:02 UTC**, in the design chat: "Also, if we now are repeating ourselves (duplication, which
+    opens for drift and needless tokens usage) between threat-model and SECURITY, then we need to keep stuff to one or
+    the other, and rather refer, if something truly needs to be in both. You are the expert, make the expert
+    determinations here, security expert master!" Split: `docs/threat-model.md` holds what is public, who might
+    attack, what is protected and what they want of it, the ways in and the lower stakes; `SECURITY.md` holds only the
+    rules, alerts, licences and reporting, and points to it.

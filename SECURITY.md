@@ -1,22 +1,9 @@
 # Security
 
-Amarna Letters is a public repository and a public website. Anyone can read every file and its whole history, open issues,
-comment, and open pull requests from forks, and anyone can hand a player a save file or a link. This file says what is
-protected and the rules every builder and reviewer keeps. Codex's security review reads it; a break of a rule here is
-**blocking** in every review, and P0 or P1 in Codex's terms. The owner, 1 November 2026: "taking account of all attack
-vector and security concerns".
-
-## What is protected
-
-- **The owner's accounts:** his GitHub account and its tokens, his ChatGPT and Claude logins, and his PC, where a small
-  poller outside every repository hands work to Codex (`docs/claude-and-codex.md`, "the owner's poller").
-- **The branches and the site:** `main` (the live game), `develop`, the workflows that deploy, and GitHub Pages.
-- **Players:** their browsers, their saved records, and their API keys.
-
-## The threat model
-
-Who might attack, what they want and where they could get in: `docs/threat-model.md`, which Codex's security
-review reads as its threat model.
+The rules every builder and reviewer keeps. Who might attack, what is protected and where they could get in is the
+threat model, `docs/threat-model.md`; Codex's security review reads that as its threat model and this file as its
+instructions. A break of a rule here is **blocking** in every review, and P0 or P1 in Codex's terms. The owner,
+1 November 2026: "taking account of all attack vector and security concerns".
 
 ## The rules
 
