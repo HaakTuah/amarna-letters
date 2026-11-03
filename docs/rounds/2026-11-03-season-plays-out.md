@@ -104,6 +104,18 @@ reads and draws every season as fast as the worker plays it, as Fast did before.
 not met yet: part G measures the phone and takes the layer writes up. The smoke test passes on desktop, phone and a human
 seat, with the closing line checked.
 
+### After the retune (soak tool, seed 1, two minutes a speed, desktop)
+
+| Run | Seasons | Seconds a season, with the result | Frames over 50 ms | Worst after the opening |
+|---|---|---|---|---|
+| Slow | 6 | about 18 | 22 of 7,148 (0.3%) | 33 ms in play |
+| Normal | 15 | about 7 | 37 of 6,982 (0.5%) | 100 ms |
+| Fast | 75 | about 1.5 (1 s of highlights, the rest the worker's time) | 184 of 5,539 (3.3%) | 83 ms |
+| Simulate | 93 | about 1.2 (the worker's time; nothing drawn) | 4 of 7,243 (0.06%) | 17 ms |
+
+Simulate's page holds 29 DOM nodes while it runs, against about 4,200 for the map. The smoke test passes on desktop, the
+phone and a human seat, with the closing line checked.
+
 ### First guesses (presentation only)
 
 The paces in `Paces` (the table in the design note), set to "Pace of play" after the design check: a season's playout
