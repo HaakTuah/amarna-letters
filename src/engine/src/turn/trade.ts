@@ -6,6 +6,7 @@
  * spend their pay and buy their food only where they stand by leave, and a province taken by force is sacked ("Where gold
  * comes from and where it goes").
  */
+import { listed } from "../rules/wording.ts";
 import { policeAt, waysOf } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { sortBy } from "../core/seq.ts";
@@ -19,7 +20,7 @@ import { newWord, noteMarket, noteTolls, type Word } from "../model/word.ts";
 import { Views } from "../rules/views.ts";
 import type { Province } from "../model/map.ts";
 import type { Order, ShipOrder, TollOrder, TradeOrder } from "../model/orders.ts";
-import { AllPowers, type Power } from "../model/power.ts";
+import { AllPowers, type Power, powerName, whose } from "../model/power.ts";
 import { alive, isAlive, logEvent, newId, notify, ownedBy, siegeOf, unitAt, type Unit } from "../model/state.ts";
 import { newToll, shipFleet, smuggleOdds, tollOn, tollRate, TradeData } from "../model/trade.ts";
 import { cheapestRoute, legPoints, PointsPerDay } from "../model/travel.ts";
@@ -172,12 +173,12 @@ P.atBorder = function (c, a, b, book) {
     e.gold += c.gold;
     e.found++;
     const who = c.sneak ? "smugglers" : "caravan, sneaking through land closed to you,";
-    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${k}'s people, and ${c.sneak ? "their" : "its"} goods were seized: ${goods(c.grain, c.gold)}.`);
+    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${whose(k)} people, and ${c.sneak ? "their" : "its"} goods were seized: ${goods(c.grain, c.gold)}.`);
     logEvent(S, "smuggler-found", `${k}'s people found ${c.power}'s ${c.sneak ? "smugglers" : "caravan"} at ${name} and seized ${c.sneak ? "their" : "its"} goods.`, [...this.caravanNear(c, b), k], c.sneak ? "smuggler-found" : "caravan-found");
     return "seized";
   }
   if ((S.roadsClosed.tryGet(k) ?? []).includes(c.power) && !this.passageFor(k, c.power, b)) {
-    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} was turned back at the border of ${k}'s land at ${name}: his roads are closed to your people.`);
+    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} was turned back at the border of ${whose(k)} land at ${name}: his roads are closed to your people.`);
     const heard = S.roadsHeard.tryGet(c.power) ?? [];
     if (!heard.includes(k)) S.roadsHeard.set(c.power, [...heard, k]);
     return "turned";
@@ -194,7 +195,7 @@ P.atBorder = function (c, a, b, book) {
   e.grain += grain - lost;
   e.gold += gold;
   if (grain + gold > 0) {
-    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} paid ${k}'s toll at ${name}: ${goods(grain, gold)}, ${rate} in a hundred.`);
+    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} paid ${name === powerName(k) ? "the" : whose(k)} toll at ${name}: ${goods(grain, gold)}, ${rate} in a hundred.`);
     logEvent(S, "toll", `${c.power}'s goods paid ${k}'s toll at ${name}.`, [...this.caravanNear(c, b), k], "toll-paid");
   }
   return "pass";
@@ -421,7 +422,7 @@ P.sendTraders = function (orders, tell) {
     );
     const what = goods(grain, gold);
     if (fleet !== null) tell(p, o.from, `Your fleet in ${Map.get(fleet.province).name} loaded ${what} at ${from.name} and sailed for ${to.name} to ${trading ? "trade" : "deliver it"}: it is out of the war until it is back.`);
-    else tell(p, o.from, `A caravan${o.type === "trade" && o.sneak ? " of smugglers" : ""} with ${what} set out from ${from.name} to trade at ${to.name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
+    else tell(p, o.from, `A caravan${o.type === "trade" && o.sneak ? " of smugglers" : ""} with ${what} set out from ${from.name} to trade at ${to.name}, by ${listed(route.slice(1, -1).map((x) => Map.get(x).name)) || "the direct road"}.`);
     logEvent(S, fleet !== null ? "ship-out" : "trade-out", `${p} sent ${fleet !== null ? "a ship" : "a trading caravan"} from ${from.name}.`, this.nearOf(o.from, p), fleet !== null ? "ship-out" : "trade-out");
   }
 };

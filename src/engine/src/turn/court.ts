@@ -6,7 +6,7 @@ import { newMindRequest } from "../model/exchanges.ts";
 import { isPowerParty, MoneyData } from "../model/money.ts";
 import type { DismissOrder, HireOrder, Order, RenewOrder, UpkeepOrder } from "../model/orders.ts";
 import { coverOf, falseNameAt, gain, newContract, newJobErrand, newStayLeft, remember, reputationAt, lossesHeardOf, type Character, type JobErrand, type JobWhat } from "../model/people.ts";
-import { cmpPower, land, type Power } from "../model/power.ts";
+import { cmpPower, land, type Power, powerName } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
 import { char, findCharacter, logEvent, newId, notify, upkeepOf } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -130,7 +130,7 @@ P.hireAll = function (hires, carriedTo = null) {
     const c = char(S, key);
     if (c.status !== "Free" || c.errand !== null) {
       for (const { p, h } of group)
-        if (carried) this.word(carriedTo!, p, "Job", `${findCharacter(S, h.via ?? "")?.name ?? "Your envoy"} could not put your offer to ${c.name} at the court of ${carriedTo}: they were no longer free to take service. The advance comes home with your envoy.`);
+        if (carried) this.word(carriedTo!, p, "Job", `${findCharacter(S, h.via ?? "")?.name ?? "Your envoy"} could not put your offer to ${c.name} at the court of ${powerName(carriedTo)}: they were no longer free to take service. The advance comes home with your envoy.`);
         else this.failed(p, h, "Not hired", `${c.name} was no longer free to take service.`, "no longer free", true, c.id);
       continue;
     }
@@ -162,7 +162,7 @@ P.hireAll = function (hires, carriedTo = null) {
       const short = value(lost) < ask * term(lost);
       const why = !present(lost)
         ? c.heldBy !== null
-          ? `they are held at the court of ${c.heldBy}`
+          ? `they are held at the court of ${powerName(c.heldBy)}`
           : carried
             ? "they were no longer there when your envoy came"
             : "they are not at your court: send the offer with an envoy going where they are (via)"
@@ -180,7 +180,7 @@ P.hireAll = function (hires, carriedTo = null) {
       if (carried) {
         // The advance stays with the envoy, which brings it home; word of the answer comes home by the roads.
         const envoy = findCharacter(S, lost.h.via ?? "");
-        this.word(carriedTo!, lost.p, "Job", `${envoy?.name ?? "Your envoy"} put your offer of a job to ${c.name} at the court of ${carriedTo}, who declined: ${why}. The advance comes home with your envoy.`);
+        this.word(carriedTo!, lost.p, "Job", `${envoy?.name ?? "Your envoy"} put your offer of a job to ${c.name} at the court of ${powerName(carriedTo)}, who declined: ${why}. The advance comes home with your envoy.`);
       } else this.failed(lost.p, lost.h, "Not hired", `${c.name} declined your offer of ${formatMoney(lost.h.fee)} for ${term(lost)} seasons: ${why}.`, why, present(lost) && heard(lost) && !short, c.id);
     }
     if (bids.length === 0) continue;
@@ -234,7 +234,7 @@ P.hireAll = function (hires, carriedTo = null) {
     }
     // The court learns it only when word comes home by the roads; until then it does not count him its own.
     c.contract.knownFrom = S.turn + (at === winner ? 0 : this.travelTurns(at, winner));
-    this.word(at, winner, "Job", `${c.name} took the job your envoy offered at the court of ${at}${errand}, for ${formatMoney(hire.fee)}, within ${term(bids[0])} seasons, in turn ${S.turn}; your envoy paid ${formatMoney(advance)} of it. ${here ? "They took up their post there at once." : "They set out for your court."}`);
+    this.word(at, winner, "Job", `${c.name} took the job your envoy offered at the court of ${powerName(at)}${errand}, for ${formatMoney(hire.fee)}, within ${term(bids[0])} seasons, in turn ${S.turn}; your envoy paid ${formatMoney(advance)} of it. ${here ? "They took up their post there at once." : "They set out for your court."}`);
   }
 };
 
@@ -242,7 +242,7 @@ P.hireAll = function (hires, carriedTo = null) {
 export function errandWords(e: JobErrand | null, name: (x: string) => string): string {
   if (e === null) return "";
   if (e.what === "stay") return " to stay at court";
-  return e.what === "envoy" ? ` as envoy to ${e.where}` : ` to watch ${isPowerParty(e.where) ? `the court of ${e.where}` : name(e.where)}`;
+  return e.what === "envoy" ? ` as envoy to ${powerName(e.where)}` : ` to watch ${isPowerParty(e.where) ? `the court of ${powerName(e.where)}` : name(e.where)}`;
 }
 
 /**
@@ -267,7 +267,7 @@ P.renew = function (p, r) {
   const k = cover === null ? c.contract! : null;
   const errand = errandOf(r);
   if (jobValue(r.fee, advance, trustIn(S, p, c)) < price * term) {
-    notify(S, p, "Rejected", "Not renewed", `${c.name} will not take a new job for ${formatMoney(r.fee)} over ${term} seasons, ${formatMoney(advance)} paid now: they ask ${formatMoney(price)} a season, and more if less is paid now.`, c.id);
+    notify(S, p, "Rejected", "Not renewed", `${c.name} will not take a new job for ${formatMoney(r.fee)} over ${term} seasons, ${advance > 0 ? `${formatMoney(advance)} paid now` : "nothing paid now"}: they ask ${formatMoney(price)} a season, and more if less is paid now.`, c.id);
     return;
   }
   const fit = cover === null ? this.jobFits(c, p, { errand }, term) : null;
@@ -300,7 +300,7 @@ P.renew = function (p, r) {
   }
   const carried = k !== null && serves ? c.contract!.carried : 0;
   const stay = k !== null && serves ? c.contract!.stay : null;
-  notify(S, p, "Notice", "A new job taken", `${c.name} took the new job, through turn ${until}, for ${formatMoney(r.fee)}${carried > 0 ? ` (and the ${formatMoney(carried)} still to come from the job before)` : ""}, ${formatMoney(advance)} of it paid now.${stay !== null && k?.stay !== stay ? ` When it is done, their stay at your court goes on until turn ${stay.until}, with ${formatMoney(stay.rest)} of its fee still to come.` : ""}`, c.id);
+  notify(S, p, "Notice", "A new job taken", `${c.name} took the new job, through turn ${until}, for ${formatMoney(r.fee)}${carried > 0 ? ` (and the ${formatMoney(carried)} still to come from the job before)` : ""}, ${advance > 0 ? `${formatMoney(advance)} of it paid now` : "nothing of it paid now"}.${stay !== null && k?.stay !== stay ? ` When it is done, their stay at your court goes on until turn ${stay.until}, with ${formatMoney(stay.rest)} of its fee still to come.` : ""}`, c.id);
 };
 
 /**

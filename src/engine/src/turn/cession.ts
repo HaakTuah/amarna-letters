@@ -12,7 +12,7 @@ import { cmpNum, sortBy } from "../core/seq.ts";
 import { cessionAgreed } from "../model/cession.ts";
 import type { CedeProvinceOrder } from "../model/orders.ts";
 import { newCharacter, newFact, newTraits, type Character } from "../model/people.ts";
-import { AllPowers, king, land, rulerNamed, type Power } from "../model/power.ts";
+import { AllPowers, king, land, rulerNamed, type Power, powerName, whose } from "../model/power.ts";
 import { isAlive, logEvent, newId, unitAt } from "../model/state.ts";
 import { seasonWords } from "../rules/clauses.ts";
 import { personaTemplate } from "../rules/personas.ts";
@@ -36,23 +36,23 @@ P.realmCeded = function (p, c) {
   const S = this.s;
   const name = this.map.get(c.province).name;
   if (S.owner.getOrDefault(c.province, null) !== p) {
-    this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it when the moves were done.`, "you no longer held it");
+    this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${powerName(c.to)}: you no longer held it when the moves were done.`, "you no longer held it");
     return;
   }
   // The agreement must still stand as the season resolves: a tablet repudiated (as he knows it) or carried off since gives nothing.
   if (!cessionAgreed(S.tablets, p, c.to, c.province, S.turn)) {
-    this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: no sealed tablet between you gives it any more.`, "the tablet no longer stands", false);
+    this.failed(p, c, "Cession failed", `${name} was not ceded to ${powerName(c.to)}: no sealed tablet between you gives it any more.`, "the tablet no longer stands", false);
     return;
   }
   if (!isAlive(S, c.to)) {
-    this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: that kingdom is no more.`, "the receiver has fallen", true);
+    this.failed(p, c, "Cession failed", `${name} was not ceded to ${powerName(c.to)}: that kingdom is no more.`, "the receiver has fallen", true);
     return;
   }
   // Troops of his own standing in it go home with the rest when the kingdom falls; a foreign unit there would be the
   // receiver's to face, so an unhindered city is all the order needs.
   const u = unitAt(S, c.province);
   if (u !== null && u.power !== p && u.power !== c.to) {
-    this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: ${u.power}'s troops stood in it when the moves were done.`, "foreign troops stood there", true);
+    this.failed(p, c, "Cession failed", `${name} was not ceded to ${powerName(c.to)}: ${whose(u.power)} troops stood in it when the moves were done.`, "foreign troops stood there", true);
     return;
   }
   logEvent(S, "cession", `${p} ceded ${name}, its capital, and with it the whole realm, to ${c.to}.`, [p, c.to]);
@@ -88,7 +88,7 @@ P.formerRuler = function (p, to) {
     c.facts.push(newFact({ id: newId(S, "f"), text, secrecy: "Public", tag: "origin" }));
   };
   add(`Ruled ${land(p)} from ${capital.name}.`);
-  add(`Ceded ${capital.name}, and with it the whole of ${land(p)}, to ${to} by a sealed tablet, in ${seasonWords(S.turn)}.`);
+  add(`Ceded ${capital.name}, and with it the whole of ${land(p)}, to ${powerName(to)} by a sealed tablet, in ${seasonWords(S.turn)}.`);
   c.traits.sympathy = null;
   c.traits.sympathyStrength = 0;
   c.arrived = S.turn;

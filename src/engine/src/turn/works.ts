@@ -14,7 +14,7 @@ import { cmpStr } from "../core/text.ts";
 import { LandData, menAvailable, unitCarried } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import type { BuildOrder, RazeOrder } from "../model/orders.ts";
-import { AllPowers, type Power } from "../model/power.ts";
+import { AllPowers, type Power, whose } from "../model/power.ts";
 import { alive, logEvent, notify, ownedBy, siegeOf, unitAt, type Unit } from "../model/state.ts";
 import {
   buildGold,
@@ -38,7 +38,7 @@ import {
   type WorkPlan,
 } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
-import { pick } from "../rules/wording.ts";
+import { listed, pick, upper } from "../rules/wording.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine } from "./core.ts";
 
@@ -101,7 +101,7 @@ P.raze = function (p, o) {
   }
   setLevel(S, o.kind, u.province, level - 1);
   notify(S, p, "Resolution", "Razed", `Your army razed a level of ${named(o.kind, name)}, leaving ${workLevelText(o.kind, level - 1)}.`);
-  this.tell(holder, u.province, "Notice", "Razed", `${p}'s army razed a level of ${named(o.kind, name)}, leaving ${workLevelText(o.kind, level - 1)}.`);
+  this.tell(holder, u.province, "Notice", "Razed", `${upper(whose(p))} army razed a level of ${named(o.kind, name)}, leaving ${workLevelText(o.kind, level - 1)}.`);
   logEvent(S, "raze", `${p}'s army razed a level of the ${workName(o.kind)} of ${name}.`, [p, holder], "raze");
 };
 
@@ -118,7 +118,7 @@ const was = (kind: WorkKind): string => (kind === "Harbour" || kind === "Policin
 /** "the roads, harbour and watch of Shushan": several works of one place in one phrase. */
 const namedAll = (kinds: WorkKind[], place: string): string => {
   const nouns = kinds.map((k) => named(k, place).slice(4, -` of ${place}`.length));
-  return `the ${nouns.length > 1 ? `${nouns.slice(0, -1).join(", ")} and ${nouns[nouns.length - 1]}` : nouns[0]} of ${place}`;
+  return `the ${listed(nouns)} of ${place}`;
 };
 
 /** A notice's clauses as sentences. */
@@ -191,7 +191,7 @@ P.worksSeason = function () {
           const data = WorksData[kind];
           work.neglect++;
           if (data.decay <= 0) {
-            say(id, `${named(kind, prov.name)}, unkept, fell from ${workLevelText(kind, level)} to ${workLevelText(kind, standing)}`);
+            say(id, `${named(kind, prov.name)}, unkept, fell from ${workLevelText(kind, level)} to ${standing > 0 ? workLevelText(kind, standing) : "nothing"}`);
             level = standing;
             setLevel(S, kind, id, level);
             work.neglect = 0;
@@ -333,7 +333,7 @@ P.harboursWinter = function () {
       left -= share;
     }
     for (const u of fleets.filter((x) => x.men < LandData.levyLeast)) S.units.splice(S.units.indexOf(u), 1);
-    notify(S, power, "Resolution", "Winter at sea", `Your fleets in ${Map.get(waters).name} found harbour room for ${room} of their ${men} men; winter storms on the open beaches took ${lost} of the rest.`);
+    notify(S, power, "Resolution", "Winter at sea", `Your fleets in ${Map.get(waters).name} found ${room > 0 ? `harbour room for ${room} of their ${men} men; winter storms on the open beaches took ${lost} of the rest` : `no harbour room for their ${men} men; winter storms on the open beaches took ${lost} of them`}.`);
     logEvent(S, "winter", `${power}'s fleets in ${Map.get(waters).name} lost ${lost} men to winter storms on open beaches.`, [power], "harbour-short");
   }
 };

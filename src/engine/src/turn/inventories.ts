@@ -5,7 +5,7 @@
  */
 import { clamp } from "../core/num.ts";
 import { newFact, remember, type Character } from "../model/people.ts";
-import { AllPowers, land, type Power } from "../model/power.ts";
+import { AllPowers, land, type Power, powerName } from "../model/power.ts";
 import { newTablet, newTabletCopy, type PendingAudience, type Tablet, type TabletCopy } from "../model/records.ts";
 import { alive, char, logEvent, newId } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -101,7 +101,7 @@ P.swapInventory = function (c, sealer, receiver, kept, left, swap) {
  */
 P.inventoryExposed = function (examiner, tablet, forger) {
   const S = this.s;
-  const bearer = `${forger.name}${tablet.forgerEmployer !== null ? `, envoy of ${tablet.forgerEmployer},` : ""}`;
+  const bearer = `${forger.name}${tablet.forgerEmployer !== null ? `, envoy of ${powerName(tablet.forgerEmployer)},` : ""}`;
   for (const p of AllPowers) forger.reputation.set(p, forger.reputation.getOrDefault(p, 0) - 30);
   forger.facts.push(
     newFact({
@@ -112,7 +112,7 @@ P.inventoryExposed = function (examiner, tablet, forger) {
     }),
   );
   for (const p of alive(S).filter((p) => p !== examiner))
-    this.rumor(p, examiner, `The scribes of ${examiner} declare that the inventory of gold bearing the seal of ${tablet.seals.join(" and ")}, brought by ${bearer} was forged by ${forger.name}.`);
+    this.rumor(p, examiner, `The scribes of ${powerName(examiner)} declare that the inventory of gold bearing the seal of ${tablet.seals.join(" and ")}, brought by ${bearer} was forged by ${forger.name}.`);
   logEvent(S, "forgery-exposed", `${examiner} publicly traced a forged inventory to ${forger.name}.`, null, "forgery-exposed");
   return ` The scribes trace it to the hand of ${forger.name}, who brought it.`;
 };

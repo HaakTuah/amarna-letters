@@ -418,6 +418,27 @@ export function land(p: Power): string {
   return viewerNow === null ? ownLand(p) : landFor(viewerNow, p);
 }
 
+/**
+ * A power as a player reads it named, in every notice and on every screen: its land's name as the court gives it
+ * ({@link land}: Gubla, Sutu, the Seha River Land), Babylonia by that name rather than its land's Karduniash, which the
+ * letters keep. One form for every power, so one name means one power wherever it is read.
+ */
+export function powerName(p: Power): string {
+  const l = land(p);
+  return p === "Babylonia" && l === ownLand(p) ? "Babylonia" : l;
+}
+
+/** {@link powerName} as `viewer`'s court gives it: how a notice written to that court names the power. */
+export function powerNameFor(viewer: Power, p: Power): string {
+  return asSeenBy(viewer, () => powerName(p));
+}
+
+/** {@link powerName} with its possessive: "Hatti's", "the Seha River Land's". */
+export function whose(p: Power): string {
+  const n = powerName(p);
+  return n.endsWith("s") ? `${n}'` : `${n}'s`;
+}
+
 /** Someone's own words the engine quotes in a notice, marked where they are written (`quoteWords`) so no renaming touches them. */
 const Marked = /"\uE000([^\uE000\uE001]*)\uE001"/gu;
 /** Words between double quotes the engine wrote without marking them: closed before a space, a stop or the end. */
@@ -448,6 +469,9 @@ function renamingOf(viewer: Power): { swaps: Map<string, string>; name: RegExp }
       swaps.set(own, seen);
       // A name that begins with "the" begins a sentence with "The".
       if (own.startsWith("the ")) swaps.set("T" + own.slice(1), seen);
+      // The name the engine gives it where that is not its land's (Babylonia).
+      const shown = asSeenBy(null, () => powerName(p));
+      if (shown !== own) swaps.set(shown, seen);
     }
     const names = [...swaps.keys()].sort((x, y) => y.length - x.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
     r = swaps.size === 0 ? null : { swaps, name: new RegExp(`(?<![\\p{L}-])(?:${names.join("|")})(?![\\p{L}])`, "gu") };

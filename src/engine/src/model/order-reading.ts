@@ -4,6 +4,7 @@ import { workLevelText, workName } from "./works.ts";
 import { mandateText } from "./command.ts";
 import type { HireOrder, RenewOrder, Order } from "./orders.ts";
 import { WorldMap } from "./map.ts";
+import { AllPowers, powerName, whose } from "./power.ts";
 
 /** A name the order left blank, as a refusal shows it. */
 function named(s: string | null | undefined): string {
@@ -62,7 +63,7 @@ export function describe(o: Order): string {
     case "ship":
       return `load the fleet in ${o.fleet} with ${o.grain} measures of grain and ${o.gold} shekels at ${named(o.from)} and sail to ${o.trade ? "trade at" : "deliver to"} ${named(o.to)}`;
     case "toll":
-      return `set a toll of ${o.percent}% on ${o.partner === null ? "everyone's" : `${o.partner}'s`} goods entering ${o.province === null ? "your land" : named(o.province)}`;
+      return `set a toll of ${o.percent}% on ${o.partner === null ? "everyone's" : whose(o.partner)} goods entering ${o.province === null ? "your land" : named(o.province)}`;
     case "welcome":
       return `settle the loose men in ${named(o.province)}`;
     case "deport":
@@ -70,7 +71,7 @@ export function describe(o: Order): string {
     case "expel":
       return `put ${o.percent} in a hundred of the mouths of ${named(o.province)} out of the city`;
     case "returnRunaways":
-      return `send ${o.to}'s runaways in ${named(o.province)} back to ${o.to}`;
+      return `send ${whose(o.to)} runaways in ${named(o.province)} back to ${powerName(o.to)}`;
     case "raise":
       return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}${o.share != null ? ` of ${o.share}% of its men of fighting age` : o.men != null ? ` of ${o.men} men` : ""}`;
     case "disband":
@@ -84,11 +85,11 @@ export function describe(o: Order): string {
     case "answer":
       return o.take ? `take up ${named(o.province)}, which looks to you` : `refuse ${named(o.province)}, which looks to you`;
     case "cede":
-      return `cede ${o.province} to ${o.to}`;
+      return `cede ${o.province} to ${powerName(o.to)}`;
     case "giftUnit":
-      return `give ${o.unit} to ${o.to}`;
+      return `give ${o.unit} to ${powerName(o.to)}`;
     case "dispatch":
-      return `send ${o.envoy} to ${o.to}` + (o.gold > 0 ? ` with ${o.gold} shekels` : "") + (o.proposal ? " bearing a tablet to seal" : "") + (o.collect != null ? ` carrying debt tablet ${o.collect}` : "");
+      return `send ${o.envoy} to ${powerName(o.to)}` + (o.gold > 0 ? ` with ${o.gold} shekels` : "") + (o.proposal ? " bearing a tablet to seal" : "") + (o.collect != null ? ` carrying debt tablet ${o.collect}` : "");
     case "release":
       return `release ${o.character}`;
     case "seekCandidates":
@@ -121,7 +122,7 @@ export function describe(o: Order): string {
     case "repay":
       return `repay ${o.amount} shekels on debt ${o.debt}`;
     case "buyNews":
-      return `buy ${o.character}'s news of ${o.court}`;
+      return `buy ${o.character}'s news of ${powerName(o.court)}`;
     case "dismiss":
       return `dismiss ${o.character}`;
     case "check":
@@ -133,13 +134,13 @@ export function describe(o: Order): string {
     case "counterIntel":
       return `spend ${o.spend} on watching for spies`;
     case "roads":
-      return `${o.close ? "close" : "open"} your roads to the people of ${o.court}`;
+      return `${o.close ? "close" : "open"} your roads to the people of ${powerName(o.court)}`;
     case "claimName":
       return `claim the name of ${o.name}`;
     case "grant":
-      return `grant ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing in"} ${o.province !== null ? named(o.province) : "all your land"}${o.seasons !== null ? ` for ${o.seasons} seasons` : " until revoked"}`;
+      return `grant ${powerName(o.grantee)} ${o.kind === "passage" ? "passage through" : "basing in"} ${o.province !== null ? named(o.province) : "all your land"}${o.seasons !== null ? ` for ${o.seasons} seasons` : " until revoked"}`;
     case "revoke":
-      return `revoke the passage and basing you granted ${o.grantee}${o.province !== null ? ` in ${o.province}` : ""}`;
+      return `revoke the passage and basing you granted ${powerName(o.grantee)}${o.province !== null ? ` in ${o.province}` : ""}`;
     case "repudiate":
       return `repudiate the tablet ${o.copy}, sealed by your envoy, as beyond his authority`;
     case "assay":
@@ -152,7 +153,7 @@ export function describe(o: Order): string {
       return o.fate === "Question"
         ? `question the captive ${o.character} (${o.spend ?? 0} shekels)`
         : o.fate === "HandOver"
-          ? `hand the captive ${o.character} over to ${o.to ?? "?"}`
+          ? `hand the captive ${o.character} over to ${o.to !== undefined && o.to !== null ? powerName(o.to) : "?"}`
           : o.fate === "TakePurse"
             ? `take the purse of the captive ${o.character}`
             : `${o.fate.toLowerCase()} the captive ${o.character}`;
@@ -200,7 +201,9 @@ export function placesNamed(text: string): string {
 
 /** A job's errand and standing orders in words, for an order's line. */
 function jobText(o: HireOrder | RenewOrder): string {
-  const errand = o.what === "envoy" ? ` as envoy to ${o.where ?? "?"}` : o.what === "spy" ? ` to watch ${o.where ?? "?"}` : o.what === "stay" ? " to stay at court" : "";
+  // A court by its power's name, a province by its own.
+  const where = o.where === null || o.where === undefined ? "?" : AllPowers.includes(o.where) ? powerName(o.where) : named(o.where);
+  const errand = o.what === "envoy" ? ` as envoy to ${where}` : o.what === "spy" ? ` to watch ${where}` : o.what === "stay" ? " to stay at court" : "";
   return errand + (o.payOnDone === true ? ", the rest paid when it is done" : "") + (o.offerAgain === true ? ", offered again when done" : "");
 }
 

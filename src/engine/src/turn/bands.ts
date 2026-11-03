@@ -8,6 +8,7 @@
  * number sets how many bands a land holds or how large they grow. A chief's share is his own gold. Its holder's armies
  * hunt it where they stand on his order or standing order. Everything is drawn from seeded streams ("Deterministic").
  */
+import { listed } from "../rules/wording.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { policeAt, policedShare, policePercent } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
@@ -388,7 +389,7 @@ P.bandsSeason = function () {
     const take = gold + grainWorth(grain + country) + b.take;
     if (gold + grain + country > 0) {
       const taken = [gold > 0 ? `${formatMoney(gold)} from its people's purse` : "", grain > 0 ? `${measures(grain)} from your stores` : "", country > 0 ? `${measures(country)} from the farmers' granaries` : ""];
-      say(holder, `${chief.name}'s band robbed ${here.name}: ${taken.filter((x) => x !== "").join(", ")}.`);
+      say(holder, `${chief.name}'s band robbed ${here.name}: ${listed(taken.filter((x) => x !== ""))}.`);
     }
     // The grain it eats; what it robbed of gold, and on the roads, is the chief's, who pays his men from it.
     gain(chief, gold, "Loot");

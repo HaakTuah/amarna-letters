@@ -152,8 +152,8 @@ P.censusSeason = function () {
       "Notice",
       "A census",
       `The count of ${this.map.get(c.province).name} has come home, taken in the season of turn ${k.turn}.` +
-        ` About ${people(k.town)} live in the town and ${people(k.settled)} on its land, ${people(k.men)} of them men of fighting age, besides ${people(k.loose)} loose men.` +
-        ` Its last harvest was ${measures(k.harvest)}; its farmers' granaries hold ${measures(k.granary)}, and its fields carry ${measures(k.crop)} more. Its people were ${c.mood}.`,
+        ` About ${people(k.town)} live in the town and ${people(k.settled)} on its land, ${people(k.men)} of them men of fighting age${k.loose > 0 ? `, besides ${people(k.loose)} loose men` : ""}.` +
+        ` Its last harvest was ${measures(k.harvest)}; its farmers' granaries hold ${measures(k.granary)}, and ${k.crop > 0 ? `its fields carry ${measures(k.crop)} more` : "nothing stands in its fields"}. Its people were ${c.mood}.`,
     );
     logEvent(S, "census-home", `${c.power}'s count of ${this.map.get(c.province).name} came home.`, [c.power], "census-home");
   }

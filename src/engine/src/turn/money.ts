@@ -11,7 +11,7 @@ import { debtLeft, isPowerParty, MoneyData, newDebt, type Debt } from "../model/
 import type { BorrowOrder, RepayOrder, SeizeHoardOrder, SellDebtOrder } from "../model/orders.ts";
 import { gain, hiddenAt, newFact, remember, spend, type Character } from "../model/people.ts";
 import { newLossAbroad } from "../model/records.ts";
-import { land, type Power } from "../model/power.ts";
+import { land, type Power, powerName } from "../model/power.ts";
 import { char, findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { pick } from "../rules/wording.ts";
@@ -44,7 +44,7 @@ const P = TurnEngine.prototype;
 
 /** A party's name in a notice: a king by his land, a character by its name. */
 P.partyName = function (x) {
-  if (isPowerParty(x)) return `the king of ${land(x)}`;
+  if (isPowerParty(x)) return `the king of ${powerName(x)}`;
   return findCharacter(this.s, x)?.name ?? x;
 };
 
@@ -164,8 +164,8 @@ P.borrowOrder = function (p, o) {
   const d = this.sealDebt(c.id, p, amount, repay, seasons);
   remember(c, S.turn, `I lent the king of ${land(p)} ${formatMoney(amount)}, to be repaid ${formatMoney(repay)} by season ${d.dueTurn}; I hold the tablet.`);
   const lent = [
-    `${c.name} lent you ${formatMoney(amount)}. The tablet you both sealed says you owe ${formatMoney(repay)} by turn ${d.dueTurn} (debt ${d.id}); ${c.name} keeps it.`,
-    `You borrowed ${formatMoney(amount)} from ${c.name}, to repay ${formatMoney(repay)} by turn ${d.dueTurn} (debt ${d.id}). ${c.name} keeps the sealed tablet.`,
+    `${c.name} lent you ${formatMoney(amount)}. The tablet you both sealed says you owe ${formatMoney(repay)} by turn ${d.dueTurn}; ${c.name} keeps it (order repay, debt ${d.id}).`,
+    `You borrowed ${formatMoney(amount)} from ${c.name}, to repay ${formatMoney(repay)} by turn ${d.dueTurn}. ${c.name} keeps the sealed tablet (order repay, debt ${d.id}).`,
   ];
   notify(S, p, "Notice", "A loan", pick(lent, `${S.turn}|${p}|${c.id}|loan`), c.id);
   logEvent(S, "loan", `${c.name} lent ${p} ${amount}.`, [p], "loan");

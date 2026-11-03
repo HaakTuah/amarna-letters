@@ -25,13 +25,14 @@ import { newLossAbroad, newTabletCopy } from "../model/records.ts";
 import { stormed, strengthWords, wallsDefence, type Assault } from "../model/outcomes.ts";
 import { LandData } from "../model/land.ts";
 import { remember, type Character } from "../model/people.ts";
-import { AllPowers, cmpPower, land, type Power, quoteWords } from "../model/power.ts";
+import { AllPowers, cmpPower, land, powerName, type Power, quoteWords, whose } from "../model/power.ts";
 import { isAlive, logEvent, newGoldLot, newId, newSiege, notify, siegeOf, unitAt, wallsOf, type Siege } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine } from "./core.ts";
-import { cameFrom, named, upper, whose } from "./battles.ts";
+import { cameFrom } from "./battles.ts";
+import { upper } from "../rules/wording.ts";
 import { learn } from "../rules/skills.ts";
 import { openToSea } from "./trade.ts";
 
@@ -222,7 +223,7 @@ P.sieges = function (valid) {
       x.power,
       x.province,
       begun
-        ? `Your siege of ${name} (walls ${walls}, held by ${owner !== null ? named(owner) : "no one"}) has begun and wore the city down ${how}. It stands at ${worn()}.${water}`
+        ? `Your siege of ${name} (walls ${walls}, held by ${owner !== null ? powerName(owner) : "no one"}) has begun and wore the city down ${how}. It stands at ${worn()}.${water}`
         : `The siege of ${name} wore the city down ${how}. It stands at ${worn()}.${water}`,
     );
     tell(
@@ -294,18 +295,18 @@ P.intercept = function (c, lord, siege, leaving, dispatch, cargo, due) {
   c.watchProvince = null;
   c.intercepted = true;
   const trail = this.trail(dispatch?.trailId ?? cargo?.trailId ?? null);
-  trail?.outcomes.push(`caught ${leaving ? "leaving" : "coming home to"} ${city} by ${besieger}'s besiegers`);
-  const lines = this.seize(c, lord, besieger, dispatch, cargo, `taken from ${c.name}, envoy of ${lord}, caught at ${city}`);
+  trail?.outcomes.push(`caught ${leaving ? "leaving" : "coming home to"} ${city} by ${whose(besieger)} besiegers`);
+  const lines = this.seize(c, lord, besieger, dispatch, cargo, `taken from ${c.name}, envoy of ${powerName(lord)}, caught at ${city}`);
   const said =
     dispatch !== null
-      ? `leaving the city for the court of ${trail?.to ?? ""}. The letter he was to speak: ${quoteWords(dispatch.letter)}` + (dispatch.mandate.length > 0 ? ` His mandate: ${quoteWords(dispatch.mandate)}` : "")
-      : `coming home to the city from the court of ${trail?.to ?? "abroad"}.`;
+      ? `leaving the city for the court of ${trail !== null ? powerName(trail.to) : ""}. The letter he was to speak: ${quoteWords(dispatch.letter)}` + (dispatch.mandate.length > 0 ? ` His mandate: ${quoteWords(dispatch.mandate)}` : "")
+      : `coming home to the city from ${trail !== null ? `the court of ${powerName(trail.to)}` : "abroad"}.`;
   notify(
     S,
     besieger,
     "Notice",
     EnvoyCaughtTitle,
-    `Your troops besieging ${city} caught ${c.name}, envoy of ${lord}, ${said} ${lines.join(" ")} He is your captive: you may execute, ransom or release him.`.replaceAll("  ", " "),
+    `Your troops besieging ${city} caught ${c.name}, envoy of ${powerName(lord)}, ${said} ${lines.join(" ")} He is your captive: you may execute, ransom or release him.`.replaceAll("  ", " "),
     c.id,
   );
   remember(c, S.turn, `${land(besieger)}'s besiegers caught me ${leaving ? "slipping out of" : "slipping back into"} ${city}.`);
@@ -353,7 +354,7 @@ P.surrender = function (x, owner, tell, how) {
   if (how === "thirst") logEvent(S, "siege", `${name} ran out of water and surrendered to ${x.power}.`, parties(this, x.province, x.power, owner), "siege-thirst");
   tell(x.power, x.province, `${name} surrendered to you after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}: it is yours, with its walls a level lower (${left}).`);
   if (owner !== null) {
-    this.tell(owner, prov, "Battle", "Land lost", `${name} has surrendered to ${named(x.power)} after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}.`);
+    this.tell(owner, prov, "Battle", "Land lost", `${name} has surrendered to ${powerName(x.power)} after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}.`);
     logEvent(S, "conquest", `${x.power} took ${name} from ${owner}.`, parties(this, prov, x.power, owner));
   }
   // Word of it comes from the city to the besieger's court, as from any place (bug #517).

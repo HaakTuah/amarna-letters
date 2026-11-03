@@ -5,14 +5,14 @@
 import type { Dict, HSet } from "../core/collections.ts";
 import type { MoveFailure, ReportLine } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
-import type { Power } from "../model/power.ts";
+import { whose, type Power } from "../model/power.ts";
 import { alive, logEvent, notify } from "../model/state.ts";
 import type { Order, SallyOrder } from "../model/orders.ts";
 import { groundText } from "../model/geography.ts";
 import { WorldMap } from "../model/map.ts";
 import type { AdjudicationResult, Adjudicator } from "../rules/adjudicator.ts";
 import { TurnEngine } from "./core.ts";
-import { upper, whose } from "./battles.ts";
+import { listed, upper } from "../rules/wording.ts";
 import { placesNamed } from "../model/order-reading.ts";
 
 declare module "./core.ts" {
@@ -114,7 +114,7 @@ function holdsText(side: string, holds: readonly ReportLine[]): string[] {
     const of = holds.filter((l) => l.text.startsWith(kind + " "));
     if (of.length === 0) continue;
     const places = [...new Set(of.map((l) => heldPlace(l)!))];
-    const where = places.length === 1 ? places[0] : `${places.slice(0, -1).join(", ")} and ${places[places.length - 1]}`;
+    const where = listed(places);
     out.push(`${side} ${of.length === 1 ? `${kind} ${did}` : `${kinds} ${done}`} ${where}.`);
   }
   return out;

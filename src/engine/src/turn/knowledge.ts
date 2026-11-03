@@ -4,12 +4,13 @@
  * that are objects in a place ("Tablets have a place"): a spy may steal one from the archive it watches, and whoever takes a
  * capital carries off its archive (archives.ts), so that the court loses what was taken.
  */
+import { listed } from "../rules/wording.ts";
 import { clamp } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, sortBy } from "../core/seq.ts";
 import { clause } from "../model/clauses.ts";
 import type { CaptiveOrder } from "../model/orders.ts";
 import { newFact, remember, type Character } from "../model/people.ts";
-import { AllPowers, land, type Power, quoteWords } from "../model/power.ts";
+import { AllPowers, land, type Power, quoteWords, powerName } from "../model/power.ts";
 import { newJourney, newPendingTask, newTablet, newTabletCopy, type Tablet } from "../model/records.ts";
 import { isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
@@ -82,7 +83,9 @@ P.questionedSays = function (host, c, tabletIds, lies, league, words) {
   const S = this.s;
   if (c.status !== "Captured" || c.heldBy !== host || !isAlive(S, host)) return;
   const source = `told by ${c.name} under questioning`;
-  const said = words.trim().length > 0 ? ` In their words: ${quoteWords(words.trim())}` : "";
+  // What the captive said comes first, then what they recited.
+  const plea = words.trim();
+  const told = (what: string): string => (plea.length > 0 ? `${c.name} said under questioning: ${quoteWords(plea)} Then they ${what}.` : `${c.name}, under questioning, ${what}.`);
   const master = c.employer ?? c.formerEmployer;
   if (lies && master !== null && isAlive(S, master)) {
     const rng = this.r("question-lie", c.id);
@@ -108,7 +111,7 @@ P.questionedSays = function (host, c, tabletIds, lies, league, words) {
     const copy = newTabletCopy({ id: newId(S, "k"), tabletId: tablet.id, holder: host, acquiredTurn: S.turn, source });
     S.copies.push(copy);
     remember(c, S.turn, `${land(host)} questioned me. I told them of a tablet that never was, to mislead them.`);
-    notify(S, host, "Notice", "A captive questioned", `${c.name} recited a tablet under questioning: ${this.copyLine(copy)}.${said}`, c.id);
+    notify(S, host, "Notice", "A captive questioned", told(`recited a tablet: ${this.copyLine(copy)}`), c.id);
     logEvent(S, "question", `${host} questioned ${c.name}, who lied, reciting a tablet that never was.`, [], "questioned-lie");
     return;
   }
@@ -121,7 +124,7 @@ P.questionedSays = function (host, c, tabletIds, lies, league, words) {
       return k;
     });
   remember(c, S.turn, `${land(host)} questioned me, and I told them of ${copies.length} tablet(s) I had seen.`);
-  notify(S, host, "Notice", "A captive questioned", copies.length > 0 ? `${c.name} recited what they had seen: ${copies.map((k) => this.copyLine(k)).join(", ")}.${said}` : `${c.name} told your questioners nothing you did not hold already.${said}`, c.id);
+  notify(S, host, "Notice", "A captive questioned", told(copies.length > 0 ? `recited what they had seen: ${listed(copies.map((k) => this.copyLine(k)))}` : "told you nothing you did not hold already"), c.id);
   logEvent(S, "question", `${host} questioned ${c.name}, who told of ${copies.length} tablet(s).`, [host], "questioned-truth");
 };
 
@@ -133,7 +136,7 @@ P.questionedSays = function (host, c, tabletIds, lies, league, words) {
 P.handOver = function (host, c, to) {
   const S = this.s;
   if (!isAlive(S, to)) {
-    notify(S, host, "Rejected", "Captive order failed", `${c.name} could not be handed over: the kingdom of ${land(to)} has fallen.`, c.id);
+    notify(S, host, "Rejected", "Captive order failed", `${c.name} could not be handed over: the kingdom of ${powerName(to)} has fallen.`, c.id);
     return;
   }
   S.tasks = S.tasks.filter((t) => !(t.kind === "RansomDemand" && t.characterId === c.id));
@@ -143,8 +146,8 @@ P.handOver = function (host, c, to) {
   S.journeys.push(j);
   this.setOut(j, this.courtAt(host), this.courtAt(to));
   remember(c, S.turn, `${land(host)} handed me over to ${land(to)}, and its guards are taking me there.`);
-  notify(S, host, "Notice", "A captive handed over", `You handed ${c.name} over to the king of ${land(to)}; your guards will bring them there in turn ${j.arriveTurn}.`, c.id);
-  notify(S, to, "Notice", "A captive on the way", `The king of ${land(host)} is sending you ${c.name} as a captive, under his guard.`, c.id);
+  notify(S, host, "Notice", "A captive handed over", `You handed ${c.name} over to the king of ${powerName(to)}; your guards will bring them there in turn ${j.arriveTurn}.`, c.id);
+  notify(S, to, "Notice", "A captive on the way", `The king of ${powerName(host)} is sending you ${c.name} as a captive, under his guard.`, c.id);
   logEvent(S, "captive-handed", `${host} handed ${c.name} over to ${to}, sent under guard.`, [host, to], "captive-handed");
 };
 

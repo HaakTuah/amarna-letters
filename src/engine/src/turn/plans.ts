@@ -8,7 +8,7 @@ import { eqIgnoreCase, isBlank, trim } from "../core/text.ts";
 import { characterOf, describe, placesNamed, told, unitOf } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
 import { type MoveOrder, type Order, type RaiseOrder } from "../model/orders.ts";
-import { AllPowers, cmpPower, type Power } from "../model/power.ts";
+import { AllPowers, cmpPower, type Power, whose } from "../model/power.ts";
 import {
   describeLevy,
   newLevyRef,
@@ -32,7 +32,6 @@ import { removeAll } from "./resolve.ts";
 import { entersText, kindName, MarchEndsTitle, MarchHeldUpTitle, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, standingFiredTitle } from "./sleep.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { CommanderMinds } from "./command.ts";
-import { whose } from "./battles.ts";
 import { wordFromKing } from "../rules/court.ts";
 import { CommandData } from "../model/command.ts";
 

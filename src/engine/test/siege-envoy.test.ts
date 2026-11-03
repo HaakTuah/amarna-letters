@@ -103,7 +103,7 @@ describe("SiegeEnvoyTests", () => {
     Assert.equal(["Employed", "None", "Assyria"], [envoy.status, envoy.duty, envoy.at]);
     Assert.equal(gold, s.treasuries.get("Assyria").gold);
     Assert.equal(
-      `${envoy.name} would not leave Ashur while Babylonia's army besieges it: the siege is too tight for ${envoy.name}'s courage this season. No gold was paid.`,
+      `${envoy.name} would not leave Ashur while Babylonia's army besieges it: the siege is too tight for their courage this season. No gold was paid.`,
       single(inboxOf(s, "Assyria"), (i) => i.title === "An envoy would not leave").body,
     );
   });

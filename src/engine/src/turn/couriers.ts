@@ -13,8 +13,8 @@ import { newCourier } from "../model/command.ts";
 import { describe, told, unitOf } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
 import { type Order } from "../model/orders.ts";
-import { land, quoteWords, type Power } from "../model/power.ts";
-import { upper } from "./battles.ts";
+import { land, quoteWords, type Power, powerName } from "../model/power.ts";
+import { upper } from "../rules/wording.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
 import { isAlive, logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
 import { courierSeasons, courtOf } from "../rules/court.ts";
@@ -183,7 +183,7 @@ P.sendOrders = function (p, sub) {
     const stopper = this.courierStopped(p, at.province, rng);
     if (stopper !== null) {
       logEvent(S, "courier", `${stopper}'s men stopped a courier of ${p}'s.`, [p, stopper], "courier-stopped");
-      notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${land(p)} on the road to ${this.map.get(at.province).name}. The order he carried read: ${quoteWords(upper(told(o)))}.`);
+      notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${powerName(p)} on the road to ${this.map.get(at.province).name}. The order he carried read: ${quoteWords(upper(told(o)))}.`);
       continue;
     }
     S.couriers.push(newCourier({ power: p, plan, given: S.turn, arrives: S.turn + d }));
@@ -246,7 +246,7 @@ P.courierRead = function (p, to, o) {
     if (holder === null || holder === p || read.has(holder) || levelOf(S, "Stations", x) <= 0) continue;
     if (hostileAt(S, x, holder)) continue;
     read.add(holder);
-    this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${land(p)} carried to ${this.map.get(to).name}: ${quoteWords(upper(told(o)))}.`);
+    this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${powerName(p)} carried to ${this.map.get(to).name}: ${quoteWords(upper(told(o)))}.`);
 
     logEvent(S, "station", `${holder}'s station men read an order of ${p}'s on its way to ${this.map.get(to).name}.`, [holder], "station-read");
   }
