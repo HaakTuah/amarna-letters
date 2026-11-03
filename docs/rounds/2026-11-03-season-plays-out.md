@@ -228,6 +228,13 @@ a short recording in the PR." Design note: `docs/design/52-the-season-plays-out.
   `seasons.ts`: fixed slots and `reseason`. `built.ts`: roads traced once; the works at the cities in parts.
 - Tests: `src/web/test/map-morph.test.ts` (patch and parts, on a stand-in DOM), `realm-borders.test.ts` (a kept band is
   the band traced afresh); `history.test.ts` already reads with a 1 ms budget, so every field pauses mid-way.
+- The browser's own work (an escalation after the numbers below): `styles/map.css`, `map-living.css`, `map-glance.css`:
+  about 750 single shapes (the road net, the fields, the bands, the rivers' casing, the markers' and works' discs, the
+  season's washes, the fog's veils, the roads) fade by `fill-opacity` or `stroke-opacity` instead of `opacity`, so none
+  makes a paint chunk and effect of its own; the `believed` fade is kept to people and travellers, the only groups it
+  was for (a believed road kept its own .45). The arrows' `draw`, `fadein`, `pop` and the capture's `ring` fill
+  `backwards`, the ring's last look (.85) set on the ring itself. A screenshot of the same season before and after
+  differs only in anti-aliasing at the pieces' edges.
 
 ### Frame times (soak tool, seed 1, two minutes a run; a busy machine, load 2 to 5 from other lanes)
 
@@ -259,11 +266,60 @@ The bar is met on desktop at Slow, Normal and Simulate, not at Fast (3.3% of fra
 (#666, blocked): there one frame in eight at Fast
 and one in forty-five at Normal is over 50 ms. What remains is the browser's own work whenever the map changes, which no
 JavaScript mark sees: layerization (20 to 60 ms a frame; the map's thousands of SVG elements each carry a transform or a
-clip, so the whole page is layerized again), paint, and the frames of the pieces' slide, which software raster paints
-on the main thread; and the step draws still over 15 ms on the phone (the works at the cities, whose granaries' tooltips
-change every season, the bands where holders change, the cities, the names). Meeting it would take a map with far fewer
-paint chunks (the cities, names and pieces drawn without a transform each, or on a canvas), a larger change than this
-part; it is left as a follow-up for the item's pull request to file, not built here.
+clip, so the whole page is layerized again), paint, and the step draws still over 15 ms on the phone (the works at the
+cities, whose granaries' tooltips change every season, the bands where holders change, the cities, the names).
+
+**The browser's own work, measured (the escalation).** Two benches beside the soak, both on seed 1 paused at season 12:
+a forced one-chunk change timed with every source of paint chunks taken away by CSS, and the phone profile stepping the
+timeline back and forth eight times (the pieces slide, the season's results land, as in play). The machine ran other
+lanes' suites throughout (load 10 to 17), so each comparison was run side by side, both builds at once.
+
+- The slide is already the compositor's: the pieces' `transform` transitions run there (no failure reason in the
+  timeline). What costs is the frames that change the markup: each has the whole page layerized again (about 27 such
+  frames a season shown, 13 ms each on the phone profile), then painted (6 to 10 ms) and restyled.
+- In the tasks over 50 ms on the bench, the page's steps took 27% of the time, layerization 21%, paint 12%, style 12%,
+  layout and pre-paint 9%.
+- Finished animations filled `both` kept 8 elements composited and 23 more layers made for what overlaps them (56 cc
+  layers in all on the paused map); filling `backwards`, 25. About 750 shapes each made an effect of their own by
+  `opacity`. Both changed (above): layerization fell by about a seventh on the bench (2.9 and 2.7 s against 3.2 and 3.2
+  s), and the soak's frames over 50 ms at Fast from 12.9% to 11.9% (paired runs, two minutes each), and from 19.0% to 18.4%
+  in a second pair on a quieter machine, where the game ran faster (42 and 44 seasons in two minutes against 25 and 26,
+  so more changes of the map a minute); within the noise.
+- Tried and not kept: `will-change: transform` on every piece, so a slide neither makes nor drops a layer (8.5% and 8.4%
+  of frames over 50 ms against 9.5% and 11.1%, within the noise, with more commit); the governors' rim drawn without its
+  SVG filter (the filter puts that province's tints on a layer of their own, and 3.7 megapixels of what is drawn after it
+  on others; 8.1% and 6.3% against 11.2% and 7.6%, within the noise, and it changes how the rim looks).
+- **The ceiling of flattening**: with every per-element transform, clip, opacity and `<use>` offset taken away at once
+  (a map drawn wrong, as a bound on any flattening), the bench's frames over 50 ms fell from 6 to 7% to 3.7 and 3.8%,
+  layerization by five sixths and paint by a half. So no contained change to the SVG reaches the bar: what is left after
+  it is the page's steps and the style they cause.
+
+The way to the bar (a design for a follow-up, not built here), in three parts, each measured on the same two benches:
+
+1. **The land on a canvas, painted off the main thread.** The tints, the season's washes, the fog, the bands, the road
+   net, the governors' rims, the steles and the wild land are drawn as `Path2D` from the same path strings on an
+   `OffscreenCanvas` held by a painter worker, keyed as the layers are now; the relief is drawn over them with
+   `soft-light`, the patterns made once as canvas patterns, the colours read from the stylesheet's variables once and on a
+   change of theme. A pinch scales the canvas by CSS and it is painted again when the gesture ends, in tiles past 4,096
+   pixels. Provinces keep their taps and tooltips in an SVG of bare shapes (`fill: none; pointer-events: fill`, which
+   paints nothing). That takes some 1,600 of the map's 3,700 elements, and most of its clips and fades, out of every
+   style, layout, layerization and paint. The worker is sent the viewer's scene only, as the SVG is now (hidden
+   information unchanged). Files: a new `map/land-canvas.ts` and its worker; `land-layers.ts`, `seasons.ts`, `built.ts`,
+   `memory.ts`, `holding.ts` and `markup.ts` (`Base`) give draw lists instead of markup; `svg-renderer.ts` (`mount`, the
+   land steps), `zoom.ts` (paint at the gesture's end), the land rules of `map.css` and `map-living.css`; the tests that
+   read the land's markup (`realm-borders.test.ts`, `map-morph.test.ts`) move to the draw lists, and a screenshot
+   comparison guards the look.
+2. **One transform a symbol.** A city, marker, name, piece or work is placed by a single `translate() scale()` written
+   when the zoom changes, its inner offsets and its `<use>` offsets folded into its coordinates, instead of a translate,
+   a CSS scale and further translates nested.
+3. **No page step over about 10 ms on the phone profile.** The names placed in slices across frames, with each marker's
+   box taken from a cache kept by zoom instead of read from the layout; the works at the cities and the cities patched a
+   few at a time.
+
+Risks: a canvas blurs during a pinch until painted again; a phone's canvas memory (tiles); the land's look is then drawn
+by hand, not by the stylesheet, so a screenshot test must hold it; `OffscreenCanvas` needs Safari 16.4 or later (else a
+canvas on the page, still one paint chunk). Part 1 is the larger win (six of a season's fourteen layer steps are the
+land's); parts 2 and 3 are needed as well, since the ceiling above leaves the steps.
 
 ### Readings taken
 
