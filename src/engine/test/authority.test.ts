@@ -5,6 +5,7 @@ import {
   type GameState,
   OrderValidator,
   type PendingAudience,
+  type RepudiateOrder,
   type Power,
   TurnEngine,
   type TurnSubmission,
@@ -13,6 +14,7 @@ import {
   clause,
   dispatch,
   grant,
+  grantStandsFor,
   inboxOf,
   move,
   hold,
@@ -92,7 +94,7 @@ describe("AuthorityTests", () => {
     Assert.true(s2.trails[s2.trails.length - 1].outcomes.some((o) => o.includes("could not seal")));
   });
 
-  test("The envoy's king repudiates the tablet: what it granted ends, and the host is told", () => {
+  test("The envoy's king repudiates the tablet: what it granted ends, and the host hears of it by word (bug #609)", () => {
     const [s, e, , a] = atAudience(newAuthority({ seal: true, show: false }));
     e.applyAudience(answer(a, newHostReply({ counter: newTabletProposal({ clauses: [clause("askPassage", { province: "delta" })] }), end: true }), true));
     const t = s.tablets.find((x) => x.byHandOf === "Egypt")!;
@@ -101,12 +103,36 @@ describe("AuthorityTests", () => {
     s.copies.push({ id: "k-test", tabletId: t.id, holder: "Egypt", acquiredTurn: s.turn, source: "brought home", authResult: null, unread: null });
     const v = new OrderValidator(s, Map).validate("Egypt", newTurnSubmission({ orders: [repudiate("k-test")] }));
     Assert.equal(1, v.accepted.length);
-    new TurnEngine(s).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [repudiate("k-test")] })]]));
-    Assert.equal(s.turn - 1, t.repudiatedTurn);
+    // Repudiated in the season's resolution: read at once, before the season turns.
+    new TurnEngine(s).repudiate("Egypt", repudiate("k-test") as RepudiateOrder);
+    Assert.equal(s.turn, t.repudiatedTurn);
     Assert.notNull(single(s.grants).endedTurn);
-    Assert.true(inboxOf(s, "Alashiya").some((i) => i.title === "A tablet repudiated"));
+    // Egypt knows at once; Alashiya keeps the tablet and its grant as they were, with no notice and no event, until the word comes.
+    const host = () => Views.for(s, "Alashiya");
+    const told = () => host().inbox.some((i) => i.title === "A tablet repudiated");
+    Assert.equal(t.repudiatedTurn, Views.for(s, "Egypt").tablets.find((x) => x.tabletId === t.id)!.repudiatedTurn);
+    Assert.empty(Views.for(s, "Egypt").grants);
+    const heard = t.repudiatedHeard!;
+    Assert.true(heard > s.turn);
+    for (; s.turn < heard; new TurnEngine(s).beginTurn()) {
+      Assert.false(told());
+      Assert.null(host().tablets.find((x) => x.tabletId === t.id)!.repudiatedTurn);
+      Assert.equal(1, host().grants.length);
+      Assert.false(s.events.some((x) => x.kind === "tablet" && x.visibleTo.includes("Alashiya") && x.signal === "repudiated"));
+      new TurnEngine(s).resolve(new Dict());
+    }
+    Assert.true(told());
+    Assert.equal(t.repudiatedTurn, host().tablets.find((x) => x.tabletId === t.id)!.repudiatedTurn);
+    Assert.empty(host().grants);
     // Once repudiated, never again.
     Assert.equal(0, new OrderValidator(s, Map).validate("Egypt", newTurnSubmission({ orders: [repudiate("k-test")] })).accepted.length);
+  });
+
+  test("A grant its grantee ended by repudiation stands for its grantor until the word comes (bug #609)", () => {
+    const g = newGrant({ grantor: "Hatti", grantee: "Egypt", sinceTurn: 1, endedTurn: 4, endHeard: 6, endedBy: "Egypt" });
+    Assert.false(grantStandsFor(g, "Egypt", 4));
+    Assert.true(grantStandsFor(g, "Hatti", 5));
+    Assert.false(grantStandsFor(g, "Hatti", 6));
   });
 
   test("A guest passing through takes no land; one that stays a season under passage alone takes it; basing lets it stay", () => {

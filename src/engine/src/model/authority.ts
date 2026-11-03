@@ -69,8 +69,10 @@ export interface Grant {
   heardTurn: number;
   /** The season it was revoked or repudiated, or null while it stands (until untilTurn). */
   endedTurn: number | null;
-  /** Bug #565: the season word of its end reaches the grantee's court; until then he counts on it. Its grantor knows at once. */
+  /** Bug #565: the season word of its end reaches the other side's court; until then it counts on it. Who ended it knows at once. */
   endHeard: number;
+  /** Bug #609: the king who ended it (a repudiation may be the grantee's); null for its grantor, who revokes. */
+  endedBy: Power | null;
 }
 
 export function newGrant(init: Partial<Grant> = {}): Grant {
@@ -87,6 +89,7 @@ export function newGrant(init: Partial<Grant> = {}): Grant {
     heardTurn: 0,
     endedTurn: null,
     endHeard: 0,
+    endedBy: null,
     ...init,
   };
 }
@@ -104,16 +107,17 @@ export const GrantSchema: ObjSchema<Grant> = obj("Grant", newGrant, {
   heardTurn: I,
   endedTurn: opt(I),
   endHeard: I,
+  endedBy: opt(S),
 });
 
 /** Does the grant stand in this season? */
 export const grantStands = (g: Grant, turn: number): boolean => g.endedTurn === null && g.sinceTurn <= turn && (g.untilTurn === null || turn <= g.untilTurn);
 
 /**
- * Does the grant stand in this season as `p`, its grantor or grantee, knows it (bug #565)? The grantee learns of its end
- * only when word of it comes; until then he counts on it.
+ * Does the grant stand in this season as `p`, its grantor or grantee, knows it (bugs #565, #609)? The side that did not
+ * end it learns of its end only when word of it comes; until then it counts on it.
  */
-export const grantStandsFor = (g: Grant, p: Power, turn: number): boolean => grantStands(g.grantee === p && g.endHeard > turn ? { ...g, endedTurn: null } : g, turn);
+export const grantStandsFor = (g: Grant, p: Power, turn: number): boolean => grantStands(p !== (g.endedBy ?? g.grantor) && g.endHeard > turn ? { ...g, endedTurn: null } : g, turn);
 
 /**
  * The rights a sealed tablet grants, by its clauses, as `writer` wrote them to `reader`: a passage or basing clause opens

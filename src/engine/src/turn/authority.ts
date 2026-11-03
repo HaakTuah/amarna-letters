@@ -28,7 +28,7 @@ declare module "./core.ts" {
     passageFor(host: Power | null, master: Power, province: string): boolean;
     guestAt(province: string, power: Power): boolean;
     revokeGrants(p: Power, o: RevokeOrder): void;
-    endGrant(g: Grant, heard: number): void;
+    endGrant(g: Grant, heard: number, by?: Power): void;
     grantByOrder(p: Power, o: GrantOrder): void;
     repudiate(p: Power, o: RepudiateOrder): void;
     endGrants(grantor: Power, grantee: Power, why: string): void;
@@ -185,10 +185,11 @@ P.revokeGrants = function (p, o) {
   logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p], "grant-revoked");
 };
 
-/** A grant ends this season; its grantee hears of it at `heard` (bug #565). */
-P.endGrant = function (g, heard) {
+/** A grant ends this season by `by` (its grantor unless named); the other side hears of it at `heard` (bugs #565, #609). */
+P.endGrant = function (g, heard, by) {
   g.endedTurn = this.s.turn;
   g.endHeard = heard;
+  g.endedBy = by === undefined || by === g.grantor ? null : by;
 };
 
 /**
@@ -238,24 +239,23 @@ P.endGrants = function (grantor, grantee, why) {
 
 /**
  * The king repudiates a tablet his envoy sealed in his name, as beyond his authority: what it granted ends, both ways,
- * and the tablet's other king is told. Whether it was beyond is for that king to judge: the engine tells him only if he
- * read the envoy's credentials (the tablet's view then says whether it lay within them).
+ * and the tablet's other king is told by word, which reaches his court as any news does; until then his view keeps the
+ * tablet and what it granted as they were (bug #609). Whether it was beyond is for that king to judge: the engine tells
+ * him only if he read the envoy's credentials (the tablet's view then says whether it lay within them).
  */
 P.repudiate = function (p, o) {
   const S = this.s;
   const copy = S.copies.find((k) => k.id === o.copy && k.holder === p);
   const t = copy === undefined ? undefined : S.tablets.find((x) => x.id === copy.tabletId);
   if (t === undefined || t.byHandOf !== p || t.repudiatedTurn !== null) return;
-  t.repudiatedTurn = S.turn;
-  for (const g of S.grants) if (g.tabletId === t.id && grantStands(g, S.turn)) this.endGrant(g, S.turn);
   const other = t.proposedBy === p ? t.partner! : t.proposedBy;
-  notify(
-    S,
-    other,
-    "Notice",
-    RepudiatedTitle,
+  const heard = S.turn + this.travelTurns(p, other);
+  t.repudiatedTurn = S.turn;
+  t.repudiatedHeard = heard;
+  for (const g of S.grants) if (g.tabletId === t.id && grantStands(g, S.turn)) this.endGrant(g, heard, p);
+  const text =
     `The king of ${land(p)} repudiates the tablet his envoy ${t.byHand ?? ""} sealed in his name (${quoteWords(cap(t.text, 160))}): he says it went beyond the envoy's authority, and it does not bind him. What it granted, either way, has ended.` +
-      (t.credentialsShown ? ` His envoy showed you its credentials: by them the tablet lay ${t.within ? "within" : "beyond"} his authority.` : ""),
-  );
-  logEvent(S, "tablet", `${p} repudiated the tablet its envoy ${t.byHand ?? ""} sealed with ${other}, as beyond his authority.`, [p, other], "repudiated");
+    (t.credentialsShown ? ` His envoy showed you its credentials: by them the tablet lay ${t.within ? "within" : "beyond"} his authority.` : "");
+  this.word(p, other, "Realm", `Notice|${RepudiatedTitle}|${text}`);
+  logEvent(S, "tablet", `${p} repudiated the tablet its envoy ${t.byHand ?? ""} sealed with ${other}, as beyond his authority.`, [p], "repudiated");
 };

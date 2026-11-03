@@ -13,6 +13,7 @@ import {
   moodsKnown,
   vassalTerms,
   vassalBonds,
+  repudiationKnown,
   isAlive,
   wallsOf,
   type CharacterStatus,
@@ -198,10 +199,8 @@ function holdings(s: GameState): Pick<SeasonFrame, "governed" | "governedKnown" 
   const knownBonds = new Map<Power, Map<Power, Power>>();
   for (const k of s.copies) {
     const t = s.tablets.find((x) => x.id === k.tabletId);
-    // Only its two parties are told of a repudiation (turn/authority.ts); a third court holding a copy keeps the bond as
-    // its tablet says (hidden information).
-    const party = t !== undefined && (k.holder === t.proposedBy || k.holder === t.partner);
-    const v = t === undefined || (t.repudiatedTurn !== null && party) ? null : vassalTerms(t);
+    // A repudiation as the holder knows it: the other king by word of it, a third court never (bug #609).
+    const v = t === undefined || repudiationKnown(t, k.holder, s.turn) ? null : vassalTerms(t);
     if (v === null) continue;
     let m = knownBonds.get(k.holder);
     if (m === undefined) knownBonds.set(k.holder, (m = new Map()));

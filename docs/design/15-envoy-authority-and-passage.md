@@ -49,11 +49,15 @@ report brings no holders.
   keeps a copy, the envoy brings its king his, and what it grants takes effect at once. Without the seal the trail notes
   the tablet offered. `asHeard`, what the envoy hears of the host's reply, now carries the host's clauses (item 8 dropped
   them, so a script envoy never heard a call for an oath in clauses: fixed) and the counter.
-- **Seen by whom**: `TabletView.byHand`, `byHandOf`, `repudiatedTurn` for every holder of a copy; `within` only for the
+- **Seen by whom**: `TabletView.byHand`, `byHandOf` for every holder of a copy; `repudiatedTurn` for the envoy's king, and
+  for the other king once word of it comes (`repudiationKnown`, bug #609), never for a third court; `within` only for the
   envoy's king, and for the host if it read the credentials.
 - **Repudiation** (`RepudiateOrder`, `repudiate`, by the copy's mark): only of a tablet one's own envoy sealed, once. The
-  tablet is marked, what it granted ends both ways, and the other king is told ("A tablet repudiated"), with whether it
-  lay within the credentials if he read them; event `repudiated`.
+  tablet is marked, what it granted ends both ways, and word goes to the other king ("A tablet repudiated"), with whether
+  it lay within the credentials if he read them; event `repudiated`, the repudiating king's alone. Bug #609: until the
+  word comes (`Tablet.repudiatedHeard`), the other king's view keeps the tablet, what it granted (`Grant.endedBy`: the
+  side that did not end a grant learns of it by word) and the vassal bond it made as they were, and his cession of a
+  capital by it still stands as he knows it (`cessionAgreed`). Save version N609.
 
 ### Passage and basing
 

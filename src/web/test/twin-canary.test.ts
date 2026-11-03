@@ -18,6 +18,9 @@ import {
   newGame,
   newGameConfig,
   newGrant,
+  newTablet,
+  repudiate,
+  clause,
   ownedBy,
   newScheduledOrders,
   newSleepState,
@@ -376,7 +379,27 @@ const grantNarrowed: Twin = { ...grantRevoked, name: "a grant narrowed by a revo
 /** As `grantRevoked`, but Egypt closes its roads to Babylonia's people, which ends what it granted. */
 const grantRoadsClosed: Twin = { ...grantRevoked, name: "a grant ended by closed roads", others: { power: "Egypt", orders: [roads("Babylonia", true)] } };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed];
+/**
+ * As `grantGiven`, but Babylonia has long held a tablet Egypt's envoy sealed in its name, granting Babylonia passage
+ * through the delta, and Egypt repudiates it (bug #609).
+ */
+const tabletRepudiated: Twin = {
+  ...grantGiven,
+  name: "a tablet repudiated",
+  make() {
+    const s = world("Egypt", "Babylonia");
+    s.tablets.push(
+      newTablet({ id: "t990", text: "Passage through the delta.", clauses: [clause("askPassage", { province: "delta" })], proposedBy: "Babylonia", partner: "Egypt", seals: ["Babylonia", "Egypt"], sealedTurn: 0, byHandOf: "Egypt", byHand: "Ipy", within: false }),
+    );
+    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    s.grants.push(newGrant({ id: "p990", grantor: "Egypt", grantee: "Babylonia", province: "delta", sinceTurn: 0, tabletId: "t990" }));
+    return s;
+  },
+  others: { power: "Egypt", orders: [repudiate("k990E")] },
+  heard: (s) => (s.inbox.tryGet("Babylonia") ?? []).some((i) => i.title === "A tablet repudiated"),
+};
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {
