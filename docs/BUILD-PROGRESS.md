@@ -69,6 +69,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **A canary for Codex's code review, on resume** ("Reviews", point 5, in `docs/claude-and-codex.md`; archive item 206): the
+  review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
+  file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.
 - **#612, decided** (the owner, 3 November 2026; archive item 204): after the usage reset, a fresh session fixes the
   one case left open (a scheduled or standing order for a far unit lost out of sight is refused at once, through
   `TurnEngine.bind` and the standing-order target check), the PR is reviewed again, and it merges at a clean review.
