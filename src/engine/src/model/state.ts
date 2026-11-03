@@ -13,12 +13,13 @@ import { type Claim, ClaimSchema, type HeardName, HeardNameSchema, type Recognit
 import { type Grant, GrantSchema } from "./authority.ts";
 import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
 import { type Toll, TollSchema } from "./trade.ts";
-import { type MarketSeen, MarketSeenSchema, type ProvinceEconomyView, ProvinceEconomyViewSchema } from "./views.ts";
+import { type MarketSeen, MarketSeenSchema } from "./views.ts";
 import type { People } from "./land.ts";
 import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts";
 import { type MoodRead, MoodReadSchema } from "./moods.ts";
 import { type Declaration, DeclarationSchema } from "./declarations.ts";
 import { type SiegeEnded, SiegeEndedSchema } from "./sieges-ended.ts";
+import { type ProvinceReport, ProvinceReportSchema } from "./province-reports.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
 import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, type GovernorGone, GovernorGoneSchema, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
@@ -43,7 +44,8 @@ export interface Walk {
    * Item 11a+ ("Deportation": deportees walk the route like any company, so they can be freed on the way): for deportees,
    * the road they walk, the season they set out and the province they were taken from. A king whose troops stand on the
    * stretch they walk this season and who is not the deporter's friend frees them: the king whose land they were taken
-   * from, or one who closed his roads to the deporter. Empty for everyone else.
+   * from, or one who closed his roads to the deporter (`route` empty for everyone else). Bug #540: for discharged men too,
+   * the season they set out and where from, so their king counts them once word of it could come.
    */
   route: string[];
   departs: number;
@@ -86,7 +88,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 50;
+export const CURRENT_VERSION = 51;
 
 /**
  * Item 17 ("Armies need food as well as pay"): a king's word to the unit `unit` (by id) to buy its food or take it, with
@@ -270,10 +272,10 @@ export interface GameState {
    */
   obeyed: Dict<string, number>;
   /**
-   * Item 17++: each court's last report of a province of its own lost out of its sight, until word of the loss arrives: its
-   * seat view goes on showing it as it last knew it (the engine's view follows what the court knows, as its map does).
+   * Bug #540: each held province's reports to its holder, a season each, the newest last, for as long as any word could
+   * take (model/province-reports.ts): a court shows its land beyond its couriers' season as their word brings it.
    */
-  ownLast: Dict<Power, Dict<string, ProvinceEconomyView>>;
+  reports: Dict<string, ProvinceReport[]>;
   /**
    * The grain in each land province's stores, in measures (build order item 9+a, "Production is local"): the tax in goods
    * goes in, armies standing there by their king's leave eat from it, caravans carry it away, and it falls with the
@@ -312,6 +314,8 @@ export interface GameState {
   fed: Dict<string, number>;
   /** The caravans on the road (item 9+a, "Caravans carry a kingdom's goods"), and ships in cargo service (item 9+b). */
   caravans: Caravan[];
+  /** Bug #540: caravans whose journey ended lately, each with its last report, kept until word of the end could come. */
+  caravansGone: Caravan[];
   /** The tolls each power sets on goods entering its land (item 9+b, "Tolls and smuggling"); standing until changed. */
   tolls: Toll[];
   /** Foreign markets as each court last knew them (item 9+b): seen where it sees the land, or found by its traders. */
@@ -506,10 +510,11 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     siegesEnded: [],
     ledger: new Dict(),
     obeyed: new Dict(),
-    ownLast: new Dict(),
+    reports: new Dict(),
     stores: new Dict(),
     markets: new Dict(),
     caravans: [],
+    caravansGone: [],
     tolls: [],
     marketsSeen: new Dict(),
     payRecords: new Dict(),
@@ -623,7 +628,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   siegesEnded: list(() => SiegeEndedSchema),
   ledger: dict(dict(I)),
   obeyed: dict(I),
-  ownLast: dict(dict(() => ProvinceEconomyViewSchema)),
+  reports: dict(list(() => ProvinceReportSchema)),
   stores: dict(I),
   markets: dict(() => MarketSchema),
   people: dict(() => PeopleSchema),
@@ -638,6 +643,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   corvee: dict(I),
   fed: dict(I),
   caravans: list(() => CaravanSchema),
+  caravansGone: list(() => CaravanSchema),
   tolls: list(() => TollSchema),
   marketsSeen: dict(dict(() => MarketSeenSchema)),
   payRecords: dict(() => PayRecordSchema),

@@ -69,7 +69,7 @@ export function lifeLayer(s: MapScene): string {
   // on a road it sees: the titles say so, so a figure moving in the fog is never taken for a foreign one.
   const own = s.viewer !== null;
   s.memory.caravans.forEach((c, i) =>
-    mark(c, i, "caravan", "#fig-caravan", `${own ? "Your caravan" : c.power !== null ? `${powerName(c.power)}'s caravan` : "A caravan"} on the road from ${provinceName(c.from)} to ${provinceName(c.to)}: ${c.what}${own ? ". You hear from your own caravans wherever they are" : ""}`),
+    mark(c, i, "caravan", "#fig-caravan", `${own ? "Your caravan" : c.power !== null ? `${powerName(c.power)}'s caravan` : "A caravan"} on the road from ${provinceName(c.from)} to ${provinceName(c.to)}: ${c.what}${own ? ". You know your own caravans within a courier's season as they are, and farther off where their last word has them" : ""}`),
   );
   s.memory.walking.forEach((w, i) => mark(w, i, "walking", "#fig-walkers", `${w.what}, on the road from ${provinceName(w.from)} to ${provinceName(w.to)}${own ? ", in your sight" : ""}`));
   return sb;
