@@ -30,8 +30,8 @@ describe("LevyWordTests", () => {
     const sl = s.sleep.get("Egypt");
     season(plan);
     season();
-    // The levy fails in season 3; Nubia's word takes three seasons to the court.
-    const heard = 3 + 1 + new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nubia");
+    // The levy fails in season 3; Nubia's word comes home by the one clock (bug #616).
+    const heard = wordHomeAt(s, WorldMap.default, "nippur", "nubia", 3);
     season();
     Assert.equal(heard, sl.scheduled.find((x) => x.order.type === "move")?.unraisedHeard);
     const told = () => inboxOf(s, "Egypt").some((i) => i.title === UnraisedTitle);
@@ -80,5 +80,13 @@ describe("LevyWordTests", () => {
     // Both came, after the road from Nubia (one clock: wordHomeAt).
     Assert.true(seen > 0 && seen < 6);
     Assert.true(wordHomeAt(s, WorldMap.default, "nippur", "nubia", 3) > 4);
+  });
+
+  test("Word comes home by the road from the place to the court, which may differ from the road out (bug #616)", () => {
+    const s = newGame(1);
+    // From Hattusa to a court at Akhetaten takes longer than the other way, in the first season of the year.
+    const home = wordHomeAt(s, WorldMap.default, "akhetaten", "hattusa", 1);
+    const out = wordHomeAt(s, WorldMap.default, "hattusa", "akhetaten", 1);
+    Assert.true(home > out);
   });
 });

@@ -6,7 +6,7 @@ import { Dict, HSet } from "../core/collections.ts";
 import { StartWalls, type WorldMap } from "../model/map.ts";
 import type { Power } from "../model/power.ts";
 import { newKnown, newSiege, ownedBy, type GameState, type Known, type Siege } from "../model/state.ts";
-import { courierSeasons, courtOf, wordHomeAt } from "./court.ts";
+import { courtOf, wordHomeAt } from "./court.ts";
 import { knownLevel, ownWorks } from "./province-reports.ts";
 
 /**
@@ -18,7 +18,8 @@ export function sight(s: GameState, map: WorldMap, p: Power): HSet<string> {
   // Item 13 ("Distance inside your own realm"): what a king sees as current is what a courier could bring him within the
   // season; his land and troops farther off he knows by their last report ({@link knownHolders}, the units' own reports).
   const court = courtOf(s, map, p);
-  const near = (x: string): boolean => courierSeasons(s, map, court, x) === 0;
+  // Near: word from there comes home within the season, by the one clock (wordHomeAt, bug #616).
+  const near = (x: string): boolean => wordHomeAt(s, map, court, x, s.turn) === s.turn;
   const core = new HSet<string>(ownedBy(s, p).filter(near));
   for (const u of s.units) if (u.power === p && near(u.province)) core.add(u.province);
   const all = new HSet<string>(core);

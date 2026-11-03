@@ -273,9 +273,6 @@ const Known: { issue: number; what: string; twins: string[]; is: (difference: st
   ...["units", "upkeep"].map((k) => ({ issue: 600, what: `view.${k} (a far levy's army)`, twins: ["a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}`) })),
   // Only the order named by its levy or by its army: an order missing from one twin's list is a leak of its own (#569).
   { issue: 600, what: "view.scheduled (a far levy's army)", twins: ["a far levy that raised nothing"], is: (d: string) => /^view\.scheduled: \[\{"turn":5,.* against \[\{"turn":5,/.test(d) },
-  // A far unit of the seat's own is told of in the season's movement news as it truly is, before word from there could
-  // come (#615); shown since the province's report keeps the couriers' clock (#616).
-  ...[/^view\.lastSeason\[/, /^only where (true|false): Movements last season:/].map((re, i) => ({ issue: 615, what: i === 0 ? "view.lastSeason (a far unit's own)" : "the movement news (a far unit's own)", twins: ["a far levy that raised nothing"], is: (d: string) => re.test(d) })),
 ];
 
 /** Every difference a twin's seasons show, each with the known leak it is, if any. */

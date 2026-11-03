@@ -16,7 +16,7 @@ import { type Order } from "../model/orders.ts";
 import { quoteWords, type Power } from "../model/power.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
 import { isAlive, logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
-import { courierSeasons, courtOf } from "../rules/court.ts";
+import { courierSeasons, courtOf, wordHomeAt } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
 import { RoadOdds } from "./travel.ts";
@@ -292,9 +292,9 @@ P.nearOf = function (province, ...ps) {
 /** When a caravan's king hears of its setting out: its first report's place and season (Caravan.trail). */
 function setOutHeard(e: TurnEngine, c: Caravan): number {
   const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : { turn: c.since, at: c.route[0] ?? c.from };
-  // The road as it was in that season (`wordCame`).
-  const d = e.map.exists(first.at) ? courierSeasons(e.s, e.map, courtOf(e.s, e.map, c.power), first.at, first.turn) : 0;
-  return d === 0 || !Number.isFinite(d) ? first.turn + e.s.deliveryOffset : first.turn + 1 + d;
+  // The road home as it was in that season, by the one clock (wordHomeAt, as `wordCame`).
+  const at = e.map.exists(first.at) ? wordHomeAt(e.s, e.map, courtOf(e.s, e.map, c.power), first.at, first.turn) : first.turn;
+  return at === first.turn || !Number.isFinite(at) ? first.turn + e.s.deliveryOffset : at;
 }
 
 P.caravanTell = function (c, province, kind, title, text) {

@@ -46,7 +46,8 @@ P.heardAt = function (p, province, extra = 0) {
   const S = this.s;
   // By the one clock of the road from there (wordHomeAt, bug #616), as the province's report is; a notice with no road
   // home is delivered as one from near.
-  const at = this.map.exists(province) ? wordHomeAt(S, this.map, courtOf(S, this.map, p), province, S.turn, Number.isFinite(extra) ? extra : 0) : S.turn;
+  const more = Number.isFinite(extra) ? extra : 0;
+  const at = this.map.exists(province) ? wordHomeAt(S, this.map, courtOf(S, this.map, p), province, S.turn, more) : more === 0 ? S.turn : S.turn + 1 + more;
   return at === S.turn || !Number.isFinite(at) ? S.turn + S.deliveryOffset : at;
 };
 

@@ -58,15 +58,16 @@ export function courierSeasons(s: GameState, map: WorldMap, from: string, to: st
 }
 
 /**
- * The season word of `province`'s season `turn` reaches the court in `court` (bug #616, "one clock for one road"): a
- * province's report (who holds it, its sieges) and the notices told from it (`TurnEngine.heardAt`) come by this one
- * clock, so the same season's report and notices arrive together. The couriers' road in that season: the same season
- * where they make it within the season, else one season more than the whole seasons beyond the first they take
- * ({@link courierSeasons}), plus any `extra` seasons; Infinity where no road leads. News lanes that bring word from a
- * province to a court time it by this too.
+ * The season word of `province`'s season `turn` reaches the court in `court` (bug #616, "one clock for one road"): what
+ * the court sees as current (`sight`), a province's report (who holds it, its sieges), the notices told from it
+ * (`TurnEngine.heardAt`), a census and what is known of caravans and units there come by this one clock, so the same
+ * season's report and notices arrive together. The couriers' road home from the place to the court in that season
+ * (roads differ by direction: rivers, winter at the destination): the same season where they make it within the season,
+ * else one season more than the whole seasons beyond the first they take ({@link courierSeasons}), plus any `extra`
+ * seasons; Infinity where no road leads. News lanes that bring word from a province to a court time it by this too.
  */
 export function wordHomeAt(s: GameState, map: WorldMap, court: string, province: string, turn: number, extra: number = 0): number {
-  const d = courierSeasons(s, map, court, province, turn) + extra;
+  const d = courierSeasons(s, map, province, court, turn) + extra;
   return d === 0 ? turn : Number.isFinite(d) ? turn + 1 + d : Infinity;
 }
 
