@@ -43,6 +43,7 @@ import { canLevy, levyCost, settleThere } from "./land.ts";
 import { censusOrders, corveeShares, demandOrders, levyOrder } from "./counts.ts";
 import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
+import { WarPlay, keptBond } from "./siege-tactics.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
 
@@ -91,7 +92,7 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
   if (
     current !== null &&
     (!b.alive.has(current) ||
-      brain.isFriend(current) ||
+      (WarPlay.on(me) ? keptBond(brain, current) : brain.isFriend(current)) ||
       prize(current) <= 0 ||
       b.v.turn - brain.warSince > 8 ||
       // Too strong to fight alone, unless we do not fight him alone.
@@ -105,6 +106,8 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
       .filter((x) => x !== me)
       .map((x): [Power, number] => {
         const r = brain.rel.get(x);
+        // Allies and the bonds of vassalage we keep are never the war; a plain peace is its price, weighed below.
+        if (WarPlay.on(me) && keptBond(brain, x)) return [x, -Number.MAX_VALUE];
         // A war is worth what it can win: the odds of our troops against his,
         const odds = clamp((ours + 0.5) / (force(x) + 0.5), 0.25, 1.6);
         // what we can take from him (see prize),
@@ -150,8 +153,11 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
   }
 
   // Betrayal: only for the faithless, only when an ally's land lies open, never against a sworn partner near the end.
-  brain.betraying = null;
-  if (p.honesty < 0.55) {
+  // Item 17++a: a king who wages his war on a friend whose bond he does not keep is turning on him, in everything he does;
+  // the war he chose comes before turning on another friend by chance.
+  const target = brain.warTarget;
+  brain.betraying = target !== null && WarPlay.on(me) && brain.isFriend(target) && !keptBond(brain, target) ? target : null;
+  if (brain.betraying === null && p.honesty < 0.55) {
     for (const ally of sortBy(
       [...b.alive].filter((x) => x !== me && brain.isFriend(x)),
       [(x: Power) => x, cmpPower],

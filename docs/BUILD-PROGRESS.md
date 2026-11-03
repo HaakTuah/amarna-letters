@@ -65,8 +65,58 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The body and the road** (the owner, 3 November 2026; archive item 187; "The body: endurance and robustness" and
+  "The road he takes follows his appetite for risk" under Characters, revision 31, and "What sets a company's pace",
+  revision 112): two hidden, seeded traits, endurance (the pace of lone travellers and small parties) and robustness
+  (the odds wherever a character's life or health is already at risk). Both show roughly in a man's looks and sharpen
+  through his record, and fees follow demand. The two share one budget (archive item 188, revision 31): seeded
+  together on a line from lean and quick to broad and tough, never adding up past a ceiling (first guess 160 of 200,
+  for item 18), so the build a king sees reads both at once. Where there are several roads, characters choose by appetite for risk.
+  Built with the first item whose errands use them; a save version.
+
+- **Gold travels both ways** (the owner, 3 November 2026; #587; archive item 186; "One treasury, many stores" under
+  Land, people and economy, revision 35): what is done far off (a caravan's porters, works paid in gold, grain bought
+  at a far market) is paid only from gold that is there: sent with the order up front, the caravan's own load, the
+  province's own stores, taxes or corvée, or a contract's terms with a bill carried home. The treasury moves only when
+  gold leaves it or a carrier brings a payment or a bill home; the twin canary's listed leak under #587 then goes. A
+  save version.
+
+- **The owner's answers of 3 November, morning** (archive item 185):
+  - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
+    honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
+    borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
+    kings' trust readings still behave well.
+  - **#616, one clock for one road:** a far province's report and its notices come by one function, the couriers'
+    seasons from the place to the court, with a test that the same season's both arrive together. A save version.
+  - **#601, a fast courier, hired:** a king may hire a carrier to bring one far province's report home this season.
+    It is a job like any other ("Jobs, not wages"): the carrier asks his price by what he has heard such a job pays
+    and by how badly he is wanted, and the king may haggle; no fixed price, no menu.
+  - **#586, the polish lane:** a province's card lists, for each glowing frontier, the armies the seat sees on the
+    other side.
+  - **#618, after item 17++a:** word of a conquest, a fall or a revolt reaches courts beyond sight by the road: a
+    vassal reports to his overlord what his court saw, an ally to the king he is bound to.
+  - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
+    land's king, or keep it back.
+
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
+
+- ~~**A repudiation by word (bug #609)**~~ (done, #619): the tablet's other king learns of a repudiation when word of
+  it comes, his tablet, grants, vassal bonds and cession keeping it till then; a third court never; a grantor revokes a
+  grant its grantee repudiated as he knows it. Save version 55. Report: `docs/rounds/2026-11-03-repudiation-heard.md`.
+
+- ~~**A far levy's dropped orders by word (bug #569)**~~ (done, #610): a levy that failed in its province drops the
+  orders waiting on its army when word of it comes, in the season of its "Levy failed"; till then they stay listed,
+  unable to run. Save version 53. Report: `docs/rounds/2026-11-03-levy-drop-heard.md`.
+
+- ~~**A grant and its end by word (bug #565)**~~ (done, #606): a grant by order, a revocation and closed roads reach
+  the grantee's court by word, its view keeping the grant until then. Save version 52. Filed: #609 (repudiation, the
+  same leak), #611. Report: `docs/rounds/2026-11-03-grants-heard.md`.
+
+- ~~**Far land as last reported (bugs #540, #589)**~~ (done, #579): a far province's economy, works, yields and
+  caravans, and the realm's strength, as last reported; far harvests, works' costs and caravan news by the road. Save
+  version 51. Left open: question #587 (what the treasury pays far off, paid at once). Report:
+  `docs/rounds/2026-11-03-far-as-reported.md`.
 
 - **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
   - **#566:** the twin canary (`src/web/test/twin-canary.test.ts`) plays each hidden fact at a second place too, a far
@@ -86,7 +136,7 @@ the workshop check): among them the history check's lines still unclear for a re
 
 - **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
   - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
-    a caught spy's report is read ("A letter taken on the road").
+    a caught spy's report is read ("A letter taken on the road"). Done, #576 (`docs/rounds/2026-11-02-offer-caught.md`).
   - **#550:** under NAMES CLAIMED, in the seat view, the Court section and the models' line, the season each claim was
     heard from its sealed greeting. Done, #574 (`docs/rounds/2026-11-02-names-season.md`).
   - **#554:** a short note, from its sourced basis, on each connection whose travel days are not the plain distance
@@ -165,12 +215,15 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
+| 17++a | Waging the war chosen, breaking a plain peace for it (`--war-play-half`) | 0.78 growth to 0.87, 13 wins to 7, in 20 games | Pays in wins, not in growth: Assyria and Arzawa lose by their wars of choice; for item 18 |
+| 17++a | Judging whether land would obey, and occupying it until it does (`--occupy-play-half`) | 0.88 growth to 0.82, 9 wins to 3, in 12 games | Pays |
 | 17++ C | Taking up the provinces that look to them where it pays, refusing the rest (`--take-up-play-half`) | 0.94 growth to 0.86, 26 wins to 24, in 50 games; declarations in 47 games (884), 845 taken up, 79 refused, 490 passed | Pays |
 | 17++ C | Giving a trusted governor the threatened province beside his own (`--region-play-half`) | 0.96 growth to 0.89, 33 wins to 17, in 50 games; regions given in 49 games (463) | Pays |
 | 17++ C | Making governors vassal kings where the tribute nets more than keeping (`--grant-play-half`) | 0.94 growth to 0.86, 28 wins to 22, in 50 games; 24 kingships taken of 95 offered | Pays (the land's multiple against tribute stays a finding for item 18) |
 | 17++ B | Counting the land (census), asking an amount by a fresh count and levying by share by an old one (`--count-play-half`) | 0.96 growth to 0.85, 31 wins to 19, in 50 games, on part C's final head (part B's own: 0.97 to 0.86, 26 to 24) | Pays |
 | 17++ C | The audit's script finds: raising troops when rich, governors' gold, vassal requests answered as sealed (`--audit-play-half`) | 0.94 growth to 0.86, 27 wins to 23, in 50 games | Pays |
 | 17++ C | Checking a governor's word against one's own spy, recalling one caught hiding unrest (#459, `--spy-check-play-half`) | 0.96 growth to 0.87, 27 wins to 23, in 50 games | Pays |
+| 17++ D, #553 | Heeding an offer read on a carrier caught, as talk of it (`--talk-play-half`, with the talk) | 0.90 growth to 0.84, 25 wins to 25, in 50 games; 1,152 offers sent, 36 carried, 1 caught and read, 33 arrived | Too rare to tell: one catch in 50 games; for item 18, with the talk |
 | 17++ D | Heeding talk of a province's leaning: relief at home, warmth to the claimant, a spy where one is talked of (`--talk-play-half`) | 0.86 growth to 0.86, 26 wins to 24, in 50 games; 988 offers sent, 31 carried, 27 arrived | Even: offers rarely arrive yet, so the threat is rare; for item 18 |
 | 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
 | 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |
@@ -181,8 +234,8 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) under way, `item/offer-carriers`; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
-| 17++a | Something happens every season | not started (next after 17++) | | |
+| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) merged, #538; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
+| 17++a | Something happens every season | done, #590: the pulse measure (`pulse.ts`, in every batch report); the four lands named and anchored (#403); script kings occupy land until it obeys and wage the war they choose (a map change every 5-7 seasons for the large kings, 5-15 without the war play; short of the target of 4, the limit now hearing: #618); crowns' ids registered; save version 54 | `item/every-season` | `docs/rounds/2026-11-02-every-season.md` |
 | 17+++ | The season plays out | not started | | |
 | 17+++a | Keys for everything | not started | | |
 | 17+++b | History, search and names | not started | | |

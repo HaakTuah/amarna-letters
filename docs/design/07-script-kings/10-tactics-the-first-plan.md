@@ -50,3 +50,13 @@
 
    The step must be empty, not already taken, not within foreign walls (our own the troop may march through), and not into an unwilling king's land. Otherwise the troop holds.
 
+
+**Occupation** (item 17++a, `bots/occupy.ts`; `--no-occupy-play`, `--occupy-play-half`). Since item 17++ moving into a
+province takes nothing by itself: it changes hands by whom it obeys (`47-whom-a-province-obeys.md`). A script king reckons
+from his own view how many seasons a province would take to obey an army of his standing there: its men from the
+resistance its people put up against him (`SeatView.resistance`), their love for their holder as the rules start it,
+lowered by what his governors, spies and travellers last said of their mood and fading while he stands there, against the
+holder's troops next door. An attack on empty open land is worth its land only by the share that would obey (a city falls
+to its siege instead; a blow at a troop keeps its land's worth); the look-ahead pictures open land as won only if it would
+obey; and an army standing in land not his that would obey within a few seasons may stay there (the op "occupy", worth
+the land × 0.9 per season it would take) until it does.

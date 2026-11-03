@@ -100,8 +100,9 @@ export function remember(frames: readonly SeasonFrame[], index: number, viewer: 
     const c = viewer === null ? undefined : g.counted.get(viewer)?.get(p.id);
     if (now > 0) towns.set(p.id, { now, before: people(frameAt(frames, Math.max(0, k - 3))) ?? now, countAge: c === undefined ? null : g.turn - c.turn });
   }
-  // A court knows its own caravans, as the engine's view tells it; deportees on a road it sees.
-  const caravans = viewer === null ? f.caravans : f.caravans.filter((r) => r.power === viewer);
+  // A court knows its own caravans as the engine's view tells it (bug #540: a far one where its last report has it);
+  // deportees on a road it sees.
+  const caravans = viewer === null ? f.caravans : [...(f.knownCaravans.get(viewer) ?? [])];
   // Deportees only on a road in its sight: people led out of a city it still believes its own would tell it of the loss.
   const inSight = (id: string): boolean => viewer === null || (f.sight.get(viewer)?.has(id) ?? false);
   const walking = f.walking.filter((r) => inSight(r.from) || inSight(r.to));

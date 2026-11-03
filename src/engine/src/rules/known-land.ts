@@ -8,6 +8,7 @@ import type { Power } from "../model/power.ts";
 import { newKnown, newSiege, ownedBy, type GameState, type Known, type Siege } from "../model/state.ts";
 import { wordSeasons } from "../model/travel.ts";
 import { courierSeasons, courtOf } from "./court.ts";
+import { knownLevel, ownWorks } from "./province-reports.ts";
 
 /**
  * Provinces a power can see units in: its own lands, where its units stand, and next to any of those. A spy watching a
@@ -28,21 +29,20 @@ export function sight(s: GameState, map: WorldMap, p: Power): HSet<string> {
 
 /**
  * The walls as a court knows them, by province (a province with none left out): those standing now where it can see
- * troops ({@link sight}), and of the cities it knows it holds, its own works (bug #517: as its view shows its works, until
- * bug #540 makes those as last reported); elsewhere as it last saw them (GameState.wallsSeen; at the start, as the map
- * gives them).
+ * troops ({@link sight}), and of the cities it knows it holds, its own works as its view shows them (bug #540: farther
+ * off, as last reported, `ownWorks`); elsewhere as it last saw them (GameState.wallsSeen; at the start, as the map gives
+ * them).
  */
 export function wallsKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, number> {
   const sightNow = seen ?? sight(s, map, p);
   const last = s.wallsSeen.tryGet(p);
   const known = last !== undefined ? last.clone() : new Dict<string, number>([...StartWalls.entries()].filter(([, v]) => v > 0));
   const holders = knownHolders(s, map, p, sightNow);
+  const own = ownWorks(s, map, p, sightNow, holders);
   for (const x of map.landProvinces) {
-    // Its own far cities' walls as its works stand only while they are its own in truth too: one lost out of its sight
-    // keeps the walls it last knew, never the walls a surrender lowered (bug #517).
-    if (!sightNow.has(x.id) && !(holders.tryGet(x.id)?.owner === p && s.owner.getOrDefault(x.id, null) === p)) continue;
-    const level = s.walls.tryGet(x.id);
-    if (level !== undefined) known.set(x.id, level);
+    const level = own.has(x.id) ? knownLevel(own, "Walls", x.id) : sightNow.has(x.id) ? s.walls.getOrDefault(x.id, 0) : null;
+    if (level === null) continue;
+    if (level > 0) known.set(x.id, level);
     else known.delete(x.id);
   }
   return known;

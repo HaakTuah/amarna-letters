@@ -39,8 +39,8 @@ P.realmCeded = function (p, c) {
     this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it after movement.`, "you no longer held it");
     return;
   }
-  // The agreement must still stand as the season resolves: a tablet repudiated or carried off since gives nothing.
-  if (!cessionAgreed(S.tablets, p, c.to, c.province)) {
+  // The agreement must still stand as the season resolves: a tablet repudiated (as he knows it) or carried off since gives nothing.
+  if (!cessionAgreed(S.tablets, p, c.to, c.province, S.turn)) {
     this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: no sealed tablet between you gives it any more.`, "the tablet no longer stands", false);
     return;
   }

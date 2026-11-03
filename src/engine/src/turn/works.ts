@@ -125,6 +125,7 @@ P.worksSeason = function () {
       const prov = Map.get(id);
       const hostile = hostileAt(S, id, p);
       const siege = siegeOf(S, id);
+      const [gold0, men0] = [gold, men];
       for (const kind of WorkKindValues) {
         let level = levelOf(S, kind, id);
         const plan: WorkPlan | null = planOf(S, kind, id);
@@ -189,7 +190,7 @@ P.worksSeason = function () {
             siege.progress--;
             men += RepairData.men;
             say(id, `the walls of ${prov.name} were repaired a step under siege (worn ${siege.progress} now)`);
-            logEvent(S, "repair", `${p} repaired the walls of ${prov.name} under siege.`, [p, siege.power], "wall-repair");
+            logEvent(S, "repair", `${p} repaired the walls of ${prov.name} under siege.`, [...this.nearOf(id, p), siege.power], "wall-repair");
           } else say(id, `the walls of ${prov.name} could not be repaired: too few men or too little food inside`);
         }
         // A project: a level at a time, a season's work each season it can be paid and worked.
@@ -241,7 +242,7 @@ P.worksSeason = function () {
                 // Item 17++: works paid in gold are a giving its people remember of the king who built them; their own corvée
                 // they built themselves.
                 if (!labour) this.give(id, p, UnrestData.work);
-                logEvent(S, "built", `${p} raised the ${workName(kind)} of ${prov.name} to ${workLevelText(kind, level)}.`, AllPowers.filter((x) => x === p || (kind === "Walls" && Views.sight(S, Map, x).has(id))), "built");
+                logEvent(S, "built", `${p} raised the ${workName(kind)} of ${prov.name} to ${workLevelText(kind, level)}.`, [...this.nearOf(id, p), ...AllPowers.filter((x) => x !== p && kind === "Walls" && Views.sight(S, Map, x).has(id))], "built");
               } else say(id, `the ${workName(kind)} of ${prov.name}: ${work.progress} of ${seasons} seasons done towards ${workLevelText(kind, level + 1)}`);
             }
           }
@@ -250,6 +251,11 @@ P.worksSeason = function () {
         const needed = work.keep > 0 || !work.labour || work.progress > 0 || work.neglect > 0;
         if (plan === null && needed) S.works.push(work);
         else if (plan !== null && !needed) S.works.splice(S.works.indexOf(plan), 1);
+      }
+      // Bug #540: what a far province's works cost comes home with its report, not in the season's total.
+      if (this.wordTo(p, id) > 0 && (gold > gold0 || men > men0)) {
+        say(id, `what its works keep and build cost ${formatMoney(gold - gold0)}${men > men0 ? ` and the corvée of ${men - men0} men, away from the fields` : ""} this season`);
+        [gold, men] = [gold0, men0];
       }
     }
     // One notice for what the court's couriers bring this season; word of farther provinces comes when it arrives.
