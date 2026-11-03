@@ -126,7 +126,7 @@ build varied between 9% and 20%.
 
 | Run | Part G's build: frames over 50 ms | Part D's build |
 |---|---|---|
-| Fast, five pairs | 1,920 of 14,628 (13.1%; 9.0 to 17.3% a run) | 2,018 of 14,241 (14.2%; 9.1 to 19.0% a run) |
+| Fast, five pairs | 1,920 of 14,628 (13.1%; 9.0 to 17.3% a run) | 2,018 of 14,238 (14.2%; 9.1 to 19.0% a run) |
 | Normal, two pairs | 617 of 9,072 (6.8%) | 622 of 7,472 (8.3%) |
 
 At Fast the land changes at once, as before; the first build, which moved it there too (half a second a season), had a
