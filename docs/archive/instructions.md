@@ -1609,3 +1609,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     findings in the builder rules, made in the design document (Build order, revision 348): a reading that is a matter
     of taste goes to the owner as a `question` issue when it is taken ("Unattended work"), and `AGENTS.md` joins the
     files every session reads in the workshop check's second mark.
+197. **3 November 2026**, under item 195's instruction ("Yes, do it expertly!"): Codex's automatic security review on
+    #665 found that the new `docs/developing.md`, which holds the GitHub calls builders run with the repository's
+    credentials, was not a protected file, so a Codex lane steered by planted text could change them unseen. It joins the
+    protected files (`SECURITY.md`, rule 3). #665 had been merged with the finding open, against "Codex reviews": the fix
+    is this PR.

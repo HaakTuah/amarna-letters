@@ -19,7 +19,7 @@ instructions. A break of a rule here is **blocking** in every review, and P0 or 
      it through `env:` and quote it;
    - only GitHub's own actions (`actions/*`), or another pinned to a full commit SHA.
 3. **The protected files:** only Claude's builders change `.github/`, `scripts/cloud-setup.sh`,
-   `.claude/`, `AGENTS.md`, `CLAUDE.md`, `docs/threat-model.md` and this file, never a Codex lane, and a change to `.github/` or the setup
+   `.claude/`, `AGENTS.md`, `CLAUDE.md`, `docs/threat-model.md`, `docs/developing.md` (the credentialed GitHub calls builders run) and this file, never a Codex lane, and a change to `.github/` or the setup
    script needs the owner's yes in its PR. One exception, narrow: Dependabot's version updates of actions a workflow
    already uses need no yes when the diff changes nothing but the pinned version (and its comment), CI is green and its
    review is clean; the reviewer checks that the diff is only that. A new workflow, a changed trigger or permission, a
