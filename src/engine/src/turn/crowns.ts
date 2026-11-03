@@ -51,7 +51,7 @@ P.grantCrown = function (p, o) {
     c.watchProvince = seat;
   }
   const lands = o.provinces.map((x) => this.map.get(x).name).join(", ");
-  notify(S, p, "Resolution", "A kingship offered", `Your offer to make ${c.name} your vassal king of ${lands}, for ${formatMoney(o.tribute)} of tribute a year${o.price > 0 ? ` and a price of ${formatMoney(o.price)}` : ""}, reaches him at ${this.map.get(seat).name} in turn ${arrives}. His answer comes back by the same road.`, c.id);
+  notify(S, p, "Resolution", "A kingship offered", `Your offer to make ${c.name} your vassal king of ${lands}, for ${formatMoney(o.tribute)} of tribute a year${o.price > 0 ? ` and a price of ${formatMoney(o.price)}` : ""}, reaches him ${lands.includes(this.map.get(seat).name) ? "there" : `at ${this.map.get(seat).name}`} in turn ${arrives}. His answer comes back by the same road.`, c.id);
   logEvent(S, "crown", `${p} offered ${c.name} the kingship of ${lands}.`, [p], "crown");
 };
 
