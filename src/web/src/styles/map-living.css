@@ -80,7 +80,7 @@
 .legend .road-net { --k: 1.2; fill: none; stroke: #6b4a2a; stroke-linecap: round; }
 .legend .wk-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .7; }
 
-/* Pass 4: the map that remembers, life on it, the realm's medium, the omens and small scenes (memory.ts, life.ts). */
+/* Pass 4: the map that remembers, life on it, the realm's medium and the omens (memory.ts, life.ts). */
 .map .memory { pointer-events: none; }
 .map .thorn { fill: none; stroke: #5d5a2e; stroke-width: .8; stroke-linecap: round; opacity: .55; }
 .map .wild { opacity: .8; }
@@ -124,13 +124,6 @@
 .omen .sky-tail { stroke: #f2e3b0; stroke-width: 2.4; stroke-linecap: round; opacity: .8; } .omen .sky-star { fill: #fff6d8; }
 .omen .sky-corona { fill: none; stroke: #e3b23c; stroke-width: 2.6; opacity: .7; } .omen .sky-black { fill: #120c08; }
 .omen svg { filter: drop-shadow(0 0 2px rgba(0, 0, 0, .35)); }
-/* Small scenes: each plays once, rising and fading, then the renderer takes it away. */
-.map .scene { pointer-events: none; animation: scene 3.6s ease-out both; }
-.map .scene-bg { fill: var(--paper); stroke: var(--accent); stroke-width: 2; }
-.map .scene-figs use { fill: var(--bitumen); }
-.map .scene.sack .scene-figs use { fill: #c4521f; }
-@keyframes scene { 0% { opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .map .scene { display: none; } }
 .legend .stele { fill: #8f8676; stroke: var(--bitumen); stroke-width: 1.4; paint-order: stroke; }
 .legend .ruin-crack { fill: none; stroke: var(--bitumen); stroke-width: 1.4; }
 .legend .thorn { fill: none; stroke: #5d5a2e; stroke-width: .8; }

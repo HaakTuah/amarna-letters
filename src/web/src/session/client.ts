@@ -22,11 +22,28 @@ import {
 } from "@amarna/engine";
 import { SnapshotHistory, type ExportParts, type MindPage } from "@amarna/game";
 import { buildScene, type MapScene } from "../map/scene.ts";
+import { seasonPlay, type SeasonPlay } from "../map/moments.ts";
+import { speedIndex } from "../ui/keys.ts";
 import { IncrementalReader, ReadReplaced } from "./incremental.ts";
 import { fromWire, sameMap, samePerson, sameSet, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
 import { download } from "./storage.ts";
+
+type Update = Extract<FromWorker, { type: "update" }>;
+
+/**
+ * Item 17+++: the season playing out on the map, for one pair of eyes: its frame's index, its moments laid out in time, and
+ * when it began (`performance.now()`). `live`: the newest season, which holds back the next until it has played; else a
+ * season stepped to in a replay.
+ */
+export interface Playout {
+  index: number;
+  viewer: Power | null;
+  play: SeasonPlay;
+  began: number;
+  live: boolean;
+}
 
 /** A human seat's question, read back into the engine's types. */
 export interface HumanAsk {
@@ -85,6 +102,11 @@ export class Session {
   historyTurn: number | null = null;
   replaying = false;
   delayMs = 400;
+  /** The season playing out, if one is (item 17+++). */
+  playout: Playout | null = null;
+  /** The updates held back while the newest season plays: the season computed ahead, and what came after it. */
+  private held: Update[] = [];
+  private playTimer = 0;
 
   /** The history of the state (item 17a): the stream's pieces, from which any season is read back when looked back at. */
   private history = new SnapshotHistory();
@@ -117,6 +139,10 @@ export class Session {
 
   private notify(): void {
     this.version++;
+    // Simulate stopped (paused, the age ended, or another pace chosen): the last season is read, and the game opens there.
+    const sim = this.simulating;
+    if (this.wasSimulating && !sim) this.readSoon();
+    this.wasSimulating = sim;
     // React's render of the page follows in a task of its own: the time from here to the next frame drawn is the page's redraw.
     performance.mark("page:notify");
     for (const f of this.listeners) f();
@@ -141,6 +167,21 @@ export class Session {
       return;
     }
     const newGame = m.live.generation !== this.seenGeneration;
+    if (m.reset || newGame) {
+      this.held = [];
+      this.endPlayout();
+    } else if (this.held.length > 0 || (this.playout?.live === true && m.frames.length > 0)) {
+      // The season computed ahead waits for the one playing (item 17+++); a pause, an error or a notice shows at once.
+      this.held.push(m);
+      this.live = { ...this.live, auto: m.live.auto, error: m.live.error, notice: m.live.notice };
+      this.notify();
+      return;
+    }
+    this.apply(m, newGame);
+  }
+
+  /** Takes in an update: its frames, its stream of the state and the rest of the game as it stands. */
+  private apply(m: Update, newGame: boolean): void {
     if (m.reset || newGame) {
       this.frames = [];
       this.recent.clear();
@@ -182,8 +223,9 @@ export class Session {
       this.recent.clear();
       // The newest season is read in a task of its own, after the frames have shown (item 17a: one task under the 50 ms
       // bar holds the message and the map, the next the state); only what changed is read, and a season looked back at
-      // is read when looked at (displayed). Until then the panels show the season before.
-      this.readSoon();
+      // is read when looked at (displayed). Until then the panels show the season before. Simulate reads nothing until it
+      // stops (notify).
+      if (!(this.delayMs === 0 && m.live.auto)) this.readSoon();
     }
     if (!m.live.hasRunner) this.state = null;
     this.asks = m.live.pending.map((p) => ({
@@ -201,7 +243,70 @@ export class Session {
       this.viewAs = null;
     }
     this.live = { ...m.live, states: [] };
+    // One season on from the season shown plays out; anything else (a new or loaded game, a resume, Simulate) shows at once.
+    if (m.frames.length === 1 && !m.reset && !newGame && this.frames.length > 1 && !this.simulating) this.startPlayout();
+    else if (m.frames.length > 0) this.tellPlayed(this.frames.length - 1);
     this.notify();
+  }
+
+  // ---------------------------------------------------------------- the season plays out (item 17+++)
+
+  /**
+   * Simulate ("Pace of play"): while auto-play runs at the fourth pace and no human seat is asked anything, nothing is
+   * drawn or read; the page shows a progress bar and the count of seasons, and the worker plays on as fast as it can.
+   */
+  get simulating(): boolean {
+    // A human seat asleep has an entry with nothing asked of it: only orders or an audience waiting stop the simulation.
+    return this.delayMs === 0 && this.live.auto && !this.asks.some((a) => a.orders !== null || a.audience !== null);
+  }
+  private wasSimulating = false;
+
+  /** Whose eyes the map shows: god view, or the seat chosen (a human's own by default). */
+  get viewer(): Power | null {
+    return this.godView ? null : (this.viewAs ?? this.live.humans[0] ?? null);
+  }
+
+  private playOf(index: number): SeasonPlay {
+    return seasonPlay(this.scene(index, this.viewer), speedIndex(this.delayMs));
+  }
+
+  private startPlayout(): void {
+    const index = this.frames.length - 1;
+    this.playout = { index, viewer: this.viewer, play: this.playOf(index), began: performance.now(), live: true };
+    this.schedulePlayout();
+  }
+
+  /** The newest season ends when its timeline does, at the speed it began playing at. */
+  private schedulePlayout(): void {
+    clearTimeout(this.playTimer);
+    const p = this.playout;
+    if (p === null || !p.live) return;
+    this.playTimer = window.setTimeout(() => this.finishPlayout(), Math.max(0, p.began + p.play.timeline.total - performance.now()));
+  }
+
+  /** The newest season has played: the worker is told, and the season held back, if one is, begins. */
+  private finishPlayout(): void {
+    const p = this.playout;
+    if (p === null || !p.live) return;
+    this.playout = null;
+    this.tellPlayed(p.index);
+    while (this.held.length > 0 && this.playout === null) this.apply(this.held.shift()!, false);
+    this.notify();
+  }
+
+  private endPlayout(): void {
+    clearTimeout(this.playTimer);
+    this.playout = null;
+  }
+
+  private tellPlayed(index: number): void {
+    this.send({ type: "played", generation: this.seenGeneration, index });
+  }
+
+  /** The season shown is playing out for these eyes now: what the map is given to play. */
+  playoutAt(index: number, viewer: Power | null): Playout | null {
+    const p = this.playout;
+    return p !== null && p.index === index && p.viewer === viewer ? p : null;
   }
 
   /**
@@ -328,9 +433,13 @@ export class Session {
   setAuto(on: boolean): void {
     this.send({ type: "auto", on });
   }
+  /**
+   * The speed (item 17+++): it paces the seasons from the next one on; the season playing keeps the pace the map lays it
+   * out at, so the page's timer and the map end it together. The worker follows the page's pace.
+   */
   setDelay(ms: number): void {
     this.delayMs = ms;
-    this.send({ type: "delay", ms });
+    this.send({ type: "simulate", on: ms === 0 });
     this.notify();
   }
   playOn(budgetUsd: number | null = null): void {
@@ -427,11 +536,16 @@ export class Session {
     this.notify();
   }
 
+  /** Each recorded season plays out as it did live (item 17+++), at least 0.7 s a season. */
   private async replayLoop(): Promise<void> {
     while (this.replaying && this.live.hasRunner) {
-      await new Promise((r) => setTimeout(r, Math.max(700, this.delayMs * 2)));
+      const shown = this.shownIndex;
+      const play = this.playout !== null && this.playout.index === shown ? this.playout.play.timeline.total : 0;
+      await new Promise((r) => setTimeout(r, Math.max(700, play)));
       if (!this.replaying || this.historyTurn === null) break;
-      this.showTurn(this.historyTurn + 1);
+      const next = this.historyTurn + 1;
+      if (this.playout === null || !this.playout.live) this.playout = { index: next, viewer: this.viewer, play: this.playOf(next), began: performance.now(), live: false };
+      this.showTurn(next);
       if (this.historyTurn === null) break;
     }
     this.replaying = false;
