@@ -587,6 +587,8 @@ export class SessionCore {
       }
       case "export":
         return this.post({ type: "export", id: m.id, name: `${this.gameId}.jsonl`, text: this.runner !== null ? exportJsonl(this.runner.log, m.parts, realNames(this.runner.state)) : "" });
+      case "mind":
+        return this.post({ type: "mind", id: m.id, pages: this.runner?.log.minds.at(m.who, m.turn) ?? [] });
     }
   }
 }
