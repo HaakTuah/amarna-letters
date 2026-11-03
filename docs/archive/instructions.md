@@ -1677,3 +1677,13 @@ Given in the design chat with Claude, answering the design questions of the cons
     rule (every model mistake sorted by whether a careful player with the same seat view could have known better):
     "Yes, please, expertly!" Written into the builder rules, "No model games until the build order is done" (Build
     order, revision 352).
+206. **3 November 2026, 17:06 and 17:09 UTC**, in the design chat, to the design session's finding that the fallback
+    reviewer's brief named four paragraphs of "Review guidelines" and left out its opening, the one that blocks a
+    protected file changed by a Codex lane or a test weakened, and its proposal to add that list to the brief: "Why
+    isn't that in a file they both read then instead? Remember, we try to avoid duplications nearly at all cost here. It
+    creates drift and usage, one of our most important principles!" Then, to the proposal to make every reviewer read
+    the whole section: "Do it expertly! But remember! We want each instance to read what pertains to it, ideally! If
+    review criterias are within a big file of other stuff they don't really need, that breaks with one of our core
+    principles: "Consume what you need to know only!"" The guidelines moved to `docs/review-guidelines.md`, protected,
+    which every reviewer reads whole and builders no longer carry; their opening now speaks to every reviewer, and
+    `AGENTS.md`, "Review guidelines", points to the file.

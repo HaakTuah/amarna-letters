@@ -120,7 +120,7 @@ goes to building. Its usage can run out like any other, and it may then not say 
 - **A PR Codex built:** the fallback reviewer in place of Codex's code review ("Who does what").
 
 1. **Ask:** a comment `@codex review` alone. Codex reads the PR's description, so the item's text and the design
-   sections it names go there, and it follows the "Review guidelines" in `AGENTS.md` and `SECURITY.md`. Its security
+   sections it names go there, and it follows `docs/review-guidelines.md` and `SECURITY.md`. Its security
    review is not part of this: it runs by itself once, when the PR is ready (point 6). **Write the Codex mention only
    to ask for a review:** `@codex review` or `@codex security review`, alone at the start of a comment. Any other
    request to it fails (its tasks need an environment for the repository, which cannot be created: "Status"; tried twice), and its bot answers every mention it finds,
@@ -178,20 +178,15 @@ goes to building. Its usage can run out like any other, and it may then not say 
 Every review, in either direction, passes the work only at a 10 (for Codex, nothing open), and the rule holds two
 guards: the rounds come to an end, and what a 10 means never slips (archive item 132):
 
-1. **The list decides the score.** The reviewer lists everything that keeps the work from 10, each point concrete (a
-   file and line, or a design section) and marked **blocking** (against the design, the item's text, its tests or the
-   standing rules) or **not blocking**, which says only what is fixed first. **A 10 is a list with nothing open:** the
-   work does all of the item's text and the sections it names, keeps every standing rule, leaves nothing behind ("Keep it lean" in `AGENTS.md`), its tests prove it, and a
-   demanding expert would hand it over as it stands. A 10 with a point open, or less than 10 with none, is no review:
-   ask again. This definition goes into every reviewer's brief word for word (point 7), and only the owner changes it.
+1. **The list decides the score,** as "How a review passes" in `docs/review-guidelines.md` defines it: a 10 is a list
+   with nothing open, and only the owner changes that definition.
 2. **Every point is fixed, or moved out with a reason.** A point within the item is always fixed. A point outside it
    (code or a question the item did not touch) may become a follow-up (a `bug` issue if it is a bug, otherwise an entry in `docs/BUILD-PROGRESS.md`), with the reason in the
    PR. A point the builder thinks wrong is answered in the PR with why. The next round's reviewer rules on each move
    and each answer.
 3. **Later rounds judge the change.** Each round's reviewer gets the earlier rounds' lists and the builder's answers,
-   with the same model, effort and brief as before. It checks those points and the lines changed since. Something new
-   about work it already saw is raised only if it is a fault that blocks: a bug, a broken rule, a security hole, a
-   departure from the design. Taste does not grow between rounds, so the rounds come to an end.
+   with the same model, effort and brief as before, and judges as "How a review passes" in `docs/review-guidelines.md`
+   says, so the rounds come to an end.
 4. **At most three rounds, then escalation, then blocked, held firmly** (a fourth round is never asked
    for, whatever the reason). Anything still open after the third round goes
    to escalation ("Who does what") with a self-contained brief. It fixes each point, or rules it outside the item or
@@ -225,11 +220,8 @@ guards: the rounds come to an end, and what a 10 means never slips (archive item
    category and builder in the milestone PR, with the rounds per PR: a category where Codex scores lower moves back
    to Claude, one where it does well gets more, and one that often needs three rounds needs better briefs.
 
-7. **The briefs.** A reviewer starts cold and gets its brief and nothing more. Every guideline line that goes into a
-   brief is changed only by the owner.
-   - **The fallback reviewer's:** the diff, the item's text, "The game in one page", the definition of a 10 word for
-     word (point 1) and the "History holds", "Hidden information", "Text a player reads" and "One idea, for every
-     reviewer" lines of "Review guidelines" in `AGENTS.md`.
+7. **The briefs.** A reviewer starts cold and gets its brief and nothing more.
+   - **The fallback reviewer's:** the diff, the item's text, "The game in one page" and `docs/review-guidelines.md`, whole.
    - **The design checker's:** the same brief and, when the item adds or changes real-world content, the dossier
      passages it cites. It checks the diff against "The game in one page" first; a fact without a source, or against
      its source, blocks; and it sends the work back until it meets the page.
@@ -253,7 +245,7 @@ guards: the rounds come to an end, and what a 10 means never slips (archive item
 - Your environment's setup script installs what the suites need. If something is missing, say what in your report
   instead of working around it.
 - **Questions, readings and ideas go to the issues** ("Questions, readings and ideas" in `AGENTS.md`): file each as an issue yourself, with its template's headings and label (`question`, `enhancement` or `bug`) and assigned to `HaakTuah`, if your access allows it. If it does not, list them in your report under "Questions for the owner", "Ideas" and "Bugs", and the orchestrator files each as an issue and links it in the PR. Either way the PR carries only the links.
-- Your review of Claude's PRs gives findings by priority, as "Review guidelines" in `AGENTS.md` says; every one counts.
+- Your review of Claude's PRs gives findings by priority, as `docs/review-guidelines.md` says; every one counts.
 
 ## Setup
 
