@@ -1640,3 +1640,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     (imported by `CLAUDE.md`, read by every builder), and they and the rule files now state rules plainly, with no
     quotes or dated history and at most a pointer here (Build order, revision 350); a reviewer checks a change to a
     rule file against the words it cites; the security gate's fallback stands.
+201. **3 November 2026, 12:56 and 12:57 UTC**, in the design chat: "Should we have another audit, or would you advice
+    against it, expert?" Then, to the design session's advice (no third full audit now; a targeted check of the
+    quote-removal diffs against the archived words, its findings fixed; a full rules audit with the workshop check a
+    week on, then only when the rules change a lot): "Do all you adviced, expertly!" The check found six points in
+    about 87 removals, all fixed; the workshop check gained its sixth mark, a fresh audit of the rule files at the first
+    milestone after 10 November 2026 and then whenever more than about a fifth of their lines changed (Build order,
+    revision 351).
