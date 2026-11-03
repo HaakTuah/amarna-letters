@@ -29,6 +29,7 @@ import {
 import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, realNames, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
 import { AnthropicId, BatchTransport, SdkBatchService, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { framesSince, toWire, type SeasonFrame, type WireFrame } from "./frames.ts";
+import { PageGate } from "./page-gate.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
 import { choicesOf, fallenSeesAll, handLimitNeeded, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
 import { saveLog, savedBatches } from "./storage.ts";
@@ -96,12 +97,8 @@ export class SessionCore {
   private readOnly = false;
   /** The turn the game stood at when its log was last saved (Live.savedTurn): a reload resumes from there. */
   private savedTurn = -1;
-  /**
-   * Item 17+++: the newest season the page has played out, by its frame's index (-1: none yet). Auto-play computes the next
-   * season while the page plays the one before, and goes no further (`pageReady`): a slow page never piles up seasons.
-   */
-  private played = -1;
-  private onPlayed: (() => void) | null = null;
+  /** Item 17+++: auto-play runs one season ahead of what the page shows, and no further. */
+  private readonly page = new PageGate();
   private error: string | null = null;
   private notice: string | null = null;
   private gameId = "";
@@ -302,7 +299,7 @@ export class SessionCore {
     this.framesTaken = 0;
     this.lastFrame = null;
     this.sentFrame = null;
-    this.played = -1;
+    this.page.reset();
     this.resetPending = true;
     this.generation++;
     this.fallTold = false;
@@ -495,29 +492,13 @@ export class SessionCore {
     if (this.auto === on) return;
     this.auto = on;
     this.notify();
-    this.wake();
+    this.page.wake();
     if (on) void this.loop();
   }
 
-  /**
-   * Whether the page is near enough for the next season to be played: it may be computed while the page plays the season
-   * before it, one season ahead of what the page shows and no more. With a human seat awake, not even that: he is asked for
-   * his orders once he has seen the season play out.
-   */
-  private pageReady(): boolean {
+  private humanAwake(): boolean {
     const r = this.runner;
-    const awake = r !== null && [...this.humans.keys()].some((p) => r.state.sleep.tryGet(p)?.asleep !== true);
-    return this.framesTaken <= this.played + (awake ? 1 : 2);
-  }
-
-  private async pageCaughtUp(): Promise<void> {
-    while (this.auto && !this.pageReady()) await new Promise<void>((done) => (this.onPlayed = done));
-  }
-
-  private wake(): void {
-    const done = this.onPlayed;
-    this.onPlayed = null;
-    done?.();
+    return r !== null && [...this.humans.keys()].some((p) => r.state.sleep.tryGet(p)?.asleep !== true);
   }
 
   private async loop(): Promise<void> {
@@ -538,7 +519,10 @@ export class SessionCore {
         this.auto = false;
         break;
       }
-      await this.pageCaughtUp();
+      await this.page.wait(
+        () => this.auto,
+        () => this.page.ready(this.framesTaken, !this.humanAwake()),
+      );
     }
     this.auto = false;
     this.notify();
@@ -546,7 +530,7 @@ export class SessionCore {
 
   stop(): void {
     this.auto = false;
-    this.wake();
+    this.page.wake();
     this.abort.abort();
     this.abort = new AbortController();
   }
@@ -579,8 +563,8 @@ export class SessionCore {
       case "auto":
         return this.setAuto(m.on);
       case "played":
-        if (m.generation === this.generation && m.index > this.played) this.played = m.index;
-        return this.wake();
+        if (m.generation === this.generation) this.page.told(m.index);
+        return;
       case "budget":
         this.settings = { ...this.settings, budgetUsd: this.settings.budgetUsd + m.by };
         this.notice = null;

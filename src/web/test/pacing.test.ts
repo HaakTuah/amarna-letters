@@ -4,6 +4,7 @@ import { Assert } from "../../engine/test/support.ts";
 import { momentsOf, seasonPlay } from "../src/map/moments.ts";
 import { buildScene } from "../src/map/scene.ts";
 import { frameFrom, type SeasonFrame } from "../src/session/frames.ts";
+import { PageGate } from "../src/session/page-gate.ts";
 import { closingLine, Paces, paceSeason, type Moment } from "../src/session/pacing.ts";
 
 const [Slow, Normal, Fast, Simulate] = Paces;
@@ -73,5 +74,26 @@ describe("PacingTests", () => {
     const egypt = seasonPlay(buildScene([seen(new Set()), f1], 1, "Egypt"), 1);
     Assert.true(egypt.line.includes("Word came of a caravan robbed on the road"), egypt.line);
     Assert.false(egypt.line.includes(place.name), egypt.line);
+  });
+
+  test("The worker plays one season ahead of what the page shows, and none ahead while a human seat is awake", async () => {
+    const gate = new PageGate();
+    // The opening (frame 0) is sent; season 1 may be computed at once, while the page shows the opening.
+    Assert.true(gate.ready(1, true));
+    Assert.false(gate.ready(2, true), "season 2 waits until the page has played the opening");
+    gate.told(0);
+    Assert.true(gate.ready(2, true));
+    Assert.false(gate.ready(2, false), "a human seat sees season 1 play out before he is asked again");
+    gate.told(1);
+    Assert.true(gate.ready(2, false));
+    // A wait ends when the page answers, or when auto-play stops.
+    let on = true;
+    const waited = gate.wait(() => on, () => gate.ready(4, true));
+    gate.told(2);
+    await waited;
+    const stopped = gate.wait(() => on, () => gate.ready(9, true));
+    on = false;
+    gate.wake();
+    await stopped;
   });
 });

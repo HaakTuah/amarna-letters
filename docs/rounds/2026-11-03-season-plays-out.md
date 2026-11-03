@@ -57,18 +57,38 @@ Simulate, the fourth speed (key 4), skips to the result. Design note: `docs/desi
 - `src/web/src/session/pacing.ts`: the phases, the paces, `paceSeason` and `closingLine` (plain functions).
 - `src/web/src/map/moments.ts`: `momentsOf` (the season's moments from the viewer's scene), `seasonPlay`, `momentMarkup`;
   it replaces `scenesOf` and `sceneMarkup` (life.ts).
-- `src/web/src/session/core.ts`: `pageReady`, `pageCaughtUp`, the `played` message in place of `delay`.
+- `src/web/src/session/page-gate.ts`: `PageGate`, how far the worker may run ahead; `core.ts` waits on it, and the
+  `played` message replaces `delay`.
+- `src/web/src/styles/playback.css`: the pieces' slide in the marching, the disaster medallion, the closing line.
 - `src/web/src/session/client.ts`: `held`, `startPlayout`, `finishPlayout`, `playoutAt`; the replay plays each season out.
 - `src/web/src/map/svg-renderer.ts`: `playSeason`, the land layers held to `landAt`, the closing line; `tokens.ts`:
   `reconcile`'s `leaveAfter`.
-- Tests: `src/web/test/pacing.test.ts` (the order, the paces, a crowded season, Simulate, the line, and only what the seat
-  knows plays); the living map's draw test now draws the moments and the line for every season and view. The smoke test
+- Tests: `src/web/test/pacing.test.ts` (the order, the paces, a crowded season, Simulate, the line, only what the seat
+  knows plays, and the worker one season ahead); the living map's draw test now draws the moments and the line for every season and view. The smoke test
   checks that a season played closes with its line.
+
+### Frame times (soak tool, seed 1, three minutes a speed; the whole game at Simulate)
+
+| Run | Seasons | Seconds a season | Frames over 50 ms | Worst after the opening |
+|---|---|---|---|---|
+| desktop, Slow | 9 | about 20 | 31 of 10,674 (0.3%) | 117 ms |
+| desktop, Normal | 15 | about 12 | 52 of 10,400 (0.5%) | 150 ms |
+| desktop, Fast | 37 | 5.0 | 126 of 9,214 (1.4%) | 117 ms |
+| desktop, Simulate | 102 (the end) | 1.7 | 360 of 5,982 (6.0%) | 150 ms |
+| phone (CPU 4x), Fast | 37 | 5.0 | 384 of 8,107 (4.7%) | 400 ms |
+
+The worst frame of every run is the opening's first draw (600 to 870 ms on desktop, 2.75 s on the phone profile), as
+before. While a season plays, the long frames are its layer writes (100 to 150 ms, headless software raster); Simulate
+reads and draws every season as fast as the worker plays it, as Fast did before. The bar (no frame over about 50 ms) is
+not met yet: part G measures the phone and takes the layer writes up. The smoke test passes on desktop, phone and a human
+seat, with the closing line checked.
 
 ### First guesses (presentation only)
 
 The paces in `Paces` (the table in the design note): a great moment 2.6, 1.8 and 1.2 s at Slow, Normal and Fast, two
 side by side at Fast, at most 6, 5 and 4 a season; the marching 1.6, 0.9 and 0.35 s; the closing line 2.4, 1.6 and 0.9 s.
+A busy season so lasts about 20 s at Slow, 12 s at Normal and 5 s at Fast; an age of 100 seasons about 8 minutes at
+Fast and under 3 at Simulate.
 
 ### Readings taken
 

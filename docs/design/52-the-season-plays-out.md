@@ -8,7 +8,7 @@ computed while it plays. Presentation only: the engine's rules, the log and the 
 ## The worker computes ahead, one season and no more
 
 The page tells the worker when it has played a season out (`played`, with the frame's index and the game's generation;
-`protocol.ts`). Auto-play (`core.ts`: `loop`, `pageReady`, `pageCaughtUp`) computes the next season while the page plays
+`protocol.ts`). Auto-play (`core.ts`: `loop`, with `page-gate.ts`: `PageGate`) computes the next season while the page plays
 the one before, and then waits: it plays season *n* + 1 only once the page has played season *n* − 1 out, so a slow page
 never piles up seasons and a fast one never waits. With a human seat awake it does not run ahead at all: he is asked for
 his orders once he has seen the season play out. The worker no longer sleeps between seasons; the page's pace is the pace
@@ -46,7 +46,7 @@ moments first, by rank (a fall, a battle, a disaster, an arrival); the rest land
 News plays nowhere: "a disaster far away is news, not a scene". Simulate (the fourth speed, key 4) skips to the result.
 
 On the map (`svg-renderer.ts`: `playSeason`): the pieces slide together in the marching (`--march-at`, `--march-ms` on the
-units' and the people's layers, read by `.unit` and `.traveller` in `app.css`); each great moment's medallion shows in its
+units' and the people's layers, read by `.unit` and `.traveller` in `playback.css`, which also holds the closing line's style); each great moment's medallion shows in its
 turn (`momentMarkup`, the stylesheet's `scene` animation with the beat's delay and length); a unit gone stays where it
 stood until the results land (`reconcile`'s `leaveAfter`); the results (who holds what, the fog, the walls, the cities,
 the season's arrows) land when the cities fall (`landAt`: the land layers are written then, `holdLand`); and the
