@@ -20,7 +20,7 @@ import {
   type SeatView,
   type TurnSubmission,
 } from "@amarna/engine";
-import { SnapshotHistory, type ExportParts, type MindPage } from "@amarna/game";
+import { SnapshotHistory, type ExportParts, type MindPage, type Thread } from "@amarna/game";
 import { buildScene, type MapScene } from "../map/scene.ts";
 import { seasonPlay, type SeasonPlay } from "../map/moments.ts";
 import { speedIndex } from "../ui/keys.ts";
@@ -77,6 +77,7 @@ const emptyLive = (): Live => ({
   seats: {},
   snapshots: 0,
   chronicles: {},
+  chroniclesAnew: {},
   humans: [],
   humansAsleep: [],
   pending: [],
@@ -492,6 +493,22 @@ export class Session {
     if (!this.canSeeAll) return [];
     const m = await this.request({ type: "mind", id: this.nextId++, who, turn });
     return m.type === "mind" ? m.pages : [];
+  }
+
+  /**
+   * Item 17+++: a season's threads to watch for the eyes the page sees through, as first told and as told anew (with
+   * `anew`, the narrator tells them anew first): only while the record is open to the page (a spectator, or once the game
+   * ends or is revealed). A human king during play is shown none: the narrator points spectators, never steers a king.
+   */
+  async threads(turn: number, viewer: Power | null, anew = false): Promise<Thread[][]> {
+    if (!this.canSeeAll || turn < 1) return [];
+    const m = await this.request({ type: "threads", id: this.nextId++, turn, viewer, anew });
+    return m.type === "threads" ? m.tellings : [];
+  }
+
+  /** Item 17+++: the annals told anew, beside the first telling (the game's owner's; a read-only replay only reads). */
+  chroniclesAnew(): void {
+    this.send({ type: "chroniclesAnew" });
   }
 
   showTurn(turn: number | null): void {

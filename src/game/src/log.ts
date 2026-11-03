@@ -25,6 +25,7 @@ import {
   type Power,
   type Schema,
 } from "@amarna/engine";
+import { isThreadsKey, readThreads } from "./threads.ts";
 import { MindBook, MindPageSchema, readMindPage } from "./minds.ts";
 
 export interface LogHeader {
@@ -476,6 +477,8 @@ export class GameLog {
           const at = line.indexOf('"value":');
           const json = at < 0 ? "null" : line.slice(at + 8, line.length - 1);
           const by = node.by !== undefined && node.by !== null ? deserialize<Authorship>(AuthorshipSchema, JSON.stringify(node.by)) : null;
+          // Item 17+++: the threads to watch are shown as told, so they are checked as written before anything reads them.
+          if (isThreadsKey(key)) readThreads(json);
           log.index.set(key, json);
           log.decisions.push({ key, json, by });
           if (by !== null) log.authors.set(key, by);

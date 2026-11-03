@@ -26,7 +26,7 @@ import {
   type GameConfig,
   ownLand,
 } from "@amarna/engine";
-import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, realNames, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
+import { GameLog, GameRunner, ReplayExhaustedError, exportJsonl, pressFor, realNames, threadsFor, type ISeat, type SeasonFallbacks, type SnapshotDelta } from "@amarna/game";
 import { AnthropicId, BatchTransport, SdkBatchService, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { framesSince, toWire, type SeasonFrame, type WireFrame } from "./frames.ts";
 import { PageGate } from "./page-gate.ts";
@@ -199,6 +199,7 @@ export class SessionCore {
       seats: r === null ? {} : Object.fromEntries([...r.log.header.seats]),
       snapshots: r?.snapshots.length ?? 0,
       chronicles: r === null ? {} : Object.fromEntries([...r.chronicles]),
+      chroniclesAnew: r === null ? {} : Object.fromEntries([...r.chroniclesAnew]),
       humans: [...this.humans.keys()],
       humansAsleep: r === null ? [] : [...this.humans.keys()].filter((p) => r.state.sleep.tryGet(p)?.asleep === true),
       pending,
@@ -535,6 +536,27 @@ export class SessionCore {
     this.abort = new AbortController();
   }
 
+  /**
+   * Item 17+++: a season's threads for one pair of eyes, as first told and as told anew. Telling anew is the game's owner's:
+   * a replay of a loaded record is read only, so it only reads.
+   */
+  private async threads(id: number, turn: number, viewer: Power | null, anew: boolean): Promise<void> {
+    const r = this.runner;
+    if (r === null) return this.post({ type: "threads", id, tellings: [] });
+    const tellings = anew && !this.readOnly ? await r.tellThreadsAnew(turn, this.abort.signal) : r.tellings(turn);
+    this.post({ type: "threads", id, tellings: tellings.map((told) => threadsFor(told, viewer)) });
+    if (anew && !this.readOnly) await this.save();
+  }
+
+  /** Item 17+++: the annals told anew at the game's owner's asking, beside the first telling. */
+  private async chroniclesAnew(): Promise<void> {
+    const r = this.runner;
+    if (r === null || this.readOnly || r.chronicles.size === 0) return;
+    await r.tellChroniclesAnew(this.abort.signal);
+    this.notify();
+    await this.save();
+  }
+
   async save(): Promise<void> {
     const r = this.runner;
     if (r === null || this.readOnly) return;
@@ -605,6 +627,10 @@ export class SessionCore {
         return this.post({ type: "export", id: m.id, name: `${this.gameId}.jsonl`, text: this.runner !== null ? exportJsonl(this.runner.log, m.parts, realNames(this.runner.state)) : "" });
       case "mind":
         return this.post({ type: "mind", id: m.id, pages: this.runner?.log.minds.at(m.who, m.turn) ?? [] });
+      case "threads":
+        return this.threads(m.id, m.turn, m.viewer, m.anew);
+      case "chroniclesAnew":
+        return this.chroniclesAnew();
     }
   }
 }

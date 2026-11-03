@@ -284,6 +284,8 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   const runner = build(newGame(seed, config));
   // A batch never reads the turn-by-turn snapshots, which a long game's memory cannot hold twice over (with its replay).
   runner.keepSnapshots = false;
+  // Nor shows the threads to watch: nobody watches a batch.
+  runner.tellThreads = false;
   await runner.prepare();
   while (await runner.playTurn()) {
     /* the whole game */
@@ -295,6 +297,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     const replay = GameRunner.forReplay(GameLog.fromJsonl(runner.log.toJsonl()));
     replay.writeChronicles = runner.writeChronicles;
     replay.keepSnapshots = false;
+    replay.tellThreads = false;
     await replay.prepare();
     while (await replay.playTurn()) {
       /* the whole game */
