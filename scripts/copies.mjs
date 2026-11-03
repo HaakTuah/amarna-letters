@@ -96,6 +96,13 @@ const runs = [find(CODE(), codeUnits, LINES, '\n', MIN_CHARS), find(ls(PROSE), p
 const found = runs.flatMap(r => r.copies);
 const places = new Map(runs.flatMap(r => [...r.dup].map(([h, list]) => [h, list.length])));
 const base = JSON.parse(fs.readFileSync(BASELINE, "utf8"));
+// A count is a whole number of places, at least two; anything else would let a copy through, so it fails.
+const counted = (w, where) => {
+  const bad = Object.entries(w || {}).filter(([h, n]) => !/^[0-9a-f]{12}$/.test(h) || !Number.isInteger(n) || n < 2);
+  if (bad.length) { console.error(`FAIL: ${where} holds ${bad.length} windows without a whole count of two or more`); process.exit(1); }
+  return w;
+};
+counted(base.windows, BASELINE);
 // The baseline holds the old copies window by window: each run of lines or words that is copied, by its hash, and how
 // many places it stands in. Every copied window must be listed with at least as many places, so a copy that is new,
 // spreads to another place, grows, or is copied in part fails. A listed window that is gone or in fewer places fails
@@ -108,7 +115,7 @@ if (from) {
   try { git(["rev-parse", "--verify", `${from}^{commit}`]); } catch { console.error(`FAIL: COPIES_BASE ${from} is not a commit here: fetch it`); process.exit(1); }
   let there = true;
   try { git(["cat-file", "-e", `${from}:${BASELINE}`]); } catch { there = false; } // no baseline on that branch yet
-  const old = there ? JSON.parse(git(["show", `${from}:${BASELINE}`])).windows || null : null;
+  const old = there ? counted(JSON.parse(git(["show", `${from}:${BASELINE}`])).windows, `${from}:${BASELINE}`) || null : null;
   const raised = old ? Object.entries(base.windows).filter(([h, n]) => !(h in old) || n > old[h]) : [];
   if (raised.length) { console.error(`FAIL: ${BASELINE} adds or raises ${raised.length} windows against ${from}: the baseline only shrinks`); process.exit(1); }
 }
