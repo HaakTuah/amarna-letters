@@ -248,6 +248,6 @@ repository itself, never `main` or `develop`, with its description as the brief.
 
 **Codex's work never touches what runs with credentials or sets the rules.** A Codex task reads the web, so text
 planted somewhere could try to steer it. Its work may never change the protected files
-(`SECURITY.md`, rule 3: the CI workflows, the setup script and the rules). Such a PR is marked failed on the PR, with the files named, and the orchestrator checks it too before any merge (`gh api
+(`SECURITY.md`, rule 3: the CI workflows, the setup script, the rules and the GitHub calls builders run). Such a PR is marked failed on the PR, with the files named, and the orchestrator checks it too before any merge (`gh api
 repos/<repository>/compare/develop...<branch>` lists the files): it is never merged; the owner decides. Lanes that must
 change those files are Claude's. Nothing secret is ever written to a repository.
