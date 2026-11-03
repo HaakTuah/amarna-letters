@@ -233,7 +233,9 @@ lanes' suites throughout (load 10 to 17), so each comparison was run side by sid
 - Finished animations filled `both` kept 8 elements composited and 23 more layers made for what overlaps them (56 cc
   layers in all on the paused map); filling `backwards`, 25. About 750 shapes each made an effect of their own by
   `opacity`. Both changed (above): layerization fell by about a seventh on the bench (2.9 and 2.7 s against 3.2 and 3.2
-  s), and the soak's frames over 50 ms at Fast from 12.9% to 11.9% (paired runs, two minutes each); within the noise.
+  s), and the soak's frames over 50 ms at Fast from 12.9% to 11.9% (paired runs, two minutes each), and from 19.0% to 18.4%
+  in a second pair on a quieter machine, where the game ran faster (42 and 44 seasons in two minutes against 25 and 26,
+  so more changes of the map a minute); within the noise.
 - Tried and not kept: `will-change: transform` on every piece, so a slide neither makes nor drops a layer (8.5% and 8.4%
   of frames over 50 ms against 9.5% and 11.1%, within the noise, with more commit); the governors' rim drawn without its
   SVG filter (the filter puts that province's tints on a layer of their own, and 3.7 megapixels of what is drawn after it
