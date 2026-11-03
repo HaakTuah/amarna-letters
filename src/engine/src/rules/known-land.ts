@@ -6,8 +6,7 @@ import { Dict, HSet } from "../core/collections.ts";
 import { StartWalls, type WorldMap } from "../model/map.ts";
 import type { Power } from "../model/power.ts";
 import { newKnown, newSiege, ownedBy, type GameState, type Known, type Siege } from "../model/state.ts";
-import { wordSeasons } from "../model/travel.ts";
-import { courierSeasons, courtOf } from "./court.ts";
+import { courierSeasons, courtOf, wordHomeAt } from "./court.ts";
 import { knownLevel, ownWorks } from "./province-reports.ts";
 
 /**
@@ -75,10 +74,11 @@ export function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<s
       out.set(x.id, newKnown({ owner: s.owner.getOrDefault(x.id, null), turn: s.turn, source: SeenSource }));
       continue;
     }
-    // The newest season whose word, setting out then, has arrived by now (as word of a fall is timed: TurnEngine.word).
+    // The newest season whose word, setting out then, has arrived by now: by the couriers' clock, as its notices are
+    // (wordHomeAt, bug #616).
     let asOf = 0;
     for (let d = s.turn - 1; d >= Math.max(1, s.turn - 6); d--)
-      if (d + wordSeasons(s.config.travelDays, map, x.id, court, d) <= s.turn) {
+      if (wordHomeAt(s, map, court, x.id, d) <= s.turn) {
         asOf = d;
         break;
       }
@@ -99,7 +99,7 @@ export function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<s
 export function siegesKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Siege[] {
   const sightNow = seen ?? sight(s, map, p);
   const court = courtOf(s, map, p);
-  const heard = (province: string, turn: number): boolean => turn + wordSeasons(s.config.travelDays, map, province, court, turn) <= s.turn;
+  const heard = (province: string, turn: number): boolean => wordHomeAt(s, map, court, province, turn) <= s.turn;
   // The progress word last brought: as of the newest season since it began whose word has come.
   const reported = (x: { province: string; since: number; progress: number; history: number[] }, until: number): number => {
     for (let d = until; d >= x.since; d--) if (heard(x.province, d)) return x.history[d - x.since] ?? x.progress;

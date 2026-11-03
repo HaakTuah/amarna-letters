@@ -273,6 +273,9 @@ const Known: { issue: number; what: string; twins: string[]; is: (difference: st
   ...["units", "upkeep"].map((k) => ({ issue: 600, what: `view.${k} (a far levy's army)`, twins: ["a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}`) })),
   // Only the order named by its levy or by its army: an order missing from one twin's list is a leak of its own (#569).
   { issue: 600, what: "view.scheduled (a far levy's army)", twins: ["a far levy that raised nothing"], is: (d: string) => /^view\.scheduled: \[\{"turn":5,.* against \[\{"turn":5,/.test(d) },
+  // A far unit of the seat's own is told of in the season's movement news as it truly is, before word from there could
+  // come (#615); shown since the province's report keeps the couriers' clock (#616).
+  ...[/^view\.lastSeason\[/, /^only where (true|false): Movements last season:/].map((re, i) => ({ issue: 615, what: i === 0 ? "view.lastSeason (a far unit's own)" : "the movement news (a far unit's own)", twins: ["a far levy that raised nothing"], is: (d: string) => re.test(d) })),
 ];
 
 /** Every difference a twin's seasons show, each with the known leak it is, if any. */
@@ -345,8 +348,8 @@ const levyUnraised: Twin = {
   },
   orders: [],
   scheduled: [newScheduledOrders({ turn: 3, orders: [raise("nubia", "Army")] }), newScheduledOrders({ turn: 5, orders: [move("nubia", "thebes")] })],
-  // Once word of the levy's season in Nubia has come: its report (the land as last reported), or the levy's own notice.
-  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3 || (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Levy failed"),
+  // Once word of the levy's season in Nubia has come: its report and the levy's own notice, which come together (#616).
+  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3,
 };
 
 /** Egypt and Babylonia, Babylonia the seat; in the twin where the fact is true, Egypt grants it passage by order. */

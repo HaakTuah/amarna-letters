@@ -6,7 +6,8 @@
  * host's people (if it sneaks through land closed to its master), the lawlessness of the place or nature may stop it.
  * A king may close his roads to a court's travellers ("Passage and access"): his men turn back those who pass openly at
  * his border, and a traveller who knows goes round or sneaks through. Reports, rumours, ransoms and word of the world
- * travel by themselves until item 11b ({@link wordSeasons}), and so does news of who holds distant land (Views.knownHolders);
+ * travel by themselves until item 11b ({@link wordSeasons}); news of who holds distant land (Views.knownHolders) comes by
+ * the couriers' clock (wordHomeAt, bug #616);
  * travellers bring home the news of the land they crossed.
  */
 import { hostileAt, levelOf, policeAt, policeFound, waysOf } from "../model/works.ts";

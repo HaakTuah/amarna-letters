@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, type ScheduledOrders, TurnEngine, UnraisedTitle, WorldMap, inboxOf, move, newGame, newGameConfig, newOwnerChange, newScheduledOrders, newSleepState, newTurnSubmission, raise } from "@amarna/engine";
+import { Dict, type GameState, Views, wordHomeAt, type ScheduledOrders, TurnEngine, UnraisedTitle, WorldMap, inboxOf, move, newGame, newGameConfig, newOwnerChange, newScheduledOrders, newSleepState, newTurnSubmission, raise } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 /**
@@ -59,5 +59,26 @@ describe("LevyWordTests", () => {
     Assert.true(inboxOf(s, "Egypt").some((i) => i.turn === s.turn && i.body.includes("raise army in nubia: not enough gold")));
     Assert.true(inboxOf(s, "Egypt").some((i) => i.turn === s.turn && i.title === UnraisedTitle));
     Assert.empty(sl.scheduled);
+  });
+
+  test("A far province's report and a notice from it, of the same season, reach the court together (bug #616)", () => {
+    const { s, season } = farLevy(true);
+    const told = () => inboxOf(s, "Egypt").some((i) => i.title === UnraisedTitle);
+    const reported = () => Views.knownHolders(s, WorldMap.default, "Egypt").get("nubia").turn >= 3;
+    season(plan);
+    season();
+    // Season 3: the levy fails in Nubia. Season by season after it, the court reads Nubia's report of that season in the
+    // same season as the notice of the failed levy, never one before the other.
+    season();
+    let seen = 0;
+    for (let i = 0; i < 6; i++) {
+      new TurnEngine(s, WorldMap.default).beginTurn();
+      Assert.equal(told(), reported(), `season ${s.turn}`);
+      if (told()) seen++;
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    }
+    // Both came, after the road from Nubia (one clock: wordHomeAt).
+    Assert.true(seen > 0 && seen < 6);
+    Assert.true(wordHomeAt(s, WorldMap.default, "nippur", "nubia", 3) > 4);
   });
 });

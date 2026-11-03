@@ -10,6 +10,7 @@ import { type Power } from "../model/power.ts";
 import { alive, isAlive } from "../model/state.ts";
 import { moodWords } from "../model/unrest.ts";
 import { TurnEngine } from "./core.ts";
+import { courtOf, wordHomeAt } from "../rules/court.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -43,8 +44,10 @@ P.moodOf = function (province) {
 
 P.heardAt = function (p, province, extra = 0) {
   const S = this.s;
-  const d = (this.map.exists(province) ? this.wordTo(p, province) : 0) + (Number.isFinite(extra) ? extra : 0);
-  return d === 0 || !Number.isFinite(d) ? S.turn + S.deliveryOffset : S.turn + 1 + d;
+  // By the one clock of the road from there (wordHomeAt, bug #616), as the province's report is; a notice with no road
+  // home is delivered as one from near.
+  const at = this.map.exists(province) ? wordHomeAt(S, this.map, courtOf(S, this.map, p), province, S.turn, Number.isFinite(extra) ? extra : 0) : S.turn;
+  return at === S.turn || !Number.isFinite(at) ? S.turn + S.deliveryOffset : at;
 };
 
 P.readMood = function (r) {
