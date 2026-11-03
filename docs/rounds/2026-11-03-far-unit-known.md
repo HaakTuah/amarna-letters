@@ -32,7 +32,8 @@ out of `views.ts` (47 KB).
 - **Rulebook** (`llm/src/rules-command.ts`), **README** (the map paragraph), **design note**
   `35-command-at-a-distance.md` ("Far troops raised and gone"). **Save version 54** (53 goes to #610).
 - **Tests:** a twin in the twin canary (a far army beaten out of sight), failing on `develop` (its view, upkeep, last
-  season, two events and the movement notice), passing here; `units-known.test.ts`: a far unit lost stays as reported
+  season, two events and the movement notice), passing here; #569's twin (a far levy that raised nothing) no longer
+  lists its army's view, upkeep and scheduled binding as known leaks (#600), which the ratchet's last test proves; `units-known.test.ts`: a far unit lost stays as reported
   until word of its end, and one raised far off is known once word of its raising comes.
 
 ## Left to their issues
