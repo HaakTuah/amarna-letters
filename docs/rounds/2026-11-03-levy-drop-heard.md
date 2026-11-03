@@ -11,7 +11,7 @@ from the court's list at once, and "Orders for a levy that raised no unit droppe
 ## What changed
 
 - **The drop comes when the court learns the levy raised none** (`unraisedLevies`, `turn/plans.ts`): for a levy that
-  failed in its province (too few men, the land lost or not empty after movement), by the road from there, in the season
+  failed in its province (too few men, the land lost or ceded, or not empty after movement), by the road from there, in the season
   of its "Levy failed" (`levyFailed` keeps that season, `heardAt`); for one the court knows of at once (refused at court,
   short of gold, not given after all), at once, as before. One notice for each season it comes in. The orders stay in the
   seat's list, unbound (as "the army to be raised in nubia in turn 3"), so they cannot run, until that season

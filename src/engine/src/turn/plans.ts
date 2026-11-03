@@ -645,6 +645,7 @@ P.unraisedLevies = function () {
     }
     removeAll(sl.scheduled, (x) => x.unraisedHeard > 0 && x.unraisedHeard <= now);
   }
+  levyWord.delete(this);
 };
 
 /**

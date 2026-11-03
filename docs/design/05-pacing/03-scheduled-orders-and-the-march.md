@@ -52,7 +52,7 @@
   mari"), which wakes nobody since the review of the fix pass after item 4 (a scheduled levy others foiled wakes the seat as a failed order; before, the seat was woken
   ("orders you gave for later could not be carried out: the levy they waited for raised no unit
   (...)")). Bug #569: for a levy that failed in its province (`levyFailed`: too few men, the land lost or
-  not empty after movement), the notice comes by the road from there, with "Levy failed" (`tellAt`, `heardAt`), and the
+  ceded, or not empty after movement), the notice comes by the road from there, with "Levy failed" (`tellAt`, `heardAt`), and the
   orders stay in the seat's list, unbound so they cannot run, until it comes (`PlannedOrder.unraisedHeard`); one the
   court knows of at once (refused at court, short of gold, not given after all) drops them at once; save version 53.
   Until the levy's season, and for a failed levy's orders until its word comes, the view names the unit as "the army to be raised in ur in turn
