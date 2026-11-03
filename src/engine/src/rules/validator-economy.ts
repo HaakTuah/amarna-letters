@@ -16,7 +16,7 @@ import type { Checking } from "./validator-context.ts";
 
 /** Why the order is refused, null if it stands, or undefined if it is not one of these. */
 export function checkEconomyOrder(v: Checking, order: Order): string | null | undefined {
-  const { S, Map, power, orders, orderedUnits, tollsSet, taxesSet, peopleSet, nobody, spend } = v;
+  const { S, Map, power, orderedUnits, tollsSet, taxesSet, peopleSet, nobody, spend } = v;
   switch (order.type) {
     case "sell":
     case "purchase":
