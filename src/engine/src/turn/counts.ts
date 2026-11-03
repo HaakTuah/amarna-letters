@@ -11,7 +11,7 @@ import type { CensusOrder, DemandOrder } from "../model/orders.ts";
 import { type Power } from "../model/power.ts";
 import { isAlive, logEvent, notify } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
-import { courierSeasons } from "../rules/court.ts";
+import { courierSeasons, wordHomeAt } from "../rules/court.ts";
 import { dateLabel, formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
 import { people } from "./people.ts";
@@ -127,8 +127,10 @@ P.censusSeason = function () {
       continue;
     }
     if (c.count !== null || S.turn < c.counted) continue;
-    const away = courierSeasons(S, this.map, c.province, this.courtAt(c.power));
-    c.home = S.turn + (Number.isFinite(away) ? away : 4);
+    // The count comes home by the one clock of the road (wordHomeAt, bug #616), with the province's report; four seasons
+    // where no road leads, as before.
+    const home = wordHomeAt(S, this.map, this.courtAt(c.power), c.province, S.turn);
+    c.home = Number.isFinite(home) ? home : S.turn + 4;
     if (S.owner.getOrDefault(c.province, null) !== c.power) {
       c.home = Math.max(S.turn + 1, c.home);
       continue;

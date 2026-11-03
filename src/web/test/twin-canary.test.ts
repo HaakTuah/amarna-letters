@@ -345,8 +345,8 @@ const levyUnraised: Twin = {
   },
   orders: [],
   scheduled: [newScheduledOrders({ turn: 3, orders: [raise("nubia", "Army")] }), newScheduledOrders({ turn: 5, orders: [move("nubia", "thebes")] })],
-  // Once word of the levy's season in Nubia has come: its report (the land as last reported), or the levy's own notice.
-  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3 || (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Levy failed"),
+  // Once word of the levy's season in Nubia has come: its report and the levy's own notice, which come together (#616).
+  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3,
 };
 
 /** Egypt and Babylonia, Babylonia the seat; in the twin where the fact is true, Egypt grants it passage by order. */

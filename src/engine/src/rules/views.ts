@@ -93,10 +93,10 @@ function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(provi
   for (const pair of pairs) {
     const [u, x] = pair;
     if (x === null || x.reported === 0 || u.power !== p || !pairs.some((y) => y !== pair && y[1]?.province === x.province)) continue;
-    if (u.trail.length === 0 || engine.wordTo(p, u.province) <= 0) continue;
+    if (u.trail.length === 0 || engine.wordFrom(p, u.province) <= 0) continue;
     pair[1] = null;
     const taken = new HSet(pairs.filter((y) => y !== pair && y[1] !== null).map((y) => y[1]!.province));
-    const d = engine.wordTo(p, u.province);
+    const d = engine.wordFrom(p, u.province);
     for (let i = u.trail.length - 2 - d; i >= 0; i--) {
       const r = trailEntry(u.trail[i]);
       if (!taken.has(r.province)) {
@@ -850,7 +850,7 @@ function trailEntry(t: string): {
 }
 
 function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {
-  const d = engine.wordTo(u.power, u.province);
+  const d = engine.wordFrom(u.power, u.province);
   if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return {};
   const i = Math.max(0, u.trail.length - 1 - d);
   return { ...trailEntry(u.trail[i]), reported: engine.s.turn - (u.trail.length - 1 - i), march: null, marchDays: 0 };
