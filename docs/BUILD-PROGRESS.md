@@ -1,5 +1,9 @@
 # Build progress
 
+> **Paused for usage** (3 November 2026, at 83% of the week): the orchestrator's hourly check is deleted and restarts when the
+> owner says "resume", from this file. On resume, each lane's entry below names its queue and its PR; the item lane picks up
+> at 17+++ part E.
+
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
 `docs/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
 how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
@@ -255,7 +259,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 |---|---|---|---|---|
 | 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) merged, #538; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
 | 17++a | Something happens every season | done, #590: the pulse measure (`pulse.ts`, in every batch report); the four lands named and anchored (#403); script kings occupy land until it obeys and wage the war they choose (a map change every 5-7 seasons for the large kings, 5-15 without the war play; short of the target of 4, the limit now hearing: #618); crowns' ids registered; save version 54 | `item/every-season` | `docs/rounds/2026-11-02-every-season.md` |
-| 17+++ | The season plays out | in progress: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) merged, #634; part B (the season in sequence, paced by meaning) merged, #645; part F (threads to watch, the director camera) merged, #664; part G (smooth on a phone) built, #667, the phone bar **blocked** (#666, with the design for it: the land on a canvas painted off the main thread, one transform per symbol, no page step over 10 ms); part D (the land's season under the realms) in review, #676; part E not started | `item/season-plays-out` | `docs/rounds/2026-11-03-season-plays-out.md` |
+| 17+++ | The season plays out | in progress: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) merged, #634; part B (the season in sequence, paced by meaning) merged, #645; part F (threads to watch, the director camera) merged, #664; part G (smooth on a phone) merged, #667, the phone bar **blocked** (#666, with the design for it: the land on a canvas painted off the main thread, one transform per symbol, no page step over 10 ms); part D (the land's season under the realms) merged, #676; part E (units drawn as what they are, with weight) not started: pick up there, on a fresh branch from `develop` | `item/season-plays-out` | `docs/rounds/2026-11-03-season-plays-out.md` |
 | 17+++a | Keys for everything | not started | | |
 | 17+++b | History, search and names | not started | | |
 | 17++++ | A small state as a seat | not started | | |

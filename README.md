@@ -433,7 +433,10 @@ the emblems on their cities, so the ground and the figures show through (the moo
 centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
-gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
+gold in Shemu, rivers in spate and storms on the open sea. The season lies on the ground under the realms' colours, and
+its change moves as the season plays: the snow creeps down from the heights and melts from below, the Nile rises from
+the south up its valley, the green spreads inland from the coast with the rains, and the land browns from its inland
+edges. Droughts and floods show where your court last saw them, a
 battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
 you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
