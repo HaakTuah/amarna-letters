@@ -1,0 +1,27 @@
+# The copies check ("One fact, one place" in AGENTS.md), on every pull request and push to main: a new copy of code, or
+# of the rule files' prose, fails; the old ones its baseline lists are removed over time, and against the branch a PR
+# merges into the baseline may only shrink. It runs for docs-only changes
+# too, since the rule files are what it guards most. Node's own modules only: nothing is installed. Read-only.
+name: copies
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  copies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the base branch too, for its baseline
+          persist-credentials: false # nothing after the checkout needs the token
+      - name: No new copies
+        env:
+          COPIES_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+        run: node scripts/copies.mjs

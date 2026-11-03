@@ -19,10 +19,13 @@ reviews" and "Reviews", point 7, "The briefs"); this table gives only the model 
 | Search helper | Haiku (`model: "haiku"`) | as it comes | finding where things are across many files, the cheap way to look across them instead of reading large files yourself; it returns file:line and one-line conclusions |
 | Parallel helper | Sonnet (`model: "sonnet"`) for routine parts; Opus (`model: "opus"`) for parts that need design judgement | medium; high (`effort: "high"`) for the hard work | one part of the work with a shape from "Helpers: when they pay" below, with a narrow brief and its own files |
 | Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | the fallback reviewer, for the code review and the security review, and the blind re-review |
-| Design check | Fable (`model: "fable"`, `effort: "medium"`) | medium | the design checker: the strongest fresh eye where misses cost most, in one short call. If Fable is out of usage or unavailable, or the owner says its share for the week is spent, the same call goes to Opus (`model: "opus"`, `effort: "high"`); nothing ever waits for Fable |
-| Planning design | Fable (`model: "fable"`, `effort: "high"`) | high | planning design; you build and measure what it returns with Opus. If Fable is out of usage or unavailable, or the owner says its share for the week is spent, the same call goes to Opus (`model: "opus"`, `effort: "high"`); nothing ever waits for Fable |
+| Design check | Fable (`model: "fable"`, `effort: "medium"`) | medium | the design checker: the strongest fresh eye where misses cost most, in one short call. (Fable's fallback: below the table) |
+| Planning design | Fable (`model: "fable"`, `effort: "high"`) | high | planning design; you build and measure what it returns with Opus. (Fable's fallback: below the table) |
 | Escalation | Opus (`model: "opus"`, `effort: "high"`, or `"xhigh"` if you already run at high) | high or extra high | the escalation step, when Codex is unavailable or has failed at it too (Codex comes first once it can build) |
 | Last escalation | Fable (`model: "fable"`, `effort: "high"`) | high | a problem the escalation step could not solve either, such as the script kings' planning, with the same brief. Otherwise Fable only for the design check, planning design and work the owner gives it by name, since its usage runs out first |
+
+**Fable's fallback:** if Fable is out of usage or unavailable, or the owner says its share for the week is spent, its
+call goes to Opus (`model: "opus"`, `effort: "high"`); nothing ever waits for Fable.
 
 **Helpers: when they pay** (archive item 134). A helper starts cold,
 rereads what it needs and returns only a summary, so it is worth its cost only when the work has one of these shapes:
@@ -49,5 +52,8 @@ so the rule can be checked against its cost. Never stop to ask about helpers: de
   `AGENTS.md` says; say in your update that it is blocked.
 - Sessions started from a Claude Code Project don't load `.claude/agents/`, so always pass `model` (and `effort`) in
   the call. Never max effort: it costs the most and tends to overthink.
-- **Claude's cloud sessions can't use GitHub's GraphQL API,** so `gh pr create`, `gh pr list`, `gh pr view` and `gh pr ready` fail
-  there: use the REST calls in `docs/developing.md`, its route for marking a draft ready included.
+- **GitHub from a cloud session:** the REST calls in `docs/developing.md`, which says why.
+- **The work-saved hook** (`.claude/settings.json` runs `.claude/hooks/work-saved.sh` as merged into `develop`): a
+  session starts with a report of anything uncommitted, unpushed or stashed, and a reply that would end with any of it
+  gets one nudge to push it, or to say why it must stay ("Git and GitHub" in `AGENTS.md`). The hook runs at the end of
+  every reply, not only of the session, so a builder pushes after each step.

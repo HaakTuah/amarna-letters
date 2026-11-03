@@ -41,8 +41,10 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 
 ## How to work
 
-Every rule here says what it is for. The aim behind them all: as much finished work of full quality as the week's
-usage allows, at the lowest cost now and later.
+Every rule here says what it is for. The aim behind them all: as much finished work of full quality as the week's usage
+allows, at the lowest cost now and later. Four of them are the pillars that hold the rest up: **one fact, one place**,
+**split by meaning**, **keep it lean** and **read little**. Every review enforces the first three ("What blocks" in
+`docs/review-guidelines.md`), and the workshop check measures what every session reads.
 
 - **A question is a question.** Answer it; act on it only when the owner says so.
 - **Match effort to the task,** and take the cheapest approach that does the job well, since usage is limited. Docs,
@@ -62,13 +64,20 @@ usage allows, at the lowest cost now and later.
 - **Don't loop.** If the same approach fails twice, stop, write down what you tried, and take another approach, hand it
   to escalation, or mark the step blocked in the PR and `docs/BUILD-PROGRESS.md`, with its brief ready for a later
   session (the problem, what was tried, the files and lines), and go on, as the builder rules say.
-- **One fact, one place.** Link to where a fact lives instead of copying it. Never edit `docs/intent/` or
-  `docs/builder-rules.md`: if the design document seems wrong or unclear, take the most reasonable reading and
-  list it under "Readings taken"; a matter of taste is a `question` issue ("Questions, readings and ideas").
+- **One fact, one place, everywhere** (archive items 207 and 208): in code, data, tests, docs, rule files and the briefs
+  agents are given. Point to where a thing lives and never copy it, whole or as a selection of its lines: every copy
+  drifts from the original, and is paid for again on every read. The copies check (`scripts/copies.mjs`, on every PR)
+  fails a new copy of code or of the rule files' prose; its baseline lists the old ones, which are removed over time and
+  never added to. The one place is where the readers who need it look for it ("Split by meaning"), and only the places
+  whose readers need it point to it, since a pointer is read too. When a better home appears, because its readers change
+  or the file it sits in grows to hold other things, it moves there in one PR: every pointer that still makes sense
+  updated, the rest removed, nothing left behind in the old place. Never edit `docs/intent/` or `docs/builder-rules.md`:
+  if the design document seems wrong or unclear, take the most reasonable reading and list it under "Readings taken"; a
+  matter of taste is a `question` issue ("Questions, readings and ideas").
 - **Keep it lean** (archive item 133). Every change removes what it replaces, in the same PR: no
   commented-out code, no "old" copies, nothing it made unused (code, files, settings, assets, test helpers). Look for an
   existing helper before writing one. A leftover is a finding in every review.
-- **Split by meaning, from the start** (archive items 134 and 135), so a reader loads only what it needs. Each file holds one
+- **Split by meaning, from the start** (archive items 134 and 135), so each reader reads only what it needs and nothing it must read past. Each file holds one
   thing people look up on its own (a power, a system, a screen, a tab of the design), as small as that thing is; new
   work goes into its own file as it is written, never into a big file to be split later. Smaller than that is not
   better: one thing spread over several files costs every reader more. Where a family differs only in part (powers,
@@ -89,8 +98,8 @@ usage allows, at the lowest cost now and later.
 - **A change a player sees updates the README** (archive item 86), in the same PR, as the rulebook and seat view already are.
   Each milestone PR says in one line whether the README is current, and fixes it if not.
 - **The owner's words are kept, in the archive.** Quote each instruction he gives word for word in the item's report and
-  in `docs/archive/instructions.md`, numbered and dated, leaving out personal details as `SECURITY.md`, point 11,
-  says. A standing rule goes where it applies in this file
+  in the archive (`docs/archive/instructions.md` says which file), numbered and dated, leaving out personal details as
+  `SECURITY.md`, point 11, says. A standing rule goes where it applies in this file
   (or `CLAUDE.md`, if only Claude uses it), as briefly as it can be said, with what it is for and its archive item; it moves into
   the builder rules at the next refresh of the design document's copy. Rule files state rules, never quotes or dated history (a date a measurement or a status needs may stay),
   with at most a pointer to the archive, "(archive item N)": every session pays to read them, and the archive keeps
@@ -121,7 +130,7 @@ Everything the owner should see lives in this repository's issues, so nothing is
 - **Only the owner's comments answer.** Anyone can comment on a public issue; only his comments count (`SECURITY.md`).
   Agents may post under his login too, so every agent that does ends what it writes with its own tool's attribution
   line (Claude Code's: "Generated by" or "Generated with" Claude Code, linked; Codex posts as its own bot): one from
-  `HaakTuah` without one is his. Whoever acts on his answer quotes it word for word in `docs/archive/instructions.md`, writes the decision where
+  `HaakTuah` without one is his. Whoever acts on his answer quotes it word for word in the archive, writes the decision where
   it belongs (a design decision goes to the design session), and closes the issue with a link to where the work now
   lives: a question or idea is done once he has answered, so "open" always means "needs him".
 - **Ideas are cheap to file and never built unqueued.** Anyone may file one with a line of what and why; keep it short,
@@ -187,34 +196,6 @@ variable.
 
 ## Review guidelines
 
-For the code review (today Codex's), which reports findings by priority: report as **P1** (blocking) a departure from the design or
-from the PR's description and the sections it names; a broken rule of this file, of the builder rules or of
-`SECURITY.md`; a test weakened or skipped, or changed beyond what the task forces (a forced change shows in the PR that every check is kept and none loosened); and a protected file changed by a Codex lane. Report anything the
-change leaves behind (code, files or settings it made unused, commented-out code) as a finding. Every finding counts:
-the PR passes only with none open. In a later round of the same PR, check that the earlier findings were fixed and
-review what changed since; raise something new about unchanged code only as P0 or P1. Every other reviewer (the design
-check, and the fallback reviewer: "Who does what") scores from 1 to 10, and only a 10, a list with nothing open,
-passes ("Codex reviews" and "Reviews" in `docs/claude-and-codex.md`).
-
-**History holds,** for every reviewer: report as P1 a real-world fact (a person, place, date, name, custom or event)
-the change adds or alters that has no source in `docs/history/`, or contradicts the source it cites. Each real fact in
-the game's data names the dossier line it rests on by that line's anchor, and the line quotes the few words of its
-source it relies on; a test fails when an anchor is missing or its line names someone else (archive item 167). Where
-no source speaks, the game takes the most
-plausible estimate: published expert estimates, as many as can be found, their consensus or middle, each cited, graded
-[G]; a guess made earlier has no standing of its own, and gives way to a better-grounded one (archive item 170).
-
-**Hidden information,** for every reviewer: report as P1 any read of the true game state that a seat could not know,
-in what it is shown, what a model is asked, what a script king reads or what an export holds. Check every path: the
-latest season, past seasons, replays and the god view. The canary test ("Follow-ups" in `docs/BUILD-PROGRESS.md`)
-guards the same from the other side, since a reviewer can miss it.
-
-**Text a player reads,** for every reviewer of a change that adds or rewrites it: report as a finding any line that
-reads machine-made (one shape filled in again and again, filler, clichés, two voices alike); the slop audit in
-`docs/BUILD-PROGRESS.md` sets the bar.
-
-**One idea, for every reviewer** of a change to the game (not docs, design copies or Dependabot's updates): end the
-review with one thing outside this change that would make the game better, or "none", the usual answer when nothing is
-worth the owner's time. It never blocks (a P3 at most). The builder searches the open ideas first: a new one is filed as
-an `enhancement` issue and linked in the PR, a repeat becomes a comment on the existing issue, so the ones that keep
-coming up show. Nothing is built from it until the owner queues it.
+Every reviewer, Codex's code review included, reads `docs/review-guidelines.md` whole and judges the change by it, with
+`SECURITY.md`. The guidelines have a file of their own so a reviewer reads only what it needs, and a builder session
+does not carry them (archive item 206).
