@@ -1614,3 +1614,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     credentials, was not a protected file, so a Codex lane steered by planted text could change them unseen. It joins the
     protected files (`SECURITY.md`, rule 3). #665 had been merged with the finding open, against "Codex reviews": the fix
     is this PR.
+198. **3 November 2026, 11:54 UTC**, in the design chat, on the reviewer's brief having moved into `CLAUDE.md`: "Will
+    Codex get these then when it becomes available for builder session delegations? Everything should be made provider
+    agnostic, so it is ready for that, no? CLAUDE.md only having stuff unique to Claude Code, then pointing to
+    AGENT.md, expert? And you may run another expert audit." A second fresh-eyes audit, with that lens, found seven
+    blocking problems and nineteen smaller ones. Every process rule now lives in the shared files, naming roles;
+    `docs/claude-and-codex.md`, "Who does what", alone says who fills each role; `CLAUDE.md` keeps only Claude Code's
+    models, effort, helpers and tools. The security gate gained a fallback (a reading for the owner to confirm), the
+    rule files and the calibration log joined the protected files, the calibration log moved to `docs/calibration.md`,
+    and the builder rules point to `SECURITY.md`, rule 4, for Dependabot's conditions (Build order, revision 349).
