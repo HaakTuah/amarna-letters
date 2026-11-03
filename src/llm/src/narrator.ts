@@ -3,7 +3,7 @@
  * receives facts the engine has already released.
  */
 import { king, land, nameFrom, personaTemplate, StrategyWords, strategiesOf, year, type Character } from "@amarna/engine";
-import type { CheckContext, ChronicleContext, INarrator } from "@amarna/game";
+import { threadWords, type CheckContext, type ChronicleContext, type INarrator, type ThreadContext } from "@amarna/game";
 import type { ModelClient } from "./client.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
@@ -84,10 +84,16 @@ Facts: ${joinS(
 
 Outcome: ${ctx.winners.includes(p) ? "this king won the age" : `the age was won by ${joinS(" and ", ctx.winners)}`}; at the end ${land(p)} held ${last?.provinces ?? 0} provinces.
 Events known to this court:
-${events.toString()}`;
+${events.toString()}${
+      ctx.earlier.length === 0
+        ? ""
+        : `
+The court has asked for these annals to be written anew. They were written before as follows; write them afresh, in words of your own, not these:
+${ctx.earlier.map((t) => `---\n${t}`).join("\n")}`
+    }`;
     const json = await this.client.askJson(
       {
-        key: `end/chronicle/${p}`,
+        key: ctx.earlier.length === 0 ? `end/chronicle/${p}` : `end/chronicle/${p}/anew${ctx.earlier.length}`,
         turn: ctx.lastTurn,
         role: "narrator:chronicle",
         model: this.model,
@@ -100,5 +106,13 @@ ${events.toString()}`;
       signal,
     );
     return Parse.field(json, "chronicle");
+  }
+
+  /**
+   * The threads to watch (item 17+++): worded by the template for now, so no season calls a model for them; a model's
+   * wording comes with the model narrator's next work, through this same call, kept in the record like the template's.
+   */
+  threads(ctx: ThreadContext): Promise<string[]> {
+    return Promise.resolve(ctx.threads.map((t) => threadWords(t, ctx.names)));
   }
 }

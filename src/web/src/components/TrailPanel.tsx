@@ -84,7 +84,20 @@ export function FallbackNotice({ live }: { live: Live }) {
 }
 
 /** The spectator's message trail, in four parts: what the king wrote, what the envoy said abroad, what the host answered, what it reported home. */
-export function TrailPanel({ state, authors, onPerson }: { state: GameState; authors: Record<string, TrailAuthors>; onPerson: (id: string) => void }) {
+/** The message trails; `only`: the one trail opened from elsewhere (a thread to watch), with the way back to them all. */
+export function TrailPanel({
+  state,
+  authors,
+  onPerson,
+  only = null,
+  onAll,
+}: {
+  state: GameState;
+  authors: Record<string, TrailAuthors>;
+  onPerson: (id: string) => void;
+  only?: string | null;
+  onAll?: () => void;
+}) {
   const [filter, setFilter] = useState<Power | null>(null);
   const [by, setBy] = useState<string>("");
   const [limit, setLimit] = useState(20);
@@ -93,7 +106,7 @@ export function TrailPanel({ state, authors, onPerson }: { state: GameState; aut
   const written = (t: MessageTrail): boolean =>
     by === "" || authorsOf(authors[t.id]).some((x) => (by.startsWith("kind:") ? x.kind === by.slice(5) : x.kind !== "fallback" && x.name === by.slice(5)));
   const trails = state.trails
-    .filter((t) => (filter === null || t.from === filter || t.to === filter) && written(t))
+    .filter((t) => (only !== null ? t.id === only : (filter === null || t.from === filter || t.to === filter) && written(t)))
     .sort((a, b) => b.turn - a.turn || idNumber(b.id) - idNumber(a.id));
   return (
     <>
@@ -122,6 +135,13 @@ export function TrailPanel({ state, authors, onPerson }: { state: GameState; aut
         </select>
       </div>
       <p className="muted">Four versions of every message, each with who wrote it. The gaps between them are the game.</p>
+      {only !== null && (
+        <p>
+          <button className="small link" onClick={onAll}>
+            Show every trail
+          </button>
+        </p>
+      )}
       {trails.length === 0 && <p className="muted">No envoy has set out yet.</p>}
       {trails.slice(0, limit).map((t) => {
         const envoy = findCharacter(state, t.envoyId);

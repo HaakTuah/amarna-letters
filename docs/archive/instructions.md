@@ -1593,3 +1593,24 @@ Given in the design chat with Claude, answering the design questions of the cons
     review?" Earlier the same morning: "Nope, we don't run anything locally with a poller. Security risk for my
     system." Removed from `docs/claude-and-codex.md`, `SECURITY.md` and `docs/threat-model.md`: nothing on the owner's
     machine starts Codex; once its tasks work, it is started from the pull request itself.
+194. **3 November 2026, 10:36 to 10:44 UTC**, in the design chat, showing Codex's personal code-review settings (no
+    security option there), then, after setting the repositories' security review back to "Team PRs" with its trigger
+    "On PR open": "I have updated it." Tested on Barkstreet Snakes' #468: a draft got no security review, the draft
+    marked ready got one by itself (no findings, so no comment, only the summary's 🔒 row), and an ask on that same
+    commit ran a code review alone. Written into "Codex reviews" in `docs/claude-and-codex.md`.
+195. **3 November 2026, 11:27 and 11:28 UTC**, in the design chat: "So everything is perfectly consistent and perfectly
+    set-up no? No contradictions, no duplications, no unclear instructions, and the loop is 100% consistent and
+    masterfully crafted to be perfect, perfect expert?" Then, to the design session's take (an independent fresh-eyes
+    audit of both repositories' rule files, and fix what it finds): "Yes, do it expertly!" The audit found five blocking
+    problems and about thirty smaller ones; the fixes are in `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`,
+    `docs/threat-model.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md` and the new `docs/developing.md`. Two
+    findings (taste readings' route, and `AGENTS.md` in the workshop check's second mark) wait on the design document.
+196. **3 November 2026, 11:28 UTC**, the same instruction as item 195 ("Yes, do it expertly!"), for the two audit
+    findings in the builder rules, made in the design document (Build order, revision 348): a reading that is a matter
+    of taste goes to the owner as a `question` issue when it is taken ("Unattended work"), and `AGENTS.md` joins the
+    files every session reads in the workshop check's second mark.
+197. **3 November 2026**, under item 195's instruction ("Yes, do it expertly!"): Codex's automatic security review on
+    #665 found that the new `docs/developing.md`, which holds the GitHub calls builders run with the repository's
+    credentials, was not a protected file, so a Codex lane steered by planted text could change them unseen. It joins the
+    protected files (`SECURITY.md`, rule 3). #665 had been merged with the finding open, against "Codex reviews": the fix
+    is this PR.
