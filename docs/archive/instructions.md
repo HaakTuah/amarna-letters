@@ -1571,3 +1571,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     off, `@codex security review` ran a code review alone; on Barkstreet Snakes' #463, with it on, a security review.
     Written into "The threat model" in `SECURITY.md`, "Codex reviews" in `docs/claude-and-codex.md`, and "Follow-ups"
     in `docs/BUILD-PROGRESS.md`.
+190. **3 November 2026, 09:40 and 09:41 UTC**, in the design chat, on where Codex's security review finds its threat
+    model, `SECURITY.md` being already read as its review instructions: "But then it reads needless stuff to get to
+    the threat model stuff?" Then, to the design session's take (move the threat model into a file of its own and
+    point the settings there): "Yes, please! Expertly!" Moved into `docs/threat-model.md`, with a pointer in
+    `SECURITY.md`, and the file added to the protected files (`SECURITY.md`, rule 3).
