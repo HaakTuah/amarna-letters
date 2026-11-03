@@ -5,17 +5,20 @@
  * is known only once word of its setting out could have come, and one that ended stands until word of its end comes.
  */
 import type { Power } from "../model/power.ts";
+import { courierSeasons, courtOf } from "./court.ts";
 import { caravanAt, type Caravan, readCaravanReport } from "../model/caravans.ts";
 import { newCaravanView, type CaravanView } from "../model/views.ts";
 import type { TurnEngine } from "../turn/turn-engine.ts";
 
 /**
  * Whether word of what happened at `at` in season `turn` has reached a court: near, within the season (at once for what
- * happened as this season began); farther, a season and the couriers' road later.
+ * happened as this season began); farther, a season and the couriers' road later. The road is reckoned as it was in
+ * that season, so word once come never goes back with the seasons' roads.
  */
 export function wordCame(engine: TurnEngine, p: Power, turn: number, at: string): boolean {
-  const d = engine.wordTo(p, at);
-  return d === 0 ? turn <= engine.s.turn : Number.isFinite(d) && turn + d < engine.s.turn;
+  const s = engine.s;
+  const d = engine.map.exists(at) ? courierSeasons(s, engine.map, courtOf(s, engine.map, p), at, turn) : 0;
+  return d === 0 ? turn <= s.turn : Number.isFinite(d) && turn + d < s.turn;
 }
 
 const viewOf = (c: Caravan, at: string, grain: number, gold: number, returning: boolean, reported: number | null): CaravanView =>

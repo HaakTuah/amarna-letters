@@ -31,6 +31,22 @@ describe("CaravansKnownTests", () => {
     Assert.equal(1, Views.caravansKnown(s, "Egypt").length);
   });
 
+  test("Word of a caravan once come stays come, though the season's roads lengthen the couriers' ride", () => {
+    // Hattusa is within Pharaoh's couriers' season in the first season of the year and beyond it in the second.
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti");
+    s.owner.set("hattusa", "Egypt");
+    s.turn = 1;
+    Assert.equal(0, new TurnEngine(s).wordTo("Egypt", "hattusa"));
+    s.turn = 2;
+    Assert.equal(1, new TurnEngine(s).wordTo("Egypt", "hattusa"));
+    s.turn = 1;
+    const c = newCaravan({ id: "v902", power: "Egypt", from: "hattusa", to: "nesa", grain: 30, route: ["hattusa", "nesa"], since: 1 });
+    setOut(s, c);
+    Assert.equal(1, Views.caravansKnown(s, "Egypt").length);
+    reportCaravan(c, 1);
+    for (s.turn = 2; s.turn <= 3; s.turn++) Assert.equal(1, Views.caravansKnown(s, "Egypt").length);
+  });
+
   test("A caravan home to a far province with nothing to carry on brings its word to the court when word of its homecoming does", () => {
     const s = world(5);
     const e = new TurnEngine(s);

@@ -292,7 +292,8 @@ P.nearOf = function (province, ...ps) {
 /** When a caravan's king hears of its setting out: its first report's place and season (Caravan.trail). */
 function setOutHeard(e: TurnEngine, c: Caravan): number {
   const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : { turn: c.since, at: c.route[0] ?? c.from };
-  const d = e.map.exists(first.at) ? e.wordTo(c.power, first.at) : 0;
+  // The road as it was in that season (`wordCame`).
+  const d = e.map.exists(first.at) ? courierSeasons(e.s, e.map, courtOf(e.s, e.map, c.power), first.at, first.turn) : 0;
   return d === 0 || !Number.isFinite(d) ? first.turn + e.s.deliveryOffset : first.turn + 1 + d;
 }
 
