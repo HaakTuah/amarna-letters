@@ -19,6 +19,9 @@ import {
   newGameConfig,
   newGrant,
   ownedBy,
+  newScheduledOrders,
+  newSleepState,
+  type ScheduledOrders,
   endSieges,
   newOwnerChange,
   newSiege,
@@ -34,6 +37,8 @@ import {
   hunt,
   revoke,
   roads,
+  move,
+  raise,
   sell,
   toll,
   welcome,
@@ -52,6 +57,8 @@ interface Twin {
   orders: Order[];
   /** Another king's orders in the first season, in the world where the fact is true: his doing is the fact. */
   others?: { power: Power; orders: Order[] };
+  /** The orders the seat schedules in its first season, for later seasons. */
+  scheduled?: ScheduledOrders[];
   /** Whether the seat could know the fact by now, in the world where it is true: the twins may differ from then. */
   heard(s: GameState): boolean;
   seasons: number;
@@ -111,7 +118,7 @@ function play(t: Twin): { line: string; difference: string }[] {
     if (t.later !== undefined && worlds[0].turn === t.later.at) t.later.happen(worlds[0]);
     for (const d of differences(worlds[0], worlds[1], t.seat)) found.push({ line: `season ${worlds[0].turn}, ${d}`, difference: d });
     for (const s of worlds) {
-      const subs = new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(t.orders) })]]);
+      const subs = new Dict([[t.seat, newTurnSubmission({ orders: structuredClone(t.orders), scheduled: s.turn === 1 ? structuredClone(t.scheduled ?? []) : [] })]]);
       if (s === worlds[0] && t.others !== undefined && s.turn === 1) subs.set(t.others.power, newTurnSubmission({ orders: structuredClone(t.others.orders) }));
       new TurnEngine(s).resolve(subs);
     }
@@ -255,7 +262,14 @@ const siegeAfterOrders: Twin = {
  */
 const SpendFar = ["a far province lost after orders for it set out", "a far siege begun after orders set out", "far works paid in gold, the province lost after orders set out", "far works paid in gold, a siege begun after orders set out"];
 const Known: { issue: number; what: string; twins: string[]; is: (difference: string) => boolean }[] = [
-  ...["strength", "gold"].map((k) => ({ issue: 587, what: `view.${k}`, twins: SpendFar, is: (d: string) => d.startsWith(`view.${k}: `) })),
+  ...["strength", "gold"].map((k) => ({ issue: 587, what: `view.${k}`, twins: [...SpendFar, "a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}: `) })),
+  // The pay of a far levy's army leaves the treasury at once, as the levy's price does (#587).
+  { issue: 587, what: "the treasury notice's troops' pay", twins: ["a far levy that raised nothing"], is: (d: string) => /^only where (true|false): The treasury: .*Paid: your troops/.test(d) },
+  // A far levy's army is shown at once, its upkeep counted and the orders waiting for it bound to it, before word of its
+  // raising could come (#600, the far unit known by its reports).
+  ...["units", "upkeep"].map((k) => ({ issue: 600, what: `view.${k} (a far levy's army)`, twins: ["a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}`) })),
+  // Only the order named by its levy or by its army: an order missing from one twin's list is a leak of its own (#569).
+  { issue: 600, what: "view.scheduled (a far levy's army)", twins: ["a far levy that raised nothing"], is: (d: string) => /^view\.scheduled: \[\{"turn":5,.* against \[\{"turn":5,/.test(d) },
 ];
 
 /** Every difference a twin's seasons show, each with the known leak it is, if any. */
@@ -303,6 +317,35 @@ const goldWorks: Order[] = [build("nippur", "Walls", 2, false), build("nippur", 
 const goldAfterLoss: Twin = { ...lossAfterOrders, name: "far works paid in gold, the province lost after orders set out", orders: goldWorks };
 const goldAfterSiege: Twin = { ...siegeAfterOrders, name: "far works paid in gold, a siege begun after orders set out", orders: goldWorks };
 
+/**
+ * Egypt's king holds court at Nippur, far from his homeland (all of it beyond his sight); he schedules a levy in Nubia
+ * and a march for the army it is to raise. In the twin where the fact is true, Nubia's men are gone (fled, or dead of plague) in the
+ * levy's season, so it raises nothing.
+ */
+const levyUnraised: Twin = {
+  name: "a far levy that raised nothing",
+  seat: "Egypt",
+  seasons: 8,
+  make() {
+    const s = world("Egypt", "Babylonia");
+    holds(s, "Egypt", 0);
+    s.court.set("Egypt", "nippur");
+    s.units = s.units.filter((u) => u.province !== "nubia");
+    s.sleep.tryAdd("Egypt", newSleepState());
+    return s;
+  },
+  later: {
+    at: 3,
+    happen(s) {
+      s.people.get("nubia").men = 0;
+    },
+  },
+  orders: [],
+  scheduled: [newScheduledOrders({ turn: 3, orders: [raise("nubia", "Army")] }), newScheduledOrders({ turn: 5, orders: [move("nubia", "thebes")] })],
+  // Once word of the levy's season in Nubia has come: its report (the land as last reported), or the levy's own notice.
+  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3 || (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Levy failed"),
+};
+
 /** Egypt and Babylonia, Babylonia the seat; in the twin where the fact is true, Egypt grants it passage by order. */
 const grantGiven: Twin = {
   name: "a grant by order",
@@ -333,7 +376,7 @@ const grantNarrowed: Twin = { ...grantRevoked, name: "a grant narrowed by a revo
 /** As `grantRevoked`, but Egypt closes its roads to Babylonia's people, which ends what it granted. */
 const grantRoadsClosed: Twin = { ...grantRevoked, name: "a grant ended by closed roads", others: { power: "Egypt", orders: [roads("Babylonia", true)] } };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed];
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

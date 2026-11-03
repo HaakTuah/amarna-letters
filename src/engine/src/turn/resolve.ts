@@ -439,8 +439,7 @@ P.raise = function (p, r) {
     const text = `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`;
     // Only land lost in movement is others' doing, and its word comes home by the road (bug #467): a province the seat
     // still holds that is not empty holds its own unit (any other troops there would have taken it), and a cession is its own.
-    if (S.owner.getOrDefault(prov.id, null) !== p && !this._cededNow.has(prov.id)) this.lostOrder(p, r, prov.id, "Levy failed", text, why);
-    else this.tell(p, prov.id, "Rejected", "Levy failed", text);
+    this.levyFailed(p, r, prov.id, text, S.owner.getOrDefault(prov.id, null) !== p && !this._cededNow.has(prov.id) ? why : null);
     return;
   }
   // Sized by the men the province has (item 11a+): a full levy where it can, else every man at home; its price, pay and
@@ -452,7 +451,7 @@ P.raise = function (p, r) {
     const short = r.share != null && menAvailable(S, prov.id) >= LandData.levyLeast;
     const why = short ? `the share you asked of its men came to fewer than a levy takes (${LandData.levyLeast} at least); ask a larger share or a number of men` : `it has too few men of fighting age left (${LandData.levyLeast} at least are needed)`;
     // Its notice and a sleeping seat's wake come by the road from a far province (bug #517).
-    this.lostOrder(p, r, prov.id, "Levy failed", `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`, short ? "the share asked came to fewer men than a levy takes" : "too few men of fighting age");
+    this.levyFailed(p, r, prov.id, `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`, short ? "the share asked came to fewer men than a levy takes" : "too few men of fighting age");
     return;
   }
   const cost = forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, men);

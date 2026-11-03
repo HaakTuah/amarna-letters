@@ -68,6 +68,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
+- ~~**A far levy's dropped orders by word (bug #569)**~~ (done, #610): a levy that failed in its province drops the
+  orders waiting on its army when word of it comes, in the season of its "Levy failed"; till then they stay listed,
+  unable to run. Save version 53. Report: `docs/rounds/2026-11-03-levy-drop-heard.md`.
+
 - ~~**A grant and its end by word (bug #565)**~~ (done, #606): a grant by order, a revocation and closed roads reach
   the grantee's court by word, its view keeping the grant until then. Save version 52. Filed: #609 (repudiation, the
   same leak), #611. Report: `docs/rounds/2026-11-03-grants-heard.md`.
