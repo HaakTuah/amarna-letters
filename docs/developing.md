@@ -14,6 +14,7 @@ REST API.
 gh api repos/HaakTuah/amarna-letters/pulls -f title=... -f head=<branch> -f base=develop -f body=...  # add -F draft=true for a draft
 gh api -X POST repos/HaakTuah/amarna-letters/pulls/<n>/ccr/ready_for_review                           # mark a draft ready, in Claude's cloud sessions (starts the security review)
 gh api -X PUT repos/HaakTuah/amarna-letters/pulls/<n>/merge -f merge_method=merge                     # merge into develop
+gh api repos/HaakTuah/amarna-letters/compare/develop...<branch> --jq '.files[].filename'           # the files a branch changes
 gh api "repos/HaakTuah/amarna-letters/pulls?state=all&base=main&head=HaakTuah:develop" --jq '.[0] | {number,state,merged_at}'  # the last milestone PR: merged_at set means merge main back into develop first
 gh api repos/HaakTuah/amarna-letters/pulls -f title=... -f head=develop -f base=main -f body=...       # the milestone PR
 ```
@@ -28,5 +29,5 @@ long-term support (from its October) moves CI's `node-version` and `scripts/clou
 types and the full suites; an odd one is closed with that reason.
 
 **CodeQL checks every PR** into `develop` and `main`, every push to them and once a week (`.github/workflows/codeql.yml`).
-A finding on a PR shows on it as a note; what to do with it is in `AGENTS.md`, "Git and GitHub". Alerts already in the
+A finding on a PR shows on it as a note; what to do with it is in `SECURITY.md`, point 9. Alerts already in the
 code are the owner's to pass on (`SECURITY.md`, point 9).
