@@ -41,8 +41,10 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 
 ## How to work
 
-Every rule here says what it is for. The aim behind them all: as much finished work of full quality as the week's
-usage allows, at the lowest cost now and later.
+Every rule here says what it is for. The aim behind them all: as much finished work of full quality as the week's usage
+allows, at the lowest cost now and later. Four of them are the pillars that hold the rest up: **one fact, one place**,
+**split by meaning**, **keep it lean** and **read little**. Every review enforces the first three ("What blocks" in
+`docs/review-guidelines.md`), and the workshop check measures what every session reads.
 
 - **A question is a question.** Answer it; act on it only when the owner says so.
 - **Match effort to the task,** and take the cheapest approach that does the job well, since usage is limited. Docs,
@@ -62,13 +64,20 @@ usage allows, at the lowest cost now and later.
 - **Don't loop.** If the same approach fails twice, stop, write down what you tried, and take another approach, hand it
   to escalation, or mark the step blocked in the PR and `docs/BUILD-PROGRESS.md`, with its brief ready for a later
   session (the problem, what was tried, the files and lines), and go on, as the builder rules say.
-- **One fact, one place.** Link to where a fact lives instead of copying it. Never edit `docs/intent/` or
-  `docs/builder-rules.md`: if the design document seems wrong or unclear, take the most reasonable reading and
-  list it under "Readings taken"; a matter of taste is a `question` issue ("Questions, readings and ideas").
+- **One fact, one place, everywhere** (archive items 207 and 208): in code, data, tests, docs, rule files and the briefs
+  agents are given. Point to where a thing lives and never copy it, whole or as a selection of its lines: every copy
+  drifts from the original, and is paid for again on every read. The copies check (`scripts/copies.mjs`, on every PR)
+  fails a new copy of code or of the rule files' prose; its baseline lists the old ones, which are removed over time and
+  never added to. The one place is where the readers who need it look for it ("Split by meaning"), and only the places
+  whose readers need it point to it, since a pointer is read too. When a better home appears, because its readers change
+  or the file it sits in grows to hold other things, it moves there in one PR: every pointer that still makes sense
+  updated, the rest removed, nothing left behind in the old place. Never edit `docs/intent/` or `docs/builder-rules.md`:
+  if the design document seems wrong or unclear, take the most reasonable reading and list it under "Readings taken"; a
+  matter of taste is a `question` issue ("Questions, readings and ideas").
 - **Keep it lean** (archive item 133). Every change removes what it replaces, in the same PR: no
   commented-out code, no "old" copies, nothing it made unused (code, files, settings, assets, test helpers). Look for an
   existing helper before writing one. A leftover is a finding in every review.
-- **Split by meaning, from the start** (archive items 134 and 135), so a reader loads only what it needs. Each file holds one
+- **Split by meaning, from the start** (archive items 134 and 135), so each reader reads only what it needs and nothing it must read past. Each file holds one
   thing people look up on its own (a power, a system, a screen, a tab of the design), as small as that thing is; new
   work goes into its own file as it is written, never into a big file to be split later. Smaller than that is not
   better: one thing spread over several files costs every reader more. Where a family differs only in part (powers,

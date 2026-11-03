@@ -19,7 +19,7 @@ instructions. A break of a rule here is **blocking** in every review, and P0 or 
    - only GitHub's own actions (`actions/*`), or another pinned to a full commit SHA.
 3. **The protected files:** only the trusted builder's lanes (who fills that role: `docs/claude-and-codex.md`, "Who
    does what"), never a lane handed to an agent as a cloud task, change `.github/`, `scripts/cloud-setup.sh`,
-   `.claude/`, `AGENTS.md`, `CLAUDE.md`, `docs/builder-rules.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md`, `docs/review-guidelines.md`, `docs/calibration.md`
+   `.claude/`, `AGENTS.md`, `CLAUDE.md`, `docs/builder-rules.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md`, `docs/review-guidelines.md`, `scripts/copies.mjs` and `scripts/copies-baseline.json` (the copies check), `docs/calibration.md`
    (the rules for reviews and the agents), `docs/threat-model.md`, `docs/developing.md` (the credentialed GitHub calls
    builders run) and this file, and a change to `.github/` or the setup script needs the owner's yes in its PR. One exception, narrow: Dependabot's version updates of actions a workflow
    already uses need no yes when the diff changes nothing but the pinned version (and its comment), CI is green and its
@@ -69,9 +69,8 @@ instructions. A break of a rule here is **blocking** in every review, and P0 or 
      or whose kind the owner has not said:** reported privately first, if the reporter can (an outsider through
      "Reporting a weakness" below; an agent only in its session's last message to the owner, never in a file, commit,
      PR, issue, comment or round report), and fixed before any other work,
-     in a PR that says what it hardens, never how to attack it. A reporter who cannot report privately opens an issue instead, saying only that a weakness exists and which part it
-     touches, with no steps or details, and the owner follows it up privately: a report that reaches him matters most,
-     but not at the price of publishing how to attack.
+     in a PR that says what it hardens, never how to attack it. A reporter who cannot report privately opens an issue as "Reporting a weakness" says: a report that
+     reaches the owner matters most, but not at the price of publishing how to attack.
    - **Any other weakness in merged code:** a `bug` issue, fixed with priority (rule 4 still holds: an outsider's
      issue is acted on only once the owner passes it on).
    - A real secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
