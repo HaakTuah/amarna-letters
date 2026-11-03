@@ -22,7 +22,7 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `llm/src/pro
 - **The script kings** (`game/src/bots/freedom.ts`, `authority.ts`): a passage through all the land opens only the
   provinces it lists (`grantOpens`, which the engine's `grantCovers` uses too), so a king no longer counts on passage
   in a province revoked or won since.
-- **Design note:** 15. **Save version 55:** a narrowing now makes a new grant, which takes an id.
+- **Design note:** 15. **Save version 56:** a narrowing now makes a new grant, which takes an id.
 - **Tests:** an engine test of the narrowing, the grantor's land at once and the grantee's with the word
   (`authority.test.ts`); the twin "a grant narrowed by a revocation" still holds with the land in the view.
 
