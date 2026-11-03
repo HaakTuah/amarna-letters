@@ -973,12 +973,26 @@ export interface NameClaimView {
   name: string;
   claimants: Power[];
   givenTo: Power | null;
+  /**
+   * The claimants whose claim the court read in a sealed greeting, each with the season that greeting was sealed (#550);
+   * a claimant to his own land's name, and the court's own king, need no greeting and have no entry.
+   */
+  heard: HeardClaimView[];
 }
 
-export const NameClaimViewSchema: ObjSchema<NameClaimView> = obj("NameClaimView", () => ({ name: "", claimants: [], givenTo: null }), {
+/** A claim a court read in the claimant's newest sealed greeting to it, and the season that greeting was sealed. */
+export interface HeardClaimView {
+  claimant: Power;
+  sealed: number;
+}
+
+export const HeardClaimViewSchema: ObjSchema<HeardClaimView> = obj("HeardClaimView", () => ({ claimant: "", sealed: 0 }), { claimant: S, sealed: I });
+
+export const NameClaimViewSchema: ObjSchema<NameClaimView> = obj("NameClaimView", () => ({ name: "", claimants: [], givenTo: null, heard: [] }), {
   name: S,
   claimants: list(S),
   givenTo: opt(S),
+  heard: list(() => HeardClaimViewSchema),
 });
 
 export function newSeatView(init: Partial<SeatView> = {}): SeatView {

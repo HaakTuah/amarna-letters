@@ -33,6 +33,7 @@ import {
   type UnitKind,
   type GrantView,
   menOf,
+  season,
 } from "@amarna/engine";
 import { GoldLifeline, economyLines, worksLines } from "./prompt-economy.ts";
 import { person } from "./prompt-audience.ts";
@@ -133,7 +134,9 @@ export function rankLine(v: SeatView): string
 export function namesLine(v: SeatView): string
     {
         if (v.nameClaims.length === 0) return "";
-        const parts = v.nameClaims.map((c) => `${c.name} is claimed by ${joinS(` and `, c.claimants)}; ${c.givenTo === v.power ? `you hold it` : c.givenTo !== null ? `your court gives it to ${c.givenTo} and calls the other${c.claimants.length > 2 ? `s` : ``} by ${c.claimants.length > 2 ? `their houses` : `his house`}` : `your court has given it to no one`}`);
+        const read = (c: SeatView["nameClaims"][number]) =>
+            c.heard.length === 0 ? `` : `, as read in ${joinS(` and in `, c.heard.map((h) => `${h.claimant}'s greeting sealed in ${season(h.sealed, v.power)}`))}`;
+        const parts = v.nameClaims.map((c) => `${c.name} is claimed by ${joinS(` and `, c.claimants)}${read(c)}; ${c.givenTo === v.power ? `you hold it` : c.givenTo !== null ? `your court gives it to ${c.givenTo} and calls the other${c.claimants.length > 2 ? `s` : ``} by ${c.claimants.length > 2 ? `their houses` : `his house`}` : `your court has given it to no one`}`);
         return `NAMES CLAIMED (each king as your orders name him): you go by the name of ${v.claimedName}. ${joinS(`. `, parts)}.`;
     }
 

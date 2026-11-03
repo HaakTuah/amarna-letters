@@ -85,7 +85,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
     a caught spy's report is read ("A letter taken on the road").
   - **#550:** under NAMES CLAIMED, in the seat view, the Court section and the models' line, the season each claim was
-    heard from its sealed greeting.
+    heard from its sealed greeting. Done, #574 (`docs/rounds/2026-11-02-names-season.md`).
   - **#554:** a short note, from its sourced basis, on each connection whose travel days are not the plain distance
     (Ur's river to the Gulf, the Ways of Horus, the Wadi Hammamat road).
   - **#549, the polish lane:** a faint accent on a frontier where the seat itself sees two powers' armies on either
