@@ -481,8 +481,9 @@ function isFiring(i: InboxItem): boolean {
 
 /**
  * Orders bound to troops the seat no longer has (destroyed, deserted, disbanded or given away) can never run: they are
- * dropped once it knows (bug #600: a unit far off, once word of its end could come) (the scheduled orders of a seat that sleeps, and any seat's standing orders), a standing order with them if it
- * waited on that unit or has no orders left, and the seat is told in its news. Dropping them wakes nobody.
+ * dropped once the seat knows (bug #600: for a unit far off, once word of its end could come): the scheduled orders of a
+ * seat that sleeps, and any seat's standing orders, a standing order with them if it waited on that unit or has no orders
+ * left; the seat is told in its news. Dropping them wakes nobody.
  */
 P.lostUnits = function (p, sl) {
   const S = this.s;

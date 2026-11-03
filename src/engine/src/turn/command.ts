@@ -185,6 +185,23 @@ P.commandSeason = function () {
     S.characters.filter((c) => c.duty === "Commanding" && c.status !== "Dead" && !S.units.some((u) => u.commander === c.id || u.hiredChief === c.id)),
     [(c: Character) => c.id, cmpStr],
   )) {
+    // Bug #600: his king, far off, still believes him in command until word of the army's end, or the man, reaches him.
+    const lord = c.grantedBy ?? c.employer;
+    if (lord !== null && c.watchProvince !== null && this.nearOf(c.watchProvince, lord).length === 0) {
+      this.coverFor(c, lord, "Commanding");
+      S.journeys.push(
+        newJourney({
+          id: newId(S, "j"),
+          kind: "Rumor",
+          departTurn: S.turn,
+          arriveTurn: this.heardAt(lord, c.watchProvince),
+          from: lord,
+          to: lord,
+          characterId: c.id,
+          text: `${c.name} no longer commands an army of yours in ${this.map.get(c.watchProvince).name}: it is gone, and he has left it.`,
+        }),
+      );
+    }
     if (c.watchProvince !== null) this.leaveCommand(c, c.watchProvince);
     else c.duty = "None";
   }

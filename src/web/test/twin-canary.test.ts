@@ -35,6 +35,7 @@ import {
   feed,
   grant,
   hunt,
+  hold,
   move,
   support,
   revoke,
@@ -85,6 +86,12 @@ function differences(a: GameState, b: GameState, p: Power): string[] {
   };
   for (const k of Object.keys(va)) {
     if (k === "inbox" || JSON.stringify(va[k]) === JSON.stringify(vb[k])) continue;
+    // Strength counts the treasury's gold: a difference that is not the gold's alone is told apart, so a known gold leak
+    // (#587) excuses nothing else in it.
+    if (k === "strength" && (va.strength as number) - (va.gold as number) !== (vb.strength as number) - (vb.gold as number)) {
+      out.push(`view.strength beyond its gold: ${(va.strength as number) - (va.gold as number)} against ${(vb.strength as number) - (vb.gold as number)}`);
+      continue;
+    }
     const [la, lb] = [va[k], vb[k]];
     if (Array.isArray(la) && Array.isArray(lb) && [...la, ...lb].every((x) => typeof x === "object" && x !== null && ("province" in x || "from" in x))) {
       for (const at of new Set([...la, ...lb].map(place))) {
@@ -387,12 +394,18 @@ const farUnitBeaten: Twin = {
     const s = world("Egypt", "Babylonia");
     holds(s, "Egypt", 0);
     s.units = s.units.filter((u) => !["nippur", "babylon", "durkurigalzu"].includes(u.province));
-    s.units.push(newUnit({ id: "u990", power: "Egypt", kind: "Army", province: "nippur", home: "thebes", men: 1000 }));
+    // Commanded by one of Egypt's own, whom Egypt believes in command until word comes.
+    const c = s.characters.find((x) => x.employer === "Egypt" && x.status === "Employed" && x.at === "Egypt")!;
+    c.at = null;
+    c.duty = "Commanding";
+    c.watchProvince = "nippur";
+    s.units.push(newUnit({ id: "u990", power: "Egypt", kind: "Army", province: "nippur", home: "thebes", men: 1000, commander: c.id }));
     for (const [id, at] of [["u991", "babylon"], ["u992", "durkurigalzu"]]) s.units.push(newUnit({ id, power: "Babylonia", kind: "Army", province: at, home: at, men: 6000 }));
     return s;
   },
   others: { power: "Babylonia", orders: [move("babylon", "nippur"), support("durkurigalzu", "babylon", "nippur")], at: 2 },
-  orders: [],
+  // Its king orders the army every season: an order for it rides out, and finds it gone only where it arrives.
+  orders: [hold("nippur")],
   // Once word of the battle has reached Egypt's court: its notice, told from Nippur.
   heard: (s) => (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Battle"),
 };

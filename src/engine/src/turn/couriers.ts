@@ -25,6 +25,8 @@ import { TurnEngine } from "./core.ts";
 import { readCaravanReport, reportCaravan, type Caravan } from "../model/caravans.ts";
 import { newWord } from "../model/word.ts";
 import { wordCame } from "../rules/caravans-known.ts";
+import { ownUnitsKnown, reportIndex } from "../rules/units-known.ts";
+import { newPlannedOrder, type PlannedOrder } from "../model/sleep.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -34,6 +36,8 @@ declare module "./core.ts" {
     shownAt(u: Unit): string;
     /** The own unit the king names by a province, as he sees his units. */
     unitShownAt(p: Power, province: string): Unit | null;
+    /** Bug #600: an order that reached the place of a unit gone: its king reads so when word comes back from there. */
+    orderMissed(p: Power, plan: PlannedOrder): void;
     /**
      * The own unit an order of the king's names by a province: one that truly stands there within the season's reach (as
      * he sees it now), else the one his reports show there.
@@ -81,18 +85,24 @@ P.wordTo = function (p, province) {
 };
 
 P.shownAt = function (u) {
-  const d = this.wordTo(u.power, u.province);
-  if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return u.province;
-  const at = u.trail[Math.max(0, u.trail.length - 1 - d)];
-  return at.split("|")[0];
+  const i = reportIndex(this, u);
+  return i === null ? u.province : u.trail[i].split("|")[0];
 };
 
 P.unitShownAt = function (p, province) {
+  // Bug #600: and one gone far off whose end its king has not heard of: an order for it rides out and fails there.
   const own = sortBy(
-    this.s.units.filter((u) => u.power === p),
+    [...this.s.units.filter((u) => u.power === p), ...ownUnitsKnown(this, p).filter((u) => !this.s.units.includes(u))],
     [(u: Unit) => u.id, cmpStr],
   );
   return own.find((u) => this.shownAt(u) === province) ?? null;
+};
+
+P.orderMissed = function (p, plan) {
+  const u = this.s.unitsGone.find((x) => x.id === plan.unitId && x.power === p);
+  if (u === undefined) return;
+  const name = this.map.get(u.province).name;
+  this.tell(p, u.province, "Rejected", "Order failed", `Your order did not reach the ${u.kind === "Army" ? "army" : "fleet"} it was for: it no longer stood in ${name}. The order: ${describe(plan.order)}.`);
 };
 
 P.orderedUnit = function (p, province) {
@@ -148,6 +158,7 @@ P.sendOrders = function (p, sub) {
   )) {
     const o = asItStands(S, p, c.plan);
     if (o !== null) arrived.push(o);
+    else this.orderMissed(p, c.plan);
   }
   S.couriers = S.couriers.filter((x) => !(x.power === p && x.arrives <= S.turn));
   const keep: Order[] = [];
@@ -174,7 +185,11 @@ P.sendOrders = function (p, sub) {
       keep.push(at.unit !== null && unitOf(o) !== at.unit.province ? renamed(o, at.unit.province) : o);
       continue;
     }
-    const [plan] = this.bind(p, 0, at.unit !== null ? renamed(o, at.unit.province) : o, []);
+    // A unit gone that its king still knows (bug #600) is bound as it is: the order finds it gone where it arrives.
+    const [plan] =
+      at.unit !== null && !S.units.includes(at.unit)
+        ? [newPlannedOrder({ turn: 0, order: renamed(o, at.unit.province), unitId: at.unit.id, given: S.turn })]
+        : this.bind(p, 0, at.unit !== null ? renamed(o, at.unit.province) : o, []);
     if (plan === null) {
       keep.push(o);
       continue;

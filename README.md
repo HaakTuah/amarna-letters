@@ -423,8 +423,8 @@ stores and its people as they were, until the news reaches you; only then does i
 Your land beyond a season's courier ride is shown the same way while you hold it: its stores, people, works and
 harvest as its officials last reported them, your caravans there as their last word has them, your troops there as
 their last report has them (an army raised far off is counted once word of its levy comes, and one lost far off until
-word of its end does), and your strength reckoned from what you know. Click such a city and its card gives only what your stewards last reported and how many
-seasons ago, never its new holder's affairs; a band your people last told of there is drawn faded, with the age of that word. Looking back at an
+word of its end does), and your strength reckoned from what you know. Click such a city and its card gives only what
+your stewards last reported and how many seasons ago, never its new holder's affairs; a band your people last told of there is drawn faded, with the age of that word. Looking back at an
 earlier season, a card gives the figures recorded in that season, never today's.
 Figures on the roads in the fog are your own: your caravans, near as they are and farther off where their last word
 has them, and your envoys and spies where you

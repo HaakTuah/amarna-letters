@@ -29,7 +29,7 @@ import { formatMoney, season } from "./calendar.ts";
 import { courtOf } from "./court.ts";
 import { carriedWorth, ownKnown } from "./province-reports.ts";
 import { caravansKnown, wordCame } from "./caravans-known.ts";
-import { ownUnitsKnown, plannedAsKnown, reportOf, trailEntry } from "./units-known.ts";
+import { ownUnitsKnown, plannedAsKnown, reportedAt, reportIndex, reportOf, trailEntry } from "./units-known.ts";
 import { knownHolders, ownerAt, SeenSource, siegesKnown, sight, wallsKnown, WordSource } from "./known-land.ts";
 
 export { SeenSource, WordSource };
@@ -95,15 +95,15 @@ function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(provi
   const pairs: [Unit, UnitView | null][] = units.map((u) => [u, view(u)]);
   for (const pair of pairs) {
     const [u, x] = pair;
-    if (x === null || x.reported === 0 || u.power !== p || u.goneTurn > 0 || !pairs.some((y) => y !== pair && y[1]?.province === x.province)) continue;
-    if (u.trail.length === 0 || engine.wordTo(p, u.province) <= 0) continue;
+    if (x === null || x.reported === 0 || u.power !== p || !pairs.some((y) => y !== pair && y[1]?.province === x.province)) continue;
+    const at = reportIndex(engine, u);
+    if (at === null) continue;
     pair[1] = null;
     const taken = new HSet(pairs.filter((y) => y !== pair && y[1] !== null).map((y) => y[1]!.province));
-    const d = engine.wordTo(p, u.province);
-    for (let i = u.trail.length - 2 - d; i >= 0; i--) {
+    for (let i = at - 1; i >= 0; i--) {
       const r = trailEntry(u.trail[i]);
       if (!taken.has(r.province)) {
-        pair[1] = { ...x, ...r, reported: s.turn - (u.trail.length - 1 - i) };
+        pair[1] = { ...x, ...r, reported: reportedAt(engine, u, i) };
         break;
       }
     }

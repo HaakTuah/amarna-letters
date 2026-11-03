@@ -13,10 +13,17 @@ out of `views.ts` (47 KB).
 
 ## What changed
 
-- **A unit gone is kept with its reports** (`loseUnit`, `GameState.unitsGone`, `Unit.goneTurn`, in `model/state.ts`):
-  every removal but a fleet taken into cargo service (it comes back) and a turned levy rejoining its unit the same
-  season goes through it. Its king's view shows it as its last report has it (`reportOf`: its newest report the last
-  it sent) until word of its end could come (`wordCame`, from where it ended), then drops it.
+- **A unit gone is kept with its reports** (`loseUnit`, `keepGone`, `GameState.unitsGone`, `Unit.goneTurn`, in
+  `model/state.ts`): every removal goes through it but a turned levy rejoining its unit in the same season, and so does
+  every change of a unit's owner (a gift of troops, levies following a rebel governor, a fleet taken into cargo service),
+  which keeps a copy for its old king. His view shows it as its last report has it (`reportOf`: its newest report the
+  last it sent) until word of its end could come (`wordCame`, from where it ended), then drops it. One with no report
+  yet is not kept: he knows it only as it is, within his couriers' season.
+- **An order for it rides out** (`unitShownAt`, `sendOrders`): the king may name it where its report has it; the order
+  goes by courier and, finding it gone, its failure comes home by the road (`orderMissed`, "Order failed"), as does a
+  scheduled order that comes due for it. A gift of troops far off, made or failed, is told the same way.
+- **Its commander** stays in command as his king believes (`coverFor`) until word of the army's end, which tells of his
+  leaving, or the man himself reaches court.
 - **A unit raised far off is known once word of its raising could come** (`Unit.since`, from its levy's province; the
   troops a game begins with at once; a split keeps its unit's).
 - **What reads the court's own troops follows** (`ownUnitsKnown`): the view's units, its upkeep (`TurnEngine.upkeep`
@@ -47,8 +54,9 @@ out of `views.ts` (47 KB).
 
 1. **Reports sent before a unit's end still come in after it:** the view moves on through them, never past the last.
    Principle: one clock, the unit's trail, as for a caravan's.
-2. **A fleet taken into cargo service, and a turned levy rejoining its unit in the same season, are not losses:** the
-   king's own doing, seen in his caravans and his unit. Principle: keep the rule to what a king could not know.
+2. **A turned levy rejoining its unit in the same season is not a loss** (it never left its king's reports); a fleet taken
+   into cargo service far off is, until word of the caravan's setting out comes. Principle: keep the rule to what a king
+   could not know.
 3. **A far unit's lines of the season are their own notice, told from where they happened,** not held back from the
    season's notice: the seat reads them when a courier could bring them. Principle: "Hidden information", and requests
    are rules too (no line about troops it cannot yet know of).
@@ -57,8 +65,24 @@ out of `views.ts` (47 KB).
 
 (at the final code: below)
 
-## Review
+## Review, round 1
 
-(below)
+Claude's reviewer (Opus, high): 6 of 10, three blocking, five not, all fixed:
+
+1. **An order for a gone unit was refused at once** ("you have no unit in nippur", blocking): it rides out now, and its
+   failure comes home by the road (`orderMissed`); an engine test.
+2. **Exits that bypassed `loseUnit`** (blocking): a gift of troops, levies following a rebel, a fleet into cargo service
+   now keep a copy for the old king (`keepGone`); the gift's notices come by the road; reading 2 corrected.
+3. **A commander's duty changed at once** (blocking): covered (`coverFor`) until word of the army's end; the twin has a
+   commander, and a standing order for the army.
+4. **Battle events:** a side reads them where its notice is told from (`seeing`'s `told`).
+5. **A start unit lost before its first report:** not kept.
+6. **A doubled comment** in `core.ts`: one.
+7. **The #587 mask hid all of strength:** the canary now tells a strength difference beyond the treasury's gold apart.
+8. **Small things:** the `lostUnits` comment, the README's wrap, and a scheduled order due for a gone unit is told
+   (`orderMissed`).
+
+Also: the first benchmark run crashed (a script king keyed its own troops by province, and a gone army's report could
+share one with a live army); a gone unit now moves to an older report like any far unit (`reportIndex`).
 
 Questions for the owner: none. Filed: #615 (bug).

@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, TurnEngine, Views, WorldMap, newGame, newGameConfig, newOwnerChange, newUnit, loseUnit } from "@amarna/engine";
+import { Dict, TurnEngine, Views, WorldMap, hold, inboxOf, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, loseUnit } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 /** Egypt holds Nippur, far from its court, with an army there that has sent a few seasons' reports. */
@@ -59,5 +59,25 @@ describe("UnitsKnownTests", () => {
       new TurnEngine(s, WorldMap.default).beginTurn();
     }
     Assert.equal(1, shown(s).length);
+  });
+
+  test("An order for a far unit lost out of sight rides out, and its failure comes home by the road (bug #600)", () => {
+    const { s, u, season } = farArmy();
+    for (let i = 0; i < 3; i++) season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    const d = new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nippur");
+    loseUnit(s, u);
+    const failed = () => inboxOf(s, "Egypt").filter((i) => i.kind === "Rejected" && i.turn === s.turn);
+    new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("nippur")] })]]));
+    // Not refused at court: the king still knows the army there, and the order goes out by courier.
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    Assert.empty(failed());
+    let told = false;
+    for (let i = 0; i < 2 * d + 2 && !told; i++) {
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+      told = failed().some((x) => x.title === "Order failed" && x.body.includes("no longer stood in Nippur"));
+    }
+    Assert.true(told);
   });
 });

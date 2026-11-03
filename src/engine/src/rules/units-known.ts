@@ -25,7 +25,9 @@ export function raisedKnown(engine: TurnEngine, p: Power, u: Unit, now: number =
 export function ownUnitsKnown(engine: TurnEngine, p: Power, now: number = engine.s.turn): Unit[] {
   const s = engine.s;
   const known = (u: Unit): boolean => u.power === p && raisedKnown(engine, p, u, now);
-  return [...s.units.filter(known), ...s.unitsGone.filter((u) => known(u) && !wordCame(engine, p, u.goneTurn, u.province, now))];
+  const live = s.units.filter(known);
+  // One gone that is its own again (a fleet back from cargo service) is the live one.
+  return [...live, ...s.unitsGone.filter((u) => known(u) && !live.some((x) => x.id === u.id) && !wordCame(engine, p, u.goneTurn, u.province, now))];
 }
 
 /**
@@ -53,11 +55,21 @@ export function trailEntry(t: string): {
  * within it. A unit gone has no reports after the season it left: its newest is the last it sent.
  */
 export function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {
+  const i = reportIndex(engine, u);
+  return i === null ? {} : { ...trailEntry(u.trail[i]), reported: reportedAt(engine, u, i), march: null, marchDays: 0 };
+}
+
+/** Which of a far unit's reports its king has as newest (`reportOf`), or null for one within its couriers' season. */
+export function reportIndex(engine: TurnEngine, u: Unit): number | null {
   const d = engine.wordTo(u.power, u.province);
-  if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return {};
+  if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return null;
   const lag = u.goneTurn > 0 ? engine.s.turn - u.goneTurn : 0;
-  const i = Math.min(u.trail.length - 1, Math.max(0, u.trail.length - 1 - d + lag));
-  return { ...trailEntry(u.trail[i]), reported: engine.s.turn - lag - (u.trail.length - 1 - i), march: null, marchDays: 0 };
+  return Math.min(u.trail.length - 1, Math.max(0, u.trail.length - 1 - d + lag));
+}
+
+/** The season a unit's report `i` is labelled with, as the view dates it ("as reported in turn N"). */
+export function reportedAt(engine: TurnEngine, u: Unit, i: number): number {
+  return engine.s.turn - (u.goneTurn > 0 ? engine.s.turn - u.goneTurn : 0) - (u.trail.length - 1 - i);
 }
 
 /**

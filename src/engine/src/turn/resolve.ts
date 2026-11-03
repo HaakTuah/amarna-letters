@@ -12,7 +12,7 @@ import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
-import { alive, isAlive, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit, loseUnit } from "../model/state.ts";
+import { alive, isAlive, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit, loseUnit, keepGone } from "../model/state.ts";
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
@@ -404,12 +404,14 @@ P.resolveTransfers = function (cessions, gifts) {
   }
   for (const [p, g] of gifts) {
     const u = unitAt(S, g.unit);
+    // Bug #600: its king reads how a gift far off went when word of it comes, and knows the unit till then.
     if (u === null || u.power !== p) {
-      this.failed(p, g, "Gift of troops failed", `No unit of yours stood in ${Map.get(g.unit).name} after movement, so none was given to ${g.to}.`, "the unit is gone", false);
+      this.tell(p, g.unit, "Rejected", "Gift of troops failed", `No unit of yours stood in ${Map.get(g.unit).name} after movement, so none was given to ${g.to}.`);
       continue;
     }
+    keepGone(S, u);
     u.power = g.to;
-    notify(S, p, "Resolution", "Troops given", `${unitLabel(u)} now serves ${g.to}.`);
+    this.tell(p, u.province, "Resolution", "Troops given", `${unitLabel(u)} now serves ${g.to}.`);
     notify(S, g.to, "Resolution", "Troops received", `${p} has placed ${unitLabel(u)} under your command.`);
     logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [p, g.to]);
   }

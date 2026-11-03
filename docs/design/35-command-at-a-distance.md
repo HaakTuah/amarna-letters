@@ -101,14 +101,16 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   paid in gold, leaves it at once (question #587).
 - **Far troops raised and gone** (bug #600; `rules/units-known.ts`): a unit is known to its king once word of its raising
   could come (`Unit.since`, from its levy's province; at once for the troops a game begins with), and one that leaves the
-  game (`loseUnit`, every removal but a fleet taken into cargo service) is kept among `GameState.unitsGone` with its
-  reports, `goneTurn` its season, until word of its end could come (`wordCame`), shown as its last report has it
+  game (`loseUnit`), or passes to another (a gift, levies following a rebel, a fleet into cargo service: `keepGone`, a
+  copy for its old king), is kept among `GameState.unitsGone` with its reports, `goneTurn` its season, until word of its end could come (`wordCame`), shown as its last report has it
   (`reportOf`, its newest report the last it sent). The view's units, upkeep (`TurnEngine.upkeep` over the view's own
   troops) and strength, the standings' Units, and a scheduled order for a unit not yet heard of (named by its levy,
   `plannedAsKnown`) read the same; a sleeping seat's orders for a lost unit drop when word of its end comes
   (`lostUnits`); a battle's events name its sides only where their couriers reach (`battles`, the "destroyed" event),
   and a far unit's lines of the season, and an assault on a far walled city, come home by the road as their own
-  "Movements last season" notice (`movementNews`), a loss there waking a sleeping seat by the same word. What a far unit
+  "Movements last season" notice (`movementNews`), a loss there waking a sleeping seat by the same word. An order for
+  a gone unit rides out and its failure comes home by the road (`orderMissed`); its commander stays in command as his
+  king believes (`coverFor`) until word of the army's end tells of his leaving. What a far unit
   carries, eats and is paid is still as it is: bug #615. Save version 54.
 - **Moving the court** (order `court`, `move_court`; `turn/kings.ts`): 20 shekels and 5 for every ten days of road, at the
   pace of a company of 300. Each season the king goes on, his court where he got to. Envoys, servants and reports that

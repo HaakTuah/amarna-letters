@@ -20,7 +20,7 @@ import { Views } from "../rules/views.ts";
 import type { Province } from "../model/map.ts";
 import type { Order, ShipOrder, TollOrder, TradeOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import { alive, isAlive, logEvent, newId, notify, ownedBy, siegeOf, unitAt, type Unit } from "../model/state.ts";
+import { alive, isAlive, logEvent, newId, notify, ownedBy, siegeOf, unitAt, type Unit, keepGone } from "../model/state.ts";
 import { newToll, shipFleet, smuggleOdds, tollOn, tollRate, TradeData } from "../model/trade.ts";
 import { cheapestRoute, legPoints, PointsPerDay } from "../model/travel.ts";
 import { seasonOfTurn } from "../model/map.ts";
@@ -412,7 +412,11 @@ P.sendTraders = function (orders, tell) {
     }
     t.gold -= gold;
     const trading = o.type === "trade" || o.trade;
-    if (fleet !== null) S.units.splice(S.units.indexOf(fleet), 1);
+    // Bug #600: a fleet far off stays its king's as he last heard of it, until word of the caravan's setting out comes.
+    if (fleet !== null) {
+      S.units.splice(S.units.indexOf(fleet), 1);
+      keepGone(S, fleet);
+    }
     setOut(
       S,
       newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, gold, route, since: S.turn, trade: trading, sneak: o.type === "trade" && o.sneak, ship: fleet }),

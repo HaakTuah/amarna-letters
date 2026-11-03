@@ -852,8 +852,17 @@ export function loseUnit(s: GameState, u: Unit): void {
   const i = s.units.indexOf(u);
   if (i < 0) return;
   s.units.splice(i, 1);
-  u.goneTurn = s.turn;
-  s.unitsGone = [...s.unitsGone.filter((x) => x.goneTurn > s.turn - UnitsGoneKept), ...(u.trail.length > 0 || u.since === 0 ? [u] : [])];
+  keepGone(s, u);
+}
+
+/**
+ * Bug #600: a unit its king no longer has (it left the game, or passed to another: given away, following a rebel, taken
+ * into cargo service) is kept among those gone, as he last heard of it, until word of it could reach him. One with no
+ * report yet is not kept: he knows it only as it is, within his couriers' season.
+ */
+export function keepGone(s: GameState, u: Unit): void {
+  const kept = s.unitsGone.filter((x) => x.goneTurn > s.turn - UnitsGoneKept);
+  s.unitsGone = u.trail.length > 0 ? [...kept, { ...u, trail: [...u.trail], goneTurn: s.turn }] : kept;
 }
 
 /**

@@ -154,7 +154,10 @@ P.planSeason = function (p, sub) {
       : sl.scheduled
           .filter((x) => x.turn === S.turn && !held.includes(x))
           .map((x) => [asItStands(S, p, x), x] as [Order | null, PlannedOrder])
-          .filter(([o]) => o !== null);
+          .filter(([o, x]) => {
+            if (o === null) this.orderMissed(p, x);
+            return o !== null;
+          });
   removeAll(sl.scheduled, (x) => x.turn <= S.turn);
   return { sub, now, due: due.filter(([o, x]) => !this.notYetReached(p, sl, o, x)), standIn };
 };

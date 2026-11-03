@@ -206,8 +206,10 @@ export class TurnEngine {
     remember(c, this.s.turn, memory);
   }
 
-  /** The pay of a power's troops a season in gold, and the cost of each siege it presses (GameConfig.siegeUpkeep). */
-  /** What its troops and sieges cost a season: its troops as they are, or as given (its view's, as it knows them: bug #600). */
+  /**
+   * The pay of a power's troops a season in gold, and the cost of each siege it presses (GameConfig.siegeUpkeep): its
+   * troops as they are, or as given (its view's, as it knows them: bug #600).
+   */
   upkeep(p: Power, units: readonly { kind: UnitKind; men: number }[] = this.s.units.filter((u) => u.power === p)): number {
     const S = this.s;
     return (
