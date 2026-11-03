@@ -221,7 +221,7 @@ input, select, textarea {
 }
 textarea { width: 100%; min-height: 4.5rem; resize: vertical; }
 input[type=number] { width: 6rem; }
-input[type=checkbox] { accent-color: var(--accent); }
+input[type=checkbox], input[type=range] { accent-color: var(--accent); }
 label { display: inline-flex; align-items: center; gap: .35rem; }
 .field { display: flex; flex-direction: column; gap: .2rem; margin-bottom: .6rem; }
 .field > span { font-size: .85rem; color: var(--muted); }
@@ -305,7 +305,7 @@ td .sub { display: block; font-size: .8em; white-space: nowrap; }
     padding-left: max(.6rem, env(safe-area-inset-left)); padding-right: max(.6rem, env(safe-area-inset-right));
     background: var(--surface); border-top: 1px solid var(--line);
 }
-.timebar .slider { flex: 1; min-width: 4rem; accent-color: var(--accent); }
+.timebar .slider { flex: 1; min-width: 4rem; }
 .timebar .tb { min-width: 2.6rem; padding: .3rem .5rem; font-size: 1rem; line-height: 1; }
 .timebar .play.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .timebar .tlabel { font-size: .8rem; color: var(--muted); white-space: nowrap; min-width: 4.4rem; text-align: right; }
@@ -801,6 +801,7 @@ label.volume input[type="range"] { width: 7rem; vertical-align: middle; }
     .lines li, .life li.tap { min-height: 40px; }
     .legend-btn { min-height: 44px; padding-inline: .8rem; }
     .menu summary { min-width: 40px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+    .menu-body > a { min-height: 44px; margin-block: -.25rem; display: flex; align-items: center; }
     .gctl { gap: .25rem; }
     .gctl select { min-height: 44px; }
     /* The pages' bar: a taller target without a taller bar. */
