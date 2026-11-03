@@ -31,6 +31,7 @@ import {
   type UnitKind,
   type UnitView,
   type VassalTerms,
+  FullWeight,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { Names } from "./names.ts";
@@ -328,7 +329,7 @@ export class Brain {
         switch (item.kind) {
           case "Assay":
             if (!item.body.includes("from " + name)) break;
-            if (item.body.includes("(100%)")) r.trust = Math.min(1, r.trust + 0.05);
+            if (item.body.includes(FullWeight)) r.trust = Math.min(1, r.trust + 0.05);
             else this.wronged(other, 1.5, -0.3, -99);
             break;
           case "Rumor":

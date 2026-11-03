@@ -21,7 +21,7 @@ export function stateOfRealm(s: GameState, map: WorldMap, p: Power): string {
   const crop = held.reduce((a, x) => a + grainWorth(harvestOf(x)), 0);
   const metal = held.reduce((a, x) => a + economyOf(x).mine, 0);
   lines.push(
-    `${land(p)} holds ${held.length === 1 ? held[0].name : `${held.length} provinces (${held.map((x) => x.name).join(", ")})`}; its land brings in about ${crop + metal} shekels' worth a season at reference prices${metal > 0 ? `, ${metal} of it gold and silver from its mines` : ""}.`,
+    `${land(p)} holds ${held.length === 1 ? held[0].name : `${held.length} provinces (${held.map((x) => x.name).join(", ")})`}; its land brings in about ${crop + metal} shekels' worth a season at the usual prices${metal > 0 ? `, ${metal} of it gold and silver from its mines` : ""}.`,
   );
   // What it lacks.
   const need = held.reduce((a, x) => a + needOf(x), 0);

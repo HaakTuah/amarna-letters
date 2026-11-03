@@ -52,6 +52,7 @@ import {
   type TurnSubmission,
   type UnitView,
   menOf,
+  FullWeight,
   type CharacterView,
 } from "@amarna/engine";
 import { plainGrainOrders } from "./grain.ts";
@@ -210,7 +211,7 @@ function learn(v: SeatView, m: Memory): void {
     for (const p of AllPowers.filter((p) => p !== me)) {
       const name: string = p;
       if (item.kind === "Rumor" && item.body.includes("has not returned from the court of " + name)) m.grudge.set(p, G(m, p) + 2);
-      if (item.kind === "Assay" && item.body.includes("from " + name) && !item.body.includes("(100%)")) m.grudge.set(p, G(m, p) + 2);
+      if (item.kind === "Assay" && item.body.includes("from " + name) && !item.body.includes(FullWeight)) m.grudge.set(p, G(m, p) + 2);
       if (item.kind === "Rumor" && item.body.includes("was forged by") && item.body.includes("of " + name)) m.grudge.set(p, G(m, p) + 1);
       if (item.kind === "Notice" && item.body.includes("confesses to serving " + name)) m.grudge.set(p, G(m, p) + 2);
     }
@@ -445,7 +446,7 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
       m.sentCopies.add(broken.copyId);
     } else if (enemy !== null) {
       const foe2 = enemy;
-      const gold = v.unassayedGold.length === 0 && v.inbox.some((i) => i.kind === "Assay" && i.body.includes(foe2) && !i.body.includes("(100%)"));
+      const gold = v.unassayedGold.length === 0 && v.inbox.some((i) => i.kind === "Assay" && i.body.includes(foe2) && !i.body.includes(FullWeight));
       const letter = gold
         ? "The gold you sent me was not good. When it was put into the furnace it did not come out whole. Is this how a brother treats a brother?"
         : `Your troops have entered my land. Is this brotherhood? Withdraw them, and send me a fitting gift, or I will not forget it.`;

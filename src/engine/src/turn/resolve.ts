@@ -155,13 +155,18 @@ P.resolveSeason = function (submissions) {
       const settle = asked && S.owner.getOrDefault(u.province, null) === p;
       const where = u.province;
       const home = this.disbandUnit(u, settle);
-      const text = `${unitLabel(u)} was disbanded` + (home !== "" ? `: ${home}` : "") + (savings > 0 ? `; their savings, ${formatMoney(savings)}, went into the purse of ${this.map.get(u.home).name}.` : ".");
+      // The men spend their savings where they settle or at home, and carry them on a walk home (menHome).
+      const spentHere = settle || u.province === u.home;
+      const text =
+        `Your ${unitLabel(u)} was disbanded` +
+        (home !== "" ? `: ${home}` : "") +
+        (savings > 0 ? (spentHere ? `; they spend their savings, ${formatMoney(savings)}, in ${this.map.get(where).name}.` : `, carrying ${formatMoney(savings)} in savings.`) : ".");
       // Settling asked on land lost out of the king's sight (bug #467): the men go home, and word of it comes by the road.
       if (asked && !settle) this.tell(p, where, "Resolution", "Disbanded", `${text} Its men could not settle as colonists in ${this.map.get(where).name}: you no longer held it.`);
       else this.tell(p, where, "Resolution", "Disbanded", text);
     }
     // The unit moved by the seat's own orders, or was destroyed (which wakes the seat by itself).
-    else this.failed(p, d, "Disband failed", `No unit of yours stood in ${this.map.get(unit).name} after movement, so none was disbanded.`, "the unit is gone", false);
+    else this.failed(p, d, "Disband failed", `No unit of yours stood in ${this.map.get(unit).name} when the moves were done, so none was disbanded.`, "the unit is gone", false);
   }
   for (const [p, r] of all((o): o is RaiseOrder => o.type === "raise")) this.raise(p, r);
   // Item 13: bands enlisted where an army of their new master stands with them.

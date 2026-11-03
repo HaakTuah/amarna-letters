@@ -54,6 +54,9 @@ declare module "./core.ts" {
   }
 }
 
+
+/** What an assay says of a lot that is all fine gold (to a hundredth); the script kings read it. */
+export const FullWeight = "full weight";
 const P = TurnEngine.prototype;
 
 P.resolveIntelligence = function (orders) {
@@ -689,7 +692,12 @@ P.assay = function (p, a) {
   if (!this.pay(p, S.config.assayFee, "an assay", a, `gold lot ${a.lot} was not assayed`)) return;
   t.lots.splice(t.lots.indexOf(lot), 1);
   const pct = lot.face === 0 ? 100 : toInt(roundEven((100.0 * lot.true) / lot.face));
-  let text = `Of the ${formatMoney(lot.face)} weighed from ${lot.from}, ${formatMoney(lot.true)} is fine gold (${pct}%).`;
+  let text =
+    pct < 100
+      ? `Of the ${formatMoney(lot.face)} weighed from ${lot.from}, only ${formatMoney(lot.true)} is fine gold: ${pct} in a hundred.`
+      : lot.true === lot.face
+        ? `The ${formatMoney(lot.face)} weighed from ${lot.from} is fine gold, ${FullWeight}.`
+        : `Of the ${formatMoney(lot.face)} weighed from ${lot.from}, ${formatMoney(lot.true)} is fine gold, ${FullWeight} near enough.`;
   if (lot.stated !== lot.face) text += ` The inventory had promised ${formatMoney(lot.stated)}.`;
   notify(S, p, "Assay", "Assay of gold", text);
   logEvent(S, "assay", `${p} assayed gold from ${lot.from}: ${pct}% fine.`, [p], pct < 100 ? "debasement-found" : "assay");
