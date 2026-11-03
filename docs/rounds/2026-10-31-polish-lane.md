@@ -90,6 +90,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - On a phone the courts along the map were chips 21 px tall, and the chosen one's ring was cut off at its top and bottom; with a finger each chip is a 44 px target, its pill drawn inside it at the height it had, and the ring whole.
 - A person whose name says their place was named with it twice ("Abdi-Ashtarti of Ta-Mehu of Ta-Mehu, chief of the loose men") on the People tab, person cards, the Follow tab, an audience and the wealth table; the place is said once, by the engine's own rule (`nameFrom`), and the People tab's emblem no longer touches the name.
 - A province with many bands drew their campfires in one row from its city, eight of them running across the next province and into the Gulf (Urim, late in a game); below a city stand three marks at most, the third counting the rest ("+6"), its title telling each of them ("6 more bands in Urim:", then their men and chiefs).
+- The game menu's volume sliders were the browser's blue beside the game's brown checkboxes, and its two links were 22 px tall on a phone; every slider takes the game's accent, and with a finger its links and sliders are 44 px targets.
 
 ## Finds not yet fixed
 
