@@ -12,8 +12,8 @@ import { GreatKings, type GameState } from "@amarna/engine";
 export const MapKinds: ReadonlySet<string> = new Set(["conquest", "obey", "cession", "revolt", "rise", "fall", "defect"]);
 
 /**
- * Word of a change of the map from a vassal or ally (#618): heard by the king it reached, in the season it came, and never
- * counted as a change anywhere, since the change itself is.
+ * Word of a change of the map from a vassal or ally (#618): heard by the king it reached, in the season it came, as a
+ * change of the map and so as an event worth a letter; never counted as a change anywhere, since the change itself is.
  */
 export const HeardKinds: ReadonlySet<string> = new Set(["tidings"]);
 

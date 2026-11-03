@@ -51,16 +51,17 @@ describe("TidingsTests", () => {
     Assert.false(Views.sight(s, map, "Egypt").has("ashur"));
     // Word from Babylon's court to Egypt's, setting out at the end of season 1.
     const at = 1 + 1 + new TurnEngine(s, map).wordTo("Egypt", "babylon");
+    Assert.true(at > 2);
     play(s, at - 1);
     new TurnEngine(s, map).beginTurn();
-    if (s.turn < at) Assert.false(told(s));
+    Assert.false(told(s));
     while (s.turn < at) {
       new TurnEngine(s, map).resolve(new Dict());
       new TurnEngine(s, map).beginTurn();
     }
     Assert.true(told(s));
     const notice = inboxOf(s, "Egypt").find((i) => i.title === TidingsTitle)!;
-    Assert.equal("Your ally Babylonia sends word of season 1: Ashur, which had no king, now answers to Elam.", notice.body);
+    Assert.equal("Your ally Babylonia sends word of season 1: Ashur now answers to Elam.", notice.body);
     // What the court knows: its view shows Elam (by this word, or by word from Ashur itself if as fresh).
     Assert.equal("Elam", Views.knownHolders(s, map, "Egypt").get("ashur").owner);
     Assert.equal("your ally Babylonia", s.known.get("Egypt").get("ashur").source);
@@ -85,5 +86,23 @@ describe("TidingsTests", () => {
     const s = world("ally");
     play(s, 6);
     Assert.false(inboxOf(s, "Elam").some((i) => i.title === TidingsTitle));
+  });
+
+  test("A reporter names the holder it saw as the season began, and sends its lands of a season in one word (#618)", () => {
+    const s = world("ally");
+    const e = new TurnEngine(s, map);
+    e.beginTurn();
+    // Babylonia saw Ashur without a king and Arrapha as Elam's when the season began; both change hands in it.
+    s.owner.set("arrapha", "Elam");
+    s.ownerLog.push(newOwnerChange({ province: "arrapha", turn: 0, owner: "Elam" }));
+    e.seeLand();
+    for (const [x, p] of [["ashur", "Elam"], ["arrapha", null]] as const) {
+      s.owner.set(x, p);
+      s.ownerLog.push(newOwnerChange({ province: x, turn: s.turn, owner: p }));
+    }
+    e.sendTidings();
+    const words = s.journeys.filter((j) => j.to === "Egypt" && j.news === "TidingsAlly");
+    Assert.equal(1, words.length);
+    Assert.equal(`Your ally Babylonia sends word of season ${s.turn}: Arrapha has thrown off Elam and answers to no king. Ashur, which had no king, now answers to Elam.`, words[0].text);
   });
 });

@@ -649,7 +649,8 @@ P.wordArrives = function (j) {
     case "Job":
       notify(S, j.to, "Notice", "An offer abroad", j.text ?? "");
       break;
-    case "Tidings":
+    case "TidingsVassal":
+    case "TidingsAlly":
       this.tidingsArrive(j);
       break;
     case "Foiled":
