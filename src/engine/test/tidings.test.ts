@@ -26,6 +26,7 @@ function world(bond: "ally" | "vassal" | "none", repudiated = false): GameState 
         byHandOf: repudiated ? "Babylonia" : null,
       }),
     );
+  if (bond !== "none") for (const holder of ["Babylonia", "Egypt"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed", authResult: null, unread: null });
   return s;
 }
 
@@ -86,6 +87,13 @@ describe("TidingsTests", () => {
     const s = world("ally");
     play(s, 6);
     Assert.false(inboxOf(s, "Elam").some((i) => i.title === TidingsTitle));
+  });
+
+  test("A court reports by a bond only once it holds the tablet (#618)", () => {
+    const s = world("ally");
+    s.copies = s.copies.filter((k) => k.holder !== "Babylonia");
+    play(s, 6);
+    Assert.false(told(s));
   });
 
   test("A reporter names the holder it saw as the season began, and sends its lands of a season in one word (#618)", () => {

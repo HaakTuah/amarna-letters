@@ -36,14 +36,17 @@ export const isTidingsSource = (source: string): boolean => source.startsWith("y
 
 /**
  * The kings `v` reports to, as `v` knows its bonds: its overlords by a vassal tablet, and the kings it is sworn to in
- * alliance, by a sealed tablet neither forged nor repudiated as far as it knows.
+ * alliance, by a sealed tablet neither forged nor repudiated as far as it knows, of which it holds a copy (one its envoy
+ * sealed abroad counts once his copy is home).
  */
 export function reportsTo(s: GameState, v: Power): { overlords: Power[]; allies: Power[] } {
   const known = { p: v, turn: s.turn };
-  const overlords = vassalBonds(s.tablets, known)
+  const held = new Set(s.copies.filter((k) => k.holder === v).map((k) => k.tabletId));
+  const tablets = s.tablets.filter((t) => held.has(t.id));
+  const overlords = vassalBonds(tablets, known)
     .filter((b) => b.vassal === v)
     .map((b) => b.overlord);
-  const allies = s.tablets
+  const allies = tablets
     .filter((t) => isSealedAgreement(t) && t.seals.includes(v) && !repudiationKnown(t, v, s.turn) && (t.allianceOath || t.clauses.some((c) => c.kind === "alliance")))
     .flatMap((t) => t.seals.filter((x) => x !== v));
   return { overlords: [...new Set(overlords)], allies: [...new Set(allies)].filter((x) => !overlords.includes(x)) };
@@ -130,5 +133,6 @@ P.tidingsArrive = function (j) {
     if (this.map.exists(x) && (had === undefined || had.turn < turn)) book!.set(x, newKnown({ owner: ownerAt(S, this.map, x, turn), turn, source }));
   });
   notify(S, j.to, "Rumor", TidingsTitle, j.text ?? "");
-  logEvent(S, "tidings", j.text ?? "", [j.to], "tidings");
+  // Dated, as its notice is, to the season it is read in (word that comes within the season is read in the next).
+  logEvent(S, "tidings", j.text ?? "", [j.to], "tidings").turn = S.turn + S.deliveryOffset;
 };
