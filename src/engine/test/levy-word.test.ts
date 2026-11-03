@@ -46,17 +46,18 @@ describe("LevyWordTests", () => {
     Assert.empty(sl.scheduled);
   });
 
-  test("Orders for a far levy refused at court for want of gold are dropped at once: the court knows (bug #569)", () => {
+  test("Orders for a far levy refused at court are dropped at once: the court knows (bug #569)", () => {
     const { s, season } = farLevy(false);
     const sl = s.sleep.get("Egypt");
     season(plan);
     season();
-    s.treasuries.get("Egypt").gold = 0;
-    s.treasuries.get("Egypt").lots = [];
+    // The court's own count of Nubia has too few men for a levy, so it refuses the levy itself. (Since #587 a far levy no
+    // longer waits on the treasury: Nubia's coffer or a bill pays it, so want of gold at court refuses nothing there.)
+    s.counts.set("Egypt", new Dict([["nubia", { province: "nubia", turn: s.turn, settled: 100, men: 10, loose: 0, town: 0, harvest: 0, granary: 0, crop: 0 }]]));
     season();
     new TurnEngine(s, WorldMap.default).beginTurn();
-    // Told at once that the levy was refused for want of gold, and at once that the orders for its army are dropped.
-    Assert.true(inboxOf(s, "Egypt").some((i) => i.turn === s.turn && i.body.includes("raise army in nubia: not enough gold")));
+    // Told at once that the levy was refused, and at once that the orders for its army are dropped.
+    Assert.true(inboxOf(s, "Egypt").some((i) => i.turn === s.turn && i.body.includes("raise army in nubia: Kush has too few men")));
     Assert.true(inboxOf(s, "Egypt").some((i) => i.turn === s.turn && i.title === UnraisedTitle));
     Assert.empty(sl.scheduled);
   });
