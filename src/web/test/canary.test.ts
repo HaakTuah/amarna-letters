@@ -535,6 +535,8 @@ function texts(read: Record<string, unknown>[]): Record<string, string[]> {
     "an author's why": of("decision").flatMap((r) => strings((r.by as Record<string, unknown> | undefined)?.why)),
     "a shadow's choice text or commitments": choices.flatMap((c) => strings([c.text, c.commitments])),
     "a shadow's known": of("shadow").flatMap((r) => strings(r.known)),
+    // Item 17+++: a model king's own pages, which quote what he read.
+    "a mind's page": of("mind").map((r) => String(r.text)),
   };
 }
 
