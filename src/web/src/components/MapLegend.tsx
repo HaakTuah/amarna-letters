@@ -94,6 +94,13 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
           </span>
         ))}
       </div>
+      <p className="muted small">
+        <svg className="lg-band" viewBox="0 0 36 10">
+          <line x1="0" y1="5" x2="36" y2="5" className="band contested b-hatti" />
+          <line x1="0" y1="5" x2="36" y2="5" className="band b-hatti" strokeDasharray={dash("Hatti")} />
+        </svg>{" "}
+        A border glows faintly where you see two powers' armies face to face across it.
+      </p>
     </MapCard>
   );
 }
