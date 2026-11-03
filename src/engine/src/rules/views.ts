@@ -609,7 +609,7 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
 function termText(fee: number | null, advance: number | null, until: number | null, turn: number, k: Contract | null = null): string {
   if (fee === null) return "";
   const e = k?.errand ?? null;
-  const errand = e === null ? "a job whose first errand you name when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
+  const errand = e === null ? "a job whose first errand you name when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : e.what === "ride" ? `a job to ride to ${e.where} and bring its report home this season` : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
   const serves = `${errand}, for ${fee} shekels, ${advance ?? 0} handed over and ${Math.max(0, fee - (advance ?? 0))} due when it is done`;
   const standing = k === null ? "" : `${k.payOnDone ? "; you ordered the rest paid when it is done" : "; the rest is paid only if you order it (pay_fee)"}${k.offerAgain ? "; the same job is offered again when it is done" : ""}`;
   if (until === null) return serves + standing;

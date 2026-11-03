@@ -18,7 +18,7 @@ Codex: read its "For Codex" section at the start of every task.
 | Builder rules | `.claude/rules/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
 | Claude and Codex | `docs/claude-and-codex.md` | Who builds what, the hand-over, the fallback, the reviews' score. |
 | Running builder sessions and lanes | `docs/orchestrating.md` | For the orchestrator: sessions, the cache, hand-overs, lanes. |
-| Security | `SECURITY.md` | What is protected, and the rules every builder and reviewer keeps. |
+| Security | `SECURITY.md`, `docs/threat-model.md` | The rules every builder and reviewer keeps; what is protected and who might attack (the threat model). |
 | Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |
 | What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, the follow-ups, use against ignore; questions are issues. |

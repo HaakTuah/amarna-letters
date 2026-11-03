@@ -14,8 +14,10 @@ import {
   newAudienceRecord,
   newAudienceRound,
   newEnvoyReaction,
+  WorldMap,
   newGame,
   newGameConfig,
+  wordHomeAt,
   newHostReply,
   newMindReply,
   newTurnSubmission,
@@ -132,5 +134,16 @@ describe("ViewTimingTests", () => {
     Assert.equal(2, shown.length);
     Assert.equal(["babylon", "sippar"], shown.map((u) => u.province).sort());
     Assert.equal([800, 900], shown.map((u) => u.men).sort());
+  });
+
+  test("Every land province has a road home to every court in every season, so a notice and the holder it tells of come by one clock (bug #648)", () => {
+    // Where no road led home, a notice would be told at once (TurnEngine.heardAt takes no road for near) while the holder
+    // in the view waited for word that never came (knownHolders). The map keeps the case from arising; this guards it.
+    const s = newGame(1);
+    const map = WorldMap.default;
+    const cut: string[] = [];
+    for (const court of map.landProvinces)
+      for (const x of map.landProvinces) for (const t of [1, 2, 3]) if (!Number.isFinite(wordHomeAt(s, map, court.id, x.id, t))) cut.push(`${x.id} to ${court.id} in season ${t}`);
+    Assert.equal("", cut.slice(0, 5).join(", "));
   });
 });

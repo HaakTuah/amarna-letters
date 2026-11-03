@@ -1571,3 +1571,19 @@ Given in the design chat with Claude, answering the design questions of the cons
     off, `@codex security review` ran a code review alone; on Barkstreet Snakes' #463, with it on, a security review.
     Written into "The threat model" in `SECURITY.md`, "Codex reviews" in `docs/claude-and-codex.md`, and "Follow-ups"
     in `docs/BUILD-PROGRESS.md`.
+190. **3 November 2026, 09:40 and 09:41 UTC**, in the design chat, on where Codex's security review finds its threat
+    model, `SECURITY.md` being already read as its review instructions: "But then it reads needless stuff to get to
+    the threat model stuff?" Then, to the design session's take (move the threat model into a file of its own and
+    point the settings there): "Yes, please! Expertly!" Moved into `docs/threat-model.md`, with a pointer in
+    `SECURITY.md`, and the file added to the protected files (`SECURITY.md`, rule 3).
+191. **3 November 2026, 09:52 and 09:53 UTC**, in the design chat, on the threat model: "Does it also mention this is
+    an open repo, so anyone can attack, so expect anyone? Is that relevant, expert?" Then, to the design session's take
+    (say in the threat model that every file and its whole history are public, so nothing rests on being hidden and
+    anything committed stays public): "Yes, please, expertly! Outmost importance we keep it at its most observant!"
+    Written into `docs/threat-model.md`, "Everything is public".
+192. **3 November 2026, 10:02 UTC**, in the design chat: "Also, if we now are repeating ourselves (duplication, which
+    opens for drift and needless tokens usage) between threat-model and SECURITY, then we need to keep stuff to one or
+    the other, and rather refer, if something truly needs to be in both. You are the expert, make the expert
+    determinations here, security expert master!" Split: `docs/threat-model.md` holds what is public, who might
+    attack, what is protected and what they want of it, the ways in and the lower stakes; `SECURITY.md` holds only the
+    rules, alerts, licences and reporting, and points to it.
