@@ -10,17 +10,20 @@ from the court's list at once, and "Orders for a levy that raised no unit droppe
 
 ## What changed
 
-- **The drop comes by the road** (`unraisedLevies`, `turn/plans.ts`): the notice is told from the failed levy's province
-  (`tellAt` at `heardAt`, the clock of "Levy failed"), one notice for each province. The orders stay in the seat's list,
-  unbound (as "the army to be raised in nubia in turn 3"), so they cannot run, until that season
+- **The drop comes when the court learns the levy raised none** (`unraisedLevies`, `turn/plans.ts`): for a levy that
+  failed in its province (too few men, the land lost or not empty after movement), by the road from there, in the season
+  of its "Levy failed" (`levyFailed` keeps that season, `heardAt`); for one the court knows of at once (refused at court,
+  short of gold, not given after all), at once, as before. One notice for each season it comes in. The orders stay in the
+  seat's list, unbound (as "the army to be raised in nubia in turn 3"), so they cannot run, until that season
   (`PlannedOrder.unraisedHeard`), and leave it then. One whose own season comes first is skipped then, unseen, as it
   would have run unseen.
-- **Rulebook** (`llm/src/rules.ts`): the orders are dropped "once word from that province comes; until then they stay in
-  your list, and cannot run". **Design note:** `05-pacing/03-scheduled-orders-and-the-march.md`.
+- **Rulebook** (`llm/src/rules.ts`): the orders are dropped, and the news says so, "as soon as you learn it raised none:
+  by word from that province, if it failed there; until then they stay in your list, and cannot run". **Design note:** `05-pacing/03-scheduled-orders-and-the-march.md`.
 - **Save version 53** (52 goes to #606, bug #565): a scheduled order's new field, and the notice's new timing.
 - **Tests:** a twin in the twin canary (Egypt's court at Nippur, far from its homeland; a levy in Nubia whose men are
-  gone in the twin where the fact is true), which fails on `develop` with the drop's notice and the shrunken list; an
-  engine test (`levy-word.test.ts`) that the order stays listed until the word's season and is dropped and told then.
+  gone in the twin where the fact is true), which fails on `develop` with the drop's notice and the shrunken list; two
+  engine tests (`levy-word.test.ts`): the order stays listed until the word's season and is dropped and told then; and
+  a far levy refused at court for want of gold drops its orders at once.
 
 ## Found by the twin, left to their issues
 
@@ -40,10 +43,24 @@ the order, so the drop this PR fixes cannot hide behind them.
 
 ## Benchmarks
 
-(below, at the final code)
+(at the final code: below)
 
-## Review
+## Review, round 1
 
-(below)
+Codex: (below). Claude's reviewer (Opus, high): 7 of 10, one blocking, three not, all fixed:
+
+1. **A levy the court knows failed at once** (blocking): refused at court, short of gold or not given after all, its
+   orders' drop was timed by the road all the same, so a seat told "not enough gold" still saw the levy's army in its
+   list for seasons, and the rulebook's new words were untrue for it. Now only a levy that failed in its province
+   (`levyFailed`) waits for its word; the rest drop at once. A test of a far levy refused for want of gold; the
+   rulebook reworded.
+2. **Grouped by province:** two near levies failing in one season gave two notices; now grouped by the season the word
+   comes, so near seats read one notice, as before.
+3. **The design note** said the view names the unit by its levy "until the levy's season": and for a failed levy's
+   orders, until its word comes.
+4. **Placeholders in the report:** filled.
+
+One idea (Opus): a far province's report comes home a season before a notice told from the same province, two clocks
+for one road; aligning them would close the twins' one-season blind gap.
 
 Questions for the owner: none.

@@ -51,16 +51,19 @@
   they were dropped:", then a line for each, "- turn 3: the army to be raised in sippar in turn 2 ->
   mari"), which wakes nobody since the review of the fix pass after item 4 (a scheduled levy others foiled wakes the seat as a failed order; before, the seat was woken
   ("orders you gave for later could not be carried out: the levy they waited for raised no unit
-  (...)")). Bug #569: the notice comes by the road from the levy's province (`tellAt`, `heardAt`), and the
-  orders stay in the seat's list, unbound so they cannot run, until it comes (`PlannedOrder.unraisedHeard`); save
-  version 53. Until the levy's season the view names the unit as "the army to be raised in ur in turn
+  (...)")). Bug #569: for a levy that failed in its province (`levyFailed`: too few men, the land lost or
+  not empty after movement), the notice comes by the road from there, with "Levy failed" (`tellAt`, `heardAt`), and the
+  orders stay in the seat's list, unbound so they cannot run, until it comes (`PlannedOrder.unraisedHeard`); one the
+  court knows of at once (refused at court, short of gold, not given after all) drops them at once; save version 53.
+  Until the levy's season, and for a failed levy's orders until its word comes, the view names the unit as "the army to be raised in ur in turn
   2" (`TurnEngine.asShown`). A levy in the same season as the order does not count (the levy is
   placed after movement, so its unit can first be ordered the season after), and standing orders,
   which have no season, name only units standing now. The rulebook: "A unit you raise can be given
   orders ahead too: name it by the province of its levy, in orders for any season after the levy (a
   levy you order now, or one you schedule). In those seasons that name means the unit the levy
   raises, even if another of your units stands there now; if the levy raises none, those orders are
-  dropped (your news says so, once word from that province comes; until then they stay in your list, and cannot run).
+  dropped (your news says so as soon as you learn it raised none: by word from that province, if it failed there; until
+  then they stay in your list, and cannot run).
   Any other order naming a province where you have no unit is refused."
   Until then an order naming a province where the seat had no unit was refused, so a new levy could
   not be given orders ahead: one of the reasons the kings of the second agent simulation gave for

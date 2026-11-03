@@ -188,7 +188,7 @@ describe("SleepTests", () => {
   test("The rulebook says a unit to be raised can be given orders ahead", () => {
     let rules = leaderRules(true, newGameConfig());
     Assert.contains(
-      "A unit you raise can be given orders ahead too: name it by the province of its levy, in orders for any season after the levy (a levy you order now, or one you schedule). In those seasons that name means the unit the levy raises, even if another of your units stands there now; if the levy raises none, those orders are dropped (your news says so, once word from that province comes; until then they stay in your list, and cannot run). Any other order naming a province where you have no unit is refused.",
+      "A unit you raise can be given orders ahead too: name it by the province of its levy, in orders for any season after the levy (a levy you order now, or one you schedule). In those seasons that name means the unit the levy raises, even if another of your units stands there now; if the levy raises none, those orders are dropped (your news says so as soon as you learn it raised none: by word from that province, if it failed there; until then they stay in your list, and cannot run). Any other order naming a province where you have no unit is refused.",
       rules,
     );
     Assert.doesNotContain("a unit not yet raised cannot be given orders ahead", rules);
