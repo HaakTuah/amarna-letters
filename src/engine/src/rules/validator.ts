@@ -198,7 +198,9 @@ export class OrderValidator {
       return null;
     };
 
-    const far = (province: string): boolean => courierSeasons(S, this.map, courtOf(S, this.map, power), province) >= 1;
+    // #587: far as the court knows it, as its view shows it (beyond its sight, known by report), never by roads it has not
+    // heard of (Codex, #635); where the true road out differs, the engine pays as it finds it.
+    const far = (province: string): boolean => !Sight().has(province);
     const spendAt = (province: string, cost: number): string | null => (far(province) ? (cost < 0 ? "a cost cannot be negative" : null) : spend(cost));
 
     const ownUnit = (province: string): [string | null, Unit | null] => {
