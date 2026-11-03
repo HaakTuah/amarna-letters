@@ -1,14 +1,14 @@
 /** The season's resolution (phase 4 of TurnEngine): movement, land changing hands, transfers, levies, the end. */
 import { endSieges } from "../model/sieges-ended.ts";
 import { Dict, HSet } from "../core/collections.ts";
-import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
+import { idiv, roundTo, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
-import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
+import { cmpNum, cmpStr, count, desc, distinct, max, sortBy } from "../core/seq.ts";
 import { describe } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
 import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
-import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
+import type { MoveFailure } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power } from "../model/power.ts";

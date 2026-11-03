@@ -15,19 +15,17 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv, roundEven, toInt } from "../core/num.ts";
 import { Rng } from "../core/rng.ts";
-import { cmpNum, count, desc, distinct, groupBy, sortBy, sum } from "../core/seq.ts";
-import { cmpStr } from "../core/text.ts";
+import { cmpNum, count, distinct, sortBy, sum } from "../core/seq.ts";
 import type { GameConfig } from "../model/config.ts";
 import { newMindRequest, type MindRequest } from "../model/exchanges.ts";
-import { terrainOf } from "../model/geography.ts";
-import { StartWalls, WorldMap } from "../model/map.ts";
-import { EconomyData, harvestOf, taxOf } from "../model/economy.ts";
+import { WorldMap } from "../model/map.ts";
+import { EconomyData } from "../model/economy.ts";
 import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
 import { setNameClaims, setRisen, type Power } from "../model/power.ts";
-import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
+import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { SeatView } from "../model/views.ts";
@@ -164,7 +162,6 @@ export class TurnEngine {
    */
   incomeAndUpkeep(): void {
     const S = this.s;
-    const Map = this.map;
     const notes = this.harvestSeason();
     this.townsEat();
     for (const p of alive(S)) {
