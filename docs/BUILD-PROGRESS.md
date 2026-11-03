@@ -66,10 +66,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 ## Follow-ups
 
 - **The body and the road** (the owner, 3 November 2026; archive item 187; "The body: endurance and robustness" and
-  "The road he takes follows his appetite for risk" under Characters, revision 29, and "What sets a company's pace",
+  "The road he takes follows his appetite for risk" under Characters, revision 31, and "What sets a company's pace",
   revision 112): two hidden, seeded traits, endurance (the pace of lone travellers and small parties) and robustness
   (the odds wherever a character's life or health is already at risk). Both show roughly in a man's looks and sharpen
-  through his record, and fees follow demand. Where there are several roads, characters choose by appetite for risk.
+  through his record, and fees follow demand. The two share one budget (archive item 188, revision 31): seeded
+  together on a line from lean and quick to broad and tough, never adding up past a ceiling (first guess 160 of 200,
+  for item 18), so the build a king sees reads both at once. Where there are several roads, characters choose by appetite for risk.
   Built with the first item whose errands use them; a save version.
 
 - **Gold travels both ways** (the owner, 3 November 2026; #587; archive item 186; "One treasury, many stores" under
