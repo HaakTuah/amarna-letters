@@ -1,5 +1,5 @@
 import { Personas, Views, shortDate, type Character, type GameState, type Power } from "@amarna/engine";
-import { dated, powerName, shekels, when } from "../ui/format.ts";
+import { dated, fromAndCalling, powerName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 import { Person } from "./Person.tsx";
 
@@ -38,11 +38,7 @@ export function PeoplePanel({ state, viewer, onPerson }: { state: GameState; vie
       {people.map((c) => (
         <div className="item" key={c.id}>
           <h4>
-            <Emblem power={c.employer} />
-            {c.name}{" "}
-            <small className="muted">
-              of {c.origin}, {c.calling}
-            </small>{" "}
+            <Emblem power={c.employer} /> {c.name} <small className="muted">{fromAndCalling(c)}</small>{" "}
             <span className="pill">
               {c.status.toLowerCase()}
               {c.employer !== null ? ` · ${powerName(c.employer)}` : ""}

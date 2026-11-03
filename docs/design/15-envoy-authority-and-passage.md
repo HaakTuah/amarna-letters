@@ -49,11 +49,15 @@ report brings no holders.
   keeps a copy, the envoy brings its king his, and what it grants takes effect at once. Without the seal the trail notes
   the tablet offered. `asHeard`, what the envoy hears of the host's reply, now carries the host's clauses (item 8 dropped
   them, so a script envoy never heard a call for an oath in clauses: fixed) and the counter.
-- **Seen by whom**: `TabletView.byHand`, `byHandOf`, `repudiatedTurn` for every holder of a copy; `within` only for the
+- **Seen by whom**: `TabletView.byHand`, `byHandOf` for every holder of a copy; `repudiatedTurn` for the envoy's king, and
+  for the other king once word of it comes (`repudiationKnown`, bug #609), never for a third court; `within` only for the
   envoy's king, and for the host if it read the credentials.
 - **Repudiation** (`RepudiateOrder`, `repudiate`, by the copy's mark): only of a tablet one's own envoy sealed, once. The
-  tablet is marked, what it granted ends both ways, and the other king is told ("A tablet repudiated"), with whether it
-  lay within the credentials if he read them; event `repudiated`.
+  tablet is marked, what it granted ends both ways, and word goes to the other king ("A tablet repudiated"), with whether
+  it lay within the credentials if he read them; event `repudiated`, the repudiating king's alone. Bug #609: until the
+  word comes (`Tablet.repudiatedHeard`), the other king's view keeps the tablet, what it granted (`Grant.endedBy`: the
+  side that did not end a grant learns of it by word) and the vassal bond it made as they were, and his cession of a
+  capital by it still stands as he knows it (`cessionAgreed`). Save version 55.
 
 ### Passage and basing
 
@@ -69,15 +73,24 @@ report brings no holders.
   passage or basing you granted"), and a script grantor counts it no wrong. The grantee's travellers are not turned back
   at the border of the land granted nor seized by the grantor's troops there (`passageFor`, in `closedTo`), even where his
   roads are closed to them. Passage through all one's land is the land held when the tablet is sealed (`Grant.lands`); a
-  revocation of one province narrows it. A guest's move goes in through the gates: it storms no walls (the adjudicator's
-  `guests`), and a move on the grantor's own troops is an attack, not a guest's entry (`guestAt`).
+  revocation of one province narrows it: the grant ends and a new one stands over the rest in its place (`Grant.cut`
+  names the provinces revoked), which the grantee's view shows when the word of the revocation comes, the old one until
+  then (`heardTurn`, bug #611; save version 56); narrowed to no land, it opens nothing but stands as the courts know it,
+  since ending it would tell its grantor of land lost out of his sight. A
+  guest's move goes in through the gates: it storms no walls (the adjudicator's `guests`), and a move on the grantor's
+  own troops is an attack, not a guest's entry (`guestAt`).
 - **Ending**: at the season it names; by the grantor's `RevokeOrder` (`revoke`: a king, and a province or none), resolved
   at the end of the season with the roads, so guests have that season to leave (event `grant-revoked`, a notice to the
   grantee); by closing one's roads to the grantee (`endGrants`); or by repudiation. Bug #565: the grantee learns of a
   revocation or closed roads by the word that travels (`Grant.endHeard`, `grantStandsFor`); until then his view keeps
-  the grant as it was, and the events of it are its grantor's alone. Save version 52.
-- **The view**: `SeatView.grants` (`GrantView`, the tablet by its name), shown to each king once he holds a copy of the
-  tablet; the model's view has PASSAGE AND BASING, the rulebook AUTHORITY AND PASSAGE (`llm/src/rules-authority.ts`).
+  the grant as it was, and the events of it are its grantor's alone. Save version 52. A repudiation may be the
+  grantee's: then the side that did not end it, the grantor, learns of it by word (`Grant.endedBy`, the repudiation
+  above); until then he may revoke it (`grantLiveFor`, as his view shows it), which ends nothing more, and from then he
+  knows it ended (`endKnown`).
+- **The view**: `SeatView.grants` (`GrantView`, the tablet by its name; for passage through all the land, the provinces
+  it was revoked in, `GrantView.cut`, never the land itself, which would tell what the grantor truly holds; read "all
+  your land but Nesa" in the Court and the model's view, `grantPlace`), shown to each king once
+  he holds a copy of the tablet; the model's view has PASSAGE AND BASING, the rulebook AUTHORITY AND PASSAGE (`llm/src/rules-authority.ts`).
 - **The web app**: the letter's seal, limits and credentials; at an audience, the seal and credentials shown and a tablet
   of one's own for the envoy to seal; the grants, with Revoke; Repudiate for tablets sealed by one's envoys; the archive
   marks a tablet sealed by an envoy's hand.

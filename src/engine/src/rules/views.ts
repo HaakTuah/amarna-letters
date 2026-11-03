@@ -9,7 +9,7 @@ import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, ty
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
 import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, type Power } from "../model/power.ts";
-import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
+import { type PendingTask, repudiationKnown, type Tablet, type TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { levelOf } from "../model/works.ts";
@@ -181,17 +181,18 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     grants: s.grants
       // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
-      // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him. Its
-      // end reaches the grantee by word too (bug #565).
+      // A grant by order (item 11a+), or a passage narrowed by a revocation (bug #611): its grantor knows it from the
+      // order; its grantee once the news reaches him. Its end reaches the grantee by word too (bug #565).
       .filter(
         (g) =>
           (g.grantor === p || g.grantee === p) &&
           (grantStandsFor(g, p, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
-          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+          (g.grantor === p || g.heardTurn <= s.turn) &&
+          (g.tabletId === "" || s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
       )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
-        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
+        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, cut: [...g.cut], sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
       }),
     walls: wallsKnown(s, m, p, seen),
     worksSeen: [...seen]
@@ -284,7 +285,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   for (const copy of s.copies.filter((x) => x.holder === p)) {
     const tab = s.tablets.find((x) => x.id === copy.tabletId);
     if (tab === undefined) continue;
-    v.tablets.push(tabletView(tab, copy));
+    v.tablets.push(tabletView(tab, copy, s.turn));
     archive.push(tab);
   }
   // Named as every court names them, with their opening words where the archive holds two of the same seals and date.
@@ -761,7 +762,7 @@ function opening(text: string): string {
   return words.length <= 8 ? words.join(" ") : words.slice(0, 8).join(" ") + "…";
 }
 
-function tabletView(t: Tablet, copy: TabletCopy): TabletView {
+function tabletView(t: Tablet, copy: TabletCopy, turn: number): TabletView {
   // Item 12, "Reading a tablet": a tablet nobody at the court has read waits for a reader; its seals are plain to see.
   const unread = copy.unread === true;
   return newTabletView({
@@ -782,7 +783,8 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
     byHand: t.byHand,
     byHandOf: t.byHandOf,
     within: copy.holder === t.byHandOf || (copy.holder === t.proposedBy && t.credentialsShown) ? t.within : null,
-    repudiatedTurn: t.repudiatedTurn,
+    // Bug #609: as its holder knows of it, by word for the other king; a third court is never told.
+    repudiatedTurn: repudiationKnown(t, copy.holder, turn) ? t.repudiatedTurn : null,
   });
 }
 

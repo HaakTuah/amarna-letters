@@ -65,8 +65,47 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The body and the road** (the owner, 3 November 2026; archive item 187; "The body: endurance and robustness" and
+  "The road he takes follows his appetite for risk" under Characters, revision 31, and "What sets a company's pace",
+  revision 112): two hidden, seeded traits, endurance (the pace of lone travellers and small parties) and robustness
+  (the odds wherever a character's life or health is already at risk). Both show roughly in a man's looks and sharpen
+  through his record, and fees follow demand. The two share one budget (archive item 188, revision 31): seeded
+  together on a line from lean and quick to broad and tough, never adding up past a ceiling (first guess 160 of 200,
+  for item 18), so the build a king sees reads both at once. Where there are several roads, characters choose by appetite for risk.
+  Built with the first item whose errands use them; a save version.
+
+- **Gold travels both ways** (the owner, 3 November 2026; #587; archive item 186; "One treasury, many stores" under
+  Land, people and economy, revision 35): what is done far off (a caravan's porters, works paid in gold, grain bought
+  at a far market) is paid only from gold that is there: sent with the order up front, the caravan's own load, the
+  province's own stores, taxes or corvée, or a contract's terms with a bill carried home. The treasury moves only when
+  gold leaves it or a carrier brings a payment or a bill home; the twin canary's listed leak under #587 then goes. A
+  save version.
+
+- **The owner's answers of 3 November, morning** (archive item 185):
+  - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
+    honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
+    borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
+    kings' trust readings still behave well.
+  - **#616, one clock for one road:** a far province's report and its notices come by one function, the couriers'
+    seasons from the place to the court, with a test that the same season's both arrive together. A save version.
+  - **#601, a fast courier, hired:** a king may hire a carrier to bring one far province's report home this season.
+    It is a job like any other ("Jobs, not wages"): the carrier asks his price by what he has heard such a job pays
+    and by how badly he is wanted, and the king may haggle; no fixed price, no menu.
+  - **#618, after item 17++a:** word of a conquest, a fall or a revolt reaches courts beyond sight by the road: a
+    vassal reports to his overlord what his court saw, an ally to the king he is bound to.
+  - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
+    land's king, or keep it back.
+
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
+
+- ~~**A narrowed passage read by where it was revoked (bug #611)**~~ (done, #623): a passage through all the land,
+  revoked in one province, reads "all your land but Nesa" (`GrantView.cut`, never the land itself); the grantee reads
+  it when the word comes. Save version 56. Report: `docs/rounds/2026-11-03-narrowed-passage.md`.
+
+- ~~**A repudiation by word (bug #609)**~~ (done, #619): the tablet's other king learns of a repudiation when word of
+  it comes, his tablet, grants, vassal bonds and cession keeping it till then; a third court never; a grantor revokes a
+  grant its grantee repudiated as he knows it. Save version 55. Report: `docs/rounds/2026-11-03-repudiation-heard.md`.
 
 - ~~**A far levy's dropped orders by word (bug #569)**~~ (done, #610): a levy that failed in its province drops the
   orders waiting on its army when word of it comes, in the season of its "Levy failed"; till then they stay listed,

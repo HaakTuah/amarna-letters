@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { newGame } from "@amarna/engine";
-import { GameLog, GameRunner, MindBook, ScriptMind, TemplateNarrator, type ISeat } from "@amarna/game";
+import { GameLog, GameRunner, MindBook, ScriptMind, TemplateNarrator, exportJsonl, type ISeat } from "@amarna/game";
 import { scriptSeats, seasons } from "./small-world.ts";
 import { Assert } from "../../engine/test/support.ts";
 
@@ -16,6 +16,12 @@ describe("MindTests", () => {
     Assert.equal(["notes: Watch Hatti. (1)", "plan: Take Gaza. (2)"], book.at("Egypt", 2).map((p) => `${p.page}: ${p.text} (${p.turn})`));
     Assert.equal(3, book.at("Egypt", 3).length);
     Assert.equal([], book.at("Hatti", 3));
+    // A ledger line struck out no longer stands, though its history stays.
+    book.keep(4, "Egypt", { notes: "Hatti marches.", summary: "Two quiet years.", plan: "Take Gaza.", "ledger:Hatti": "Owes 50." });
+    book.keep(5, "Egypt", { notes: "Hatti marches.", summary: "Two quiet years.", plan: "Take Gaza." });
+    Assert.equal("Owes 50.", book.at("Egypt", 4).find((p) => p.page === "ledger:Hatti")?.text);
+    Assert.equal(undefined, book.at("Egypt", 5).find((p) => p.page === "ledger:Hatti"));
+    Assert.equal(1, book.pages.filter((p) => p.turn === 5).length);
   });
 
   test("The runner keeps a minded seat's pages each season, and the log carries them through a save", async () => {
@@ -42,5 +48,9 @@ describe("MindTests", () => {
     const back = GameLog.fromJsonl(r.log.toJsonl());
     Assert.equal(r.log.minds.pages, back.minds.pages);
     Assert.equal("Season 2.", back.minds.at("Mitanni", 2).find((p) => p.page === "notes")?.text);
+    // A replay of the game, and the export, carry them too.
+    const replay = GameRunner.forReplay(back);
+    Assert.equal(r.log.minds.pages, replay.log.minds.pages);
+    Assert.equal(r.log.minds.pages, GameLog.fromJsonl(exportJsonl(r.log)).minds.pages);
   });
 });
