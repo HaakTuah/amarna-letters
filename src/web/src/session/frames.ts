@@ -488,7 +488,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
           from: c.at,
           to: c.at,
           progress: 0,
-          what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}${c.reported !== null ? `, as reported in ${c.reported}` : ""}`,
+          what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}${c.reported !== null ? `, as reported in turn ${c.reported}` : ""}`,
         })),
       ] as const),
     ),

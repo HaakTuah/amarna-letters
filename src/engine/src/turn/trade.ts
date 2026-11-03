@@ -301,18 +301,22 @@ P.caravanHome = function (c) {
     c.grain = this.putInStores(at, c.grain);
     if (before > c.grain) parts.push(`${before - c.grain} measures of grain into the stores`);
   }
-  // Bug #540: home beyond the couriers' season, its gold, its word and any archive go on to the court as a load, as a far
-  // market's proceeds do (item 13); near, they reach it now.
-  const load = c.gold > 0 || c.archive.length > 0 || c.word.markets.size > 0 || c.word.tolls.length > 0 || c.word.holders.length > 0;
-  const far = this.wordTo(c.power, at) > 0 && load;
-  if (far && this.lootHome(c.power, at, c.gold, c.archive, c.archiveOf)) {
+  // Bug #540: home beyond the couriers' season, its gold and any archive go on to the court as a load, as a far market's
+  // proceeds do (item 13), its word with them; with nothing to carry, its word comes home as word does, when the word of
+  // its homecoming could (`caravanWordsHome`). Near, they reach the court now.
+  const far = this.wordTo(c.power, at) > 0;
+  const load = c.gold > 0 || c.archive.length > 0;
+  if (far && load && this.lootHome(c.power, at, c.gold, c.archive, c.archiveOf)) {
     S.caravans[S.caravans.length - 1].word = c.word;
     c.word = newWord();
     if (c.gold > 0) parts.push(`${formatMoney(c.gold)} sent on to the treasury`);
-  } else if (far) {
+  } else if (far && load) {
     // No road on to the court: it reaches it at once, as loot does (TurnEngine.lootHome).
     if (c.gold > 0) parts.push(`${formatMoney(c.gold)} into the treasury`);
     this.hearWord(c.power, c.word);
+    c.word = newWord();
+  } else if (far) {
+    // Kept with the caravan's last report among those gone (GameState.caravansGone) until its word comes.
   } else {
     if (c.gold > 0) {
       const t = S.treasuries.get(c.power);

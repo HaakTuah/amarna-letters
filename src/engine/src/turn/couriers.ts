@@ -15,7 +15,7 @@ import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
 import { type Order } from "../model/orders.ts";
 import { quoteWords, type Power } from "../model/power.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
-import { logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
 import { courierSeasons, courtOf } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
@@ -23,6 +23,8 @@ import { RoadOdds } from "./travel.ts";
 import { asItStands } from "./plans.ts";
 import { TurnEngine } from "./core.ts";
 import { readCaravanReport, reportCaravan, type Caravan } from "../model/caravans.ts";
+import { newWord } from "../model/word.ts";
+import { wordCame } from "../rules/caravans-known.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -44,6 +46,10 @@ declare module "./core.ts" {
     sendOrders(p: Power, sub: TurnSubmission): TurnSubmission;
     /** A notice to a king from a place in his realm: at once within the season's reach, else when a courier brings it. */
     tell(p: Power, province: string, kind: InboxKind, title: string, text: string, extra?: number): void;
+    /** A report told its king in season `at` (now, if that is now or past), as `tell` does once it has reckoned the season. */
+    tellAt(p: Power, at: number, kind: InboxKind, title: string, text: string): void;
+    /** Bug #540: the word a caravan home to a far province brought, heard once word of its homecoming could come. */
+    caravanWordsHome(): void;
     /**
      * An order that failed for what befell its province out of the king's sight, its loss (bug #467) or a siege (bug #517):
      * word of it comes home by the road, as word of that does, never at once; a scheduled one wakes its seat when it comes.
@@ -248,9 +254,12 @@ P.courierRead = function (p, to, o) {
 };
 
 P.tell = function (p, province, kind, title, text, extra = 0) {
+  this.tellAt(p, this.heardAt(p, province, extra), kind, title, text);
+};
+
+P.tellAt = function (p, at, kind, title, text) {
   const S = this.s;
-  const at = this.heardAt(p, province, extra);
-  if (at === S.turn + S.deliveryOffset) {
+  if (at <= S.turn + S.deliveryOffset) {
     notify(S, p, kind, title, text);
     return;
   }
@@ -288,10 +297,19 @@ function setOutHeard(e: TurnEngine, c: Caravan): number {
 }
 
 P.caravanTell = function (c, province, kind, title, text) {
-  const here = this.heardAt(c.power, province);
-  const after = setOutHeard(this, c) - here;
-  // Held back until then (where the place itself is near, a season later still: a word from there takes one).
-  this.tell(c.power, province, kind, title, text, Math.max(0, after));
+  this.tellAt(c.power, Math.max(this.heardAt(c.power, province), setOutHeard(this, c)), kind, title, text);
+};
+
+P.caravanWordsHome = function () {
+  const S = this.s;
+  for (const c of S.caravansGone) {
+    const w = c.word;
+    if ((w.markets.size === 0 && w.tolls.length === 0 && w.holders.length === 0) || c.trail.length === 0 || !isAlive(S, c.power)) continue;
+    const end = readCaravanReport(c.trail[c.trail.length - 1]);
+    if (!wordCame(this, c.power, end.turn, end.at)) continue;
+    this.hearWord(c.power, w);
+    c.word = newWord();
+  }
 };
 
 P.caravanNear = function (c, province) {
