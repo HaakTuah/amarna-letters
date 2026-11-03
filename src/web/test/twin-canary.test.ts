@@ -59,7 +59,8 @@ const isDict = (x: unknown): x is Record<string, unknown> => typeof x === "objec
 function differences(a: GameState, b: GameState, p: Power): string[] {
   const [va, vb] = [a, b].map((s) => JSON.parse(serialize(SeatViewSchema, Views.for(s, p))) as Record<string, unknown>);
   const out: string[] = [];
-  const notice = (i: { title: string; body: string }) => `${i.title}: ${i.body}`;
+  // The treasury's balance in its notice is `view.gold`'s, compared there: a known gold leak (#587) excuses only that.
+  const notice = (i: { title: string; body: string }) => `${i.title}: ${i.body.replace(/The treasury now holds [^;]*;/, "The treasury now holds (as view.gold);")}`;
   const [ia, ib] = [va, vb].map((v) => (v.inbox as { title: string; body: string }[]).map(notice));
   for (const x of ia.filter((x) => !ib.includes(x))) out.push(`only where true: ${x}`);
   for (const x of ib.filter((x) => !ia.includes(x))) out.push(`only where false: ${x}`);
@@ -236,26 +237,20 @@ const siegeAfterOrders: Twin = {
 };
 
 /**
- * Leaks still open, each with its issue: a difference matching one is not counted here, and each must still be found, so
- * the list shrinks as they are fixed. Bug #540: a far province's economy, works, people and caravans, and the realm's
- * totals, are shown as they are, not as last reported.
+ * Leaks still open, each with its issue and the twins it may show in: a difference matching one there is not counted
+ * here, and each must still be found, so the list shrinks as they are fixed. Question #587: what the treasury pays for far
+ * off (a far caravan's porters, a far province's works paid in gold) leaves it before word of the order's outcome could
+ * come, so its gold and the strength reckoned from it differ (the treasury notice's balance is compared as `view.gold`);
+ * only in the twins whose orders spend far off, so no other leak of gold hides behind it.
  */
-const Known: { issue: number; what: string; is: (difference: string) => boolean }[] = [
-  // Of the far province itself (Nippur, in every twin), and the realm's totals.
-  ...["provinces", "works", "yields"].map((k) => ({ issue: 540, what: `view.${k} of the far province`, is: (d: string) => d.startsWith(`view.${k}[nippur]: `) })),
-  { issue: 540, what: "a caravan to or from the far province", is: (d) => /^view\.caravans\[[a-z]+\]: /.test(d) && d.includes('"nippur"') },
-  ...["strength", "gold"].map((k) => ({ issue: 540, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
-  { issue: 540, what: "the treasury notice", is: (d) => /^only where (true|false): The treasury: /.test(d) },
-  { issue: 540, what: "the works notice", is: (d) => /^only where (true|false): Works: What you keep and build cost /.test(d) },
-  { issue: 540, what: "a caravan's arrival", is: (d) => /^only where (true|false): Markets and caravans: Your caravan reached /.test(d) },
-  { issue: 540, what: "the realm's reaping event", is: (d) => /^only where (true|false): event: Egypt's land reaped its harvest: /.test(d) },
-  { issue: 540, what: "a works event of the far province", is: (d) => /^only where (true|false): event: Egypt (raised|repaired) [^.]*Nippur/.test(d) },
-  { issue: 540, what: "a caravan's arrival event", is: (d) => /^only where (true|false): event: Egypt's caravan reached /.test(d) },
+const SpendFar = ["a far province lost after orders for it set out", "a far siege begun after orders set out", "far works paid in gold, the province lost after orders set out", "far works paid in gold, a siege begun after orders set out"];
+const Known: { issue: number; what: string; twins: string[]; is: (difference: string) => boolean }[] = [
+  ...["strength", "gold"].map((k) => ({ issue: 587, what: `view.${k}`, twins: SpendFar, is: (d: string) => d.startsWith(`view.${k}: `) })),
 ];
 
 /** Every difference a twin's seasons show, each with the known leak it is, if any. */
 function found(t: Twin): { line: string; known: (typeof Known)[number] | undefined }[] {
-  return play(t).map((x) => ({ line: x.line, known: Known.find((k) => k.is(x.difference)) }));
+  return play(t).map((x) => ({ line: x.line, known: Known.find((k) => k.twins.includes(t.name) && k.is(x.difference)) }));
 }
 
 /** A far city of Egypt's under a siege it has long known of; in the twin where the fact is true, the siege is lifted. */
@@ -293,7 +288,12 @@ const siegeFallen: Twin = {
   heard: farLoss.heard,
 };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen];
+/** Far works paid in gold, not by corvée: the same twins, the treasury paying for what it builds far off. */
+const goldWorks: Order[] = [build("nippur", "Walls", 2, false), build("nippur", "Roads", 1, false)];
+const goldAfterLoss: Twin = { ...lossAfterOrders, name: "far works paid in gold, the province lost after orders set out", orders: goldWorks };
+const goldAfterSiege: Twin = { ...siegeAfterOrders, name: "far works paid in gold, a siege begun after orders set out", orders: goldWorks };
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

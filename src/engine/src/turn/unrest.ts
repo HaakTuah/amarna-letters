@@ -329,12 +329,6 @@ P.obeySeason = function () {
   this.armyLedgerSeason();
   stirSeason(this);
   seasonEntries(this);
-  // A court's last report of land it lost stands until it hears of the loss, or holds it again.
-  for (const [p, last] of [...S.ownLast.entries()]) {
-    const known = isAlive(S, p) ? Views.knownHolders(S, this.map, p) : null;
-    for (const id of [...last.keys()]) if (known === null || known.tryGet(id)?.owner !== p || S.owner.getOrDefault(id, null) === p) last.delete(id);
-    if (last.size === 0) S.ownLast.delete(p);
-  }
   // Every province reckoned before any changes hands, so that one change does not decide another.
   const strength = new Dict<Power, number>();
   const changes: [string, Rival | null][] = [];
