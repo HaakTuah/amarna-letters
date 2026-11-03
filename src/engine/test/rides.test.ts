@@ -133,5 +133,12 @@ describe("RideTests", () => {
     Assert.true(why(hire(c.id, 50, 1, 50, { what: "ride", where: "babylon" })).includes("you do not hold"));
     Assert.true(why(hire(c.id, 50, 3, 50, { what: "ride", where: "nippur" })).includes("its term is 1"));
     Assert.true(why(hire(c.id, 50, 1, 50, { what: "ride", where: "nippur", offerAgain: true })).includes("no offer_again"));
+    // Every land province of the map has a road home (the refusal for one without guards maps that cut one off).
+    Assert.true(map.landProvinces.every((x) => Number.isFinite(new TurnEngine(s, map).wordFrom("Egypt", x.id))));
+    // A servant of yours renewed for a ride: no standing re-offer either.
+    c.status = "Employed";
+    c.employer = "Egypt";
+    c.contract = newContract({ fee: 10, startTurn: 0, untilTurn: 0 });
+    Assert.true(why(renew(c.id, 50, 1, 50, { what: "ride", where: "nippur", offerAgain: true })).includes("no offer_again"));
   });
 });

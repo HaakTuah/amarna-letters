@@ -42,7 +42,8 @@ import type { OrdersContext } from "./use-orders.ts";
 export function CourtSection({ c }: { c: OrdersContext }) {
   const { draft, v, me, f, set, wage, ready, reserved, others, add, term, addSpy } = c;
   // #601: the far provinces of yours a rider can bring the report of, and the job's errand and its words.
-  const far = [...v.owner.entries()].filter(([x, o]) => o === me && !v.visible.includes(x) && !map.get(x).isSea).map(([x]) => x);
+  // Its report two seasons old or more, as a ride can make fresher (the validator refuses the rest).
+  const far = [...v.ownerAsOf.entries()].filter(([x, asOf]) => v.owner.getOrDefault(x, null) === me && v.turn - asOf >= 2 && !map.get(x).isSea).map(([x]) => x);
   const rideTo = f.errandWhat === "ride" && !far.includes(f.errandWhere) ? (far[0] ?? "") : f.errandWhere;
   const errand = { what: f.errandWhat, where: f.errandWhat === "stay" ? me : f.errandWhat === "ride" ? rideTo : f.errandWhere, payOnDone: f.payOnDone };
   const errandLabel =
