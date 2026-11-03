@@ -74,7 +74,9 @@ P.payLoad = function (c) {
   const company: Company = c.ship !== null ? { sneaking: false } : this.caravanCompany(c);
   const season = seasonOfTurn(this.s.turn);
   let points = 0;
-  for (let i = 0; i + 1 < c.route.length; i++) points += legPoints(this.map, c.route[i], c.route[i + 1], season, { ...company, ways: waysOf(this.s) });
+  // Reckoned on the roads as the map has them, without what was built on them: the court may not know of far works, and
+  // what roads save comes home with the caravan (Codex, #635).
+  for (let i = 0; i + 1 < c.route.length; i++) points += legPoints(this.map, c.route[i], c.route[i + 1], season, company);
   const seasons = Math.max(1, Math.ceil(points / perSeason));
   return this.caravanPay(c) * seasons * (c.trade || c.ship !== null ? 2 : 1);
 };

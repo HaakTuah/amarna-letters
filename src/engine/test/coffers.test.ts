@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, OrderValidator, TurnEngine, build, caravan, inboxOf, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, newWorkPlan, purchase, send, trade } from "@amarna/engine";
+import { Dict, type GameState, OrderValidator, TurnEngine, build, caravan, inboxOf, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, newCaravan, newWorkPlan, purchase, send, setLevel, trade } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Gold travels both ways (#587, "One treasury, many stores"): what is done far off is paid only from gold that is there.
@@ -192,5 +192,15 @@ describe("CofferTests", () => {
     s.turn = s.bills[0].due;
     e.goldArrives();
     Assert.equal(2, u.unpaid);
+  });
+
+  test("A caravan's pay for the road is reckoned without roads built since, which its court may not know of", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    const route = e.caravanRoute("Egypt", "memphis", "babylon")!;
+    const c = newCaravan({ power: "Egypt", from: "memphis", to: "babylon", grain: 100, route, trade: true });
+    const before = e.payLoad(c);
+    for (const id of route) setLevel(s, "Roads", id, 3);
+    Assert.equal(before, e.payLoad(c));
   });
 });
