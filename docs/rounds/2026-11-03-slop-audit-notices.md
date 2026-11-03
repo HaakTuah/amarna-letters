@@ -90,16 +90,16 @@ script play on other seeds, so it takes **save version 60**. The three games wer
 
 | Before | After |
 | --- | --- |
-| Your caravan paid Sidon's toll of 15% at Ṣiduna: 1 measures of grain. | Your caravan paid the toll at Ṣiduna: 1 measure of grain, 15 in a hundred. |
+| Your caravan paid Byblos's toll of 15% at Gubla: 1 measures of grain. | Your caravan paid the toll at Gubla: 1 measure of grain, 15 in a hundred. |
 | …Gold in since your last orders: 0 shekels, from your mines and your sales at your markets. Paid: your troops 10 shekels. The treasury now holds 0 shekels; gold received at audiences or brought home by your envoys this season is added later. | The grain tax brought 4 measures into your stores. Your troops were paid 10 shekels. The treasury is empty. |
-| What you keep and build cost 0 shekels and the corvée of 200 men, away from the fields this season. no work was done on the roads of Shushan: war stops the work; no work was done on the harbour of Shushan: war stops the work… | Your works took 200 men from the fields by corvée this season. War halted the work on the roads, harbour and watch of Shushan. |
-| - army in Apasa holds ⏎ Seen nearby: ⏎ - Mira: army in Mira holds | Your army held its ground in Apasa. Mira's army held its ground in Mira. |
-| You now ask 37 in a hundred of its harvest of Harran, from the next collection on. | From the next collection, Harran gives 37 in a hundred of its harvest. |
-| Suteans's army besieges your city of Halab (walls 2) and wore it down a step: it stands at 2 of 6. The city yields you nothing while it is besieged… Its water never fails. | The Suteans' army besieges your city of Halab and wore it down a step. It stands at 2 of the 6 steps to a breach. |
+| What you keep and build cost 0 shekels and the corvée of 200 men, away from the fields this season. no work was done on the harbour of Lukka: war stops the work; no work was done on the policing of Lukka: war stops the work. | Your works took 200 men from the fields by corvée this season. War halted the work on the harbour and watch of Lukka. |
+| - army in Lakisha holds ⏎ Seen nearby: ⏎ - Ashkelon: army in Ashqaluna holds | Your army held its ground in Lakisha. ⏎ Ashqaluna's army held its ground in Ashqaluna. |
+| You now ask 37 in a hundred of its harvest of the Ways of Horus, from the next collection on. | From the next collection, the Ways of Horus gives 37 in a hundred of its harvest. |
+| …besieges your city of Shushan (walls 2)…: it stands at 1 of 6. The city yields you nothing while it is besieged and eats from its market and stores… | …besieges your city of Shushan, but ships kept it supplied: no fleet of theirs holds the Gulf. It stands at 1 of the 6 steps to a breach. Your own ships can bring it grain (order ship). |
 | Word spreads that the kingdom of Arrapha is no more: Assyria took its capital, Arrapha. | Word spreads that Assyria has taken Arrapha, and its kingdom is no more. |
-| Mazipalali is back at your court and has done their job, and was paid the rest of the fee, 54 shekels. The job has ended: they are free at your court, and another errand is a new offer (order hire), which they may take or not. | Mazipalali is back at your court, the job done; the rest of the fee, 54 shekels, was paid. They are free to take another job (order hire). |
-| I am Ahutabu of Babili, once a caravan master. I know every road and every court; no master of mine had cause to complain. | I am Ahutabu of Babili, once a caravan master. I have taken loads across the steppe and lost none to robbers. |
-| Shatu-ili set out for Mitanni last season; the journey should take about 1 season. | Shatu-ili set out for Mitanni last season; the road there takes a season. |
+| Kushmeshu-ziti is back at your court and has done their job, and was paid the rest of the fee, 32 shekels. The job has ended: they are free at your court, and another errand is a new offer (order hire), which they may take or not. | Kushmeshu-ziti is back at your court, the job done; the rest of the fee, 32 shekels, was paid. They are free for another job (order hire). |
+| I am Ahutabu of Babili, once a caravan master. I know every road and every court; no master of mine had cause to complain. | I am Ahutabu of Babili, once a caravan master. I have crossed the desert in the dry season and brought every donkey home. |
+| Zida set out for Isuwa last season; the journey should take about 1 season. | Zida set out for Isuwa last season; the road there takes a season. |
 
 ## Questions for the owner
 
