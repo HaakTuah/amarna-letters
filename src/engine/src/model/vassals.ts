@@ -5,7 +5,7 @@
  * starting data, and {@link vassalTerms} reads a tablet's template clauses as a script player reads them.
  */
 import type { Clause } from "./clauses.ts";
-import { isSealedAgreement, type Tablet } from "./records.ts";
+import { isSealedAgreement, repudiationKnown, type Tablet } from "./records.ts";
 import type { Power } from "./power.ts";
 import { WorldMap } from "./map.ts";
 
@@ -101,11 +101,14 @@ export function vassalTerms(t: { id: string; vassal: Power | null; proposedBy: P
   return { tabletId: t.id, vassal, overlord, tribute, protects, serves, sealedTurn: t.sealedTurn };
 }
 
-/** The vassal bonds standing on sealed tablets, oldest first: neither forged nor repudiated. */
-export function vassalBonds(tablets: readonly Tablet[]): VassalTerms[] {
+/**
+ * The vassal bonds standing on sealed tablets, oldest first: neither forged nor repudiated; or, given `known`, as that
+ * court knows them by `known.turn`, a repudiation counting once word of it has come (bug #609).
+ */
+export function vassalBonds(tablets: readonly Tablet[], known: { p: Power; turn: number } | null = null): VassalTerms[] {
   const out: VassalTerms[] = [];
   for (const t of tablets) {
-    if (!isSealedAgreement(t) || t.repudiatedTurn !== null) continue;
+    if (!isSealedAgreement(t) || (known === null ? t.repudiatedTurn !== null : repudiationKnown(t, known.p, known.turn))) continue;
     const v = vassalTerms(t);
     if (v !== null) out.push(v);
   }

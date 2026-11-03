@@ -169,7 +169,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (v.knownOwner(cp.province) !== power) return "you can only cede what you hold";
       if (cp.to === power || !isAlive(S, cp.to)) return `you cannot cede land to ${cp.to}`;
       // Item 11d: a capital only by agreement on a sealed tablet, and the realm goes with it.
-      if (cp.province === courtOf(S, Map, power) && !cessionAgreed(S.tablets, power, cp.to, cp.province))
+      if (cp.province === courtOf(S, Map, power) && !cessionAgreed(S.tablets, power, cp.to, cp.province, S.turn))
         return `you can cede your capital only as a sealed tablet between you and ${cp.to} says ("I give you the land of ${Map.get(cp.province).name}"): your whole realm passes with it, and you live on as a man without a throne`;
       if (ceded.has(cp.province)) return `${Map.get(cp.province).name} was already ceded by an earlier order`;
       return null;

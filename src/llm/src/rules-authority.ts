@@ -18,7 +18,7 @@ export function authorityRules(_c: GameConfig): string {
     `- Credentials (show_credentials): shown, the king he visits reads your mandate and its limits, which builds trust, and he knows whether the tablet lay within them; hidden, you keep your limits to yourself and your excuse. Either way the tablet records "by the hand of" your envoy, so every court that reads it knows you did not seal it yourself.`,
   );
   lines.push(
-    `- You may repudiate a tablet your envoy sealed in your name (repudiate, naming your copy of it), saying it went beyond his authority: it no longer binds you, what it granted either way ends, and its other king is told. Whether that was true is for him to judge: he knows only if your envoy showed his credentials. An envoy's seal never swears a sworn alliance.`,
+    `- You may repudiate a tablet your envoy sealed in your name (repudiate, naming your copy of it), saying it went beyond his authority: it no longer binds you, what it granted either way ends, and word of it goes to its other king as fast as a messenger rides; until it comes, he still counts on the tablet. Whether that was true is for him to judge: he knows only if your envoy showed his credentials. An envoy's seal never swears a sworn alliance.`,
   );
   lines.push(
     joinS(` `, [
