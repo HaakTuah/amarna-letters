@@ -32,8 +32,28 @@ fills each today. The models and effort Claude Code gives each of its roles: `CL
   plan, at most once per item, with a self-contained brief (the problem, the measurements, the files and lines). It
   returns a design, which the builder builds and measures.
 - **The hard work:** an item's hardest problems, above all the competing approaches judged by measurement. The builder
-  gives it more effort inside its
-  own session, never by waiting for another session (for Claude: `CLAUDE.md`).
+  gives it more effort inside its own session, never by waiting for another session (for Claude: `CLAUDE.md`).
+- **Helpers: when they pay** (archive item 134), for every builder: Claude's helpers and, once it can build,
+  Codex's subagents. A helper starts cold, rereads what it needs and returns only a summary, so it is worth its cost
+  only when the work has one of these shapes:
+  - *Parallel and independent:* parts that touch different files and need nothing from each other. Helpers that
+    write run in parallel only when their briefs already fix every choice their parts share (the tests, interfaces,
+    names and formats); otherwise one writer does the work, since each parallel writer makes choices the others never
+    see, and their work clashes (archive item 214).
+  - *Competing approaches, judged by measurement:* several candidate fixes for one problem, each tried in its own
+    worktree and measured the same way (benchmarks, use against ignore); the best is kept, the rest dropped.
+  - *Bulk to brief:* many files read to answer one narrow question; the helper returns file:line and a sentence, so
+    the builder's context stays clean.
+  - *Fresh eyes:* a review, or a problem that has beaten the builder twice.
+
+  It does not pay for small or one-pass work (docs, config, small fixes), for steps that depend on each other, when
+  briefing it would cost most of the work, or for waiting on a run. Give each helper the cheapest model that does its
+  part well (Claude's: `CLAUDE.md`; Codex's: "For Codex") and a brief that stands alone, since it sees nothing else:
+  its goal; what it returns, and in what form (file:line and a sentence, a diff in its own worktree, a measured
+  table); the files it may change and the sources it reads; and where its task ends. A vague brief brings back
+  duplicated work and gaps. Check every result before using it. At most four at a time, reviewers included; each
+  lane's builder keeps its own four. The PR lists the helpers that ran and what each gave, so the rule can be checked
+  against its cost. Never stop to ask about helpers: decide by these shapes.
 - **Escalation:** a problem that has defeated a builder twice goes to a fresh solver with a self-contained brief (the
   problem, what was tried, the files and lines); the builder who was stuck applies and checks the answer. The other
   model comes first once Codex can build (the status above): a problem that has defeated Claude goes to Codex as a
@@ -69,9 +89,10 @@ Whole with Claude, since there the code is the hard part and a brief cannot hold
 determinism, and the orchestrator's own work (briefs, routing, readings on Codex's questions, merges).
 
 Items stay one at a time, in order, as the builder rules say: a Codex lane runs beside an item, never inside the same
-files. **Trials:** in the first week Codex can build, one art task to Codex if one comes up, compared against Claude's; after the first
-week, one build-order item split the long way (Claude writes the rule and its tests, Codex implements, Claude
-reviews), and if it scores well, more items follow.
+files. **Trials:** in the first week Codex can build, one art task to Codex if one comes up, compared against Claude's;
+after the first week, one build-order item split the long way (Claude writes the rule and its tests, Codex implements,
+Claude reviews), and if it scores well, more items follow. Codex's first task with a part of a helper's shape uses its
+subagents, so that PR shows whether they start in its cloud and what they give.
 
 ## Handing work to Codex
 
@@ -235,6 +256,8 @@ guards: the rounds come to an end, and what a 10 means never slips (archive item
 
 - `AGENTS.md` and the shared docs it names apply to you in full, the builder rules its "Where things are" names
   included; `CLAUDE.md` is Claude Code's own.
+- **Helpers:** your subagents, where "Helpers: when they pay" ("Who does what") says they pay, on the model you run
+  on; list each in your report with what it gave.
 - Build only what the brief gives you (the PR's description), and read only what it names
   and what `AGENTS.md` says to read.
 - **The tests you are given are the contract:** make them pass; never change, skip or weaken them. If you think one is

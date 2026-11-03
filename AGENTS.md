@@ -56,8 +56,9 @@ allows, at the lowest cost now and later. Four of them are the pillars that hold
 - **Print little.** Run tests with `scripts/test.sh` and script games with `scripts/sim.sh` (a summary and the
   failures; the full log in a file). Run long ones in the background (`CLAUDE.md` says how, for Claude) and wait for
   the completion notice: never poll, keep no agent alive just to wait, never paste a full log.
-- **Helpers, effort and escalation:** the roles, escalation and the hard work: `docs/claude-and-codex.md`, "Who does
-  what"; each tool's own models, effort and helpers: its own file (Claude Code's: `CLAUDE.md`). Codex uses no helpers.
+- **Helpers, effort and escalation:** the roles, when a helper pays, escalation and the hard work:
+  `docs/claude-and-codex.md`, "Who does what"; each tool's own models and effort: its own file (Claude Code's:
+  `CLAUDE.md`; Codex's: "For Codex" in the same doc).
   Model-game simulations (`sim/`) follow their own process and may use as many agents as it calls for
   (`sim/README.md`); none run until the build order is done.
 - **Edit in place.** Change the lines that need changing; never rewrite a large file to change part of it.
