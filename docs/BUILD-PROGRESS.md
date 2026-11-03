@@ -1,7 +1,7 @@
 # Build progress
 
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
-`.claude/rules/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
+`docs/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
 how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
 document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
 longer finds was history and is in `docs/archive/design-history.md`.
@@ -67,8 +67,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) #612 has had four Codex
   rounds, past the three that "Codex reviews" holds: no fifth; take it to escalation as that section says. (2) The
-  code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`
-  rule 9 says: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
+  code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
+  owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
   only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if Codex's review summary shows its completed "🔒 Security Review" row ("Codex
   reviews"); report a PR that lacks it.
 
@@ -181,8 +181,10 @@ the workshop check): among them the history check's lines still unclear for a re
   **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
   the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`); the
   envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
-  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state). **Next:** notices,
-  news and reports (the bribed envoy's invented news moves with them); then the rest in the order above.
+  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
+  season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
+  `rules/wording.ts`; save version 60). **Next:** the owner's answer to #591 (the bribed envoy's words); then the rest in
+  the order above, from the rulebook and the seat view.
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:

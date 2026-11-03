@@ -7,7 +7,7 @@ import { hire } from "../model/order-makers.ts";
 import { type ReleaseOrder } from "../model/orders.ts";
 import { falseNameAt, gain, nameKnownAt, remember, type Character } from "../model/people.ts";
 import { debtLeft, isPowerParty } from "../model/money.ts";
-import { land, type Power } from "../model/power.ts";
+import { land, type Power, powerName } from "../model/power.ts";
 import { newExchange, newHomeCargo, newTabletCopy, type HomeCargo, type Journey } from "../model/records.ts";
 import { char, findCharacter, inboxOf, isAlive, logEvent, newGoldLot, newId, notify } from "../model/state.ts";
 
@@ -66,7 +66,7 @@ P.envoyArrivesHome = function (j) {
   // Turned back on the road (item 7b): it tells why, and hands back any gold it still carries; there is no audience to report.
   if (j.gaveUp) {
     if (cargo.gold > 0) S.treasuries.get(j.to).gold += toInt(roundEven((cargo.gold * cargo.purityPercent) / 100.0));
-    notify(S, j.to, "Notice", `${c.name} returns`, `${c.name} is back at court without having reached ${j.from}: ${j.turnedBack}.` + (cargo.gold > 0 ? ` The ${formatMoney(cargo.gold)} of gold carried is back in the treasury.` : ""), c.id);
+    notify(S, j.to, "Notice", `${c.name} returns`, `${c.name} is back at court without having reached ${powerName(j.from)}: ${j.turnedBack}.` + (cargo.gold > 0 ? ` The ${formatMoney(cargo.gold)} of gold carried is back in the treasury.` : ""), c.id);
     c.currentTrail = null;
     return;
   }
@@ -103,7 +103,7 @@ P.letEnvoyGo = function (host, c, reply) {
   c.heldBy = null;
   const trail = this.trail(c.currentTrail);
   if (trail !== null && !isBlank(words)) trail.exchanges.push(newExchange({ host: `(on release) ${cap(words!, MaxSpeech)}`, envoy: "" }));
-  trail?.outcomes.push(`released by ${host} in turn ${S.turn}`);
+  trail?.outcomes.push(`released by ${powerName(host)} in turn ${S.turn}`);
   remember(c, S.turn, `The king of ${land(host)} let me go` + (isBlank(words) ? "." : `, saying: "${cap(words!, 300)}"`));
   if (isAlive(S, host)) notify(S, host, "Notice", "Envoy released", `${c.name} has been allowed to leave.`, c.id);
   logEvent(S, "release", `${host} released ${c.name}.`, [host]);
@@ -119,9 +119,9 @@ P.claimAnswered = function (court, asked, cargo) {
   const who = cargo.claimChecked !== null ? findCharacter(S, cargo.claimChecked) : null;
   if (who === null) return;
   const known = nameKnownAt(who, court);
-  notify(S, court, "Notice", "A claim checked", `At the court of ${land(asked)} they say that ${known} ${cargo.claimHeld ? "serves their king" : "does not serve their king"}.`, who.id);
+  notify(S, court, "Notice", "A claim checked", `At the court of ${powerName(asked)} they say that ${known} ${cargo.claimHeld ? "serves their king" : "does not serve their king"}.`, who.id);
   const d = falseNameAt(who, court);
-  if (!cargo.claimHeld && d !== null && d.employer === asked) this.expose(who, d, `the king of ${land(asked)} says they do not serve him`);
+  if (!cargo.claimHeld && d !== null && d.employer === asked) this.expose(who, d, `the king of ${powerName(asked)} says they do not serve him`);
 };
 
 /** Applies text a character or the narrator wrote for a MindRequest. */
@@ -182,7 +182,7 @@ P.fulfil = function (req, reply) {
         S.treasuries.get(lord).gold += fine;
         S.treasuries.get(lord).lots.push(newGoldLot({ id: newId(S, "g"), from, stated, face, true: fine, arrivedTurn: S.turn }));
         // The host's inventory, sealed at the audience, or the envoy's forgery, goes into the court's archive.
-        this.inventory(c, from, lord, stated, this.trail(req.trailId)?.audienceTurn ?? S.turn, swapped, `the inventory ${c.name} brought home with the gold of ${from}`);
+        this.inventory(c, from, lord, stated, this.trail(req.trailId)?.audienceTurn ?? S.turn, swapped, `the inventory ${c.name} brought home with the gold of ${powerName(from)}`);
         text += `\n\n[The inventory lists ${formatMoney(stated)} of gold; your weighers found ${formatMoney(face)}.]`;
       }
       const trail = this.trail(req.trailId);
@@ -252,7 +252,7 @@ P.envoyBusinessAbroad = function (c, j) {
   const debt = d.collect !== null ? (S.debts.find((x) => x.id === d.collect && x.ended === null && x.holder === c.id) ?? null) : null;
   if (debt === null) return;
   if (debt.borrower === j.to)
-    notify(S, j.to, "Notice", "A debt presented", `${c.name}, envoy of ${j.from}, stands at your court with the tablet of your debt ${debt.id}: ${formatMoney(debtLeft(debt))} is left to repay to whoever holds it (order repay, while the envoy is here).`, c.id);
+    notify(S, j.to, "Notice", "A debt presented", `${c.name}, envoy of ${powerName(j.from)}, stands at your court with the tablet of your debt ${debt.id}: ${formatMoney(debtLeft(debt))} is left to repay to whoever holds it (order repay, while the envoy is here).`, c.id);
   else {
     const b = isPowerParty(debt.borrower) ? null : findCharacter(S, debt.borrower);
     if (b !== null && b.at === j.to) remember(b, S.turn, `${c.name}, envoy of ${j.from}, is here with the tablet of my debt, ${formatMoney(debtLeft(debt))} left to repay.`);

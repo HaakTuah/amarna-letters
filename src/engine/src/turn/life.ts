@@ -265,7 +265,7 @@ P.applyLife = function (c, ch) {
       c.earned.spent += left;
       this.payDebt(d, c.id, left);
       remember(c, S.turn, `I repaid the king of ${land(d.holder)} the ${formatMoney(left)} I owed.`);
-      notify(S, d.holder, "Notice", "A debt repaid to you", `${c.name} repaid you ${formatMoney(left)} on debt ${d.id}, the tablet you held; it is theirs again.`, c.id);
+      notify(S, d.holder, "Notice", "A debt repaid to you", `${c.name} repaid you the ${formatMoney(left)} owed on the debt tablet you held; it is theirs again.`, c.id);
       logEvent(S, "character-repaid", `${c.name} repaid ${d.holder}.`, [d.holder], "character-repaid");
       continue;
     }
@@ -505,7 +505,7 @@ P.travellerArrives = function (j) {
     const d = S.debts.find((x) => x.id === e.debtId) ?? null;
     if (d !== null && d.borrower === to) e.reached = true;
     if (d !== null && d.ended === null && d.borrower === to && d.holder === c.id)
-      notify(S, to, "Notice", "A debt presented", `${c.name} stands at your court with the tablet of your debt ${d.id}: ${formatMoney(debtLeft(d))} is left to repay to whoever holds it (order repay). Whoever holds the tablet holds the claim.`, c.id);
+      notify(S, to, "Notice", "A debt presented", `${c.name} stands at your court with the tablet of your debt: ${formatMoney(debtLeft(d))} is left to repay, to whoever holds the tablet (order repay, debt ${d.id}).`, c.id);
   }
 };
 

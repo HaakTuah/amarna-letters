@@ -159,7 +159,7 @@ describe("MapAndSeasTests", () => {
     s.units.push(newUnit({ id: "x1", power: "Egypt", kind: "Army", province: "gaza" }));
     season(s, "Egypt", besiege("gaza"));
     Assert.equal(0, s.sieges[0].progress);
-    Assert.contains("so the city was supplied by sea", last(inboxOf(s, "Egypt"), (i) => i.title === SiegesTitle).body);
+    Assert.contains("so ships kept the city supplied", last(inboxOf(s, "Egypt"), (i) => i.title === SiegesTitle).body);
     Assert.contains(s.events, (e) => e.signal === "sea-supplied");
     // Egypt's fleet off the Delta sails along the shore into Gaza's waters: the harbour is blockaded and the siege advances.
     s.units.push(newUnit({ id: "x2", power: "Egypt", kind: "Fleet", province: "deltawaters" }));

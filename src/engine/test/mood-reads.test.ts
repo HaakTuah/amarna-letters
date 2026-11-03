@@ -90,7 +90,7 @@ describe("MoodReadsTests", () => {
     }
     const r = readsOf(s, "Egypt", "census").find((x) => x.province === prov)!;
     Assert.equal({ mood, seen: counted, known: s.turn }, { mood: r.mood, seen: r.seen, known: r.known });
-    Assert.true(s.inbox.get("Egypt").some((i) => i.title === "A census" && i.body.includes(`its people were ${mood}`)));
+    Assert.true(s.inbox.get("Egypt").some((i) => i.title === "A census" && i.body.includes(`Its people were ${mood}.`)));
   });
 
   test("Travellers' talk of the land near the court is coarse, a region's worst, and heard a season later", () => {

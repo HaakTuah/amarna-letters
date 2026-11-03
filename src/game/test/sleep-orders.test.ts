@@ -80,7 +80,7 @@ describe("SleepTests", () => {
     Assert.equal(raise("nippur", "Army"), Assert.single(sleep.scheduled).order);
     let notice = noticeOf(s, "Babylonia", "Scheduled orders not kept");
     Assert.equal(
-      [2, "- turn 3: nippur -> ur: you have no unit in nippur\n- turn 3: ekallate -> ashur: the unit in ekallate is not yours"],
+      [2, "- turn 3: the troops in Nippur march to Urim: you have no unit in Nippur\n- turn 3: the troops in Ekallate march to Ashur: the unit in Ekallate is not yours"],
       [notice.turn, notice.body],
     );
     // A refusal wakes nobody (since the review of the fix pass after item 4): an order the king knows will be refused must
@@ -138,7 +138,7 @@ describe("SleepTests", () => {
     Assert.null(unitAt(r.state, "ur"));
     Assert.equal([1], sleeper.calls);
     Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.kind === "Rejected");
-    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.title === "Movements last season" && i.body.includes("Babili supports Urim -> Nippur"));
+    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.title === "Movements last season" && i.body.includes("Your army in Babili supported the move from Urim to Nippur."));
   });
 
   test("After a levy its province names the levy s unit even where another unit stands now", () => {
@@ -172,7 +172,7 @@ describe("SleepTests", () => {
     let standing = unitAt(r.state, "sippar")!;
     Assert.equal("Babylonia", standing.power);
     Assert.equal(
-      "These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n- turn 3: the army to be raised in sippar in turn 2 -> suhu",
+      "These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n- turn 3: the army to be raised in Sippar in turn 2 marches to Suhu",
       noticeOf(r.state, "Babylonia", UnraisedTitle).body,
     );
     // Its own army stood in the way of its own levy: nothing others did, so nothing wakes it (since the review of the fix
@@ -225,7 +225,10 @@ describe("SleepTests", () => {
     let e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(new Dict([["Babylonia", plan([3, probes])]]));
-    Assert.equal("- turn 3: " + refusals.replaceAll("|", "\n- turn 3: "), noticeOf(s, "Babylonia", "Scheduled orders not kept").body);
+    Assert.equal(
+      "- turn 3: the troops in Ashur hold: you have no unit in Ashur\n- turn 3: the troops in Arbail hold: you have no unit in Arbail\n- turn 3: the troops in Ekallate hold: the unit in Ekallate is not yours\n- turn 3: the troops in Nippur hold: you have no unit in Nippur",
+      noticeOf(s, "Babylonia", "Scheduled orders not kept").body,
+    );
     Assert.empty(sleep.scheduled);
 
     // A support of a move from a province out of sight is given whatever stands there, and is void if no unit there makes
@@ -263,7 +266,7 @@ describe("SleepTests", () => {
     await r.playTurn();
     Assert.equal([1], sleeper.calls);
     Assert.contains(
-      "supports Nippur holding: given",
+      "Your army in Babili supported the hold at Nippur.",
       single(inboxOf(r.state, "Babylonia"), (i) => i.title === "Movements last season" && i.turn === 4).body,
     );
     Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.kind === "Rejected");
@@ -328,7 +331,7 @@ describe("SleepTests", () => {
     let notice = noticeOf(r.state, "Babylonia", MarchEndsTitle);
     Assert.equal(4, notice.turn);
     Assert.equal(
-      "Your army in sippar failed to reach durkurigalzu a second time in turn 3: its march ends, and its remaining scheduled orders were dropped: turn 4: sippar -> nippur; turn 6: sippar holds.",
+      "Your army in Sippar failed to reach Dur-Kurigalzu a second time in turn 3: its march ends, and its remaining scheduled orders were dropped: turn 4: the troops in Sippar march to Nippur; turn 6: the troops in Sippar hold.",
       notice.body,
     );
     Assert.equal("Babylonia", unitAt(r.state, "sippar")?.power);
@@ -343,10 +346,10 @@ describe("SleepTests", () => {
     let r = await play("Babylonia", sleeper, 3);
     // Neither failure wakes the seat: the refusal is its own, and so is the move its own army in Babylon stopped.
     Assert.equal([1], sleeper.calls);
-    Assert.contains("- babylon -> ur: an army in babylon cannot reach ur", noticeOf(r.state, "Babylonia", "Orders that could not be carried out").body);
+    Assert.contains("- The troops in Babili march to Urim: an army in Babili cannot reach Urim", noticeOf(r.state, "Babylonia", "Orders that could not be carried out").body);
     let notice = single(inboxOf(r.state, "Babylonia"), (i) => i.title === MarchEndsTitle && i.turn === 3);
     Assert.equal(
-      "Your army in babylon could not be ordered to ur in turn 2 (an army in babylon cannot reach ur): its march ends, and its remaining scheduled orders were dropped: turn 3: babylon -> nippur.",
+      "Your army in Babili could not be ordered to Urim in turn 2 (an army in Babili cannot reach Urim): its march ends, and its remaining scheduled orders were dropped: turn 3: the troops in Babili march to Nippur.",
       notice.body,
     );
     // The move into Babylon, stopped by its own army there, is another unit's march: it is tried again in turn 3, and stopped again.
@@ -355,7 +358,7 @@ describe("SleepTests", () => {
       noticeOf(r.state, "Babylonia", MarchHeldUpTitle).body,
     );
     Assert.equal(
-      "Your army in sippar failed to reach babylon a second time in turn 3: its march ends.",
+      "Your army in Sippar failed to reach Babili a second time in turn 3: its march ends.",
       single(inboxOf(r.state, "Babylonia"), (i) => i.title === MarchEndsTitle && i.turn === 4).body,
     );
     Assert.equal("Babylonia", unitAt(r.state, "babylon")?.power);
@@ -369,7 +372,7 @@ describe("SleepTests", () => {
     Assert.equal([1], sleeper.calls);
     Assert.empty(r.state.sleep.get("Babylonia").pendingWake);
     Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.title === MarchEndsTitle);
-    Assert.contains("- babylon -> ur: an army in babylon cannot reach ur", noticeOf(r.state, "Babylonia", "Orders that could not be carried out").body);
+    Assert.contains("- The troops in Babili march to Urim: an army in Babili cannot reach Urim", noticeOf(r.state, "Babylonia", "Orders that could not be carried out").body);
     Assert.contains("turn 3: an order was refused or failed (Orders that could not be carried out)", r.state.sleep.get("Babylonia").digest);
   });
 
@@ -381,7 +384,8 @@ describe("SleepTests", () => {
     e.beginTurn();
     e.resolve(new Dict([["Babylonia", plan([3, [unreadable("babylon move", "name the province the unit should move to"), hold("babylon")]])]]));
     Assert.equal(hold("babylon"), Assert.single(sleep.scheduled).order);
-    Assert.equal("- turn 3: babylon move: name the province the unit should move to", noticeOf(s, "Babylonia", "Scheduled orders not kept").body);
+    Assert.equal("- turn 3: Babili move: name the province the unit should move to", noticeOf(s, "Babylonia", "Scheduled orders not kept").body);
+
     new TurnEngine(s).wakeCheck();
     Assert.true(sleep.asleep);
     Assert.empty(sleep.wokenBecause);
@@ -409,8 +413,8 @@ describe("SleepTests", () => {
     let notice = noticeOf(r.state, "Babylonia", LostTroopsTitle);
     Assert.equal(3, notice.turn);
     Assert.endsWith(
-      ":\n- turn 4: durkurigalzu -> nippur\n- turn 4: sippar supports durkurigalzu holding\n- standing order s1 (when your unit that stood in durkurigalzu is attacked)" +
-        "\n- from standing order s2: durkurigalzu -> susa\n- standing order s3 (when foreign troops enter suhu)",
+      "yours no longer.\n- The troops in Dur-Kurigalzu march to Nippur (for turn 4)\n- The troops in Sippar support the hold at Dur-Kurigalzu (for turn 4)\n- Standing order s1 (when your unit that stood in Dur-Kurigalzu is attacked)" +
+        "\n- From standing order s2: the troops in Dur-Kurigalzu march to Shushan\n- Standing order s3 (when foreign troops enter Suhu)",
       notice.body,
     );
     // The seat disbanded the unit itself: dropping its orders wakes nobody (since the review of the fix pass after item 4;

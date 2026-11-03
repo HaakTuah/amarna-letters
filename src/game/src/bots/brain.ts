@@ -19,9 +19,11 @@ import {
   desc,
   groupBy,
   land,
+  powerNameFor,
   max,
-  parsePower,
+  counted,
   sortBy,
+  sum,
   type CharacterView,
   type Clause,
   type Claim,
@@ -31,6 +33,7 @@ import {
   type UnitKind,
   type UnitView,
   type VassalTerms,
+  FullWeight,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { personalityFor, type Personality } from "./personality.ts";
@@ -324,12 +327,13 @@ export class Brain {
 
     for (const item of v.inbox) {
       for (const other of this.rel.keys()) {
-        const name = other as string;
+        // The name our court's notices give him.
+        const name = powerNameFor(this.me, other);
         const r = this.rel.get(other);
         switch (item.kind) {
           case "Assay":
             if (!item.body.includes("from " + name)) break;
-            if (item.body.includes("(100%)")) r.trust = Math.min(1, r.trust + 0.05);
+            if (item.body.includes(FullWeight)) r.trust = Math.min(1, r.trust + 0.05);
             else this.wronged(other, 1.5, -0.3, -99);
             break;
           case "Rumor":
@@ -339,7 +343,7 @@ export class Brain {
           case "Notice":
             // Item 17: his troops took food from our land, a grievance remembered as any wrong is.
             if (item.title === "Troops took food" && item.body.startsWith(`The troops of ${name} took `)) {
-              const n = /took (\d+) measures/.exec(item.body);
+              const n = /took (\d+) measures?/.exec(item.body);
               this.wronged(other, 0.5 + Math.min(1.5, Number(n?.[1] ?? 0) / 100), -0.1, -99);
               break;
             }
@@ -409,9 +413,13 @@ export class Brain {
       if (b.provinces(x) === 0 && seen === 0) this.armySeen.set(x, [0, v.turn]);
     }
     for (const item of v.inbox.filter((i) => i.kind === "SpyReport"))
-      for (const [key, g] of groupBy([...item.body.matchAll(SpiedUnit)], (m) => m[1])) {
-        const spied = parsePower(key);
-        if (spied !== null && spied !== this.me) this.armySeen.set(spied, [Math.max(g.length, this.armySeen.getOrDefault(spied, [0, 0])[0]), v.turn]);
+      for (const [key, g] of groupBy(
+        [...item.body.matchAll(SpiedUnit)].flatMap((m) => spiedNames(m[1]).map((name) => [name.toLowerCase(), spiedCount(m[2])] as const)),
+        ([name]) => name,
+      )) {
+        const spied = AllPowers.find((q) => powerNameFor(this.me, q).toLowerCase() === key) ?? null;
+        const n = sum(g, ([, count]) => count);
+        if (spied !== null && spied !== this.me) this.armySeen.set(spied, [Math.max(n, this.armySeen.getOrDefault(spied, [0, 0])[0]), v.turn]);
       }
 
     // The season's accounts, as far as they can be guessed: income in, upkeep and wages out, levies paid for.
@@ -531,11 +539,11 @@ export class Brain {
       }
       // Another court's examination, announced to every court: an inventory brought by our envoy was forged by it.
       case "Rumor": {
-        const thief = ours((c) => item.body.includes(`brought by ${c.name}, envoy of ${this.me}, was forged by ${c.name}`));
+        const thief = ours((c) => item.body.includes(`brought by ${c.name}, envoy of ${powerNameFor(this.me, this.me)}, was forged by him`) || item.body.includes(`under the seal of ${powerNameFor(this.me, this.me)}, brought by its envoy ${c.name}, was forged by him`));
         if (thief !== null) this.thieves.add(thief.id);
         // A king who closes his roads to our people (item 7b) means us no good.
         if (item.title === RoadsTitle && item.body.includes("has closed his roads")) {
-          const closer = AllPowers.find((x) => x !== this.me && item.body.includes(`king of ${land(x)} `)) ?? null;
+          const closer = AllPowers.find((x) => x !== this.me && item.body.includes(`king of ${powerNameFor(this.me, x)} `)) ?? null;
           if (closer !== null && this.rel.has(closer)) {
             const r = this.rel.get(closer);
             r.trust = Math.max(-1, r.trust - 0.1);
@@ -561,7 +569,7 @@ export class Brain {
       // A king who places his troops under our command, or cedes us land, is a friend indeed.
       case "Resolution": {
         if (item.title !== "Troops received" && item.title !== "Land received") break;
-        const giver = AllPowers.find((x) => x !== this.me && item.body.startsWith(x + " has ")) ?? null;
+        const giver = AllPowers.find((x) => x !== this.me && item.body.toLowerCase().startsWith(`${powerNameFor(this.me, x).toLowerCase()} has `)) ?? null;
         if (giver === null || !this.rel.has(giver)) break;
         const r = this.rel.get(giver);
         r.trust = Math.min(1, r.trust + (item.title === "Land received" ? 0.35 : 0.25));
@@ -588,8 +596,25 @@ export const Weighed = /weighers found ([^.]{1,80})\./;
 export const EnvoyLot = /\[The inventory lists ([^;\]\n]{1,80}) of gold; your weighers found ([^\]\n]{1,80})\.\]/;
 /** The forger our scribes name, who brought the inventory. */
 export const ForgerHand = /trace it to the hand of ([^,\n]{1,80}), who brought it/;
-/** A king the spy saw with an army or a fleet somewhere. */
-export const SpiedUnit = /(?<![\p{L}\p{Mn}\p{Nd}\p{Pc}])([\p{L}\p{Mn}\p{Nd}\p{Pc}]+) (?:has|had) (?:an army|a fleet) in/gu;
+/**
+ * The kings a report saw troops of, one clause to each, or to several seen alike ("Hatti has two armies, at home and in
+ * Nesa; Niya and Tunip each had a fleet in Ugarit"): their names are the first group ({@link spiedNames}), what was seen
+ * of each the second, counted by {@link spiedCount}.
+ */
+export const SpiedUnit = /(?:^|[.;:] )([^.;:]{1,200}?) (?:has|had|each have|each had) ((?:an army|a fleet|another (?:army|fleet)|\S+ (?:armies|fleets))[^.;]*)/gu;
+
+/** The names in the first group of {@link SpiedUnit}: "Niya", or "Niya, Tunip and Qatna". */
+export function spiedNames(names: string): string[] {
+  return names.split(/, | and /u);
+}
+const SpiedTroops = /\b(?:an army|a fleet|another (?:army|fleet)|(\S+) (?:armies|fleets))/gu;
+
+/** How many armies and fleets a clause of {@link SpiedUnit} counts ("two armies, at home and in Nesa and a fleet in Ugarit": 3). */
+export function spiedCount(seen: string): number {
+  // A count as the engine's `counted` writes it, read back.
+  const countOf = (w: string): number => (/^\d+$/.test(w) ? Number(w) : Math.max(1, Array.from({ length: 11 }, (_, i) => counted(i)).indexOf(w)));
+  return sum([...seen.matchAll(SpiedTroops)], (m) => (m[1] === undefined ? 1 : countOf(m[1])));
+}
 
 /** One of our people whose line reads that they have not returned: the overdue word has come, and nothing since. */
 function overdue(c: CharacterView): boolean {

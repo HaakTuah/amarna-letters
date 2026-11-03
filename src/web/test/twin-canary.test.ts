@@ -80,7 +80,7 @@ function differences(a: GameState, b: GameState, p: Power): string[] {
   const [va, vb] = [a, b].map((s) => JSON.parse(serialize(SeatViewSchema, Views.for(s, p))) as Record<string, unknown>);
   const out: string[] = [];
   // The treasury's balance in its notice is `view.gold`'s, compared there: a known gold leak (#587) excuses only that.
-  const notice = (i: { title: string; body: string }) => `${i.title}: ${i.body.replace(/The treasury now holds [^;]*;/, "The treasury now holds (as view.gold);")}`;
+  const notice = (i: { title: string; body: string }) => `${i.title}: ${i.body.replace(/The treasury now holds [^,;.]*/, "The treasury now holds (as view.gold)")}`;
   const [ia, ib] = [va, vb].map((v) => (v.inbox as { title: string; body: string }[]).map(notice));
   for (const x of ia.filter((x) => !ib.includes(x))) out.push(`only where true: ${x}`);
   for (const x of ib.filter((x) => !ia.includes(x))) out.push(`only where false: ${x}`);
@@ -271,7 +271,7 @@ const SpendFar = ["a far province lost after orders for it set out", "a far sieg
 const Known: { issue: number; what: string; twins: string[]; is: (difference: string) => boolean }[] = [
   ...["strength", "gold"].map((k) => ({ issue: 587, what: `view.${k}`, twins: [...SpendFar, "a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}: `) })),
   // The pay of a far levy's army leaves the treasury at once, as the levy's price does (#587).
-  { issue: 587, what: "the treasury notice's troops' pay", twins: ["a far levy that raised nothing"], is: (d: string) => /^only where (true|false): The treasury: .*Paid: your troops/.test(d) },
+  { issue: 587, what: "the treasury notice's troops' pay", twins: ["a far levy that raised nothing"], is: (d: string) => /^only where (true|false): The treasury: .*Your troops were paid/.test(d) },
   // A far levy's army is shown at once, its upkeep counted and the orders waiting for it bound to it, before word of its
   // raising could come (#600, the far unit known by its reports).
   ...["units", "upkeep"].map((k) => ({ issue: 600, what: `view.${k} (a far levy's army)`, twins: ["a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}`) })),

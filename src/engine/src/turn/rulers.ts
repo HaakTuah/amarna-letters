@@ -11,14 +11,19 @@ import { cmpStr, sortBy, sum } from "../core/seq.ts";
 import { BandData, type Band } from "../model/bands.ts";
 import { forMen, levySize, menAvailable } from "../model/land.ts";
 import { remember, spend, type Character } from "../model/people.ts";
-import { addRisen, AllPowers, land, type Power, type RisenPower } from "../model/power.ts";
+import { addRisen, AllPowers, land, type Power, type RisenPower, powerName } from "../model/power.ts";
 import { isAlive, logEvent, newId, newTreasury, newUnit, notify, type Unit } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { levelOf } from "../model/works.ts";
+import { formatMoney } from "../rules/calendar.ts";
 import { stateOfRealm } from "../rules/realm.ts";
 import { kingTongues } from "../rules/tongues.ts";
 import { Views } from "../rules/views.ts";
+import { upper } from "../rules/wording.ts";
 import { TurnEngine } from "./core.ts";
+
+/** A city's walls by their level, as its new ruler is told of them. */
+const WallsWords = ["low", "stout", "high"];
 
 /** How a character came to rule: see `RisenPower.how`. */
 export type RiseHow = "governor" | "turned" | "revolt" | "chief" | "elder" | "granted";
@@ -144,7 +149,7 @@ P.ruleOwn = function (id, c, r) {
     p,
     "Notice",
     "You rule in your own name",
-    `${r.story} ${prov.name} is yours: you rule it in your own name now, with a seat of your own like any city's ruler${walls > 0 ? `, behind walls of level ${walls}` : ""}. ${troops.charAt(0).toUpperCase() + troops.slice(1)}. Your treasury is ${S.treasuries.get(p).gold} shekels. ${r.bound ?? `Nobody owes you anything, and you owe nobody: you may keep silent, or send envoys with whatever terms you like, to become a vassal, to pay to be left alone, or to serve another court${was !== null && isAlive(S, was) ? `; ${was} may come to take it back` : ""}.`}`,
+    `${r.story} ${upper(prov.name)} is yours now, ruled in your own name from a seat of your own${walls > 0 ? `, behind ${WallsWords[Math.min(walls, WallsWords.length) - 1]} walls` : ""}. ${upper(troops)}. Your treasury holds ${formatMoney(S.treasuries.get(p).gold)}. ${r.bound ?? `Nobody owes you anything, and you owe nobody: you may keep silent, or send envoys with whatever terms you like, to become a vassal, to pay to be left alone, or to serve another court${was !== null && isAlive(S, was) ? `; ${powerName(was)} may come to take it back` : ""}.`}`,
     c.id,
   );
   notify(S, p, "Notice", "The state of the realm", stateOfRealm(S, this.map, p));

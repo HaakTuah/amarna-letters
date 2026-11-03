@@ -5,17 +5,23 @@
  * beaten from where it stood falls back to a neighbouring province its side holds, or that no one holds, rather than being
  * destroyed, unless it has nowhere to go or was beaten by far. Until item 13 every unit dislodged was destroyed.
  */
+import { upper } from "../rules/wording.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BattleData, battleLosses } from "../model/command.ts";
 import { UnrestData } from "../model/unrest.ts";
 import type { Power } from "../model/power.ts";
-import { AllPowers, land } from "../model/power.ts";
+import { AllPowers, ownLand, powerName, whose } from "../model/power.ts";
 import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
 import { remember } from "../model/people.ts";
 import type { AdjudicationResult, Fight } from "../rules/adjudicator.ts";
 import { TurnEngine } from "./core.ts";
+
+/** Where a power's unit came from, unless that is the power's own name or land ("Kaska's army", not "Kaska's army from Kaska"). */
+export function cameFrom(p: Power, place: string): string {
+  return place === p || place === ownLand(p) ? "" : ` from ${place}`;
+}
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -109,8 +115,16 @@ P.battles = function (result, sightBefore) {
     }
     taken.add(to);
     result.newPositions.set(u.id, to);
-    this.tell(u.power, to, "Battle", "Fell back", `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} was beaten from it and fell back to ${this.map.get(to).name}, ${u.men} men strong.`);
-    logEvent(S, "fallback", `${u.power}'s ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");
+    this.tell(
+      u.power,
+      to,
+      "Battle",
+      "Fell back",
+      u.kind === "Fleet" && this.map.get(to).isSea && !this.map.get(u.province).isSea
+        ? `Your fleet off ${this.map.get(u.province).name} was beaten and drew off${this.map.get(to).name.startsWith(this.map.get(u.province).name) ? " to sea" : ` into ${this.map.get(to).name}`}, ${u.men} men strong.`
+        : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} was beaten from it and fell back to ${this.map.get(to).name}, ${u.men} men strong.`,
+    );
+    logEvent(S, "fallback", `${upper(whose(u.power))} ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");
   }
   // A far weaker unit beaten where it stood is destroyed, though its land held the attackers out.
   for (const u of routedInPlace) if (!destroyed.includes(u) && S.units.includes(u)) destroyed.push(u);
@@ -133,7 +147,7 @@ P.battles = function (result, sightBefore) {
     c.intercepted = true;
     this.meet(c, taker);
     remember(c, S.turn, `My army in ${this.map.get(u.province).name} was destroyed, and ${taker}'s men took me.`);
-    notify(S, taker, "Battle", "A commander taken", `Your men took ${c.name}, who commanded ${u.power}'s ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}: you may execute, question, ransom or release him.`, c.id);
+    notify(S, taker, "Battle", "A commander taken", `Your men took ${c.name}, who commanded ${whose(u.power)} ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}: you may execute, question, ransom or release him.`, c.id);
   }
   return destroyed;
 };
@@ -164,14 +178,16 @@ function battleNews(engine: TurnEngine, f: Fight, a: Unit, d: Unit, margin: numb
   const at = engine.map.get(f.at).name;
   const kind = (u: Unit): string => (u.kind === "Army" ? "army" : "fleet");
   const [aLost, dLost] = f.won ? [winnerLost, loserLost] : [loserLost, winnerLost];
-  const by = (margin >= BattleData.rout ? "by far" : margin >= 33 ? "clearly" : "narrowly") + (heldOut ? `, though the land itself held it out of ${engine.map.get(f.at).name}` : "");
+  // The margin in words: a rout, a clear win, a narrow one.
+  const degree = margin >= BattleData.rout ? 2 : margin >= 33 ? 1 : 0;
+  const won = ["won narrowly", "won clearly", "won overwhelmingly"][degree] + (heldOut ? `, though the land itself held it out of ${at}` : "");
   logEvent(
     S,
     "battle",
-    `${land(a.power)}'s ${kind(a)} from ${engine.map.get(f.from).name} fought ${land(d.power)}'s ${kind(d)} at ${at}: ${land(f.won ? a.power : d.power)} won ${by}.`,
+    `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} fought ${whose(d.power)} ${kind(d)} at ${at}: ${upper(powerName(f.won ? a.power : d.power))} ${won}.`,
     seeing,
     "battle",
   );
-  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${land(d.power)}'s ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten"} ${by}: it lost ${aLost} men.`);
-  engine.tell(d.power, f.at, "Battle", "Battle", `${land(a.power)}'s ${kind(a)} from ${engine.map.get(f.from).name} attacked your ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten back"} ${by}: your ${kind(d)} lost ${dLost} men.`);
+  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${whose(d.power)} ${kind(d)} at ${at} and ${f.won ? won : ["was narrowly beaten", "was beaten", "was badly beaten"][degree]}; your ${kind(a)} lost ${aLost > 0 ? `${aLost} men` : "no men"}.`);
+  engine.tell(d.power, f.at, "Battle", "Battle", `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} attacked your ${kind(d)} at ${at} and ${f.won ? won : ["was narrowly thrown back", "was thrown back", "was thrown back with heavy loss"][degree]}; your ${kind(d)} lost ${dLost > 0 ? `${dLost} men` : "no men"}.`);
 }
