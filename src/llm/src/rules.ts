@@ -6,7 +6,6 @@ import {
   GameConfigSchema,
   AllPowers,
   StartVassals,
-  fmt,
   parSummary,
   MaxAnswers,
   ageBand,

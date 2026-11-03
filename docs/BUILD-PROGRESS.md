@@ -68,6 +68,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
+- ~~**A grant and its end by word (bug #565)**~~ (done, #606): a grant by order, a revocation and closed roads reach
+  the grantee's court by word, its view keeping the grant until then. Save version 52. Filed: #609 (repudiation, the
+  same leak), #611. Report: `docs/rounds/2026-11-03-grants-heard.md`.
+
 - ~~**Far land as last reported (bugs #540, #589)**~~ (done, #579): a far province's economy, works, yields and
   caravans, and the realm's strength, as last reported; far harvests, works' costs and caravan news by the road. Save
   version 51. Left open: question #587 (what the treasury pays far off, paid at once). Report:
