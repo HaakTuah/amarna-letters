@@ -57,7 +57,7 @@ describe("StartingTermTests", () => {
   // that go by neighbours change), and for save version 39 (item 17++: the governors and commissioners of 1346 in their
   // posts, and the courts they were drawn from given another servant), and for save version 47 (the owner's answers to the
   // history check: Akhetaten no generated Egyptian's birthplace, so every draw after it moves, and the people of 1346 "Of"
-  // where they served; the texts the history checks corrected before it are now the fingerprint's own), and for save version 53
+  // where they served; the texts the history checks corrected before it are now the fingerprint's own), and for save version 54
   // (item 17++a: the realms named by their lands, Tjehenu, Kaska, Seir and Sutu, in the cast's texts).
   //
   test.each([
