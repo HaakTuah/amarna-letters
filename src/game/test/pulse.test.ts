@@ -16,12 +16,16 @@ describe("PulseTests", () => {
     s.turn = 4;
     const p = pulseOf(s);
     Assert.equal(50, p.letter["Egypt"]);
-    Assert.equal(4, p.mapEvery["Egypt"]);
+    Assert.equal([4, 1], [p.lived["Egypt"], p.mapHeard["Egypt"]]);
+    Assert.equal([4, 0], [p.lived["Babylonia"], p.mapHeard["Babylonia"]]);
     Assert.equal(25, p.letter["Hatti"]);
     Assert.equal(0, p.letter["Babylonia"]);
     Assert.equal(75, p.worldLetter);
     Assert.equal(25, p.worldMap);
     Assert.equal(33, p.unseen);
-    Assert.true(pulseReport([p]).includes("The pulse"));
+    // A king who heard no change of the map in any game never reads as hearing one; his seasons count where he heard none.
+    Assert.contains("Egypt 50% / 4,", pulseReport([p]));
+    Assert.contains("Babylonia 0% / never,", pulseReport([p]));
+    Assert.contains("Egypt 50% / 8,", pulseReport([p, { ...p, letter: { Egypt: 50 }, mapHeard: { Egypt: 0 } }]));
   });
 });

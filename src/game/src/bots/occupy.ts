@@ -105,7 +105,10 @@ export function obeyShare(b: Board, id: string, men: number, from: string): numb
   return Number.isFinite(t) ? Math.pow(0.9, t) : NeverShare;
 }
 
-/** Whether `p`'s army standing in `id` would hold it in the look-ahead's picture: our own only where the land would obey. */
-export function picturedHeld(b: Board, id: string, p: Power, men: number): boolean {
-  return p !== b.me || !OccupyPlay.on(b.me) || Number.isFinite(obeyIn(b, id, men));
+/**
+ * Whether `p`'s army standing in `id`, marched in from `from`, would hold it in the look-ahead's picture: our own only where
+ * the land would obey. The army is counted once, in `id`, never also as the help beside it where it marched from.
+ */
+export function picturedHeld(b: Board, id: string, p: Power, men: number, from: string): boolean {
+  return p !== b.me || !OccupyPlay.on(b.me) || Number.isFinite(obeyIn(b, id, men, from));
 }

@@ -560,7 +560,7 @@ function after(c: Ctx, r: AdjudicationResult, orders: Plan): { lost: HSet<string
     const u = at.tryGet(p);
     if (Board.Map.get(p).isSea || u === undefined) return b.ownerOf(p);
     // Item 17++a: open land we stand in is pictured ours only if its people would obey us (`occupy.ts`); a city is its siege's.
-    if (!b.walls(p) && u.power !== b.ownerOf(p) && !picturedHeld(b, p, u.power, u.kind === "Army" ? menIn(u) : 0)) return b.ownerOf(p);
+    if (!b.walls(p) && u.power !== b.ownerOf(p) && !picturedHeld(b, p, u.power, u.kind === "Army" ? menIn(u) : 0, u.province)) return b.ownerOf(p);
     return !b.walls(p) || u.power === b.ownerOf(p) || stormed.has(p) || falls(p, u) ? u.power : b.ownerOf(p);
   };
   return { lost, at, owner };

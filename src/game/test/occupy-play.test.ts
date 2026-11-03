@@ -2,7 +2,7 @@ import { describe, test } from "vitest";
 import { Views, newGame, newGameConfig, removeAll, single } from "@amarna/engine";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
-import { OccupyPlay, obeyIn } from "../src/bots/occupy.ts";
+import { OccupyPlay, obeyIn, picturedHeld } from "../src/bots/occupy.ts";
 import { Tactics } from "../src/bots/tactics.ts";
 import { Assert, smallWorld } from "../../engine/test/support.ts";
 
@@ -31,6 +31,19 @@ describe("OccupyPlayTests", () => {
     // Babylonia's own Suhu, with its love for its king fresh, does not obey a lone army of a thousand.
     const g = newGame(1, newGameConfig({ catastropheChance: 0 }));
     Assert.false(Number.isFinite(obeyIn(new Board(Views.for(g, "Assyria")), "suhu", 1000)));
+  });
+
+  test("The look-ahead counts a marching army once, in the land it enters, never also as the help beside it", () => {
+    // Hatti's army still in Hattusa, beside a Kaska with more men than its own measure; it would march in with 3,500.
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Kaska");
+    removeAll(s.units, (u) => u.power === "Kaska");
+    const sv = Views.for(s, "Hatti");
+    sv.resistance.set("kaska", 2000);
+    const b = new Board(sv);
+    // Counted twice (in Kaska and next door in Hattusa), 3,500 men would make it obey; counted once, never.
+    Assert.true(Number.isFinite(obeyIn(b, "kaska", 3500)));
+    Assert.false(Number.isFinite(obeyIn(b, "kaska", 3500, "hattusa")));
+    Assert.false(picturedHeld(b, "kaska", "Hatti", 3500, "hattusa"));
   });
 
   test("An army standing in land that would obey stays there until it does; a king that ignores obedience does not keep it", () => {

@@ -172,6 +172,9 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
       }
     }
   }
+  // Item 17++a: a king who wages his war on a friend whose bond he does not keep is turning on him, in everything he does.
+  const target = brain.warTarget;
+  if (brain.betraying === null && target !== null && WarPlay.on(me) && brain.isFriend(target) && !keptBond(brain, target)) brain.betraying = target;
 }
 
 /**

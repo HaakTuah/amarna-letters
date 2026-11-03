@@ -130,6 +130,13 @@ checked instead by 10 script games on the same seeds before and after: the summa
 - **Breaking a plain peace for the war he chose is competent play.** A king already prices the peace into his choice
   (honesty, trust); refusing to act on a choice so weighed is the weakness. Bonds that carry more (an ally true to his oath,
   an overlord, a paying vassal) are never the war.
+- **The item's cause "events that happen but never reach a seat" is measured, and its fix deferred to a design
+  decision.** Few events reach no seat at all (7.6% of the letter-worthy); what a king misses is what others saw far from
+  him. Under "Nothing is known at a distance" word travels only with someone carrying it, and how far a court's news
+  should spread (vassals and allies reporting, rumour of the greatest events) is a rule with costs to hidden information,
+  so it goes to the design session as #618 rather than being invented here. Script kings already tell their
+  correspondents of troops and strength (`newsTroops`, `newsStrength` clauses); telling of conquests they saw is play
+  the same idea could add, but it would not change what a seat's events show, so it is left to #618 with the rest.
 - **The target is not reached, and the item says so** rather than inventing a rule to reach it: the rest needs news to
   travel beyond sight, a rule of its own (#618), under "No stopgaps".
 
