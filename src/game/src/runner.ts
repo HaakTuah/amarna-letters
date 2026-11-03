@@ -65,7 +65,6 @@ import {
   ownedBy,
   newMindRequest,
   MaxSpeech,
-  findCharacter,
 } from "@amarna/engine";
 import {
   PresentResultSchema,
@@ -87,7 +86,7 @@ import { Council } from "./bots/council.ts";
 import { ScriptLeader } from "./bots/script-leader.ts";
 import { ScriptMind } from "./bots/script-mind.ts";
 import { TemplateNarrator } from "./bots/template-narrator.ts";
-import { threadWords } from "./bots/thread-words.ts";
+import { threadNames, threadWords } from "./bots/thread-words.ts";
 import { ThreadsSchema, findThreads, threadsKey, type Thread } from "./threads.ts";
 
 /** A log saved under another version of the rules: it can be neither replayed nor continued. */
@@ -158,6 +157,7 @@ export class GameRunner {
   readonly chronicles = new Dict<Power, string>();
   /** The annals told anew at the game's owner's asking, each power's in the order told, the first telling kept in `chronicles`. */
   readonly chroniclesAnew = new Dict<Power, string[]>();
+  private tellingAnew: Promise<unknown> = Promise.resolve();
   phase = "Ready";
   readonly errors: string[] = [];
   /** Called whenever the phase changes. */
@@ -793,13 +793,14 @@ export class GameRunner {
   private async threads(turn: number, signal?: AbortSignal): Promise<void> {
     let kept: Thread[] | undefined; // found only if told now: a season read back from the record finds nothing
     const found = (): Thread[] => (kept ??= findThreads(this.state, turn));
-    await this.recorded<Thread[]>(threadsKey(turn), ThreadsSchema, () => this.wordThreads(found(), turn, this.narrator, signal), () => this.wordThreads(found(), turn, new TemplateNarrator()), this.narrator.label, true);
+    await this.recorded<Thread[]>(threadsKey(turn), ThreadsSchema, () => this.wordThreads(found(), turn, this.state, this.narrator, signal), () => this.wordThreads(found(), turn, this.state, new TemplateNarrator()), this.narrator.label, true);
     for (let n = 1; this.replay?.has(threadsKey(turn, n)) === true; n++) await this.recorded<Thread[]>(threadsKey(turn, n), ThreadsSchema, () => Promise.resolve([]));
   }
 
-  private async wordThreads(found: readonly Thread[], turn: number, narrator: INarrator, signal?: AbortSignal): Promise<Thread[]> {
+  /** `at` is the state the season ended in, so each court's names are those it knew then (a false name exposed since stays unspoken). */
+  private async wordThreads(found: readonly Thread[], turn: number, at: GameState, narrator: INarrator, signal?: AbortSignal): Promise<Thread[]> {
     const threads = found.map((t) => ({ ...t, text: "" }));
-    const names = Object.fromEntries(threads.filter((t) => t.person !== "").map((t) => [t.person, findCharacter(this.state, t.person)?.name ?? ""]));
+    const names = threadNames(at, threads);
     const words = await narrator.threads({ turn, threads, names }, signal);
     return threads.map((t, i) => ({ ...t, text: (words[i] ?? "").trim() || threadWords(t, names) }));
   }
@@ -815,11 +816,21 @@ export class GameRunner {
    * The game's owner asks for a season's threads to be told anew ("which keeps the first telling beside the new"): the
    * narrator words the same threads again, kept under a key of their own; the first telling stands.
    */
-  async tellThreadsAnew(turn: number, signal?: AbortSignal): Promise<Thread[][]> {
-    const told = this.tellings(turn);
-    if (told.length === 0) return told;
-    await this.recorded<Thread[]>(threadsKey(turn, told.length), ThreadsSchema, () => this.wordThreads(told[0], turn, this.narrator, signal), () => this.wordThreads(told[0], turn, new TemplateNarrator()), this.narrator.label, true);
-    return this.tellings(turn);
+  tellThreadsAnew(turn: number, signal?: AbortSignal): Promise<Thread[][]> {
+    return this.oneAtATime(async () => {
+      const told = this.tellings(turn);
+      if (told.length === 0) return told;
+      const at = this.stateAt(turn) ?? this.state;
+      await this.recorded<Thread[]>(threadsKey(turn, told.length), ThreadsSchema, () => this.wordThreads(told[0], turn, at, this.narrator, signal), () => this.wordThreads(told[0], turn, at, new TemplateNarrator()), this.narrator.label, true);
+      return this.tellings(turn);
+    });
+  }
+
+  /** Tellings anew run one after another in the order asked, so each takes the next key only once the one before is kept. */
+  private oneAtATime<T>(tell: () => Promise<T>): Promise<T> {
+    const next = this.tellingAnew.then(tell, tell);
+    this.tellingAnew = next.catch(() => undefined);
+    return next;
   }
 
   private chronicleContext(p: Power): ChronicleContext {
@@ -857,12 +868,14 @@ export class GameRunner {
   }
 
   /** The game's owner asks for the annals to be told anew: each court's written again beside its first telling, which stands. */
-  async tellChroniclesAnew(signal?: AbortSignal): Promise<void> {
-    for (const p of [...this.chronicles.keys()]) {
-      const ctx = this.chronicleContext(p);
-      const key = chronicleKey(p, (this.chroniclesAnew.tryGet(p)?.length ?? 0) + 1);
-      this.anew(p, await this.recorded<string>(key, S, () => this.narrator.chronicle(ctx, signal), () => new TemplateNarrator().chronicle(ctx, signal), this.narrator.label, true));
-    }
+  tellChroniclesAnew(signal?: AbortSignal): Promise<void> {
+    return this.oneAtATime(async () => {
+      for (const p of [...this.chronicles.keys()]) {
+        const ctx = this.chronicleContext(p);
+        const key = chronicleKey(p, (this.chroniclesAnew.tryGet(p)?.length ?? 0) + 1);
+        this.anew(p, await this.recorded<string>(key, S, () => this.narrator.chronicle(ctx, signal), () => new TemplateNarrator().chronicle(ctx, signal), this.narrator.label, true));
+      }
+    });
   }
 
   /** The state at the end of a given turn (0 = start), from the snapshots. */

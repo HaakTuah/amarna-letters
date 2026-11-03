@@ -2,7 +2,7 @@
  * The template narrator's words for the threads to watch (item 17+++, part F): each thread worded from its own facts
  * alone, naming powers as the eyes it was found for name them, and adding nothing the engine did not release.
  */
-import { WorldMap, asSeenBy, land, type Power } from "@amarna/engine";
+import { WorldMap, asSeenBy, findCharacter, land, nameKnownAt, type GameState, type Power } from "@amarna/engine";
 import type { Thread } from "../threads.ts";
 
 const place = (id: string): string => WorldMap.default.find(id)?.name ?? id;
@@ -47,9 +47,22 @@ function rising(t: Thread, who: string): string {
   return `The people of ${where} would follow ${who} against ${t.to !== "" ? land(t.to) : "their masters"}: a rising may break out next season.`;
 }
 
-/** One thread's words; `names` gives the people it follows by id. */
+/** The key a thread's person is named under: each court knows a man by its own name for him, god view by his true one. */
+export const nameKey = (t: Pick<Thread, "court" | "person">): string => `${t.court}/${t.person}`;
+
+/** The names the threads' people go by, each as its thread's court knows him (a false name it was given stands), from the season's state. */
+export function threadNames(s: GameState, threads: readonly Thread[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const t of threads) {
+    const c = t.person === "" ? null : findCharacter(s, t.person);
+    if (c) out[nameKey(t)] = t.court === "" ? c.name : nameKnownAt(c, t.court as Power);
+  }
+  return out;
+}
+
+/** One thread's words; `names` gives the people it follows, keyed by `nameKey`. */
 export function threadWords(t: Thread, names: Readonly<Record<string, string>>): string {
   const own = t.court === "" ? null : t.court;
-  const who = names[t.person] || (t.kind === "envoy" ? "An envoy" : "a man");
+  const who = names[nameKey(t)] || (t.kind === "envoy" ? "An envoy" : "a man");
   return asSeenBy(own, () => (t.kind === "siege" ? siege(t, own) : t.kind === "envoy" ? envoy(t, who, own) : t.kind === "rising" ? rising(t, who) : ""));
 }

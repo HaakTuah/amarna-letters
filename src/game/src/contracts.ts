@@ -208,7 +208,8 @@ export interface CheckContext {
 
 /**
  * The season's threads to watch for the narrator to word (threads.ts): each found for one pair of eyes (`Thread.court`),
- * to be worded from its own facts alone, with the names of the people they follow as the engine knows them.
+ * to be worded from its own facts alone, with the names of the people they follow, each as its thread's court knows him
+ * (keyed by `nameKey`).
  */
 export interface ThreadContext {
   turn: number;

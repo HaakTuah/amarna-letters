@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Views, WorldMap, newGame, newSiege, newUnit, type Power } from "@amarna/engine";
+import { Views, WorldMap, newDeclared, newGame, newSiege, newUnit, type Power } from "@amarna/engine";
 import {
   GameLog,
   GameRunner,
@@ -9,6 +9,7 @@ import {
   findThreads,
   newThread,
   seatThreads,
+  threadNames,
   threadWords,
   threadsFor,
   threadsKey,
@@ -90,12 +91,16 @@ describe("ThreadTests", () => {
     const envoy = s.characters.find((c) => c.id === j!.characterId)!;
     const briber = (["Egypt", "Hatti", "Mitanni", "Assyria", "Babylonia"] as Power[]).find((p) => p !== j!.from && p !== j!.to)!;
     envoy.secretMaster = briber;
-    const names = { [envoy.id]: envoy.name };
     const god = worldThreads(s, s.turn).find((t) => t.person === envoy.id)!;
     Assert.equal([j!.from, j!.to, briber, j!.dispatch!.trailId], [god.from, god.to, god.power, god.trail]);
+    const own = seatThreads(Views.for(s, j!.from), s).find((t) => t.person === envoy.id)!;
+    // His king knows him by the name he gave there; only god view names him truly.
+    envoy.declared.push(newDeclared({ court: j!.from, name: "Ruzi-the-false", turn: s.turn }));
+    const names = threadNames(s, [god, own]);
     Assert.contains(`${envoy.name}, envoy of`, threadWords(god, names));
     Assert.contains(`pay`, threadWords(god, names));
-    const own = seatThreads(Views.for(s, j!.from), s).find((t) => t.person === envoy.id)!;
+    Assert.contains("Ruzi-the-false", threadWords(own, names));
+    Assert.false(threadWords(own, names).includes(envoy.name));
     Assert.equal("", own.power);
     Assert.contains("is away with your letter", threadWords(own, names));
     Assert.false(threadWords(own, names).includes("pay"));
@@ -170,7 +175,7 @@ describe("ThreadTests", () => {
   });
 
   test("A shared log whose threads are malformed fails to load, cleanly", () => {
-    const good = newThread({ court: "", kind: "siege", province: "assur", from: "Mitanni", to: "Assyria", moved: 0.2, text: "Mitanni besieges Assur." });
+    const good = newThread({ court: "", kind: "siege", province: WorldMap.default.capital("Assyria").id, from: "Mitanni", to: "Assyria", moved: 0.2, text: "Mitanni besieges Assur." });
     const line = (v: unknown): string => `{"type":"decision","key":"t2/threads","value":${JSON.stringify(v)}}`;
     Assert.true(GameLog.fromJsonl(line([good])).has("t2/threads"));
     for (const bad of [
@@ -180,6 +185,8 @@ describe("ThreadTests", () => {
       { ...good, moved: "0.2" },
       { ...good, soon: "true" },
       { ...good, court: "Egypt\u0007" },
+      { ...good, court: "Atlantis" },
+      { ...good, province: "nowhere" },
       { ...good, text: "x".repeat(3000) },
       { ...good, extra: 1 },
       Object.fromEntries(Object.entries(good).filter(([k]) => k !== "text")),

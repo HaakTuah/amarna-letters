@@ -16,6 +16,7 @@
  * most (`capital`).
  */
 import {
+  AllPowers,
   B,
   D,
   EconomyData,
@@ -259,6 +260,9 @@ export function readThreads(json: string): Thread[] {
     typeof n.kind === "string" &&
     Kinds.includes(n.kind) &&
     [n.court, n.province, n.person, n.trail, n.from, n.to, n.power].every(id) &&
+    // The map and the seats it points at must be there: a place the map lacks would throw when shown or followed.
+    (n.province === "" || WorldMap.default.exists(n.province as string)) &&
+    (n.court === "" || AllPowers.includes(n.court as Power)) &&
     typeof n.gold === "number" &&
     Number.isInteger(n.gold) &&
     n.gold >= 0 &&
