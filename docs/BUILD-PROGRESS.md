@@ -65,6 +65,13 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **Gold travels both ways** (the owner, 3 November 2026; #587; archive item 186; "One treasury, many stores" under
+  Land, people and economy, revision 35): what is done far off (a caravan's porters, works paid in gold, grain bought
+  at a far market) is paid only from gold that is there: sent with the order up front, the caravan's own load, the
+  province's own stores, taxes or corvée, or a contract's terms with a bill carried home. The treasury moves only when
+  gold leaves it or a carrier brings a payment or a bill home; the twin canary's listed leak under #587 then goes. A
+  save version.
+
 - **The owner's answers of 3 November, morning** (archive item 185):
   - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
     honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
