@@ -33,6 +33,13 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       return spend(buyAlongCurve(m?.stock ?? 0, needOf(Map.get(order.province)), Number.MAX_SAFE_INTEGER, order.amount).paid);
     }
 
+    case "send": {
+      if (isBlank(order.province) || !Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
+      if (v.knownOwner(order.province) !== power) return `you do not hold ${Map.get(order.province).name}: gold goes abroad with an envoy, a gift or a caravan`;
+      if (!(order.gold > 0)) return "name how many shekels to send";
+      return spend(order.gold);
+    }
+
     case "caravan": {
       if (isBlank(order.from) || isBlank(order.to)) return "name the province the caravan sets out from and the one it goes to";
       for (const x of [order.from, order.to]) if (!Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;

@@ -53,6 +53,7 @@ import {
   sell,
   purchase,
   feed,
+  send,
   caravan,
   trade,
   ship,
@@ -490,6 +491,8 @@ function other(x: Node): Order | null {
       return feed(province, amount);
     case "feed_town_in_own_name":
       return feed(province, amount, true);
+    case "send_gold":
+      return send(province, amount);
     case "caravan": {
       const to = empty(S(x, "to"));
       return caravan(province, to !== null ? prov(to) : "", amount);

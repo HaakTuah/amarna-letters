@@ -42,6 +42,11 @@ export interface Caravan {
   since: number;
   /** The gold it carries (item 9+b): to buy grain with at the market it trades at, or the proceeds it brings home. */
   gold: number;
+  /**
+   * Its porters' (a ship's, its crew's) pay for the road, carried with it from where it set out (#587, "One treasury, many
+   * stores"): each season's pay comes out of it, then out of the gold it carries, and the treasury pays nothing on the road.
+   */
+  pay: number;
   /** It trades at the market of `to` (item 9+b): sells its grain there and buys grain with its gold. */
   trade: boolean;
   /** It goes off the road and round the toll posts, paying no tolls (item 9+b, "Tolls and smuggling"). */
@@ -64,7 +69,7 @@ export interface Caravan {
 }
 
 export function newCaravan(init: Partial<Caravan> = {}): Caravan {
-  return { id: "", power: "Egypt", from: "", to: "", grain: 0, route: [], at: 0, points: 0, returning: false, since: 0, gold: 0, trade: false, sneak: false, ship: null, word: newWord(), archive: [], archiveOf: "", trail: [], ...init };
+  return { id: "", power: "Egypt", from: "", to: "", grain: 0, route: [], at: 0, points: 0, returning: false, since: 0, gold: 0, pay: 0, trade: false, sneak: false, ship: null, word: newWord(), archive: [], archiveOf: "", trail: [], ...init };
 }
 
 export const CaravanSchema: ObjSchema<Caravan> = obj("Caravan", newCaravan, {
@@ -79,6 +84,7 @@ export const CaravanSchema: ObjSchema<Caravan> = obj("Caravan", newCaravan, {
   returning: B,
   since: I,
   gold: I,
+  pay: I,
   trade: B,
   sneak: B,
   ship: opt(() => UnitSchema),

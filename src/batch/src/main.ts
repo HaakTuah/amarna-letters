@@ -105,6 +105,7 @@ const o: BatchOptions = {
   wallPlayHalf: false,
   noWorksPlay: false,
   worksPlayHalf: false,
+  cofferPlayHalf: false,
   noCaravanPlay: false,
   caravanPlayHalf: false,
   clausePlay: true,
@@ -279,6 +280,10 @@ for (let i = 0; i < args.length; i++) {
     case "--works-play-half":
       // Half the script kings build only walls and keep what stands by corvée (item 15), alternating by seed.
       o.worksPlayHalf = true;
+      break;
+    case "--coffer-play-half":
+      // Half the script kings send no gold ahead to their far coffers (#587), alternating by seed.
+      o.cofferPlayHalf = true;
       break;
     case "--no-caravan-play":
       o.noCaravanPlay = true;
@@ -540,7 +545,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --size-weight PERCENT --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-upkeep-play --upkeep-play-half --no-remnant-play --remnant-play-half --no-count-play --count-play-half --no-grant-play --grant-play-half --no-take-up-play --take-up-play-half --no-region-play --region-play-half --no-audit-play --audit-play-half --no-talk-play --talk-play-half --no-occupy-play --occupy-play-half --no-war-play --war-play-half --no-spy-check-play --spy-check-play-half --no-outlaw-play --outlaw-play-half --no-vassal-play --vassal-play-half --no-command-play --command-play-half --no-freedom-play --freedom-play-half --council-play-half --no-season-play --season-play-half --no-wall-play --wall-play-half --no-works-play --works-play-half --no-caravan-play --caravan-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --size-weight PERCENT --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-upkeep-play --upkeep-play-half --no-remnant-play --remnant-play-half --no-count-play --count-play-half --no-grant-play --grant-play-half --no-take-up-play --take-up-play-half --no-region-play --region-play-half --no-audit-play --audit-play-half --no-talk-play --talk-play-half --no-occupy-play --occupy-play-half --no-war-play --war-play-half --no-spy-check-play --spy-check-play-half --no-outlaw-play --outlaw-play-half --no-vassal-play --vassal-play-half --no-command-play --command-play-half --no-freedom-play --freedom-play-half --council-play-half --no-season-play --season-play-half --no-wall-play --wall-play-half --no-works-play --works-play-half --coffer-play-half --no-caravan-play --caravan-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
       );
       process.exit(0);
     default:
@@ -730,6 +735,8 @@ if (o.seasonPlayHalf && results.length > 0)
   console.log("\nScript kings that reckon the tax and famines by the granaries, raise smaller levies, choose how many mouths to put out, deport by safe roads, grant passage by order, post watching spies and strike by sea in winter (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.worksPlayHalf && results.length > 0)
   console.log("\nScript kings that build relay stations and roads to their far provinces, police their bandit country, raise harbours for their fleets, dig water works, repair their walls under siege and raze a besieged foe's stations (\"current\") against those that build only walls (\"baseline\"):" + versusReport(results, sides));
+if (o.cofferPlayHalf && results.length > 0)
+  console.log("\nScript kings that send gold ahead to their far provinces' coffers (\"current\") against those that leave them to pay their own way and run on credit (\"baseline\"):" + versusReport(results, sides));
 if (o.wallPlayHalf && results.length > 0)
   console.log("\nScript kings that reckon a storm by the city's men on its walls (\"current\") against those that reckon only the walls and the garrison (\"baseline\"):" + versusReport(results, sides));
 if (o.caravanPlayHalf && results.length > 0)

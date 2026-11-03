@@ -36,6 +36,9 @@ export function economyLines(v: SeatView): string[] {
     // Bug #540: those beyond its couriers' season, as their officials' last report has them.
     const reported = ps.filter((x) => x.reported !== null);
     if (reported.length > 0) lines.push(`- Known by their last report, beyond your couriers' season: ${join(", ", reported.map((x) => `${x.province} as reported in turn ${x.reported}`))}.`);
+    // #587: the gold kept far off, and what is owed there, as last reported (GOLD FAR OFF).
+    const coffers = ps.filter((x) => x.coffer > 0 || x.owed > 0);
+    if (coffers.length > 0) lines.push(`- Coffers of your far provinces, as last reported: ${join(", ", coffers.map((x) => `${x.province} ${x.coffer} shekels${x.owed > 0 ? `, owing ${x.owed} (no credit there until paid)` : ""}`))}.`);
     const spare = sortBy(ps.filter((x) => x.stores >= 20), [(x) => x.stores, desc(cmpNum)]).slice(0, 8);
     if (spare.length > 0) lines.push(`- Grain in store: ${join(", ", spare.map((x) => `${x.province} ${stewards(x.stores)} of ${x.capacity}${x.stores + x.tax > x.capacity ? " (full: the next tax will not fit)" : ""}`))}.`);
     const short = ps.filter((x) => x.stock < x.need);
@@ -54,6 +57,7 @@ export function economyLines(v: SeatView): string[] {
     lines.push(`- Your troops' grain: ${join(", ", mine.map((u) => `${kind(u.kind)} ${u.province} ${u.food}/${u.carried}${u.hungry > 0 ? `, hungry ${u.hungry}` : ""}${u.unpaid > 0 ? `, unpaid ${u.unpaid}` : ""}${u.kind === "Army" ? `, ${u.buy ? "buys" : "takes"} its food${u.chest > 0 ? ` (carries ${u.chest} shekels for it)` : ""}` : ""}`))}.`);
   }
   // Item 17: words on the armies' food, with gold, still on the road.
+  if (v.goldSent.length > 0) lines.push(`- Gold on the road with your couriers to your far coffers: ${join(", ", v.goldSent.map((g) => `${g.gold} shekels to ${g.province}, arriving turn ${g.at}`))}.`);
   if (v.foodSent.length > 0) lines.push(`- Words on your armies' food on the road: ${join(", ", v.foodSent.map((f) => `to ${f.province}, ${f.buy ? "buy" : "take"}${f.gold > 0 ? `, ${f.gold} shekels` : ""}, arriving turn ${f.at}`))}.`);
   if (v.caravans.length > 0)
     lines.push(

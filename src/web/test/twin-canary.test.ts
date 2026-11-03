@@ -75,8 +75,7 @@ const isDict = (x: unknown): x is Record<string, unknown> => typeof x === "objec
 function differences(a: GameState, b: GameState, p: Power): string[] {
   const [va, vb] = [a, b].map((s) => JSON.parse(serialize(SeatViewSchema, Views.for(s, p))) as Record<string, unknown>);
   const out: string[] = [];
-  // The treasury's balance in its notice is `view.gold`'s, compared there: a known gold leak (#587) excuses only that.
-  const notice = (i: { title: string; body: string }) => `${i.title}: ${i.body.replace(/The treasury now holds [^;]*;/, "The treasury now holds (as view.gold);")}`;
+  const notice = (i: { title: string; body: string }) => `${i.title}: ${i.body}`;
   const [ia, ib] = [va, vb].map((v) => (v.inbox as { title: string; body: string }[]).map(notice));
   for (const x of ia.filter((x) => !ib.includes(x))) out.push(`only where true: ${x}`);
   for (const x of ib.filter((x) => !ia.includes(x))) out.push(`only where false: ${x}`);
@@ -258,16 +257,9 @@ const siegeAfterOrders: Twin = {
 
 /**
  * Leaks still open, each with its issue and the twins it may show in: a difference matching one there is not counted
- * here, and each must still be found, so the list shrinks as they are fixed. Question #587: what the treasury pays for far
- * off (a far caravan's porters, a far province's works paid in gold) leaves it before word of the order's outcome could
- * come, so its gold and the strength reckoned from it differ (the treasury notice's balance is compared as `view.gold`);
- * only in the twins whose orders spend far off, so no other leak of gold hides behind it.
+ * here, and each must still be found, so the list shrinks as they are fixed.
  */
-const SpendFar = ["a far province lost after orders for it set out", "a far siege begun after orders set out", "far works paid in gold, the province lost after orders set out", "far works paid in gold, a siege begun after orders set out"];
 const Known: { issue: number; what: string; twins: string[]; is: (difference: string) => boolean }[] = [
-  ...["strength", "gold"].map((k) => ({ issue: 587, what: `view.${k}`, twins: [...SpendFar, "a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}: `) })),
-  // The pay of a far levy's army leaves the treasury at once, as the levy's price does (#587).
-  { issue: 587, what: "the treasury notice's troops' pay", twins: ["a far levy that raised nothing"], is: (d: string) => /^only where (true|false): The treasury: .*Paid: your troops/.test(d) },
   // A far levy's army is shown at once, its upkeep counted and the orders waiting for it bound to it, before word of its
   // raising could come (#600, the far unit known by its reports).
   ...["units", "upkeep"].map((k) => ({ issue: 600, what: `view.${k} (a far levy's army)`, twins: ["a far levy that raised nothing"], is: (d: string) => d.startsWith(`view.${k}`) })),

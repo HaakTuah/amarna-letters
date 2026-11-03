@@ -54,6 +54,8 @@ export function describe(o: Order): string {
       return `buy ${o.amount} measures of grain at the market of ${named(o.province)}`;
     case "feed":
       return `hand ${o.amount} measures of grain to the town of ${named(o.province)}${o.own === true ? ", in your own name" : ""}`;
+    case "send":
+      return `send ${o.gold} shekels with your couriers to the coffer of ${named(o.province)}`;
     case "caravan":
       return `send a caravan with ${o.amount} measures of grain from ${named(o.from)} to ${named(o.to)}`;
     case "trade":

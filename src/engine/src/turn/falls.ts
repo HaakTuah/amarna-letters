@@ -110,9 +110,8 @@ P.credit = function (p, gold, province, income = true) {
     this.spendAt(province, gold);
     return;
   }
-  const t = S.treasuries.get(to);
-  t.gold += gold;
-  if (income) t.income += gold;
+  // #587: gold taken in a far province of his goes into its coffer, as its own gold does.
+  this.receiveAt(to, province, gold, income);
 };
 
 P.fallenUnit = function (u, p) {

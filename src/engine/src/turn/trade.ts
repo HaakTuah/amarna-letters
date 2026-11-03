@@ -165,10 +165,10 @@ P.atBorder = function (c, a, b, book) {
       return "pass";
     }
     const lost = this.putInStores(b, c.grain);
-    this.credit(k, c.gold, b);
+    this.credit(k, c.gold + c.pay, b);
     const e = entry();
     e.grain += c.grain - lost;
-    e.gold += c.gold;
+    e.gold += c.gold + c.pay;
     e.found++;
     const who = c.sneak ? "smugglers" : "caravan, sneaking through land closed to you,";
     this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${k}'s people, and ${c.sneak ? "their" : "its"} goods were seized: ${c.grain} measures of grain${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""}.`);
@@ -291,6 +291,9 @@ P.tradeTogether = function (cs, parts) {
  */
 P.caravanHome = function (c) {
   const S = this.s;
+  // The pay it did not need comes home with its load (#587).
+  c.gold += c.pay;
+  c.pay = 0;
   const at = caravanAt(c);
   const name = this.map.get(at).name;
   const parts: string[] = [];
@@ -403,20 +406,25 @@ P.sendTraders = function (orders, tell) {
       fail(`Nothing set out from ${from.name} for ${to.name}: there is no ${o.type === "ship" ? "sea route" : "road open to your caravans"} there.`, "no route");
       continue;
     }
-    const t = S.treasuries.get(p);
-    const gold = Math.min(Math.max(0, t.gold), o.gold);
+    // #587: the gold it carries, and its porters' pay for the road, are the gold that is there: the treasury's near, the
+    // province's coffer far.
+    const gold = Math.min(this.goldAt(p, o.from), o.gold);
     const grain = this.takeFromStores(o.from, Math.min(o.grain, o.type === "ship" ? TradeData.shipCapacity : o.grain));
     if (grain + gold <= 0) {
       fail(`Nothing set out from ${from.name}: its stores were empty and no gold was sent.`, "nothing to carry");
       continue;
     }
-    t.gold -= gold;
     const trading = o.type === "trade" || o.trade;
+    const c = newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, gold, route, since: S.turn, trade: trading, sneak: o.type === "trade" && o.sneak, ship: fleet });
+    const pay = this.payLoad(c);
+    if (!this.takeAt(p, o.from, gold + pay)) {
+      this.putInStores(o.from, grain);
+      fail(`Nothing set out from ${from.name}: there was too little gold ${this.isFar(p, o.from) ? "in its coffer" : "in the treasury"} for its ${o.type === "ship" ? "crew's" : "porters'"} pay on the road (${formatMoney(pay)}) besides what it was to carry.`, "too little gold for its pay");
+      continue;
+    }
+    c.pay = pay;
     if (fleet !== null) S.units.splice(S.units.indexOf(fleet), 1);
-    setOut(
-      S,
-      newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, gold, route, since: S.turn, trade: trading, sneak: o.type === "trade" && o.sneak, ship: fleet }),
-    );
+    setOut(S, c);
     const what = `${grain} measures of grain${gold > 0 ? ` and ${formatMoney(gold)}` : ""}`;
     if (fleet !== null) tell(p, o.from, `Your fleet in ${Map.get(fleet.province).name} loaded ${what} at ${from.name} and sailed for ${to.name} to ${trading ? "trade" : "deliver it"}: it is out of the war until it is back.`);
     else tell(p, o.from, `A caravan${o.type === "trade" && o.sneak ? " of smugglers" : ""} with ${what} set out from ${from.name} to trade at ${to.name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
