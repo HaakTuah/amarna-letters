@@ -7,15 +7,16 @@ web app's drawing and its drawing scripts only: no rule, number or save version 
 
 ## Markers never overlap (`svg-renderer.ts`, `placeNames`; `styles/map-uncluttered.css`)
 
-- After every render and every zoom, once whatever slides has stopped, the renderer measures every marker as drawn and
-  places them greedily, most important first. A city comes in `NameOrder` (a Great King's capital, then the other
-  capitals and the fortresses, then the rest by yield) with its badge, its counters, its people at court and its news.
-  Where none of them touches a marker already placed, all are shown. Where one would, the city shows its small seal (the
-  seal at 45 percent, no rings or emblem; a dark rim when troops of its stand hidden) and its counters, people and news
-  give way; where even the small seal would touch, the city's mark gives way too and its province's colour says who
-  holds it. Then the fleets at sea, the units destroyed this season, the travellers and the marks of the crossings, each
-  where it touches nothing placed. Then the names, as item 11c+ placed them. The traveller or person being followed is placed first. Everything is
-  measured before any class changes, so a pass costs one layout.
+- After every render and every zoom, once whatever slides has stopped, the renderer measures every marker as drawn
+  (each seal with its rim, half its stroke past its fill) and places them greedily, most important first. A city comes
+  in `NameOrder` (a Great King's capital, then the other capitals and the fortresses, then the rest by yield) with its
+  badge, its counters, its people at court and its news. Where none of them touches a marker already placed, all are
+  shown. Where one would, the city shows its small seal (the seal at 45 percent, no rings or emblem; a dark rim when
+  troops of its stand hidden) and its counters, people and news give way; where even the small seal would touch, the
+  city's mark gives way too and its province's colour says who holds it. Then the fleets at sea, the units destroyed
+  this season, the travellers and the marks of the crossings, each where it touches nothing placed. Then the names, as
+  item 11c+ placed them. The traveller or person being followed is placed first. Everything is measured before any
+  class changes, so a pass costs one layout.
 - Everything zooms back as the map is zoomed in: at the closest zoom nearly every badge is full.
 - So that a city's own markers never touch each other, the counters stand above the city clear of its outermost ring
   (`--ring`, which grows with the walls), its people in rows of three to its left and its news to its right.

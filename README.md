@@ -99,7 +99,8 @@ rumours, and those can be late, shaded or false.
 **Command at a distance.**
 - Your court is where you are, and you may move it. An order for a place your couriers cannot reach this season goes
   out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped. Orders are checked
-  against what your court knows: one for land lost out of your sight goes out, and you hear it failed when word comes.
+  against what your court knows: one for land lost or besieged out of your sight goes out, and you hear how it went when
+  word comes, as you hear of a siege of a far city of yours.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
   holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
   his seat; if he loses or gives up the province he sits in, he sits in another, and a loyal one writes to tell you where,
@@ -135,7 +136,11 @@ rumours, and those can be late, shaded or false.
   troops stand in it (within its walls), to a man of standing there whose following outweighs you, if he chooses to lead
   them (he rules it in his own name), or, if it bears you nothing, to nobody. Nothing is thrust on you: a province whose
   people favour you while your troops are not there declares for you, and is yours only if you take it up (the orders
-  panel's "Provinces that look to you"); refusing it costs you a little of its people's regard. Land ceded to you by
+  panel's "Provinces that look to you"); refusing it costs you a little of its people's regard. Its offer reaches you
+  only if someone carries it: your spy watching it, a man of yours going your way, or one its people pay if they are far
+  gone in your favour (the notice says who brought it). Talk of its leaning comes first, to you, its king and his
+  enemies alike; it is no offer, and a carrier may sell what he knows. A carrier caught on the road loses it to his
+  captor, who reads the people's words as they wrote them. Land ceded to you by
   treaty is the same: a claim its giver holds until you take it up. A rising against your troops is fought as a
   battle, and seven men among thousands who lean away are beaten. The men of your armies keep a ledger too: pay, plunder
   and victories bind them to the hand they see, so a commander or governor who turns takes only the men who follow him. A
@@ -149,7 +154,9 @@ waits until someone at court can read it, and people learn the tongues of where 
 
 Walls stand where the sources put them. Hattusa, Washukanni, Ashur and Babylon have walls of level 3, as do
 Qatna, Qadesh and Hazor; Apasa, Enkomi and the great fortresses (Carchemish, Aleppo, Ugarit, Arwad, Byblos, Tyre,
-Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's new city of Akhetaten has none.
+Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's new city of Akhetaten has none,
+nor has Nesa, old Kanesh, whose mound shows no Late Bronze town. Towns are as large as the sources reckon them:
+Waset (Thebes), Egypt's great southern city, about 70,000 people.
 
 - **Storming.** Walls add nothing to a field battle. A move into a walled city takes it at once only
   if its strength also beats the walls plus the defenders.
@@ -161,6 +168,9 @@ Shechem, Gaza, Nubia and Susa) have 2; most other towns have 1, and Pharaoh's ne
 - **Terrain.** A unit standing its ground on rough ground, behind a mountain pass or a great
   river, or against a landing from the sea, gets +1. An army in desert land its king did not hold
   pays 30 shekels a season for supplies.
+- **Long roads.** Where a road takes longer than its line on the map suggests, its crossing's mark
+  says why: the Ways of Horus across the Sinai, the Wadi Hammamat road to the Red Sea. Ur is a
+  river port, and its province card says how many days its ships take down to the Gulf.
 
 ### Winning
 
@@ -200,6 +210,14 @@ own, varied a little in every game.
 | **Arzawa** | Apasa | Weak | an army of 10,000 men in Apasa, a fleet in Apasa's waters, 300 shekels | "The western opportunist": the most cunning and least honest |
 | **Alashiya** | the harbour of Alashiya | Weak | armies in its harbour town and the copper hills, a fleet in its waters, 400 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
 
+**The opening by the best estimate.** Where no source speaks, the opening takes the middle of the published experts'
+estimates, cited in `docs/history/`: the realms' people, the size of towns reckoned from their area, how often the Nile
+fails and the plateau's rains, and how each city drinks under siege (Jerusalem's spring lay outside its walls, so a
+siege cuts it off; Arwad drinks from cisterns of its own), and where the Gulf's head lay (an estuary some 140 km below Ur,
+a river port whose ships reach the sea down the Euphrates and through the marshes). The debts on record at the start are the letters' own:
+Egypt owes Mitanni and Babylonia, and Alashiya owes nothing. People of 1346 are "of" where the sources put them
+serving, since no source says where any was born; invented people are "born in" a place.
+
 **Places by their own names.** The map, the seat view and every letter and request name each place as the sources of
 1346 do: the Amarna letters' form where they name it (Dimashqa for Damascus, Gubla for Byblos, Ṣurru and Ṣiduna for Tyre
 and Sidon, Urusalim for Jerusalem, Magidda, Shakmu, Hasura, Gazru, Akka, Ashqaluna, Lakisha, Gimti for Gath, Ayyaluna
@@ -215,8 +233,9 @@ in Egypt's own seat; his other names are on his card.
 A realm's name is a claim: you go by your land's name until you claim another, any realm's name, Pharaoh's included
 (Court: "Claim a realm's name"). A claim gives nothing by rule. Where two kings claim one name, each court gives it in
 its greetings: a greeting gives the recipient the name he claims, or, with "call them by their house", withholds it, and
-that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru). The Court section says which names
-are contested and whom your court gives each to.
+that court then calls him by his house (Bit- and his founder's name, as Bit-Aziru), in its notices too. The Court section
+says which names are contested, whom your court gives each to, and the season each rival claimant's newest greeting
+your court has read was sealed (the date on the tablet, not when it arrived).
 
 Between the great kingdoms lie the city-states, such as Ugarit, Gubla, Qadesh and Elam, and the Kaska,
 Lukka, Shasu and Sutean chiefs: forty powers of their own, most of them vassals of Egypt or Mitanni (a few of Hatti
@@ -378,8 +397,9 @@ steps back through the seasons; signals mark sealed tablets, accusations, forger
 promises and more. After the game, compare two nations' self-serving annals with the true record.
 
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
-each power in its colour with an emblem and a border line of its own (so it reads without
-colour), armies as chariots and fleets as ships. On the whole map every city is a seal, and a tap on
+each power in its colour with an emblem and a border line of its own along its frontiers (so it reads without
+colour), a border that glows faintly where you see two powers' armies face to face across it, armies as chariots and
+fleets as ships. On the whole map every city is a seal, and a tap on
 it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
@@ -388,9 +408,11 @@ full where its king rules, lighter where a governor stands between, a faint wash
 provinces bounded by a thin line; the ◐ button shows the mood of the land as you last heard it (loyal, uneasy, restless,
 or no word), older reads fading: your own city as you see it, your governors' reports each season, a spy's watched
 province, the city of a court your envoy visited, a province your scribes counted, and travellers' blurred talk of the
-land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow
-their life: their path, their masters, their missions, what they said and reported. Drag and zoom
-as far as the lands drawn beyond the game: a province on the map's edge can be brought to the centre.
+land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow their life: their
+path, along the roads between the places you knew them at, their masters, their missions, what they said and reported;
+the camera keeps to them, where you last knew them, until you move it yourself ("Keep the camera on them" takes it
+back). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
+centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
 gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods show where your court last saw them, a
@@ -477,7 +499,7 @@ Then open <http://localhost:5183>, pick a preset, choose whether to watch or tak
 ```bash
 scripts/cloud-setup.sh   # on a fresh cloud machine: the npm packages and Playwright's Chromium, if missing
 scripts/test.sh          # type-check, the engine's determinism lint, and every test (Vitest), printing only the
-                         # summary and the failures (the full log goes to $TMPDIR/amarna-test.log)
+                         # summary and the failures (the full log goes to $TMPDIR/amarna-test-<pid>.log, one per run)
 npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright smoke test of the built app
 ```
 

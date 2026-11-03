@@ -1,5 +1,12 @@
 ### Letters and gifts
 
+**Their words** (the slop audit, archive item 178) are in `src/game/src/bots/voices.ts`: each kind of letter and each line
+said in audience in two to four forms, and each Great King's own closing lines (a city's ruler closes plainly or not at
+all), with each Great King's own form of the gift and the grievance. A form is chosen by a hash of the two kings and
+the kind, moved on by one each season, never by the game's random numbers, so the choice draws nothing and seeds
+replay exactly. Every form keeps the words script kings read back in it: the warm and cold words an envoy's report is
+weighed by (Memory and learning), a threat or none, and a plea's siege, besieger and city in one sentence.
+
 Since item 8 every letter, tablet and answer of theirs is also set out in clauses, and they read the clauses of every letter: see [structured press](../14-structured-press.md) (with the missions *accuse* and *support* it adds, and gold sent without an inventory).
 
 - **How many.** Up to min(3, 1 + round(2 × diplomacy)) letters a season, and no more than the envoys ready. That is one letter at diplomacy up to 0.25, two below 0.75, and three from 0.75. At most one letter goes to each king.

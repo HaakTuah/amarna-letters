@@ -20,7 +20,7 @@ import {
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { type CallSpec, Footer, type JsonAsker, type JsonObject, LlmLeaderSeat, Replies, Schemas, readObject as lenient, readable, requestText, situation } from "@amarna/llm";
 import { FileExchange } from "@amarna/llm/node";
-import { Assert, toDict } from "../../engine/test/support.ts";
+import { Assert } from "../../engine/test/support.ts";
 import { File, Directory, Path, delay, welcomeCourt } from "./io.ts";
 
 describe("FileSeatTests", () => {

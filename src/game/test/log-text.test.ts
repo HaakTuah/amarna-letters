@@ -1,9 +1,9 @@
 import { describe, test } from "vitest";
 import { IdleSeat, Near, scriptSeats } from "./small-world.ts";
 import { AllPowers, MindReplySchema, newGame, newGameConfig, newMindReply } from "@amarna/engine";
-import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
+import { GameLog, GameRunner, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { SeatChoices, SimulatedApi, buildSeats, providersFor } from "@amarna/llm";
-import { Assert, toDict } from "../../engine/test/support.ts";
+import { Assert } from "../../engine/test/support.ts";
 
 // A log writes each decision's line once and keeps it (the browser saves the whole log every season): the text it
 // writes as a game goes on must be exactly the text a log holding the same record writes from scratch.

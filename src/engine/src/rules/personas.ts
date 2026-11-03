@@ -13,7 +13,7 @@ export function personaTemplate(c: Character): string {
 
 /** How a template persona begins, up to its trait words. */
 function opening(c: Character): string {
-  return `You are ${c.name}, born in ${c.origin}, once ${calling(c)}. You are `;
+  return `You are ${c.name}, ${c.attested ? "of" : "born in"} ${c.origin}, once ${calling(c)}. You are `;
 }
 
 /**

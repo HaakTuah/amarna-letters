@@ -1,4 +1,3 @@
-import type { Dict } from "../core/collections.ts";
 import { eqIgnoreCase, isBlank, trim } from "../core/text.ts";
 import { isGreatKing, risenOf, type Power } from "./power.ts";
 import { crossingBetween } from "./geography.ts";
@@ -661,8 +660,8 @@ export function buildMap(): WorldMap {
  * (`docs/history/12-walls-roads-harbours.md`, "Walls by city", its "Proposed" column), the capitals included (item 15,
  * decided 29 October 2026): walls come from the city, not from its being a capital. So Akhetaten, which had no wall, its
  * defence Egypt's distance, starts with none, and Egypt's forts are raised: Tjaru at the Delta's edge 1, the Second
- * Cataract's forts in Nubia 2; Memphis's open town round its temple enclosure 1; Kanesh, Nineveh, Apasa and Enkomi as the
- * dossier reads them; the Kassite cities whose old walls their kings kept up 1. Where the sources are silent the level the
+ * Cataract's forts in Nubia 2; Memphis's open town round its temple enclosure 1; Nineveh, Apasa and Enkomi as the dossier reads them, and Kanesh,
+ * by 1346 perhaps deserted, none; the Kassite cities whose old walls their kings kept up 1. Where the sources are silent the level the
  * game had stands (Washukanni and Babylon 3, as capitals) and is marked a guess there. The lands without a town (Kaska,
  * Lukka, the Sutean steppe, Libya, the Shasu) none. Every other land province none, and so it is left out. Since item 15
  * walls are a level like everything built, with upkeep and decay; the walls standing now are the game state's
@@ -672,10 +671,10 @@ export const StartWalls: ReadonlyMap<string, number> = new Map([
   // The Great Kings' capitals (item 15): Hattusa's double wall and Ashur's on its bluff 3; Washukanni and Babylon, whose
   // walls nobody knows, 3 as capitals [G]; Apasa's citadel and Enkomi's fort 2; Akhetaten none
   ["hattusa", 3], ["babylon", 3], ["ashur", 3], ["washukanni", 3], ["apasa", 2], ["enkomi", 2],
-  // Their other cities (item 15): Egypt's forts, Nubia's 2 and Tjaru's in the Delta 1, Memphis's White Walls 1; Kanesh's
-  // old mound walls 1, Sapinuwa's royal city 1 [G]; Nineveh 1, Arbela's citadel 1 [G]; Dur-Kurigalzu's walled palace and
+  // Their other cities (item 15): Egypt's forts, Nubia's 2 and Tjaru's in the Delta 1, Memphis's White Walls 1;
+  // Sapinuwa's royal city 1 [G]; Nineveh 1, Arbela's citadel 1 [G]; Dur-Kurigalzu's walled palace and
   // the old walls of Sippar, Nippur and Ur, kept up by Kassite kings, 1
-  ["nubia", 2], ["delta", 1], ["memphis", 1], ["nesa", 1], ["sapinuwa", 1], ["nineveh", 1], ["arbela", 1],
+  ["nubia", 2], ["delta", 1], ["memphis", 1], ["sapinuwa", 1], ["nineveh", 1], ["arbela", 1],
   ["durkurigalzu", 1], ["sippar", 1], ["nippur", 1], ["ur", 1],
   // The city-states' cities, by the walls dossier (item 11d): Qatna's and Qadesh's great ramparts 3; Carchemish's
   // citadel, Aleppo's, Ugarit's gate and glacis, Byblos's and Shechem's Middle Bronze walls, the islands Arwad and Tyre,

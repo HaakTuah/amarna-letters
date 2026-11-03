@@ -323,9 +323,10 @@ describe("BordersTests", () => {
     Assert.true(one[0] > 0);
   });
 
-  test("A besieged city holds no longer than its water: a spring outside the walls is cut off, a river or a walled way down to a spring never fails", () => {
-    // Megiddo's spring lay outside its Late Bronze walls (the water dossier, item 11a+); Carchemish drinks the Euphrates.
-    for (const [city, dry] of [["megiddo", true], ["shechem", true], ["babylon", false], ["carchemish", false], ["jerusalem", false]] as const) {
+  test("A besieged city holds no longer than its water: a spring outside the walls is cut off, a river or a spring inside never fails", () => {
+    // Megiddo's and Jerusalem's springs lay outside their Late Bronze walls (the water dossier, item 11a+; Jerusalem's by
+    // the experts' middle, #492); Carchemish drinks the Euphrates, Qatna its springs.
+    for (const [city, dry] of [["megiddo", true], ["shechem", true], ["babylon", false], ["carchemish", false], ["jerusalem", true], ["qatna", false]] as const) {
       const s = quiet();
       const e = new TurnEngine(s);
       const u = single(s.units, (x) => x.province === "hattusa");

@@ -1,10 +1,8 @@
 import { describe, test } from "vitest";
-import { orders } from "../../llm/src/parse.ts";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
 import { Contingencies } from "../src/bots/contingencies.ts";
 import { CapitalAtStake, Search } from "../src/bots/search.ts";
-import { court } from "../src/bots/statecraft-court.ts";
 import { Statecraft } from "../src/bots/statecraft.ts";
 import { MilitaryPlan, Tactics } from "../src/bots/tactics.ts";
 import {
@@ -27,7 +25,6 @@ import {
   build,
   hold,
   inboxOf,
-  king,
   newGame,
   newGameConfig,
   newId,
@@ -153,10 +150,8 @@ describe("SiegePlayTests", () => {
       sub.orders.filter((o): o is DispatchOrder => o.type === "dispatch"),
       (d) => d.to === "Mitanni",
     );
-    Assert.startsWith(
-      "My brother, the troops of Babylonia besiege my city of Ashur. Come to my aid: send your troops to drive them out, and my walls will sally to meet them.",
-      plea.letter,
-    );
+    // Its words vary by season (voices.ts); the ally finds the siege in them below, and the walls' sally is promised.
+    Assert.true(/come out|send out men|walls will open/.test(plea.letter), plea.letter);
     Assert.equal(0, plea.gold);
     // The ally reads it, as it would a model king's words.
     let b = new Board(Views.for(s, "Mitanni"));

@@ -76,9 +76,11 @@ P.declareIn = function (province, holder, against, affirmed, clears) {
     d = undefined;
   }
   if (d === undefined) {
-    S.declarations.push(newDeclaration({ province, power: p, known: knownBy(this, p, province) }));
+    const nd = newDeclaration({ province, power: p });
+    S.declarations.push(nd);
     const from = holder === null ? "it has no ruler" : `${holder}'s hold on it is weak`;
-    this.tell(p, province, "Notice", "A province looks to you", `The people of ${name} declare for you: they favour you, and ${from}. It is yours only if you take it up (answer it: take it up, or refuse it); until then it stays as it is, and the offer stands only while they lean your way.`);
+    // Part D (#431): its offer reaches him only if someone carries it.
+    this.sendOffer(nd, holder, `The people of ${name} declare for you: they favour you, and ${from}.`);
     logEvent(S, "declare", `The people of ${name} declared for ${p}.`, [], "declare");
     return null;
   }
@@ -96,6 +98,8 @@ P.declarationsLapse = function (affirmed, changed) {
 /** A declaration or claim ends: gone from the rule, kept in its court's view until word of the end reaches it. */
 function end(e: TurnEngine, d: Declaration): void {
   d.gone = knownBy(e, d.power, d.province);
+  // An offer nobody carried is not sent: it fades with the leaning.
+  e.dropOffer(d);
 }
 
 P.cededClaim = function (giver, to, province) {

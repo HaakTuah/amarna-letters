@@ -12,7 +12,6 @@ import {
   dispatch,
   first,
   hash,
-  king,
   newCharacter,
   newContract,
   newDispatch,
@@ -29,8 +28,10 @@ import {
   newTurnSubmission,
   single,
 } from "@amarna/engine";
-import { GameLog, GameRunner, type ISeat, type MindContext, ScriptMind, TemplateNarrator, newEnvoyContext, newMindContext, swaps } from "@amarna/game";
+import { GameLog, GameRunner, type ISeat, type MindContext, ScriptMind, TemplateNarrator, newEnvoyContext, newMindContext } from "@amarna/game";
 import { AnthropicProvider, ModelClient, LlmCharacterMind, Parse, Schemas, SimulatedApi } from "@amarna/llm";
+import { Home } from "../src/bots/envoy-words.ts";
+import { saysOneOf } from "./readings.ts";
 import { str, Assert, toDict } from "../../engine/test/support.ts";
 import { kept as keptOf } from "@amarna/game";
 
@@ -154,7 +155,7 @@ describe("InventorySwapTests", () => {
     }
 
     let kept = await reportOf("kept 6 shekels of the gold");
-    Assert.contains('The king said: "Welcome, envoy. Go in peace."', kept);
+    Assert.true(saysOneOf(kept, Home.said, { W: "Welcome, envoy. Go in peace." }), kept);
     Assert.doesNotContain("weighers", kept);
     Assert.doesNotContain("hands are heavy", kept);
     Assert.contains("my weighers found only 34. Either your lord is mean or your messenger's hands are heavy with my gold.", await reportOf());

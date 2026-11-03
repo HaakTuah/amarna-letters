@@ -54,109 +54,95 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
-- **Done so far** (2 November 2026): the progress file under 20 KB (#388); the files every session reads (#390);
-  `docs/` (#392: item 2's, 4's and 5+'s briefs and specs to `docs/archive/specs/`, built entries out of "Not built yet"; #393:
-  design note 10 down to its live differences); the archive's `progress-done.md` split by kind (#394). **Left:** the code,
-  once the open lanes touching it merge (17++ B and C, export, model calls, fog); the conversion's parity check removed
-  (#443); `docs/DESIGN-NOTES.md` after its open lane merges.
+- **Done so far** (2 November 2026): the progress file, the files every session reads and `docs/` (#388, #390, #392-#394,
+  #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
+  locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it found:
+  `prompts.ts` (#572), `schemas.ts` (#573), `seat-setup.ts` (#577), `statecraft-letters.ts` (#588). **Left:**
+  `--noUnusedLocals` again on the files open PRs held (one known: `renew` in `bots/statecraft-court.ts`). Looked at and
+  left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
+  `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx`
+  (the start screen; its saved-games card is 2.5 KB).
 
 ## Follow-ups
 
-- **The Gulf's head as it stood in the Late Bronze Age** (the owner, 2 November 2026; #527; archive item 175): the map's
-  old shore (`OldGulfShore` in `src/web/src/map/features.ts`) moves to where the published reconstructions of the Late
-  Bronze Age shoreline put it, gathered and taken at their middle as "History holds" asks, with no outcome assumed
-  beforehand; Ur's harbour, its Gulf door and its trade follow from wherever the evidence puts the shore. Done by the
-  history lane with a new save version.
+Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
+the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
-- **The twin canary** (the owner, 2 November 2026; #520; archive item 174). Beside the token canary in
-  `src/web/test/canary.test.ts`: play one seat's season twice from the same small-world state, once with a hidden fact
-  true and once false (a far province lost or held, a siege, a death abroad, an army moving out of sight), and assert
-  that everything the seat receives (its input, notices, wakes and view) is identical until word of the fact could
-  reach it. It catches leaks nobody listed. Built in the lane fixing #517, or right after it.
+- **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
+  - **#566:** the twin canary (`src/web/test/twin-canary.test.ts`) plays each hidden fact at a second place too, a far
+    province of another power or one reached only by winter roads or by sea; the place a parameter, not a constant.
+  - **#543, after part D's follow-ups (#550, #553):** a caravan or trader leaving a province for the claimant's market
+    carries its offer, as a traveller going that way would, and carries talk along its road; the history dossier
+    cited for word travelling with goods.
+  - **#539, the polish lane:** beside a followed person on the map, a small dated note ("last seen 2 seasons ago"),
+    from the record the follow line is drawn from, absent while he is in sight.
+  - **#578, the polish lane:** the legend's crowded-seal swatch takes its rim from `--small-rim-marked`, the map's own
+    variable.
+
+- **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
+  the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
+  down the Euphrates and the marshes. Still due: the full `--versus solo` run, seeds 1-40, on save version 47, with the
+  next item's benchmarks (#523 measured two seeds only).
+
+- **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
+  - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
+    a caught spy's report is read ("A letter taken on the road"). Done, #576 (`docs/rounds/2026-11-02-offer-caught.md`).
+  - **#550:** under NAMES CLAIMED, in the seat view, the Court section and the models' line, the season each claim was
+    heard from its sealed greeting. Done, #574 (`docs/rounds/2026-11-02-names-season.md`).
+  - **#554:** a short note, from its sourced basis, on each connection whose travel days are not the plain distance
+    (Ur's river to the Gulf, the Ways of Horus, the Wadi Hammamat road). Done, the history lane's PR (`docs/rounds/2026-11-03-connection-notes.md`).
+  - **#549, the polish lane:** a faint accent on a frontier where the seat itself sees two powers' armies on either
+    side, drawn only from what it sees.
+  - **#562, the polish lane:** placement and the smoke test pad each seal's box by half its stroke, so no rim touches
+    a neighbouring marker.
+
+- **The slop audit** (the owner, 2 November 2026; archive item 178): everything a player reads, checked by fresh eyes
+  for the tells of machine-written text, as a side lane now.
+  1. **Scope:** the rulebook and the seat view; notices, news and the season's reports; the script kings' letters and
+     their envoys' speech (`src/game/src/bots/statecraft-letters.ts` and its kin), whose templates a player meets every
+     season; the cast's biographies; the interface, the council and the help; the README's player text. And the
+     requests that make models write (personas, letters, envoys' words): no stock phrasing a model would echo back,
+     as "Requests are rules too" asks, changed only with that rule's care.
+  2. **A fresh-eyes reviewer** (a helper given only the text and this brief, Opus at high effort) reads each kind
+     whole and lists its worst lines, each with the tell: one sentence shape filled in again and again, filler and
+     hedging, clichés and modern idiom in an ancient voice, every king sounding alike, the same formula in every
+     season's report, lines too long for the seat view.
+  3. **The builder rewrites them** in the period's voice, as "Voice of the age" under World and history describes it;
+     the PR shows ten lines before and after, so the owner can set the bar.
+  4. **A cheap guard after:** a test that fails when a script king's letters, or a report's lines, keep repeating one
+     shape across a game.
+  Each kind of text is reviewed as every review is ("Reviews" in `docs/claude-and-codex.md`); here a 10 means
+  nothing reads machine-made, every voice is its own and no formula repeats. The owner's read of the ten lines before
+  and after is the final word. One PR per kind of text.
+  **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
+  the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`); the
+  envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
+  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state). **Next:** notices,
+  news and reports (the bribed envoy's invented news moves with them); then the rest in the order above.
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
-  1. **Alashiya owes Egypt nothing at the start** (#476): the starting copper debt goes, as EA 35 shows none.
-  2. **Born where a source says so** (#486): an attested person shows "Born in X." only where a source gives it, and
-     "Of X." (where he served) otherwise; Akhetaten leaves the generated Egyptians' birthplaces.
-  3. **The five cities' water, by the best estimate** (#492): for Jerusalem, Arwad, Hattusa, Harran and Kizzuwatna, the
-     history lane gathers the published expert estimates (excavation reports, surveys, reconstructions; as many as can
-     be found), takes their consensus or middle, cites them in `10-water.md`, and sets each city's water by it. The
-     same rule ("History holds" in `AGENTS.md`) covers every other guess the full check finds.
+  1-3. **Done** (save version 47; `docs/rounds/2026-11-02-history-owner-answers.md`): no starting Alashiyan debt (#476);
+     the people of 1346 "Of" where they served, Akhetaten no one's birthplace (#486); every flagged guess set by the
+     experts' middle (#492): Jerusalem's water outside, Arwad's cisterns, Nubia, Babylonia and Hatti's people, 175 a
+     hectare, the Nile's low floods and the plateau's droughts.
   4. ~~**A governor's letter carries word of his moved seat**~~ (#480): done, `item/governor-seat-letter`; report
      `docs/rounds/2026-11-02-governor-seat-letter.md`.
   5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision
      344), not before.
 
-- ~~**History: a full check of every dossier**~~ (the owner, 2 November 2026; archive item 167): done on 2 November,
-  one PR and one `bug` issue per dossier (#473, #477, #479, #483, #485, #488, #490, #494, #499, #500, #501, #504,
-  #506, #508, #510); the counts are in "Calibration" in `docs/claude-and-codex.md`. #466's four notes are settled
-  (Yapah-Hadda and Artatama marked guesses, Shum-Adda has no town, EA 28-29 date to about 1352-1349). What remains:
-  - ~~**Anchors for the rest of the game's data.**~~ Done in #522: waters, walls, tongues, languages, doors, crossings,
-    distances, armies and fleets, harbours and rivers each name their line, checked by the anchors test; the guesses with
-    no dossier row are marked invented, for the unclear lines' lane to source or estimate.
-  - **The lines left unclear** (213 of 1,447, mostly where the edition was out of reach: Beckman, Bryce's *Kingdom*,
-    Veenhof, the excavation reports): source each, or mark what the game rests on it as invented.
-
-- ~~**Licences: audit, gate and notices** (the owner, 2 November 2026; `SECURITY.md`, point 10). (1) Audit every package,
-  the ones packages pull in included, and every font, image, sound and data set, with its licence; anything off the list
-  is a `question` issue with what would replace it. (2) A check on every pull request (GitHub's
-  `actions/dependency-review-action`) that fails a new or updated package off its list in point 10 (what ships, or tools
-  that only run; split on 2 November). (3) A third-party notices file generated by the web build and shipped with the
-  game.~~ Done in #458: `.github/licences.yml`, `.github/workflows/licences.yml`, `scripts/licences.mjs`,
-  `third-party-notices.txt`; report `docs/rounds/2026-11-02-licences.md`.
 - ~~**Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
   devDependency, and `.github/workflows/pages.yml` and `scripts/cloud-setup.sh` read its version from there instead of
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
   workflow that opens an `enhancement` issue when one is behind.~~ Done in #547: the list is `.github/versions.json`
   (Node, in CI and the cloud setup), checked by `.github/workflows/versions.yml` with `scripts/versions.mjs`.
 
-- ~~**Node 26** (the owner, 2 November 2026; "Git and GitHub" in `AGENTS.md`): CI's `node-version` (every
-  `actions/setup-node` in `.github/workflows/`) and `scripts/cloud-setup.sh` (installing Node 26 if the machine has an
-  older one, from the npm registry the cloud allows) move from 22 to 26 together, with `@types/node` 26 and the full
-  suites; 24 if the tooling is not ready for 26, said in the PR. Dependabot's closed #448 was the cue.~~ Done in #455:
-  CI on 26, the cloud setup on 26.13.0, pinned and checked by its SHA-256 (a new pin repeats the check against
-  nodejs.org's `SHASUMS256.txt`).
-
 Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
 fixed.
 
-- ~~**The province card looking back** (the weekly blind re-review of #374): in a seat view on an earlier season the
-  card read the live state, the new holder's figures where the city has since fallen; it gives that season's recorded
-  figures now, with a test at a past season (#414).~~
-- ~~**The canary test for hidden information**~~ (done, #421): `src/web/test/canary.test.ts` plants an envoy's hidden
-  mandate, its letter, a sealed tablet, an army in the fog and another court's treasury, and reads every seat's input,
-  every model request, the chronicles, every view, map and panel the page shows, live, in past seasons and on replay; no
-  leak found; its export part (#430) plants sensitive failures and a human seat's words and exports them under all
-  sixteen filters: none found. Whether "Export log" should wait for "Reveal all" while a human plays: #424.
-- ~~**First of all: what a game's export holds**~~ (done, #385): nothing sensitive in `tests/fixtures/`; one export
-  with filters (calls, shadows, audits, human words), kept clean by design: failures logged as kind and code, each
-  record giving only its listed fields, and without human words a game with a human seat blanks every text and still
-  replays. Report: `docs/rounds/2026-11-02-export-audit.md`; note: `docs/design/50-the-export.md`.
-- ~~**The export's stand-in names and its gate**~~ (done, #436): under the human-words filter a name made up in an
-  order (a pitch's name, `goAs`, a claimed realm) is Name-1, Name-2, real names kept, and it still replays; "Export
-  log" is offered only when the god view is; the canary grows a line for each (`docs/rounds/2026-11-02-export-stand-ins.md`).
-- ~~**Model calls that get through**~~ (done, #386): the limiter and its retries, the cache written once, answers read
-  as meant (all 26 recorded slips mended), play in the background on the batch service, and the estimate from recorded
-  token counts. An early all-Haiku season costs about $0.15 live and $0.08 in the background. Report:
-  `docs/rounds/2026-11-02-model-calls-get-through.md`.
-- ~~**Counsel's plans from a digest**~~ (done, #437): the plan call opens with its own short rules (how a power wins,
-  the plan, standing answers), about 3,900 tokens where it read the kings' 70,600, so Counsel estimates below Standard
-  again ($1.13 a season live against $1.34). Report: `docs/rounds/2026-11-02-counsel-plans-from-digest.md`.
-- ~~**People moving in the fog**~~ (done, #387): no leak. They were Egypt's own caravans and envoys and the nomads'
-  armies in its sight; titles and legend now say so. Report: `docs/rounds/2026-11-02-people-in-the-fog.md`.
-- ~~**Order checks reveal a far loss (bug #467)**~~ (done, #515): the checks read who holds a province as the court
-  knows it, and an order that fails on land lost out of sight answers by the road; the governor's view completes with
-  #378; the rest of the far true state is bug #517. Report: `docs/rounds/2026-11-02-known-holding.md`.
-
-- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); (a), (i) and a dismissed spy's stirring gold wait for #378:
-  issue #417. (b), the chiefs' lands falling in the first two seasons, is 17++'s and measured in its report.
-- **From #376 (17++ B), round 1, not blocking; outside the item (a file it only touched):** `src/engine/src/model/orders.ts`
-  is over 50 KB (about 55 KB): split by responsibility in a PR of its own, behaviour proven unchanged by replays.
-- ~~**From #376 (17++ B), round 1 (Codex, P1); test infrastructure outside the item:** the engine suite has no reduced-world
-  fixture, so every engine test builds the whole starting world~~ (#441: `smallWorld` in `src/engine/test/support.ts`,
-  the engine's rule tests on it, its suite 80 s to 44 s). Left for a later pass: the engine test files #378 changes
-  (`counts`, `crowns`, `declarations`, `governors-region`, `mood-reads`, `seat-word`, `who-they-are`, `works`).
+- **From #348 (17+), round 2:** (c) to (h) ~~done~~ (#404); ~~(a), (i) and a dismissed spy's stirring gold~~ (#534, issue
+  #417; report `docs/rounds/2026-11-02-bug-417.md`). (b), the chiefs' lands falling in the first two seasons, is 17++'s
+  and measured in its report.
 
 ## For the owner
 
@@ -186,6 +172,8 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 | 17++ B | Counting the land (census), asking an amount by a fresh count and levying by share by an old one (`--count-play-half`) | 0.96 growth to 0.85, 31 wins to 19, in 50 games, on part C's final head (part B's own: 0.97 to 0.86, 26 to 24) | Pays |
 | 17++ C | The audit's script finds: raising troops when rich, governors' gold, vassal requests answered as sealed (`--audit-play-half`) | 0.94 growth to 0.86, 27 wins to 23, in 50 games | Pays |
 | 17++ C | Checking a governor's word against one's own spy, recalling one caught hiding unrest (#459, `--spy-check-play-half`) | 0.96 growth to 0.87, 27 wins to 23, in 50 games | Pays |
+| 17++ D, #553 | Heeding an offer read on a carrier caught, as talk of it (`--talk-play-half`, with the talk) | 0.90 growth to 0.84, 25 wins to 25, in 50 games; 1,152 offers sent, 36 carried, 1 caught and read, 33 arrived | Too rare to tell: one catch in 50 games; for item 18, with the talk |
+| 17++ D | Heeding talk of a province's leaning: relief at home, warmth to the claimant, a spy where one is talked of (`--talk-play-half`) | 0.86 growth to 0.86, 26 wins to 24, in 50 games; 988 offers sent, 31 carried, 27 arrived | Even: offers rarely arrive yet, so the threat is rare; for item 18 |
 | 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
 | 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |
 
@@ -195,7 +183,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; next #480 (a governor's letter says where he sits), then part D (#431's carriers), then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
+| 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) under way, `item/offer-carriers`; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
 | 17++a | Something happens every season | not started (next after 17++) | | |
 | 17+++ | The season plays out | not started | | |
 | 17+++a | Keys for everything | not started | | |

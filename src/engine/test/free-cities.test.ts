@@ -338,4 +338,15 @@ describe("FreeCitiesTests", () => {
     Assert.equal(80, spy.earned.carried);
     Assert.equal(0, spy.earned.skimmed);
   });
+
+  // Issue #417: one dismissed while posted, the gold for stirring still on him, keeps it as carried after the season.
+  test("A spy dismissed at his post keeps the gold for stirring as carried, not skimmed", () => {
+    const s = quiet();
+    const spy = newCharacter({ id: newId(s, "c"), name: "Zida", status: "Free", at: "Hatti", watchProvince: "kaska", stirGold: 90 });
+    s.characters.push(spy);
+    season(s);
+    Assert.equal(0, spy.stirGold);
+    Assert.equal(90, spy.earned.carried);
+    Assert.equal(0, spy.earned.skimmed);
+  });
 });

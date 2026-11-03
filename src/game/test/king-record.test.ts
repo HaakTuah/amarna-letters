@@ -1,7 +1,4 @@
 import { describe, test } from "vitest";
-import { shekels } from "../src/bots/brain.ts";
-import { letters } from "../src/bots/statecraft-letters.ts";
-import { report } from "../src/character-checks.ts";
 import {
   type AudienceView,
   type GameState,
@@ -17,7 +14,7 @@ import {
   newTabletCopy,
   single,
 } from "@amarna/engine";
-import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, came, leaderRules, situation } from "@amarna/llm";
+import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, leaderRules, situation } from "@amarna/llm";
 import { Assert, last } from "../../engine/test/support.ts";
 
 // What a model king reads of what he himself said, sent and sealed, after the second agent simulation (the fix pass after

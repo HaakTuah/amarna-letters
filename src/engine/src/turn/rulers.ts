@@ -5,6 +5,7 @@
  * the man who leads a province's revolt, a chief or a commander who holds land without a ruler long enough (the new
  * Idrimi), and the elder its own people raise in lawless land ("A head rises in time").
  */
+import { endSieges } from "../model/sieges-ended.ts";
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy, sum } from "../core/seq.ts";
 import { BandData, type Band } from "../model/bands.ts";
@@ -96,6 +97,7 @@ P.ruleOwn = function (id, c, r) {
   S.kingTongues.set(p, kingTongues(p, id));
   S.court.set(p, id);
   S.fallsHeard.set(p, was !== null && !isAlive(S, was) ? [was] : []);
+  this.syncNames();
   for (const g of S.governors.filter((x) => x.character === c.id)) this.dropGovernor(g);
   this.setOwner(id, p);
   c.employer = p;
@@ -119,7 +121,7 @@ P.ruleOwn = function (id, c, r) {
     u.power = p;
     u.commander = null;
     u.mandate = null;
-    S.sieges = S.sieges.filter((x) => x.unitId !== u.id);
+    endSieges(S, this.map, (x) => x.unitId === u.id);
   }
   // His band becomes his army.
   if (r.band !== undefined && r.band !== null) {

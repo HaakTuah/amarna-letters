@@ -17,13 +17,13 @@ import {
   risenOf,
   type GameState,
 } from "@amarna/engine";
-import { Assert, removeAll } from "./support.ts";
+import { Assert, removeAll, smallWorld } from "./support.ts";
 
 // One governor over several neighbouring provinces from one seat (item 17++, part C; "Governors" under War): the same
 // order gives him a province beside his own, governed from his seat; taken back, he turns with those of them whose people
 // would rather follow him. The starting world, with the steps called directly.
 describe("GovernorsOfARegionTests", () => {
-  const quiet = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+  const quiet = (): GameState => smallWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })), "Egypt", "Hatti");
   const book = (s: GameState, prov: string): Dict<string, number> => {
     let b = s.ledger.tryGet(prov);
     if (b === undefined) s.ledger.set(prov, (b = new Dict()));

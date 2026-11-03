@@ -4,11 +4,11 @@ import { distinct } from "../core/seq.ts";
 import { isBlank } from "../core/text.ts";
 import type { AudienceRecord, AudienceRound, AudienceView } from "../model/exchanges.ts";
 import { newAudienceView, newEnvoyReaction, newHostReply } from "../model/exchanges.ts";
-import { hire, type DispatchOrder } from "../model/orders.ts";
+import { type DispatchOrder } from "../model/orders.ts";
 import { factsKnownTo, gain, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
 import { courtSpeaks } from "../model/languages.ts";
 import { errandOf } from "./court.ts";
-import { claimedName, land, type Power } from "../model/power.ts";
+import { claimedName, land, type Power, quoteWords } from "../model/power.ts";
 import { SealedOutcome, newDispatch, newExchange, newGreetingOptions, newHomeCargo, newJobOffer, newJourney, newMessageTrail, newPendingAudience, newTablet, newTabletCopy, newTabletProposal, type Exchange, type HomeCargo, type JobOffer, type Journey, type MessageTrail, type PendingAudience } from "../model/records.ts";
 import { char, findCharacter, isAlive, logEvent, newGoldLot, newId, notify, ownedBy } from "../model/state.ts";
 import { authorityText, newAuthority } from "../model/authority.ts";
@@ -213,6 +213,7 @@ P.dispatch = function (p, d) {
     authority,
     checkClaim: d.checkClaim ?? null,
     styled: claimedName(p),
+    sealed: S.turn,
     offers,
     collect: collect?.id ?? null,
   });
@@ -304,7 +305,7 @@ P.envoyArrivesAbroad = function (j) {
   const aud = newPendingAudience({ id: newId(S, "a"), envoyId: c.id, from: j.from, host: j.to, dispatch: j.dispatch! });
   S.audiences.push(aud);
   // Item 17+: the host reads in the sealed greeting the name the sender claims.
-  this.claimHeard(j.to, j.from, j.dispatch!.styled ?? null);
+  this.claimHeard(j.to, j.from, j.dispatch!.styled ?? null, j.dispatch!.sealed ?? 0);
   const trail = this.trail(j.dispatch!.trailId);
   if (trail !== null) trail.audienceTurn = S.turn;
 };
@@ -651,8 +652,8 @@ P.overdue = function (sender, c, host, when, place = null) {
  */
 P.audienceTranscript = function (a, c, trail, stated, weighed, unseen) {
   const lines: string[] = [];
-  lines.push(a.dispatch.greetingText.length > 0 ? `The sealed greeting reads: "${a.dispatch.greetingText}"` : "The tablet bears no greeting at all.");
-  lines.push(`${c.name} said: "${trail.delivered}"`);
+  lines.push(a.dispatch.greetingText.length > 0 ? `The sealed greeting reads: ${quoteWords(a.dispatch.greetingText)}` : "The tablet bears no greeting at all.");
+  lines.push(`${c.name} said: ${quoteWords(trail.delivered)}`);
   if (a.dispatch.gold > 0)
     lines.push(
       a.dispatch.inventory
@@ -660,15 +661,15 @@ P.audienceTranscript = function (a, c, trail, stated, weighed, unseen) {
         : `The gold came with no inventory; your weighers found ${formatMoney(weighed)}.`,
     );
   for (const x of trail.exchanges) {
-    lines.push(`You said: "${x.host}"`);
-    lines.push(`${c.name} answered: "${x.envoy}"`);
+    lines.push(`You said: ${quoteWords(x.host)}`);
+    lines.push(`${c.name} answered: ${quoteWords(x.envoy)}`);
   }
   // What the envoy promised is its own words, set apart from what the audience brought about.
   const outcomes = trail.outcomes.filter((o) => !unseen.includes(o) && commitment(o) === null);
   if (outcomes.length > 0) lines.push("Outcome: " + outcomes.join("; ") + ".");
   for (const o of trail.outcomes) {
     const promised = commitment(o);
-    if (promised !== null) lines.push(`${c.name} promised on behalf of ${a.from}: "${promised}"`);
+    if (promised !== null) lines.push(`${c.name} promised on behalf of ${a.from}: ${quoteWords(promised)}`);
   }
   return lines.join("\n");
 };

@@ -1,4 +1,5 @@
 /** The non-military half of a script king, second part: its people (court, spies, captives, evidence). */
+import { talkedOurWay } from "./talk.ts";
 import {
   clause,
   HSet,
@@ -26,7 +27,6 @@ import {
   placeSpy,
   recall,
   release,
-  renew,
   roundEven,
   seekCandidates,
   sortBy,
@@ -322,7 +322,10 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
             [(id: string) => id, cmpStr],
           )[0];
     const foe = brain.warTarget ?? sortBy([...b.neighbours()].filter((x) => brain.hostility(x, b) > 0), [(x: Power) => brain.hostility(x, b), desc(cmpNum)])[0] ?? null;
+    // Item 17++, part D: a province that talk says leans our way, unwatched: our spy's reports would bring its offer home.
+    const lured = talkedOurWay(b).find((id) => !watched.has(id) && Board.Map.hops(cap, id) <= 6);
     const spot =
+      lured ??
       stand ??
       (foe === null || watching(foe)
         ? undefined

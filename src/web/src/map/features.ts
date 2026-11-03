@@ -71,11 +71,12 @@ export const Isles: ReadonlyMap<string, Pt[]> = new Map([["arwad", isle(ll(34.86
 export const IslandProvinces: readonly string[] = ["kalavasos", "enkomi", "dilmun"];
 
 /**
- * The Gulf's head as it lay in the Late Bronze Age, reaching up the lower plain towards Ur, a coastal city in the game
- * (the sea has since withdrawn by some 150 to 200 km; the reading is item 11c's). Its edge out to the modern sea is never
- * stroked, so it joins the Gulf without a seam.
+ * The Gulf's head as it lay in 1346: an estuary up the Shatt al-Arab to about midway between Basra and Qurna, some 140 km
+ * below Ur, the middle of the published reconstructions (the geography dossier, 02-gulf-head; #527). Ur, on the sea only
+ * in the third millennium, is a river port that reaches it down the Euphrates and through the marshes. Its edge out to
+ * the modern sea is never stroked, so it joins the Gulf without a seam.
  */
-export const OldGulfShore = LL(29.98, 47.95, 30.25, 47.75, 30.5, 47.4, 30.72, 46.95, 30.85, 46.5, 30.92, 46.2, 30.8, 46.1, 30.62, 46.35, 30.4, 46.8, 30.15, 47.25, 29.93, 47.6, 29.8, 47.85);
+export const OldGulfShore = LL(29.97, 48.47, 30.15, 48.38, 30.35, 48.22, 30.52, 47.95, 30.66, 47.72, 30.7, 47.6, 30.62, 47.5, 30.48, 47.58, 30.32, 47.68, 30.12, 47.78, 29.8, 47.85);
 
 /**
  * The bay of Miletus (the Latmian Gulf) before the Maeander silted it: open sea from Miletus, on its southern shore, up
@@ -101,14 +102,15 @@ const never = (): boolean => false;
 
 /**
  * The Euphrates of 1346: Natural Earth's course down to the plain, then its old bed by Sippar, Babylon, Nippur, Uruk and
- * Ur to the Gulf's head, where the river ran before it moved west to today's Hindiya and lower courses.
+ * Ur, and on through the Hammar's marshes to the Gulf's head of 1346, where the river ran before it moved west to today's
+ * Hindiya and lower courses.
  */
 function oldEuphrates(): Pt[][] {
   const pieces = RiverLines.euphrates ?? [];
   const pts = (pieces[0] ?? "").split(" ").map((xy) => xy.split(",").map(Number));
   const kept = pts.filter(([, lat]) => lat >= 3340);
   const head = kept.map(([lon, lat]) => ll(lat / 100, lon / 100));
-  const bed = LL(33.3, 43.95, 33.06, 44.25, 32.8, 44.33, 32.54, 44.42, 32.3, 44.75, 32.13, 45.23, 31.8, 45.48, 31.32, 45.64, 31.15, 45.9, 30.96, 46.1, 30.86, 46.22);
+  const bed = LL(33.3, 43.95, 33.06, 44.25, 32.8, 44.33, 32.54, 44.42, 32.3, 44.75, 32.13, 45.23, 31.8, 45.48, 31.32, 45.64, 31.15, 45.9, 30.96, 46.1, 30.88, 46.4, 30.86, 46.8, 30.8, 47.2, 30.72, 47.5, 30.68, 47.65);
   // Natural Earth's pieces 1 to 3 are today's lower course, below the plain; the rest are upstream.
   return [[...head, ...bed], ...pieces.slice(4).map(decode)];
 }

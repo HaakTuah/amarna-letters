@@ -9,8 +9,8 @@
 import { idiv } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { gain, remember, type Character } from "../model/people.ts";
-import { land, type Power } from "../model/power.ts";
-import { Waiting, type Journey } from "../model/records.ts";
+import { land, quoteWords, type Power } from "../model/power.ts";
+import { OfferCaught, offerWords, Waiting, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
@@ -62,6 +62,8 @@ P.carryLetters = function () {
   for (const letter of waiting) {
     // Taken already this season, with another letter waiting there for the same court.
     if (letter.carrier !== null) continue;
+    // Item 17++, part D: a province's offer to an absent power finds its own carriers, after the other letters (below).
+    if (letter.kind === "Offer") continue;
     if (!isAlive(S, letter.to)) {
       S.journeys.splice(S.journeys.indexOf(letter), 1);
       continue;
@@ -195,7 +197,8 @@ P.carryLetters = function () {
     }
     if (carrier === null) continue;
     letter.fee = fee;
-    for (const l of waiting.filter((x) => x.carrier === null && x.waitAt === at && x.to === letter.to && (x.kind === "SpyReport") === !demand)) {
+    // A province's offer is never swept into another letter's carrier: it finds its own (`offers.ts`).
+    for (const l of waiting.filter((x) => x.carrier === null && x.kind !== "Offer" && x.waitAt === at && x.to === letter.to && (x.kind === "SpyReport") === !demand)) {
       l.carrier = carrier.id;
       l.border = border;
       S.lettersCarried.set(l.from, S.lettersCarried.getOrDefault(l.from, 0) + 1);
@@ -205,6 +208,8 @@ P.carryLetters = function () {
     }
     logEvent(S, "letter", `${carrier.name} took a letter from ${this.map.get(at).name} for ${letter.to}${fee > 0 ? ` for ${formatMoney(fee)} on delivery` : ""}.`, [], carrier === spy ? "carrier-self" : passer === null ? "carrier-hired" : own !== null ? "carrier-own" : "carrier-passing");
   }
+  // Item 17++, part D: offers last, while this season's carriers of spy reports still stand where they were taken up.
+  for (const offer of waiting.filter((x) => x.kind === "Offer" && x.carrier === null && S.journeys.includes(x))) this.carryOffer(offer);
 };
 
 P.lettersGo = function () {
@@ -236,6 +241,11 @@ P.lettersGo = function () {
       const spy = findCharacter(S, letter.characterId);
       notify(S, c.heldBy, "Notice", "A letter taken on the road", `Among what ${c.name} carried was a sealed report to ${letter.to} from ${spy?.name ?? "an agent"}, written in season ${letter.departTurn}: ${letter.report.observations.join(" ")}`, spy?.id ?? null);
       logEvent(S, "letter", `${c.heldBy} read a report to ${letter.to} taken from ${c.name}.`, [c.heldBy], "letter-read");
+    } else if (c !== null && c.status === "Captured" && c.heldBy !== null && c.heldBy !== letter.to && letter.kind === "Offer" && isAlive(S, c.heldBy)) {
+      // #553: so is a province's offer, in the people's own words; its king learns of it only from them.
+      const from = this.map.get(letter.waitAt!).name;
+      notify(S, c.heldBy, "Notice", "A letter taken on the road", `${OfferCaught.opens}${c.name}${OfferCaught.people}${from} to ${letter.to}: ${quoteWords(offerWords(letter))}`, c.id);
+      logEvent(S, "letter", `${c.heldBy} read the offer of ${from}'s people to ${letter.to}, taken from ${c.name}.`, [c.heldBy], "offer-read");
     } else logEvent(S, "letter", `A letter to ${letter.to} was lost on the road with ${c?.name ?? "its carrier"}.`, [], "letter-lost");
   }
 };

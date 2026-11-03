@@ -151,7 +151,7 @@ Waiting is lost time and, past an hour, a lost cache (item 22; the orchestrator'
 
 ```bash
 scripts/cloud-setup.sh        # cloud machines: npm packages and Playwright's Chromium, if missing
-scripts/test.sh               # type-check, lint and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test.log)
+scripts/test.sh               # type-check, lint and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test-<pid>.log, one per run)
 scripts/sim.sh --games 50 --seed 1 --verify-replay   # the batch runner (src/batch), quiet; see README.md
 scripts/usage.sh              # weekly usage, if this session can read it
 npm run dev --workspace src/web                       # the web app at http://localhost:5183
@@ -224,6 +224,10 @@ plausible estimate: published expert estimates, as many as can be found, their c
 in what it is shown, what a model is asked, what a script king reads or what an export holds. Check every path: the
 latest season, past seasons, replays and the god view. The canary test ("Follow-ups" in `docs/BUILD-PROGRESS.md`)
 guards the same from the other side, since a reviewer can miss it.
+
+**Text a player reads,** for every reviewer of a change that adds or rewrites it: report as a finding any line that
+reads machine-made (one shape filled in again and again, filler, clichés, two voices alike); the slop audit in
+`docs/BUILD-PROGRESS.md` sets the bar.
 
 **One idea, for every reviewer** of a change to the game (not docs, design copies or Dependabot's updates): end the
 review with one thing outside this change that would make the game better, or "none", the usual answer when nothing is

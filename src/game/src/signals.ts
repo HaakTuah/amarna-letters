@@ -49,6 +49,9 @@ export const SignalKinds: readonly string[] = [
   "crown", "crown-asked", "crown-would", "crown-refused", "crown-taken", "risen-granted",
   // Item 17++, part C: a province declaring for a power, taken up or refused, and passing to the power who took it up.
   "declare", "declare-taken", "declare-refused", "obey-taken",
+  // Item 17++, part D: a province's offer sent, talk of it, its carriers (a spy, a man of the king's, paid or hired from the
+  // people's purse), known to its carrier as news to sell, taken from him by robbers, and arrived.
+  "offer-sent", "offer-talk", "offer-spy", "offer-own", "offer-paid", "offer-hired", "offer-news", "offer-robbed", "offer-read", "offer-arrived",
   // Item 17++, part C: a governor given a province beside his own, governed from his seat.
   "govern-region", "cession-unkept",
   // Item 17++, part B: scribes sent to count a province and their count come home; the king asking a share or an amount.

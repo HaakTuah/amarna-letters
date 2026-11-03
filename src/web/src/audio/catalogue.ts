@@ -4,11 +4,10 @@
  * are in docs/design/45-the-music-and-the-sounds.md. Shown on the listening page beside every piece.
  *
  * The pieces were composed on 31 October 2026 (scripts/music/pieces_peace.py and pieces_war.py), replacing the
- * placeholders that exercised the sound system; `Placeholder` is kept for the listening page's notice, now false.
+ * placeholders that exercised the sound system.
  */
 import type { SoundName } from "./situation.ts";
 
-export const Placeholder = false;
 export interface PieceInfo {
   id: string;
   title: string;

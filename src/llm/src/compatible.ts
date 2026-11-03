@@ -6,7 +6,7 @@
  */
 import type { ApiResult, CallSpec, Provider } from "./client.ts";
 import { ApiStatusError, retryAfterMs } from "./limiter.ts";
-import { jsonSchema, type JsonObject, type ReplySchema } from "./schemas.ts";
+import { jsonSchema, type JsonObject, type ReplySchema } from "./schema-tools.ts";
 
 /** A provider as a table sets it up: its id (the prefix of its model settings), and where its endpoint is. */
 export interface ProviderSetting {

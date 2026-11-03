@@ -21,8 +21,9 @@ exactly as before.
   as costly to cross, a barrier a quarter of its border cost), with the point where it crosses their border; a voyage's
   is the way over water. The script prints where the drawing and the connections disagree (in the report); neither is
   changed for it. Connections come from the attested roads (`distance.ts`) and do not follow the drawing.
-- The land as it was in 1346 (`features.ts`; dossier `02-geography.md`, "The land as it was"): the Gulf's head towards Ur,
-  the bay of Miletus, the Euphrates in its old bed by Sippar, Babylon, Nippur's country, Uruk and Ur, and the Delta's
+- The land as it was in 1346 (`features.ts`; dossier `02-geography.md`, "The land as it was"): the Gulf's head as the estuary
+  of 1346 below Ur, the bay of Miletus, the Euphrates in its old bed by Sippar, Babylon, Nippur's country, Uruk and Ur and
+  on through the Hammar's marshes, and the Delta's
   Pelusiac, Tanitic, Sebennytic and Canopic branches. The lands beyond the game are named as no one's (`GeoLabels`;
   dossier `08-beyond-the-edges.md`): Wilusa, Masa, Ahhiyawa, Keftiu, Tjehenu, Pala, Lullubi, Anshan.
 - Run the script again (8 seconds) after changing a feature, a city's place or the map's provinces.
@@ -34,6 +35,10 @@ desert's edge (a strait once the rules have one, item 11f); every rough province
 its row in the legend. A tap opens a card that says, from the engine's own numbers (`legPoints`, `connectionKm`, `Pace`,
 `TravelData`, `snowbound`, the game's `terrainDefence` and `winterArmyLoss`): the journey's days in each season against
 open ground, the ferry and the flood, winter's danger on a snowbound pass, and whether it helps a defender who stands.
+Where the road's length is attested and longer than its line suggests, the card says why in one sentence, the
+attested distance's `note` (`connectionNote`, from the same dossier line as its length: the Ways of Horus, the Wadi
+Hammamat, the Sinai to el-Markha; #554). A port whose way to its waters is such a connection (Ur, a river port down
+the Euphrates to the Gulf) says it on its province card, with the voyage's days.
 
 ## Names, counters and arrows (`svg-renderer.ts`, `markup.ts`)
 

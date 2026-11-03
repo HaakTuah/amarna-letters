@@ -1,10 +1,8 @@
 import { describe, test } from "vitest";
-import { host } from "../src/bots/statecraft-letters.ts";
 import { TextKit } from "../src/bots/textkit.ts";
 import {
   type Character,
   type Power,
-  king,
   newCharacter,
   newDispatch,
   newExchange,
@@ -14,6 +12,8 @@ import {
   newTraits,
 } from "@amarna/engine";
 import { ScriptMind, newEnvoyContext, newMindContext } from "@amarna/game";
+import { Abroad, Home } from "../src/bots/envoy-words.ts";
+import { saysOneOf } from "./readings.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 // <summary>Which sentences a timid or fond envoy softens: threats aimed at the king who hears them, and only those.</summary>
@@ -139,7 +139,7 @@ describe("AimedThreatTests", () => {
     let speech = (await new ScriptMind().present(ctx)).speech;
     Assert.contains("I will support you if you are attacked in that sea.", speech);
     Assert.doesNotContain("regret", speech);
-    Assert.contains("My lord hopes that no quarrel will ever come between your houses.", speech);
+    Assert.true(saysOneOf(speech, Abroad.noQuarrel), speech);
   });
 
   test("A timid envoy drops the hosts threats against him its lord", async () => {
@@ -165,7 +165,7 @@ describe("AimedThreatTests", () => {
       trail: trail,
     });
     let report = (await new ScriptMind().write(ctx)).text;
-    Assert.contains('The king spoke kindly: "I will crush Assyria in the spring."', report);
+    Assert.true(saysOneOf(report, Home.saidKindly, { W: "I will crush Assyria in the spring." }), report);
     Assert.doesNotContain("burn", report);
   });
 });

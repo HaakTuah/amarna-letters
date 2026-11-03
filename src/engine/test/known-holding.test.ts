@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import {
+  Dict,
   build,
   deport,
   govern,
@@ -84,5 +85,21 @@ describe("KnownHoldingTests", () => {
     Assert.equal(s.journeys.find((j) => (j.text ?? "").includes("Not built"))!.arriveTurn, wake[0].arriveTurn);
     e.wordArrives(wake[0]);
     Assert.equal(1, sl.pendingWake.length);
+  });
+
+  test("A court knows the walls of its own far cities as its works stand (bug #517)", () => {
+    const { s } = farLoss();
+    // Nippur held, far off, its walls raised to 3 since the court last saw them at 1.
+    s.owner.set("nippur", "Egypt");
+    s.ownerLog.length = 0;
+    s.ownerLog.push(newOwnerChange({ province: "nippur", turn: 0, owner: "Egypt" }));
+    s.walls.set("nippur", 3);
+    s.wallsSeen.set("Egypt", new Dict([["nippur", 1]]));
+    Assert.false(Views.sight(s, WorldMap.default, "Egypt").has("nippur"));
+    Assert.equal(3, Views.wallsKnown(s, WorldMap.default, "Egypt").get("nippur"));
+    // Another's city out of sight stays as last seen.
+    s.owner.set("nippur", "Babylonia");
+    s.ownerLog.push(newOwnerChange({ province: "nippur", turn: 0, owner: "Babylonia" }));
+    Assert.equal(1, Views.wallsKnown(s, WorldMap.default, "Egypt").get("nippur"));
   });
 });

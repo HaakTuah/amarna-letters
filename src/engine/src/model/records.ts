@@ -36,7 +36,7 @@ export const JobOfferSchema: ObjSchema<JobOffer> = obj("JobOffer", newJobOffer, 
   offerAgain: B,
 });
 
-export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel"] as const;
+export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**
@@ -100,6 +100,21 @@ export interface Journey {
 
 /** The arrival of a letter still waiting for its carrier (item 11b): never, until one takes it. */
 export const Waiting = 1_000_000;
+
+/** The province a province's offer is from (a journey of kind `Offer`, item 17++ part D): written first in its letter. */
+export const provinceOf = (j: Journey): string => (j.text ?? "").split("|")[0];
+
+/**
+ * The people's own words in a province's offer, written after its province: what the power it reaches reads, and what
+ * whoever catches its carrier reads as written (#553).
+ */
+export const offerWords = (j: Journey): string => (j.text ?? "").split("|").slice(1).join("|");
+
+/**
+ * How the notice of an offer caught on the road opens (#553): "Among what Ahmose carried, and so never delivered, was the
+ * word of the people of Babili to Egypt: "...""; script kings read it by the same words.
+ */
+export const OfferCaught = { opens: "Among what ", people: " carried, and so never delivered, was the word of the people of ", words: ': "' } as const;
 
 export function newJourney(init: Partial<Journey> = {}): Journey {
   return {
@@ -199,6 +214,8 @@ export interface Dispatch {
    * court learns of a claim from the claimant's own greetings). Absent: his own land's.
    */
   styled?: string | null;
+  /** Item 17+: the season the tablet was sealed, which the host weighs against the newest greeting of the sender it has read. */
+  sealed?: number | null;
 }
 
 export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
@@ -243,6 +260,7 @@ export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, 
   offers: list(() => JobOfferSchema),
   collect: opt(S),
   styled: opt(S),
+  sealed: opt(I),
 });
 
 export interface TabletProposal {
