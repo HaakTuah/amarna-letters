@@ -33,6 +33,7 @@ export { TalkPlay } from "./bots/talk.ts";
 export { OccupyPlay } from "./bots/occupy.ts";
 export { WarPlay } from "./bots/siege-tactics.ts";
 export { RidePlay } from "./bots/rides.ts";
+export { TidingsPlay } from "./bots/tidings.ts";
 export { SpyCheckPlay } from "./bots/spy-check.ts";
 export { OutlawPlay } from "./bots/outlaws.ts";
 export { VassalPlay } from "./bots/vassals.ts";
