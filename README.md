@@ -393,7 +393,8 @@ kings give them, and a human gives them in the orders panel. The details are in 
 In games without a human, the god view shows everything the engine knows: true map, every
 treasury, every character's hidden traits and facts and who knows them, and the **message
 trail**: for every message, what the king wrote, what the envoy said abroad, and what the envoy
-reported home. Switch to any power to see exactly what it saw. The side panel's tabs show the
+reported home. Switch to any power to see exactly what it saw; a king played by a model has an **Own words**
+tab with his notes, summary, plan and ledger as they stood at the season shown. The side panel's tabs show the
 season's events, the trail, the people, the provinces, the standings and the rules; with a mouse,
 the tabs and the courts along the map scroll with the wheel or by dragging. The timeline
 steps back through the seasons; signals mark sealed tablets, accusations, forgeries, broken
@@ -401,9 +402,9 @@ promises and more. After the game, compare two nations' self-serving annals with
 
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
 each power in its colour with an emblem and a border line of its own along its frontiers (so it reads without
-colour), a border that glows faintly where you see two powers' armies face to face across it, armies as chariots and
-fleets as ships. On the whole map every city is a seal, and a tap on
-it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
+colour), a border that glows faintly where you see two powers' armies face to face across it (the province's card
+lists the armies on the other side), armies as chariots and fleets as ships. On the whole map every city is a seal,
+and a tap on it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
 uncertain things (old sightings, rumours, spy reports) are drawn as such. Each realm shows in three steps of its colour:

@@ -60,6 +60,8 @@ export interface Grant {
   province: string | null;
   /** For passage through all his land: the provinces he held when it was sealed, less any he has since revoked it in. */
   lands: string[];
+  /** Bug #611: the provinces of a passage through all his land he has revoked it in, as both courts hear of it. */
+  cut: string[];
   sinceTurn: number;
   /** The last season it stands, or null for as long as it is not revoked. */
   untilTurn: number | null;
@@ -83,6 +85,7 @@ export function newGrant(init: Partial<Grant> = {}): Grant {
     grantee: "Egypt",
     province: null,
     lands: [],
+    cut: [],
     sinceTurn: 0,
     untilTurn: null,
     tabletId: "",
@@ -101,6 +104,7 @@ export const GrantSchema: ObjSchema<Grant> = obj("Grant", newGrant, {
   grantee: S,
   province: opt(S),
   lands: list(S),
+  cut: list(S),
   sinceTurn: I,
   untilTurn: opt(I),
   tabletId: S,
@@ -109,6 +113,19 @@ export const GrantSchema: ObjSchema<Grant> = obj("Grant", newGrant, {
   endHeard: I,
   endedBy: opt(S),
 });
+
+/** Does a court's view of a grant open `province`: its one province, or any of the grantor's but those it was revoked in? */
+export const grantOpens = (g: { province: string | null; cut: readonly string[] }, province: string): boolean => (g.province === null ? !g.cut.includes(province) : g.province === province);
+
+/**
+ * Where a grant's leave runs, in words (bug #611): its one province, or all the grantor's land but the provinces it was
+ * revoked in. `whose` is "your" or "his".
+ */
+export function grantPlace(g: { province: string | null; cut: readonly string[] }, whose: string, name: (id: string) => string): string {
+  if (g.province !== null) return name(g.province);
+  const xs = g.cut.map(name);
+  return xs.length === 0 ? `all ${whose} land` : `all ${whose} land but ${xs.length === 1 ? xs[0] : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`}`;
+}
 
 /** Does the grant stand in this season? */
 export const grantStands = (g: Grant, turn: number): boolean => g.endedTurn === null && g.sinceTurn <= turn && (g.untilTurn === null || turn <= g.untilTurn);
@@ -174,13 +191,15 @@ export interface GrantView {
   grantor: Power;
   grantee: Power;
   province: string | null;
+  /** Bug #611: for passage through all the grantor's land, the provinces it was revoked in, as this court has heard. */
+  cut: string[];
   sinceTurn: number;
   untilTurn: number | null;
   tablet: string;
 }
 
 export function newGrantView(init: Partial<GrantView> = {}): GrantView {
-  return { kind: "passage", grantor: "Egypt", grantee: "Egypt", province: null, sinceTurn: 0, untilTurn: null, tablet: "", ...init };
+  return { kind: "passage", grantor: "Egypt", grantee: "Egypt", province: null, cut: [], sinceTurn: 0, untilTurn: null, tablet: "", ...init };
 }
 
 export const GrantViewSchema: ObjSchema<GrantView> = obj("GrantView", newGrantView, {
@@ -188,6 +207,7 @@ export const GrantViewSchema: ObjSchema<GrantView> = obj("GrantView", newGrantVi
   grantor: S,
   grantee: S,
   province: opt(S),
+  cut: list(S),
   sinceTurn: I,
   untilTurn: opt(I),
   tablet: S,

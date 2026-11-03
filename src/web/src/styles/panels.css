@@ -1,0 +1,157 @@
+/* The panels, the loading and setup screens, the error screen and the listening page (split from app.css by meaning;
+   loaded after map.css, so the cascade is as it was). */
+
+/* ---------------------------------------------------------------- panels */
+
+.season-panel h4, .life + h4 { margin-top: .9rem; }
+.lines { list-style: none; margin: .2rem 0 .4rem; padding: 0; }
+.lines li { display: block; padding: .3rem .2rem; border-bottom: 1px solid var(--line); cursor: pointer; font-size: .92rem; line-height: 1.35; }
+.lines li:hover { background: var(--surface-2); }
+.lines.plain li { cursor: default; }
+.lines li.believed { color: var(--muted); }
+.mv-tag { display: inline-block; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; padding: 0 .3rem; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); vertical-align: .1em; }
+.ms-attack .mv-tag { background: var(--danger); color: var(--accent-ink); border-color: var(--danger); }
+.ms-bounce .mv-tag { color: var(--danger); border-color: var(--danger); }
+.ms-destroyed .mv-tag { background: var(--bitumen); color: var(--token-ink); }
+.follow-head { display: flex; gap: .55rem; align-items: flex-start; }
+.follow-head .emblem-inline { width: 2rem; height: 2rem; margin-top: .1rem; }
+.follow-head h3 { margin: 0; }
+.life { list-style: none; margin: .2rem 0 .5rem; padding: 0; }
+.life li { display: grid; grid-template-columns: 8.8rem 1fr; gap: .5rem; padding: .3rem 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
+.life li .when { color: var(--muted); font-size: .8rem; }
+.life li .what { white-space: pre-wrap; }
+.life li.nodate .what { grid-column: 1 / -1; }
+.life li.tap:hover { background: var(--surface-2); }
+@container (max-width: 420px) { .life li { grid-template-columns: 1fr; gap: 0; } }
+.plist { list-style: none; margin: 0 0 .4rem; padding: 0; }
+.plist li.on .prow { border-color: var(--accent); background: var(--surface-2); }
+.prow { width: 100%; display: flex; align-items: center; gap: .5rem; text-align: left; padding: .45rem .55rem; margin: .15rem 0; white-space: normal; min-height: 44px; }
+.prow .pname { flex: 1; font-weight: 600; }
+.prow .pmeta { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; font-size: .8rem; }
+.prow .pu { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 0 .3rem; }
+.prow .pu.ghost { border-style: dashed; color: var(--muted); }
+.search { width: 10rem; }
+.trail-card { padding: .7rem .8rem; }
+.trail-head { display: flex; flex-wrap: wrap; gap: .2rem .6rem; align-items: baseline; justify-content: space-between; }
+.trail-status { margin: .35rem 0; font-size: .88rem; background: var(--surface-2); border-left: 3px solid var(--lapis); padding: .2rem .5rem; border-radius: 4px; }
+.count { display: block; text-align: right; font-size: .75rem; color: var(--muted); }
+.count.long { color: var(--danger); }
+
+/* inbox and letters */
+.item { border: 1px solid var(--line); border-radius: 8px; padding: .55rem .7rem; margin-bottom: .55rem; background: var(--surface-2); }
+.item h4 { font-family: var(--sans); font-size: .92rem; margin: 0 0 .25rem; }
+.item .body { white-space: pre-wrap; font-size: .92rem; }
+.tablet {
+    font-family: var(--serif); background: #e9d9bb; color: #3a2e20; border-radius: 6px; padding: .55rem .75rem;
+    border: 1px solid #cdb68f; box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .25); white-space: pre-wrap;
+}
+.speech { font-family: var(--serif); font-size: 1rem; white-space: pre-wrap; }
+.trail { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; }
+.trail > div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: .5rem .6rem; font-size: .9rem; white-space: pre-wrap; }
+.trail h5 { margin: 0 0 .3rem; font-size: .76rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+@container (max-width: 820px) { .trail { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 520px) { .trail { grid-template-columns: 1fr !important; } }
+/* Who wrote it: a model, a script, a human or an agent through files, and a fallback marked so it is never missed. */
+.trail h5 .author, .trail .author { text-transform: none; letter-spacing: 0; font-weight: normal; color: var(--muted); }
+.author.fallback { color: var(--danger, #b3261e); font-weight: 600; }
+.model-picker { display: inline-flex; gap: .3rem; flex-wrap: wrap; }
+
+.orders .unitrow { display: grid; grid-template-columns: 6.5rem 6.2rem 1fr; gap: .4rem; align-items: center; margin-bottom: .35rem; }
+@container (max-width: 420px) { .orders .unitrow { grid-template-columns: 1fr 1fr; } .orders .unitrow > :last-child { grid-column: 1 / -1; } }
+.section { margin: 1rem 0 .4rem; padding-top: .6rem; border-top: 1px solid var(--line); }
+.section:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+
+.bar { height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.bar > i { display: block; height: 100%; }
+
+.chronicle { font-family: var(--serif); white-space: pre-wrap; font-size: 1rem; }
+
+/* ---------------------------------------------------------------- loading */
+
+.boot-title { position: absolute; inset: calc(20vh - 3rem) 0 auto 0; text-align: center; font-family: var(--serif); font-size: 1.6rem; font-weight: 600; letter-spacing: .04em; }
+.boot-title span { color: var(--accent); }
+.boot-note { position: absolute; inset: calc(20vh + 10rem) 1rem auto 1rem; margin: 0 auto; max-width: 22rem; text-align: center; color: var(--muted); font-size: .9rem; }
+
+/* Setup presets */
+.presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .7rem; }
+.preset {
+    display: flex; flex-direction: column; gap: .35rem; text-align: left; white-space: normal;
+    padding: .75rem .85rem; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface-2);
+}
+.preset.on { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 1px var(--accent); }
+.preset-head { display: flex; align-items: center; justify-content: space-between; gap: .4rem; font-family: var(--serif); font-size: 1.08rem; }
+.preset-models { font-size: .8rem; color: var(--muted); }
+.preset-text { font-size: .9rem; flex: 1; }
+.preset-foot { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-top: .2rem; }
+.customize { margin-top: .9rem; }
+.customize summary { cursor: pointer; color: var(--accent); }
+/* The table of seats fits its column on a phone: the player picker shrinks to the room left by the power and its tier,
+   instead of growing to its longest option and running off the screen. */
+.customize table { width: 100%; table-layout: fixed; }
+.customize th:nth-child(2) { width: 4.6rem; }
+.customize td select { width: 100%; min-width: 0; text-overflow: ellipsis; }
+.customize td .model-picker { display: flex; }
+.customize td .model-picker > * { flex: 1 1 100%; min-width: 0; }
+
+/* Anything that moves stands still for readers who ask the system for less motion. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .map .mv .shaft { stroke-dasharray: none; }
+}
+
+/* The error screen (item 17a): plain, readable on a phone, the report selectable as one block. */
+.crash { max-width: 760px; margin: 0 auto; padding: 1.2rem max(1rem, env(safe-area-inset-right)) 3rem max(1rem, env(safe-area-inset-left)); }
+.crash h1 { font-size: 1.4rem; margin: .4rem 0 .6rem; }
+.crash-report { white-space: pre-wrap; word-break: break-word; font-size: .78rem; line-height: 1.4; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: .6rem .8rem; max-height: 50vh; overflow: auto; user-select: all; }
+.crash-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .6rem 0; }
+/* The listening page and the audio switches (item 19+++). */
+.listen-switches { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin: 0.75rem 0; }
+label.volume input[type="range"] { width: 7rem; vertical-align: middle; }
+.listen-table { width: 100%; border-collapse: collapse; }
+.listen-table td, .listen-table th { text-align: left; vertical-align: top; padding: 0.5rem 0.4rem; border-top: 1px solid var(--line, rgba(0, 0, 0, 0.12)); }
+.listen-table .note { font-size: 0.85em; opacity: 0.8; margin-top: 0.2rem; }
+.listen-buttons { white-space: nowrap; }
+.listen-buttons button { display: block; margin: 0 0 0.25rem; }
+.listen-list { padding-left: 0; list-style: none; }
+.listen-list li { margin: 0.35rem 0; }
+.listen-list button { margin-right: 0.25rem; }
+@media (max-width: 640px) {
+  .listen-table thead { display: none; }
+  .listen-table tr { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 0.75rem; padding: 0.6rem 0; border-top: 1px solid var(--line, rgba(0, 0, 0, 0.12)); }
+  .listen-table td { border: 0; padding: 0; }
+  .listen-table td:nth-child(1) { grid-column: 1; }
+  .listen-table td:nth-child(4) { grid-column: 2; grid-row: 1 / span 3; }
+  .listen-table td:nth-child(2), .listen-table td:nth-child(3) { grid-column: 1; font-size: 0.9em; }
+}
+
+/* Fingers: targets of 44px or more. Last in the file, so the base rules above (the zoom buttons') do not win over it. */
+@media (pointer: coarse) {
+    .zoombtns .zb:not(.fit) { display: none; }
+    .tabs button { min-height: 44px; }
+    .timebar .tb { min-height: 44px; min-width: 44px; }
+    .zoombtns .zb { width: 44px; height: 44px; }
+    button.small { min-height: 36px; }
+    select, input, textarea { font-size: 16px; }
+    input[type=checkbox] { width: 1.3rem; height: 1.3rem; }
+    .lines li, .life li.tap { min-height: 40px; }
+    .legend-btn { min-height: 44px; padding-inline: .8rem; }
+    .menu summary { min-width: 40px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+    .menu-body > a { min-height: 44px; margin-block: -.25rem; display: flex; align-items: center; }
+    .menu-body input[type=range] { min-height: 44px; }
+    .gctl { gap: .25rem; }
+    .gctl select { min-height: 44px; }
+    /* The courts: each chip a 44px target, its pill drawn inside it at the height it has with a mouse. */
+    .courtbar { padding-block: 0; }
+    .court, .court.me, .court.on { min-height: 44px; min-width: 44px; justify-content: center; position: relative; isolation: isolate; background: none; border: none; box-shadow: none; outline: none; -webkit-tap-highlight-color: transparent; }
+    .court::before { content: ""; position: absolute; inset: 11px 2px; z-index: -1; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .court.me::before { border-color: var(--accent); }
+    @media (hover: hover) { .court:hover::before { border-color: var(--accent); } }
+    .court.on::before { box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+    .court:focus-visible { outline: none; }
+    .court:focus-visible::before { outline: 2px solid var(--accent); outline-offset: 0; }
+    .game .court-pop { top: calc(100% + .2rem); }
+    /* Where the strip lies over the map, the season tag stands below it. */
+    @media (min-width: 900px) and (min-aspect-ratio: 1/1), (orientation: landscape) and (max-height: 560px) { .game .season-tag { top: 3.4rem; } }
+    /* The pages' bar: a taller target without a taller bar. */
+    .topbar nav a { display: inline-block; padding-block: .7rem; margin-block: -.7rem; }
+}

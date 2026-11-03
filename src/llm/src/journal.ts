@@ -61,6 +61,20 @@ export class LeaderJournal {
   }
 
   /**
+   * Item 17+++: the king's own words as they stand, page by page, for the record to keep season by season: its last notes,
+   * its summary of older seasons, its plan, and its ledger, one page a court. All of it as it wrote it.
+   */
+  pages(): Record<string, string> {
+    const out: Record<string, string> = {
+      notes: this.seasons.length === 0 ? "" : this.seasons[this.seasons.length - 1].notes,
+      summary: this.summary,
+      plan: this.plan?.[0] ?? "",
+    };
+    for (const [court, [entry]] of this.ledger) out[`ledger:${court}`] = entry;
+    return out;
+  }
+
+  /**
    * An audience the king held: what it said to whose envoy, and the letters it sent from it (while its orders stood). It
    * joins the record with the next orders it gives; until then its later audiences show it.
    */

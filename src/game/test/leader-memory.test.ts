@@ -159,6 +159,11 @@ describe("LeaderMemoryTests", () => {
     Assert.doesNotContain("s".repeat(LeaderJournal.SummaryMax + 1), lastOrdersRequest(cutAsker));
   });
 
+  test("The king's own words are given as pages for the record: last notes, summary and ledger, as it wrote them", async () => {
+    let [seat] = await played(3, { summary: (t) => (t === 2 ? "Egypt owes me 50." : ""), ledger: (t) => (t === 3 ? [["Egypt", "Owes 50 since turn 2."]] : []) });
+    Assert.equal({ notes: "notes of turn 3", summary: "Egypt owes me 50.", plan: "", "ledger:Egypt": "Owes 50 since turn 2." }, seat.mindPages());
+  });
+
   test("An audience request carries the summary and the last two seasons notes", async () => {
     let [seat, asker] = await played(3, { summary: (t) => (t === 3 ? "Babylon is my friend." : "") });
     await seat.hostAudience(envoy(4), view(4));
