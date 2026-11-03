@@ -4,6 +4,10 @@ Who might attack this repository and its site, what they want, and where they co
 reads this file as its threat model (its settings point here, so it is not made anew for every review); the rules
 that close each way in are in `SECURITY.md`, whose rule numbers this file cites.
 
+- **Everything is public:** every file, its whole history, every PR, issue, comment and workflow run. So an attacker
+  reads the code, the workflows and these rules before trying anything: no defence may rest on not being known, and
+  every rule must hold against someone who has read it. Anything committed is public for good, even if a later commit
+  removes it; a secret that lands is leaked, and the only fix is to rotate it.
 - **Who:** anyone on the internet. They write issues and comments, open PRs from forks, hand a player a save file or a
   link, publish a package or action this repository uses, or plant text on a page a builder or Codex reads; and a
   model's reply can carry what its inputs planted.
