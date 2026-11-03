@@ -264,7 +264,7 @@ P.hireAll = function (hires, carriedTo = null) {
 };
 
 /** What a hired servant can do at once, by his job's errand; a stay or a ride needs no order. */
-const ReadyWords: Record<string, string> = { envoy: " They can be sent on their mission now.", spy: " They can be sent to their post now." };
+const ReadyWords: Record<string, string> = { envoy: " They can be sent on their way now.", spy: " They can be sent to their post now." };
 
 /** A job's errand in words, after "a job". */
 export function errandWords(e: JobErrand | null, name: (x: string) => string): string {

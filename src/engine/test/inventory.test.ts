@@ -221,7 +221,7 @@ describe("InventoryTests", () => {
     );
     // Every court thinks 30 less of it; since item 10 its mission done, which some courts heard of meanwhile, adds back a little.
     Assert.all(AllPowers, (p) => Assert.inRange(envoy.reputation.getOrDefault(p, 0) - standing.get(p), -30, -30 + 10));
-    let rumour = `The scribes of Alashiya find that the inventory of gold under the seal of Egypt, brought by ${envoy.name}, envoy of Egypt, was forged by him.`;
+    let rumour = `The scribes of Alashiya find that the inventory of gold under the seal of Egypt, brought by its envoy ${envoy.name}, was forged by him.`;
     Assert.contains(s.journeys, (j) => j.kind === "Rumor" && j.to === "Egypt" && j.text === rumour);
     Assert.doesNotContain(s.journeys, (j) => j.kind === "Rumor" && j.to === "Alashiya" && j.text === rumour);
   });

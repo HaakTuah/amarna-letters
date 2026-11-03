@@ -121,7 +121,7 @@ P.battles = function (result, sightBefore) {
       "Battle",
       "Fell back",
       u.kind === "Fleet" && this.map.get(to).isSea && !this.map.get(u.province).isSea
-        ? `Your fleet off ${this.map.get(u.province).name} was driven back into ${this.map.get(to).name}, ${u.men} men strong.`
+        ? `Your fleet off ${this.map.get(u.province).name} was beaten and drew off${this.map.get(to).name.startsWith(this.map.get(u.province).name) ? " to sea" : ` into ${this.map.get(to).name}`}, ${u.men} men strong.`
         : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} was beaten from it and fell back to ${this.map.get(to).name}, ${u.men} men strong.`,
     );
     logEvent(S, "fallback", `${upper(whose(u.power))} ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");

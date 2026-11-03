@@ -102,7 +102,7 @@ P.swapInventory = function (c, sealer, receiver, kept, left, swap) {
  */
 P.inventoryExposed = function (examiner, tablet, forger) {
   const S = this.s;
-  const bearer = `${forger.name}${tablet.forgerEmployer !== null ? `, envoy of ${powerName(tablet.forgerEmployer)}` : ""},`;
+  const bearer = `${forger.name}${tablet.forgerEmployer !== null ? `, envoy of ${powerName(tablet.forgerEmployer)}` : ""}`;
   for (const p of AllPowers) forger.reputation.set(p, forger.reputation.getOrDefault(p, 0) - 30);
   forger.facts.push(
     newFact({
@@ -112,8 +112,11 @@ P.inventoryExposed = function (examiner, tablet, forger) {
       tag: "forger",
     }),
   );
+  // The seal named once: an envoy of the one court whose seal the tablet bears is "its envoy".
+  const own = tablet.forgerEmployer !== null && tablet.seals.length === 1 && tablet.seals[0] === tablet.forgerEmployer;
+  const forged = `${listed(tablet.seals.map((x) => powerName(x)))}, brought by ${own ? `its envoy ${forger.name}` : bearer}`;
   for (const p of alive(S).filter((p) => p !== examiner))
-    this.rumor(p, examiner, `The scribes of ${powerName(examiner)} find that the inventory of gold under the seal of ${listed(tablet.seals.map((x) => powerName(x)))}, brought by ${bearer} was forged by him.`);
+    this.rumor(p, examiner, `The scribes of ${powerName(examiner)} find that the inventory of gold under the seal of ${forged}, was forged by him.`);
   logEvent(S, "forgery-exposed", `${examiner} publicly traced a forged inventory to ${forger.name}.`, null, "forgery-exposed");
   return ` The scribes trace it to the hand of ${forger.name}, who brought it.`;
 };
