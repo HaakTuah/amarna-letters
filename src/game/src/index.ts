@@ -29,6 +29,8 @@ export { TakeUpPlay } from "./bots/declarations.ts";
 export { RegionPlay } from "./bots/generals.ts";
 export { AuditPlay } from "./bots/audit-play.ts";
 export { TalkPlay } from "./bots/talk.ts";
+export { OccupyPlay } from "./bots/occupy.ts";
+export { WarPlay } from "./bots/siege-tactics.ts";
 export { SpyCheckPlay } from "./bots/spy-check.ts";
 export { OutlawPlay } from "./bots/outlaws.ts";
 export { VassalPlay } from "./bots/vassals.ts";
