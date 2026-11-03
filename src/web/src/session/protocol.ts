@@ -1,6 +1,6 @@
 /** The messages between the page and the engine's worker. The engine is the only state: the page shows what it is sent. */
 import type { GameConfig, Power, RisenPower } from "@amarna/engine";
-import type { ExportParts, SeasonFallbacks, SnapshotDelta, TrailAuthors } from "@amarna/game";
+import type { ExportParts, MindPage, SeasonFallbacks, SnapshotDelta, TrailAuthors } from "@amarna/game";
 import type { WireFrame } from "./frames.ts";
 import type { GameSettings, TableSettings } from "./settings.ts";
 
@@ -22,7 +22,9 @@ export type ToWorker =
   | { type: "answer"; power: Power; json: string }
   /** A sleeping human seat wakes itself next season (item 9+a). */
   | { type: "wake"; power: Power }
-  | { type: "export"; id: number; parts: ExportParts };
+  | { type: "export"; id: number; parts: ExportParts }
+  /** Item 17+++: a mind's own words as they stood at the end of a season (asked only when the record is open to the page). */
+  | { type: "mind"; id: number; who: Power; turn: number };
 
 /** A human seat's question, as JSON the page reads with the engine's schemas. */
 export interface Pending {
@@ -86,4 +88,5 @@ export interface Live {
 
 export type FromWorker =
   | { type: "update"; live: Live; frames: WireFrame[]; reset: boolean }
-  | { type: "export"; id: number; name: string; text: string };
+  | { type: "export"; id: number; name: string; text: string }
+  | { type: "mind"; id: number; pages: MindPage[] };

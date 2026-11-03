@@ -41,6 +41,11 @@ export interface ISeat {
    * never hear one.
    */
   readonly hearsCouncil?: boolean;
+  /**
+   * Item 17+++: a seat with a mind of its own (a model king) gives its own words as they stand after a season, page by page
+   * (its notes, summary, plan and ledger), for the record to keep; script, file and human seats have none.
+   */
+  mindPages?(): Record<string, string>;
   /** A sleeping seat that wants to act now (a human waking himself): read once a season, before the wake check. */
   wakeRequested?(): boolean;
   decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission>;

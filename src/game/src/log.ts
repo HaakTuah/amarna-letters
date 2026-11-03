@@ -25,6 +25,7 @@ import {
   type Power,
   type Schema,
 } from "@amarna/engine";
+import { MindBook, MindPageSchema, type MindPage } from "./minds.ts";
 
 export interface LogHeader {
   /** The rules version the game was played under ({@link CURRENT_VERSION} for a new game). */
@@ -370,6 +371,8 @@ export class GameLog {
   readonly shadows: ShadowDecision[] = [];
   /** The audits of lower rungs' decisions. Not used in replay. */
   readonly audits: Audit[] = [];
+  /** Item 17+++: the minds' own words season by season, each page kept when it changed (minds.ts). Not used in replay. */
+  readonly minds = new MindBook();
   private readonly index = new Map<string, string>();
   private readonly authors = new Map<string, Authorship>();
   /** Routes told before their decisions are recorded, by decision key. */
@@ -453,6 +456,7 @@ export class GameLog {
     for (const sh of sortBy(this.shadows, [(x: ShadowDecision) => x.turn, cmpNum], [(x: ShadowDecision) => x.key, cmpStr]))
       out += withType(serialize(ShadowDecisionSchema, sh), "shadow") + "\n";
     for (const a of sortBy(this.audits, [(x: Audit) => x.turn, cmpNum], [(x: Audit) => x.key, cmpStr])) out += withType(serialize(AuditSchema, a), "audit") + "\n";
+    for (const m of this.minds.pages) out += withType(serialize(MindPageSchema, m), "mind") + "\n";
     return out;
   }
 
@@ -485,6 +489,9 @@ export class GameLog {
           break;
         case "audit":
           log.audits.push(deserialize<Audit>(AuditSchema, line));
+          break;
+        case "mind":
+          log.minds.add(deserialize<MindPage>(MindPageSchema, line));
           break;
       }
     }

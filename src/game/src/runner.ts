@@ -200,6 +200,8 @@ export class GameRunner {
           );
     for (const p of sleepers) state.sleep.tryAdd(p, newSleepState());
     this.log = options.log ?? new GameLog();
+    // Item 17+++: a replayed or continued game keeps its minds' own words, which no replayed seat gives again.
+    if (replay !== null && this.log !== replay) for (const page of replay.minds.pages) this.log.minds.add(page);
     this.log.header = newLogHeader({
       seed: state.seed,
       config: state.config,
@@ -394,6 +396,11 @@ export class GameRunner {
     this.setPhase(`Turn ${turn}: resolution`);
     engine.resolve(subs);
     if (this.keepSnapshots) this.snapshots.push(serialize(GameStateSchema, S_));
+    // Item 17+++: each mind's own words as they stand after the season, kept where they changed.
+    for (const [p, seat] of this.seats) {
+      const pages = seat.mindPages?.();
+      if (pages !== undefined) this.log.minds.keep(turn, p, pages);
+    }
 
     // The chronicles are of the age: written when it ends, and not again if the table plays on into an open age.
     if (S_.ended && this.writeChronicles && this.chronicles.size === 0) await this.chronicleAll(signal);
