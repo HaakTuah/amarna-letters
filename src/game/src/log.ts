@@ -25,7 +25,7 @@ import {
   type Power,
   type Schema,
 } from "@amarna/engine";
-import { MindBook, MindPageSchema, checkedMindPage, type MindPage } from "./minds.ts";
+import { MindBook, MindPageSchema, readMindPage } from "./minds.ts";
 
 export interface LogHeader {
   /** The rules version the game was played under ({@link CURRENT_VERSION} for a new game). */
@@ -491,7 +491,7 @@ export class GameLog {
           log.audits.push(deserialize<Audit>(AuditSchema, line));
           break;
         case "mind":
-          log.minds.add(checkedMindPage(deserialize<MindPage>(MindPageSchema, line)));
+          log.minds.add(readMindPage(node));
           break;
       }
     }
