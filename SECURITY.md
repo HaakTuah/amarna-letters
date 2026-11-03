@@ -73,7 +73,9 @@ Codex's terms (archive item 129).
    to read them; he passes on what needs fixing.
    - **In a PR's own change:** it blocks the merge until fixed ("Codex reviews", point 6, in `docs/claude-and-codex.md`),
      wherever it was reported, Codex's findings on the PR included. A CodeQL finding that is a false alarm is no
-     weakness: it is explained in the PR, which may then merge, and left to the owner, who alone dismisses alerts.
+     weakness: once it is explained in the PR and the PR's
+     security reviewer (Codex's, or the fallback reviewer) confirms it there, with no suppression comment added to the
+     code, the PR may merge, and the alert is left to the owner, who alone dismisses alerts.
    - **In merged code, where it could reach what the threat model protects beyond its lower stakes: the owner's
      accounts or tokens, `main`, `develop` or the site (a workflow, a CI permission, a secret, a dependency), a player's API key, or code run in a player's browser from input that is not the player's
      own (a shared save or link, a model reply);

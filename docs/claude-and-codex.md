@@ -115,7 +115,7 @@ goes to building. Its usage can run out like any other, and it may then not say 
   (point 5).
 - **Every other PR that changes the game, its data, tests, tools or config:** the code review.
 - **Dependabot's version and security updates:** the code review (`SECURITY.md`, rules 3 and 4).
-- **Docs-only PRs and the milestone PRs:** no code review and no design check, except a PR that changes a rule file
+- **Docs-only PRs and the milestone PRs:** no code review and no design check, except a PR that changes a protected file
   (`SECURITY.md`, rule 3), which gets the code review. The history dossiers count as docs: a PR
   that changes only `docs/history/` gets none (the anchor test and the monthly spot-check guard them); one that changes
   the game's data is code, and is reviewed.
@@ -161,7 +161,10 @@ goes to building. Its usage can run out like any other, and it may then not say 
    fallback reviewer's review is in the PR;** one with no findings posts nothing else. Its findings count as a code
    review's do: each is fixed, or moved out as "Reviews" says, before the merge; a Codex finding fixed by a later commit
    is closed by the fallback reviewer's check of that commit, its thread answered and resolved. **The security gate,**
-   for every PR but the milestone PRs, whose commits each passed it on their way into `develop`: a PR merges only once
+   for every PR but the milestone PRs, whose commits each passed it on their way into `develop` (a commit that reached
+   `develop` another way, such as a merge of `main` back with a regenerated lock file, a conflict resolution or a direct
+   push, is reviewed by the fallback reviewer in the milestone PR, against `SECURITY.md` and `docs/threat-model.md`,
+   before it merges): a PR merges only once
    its security review has run, as just said. If no completed security review appears within about 30 minutes of the
    ready mark, the fallback reviewer reviews the diff against `SECURITY.md` and `docs/threat-model.md`, the PR says so,
    it may merge on that review, and the next wake reports it to the owner. A PR with an open security finding never
