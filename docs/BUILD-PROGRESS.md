@@ -65,6 +65,14 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) #612 has had four Codex
+  rounds, past the three that "Codex reviews" holds: no fifth; take it to escalation as that section says. (2) The
+  code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`
+  rule 9 says: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
+  only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if
+  Codex's "🛡️ Codex Security Review" comment says so ("Codex reviews"); report any ask that came back as a code
+  review alone.
+
 - **The body and the road** (the owner, 3 November 2026; archive item 187; "The body: endurance and robustness" and
   "The road he takes follows his appetite for risk" under Characters, revision 31, and "What sets a company's pace",
   revision 112): two hidden, seeded traits, endurance (the pace of lone travellers and small parties) and robustness
