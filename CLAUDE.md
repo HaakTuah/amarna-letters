@@ -17,7 +17,7 @@ reviews" and "Reviews", point 7, "The briefs"); this table gives only the model 
 | --- | --- | --- | --- |
 | You, the builder | Opus | medium, as the orchestrator starts you; the hard work ("Who does what") goes to helpers at high effort inside your session | the item itself |
 | Search helper | Haiku (`model: "haiku"`) | as it comes | finding where things are across many files, the cheap way to look across them instead of reading large files yourself; it returns file:line and one-line conclusions |
-| Parallel helper | Sonnet (`model: "sonnet"`) for routine parts; Opus (`model: "opus"`) for parts that need design judgement | medium; high (`effort: "high"`) for the hard work | one part of the work with a shape from "Helpers: when they pay" below, with a narrow brief and its own files |
+| Parallel helper | Sonnet (`model: "sonnet"`) for routine parts; Opus (`model: "opus"`) for parts that need design judgement | medium; high (`effort: "high"`) for the hard work | one part of the work with a shape from "Helpers: when they pay" ("Who does what"), with a narrow brief and its own files |
 | Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | the fallback reviewer, for the code review and the security review, and the blind re-review |
 | Design check | Fable (`model: "fable"`, `effort: "medium"`) | medium | the design checker: the strongest fresh eye where misses cost most, in one short call. (Fable's fallback: below the table) |
 | Planning design | Fable (`model: "fable"`, `effort: "high"`) | high | planning design; you build and measure what it returns with Opus. (Fable's fallback: below the table) |
@@ -26,22 +26,6 @@ reviews" and "Reviews", point 7, "The briefs"); this table gives only the model 
 
 **Fable's fallback:** if Fable is out of usage or unavailable, or the owner says its share for the week is spent, its
 call goes to Opus (`model: "opus"`, `effort: "high"`); nothing ever waits for Fable.
-
-**Helpers: when they pay** (archive item 134). A helper starts cold,
-rereads what it needs and returns only a summary, so it is worth its cost only when the work has one of these shapes:
-
-- *Parallel and independent:* parts that touch different files and need nothing from each other.
-- *Competing approaches, judged by measurement:* several candidate fixes for one problem, each tried in its own
-  worktree and measured the same way (benchmarks, use against ignore); the best is kept, the rest dropped.
-- *Bulk to brief:* many files read to answer one narrow question; the helper returns file:line and a sentence, so your
-  context stays clean.
-- *Fresh eyes:* a review, or a problem that has beaten you twice.
-
-It does not pay for small or one-pass work (docs, config, small fixes), for steps that depend on each other, when
-briefing it would cost most of the work, or for waiting on a run. Give each helper the cheapest model that does its part
-well (the table above), a narrow brief and its own files, and check every result before you use it. At most four at a
-time, reviewers included; each lane's builder keeps its own four. The PR lists the helpers that ran and what each gave,
-so the rule can be checked against its cost. Never stop to ask about helpers: decide by these shapes.
 
 - **No agent workflows and no ultracode** (model-game simulations excepted: "Helpers, effort and escalation" in
   `AGENTS.md`). Long runs go in the background with the Bash tool's background mode ("Print little" in `AGENTS.md`).
