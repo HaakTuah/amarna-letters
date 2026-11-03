@@ -223,4 +223,6 @@ export interface ChronicleContext {
   scores: ScoreRow[];
   winners: string[];
   lastTurn: number;
+  /** The court's annals as told before, oldest first, when they are told anew at the game's owner's asking; empty the first time. */
+  earlier: string[];
 }

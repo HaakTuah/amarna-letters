@@ -833,7 +833,7 @@ export class GameRunner {
     return next;
   }
 
-  private chronicleContext(p: Power): ChronicleContext {
+  private chronicleContext(p: Power, earlier: string[] = []): ChronicleContext {
     const S_ = this.state;
     return {
       power: p,
@@ -841,6 +841,7 @@ export class GameRunner {
       scores: S_.scores.filter((s) => s.power === p),
       winners: [...S_.winners],
       lastTurn: S_.scores.length === 0 ? S_.turn : max(S_.scores, (s) => s.turn),
+      earlier,
     };
   }
 
@@ -871,8 +872,9 @@ export class GameRunner {
   tellChroniclesAnew(signal?: AbortSignal): Promise<void> {
     return this.oneAtATime(async () => {
       for (const p of [...this.chronicles.keys()]) {
-        const ctx = this.chronicleContext(p);
-        const key = chronicleKey(p, (this.chroniclesAnew.tryGet(p)?.length ?? 0) + 1);
+        const earlier = [this.chronicles.get(p), ...(this.chroniclesAnew.tryGet(p) ?? [])];
+        const ctx = this.chronicleContext(p, earlier);
+        const key = chronicleKey(p, earlier.length);
         this.anew(p, await this.recorded<string>(key, S, () => this.narrator.chronicle(ctx, signal), () => new TemplateNarrator().chronicle(ctx, signal), this.narrator.label, true));
       }
     });

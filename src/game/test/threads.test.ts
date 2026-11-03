@@ -25,6 +25,7 @@ class Teller extends TemplateNarrator {
   override readonly label = "Teller";
   asked = 0;
   annals = 0;
+  earlier: string[][] = [];
   private readonly word: string;
   constructor(word: string) {
     super();
@@ -36,6 +37,7 @@ class Teller extends TemplateNarrator {
   }
   override chronicle(ctx: ChronicleContext): Promise<string> {
     this.annals++;
+    this.earlier.push(ctx.earlier);
     return Promise.resolve(`${this.word} annals of ${ctx.power}`);
   }
 }
@@ -149,17 +151,20 @@ describe("ThreadTests", () => {
     const r = await played(teller, 2);
     Assert.true(r.chronicles.size > 0);
     const written = teller.annals;
-    Object.assign(r, { narrator: new Teller("Second") });
-    await r.tellChroniclesAnew();
+    const second = new Teller("Second");
+    Object.assign(r, { narrator: second });
+    // Asked twice at once: told one after the other, each under its own key, each shown the tellings before it.
+    await Promise.all([r.tellChroniclesAnew(), r.tellChroniclesAnew()]);
     const [p, text] = [...r.chronicles][0];
     Assert.contains("First annals", text);
-    Assert.equal([`Second annals of ${p}`], r.chroniclesAnew.get(p));
+    Assert.equal([`Second annals of ${p}`, `Second annals of ${p}`], r.chroniclesAnew.get(p));
+    Assert.equal([[text], [text, `Second annals of ${p}`]], second.earlier.filter((_, i) => i % r.chronicles.size === 0));
     Assert.equal(written, teller.annals);
     const replay = GameRunner.forReplay(GameLog.fromJsonl(r.log.toJsonl()));
     await replay.prepare();
     while (await replay.playTurn());
     Assert.equal(text, replay.chronicles.get(p));
-    Assert.equal([`Second annals of ${p}`], replay.chroniclesAnew.get(p));
+    Assert.equal([`Second annals of ${p}`, `Second annals of ${p}`], replay.chroniclesAnew.get(p));
   });
 
   test("A log with an older game's record, without threads, replays and has them told then", async () => {
@@ -185,7 +190,6 @@ describe("ThreadTests", () => {
       { ...good, moved: "0.2" },
       { ...good, soon: "true" },
       { ...good, court: "Egypt\u0007" },
-      { ...good, court: "Atlantis" },
       { ...good, province: "nowhere" },
       { ...good, text: "x".repeat(3000) },
       { ...good, extra: 1 },

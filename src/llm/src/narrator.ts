@@ -84,10 +84,16 @@ Facts: ${joinS(
 
 Outcome: ${ctx.winners.includes(p) ? "this king won the age" : `the age was won by ${joinS(" and ", ctx.winners)}`}; at the end ${land(p)} held ${last?.provinces ?? 0} provinces.
 Events known to this court:
-${events.toString()}`;
+${events.toString()}${
+      ctx.earlier.length === 0
+        ? ""
+        : `
+The court has asked for these annals to be written anew. They were written before as follows; write them afresh, in words of your own, not these:
+${ctx.earlier.map((t) => `---\n${t}`).join("\n")}`
+    }`;
     const json = await this.client.askJson(
       {
-        key: `end/chronicle/${p}`,
+        key: ctx.earlier.length === 0 ? `end/chronicle/${p}` : `end/chronicle/${p}/anew${ctx.earlier.length}`,
         turn: ctx.lastTurn,
         role: "narrator:chronicle",
         model: this.model,
