@@ -95,7 +95,7 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   and the page itself never scrolls. Pinch-zoom and pan move one layer on the GPU (`src/web/src/map/zoom.ts`); symbols, names and lines
   keep a readable size on screen whatever the zoom (tokens about 14 pixels on a phone showing the whole board, 22 on a
   desktop, at most 40), and minor names wait until the map is large enough to hold them. Item 17+++: the realms' colours
-  are full zoomed out and thin as the map is zoomed in, by the `--wash` factor of `map/wash.ts`, set when a gesture
+  are full zoomed out and thin as the map is zoomed in, by the `--wash` factor of `map/wash.ts` (the rules in `styles/map.css`), set when a gesture
   settles: from 1.6 times the realm's wash at 0.45 screen pixels a map unit or less to 0.2 at 3 or more, in eight steps,
   so the realms' layer is painted again only when a zoom crosses one. The realm bands and the emblems on the city seals
   stay, and the mood view keeps its colours. A province list stands in for
