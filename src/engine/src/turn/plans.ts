@@ -7,7 +7,7 @@ import { cmpNum, distinct, groupBy, sortBy } from "../core/seq.ts";
 import { eqIgnoreCase, isBlank, trim } from "../core/text.ts";
 import { characterOf, describe, unitOf } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
-import { type MoveOrder, type Order } from "../model/orders.ts";
+import { type MoveOrder, type Order, type RaiseOrder } from "../model/orders.ts";
 import { AllPowers, cmpPower, type Power } from "../model/power.ts";
 import {
   describeLevy,
@@ -88,6 +88,12 @@ declare module "./core.ts" {
     bind(p: Power, turn: number, o: Order, levies: readonly LevyRef[]): [PlannedOrder | null, string];
     levyRaised(p: Power, unit: Unit): void;
     unraisedLevies(): void;
+    /**
+     * A levy that failed in its province: its notice comes by the road (`tell`), and with a reason (`why`), others'
+     * doing, it wakes a sleeping seat as a lost order (`lostOrder`). The season the court hears of it is kept for the
+     * orders waiting on its unit (bug #569).
+     */
+    levyFailed(p: Power, r: RaiseOrder, province: string, text: string, why: string | null): void;
     keepScheduled(p: Power, sl: SleepState, plans: ScheduledOrders[], accepted: readonly Order[]): void;
     keepStanding(p: Power, requests: StandingRequest[]): void;
     cancelStanding(p: Power, ids: string[]): void;
@@ -605,22 +611,41 @@ P.levyRaised = function (p, unit) {
   }
 };
 
+/** Bug #569: the season each court hears that a levy of this season failed in its province, by court and province. */
+const levyWord = new WeakMap<TurnEngine, Dict<string, number>>();
+
+P.levyFailed = function (p, r, province, text, why) {
+  if (why !== null) this.lostOrder(p, r, province, "Levy failed", text, why);
+  else this.tell(p, province, "Rejected", "Levy failed", text);
+  let heard = levyWord.get(this);
+  if (heard === undefined) levyWord.set(this, (heard = new Dict()));
+  heard.set(`${p}|${province}`, this.heardAt(p, province));
+};
+
 /**
  * Once the season's levies are raised: scheduled orders still waiting for a unit a levy of this season or earlier was to
  * raise can never run (the levy failed, was refused, or was not given after all). They are dropped, and the seat is told
- * in its news. That wakes nobody.
+ * in its news. That wakes nobody. Bug #569: a levy that failed in its province is learnt by the word from there
+ * (`levyFailed`); until it comes, the orders stay in the seat's list, unbound. One the court knows of at once (refused,
+ * short of gold, not given after all) drops them at once.
  */
 P.unraisedLevies = function () {
   const S = this.s;
   if (!S.config.sleepingSeats) return;
+  const now = S.turn + S.deliveryOffset;
+  const heard = levyWord.get(this);
   for (const [p, sl] of sortBy(S.sleep.entries(), [([k]: [Power, SleepState]) => k, cmpPower])) {
-    const unraised = (l: LevyRef | null): boolean => l !== null && l.turn <= S.turn;
-    const dropped = sl.scheduled.filter((x) => unraised(x.unitLevy) || unraised(x.otherLevy));
-    if (dropped.length === 0) continue;
-    removeAll(sl.scheduled, (x) => dropped.includes(x));
-    const lines = dropped.map((x) => `turn ${x.turn}: ${describe(asShown(S, p, x))}`);
-    notify(S, p, "Rejected", UnraisedTitle, "These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n" + lines.map((x) => "- " + x).join("\n"));
+    const unraised = (l: LevyRef | null): l is LevyRef => l !== null && l.turn <= S.turn;
+    const failed = sl.scheduled.filter((x) => x.unraisedHeard === 0 && (unraised(x.unitLevy) || unraised(x.otherLevy)));
+    const at = (x: PlannedOrder): number => heard?.tryGet(`${p}|${(unraised(x.unitLevy) ? x.unitLevy : x.otherLevy!).province}`) ?? now;
+    for (const [when, dropped] of groupBy(failed, at)) {
+      for (const x of dropped) x.unraisedHeard = when;
+      const lines = dropped.map((x) => `turn ${x.turn}: ${describe(asShown(S, p, x))}`);
+      this.tellAt(p, when, "Rejected", UnraisedTitle, "These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n" + lines.map((x) => "- " + x).join("\n"));
+    }
+    removeAll(sl.scheduled, (x) => x.unraisedHeard > 0 && x.unraisedHeard <= now);
   }
+  levyWord.delete(this);
 };
 
 /**

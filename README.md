@@ -373,7 +373,8 @@ answered in a Claude Code session on your Claude subscription, through a small b
 Long games become affordable when model calls scale with events, not with time. **Sleeping
 seats** are on by default: after giving its orders, a model king sleeps, and it never chooses when
 it wakes. The world goes on, its units hold and its scheduled orders run, each following its unit
-(a march stopped by a bounce tries the step again, and a new levy can be given orders ahead), and
+(a march stopped by a bounce tries the step again, and a new levy can be given orders ahead; if a
+levy far off raises none, its orders stay listed, unable to run, until word of it comes home), and
 its standing orders answer, in the same season, a unit it sees setting out to enter a province or
 to attack one of its own. It is woken only when something concerns it: an envoy at the door,
 foreign troops in its land or arriving next to its homeland or a walled city it holds, land or
