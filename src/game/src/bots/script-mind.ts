@@ -434,7 +434,7 @@ const TradeWords: readonly (readonly [RegExp, Words])[] = [
     ],
   ],
   [
-    /son|brother|prince|heir|house/i,
+    /son|brother|prince|heir/i,
     [
       ["My father's house is an old one, and its name still opens doors.", "Men in my land still look to my house.", "My blood is as good as any king's.", "A king who takes me in takes my house's friends with me."],
       ["My house has fallen on hard days, and I seek a lord.", "I have a name and little else. I would put it at your service.", "I ask for a place, not a throne.", "I will serve, as a younger son must."],
