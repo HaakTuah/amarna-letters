@@ -195,11 +195,19 @@ Per step on the phone at Fast, before and after (mean ms): the season's washes 4
 to 50 and placed 0.65 times a season instead of 2.7, the steps run in the message task 29 to 0.8; the seasons reached in
 two minutes 50 to 65. The opening's first draw, outside the bar, costs 2.5 to 3 s on the phone profile and 0.55 to 0.65 s
 on desktop, as before. The desktop rows' "before" are Part B's, measured on a quieter machine; the after runs had other
-lanes' test suites beside them, so the desktop numbers say "no worse", not "better".
+lanes' test suites beside them. The share of long desktop frames is no worse, but the worst desktop frame grew in every row
+(33 to 100, 17 to 83, 83 to 150 ms); load is the likely cause, not shown, so those worst frames are unexplained until a
+run on a quiet machine.
+
+### Recording
+
+`docs/rounds/media/2026-11-03-17ppp-g-phone-fast.webm` (2.1 MB): the phone profile (390x844, CPU 4x slower) at Fast,
+seed 1, from the soak tool's `--video`.
 
 ### What is left
 
-The bar is met on desktop but for a few frames a game, and **not on the phone profile**: there one frame in eight at Fast
+The bar is met on desktop at Slow, Normal and Simulate, not at Fast (3.3% of frames), and **not on the phone profile**
+(#666, blocked): there one frame in eight at Fast
 and one in forty-five at Normal is over 50 ms. What remains is the browser's own work whenever the map changes, which no
 JavaScript mark sees: layerization (20 to 60 ms a frame; the map's thousands of SVG elements each carry a transform or a
 clip, so the whole page is layerized again), paint, and the frames of the pieces' slide, which software raster paints
