@@ -791,8 +791,9 @@ export class GameRunner {
    * every telling anew, never told again; a record without them (an older game) has them told now.
    */
   private async threads(turn: number, signal?: AbortSignal): Promise<void> {
-    const found = findThreads(this.state, turn);
-    await this.recorded<Thread[]>(threadsKey(turn), ThreadsSchema, () => this.wordThreads(found, turn, this.narrator, signal), () => this.wordThreads(found, turn, new TemplateNarrator()), this.narrator.label, true);
+    let kept: Thread[] | undefined; // found only if told now: a season read back from the record finds nothing
+    const found = (): Thread[] => (kept ??= findThreads(this.state, turn));
+    await this.recorded<Thread[]>(threadsKey(turn), ThreadsSchema, () => this.wordThreads(found(), turn, this.narrator, signal), () => this.wordThreads(found(), turn, new TemplateNarrator()), this.narrator.label, true);
     for (let n = 1; this.replay?.has(threadsKey(turn, n)) === true; n++) await this.recorded<Thread[]>(threadsKey(turn, n), ThreadsSchema, () => Promise.resolve([]));
   }
 

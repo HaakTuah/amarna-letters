@@ -34,9 +34,6 @@ import {
   type SeatView,
 } from "@amarna/engine";
 
-/** The kinds of story: a city besieged, an envoy on his road, a people who would rise behind a man. */
-export type ThreadKind = "siege" | "envoy" | "rising";
-
 /** One thread to watch, as found and then as the narrator worded it. */
 export interface Thread {
   /** Whose eyes it was found for: a power (watched through its seat), or "" for god view. */
@@ -241,6 +238,7 @@ export function findThreads(s: GameState, turn: number): Thread[] {
 
 /** The longest a thread's words may be in a saved record: a few sentences, with room to spare. */
 const WordsMost = 2000;
+/** The kinds of story: a city besieged, an envoy on his road, a people who would rise behind a man. */
 const Kinds: readonly string[] = ["siege", "envoy", "rising"];
 const Fields: readonly string[] = ThreadSchema.fields.map(([n]) => n);
 
