@@ -1,7 +1,7 @@
 # The threat model: Amarna Letters
 
 Who might attack this repository and its site, what they want, and where they could get in. Codex's security review
-reads this file as its threat model (its settings point here, so it is not made anew for every review); the rules
+reads this file as its threat model ("Setup" in `docs/claude-and-codex.md`); the rules
 that close each way in are in `SECURITY.md`, whose rule numbers this file cites.
 
 - **Everything is public:** every file, its whole history, every PR, issue, comment and workflow run. So an attacker

@@ -69,6 +69,15 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
+  builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
+  simulation kit's start prompt belong in `sim/README.md`, and the workshop check in `docs/orchestrating.md`, moved by
+  the design session at the design document's next refresh; (2) `docs/claude-and-codex.md` (24 KB) is past the 20 KB
+  warning: the sections that wait until Codex can build, "What goes to Codex" to "When Codex is not there", into a file
+  of their own; (3) the slop bar a home of its own, since `docs/review-guidelines.md` points to the slop audit's entry
+  here, which moves to the archive when done; (4) the use-against-ignore rows of 17++ to the archive once its parts are
+  all measured, bringing this file under 20 KB.
+
 - **The old copies, removed** (archive item 207): `scripts/copies-baseline.json` lists 21, nearly all test helpers
   written again in each test (`begin`, a `Board`), and one passage of the builder rules said twice (to be fixed in the
   design document). A workshop lane removes them by pointing to one shared helper, and drops each entry as it goes.
