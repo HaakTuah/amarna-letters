@@ -19,15 +19,23 @@ import type { MapScene } from "./scene.ts";
 const Map_ = WorldMap.default;
 
 /** Every road between two land provinces, once (the map lists each edge once, either way round), with each province's half. */
-export const RoadHalves: readonly { a: string; b: string; half: Pt[]; other: Pt[] }[] = [
+export const RoadHalves: readonly { a: string; b: string; half: Pt[]; back: Pt[] }[] = [
   ...new Map(Map_.edges.filter((e) => e.kind !== "Sea" && !Map_.get(e.a).isSea && !Map_.get(e.b).isSea).map((e) => [[e.a, e.b].sort().join("|"), e] as const)).values(),
 ]
   .map((e) => {
     const r = roadBetween(e.a, e.b);
     const at = r.cross >= 0 ? r.cross : Math.floor(r.pts.length / 2);
-    return { a: e.a, b: e.b, half: r.pts.slice(0, at + 1), other: r.pts.slice(at) };
+    return { a: e.a, b: e.b, half: r.pts.slice(0, at + 1), back: r.pts.slice(at).reverse() };
   })
-  .filter((r) => r.half.length > 1 && r.other.length > 1);
+  .filter((r) => r.half.length > 1 && r.back.length > 1);
+
+/** Each half's drawn path, made once (part G: the whole network was traced again every season something was built). */
+const HalfPaths = new Map<readonly Pt[], string>();
+const halfPath = (pts: readonly Pt[]): string => {
+  let d = HalfPaths.get(pts);
+  if (d === undefined) HalfPaths.set(pts, (d = roadPath(pts)));
+  return d;
+};
 
 const level = (s: MapScene, kind: string, province: string): number => s.built.get(`${kind}:${province}`) ?? 0;
 const known = (s: MapScene, province: string): boolean => s.builtKnown === null || s.builtKnown.has(province);
@@ -36,9 +44,9 @@ const known = (s: MapScene, province: string): boolean => s.builtKnown === null 
 export function roadsLayer(s: MapScene): string {
   let sb = `<g class="works-roads">`;
   const half = (province: string, pts: Pt[]): string => {
-    if (!known(s, province)) return `<path class="road-net unknown" d="${roadPath(pts)}"/>`;
+    if (!known(s, province)) return `<path class="road-net unknown" d="${halfPath(pts)}"/>`;
     const lv = level(s, "Roads", province);
-    let out = `<path class="road-net q${lv}" d="${roadPath(pts)}"/>`;
+    let out = `<path class="road-net q${lv}" d="${halfPath(pts)}"/>`;
     // Relay stations: a post for each level, along the province's half, from its city outward.
     const st = level(s, "Stations", province);
     for (let k = 1; k <= st; k++) {
@@ -47,7 +55,7 @@ export function roadsLayer(s: MapScene): string {
     }
     return out;
   };
-  for (const r of RoadHalves) sb += half(r.a, r.half) + half(r.b, [...r.other].reverse());
+  for (const r of RoadHalves) sb += half(r.a, r.half) + half(r.b, r.back);
   return sb + "</g>";
 }
 
@@ -109,7 +117,7 @@ export function cityWorks(s: MapScene, province: string, capital: boolean, walls
   return sb + "</g></g></g>";
 }
 
-/** The works of every city the viewer has any to show at, as the upper drawing's layer. */
-export function worksAtCities(s: MapScene): string {
-  return Map_.landProvinces.map((p) => cityWorks(s, p.id, p.capital, s.walls.get(p.id) ?? 0)).join("");
+/** The works of every city the viewer has any to show at, as the upper drawing's layer: one part a land province (part G). */
+export function worksAtCities(s: MapScene): string[] {
+  return Map_.landProvinces.map((p) => cityWorks(s, p.id, p.capital, s.walls.get(p.id) ?? 0));
 }

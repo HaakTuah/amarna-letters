@@ -47,17 +47,26 @@ interface Job {
   /** The state's members, once the tree is built (the first steps). */
   items: Node[] | null;
   at: number;
+  /** The field being read, paused where its budget ran out (item 17+++, part G), if one is. */
+  field: { name: string; gen: Generator<void, unknown>; parsed: number } | null;
   o: Record<string, unknown>;
   started: number;
 }
 const Fields = new Map(GameStateSchema.fields);
 /** Pieces scanned into the tree between looks at the budget. */
 const TreeChunk = 20000;
+/**
+ * A piece read by itself this long or longer is kept and reused while it recurs (a province's report, a character's memory):
+ * shorter ones are parsed straight, which costs less than remembering them.
+ */
+const LeafReuse = 48;
 
 /** What a cache holds under a hash: the pieces' numbers the object was read from (to tell a true hit), and the object. */
 interface Entry {
   ids: Uint32Array;
   value: unknown;
+  /** For a piece read by itself, the schema it was read with. */
+  schema?: Schema;
 }
 
 export class IncrementalReader {
@@ -121,12 +130,17 @@ export class IncrementalReader {
 
   private begin(refs: Uint32Array, texts: readonly string[]): Job {
     const root: Container = { head: -1, items: [], tail: "", from: 0, to: refs.length };
-    return { refs, texts, root, stack: [root], scanned: 0, items: null, at: 0, o: GameStateSchema.make() as unknown as Record<string, unknown>, started: performance.now() };
+    return { refs, texts, root, stack: [root], scanned: 0, items: null, at: 0, field: null, o: GameStateSchema.make() as unknown as Record<string, unknown>, started: performance.now() };
   }
 
-  /** Reads fields until the budget is spent; true once all are read. The first step builds the tree of pieces. */
+  /**
+   * Reads fields until the budget is spent; true once all are read. The first step builds the tree of pieces. A field is
+   * read item by item and pauses mid-way when the budget runs out (item 17+++, part G: the characters or the provinces'
+   * reports, read whole, took up to 200 ms at once on a slow phone), so no task runs much past its budget.
+   */
   private step(job: Job, budgetMs: number): boolean {
     const t = performance.now();
+    this.deadline = t + budgetMs;
     // Another read may have borrowed the reader meanwhile (apply in a test): the job's own season is set back each step.
     this.texts = job.texts;
     this.refs = job.refs;
@@ -147,19 +161,33 @@ export class IncrementalReader {
       this.next = new Map();
       if (performance.now() - t > budgetMs) return false;
     }
-    while (job.at < job.items.length) {
-      const item = job.items[job.at++];
-      const name = nameOf(this.headText(item));
-      const fs = Fields.get(name);
-      if (fs === undefined || fs.k === "computed") continue;
+    for (;;) {
+      if (job.field === null) {
+        if (job.at >= job.items.length) break;
+        const item = job.items[job.at++];
+        const name = nameOf(this.headText(item));
+        const fs = Fields.get(name);
+        if (fs === undefined || fs.k === "computed") continue;
+        job.field = { name, gen: this.member(name, fs, item), parsed: 0 };
+      }
       const before = this.parsed;
-      job.o[name] = this.member(name, fs, item);
-      if (this.parsed > before) performance.measure(`reader:field:${name}`, { start: t, duration: (this.parsed - before) / 1024 });
-      if (performance.now() - t > budgetMs) break;
+      const r = job.field.gen.next();
+      job.field.parsed += this.parsed - before;
+      if (r.done === true) {
+        const f = job.field;
+        job.o[f.name] = r.value;
+        job.field = null;
+        // Not a time: the field's new text this season, in KB, in the measure's duration (the soak tool lists it).
+        if (f.parsed > 0) performance.measure(`reader:field:${f.name}`, { start: t, duration: f.parsed / 1024 });
+      }
+      if (performance.now() > this.deadline) break;
     }
     performance.measure("reader:fields", { start: t });
-    return job.at >= job.items.length;
+    return job.at >= job.items.length && job.field === null;
   }
+
+  /** When the step under way must yield. */
+  private deadline = Infinity;
 
   private finish(job: Job): GameState {
     this.caches = this.next;
@@ -263,7 +291,7 @@ export class IncrementalReader {
   }
 
   /** A field's value: an object read from its pieces, reused from the last state when the pieces are the same. */
-  private member(field: string, schema: Schema, item: Node): unknown {
+  private member(field: string, schema: Schema, item: Node): Generator<void, unknown> {
     const cache: Cache = this.caches.get(field) ?? new Map();
     const kept: Cache = this.next.get(field) ?? new Map();
     this.next.set(field, kept);
@@ -271,17 +299,38 @@ export class IncrementalReader {
   }
 
   /**
-   * A value from its node. `named`: the node is a member (`"name":value`), whose name is not part of the value. A list's or
-   * dictionary's items are reused one by one, so a season's new items are all that is read.
+   * A piece that is an item by itself (a scalar member, a name, a small object): read straight, since parsing it costs less
+   * than remembering it, unless it is long enough to be worth keeping (`LeafReuse`).
    */
-  private value(schema: Schema, src: Node, named: boolean, cache: Cache, kept: Cache, path: string): unknown {
-    // A piece that is an item by itself (a scalar member, a name, a small object) is read straight: parsing it costs less
-    // than remembering it. Containers are what reuse pays for.
-    if (typeof src === "number") {
-      const text = headOnly(this.texts[this.refs[src]]);
+  private leaf(schema: Schema, src: Leaf, named: boolean, cache: Cache, kept: Cache): unknown {
+    const id = this.refs[src];
+    const text = headOnly(this.texts[id]);
+    if (text.length < LeafReuse) {
       this.parsed += text.length;
       return readText(schema, itemJson(named ? valueText(text) : text));
     }
+    const had = cache.get(id)?.find((e) => e.schema === schema) ?? kept.get(id)?.find((e) => e.schema === schema);
+    if (had !== undefined) {
+      if (!kept.has(id)) kept.set(id, [had]);
+      else if (!kept.get(id)!.includes(had)) kept.get(id)!.push(had);
+      return had.value;
+    }
+    this.parsed += text.length;
+    const value = readText(schema, itemJson(named ? valueText(text) : text));
+    const entry: Entry = { ids: Empty, value, schema };
+    const entries = kept.get(id);
+    if (entries === undefined) kept.set(id, [entry]);
+    else entries.push(entry);
+    return value;
+  }
+
+  /**
+   * A value from its node. `named`: the node is a member (`"name":value`), whose name is not part of the value. A list's or
+   * dictionary's items are reused one by one, so a season's new items are all that is read. It yields between items once
+   * the step's time is spent (`deadline`), and goes on where it stopped when resumed.
+   */
+  private *value(schema: Schema, src: Node, named: boolean, cache: Cache, kept: Cache, path: string): Generator<void, unknown> {
+    if (typeof src === "number") return this.leaf(schema, src, named, cache, kept);
     const key = this.keyOf(src);
     const had = this.lookup(cache, key, src);
     if (had !== undefined) {
@@ -305,14 +354,19 @@ export class IncrementalReader {
         while (shared < ends.length && shared < last.ends.length && ends[shared] <= common && ends[shared] === last.ends[shared]) shared++;
       }
       const items = last === undefined ? [] : last.items.slice(0, shared);
-      for (let i = shared; i < src.items.length; i++) items.push(this.value(shape.of, src.items[i], false, cache, kept, path + "/*"));
+      for (let i = shared; i < src.items.length; i++) {
+        const x = src.items[i];
+        items.push(typeof x === "number" ? this.leaf(shape.of, x, false, cache, kept) : yield* this.value(shape.of, x, false, cache, kept, path + "/*"));
+        if (performance.now() > this.deadline) yield;
+      }
       this.nextLists.set(path, { ids, ends, items });
       v = shape.k === "list" ? items : new HSet(items);
     } else if (shape.k === "dict") {
       const d = new Dict<string, unknown>();
       for (const x of src.items) {
         const name = nameOf(this.headText(x));
-        d.set(name, this.value(shape.of, x, true, cache, kept, path + "/" + name));
+        d.set(name, typeof x === "number" ? this.leaf(shape.of, x, true, cache, kept) : yield* this.value(shape.of, x, true, cache, kept, path + "/" + name));
+        if (performance.now() > this.deadline) yield;
       }
       v = d;
     } else if (shape.k === "obj" && src.items.some((x) => typeof x !== "number" && x.to - x.from > 8)) {
@@ -330,7 +384,7 @@ export class IncrementalReader {
           field = byLower.get(name.toLowerCase());
         }
         if (field === undefined || field[1].k === "computed") continue;
-        o[field[0]] = this.value(field[1], x, true, cache, kept, path + "/" + field[0]);
+        o[field[0]] = typeof x === "number" ? this.leaf(field[1], x, true, cache, kept) : yield* this.value(field[1], x, true, cache, kept, path + "/" + field[0]);
       }
       v = o;
     } else {

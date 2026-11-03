@@ -5,6 +5,8 @@
 .map .pap-v { stroke: #7a5a2a; stroke-width: .8; opacity: .3; }
 
 .map .season { pointer-events: none; }
+/* A slot the season leaves bare (seasons.ts: each province keeps its slots, hidden, so a season writes only their looks). */
+.map .season .none { display: none; }
 :is(.map, .legend) .season .dry { fill: #c08f4c; opacity: .3; }
 :is(.map, .legend) .season .green { fill: #6f9d48; opacity: .3; }
 :is(.map, .legend) .season .frost { fill: #f5f7f6; opacity: .4; }
