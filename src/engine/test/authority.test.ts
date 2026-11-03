@@ -28,6 +28,7 @@ import {
   newTabletProposal,
   newTurnSubmission,
   newUnit,
+  ownedBy,
   repudiate,
   revoke,
   single,
@@ -220,5 +221,27 @@ describe("AuthorityTests", () => {
     }
     Assert.empty(grantee().grants);
     Assert.true(grantee().inbox.some((i) => i.title === "Passage and basing" && i.body.includes("revoked")));
+  });
+
+  test("A passage narrowed by a revocation reads its land: the grantor's at once, the grantee's with the word (bug #611)", () => {
+    const s = smallWorld(newGame(9), "Egypt", "Hatti");
+    const lands = ownedBy(s, "Hatti").filter((x) => !Map.get(x).isSea);
+    s.grants.push(newGrant({ id: "p990", grantor: "Hatti", grantee: "Egypt", lands, sinceTurn: 0 }));
+    const read = (p: Power) => single(Views.for(s, p).grants).lands;
+    Assert.equal(lands, read("Egypt"));
+    new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [revoke("Egypt", "nesa")] })]]));
+    const rest = lands.filter((x) => x !== "nesa");
+    Assert.equal(rest, read("Hatti"));
+    // The engine: Nesa is shut at once, the rest still open.
+    Assert.null(new TurnEngine(s).grantCovers("Hatti", "Egypt", "nesa"));
+    Assert.notNull(new TurnEngine(s).grantCovers("Hatti", "Egypt", rest[0]));
+    const heard = s.grants.find((g) => g.id === "p990")!.endHeard;
+    Assert.true(heard > s.turn);
+    for (; s.turn < heard; new TurnEngine(s).beginTurn()) {
+      Assert.equal(lands, read("Egypt"));
+      new TurnEngine(s).resolve(new Dict());
+    }
+    Assert.equal(rest, read("Egypt"));
+    Assert.equal(rest, read("Hatti"));
   });
 });

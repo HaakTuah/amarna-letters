@@ -7,7 +7,7 @@
 import { renderClauses } from "../rules/clauses.ts";
 import { isBlank } from "../core/text.ts";
 import { cap } from "../rules/greeting.ts";
-import { grantLive, grantStands, grantsIn, newGrant, withinAuthority, type Grant } from "../model/authority.ts";
+import { grantLive, grantOpens, grantStands, grantsIn, newGrant, withinAuthority, type Grant } from "../model/authority.ts";
 import type { Dispatch, HomeCargo, MessageTrail, Tablet } from "../model/records.ts";
 import { newTablet, newTabletCopy } from "../model/records.ts";
 import type { EnvoyReaction, HostReply } from "../model/exchanges.ts";
@@ -123,7 +123,7 @@ P.grantCovers = function (grantor, grantee, province) {
   if (grantor === null || grantor === grantee) return null;
   for (const g of S.grants) {
     if (g.grantor !== grantor || g.grantee !== grantee || !grantStands(g, S.turn)) continue;
-    if (g.kind === "basing" ? g.province === province : g.province === null ? g.lands.includes(province) : g.province === province) return g;
+    if (grantOpens(g, province)) return g;
   }
   return null;
 };
@@ -170,16 +170,15 @@ P.revokeGrants = function (p, o) {
   const heard = S.turn + this.travelTurns(p, o.grantee);
   const ended = S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && (o.province === null || g.province === o.province));
   for (const g of ended) this.endGrant(g, heard);
-  // One province of a passage through all his land: the grant stands for the rest. (The view shows a grant without its
-  // land, so the grantee's court reads nothing of this before the word.)
-  let narrowed = false;
-  if (o.province !== null)
-    for (const g of S.grants)
-      if (g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && g.province === null && g.lands.includes(o.province)) {
-        g.lands = g.lands.filter((x) => x !== o.province);
-        narrowed = true;
-      }
-  if (ended.length === 0 && !narrowed) return;
+  // One province of a passage through all his land: the grant stands for the rest, as a new grant over the rest that
+  // the grantee's court learns of with the word, the old one standing in its view until then (bug #611).
+  const cut = o.province === null ? [] : S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && g.province === null && g.lands.includes(o.province!));
+  for (const g of cut) {
+    this.endGrant(g, heard);
+    const lands = g.lands.filter((x) => x !== o.province);
+    if (lands.length > 0) S.grants.push(newGrant({ ...g, id: newId(S, "p"), lands, heardTurn: Math.max(g.heardTurn, heard), endedTurn: null, endHeard: 0, endedBy: null }));
+  }
+  if (ended.length === 0 && cut.length === 0) return;
   const what = o.province !== null ? `in ${this.map.get(o.province).name}` : "in his land";
   this.word(p, o.grantee, "Grant", `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what} (in season ${S.turn}). Troops of yours still standing there will take the land as any troop does, and he will count it an attack.`);
   logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p], "grant-revoked");

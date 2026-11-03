@@ -110,6 +110,19 @@ export const GrantSchema: ObjSchema<Grant> = obj("Grant", newGrant, {
   endedBy: opt(S),
 });
 
+/** Does a grant (or a court's view of one) open `province`: its one province, or one of the lands of a passage through all? */
+export const grantOpens = (g: { province: string | null; lands: readonly string[] }, province: string): boolean => (g.province === null ? g.lands.includes(province) : g.province === province);
+
+/**
+ * Where a grant's leave runs, in words (bug #611): its one province, or, for passage through all the grantor's land, the
+ * provinces it covers, since one revoked or won since is not among them. `whose` is "your" or the grantor's name.
+ */
+export function grantPlace(g: { province: string | null; lands: readonly string[] }, whose: string, name: (id: string) => string): string {
+  if (g.province !== null) return name(g.province);
+  const xs = g.lands.map(name);
+  return xs.length <= 1 ? `${whose} land at ${xs[0] ?? "none"}` : `${whose} land at ${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+}
+
 /** Does the grant stand in this season? */
 export const grantStands = (g: Grant, turn: number): boolean => g.endedTurn === null && g.sinceTurn <= turn && (g.untilTurn === null || turn <= g.untilTurn);
 
@@ -168,13 +181,15 @@ export interface GrantView {
   grantor: Power;
   grantee: Power;
   province: string | null;
+  /** Bug #611: for passage through all the grantor's land, the provinces it covers as this court knows; else empty. */
+  lands: string[];
   sinceTurn: number;
   untilTurn: number | null;
   tablet: string;
 }
 
 export function newGrantView(init: Partial<GrantView> = {}): GrantView {
-  return { kind: "passage", grantor: "Egypt", grantee: "Egypt", province: null, sinceTurn: 0, untilTurn: null, tablet: "", ...init };
+  return { kind: "passage", grantor: "Egypt", grantee: "Egypt", province: null, lands: [], sinceTurn: 0, untilTurn: null, tablet: "", ...init };
 }
 
 export const GrantViewSchema: ObjSchema<GrantView> = obj("GrantView", newGrantView, {
@@ -182,6 +197,7 @@ export const GrantViewSchema: ObjSchema<GrantView> = obj("GrantView", newGrantVi
   grantor: S,
   grantee: S,
   province: opt(S),
+  lands: list(S),
   sinceTurn: I,
   untilTurn: opt(I),
   tablet: S,

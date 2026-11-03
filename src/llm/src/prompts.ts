@@ -32,6 +32,7 @@ import {
   type StandingOrderView,
   type UnitKind,
   type GrantView,
+  grantPlace,
   menOf,
   season,
 } from "@amarna/engine";
@@ -469,7 +470,7 @@ export function standings(v: SeatView): string
     }
 
 export function grantLine(g: GrantView, me: Power): string {
-  const where = g.province !== null ? WorldMap.default.get(g.province).name : `all ${g.grantor === me ? `your` : `${g.grantor}'s`} land`;
+  const where = grantPlace(g, g.grantor === me ? `your` : `${g.grantor}'s`, (id) => WorldMap.default.get(id).name);
   const what = g.kind === `passage` ? `pass through ${where}` : `stand within the walls of ${where}`;
   const who = g.grantor === me ? `${g.grantee}'s troops may ${what}` : `your troops may ${what}, by leave of ${g.grantor}`;
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : `, until revoked`} (${g.tablet}).`;

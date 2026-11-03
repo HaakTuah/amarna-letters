@@ -1,5 +1,5 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, countFigures, dateLabel, describe, formatMoney, land, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, countFigures, grantPlace, dateLabel, describe, formatMoney, land, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
@@ -79,7 +79,7 @@ export function heardIn(heard: SeatView["nameClaims"][number]["heard"], me: Powe
 
 /** A grant of passage or basing as its two kings read it (item 9). */
 export function grantLine(g: GrantView, me: Power): string {
-  const where = g.province !== null ? WorldMap.default.get(g.province).name : `all ${g.grantor === me ? "your" : `${powerName(g.grantor)}'s`} land`;
+  const where = grantPlace(g, g.grantor === me ? "your" : `${powerName(g.grantor)}'s`, (id) => WorldMap.default.get(id).name);
   const what = g.kind === "passage" ? `pass through ${where}` : `stand within the walls of ${where}`;
   const who = g.grantor === me ? `${powerName(g.grantee)}'s troops may ${what}` : `Your troops may ${what}, by leave of ${powerName(g.grantor)}`;
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : ", until revoked"} (${g.tablet}).`;

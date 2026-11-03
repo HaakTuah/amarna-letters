@@ -181,17 +181,18 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     grants: s.grants
       // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
-      // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him. Its
-      // end reaches the grantee by word too (bug #565).
+      // A grant by order (item 11a+), or a passage narrowed by a revocation (bug #611): its grantor knows it from the
+      // order; its grantee once the news reaches him. Its end reaches the grantee by word too (bug #565).
       .filter(
         (g) =>
           (g.grantor === p || g.grantee === p) &&
           (grantStandsFor(g, p, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
-          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+          (g.grantor === p || g.heardTurn <= s.turn) &&
+          (g.tabletId === "" || s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
       )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
-        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
+        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, lands: [...g.lands], sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
       }),
     walls: wallsKnown(s, m, p, seen),
     worksSeen: [...seen]
