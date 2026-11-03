@@ -65,10 +65,7 @@ export interface Grant {
   untilTurn: number | null;
   /** The tablet that granted it, or "" for a grant by order (item 11a+). */
   tabletId: string;
-  /**
-   * The season the news of it reaches the grantee's court, who knows of it from then: a grant by order (item 11a+), or
-   * what is left of one narrowed by a revocation (bug #565). 0 for a tablet's, known with the tablet.
-   */
+  /** Item 11a+: for a grant by order, the season the news of it reaches the grantee's court (he knows of it from then). */
   heardTurn: number;
   /** The season it was revoked or repudiated, or null while it stands (until untilTurn). */
   endedTurn: number | null;

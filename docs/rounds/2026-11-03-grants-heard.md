@@ -18,15 +18,15 @@ four twins for it, each failing on `develop` and passing here.
 - **A revocation** (`revokeGrants`) and **closed roads** (`endGrants`): the event is the grantor's alone; the grant ends
   at once for the engine, as before, and for the grantee's view only when the word of it arrives (`Grant.endHeard`,
   `grantStandsFor`), with the revocation's notice or the closed roads'.
-- **A revocation in one province of a passage through all the land** ends that grant and leaves a new one over the rest,
-  which the grantee's view takes up with the same word (`heardTurn`); its grantor sees the narrowed grant at once.
-  Before, the grant's land was cut in place, so the grantee's view would have changed at once had it shown the land.
+- **A revocation in one province of a passage through all the land** still cuts the grant's land in place: the view
+  shows a grant without its land, so the grantee reads nothing of it before the word; its event is the grantor's alone.
 - **Repudiation** is unchanged (`endGrant(g, S.turn)`, known at once): it spreads past the grants into tablets, legends
   and vassal terms, so it is filed apart as bug #609.
 - **Rulebook** (`llm/src/rules-authority.ts`): word of a revocation or closed roads travels; until it comes, the guest's
   court still counts on the grant. **Design notes:** 15 and 22.
 - **Tests:** four twins (a grant by order, a grant revoked, a grant narrowed, a grant ended by closed roads), and an engine
-  test of the narrowing (`authority.test.ts`).
+  test that the grantee's notice and his view's grant (and its end) arrive in the same season (`authority.test.ts`).
+- **Save version 52:** a grant's new field, and the word a grant by order now sends, change how a seed plays.
 
 ## Readings taken
 

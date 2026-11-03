@@ -170,14 +170,16 @@ P.revokeGrants = function (p, o) {
   const heard = S.turn + this.travelTurns(p, o.grantee);
   const ended = S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && (o.province === null || g.province === o.province));
   for (const g of ended) this.endGrant(g, heard);
-  // One province of a passage through all his land: the grant stands for the rest, as a grant its grantee hears of with
-  // the revocation.
-  const narrowed = o.province === null ? [] : S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && g.province === null && g.lands.includes(o.province!));
-  for (const g of narrowed) {
-    this.endGrant(g, heard);
-    S.grants.push(newGrant({ ...g, id: newId(S, "p"), lands: g.lands.filter((x) => x !== o.province), heardTurn: Math.max(g.heardTurn, heard), endedTurn: null, endHeard: 0 }));
-  }
-  if (ended.length === 0 && narrowed.length === 0) return;
+  // One province of a passage through all his land: the grant stands for the rest. (The view shows a grant without its
+  // land, so the grantee's court reads nothing of this before the word.)
+  let narrowed = false;
+  if (o.province !== null)
+    for (const g of S.grants)
+      if (g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && g.province === null && g.lands.includes(o.province)) {
+        g.lands = g.lands.filter((x) => x !== o.province);
+        narrowed = true;
+      }
+  if (ended.length === 0 && !narrowed) return;
   const what = o.province !== null ? `in ${this.map.get(o.province).name}` : "in his land";
   this.word(p, o.grantee, "Grant", `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what} (in season ${S.turn}). Troops of yours still standing there will take the land as any troop does, and he will count it an attack.`);
   logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p], "grant-revoked");

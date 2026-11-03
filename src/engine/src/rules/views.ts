@@ -182,13 +182,12 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     grants: s.grants
       // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
       // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him. Its
-      // end, or a narrowing, reaches the grantee by word too (bug #565).
+      // end reaches the grantee by word too (bug #565).
       .filter(
         (g) =>
           (g.grantor === p || g.grantee === p) &&
           (grantStandsFor(g, p, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
-          (g.grantor === p || g.heardTurn <= s.turn) &&
-          (g.tabletId === "" || s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
       )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
