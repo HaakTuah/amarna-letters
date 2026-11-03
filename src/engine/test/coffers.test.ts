@@ -218,4 +218,13 @@ describe("CofferTests", () => {
     };
     Assert.equal(told(false), told(true));
   });
+
+  test("Pay a caravan did not need, home in a far province, goes into the coffer there", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    const c = newCaravan({ id: "v900", power: "Egypt", from: "nippur", to: "babylon", route: ["babylon", "nippur"], at: 1, returning: true, pay: 100 });
+    s.caravans.push(c);
+    e.caravanHome(c);
+    Assert.equal(100, e.cofferOf("Egypt", "nippur")?.gold ?? 0);
+  });
 });

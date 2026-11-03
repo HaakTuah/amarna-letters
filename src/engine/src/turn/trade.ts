@@ -292,12 +292,13 @@ P.tradeTogether = function (cs, parts) {
  */
 P.caravanHome = function (c) {
   const S = this.s;
-  // The pay it did not need comes home with its load; a load's porters bring their bill, paid from the gold there (#587).
-  c.gold += c.pay;
-  c.pay = 0;
   const at = caravanAt(c);
   const name = this.map.get(at).name;
   const parts: string[] = [];
+  // The pay it did not need goes into the coffer or treasury where it came home, gold that is there; a load's porters bring
+  // their bill, paid from the gold there (#587).
+  this.receiveAt(c.power, at, c.pay, false);
+  c.pay = 0;
   let porters = "";
   if (c.bill !== null && c.bill > 0) {
     // Out of the load first, then the gold there; what neither covers the porters go without.
@@ -438,7 +439,7 @@ P.sendTraders = function (orders, tell) {
     const pay = this.payLoad(c);
     if (c.grain + c.gold <= 0 || !this.takeAt(p, o.from, c.gold + pay)) {
       this.putInStores(o.from, grain);
-      logEvent(S, "unfunded", `${p}'s ${o.type === "ship" ? "ship" : "trading caravan"} from ${from.name} had too little gold there for its pay.`, [p], "unfunded");
+      logEvent(S, "unfunded", `${p}'s ${o.type === "ship" ? "ship" : "trading caravan"} from ${from.name} had too little gold there for its pay.`, this.nearOf(o.from, p), "unfunded");
       fail(`Nothing set out from ${from.name}: there was too little gold ${this.isFar(p, o.from) ? "in its coffer" : "in the treasury"} for its ${o.type === "ship" ? "crew's" : "porters'"} pay on the road (${formatMoney(pay)}) besides what it was to carry.`, "too little gold for its pay");
       continue;
     }

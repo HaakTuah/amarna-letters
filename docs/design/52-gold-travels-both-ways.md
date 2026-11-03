@@ -57,7 +57,7 @@ Every caravan and ship carries its porters' (its crew's) pay for its road (`Cara
 the gold that is there: a season's pay for each season of its road at the pace it sets out with, on the roads as the map has them
 (not as built since, which the court may not know of), twice for a trader or a
 ship, which come back (`payLoad`). Each season's pay comes out of it, then out of the gold it carries; with neither, they
-desert as before. It sets out only if the pay is there. What it did not need comes home with it (`caravanHome`), or stays
+desert as before. It sets out only if the pay is there. What it did not need goes, when it comes home (`caravanHome`), into the coffer or treasury there, or stays
 where its road ended, in its king's coffer or treasury if the province is his, else spent there. A load going home to its court (`lootHome`: a far province's gold, loot, a captured archive) carries no pay: its
 porters are owed it (`Caravan.bill`), a bill they carry home, paid on arrival from the gold there. Robbed, taken or seized, the pay goes with the goods.
 
