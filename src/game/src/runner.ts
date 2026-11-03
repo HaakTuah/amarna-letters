@@ -200,6 +200,8 @@ export class GameRunner {
           );
     for (const p of sleepers) state.sleep.tryAdd(p, newSleepState());
     this.log = options.log ?? new GameLog();
+    // Item 17+++: a replayed or continued game keeps its minds' own words, which no replayed seat gives again.
+    if (replay !== null && this.log !== replay) for (const page of replay.minds.pages) this.log.minds.add(page);
     this.log.header = newLogHeader({
       seed: state.seed,
       config: state.config,
