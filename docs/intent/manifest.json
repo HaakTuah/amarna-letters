@@ -1,6 +1,6 @@
 {
  "doc": "7f857750-39dc-464a-a739-c9f59dfe3dcd",
- "date": "2026-11-02",
+ "date": "2026-11-03",
  "tabs": {
   "overview": {
    "name": "Overview",
@@ -90,7 +90,7 @@
   "characters": {
    "name": "Characters",
    "node": "0051b400-09bd",
-   "rev": 28,
+   "rev": 31,
    "files": [
     "docs/intent/characters/front.md",
     "docs/intent/characters/characters-hidden-facts-memory-and-continuity.md",
@@ -114,7 +114,7 @@
   "land-people-and-economy": {
    "name": "Land, people and economy",
    "node": "3dedb02f-88dd",
-   "rev": 34,
+   "rev": 35,
    "files": [
     "docs/intent/land-people-and-economy/front.md",
     "docs/intent/land-people-and-economy/gold.md",
@@ -128,7 +128,7 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 111,
+   "rev": 112,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military-part1.md",

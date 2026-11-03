@@ -84,6 +84,8 @@ rumours, and those can be late, shaded or false.
 **Tablets.**
 - Write a treaty on a tablet (20 shekels) for your envoy to offer for sealing.
 - Send a copy of a sealed tablet to a third court as evidence.
+- Repudiate a tablet your envoy sealed in your name as beyond his authority: what it granted ends, and word of it rides
+  to the other king, who counts on the tablet until it comes.
 - Have a tablet examined for forgery, or forge one yourself (40 shekels, with a servant skilled
   enough).
 - Tablets are evidence only: nothing in the engine enforces them.
