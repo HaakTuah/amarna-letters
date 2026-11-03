@@ -115,7 +115,7 @@ realms (part D)".
 
 ### First guesses (presentation only)
 
-`--move` half the season's playout, at most 5 s, and none under 1 s (so none at Fast); each slot's change over the last 0.4 of it after a lag
+`--move` half the season's playout, at most 5 s, and none under 1 s, and none at Fast, whose pace does not move the land (`Pace.ground`); each slot's change over the last 0.4 of it after a lag
 of up to 0.6; frost at mid-lag; the Nile's rise over 0.8 of it; the snow bands cut at depths 160 and 96 of 255.
 
 ### Frame times
@@ -130,8 +130,8 @@ build varied between 9% and 20%.
 | Normal, two pairs | 617 of 9,072 (6.8%) | 622 of 7,472 (8.3%) |
 
 At Fast the land changes at once, as before; the first build, which moved it there too (half a second a season), had a
-fifth more long frames than Part G's beside it (23.4% against 19.5%), so at Fast the routine compresses (`MoveMs`: no
-move under a second). What is left at Fast, about one point, is within the runs' spread but showed in four pairs of
+fifth more long frames than Part G's beside it (23.4% against 19.5%), so at Fast the routine compresses (`Pace.ground`:
+Fast never moves the land). What is left at Fast, about one point, is within the runs' spread but showed in four pairs of
 five; one drawing more to composite is the likeliest cause (season and tints in one drawing measured the same at Fast
 and worse at Normal, so the season keeps its own). At Normal the long frames are as many as before (622 against 617);
 fewer frames are drawn while the land moves, each painting the season's drawing, so their share rises.

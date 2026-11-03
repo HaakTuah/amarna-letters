@@ -142,8 +142,9 @@ from nothing (`@starting-style`), one changing crosses its colour:
 | The Nile's flood | rises from the south up its valley (`nile-rise`: the field revealed from its southern end over 0.8 of `--move`) | #03-nile-rise-north: "Flooding reached Aswan about a week earlier than modern Cairo" |
 | A river in spate, the storms, the harvest | at once, fading in | |
 
-`--move` is half the season's playout, at most 5 s, and nothing under 1 s (first guesses): about 2 to 3 s at Normal, 5 s
-at Slow, and none at Fast, where the routine compresses and the land changes at once (on the phone profile, moving it
+The pace decides whether the land moves (`Pace.ground`: Slow and Normal move it, Fast and Simulate do not, however long
+their great moments run); under that, `--move` is half the season's playout, at most 5 s, and nothing under 1 s (first
+guesses): about 2 to 3 s at Normal, 5 s at Slow, and none at Fast, where the routine compresses and the land changes at once (on the phone profile, moving it
 there cost a fifth more long frames). Only while the layer is marked `moving` do the transitions exist at all. The order is only the drawing's: the engine's seasons change at once, as before. Nothing new reaches the page:
 the looks are what the season layer already drew (the calendar for every seat, droughts and floods as the seat last saw
 them), and the order is read from the map alone.
