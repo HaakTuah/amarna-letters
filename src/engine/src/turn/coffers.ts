@@ -51,6 +51,14 @@ declare module "./core.ts" {
 
 const P = TurnEngine.prototype;
 
+/** Gold reaching a coffer pays what it owes first, to the people it is owed to, before anything can spend it. */
+function intoCoffer(e: TurnEngine, c: Coffer, gold: number): void {
+  const debt = Math.min(gold, c.owed);
+  c.owed -= debt;
+  e.spendAt(c.province, debt);
+  c.gold += gold - debt;
+}
+
 /** Whether a load can go from the province to the king's court by road (`lootHome` puts it in the treasury at once otherwise). */
 const homeRoad = (e: TurnEngine, p: Power, province: string): boolean => {
   const cap = e.courtAt(p);
@@ -78,7 +86,7 @@ P.cofferOf = function (p, province, make = false) {
 P.receiveAt = function (p, province, gold, income = true) {
   if (gold <= 0) return;
   if (this.isFar(p, province)) {
-    if (this.s.owner.getOrDefault(province, null) === p) this.cofferOf(p, province, true)!.gold += gold;
+    if (this.s.owner.getOrDefault(province, null) === p) intoCoffer(this, this.cofferOf(p, province, true)!, gold);
     // Far off in another's land, it goes home as a load; with no road home for it, it stays among the people there.
     else if (homeRoad(this, p, province)) this.lootHome(p, province, gold, [], "");
     else this.spendAt(province, gold);
@@ -117,7 +125,7 @@ P.payFar = function (p, province, amount, unit = null) {
   let b = S.bills.find((x) => x.power === p && x.province === province && x.turn === S.turn) ?? null;
   // Due when word of this season's doings there could reach the court (`heardAt`).
   if (b === null) S.bills.push((b = newBill({ power: p, province, turn: S.turn, due: this.heardAt(p, province) })));
-  if (unit !== null) b.units.push({ unit: unit.id, gold: rest });
+  if (unit !== null) b.units.push({ unit: unit.id, gold: rest, label: unitLabel(unit) });
   else b.works += rest;
   return { coffer: have, credit: rest };
 };
@@ -162,7 +170,7 @@ P.goldArrives = function () {
     }
     const held = S.owner.getOrDefault(x.province, null) === x.power;
     if (held && siegeOf(S, x.province) === null) {
-      this.cofferOf(x.power, x.province, true)!.gold += x.gold;
+      intoCoffer(this, this.cofferOf(x.power, x.province, true)!, x.gold);
       this.tell(x.power, x.province, "Notice", "Gold sent", `The ${formatMoney(x.gold)} you sent reached the coffer of ${name}.`);
       continue;
     }
@@ -185,18 +193,20 @@ P.goldArrives = function () {
     // The troops' pay first: unpaid men mutiny, unpaid workmen only stop.
     const short: string[] = [];
     let paid = 0;
-    for (const { unit: id, gold } of b.units) {
+    for (const { unit: id, gold, label } of b.units) {
       const u = S.units.find((x) => x.id === id && x.power === b.power) ?? null;
       if (t.gold >= gold) {
         t.gold -= gold;
         paid += gold;
         // Carried out to the men with the next courier, kept in their packs; their unit gone, its men's people at home take it.
-        if (u !== null) u.savings += gold;
-        else this.spendAt(b.province, gold);
+        if (u !== null) {
+          u.savings += gold;
+          u.unpaid = 0;
+        } else this.spendAt(b.province, gold);
       } else if (u !== null) {
         u.unpaid++;
         this.armyEntry(u, u.power, -UnrestData.unpaid);
-        short.push(unitLabel(u));
+        short.push(label);
       }
     }
     const works = Math.min(Math.max(0, t.gold), b.works);
@@ -250,11 +260,6 @@ P.coffersSettle = function () {
       } else this.spendAt(c.province, c.gold);
       continue;
     }
-    // Its debt first, to the people it is owed to.
-    const debt = Math.min(c.gold, c.owed);
-    c.gold -= debt;
-    c.owed -= debt;
-    this.spendAt(c.province, debt);
     if (!this.isFar(c.power, c.province)) {
       // Within the season's reach again: the coffer is the treasury's, and the treasury pays what is still owed.
       const t = S.treasuries.get(c.power);

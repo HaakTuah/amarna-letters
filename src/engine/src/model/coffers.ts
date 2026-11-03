@@ -44,9 +44,11 @@ export interface Bill {
 export interface BillUnit {
   unit: string;
   gold: number;
+  /** The unit as the bill names it, where it stood when the bill was made. */
+  label: string;
 }
 
-export const BillUnitSchema: ObjSchema<BillUnit> = obj("BillUnit", (init: Partial<BillUnit> = {}) => ({ unit: "", gold: 0, ...init }), { unit: S, gold: I });
+export const BillUnitSchema: ObjSchema<BillUnit> = obj("BillUnit", (init: Partial<BillUnit> = {}) => ({ unit: "", gold: 0, label: "", ...init }), { unit: S, gold: I, label: S });
 
 export function newBill(init: Partial<Bill> = {}): Bill {
   return { power: "Egypt", province: "", turn: 0, due: 0, works: 0, units: [], ...init };

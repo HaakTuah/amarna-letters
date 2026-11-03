@@ -21,8 +21,8 @@ Each far province of a king's may keep his gold there (`GameState.coffers`: prov
   and gold sent with the couriers (below).
 - **Out:** its works paid in gold (upkeep and projects), grain bought at its market, a levy's price, the pay of his
   troops standing there, and the gold and porters' pay of a caravan or ship setting out from there.
-- **As the season ends** (`coffersSettle`, after the markets): the coffer first pays what the province is owed; then it
-  keeps what its works in gold and the troops there cost a season, times the seasons word takes to the court plus one
+- **Debt first:** gold reaching a coffer pays what the province is owed before anything can spend it.
+- **As the season ends** (`coffersSettle`, after the markets): the coffer keeps what its works in gold and the troops there cost a season, times the seasons word takes to the court plus one
   (until word could go and come back), and sends the rest home as a load (`lootHome`), as the province's gold always went.
   A province near again hands its coffer to the treasury, which pays what is still owed there. A besieged province sends
   nothing out.

@@ -47,6 +47,9 @@ describe("CofferTests", () => {
     e.goldArrives();
     Assert.equal(30, e.cofferOf("Egypt", "nippur")?.owed ?? 0);
     Assert.equal(1, u.unpaid);
+    // With a debt there, its next season's pay finds no credit either.
+    e.payTroops("Egypt");
+    Assert.equal(2, u.unpaid);
     // No credit while a debt is unpaid.
     Assert.null(e.payFar("Egypt", "nippur", 10));
     // Gold reaching the coffer pays the debt first, as the season ends.
@@ -156,5 +159,23 @@ describe("CofferTests", () => {
     e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [trade(from, "babylon", 0, 59)] })]]));
     const c = s.caravans.find((x) => x.power === "Egypt" && x.trade);
     Assert.true(c !== undefined && c.gold > 0 && c.gold + c.pay <= 60, "it set out with the gold there, less its pay");
+  });
+
+  test("Troops abroad paid on credit keep the missing pay of a bill the treasury could not pay", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    const u = newUnit({ id: "u901", power: "Egypt", kind: "Army", province: "babylon", home: "nippur", men: 1000 });
+    s.units.push(u);
+    e.payTroops("Egypt");
+    Assert.equal(1, s.bills.length);
+    s.treasuries.get("Egypt").gold = 0;
+    s.treasuries.get("Egypt").lots.length = 0;
+    s.turn = s.bills[0].due;
+    const lines = e.goldArrives();
+    Assert.equal(1, u.unpaid);
+    Assert.contains("Unpaid: ", lines.get("Egypt").join(" "));
+    // The next season's pay goes on credit again, and does not wipe out what the bill left unpaid.
+    e.payTroops("Egypt");
+    Assert.equal(1, u.unpaid);
   });
 });

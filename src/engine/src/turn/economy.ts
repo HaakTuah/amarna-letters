@@ -301,7 +301,8 @@ P.payTroops = function (p) {
       t.gold -= pay;
       paid += pay;
     }
-    u.unpaid = 0;
+    // On credit its missing pay stands until the bill is paid (`goldArrives`), so a bill unpaid is never forgotten.
+    if (far === null || far.credit === 0) u.unpaid = 0;
     // Pay is a giving, credited to the hand they see: their commander, else their king.
     this.armyEntry(u, this.armyHand(u), UnrestData.pay);
     const where = spendingPlace(this, u);
