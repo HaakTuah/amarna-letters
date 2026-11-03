@@ -57,7 +57,7 @@ report brings no holders.
   it lay within the credentials if he read them; event `repudiated`, the repudiating king's alone. Bug #609: until the
   word comes (`Tablet.repudiatedHeard`), the other king's view keeps the tablet, what it granted (`Grant.endedBy`: the
   side that did not end a grant learns of it by word) and the vassal bond it made as they were, and his cession of a
-  capital by it still stands as he knows it (`cessionAgreed`). Save version 54.
+  capital by it still stands as he knows it (`cessionAgreed`). Save version 55.
 
 ### Passage and basing
 

@@ -37,7 +37,7 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `model/recor
   repudiation, a cession and a vassal bond by it; and two twins ("a tablet repudiated"; "a grant its grantee
   repudiated, revoked before word comes", between Elam and Libya, three seasons apart, since a revocation resolves
   before a repudiation in the same season).
-- **Save version 54:** two new fields, and the word journey a repudiation now sends.
+- **Save version 55** (54 went to item 17++a meanwhile): two new fields, and the word journey a repudiation now sends.
 
 ## Readings taken
 
@@ -50,7 +50,14 @@ Every file changed is under the 50 KB mark (`rules/views.ts` 47 KB, `model/recor
 
 ## Benchmarks
 
-To come.
+`scripts/sim.sh --games 20 --seed 1 --verify-replay`, each run alone: before on `develop` at `cac04d80`, after on this
+branch at `a8415745` (the final code, before `develop`'s item 17++a was merged in, so the pair measures this change
+alone). Every game replays exactly, 20 of 20, before and after. The new save version moves the seeds, so single games
+differ (winners among them), but the whole holds: 1,874 seasons played in all both times, every game as long as before,
+the age's median 96 seasons, the first fall in season 4.5 on the median, none in the first two seasons; a Great King's
+war decided in 13 of 20 ages against 15. The script kings repudiated in 15 games both times (18 tablets against 19);
+grants revoked 8 against 1, passages granted 56 against 11, which the moved seeds account for. No balance was tuned. A
+bug fix adds no feature, so there is no use against ignore to measure.
 
 ## Review, round 1
 
@@ -60,7 +67,7 @@ Codex: two P1s. Claude's reviewer (Opus, high): 6 of 10, two blocking, four not.
    revocation's and closed roads' own events, read the true grant. Fixed: they read it as the grantor knows it
    (`grantLiveFor`, `endKnown`), with the second twin, which fails with the old order check.
 2. **The README** (Codex P1): fixed, under Tablets.
-3. **The save-version test** (Opus, blocking): 54.
+3. **The save-version test** (Opus, blocking): fixed (now 55, after `develop`'s 54).
 4. **No engine test of the grantee's repudiation** (not blocking): added, with the revocation after it.
 5. **No test of the cession and vassal readings** (not blocking): added (`repudiationKnown`, `cessionAgreed`,
    `vassalBonds` by court).
@@ -68,5 +75,12 @@ Codex: two P1s. Claude's reviewer (Opus, high): 6 of 10, two blocking, four not.
 7. **The report's empty sections** (not blocking): filled.
 
 One idea (Opus): none.
+
+## Review, round 2
+
+Codex: clean ("Didn't find any major issues"). Claude's reviewer: 9 of 10, every round-1 point confirmed fixed; one
+open, not blocking: the benchmarks, now recorded above, with nothing regressed. One idea: none.
+
+Review: rules · Claude · 6, 9 (10 with the benchmarks in); Codex · P1×2, clean
 
 Questions for the owner: none.

@@ -1067,6 +1067,7 @@ export const IdKinds: ReadonlyMap<string, string> = new Map([
   ["h", "approach between characters"],
   ["j", "journey"],
   ["k", "copy of a tablet"],
+  ["kg", "kingship offered to a man"],
   ["m", "message trail"],
   ["p", "grant of passage or basing"],
   ["pf", "promise to pay kept or broken, as news"],
