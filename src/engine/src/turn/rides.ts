@@ -11,7 +11,7 @@ import { cmpNum, sortBy } from "../core/seq.ts";
 import { MoneyData } from "../model/money.ts";
 import { remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { isAlive, logEvent, newKnown, notify, type GameState } from "../model/state.ts";
+import { isAlive, logEvent, newKnown, notify } from "../model/state.ts";
 import { Dict } from "../core/collections.ts";
 import { ownerAt, riderSource } from "../rules/known-land.ts";
 import { basePrice } from "./court.ts";
@@ -45,11 +45,30 @@ export const RideData = { sooner: 20, scarce: 50, give: 25 } as const;
  */
 export const rideQuotes = new WeakMap<TurnEngine, Map<string, { ask: number; least: number }>>();
 
-/** Those standing where a ride was agreed hear what it paid, and what they would ask for one moves part of the way to it. */
-export function hearRide(s: GameState, at: string | null, fee: number): void {
+/** The rides agreed this season, by the place they were agreed at: heard all together once the season's hiring is done. */
+const ridesAgreed = new WeakMap<TurnEngine, Map<string, number[]>>();
+
+/** A ride agreed at a place this season, for those standing there to hear of (`hearRides`). */
+export function hearRide(e: TurnEngine, at: string | null, fee: number): void {
   if (at === null) return;
-  for (const x of s.characters)
-    if (x.status !== "Dead" && x.at === at && x.heldBy === null) x.heardRide = x.heardRide === null ? fee : toInt(Math.round((x.heardRide * (100 - MoneyData.heardWeight) + fee * MoneyData.heardWeight) / 100));
+  let by = ridesAgreed.get(e);
+  if (by === undefined) ridesAgreed.set(e, (by = new Map()));
+  by.set(at, [...(by.get(at) ?? []), fee]);
+}
+
+/**
+ * Those standing where rides were agreed this season hear what they paid, all at once (so the order they were agreed in
+ * changes nothing): what each would ask for a ride moves part of the way to their mean.
+ */
+export function hearRides(e: TurnEngine): void {
+  const by = ridesAgreed.get(e);
+  if (by === undefined) return;
+  ridesAgreed.delete(e);
+  for (const [at, fees] of by) {
+    const fee = Math.round(fees.reduce((a, x) => a + x, 0) / fees.length);
+    for (const x of e.s.characters)
+      if (x.status !== "Dead" && x.at === at && x.heldBy === null) x.heardRide = x.heardRide === null ? fee : toInt(Math.round((x.heardRide * (100 - MoneyData.heardWeight) + fee * MoneyData.heardWeight) / 100));
+  }
 }
 
 /** The title of the notice. */

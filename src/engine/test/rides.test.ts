@@ -55,6 +55,8 @@ describe("RideTests", () => {
     Assert.false(inboxOf(s, "Egypt").some((i) => i.title === "From Nippur"));
     new TurnEngine(s, map).beginTurn();
     Assert.true(inboxOf(s, "Egypt").some((i) => i.title === RiderBackTitle));
+    // A sleeping king's digest names it.
+    Assert.true(inboxOf(s, "Egypt").some((i) => i.title === RiderBackTitle && new TurnEngine(s, map).digestLine(i) !== null));
     Assert.true(inboxOf(s, "Egypt").some((i) => i.title === "From Nippur"));
     Assert.false(inboxOf(s, "Egypt").some((i) => i.title === "From beyond Nippur"));
     const k = Views.knownHolders(s, map, "Egypt").get("nippur");
@@ -122,6 +124,19 @@ describe("RideTests", () => {
     };
     Assert.equal(["Ahmose", "Kha"], hired(false));
     Assert.equal(["Ahmose", "Kha"], hired(true));
+    // What the rides paid is heard all at once: a bystander hears the same whichever was agreed first.
+    const heard = (reverse: boolean): number | null => {
+      const { s, c } = world(0);
+      const d = newCharacter({ id: newId(s, "c"), name: "Kha", status: "Free", at: "Egypt", traits: newTraits({ loyalty: 60, greed: 0, ambition: 30, courage: 50, competence: 50 }), tongues: new Dict([["Egyptian", 100]]) });
+      const by = newCharacter({ id: newId(s, "c"), name: "Iny", status: "Free", at: "Egypt", traits: newTraits({ loyalty: 60, greed: 0, ambition: 30, courage: 50, competence: 50 }), tongues: new Dict([["Egyptian", 100]]) });
+      s.characters.push(d, by);
+      by.heardRide = 50;
+      new TurnEngine(s, map).beginTurn();
+      const offers = [ride(c, 100), ride(d, 200)];
+      new TurnEngine(s, map).resolve(new Dict([["Egypt", newTurnSubmission({ orders: reverse ? offers.reverse() : offers })]]));
+      return by.heardRide;
+    };
+    Assert.equal(heard(false), heard(true));
   });
 
   test("A rider sent elsewhere in his season does not ride (#601)", () => {
