@@ -1557,3 +1557,7 @@ Given in the design chat with Claude, answering the design questions of the cons
     open: "But maybe both should come a little bit at the expense of each other, because there is a real tradeoff
     there in real life. Doesn't mean you cant be elite at both, but you cant both be the strongest and the fastest.
     Expert?"
+188. **3 November 2026, 07:38 UTC**, in the design chat, to the design session's take on item 187's open question
+    (a shared ceiling for endurance and robustness, with a man's visible build running from lean to broad, a first
+    guess of 160 of 200 for item 18 to tune): "Yes, expertly!" Written into "One body, one budget" under Characters
+    (revision 31) and the "Follow-ups" entry "The body and the road" in `docs/BUILD-PROGRESS.md`.
