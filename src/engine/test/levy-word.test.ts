@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, Views, newUnit, setLevel, wordHomeAt, type ScheduledOrders, TurnEngine, UnraisedTitle, WorldMap, inboxOf, move, newGame, newGameConfig, newOwnerChange, newScheduledOrders, newSleepState, newTurnSubmission, raise } from "@amarna/engine";
+import { Dict, type GameState, OrderValidator, Views, newUnit, setLevel, wordHomeAt, type ScheduledOrders, TurnEngine, UnraisedTitle, WorldMap, inboxOf, move, newGame, newGameConfig, newOwnerChange, newScheduledOrders, newSleepState, newTurnSubmission, raise } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 /**
@@ -124,5 +124,18 @@ describe("LevyWordTests", () => {
     const u = newUnit({ id: "u990", power: "Egypt", province: "hattusa", trail: ["nesa", "hattusa"] });
     s.units.push(u);
     Assert.equal("nesa", e.shownAt(u));
+  });
+
+  test("A levy where the road out is near but word home is not is checked by the last count, not the men there (bug #616)", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    s.court.set("Egypt", "nubia");
+    s.owner.set("sumur", "Egypt");
+    const e = new TurnEngine(s, WorldMap.default);
+    Assert.equal(0, e.wordTo("Egypt", "sumur"));
+    Assert.true(e.wordFrom("Egypt", "sumur") > 0);
+    // Sumur's men gone, out of the court's sight: the order is not refused for it, which would tell the court at once.
+    s.people.get("sumur").men = 0;
+    s.counts.tryGet("Egypt")?.delete("sumur");
+    Assert.equal(1, new OrderValidator(s, WorldMap.default).validate("Egypt", newTurnSubmission({ orders: [raise("sumur", "Army")] })).accepted.length);
   });
 });
