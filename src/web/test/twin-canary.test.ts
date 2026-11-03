@@ -45,7 +45,7 @@ import {
   sell,
   toll,
   welcome,
-  wordSeasons,
+  wordHomeAt,
 } from "@amarna/engine";
 import { Assert, smallWorld } from "../../engine/test/support.ts";
 
@@ -452,7 +452,7 @@ const allyWord: Twin = {
   },
   orders: [],
   // Babylonia's word (`heardAt` from its court), or word from Ashur of the first season (`knownHolders`).
-  heard: (s) => s.turn >= 1 + 1 + new TurnEngine(s).wordFrom("Egypt", "babylon") || 1 + wordSeasons(s.config.travelDays, map, "ashur", new TurnEngine(s).courtAt("Egypt"), 1) <= s.turn,
+  heard: (s) => s.turn >= 1 + 1 + new TurnEngine(s).wordFrom("Egypt", "babylon") || wordHomeAt(s, map, new TurnEngine(s).courtAt("Egypt"), "ashur", 1) <= s.turn,
 };
 
 const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord];
