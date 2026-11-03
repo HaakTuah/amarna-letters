@@ -612,6 +612,7 @@ P.settleMarkets = function (orders) {
       this.putInStores(o.from, grain);
       tell(p, o.from, `No caravan left ${Map.get(o.from).name}: there was too little gold ${this.isFar(p, o.from) ? "in its coffer" : "in the treasury"} for its porters' pay on the road (${formatMoney(c.pay)}).`);
       this.wakeFrom(p, o, o.from, "too little gold for its porters' pay");
+      logEvent(S, "unfunded", `${p}'s caravan from ${Map.get(o.from).name} had too little gold there for its porters.`, [p], "unfunded");
       continue;
     }
     setOut(S, c);

@@ -438,6 +438,7 @@ P.sendTraders = function (orders, tell) {
     const pay = this.payLoad(c);
     if (c.grain + c.gold <= 0 || !this.takeAt(p, o.from, c.gold + pay)) {
       this.putInStores(o.from, grain);
+      logEvent(S, "unfunded", `${p}'s ${o.type === "ship" ? "ship" : "trading caravan"} from ${from.name} had too little gold there for its pay.`, [p], "unfunded");
       fail(`Nothing set out from ${from.name}: there was too little gold ${this.isFar(p, o.from) ? "in its coffer" : "in the treasury"} for its ${o.type === "ship" ? "crew's" : "porters'"} pay on the road (${formatMoney(pay)}) besides what it was to carry.`, "too little gold for its pay");
       continue;
     }

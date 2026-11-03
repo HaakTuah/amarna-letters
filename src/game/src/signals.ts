@@ -57,7 +57,7 @@ export const SignalKinds: readonly string[] = [
   // Item 17++, part B: scribes sent to count a province and their count come home; the king asking a share or an amount.
   "census", "census-home", "demand-share", "demand-amount", "levy-share",
   // #587: gold sent ahead to a far coffer, a bill from afar the treasury could not pay, a far coffer taken with its province.
-  "gold-sent", "bill-unpaid", "coffer-taken",
+  "gold-sent", "bill-unpaid", "coffer-taken", "unfunded",
 ];
 
 const MessengerBlamed = rx(
