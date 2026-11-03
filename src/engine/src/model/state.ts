@@ -840,6 +840,9 @@ export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
   label: computed(S, (o: Unit) => unitLabel(o)),
 });
 
+/** Item 13: a unit's report of one season, as its trail keeps it (`Unit.trail`; read by `trailEntry`). */
+export const unitReport = (u: Unit): string => `${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}|${u.chest}|${u.buy ? 1 : 0}|${u.savings}`;
+
 /** Bug #600: how many seasons a unit that left the game is kept among those gone: longer than any word takes. */
 export const UnitsGoneKept = 8;
 

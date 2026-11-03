@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, TurnEngine, Views, WorldMap, hold, inboxOf, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, loseUnit } from "@amarna/engine";
+import { Dict, TurnEngine, Views, WorldMap, hold, inboxOf, move, newGame, newGameConfig, newOwnerChange, newPlannedOrder, newSleepState, newTurnSubmission, newUnit, loseUnit, unitReport } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 /** Egypt holds Nippur, far from its court, with an army there that has sent a few seasons' reports. */
@@ -79,5 +79,29 @@ describe("UnitsKnownTests", () => {
       told = failed().some((x) => x.title === "Order failed" && x.body.includes("no longer stood in Nippur"));
     }
     Assert.true(told);
+  });
+
+  test("A far levy's army lost before word of its raising keeps its orders, named by its levy, until word of its end (bug #600)", () => {
+    const { s, season } = farArmy();
+    s.units = s.units.filter((x) => x.id !== "u990");
+    s.sleep.tryAdd("Egypt", newSleepState());
+    season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    const d = new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nippur");
+    const raised = newUnit({ id: "u991", power: "Egypt", kind: "Army", province: "nippur", home: "nippur", men: 1000, since: s.turn });
+    raised.trail.push(unitReport(raised));
+    s.units.push(raised);
+    s.sleep.get("Egypt").scheduled.push(newPlannedOrder({ turn: s.turn + 2 * d + 4, order: move("nippur", "ur"), unitId: "u991", given: s.turn }));
+    const listed = () => JSON.stringify(Views.for(s, "Egypt").scheduled);
+    const before = listed();
+    Assert.contains("the army to be raised in nippur", before);
+    loseUnit(s, raised);
+    const heard = s.turn + 1 + d;
+    while (s.turn < heard) {
+      Assert.equal(before, listed());
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    Assert.empty(s.sleep.get("Egypt").scheduled);
   });
 });

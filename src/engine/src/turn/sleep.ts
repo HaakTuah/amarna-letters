@@ -7,7 +7,7 @@
  */
 import { EconomyData } from "../model/economy.ts";
 import { HSet } from "../core/collections.ts";
-import { ownUnitsKnown } from "../rules/units-known.ts";
+import { goneHeard } from "../rules/units-known.ts";
 import { sortBy, cmpNum } from "../core/seq.ts";
 import { cmpStr, trimEnd } from "../core/text.ts";
 import type { UnitKind } from "../model/map.ts";
@@ -488,8 +488,7 @@ function isFiring(i: InboxItem): boolean {
 P.lostUnits = function (p, sl) {
   const S = this.s;
   // Bug #600: a unit lost far off is lost to its king when word of its end comes; till then its orders stay, and cannot run.
-  const known = new HSet(ownUnitsKnown(this, p, S.turn + S.deliveryOffset).map((u) => u.id));
-  const gone = (id: string | null): boolean => id !== null && !known.has(id) && !S.units.some((u) => u.id === id && u.power === p);
+  const gone = (id: string | null): boolean => id !== null && goneHeard(this, p, id, S.turn + S.deliveryOffset);
   const lost = (x: PlannedOrder): boolean => gone(x.unitId) || gone(x.otherUnitId);
   const lines: string[] = [];
   if (sl !== null) {

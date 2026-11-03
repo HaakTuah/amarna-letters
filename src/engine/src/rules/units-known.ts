@@ -19,6 +19,18 @@ export function raisedKnown(engine: TurnEngine, p: Power, u: Unit, now: number =
 }
 
 /**
+ * Whether word that a unit of the court's has gone (it left the game, or passed to another) has reached it by season
+ * `now`: never for one still its own, and for one gone, once word could come from where it went, whether or not its raising
+ * was known (bug #600).
+ */
+export function goneHeard(engine: TurnEngine, p: Power, id: string, now: number = engine.s.turn): boolean {
+  const s = engine.s;
+  if (s.units.some((u) => u.id === id && u.power === p)) return false;
+  const gone = s.unitsGone.find((u) => u.id === id && u.power === p);
+  return gone === undefined || wordCame(engine, p, gone.goneTurn, gone.province, now);
+}
+
+/**
  * The court's own units as it knows them in season `now`: those it has heard were raised, and those gone whose end it has
  * not heard of.
  */
@@ -77,8 +89,9 @@ export function reportedAt(engine: TurnEngine, u: Unit, i: number): number {
  * ("the army to be raised in nubia in turn 3"), as before the levy ran (TurnEngine.asShown).
  */
 export function plannedAsKnown(engine: TurnEngine, p: Power, x: PlannedOrder): PlannedOrder {
+  // One gone since, its end unheard, too: neither its raising nor its end has reached the court.
   const unheard = (id: string | null): Unit | null => {
-    const u = id === null ? undefined : engine.s.units.find((y) => y.id === id && y.power === p);
+    const u = id === null ? undefined : [...engine.s.units, ...engine.s.unitsGone].find((y) => y.id === id && y.power === p);
     return u !== undefined && !raisedKnown(engine, p, u) ? u : null;
   };
   const levy = (u: Unit) => newLevyRef({ province: u.home, turn: u.since, kind: u.kind });

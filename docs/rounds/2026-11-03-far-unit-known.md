@@ -76,11 +76,20 @@ Claude's reviewer (Opus, high): 6 of 10, three blocking, five not, all fixed:
 3. **A commander's duty changed at once** (blocking): covered (`coverFor`) until word of the army's end; the twin has a
    commander, and a standing order for the army.
 4. **Battle events:** a side reads them where its notice is told from (`seeing`'s `told`).
-5. **A start unit lost before its first report:** not kept.
+5. **A start unit lost before its first report:** every start unit has a report from the start (Codex's point 3).
 6. **A doubled comment** in `core.ts`: one.
 7. **The #587 mask hid all of strength:** the canary now tells a strength difference beyond the treasury's gold apart.
 8. **Small things:** the `lostUnits` comment, the README's wrap, and a scheduled order due for a gone unit is told
    (`orderMissed`).
+
+Codex, round 1: three P1, all fixed:
+
+1. **A far levy's army lost before word of its raising** lost its orders at once (`lostUnits`): an order is dropped only
+   once word that its unit is gone could come (`goneHeard`), whether or not its raising was known.
+2. **Its levy name in the scheduled list** changed at once: `plannedAsKnown` finds it among the gone too. An engine test
+   of both.
+3. **A starting unit lost in the first season** had no report to show: every unit a game begins with has its first
+   report from the start (`unitReport`, `rules/factory.ts`), so none is ever shown as it is for want of one.
 
 Also: the first benchmark run crashed (a script king keyed its own troops by province, and a gone army's report could
 share one with a live army); a gone unit now moves to an older report like any far unit (`reportIndex`).

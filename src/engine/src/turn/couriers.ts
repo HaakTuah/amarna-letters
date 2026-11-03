@@ -15,7 +15,7 @@ import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
 import { type Order } from "../model/orders.ts";
 import { quoteWords, type Power } from "../model/power.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
-import { isAlive, logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, newId, notify, unitAt, unitReport, type Unit } from "../model/state.ts";
 import { courierSeasons, courtOf } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
@@ -334,7 +334,7 @@ P.caravanNear = function (c, province) {
 
 P.keepTrails = function () {
   for (const u of this.s.units) {
-    u.trail.push(`${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}|${u.chest}|${u.buy ? 1 : 0}|${u.savings}`);
+    u.trail.push(unitReport(u));
     if (u.trail.length > TrailKept) u.trail.splice(0, u.trail.length - TrailKept);
   }
   // Bug #540: the caravans' reports too, which come home as word does.
