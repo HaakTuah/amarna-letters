@@ -5,7 +5,7 @@
 
 import { WorldMap, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province } from "@amarna/engine";
 import { powerName } from "../ui/format.ts";
-import { F, Shapes, frontierPath, landClipOf, city } from "./art.ts";
+import { F, Shapes, arcNeighbours, frontierPath, landClipOf, city } from "./art.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { RuinMarks } from "./life.ts";
 import { ringOf, TentHalf, TentRing } from "./markup.ts";
@@ -44,10 +44,26 @@ export function tints(s: MapScene, mode: MapMode): string {
   return sb + `<g class="holding">${holdingLayer(s, mode)}</g>`;
 }
 
-export function bands(s: MapScene): string {
-  // The armies the seat sees now, by province (a unit remembered from an old report is not seen).
+/** The armies the seat sees now, by province (a unit remembered from an old report is not seen). */
+function seenArmies(s: MapScene): Map<string, Set<Power>> {
   const armies = new Map<string, Set<Power>>();
   for (const u of s.units) if (u.kind === "Army" && !u.ghost) armies.set(u.province, (armies.get(u.province) ?? new Set()).add(u.power));
+  return armies;
+}
+
+/**
+ * The provinces across a held province's frontier (another holder's, or no one's) where the seat sees, now, armies of two
+ * powers face to face, one on each side: where its border glows (#583), and what its card lists (#586).
+ */
+export function facedAcross(s: MapScene, id: string, armies: Map<string, Set<Power>> = seenArmies(s)): string[] {
+  const o = s.owner.get(id) ?? null;
+  const here = armies.get(id);
+  if (o === null || here === undefined) return [];
+  return arcNeighbours(id).filter((q) => (s.owner.get(q) ?? null) !== o && [...(armies.get(q) ?? [])].some((b) => [...here].some((a) => a !== b)));
+}
+
+export function bands(s: MapScene): string {
+  const armies = seenArmies(s);
   let sb = "";
   for (const [clip, group] of LandByClip) {
     sb += `<g class="bands" clip-path="${clip}">`;
@@ -56,10 +72,9 @@ export function bands(s: MapScene): string {
       if (o === null) continue;
       const other = (q: string): boolean => (q === "~" ? null : (s.owner.get(q) ?? null)) !== o;
       // A frontier where armies of two powers stand face to face, one on each side: a wider, fainter stroke under the band.
-      const here = armies.get(p.id);
-      if (here !== undefined) {
-        const faced = (q: string): boolean => [...(armies.get(q) ?? [])].some((b) => [...here].some((a) => a !== b));
-        const c = frontierPath(p.id, (across) => across.some((q) => q !== "~" && other(q) && faced(q)));
+      const faced = new Set(facedAcross(s, p.id, armies));
+      if (faced.size > 0) {
+        const c = frontierPath(p.id, (across) => across.some((q) => faced.has(q)));
         if (c !== "") sb += `<path class="band contested b-${glyphId(o)}" d="${c}" clip-path="url(#cl-${p.id})"/>`;
       }
       const d = frontierPath(p.id, (across) => across.length === 0 || across.some(other));
