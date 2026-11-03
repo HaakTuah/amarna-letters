@@ -1,8 +1,10 @@
 // The copies check ("One fact, one place" in AGENTS.md): fails when the same run of code (8 lines that are more than
 // brackets, 240 characters at least) or of the rule files' prose (12 words) stands in two places, unless the baseline
-// (scripts/copies-baseline.json) lists it, window by window, as one of the old copies, which are removed over time and
-// never added to or grown. An entry listed but gone or smaller fails too, so the baseline only shrinks. Node's own modules only, so the check
-// needs no install (.github/workflows/copies.yml; scripts/test.sh runs it too).
+// (scripts/copies-baseline.json) lists every window of it (a run of lines or words) in as many places, as one of the
+// old copies, which are removed over time and never added to. A listed window gone or in fewer places fails too, so the
+// baseline only shrinks. A copy may move (cut from one place, pasted in another), since its places do not grow: moving
+// is how a fact reaches its better home. Node's own modules only, so the check needs no install
+// (.github/workflows/copies.yml; scripts/test.sh runs it too).
 //
 //   node scripts/copies.mjs            the check
 //   node scripts/copies.mjs --write    lower the baseline to what still stands (it never adds a copy)
@@ -80,39 +82,44 @@ function find(files, units, size, joiner, minChars) {
       const windows = [];
       for (let k = 0; k <= len - size; k++) windows.push(hash(at(u, i + k)));
       copies.push({
-        key: h,
         windows,
         places: places.map(p => { const pu = perFile.get(p.file); return `${p.file}:${pu[p.at].line}-${pu[Math.min(p.at + len - 1, pu.length - 1)].line}`; }),
         starts: at(u, i).replace(/\n/g, ' / ').slice(0, 80),
       });
     }
   }
-  return copies;
+  return { copies, dup };
 }
 
-const ls = globs => execFileSync('git', ['ls-files', ...globs], { encoding: "utf8" }).split('\n').filter(Boolean);
-const found = [...find(CODE(), codeUnits, LINES, '\n', MIN_CHARS), ...find(PROSE.filter(f => fs.existsSync(f)), proseUnits, WORDS, ' ', 0)];
+const ls = globs => execFileSync('git', ['ls-files', '-z', ...globs], { encoding: "utf8" }).split('\0').filter(Boolean);
+const runs = [find(CODE(), codeUnits, LINES, '\n', MIN_CHARS), find(ls(PROSE), proseUnits, WORDS, ' ', 0)];
+const found = runs.flatMap(r => r.copies);
+const places = new Map(runs.flatMap(r => [...r.dup].map(([h, list]) => [h, list.length])));
 const base = JSON.parse(fs.readFileSync(BASELINE, "utf8"));
-// The baseline lists each old copy by the hashes of its windows and the number of places it stands in. A copy passes
-// only if a listed copy holds every one of its windows in at least as many places, so a copy that spreads to another
-// place or grows by a line fails like a new one. A listed copy that is gone, smaller or in fewer places fails too, until
-// --write lowers it; --write only ever lowers, never lists a new copy or a new window.
-const entries = Object.entries(base.copies).map(([k, b]) => ({ k, b, has: new Set(b.windows) }));
-const match = c => entries.find(e => c.windows.every(w => e.has.has(w)) && c.places.length <= e.b.count);
-const fresh = [], kept = new Map();
-for (const c of found) { const e = match(c); if (!e) fresh.push(c); else kept.set(e.k, c); }
-const shrunk = entries.filter(e => !kept.has(e.k) || kept.get(e.k).windows.length < e.b.windows.length || kept.get(e.k).places.length < e.b.count);
+// The baseline holds the old copies window by window: each run of lines or words that is copied, by its hash, and how
+// many places it stands in. Every copied window must be listed with at least as many places, so a copy that is new,
+// spreads to another place, grows, or is copied in part fails. A listed window that is gone or in fewer places fails
+// too, until --write lowers it; --write only ever lowers, never lists a window that is not listed already.
+// The baseline only shrinks against the branch a PR merges into (COPIES_BASE, set by the workflow): a window it adds or a
+// count it raises there fails, whoever wrote it.
+const from = process.env.COPIES_BASE;
+if (from) {
+  let old = null;
+  try { old = JSON.parse(execFileSync("git", ["show", `${from}:${BASELINE}`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })).windows; } catch { /* no baseline there yet */ }
+  const raised = old ? Object.entries(base.windows).filter(([h, n]) => !(h in old) || n > old[h]) : [];
+  if (raised.length) { console.error(`FAIL: ${BASELINE} adds or raises ${raised.length} windows against ${from}: the baseline only shrinks`); process.exit(1); }
+}
+const over = h => !(h in base.windows) || places.get(h) > base.windows[h];
+const fresh = found.filter(c => c.windows.some(over));
+const shrunk = Object.keys(base.windows).filter(h => !places.has(h) || places.get(h) < base.windows[h]);
 for (const c of fresh) console.error(`FAIL: a new copy: ${c.places.join(' and ')} (it starts "${c.starts}"); point to one place instead`);
 if (process.argv.includes('--write')) {
-  base.copies = Object.fromEntries(entries.filter(e => kept.has(e.k)).map(e => {
-    const c = kept.get(e.k);
-    return [c.key, { count: c.places.length, places: c.places.join(' '), windows: c.windows }];
-  }));
+  base.windows = Object.fromEntries(Object.entries(base.windows).filter(([h]) => places.has(h)).map(([h, n]) => [h, Math.min(n, places.get(h))]));
   fs.writeFileSync(BASELINE, JSON.stringify(base, null, 2) + '\n');
-  console.log(`${BASELINE}: ${Object.keys(base.copies).length} old copies kept, ${shrunk.length} lowered or dropped`);
+  console.log(`${BASELINE}: ${Object.keys(base.windows).length} windows kept, ${shrunk.length} lowered or dropped`);
   if (fresh.length) process.exit(1);
 } else {
-  for (const e of shrunk) console.error(`FAIL: ${BASELINE} lists ${e.k} (${e.b.places}), which is gone or smaller now: run --write to lower it`);
+  if (shrunk.length) console.error(`FAIL: ${BASELINE} lists ${shrunk.length} windows that are gone or in fewer places now: run --write to lower it`);
   if (fresh.length || shrunk.length) process.exit(1);
-  console.log(`ok   no new copies (${found.length} old ones in ${BASELINE}, to be removed)`);
+  console.log(`ok   no new copies (${found.length} old ones, listed in ${BASELINE}, to be removed)`);
 }

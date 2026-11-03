@@ -1700,3 +1700,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     guidelines block a copy and an entry added to the copies baseline; and the copies check (`scripts/copies.mjs`,
     `.github/workflows/copies.yml`) fails a new copy of code or of the rule files' prose on every PR, its baseline
     listing the old ones to be removed.
+208. **3 November 2026, 17:51 and 17:52 UTC**, in the design chat, reviewing PR #687: "My one remaining concern is that
+    stuff ends up stationary, not where it is optimal. You say to only reference, but should we mention that if another
+    grouping is more fitting, moving it somewhere else, makes sense? expert?" Then, to the design session's wording:
+    "And only the places it makes sense should still point to it. Yes, add it expertly." Written into "One fact, one
+    place, everywhere" in `AGENTS.md`: the one place is where its readers look for it, only the places whose readers
+    need it point to it, and a fact moves to a better home in one PR, its pointers updated or removed; the review
+    guidelines make a fact left where a clearly better home exists, and a pointer no reader needs, findings.

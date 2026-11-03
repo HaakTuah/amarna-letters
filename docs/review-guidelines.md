@@ -27,7 +27,8 @@ and none loosened); and a protected file (`SECURITY.md`, rule 3) changed by a Co
 leaves behind (code, files or settings it made unused, commented-out code) as a finding. The pillars of "How to work" in
 `AGENTS.md` block too: a fact, rule or piece of logic written a second time instead of pointed to (a copy, or a
 selection of another file's lines), and an entry added to the copies check's baseline. Content put where its readers
-must read past it, such as a file holding what its readers do not need, is a finding.
+must read past it, such as a file holding what its readers do not need, is a finding, and so is a fact left where a
+clearly better home exists, or a pointer where no reader needs it.
 
 **History holds,** for every reviewer: report as P1 a real-world fact (a person, place, date, name, custom or event) the
 change adds or alters that has no source in `docs/history/`, or contradicts the source it cites. Each real fact in the
