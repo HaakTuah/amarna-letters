@@ -39,10 +39,13 @@ new case, "a far province lost after a rider brought its report": it fails if th
 ## Use against ignore (`--ride-play-half`, 20 games, seed 1, 50 seasons)
 
 **No ride was hired in 20 games** (`ride-hired` 0), so the two sides played the same and the numbers (0.83 growth and 11
-wins against 0.79 and 9) are the seeds' noise. A probe of one 40-season game found why: in 1,681 decisions no script king
-held a province beyond a season's courier ride. The Great Kings' realms lie within a season's reach of their courts, and
-the land they take lies near them. So the case a rider is for does not arise in script games; the scenario test shows
-the script kings ride for it, haggle, and offer more after a refusal when it does.
+wins against 0.79 and 9) are the seeds' noise. A count over the same 20 games found why: of 6,070 Great King-seasons, 240
+held land beyond a season's road home, mostly where the king's own troops kept it in sight; 119 held such land out of
+sight, all of them Hatti's. A probe of the game with most of them found each such province had left Hatti's sight only
+the season before, so its report was one season old, and a rider, whose report comes the next season, would bring
+nothing sooner: the script kings rightly did not ride. So the case a rider is for (a report two seasons old or more)
+does not arise in script games; the scenario test shows the script kings ride for it, haggle, and offer more after a
+refusal when it does.
 
 ## Readings taken
 
