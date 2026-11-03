@@ -46,7 +46,8 @@ adds warmth of its own: what a bought report still adds is its content, the paid
 That is the deception the owner keeps, and a king learns it only by checking. A frightened envoy's report of a cold
 court now reads neutral (0.000) rather than warm.
 
-PLACEHOLDER-BATCH
+**Not yet run (paused for usage, 3 November):** a regression batch of script games on `develop` and on this branch
+(`scripts/sim.sh --games 20 --seed 1` on each), and the fresh-eyes slop review of the new lines.
 
 ## Readings taken
 

@@ -93,6 +93,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
     borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
     kings' trust readings still behave well.
+    **In progress, paused for usage** (#680, `lane/591-envoy-tells`; report `docs/rounds/2026-11-03-envoy-tells.md`): the
+    wording, the guard (`envoy-tells.test.ts`), save version 61 and the trust measurement are done and pushed. Left: the
+    regression batch on `develop` and the branch, the fresh-eyes slop review of the envoy lines, Codex's review, then
+    merge and close #591.
   - ~~**#616, one clock for one road:**~~ (done, #639) a far province's report and its notices come by one function,
     the couriers' seasons from the place to the court (`wordHomeAt`), with a test that the same season's both arrive
     together. Save version 57. Report: `docs/rounds/2026-11-03-one-clock.md`.
