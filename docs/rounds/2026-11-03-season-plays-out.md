@@ -17,9 +17,9 @@ Presentation only, built in parts, each its own pull request.
 
 | Part | What | State |
 |---|---|---|
-| A | A mind's own words kept season by season and shown (the record) | this PR |
+| A | A mind's own words kept season by season and shown (the record) | merged, #627 |
 | B | The season in sequence: the next season computed while this one plays, pace by meaning, a closing line | not started |
-| C | Zoom shapes the realms' colours (full, then a wash, then borders and banners) | built |
+| C | Zoom shapes the realms' colours (full, then a wash, then borders and banners) | this PR |
 | D | The land's season under the realms, and its change moving | not started |
 | E | Units drawn as what they are, with weight; the world acting on them | not started |
 | F | Threads to watch and the director camera (spectator) | not started |
