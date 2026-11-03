@@ -21,7 +21,7 @@ import { courierSeasons } from "../rules/court.ts";
 import { menIn, shareOfFull, wallMenOf } from "../model/land.ts";
 import { EconomyData } from "../model/economy.ts";
 import { gain, newRisingView, remember, type Character } from "../model/people.ts";
-import { AllPowers, land, type Power } from "../model/power.ts";
+import { AllPowers, land, type Power, powerName, whose } from "../model/power.ts";
 import { findCharacter, isAlive, logEvent, newId, newUnit, siegeOf, wallsOf, type Unit } from "../model/state.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import { UnrestData } from "../model/unrest.ts";
@@ -468,15 +468,16 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
     return;
   }
   const love = standing(e, id, holder);
-  // Told to its holder as "you", to anyone else by his name.
+  // Told to its holder as "you", to anyone else by his name, or as its own ruler where his realm bears its name (Lukka).
+  const own = powerName(holder).replace(/^the /, "") === name;
   const whyFor = (to: Power | null): string =>
     to === holder
       ? love < 0 ? "you took more from its people than you gave them" : "your hold on it was weak"
-      : love < 0 ? `the king of ${land(holder)} took more from its people than he gave them` : `${holder}'s hold on it was weak`;
+      : love < 0 ? `${own ? "its own ruler" : `the king of ${powerName(holder)}`} took more from its people than he gave them` : `${own ? "its own ruler's" : whose(holder)} hold on it was weak`;
   const why = whyFor(null);
   if (rival !== null && rival.power !== null) {
     const p = rival.power;
-    const how = e.forceIn(id, p) >= loveOf(e, id, p) ? `${p}'s men stand at its gates` : `its people favour ${p}`;
+    const how = e.forceIn(id, p) >= loveOf(e, id, p) ? `${whose(p)} men stand at its gates` : `its people favour ${powerName(p)}`;
     // A rival whose agents stirred its people these last two years has his reward (for the record, seen by nobody).
     if (S.events.some((x) => x.kind === "stir" && x.turn >= S.turn - 8 && x.text.startsWith(`${p}'s agent`) && x.text.includes(`the people of ${name} against`)))
       logEvent(S, "stir", `${name}, whose people ${p}'s agents stirred, now answers to ${p}.`, [], "stir-won");
@@ -484,7 +485,7 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
     // Taken by force: its taker's men carry off what they can, and a court's city gives up its archive.
     if (e.forceIn(id, p) > 0) e.sack(id, p, true);
     e.takeArchive(p, id);
-    e.tell(holder, id, "Battle", "A province lost", `${name} now answers to ${p}: ${how}, and ${whyFor(holder)}.`);
+    e.tell(holder, id, "Battle", "A province lost", `${name} now answers to ${powerName(p)}: ${how}, and ${whyFor(holder)}.`);
     e.tell(p, id, "Battle", "A province won", `${name} now answers to you: ${how}, and ${why}.`);
     logEvent(S, "obey", `${name} now answers to ${p}: ${how}, and ${why}.`, seeing([holder, p]), "obey-power");
     return;
@@ -530,9 +531,9 @@ function changeHands(e: TurnEngine, id: string, rival: Rival | null): void {
       gold: eliteGold(e, id),
       rising: band === null && levies.length === 0,
       band,
-      story: `The people of ${name} rose against ${holder}, and you led them.`,
+      story: `The people of ${name} rose against ${powerName(holder)}, and you led them.`,
       memory: `The people of ${name} rose against ${holder}.`,
-      line: `${leader.name} led ${name} in revolt against ${holder} and rules it in his own name`,
+      line: `${leader.name} led ${name} in revolt against ${powerName(holder)} and rules it in his own name`,
     });
     return;
   }

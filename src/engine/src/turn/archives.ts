@@ -3,12 +3,13 @@
  * archive, and the copies go home with its report; whoever comes to hold a court's capital gains a copy of every tablet in
  * its archive. Nothing is taken away: the court keeps its own copies.
  */
+import { counted, listed } from "../rules/wording.ts";
 import { HSet } from "../core/collections.ts";
 import { rx } from "../core/regex.ts";
 import { cmpBool, cmpNum, desc, distinct, sortBy } from "../core/seq.ts";
 import { isUpper } from "../core/text.ts";
 import { remember, type Character } from "../model/people.ts";
-import { land, type Power } from "../model/power.ts";
+import { land, type Power, powerName } from "../model/power.ts";
 import { newTabletCopy, type Journey, type Tablet, type TabletCopy } from "../model/records.ts";
 import { alive, findCharacter, isAlive, logEvent, newId, notify, type GoldLot } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -120,14 +121,14 @@ P.takeArchive = function (taker, province) {
   const lost = S.copies.filter((k) => k.holder === court).length;
   S.copies = S.copies.filter((k) => k.holder !== court);
   if (lost > 0 && isAlive(S, court))
-    notify(S, court, "Notice", "Your archive taken", `With ${prov.name}, ${taker} carried off your archive and the ${lost === 1 ? "one tablet" : `${lost} tablets`} in it.`);
+    notify(S, court, "Notice", "Your archive taken", `With ${prov.name}, ${powerName(taker)} carried off your archive and the ${lost === 1 ? "one tablet" : `${lost} tablets`} in it.`);
   logEvent(S, "archive-taken", `${taker} took the archive of ${court} with ${prov.name}.`, [taker], "archive-taken");
   if (tablets.length === 0) {
-    notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${court}; it held no tablet you did not hold already.`);
+    notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${powerName(court)}; it held no tablet you did not hold already.`);
     return;
   }
   if (this.lootHome(taker, province, 0, tablets, court))
-    notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${court}: your scribes are carrying its ${tablets.length} tablet${tablets.length === 1 ? "" : "s"} home to your capital.`);
+    notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${powerName(court)}: your scribes are carrying its ${tablets.length} tablet${tablets.length === 1 ? "" : "s"} home to your capital.`);
 };
 
 /** A captured archive reaches a court (item 10+b): copies of every tablet in it it did not hold already. */
@@ -148,18 +149,18 @@ P.archiveArrives = function (holder, tabletIds, court, place) {
     "Notice",
     ArchiveTakenTitle,
     taken.length === 0
-      ? `The archive of ${court} reached you; it held no tablet you did not hold already.`
-      : `The archive of ${court} reached you: ${taken.length === 1 ? "one tablet" : `${taken.length} tablets`} new to your own, ${taken.map((k) => this.copyLine(k)).join("; ")}.`,
+      ? `The archive of ${powerName(court)} reached you; it held no tablet you did not hold already.`
+      : `The archive of ${powerName(court)} reached you: ${taken.length === 1 ? "one tablet" : `${counted(taken.length)} tablets`} new to your own, ${listed(taken.map((k) => this.copyLine(k)))}.`,
   );
 };
 
 /**
- * A copy as a court reads it in a notice: the tablet as every court names it (its seals and date), then the court's own
- * mark for its copy. The text is in the archive the court reads.
+ * A copy as a court reads it in a notice: the tablet as every court names it, by its seals and date. Its mark and its text
+ * are in the archive the court reads.
  */
 P.copyLine = function (copy) {
   const t = this.s.tablets.find((x) => x.id === copy.tabletId)!;
-  return `${Views.tabletName(t, this.archive(copy.holder))} (marked ${copy.id} in your archive)`;
+  return Views.tabletName(t, this.archive(copy.holder));
 };
 
 const CopyMark = rx("\\b(?:(?:the\\s+)?(?:tablet|copy)\\s+)?(?<id>k\\d+)\\b", "gi");
@@ -229,7 +230,7 @@ P.scribe = function (writer, text) {
  * weighed in turn 3"), with what its inventory stated where another of the holder's lots shares all three.
  */
 export function goldName(holder: Power, lot: GoldLot, lots: Iterable<GoldLot>): string {
-  const name = `the gold ${lot.from} sent to ${holder}, weighed in turn ${lot.arrivedTurn}`;
+  const name = `the gold ${powerName(lot.from)} sent to ${powerName(holder)}, weighed in turn ${lot.arrivedTurn}`;
   for (const l of lots) if (l.id !== lot.id && l.from === lot.from && l.arrivedTurn === lot.arrivedTurn) return `${name}, its inventory stating ${formatMoney(lot.stated)}`;
   return name;
 }
@@ -237,5 +238,5 @@ export function goldName(holder: Power, lot: GoldLot, lots: Iterable<GoldLot>): 
 /** The line the engine adds to a spy's report for the copies that came home with it. */
 P.copiesLine = function (spy, court, copyIds) {
   const S = this.s;
-  return `[With this report came copies ${spy.name} made in the archive of ${court}: ${[...copyIds].map((id) => this.copyLine(S.copies.find((k) => k.id === id)!)).join(", ")}.]`;
+  return `[With this report came copies ${spy.name} made in the archive of ${powerName(court)}: ${listed([...copyIds].map((id) => this.copyLine(S.copies.find((k) => k.id === id)!)))}.]`;
 };

@@ -203,7 +203,7 @@ describe("RecordTextTests", () => {
     e = new TurnEngine(s);
     e.beginTurn();
     let notice = single(inboxOf(s, "Egypt"), (i) => i.kind === "Authentication");
-    Assert.startsWith(`The tablet sealed by Egypt and Hatti, dated turn 1 (your copy k900): "${long_}" — `, notice.body);
+    Assert.startsWith(`The tablet sealed by Egypt and Hatti, dated turn 1: "${long_}" — `, notice.body);
   });
 
   function battle(s: GameState, p: Power): string {

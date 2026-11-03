@@ -26,6 +26,7 @@ import { AllPowers, land, type Power } from "../model/power.ts";
 import { courierSeasons } from "../rules/court.ts";
 import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { formatMoney, measures } from "../rules/calendar.ts";
+import { listed } from "../rules/wording.ts";
 import { Views } from "../rules/views.ts";
 import { obeyedIn, TurnEngine } from "./core.ts";
 import { CommandData } from "../model/command.ts";
@@ -206,7 +207,8 @@ P.harvestSeason = function () {
   for (const p of alive(S)) {
     const l: string[] = [];
     if (reaped.has(p)) {
-      l.push(`The harvest is in the farmers' granaries: ${reaped.get(p).map(([name, n]) => `${measures(n)} at ${name}`).join(", ")}.`);
+      const brought = reaped.get(p).filter(([, n]) => n > 0);
+      l.push(brought.length > 0 ? `The harvest is in the farmers' granaries: ${listed(brought.map(([name, n]) => `${measures(n)} at ${name}`))}.` : "The harvest brought nothing into the farmers' granaries.");
       logEvent(S, "harvest", `${p}'s land reaped its harvest: ${reaped.get(p).map(([name, n]) => `${name} ${n}`).join(", ")} measures.`, [p], "harvest-reaped");
     }
     // Only what came in: no line for a tax, a mine or a sale that brought nothing.
@@ -215,7 +217,7 @@ P.harvestSeason = function () {
     if (t + over > 0) l.push(`The grain tax brought ${measures(t)} into your stores` + (over > 0 ? `; they had no room for ${measures(over)} more, and it was lost` : "") + ".");
     const got = S.treasuries.get(p).income;
     const fromMines = mined.getOrDefault(p, 0);
-    if (got > fromMines) l.push(`Since your last orders ${formatMoney(got)} came into the treasury${fromMines > 0 ? `, ${formatMoney(fromMines)} of it from your mines` : ""}.`);
+    if (got > fromMines) l.push(`Since your last orders, ${formatMoney(got)} came into the treasury${fromMines > 0 ? `, ${formatMoney(fromMines)} of it from your mines` : ""}.`);
     else if (fromMines > 0) l.push(`Your mines yielded ${formatMoney(fromMines)} for the treasury.`);
     lines.set(p, l);
   }
@@ -615,7 +617,7 @@ P.settleMarkets = function (orders) {
       continue;
     }
     setOut(S, newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, route, since: S.turn }));
-    tell(p, o.from, `A caravan of ${measures(grain)} of grain set out from ${Map.get(o.from).name} for ${Map.get(o.to).name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
+    tell(p, o.from, `A caravan of ${measures(grain)} of grain set out from ${Map.get(o.from).name} for ${Map.get(o.to).name}, by ${listed(route.slice(1, -1).map((x) => Map.get(x).name)) || "the direct road"}.`);
     logEvent(S, "caravan-out", `${p} sent a caravan from ${Map.get(o.from).name}.`, this.nearOf(o.from, p), "caravan-out");
   }
   // Trading caravans and ships (item 9+b).

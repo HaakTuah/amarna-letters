@@ -85,7 +85,7 @@ describe("ArchiveTests", () => {
     Assert.equal(`copied from the archive of Assyria by your spy ${spy.name}`, copy.source);
     let report = first(inboxOf(s, "Babylonia"), (i) => i.kind === "SpyReport");
     Assert.contains(
-      `[With this report came copies ${spy.name} made in the archive of Assyria: the tablet sealed by Assyria and Hatti, dated turn 1 (marked ${copy.id} in your archive).]`,
+      `[With this report came copies ${spy.name} made in the archive of Assyria: the tablet sealed by Assyria and Hatti, dated turn 1.]`,
       report.body,
     );
     Assert.contains(Views.for(s, "Babylonia").tablets, (t) => t.copyId === copy.id && t.text.includes("against Babylonia"));
@@ -192,7 +192,7 @@ describe("ArchiveTests", () => {
 
     let notice = single(inboxOf(s, "Babylonia"), (i) => i.title === ArchiveTakenTitle && i.body.startsWith("The archive of Assyria reached you"));
     Assert.equal(
-      `The archive of Assyria reached you: one tablet new to your own, the tablet sealed by Assyria and Hatti, dated turn 1 (marked ${taken[0].id} in your archive).`,
+      `The archive of Assyria reached you: one tablet new to your own, the tablet sealed by Assyria and Hatti, dated turn 1.`,
       notice.body,
     );
     for (const p of AllPowers.filter((p) => p !== "Babylonia")) Assert.doesNotContain(inboxOf(s, p), (i) => i.title === ArchiveTakenTitle);

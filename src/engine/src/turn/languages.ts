@@ -17,7 +17,7 @@ import { newMindRequest } from "../model/exchanges.ts";
 import { PointsPerDay } from "../model/travel.ts";
 import { gain, newBridgeView, newFact, newUnheardView, remember, type BridgeView, type Character, type UnheardChoice } from "../model/people.ts";
 import type { Clause } from "../model/clauses.ts";
-import { land, type Power } from "../model/power.ts";
+import { land, type Power, powerName } from "../model/power.ts";
 import { newHomeCargo, type PendingAudience, type Tablet } from "../model/records.ts";
 import { alive, char, findCharacter, isAlive, logEvent, newGoldLot, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -477,7 +477,7 @@ P.presentUnheard = function (a, c) {
     a.host,
     "Notice",
     UnheardTitle,
-    `${c.name}, an envoy of ${land(a.from)}, stands at your court, but nobody here understands him${a.dispatch.gold > 0 ? ". He has brought gifts, and will present them if he stays unheard" : ", and he brought no gifts"}. A servant or go-between who speaks his tongue could carry his words.`,
+    `${c.name}, an envoy of ${powerName(a.from)}, stands at your court, but nobody here understands him${a.dispatch.gold > 0 ? ". He has brought gifts, and will present them if he stays unheard" : ", and he brought no gifts"}. A servant or go-between who speaks his tongue could carry his words.`,
     c.id,
   );
   logEvent(S, "unheard", `Nobody at ${a.host}'s court understood ${c.name}, envoy of ${a.from}.`, [a.host], "unheard");
@@ -504,7 +504,7 @@ P.presentGifts = function (a, c, plan) {
   const t = S.treasuries.get(a.host);
   t.gold += fine;
   t.lots.push(newGoldLot({ id: newId(S, "g"), from: a.from, stated: d.gold, face: weighed, true: fine, arrivedTurn: S.turn }));
-  if (d.inventory) this.inventory(c, a.from, a.host, d.gold, trail?.turn ?? S.turn, false, `the inventory brought by ${c.name}, envoy of ${a.from}`);
+  if (d.inventory) this.inventory(c, a.from, a.host, d.gold, trail?.turn ?? S.turn, false, `the inventory brought by ${c.name}, envoy of ${powerName(a.from)}`);
   if (trail !== null) {
     trail.goldDelivered = weighed;
     trail.goldFine = fine;
@@ -513,7 +513,7 @@ P.presentGifts = function (a, c, plan) {
   a.presented = weighed;
   d.gold = 0;
   d.inventory = false;
-  notify(S, a.host, "Notice", "Gifts presented", `${c.name}, the envoy of ${land(a.from)} whom nobody at your court understands, presented gifts weighing ${formatMoney(weighed)}.`, c.id);
+  notify(S, a.host, "Notice", "Gifts presented", `${c.name}, the envoy of ${powerName(a.from)} whom nobody at your court understands, presented gifts weighing ${formatMoney(weighed)}.`, c.id);
 };
 
 /** What a script envoy keeps of gifts he presents unheard, by the same motive as at an audience (ScriptMind's `kept`). */
@@ -642,7 +642,7 @@ P.bridged = function (a, changed) {
       a.host,
       "Notice",
       "Words bent",
-      `${w.name}, who understands both, heard ${x.name} change the words of ${c.name}, envoy of ${land(a.from)}, as he carried them to you.`,
+      `${w.name}, who understands both, heard ${x.name} change the words of ${c.name}, envoy of ${powerName(a.from)}, as he carried them to you.`,
       x.id,
     );
     logEvent(S, "bridge", `${w.name} noticed ${x.name} bend an envoy's words at ${a.host}'s court.`, [a.host], "bent-noticed");

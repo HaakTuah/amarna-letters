@@ -3,6 +3,7 @@
  * they pay their porters, eat, travel, meet the borders and the road's dangers, and hand over or trade their goods where
  * they arrive.
  */
+import { listed } from "../rules/wording.ts";
 import { waysOf } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
@@ -12,7 +13,7 @@ import { caravanAt, caravanGone, type Caravan } from "../model/caravans.ts";
 import { EconomyData, grainWorth } from "../model/economy.ts";
 import { unitCarried } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
-import { type Power } from "../model/power.ts";
+import { type Power, whose } from "../model/power.ts";
 import { isAlive, logEvent, notify, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { legPoints, PointsPerDay, boatDays, type Company } from "../model/travel.ts";
 import { measures } from "../rules/calendar.ts";
@@ -169,8 +170,8 @@ P.caravansTravel = function () {
       const where = this.map.get(taker.province).name;
       // A captured archive on the road (item 10+b) is the taker's now.
       if (c.archive.length > 0) this.archiveArrives(taker.power, c.archive, c.archiveOf, where);
-      this.caravanTell(c, taker.province, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${taker.power}'s ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; the fleet is lost with it" : ""}.`);
-      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${c.power}'s ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${measures(kept)} for their own baggage` : ""}${c.gold > 0 ? ", the gold for your treasury" : ""}.`);
+      this.caravanTell(c, taker.province, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${whose(taker.power)} ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; the fleet is lost with it" : ""}.`);
+      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${whose(c.power)} ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${measures(kept)} for their own baggage` : ""}${c.gold > 0 ? ", the gold for your treasury" : ""}.`);
       logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [...this.caravanNear(c, taker.province), taker.power], "caravan-taken");
       continue;
     }
@@ -273,7 +274,7 @@ P.caravanArrives = function (c, traded = null) {
       c.at = 0;
       c.points = 0;
       c.returning = true;
-      this.caravanTell(c, at, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} reached ${name}${parts.length > 0 ? ` and ${parts.join(", ")}` : ""}; it goes home to ${this.map.get(c.from).name}${c.grain + c.gold > 0 ? ` with ${goods(c.grain, c.gold)}` : ""}.`);
+      this.caravanTell(c, at, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} reached ${name}${parts.length > 0 ? `, ${listed(parts)}` : ""}; it goes home to ${this.map.get(c.from).name}${c.grain + c.gold > 0 ? ` with ${goods(c.grain, c.gold)}` : ""}.`);
       logEvent(S, c.trade ? "traded" : "caravan", `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} reached ${name}.`, [...this.caravanNear(c, at)], c.trade ? "traded" : "caravan");
       return;
     }
@@ -281,6 +282,6 @@ P.caravanArrives = function (c, traded = null) {
   caravanGone(S, c);
   if (c.ship !== null) this.rejoinFleet(c);
   const lostLine = c.grain + c.gold > 0 ? ` It found no way home, and the rest was lost: ${goods(c.grain, c.gold)}.` : "";
-  this.caravanTell(c, at, "Notice", MarketsTitle, `Your caravan reached ${name}${parts.length > 0 ? ` and ${parts.join(", ")}` : ""}.${lostLine}`);
+  this.caravanTell(c, at, "Notice", MarketsTitle, `Your caravan reached ${name}${parts.length > 0 ? `, ${listed(parts)}` : ""}.${lostLine}`);
   logEvent(S, "caravan", `${c.power}'s caravan reached ${name}.`, [...this.caravanNear(c, at)], "caravan");
 };

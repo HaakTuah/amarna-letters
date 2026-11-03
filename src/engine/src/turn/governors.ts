@@ -6,13 +6,14 @@
  * his hands, so he may keep some of it, by his greed and disloyalty. A privilege, not a job: no fee. The king takes the
  * grant back by sending word; a disloyal, ambitious governor refuses and turns with the levies he raised.
  */
+import { listed } from "../rules/wording.ts";
 import { idiv } from "../core/num.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { governorsKnown, newGovernor, newGovernorGone, seatKnown, seatOf, type Governor } from "../model/command.ts";
 import { raise } from "../model/order-makers.ts";
 import { type GovernOrder, type UnseatOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
-import type { Power } from "../model/power.ts";
+import { type Power, powerName } from "../model/power.ts";
 import { findCharacter, isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
 import { courierSeasons, wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
@@ -195,9 +196,9 @@ P.governorsSeason = function () {
         followers: levies,
         gold: 0,
         rising: levies.length === 0,
-        story: `Word came that the king of ${g.power} takes back your governorship of ${name}; you refused it.`,
+        story: `Word came that the king of ${powerName(g.power)} takes back your governorship of ${name}; you refused it.`,
         memory: `The king of ${g.power} took back my governorship of ${name}, and I refused it.`,
-        line: `${c!.name}, governor of ${lands.join(", ")} for ${g.power}, refused his recall and rules in his own name`,
+        line: `${c!.name}, governor of ${listed(lands)} for ${powerName(g.power)}, refused his recall and rules in his own name`,
       });
       // The rest of his provinces that would follow him go with him, ruled from the first, their people's regard for him his realm's.
       for (const x of going.slice(1)) this.joinRealm(x, c!, own);

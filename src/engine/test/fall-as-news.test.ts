@@ -114,7 +114,7 @@ describe("FallAsNewsTests", () => {
     Assert.equal(["Ruling", "Nippur", 0], [c.duty, c.employer, c.purse]);
     Assert.true(s.treasuries.get("Nippur").gold > 0);
     Assert.true(s.startStrength.get("Nippur") > 0);
-    Assert.contains("rule it in your own name", inboxOf(s, "Nippur").find((i) => i.title === "You rule in your own name")!.body);
+    Assert.contains("is yours now, ruled in your own name", inboxOf(s, "Nippur").find((i) => i.title === "You rule in your own name")!.body);
     // The rest, with neither the conqueror's troops nor a governor, has fallen lawless.
     Assert.null(s.owner.get("sippar"));
     Assert.doesNotContain(s.units, (u) => u.power === "Babylonia");

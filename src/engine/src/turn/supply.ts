@@ -12,7 +12,7 @@ import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import type { SupplyOrder } from "../model/orders.ts";
 import { gain, remember } from "../model/people.ts";
-import type { Power } from "../model/power.ts";
+import { type Power, powerName } from "../model/power.ts";
 import { isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { wordFromKing } from "../rules/court.ts";
@@ -114,7 +114,7 @@ export class TakenBook {
         e.take(prov, p, idiv(n * UnrestData.taken, Math.max(1, this.base.getOrDefault(prov, 0))));
         if (holder === null || !isAlive(S, holder)) continue;
         if (p === holder) e.tell(holder, prov, "Notice", "The people complain", `The people of ${name} complain that your own troops took ${measures(n)} of their food this season.`);
-        else e.tell(holder, prov, "Notice", "Troops took food", `The troops of ${p} took ${measures(n)} of food from your land in ${name} this season.`);
+        else e.tell(holder, prov, "Notice", "Troops took food", `The troops of ${powerName(p)} took ${measures(n)} of food from your land in ${name} this season.`);
       }
     }
   }

@@ -7,12 +7,13 @@
  * envoy for nothing, in one exchange, worded by a phrasing call; he wakes nobody, and the king reads what was done in its
  * news. A hidden backstop bounds the gold they send back in a season.
  */
+import { upper } from "../rules/wording.ts";
 import { clamp, roundEven, toInt } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { eqIgnoreCase, isBlank, trim } from "../core/text.ts";
 import { AnswerGoldShare, MaxAnswers, MaxAnswerSay, newAnswerBook, newStandingAnswer, type StandingAnswer, type StandingAnswerRequest } from "../model/answers.ts";
 import { newHostReply, type HostReply } from "../model/exchanges.ts";
-import type { Power } from "../model/power.ts";
+import { type Power, powerName } from "../model/power.ts";
 import type { PendingAudience } from "../model/records.ts";
 import { char, isAlive, ledger, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -32,7 +33,7 @@ const P = TurnEngine.prototype;
 
 /** What a standing answer covers, in the words its king reads. */
 export function answerText(x: StandingAnswer): string {
-  const who = x.from === null ? "any court's envoy" : `an envoy of ${x.from}`;
+  const who = x.from === null ? "any court's envoy" : `an envoy of ${powerName(x.from)}`;
   const what =
     x.brings === "Words"
       ? " who brings only words"
@@ -73,7 +74,7 @@ P.keepAnswers = function (p, requests, cancel) {
       (r.brings === "Gold" && r.minGold <= 0 ? "it names no amount of gold" : null) ??
       (book.answers.length >= MaxAnswers ? `you may keep at most ${MaxAnswers} standing answers` : null);
     if (why !== null) {
-      refused.push(`${r.from ?? "any court"}: ${why}`);
+      refused.push(`${r.from !== null ? upper(powerName(r.from)) : "Any court"}: ${why}`);
       continue;
     }
     const say = trim(r.say);
@@ -150,7 +151,7 @@ P.answerReply = function (a, goldWeighed) {
 P.answerClauses = function (a, goldWeighed) {
   const x = this.s.answers.get(a.host).answers.find((y) => y.id === a.answer)!;
   const r = this.answerReply(a, goldWeighed);
-  const out = [`the king receives the envoy of ${a.from}`];
+  const out = [`the king receives the envoy of ${powerName(a.from)}`];
   if (goldWeighed > 0) out.push("he accepts the gift with thanks");
   if (a.dispatch.proposalTabletId !== null) out.push(r.sealProposal ? "he sets his seal on the tablet" : "he does not seal the tablet now");
   if (r.goldBack > 0) out.push(`he sends ${formatMoney(r.goldBack)} back with the envoy for his lord`);

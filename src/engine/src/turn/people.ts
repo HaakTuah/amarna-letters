@@ -19,6 +19,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import { alive, isAlive, logEvent, newId, notify, siegeOf, type ClimateEvent, type Unit } from "../model/state.ts";
 import { fastestPoints, PointsPerDay } from "../model/travel.ts";
 import { Views } from "../rules/views.ts";
+import { listed, upper } from "../rules/wording.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
@@ -393,12 +394,12 @@ P.climateSeason = function () {
       c.kind === "Drought"
         ? `The rains have failed over ${c.name}`
         : c.percent <= 30
-          ? `${c.name[0].toUpperCase()}${c.name.slice(1)} has risen in a ruinous flood, breaking dykes and drowning villages`
+          ? `${upper(c.name)} has risen in a ruinous flood, breaking dykes and drowning villages`
           : river(c.name);
     for (const p of AllPowers.filter((p) => isAlive(S, p))) {
       const mine = c.provinces.filter((x) => S.owner.getOrDefault(x, null) === p);
       if (mine.length > 0) {
-        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}: for three seasons ${mine.map((x) => Map.get(x).name).join(", ")} will reap only ${c.percent} in a hundred of a full harvest.`);
+        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}. For three seasons ${listed(mine.map((x) => Map.get(x).name))} will reap only ${c.percent} in a hundred of a full harvest.`);
         continue;
       }
       if (c.provinces.some((x) => sight.get(p).has(x))) notify(S, p, "Notice", "News from nearby", `Travellers say ${c.kind === "Drought" ? `the rains have failed over ${c.name}` : `${c.name} has flooded badly`}.`);
@@ -409,5 +410,5 @@ P.climateSeason = function () {
 };
 
 function river(name: string): string {
-  return name === "the Nile" ? "The Nile has failed to rise in full: a low flood" : `${name[0].toUpperCase()}${name.slice(1)} has flooded at the harvest, breaking the levees`;
+  return name === "the Nile" ? "The Nile has failed to rise in full" : `${upper(name)} has flooded at the harvest, breaking the levees`;
 }

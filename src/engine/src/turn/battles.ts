@@ -5,39 +5,22 @@
  * beaten from where it stood falls back to a neighbouring province its side holds, or that no one holds, rather than being
  * destroyed, unless it has nowhere to go or was beaten by far. Until item 13 every unit dislodged was destroyed.
  */
+import { upper } from "../rules/wording.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BattleData, battleLosses } from "../model/command.ts";
 import { UnrestData } from "../model/unrest.ts";
 import type { Power } from "../model/power.ts";
-import { AllPowers, ownLand } from "../model/power.ts";
+import { AllPowers, ownLand, powerName, whose } from "../model/power.ts";
 import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
 import { remember } from "../model/people.ts";
 import type { AdjudicationResult, Fight } from "../rules/adjudicator.ts";
 import { TurnEngine } from "./core.ts";
 
-/**
- * A power as a notice names it: by the power, as every other notice does ("Babylonia", not its land's "Karduniash"), a
- * people with its article ("the Suteans").
- */
-export function named(p: Power): string {
-  return p.endsWith("s") ? `the ${p}` : p;
-}
-
-/** A power's name with its possessive: "Hatti's", "the Suteans'". */
-export function whose(p: Power): string {
-  return p.endsWith("s") ? `${named(p)}'` : `${p}'s`;
-}
-
 /** Where a power's unit came from, unless that is the power's own name or land ("Kaska's army", not "Kaska's army from Kaska"). */
 export function cameFrom(p: Power, place: string): string {
   return place === p || place === ownLand(p) ? "" : ` from ${place}`;
-}
-
-/** A line's first letter capitalised, for a sentence that opens with a land's name ("The Suteans' army ..."). */
-export function upper(s: string): string {
-  return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
 }
 
 declare module "./core.ts" {
@@ -187,14 +170,16 @@ function battleNews(engine: TurnEngine, f: Fight, a: Unit, d: Unit, margin: numb
   const at = engine.map.get(f.at).name;
   const kind = (u: Unit): string => (u.kind === "Army" ? "army" : "fleet");
   const [aLost, dLost] = f.won ? [winnerLost, loserLost] : [loserLost, winnerLost];
-  const by = (margin >= BattleData.rout ? "by far" : margin >= 33 ? "clearly" : "narrowly") + (heldOut ? `, though the land itself held it out of ${engine.map.get(f.at).name}` : "");
+  // The margin in words: a rout, a clear win, a narrow one.
+  const degree = margin >= BattleData.rout ? 2 : margin >= 33 ? 1 : 0;
+  const won = ["won narrowly", "won clearly", "won overwhelmingly"][degree] + (heldOut ? `, though the land itself held it out of ${at}` : "");
   logEvent(
     S,
     "battle",
-    `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} fought ${whose(d.power)} ${kind(d)} at ${at}: ${upper(named(f.won ? a.power : d.power))} won ${by}.`,
+    `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} fought ${whose(d.power)} ${kind(d)} at ${at}: ${upper(powerName(f.won ? a.power : d.power))} ${won}.`,
     seeing,
     "battle",
   );
-  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${whose(d.power)} ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten"} ${by}; your ${kind(a)} lost ${aLost} men.`);
-  engine.tell(d.power, f.at, "Battle", "Battle", `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} attacked your ${kind(d)} at ${at} and ${f.won ? "won" : "was beaten back"} ${by}; your ${kind(d)} lost ${dLost} men.`);
+  engine.tell(a.power, f.at, "Battle", "Battle", `Your ${unitLabel(a)} attacked ${whose(d.power)} ${kind(d)} at ${at} and ${f.won ? won : ["was narrowly beaten", "was beaten", "was badly beaten"][degree]}; your ${kind(a)} lost ${aLost > 0 ? `${aLost} men` : "no men"}.`);
+  engine.tell(d.power, f.at, "Battle", "Battle", `${upper(whose(a.power))} ${kind(a)}${cameFrom(a.power, engine.map.get(f.from).name)} attacked your ${kind(d)} at ${at} and ${f.won ? won : ["was narrowly thrown back", "was thrown back", "was thrown back with heavy loss"][degree]}; your ${kind(d)} lost ${dLost > 0 ? `${dLost} men` : "no men"}.`);
 }

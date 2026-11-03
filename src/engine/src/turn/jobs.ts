@@ -6,13 +6,14 @@
  * Whether a party keeps its promises to pay is news: each promise kept or broken is a fact that reaches each court by the
  * roads, and people hear it where they stand and from those they meet; every person bargains from what it has heard.
  */
+import { pick } from "../rules/wording.ts";
 import { clamp, idiv, toInt } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { Dict } from "../core/collections.ts";
 import { isPowerParty, MoneyData, newPayFact, newPayOld, newPayRecord } from "../model/money.ts";
 import type { PayFeeOrder } from "../model/orders.ts";
 import { gain, newContract, newJobErrand, remember, type Character, type Contract } from "../model/people.ts";
-import { AllPowers, land, type Power } from "../model/power.ts";
+import { AllPowers, land, type Power, powerName } from "../model/power.ts";
 import { isAlive, logEvent, newId, notify, char, type GameState } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
@@ -170,7 +171,7 @@ function keepAsOld(s: GameState, c: Character, ids: string[]): void {
   if (told.size > 0 && c.status !== "Dead") {
     const head = "Old talk I keep, of promises to pay I heard of long ago:";
     const lines = c.payOld.map((o) => {
-      const who = isPowerParty(o.party) ? `the king of ${land(o.party as Power)}` : (s.characters.find((x) => x.id === o.party)?.name ?? o.party);
+      const who = isPowerParty(o.party) ? `the king of ${powerName(o.party as Power)}` : (s.characters.find((x) => x.id === o.party)?.name ?? o.party);
       return `${who} ${[o.kept > 0 ? `kept ${o.kept}` : "", o.broken > 0 ? `broke ${o.broken}` : ""].filter((x) => x !== "").join(" and ")}`;
     });
     // Old talk is long ago: it goes with the summary of older memories, which a model person rewrites in its own words.
@@ -219,7 +220,17 @@ P.fallsDue = function (c, p, amount, what) {
   c.owedDue.set(p, S.turn);
   remember(c, S.turn, `${what} The king of ${land(p)} owes me ${formatMoney(amount)}.`);
   if (isAlive(S, p))
-    notify(S, p, "Notice", FeeDueTitle, `You owe ${c.name} ${formatMoney(c.owed.get(p))}, to be paid while they are at your court (order pay_fee). Unpaid by the end of next season, it is a broken promise others will hear of.`, c.id);
+    notify(
+      S,
+      p,
+      "Notice",
+      FeeDueTitle,
+      `You owe ${c.name} ${formatMoney(c.owed.get(p))}, payable while they are at your court (order pay_fee). ${pick(
+        ["Unpaid by the end of next season, it is a broken promise, and others will hear of it.", "If it is not paid by the end of next season, word of a broken promise will spread.", "Leave it unpaid past next season and others will hear that you broke your word."],
+        `${S.turn}|${c.id}|fee`,
+      )}`,
+      c.id,
+    );
 };
 
 /**
@@ -397,7 +408,7 @@ P.jobsDone = function (stood) {
       emp,
       "Notice",
       NoticeTitle,
-      `${done("job")} They are free to take another job (order hire).${k.offerAgain && !paid ? " Unpaid, they would not take the same job again." : ""}`,
+      `${done("job")} ${pick(["They are free for another job (order hire).", "They may be hired again (order hire).", "Another job is theirs to take (order hire)."], `${S.turn}|${c.id}|free`)}${k.offerAgain && !paid ? " Unpaid, they would not take the same job again." : ""}`,
       c.id,
     );
     logEvent(S, "job-done", `${c.name}'s job for ${emp} is done.`, [emp], "job-done");

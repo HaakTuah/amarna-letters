@@ -13,7 +13,7 @@ import type { UnitKind } from "../model/map.ts";
 import { characterOf, placesNamed, told } from "../model/order-reading.ts";
 import { type Order } from "../model/orders.ts";
 import type { MoveFailure } from "../model/outcomes.ts";
-import { cmpPower, type Power } from "../model/power.ts";
+import { cmpPower, whose, type Power, powerName } from "../model/power.ts";
 import type { InboxItem } from "../model/records.ts";
 import { newCourtHeld, type PlannedOrder, type SleepState, type StandingOrder } from "../model/sleep.ts";
 import { alive, findCharacter, inboxOf, isAlive, notify } from "../model/state.ts";
@@ -21,7 +21,7 @@ import { ArchiveTakenTitle } from "./archives.ts";
 import { FeeDueTitle } from "./court.ts";
 import { removeAll } from "./resolve.ts";
 import { idNumber, TurnEngine } from "./core.ts";
-import { upper, whose } from "./battles.ts";
+import { upper } from "../rules/wording.ts";
 
 /** The most orders a seat may schedule for one season. */
 export const MaxScheduledPerSeason = 24;
@@ -65,7 +65,7 @@ export const WallsReason = "foreign troops came next to a walled city of yours";
 export const AttackedReason = "foreign troops attacked you, and failed";
 /** Why a sleeping seat holds court: an envoy of `from` waits at its door. */
 export function envoyWaits(from: Power): string {
-  return `an envoy of ${from} waits to be received`;
+  return `an envoy of ${powerName(from)} waits to be received`;
 }
 /** Whether a wake reason is an envoy waiting, the one reason that wakes a seat for its audiences only. */
 export function isEnvoyWaiting(reason: string): boolean {
@@ -306,10 +306,10 @@ P.wakeReasons = function (p, sl) {
     if (o.order !== "move" || o.target === null) continue;
     const t = o.target;
     if (!o.succeeded) {
-      if (o.targetOwner === p || stood.has(t)) add(`${AttackedReason}: ${o.power}'s ${kindName(o.unitKind)} tried to move ${o.province} -> ${t}`);
+      if (o.targetOwner === p || stood.has(t)) add(`${AttackedReason}: ${whose(o.power)} ${kindName(o.unitKind)} tried to move ${o.province} -> ${t}`);
       continue;
     }
-    const move = `${o.power}'s ${kindName(o.unitKind)} moved ${o.province} -> ${t}`;
+    const move = `${whose(o.power)} ${kindName(o.unitKind)} moved ${o.province} -> ${t}`;
     if (o.targetOwner === p) add(o.guest ? `guests entered your land by the passage or basing you granted: ${move}` : `foreign troops entered your land: ${move}`);
     else {
       const near = sortBy(
@@ -328,7 +328,7 @@ P.wakeReasons = function (p, sl) {
     const walls = S.walls.getOrDefault(x.province, 0);
     // Item 9+a: it falls by hunger (it could not feed its people as this season began) or once its walls are breached.
     const breach = walls * EconomyData.breachPerLevel;
-    const state = `${x.power}'s army besieges ${x.province} (walls ${walls}), worn down ${x.progress} of ${breach}`;
+    const state = `${whose(x.power)} army besieges ${x.province} (walls ${walls}), worn down ${x.progress} of ${breach}`;
     if (S.starving.includes(x.province)) add(`${SurrenderReason}: ${state}, and its food is gone`);
     else if (x.progress + 1 >= breach) add(`${SurrenderReason}: ${state}`);
     else if (x.since === S.turn - 1) add(`${SiegeBegunReason}: ${state}`);
@@ -378,7 +378,7 @@ P.collectDigest = function (p, sl) {
   if (added === undefined) digestAdded.set(this, (added = new Map()));
   for (const o of S.lastSeen.tryGet(p) ?? []) {
     if (o.power === p || o.order !== "move" || o.target === null) continue;
-    const who = `${o.power}'s ${kindName(o.unitKind)}`;
+    const who = `${whose(o.power)} ${kindName(o.unitKind)}`;
     sl.digest.push(o.succeeded ? `turn ${S.turn - 1}: ${who} moved ${o.province} -> ${o.target}` : `turn ${S.turn - 1}: ${who} tried to move ${o.province} -> ${o.target} and failed`);
   }
   // Each line is dated by the season its news came, except a standing order's firing, dated by the season it fired.
