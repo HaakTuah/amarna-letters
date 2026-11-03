@@ -5,7 +5,7 @@
 // needs no install (.github/workflows/copies.yml; scripts/test.sh runs it too).
 //
 //   node scripts/copies.mjs            the check
-//   node scripts/copies.mjs --write    rewrite the baseline from what stands (to drop removed copies)
+//   node scripts/copies.mjs --write    lower the baseline to what still stands (it never adds a copy)
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -42,7 +42,7 @@ function find(files, units, size, joiner, minChars) {
   const perFile = new Map(), seen = new Map();
   const at = (u, i) => u.slice(i, i + size).map(x => x.t).join(joiner);
   for (const f of files) {
-    const u = units(fs.readFileSync(f, 'utf8'));
+    const u = units(fs.readFileSync(f, "utf8"));
     perFile.set(f, u);
     for (let i = 0; i + size <= u.length; i++) {
       const s = at(u, i);
@@ -82,18 +82,26 @@ function find(files, units, size, joiner, minChars) {
   return copies;
 }
 
-const ls = globs => execFileSync('git', ['ls-files', ...globs], { encoding: 'utf8' }).split('\n').filter(Boolean);
+const ls = globs => execFileSync('git', ['ls-files', ...globs], { encoding: "utf8" }).split('\n').filter(Boolean);
 const found = [...find(CODE(), codeUnits, LINES, '\n', MIN_CHARS), ...find(PROSE.filter(f => fs.existsSync(f)), proseUnits, WORDS, ' ', 0)];
-const base = JSON.parse(fs.readFileSync(BASELINE, 'utf8'));
+const base = JSON.parse(fs.readFileSync(BASELINE, "utf8"));
+// The baseline holds each old copy's key and how many places it stands in. A copy not listed, or standing in more places
+// than listed, fails; one listed but gone, or in fewer places, fails too until --write lowers it. --write only ever
+// lowers: it keeps the listed copies that still stand, at the smaller count, and never lists a new one.
+const now = new Map(found.map(c => [c.key, c]));
+const fresh = found.filter(c => !(c.key in base.copies) || c.places.length > base.copies[c.key].count);
+const shrunk = Object.entries(base.copies).filter(([k, b]) => !now.has(k) || now.get(k).places.length < b.count);
+for (const c of fresh) console.error(`FAIL: a new copy: ${c.places.join(' and ')} (it starts "${c.starts}"); point to one place instead`);
 if (process.argv.includes('--write')) {
-  base.copies = Object.fromEntries(found.map(c => [c.key, c.places.join(' ')]));
+  base.copies = Object.fromEntries(Object.entries(base.copies).filter(([k]) => now.has(k)).map(([k, b]) => {
+    const c = now.get(k), count = Math.min(b.count, c.places.length);
+    return [k, { count, places: count === b.count ? b.places : c.places.slice(0, count).join(' ') }];
+  }));
   fs.writeFileSync(BASELINE, JSON.stringify(base, null, 2) + '\n');
-  console.log(`wrote ${found.length} copies to ${BASELINE}`);
+  console.log(`${BASELINE}: ${Object.keys(base.copies).length} old copies kept, ${shrunk.length} lowered or dropped`);
+  if (fresh.length) process.exit(1);
 } else {
-  const fresh = found.filter(c => !(c.key in base.copies));
-  const gone = Object.keys(base.copies).filter(k => !found.some(c => c.key === k));
-  for (const c of fresh) console.error(`FAIL: a new copy: ${c.places.join(' and ')} (it starts "${c.starts}"); point to one place instead`);
-  for (const k of gone) console.error(`FAIL: ${BASELINE} lists ${k} (${base.copies[k]}), which is no longer copied: remove the entry`);
-  if (fresh.length || gone.length) process.exit(1);
+  for (const [k, b] of shrunk) console.error(`FAIL: ${BASELINE} lists ${k} in ${b.count} places (${b.places}), now ${now.has(k) ? now.get(k).places.length : 0}: run --write to lower it`);
+  if (fresh.length || shrunk.length) process.exit(1);
   console.log(`ok   no new copies (${found.length} old ones in ${BASELINE}, to be removed)`);
 }
