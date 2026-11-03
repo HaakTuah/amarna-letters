@@ -367,8 +367,10 @@ export class SvgMapRenderer implements MapRenderer {
       this.closingLine(line);
       return;
     }
-    // The land's change moves over the season's first half, within bounds (part D, first guesses).
-    this.moveSeason(Math.min(SvgMapRenderer.MoveMs[1], Math.max(SvgMapRenderer.MoveMs[0], (t.total - gone) / 2)));
+    // The land's change moves over the season's first half, at most 5 s; at Fast, where that is under a second, the routine
+    // compresses and the land changes at once (part D, first guesses: moving there cost a slow phone more long frames).
+    const move = (t.total - gone) / 2;
+    this.moveSeason(move < SvgMapRenderer.MoveMs[0] ? 0 : Math.min(SvgMapRenderer.MoveMs[1], move));
     if (t.landAt - gone > 0) this.holdLand = { index: s.index, viewer: s.viewer, until: now + t.landAt - gone };
     if (t.marchMs > 0 || t.total === 0) {
       this.march({ at: t.marchAt - gone, ms: t.marchMs });
@@ -382,8 +384,8 @@ export class SvgMapRenderer implements MapRenderer {
     this.closeTimer = window.setTimeout(() => this.closingLine(line), Math.max(0, t.closeAt - gone));
   }
 
-  /** The shortest and the longest the land's change takes while a season plays (part D, first guesses). */
-  private static readonly MoveMs = [400, 5000] as const;
+  /** The shortest the land's change moves over (shorter: at once), and the longest (part D, first guesses). */
+  private static readonly MoveMs = [1000, 5000] as const;
 
   /** How long the season's change takes on the land (map-living.css: `--move`); 0 shows it at once. */
   private moveSeason(ms: number): void {
