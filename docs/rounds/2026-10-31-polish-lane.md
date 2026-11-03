@@ -89,6 +89,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The map kept a seal's fill clear of other markers but not its rim, so the thick dark rim of a crowded or besieged small seal could touch a neighbour (#562); the placement and the smoke test now measure each seal with its rim.
 - On a phone the courts along the map were chips 21 px tall, and the chosen one's ring was cut off at its top and bottom; with a finger each chip is a 44 px target, its pill drawn inside it at the height it had, and the ring whole.
 - A person whose name says their place was named with it twice ("Abdi-Ashtarti of Ta-Mehu of Ta-Mehu, chief of the loose men") on the People tab, person cards, the Follow tab, an audience and the wealth table; the place is said once, by the engine's own rule (`nameFrom`), and the People tab's emblem no longer touches the name.
+- A border glowed where two powers' armies faced each other (#583), but the numbers were only on the counters; a province's card now lists, for each glowing frontier, the armies the seat sees now on the other side (#586, queued by the owner): "In Suhu: an army, 2,877 men, of Babylonia."
 
 ## Finds not yet fixed
 

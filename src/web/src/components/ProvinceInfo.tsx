@@ -1,4 +1,5 @@
 import { governorLine } from "../map/holding.ts";
+import { facedAcross } from "../map/land-layers.ts";
 import {
   Crossings,
   WorldMap,
@@ -73,6 +74,8 @@ export function ProvinceInfo({
   const p = map.get(id);
   const owner = scene.owner.get(id) ?? null;
   const units = scene.units.filter((u) => u.province === id);
+  // Where its border glows: the armies the seat sees now on the other side of each such frontier (#586).
+  const faced = facedAcross(scene, id).map((q) => ({ q, armies: scene.units.filter((u) => u.province === q && u.kind === "Army" && !u.ghost) }));
   const people = scene.people.filter((x) => x.province === id);
   const age = scene.viewer === null ? 0 : (scene.fogAge.get(id) ?? -1);
   const terrain = terrainOf(id);
@@ -197,6 +200,20 @@ export function ProvinceInfo({
           <Emblem power={u.power} /> {u.count > 1 ? `${u.count} ${unitKindName(u.kind)}s` : u.kind === "Army" ? "An army" : "A fleet"}
           {u.men > 0 ? `, ${u.men.toLocaleString("en")} men,` : ""} of {powerName(u.power)}
           {u.ghost ? `: last seen here in ${when(u.seenAt + 1, scene.viewer)}; it may have gone` : " stands here"}.
+        </p>
+      ))}
+      {faced.length > 0 && <p className="small">Its border glows: armies face {p.name} across it, as you see them now.</p>}
+      {faced.map(({ q, armies }) => (
+        <p className="small" key={q}>
+          In {provinceName(q)}:{" "}
+          {armies.map((u, i) => (
+            <span key={u.key}>
+              {i > 0 ? "; " : ""}
+              <Emblem power={u.power} /> {u.count > 1 ? `${u.count} armies` : "an army"}
+              {u.men > 0 ? `, ${u.men.toLocaleString("en")} men,` : ""} of {powerName(u.power)}
+            </span>
+          ))}
+          .
         </p>
       ))}
       {scene.viewer !== null && age !== 0 && (

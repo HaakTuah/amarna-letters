@@ -91,8 +91,6 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   - **#601, a fast courier, hired:** a king may hire a carrier to bring one far province's report home this season.
     It is a job like any other ("Jobs, not wages"): the carrier asks his price by what he has heard such a job pays
     and by how badly he is wanted, and the king may haggle; no fixed price, no menu.
-  - **#586, the polish lane:** a province's card lists, for each glowing frontier, the armies the seat sees on the
-    other side.
   - **#618, after item 17++a:** word of a conquest, a fall or a revolt reaches courts beyond sight by the road: a
     vassal reports to his overlord what his court saw, an ally to the king he is bound to.
   - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the

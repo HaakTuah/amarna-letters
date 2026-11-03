@@ -344,6 +344,13 @@ function arcRun(refs: readonly number[], close: boolean): string {
  * travel lines and borders": strong between powers, quiet within one). Each ring's frontier arcs are joined into one
  * line, closed when the whole ring is frontier, so the band's dashes run on unbroken.
  */
+/** The provinces across a province's border arcs, each once (no one's land and the sea left out). */
+export function arcNeighbours(id: string): string[] {
+  const out = new Set<string>();
+  for (const ring of ProvinceRings[id] ?? []) for (const r of ring) for (const x of ArcSides[r >= 0 ? r : ~r]) if (x !== id && x !== "~") out.add(x);
+  return [...out];
+}
+
 export function frontierPath(id: string, meets: (across: readonly string[]) => boolean): string {
   let sb = "";
   for (const ring of ProvinceRings[id] ?? []) {
