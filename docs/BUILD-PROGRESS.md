@@ -99,6 +99,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
+- ~~**A repudiation by word (bug #609)**~~ (done, #619): the tablet's other king learns of a repudiation when word of
+  it comes, his tablet, grants, vassal bonds and cession keeping it till then; a third court never; a grantor revokes a
+  grant its grantee repudiated as he knows it. Save version 55. Report: `docs/rounds/2026-11-03-repudiation-heard.md`.
+
 - ~~**A far levy's dropped orders by word (bug #569)**~~ (done, #610): a levy that failed in its province drops the
   orders waiting on its army when word of it comes, in the season of its "Levy failed"; till then they stay listed,
   unable to run. Save version 53. Report: `docs/rounds/2026-11-03-levy-drop-heard.md`.
