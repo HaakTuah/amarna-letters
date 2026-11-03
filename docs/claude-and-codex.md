@@ -95,8 +95,7 @@ Codex reviews Claude's PRs that change the game, in OpenAI's cloud, on the owner
 goes to building. Its usage can run out like any other, and it may then not say so, so:
 
 1. **Ask:** a comment `@codex review` alone. Codex reads the PR's description, so the item's text and the design
-   sections it names go there, and it follows the "Review guidelines" in `AGENTS.md` and `SECURITY.md`. Its security
-   review runs with every code review (its setting), at the "high" threshold.
+   sections it names go there, and it follows the "Review guidelines" in `AGENTS.md` and `SECURITY.md`. Its security review is not part of this: it runs by itself once, when the PR is ready ("Security reviews" below).
 2. **It starts within seconds** (its 👀 reaction and a "Codex Review Summary" comment; seen in 20 seconds on
    1 November 2026) **and finishes within minutes** (seen in under two). No sign within about **5 minutes,** or an
    answer that is not a review (no usage left, an error): Claude's reviewer takes the PR at once.
@@ -117,7 +116,8 @@ goes to building. Its usage can run out like any other, and it may then not say 
    your assesment").
    **Both at once:** the design check starts in the same turn as the request to Codex, in the background, never after
    Codex's answer, so neither waits for the other, and the builder answers both lists in one round.
-6. **Docs-only PRs and the milestone PRs get no review,** as before. Codex's automatic review stays off in its settings
+6. **Docs-only PRs and the milestone PRs get no code review,** as before (the security review still runs by itself
+   once when one is opened ready). Codex's automatic review stays off in its settings
    for both repositories, so it reviews only when asked. The history dossiers count as docs: a PR that changes only `docs/history/` gets no Codex review (the anchor test and
    the monthly spot-check guard them); one that changes the game's data is code, and is reviewed.
    **Security reviews: one by itself when a PR is ready, one more only when asked** (the owner, 2 and 3 November
