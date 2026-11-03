@@ -1,7 +1,7 @@
 # Build progress
 
 One line per item: state, branch, report, and what was decided along the way ("Progress" in the builder rules,
-`.claude/rules/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
+`docs/builder-rules.md`, which also say how items are branched and merged, and when work slows for usage;
 how work flows and is reviewed: "How work flows" in `AGENTS.md` and "Reviews" in `docs/claude-and-codex.md`). The order is "Build order" in the design document (copy: `docs/intent/build-order/`). An entry of the design
 document keeps its title wherever it moved, so `grep -rn "Title" docs/intent` finds what an item names; a title it no
 longer finds was history and is in `docs/archive/design-history.md`.
