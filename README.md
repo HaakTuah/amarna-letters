@@ -413,7 +413,8 @@ province, the city of a court your envoy visited, a province your scribes counte
 land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow their life: their
 path, along the roads between the places you knew them at, their masters, their missions, what they said and reported;
 the camera keeps to them, where you last knew them, until you move it yourself ("Keep the camera on them" takes it
-back). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
+back). Zoomed out, the realms' colours are full; zoomed in, they thin to a wash and then almost to their borders and
+the emblems on their cities, so the ground and the figures show through (the mood view keeps its colours). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
 centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's

@@ -4,6 +4,7 @@
 
 import { BoardHeight, BoardWidth } from "./projection.ts";
 import { ReliefFrame } from "./relief-frame.ts";
+import { washAt } from "./wash.ts";
 
 const MAP_W = BoardWidth, MAP_H = BoardHeight, MAX_ZOOM = 24;
 const states = new WeakMap();
@@ -261,6 +262,9 @@ function settle(st, now) {
     v.setProperty("--cs", (clampTo(4 + 9 * s, 7, 22) / (15 * s)).toFixed(3));
     v.setProperty("--lab", (clampTo(7.5 + 6 * s, 10, 19) / (12.5 * s)).toFixed(3));
     v.setProperty("--k", (clampTo(1.6 + 1.6 * s, 2, 8) / (3 * s)).toFixed(3));
+    // Item 17+++: the realms' colours full when zoomed out, thinning to a wash and then to their borders when zoomed in.
+    const wash = washAt(s).toFixed(3);
+    if (v.getPropertyValue("--wash") !== wash) v.setProperty("--wash", wash);
     const lod = s < 0.55 ? 0 : s < 1.35 ? 1 : 2;
     st.view.classList.toggle("lod0", lod === 0);
     st.view.classList.toggle("lod1", lod === 1);
