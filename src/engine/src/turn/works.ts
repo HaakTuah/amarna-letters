@@ -262,7 +262,7 @@ P.worksSeason = function () {
         else if (plan !== null && !needed) S.works.splice(S.works.indexOf(plan), 1);
       }
       // Bug #540: what a far province's works cost comes home with its report, not in the season's total.
-      if (this.wordTo(p, id) > 0 && (gold > gold0 || men > men0)) {
+      if (this.wordFrom(p, id) > 0 && (gold > gold0 || men > men0)) {
         say(id, `what its works keep and build cost ${formatMoney(gold - gold0)}${men > men0 ? ` and the corvée of ${men - men0} men, away from the fields` : ""} this season`);
         [gold, men] = [gold0, men0];
       }
@@ -270,7 +270,7 @@ P.worksSeason = function () {
     // One notice for what the court's couriers bring this season; word of farther provinces comes when it arrives.
     const near: string[] = [];
     for (const [id, l] of said.entries()) {
-      if (this.wordTo(p, id) === 0) near.push(...l);
+      if (this.wordFrom(p, id) === 0) near.push(...l);
       else this.tell(p, id, "Resolution", "Works", `From ${Map.get(id).name}: ${l.join("; ")}.`);
     }
     const cost = gold > 0 || men > 0 ? `What you keep and build cost ${formatMoney(gold)}${men > 0 ? ` and the corvée of ${men} men, away from the fields` : ""} this season.` : "";

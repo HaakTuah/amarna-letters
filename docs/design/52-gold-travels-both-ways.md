@@ -4,7 +4,7 @@ From "One treasury, many stores" under Land, people and economy (revision 35; th
 with characters can stipulate one pay upfront and one after. Paying infrastructure work would presumably require pay or
 labour as tax upfront, no?", then "Yes, expertly"). What is done far off is paid only from gold that is there, never from
 the treasury at a distance, so the treasury never shows a far outcome before word of it could come. Code:
-`turn/coffers.ts`, `model/coffers.ts`; the script kings' part in `game/src/bots/coffers.ts`. Save version 56.
+`turn/coffers.ts`, `model/coffers.ts`; the script kings' part in `game/src/bots/coffers.ts`. Save version 58.
 
 ### Far and near
 

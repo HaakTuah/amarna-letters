@@ -504,7 +504,7 @@ P.settleMarkets = function (orders) {
   const lines = new Dict<Power, string[]>();
   // A court's lines of markets near it in one notice; of one farther off, by the road from there (bug #517).
   const tell = (p: Power, at: string, line: string): void => {
-    const d = this.wordTo(p, at);
+    const d = this.wordFrom(p, at);
     if (d > 0 && Number.isFinite(d)) {
       this.tell(p, at, "Resolution", MarketsTitle, line);
       return;
@@ -522,7 +522,7 @@ P.settleMarkets = function (orders) {
     }
     // A siege: near, told among the markets' lines as ever; one it may not have heard of, by the road (bug #517).
     const line = `${what} in ${Map.get(prov).name} did not happen: it is besieged.`;
-    const d = this.wordTo(p, prov);
+    const d = this.wordFrom(p, prov);
     if (d > 0 && Number.isFinite(d)) this.lostOrder(p, o, prov, "Order failed", line, "it is besieged");
     else {
       tell(p, prov, line);

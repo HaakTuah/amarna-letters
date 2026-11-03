@@ -93,10 +93,10 @@ function unitsSeen(s: GameState, engine: TurnEngine, p: Power, seen: { has(provi
   for (const pair of pairs) {
     const [u, x] = pair;
     if (x === null || x.reported === 0 || u.power !== p || !pairs.some((y) => y !== pair && y[1]?.province === x.province)) continue;
-    if (u.trail.length === 0 || engine.wordTo(p, u.province) <= 0) continue;
+    if (u.trail.length === 0 || engine.wordFrom(p, u.province) <= 0) continue;
     pair[1] = null;
     const taken = new HSet(pairs.filter((y) => y !== pair && y[1] !== null).map((y) => y[1]!.province));
-    const d = engine.wordTo(p, u.province);
+    const d = engine.wordFrom(p, u.province);
     for (let i = u.trail.length - 2 - d; i >= 0; i--) {
       const r = trailEntry(u.trail[i]);
       if (!taken.has(r.province)) {
@@ -181,17 +181,18 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     grants: s.grants
       // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
-      // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him. Its
-      // end reaches the grantee by word too (bug #565).
+      // A grant by order (item 11a+), or a passage narrowed by a revocation (bug #611): its grantor knows it from the
+      // order; its grantee once the news reaches him. Its end reaches the grantee by word too (bug #565).
       .filter(
         (g) =>
           (g.grantor === p || g.grantee === p) &&
           (grantStandsFor(g, p, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
-          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+          (g.grantor === p || g.heardTurn <= s.turn) &&
+          (g.tabletId === "" || s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
       )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
-        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
+        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, cut: [...g.cut], sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
       }),
     walls: wallsKnown(s, m, p, seen),
     worksSeen: [...seen]
@@ -853,7 +854,7 @@ function trailEntry(t: string): {
 }
 
 function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {
-  const d = engine.wordTo(u.power, u.province);
+  const d = engine.wordFrom(u.power, u.province);
   if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return {};
   const i = Math.max(0, u.trail.length - 1 - d);
   return { ...trailEntry(u.trail[i]), reported: engine.s.turn - (u.trail.length - 1 - i), march: null, marchDays: 0 };

@@ -406,9 +406,9 @@ promises and more. After the game, compare two nations' self-serving annals with
 
 The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
 each power in its colour with an emblem and a border line of its own along its frontiers (so it reads without
-colour), a border that glows faintly where you see two powers' armies face to face across it, armies as chariots and
-fleets as ships. On the whole map every city is a seal, and a tap on
-it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
+colour), a border that glows faintly where you see two powers' armies face to face across it (the province's card
+lists the armies on the other side), armies as chariots and fleets as ships. On the whole map every city is a seal,
+and a tap on it opens its province, the Levant's smallest included. Step the timeline and each season's moves,
 attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
 and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
 uncertain things (old sightings, rumours, spy reports) are drawn as such. Each realm shows in three steps of its colour:
@@ -419,7 +419,8 @@ province, the city of a court your envoy visited, a province your scribes counte
 land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow their life: their
 path, along the roads between the places you knew them at, their masters, their missions, what they said and reported;
 the camera keeps to them, where you last knew them, until you move it yourself ("Keep the camera on them" takes it
-back). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
+back). Zoomed out, the realms' colours are full; zoomed in, they thin to a wash and then almost to their borders and
+the emblems on their cities, so the ground and the figures show through (the mood view keeps its colours). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
 centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's

@@ -30,7 +30,7 @@ import {
   newTabletProposal,
   newUnit,
   serialize,
-  wordSeasons,
+  wordHomeAt,
 } from "@amarna/engine";
 import {
   BlankMark,
@@ -191,7 +191,7 @@ function planted(): {
         !seen.has(x) &&
         map.neighbors(x).every((n) => !seen.has(n)) &&
         ![null, "Assyria"].includes(state.owner.getOrDefault(x, null)) &&
-        [1, 2].every((t) => wordSeasons(state.config.travelDays, map, x, court, t) > 1),
+        [1, 2].every((t) => wordHomeAt(state, map, court, x, t) > t + 1),
     )!;
   const lostTo = state.owner.get(lost)!;
   state.ownerLog.push(newOwnerChange({ province: lost, turn: 0, owner: "Assyria" }), newOwnerChange({ province: lost, turn: 2, owner: lostTo }));
