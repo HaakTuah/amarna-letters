@@ -149,4 +149,4 @@ checked instead by 10 script games on the same seeds before and after: the summa
 - The escalation helper (Opus, high) found the cause above and built `WarPlay`; its first run was lost to a container
   restart and resumed from its probe data.
 
-Questions for the owner: none. New idea: #618.
+Questions for the owner: none. New ideas: #618 (wider news), #620 (a broken peace says why, from the design check).
