@@ -113,7 +113,9 @@ on sealed tablets comes with item 9.
   passed with a kingdom's fall (which travels as `KingdomFalls`), is reported by every court that sees it (`Views.sight`)
   to the kings it is bound to as it knows the bonds (`reportsTo`): its overlords by a vassal tablet (`vassalBonds`), its
   allies by a sealed tablet marked as an alliance or with the `alliance` clause, neither forged nor repudiated as it knows
-  (`repudiationKnown`). Not to a king who sees the land, held it or took it. The word arrives when word from the
+  (`repudiationKnown`), of which it holds a copy (`GameState.copies`: one its envoy sealed abroad, once his copy is home).
+  Not to a king who sees the land or took it, nor to the one who held it unless this word would come before his own from
+  there. The word arrives when word from the
   reporter's court could reach the receiving court (`TurnEngine.heardAt`, the road home by `wordHomeAt`, #616; none where no road leads),
   the earliest of several reporters kept; it names the old holder only if the reporter saw it last season or this. On
   arrival (news `Tidings`) it writes the holder as of the season it set out into the court's `known`, its source "your

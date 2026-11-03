@@ -8,7 +8,7 @@ his overlord what his court saw, an ally to the king he is bound to."
 
 - `turn/tidings.ts`: at the season's end each province that changed hands is reported by every court that sees it to the
   kings it is bound to as it knows the bonds (overlords by vassal tablet, allies by a sealed alliance), by the road from its
-  court (`TurnEngine.heardAt`). Not to a king who sees the land, held it or took it; a kingdom's fall goes as word of the
+  court (`TurnEngine.heardAt`). Not to a king who sees the land or took it, nor to the one who held it unless this word comes first; a kingdom's fall goes as word of the
   fall already does. On arrival: the court's record of the province (its map), a notice, and an event for it alone.
 - Script kings read it as any word of holders; `--no-tidings-play`, `--tidings-play-half` measure it.
 - Rulebook, design note 13 ("Word from vassals and allies"), README. Save version 58.
