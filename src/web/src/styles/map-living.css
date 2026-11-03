@@ -36,6 +36,7 @@
 .map .band-mark.pirate .band-bg { fill: #1e2a33; }
 .map .band-icon { fill: #f0b34a; }
 .map .band-mark.pirate .band-icon { fill: #e9e2d0; }
+.map .band-count { fill: #f0b34a; font-size: 8px; font-weight: 700; text-anchor: middle; font-family: var(--sans); }
 .map .clash-bg { stroke: var(--bitumen); stroke-width: 1.2; }
 .map .clash-icon { fill: var(--token-ink); }
 .map .tent { stroke: var(--bitumen); stroke-width: 1.4; paint-order: stroke; }

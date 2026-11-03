@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, TurnEngine, Views, caravanGone, newCaravan, newGame, newGameConfig, newMarketSeen, newOwnerChange, newWord, reportCaravan, setOut, type GameState } from "@amarna/engine";
+import { Dict, TurnEngine, Views, WorldMap, wordHomeAt, caravanGone, newCaravan, newGame, newGameConfig, newMarketSeen, newOwnerChange, newWord, reportCaravan, setOut, type GameState } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Bug #540 ("Distance inside your own realm"): a court knows its caravan far off only as word of it comes, never before
@@ -32,15 +32,14 @@ describe("CaravansKnownTests", () => {
   });
 
   test("Word of a caravan once come stays come, though the season's roads lengthen the couriers' ride", () => {
-    // Hattusa is within Pharaoh's couriers' season in the first season of the year and beyond it in the second.
+    // Word from Tuwanuwa comes home to Pharaoh's court within the first season of the year, and not within the second
+    // (the road home, bug #616).
     const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Egypt", "Hatti");
-    s.owner.set("hattusa", "Egypt");
+    s.owner.set("tuwanuwa", "Egypt");
+    Assert.equal(1, wordHomeAt(s, WorldMap.default, "akhetaten", "tuwanuwa", 1));
+    Assert.true(wordHomeAt(s, WorldMap.default, "akhetaten", "tuwanuwa", 2) > 2);
     s.turn = 1;
-    Assert.equal(0, new TurnEngine(s).wordTo("Egypt", "hattusa"));
-    s.turn = 2;
-    Assert.equal(1, new TurnEngine(s).wordTo("Egypt", "hattusa"));
-    s.turn = 1;
-    const c = newCaravan({ id: "v902", power: "Egypt", from: "hattusa", to: "nesa", grain: 30, route: ["hattusa", "nesa"], since: 1 });
+    const c = newCaravan({ id: "v902", power: "Egypt", from: "tuwanuwa", to: "nesa", grain: 30, route: ["tuwanuwa", "nesa"], since: 1 });
     setOut(s, c);
     Assert.equal(1, Views.caravansKnown(s, "Egypt").length);
     reportCaravan(c, 1);

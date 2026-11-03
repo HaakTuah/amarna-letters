@@ -10,7 +10,7 @@
  * for its town, in his own name where a governor stands (item 17++). And a cunning king sends the
  * spy he posts where his army stands in a foe's land with gold to stir its people ("outside help").
  */
-import { cmpStr, demand, EconomyData, feed, sortBy, sum, supply, unitFood, type Order, type UnitView } from "@amarna/engine";
+import { cmpStr, demand, grantOpens, EconomyData, feed, sortBy, sum, supply, unitFood, type Order, type UnitView } from "@amarna/engine";
 import { shareNow } from "./land.ts";
 import { talkedAway } from "./talk.ts";
 import { hidden } from "./spy-check.ts";
@@ -38,7 +38,7 @@ export function byLeave(b: Board, province: string): boolean {
   if (holder === null || Board.Map.get(province).isSea) return false;
   if (holder === b.me) return true;
   const turn = b.v.turn;
-  return b.v.grants.some((g) => g.grantee === b.me && g.grantor === holder && (g.province === null || g.province === province) && (g.untilTurn === null || g.untilTurn >= turn));
+  return b.v.grants.some((g) => g.grantee === b.me && g.grantor === holder && grantOpens(g, province) && (g.untilTurn === null || g.untilTurn >= turn));
 }
 
 /**

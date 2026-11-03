@@ -5,7 +5,7 @@
  * is known only once word of its setting out could have come, and one that ended stands until word of its end comes.
  */
 import type { Power } from "../model/power.ts";
-import { courierSeasons, courtOf } from "./court.ts";
+import { courtOf, wordHomeAt } from "./court.ts";
 import { caravanAt, type Caravan, readCaravanReport } from "../model/caravans.ts";
 import { newCaravanView, type CaravanView } from "../model/views.ts";
 import type { TurnEngine } from "../turn/turn-engine.ts";
@@ -17,8 +17,7 @@ import type { TurnEngine } from "../turn/turn-engine.ts";
  */
 export function wordCame(engine: TurnEngine, p: Power, turn: number, at: string): boolean {
   const s = engine.s;
-  const d = engine.map.exists(at) ? courierSeasons(s, engine.map, courtOf(s, engine.map, p), at, turn) : 0;
-  return d === 0 ? turn <= s.turn : Number.isFinite(d) && turn + d < s.turn;
+  return (engine.map.exists(at) ? wordHomeAt(s, engine.map, courtOf(s, engine.map, p), at, turn) : turn) <= s.turn;
 }
 
 const viewOf = (c: Caravan, at: string, grain: number, gold: number, returning: boolean, reported: number | null): CaravanView =>
@@ -38,7 +37,7 @@ export function caravansKnown(engine: TurnEngine, p: Power): CaravanView[] {
     const first = c.trail.length > 0 ? readCaravanReport(c.trail[0]) : null;
     if (c.power !== p || (first !== null && !came(first.turn, first.at))) continue;
     const live = s.caravans.includes(c);
-    if (live && engine.wordTo(p, caravanAt(c)) === 0) {
+    if (live && engine.wordFrom(p, caravanAt(c)) === 0) {
       out.push(viewOf(c, caravanAt(c), c.grain, c.gold, c.returning, null));
       continue;
     }

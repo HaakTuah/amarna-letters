@@ -84,7 +84,7 @@ P.sendTidings = function () {
       const { overlords, allies } = reportsTo(S, v);
       for (const [o, bond] of [...overlords.map((o) => [o, "vassal"] as const), ...allies.map((o) => [o, "ally"] as const)]) {
         if (!isAlive(S, o) || o === now || sights.get(o).has(x)) continue;
-        const d = this.wordTo(o, courtOf(S, map, v));
+        const d = this.wordFrom(o, courtOf(S, map, v));
         if (!Number.isFinite(d)) continue;
         const at = this.heardAt(o, courtOf(S, map, v));
         // The king who lost it hears of it from there by his own road; from his vassal or ally only if that is sooner.

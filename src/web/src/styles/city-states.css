@@ -1,6 +1,6 @@
 /*
  * The city-states' colours (item 11+): muted tones, one each, so the Great Kings' colours still stand out on the board.
- * Generated with the list of powers; the rules repeat app.css's per-power classes for each city-state.
+ * Generated with the list of powers; the rules repeat the per-power classes of app.css and map.css for each city-state.
  */
 :root {
     --kaska: #894d4d;

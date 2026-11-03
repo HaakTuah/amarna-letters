@@ -65,6 +65,14 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## Follow-ups
 
+- **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) #612 has had four Codex
+  rounds, past the three that "Codex reviews" holds: no fifth; take it to escalation as that section says. (2) The
+  code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`
+  rule 9 says: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
+  only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if
+  Codex's "🛡️ Codex Security Review" comment says so ("Codex reviews"); report any ask that came back as a code
+  review alone.
+
 - **The body and the road** (the owner, 3 November 2026; archive item 187; "The body: endurance and robustness" and
   "The road he takes follows his appetite for risk" under Characters, revision 31, and "What sets a company's pace",
   revision 112): two hidden, seeded traits, endurance (the pace of lone travellers and small parties) and robustness
@@ -86,13 +94,12 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
     borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
     kings' trust readings still behave well.
-  - **#616, one clock for one road:** a far province's report and its notices come by one function, the couriers'
-    seasons from the place to the court, with a test that the same season's both arrive together. A save version.
+  - ~~**#616, one clock for one road:**~~ (done, #639) a far province's report and its notices come by one function,
+    the couriers' seasons from the place to the court (`wordHomeAt`), with a test that the same season's both arrive
+    together. Save version 57. Report: `docs/rounds/2026-11-03-one-clock.md`.
   - **#601, a fast courier, hired:** a king may hire a carrier to bring one far province's report home this season.
     It is a job like any other ("Jobs, not wages"): the carrier asks his price by what he has heard such a job pays
     and by how badly he is wanted, and the king may haggle; no fixed price, no menu.
-  - **#586, the polish lane:** a province's card lists, for each glowing frontier, the armies the seat sees on the
-    other side.
   - **#618, after item 17++a:** word of a conquest, a fall or a revolt reaches courts beyond sight by the road: a
     vassal reports to his overlord what his court saw, an ally to the king he is bound to.
   - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
@@ -100,6 +107,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
+
+- ~~**A narrowed passage read by where it was revoked (bug #611)**~~ (done, #623): a passage through all the land,
+  revoked in one province, reads "all your land but Nesa" (`GrantView.cut`, never the land itself); the grantee reads
+  it when the word comes. Save version 56. Report: `docs/rounds/2026-11-03-narrowed-passage.md`.
 
 - ~~**A repudiation by word (bug #609)**~~ (done, #619): the tablet's other king learns of a repudiation when word of
   it comes, his tablet, grants, vassal bonds and cession keeping it till then; a third court never; a grantor revokes a
@@ -236,7 +247,7 @@ Each item's text is its brief (`docs/intent/build-order/`); the summaries these 
 |---|---|---|---|---|
 | 17++ | What a king can count | in progress: part A (whom a province obeys) merged, #375; part B (counts, census, demands) merged, #376; part C (governors over regions, grants, the map, the audit's script finds, "taken up, never thrust on anyone", the corvée as a share #411, and script kings checking a governor's word against their spy's #459) merged, #378; #480 (a governor's letter says where he sits) in #531; part D (#431's carriers) merged, #538; then 17++a | `item/whom-a-province-obeys`, `item/counts-and-demands`, `item/governors-grants-map` | `docs/rounds/2026-11-01-whom-a-province-obeys.md`, `docs/rounds/2026-11-02-what-a-king-can-count.md`, `docs/rounds/2026-11-02-governors-grants-map.md` |
 | 17++a | Something happens every season | done, #590: the pulse measure (`pulse.ts`, in every batch report); the four lands named and anchored (#403); script kings occupy land until it obeys and wage the war they choose (a map change every 5-7 seasons for the large kings, 5-15 without the war play; short of the target of 4, the limit now hearing: #618); crowns' ids registered; save version 54 | `item/every-season` | `docs/rounds/2026-11-02-every-season.md` |
-| 17+++ | The season plays out | in progress: part A (a mind's own words kept and shown) in review | `item/season-plays-out` | `docs/rounds/2026-11-03-season-plays-out.md` |
+| 17+++ | The season plays out | in progress: part A (a mind's own words kept and shown) merged, #627; part C (zoom shapes the realms' colours) in review; part B (the season in sequence) being built | `item/season-plays-out` | `docs/rounds/2026-11-03-season-plays-out.md` |
 | 17+++a | Keys for everything | not started | | |
 | 17+++b | History, search and names | not started | | |
 | 17++++ | A small state as a seat | not started | | |

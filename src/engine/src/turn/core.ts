@@ -280,7 +280,7 @@ export class TurnEngine {
     // The king who lost it knows at once, as his notice tells him, though it leaves his sight; since item 13 only where
     // his couriers bring word within the season (farther off, word of it comes as word does, and his officials' last
     // reports stand in his view until then: bug #540, GameState.reports).
-    if (old !== null && this.wordTo(old, province) === 0) {
+    if (old !== null && this.wordFrom(old, province) === 0) {
       let book = S.known.tryGet(old);
       if (book === undefined) S.known.set(old, (book = new Dict()));
       book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));

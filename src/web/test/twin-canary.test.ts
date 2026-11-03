@@ -346,8 +346,8 @@ const levyUnraised: Twin = {
   },
   orders: [],
   scheduled: [newScheduledOrders({ turn: 3, orders: [raise("nubia", "Army")] }), newScheduledOrders({ turn: 5, orders: [move("nubia", "thebes")] })],
-  // Once word of the levy's season in Nubia has come: its report (the land as last reported), or the levy's own notice.
-  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3 || (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Levy failed"),
+  // Once word of the levy's season in Nubia has come: its report and the levy's own notice, which come together (#616).
+  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3,
 };
 
 /** Egypt and Babylonia, Babylonia the seat; in the twin where the fact is true, Egypt grants it passage by order. */
@@ -452,7 +452,7 @@ const allyWord: Twin = {
   },
   orders: [],
   // Babylonia's word (`heardAt` from its court), or word from Ashur of the first season (`knownHolders`).
-  heard: (s) => s.turn >= 1 + 1 + new TurnEngine(s).wordTo("Egypt", "babylon") || 1 + wordSeasons(s.config.travelDays, map, "ashur", new TurnEngine(s).courtAt("Egypt"), 1) <= s.turn,
+  heard: (s) => s.turn >= 1 + 1 + new TurnEngine(s).wordFrom("Egypt", "babylon") || 1 + wordSeasons(s.config.travelDays, map, "ashur", new TurnEngine(s).courtAt("Egypt"), 1) <= s.turn,
 };
 
 const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord];
