@@ -72,7 +72,9 @@ const reach = (e: TurnEngine, p: Power, province: string): number | null => {
 };
 
 P.isFar = function (p, province) {
-  return this.wordTo(p, province) >= 1;
+  // By the court's one clock for its land (word home within the season, #616), the line its view and its order checks
+  // draw, so whether the treasury pays at once or a coffer and a bill pay never tells of roads unheard of (Codex, #635).
+  return this.wordFrom(p, province) >= 1;
 };
 
 P.cofferOf = function (p, province, make = false) {
@@ -196,7 +198,8 @@ P.goldArrives = function () {
     const short: string[] = [];
     let paid = 0;
     for (const { unit: id, gold, label, missed } of b.units) {
-      const u = S.units.find((x) => x.id === id && x.power === b.power) ?? null;
+      // A fleet in cargo service is with its ship, not among the units.
+      const u = S.units.find((x) => x.id === id && x.power === b.power) ?? S.caravans.find((v) => v.ship?.id === id && v.power === b.power)?.ship ?? null;
       if (t.gold >= gold) {
         t.gold -= gold;
         paid += gold;
@@ -275,7 +278,12 @@ P.coffersSettle = function () {
     if (!this.isFar(c.power, c.province)) {
       // Within the season's reach: nothing is paid from it any more, and what it holds goes home with a carrier, so the
       // treasury moves only when the gold arrives (Codex, #635); its debt waits for gold to reach it.
-      if (c.gold > 0 && homeRoad(this, c.power, c.province)) {
+      // At the court itself it is the treasury's at once; elsewhere a carrier brings it.
+      if (c.gold > 0 && c.province === this.courtAt(c.power)) {
+        const t = S.treasuries.get(c.power);
+        t.gold += c.gold;
+        c.gold = 0;
+      } else if (c.gold > 0 && homeRoad(this, c.power, c.province)) {
         this.lootHome(c.power, c.province, c.gold, [], "");
         c.gold = 0;
       }
