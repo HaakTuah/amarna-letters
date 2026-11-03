@@ -77,31 +77,34 @@ who pays (`keptBond`) are never the war. No number of the game's own is changed,
 exception is not needed: this is the script kings' play, which every item may improve. Design notes:
 `07-script-kings/02-terms-used-below.md` and `05-choosing-a-war.md`.
 
-## After (20 games, seed 1, 50 seasons; before = the same code with `--no-war-play`)
+## After (20 games, seed 1, 50 seasons, at ebe37dbe; before = the same code with `--no-war-play`)
+
+Seasons per map change are pooled over the games (all a king's seasons over all the changes he heard; "never" if none).
 
 | | Before | After |
 |---|---|---|
-| Letter seasons (%) | Egypt 60.7, Hatti 77.7, Babylonia 59.2, Mitanni 63.7, Assyria 58.3, Arzawa 29.6, Alashiya 21.9 | Egypt 76.5, Hatti 83.8, Babylonia 91.1, Mitanni 84.4, Assyria 92.5, Arzawa 53.1, Alashiya 23.3 |
-| Seasons per map change | Egypt 28.2, Hatti 14.8, Babylonia 19.7, Mitanni 20.1, Assyria 32.1, Arzawa 40.6, Alashiya 44.6 | Egypt 14.2, Hatti 7.2, Babylonia 5.7, Mitanni 8.5, Assyria 7.2, Arzawa 26.5, Alashiya 44.7 |
-| Map change anywhere | 41% of seasons | 57.3% |
-| Changes of hands a game (all / to a power) | 24.9 / 22.1 | 38.5 / 33.5 |
-| Conquest / obey / sieges begun / won / battles, a game | 12.6 / 8.1 / 19.0 / 12.7 / 54.5 | 18.7 / 12.3 / 33.1 / 19.1 / 97.8 |
-| A capital fallen in the first two seasons | none | none |
+| Letter seasons (%) | Egypt 66.8, Hatti 82.1, Babylonia 62.3, Mitanni 69.9, Assyria 62.6, Arzawa 27.4, Alashiya 24.3 | Egypt 72.9, Hatti 85.8, Babylonia 93.5, Mitanni 87.2, Assyria 95.1, Arzawa 47.6, Alashiya 25.5 |
+| Seasons per map change | Egypt 12.6, Hatti 5.2, Babylonia 12.4, Mitanni 9.3, Assyria 14.8, Arzawa 65.6, Alashiya 306 | Egypt 7.1, Hatti 5.3, Babylonia 5.1, Mitanni 6.4, Assyria 5.8, Arzawa 28.1, Alashiya 459 |
+| Map change anywhere | 43.8% of seasons | 55.8% |
+| Reaching the Great Kings, a game: battles / sieges / conquests / provinces obeying | 87.7 / 37.8 / 7.1 / 4.8 | 162.7 / 65.3 / 11.7 / 8.4 |
+| Kingdoms fallen in 20 games | 255 | 304 |
+| A capital fallen in the first two seasons | none (first fall: season 4) | none (first fall: season 4) |
 
-Six of seven Great Kings now reach the letter target; none reaches a map change every 4 seasons. **The pulse is still
-short of 4, and the limit is now hearing, not war**: a king hears only what he can see, so counting more kinds as map
+Six of seven Great Kings now reach the letter target, and the five large kings hear of a map change every 5 to 7
+seasons; none reaches every 4. **The pulse is still short of 4, and the limit is now hearing, not war**: a king hears only what he can see, so counting more kinds as map
 changes moved nothing, and only war near him moves his number. Arzawa (one army) and Alashiya (an island, aggression 0.1)
 hear least. Wider hearing (news of distant conquests reaching kings, such as vassals reporting to their overlord) is a
 rule, not this item's; filed as an idea (#618). A narrower rule (break a peace only with a weaker realm)
 was tried and dropped: Assyria survived 8 of 20, but the pulse was mostly worse (Arzawa 34.9) and wins fell to 11 of 20.
 
-**Use against ignore** (`--war-play-half`, 20 games): the kings who wage their war win 14 of 20; mean growth 0.76 against
-0.82. Egypt, Babylonia and the city-states gain; Assyria (0.33 against 1.04), Hatti (1.27 against 1.48) and Arzawa (0.71
-against 1.02) lose, their wars of choice costing them. So it pays in wins, not in mean growth.
+**Use against ignore** (`--war-play-half`, 20 games): the kings who wage their war win 13 of 20; mean growth 0.78 against
+0.87. Babylonia (1.29 against 1.00) and Mitanni (0.75 against 0.63) gain; Assyria (0.26 against 1.06) and Arzawa (0.60
+against 0.96) lose, their wars of choice costing them. So it pays in wins, not in mean growth.
 
-**For item 18 (balance):** Assyria falls in 16 of 20 games (15 of 20 standing before, 4 after), and Babylonia takes Ashur
-every time and wins 10 of 20; Mitanni stands at the end in 13 of 20 (20 before). The pulse targets (60%, 4 seasons) are
-first guesses.
+**For item 18 (balance):** Assyria falls in 9 of 20 games with war play (3 without); Babylonia wins 4 of 20, Hatti 3,
+and the Suteans 3. The pulse targets (60%, 4 seasons) are first guesses. (A first measure, before the review fixes, had
+Assyria falling in 16 of 20 and Babylonia winning 10: treating the war target as betrayed in everything, and the chosen
+war before a chance betrayal, calmed it.)
 
 ## Tests changed
 
