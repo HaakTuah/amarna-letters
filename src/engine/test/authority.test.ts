@@ -8,9 +8,11 @@ import {
   type Power,
   TurnEngine,
   type TurnSubmission,
+  Views,
   WorldMap,
   clause,
   dispatch,
+  grant,
   inboxOf,
   move,
   hold,
@@ -164,5 +166,33 @@ describe("AuthorityTests", () => {
     e.roads("Hatti", { type: "roads", court: "Egypt", close: true });
     Assert.notNull(single(s.grants).endedTurn);
     Assert.true(e.closedTo("Hatti", j, "nesa"));
+  });
+
+  test("A grant by order and its revocation reach the grantee's court by word, its notice and its view together (bug #565)", () => {
+    const s = smallWorld(newGame(9), "Egypt", "Hatti");
+    const grantee = () => Views.for(s, "Egypt");
+    const told = () => grantee().inbox.some((i) => i.title === "Passage and basing");
+    new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [grant("Egypt", "passage")] })]]));
+    const heard = single(s.grants).heardTurn;
+    Assert.true(heard > s.turn);
+    // Nothing of it at Egypt's court until the word comes: no notice, no grant, no event.
+    for (new TurnEngine(s).beginTurn(); s.turn < heard; new TurnEngine(s).beginTurn()) {
+      Assert.false(told());
+      Assert.empty(grantee().grants);
+      new TurnEngine(s).resolve(new Dict());
+    }
+    Assert.true(told());
+    Assert.equal(1, grantee().grants.length);
+    Assert.false(s.events.some((e) => e.kind === "passage" && e.visibleTo.includes("Egypt")));
+    // Revoked: the grant stands in Egypt's view until the word of its end comes, with its notice.
+    new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [revoke("Egypt")] })]]));
+    const ended = single(s.grants).endHeard;
+    Assert.true(ended > s.turn);
+    for (new TurnEngine(s).beginTurn(); s.turn < ended; new TurnEngine(s).beginTurn()) {
+      Assert.equal(1, grantee().grants.length);
+      new TurnEngine(s).resolve(new Dict());
+    }
+    Assert.empty(grantee().grants);
+    Assert.true(grantee().inbox.some((i) => i.title === "Passage and basing" && i.body.includes("revoked")));
   });
 });
