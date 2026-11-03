@@ -13,8 +13,9 @@ to tell it. The same wake reads `docs/BUILD-PROGRESS.md`'s diff since it last lo
 added or moved, an answer of the owner's, a lane opened or a bug put first), opening a lane where one is due, and skips
 the done-marks its own builders made (archive, 2 November 2026). **Its report on every wake counts the lanes:** the
 lanes open, and every independent entry it is not running, each with its reason ("waits on 2y's files" is one, none
-given is not), so a stall shows in one line, and the Codex security reviews asked since the last wake, each with its PR
-and why it qualified, so overuse shows the same night.
+given is not), so a stall shows in one line, the Codex security reviews asked since the last wake, each with its PR and why it qualified, so overuse shows the same
+night, and every PR merged since then whose review summary lacks its completed "🔒 Security Review" row ("Codex
+reviews"), so a gap shows too.
 
 The aim (the owner, 1 November 2026): "We should do whatever is most effective at acheivein the goal, which is
 accomplishing them most possible, with the least tokens, without sacrifacing quality."
@@ -29,7 +30,7 @@ accomplishing them most possible, with the least tokens, without sacrifacing qua
 - **Hand over at once.** A builder's last message says what merged and what is next. Start the next session as soon as
   an item merges, woken by the PR's merge rather than a clock, with an hourly check as the fallback.
 - **A lane for every independent entry you can see,** each a builder session with its own brief and check-in, by the
-  rules of "How work flows" in `AGENTS.md`; no new side lane from about 85% of the weekly usage.
+  rules of "How work flows" in `AGENTS.md`, its brake (point 4) included.
 - **Questions go on word for word.** Pass every lane's "Questions for the owner" to the owner exactly as written, never summed
   up.
 - **No turn sits idle.** Long runs and checks go in the background; nothing waits on a clock.
