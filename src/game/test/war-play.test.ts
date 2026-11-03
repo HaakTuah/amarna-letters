@@ -31,6 +31,22 @@ describe("WarPlayTests", () => {
     }
   });
 
+  test("A friend made the war target is the one betrayed, in everything, before any other", () => {
+    const [b, brain] = hattiAtPeaceWithKaska();
+    brain.warTarget = "Kaska";
+    brain.warSince = b.v.turn;
+    strategy(b, brain, brain.r(b.v.turn, "test"));
+    Assert.equal("Kaska", brain.warTarget);
+    Assert.equal("Kaska", brain.betraying);
+    WarPlay.off = true;
+    try {
+      strategy(b, brain, brain.r(b.v.turn, "test"));
+      Assert.notEqual("Kaska", brain.betraying);
+    } finally {
+      WarPlay.off = false;
+    }
+  });
+
   test("An ally is a bond kept: never the war, and a war on one ends", () => {
     const [b, brain] = hattiAtPeaceWithKaska();
     brain.rel.get("Kaska").allied = true;

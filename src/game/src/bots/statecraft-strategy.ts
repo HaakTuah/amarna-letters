@@ -153,8 +153,11 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
   }
 
   // Betrayal: only for the faithless, only when an ally's land lies open, never against a sworn partner near the end.
-  brain.betraying = null;
-  if (p.honesty < 0.55) {
+  // Item 17++a: a king who wages his war on a friend whose bond he does not keep is turning on him, in everything he does;
+  // the war he chose comes before turning on another friend by chance.
+  const target = brain.warTarget;
+  brain.betraying = target !== null && WarPlay.on(me) && brain.isFriend(target) && !keptBond(brain, target) ? target : null;
+  if (brain.betraying === null && p.honesty < 0.55) {
     for (const ally of sortBy(
       [...b.alive].filter((x) => x !== me && brain.isFriend(x)),
       [(x: Power) => x, cmpPower],
@@ -172,9 +175,6 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
       }
     }
   }
-  // Item 17++a: a king who wages his war on a friend whose bond he does not keep is turning on him, in everything he does.
-  const target = brain.warTarget;
-  if (brain.betraying === null && target !== null && WarPlay.on(me) && brain.isFriend(target) && !keptBond(brain, target)) brain.betraying = target;
 }
 
 /**
