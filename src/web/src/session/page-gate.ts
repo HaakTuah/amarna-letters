@@ -7,6 +7,8 @@ export class PageGate {
   /** The newest season the page has played out, by its frame's index (-1: none yet). */
   private played = -1;
   private waiting: (() => void) | null = null;
+  /** Simulate: the page draws nothing, so the worker plays on without waiting for it. */
+  free = false;
 
   /** A new or loaded game: the page has played nothing of it yet. */
   reset(): void {
@@ -22,10 +24,10 @@ export class PageGate {
   /**
    * Whether the season after the `taken` frames may be played: while the page plays the season before it, one ahead of what
    * it shows and no more. With a human seat awake (`ahead` false), not even that: he is asked for his orders once he has
-   * seen the season play out.
+   * seen the season play out. At Simulate (`free`) there is no limit but a human seat awake.
    */
   ready(taken: number, ahead: boolean): boolean {
-    return taken <= this.played + (ahead ? 2 : 1);
+    return (this.free && ahead) || taken <= this.played + (ahead ? 2 : 1);
   }
 
   /** Waits until `ready` holds, or `go` no longer does (auto-play stopped). */

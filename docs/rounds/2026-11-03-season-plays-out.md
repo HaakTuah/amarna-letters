@@ -70,7 +70,8 @@ What was there: the worker played a season, sent it, and slept the speed's pause
 all its moves at once, and played a few small scenes (gifts, sacks, ambushes) over it. Now the worker computes the next
 season while the page plays this one, one ahead and no more; the page holds that season until this one has played out;
 the season's moments play in the engine's order, paced by meaning and speed; a short line closes each season; and
-Simulate, the fourth speed (key 4), skips to the result. Design note: `docs/design/52-the-season-plays-out.md`.
+Simulate, the fourth speed (key 4), draws nothing: a progress bar and the count of seasons while the worker plays on
+ungated, then the game opens at its last season. Design note: `docs/design/52-the-season-plays-out.md`.
 
 - `src/web/src/session/pacing.ts`: the phases, the paces, `paceSeason` and `closingLine` (plain functions).
 - `src/web/src/map/moments.ts`: `momentsOf` (the season's moments from the viewer's scene), `seasonPlay`, `momentMarkup`;
@@ -78,14 +79,16 @@ Simulate, the fourth speed (key 4), skips to the result. Design note: `docs/desi
 - `src/web/src/session/page-gate.ts`: `PageGate`, how far the worker may run ahead; `core.ts` waits on it, and the
   `played` message replaces `delay`.
 - `src/web/src/styles/playback.css`: the pieces' slide in the marching, the disaster medallion, the closing line.
-- `src/web/src/session/client.ts`: `held`, `startPlayout`, `finishPlayout`, `playoutAt`; the replay plays each season out.
+- `src/web/src/session/client.ts`: `held`, `startPlayout`, `finishPlayout`, `playoutAt`, `simulating`; the replay plays
+  each season out.
+- `src/web/src/components/SimulateProgress.tsx`: Simulate's screen (`Play.tsx` shows it in place of the game).
 - `src/web/src/map/svg-renderer.ts`: `playSeason`, the land layers held to `landAt`, the closing line; `tokens.ts`:
   `reconcile`'s `leaveAfter`.
 - Tests: `src/web/test/pacing.test.ts` (the order, the paces, a crowded season, Simulate, the line, only what the seat
-  knows plays, and the worker one season ahead); the living map's draw test now draws the moments and the line for every season and view. The smoke test
+  knows plays, the worker one season ahead, and an envoy caught on his last season never arriving); the living map's draw test now draws the moments and the line for every season and view. The smoke test
   checks that a season played closes with its line.
 
-### Frame times (soak tool, seed 1, three minutes a speed; the whole game at Simulate)
+### Frame times (soak tool, seed 1, three minutes a speed; the whole game at Simulate), before the design check's retune
 
 | Run | Seasons | Seconds a season | Frames over 50 ms | Worst after the opening |
 |---|---|---|---|---|
@@ -103,10 +106,9 @@ seat, with the closing line checked.
 
 ### First guesses (presentation only)
 
-The paces in `Paces` (the table in the design note): a great moment 2.6, 1.8 and 1.2 s at Slow, Normal and Fast, two
-side by side at Fast, at most 6, 5 and 4 a season; the marching 1.6, 0.9 and 0.35 s; the closing line 2.4, 1.6 and 0.9 s.
-A busy season so lasts about 20 s at Slow, 12 s at Normal and 5 s at Fast; an age of 100 seasons about 8 minutes at
-Fast and under 3 at Simulate.
+The paces in `Paces` (the table in the design note), set to "Pace of play" after the design check: a season's playout
+about 15 s at Slow with 4 s on the result, about 6 s at Normal with 2 s on the result, and about 1 s of highlights at
+Fast, a capital falling taking a second more; Simulate draws nothing.
 
 ### Readings taken
 
@@ -126,4 +128,13 @@ Fast and under 3 at Simulate.
 - **`ms` stays each speed's key** (1500, 400, 50, and 0 for Simulate), as the reload into an update and the soak tool keep
   it; the pace itself is `Paces`, by the speed's place.
 - **The 4 key for Simulate comes with Simulate** here, rather than with 17+++a, since the speed it picks arrives now.
+- **An arrival is what the seat knows to stand at a court**, never a journey's end (an envoy caught on his last road
+  leaves his journey too): a foreign envoy received at one's court, one's own envoy known there, not believed under a
+  cover (hidden information; Codex's P1).
+- **Simulate's bar has no end**: when the age ends is hidden from every seat (the drawn last season), so the bar runs
+  without one beside the count of seasons and the date.
+- **"Opening in replay at the end"** is read as the game opening at its last season with the timeline and its replay
+  button, paused, so the player chooses where to watch from and at what pace.
+- **The biggest events at Fast are a capital falling**: the engine records no king's death as an event yet, so there is
+  none to give a beat.
 

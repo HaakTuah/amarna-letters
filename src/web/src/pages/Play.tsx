@@ -9,6 +9,7 @@ import { ExportLog } from "../components/ExportLog.tsx";
 import { FollowPanel } from "../components/FollowPanel.tsx";
 import { LegendsPanel } from "../components/LegendsPanel.tsx";
 import { GameMap, type MapHandle, type MapView } from "../components/GameMap.tsx";
+import { SimulateProgress } from "../components/SimulateProgress.tsx";
 import { AudioSwitches } from "../audio/AudioSwitches.tsx";
 import { player } from "../audio/player.ts";
 import { useGameAudio } from "../audio/use-game-audio.ts";
@@ -98,7 +99,10 @@ export function Play() {
     pace2: () => setSpeed(1),
     pace3: () => setSpeed(2),
     pace4: () => setSpeed(3),
-    faster: () => setSpeed(speedIndex(s.delayMs) + 1),
+    // + and − step between Slow, Normal and Fast; Simulate is chosen only by its own key ("Pace of play").
+    faster: () => {
+      if (speedIndex(s.delayMs) < 2) setSpeed(speedIndex(s.delayMs) + 1);
+    },
     slower: () => setSpeed(speedIndex(s.delayMs) - 1),
   });
   const [mark, setMark] = useState<string | null>(null);
@@ -139,6 +143,17 @@ export function Play() {
   useEffect(() => {
     if (followAt !== null) map.current?.focus(followAt, 1, true);
   }, [followAt?.x, followAt?.y]);
+
+  // Simulate draws nothing while it runs (item 17+++): a progress bar and the count of seasons, and the way back to watching.
+  if (live.hasRunner && s.simulating)
+    return (
+      <SimulateProgress
+        seasons={Math.max(0, s.frames.length - 1)}
+        when={whenCap(live.turn, viewerOf())}
+        onPause={() => s.setAuto(false)}
+        onWatch={() => s.setDelay(Speeds[2].ms)}
+      />
+    );
 
   if (!live.hasRunner || s.frames.length === 0 || s.state === null) {
     // No game on screen yet: the pages' own bar stays, so the other pages are a tap away.

@@ -249,7 +249,8 @@ await p.addInitScript((hitch) => {
     if (dt > hitch) {
       f.long++;
       // The longest frames of the whole game, with the season shown when each came.
-      const season = Number(document.querySelector(".slider")?.max ?? -1);
+      // At Simulate no map is drawn: the season is the progress view's count.
+      const season = Number(document.querySelector(".slider")?.max ?? document.querySelector("[data-season]")?.dataset.season ?? -1);
       f.longest.push({ ms: dt, season });
       if (f.longest.length > 400) {
         f.longest.sort((a, b) => b.ms - a.ms);
@@ -323,7 +324,7 @@ for (;;) {
       f.worst = 0;
       f.total = 0;
       return {
-        season: slider ? Number(slider.max) : -1,
+        season: slider ? Number(slider.max) : Number(document.querySelector("[data-season]")?.dataset.season ?? -1),
         heap: performance.memory?.usedJSHeapSize ?? 0,
         nodes: document.getElementsByTagName("*").length,
         blank: (document.getElementById("app")?.children.length ?? 0) === 0,

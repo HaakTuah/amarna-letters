@@ -139,6 +139,10 @@ export class Session {
 
   private notify(): void {
     this.version++;
+    // Simulate stopped (paused, the age ended, or another pace chosen): the last season is read, and the game opens there.
+    const sim = this.simulating;
+    if (this.wasSimulating && !sim) this.readSoon();
+    this.wasSimulating = sim;
     // React's render of the page follows in a task of its own: the time from here to the next frame drawn is the page's redraw.
     performance.mark("page:notify");
     for (const f of this.listeners) f();
@@ -219,8 +223,9 @@ export class Session {
       this.recent.clear();
       // The newest season is read in a task of its own, after the frames have shown (item 17a: one task under the 50 ms
       // bar holds the message and the map, the next the state); only what changed is read, and a season looked back at
-      // is read when looked at (displayed). Until then the panels show the season before.
-      this.readSoon();
+      // is read when looked at (displayed). Until then the panels show the season before. Simulate reads nothing until it
+      // stops (notify).
+      if (!(this.delayMs === 0 && m.live.auto)) this.readSoon();
     }
     if (!m.live.hasRunner) this.state = null;
     this.asks = m.live.pending.map((p) => ({
@@ -238,13 +243,22 @@ export class Session {
       this.viewAs = null;
     }
     this.live = { ...m.live, states: [] };
-    // One season on from the season shown plays out; anything else (a new or loaded game, a resume) shows at once.
-    if (m.frames.length === 1 && !m.reset && !newGame && this.frames.length > 1) this.startPlayout();
+    // One season on from the season shown plays out; anything else (a new or loaded game, a resume, Simulate) shows at once.
+    if (m.frames.length === 1 && !m.reset && !newGame && this.frames.length > 1 && !this.simulating) this.startPlayout();
     else if (m.frames.length > 0) this.tellPlayed(this.frames.length - 1);
     this.notify();
   }
 
   // ---------------------------------------------------------------- the season plays out (item 17+++)
+
+  /**
+   * Simulate ("Pace of play"): while auto-play runs at the fourth pace and no human seat is asked anything, nothing is
+   * drawn or read; the page shows a progress bar and the count of seasons, and the worker plays on as fast as it can.
+   */
+  get simulating(): boolean {
+    return this.delayMs === 0 && this.live.auto && this.asks.length === 0;
+  }
+  private wasSimulating = false;
 
   /** Whose eyes the map shows: god view, or the seat chosen (a human's own by default). */
   get viewer(): Power | null {
@@ -424,6 +438,7 @@ export class Session {
    */
   setDelay(ms: number): void {
     this.delayMs = ms;
+    this.send({ type: "simulate", on: ms === 0 });
     this.notify();
   }
   playOn(budgetUsd: number | null = null): void {

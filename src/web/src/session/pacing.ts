@@ -18,34 +18,45 @@ const Rank: Readonly<Record<Phase, number>> = { fall: 0, battle: 1, disaster: 2,
 /**
  * One thing that happened this season, as the seat knows it. A great moment plays alone, long enough to take in; a routine
  * one plays with the others of its phase; news (something the seat heard of but did not see) plays nowhere and is only told
- * in the closing line. `line` is its part of that line ("Sumur fell to Amurru", "a battle at Gubla").
+ * in the closing line. `line` is its part of that line ("Sumur fell to Amurru", "a battle at Gubla"). `big`: one of the
+ * biggest events, a capital falling, which takes a beat even at Fast.
  */
 export interface Moment {
   phase: Phase;
   kind: "great" | "routine" | "news";
   line: string;
-}
-
-/** How a speed paces a season, in milliseconds: a great moment, the marching, the sieges, the closing line. */
-export interface Pace {
-  great: number;
-  march: number;
-  siege: number;
-  close: number;
-  /** How many great moments play at once (at Fast, two side by side), and how many a season plays at most. */
-  together: number;
-  most: number;
+  big?: boolean;
 }
 
 /**
- * The paces, by the speed's place in `Speeds` (ui/keys.ts): Slow, Normal, Fast, Simulate. At Fast the routine compresses
- * while a great moment still lasts over a second; Simulate skips to the result.
+ * How a speed paces a season, in milliseconds ("Pace of play" under Interface): `season`, about how long its playout lasts
+ * (a quiet season at least `least`), shared among the marching, the sieges and its great moments, each of which lasts
+ * between `shortest` and `great`, `together` at once, at most `most` of them; then `close` on the result. With `flash`, the
+ * great moments but the biggest flash all at once for that long after the marching (Fast: a second of highlights).
+ */
+export interface Pace {
+  season: number;
+  least: number;
+  march: number;
+  siege: number;
+  great: number;
+  shortest: number;
+  together: number;
+  most: number;
+  flash: number;
+  close: number;
+}
+
+/**
+ * The paces, by the speed's place in `Speeds` (ui/keys.ts), first guesses tuned in item 18: Slow, about 15 s and a few
+ * on the result; Normal, about 6 s and a couple on the result; Fast, about a second of highlights, a capital falling still
+ * taking a beat. Simulate draws nothing (session/client.ts: `simulating`), so it has no pace; its row is never played.
  */
 export const Paces: readonly Pace[] = [
-  { great: 2600, march: 1600, siege: 900, close: 2400, together: 1, most: 6 },
-  { great: 1800, march: 900, siege: 500, close: 1600, together: 1, most: 5 },
-  { great: 1200, march: 350, siege: 200, close: 900, together: 2, most: 4 },
-  { great: 0, march: 0, siege: 0, close: 0, together: 1, most: 0 },
+  { season: 15000, least: 9000, march: 3000, siege: 1500, great: 3500, shortest: 2000, together: 1, most: 6, flash: 0, close: 4000 },
+  { season: 6000, least: 3500, march: 1200, siege: 500, great: 1800, shortest: 1000, together: 1, most: 4, flash: 0, close: 2000 },
+  { season: 1000, least: 0, march: 450, siege: 0, great: 1000, shortest: 1000, together: 1, most: 2, flash: 550, close: 0 },
+  { season: 0, least: 0, march: 0, siege: 0, great: 0, shortest: 0, together: 1, most: 0, flash: 0, close: 0 },
 ];
 
 /** A moment's place in the season's time: from `at`, for `ms`. */
@@ -72,31 +83,45 @@ export interface Timeline<M extends Moment> {
 
 /** Lays a season's moments out in time at a pace. */
 export function paceSeason<M extends Moment>(moments: readonly M[], pace: Pace): Timeline<M> {
-  // The great moments a season has time for, by rank; the rest land with the season's results, unplayed but told.
   const great = moments.filter((m) => m.kind === "great");
-  const chosen = new Set([...great].sort((a, b) => Rank[a.phase] - Rank[b.phase]).slice(0, pace.most));
+  // With a flash, the great moments but the biggest flash together; the rest play each in its turn, the biggest first, then
+  // by rank (a fall before a battle), as many as the speed has time for. The rest land with the results, unplayed but told.
+  const flashing = pace.flash > 0 ? great.filter((m) => m.big !== true) : [];
+  const own = great.filter((m) => !flashing.includes(m));
+  const order = (m: M): number => (m.big === true ? 0 : 1) * 10 + Rank[m.phase];
+  const chosen = new Set([...own].sort((a, b) => order(a) - order(b)).slice(0, pace.most));
+  const routine = (phase: Phase): M[] => moments.filter((m) => m.phase === phase && m.kind === "routine");
+  // Each great moment's share of the season left once the marching, the flash and the sieges have theirs.
+  const fixed = (routine("march").length > 0 ? pace.march : 0) + (flashing.length > 0 ? pace.flash : 0) + (routine("siege").length > 0 ? pace.siege : 0);
+  const slots = Math.ceil(chosen.size / pace.together);
+  const ms = slots === 0 ? 0 : Math.min(pace.great, Math.max(pace.shortest, (pace.season - fixed) / slots));
   const beats: Beat<M>[] = [];
   let t = 0;
   let marchAt = 0;
   let marchMs = 0;
-  let landAt = -1;
+  let landAt = 0;
   for (const phase of PhaseOrder) {
     if (phase === "fall") landAt = t;
-    const here = moments.filter((m) => m.phase === phase);
     if (phase === "march" || phase === "siege") {
-      const routine = here.filter((m) => m.kind !== "news");
-      if (routine.length === 0) continue;
-      const ms = phase === "march" ? pace.march : pace.siege;
-      if (phase === "march") [marchAt, marchMs] = [t, ms];
-      for (const m of routine) beats.push({ moment: m, at: t, ms });
-      t += ms;
+      const here = routine(phase);
+      const len = phase === "march" ? pace.march : pace.siege;
+      if (here.length > 0) {
+        if (phase === "march") [marchAt, marchMs] = [t, len];
+        for (const m of here) beats.push({ moment: m, at: t, ms: len });
+        t += len;
+      }
+      if (phase === "march" && flashing.length > 0) {
+        for (const m of flashing) beats.push({ moment: m, at: t, ms: pace.flash });
+        t += pace.flash;
+      }
       continue;
     }
-    const playing = here.filter((m) => chosen.has(m));
-    playing.forEach((m, i) => beats.push({ moment: m, at: t + Math.floor(i / pace.together) * pace.great, ms: pace.great }));
-    t += Math.ceil(playing.length / pace.together) * pace.great;
+    const playing = moments.filter((m) => m.phase === phase && chosen.has(m));
+    playing.forEach((m, i) => beats.push({ moment: m, at: t + Math.floor(i / pace.together) * ms, ms }));
+    t += Math.ceil(playing.length / pace.together) * ms;
   }
-  return { beats, marchAt, marchMs, landAt, closeAt: t, total: t + pace.close, moments: [...moments] };
+  const closeAt = Math.max(t, pace.least);
+  return { beats, marchAt, marchMs, landAt, closeAt, total: closeAt + pace.close, moments: [...moments] };
 }
 
 const Numbers = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];

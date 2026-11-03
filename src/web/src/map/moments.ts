@@ -6,7 +6,7 @@
  */
 import { WorldMap, parsePower, type GameEvent } from "@amarna/engine";
 import { F, city, type Pt } from "./art.ts";
-import type { MapScene } from "./scene.ts";
+import { peopleOf, type MapScene } from "./scene.ts";
 import { closingLine, Paces, paceSeason, type Moment, type Phase, type Timeline } from "../session/pacing.ts";
 import { powerName, provinceName } from "../ui/format.ts";
 
@@ -65,12 +65,15 @@ export function momentsOf(s: MapScene): MapMoment[] {
     out.push({ phase, kind, line, at, figure, title });
   };
   const viewer = s.viewer;
-  // Envoys who reached the court they were sent to: the viewer's own, or any in god view.
-  for (const j of prev.journeys) {
-    if (j.kind !== "EnvoyOutbound" || j.arrive > f.turn || f.journeys.some((x) => x.id === j.id)) continue;
-    if (viewer !== null && viewer !== j.from && viewer !== j.to) continue;
-    const court = Map_.capital(j.to).id;
-    add("arrival", "great", provinceName(court), city(court), j.gold > 0 ? "gift" : "envoy", `${powerName(j.from)}'s envoy arrived at the court of ${powerName(j.to)}${j.gold > 0 ? " with gifts" : ""}`);
+  // Envoys the viewer knows to stand at a court they did not stand at before: a foreign envoy received at its own court, or
+  // its own envoy known to be there (god view: every one). Never from a journey's end alone, since an envoy caught on his
+  // last road leaves it too; and never where the viewer only believes him there (a cover).
+  const stood = new Set(peopleOf(prev, viewer)[1].filter((p) => p.kind === "Envoy" && !p.believed).map((p) => `${p.id}@${p.province}`));
+  for (const p of s.people) {
+    if (p.kind !== "Envoy" || p.believed || stood.has(`${p.id}@${p.province}`)) continue;
+    const gold = prev.journeys.find((j) => j.kind === "EnvoyOutbound" && j.characterId === p.id)?.gold ?? 0;
+    const who = p.owner === null ? "An envoy" : `${powerName(p.owner)}'s envoy`;
+    add("arrival", "great", provinceName(p.province), city(p.province), gold > 0 ? "gift" : "envoy", `${who} arrived at ${provinceName(p.province)}${gold > 0 ? " with gifts" : ""}`);
   }
   // The marches the viewer saw, and the battles among them: a march that met troops, and a unit destroyed where it stood.
   const fought = new Set<string>();
@@ -119,6 +122,8 @@ export function momentsOf(s: MapScene): MapMoment[] {
     }
     const line = to === null ? `${place} fell away from ${c.from === null ? "its holder" : powerName(c.from)}` : c.how === "Taken" ? `${place} fell to ${to}` : `${place} passed to ${to}`;
     add("fall", "great", sack !== undefined ? `${line}, sacked` : line, city(c.province), "sack", sack?.text ?? line);
+    // A capital falling is among the biggest events: it takes a beat even at Fast.
+    if (c.from !== null && Map_.capital(c.from).id === c.province) out[out.length - 1].big = true;
   }
   for (const [id, x] of sacked) add("fall", x.seen ? "great" : "news", x.seen ? `${provinceName(id)} was sacked` : `that ${provinceName(id)} was sacked`, x.seen ? city(id) : null, "sack", x.text);
   return out;

@@ -12,7 +12,15 @@ The page tells the worker when it has played a season out (`played`, with the fr
 the one before, and then waits: it plays season *n* + 1 only once the page has played season *n* − 1 out, so a slow page
 never piles up seasons and a fast one never waits. With a human seat awake it does not run ahead at all: he is asked for
 his orders once he has seen the season play out. The worker no longer sleeps between seasons; the page's pace is the pace
-(the `delay` message is gone).
+(the `delay` message is gone). At Simulate (the `simulate` message, `PageGate.free`) there is no gate at all, but a human
+seat awake still holds the game for his orders.
+
+**Simulate draws nothing** ("Pace of play": "no visuals at all, the game computed as fast as the machine allows with a
+progress bar and a count of seasons, opening in replay at the end"). While auto-play runs at Simulate and no human seat
+is asked anything (`client.ts`: `simulating`), the page keeps each season's frame and stream but builds no scene, reads no
+state and plays nothing; the game screen gives way to `SimulateProgress` (a bar without an end, since when the age ends
+is hidden from every seat, the count of seasons and the date). Pausing, another pace, or the age's end reads the last
+season and opens the game there, its timeline holding every season to watch at any pace.
 
 The page holds the season computed ahead (`client.ts`: `held`), with every update after it, and applies them in order
 when the season playing ends (`finishPlayout`): the frames, the state's stream and the panels all move on together, so
@@ -25,7 +33,7 @@ A season's **moments** are found in the scene the viewer is shown (`momentsOf`),
 
 | Phase, in order | What | Kind |
 |---|---|---|
-| arrival | an envoy reaching the court he was sent to (the seat's own, or any in god view) | great |
+| arrival | an envoy the seat knows to stand at a court he did not stand at before: a foreign envoy received at its own court, its own envoy known (not believed, under a cover) to be there; every one in god view | great |
 | march | every march the seat saw (moves, attacks, stand-offs) | routine, together |
 | disaster | a ship lost to a storm, men lost to winter, a caravan robbed, drought, flood, plague, earthquake | great where the seat saw it, else news |
 | battle | a march that met troops, a unit destroyed where it stood, one per province | great |
@@ -34,17 +42,22 @@ A season's **moments** are found in the scene the viewer is shown (`momentsOf`),
 
 `paceSeason` lays them out at the speed's **pace** (`Paces`, first guesses, presentation only):
 
-| Speed | Great moment | Together | At most | Marching | Sieges | Closing line |
+| Speed | Playout (a quiet season at least) | Marching | Sieges | Each great moment | At most | On the result |
 |---|---|---|---|---|---|---|
-| Slow | 2.6 s | 1 | 6 | 1.6 s | 0.9 s | 2.4 s |
-| Normal | 1.8 s | 1 | 5 | 0.9 s | 0.5 s | 1.6 s |
-| Fast | 1.2 s | 2 | 4 | 0.35 s | 0.2 s | 0.9 s |
-| Simulate | 0 | | 0 | 0 | 0 | 0 |
+| Slow | about 15 s (9 s) | 3 s | 1.5 s | 2 to 3.5 s | 6 | 4 s |
+| Normal | about 6 s (3.5 s) | 1.2 s | 0.5 s | 1 to 1.8 s | 4 | 2 s |
+| Fast | about 1 s | 0.45 s | none | the rest flash together for 0.55 s; a capital falling takes 1 s | 2 | none |
+| Simulate | nothing drawn | | | | | |
+
+A season's great moments share what its playout leaves after the marching and the sieges, each within its bounds, so a
+busy season lasts about its speed's length. At Fast, as "Pace of play" asks, a season is about a second of highlights:
+the units slide, the battles, arrivals and disasters flash where they happened, the borders change, and only the biggest
+events (`big`: a capital falling; the engine records no king's death yet) take a beat of their own.
 
 A speed chosen while a season plays paces the seasons from the next one on: the season playing ends at the pace it began
-at, so the map and the page's timer end it together. At Fast the routine compresses while a great moment still lasts over a second. A crowded season plays its greatest
-moments first, by rank (a fall, a battle, a disaster, an arrival); the rest land with the results, unplayed but told.
-News plays nowhere: "a disaster far away is news, not a scene". Simulate (the fourth speed, key 4) skips to the result.
+at, so the map and the page's timer end it together. A crowded season plays its greatest moments first, the biggest
+then by rank (a fall, a battle, a disaster, an arrival); the rest land with the results, unplayed but told. News plays
+nowhere: "a disaster far away is news, not a scene".
 
 On the map (`svg-renderer.ts`: `playSeason`): the pieces slide together in the marching (`--march-at`, `--march-ms` on the
 units' and the people's layers, read by `.unit` and `.traveller` in `playback.css`, which also holds the closing line's style); each great moment's medallion shows in its

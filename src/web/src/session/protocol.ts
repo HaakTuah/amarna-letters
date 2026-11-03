@@ -14,6 +14,8 @@ export type ToWorker =
   | { type: "auto"; on: boolean }
   /** Item 17+++: the page has played out the season of this frame index, of this game (Live.generation). */
   | { type: "played"; generation: number; index: number }
+  /** Item 17+++: Simulate, the worker playing on as fast as it can without waiting for the page. */
+  | { type: "simulate"; on: boolean }
   | { type: "budget"; by: number }
   /** With the spending limit the table set by hand for the open age, where one is needed (handLimitNeeded). */
   | { type: "playOn"; budgetUsd: number | null }

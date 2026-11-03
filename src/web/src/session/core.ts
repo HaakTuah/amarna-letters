@@ -562,6 +562,9 @@ export class SessionCore {
         return this.step();
       case "auto":
         return this.setAuto(m.on);
+      case "simulate":
+        this.page.free = m.on;
+        return this.page.wake();
       case "played":
         if (m.generation === this.generation) this.page.told(m.index);
         return;
