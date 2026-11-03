@@ -12,9 +12,8 @@ that close each way in are in `SECURITY.md`, whose rule numbers this file cites.
   link, publish a package or action this repository uses, or plant text on a page a builder or Codex reads; and a
   model's reply can carry what its inputs planted.
 - **What is protected, and what an attacker wants of it:**
-  - **The owner's accounts:** his GitHub account and its tokens, his ChatGPT and Claude logins, and his PC, where a
-    small poller outside every repository hands work to Codex (`docs/claude-and-codex.md`, "the owner's poller"):
-    reached through a workflow, a PR's checks or work handed to Codex (rules 1 to 4).
+  - **The owner's accounts:** his GitHub account and its tokens, and his ChatGPT and Claude logins: reached through a workflow, a PR's checks
+    or work handed to Codex (rules 1 to 4). His own machine runs nothing from this repository (rule 8).
   - **The branches and the site:** `main` (the live game), `develop`, the workflows that deploy, and GitHub Pages: a
     push to `main` or the site (rules 2 and 3).
   - **Players:** their browsers, their saves and their API keys: code run in a browser, or a key sent anywhere but
