@@ -18,35 +18,35 @@ svg.map-relief { mix-blend-mode: soft-light; }
 svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 
 .map .sea-bg { fill: var(--sea); }
-.map .sea-waves { opacity: .55; }
+.map .sea-waves { fill-opacity: .55; }
 .map .wave { fill: none; stroke: var(--wave); stroke-width: .9; }
 .map .shallows { fill: none; stroke: var(--sea-shallow); stroke-width: 11; stroke-linejoin: round; }
 .map .land { fill: var(--land); }
 .map .lake { fill: var(--sea); stroke: var(--coast); stroke-width: .8; }
-.map .fields { fill: var(--fields); opacity: .7; }
-.map .fert { opacity: .95; }
+.map .fields { fill: var(--fields); fill-opacity: .7; }
+.map .fert { fill-opacity: .95; }
 .map .furrow { stroke: var(--furrow); stroke-width: 1; }
-.map .desert { opacity: .9; }
+.map .desert { fill-opacity: .9; }
 .map .sand { fill: var(--sand); }
-.map .waste { fill: var(--sand); opacity: .07; }
-.map .river-casing { fill: none; stroke: var(--river-casing); stroke-linecap: round; stroke-linejoin: round; opacity: .9; }
+.map .waste { fill: var(--sand); fill-opacity: .07; }
+.map .river-casing { fill: none; stroke: var(--river-casing); stroke-linecap: round; stroke-linejoin: round; stroke-opacity: .9; }
 .map .river { fill: none; stroke: var(--river); stroke-linecap: round; stroke-linejoin: round; }
 .map .peaks { fill: none; stroke: var(--peak); stroke-width: 1.25; stroke-linejoin: round; stroke-linecap: round; }
-.map .peaks.rough { stroke-width: 1.1; opacity: .85; }
+.map .peaks.rough { stroke-width: 1.1; stroke-opacity: .85; }
 .map .coast { fill: none; stroke: var(--coast); stroke-width: 1.3; stroke-linejoin: round; }
 .map .cell-line { fill: none; stroke: var(--cell-line); stroke-width: .9; stroke-linejoin: round; }
-.map .sea-line { fill: none; stroke: var(--sea-ink); stroke-width: .8; stroke-dasharray: 2 5; opacity: .45; }
+.map .sea-line { fill: none; stroke: var(--sea-ink); stroke-width: .8; stroke-dasharray: 2 5; stroke-opacity: .45; }
 .map .crossing path { fill: none; stroke: var(--bitumen); stroke-width: 1.7; stroke-linecap: round; }
 .map .crossing.ford path { stroke: var(--river); stroke-width: 2.2; }
 .map .geo { font-size: 8.5px; font-style: italic; font-weight: 600; letter-spacing: .28em; fill: var(--geo-ink); text-anchor: middle; pointer-events: none; }
-.map .geo.faint { font-size: 7px; opacity: .8; }
+.map .geo.faint { font-size: 7px; fill-opacity: .8; }
 .map .sea-name { font-size: 12.5px; font-style: italic; letter-spacing: .14em; fill: var(--sea-ink); text-anchor: middle; pointer-events: none; }
-.map .sea-name.waters { font-size: 7px; letter-spacing: .08em; opacity: .75; }
-.map .cartouche path { fill: var(--paper); stroke: var(--peak); stroke-width: 1.2; opacity: .9; }
+.map .sea-name.waters { font-size: 7px; letter-spacing: .08em; fill-opacity: .75; }
+.map .cartouche path { fill: var(--paper); stroke: var(--peak); stroke-width: 1.2; fill-opacity: .9; stroke-opacity: .9; }
 .map .cartouche text { font-size: 8.6px; letter-spacing: .22em; fill: var(--peak); text-anchor: middle; font-weight: 600; }
-.map .compass circle { fill: none; stroke: var(--peak); stroke-width: 1; opacity: .7; }
-.map .compass path { fill: var(--peak); opacity: .75; }
-.map .compass path.cw { opacity: .4; }
+.map .compass circle { fill: none; stroke: var(--peak); stroke-width: 1; stroke-opacity: .7; }
+.map .compass path { fill: var(--peak); fill-opacity: .75; }
+.map .compass path.cw { fill-opacity: .4; }
 .map .compass text { font-size: 8px; fill: var(--peak); text-anchor: middle; font-weight: 700; }
 
 /* ownership */
@@ -71,9 +71,9 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .mood-legend .sw.restless { background: var(--mood-restless); } .mood-legend .sw.none { background: var(--mood-none); opacity: .5; }
 .zb.on { outline: 2px solid var(--peak); }
 .map .bands, .map .fog, .map .labels, .map .roads, .map .moves { pointer-events: none; }
-.map .band { fill: none; stroke-width: calc(7px * var(--k)); stroke-linejoin: round; opacity: .95; }
+.map .band { fill: none; stroke-width: calc(7px * var(--k)); stroke-linejoin: round; stroke-opacity: .95; }
 /* A frontier where the seat sees two powers' armies face to face: a wider, faint stroke of the realm's colour under its band. */
-.map .band.contested { stroke-width: calc(16px * var(--k)); stroke-linecap: round; opacity: .35; }
+.map .band.contested { stroke-width: calc(16px * var(--k)); stroke-linecap: round; stroke-opacity: .35; }
 .b-egypt { stroke: var(--egypt); } .b-hatti { stroke: var(--hatti); } .b-babylonia { stroke: var(--babylonia); }
 .b-mitanni { stroke: var(--mitanni); } .b-assyria { stroke: var(--assyria); } .b-arzawa { stroke: var(--arzawa); }
 .b-alashiya { stroke: var(--alashiya); }
@@ -123,7 +123,7 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .map .fog path.sea { fill: var(--sea-shallow); }
 .map .fog path.veil-4 { fill: url(#fog); }
 .map .fog path.veil-4.sea { fill: url(#fogsea); }
-.map .veil-1 { opacity: .22; } .map .veil-2 { opacity: .38; } .map .veil-3 { opacity: .52; } .map .veil-4 { opacity: .85; }
+.map .veil-1 { fill-opacity: .22; } .map .veil-2 { fill-opacity: .38; } .map .veil-3 { fill-opacity: .52; } .map .veil-4 { fill-opacity: .85; }
 
 /* units */
 .map .unit { cursor: pointer; transition: transform .6s cubic-bezier(.3, .7, .25, 1); }
@@ -143,10 +143,10 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .map .seen { font-size: 7.5px; font-style: italic; text-anchor: middle; fill: var(--ink); paint-order: stroke; stroke: var(--land-halo); stroke-width: 2.4px; font-family: var(--sans); }
 
 /* the season's moves */
-.map .mv .casing { fill: none; stroke: var(--land-halo); stroke-width: calc(6px * var(--k)); stroke-linecap: round; opacity: .85; }
-.map .mv .shaft { fill: none; stroke-width: calc(3px * var(--k)); stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: draw .7s ease-out both; }
+.map .mv .casing { fill: none; stroke: var(--land-halo); stroke-width: calc(6px * var(--k)); stroke-linecap: round; stroke-opacity: .85; }
+.map .mv .shaft { fill: none; stroke-width: calc(3px * var(--k)); stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: draw .7s ease-out backwards; }
 .map .mv.attack .shaft { stroke-width: calc(3.8px * var(--k)); }
-.map .mv.bounce .shaft { stroke-dasharray: none; animation: none; opacity: .9; }
+.map .mv.bounce .shaft { stroke-dasharray: none; animation: none; stroke-opacity: .9; }
 .map .mv .bar { stroke: var(--danger); stroke-width: calc(3.4px * var(--k)); stroke-linecap: round; }
 .map .m-egypt .shaft, .map .m-egypt .sup, .map .m-egypt .conv { stroke: var(--egypt); }
 .map .m-hatti .shaft, .map .m-hatti .sup, .map .m-hatti .conv { stroke: var(--hatti); }
@@ -158,26 +158,26 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .ah-egypt { fill: var(--egypt); } .ah-hatti { fill: var(--hatti); } .ah-babylonia { fill: var(--babylonia); } .ah-mitanni { fill: var(--mitanni); }
 .ah-assyria { fill: var(--assyria); } .ah-arzawa { fill: var(--arzawa); } .ah-alashiya { fill: var(--alashiya); } .ah-ink { fill: var(--ink); }
 .ah-sup { fill: var(--ink); }
-.map .sup { fill: none; stroke-width: calc(2px * var(--k)); stroke-dasharray: calc(5px * var(--k)) calc(3.5px * var(--k)); stroke-linecap: round; animation: fadein .6s ease-out both; }
+.map .sup { fill: none; stroke-width: calc(2px * var(--k)); stroke-dasharray: calc(5px * var(--k)) calc(3.5px * var(--k)); stroke-linecap: round; animation: fadein .6s ease-out backwards; }
 .map .support.cut .sup { opacity: .45; }
 .map .conv { fill: none; stroke-width: calc(2.2px * var(--k)); stroke-dasharray: .1 calc(5px * var(--k)); stroke-linecap: round; }
-.map .burst { fill: var(--danger); stroke: var(--paper); stroke-width: 1.2; animation: pop .5s ease-out both; }
+.map .burst { fill: var(--danger); stroke: var(--paper); stroke-width: 1.2; animation: pop .5s ease-out backwards; }
 .map .capture .cap-ring { fill: none; stroke-width: 3.2; }
 .map .capture .cap-ring2 { fill: none; stroke-width: 1.4; stroke-dasharray: 3 3; }
 .map .c-egypt circle { stroke: var(--egypt); } .map .c-hatti circle { stroke: var(--hatti); } .map .c-babylonia circle { stroke: var(--babylonia); }
 .map .c-mitanni circle { stroke: var(--mitanni); } .map .c-assyria circle { stroke: var(--assyria); } .map .c-arzawa circle { stroke: var(--arzawa); }
 .map .c-alashiya circle { stroke: var(--alashiya); } .map .c-free circle { stroke: var(--ink); }
-.map .capture .csym { animation: ring 1.1s ease-out both; }
+.map .capture .csym { opacity: .85; animation: ring 1.1s ease-out backwards; }
 .map .destroyed .ghosted { fill-opacity: .35; stroke-dasharray: 2 2; }
 .map .strike { stroke: var(--danger); stroke-width: 2.8; stroke-linecap: round; }
 
 /* the roads, travellers and people */
-.map .road { fill: none; stroke-width: calc(1.8px * var(--k)); stroke-dasharray: .1 calc(5.5px * var(--k)); stroke-linecap: round; stroke-linejoin: round; opacity: .7; }
-.map .road.believed { opacity: .45; }
-.map .road.followed { opacity: 1; stroke-width: calc(2.6px * var(--k)); }
+.map .road { fill: none; stroke-width: calc(1.8px * var(--k)); stroke-dasharray: .1 calc(5.5px * var(--k)); stroke-linecap: round; stroke-linejoin: round; stroke-opacity: .7; }
+.map .road.believed { stroke-opacity: .45; }
+.map .road.followed { stroke-opacity: 1; stroke-width: calc(2.6px * var(--k)); }
 .r-egypt { stroke: var(--egypt); } .r-hatti { stroke: var(--hatti); } .r-babylonia { stroke: var(--babylonia); } .r-mitanni { stroke: var(--mitanni); }
 .r-assyria { stroke: var(--assyria); } .r-arzawa { stroke: var(--arzawa); } .r-alashiya { stroke: var(--alashiya); }
-.map .trace-casing { fill: none; stroke: var(--land-halo); stroke-width: calc(6px * var(--k)); stroke-linejoin: round; stroke-linecap: round; opacity: .8; }
+.map .trace-casing { fill: none; stroke: var(--land-halo); stroke-width: calc(6px * var(--k)); stroke-linejoin: round; stroke-linecap: round; stroke-opacity: .8; }
 .map .trace { fill: none; stroke: var(--accent); stroke-width: calc(2.6px * var(--k)); stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: calc(7px * var(--k)) calc(4px * var(--k)); }
 .map .trace-dot { fill: var(--accent); }
 .map .trace-now { fill: var(--paper); stroke: var(--accent); stroke-width: 2.4; }
@@ -186,7 +186,7 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .map .cring { transform: translate(calc(-1px * (var(--ring) * var(--cs) + 3 * var(--sym))), 0); transform-box: view-box; transform-origin: 0 0; }
 .map .nring { transform: translate(calc(1px * (var(--ring) * var(--cs) + 3 * var(--sym))), 0); transform-box: view-box; transform-origin: 0 0; }
 .map .traveller { transition: transform .6s cubic-bezier(.3, .7, .25, 1); }
-.map .halo { fill: var(--halo); opacity: .55; }
+.map .halo { fill: var(--halo); fill-opacity: .55; }
 .map .chip-bg { stroke: var(--bitumen); stroke-width: 1.1; }
 .map .chip-icon { fill: var(--token-ink); pointer-events: none; }
 .tab-body { fill: var(--clay); stroke: var(--bitumen); stroke-width: .8; }
@@ -196,7 +196,7 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .map .chip-q, .map .news-q { font-size: 12px; font-weight: 700; text-anchor: middle; fill: var(--ink); font-family: var(--sans); }
 .map .person .chip-q { fill: var(--token-ink); }
 .map .believed .chip-bg, .map .k-missing .chip-bg { stroke-dasharray: 2 1.6; fill-opacity: .55; }
-.map .believed { opacity: .8; }
+.map :is(.person, .traveller).believed { opacity: .8; }
 .map .followed .chip-bg { stroke: var(--accent); stroke-width: 2.4; }
 .map .double { fill: var(--danger); stroke: var(--paper); stroke-width: 1; }
 .map .chip-more { font-size: 9px; fill: var(--ink); font-family: var(--sans); font-weight: 700; }
@@ -211,7 +211,7 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .map .selected { fill: var(--accent); fill-opacity: .1; stroke: var(--accent); stroke-width: calc(3px * var(--k)); stroke-linejoin: round; }
 .map .sel-ring { fill: none; stroke: var(--accent); stroke-width: 2.6; animation: pulse 1.8s ease-in-out infinite; }
 .map .target { fill: var(--accent); fill-opacity: .1; stroke: var(--accent); stroke-width: calc(1.8px * var(--k)); stroke-dasharray: 5 4; }
-.map .draft { fill: none; stroke: var(--ink); stroke-width: calc(2.6px * var(--k)); opacity: .85; stroke-linecap: round; }
+.map .draft { fill: none; stroke: var(--ink); stroke-width: calc(2.6px * var(--k)); stroke-opacity: .85; stroke-linecap: round; }
 .map .draft.support { stroke-dasharray: 6 4; }
 
 @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }

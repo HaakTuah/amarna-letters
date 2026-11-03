@@ -97,7 +97,15 @@ each was changed and measured (the numbers are in the item's report, "Part G"):
   instead of showing every marker and hiding them again; and while a season's results are held back, the names wait for
   them, so they are placed once a season. The layers' steps start at the next frame, never in the task of the worker's
   message or React's redraw.
+- **The browser layerized more than the map needs.** Every frame that changes the map's markup has the whole page's paint
+  chunks layerized again, and an element's own `opacity` makes its own chunk and effect. A single shape fades by
+  `fill-opacity` or `stroke-opacity` instead (the map's stylesheets), which looks the same; `opacity` stays only on groups
+  (a ghost unit, news, a person or traveller only believed to be where it is drawn) and on what animates. An animation
+  that ends at the element's own look (the arrows drawn, the support lines, the burst, the capture's ring) fills
+  `backwards`, not `both`: a finished animation that still holds its last frame keeps the element on a compositing layer
+  of its own, and every piece drawn over it on another (56 layers on the paused map, 25 now). The pieces' slide already
+  runs on the compositor (a CSS transition of `transform`).
 
 On the phone profile at Fast the frames over 50 ms fell from about a fifth to an eighth; the bar is met on desktop at Slow,
 Normal and Simulate, not at Fast (3.3% of frames) and not on the phone profile (#666), where the browser's own layerization and paint of a map of thousands
-of SVG elements is what remains (the report's "What is left").
+of SVG elements is what remains (the report's "What is left", with the measured way to the bar).
