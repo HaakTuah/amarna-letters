@@ -132,7 +132,7 @@ const Figures: Readonly<Record<Figure, string>> = {
   disaster: `<use href="#fig-fire" x="-7" y="-8" width="14" height="14"/>`,
 };
 
-/** A great moment's medallion, which the stylesheet plays once from `at` for `ms` (map-living.css) and the renderer then takes away. */
+/** A great moment's medallion, which the stylesheet plays once from `at` for `ms` (playback.css) and the renderer then takes away. */
 export function momentMarkup(m: MapMoment, at: number, ms: number): string {
   if (m.at === null) return "";
   return (

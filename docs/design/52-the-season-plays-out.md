@@ -41,7 +41,8 @@ A season's **moments** are found in the scene the viewer is shown (`momentsOf`),
 | Fast | 1.2 s | 2 | 4 | 0.35 s | 0.2 s | 0.9 s |
 | Simulate | 0 | | 0 | 0 | 0 | 0 |
 
-At Fast the routine compresses while a great moment still lasts over a second. A crowded season plays its greatest
+A speed chosen while a season plays paces the seasons from the next one on: the season playing ends at the pace it began
+at, so the map and the page's timer end it together. At Fast the routine compresses while a great moment still lasts over a second. A crowded season plays its greatest
 moments first, by rank (a fall, a battle, a disaster, an arrival); the rest land with the results, unplayed but told.
 News plays nowhere: "a disaster far away is news, not a scene". Simulate (the fourth speed, key 4) skips to the result.
 

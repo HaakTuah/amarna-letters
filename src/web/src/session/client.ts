@@ -261,7 +261,7 @@ export class Session {
     this.schedulePlayout();
   }
 
-  /** The newest season ends when its timeline does, at the speed now chosen. */
+  /** The newest season ends when its timeline does, at the speed it began playing at. */
   private schedulePlayout(): void {
     clearTimeout(this.playTimer);
     const p = this.playout;
@@ -418,14 +418,12 @@ export class Session {
   setAuto(on: boolean): void {
     this.send({ type: "auto", on });
   }
-  /** The speed, which paces the season playing out from now (item 17+++): the worker follows the page's pace. */
+  /**
+   * The speed (item 17+++): it paces the seasons from the next one on; the season playing keeps the pace the map lays it
+   * out at, so the page's timer and the map end it together. The worker follows the page's pace.
+   */
   setDelay(ms: number): void {
     this.delayMs = ms;
-    const p = this.playout;
-    if (p !== null && p.live) {
-      this.playout = { ...p, play: this.playOf(p.index) };
-      this.schedulePlayout();
-    }
     this.notify();
   }
   playOn(budgetUsd: number | null = null): void {
