@@ -167,7 +167,9 @@ export function outlaws(s: MapScene): string {
   let sb = "";
   const byProvince = new Map<string, SceneBand[]>();
   for (const b of s.bands) byProvince.set(b.province, [...(byProvince.get(b.province) ?? []), b]);
-  for (const [province, bands] of byProvince) {
+  for (const [province, found] of byProvince) {
+    // Fresh word first, so the marks drawn are the newest and old word goes into the count.
+    const bands = [...found].sort((a, b) => a.age - b.age);
     const at = city(province);
     const ring = ringOf(Map_.get(province).capital, s.walls.get(province) ?? 0);
     const ago = (age: number): string => `as your people last told of it, ${age} season${age === 1 ? "" : "s"} ago`;
@@ -193,9 +195,11 @@ export function outlaws(s: MapScene): string {
     if (rest.length > 0) {
       const ships = rest.filter((b) => b.ship).length;
       const what = ships === 0 ? "bands" : ships === rest.length ? "pirate crews" : "bands and pirate crews";
-      const age = Math.max(...rest.map((b) => b.age));
-      const lines = rest.map((b) => `${b.men} men${b.ship && ships < rest.length ? " with a ship" : ""}${led(b)}`);
-      mark(2, old(age), `${rest.length} more ${what} in ${provinceName(province)}${age > 0 ? `, ${ago(age)}` : ""}:\n${lines.join("\n")}`, `<text class="band-count" y="3.2">+${rest.length}</text>`);
+      // One age for them all is said once; mixed word gives each old line its own. The count fades by its newest word.
+      const ages = new Set(rest.map((b) => b.age));
+      const shared = ages.size === 1 ? rest[0].age : 0;
+      const lines = rest.map((b) => `${b.men} men${b.ship && ships < rest.length ? " with a ship" : ""}${led(b)}${b.age > 0 && shared === 0 ? `: ${ago(b.age)}` : ""}`);
+      mark(2, old(Math.min(...ages)), `${rest.length} more ${what} in ${provinceName(province)}${shared > 0 ? `, ${ago(shared)}` : ""}:\n${lines.join("\n")}`, `<text class="band-count" y="3.2">+${rest.length}</text>`);
     }
   }
   return sb;
