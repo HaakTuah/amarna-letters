@@ -33,7 +33,6 @@ import {
   type VassalTerms,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
-import { Names } from "./names.ts";
 import { personalityFor, type Personality } from "./personality.ts";
 import type { Landing } from "./seas.ts";
 import { againstIn, readReport, type SupportPromise } from "./statecraft-clauses.ts";

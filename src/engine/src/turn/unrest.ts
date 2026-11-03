@@ -266,12 +266,6 @@ function characterWeight(e: TurnEngine, province: string, c: Character): number 
   return standing(e, province, c.id) + forceOf(e, province, men, 0);
 }
 
-/** The weight a province's holder must keep: his own, or, held by nobody, the floor its people accept. */
-function holderWeight(e: TurnEngine, province: string, strength: Dict<Power, number>): number {
-  const holder = e.s.owner.getOrDefault(province, null);
-  return holder === null || !isAlive(e.s, holder) ? D.floor : e.weightIn(province, holder, strength);
-}
-
 /** Whether `w` clears `against` by the margin: exactly at it, the seeded dice decide. */
 function clears(e: TurnEngine, province: string, w: number, against: number): boolean {
   if (w !== against + D.margin) return w > against + D.margin;

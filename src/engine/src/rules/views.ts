@@ -8,7 +8,7 @@ import { WorldMap } from "../model/map.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, king, kingFor, land, nameGivenBy, ownLand, type Power } from "../model/power.ts";
+import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
