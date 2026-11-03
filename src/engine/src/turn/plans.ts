@@ -608,18 +608,23 @@ P.levyRaised = function (p, unit) {
 /**
  * Once the season's levies are raised: scheduled orders still waiting for a unit a levy of this season or earlier was to
  * raise can never run (the levy failed, was refused, or was not given after all). They are dropped, and the seat is told
- * in its news. That wakes nobody.
+ * in its news. That wakes nobody. Bug #569: the court learns it by word from the levy's province (`tell`), and the orders
+ * stay in its list, unbound, until that word comes.
  */
 P.unraisedLevies = function () {
   const S = this.s;
   if (!S.config.sleepingSeats) return;
+  const now = S.turn + S.deliveryOffset;
   for (const [p, sl] of sortBy(S.sleep.entries(), [([k]: [Power, SleepState]) => k, cmpPower])) {
-    const unraised = (l: LevyRef | null): boolean => l !== null && l.turn <= S.turn;
-    const dropped = sl.scheduled.filter((x) => unraised(x.unitLevy) || unraised(x.otherLevy));
-    if (dropped.length === 0) continue;
-    removeAll(sl.scheduled, (x) => dropped.includes(x));
-    const lines = dropped.map((x) => `turn ${x.turn}: ${describe(asShown(S, p, x))}`);
-    notify(S, p, "Rejected", UnraisedTitle, "These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n" + lines.map((x) => "- " + x).join("\n"));
+    const unraised = (l: LevyRef | null): l is LevyRef => l !== null && l.turn <= S.turn;
+    const failed = sl.scheduled.filter((x) => x.unraisedHeard === 0 && (unraised(x.unitLevy) || unraised(x.otherLevy)));
+    for (const [province, dropped] of groupBy(failed, (x) => (unraised(x.unitLevy) ? x.unitLevy : x.otherLevy!).province)) {
+      const at = this.heardAt(p, province);
+      for (const x of dropped) x.unraisedHeard = at;
+      const lines = dropped.map((x) => `turn ${x.turn}: ${describe(asShown(S, p, x))}`);
+      this.tellAt(p, at, "Rejected", UnraisedTitle, "These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n" + lines.map((x) => "- " + x).join("\n"));
+    }
+    removeAll(sl.scheduled, (x) => x.unraisedHeard > 0 && x.unraisedHeard <= now);
   }
 };
 
