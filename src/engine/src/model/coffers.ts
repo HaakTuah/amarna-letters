@@ -36,15 +36,23 @@ export interface Bill {
   due: number;
   /** Owed for works and levies there. */
   works: number;
-  /** Owed for troops' pay, by unit: "id|gold". */
-  units: string[];
+  /** Owed for troops' pay, by unit. */
+  units: BillUnit[];
 }
+
+/** A unit's pay on a bill. */
+export interface BillUnit {
+  unit: string;
+  gold: number;
+}
+
+export const BillUnitSchema: ObjSchema<BillUnit> = obj("BillUnit", (init: Partial<BillUnit> = {}) => ({ unit: "", gold: 0, ...init }), { unit: S, gold: I });
 
 export function newBill(init: Partial<Bill> = {}): Bill {
   return { power: "Egypt", province: "", turn: 0, due: 0, works: 0, units: [], ...init };
 }
 
-export const BillSchema: ObjSchema<Bill> = obj("Bill", newBill, { power: S, province: S, turn: I, due: I, works: I, units: list(S) });
+export const BillSchema: ObjSchema<Bill> = obj("Bill", newBill, { power: S, province: S, turn: I, due: I, works: I, units: list(() => BillUnitSchema) });
 
 /** Gold on the road inside a realm with its couriers: sent out to a far province's coffer, or coming home from one that was lost. */
 export interface Remittance {
@@ -63,4 +71,4 @@ export function newRemittance(init: Partial<Remittance> = {}): Remittance {
 export const RemittanceSchema: ObjSchema<Remittance> = obj("Remittance", newRemittance, { power: S, province: S, gold: I, due: I, home: B });
 
 /** A bill's whole sum. */
-export const billTotal = (b: Bill): number => b.works + b.units.reduce((a, x) => a + Number(x.split("|")[1]), 0);
+export const billTotal = (b: Bill): number => b.works + b.units.reduce((a, x) => a + x.gold, 0);

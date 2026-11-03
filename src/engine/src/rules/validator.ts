@@ -13,6 +13,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
 import { findCharacter, isAlive, ledger, unitAt, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
+import { courierSeasons, courtOf } from "./court.ts";
 import { checkArmyOrder } from "./validator-armies.ts";
 import { checkCommandOrder } from "./validator-command.ts";
 import type { Checking } from "./validator-context.ts";
@@ -181,6 +182,9 @@ export class OrderValidator {
       return null;
     };
 
+    const far = (province: string): boolean => courierSeasons(S, this.map, courtOf(S, this.map, power), province) >= 1;
+    const spendAt = (province: string, cost: number): string | null => (far(province) ? (cost < 0 ? "a cost cannot be negative" : null) : spend(cost));
+
     const ownUnit = (province: string): [string | null, Unit | null] => {
       const unit = unitAt(S, province);
       if (!Map.exists(province)) return [`there is no province called '${province}'`, unit];
@@ -209,7 +213,7 @@ export class OrderValidator {
       get dispatches() { return dispatches; },
       get seekCount() { return seekCount; },
       get counterIntel() { return counterIntel; },
-      heardFallen, Sight, knownOwner, knownSiege, knownWalls, knownWork, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
+      heardFallen, Sight, knownOwner, knownSiege, knownWalls, knownWork, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, spendAt, far, ownUnit, ownCharacter,
     };
     const check = (order: Order): string | null => {
       for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder]) {

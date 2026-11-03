@@ -239,7 +239,7 @@ P.worksSeason = function () {
                 done = true;
               }
             }
-            if (!done && !part) say(id, `no work was done on the ${workName(kind)} of ${prov.name}: ${labour ? (plan?.share != null ? "the share you asked brought no men" : "too few men at home") : this.isFar(p, id) ? "too little gold in its coffer, and no credit there while a debt is unpaid" : "too little gold"}`);
+            if (!done && !part) say(id, `no work was done on the ${workName(kind)} of ${prov.name}: ${labour ? (plan?.share != null ? "the share you asked brought no men" : "too few men at home") : this.isFar(p, id) ? this.noCredit(p, id) : "too little gold"}`);
             else if (done) {
               work.progress++;
               const seasons = WorksData[kind].seasons;

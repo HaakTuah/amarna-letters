@@ -353,7 +353,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     sum([...own.values()], (x) => x.holding) +
       sum(v.units.filter((u) => u.power === p), (u) => carriedWorth(u.food, u.savings)) +
       sum(homeward, (w) => w.savings) +
-      sum(v.caravans, (c) => carriedWorth(c.grain, c.gold)),
+      sum(v.caravans, (c) => carriedWorth(c.grain, c.gold)) +
+      // #587: and the gold it sent ahead, which it knows is on the road.
+      sum(v.goldSent, (g) => g.gold),
   );
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
   // Its own, as it knows its land (bug #517), are among its provinces instead.

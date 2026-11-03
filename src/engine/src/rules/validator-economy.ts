@@ -30,13 +30,14 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (!(order.amount > 0)) return "name how many measures of grain";
       if (order.type !== "purchase") return null;
       const m = S.markets.tryGet(order.province);
-      return spend(buyAlongCurve(m?.stock ?? 0, needOf(Map.get(order.province)), Number.MAX_SAFE_INTEGER, order.amount).paid);
+      return v.spendAt(order.province, buyAlongCurve(m?.stock ?? 0, needOf(Map.get(order.province)), Number.MAX_SAFE_INTEGER, order.amount).paid);
     }
 
     case "send": {
       if (isBlank(order.province) || !Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
       if (v.knownOwner(order.province) !== power) return `you do not hold ${Map.get(order.province).name}: gold goes abroad with an envoy, a gift or a caravan`;
       if (!(order.gold > 0)) return "name how many shekels to send";
+      if (!v.far(order.province)) return `${Map.get(order.province).name} is within the season's reach of your court: the treasury pays there at once`;
       return spend(order.gold);
     }
 
@@ -58,7 +59,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       if (v.knownOwner(order.to) === power) return `${Map.get(order.to).name} is your own market: sell or buy there with the orders sell and purchase`;
       if (Map.get(order.to).kingless) return `${Map.get(order.to).name} has no town and no market to trade at`;
       if (!(order.grain >= 0) || !(order.gold >= 0) || order.grain + order.gold <= 0) return "name the grain it carries to sell, the gold it carries to buy with, or both";
-      return spend(order.gold);
+      return v.spendAt(order.from, order.gold);
     }
 
     case "ship": {

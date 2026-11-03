@@ -78,7 +78,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       const key = `${f.kind}:${f.province}`;
       if (fortified.has(key)) return `you had already given an order for the ${workName(f.kind)} of ${prov.name} this season`;
       // The first season of a project paid in gold is reserved now.
-      return f.level > level && !f.labour ? spend(buildGold(f.kind, f.province, f.kind === "Policing" ? f.level - level : level + 1)) : null;
+      return f.level > level && !f.labour ? v.spendAt(f.province, buildGold(f.kind, f.province, f.kind === "Policing" ? f.level - level : level + 1)) : null;
     }
 
     case "raze": {
@@ -140,7 +140,7 @@ export function checkArmyOrder(v: Checking, order: Order): string | null | undef
       if (r.men != null && r.men < LandData.levyLeast) return `a levy takes ${LandData.levyLeast} men at least`;
       // Item 17++: the gold set aside is reckoned by the men the king knows of, his last count, never those really there.
       const known = countOf(S, power, p.id)?.men ?? men ?? menOf(r.kind);
-      return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(known, r.share != null ? Math.floor((known * r.share) / 100) : (r.men ?? menOf(r.kind)))));
+      return v.spendAt(p.id, forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(known, r.share != null ? Math.floor((known * r.share) / 100) : (r.men ?? menOf(r.kind)))));
     }
 
     case "disband": {

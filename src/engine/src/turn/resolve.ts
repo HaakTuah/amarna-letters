@@ -463,7 +463,7 @@ P.raise = function (p, r) {
   if (this.isFar(p, prov.id)) {
     const paid = this.payFar(p, prov.id, cost);
     if (paid === null) {
-      this.levyFailed(p, r, prov.id, `No ${kind} was raised in ${prov.name}: too little gold in its coffer, and no credit there while a debt is unpaid.`, "too little gold there");
+      this.levyFailed(p, r, prov.id, `No ${kind} was raised in ${prov.name}: ${this.noCredit(p, prov.id)}.`, "too little gold there");
       return;
     }
     this.spendAt(prov.id, paid.coffer);

@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, TurnEngine, caravan, inboxOf, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, newWorkPlan, send } from "@amarna/engine";
+import { Dict, type GameState, OrderValidator, TurnEngine, build, caravan, inboxOf, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, newWorkPlan, purchase, send, trade } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Gold travels both ways (#587, "One treasury, many stores"): what is done far off is paid only from gold that is there.
@@ -122,5 +122,39 @@ describe("CofferTests", () => {
     s.turn++;
     e.caravansTravel();
     Assert.equal(gold, t.gold);
+  });
+
+  test("A far order reserves nothing of the treasury: its coffer or a bill pays it; a near one still does", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    s.treasuries.get("Egypt").gold = 0;
+    s.treasuries.get("Egypt").lots.length = 0;
+    const near = [...s.owner.entries()].find(([id, p]) => p === "Egypt" && e.wordTo("Egypt", id) === 0)![0];
+    const v = new OrderValidator(s, e.map).validate("Egypt", newTurnSubmission({ orders: [build("nippur", "Walls", 3, false), purchase("nippur", 20), purchase(near, 20)] }));
+    Assert.equal(2, v.accepted.length);
+    Assert.contains("not enough gold", v.rejected.map((r) => r.reason).join(" "));
+  });
+
+  test("Gold taken far off in another's land goes home as a load, not into the treasury at once", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    const t = s.treasuries.get("Egypt");
+    const before = t.gold;
+    e.receiveAt("Egypt", "babylon", 80);
+    Assert.equal(before, t.gold);
+    Assert.equal(80, s.caravans.filter((c) => c.power === "Egypt").reduce((a, c) => a + c.gold, 0));
+  });
+
+  test("A trading caravan asked to carry more gold than is there carries what is left after its porters' pay", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    const from = "memphis";
+    s.stores.set(from, 0);
+    const t = s.treasuries.get("Egypt");
+    t.gold = 60;
+    t.lots.length = 0;
+    e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [trade(from, "babylon", 0, 59)] })]]));
+    const c = s.caravans.find((x) => x.power === "Egypt" && x.trade);
+    Assert.true(c !== undefined && c.gold > 0 && c.gold + c.pay <= 60, "it set out with the gold there, less its pay");
   });
 });

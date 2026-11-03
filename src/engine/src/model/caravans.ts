@@ -106,9 +106,9 @@ export const caravanAt = (c: Caravan): string => c.route[Math.min(c.at, c.route.
 /** How many of a caravan's reports are kept, and how long one that ended is kept: longer than any word takes. */
 export const CaravanTrailKept = 8;
 
-/** One report of a caravan as season `turn` ended: where it stood, its grain and gold, whether going home, whether ended. */
+/** One report of a caravan as season `turn` ended: where it stood, its grain and gold (its porters' pay with it), whether going home, whether ended. */
 export function caravanReport(c: Caravan, turn: number, gone = false): string {
-  return `${turn}|${caravanAt(c)}|${c.grain}|${c.gold}|${c.returning ? 1 : 0}|${gone ? 1 : 0}`;
+  return `${turn}|${caravanAt(c)}|${c.grain}|${c.gold + c.pay}|${c.returning ? 1 : 0}|${gone ? 1 : 0}`;
 }
 
 /** A report read back. */

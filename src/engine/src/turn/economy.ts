@@ -577,12 +577,14 @@ P.settleMarkets = function (orders) {
         if (r.taken < net) for (const o of list.filter((o) => o.type === "sell")) this.wakeFrom(p, o, prov, "the people's purse ran dry");
       } else if (net < 0) {
         // #587: paid with the gold that is there: the treasury's near, the province's coffer far.
-        const r = buyAlongCurve(m.stock, normal, this.goldAt(p, prov), -net);
+        // What it can pay with; left with less than a measure's dearest price (4 shekels), it was the gold that ran out.
+        const purse = this.goldAt(p, prov);
+        const r = buyAlongCurve(m.stock, normal, purse, -net);
         m.stock -= r.taken;
         m.purse += r.paid;
         this.takeAt(p, prov, r.paid);
         const over = this.putInStores(prov, r.taken);
-        tell(p, prov, `Bought ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < -net ? ` (${-net - r.taken} more were not to be had)` : "") + (over > 0 ? `; ${over} did not fit in the stores and were lost` : "") + ".");
+        tell(p, prov, `Bought ${r.taken} measures of grain at ${name} for ${formatMoney(r.paid)}` + (r.taken < -net ? (m.stock > 0 && purse - r.paid < 5 ? ` (${-net - r.taken} more: ${this.isFar(p, prov) ? "the gold in its coffer" : "your treasury"} ran out)` : ` (${-net - r.taken} more were not to be had)`) : "") + (over > 0 ? `; ${over} did not fit in the stores and were lost` : "") + ".");
         if (r.taken > 0) logEvent(S, "purchase-grain", `${p} bought grain at ${name}.`, this.nearOf(prov, p), "grain-bought");
       } else if (offered > 0) tell(p, prov, `At ${name} your sales and purchases cancelled out: no grain changed hands.`);
     }

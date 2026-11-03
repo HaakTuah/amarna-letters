@@ -171,7 +171,7 @@ P.atBorder = function (c, a, b, book) {
     e.gold += c.gold + c.pay;
     e.found++;
     const who = c.sneak ? "smugglers" : "caravan, sneaking through land closed to you,";
-    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${k}'s people, and ${c.sneak ? "their" : "its"} goods were seized: ${c.grain} measures of grain${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""}.`);
+    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${k}'s people, and ${c.sneak ? "their" : "its"} goods were seized: ${c.grain} measures of grain${c.gold + c.pay > 0 ? ` and ${formatMoney(c.gold + c.pay)}` : ""}.`);
     logEvent(S, "smuggler-found", `${k}'s people found ${c.power}'s ${c.sneak ? "smugglers" : "caravan"} at ${name} and seized ${c.sneak ? "their" : "its"} goods.`, [...this.caravanNear(c, b), k], c.sneak ? "smuggler-found" : "caravan-found");
     return "seized";
   }
@@ -297,10 +297,15 @@ P.caravanHome = function (c) {
   const at = caravanAt(c);
   const name = this.map.get(at).name;
   const parts: string[] = [];
+  let porters = "";
   if (c.bill !== null && c.bill > 0) {
-    const paid = Math.min(this.goldAt(c.power, at), c.bill);
+    // Out of the load first, then the gold there; what neither covers the porters go without.
+    const fromLoad = Math.min(c.gold, c.bill);
+    c.gold -= fromLoad;
+    const paid = Math.min(this.goldAt(c.power, at), c.bill - fromLoad);
     this.takeAt(c.power, at, paid);
-    this.spendAt(at, paid);
+    this.spendAt(at, fromLoad + paid);
+    porters = ` Its porters were paid ${formatMoney(fromLoad + paid)} for the road${fromLoad + paid < c.bill ? `, ${formatMoney(c.bill - fromLoad - paid)} short of what they were owed` : ""}.`;
     c.bill = 0;
   }
   // A besieged city takes in nothing by land, and by sea only while its waters are open.
@@ -345,7 +350,7 @@ P.caravanHome = function (c) {
     at,
     "Notice",
     MarketsTitle,
-    `Your ${c.ship !== null ? "ship" : "caravan"} came home to ${name}${parts.length > 0 ? ` with ${parts.join(" and ")}` : ""}.${lostLine}` +
+    `Your ${c.ship !== null ? "ship" : "caravan"} came home to ${name}${parts.length > 0 ? ` with ${parts.join(" and ")}` : ""}.${lostLine}${porters}` +
       (c.ship !== null ? (fleet !== null ? ` The fleet is back in ${this.map.get(fleet).name}, ready for war.` : " Its waters and the seas near them were held, so its crew went home.") : ""),
   );
   logEvent(S, "caravan", `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} came home to ${name}.`, [...this.caravanNear(c, at)], "caravan");
@@ -422,8 +427,10 @@ P.sendTraders = function (orders, tell) {
     }
     const trading = o.type === "trade" || o.trade;
     const c = newCaravan({ id: newId(S, "v"), power: p, from: o.from, to: o.to, grain, gold, route, since: S.turn, trade: trading, sneak: o.type === "trade" && o.sneak, ship: fleet });
+    // Its pay comes first: it carries what is left of the gold there, up to what was ordered.
+    if (gold + this.payLoad(c) > this.goldAt(p, o.from)) c.gold = Math.max(0, this.goldAt(p, o.from) - this.payLoad(c));
     const pay = this.payLoad(c);
-    if (!this.takeAt(p, o.from, gold + pay)) {
+    if (c.grain + c.gold <= 0 || !this.takeAt(p, o.from, c.gold + pay)) {
       this.putInStores(o.from, grain);
       fail(`Nothing set out from ${from.name}: there was too little gold ${this.isFar(p, o.from) ? "in its coffer" : "in the treasury"} for its ${o.type === "ship" ? "crew's" : "porters'"} pay on the road (${formatMoney(pay)}) besides what it was to carry.`, "too little gold for its pay");
       continue;
@@ -431,7 +438,7 @@ P.sendTraders = function (orders, tell) {
     c.pay = pay;
     if (fleet !== null) S.units.splice(S.units.indexOf(fleet), 1);
     setOut(S, c);
-    const what = `${grain} measures of grain${gold > 0 ? ` and ${formatMoney(gold)}` : ""}`;
+    const what = `${grain} measures of grain${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""}`;
     if (fleet !== null) tell(p, o.from, `Your fleet in ${Map.get(fleet.province).name} loaded ${what} at ${from.name} and sailed for ${to.name} to ${trading ? "trade" : "deliver it"}: it is out of the war until it is back.`);
     else tell(p, o.from, `A caravan${o.type === "trade" && o.sneak ? " of smugglers" : ""} with ${what} set out from ${from.name} to trade at ${to.name}, by ${route.slice(1, -1).map((x) => Map.get(x).name).join(", ") || "the direct road"}.`);
     logEvent(S, fleet !== null ? "ship-out" : "trade-out", `${p} sent ${fleet !== null ? "a ship" : "a trading caravan"} from ${from.name}.`, this.nearOf(o.from, p), fleet !== null ? "ship-out" : "trade-out");

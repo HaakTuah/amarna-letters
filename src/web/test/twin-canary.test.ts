@@ -43,6 +43,8 @@ import {
   move,
   raise,
   sell,
+  send,
+  purchase,
   toll,
   welcome,
 } from "@amarna/engine";
@@ -311,6 +313,10 @@ const siegeFallen: Twin = {
 const goldWorks: Order[] = [build("nippur", "Walls", 2, false), build("nippur", "Roads", 1, false)];
 const goldAfterLoss: Twin = { ...lossAfterOrders, name: "far works paid in gold, the province lost after orders set out", orders: goldWorks };
 const goldAfterSiege: Twin = { ...siegeAfterOrders, name: "far works paid in gold, a siege begun after orders set out", orders: goldWorks };
+/** #587: gold sent ahead to Nippur's coffer, and grain sold and bought at its market from it, each season. */
+const coffer: Order[] = [send("nippur", 30), sell("nippur", 10), purchase("nippur", 10)];
+const cofferAfterLoss: Twin = { ...lossAfterOrders, name: "gold sent ahead and a far market's trades, the province lost after orders set out", orders: coffer };
+const cofferAfterSiege: Twin = { ...siegeAfterOrders, name: "gold sent ahead and a far market's trades, a siege begun after orders set out", orders: coffer };
 
 /**
  * Egypt's king holds court at Nippur, far from his homeland (all of it beyond his sight); he schedules a levy in Nubia
@@ -418,7 +424,7 @@ const grantRepudiatedByGrantee: Twin = {
   heard: (s) => (s.inbox.tryGet("Libya") ?? []).some((i) => i.title === "A tablet repudiated"),
 };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee];
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, cofferAfterLoss, cofferAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

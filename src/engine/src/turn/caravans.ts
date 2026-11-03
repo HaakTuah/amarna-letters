@@ -84,7 +84,8 @@ P.caravansTravel = function () {
   const perSeason = S.config.travelDays * PointsPerDay;
   const season = seasonOfTurn(S.turn);
   const book: TollBook = new Dict();
-  const what = (c: Caravan): string => [c.grain > 0 || c.gold <= 0 ? `${c.grain} measures of grain` : "", c.gold > 0 ? formatMoney(c.gold) : ""].filter((x) => x !== "").join(" and ");
+  // The gold it carries, its porters' pay with it (#587).
+  const what = (c: Caravan): string => [c.grain > 0 || c.gold + c.pay <= 0 ? `${c.grain} measures of grain` : "", c.gold + c.pay > 0 ? formatMoney(c.gold + c.pay) : ""].filter((x) => x !== "").join(" and ");
   const noun = (c: Caravan): string => (c.ship !== null ? "ship" : "caravan");
   const arrivals: Caravan[] = [];
   for (const c of sortBy([...S.caravans], [(c: Caravan) => c.id, cmpStr])) {
@@ -195,7 +196,7 @@ P.caravansTravel = function () {
       // A captured archive on the road (item 10+b) is the taker's now.
       if (c.archive.length > 0) this.archiveArrives(taker.power, c.archive, c.archiveOf, where);
       this.caravanTell(c, taker.province, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${taker.power}'s ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; a loaded ship fights badly, and the fleet is lost" : ""}.`);
-      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${c.power}'s ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${kept} measures for their own baggage` : ""}${c.gold > 0 ? ", the gold for your treasury" : ""}.`);
+      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${c.power}'s ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${kept} measures for their own baggage` : ""}${c.gold + c.pay > 0 ? (this.isFar(taker.power, taker.province) ? ", the gold to go home to your treasury" : ", the gold for your treasury") : ""}.`);
       logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [...this.caravanNear(c, taker.province), taker.power], "caravan-taken");
       continue;
     }
