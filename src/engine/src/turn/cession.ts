@@ -36,7 +36,7 @@ P.realmCeded = function (p, c) {
   const S = this.s;
   const name = this.map.get(c.province).name;
   if (S.owner.getOrDefault(c.province, null) !== p) {
-    this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it after movement.`, "you no longer held it");
+    this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it when the moves were done.`, "you no longer held it");
     return;
   }
   // The agreement must still stand as the season resolves: a tablet repudiated or carried off since gives nothing.
@@ -52,7 +52,7 @@ P.realmCeded = function (p, c) {
   // receiver's to face, so an unhindered city is all the order needs.
   const u = unitAt(S, c.province);
   if (u !== null && u.power !== p && u.power !== c.to) {
-    this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: ${u.power}'s troops stood in it after movement.`, "foreign troops stood there", true);
+    this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: ${u.power}'s troops stood in it when the moves were done.`, "foreign troops stood there", true);
     return;
   }
   logEvent(S, "cession", `${p} ceded ${name}, its capital, and with it the whole realm, to ${c.to}.`, [p, c.to]);

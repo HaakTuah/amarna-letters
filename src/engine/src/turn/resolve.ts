@@ -447,7 +447,7 @@ P.foldUnit = function (p, o) {
   const u = unitAt(S, o.unit);
   const into = unitAt(S, o.into);
   if (u === null || u.power !== p || into === null || into.power !== p || into.kind !== u.kind) {
-    this.failed(p, o, "Fold failed", `The troops in ${this.map.get(o.unit).name} did not join those in ${this.map.get(o.into).name}: ${u === null || u.power !== p ? "they were gone after movement" : "none of yours stood there after movement"}.`, "the troops were gone", false);
+    this.failed(p, o, "Fold failed", `The troops in ${this.map.get(o.unit).name} did not join those in ${this.map.get(o.into).name}: ${u === null || u.power !== p ? "they were gone when the moves were done" : "none of yours stood there when the moves were done"}.`, "the troops were gone", false);
     return;
   }
   // Men, food and savings go with them: nothing appears or vanishes.
@@ -485,12 +485,12 @@ P.resolveTransfers = function (cessions, gifts) {
     // The validator refuses a second cession of one province, so land no longer held was lost in movement, or before it
     // out of the king's sight (bug #467): either way word of it comes home by the road.
     if (S.owner.getOrDefault(c.province, null) !== p) {
-      this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it after movement.`, "you no longer held it");
+      this.lostOrder(p, c, c.province, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it when the moves were done.`, "you no longer held it");
       continue;
     }
     const u = unitAt(S, c.province);
     if (u !== null && u.power === p) {
-      this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: your own troops still stood in it after movement.`, "your own troops stood there", false);
+      this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: your own troops still stood in it when the moves were done.`, "your own troops stood there", false);
       continue;
     }
     // Item 17++ ("taken up, never thrust on anyone"): a treaty gives the receiver the claim, never the province, unless his
@@ -510,7 +510,7 @@ P.resolveTransfers = function (cessions, gifts) {
   for (const [p, g] of gifts) {
     const u = unitAt(S, g.unit);
     if (u === null || u.power !== p) {
-      this.failed(p, g, "Gift of troops failed", `No unit of yours stood in ${Map.get(g.unit).name} after movement, so none was given to ${g.to}.`, "the unit is gone", false);
+      this.failed(p, g, "Gift of troops failed", `No unit of yours stood in ${Map.get(g.unit).name} when the moves were done, so none was given to ${g.to}.`, "the unit is gone", false);
       continue;
     }
     u.power = g.to;
@@ -531,7 +531,7 @@ P.raise = function (p, r) {
   const S = this.s;
   const prov = this.map.get(r.province);
   const kind = r.kind.toLowerCase();
-  // In the rulebook's words: only in a province of your homeland that you still hold and that is empty after movement.
+  // In the rulebook's words: only in a province of your homeland that you still hold and that is empty when the moves were done.
   // Land the king itself ceded this season was not lost in movement: the notice says which.
   const to = this._cededNow.tryGet(prov.id);
   const why =
@@ -541,7 +541,7 @@ P.raise = function (p, r) {
         : null
       : to !== undefined
         ? `you ceded ${prov.name} to ${to} last season, before the levy`
-        : `you no longer held ${prov.name} after movement`;
+        : `you no longer held ${prov.name} when the moves were done`;
   if (why !== null) {
     const text = `No ${kind} was raised in ${prov.name}: ${why}. No gold was paid.`;
     // Only land lost in movement is others' doing, and its word comes home by the road (bug #467): a province the seat

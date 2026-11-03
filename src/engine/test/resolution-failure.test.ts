@@ -69,7 +69,7 @@ describe("ResolutionFailureTests", () => {
   const TakeSinai: Order[] = [move("shasu", "sinai"), support("gaza", "shasu", "sinai")];
 
   test.each([
-    ["cession of land with own troops in it", "Cession failed", "Men-nefer was not ceded to Hatti: your own troops still stood in it after movement.", false],
+    ["cession of land with own troops in it", "Cession failed", "Men-nefer was not ceded to Hatti: your own troops still stood in it when the moves were done.", false],
     ["gift of troops destroyed in battle", "Gift of troops failed", "No unit of yours stood in the Ways of Horus when the moves were done, so none was given to Hatti.", false],
     ["disband of a unit destroyed in battle", "Disband failed", "No unit of yours stood in the Ways of Horus when the moves were done, so none was disbanded.", false],
     ["levy in a province not empty", "Levy failed", "No army was raised in Waset: troops still stood in Waset when the moves were done. No gold was paid.", false],

@@ -89,7 +89,7 @@ P.raze = function (p, o) {
   const S = this.s;
   const u = unitAt(S, o.unit);
   if (u === null || u.power !== p || u.kind !== "Army") {
-    this.failed(p, o, "Nothing razed", `No army of yours stood in ${this.map.get(o.unit).name} after movement, so nothing was razed.`, "the army is gone", false);
+    this.failed(p, o, "Nothing razed", `No army of yours stood in ${this.map.get(o.unit).name} when the moves were done, so nothing was razed.`, "the army is gone", false);
     return;
   }
   const level = levelOf(S, o.kind, u.province);
