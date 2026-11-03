@@ -87,4 +87,4 @@ there word for word on 3 November 2026 (the workshop check: the progress file ha
   the engine's rule tests on it, its suite 80 s to 44 s). Left for a later pass: the engine test files #378 changes
   (`counts`, `crowns`, `declarations`, `governors-region`, `mood-reads`, `seat-word`, `who-they-are`, `works`).
 - ~~**#586, the polish lane:** a province's card lists, for each glowing frontier, the armies the seat sees on the
-  other side.~~ (#635: `facedAcross` in `land-layers.ts`, the glow's own test, shared by the band and the card.)
+  other side.~~ (#640: `facedAcross` in `land-layers.ts`, the glow's own test, shared by the band and the card.)
