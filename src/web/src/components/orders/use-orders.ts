@@ -41,7 +41,6 @@ export function useOrders(draft: OrderDraft, state: GameState, onChanged: () => 
     draft.other.push(o);
     onChanged();
   };
-  const term = clamp(f.term, 1, 30);
   const price = (k: string): number => v.prices.getOrDefault(k, 0);
   const sallyMin = v.prices.getOrDefault("sallyMinWalls", 2);
   const sallying = [...v.owner]
@@ -97,7 +96,7 @@ export function useOrders(draft: OrderDraft, state: GameState, onChanged: () => 
   const toggle = <T,>(list: T[], item: T, on: boolean): T[] => (on ? (list.includes(item) ? list : [...list, item]) : list.filter((x) => x !== item));
   const g = f.g;
   const greetingText = Greeting.render(me, f.sendTo as Power, g);
-  return { draft, state, onChanged, onSubmit, v, me, f, set, structured, wage, jobTerm, visibleUnits, ready, reserved, others, mine, add, term, price, sallyMin, sallying, addStandingOrder, addStanding, addDispatch, addSpy, toggle, g, greetingText };
+  return { draft, state, onChanged, onSubmit, v, me, f, set, structured, wage, jobTerm, visibleUnits, ready, reserved, others, mine, add, price, sallyMin, sallying, addStandingOrder, addStanding, addDispatch, addSpy, toggle, g, greetingText };
 }
 
 export type OrdersContext = ReturnType<typeof useOrders>;

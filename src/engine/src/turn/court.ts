@@ -139,7 +139,7 @@ export function errandOf(o: { what?: JobWhat | null; where?: string | null }): J
 P.hireAll = function (hires, carriedTo = null) {
   const S = this.s;
   const carried = carriedTo !== null;
-for (const [key, group] of groupBy(hires, (x) => x.h.character)) {
+  for (const [key, group] of groupBy(hires, (x) => x.h.character)) {
     const c = char(S, key);
     if (c.status !== "Free" || c.errand !== null) {
       for (const { p, h } of group)
