@@ -3,6 +3,7 @@
  * methods before the engine is used.
  */
 import "./resolve.ts";
+import "./movement-news.ts";
 import "./battles.ts";
 import "./marching.ts";
 import "./command.ts";
