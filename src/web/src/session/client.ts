@@ -256,7 +256,8 @@ export class Session {
    * drawn or read; the page shows a progress bar and the count of seasons, and the worker plays on as fast as it can.
    */
   get simulating(): boolean {
-    return this.delayMs === 0 && this.live.auto && this.asks.length === 0;
+    // A human seat asleep has an entry with nothing asked of it: only orders or an audience waiting stop the simulation.
+    return this.delayMs === 0 && this.live.auto && !this.asks.some((a) => a.orders !== null || a.audience !== null);
   }
   private wasSimulating = false;
 

@@ -123,4 +123,30 @@ describe("PacingTests", () => {
     for (const viewer of ["Egypt", "Hatti", null] as const) Assert.true(arrivals(received, viewer).length === 1, viewer ?? "god");
     Assert.equal([], arrivals(received, "Mitanni"));
   });
+
+  test("Simulate runs with a human seat asleep, and stops only when something is asked of him", async () => {
+    // The page's session talks to its worker (one is started as the module loads); here nothing answers.
+    const had = globalThis.Worker;
+    globalThis.Worker = class {
+      postMessage(): void {}
+    } as unknown as typeof Worker;
+    try {
+      const { Session } = await import("../src/session/client.ts");
+      const s = new Session();
+      s.live = { ...s.live, humans: ["Mitanni"], hasRunner: true, auto: true };
+      s.setDelay(0);
+      // Asleep: his entry asks nothing.
+      s.asks = [{ power: "Mitanni", orders: null, audience: null }];
+      Assert.true(s.simulating);
+      // Woken for his orders: the simulation stops for him.
+      s.asks = [{ power: "Mitanni", orders: s.asks[0].orders ?? ({} as never), audience: null }];
+      Assert.false(s.simulating);
+      // At another pace there is nothing to simulate.
+      s.asks = [];
+      s.setDelay(400);
+      Assert.false(s.simulating);
+    } finally {
+      globalThis.Worker = had;
+    }
+  });
 });
