@@ -8,10 +8,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * The actions with keys so far. To come in item 17+++a ("Pace of play" under Interface): 4 for Simulate, once item 17+++
- * keeps every season; Enter to end one's season; Space pausing mid-playout, once seasons play out (17+++); and the rest.
+ * The actions with keys so far. To come in item 17+++a ("Pace of play" under Interface): Enter to end one's season; Space
+ * pausing mid-playout; and the rest.
  */
-export type KeyAction = "pause" | "pace1" | "pace2" | "pace3" | "faster" | "slower";
+export type KeyAction = "pause" | "pace1" | "pace2" | "pace3" | "pace4" | "faster" | "slower";
 
 /**
  * Each action's keys and how a tooltip names them, Crusader Kings III's keys. `codes` are physical keys
@@ -23,20 +23,23 @@ export const KeyBindings: Record<KeyAction, { codes: readonly string[]; chars?: 
   pace1: { codes: ["Digit1", "Numpad1"], label: "1" },
   pace2: { codes: ["Digit2", "Numpad2"], label: "2" },
   pace3: { codes: ["Digit3", "Numpad3"], label: "3" },
+  pace4: { codes: ["Digit4", "Numpad4"], label: "4" },
   faster: { codes: ["NumpadAdd"], chars: ["+", "="], label: "+" },
   slower: { codes: ["NumpadSubtract"], chars: ["-", "_"], label: "−" },
 };
 
 /**
- * The paces, slowest first ("Pace of play": seasons are turns, so a pace sets only how long each season is watched, as
- * the pause before the next one, in milliseconds): keys 1 to 3 pick them, + and − step between them. The owner, 1 November
- * 2026: "I don't feel we should introduce 5, just to have 5. Paradox games have them because they tick time. but we have
- * rounds, akin to civilization." Simulate joins as the fourth with item 17+++.
+ * The paces, slowest first ("Pace of play": seasons are turns, so a pace sets only how long each season is watched): keys
+ * 1 to 4 pick them, + and − step between them. The owner, 1 November 2026: "I don't feel we should introduce 5, just to
+ * have 5. Paradox games have them because they tick time. but we have rounds, akin to civilization." Since item 17+++ a
+ * season plays out at its pace (session/pacing.ts, `Paces`, by the same place), and Simulate skips to the result. `ms` is
+ * a pace's key as the page keeps it (ui/update.ts, the soak tool): until 17+++ it was the pause between seasons.
  */
 export const Speeds: readonly { ms: number; name: string }[] = [
   { ms: 1500, name: "Slow" },
   { ms: 400, name: "Normal" },
   { ms: 50, name: "Fast" },
+  { ms: 0, name: "Simulate" },
 ];
 
 /** The speed nearest a pause, by its place in {@link Speeds}. */

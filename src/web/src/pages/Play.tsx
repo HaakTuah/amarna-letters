@@ -83,7 +83,7 @@ export function Play() {
   useLayoutEffect(() => {
     performance.measure("page:play", { start: renderStart });
   });
-  // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 3 set the pace, + and − step it.
+  // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 4 set the pace, + and − step it.
   const setSpeed = (i: number): void => s.setDelay(Speeds[Math.max(0, Math.min(Speeds.length - 1, i))].ms);
   useKeys({
     pause: () => {
@@ -97,6 +97,7 @@ export function Play() {
     pace1: () => setSpeed(0),
     pace2: () => setSpeed(1),
     pace3: () => setSpeed(2),
+    pace4: () => setSpeed(3),
     faster: () => setSpeed(speedIndex(s.delayMs) + 1),
     slower: () => setSpeed(speedIndex(s.delayMs) - 1),
   });
@@ -125,7 +126,7 @@ export function Play() {
   });
 
   function viewerOf(): Power | null {
-    return s.godView ? null : (s.viewAs ?? live.humans[0] ?? null);
+    return s.viewer;
   }
 
   // The music and the sounds follow the season shown, as this view knows it (item 19+++).
@@ -409,7 +410,7 @@ export function Play() {
                     // Let go of the menu, so Space and the pace keys work again at once.
                     e.target.blur();
                   }}
-                  title="Keys 1 to 3 set the pace; + and − make it faster or slower"
+                  title="Keys 1 to 4 set the pace; + and − make it faster or slower"
                 >
                   {Speeds.map((x, i) => (
                     <option key={x.ms} value={x.ms}>
@@ -454,6 +455,7 @@ export function Play() {
             arrows: useDraft ? draft!.arrows() : null,
             followId,
             followPath,
+            playout: s.playoutAt(index, viewer),
           }}
           viewKey={`${live.gameId}:${viewer ?? "god"}`}
           opening={openingView(viewer)}

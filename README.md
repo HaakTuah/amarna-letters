@@ -435,9 +435,12 @@ Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall
 of courts. When the age ends, every seat may open the whole record in god view.
 
-On a computer, Space pauses and unpauses, 1 to 3 set the pace (Slow, Normal, Fast: seasons are turns, so the pace only
-sets how long each is watched), and + and − step between them; no key acts while you type. Each button's tooltip names
-its key.
+Each season plays out on the map: the envoys arrive, the columns march, then the battles, the sieges and the cities that
+fall, each in its turn, and a short line closes the season with what changed. Only what your court knows plays: an army
+appears where it was seen, and a disaster far away is news in that line, not a scene. On a computer, Space pauses and
+unpauses, 1 to 4 set the pace (Slow, Normal, Fast, Simulate: seasons are turns, so the pace only sets how long each is
+watched; at Fast the routine hurries but a battle or a city falling still takes a moment; Simulate skips to each
+season's result), and + and − step between them; no key acts while you type. Each button's tooltip names its key.
 
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly. The export ("Export log" in the menu)

@@ -12,7 +12,8 @@ export type ToWorker =
   | { type: "load"; text: string; continuePlay: boolean; keys: Keys; table: TableSettings | null; id?: string | null }
   | { type: "step" }
   | { type: "auto"; on: boolean }
-  | { type: "delay"; ms: number }
+  /** Item 17+++: the page has played out the season of this frame index, of this game (Live.generation). */
+  | { type: "played"; generation: number; index: number }
   | { type: "budget"; by: number }
   /** With the spending limit the table set by hand for the open age, where one is needed (handLimitNeeded). */
   | { type: "playOn"; budgetUsd: number | null }
