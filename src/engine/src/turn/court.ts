@@ -240,7 +240,7 @@ P.hireAll = function (hires, carriedTo = null) {
       this.meet(c, winner);
       const due = `due when the job is done${hire.payOnDone === true ? ", as you ordered" : " (order pay_fee)"}`;
       const terms = hire.fee <= advance ? "paid in full now" : advance > 0 ? `${formatMoney(advance)} paid now and ${formatMoney(hire.fee - advance)} ${due}` : `all of it ${due}`;
-      notify(S, winner, "Notice", "Hired", `${c.name} took your job${errand} for ${formatMoney(hire.fee)}, within ${term(bids[0])} seasons, ${terms}. They can be sent on the errand now.`, c.id);
+      notify(S, winner, "Notice", "Hired", `${c.name} took your job${errand} for ${formatMoney(hire.fee)}, within ${term(bids[0])} seasons, ${terms}.${ReadyWords[c.contract.errand?.what ?? ""] ?? ""}`, c.id);
       continue;
     }
     // Hired abroad: a spy whose post is where it stands takes it up at once; anyone else sets out for its master's court.
@@ -262,6 +262,9 @@ P.hireAll = function (hires, carriedTo = null) {
     this.word(at, winner, "Job", `${c.name} took the job your envoy offered at the court of ${powerName(at)}${errand}, for ${formatMoney(hire.fee)}, within ${term(bids[0])} seasons, in turn ${S.turn}; your envoy paid ${formatMoney(advance)} of it. ${here ? "They took up their post there at once." : "They set out for your court."}`);
   }
 };
+
+/** What a hired servant can do at once, by his job's errand; a stay or a ride needs no order. */
+const ReadyWords: Record<string, string> = { envoy: " They can be sent on their mission now.", spy: " They can be sent to their post now." };
 
 /** A job's errand in words, after "a job". */
 export function errandWords(e: JobErrand | null, name: (x: string) => string): string {

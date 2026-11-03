@@ -87,7 +87,7 @@ export function describe(o: Order): string {
     case "cede":
       return `cede ${o.province} to ${powerName(o.to)}`;
     case "giftUnit":
-      return `give ${o.unit} to ${powerName(o.to)}`;
+      return `give the troops in ${o.unit} to ${WorldMap.default.find(o.unit)?.name === powerName(o.to) ? "the king of " : ""}${powerName(o.to)}`;
     case "dispatch":
       return `send ${o.envoy} to ${powerName(o.to)}` + (o.gold > 0 ? ` with ${o.gold} shekels` : "") + (o.proposal ? " bearing a tablet to seal" : "") + (o.collect != null ? ` carrying debt tablet ${o.collect}` : "");
     case "release":

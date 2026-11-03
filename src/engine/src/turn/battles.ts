@@ -115,7 +115,15 @@ P.battles = function (result, sightBefore) {
     }
     taken.add(to);
     result.newPositions.set(u.id, to);
-    this.tell(u.power, to, "Battle", "Fell back", `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} was beaten from it and fell back to ${this.map.get(to).name}, ${u.men} men strong.`);
+    this.tell(
+      u.power,
+      to,
+      "Battle",
+      "Fell back",
+      u.kind === "Fleet" && this.map.get(to).isSea && !this.map.get(u.province).isSea
+        ? `Your fleet off ${this.map.get(u.province).name} was driven back into ${this.map.get(to).name}, ${u.men} men strong.`
+        : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} was beaten from it and fell back to ${this.map.get(to).name}, ${u.men} men strong.`,
+    );
     logEvent(S, "fallback", `${upper(whose(u.power))} ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");
   }
   // A far weaker unit beaten where it stood is destroyed, though its land held the attackers out.

@@ -29,6 +29,6 @@ export * from "./rules/cast.ts";
 export * from "./rules/anchors.ts";
 export * from "./rules/strategy.ts";
 export * from "./rules/news.ts";
-export { counted } from "./rules/wording.ts";
+export { counted, pick } from "./rules/wording.ts";
 export * from "./rules/legends.ts";
 export * from "./rules/tongues.ts";

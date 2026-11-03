@@ -32,12 +32,13 @@ import {
   withinAuthority,
   nameFrom,
   powerName,
+  courtHead,
+  idNumber,
 } from "@amarna/engine";
 import { Abroad, Home, address, say } from "./envoy-words.ts";
 import { AuthorityPlay } from "./authority.ts";
 import { newPresentResult, type EnvoyContext, type ICharacterMind, type MindContext, type PresentResult } from "../contracts.ts";
 import { TextKit } from "./textkit.ts";
-import { pick } from "./voices.ts";
 import { scriptLife, wantsFalseName } from "./life-mind.ts";
 
 const R = (seed: number, turn: number, what: string, id: string): Rng => Rng.for(seed, turn, "mind:" + what, id);
@@ -308,7 +309,7 @@ function report(ctx: MindContext): MindReply {
       lines.push(say(Home, "assured", key));
   }
 
-  const observations = cargo.observations.filter((o) => !(bribed && host !== null && o.startsWith(host)));
+  const observations = cargo.observations.filter((o) => !(bribed && host !== null && o.startsWith(courtHead(host))));
   // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, and vouches for it as
   // something it saw for itself, first among what it saw. Asked to speak well of a king, it calls him a friend.
   if (ctx.structured && bribed && host !== null) {
@@ -359,101 +360,119 @@ function questioned(ctx: MindContext): MindReply {
  * rest. The first family whose pattern the calling matches speaks.
  */
 /**
- * What a candidate says of his trade: a boast, a modest word and a plain one, each in a few forms, so that two of one trade
- * at one court seldom say the same; the form is the person's own (by his id), the kind his temper's.
+ * What a candidate says of his trade: a boast, a modest word and a plain one, each in a few forms; the form is the person's
+ * own, the kind his temper's, and each names where he comes from ({in}: "in Tunip", {In} at a sentence's head, {o}:
+ * "Tunip") and how long he served ({y}: "nine years"). Form and years both come from his id's number, so two people of one
+ * trade and place say the same line only if their numbers lie 54 apart.
  */
 type Words = readonly [boast: readonly string[], modest: readonly string[], plain: readonly string[]];
 const TradeWords: readonly (readonly [RegExp, Words])[] = [
   [
     /scribe/,
     [
-      ["I write the tongue of the courts as the great kings' scribes write it, and no tablet of mine was ever sent back.", "I have written letters for kings to their brothers, and none was ever misread.", "Three courts have read my hand, and not one asked what I meant."],
-      ["I am slow of speech, but I copy a tablet word for word.", "My hand is better than my tongue.", "I make no claims; set a tablet before me and judge the copy."],
-      ["I read and write the tongue of the courts, and I keep a tally true.", "I can write a king's letter, and read him the answer.", "Accounts, letters, inventories: I have kept them all."],
+      ["I wrote the palace's letters {in} for {y}, and no tablet of mine was ever sent back.", "For {y} kings' letters went out from {o} in my hand, and none was ever misread.", "In {y} of writing tablets {in}, not one reader asked what I meant."],
+      ["I am slow of speech, but {in} they trusted me for {y} to copy a tablet word for word.", "My hand is better than my tongue, as {y} of tablets {in} will show you.", "I make no claims; {y} of tablets copied {in} speak for me."],
+      ["I kept the tallies {in} for {y}, and I read and write the tongue of the courts.", "{In} I wrote a king's letters and read him the answers for {y}.", "Accounts, letters, inventories: I kept them all {in}, {y} of them."],
     ],
   ],
   [
     /interpreter|envoy/,
     [
-      ["I have stood before kings in three courts and put their words into each other's tongues.", "I have carried a king's greeting to his brother and brought back gold with the answer.", "No king I spoke for was ever shamed by what I said."],
-      ["I am no great speaker, but I give a king's words as he said them.", "I add nothing to a message and leave nothing out.", "I speak plainly, and only what I was given to say."],
-      ["I know the tongues of the courts, and I carry a message as it was given.", "I know how a court receives an envoy, and what it expects of one.", "Send me with your words, and they will arrive as you spoke them."],
+      ["For {y} I put kings' words into each other's tongues, first of all {in}.", "From {o} I carried a king's greeting to his brother and brought back gold with the answer, {y} running.", "In {y} of speaking for kings {in}, none was shamed by what I said."],
+      ["I am no great speaker, but for {y} {in} I gave a king's words as he said them.", "For {y} I added nothing to a message {in}, and left nothing out.", "{In} I spoke plainly for {y}, and only what I was given to say."],
+      ["I learned the tongues of the courts {in}, {y} of them, and I carry a message as it was given.", "I know how a court receives an envoy; I learned it {in} over {y}.", "{In} they sent me with their words for {y}, and the words arrived as spoken."],
     ],
   ],
   [
     /caravan|herdsman|wanderer/,
     [
-      ["I have taken loads across the steppe and lost none to robbers.", "I have crossed the desert in the dry season and brought every donkey home.", "The robbers on the river road know my caravans, and leave them be."],
-      ["I know the wells and the stages of the road, and I keep to them.", "I am a man of the road, not of courts.", "I walk beside the donkeys and see that they drink."],
-      ["I know the roads, their wells and their tolls.", "I can tell you how many days lie between any two markets.", "I know which border posts take a gift, and how much."],
+      ["For {y} I took loads from {o} across the steppe and lost none to robbers.", "I have crossed the desert from {o} in the dry season for {y} and brought every donkey home.", "The robbers on the roads out of {o} have known my caravans for {y}, and leave them be."],
+      ["I know the wells and the stages of the road out of {o}; I have kept to them for {y}.", "I am a man of the road, not of courts; {y} on it out of {o} made me so.", "{In} I walked beside the donkeys for {y} and saw that they drank."],
+      ["I know the roads from {o}, their wells and their tolls; I have walked them for {y}.", "After {y} on the road from {o} I can tell you the days to any market.", "I know which border posts beyond {o} take a gift, and how much; I have paid them for {y}."],
     ],
   ],
   [
     /merchant|trader/,
     [
-      ["I have traded in every market between the sea and the rivers, and never come home at a loss.", "I have bought copper off the ships and sold it inland at twice the price.", "The tin of the east has passed through my hands to three kings."],
-      ["I am a plain trader, but my weights are true.", "I deal fairly, and men come back to deal with me again.", "I have made no fortune, but I have never cheated a buyer."],
-      ["I know the markets and what each of them will pay.", "I know what grain fetches in a hungry year, and what copper fetches in a war.", "I know the merchants of the coast and the river towns."],
+      ["For {y} I traded out of {o} in every market between the sea and the rivers, and never came home at a loss.", "{In} I bought copper off the ships for {y} and sold it inland at twice the price.", "Tin has passed through my hands {in} for {y} on its way to three kings."],
+      ["I am a plain trader, but my weights were true {in} for {y}.", "I dealt fairly {in} for {y}, and men came back to deal with me again.", "I made no fortune in {y} {in}, but I never cheated a buyer."],
+      ["I know the markets {in} and what each of them will pay; I have watched them for {y}.", "{In} I learned over {y} what grain fetches in a hungry year, and copper in a war.", "I have known the merchants {in} and in the river towns for {y}."],
     ],
   ],
   [
     /chariot/,
     [
-      ["My team has carried a king's bowman through the press and out again.", "I have driven my horses through a rout and turned them before the enemy did.", "No horse of mine has gone lame on campaign."],
-      ["I am a horseman, not a speaker; I go where I am sent.", "My horses say more for me than I can.", "I keep my team fed and my wheels sound, and ask little else."],
-      ["I know horses, and how a king's chariots march and camp.", "I can tell a sound horse from a bad one at a glance.", "I know what a chariot needs on a long road."],
+      ["{In} my team carried a king's bowman through the press and out again, {y} running.", "For {y} I drove my horses out of {o}, through a rout once, and turned them before the enemy did.", "In {y} on campaign out of {o}, no horse of mine went lame."],
+      ["I am a horseman, not a speaker; for {y} {in} I went where I was sent.", "My horses say more for me than I can, as they knew {in} for {y}.", "{In} I kept my team fed and my wheels sound for {y}, and asked little else."],
+      ["I know horses, and how chariots march and camp; I learned it {in} over {y}.", "{In} I learned over {y} to tell a sound horse from a bad one at a glance.", "I know what a chariot needs on a long road; I drove out of {o} for {y}."],
     ],
   ],
   [
     /soldier/,
     [
-      ["I have stood in the front rank against the spears and come home every time.", "I was on the walls when the town was stormed, and I am still here.", "I have fought in four campaigns and carried my captain off the field in the last."],
-      ["I am a soldier, not a speaker; I go where I am sent.", "I have little to say; I do what I am told.", "I carry a spear and keep my place in the line."],
-      ["I know how armies march and where they camp.", "I know how a siege is laid, and how long a town can hold.", "I can count an army by its fires."],
+      ["{In} I stood in the front rank against the spears for {y} and came home every time.", "I was on the walls {in} when the town was stormed, {y} into my service, and I am still here.", "In {y} out of {o} I fought four campaigns and carried my captain off the field in the last."],
+      ["I am a soldier, not a speaker; for {y} {in} I went where I was sent.", "{In} I did what I was told for {y}, and said little.", "I carried a spear {in} for {y} and kept my place in the line."],
+      ["I know how armies march and where they camp; I learned it {in} over {y}.", "{In} I learned over {y} how a siege is laid, and how long a town can hold.", "I can count an army by its fires, as we did {in} for {y}."],
     ],
   ],
   [
     /sailor/,
     [
-      ["I have sailed the length of the coast and never lost a cargo.", "I have brought a ship through a winter storm with her hold dry.", "I have taken ships to Alashiya and back more times than I can count."],
-      ["I know ships and harbours, and little else.", "I am happier on a deck than at a court.", "I pull an oar and read the weather; that is all I claim."],
-      ["I know the harbours of the coast and the men in them.", "I know which harbours take a ship in winter.", "I know the winds of every season along the coast."],
+      ["For {y} I sailed the length of the coast from {o} and never lost a cargo.", "I brought a ship into {o} through a winter storm with her hold dry, {y} into my service.", "In {y} I have taken ships out of {o} to Alashiya and back more times than I can count."],
+      ["I know ships and harbours, and little else; {in} that was enough for {y}.", "I am happier on a deck than at a court, as they knew {in} for {y}.", "{In} I pulled an oar and read the weather for {y}; that is all I claim."],
+      ["I know the harbours of the coast and the men in them, from {o} outward; I have sailed them for {y}.", "{In} I learned over {y} which harbours take a ship in winter.", "I know the winds of every season along the coast; I learned them {in} over {y}."],
     ],
   ],
   [
     /priest|physician/,
     [
-      ["Kings have sought my counsel, and the gods have heard me.", "I have healed men the other physicians gave up for dead.", "My prayers have turned a plague from a city."],
-      ["I served in the temple, and I keep my word as I kept its rites.", "I serve the gods first, and the master who feeds me after.", "I am a servant of the temple, and keep its silences."],
-      ["I know the temples and the people who come to them.", "I know the remedies of the river lands and the hill country.", "I know the festivals, and what each god is owed."],
+      ["{In} kings sought my counsel for {y}, and the gods heard me.", "{In} I healed men the other physicians gave up for dead, for {y}.", "In {y} at the temple {in}, my prayers turned a plague from the city."],
+      ["I served in the temple {in} for {y}, and I keep my word as I kept its rites.", "{In} I served the gods first for {y}, and the master who fed me after.", "I was a servant of the temple {in} for {y}, and I keep its silences."],
+      ["I have known the temples {in} and the people who come to them for {y}.", "I learned the remedies of the river lands and the hills {in} over {y}.", "I know the festivals {in}, and what each god is owed; I kept them for {y}."],
     ],
   ],
   [
     /steward/,
     [
-      ["I kept a palace's stores, and not a jar went missing in my years.", "I ran a great house through a lean year, and nobody in it went hungry.", "I ran a palace's household of three hundred and kept its every account."],
-      ["I kept a household's stores; I count well and say little.", "I keep the keys and ask no questions.", "I am a steward, used to keeping other men's goods."],
-      ["I know how a court is run, and who runs it.", "I know what a palace eats in a season, and what it wastes.", "I know the storerooms, the kitchens and the men who rob them."],
+      ["I kept a palace's stores {in} for {y}, and not a jar went missing.", "{In} I ran a great house for {y}, through a lean year too, and nobody in it went hungry.", "I ran a household of three hundred {in} for {y} and kept its every account."],
+      ["I kept a household's stores {in} for {y}; I count well and say little.", "{In} I kept the keys for {y} and asked no questions.", "I was a steward {in} for {y}, used to keeping other men's goods."],
+      ["I know how a court is run, and who runs it; I learned it {in} over {y}.", "{In} I learned over {y} what a palace eats in a season, and what it wastes.", "I know storerooms and kitchens, and the men who rob them; I kept them {in} for {y}."],
     ],
   ],
   [
     /chief|elder|ruler/,
     [
-      ["Men left their villages to follow me, and none went back.", "I held my people together through a bad year, and they still call me lord.", "When the raiders came, my men stood and theirs ran."],
-      ["I have little to say for myself, but my word holds.", "My people chose me; I did not ask them to.", "I led a few men well, and lost none I could keep."],
-      ["I know how men are led, and what they will bear.", "I know the hill people and their quarrels.", "I know how to keep men together far from home."],
+      ["Men left their villages {in} to follow me, and none went back in {y}.", "I held my people together {in} for {y}, through a bad year too, and they still call me lord.", "When the raiders came {in}, {y} into my leading, my men stood and theirs ran."],
+      ["I have little to say for myself, but my word held {in} for {y}.", "My people {in} chose me; I did not ask them to, and I led them for {y}.", "I led a few men well {in} for {y}, and lost none I could keep."],
+      ["I know how men are led, and what they will bear; I learned it {in} over {y}.", "{In} I learned the hill people and their quarrels over {y}.", "For {y} I kept men together far from {o}, and can do it again."],
     ],
   ],
 ];
 
+/** A servant's words, for any other calling. */
+const ServantWords: Words = [
+  ["I served great men {in} for {y}, and none had cause to complain of me.", "Every master I served {in} in {y} was sorry to see me go.", "I served at two courts {in} over {y}, and both would have me back."],
+  ["I am a plain servant and no great speaker, but {in} I kept my word for {y}.", "{In} I did what I was bidden for {y}, and did it well.", "I bring no great deeds from {o}, only {y} of good service."],
+  ["I know the ways of the courts, and I carry a message as it was given; I learned it {in} over {y}.", "{In} I learned over {y} how a court works, and how to be useful in one.", "{In} I carried messages, kept secrets and counted tallies for {y}."],
+];
+
 function tradeWords(calling: string): Words {
-  return (
-    TradeWords.find(([pattern]) => pattern.test(calling))?.[1] ?? [
-      ["I have served great men, and none had cause to complain of me.", "Every master I served was sorry to see me go.", "I have served at two courts, and both would have me back."],
-      ["I am a plain servant and no great speaker, but I keep my word.", "I do what I am bidden, and do it well.", "I have no great deeds to tell, only good service."],
-      ["I know the courts of the Great Kings and their ways, and I carry a message as it was given.", "I know how a court works, and how to be useful in one.", "I can carry a message, keep a secret and count a tally."],
-    ]
-  );
+  return TradeWords.find(([pattern]) => pattern.test(calling))?.[1] ?? ServantWords;
+}
+
+/** Years of service as a candidate speaks of them, three to twenty. */
+const Years = ["three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"];
+
+/** One of a trade's forms for this person, with his own place and years put in. */
+function personal(forms: readonly string[], c: { id: string; origin: string }): string {
+  const n = idNumber(c.id);
+  const line = forms[n % forms.length];
+  const o = c.origin;
+  return line
+    .replaceAll("{in}", o === "" ? "at home" : `in ${o}`)
+    .replaceAll("{In}", o === "" ? "At home" : `In ${o}`)
+    .replaceAll("{o}", o === "" ? "my own land" : o)
+    .replaceAll("{y}", `${Years[Math.floor(n / forms.length) % Years.length]} years`);
 }
 
 function pitch(ctx: MindContext): MindReply {
@@ -475,7 +494,7 @@ function pitch(ctx: MindContext): MindReply {
   // What it says it can do is what it believes ("Seeing oneself"): the overconfident claim more.
   const believed = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
   const words = tradeWords(c.calling);
-  lines.push(pick(t.greed >= 60 || t.ambition >= 65 || believed >= 75 ? words[0] : believed < 45 && t.loyalty >= 55 ? words[1] : words[2], `0|${c.id}`));
+  lines.push(personal(t.greed >= 60 || t.ambition >= 65 || believed >= 75 ? words[0] : believed < 45 && t.loyalty >= 55 ? words[1] : words[2], c));
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
   if (defected !== null && t.loyalty < 50 && name === null) lines.push("I left my last master; I had cause.");
   // Item 11a, "Hiring as a negotiation": it plays courts against each other, citing a real offer, and a greedy, disloyal one

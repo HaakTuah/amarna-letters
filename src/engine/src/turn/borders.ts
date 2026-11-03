@@ -16,7 +16,7 @@ import { grainWorth, needOf } from "../model/economy.ts";
 import { countryNeed, LandData, reckonedOf } from "../model/land.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import type { DeportOrder, ExpelOrder, ReturnRunawaysOrder, WelcomeOrder } from "../model/orders.ts";
-import { type Power, powerName, whose } from "../model/power.ts";
+import { type Power, powerName, whose, whoseLand } from "../model/power.ts";
 import { isAlive, logEvent, ownedBy, siegeOf } from "../model/state.ts";
 import { cheapestRoute, fastestPoints, legPoints, PointsPerDay } from "../model/travel.ts";
 import { TurnEngine } from "./core.ts";
@@ -92,9 +92,9 @@ P.refuge = function (from, n, why) {
   const nameA = Map.get(from).name;
   const nameB = Map.get(best).name;
   // Word of it comes from each land to its king's court, by the road if far (bug #517).
-  if (a !== null && isAlive(S, a)) this.tell(a, from, "Notice", PeopleTitle, `From ${nameA}, ${people(n)} people fled ${why} into ${nameB}${b !== null ? `, ${whose(b)} land` : ""}.`);
+  if (a !== null && isAlive(S, a)) this.tell(a, from, "Notice", PeopleTitle, `From ${nameA}, ${people(n)} people fled ${why} into ${nameB}${whoseLand(nameB, b)}.`);
   if (b !== null && isAlive(S, b))
-    this.tell(b, best, "Notice", PeopleTitle, `Into ${nameB} came ${people(n)} people fleeing ${why} from ${nameA}${a !== null ? `, ${whose(a)} land` : ""}. You may settle them (order welcome)${a !== null ? ` or send them back (order return runaways)` : ""}.`);
+    this.tell(b, best, "Notice", PeopleTitle, `Into ${nameB} came ${people(n)} people fleeing ${why} from ${nameA}${whoseLand(nameA, a)}. You may settle them (order welcome)${a !== null ? ` or send them back (order return runaways)` : ""}.`);
   logEvent(S, "refugees", `${people(n)} people fled ${why} from ${nameA} into ${nameB}.`, [...this.nearOf(from, a), ...this.nearOf(best, b)], "refugees");
 };
 

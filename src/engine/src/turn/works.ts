@@ -110,7 +110,7 @@ P.worksChangeHands = function (province) {
 };
 
 /** A work as the court's notice names it: "the walls of Gubla", "the watch of Gubla" (policing is paid watchmen). */
-const named = (kind: WorkKind, place: string): string => `the ${kind === "Policing" ? "watch" : workName(kind)} of ${place}`;
+const named = (kind: WorkKind, place: string): string => `the ${workName(kind)} of ${place}`;
 
 /** Its verb: the walls were, the harbour was. */
 const was = (kind: WorkKind): string => (kind === "Harbour" || kind === "Policing" ? "was" : "were");

@@ -33,5 +33,5 @@ export function upper(s: string): string {
 
 /** One sent on an errand who is not in the king's service, in one of a few phrasings by `key` (see {@link pick}). */
 export function notTaken(name: string, key: string): string {
-  return pick([`${name} is not in your service: they did not take the job offered.`, `${name} did not take your job, and is not yours to send.`, `${name} has not taken service with you, so cannot be sent.`], key);
+  return pick([`${name} is not in your service: they did not take the job offered.`, `${name} did not take your job, and is not yours to send.`, `${name} has not taken service with you, so they cannot be sent.`], key);
 }

@@ -433,6 +433,20 @@ export function powerNameFor(viewer: Power, p: Power): string {
   return asSeenBy(viewer, () => powerName(p));
 }
 
+/** ", Hatti's land" after a province's name, or nothing where the province bears its power's name (Lakisha, Lakisha's land). */
+export function whoseLand(place: string, p: Power | null): string {
+  return p === null || powerName(p).replace(/^the /, "") === place.replace(/^the /, "") ? "" : `, ${whose(p)} land`;
+}
+
+/**
+ * A court's name at the head of a carrier's line about it ("Gubla keeps one army…", "Gubla holds …"): the words a reader
+ * tests to find what a court's own people showed its visitor (a bribed envoy drops them).
+ */
+export function courtHead(p: Power): string {
+  const n = powerName(p);
+  return n.length === 0 ? n : n[0].toUpperCase() + n.slice(1);
+}
+
 /** {@link powerName} with its possessive: "Hatti's", "the Seha River Land's". */
 export function whose(p: Power): string {
   const n = powerName(p);

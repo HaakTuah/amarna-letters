@@ -59,11 +59,15 @@ P.newsSeason = function () {
     const lines: string[] = [];
     const near = new Set(ownedBy(S, court).flatMap((x) => [x, ...Map.neighbors(x)]));
     // A line to each unit seen: what a seller asks goes by the lines he has to tell.
+    const told = new Set<Power>();
     for (const u of sortBy(
       S.units.filter((u) => near.has(u.province)),
       [(u) => idNumber(u.id), cmpNum],
     ))
-      if (rng.chance(0.3 + skill / 200)) lines.push(sightings(Map, [u], "had"));
+      if (rng.chance(0.3 + skill / 200)) {
+        lines.push(sightings(Map, [u], "had", told));
+        told.add(u.power);
+      }
     // A greedy, disloyal seller makes the treasury out to be larger than he saw ("may exaggerate").
     const honest = !(c.traits.greed > 70 && c.traits.loyalty < 40);
     if (rng.chance(skill / 150)) {

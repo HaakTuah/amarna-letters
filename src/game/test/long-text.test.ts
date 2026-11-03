@@ -41,9 +41,10 @@ describe("LongTextTests", () => {
       ["Eastland", 1],
       ["Southland", 1],
     ]);
-    expect(spied("Testu sold you what they saw at the court of Northland in turn 2, for 9 shekels: Northland had an army at home; Westland had three fleets, in Bayport, Ford and Hillfort. It is a seller's word.")).toEqual([
+    expect(spied("Testu sold you what they saw at the court of Northland in turn 2, for 9 shekels: Northland had an army at home; Westland had three fleets, in Bayport, Ford and Hillfort. Northland had another army in Ford. It is a seller's word.")).toEqual([
       ["Northland", 1],
       ["Westland", 3],
+      ["Northland", 1],
     ]);
     expect(shekels("2 minas 15 shekels")).toBe(135);
     const governor = GovernorWrites.exec("Testu, your governor of Hillfort, writes that its people are near revolt.");

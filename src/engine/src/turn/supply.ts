@@ -48,7 +48,7 @@ P.setSupply = function (p, o) {
     p,
     "Resolution",
     "Word on the army's food",
-    `Your couriers carry word to your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name} to ${o.buy ? "buy its food where it stands" : "take its food from the land"}${gold > 0 ? `, with ${formatMoney(gold)}` : ""}; it reaches them in turn ${at}.${o.buy && gold === 0 ? " No gold went with it, so they will take what they must." : ""}`,
+    `Your couriers carry word to your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name} to ${o.buy ? "buy its food where it stands" : "take its food from the land"}${gold > 0 ? `, with ${formatMoney(gold)}` : ""}; the word reaches it in turn ${at}.${o.buy && gold === 0 ? " No gold went with it, so it will take what it must." : ""}`,
   );
 };
 

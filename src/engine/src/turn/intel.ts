@@ -8,7 +8,7 @@ import { cmpStr, isBlank } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, ForgeOrder } from "../model/orders.ts";
 import { coverOf, gain, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
-import { AllPowers, land, powerName, type Power, quoteWords } from "../model/power.ts";
+import { AllPowers, land, powerName, type Power, quoteWords, courtHead } from "../model/power.ts";
 import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
 import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy, type Unit } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -412,9 +412,10 @@ P.spyObserve = function (c, rng) {
 /**
  * The troops a report saw, in one sentence, a clause to each power in the order first seen, powers seen alike in one:
  * "Hatti has two armies, at home and in Nesa; Niya and Tunip each have an army at home." A power's own capital is "at
- * home". The script kings read it (`SpiedUnit` in the game's brain), each unit once, by the count.
+ * home"; one more of a power `before` names is "another army". The script kings read it (`SpiedUnit` in the game's
+ * brain), each unit once, by the count.
  */
-export function sightings(map: WorldMap, units: readonly Unit[], verb: "has" | "had"): string {
+export function sightings(map: WorldMap, units: readonly Unit[], verb: "has" | "had", before: ReadonlySet<Power> = new Set()): string {
   const seen = groupBy(units, (u) => u.power).map(([p, us]): [Power, string] => {
     const home = map.capital(p).id;
     const kinds = (["Army", "Fleet"] as const)
@@ -424,7 +425,7 @@ export function sightings(map: WorldMap, units: readonly Unit[], verb: "has" | "
         const away = g.filter((u) => u.province !== home).map((u) => map.get(u.province).name);
         const where = [...(away.length < g.length ? ["at home"] : []), ...(away.length > 0 ? [`in ${listed(away)}`] : [])].join(" and ");
         const army = g[0].kind === "Army";
-        return g.length === 1 ? `${army ? "an army" : "a fleet"} ${where}` : `${counted(g.length)} ${army ? "armies" : "fleets"}, ${where}`;
+        return g.length === 1 ? `${before.has(p) ? "another" : army ? "an" : "a"} ${army ? "army" : "fleet"} ${where}` : `${counted(g.length)} ${army ? "armies" : "fleets"}, ${where}`;
       });
     return [p, kinds.join(", and ")];
   });
@@ -456,9 +457,9 @@ P.lossesHeard = function (carrier, court, held, death) {
     if (x === null) continue;
     if (l.kind === "Captured" && x.status === "Captured" && x.heldBy === court) {
       if (rng.chance(held))
-        heard.push(`${upper(powerName(court))} holds ${x.name}, ${l.master !== null ? `a spy of ${powerName(l.master)}` : "a spy who will not say whom they serve"}, captive (caught in turn ${l.turn}).`);
+        heard.push(`${courtHead(court)} holds ${x.name}, ${l.master !== null ? `a spy of ${powerName(l.master)}` : "a spy who will not say whom they serve"}, captive (caught in turn ${l.turn}).`);
     } else if (l.kind === "PutToDeath" && S.turn - l.turn <= LossNewsSeasons && rng.chance(death))
-      heard.push(`${upper(powerName(court))} put ${x.name}, ${l.master !== null ? `a spy of ${powerName(l.master)}` : "a spy who would not say whom they served"}, to death in turn ${l.turn}.`);
+      heard.push(`${courtHead(court)} put ${x.name}, ${l.master !== null ? `a spy of ${powerName(l.master)}` : "a spy who would not say whom they served"}, to death in turn ${l.turn}.`);
   }
   return heard;
 };
@@ -771,7 +772,7 @@ P.finishAuthentication = function (task) {
           forger.facts.push(newFact({ id: newId(S, "f"), text: `Exposed as a forger of seals in the service of ${land(culprit)}.`, secrecy: "Public", tag: "forger" }));
         }
         for (const p of alive(S).filter((p) => p !== task.requester))
-          this.rumor(p, task.requester, `The scribes of ${powerName(task.requester)} declare that a tablet bearing the seal of ${tablet.seals.join(" and ")} was forged by ${forger?.name ?? "a scribe"} of ${powerName(culprit)}.`);
+          this.rumor(p, task.requester, `The scribes of ${powerName(task.requester)} declare that a tablet bearing the seal of ${listed(tablet.seals.map((x) => powerName(x)))} was forged by ${forger?.name ?? "a scribe"} of ${powerName(culprit)}.`);
         logEvent(S, "forgery-exposed", `${task.requester} publicly traced a forgery to ${culprit}.`, null, "forgery-exposed");
       }
     } else result = genuine;

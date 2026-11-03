@@ -539,7 +539,7 @@ export class Brain {
       }
       // Another court's examination, announced to every court: an inventory brought by our envoy was forged by it.
       case "Rumor": {
-        const thief = ours((c) => item.body.includes(`brought by ${c.name}, envoy of ${powerNameFor(this.me, this.me)}, was forged by ${c.name}`));
+        const thief = ours((c) => item.body.includes(`brought by ${c.name}, envoy of ${powerNameFor(this.me, this.me)}, was forged by him`));
         if (thief !== null) this.thieves.add(thief.id);
         // A king who closes his roads to our people (item 7b) means us no good.
         if (item.title === RoadsTitle && item.body.includes("has closed his roads")) {
@@ -601,13 +601,13 @@ export const ForgerHand = /trace it to the hand of ([^,\n]{1,80}), who brought i
  * Nesa; Niya and Tunip each had a fleet in Ugarit"): their names are the first group ({@link spiedNames}), what was seen
  * of each the second, counted by {@link spiedCount}.
  */
-export const SpiedUnit = /(?:^|[.;:] )([^.;:]{1,200}?) (?:has|had|each have|each had) ((?:an army|a fleet|\S+ (?:armies|fleets))[^.;]*)/gu;
+export const SpiedUnit = /(?:^|[.;:] )([^.;:]{1,200}?) (?:has|had|each have|each had) ((?:an army|a fleet|another (?:army|fleet)|\S+ (?:armies|fleets))[^.;]*)/gu;
 
 /** The names in the first group of {@link SpiedUnit}: "Niya", or "Niya, Tunip and Qatna". */
 export function spiedNames(names: string): string[] {
   return names.split(/, | and /u);
 }
-const SpiedTroops = /\b(?:an army|a fleet|(\S+) (?:armies|fleets))/gu;
+const SpiedTroops = /\b(?:an army|a fleet|another (?:army|fleet)|(\S+) (?:armies|fleets))/gu;
 
 /** How many armies and fleets a clause of {@link SpiedUnit} counts ("two armies, at home and in Nesa and a fleet in Ugarit": 3). */
 export function spiedCount(seen: string): number {

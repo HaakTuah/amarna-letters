@@ -3,6 +3,7 @@
  * court keeps in its archive. An envoy that kept some of the gold may swap the inventory for one it forges, stating only
  * what is left, under the forgery rules: it needs the forger's skill, and is found out only when the tablet is examined.
  */
+import { listed } from "../rules/wording.ts";
 import { clamp } from "../core/num.ts";
 import { newFact, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power, powerName } from "../model/power.ts";
@@ -55,7 +56,7 @@ P.inventory = function (envoy, sealer, receiver, stated, sealedTurn, forged, sou
   const S = this.s;
   const tablet = newTablet({
     id: newId(S, "t"),
-    text: `The inventory of the gold ${sealer} sends to ${receiver}: ${formatMoney(stated)}.`,
+    text: `The inventory of the gold ${powerName(sealer)} sends to ${powerName(receiver)}: ${formatMoney(stated)}.`,
     proposedBy: sealer,
     seals: [sealer],
     createdTurn: sealedTurn,
@@ -90,7 +91,7 @@ P.swapInventory = function (c, sealer, receiver, kept, left, swap) {
     return null;
   }
   remember(c, S.turn, `I put an inventory I forged myself, stating ${formatMoney(left)}, in place of the one ${land(sealer)} sealed, so that nobody would miss the gold I kept.`);
-  c.facts.push(newFact({ id: newId(S, "f"), text: `Forged the inventory of the gold ${land(sealer)} sent to ${land(receiver)}, to hide what was kept.`, secrecy: "Deep", tag: "inventory-forgery" }));
+  c.facts.push(newFact({ id: newId(S, "f"), text: `Forged the inventory of the gold ${powerName(sealer)} sent to ${powerName(receiver)}, to hide what was kept.`, secrecy: "Deep", tag: "inventory-forgery" }));
   logEvent(S, "inventory-swapped", `${c.name} swapped the inventory of the gold ${sealer} sent to ${receiver} for a forgery stating ${formatMoney(left)}.`, [], "inventory-swapped");
   return `replaced the inventory with a forgery stating ${left} shekels`;
 };
@@ -101,18 +102,18 @@ P.swapInventory = function (c, sealer, receiver, kept, left, swap) {
  */
 P.inventoryExposed = function (examiner, tablet, forger) {
   const S = this.s;
-  const bearer = `${forger.name}${tablet.forgerEmployer !== null ? `, envoy of ${powerName(tablet.forgerEmployer)},` : ""}`;
+  const bearer = `${forger.name}${tablet.forgerEmployer !== null ? `, envoy of ${powerName(tablet.forgerEmployer)}` : ""},`;
   for (const p of AllPowers) forger.reputation.set(p, forger.reputation.getOrDefault(p, 0) - 30);
   forger.facts.push(
     newFact({
       id: newId(S, "f"),
-      text: `Exposed as the forger of an inventory of gold bearing the seal of ${tablet.seals.map((x) => land(x)).join(" and ")}.`,
+      text: `Exposed as the forger of an inventory of gold bearing the seal of ${listed(tablet.seals.map((x) => powerName(x)))}.`,
       secrecy: "Public",
       tag: "forger",
     }),
   );
   for (const p of alive(S).filter((p) => p !== examiner))
-    this.rumor(p, examiner, `The scribes of ${powerName(examiner)} declare that the inventory of gold bearing the seal of ${tablet.seals.join(" and ")}, brought by ${bearer} was forged by ${forger.name}.`);
+    this.rumor(p, examiner, `The scribes of ${powerName(examiner)} find that the inventory of gold under the seal of ${listed(tablet.seals.map((x) => powerName(x)))}, brought by ${bearer} was forged by him.`);
   logEvent(S, "forgery-exposed", `${examiner} publicly traced a forged inventory to ${forger.name}.`, null, "forgery-exposed");
   return ` The scribes trace it to the hand of ${forger.name}, who brought it.`;
 };

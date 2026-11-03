@@ -239,7 +239,7 @@ P.lettersGo = function () {
     if (c !== null && c.status === "Captured" && c.heldBy !== null && c.heldBy !== letter.to && letter.report !== null) {
       // Whoever caught the carrier reads what it carried ("The carrier can be intercepted").
       const spy = findCharacter(S, letter.characterId);
-      notify(S, c.heldBy, "Notice", "A letter taken on the road", `Among what ${c.name} carried was a sealed report to ${powerName(letter.to)} from ${spy?.name ?? "an agent"}, written in turn ${letter.departTurn}: ${letter.report.observations.join(" ")}`, spy?.id ?? null);
+      notify(S, c.heldBy, "Notice", "A letter taken on the road", `Among what ${c.name} carried was a sealed report to ${powerName(letter.to)} from ${spy === null ? "an agent" : spy.id === c.id ? "him" : spy.name}, written in turn ${letter.departTurn}: ${letter.report.observations.join(" ")}`, spy?.id ?? null);
       logEvent(S, "letter", `${c.heldBy} read a report to ${letter.to} taken from ${c.name}.`, [c.heldBy], "letter-read");
     } else if (c !== null && c.status === "Captured" && c.heldBy !== null && c.heldBy !== letter.to && letter.kind === "Offer" && isAlive(S, c.heldBy)) {
       // #553: so is a province's offer, in the people's own words; its king learns of it only from them.

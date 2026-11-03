@@ -9,7 +9,7 @@ import { type DispatchOrder } from "../model/orders.ts";
 import { factsKnownTo, gain, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
 import { courtSpeaks } from "../model/languages.ts";
 import { errandOf } from "./court.ts";
-import { claimedName, land, type Power, quoteWords, powerName, whose } from "../model/power.ts";
+import { claimedName, land, type Power, quoteWords, powerName, whose, courtHead } from "../model/power.ts";
 import { SealedOutcome, newDispatch, newExchange, newGreetingOptions, newHomeCargo, newJobOffer, newJourney, newMessageTrail, newPendingAudience, newTablet, newTabletCopy, newTabletProposal, type Exchange, type HomeCargo, type JobOffer, type Journey, type MessageTrail, type PendingAudience } from "../model/records.ts";
 import { char, findCharacter, isAlive, logEvent, newGoldLot, newId, notify, ownedBy } from "../model/state.ts";
 import { authorityText, newAuthority } from "../model/authority.ts";
@@ -695,7 +695,7 @@ P.observe = function (c, court) {
   const hears = skill * (0.25 + (0.75 * c.tongues.getOrDefault(courtSpeaks(court, capital), 0)) / 100);
   const nearby = S.units.filter((u) => u.power === court && Map.hops(capital, u.province) <= 2);
   if (rng.chance(skill))
-    obs.push(`${upper(powerName(court))} keeps ${nearby.filter((u) => u.kind === "Army").length} army and ${nearby.filter((u) => u.kind === "Fleet").length} fleet near its capital.`);
+    obs.push(`${courtHead(court)} keeps ${nearby.filter((u) => u.kind === "Army").length} army and ${nearby.filter((u) => u.kind === "Fleet").length} fleet near its capital.`);
   if (rng.chance(hears * 0.8)) {
     const gold = S.treasuries.get(court).gold;
     const wealth = gold < 150 ? "the treasury looks thin" : gold < 400 ? "the court lives comfortably" : gold < 800 ? "the court is rich" : "the court glitters with gold";
