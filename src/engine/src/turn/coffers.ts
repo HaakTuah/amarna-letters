@@ -174,7 +174,8 @@ P.goldArrives = function () {
     if (held && siegeOf(S, x.province) === null) {
       intoCoffer(this, this.cofferOf(x.power, x.province, true)!, x.gold);
       this.tell(x.power, x.province, "Notice", "Gold sent", `The ${formatMoney(x.gold)} you sent reached the coffer of ${name}.`);
-      S.sent.push(newRemittance({ power: x.power, province: x.province, gold: x.gold, due: this.heardAt(x.power, x.province), landed: true }));
+      // Kept until word of it comes; told at once (word within the season), it leaves the list with the notice.
+      if (this.heardAt(x.power, x.province) > S.turn + S.deliveryOffset) S.sent.push(newRemittance({ power: x.power, province: x.province, gold: x.gold, due: this.heardAt(x.power, x.province), landed: true }));
       continue;
     }
     // Home again as word from there comes.
