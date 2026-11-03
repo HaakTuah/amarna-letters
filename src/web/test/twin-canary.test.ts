@@ -399,7 +399,34 @@ const tabletRepudiated: Twin = {
   heard: (s) => (s.inbox.tryGet("Babylonia") ?? []).some((i) => i.title === "A tablet repudiated"),
 };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated];
+/**
+ * A grant its grantee ended by repudiation, which its grantor, not yet told, revokes (bug #609, Codex's find): Libya
+ * granted Elam passage on a tablet Elam's envoy sealed, Elam repudiates it, and Libya revokes the grant in its second
+ * season. Elam and Libya lie three seasons apart, so the revocation's outcome comes before the word (a revocation
+ * resolves before a repudiation in the same season).
+ */
+const grantRepudiatedByGrantee: Twin = {
+  name: "a grant its grantee repudiated, revoked before word comes",
+  seat: "Libya",
+  seasons: 6,
+  make() {
+    const s = world("Elam", "Libya");
+    const at = ownedBy(s, "Libya").find((x) => !map.get(x).isSea)!;
+    s.tablets.push(
+      newTablet({ id: "t990", text: "Passage for Elam.", clauses: [clause("passage", { province: at })], proposedBy: "Libya", partner: "Elam", seals: ["Libya", "Elam"], sealedTurn: 0, byHandOf: "Elam", byHand: "Kutir", within: false }),
+    );
+    for (const holder of ["Elam", "Libya"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed by envoy", authResult: null, unread: null });
+    s.grants.push(newGrant({ id: "p990", grantor: "Libya", grantee: "Elam", province: at, sinceTurn: 0, tabletId: "t990" }));
+    s.sleep.tryAdd("Libya", newSleepState());
+    return s;
+  },
+  others: { power: "Elam", orders: [repudiate("k990E")] },
+  orders: [],
+  scheduled: [newScheduledOrders({ turn: 2, orders: [revoke("Elam")] })],
+  heard: (s) => (s.inbox.tryGet("Libya") ?? []).some((i) => i.title === "A tablet repudiated"),
+};
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {

@@ -7,7 +7,7 @@
 import { renderClauses } from "../rules/clauses.ts";
 import { isBlank } from "../core/text.ts";
 import { cap } from "../rules/greeting.ts";
-import { grantLive, grantStands, grantsIn, newGrant, withinAuthority, type Grant } from "../model/authority.ts";
+import { grantLive, grantLiveFor, grantStands, grantsIn, newGrant, withinAuthority, type Grant } from "../model/authority.ts";
 import type { Dispatch, HomeCargo, MessageTrail, Tablet } from "../model/records.ts";
 import { newTablet, newTabletCopy } from "../model/records.ts";
 import type { EnvoyReaction, HostReply } from "../model/exchanges.ts";
@@ -29,6 +29,7 @@ declare module "./core.ts" {
     guestAt(province: string, power: Power): boolean;
     revokeGrants(p: Power, o: RevokeOrder): void;
     endGrant(g: Grant, heard: number, by?: Power): void;
+    endKnown(g: Grant, heard: number): void;
     grantByOrder(p: Power, o: GrantOrder): void;
     repudiate(p: Power, o: RepudiateOrder): void;
     endGrants(grantor: Power, grantee: Power, why: string): void;
@@ -168,21 +169,25 @@ P.revokeGrants = function (p, o) {
   // The owner's answers to item 11a: word of it travels to the grantee's court as any news does, never known there at
   // once; until it comes, his view keeps the grant as it was (bug #565).
   const heard = S.turn + this.travelTurns(p, o.grantee);
-  const ended = S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && (o.province === null || g.province === o.province));
-  for (const g of ended) this.endGrant(g, heard);
+  // What he revokes as he knows it: a grant its grantee ended by repudiation, word of which has not come, he revokes all
+  // the same; it stays as it ended, and both sides know it ended (bug #609).
+  const known = S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLiveFor(g, p, S.turn));
+  const ended = known.filter((g) => o.province === null || g.province === o.province);
+  for (const g of ended) this.endKnown(g, heard);
   // One province of a passage through all his land: the grant stands for the rest. (The view shows a grant without its
   // land, so the grantee's court reads nothing of this before the word.)
-  let narrowed = false;
-  if (o.province !== null)
-    for (const g of S.grants)
-      if (g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && g.province === null && g.lands.includes(o.province)) {
-        g.lands = g.lands.filter((x) => x !== o.province);
-        narrowed = true;
-      }
-  if (ended.length === 0 && !narrowed) return;
+  const narrowed = o.province === null ? [] : known.filter((g) => g.province === null && g.lands.includes(o.province!));
+  for (const g of narrowed) g.lands = g.lands.filter((x) => x !== o.province);
+  if (ended.length === 0 && narrowed.length === 0) return;
   const what = o.province !== null ? `in ${this.map.get(o.province).name}` : "in his land";
   this.word(p, o.grantee, "Grant", `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what} (in season ${S.turn}). Troops of yours still standing there will take the land as any troop does, and he will count it an attack.`);
   logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p], "grant-revoked");
+};
+
+/** Its grantor ends a grant he believes stands: it ends now, or, ended already by its grantee unheard of, he knows it now. */
+P.endKnown = function (g, heard) {
+  if (grantLive(g, this.s.turn)) this.endGrant(g, heard);
+  else g.endHeard = this.s.turn;
 };
 
 /** A grant ends this season by `by` (its grantor unless named); the other side hears of it at `heard` (bugs #565, #609). */
@@ -230,9 +235,10 @@ P.grantByOrder = function (p, o) {
 /** Closing one's roads to a court ends what one granted it. */
 P.endGrants = function (grantor, grantee, why) {
   const S = this.s;
-  const ended = S.grants.filter((g) => g.grantor === grantor && g.grantee === grantee && grantLive(g, S.turn));
+  // As the grantor knows them: one its grantee ended by repudiation, unheard of, stays as it ended (bug #609).
+  const ended = S.grants.filter((g) => g.grantor === grantor && g.grantee === grantee && grantLiveFor(g, grantor, S.turn));
   // The grantee hears of it with the word of the closed roads (`roads`).
-  for (const g of ended) this.endGrant(g, S.turn + this.travelTurns(grantor, grantee));
+  for (const g of ended) this.endKnown(g, S.turn + this.travelTurns(grantor, grantee));
   if (ended.length === 0) return;
   logEvent(S, "passage", `${grantor} ended the passage and basing it granted ${grantee}: ${why}.`, [grantor], "grant-revoked");
 };
