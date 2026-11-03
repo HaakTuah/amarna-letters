@@ -811,7 +811,7 @@ label.volume input[type="range"] { width: 7rem; vertical-align: middle; }
     @media (hover: hover) { .court:hover::before { border-color: var(--accent); } }
     .court.on::before { box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
     .court:focus-visible { outline: none; }
-    .court:focus-visible::before { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .court:focus-visible::before { outline: 2px solid var(--accent); outline-offset: 0; }
     .game .court-pop { top: calc(100% + .2rem); }
     /* Where the strip lies over the map, the season tag stands below it. */
     @media (min-width: 900px) and (min-aspect-ratio: 1/1), (orientation: landscape) and (max-height: 560px) { .game .season-tag { top: 3.4rem; } }
