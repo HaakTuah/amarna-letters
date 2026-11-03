@@ -18,6 +18,7 @@ import type { InboxItem } from "../model/records.ts";
 import { newCourtHeld, type PlannedOrder, type SleepState, type StandingOrder } from "../model/sleep.ts";
 import { alive, findCharacter, inboxOf, isAlive, notify } from "../model/state.ts";
 import { ArchiveTakenTitle } from "./archives.ts";
+import { RiderBackTitle } from "./rides.ts";
 import { FeeDueTitle } from "./court.ts";
 import { removeAll } from "./resolve.ts";
 import { idNumber, TurnEngine } from "./core.ts";
@@ -413,6 +414,8 @@ P.digestLine = function (i) {
     case "Notice":
       if (i.title === "A spy is caught") return "a spy was caught at your court";
       if (i.title === ArchiveTakenTitle) return firstClause(i.body);
+      // A report the king paid a rider to bring (#601).
+      if (i.title === RiderBackTitle) return "your rider came home with a far province's report";
       return null;
     case "Rejected":
       return `an order was refused or failed (${i.title})`;

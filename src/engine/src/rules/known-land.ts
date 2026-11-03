@@ -58,6 +58,8 @@ export function ownerAt(s: GameState, map: WorldMap, province: string, turn: num
 /** What a court knows was so of a province it did not see itself: word of it, from its land, reaches the court that late. */
 export const WordSource = "word from abroad";
 export const SeenSource = "seen";
+/** A rider's report (#601): the source a court's record of the province names, "your rider" and his name. */
+export const riderSource = (name: string): string => `your rider ${name}`;
 
 /**
  * Who a court knows holds each land province, with the season it was so and where the knowledge came from (build order
@@ -95,7 +97,8 @@ export function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<s
  * The sieges a court knows of (bug #517): where it sees, as they are; one of its own cities, or of its own armies, farther
  * off from when word of its beginning, setting out the season it began, reaches the court until word of its end does
  * (GameState.siegesEnded keeps those ended lately), its progress as of the newest season whose word has come
- * (Siege.history). One it cannot see otherwise it does not know of.
+ * (Siege.history), or as fresh as what its own people last saw or brought from there (GameState.known, a rider's report
+ * among them). One it cannot see otherwise it does not know of.
  */
 export function siegesKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Siege[] {
   const sightNow = seen ?? sight(s, map, p);

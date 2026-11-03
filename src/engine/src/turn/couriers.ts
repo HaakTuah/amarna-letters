@@ -48,8 +48,11 @@ declare module "./core.ts" {
     sendOrders(p: Power, sub: TurnSubmission): TurnSubmission;
     /** A notice to a king from a place in his realm: at once within the season's reach, else when a courier brings it. */
     tell(p: Power, province: string, kind: InboxKind, title: string, text: string, extra?: number): void;
-    /** A report told its king in season `at` (now, if that is now or past), as `tell` does once it has reckoned the season. */
-    tellAt(p: Power, at: number, kind: InboxKind, title: string, text: string): void;
+    /**
+     * A report told its king in season `at` (now, if that is now or past), as `tell` does once it has reckoned the season;
+     * `from`, the place it was told from, which a rider hired there may bring it from sooner (#601, `ridersBack`).
+     */
+    tellAt(p: Power, at: number, kind: InboxKind, title: string, text: string, from?: string): void;
     /** Bug #540: the word a caravan home to a far province brought, heard once word of its homecoming could come. */
     caravanWordsHome(): void;
     /**
@@ -260,17 +263,19 @@ P.courierRead = function (p, to, o) {
 };
 
 P.tell = function (p, province, kind, title, text, extra = 0) {
-  this.tellAt(p, this.heardAt(p, province, extra), kind, title, text);
+  // Tagged with its place only if it is word of that place itself (no `extra`): word that came there from farther off
+  // (a governor's letter) a rider there could not bring before it came (#601).
+  this.tellAt(p, this.heardAt(p, province, extra), kind, title, text, extra === 0 ? province : undefined);
 };
 
-P.tellAt = function (p, at, kind, title, text) {
+P.tellAt = function (p, at, kind, title, text, from) {
   const S = this.s;
   if (at <= S.turn + S.deliveryOffset) {
     notify(S, p, kind, title, text);
     return;
   }
   // A report from afar: a courier brings it, a season or more later than a near one's.
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: p, to: p, news: "Realm", text: `${kind}|${title}|${text}` }));
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: p, to: p, news: "Realm", text: `${kind}|${title}|${text}`, seen: from === undefined ? [] : [from], reached: from === undefined ? [] : [S.turn] }));
 };
 
 P.lostOrder = function (p, order, province, title, text, why) {

@@ -160,6 +160,8 @@ export class Brain {
    */
   readonly alarmed = new Dict<string, number>();
   lastSeek = -10;
+  /** #601: the last ride offered for each far province: its season and fee, so a refusal is followed by a better offer. */
+  rideOffers = new Dict<string, { turn: number; fee: number }>();
   lastSpyCaught = -10;
   warTarget: Power | null = null;
   warSince = 0;
