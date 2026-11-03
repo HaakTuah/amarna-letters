@@ -60,10 +60,18 @@ take account of every way in and every security concern: a review that finds one
      `"AIza" + "Sy" + "x".repeat(33)`), never written out as a literal that looks real, so no scanner takes one for a
      leak. Sample names, paths and e-mail addresses are invented (`jdoe`, `/home/jdoe`, `jdoe@example.com`), never a
      real person's. A scanning alert on a test's fake is closed as "Used in tests" once the literal is gone.
-9. **Security alerts stay private until fixed.** The Security tab's alerts (code scanning, Dependabot, secret
-   scanning) are seen only by the owner, and no agent is given a token to read them. One he passes on is never copied
-   into an issue, a comment or a report: it is fixed in a PR that says what it hardens, never how to attack it. A real
-   secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
+9. **Security alerts and reported weaknesses,** handled by what they could reach (`docs/threat-model.md`). The Security
+   tab's alerts (code scanning, Dependabot, secret scanning) are seen only by the owner, and no agent is given a token
+   to read them; he passes on what needs fixing.
+   - **In a PR's own change:** it blocks the merge until fixed ("Codex reviews", point 6, in `docs/claude-and-codex.md`),
+     wherever it was reported, Codex's findings on the PR included.
+   - **In merged code, where it could reach the owner's accounts or tokens (a workflow, a CI permission, a secret), leak a player's API key, or let
+     one player attack another (a shared save or link that runs in someone else's browser):** reported privately first, if the reporter can (an outsider through
+     "Reporting a weakness" below, an agent in its session's own report to the owner), and fixed before any other work,
+     in a PR that says what it hardens, never how to attack it. A reporter who cannot report privately opens an issue
+     instead: a report that reaches the owner and gets fixed matters more than keeping it quiet.
+   - **Any other weakness in merged code:** a `bug` issue, fixed with priority.
+   - A real secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
 10. **Licences: free to use, kept that way** (archive item 164). Two lists, by what reaches players.
    - **What ships, or is built into it** (what the web build bundles, which its notices file lists, whatever
      `package.json` calls it): every package, the ones it pulls in included, and every font, image, sound and data
@@ -98,5 +106,6 @@ take account of every way in and every security concern: a review that finds one
 
 ## Reporting a weakness
 
-Do not open a public issue. Use GitHub's private vulnerability reporting (the repository's Security tab) if it is
-offered, or tell the owner directly; a builder that finds one writes it only in a private message to him, then fixes it.
+Use GitHub's private vulnerability reporting: the repository's Security tab, "Report a vulnerability", which only the
+owner sees. If you cannot, open an issue: a report that reaches the owner matters most. How each kind is handled:
+rule 9.
