@@ -97,9 +97,11 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   - ~~**#616, one clock for one road:**~~ (done, #639) a far province's report and its notices come by one function,
     the couriers' seasons from the place to the court (`wordHomeAt`), with a test that the same season's both arrive
     together. Save version 57. Report: `docs/rounds/2026-11-03-one-clock.md`.
-  - **#601, a fast courier, hired:** a king may hire a carrier to bring one far province's report home this season.
-    It is a job like any other ("Jobs, not wages"): the carrier asks his price by what he has heard such a job pays
-    and by how badly he is wanted, and the king may haggle; no fixed price, no menu.
+  - ~~**#601, a fast courier, hired:**~~ (done, #641) a job whose errand is a ride to a far province of the king's: its
+    report and notices come home within the season; the rider asks by what he heard a ride pays, how much sooner the
+    report comes and how many rides the court asks against the free people there, and takes less down to a least. For
+    item 18: the rider is never stopped on the road (a first guess). Save version 59. Report:
+    `docs/rounds/2026-11-03-hired-courier.md`.
   - **#618, after item 17++a:** word of a conquest, a fall or a revolt reaches courts beyond sight by the road: a
     vassal reports to his overlord what his court saw, an ally to the king he is bound to.
   - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
@@ -226,6 +228,7 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
+| #601 | Hiring a rider for a far province's report, haggling (`--ride-play-half`) | No ride in 20 games: no script king held land beyond a season's courier ride; the scenario test shows them ride, haggle and raise | Nothing to measure in script games; re-measure in item 18 if realms grow |
 | 17++a | Waging the war chosen, breaking a plain peace for it (`--war-play-half`) | 0.78 growth to 0.87, 13 wins to 7, in 20 games | Pays in wins, not in growth: Assyria and Arzawa lose by their wars of choice; for item 18 |
 | 17++a | Judging whether land would obey, and occupying it until it does (`--occupy-play-half`) | 0.88 growth to 0.82, 9 wins to 3, in 12 games | Pays |
 | 17++ C | Taking up the provinces that look to them where it pays, refusing the rest (`--take-up-play-half`) | 0.94 growth to 0.86, 26 wins to 24, in 50 games; declarations in 47 games (884), 845 taken up, 79 refused, 490 passed | Pays |
