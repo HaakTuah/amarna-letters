@@ -1576,3 +1576,8 @@ Given in the design chat with Claude, answering the design questions of the cons
     the threat model stuff?" Then, to the design session's take (move the threat model into a file of its own and
     point the settings there): "Yes, please! Expertly!" Moved into `docs/threat-model.md`, with a pointer in
     `SECURITY.md`, and the file added to the protected files (`SECURITY.md`, rule 3).
+191. **3 November 2026, 09:52 and 09:53 UTC**, in the design chat, on the threat model: "Does it also mention this is
+    an open repo, so anyone can attack, so expect anyone? Is that relevant, expert?" Then, to the design session's take
+    (say in the threat model that every file and its whole history are public, so nothing rests on being hidden and
+    anything committed stays public): "Yes, please, expertly! Outmost importance we keep it at its most observant!"
+    Written into `docs/threat-model.md`, "Everything is public".
