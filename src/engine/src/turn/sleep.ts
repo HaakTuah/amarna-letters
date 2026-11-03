@@ -10,10 +10,10 @@ import { HSet } from "../core/collections.ts";
 import { sortBy, cmpNum } from "../core/seq.ts";
 import { cmpStr, trimEnd } from "../core/text.ts";
 import type { UnitKind } from "../model/map.ts";
-import { characterOf, describe as describeOrder } from "../model/order-reading.ts";
+import { characterOf, placesNamed, told } from "../model/order-reading.ts";
 import { type Order } from "../model/orders.ts";
 import type { MoveFailure } from "../model/outcomes.ts";
-import { cmpPower, type Power } from "../model/power.ts";
+import { cmpPower, whose, type Power, powerName } from "../model/power.ts";
 import type { InboxItem } from "../model/records.ts";
 import { newCourtHeld, type PlannedOrder, type SleepState, type StandingOrder } from "../model/sleep.ts";
 import { alive, findCharacter, inboxOf, isAlive, notify } from "../model/state.ts";
@@ -22,6 +22,7 @@ import { RiderBackTitle } from "./rides.ts";
 import { FeeDueTitle } from "./court.ts";
 import { removeAll } from "./resolve.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { upper } from "../rules/wording.ts";
 
 /** The most orders a seat may schedule for one season. */
 export const MaxScheduledPerSeason = 24;
@@ -65,7 +66,7 @@ export const WallsReason = "foreign troops came next to a walled city of yours";
 export const AttackedReason = "foreign troops attacked you, and failed";
 /** Why a sleeping seat holds court: an envoy of `from` waits at its door. */
 export function envoyWaits(from: Power): string {
-  return `an envoy of ${from} waits to be received`;
+  return `an envoy of ${powerName(from)} waits to be received`;
 }
 /** Whether a wake reason is an envoy waiting, the one reason that wakes a seat for its audiences only. */
 export function isEnvoyWaiting(reason: string): boolean {
@@ -306,10 +307,10 @@ P.wakeReasons = function (p, sl) {
     if (o.order !== "move" || o.target === null) continue;
     const t = o.target;
     if (!o.succeeded) {
-      if (o.targetOwner === p || stood.has(t)) add(`${AttackedReason}: ${o.power}'s ${kindName(o.unitKind)} tried to move ${o.province} -> ${t}`);
+      if (o.targetOwner === p || stood.has(t)) add(`${AttackedReason}: ${whose(o.power)} ${kindName(o.unitKind)} tried to move ${o.province} -> ${t}`);
       continue;
     }
-    const move = `${o.power}'s ${kindName(o.unitKind)} moved ${o.province} -> ${t}`;
+    const move = `${whose(o.power)} ${kindName(o.unitKind)} moved ${o.province} -> ${t}`;
     if (o.targetOwner === p) add(o.guest ? `guests entered your land by the passage or basing you granted: ${move}` : `foreign troops entered your land: ${move}`);
     else {
       const near = sortBy(
@@ -328,7 +329,7 @@ P.wakeReasons = function (p, sl) {
     const walls = S.walls.getOrDefault(x.province, 0);
     // Item 9+a: it falls by hunger (it could not feed its people as this season began) or once its walls are breached.
     const breach = walls * EconomyData.breachPerLevel;
-    const state = `${x.power}'s army besieges ${x.province} (walls ${walls}), worn down ${x.progress} of ${breach}`;
+    const state = `${whose(x.power)} army besieges ${x.province} (walls ${walls}), worn down ${x.progress} of ${breach}`;
     if (S.starving.includes(x.province)) add(`${SurrenderReason}: ${state}, and its food is gone`);
     else if (x.progress + 1 >= breach) add(`${SurrenderReason}: ${state}`);
     else if (x.since === S.turn - 1) add(`${SiegeBegunReason}: ${state}`);
@@ -350,7 +351,7 @@ P.wakeReason = function (i) {
       // Item 17++: land goes over to another, or rises, by the season's rule.
       return LandLostTitles.includes(i.title) ? `land lost: ${i.body}` : null;
     case "Catastrophe":
-      return i.body.includes("it has destroyed your") ? "plague destroyed troops of yours" : null;
+      return i.body.includes("has carried off your") ? "plague destroyed troops of yours" : null;
     case "Notice": {
       if (i.title === FeeDueTitle) return `a fee fell due unpaid: ${findCharacter(this.s, i.subject)?.name ?? i.body}`;
       // The economy's failures (item 9+a): troops that mutinied, went hungry or unpaid, a caravan lost.
@@ -378,7 +379,7 @@ P.collectDigest = function (p, sl) {
   if (added === undefined) digestAdded.set(this, (added = new Map()));
   for (const o of S.lastSeen.tryGet(p) ?? []) {
     if (o.power === p || o.order !== "move" || o.target === null) continue;
-    const who = `${o.power}'s ${kindName(o.unitKind)}`;
+    const who = `${whose(o.power)} ${kindName(o.unitKind)}`;
     sl.digest.push(o.succeeded ? `turn ${S.turn - 1}: ${who} moved ${o.province} -> ${o.target}` : `turn ${S.turn - 1}: ${who} tried to move ${o.province} -> ${o.target} and failed`);
   }
   // Each line is dated by the season its news came, except a standing order's firing, dated by the season it fired.
@@ -486,19 +487,19 @@ P.lostUnits = function (p, sl) {
   const lost = (x: PlannedOrder): boolean => gone(x.unitId) || gone(x.otherUnitId);
   const lines: string[] = [];
   if (sl !== null) {
-    lines.push(...sl.scheduled.filter(lost).map((x) => `turn ${x.turn}: ${describeOrder(x.order)}`));
+    lines.push(...sl.scheduled.filter(lost).map((x) => `${upper(told(x.order))} (for turn ${x.turn})`));
     removeAll(sl.scheduled, lost);
   }
   for (const st of [...this.standingOf(p)]) {
     if (gone(st.unitId) || st.orders.every(lost)) {
       const book = S.standing.get(p).orders;
       book.splice(book.indexOf(st), 1);
-      lines.push(`standing order ${st.id} (${st.when === "UnitAttacked" ? `when your unit that stood in ${st.province ?? ""} is attacked` : entersText(p, st.power, st.province ?? "?")})`);
+      lines.push(`Standing order ${st.id} (${st.when === "UnitAttacked" ? `when your unit that stood in ${st.province ?? ""} is attacked` : entersText(p, st.power, st.province ?? "?")})`);
     } else {
-      const lostOrders = st.orders.filter(lost).map((x) => describeOrder(x.order));
+      const lostOrders = st.orders.filter(lost).map((x) => told(x.order));
       if (lostOrders.length > 0) {
         removeAll(st.orders, lost);
-        lines.push(`from standing order ${st.id}: ${lostOrders.join("; ")}`);
+        lines.push(`From standing order ${st.id}: ${lostOrders.join("; ")}`);
       }
     }
   }
@@ -508,8 +509,7 @@ P.lostUnits = function (p, sl) {
     p,
     "Rejected",
     LostTroopsTitle,
-    "These orders were for troops you no longer have (destroyed, deserted, disbanded or given away), so they were dropped. Each names its unit by where it stood when you gave the order:\n" +
-      lines.map((x) => "- " + x).join("\n"),
+    placesNamed("These orders were dropped, for the troops they name are yours no longer.\n" + lines.map((x) => "- " + x).join("\n")),
   );
 };
 
@@ -527,6 +527,6 @@ P.endSleep = function (p) {
 
 /** The words for StandingWhen.UnitEnters: whose troops, and where. */
 export function entersText(viewer: Power, power: Power | null, province: string): string {
-  return `when ${power !== null ? (power === viewer ? "your own" : `${power}'s`) : "foreign"} troops enter ${province}`;
+  return `when ${power !== null ? (power === viewer ? "your own" : whose(power)) : "foreign"} troops enter ${province}`;
 }
 

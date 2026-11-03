@@ -49,7 +49,7 @@ TurnEngine.prototype.worldEvents = function () {
         if (lost !== null) S.units.splice(S.units.indexOf(lost), 1);
         // It kills peasants across the realm (item 10+a).
         for (const x of owned) this.killSettled(x, LandData.plagueDead * 10);
-        exact = "The hand of Nergal is on the land. Plague will cut income by a quarter for two seasons" + (lost !== null ? `, and it has destroyed your ${unitLabel(lost)}.` : ".");
+        exact = "The hand of Nergal is on the land: plague. For two seasons your land will bring in a quarter less" + (lost !== null ? `, and the sickness has carried off your ${unitLabel(lost)}.` : ".");
         plain = `Word comes of sickness in ${land(p)}.`;
         break;
       }
@@ -65,7 +65,7 @@ TurnEngine.prototype.worldEvents = function () {
         const left = wallsOf(S, cat.province);
         exact =
           `An earthquake has ruined ${Map.get(cat.province).name}; it will yield nothing for four seasons` +
-          (shaken ? `, and its walls stand a level lower (${left > 0 ? `walls ${left}` : "none left"}).` : ".");
+          (shaken ? (left > 0 ? ", and its walls lie a level lower." : ", and its walls lie in ruins.") : ".");
         plain = `Word comes that the earth shook in ${land(p)}.`;
         break;
       }

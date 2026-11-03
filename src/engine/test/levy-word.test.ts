@@ -56,7 +56,7 @@ describe("LevyWordTests", () => {
     season();
     new TurnEngine(s, WorldMap.default).beginTurn();
     // Told at once that the levy was refused for want of gold, and at once that the orders for its army are dropped.
-    Assert.true(inboxOf(s, "Egypt").some((i) => i.turn === s.turn && i.body.includes("raise army in nubia: not enough gold")));
+    Assert.true(inboxOf(s, "Egypt").some((i) => i.turn === s.turn && i.body.includes("Raise army in Kush: not enough gold")));
     Assert.true(inboxOf(s, "Egypt").some((i) => i.turn === s.turn && i.title === UnraisedTitle));
     Assert.empty(sl.scheduled);
   });

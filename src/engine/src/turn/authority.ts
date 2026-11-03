@@ -4,6 +4,7 @@
  * sealed, and what a grant changes: a guest's troops take none of the land they stand in by leave, and its travellers
  * are not turned back there. The model is in model/authority.ts.
  */
+import { upper } from "../rules/wording.ts";
 import { renderClauses } from "../rules/clauses.ts";
 import { isBlank } from "../core/text.ts";
 import { cap } from "../rules/greeting.ts";
@@ -14,7 +15,7 @@ import type { EnvoyReaction, HostReply } from "../model/exchanges.ts";
 import type { GrantOrder, RepudiateOrder, RevokeOrder } from "../model/orders.ts";
 import type { Character } from "../model/people.ts";
 import { remember } from "../model/people.ts";
-import { land, type Power, quoteWords } from "../model/power.ts";
+import { land, type Power, quoteWords, powerName, whose } from "../model/power.ts";
 import type { Clause } from "../model/clauses.ts";
 import { isAlive, logEvent, newId, notify, ownedBy, type Unit } from "../model/state.ts";
 import { TurnEngine } from "./core.ts";
@@ -59,11 +60,11 @@ P.sealByHand = function (sender, host, c, d, h, e, trail, cargo) {
   if (offered === null) return false;
   const a = d.authority;
   if (a === null || !a.seal) {
-    trail.outcomes.push(`${host} offered a tablet of its own, which ${c.name} could not seal: he did not carry your seal ("${cap(offeredText(this, host, sender, offered), 300)}")`);
+    trail.outcomes.push(`${upper(powerName(host))} offered a tablet of its own, which ${c.name} could not seal: he did not carry your seal ("${cap(offeredText(this, host, sender, offered), 300)}")`);
     return false;
   }
   if (!e.sealCounter) {
-    trail.outcomes.push(`${host} offered a tablet of its own, which ${c.name} did not seal ("${cap(offeredText(this, host, sender, offered), 300)}")`);
+    trail.outcomes.push(`${upper(powerName(host))} offered a tablet of its own, which ${c.name} did not seal ("${cap(offeredText(this, host, sender, offered), 300)}")`);
     return false;
   }
   const clauses = this.clausesOf(host, sender, offered.clauses, "tablet");
@@ -88,7 +89,7 @@ P.sealByHand = function (sender, host, c, d, h, e, trail, cargo) {
   S.tablets.push(tablet);
   S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: tablet.id, holder: host, acquiredTurn: S.turn, source: `sealed at audience by the hand of ${c.name}` }));
   cargo.copyIds.push(tablet.id);
-  trail.outcomes.push(`sealed a tablet of ${host}'s in your name, by his own hand${within ? ", within his authority" : ", beyond his authority"}`);
+  trail.outcomes.push(`sealed a tablet of ${whose(host)} in your name, by his own hand${within ? ", within his authority" : ", beyond his authority"}`);
   remember(c, S.turn, `I set the seal of my lord of ${land(sender)} on a tablet the king of ${land(host)} offered me${within ? "" : ", though it went beyond what I was allowed"}.`);
   logEvent(S, "tablet", `${c.name}, envoy of ${sender}, sealed a tablet of ${host}'s in his king's name: "${cap(text, 160)}"`, [sender, host], "envoy-sealed");
   this.grantsFrom(tablet);
@@ -110,7 +111,7 @@ P.grantsFrom = function (t) {
     // All his land: the land he holds as it is sealed, not land he wins after.
     const lands = g.province === null ? ownedBy(S, g.grantor).filter((x) => !this.map.get(x).isSea) : [];
     S.grants.push(newGrant({ id: newId(S, "p"), kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, lands, sinceTurn: S.turn, untilTurn: g.untilTurn, tabletId: t.id }));
-    const where = g.province !== null ? this.map.get(g.province).name : `all the land of ${g.grantor}`;
+    const where = g.province !== null ? this.map.get(g.province).name : `all the land of ${powerName(g.grantor)}`;
     logEvent(S, "passage", `${g.grantor} granted ${g.grantee} ${g.kind === "passage" ? "passage through" : "basing within the walls of"} ${where}.`, [g.grantor, g.grantee], g.kind === "passage" ? "passage-granted" : "basing-granted");
   }
 };
@@ -193,7 +194,7 @@ P.revokeGrants = function (p, o) {
   }
   if (ended.length === 0 && cut.length === 0) return;
   const what = o.province !== null ? `in ${this.map.get(o.province).name}` : "in his land";
-  this.word(p, o.grantee, "Grant", `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what} (in season ${S.turn}). Troops of yours still standing there will take the land as any troop does, and he will count it an attack.`);
+  this.word(p, o.grantee, "Grant", `The king of ${powerName(p)} revoked in turn ${S.turn} the passage and basing he granted your troops ${what}. Troops of yours still there now take the land as any troops do, and he will count it an attack.`);
   logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p], "grant-revoked");
 };
 
@@ -224,13 +225,13 @@ P.grantByOrder = function (p, o) {
     o.kind === "basing" && o.province === null
         ? "basing is granted in one city"
         : !isAlive(S, o.grantee)
-          ? `${o.grantee} has fallen`
+          ? `${powerName(o.grantee)} has fallen`
           : (S.roadsClosed.tryGet(p) ?? []).includes(o.grantee)
-            ? `your roads are closed to ${o.grantee}'s people: open them first`
+            ? `your roads are closed to ${whose(o.grantee)} people: open them first`
             : null;
   const where = o.province !== null ? Map.get(o.province).name : "all your land";
   if (why !== null) {
-    notify(S, p, "Rejected", "Order failed", `No ${o.kind} was granted to ${o.grantee} in ${where}: ${why}.`);
+    notify(S, p, "Rejected", "Order failed", `No ${o.kind} was granted to ${powerName(o.grantee)} in ${where}: ${why}.`);
     return;
   }
   const lands = o.province === null ? ownedBy(S, p).filter((x) => !Map.get(x).isSea) : [];
@@ -238,10 +239,10 @@ P.grantByOrder = function (p, o) {
   const heard = S.turn + Math.max(1, this.travelTurns(p, o.grantee));
   S.grants.push(newGrant({ id: newId(S, "p"), kind: o.kind, grantor: p, grantee: o.grantee, province: o.province, lands, sinceTurn: since, untilTurn: o.seasons !== null ? since + Math.max(1, o.seasons) - 1 : null, tabletId: "", heardTurn: heard }));
   const term = o.seasons !== null ? `, for ${o.seasons} seasons` : ", until you revoke it";
-  notify(S, p, "Resolution", GrantTitle, `From next season ${o.grantee}'s troops may ${o.kind === "passage" ? "pass through" : "stand within the walls of"} ${where} by your order${term}. Word of it reaches ${o.grantee}'s court as fast as a messenger rides.`);
+  notify(S, p, "Resolution", GrantTitle, `From next season ${whose(o.grantee)} troops may ${o.kind === "passage" ? "pass through" : "stand within the walls of"} ${where} by your order${term}. Word of it reaches ${whose(o.grantee)} court as fast as a messenger rides.`);
   // The grantee learns of it by that word, as his view does (bug #565), never from the season's events.
   const there = o.province !== null ? Map.get(o.province).name : "all his land";
-  this.word(p, o.grantee, "Grant", `The king of ${land(p)} has granted your troops ${o.kind === "passage" ? "passage through" : "leave to stand within the walls of"} ${there} from season ${since}${o.seasons !== null ? `, for ${o.seasons} seasons` : ", until he revokes it"}.`);
+  this.word(p, o.grantee, "Grant", `The king of ${powerName(p)} has granted your troops ${o.kind === "passage" ? "passage through" : "leave to stand within the walls of"} ${there} from season ${since}${o.seasons !== null ? `, for ${o.seasons} seasons` : ", until he revokes it"}.`);
   logEvent(S, "passage", `${p} granted ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing within the walls of"} ${o.province !== null ? Map.get(o.province).name : `all the land of ${p}`}, by order.`, [p], "granted-by-order");
 };
 
@@ -276,7 +277,7 @@ P.repudiate = function (p, o) {
     // One its grantor ended already (a narrowing, word of which has not come): the repudiating king knows it ended now.
     else if (g.tabletId === t.id && grantLiveFor(g, p, S.turn) && !grantLive(g, S.turn)) g.endHeard = S.turn;
   const text =
-    `The king of ${land(p)} repudiates the tablet his envoy ${t.byHand ?? ""} sealed in his name (${quoteWords(cap(t.text, 160))}): he says it went beyond the envoy's authority, and it does not bind him. What it granted, either way, has ended.` +
+    `The king of ${powerName(p)} repudiates the tablet his envoy ${t.byHand ?? ""} sealed in his name (${quoteWords(cap(t.text, 160))}): he says it went beyond the envoy's authority, and it does not bind him. What it granted, either way, has ended.` +
     (t.credentialsShown ? ` His envoy showed you its credentials: by them the tablet lay ${t.within ? "within" : "beyond"} his authority.` : "");
   this.word(p, other, "Realm", `Notice|${RepudiatedTitle}|${text}`);
   logEvent(S, "tablet", `${p} repudiated the tablet its envoy ${t.byHand ?? ""} sealed with ${other}, as beyond his authority.`, [p], "repudiated");

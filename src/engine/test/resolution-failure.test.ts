@@ -69,10 +69,10 @@ describe("ResolutionFailureTests", () => {
   const TakeSinai: Order[] = [move("shasu", "sinai"), support("gaza", "shasu", "sinai")];
 
   test.each([
-    ["cession of land with own troops in it", "Cession failed", "Men-nefer was not ceded to Hatti: your own troops still stood in it after movement.", false],
-    ["gift of troops destroyed in battle", "Gift of troops failed", "No unit of yours stood in the Ways of Horus after movement, so none was given to Hatti.", false],
-    ["disband of a unit destroyed in battle", "Disband failed", "No unit of yours stood in the Ways of Horus after movement, so none was disbanded.", false],
-    ["levy in a province not empty", "Levy failed", "No army was raised in Waset: Waset was not empty after movement. No gold was paid.", false],
+    ["cession of land with own troops in it", "Cession failed", "Men-nefer was not ceded to Hatti: your own troops still stood in it when the moves were done.", false],
+    ["gift of troops destroyed in battle", "Gift of troops failed", "No unit of yours stood in the Ways of Horus when the moves were done, so none was given to Hatti.", false],
+    ["disband of a unit destroyed in battle", "Disband failed", "No unit of yours stood in the Ways of Horus when the moves were done, so none was disbanded.", false],
+    ["levy in a province not empty", "Levy failed", "No army was raised in Waset: troops still stood in Waset when the moves were done. No gold was paid.", false],
     [
       "levy in land ceded that season",
       "Levy failed",
@@ -100,8 +100,8 @@ describe("ResolutionFailureTests", () => {
     ["forgery by a servant without the skill", "Forgery botched", "{envoy} said they could not fake a seal; the clay is ruined and nothing usable came of it.", false],
     ["ransom that cannot be paid", "Not enough gold", "There was not enough gold to pay for the ransom for {envoy}; none was sent.", true],
     ["ransom for a captive let go that season", "Ransom not sent", "The ransom for {envoy} could not be sent: {envoy} is no longer held by Hatti.", true],
-    ["hire below the price", "Not hired", "{stranger} declined your offer of 1 shekels for 6 seasons: they ask", false],
-    ["renewal below the price", "Not renewed", "{envoy} will not take a new job for 1 shekels within 6 seasons with 0 shekels now; they ask", false],
+    ["hire below the price", "Not hired", "{stranger} declined your offer of 1 shekel for 6 seasons: they ask", false],
+    ["renewal below the price", "Not renewed", "{envoy} will not take a new job for 1 shekel over 6 seasons, nothing paid now: they ask", false],
     [
       "captive turned once its king dismissed it",
       "Captive order failed",

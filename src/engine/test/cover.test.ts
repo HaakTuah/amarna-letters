@@ -199,7 +199,7 @@ describe("CoverTests", () => {
       }),
     ).rejected;
     Assert.equal(`${envoy.name} is not at your court`, rejected[0].reason);
-    Assert.equal(`a spy must be one of your own people at your court: ${envoy.name} is not at your court`, rejected[1].reason);
+    Assert.equal(`a spy must be one of your own people at your court; ${envoy.name} is not at your court`, rejected[1].reason);
     Assert.equal(`${envoy.name} is not on a mission`, rejected[2].reason);
 
     // The same orders for an envoy really on the road home read the same.

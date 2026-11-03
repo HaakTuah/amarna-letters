@@ -9,7 +9,7 @@
  */
 import { Dict, HSet } from "../core/collections.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
-import { AllPowers, type Power } from "../model/power.ts";
+import { AllPowers, type Power, powerName } from "../model/power.ts";
 import { isSealedAgreement, newJourney, repudiationKnown, type Journey } from "../model/records.ts";
 import { isAlive, logEvent, newId, newKnown, notify, type GameState } from "../model/state.ts";
 import { vassalBonds } from "../model/vassals.ts";
@@ -54,9 +54,9 @@ export function reportsTo(s: GameState, v: Power): { overlords: Power[]; allies:
 
 /** What the reporter tells: the land and who holds it now, and who held it before if its court saw that too. */
 function tidingsText(name: string, before: Power | null | undefined, now: Power | null): string {
-  if (now === null) return before == null ? `${name} answers to no king.` : `${name} has thrown off ${before} and answers to no king.`;
-  if (before === undefined) return `${name} now answers to ${now}.`;
-  return before === null ? `${name}, which had no king, now answers to ${now}.` : `${name} has passed from ${before} to ${now}.`;
+  if (now === null) return before == null ? `${name} answers to no king.` : `${name} has thrown off ${powerName(before)} and answers to no king.`;
+  if (before === undefined) return `${name} now answers to ${powerName(now)}.`;
+  return before === null ? `${name}, which had no king, now answers to ${powerName(now)}.` : `${name} has passed from ${powerName(before)} to ${powerName(now)}.`;
 }
 
 P.sendTidings = function () {
@@ -112,7 +112,7 @@ P.sendTidings = function () {
       from: g.from,
       to: g.o,
       news: g.bond === "vassal" ? "TidingsVassal" : "TidingsAlly",
-      text: `Your ${g.bond} ${g.from} sends word of season ${S.turn}: ${g.lands.map((l) => l.line).join(" ")}`,
+      text: `Your ${g.bond} ${powerName(g.from)} sends word of turn ${S.turn}: ${g.lands.map((l) => l.line).join(" ")}`,
       seen: g.lands.map((l) => l.x),
       reached: g.lands.map(() => S.turn),
     });

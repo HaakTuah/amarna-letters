@@ -53,9 +53,9 @@ describe("OfferTests", () => {
     s.turn = j.arriveTurn;
     e.offerArrives(j);
     Assert.equal(s.turn, d.known);
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you" && i.body.includes("Ahmose brought it"));
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you" && i.body.startsWith(`Ahmose has brought you the word of the people of ${WorldMap.default.get("babylon").name}: "The people of Babylon declare for you."`));
     // The people's words, then the terms of answering them, which only the power it reaches is told (#553).
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you" && i.body.startsWith(`The people of Babylon declare for you. ${OfferTerms}`));
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you" && i.body.endsWith(`"The people of Babylon declare for you." ${OfferTerms}`));
   });
 
   test("Only a people far gone in his favour pays a courier from its purse", () => {

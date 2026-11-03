@@ -46,7 +46,7 @@ P.setOutCourt = function (p, o) {
   if (!this.pay(p, cost, `moving your court to ${this.map.get(o.to).name}`, o)) return;
   S.kingRoads = S.kingRoads.filter((x) => x.power !== p);
   S.kingRoads.push(newKingRoad({ power: p, to: o.to, route: r.route, leg: 0, along: 0, since: S.turn }));
-  notify(S, p, "Resolution", "The court sets out", `You set out with your court for ${this.map.get(o.to).name}, for ${formatMoney(cost)}: about ${Math.max(1, Math.ceil(r.cost / PointsPerDay))} days of road. Your orders go out from wherever you are, and envoys and reports reaching your old seat are sent on after you.`);
+  notify(S, p, "Resolution", "The court sets out", `You set out with your court for ${this.map.get(o.to).name}, for ${formatMoney(cost)}: about ${Math.max(1, Math.ceil(r.cost / PointsPerDay))} days of road.`);
   logEvent(S, "court", `The king of ${p} set out with his court for ${this.map.get(o.to).name}.`, [p], "court-moves");
 };
 

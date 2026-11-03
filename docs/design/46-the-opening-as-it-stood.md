@@ -117,7 +117,8 @@ order `upkeep`, the seat view's `payTroops`, `feedTroops`, `payHeld`, `feedHeld`
   sources name no king; never a number.
 - **Naming as a court gives it** (`land(p)` reads `landFor(viewer, p)`): the engine writes and logs each power by its own
   land's name; a notice to a court is turned into that court's names as it is written (`notify`, `namedFor`, issue #417),
-  so one name means one power in all a court reads. What a notice quotes (a sealed greeting, a letter, someone's words:
+  so one name means one power in all a court reads. Notices and screens name a power one way, `powerName` (its land's
+  name, Babylonia rather than Karduniash, which the letters keep), with `whose` for its possessive (the slop audit). What a notice quotes (a sealed greeting, a letter, someone's words:
   marked by `quoteWords`, or else between double quotes) stays as written, and so does the notice of one's own claim,
   which speaks of the name itself. A fallen power claims nothing, as a court that has heard of the fall knows it
   (`GameState.fallsHeard`): it goes by its own land's name, or by its house where another still claims that name. A land's name in a notice is read as the realm's, a province of that name included. A court's seat view (`Views.for`, wrapped in `asSeenBy`) and the web page with one human seat (`setNameViewer`) name them

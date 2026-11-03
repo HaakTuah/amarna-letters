@@ -1,5 +1,8 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, countFigures, grantPlace, dateLabel, describe, formatMoney, land, nameFrom, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, countFigures, grantPlace, dateLabel, describe, formatMoney, nameFrom, powerName, rx, seasonName, shortDate, toFigures, yearBce, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
+
+/** A power by the name every screen and notice gives it (the engine's `powerName`). */
+export { powerName };
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
@@ -7,8 +10,6 @@ export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLow
 export const shekels = (s: number): string => formatMoney(Math.round(s));
 
 export const provinceName = (id: string): string => (WorldMap.default.exists(id) ? WorldMap.default.get(id).name : id);
-
-export const powerName = (p: Power): string => (p === "Babylonia" ? "Babylonia" : land(p));
 
 /** The one date label of the interface: the court's season and the year BCE with the turn, or the spectator's. */
 export const when = (turn: number, court: Power | null): string => dateLabel(turn, court);

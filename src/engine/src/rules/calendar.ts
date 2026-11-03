@@ -97,7 +97,13 @@ export function formatMoney(shekels: number): string {
   shekels = Math.round(Math.abs(shekels));
   const minas = idiv(shekels, ShekelsPerMina);
   const rest = shekels % ShekelsPerMina;
-  if (minas === 0) return `${sign}${rest} shekels`;
+  const sh = rest === 1 ? "1 shekel" : `${rest} shekels`;
+  if (minas === 0) return sign + sh;
   const m = minas === 1 ? "1 mina" : `${minas} minas`;
-  return rest === 0 ? sign + m : `${sign}${m} ${rest} shekels`;
+  return rest === 0 ? sign + m : `${sign}${m} ${sh}`;
+}
+
+/** A count of measures of grain as a king reads it: "1 measure", "12 measures" (the slop audit, kind 3). */
+export function measures(n: number): string {
+  return n === 1 ? "1 measure" : `${n} measures`;
 }

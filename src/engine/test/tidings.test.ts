@@ -62,7 +62,7 @@ describe("TidingsTests", () => {
     }
     Assert.true(told(s));
     const notice = inboxOf(s, "Egypt").find((i) => i.title === TidingsTitle)!;
-    Assert.equal("Your ally Babylonia sends word of season 1: Ashur now answers to Elam.", notice.body);
+    Assert.equal("Your ally Babylonia sends word of turn 1: Ashur now answers to Elam.", notice.body);
     // What the court knows: its view shows Elam (by this word, or by word from Ashur itself if as fresh).
     Assert.equal("Elam", Views.knownHolders(s, map, "Egypt").get("ashur").owner);
     Assert.equal("your ally Babylonia", s.known.get("Egypt").get("ashur").source);
@@ -124,6 +124,6 @@ describe("TidingsTests", () => {
     e.sendTidings();
     const words = s.journeys.filter((j) => j.to === "Egypt" && j.news === "TidingsAlly");
     Assert.equal(1, words.length);
-    Assert.equal(`Your ally Babylonia sends word of season ${s.turn}: Arrapha has thrown off Elam and answers to no king. Ashur, which had no king, now answers to Elam.`, words[0].text);
+    Assert.equal(`Your ally Babylonia sends word of turn ${s.turn}: Arrapha has thrown off Elam and answers to no king. Ashur, which had no king, now answers to Elam.`, words[0].text);
   });
 });
