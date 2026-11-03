@@ -1587,3 +1587,14 @@ Given in the design chat with Claude, answering the design questions of the cons
     determinations here, security expert master!" Split: `docs/threat-model.md` holds what is public, who might
     attack, what is protected and what they want of it, the ways in and the lower stakes; `SECURITY.md` holds only the
     rules, alerts, licences and reporting, and points to it.
+193. **3 November 2026, 10:13 UTC**, in the design chat, on the poller the rules described on the owner's PC: "Remove
+    it, you coded it and gave it to me. But I refused it on the grounds stated, so it was never in use. So we can
+    remove all references to it. Fix the others expertly once we can. Does it still work to ask for a security
+    review?" Earlier the same morning: "Nope, we don't run anything locally with a poller. Security risk for my
+    system." Removed from `docs/claude-and-codex.md`, `SECURITY.md` and `docs/threat-model.md`: nothing on the owner's
+    machine starts Codex; once its tasks work, it is started from the pull request itself.
+194. **3 November 2026, 10:36 to 10:44 UTC**, in the design chat, showing Codex's personal code-review settings (no
+    security option there), then, after setting the repositories' security review back to "Team PRs" with its trigger
+    "On PR open": "I have updated it." Tested on Barkstreet Snakes' #468: a draft got no security review, the draft
+    marked ready got one by itself (no findings, so no comment, only the summary's 🔒 row), and an ask on that same
+    commit ran a code review alone. Written into "Codex reviews" in `docs/claude-and-codex.md`.

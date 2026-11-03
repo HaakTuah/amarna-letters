@@ -550,7 +550,8 @@ export class Brain {
           for (const line of item.body.split("\n")) {
             const m = line.includes("nobody is left to") ? /the captive (\S+):/.exec(line) : null;
             if (m !== null) this.unclaimed.add(m[1]);
-            const h = line.includes("cannot come to yours") ? /^- hire (\S+) at /.exec(line) : null;
+            // A refused offer reads "- offer c12 a job ...: ... is held at the court of X and cannot come to yours" (bug #656).
+            const h = line.includes("cannot come to yours") ? /^- [Oo]ffer (\S+) a job\b/.exec(line) : null;
             if (h !== null) this.heldElsewhere.add(h[1]);
           }
         break;
