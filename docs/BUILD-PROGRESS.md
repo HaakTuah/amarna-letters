@@ -67,8 +67,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) #612 has had four Codex
   rounds, past the three that "Codex reviews" holds: no fifth; take it to escalation as that section says. (2) The
-  code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`
-  rule 9 says: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
+  code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
+  owner has not said: a PR that fixes it names neither the alert nor the weakness until it is merged. (3) A PR that changes
   only docs or `docs/history/` gets no Codex review (#548 and #596 had one). (4) A security review ran only if Codex's review summary shows its completed "🔒 Security Review" row ("Codex
   reviews"); report a PR that lacks it.
 

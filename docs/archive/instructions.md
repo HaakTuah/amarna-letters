@@ -1647,3 +1647,17 @@ Given in the design chat with Claude, answering the design questions of the cons
     about 87 removals, all fixed; the workshop check gained its sixth mark, a fresh audit of the rule files at the first
     milestone after 10 November 2026 and then whenever more than about a fifth of their lines changed (Build order,
     revision 351).
+202. **3 November 2026, 13:21 to 13:26 UTC**, in the design chat, on reporting weaknesses: "I see that SECURITY.md
+    says to only report some stuff to me, but Codex security review has no way of doing that, has it, expert?", then
+    "What private vulnerability reporting?", then "But these are just games. This would matter to my […], but why
+    shouldn't it just go into issues and be fixed, if it is already in main? and if it is in an PR, then it blocks it,
+    no?", and, to the design session's take (public `bug` issues by default; private handling only for what could
+    reach the owner's accounts, players' API keys, or one player's attack on another): "If they can post it there, I
+    have no idea if they can. And the most important thing is that reports reach and are picked up. So you can write
+    that as first course of actions, for the most risky as you described, but if they can' issues it is, agreed
+    expert?" Written into `SECURITY.md`, rule 9 and "Reporting a weakness".
+203. **3 November 2026**, in the design chat, to the design session's question whether item 202's private-first
+    handling should reach wider: "Why should it be wider, expert?", then "Okay, expert, exercise your best judgement and
+    make the call here, security and efficiency expert." The call: the precise wording stands (private first only for
+    what could reach what the threat model protects beyond its lower stakes, or whose kind the owner has not stated; a
+    `bug` issue for the rest), since a wider private path would slow fixes for weaknesses that put nothing at stake.

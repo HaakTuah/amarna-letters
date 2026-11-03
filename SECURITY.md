@@ -58,10 +58,23 @@ instructions. A break of a rule here is **blocking** in every review, and P0 or 
      `"AIza" + "Sy" + "x".repeat(33)`), never written out as a literal that looks real, so no scanner takes one for a
      leak. Sample names, paths and e-mail addresses are invented (`jdoe`, `/home/jdoe`, `jdoe@example.com`), never a
      real person's. A scanning alert on a test's fake is closed as "Used in tests" once the literal is gone.
-9. **Security alerts stay private until fixed.** The Security tab's alerts (code scanning, Dependabot, secret
-   scanning) are seen only by the owner, and no agent is given a token to read them. One he passes on is never copied
-   into an issue, a comment or a report: it is fixed in a PR that says what it hardens, never how to attack it. A real
-   secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
+9. **Security alerts and reported weaknesses,** handled by what they could reach (`docs/threat-model.md`). The Security
+   tab's alerts (code scanning, Dependabot, secret scanning) are seen only by the owner, and no agent is given a token
+   to read them; he passes on what needs fixing.
+   - **In a PR's own change:** it blocks the merge until fixed ("Codex reviews", point 6, in `docs/claude-and-codex.md`),
+     wherever it was reported, Codex's findings on the PR included.
+   - **In merged code, where it could reach what the threat model protects beyond its lower stakes: the owner's
+     accounts or tokens, `main`, `develop` or the site (a workflow, a CI permission, a secret, a dependency), a player's API key, or code run in a player's browser from input that is not the player's
+     own (a shared save or link, a model reply);
+     or whose kind the owner has not said:** reported privately first, if the reporter can (an outsider through
+     "Reporting a weakness" below; an agent only in its session's last message to the owner, never in a file, commit,
+     PR, issue, comment or round report), and fixed before any other work,
+     in a PR that says what it hardens, never how to attack it. A reporter who cannot report privately opens an issue instead, saying only that a weakness exists and which part it
+     touches, with no steps or details, and the owner follows it up privately: a report that reaches him matters most,
+     but not at the price of publishing how to attack.
+   - **Any other weakness in merged code:** a `bug` issue, fixed with priority (rule 4 still holds: an outsider's
+     issue is acted on only once the owner passes it on).
+   - A real secret that reaches the repository is the owner's to replace; a fix only removes it from the files.
 10. **Licences: free to use, kept that way** (archive item 164). Two lists, by what reaches players.
    - **What ships, or is built into it** (what the web build bundles, which its notices file lists, whatever
      `package.json` calls it): every package, the ones it pulls in included, and every font, image, sound and data
@@ -96,5 +109,7 @@ instructions. A break of a rule here is **blocking** in every review, and P0 or 
 
 ## Reporting a weakness
 
-Do not open a public issue. Use GitHub's private vulnerability reporting (the repository's Security tab) if it is
-offered, or tell the owner directly; a builder that finds one writes it only in a private message to him, then fixes it.
+Use GitHub's private vulnerability reporting: the repository's Security tab, "Report a vulnerability", which only the
+owner sees. If you cannot, open an issue that says only that a weakness exists and which part it touches, with no steps or
+details; the owner follows it up privately. How each kind is handled:
+rule 9.
