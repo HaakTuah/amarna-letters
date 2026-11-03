@@ -53,6 +53,11 @@ export interface PlannedOrder {
   unitLevy: LevyRef | null;
   /** The same for the unit named as the unit supported or the army convoyed. */
   otherLevy: LevyRef | null;
+  /**
+   * Bug #569: once its levy raised no unit, the season word of that reaches the court from the levy's province. The order
+   * stays in the seat's list, unbound so it cannot run, until then; 0 while its levy has not failed.
+   */
+  unraisedHeard: number;
   /** A scheduled move tried again because it failed: if it fails again, its unit's march ends. */
   retry: boolean;
   /** A scheduled order: the conditions of its entry, checked when its season comes (none among a standing order's). */
@@ -69,6 +74,7 @@ export function newPlannedOrder(init: Partial<PlannedOrder> = {}): PlannedOrder 
     otherUnitId: null,
     unitLevy: null,
     otherLevy: null,
+    unraisedHeard: 0,
     retry: false,
     conditions: [],
     given: 0,
@@ -83,6 +89,7 @@ export const PlannedOrderSchema: ObjSchema<PlannedOrder> = obj("PlannedOrder", n
   otherUnitId: S,
   unitLevy: () => LevyRefSchema,
   otherLevy: () => LevyRefSchema,
+  unraisedHeard: I,
   retry: B,
   conditions: list(() => ConditionSchema),
   given: I,
