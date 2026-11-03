@@ -86,8 +86,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
     borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
     kings' trust readings still behave well.
-  - **#616, one clock for one road:** a far province's report and its notices come by one function, the couriers'
-    seasons from the place to the court, with a test that the same season's both arrive together. A save version.
+  - ~~**#616, one clock for one road:**~~ (done, #639) a far province's report and its notices come by one function,
+    the couriers' seasons from the place to the court (`wordHomeAt`), with a test that the same season's both arrive
+    together. Save version 57. Report: `docs/rounds/2026-11-03-one-clock.md`.
   - **#601, a fast courier, hired:** a king may hire a carrier to bring one far province's report home this season.
     It is a job like any other ("Jobs, not wages"): the carrier asks his price by what he has heard such a job pays
     and by how badly he is wanted, and the king may haggle; no fixed price, no menu.
