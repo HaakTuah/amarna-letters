@@ -73,7 +73,7 @@ describe("LevyWordTests", () => {
     let seen = 0;
     for (let i = 0; i < 6; i++) {
       new TurnEngine(s, WorldMap.default).beginTurn();
-      Assert.equal(told(), reported(), `season ${s.turn}`);
+      Assert.true(told() === reported(), `season ${s.turn}: told ${told()}, reported ${reported()}`);
       if (told()) seen++;
       new TurnEngine(s, WorldMap.default).resolve(new Dict());
     }
