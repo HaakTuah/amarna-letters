@@ -1598,3 +1598,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     "On PR open": "I have updated it." Tested on Barkstreet Snakes' #468: a draft got no security review, the draft
     marked ready got one by itself (no findings, so no comment, only the summary's 🔒 row), and an ask on that same
     commit ran a code review alone. Written into "Codex reviews" in `docs/claude-and-codex.md`.
+195. **3 November 2026, 11:27 and 11:28 UTC**, in the design chat: "So everything is perfectly consistent and perfectly
+    set-up no? No contradictions, no duplications, no unclear instructions, and the loop is 100% consistent and
+    masterfully crafted to be perfect, perfect expert?" Then, to the design session's take (an independent fresh-eyes
+    audit of both repositories' rule files, and fix what it finds): "Yes, do it expertly!" The audit found five blocking
+    problems and about thirty smaller ones; the fixes are in `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`,
+    `docs/threat-model.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md` and the new `docs/developing.md`. Two
+    findings (taste readings' route, and `AGENTS.md` in the workshop check's second mark) wait on the design document.

@@ -19,6 +19,6 @@ that close each way in are in `SECURITY.md`, whose rule numbers this file cites.
   - **Players:** their browsers, their saves and their API keys: code run in a browser, or a key sent anywhere but
     the provider the player chose (rules 5 to 7); a save corrupted or forged (rule 5).
 - **The ways in:** model replies, save files, share links, URL parameters and the bridge (rule 5); the workflows and
-  what triggers them (rule 2); dependencies and actions (rules 2 and 10); outsiders' text reaching an agent (rule 4).
+  what triggers them (rule 2); dependencies and actions (rules 2, 7 and 10); outsiders' text reaching an agent (rule 4).
 - **Lower stakes:** a slowdown or crash confined to one player's own tab, from input only that player chose, is Low;
   the same from a save, link or text someone else crafted is not. Deceit between kings is play, not an attack.

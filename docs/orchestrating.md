@@ -30,7 +30,7 @@ accomplishing them most possible, with the least tokens, without sacrifacing qua
 - **Hand over at once.** A builder's last message says what merged and what is next. Start the next session as soon as
   an item merges, woken by the PR's merge rather than a clock, with an hourly check as the fallback.
 - **A lane for every independent entry you can see,** each a builder session with its own brief and check-in, by the
-  rules of "How work flows" in `AGENTS.md`; no new side lane from about 85% of the weekly usage.
+  rules of "How work flows" in `AGENTS.md`, its brake (point 4) included.
 - **Questions go on word for word.** Pass every lane's "Questions for the owner" to the owner exactly as written, never summed
   up.
 - **No turn sits idle.** Long runs and checks go in the background; nothing waits on a clock.
