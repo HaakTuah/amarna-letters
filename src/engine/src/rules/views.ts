@@ -23,6 +23,7 @@ import { moodsKnown } from "../model/moods.ts";
 import { governorsKnown, seatKnown } from "../model/command.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
+  type CaravanView,
   newCharacterView,
   newNewsOffer,
   newBandSeen,
@@ -51,8 +52,8 @@ import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
 import { courtOf } from "./court.ts";
-import { ownKnown, provinceEconomy } from "./province-reports.ts";
-import { caravansKnown } from "./caravans-known.ts";
+import { ownKnown } from "./province-reports.ts";
+import { caravansKnown, wordCame } from "./caravans-known.ts";
 import { knownHolders, ownerAt, SeenSource, siegesKnown, sight, wallsKnown, WordSource } from "./known-land.ts";
 
 export { SeenSource, WordSource };
@@ -361,7 +362,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   }
   v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
   // Bug #540: walking home to the land it knows it holds; its caravans as their reports have come.
-  const homeward = s.walking.filter((w) => known.tryGet(w.home)?.owner === p);
+  const homeward = s.walking.filter((w) => known.tryGet(w.home)?.owner === p && (w.from === "" || wordCame(engine, p, w.departs, w.from)));
   v.walking = sum(homeward.filter((w) => !w.deported), (w) => w.men);
   v.caravans.push(...caravansKnown(engine, p));
   // Its strength as it reckons it: its gold by its ledger, which counts unassayed lots at their weight (a seat must never
@@ -811,8 +812,6 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
 
 /** The views of the game: what each court sees (the C# build's static class Views). */
 export const Views = {
-  provinceEconomy,
-  ownKnown,
   landStandings,
   looksDoomed,
   sight,
@@ -820,6 +819,8 @@ export const Views = {
   ownerAt,
   knownHolders,
   siegesKnown,
+  // Bug #540: a court's caravans as it knows them, for the map as for its view.
+  caravansKnown: (s: GameState, p: Power, map: WorldMap | null = null): CaravanView[] => caravansKnown(new TurnEngine(s, map ?? WorldMap.default), p),
   // Item 17+: a court's view names every power as that court gives its name.
   for: (s: GameState, p: Power, map: WorldMap | null = null): SeatView => asSeenBy(p, () => seatView(s, p, map)),
   letters,
@@ -850,7 +851,10 @@ function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays
  * Item 13: an own unit beyond what a courier brings within the season is shown as its last report has it: where it stood
  * and with how many men, as many seasons ago as the road from it is long.
  */
-/** One season's report of a unit: where it stood, its men, food, hunger and pay owed (older saves carry only the first two). */
+/**
+ * One season's report of a unit: where it stood, its men, food, hunger and pay owed, its chest and whether it buys, and
+ * its men's savings (bug #540); older saves carry fewer.
+ */
 function trailEntry(t: string): {
   province: string;
   men: number;
@@ -859,10 +863,12 @@ function trailEntry(t: string): {
   unpaid?: number;
   chest?: number;
   buy?: boolean;
+  savings?: number;
 } {
-  const [province, men, food, hungry, unpaid, chest, buy] = t.split("|");
+  const [province, men, food, hungry, unpaid, chest, buy, savings] = t.split("|");
   const fed = food === undefined ? { province, men: Number(men) } : { province, men: Number(men), food: Number(food), hungry: Number(hungry), unpaid: Number(unpaid) };
-  return chest === undefined ? fed : { ...fed, chest: Number(chest), buy: buy === "1" };
+  const chested = chest === undefined ? fed : { ...fed, chest: Number(chest), buy: buy === "1" };
+  return savings === undefined ? chested : { ...chested, savings: Number(savings) };
 }
 
 function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {

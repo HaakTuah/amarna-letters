@@ -44,7 +44,8 @@ export interface Walk {
    * Item 11a+ ("Deportation": deportees walk the route like any company, so they can be freed on the way): for deportees,
    * the road they walk, the season they set out and the province they were taken from. A king whose troops stand on the
    * stretch they walk this season and who is not the deporter's friend frees them: the king whose land they were taken
-   * from, or one who closed his roads to the deporter. Empty for everyone else.
+   * from, or one who closed his roads to the deporter (`route` empty for everyone else). Bug #540: for discharged men too,
+   * the season they set out and where from, so their king counts them once word of it could come.
    */
   route: string[];
   departs: number;

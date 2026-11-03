@@ -284,6 +284,8 @@ export interface SeasonFrame {
   unrest: Map<string, number>;
   /** Item 19: the caravans, and the people carried off (deportees), on the road, each between the provinces it is between. */
   caravans: FrameRoad[];
+  /** Bug #540: each court's own caravans as it knows them (`Views.caravansKnown`), placed where it knows them to be. */
+  knownCaravans: Map<Power, FrameRoad[]>;
   walking: FrameRoad[];
   /** Item 19: the diviners' tier of the omens of the end this season, the same for every court; null in an open age. */
   omen: OmenTier | null;
@@ -477,6 +479,19 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
       const next = Math.min(i + 1, c.route.length - 1);
       return { power: c.power, from: c.route[i], to: c.route[next], progress: Math.min(0.9, c.points / 100), what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}` };
     }),
+    // Bug #540: each court's own as it knows them (a far one where its last report has it), as its view shows them.
+    knownCaravans: new Map<Power, FrameRoad[]>(
+      AllPowers.filter((p) => isAlive(s, p)).map((p) => [
+        p,
+        Views.caravansKnown(s, p, map).map((c) => ({
+          power: p,
+          from: c.at,
+          to: c.at,
+          progress: 0,
+          what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}${c.reported !== null ? `, as reported in ${c.reported}` : ""}`,
+        })),
+      ] as const),
+    ),
     // Only deportees walk a known road (the engine's `Walk.route`); men discharged home are not placed on one.
     walking: s.walking.filter((w) => w.deported && w.route.length > 1).map((w) => {
       const span = Math.max(1, w.arrives - w.departs);

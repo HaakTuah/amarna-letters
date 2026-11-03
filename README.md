@@ -420,7 +420,8 @@ harvest as its officials last reported them, your caravans there as their last w
 reckoned from what you know. Click such a city and its card gives only what your stewards last reported and how many
 seasons ago, never its new holder's affairs; a band your people last told of there is drawn faded, with the age of that word. Looking back at an
 earlier season, a card gives the figures recorded in that season, never today's.
-Figures on the roads in the fog are your own: your caravans, wherever they are, and your envoys and spies where you
+Figures on the roads in the fog are your own: your caravans, near as they are and farther off where their last word
+has them, and your envoys and spies where you
 believe them; foreign troops show only in your land and where your troops stand, within a season's courier ride of your court, and
 one step beyond.
 Each court's map is pressed in clay, and Egypt's is drawn on papyrus.

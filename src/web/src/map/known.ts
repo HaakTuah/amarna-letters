@@ -95,7 +95,8 @@ export function ownFiguresAt(frames: readonly SeasonFrame[], index: number, view
   const f = frames[index];
   const k = f?.knownOwner.get(viewer)?.get(id);
   if (f === undefined || k?.owner !== viewer) return null;
-  const asOf = f.sight.get(viewer)?.has(id) ? f.turn : k.turn;
+  // A frame of turn T holds the land as season T - 1 ended: the report of season T - 1 (the first, of turn 1, report 0).
+  const asOf = f.sight.get(viewer)?.has(id) ? f.turn : k.turn + 1;
   for (let i = index; i >= 0; i--) if (frames[i].turn <= asOf && (frames[i].owner.get(id) ?? null) === viewer) return i;
   return null;
 }

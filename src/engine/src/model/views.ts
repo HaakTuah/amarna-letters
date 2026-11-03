@@ -206,10 +206,12 @@ export interface CaravanView {
   trade: boolean;
   sneak: boolean;
   ship: boolean;
+  /** Bug #540: the season of the report this is, beyond the court's couriers' season; null when it is as it is now. */
+  reported: number | null;
 }
 
 export function newCaravanView(init: Partial<CaravanView> = {}): CaravanView {
-  return { from: "", to: "", grain: 0, at: "", returning: false, gold: 0, trade: false, sneak: false, ship: false, ...init };
+  return { from: "", to: "", grain: 0, at: "", returning: false, gold: 0, trade: false, sneak: false, ship: false, reported: null, ...init };
 }
 
 export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newCaravanView, {
@@ -222,6 +224,7 @@ export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newC
   trade: B,
   sneak: B,
   ship: B,
+  reported: opt(I),
 });
 
 export { type MarketSeen, newMarketSeen, MarketSeenSchema } from "./word.ts";

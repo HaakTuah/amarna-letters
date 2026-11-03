@@ -9,18 +9,23 @@ import { caravanAt, type Caravan, readCaravanReport } from "../model/caravans.ts
 import { newCaravanView, type CaravanView } from "../model/views.ts";
 import type { TurnEngine } from "../turn/turn-engine.ts";
 
-const viewOf = (c: Caravan, at: string, grain: number, gold: number, returning: boolean): CaravanView =>
-  newCaravanView({ from: c.from, to: c.to, grain, at, returning, gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null });
+/**
+ * Whether word of what happened at `at` in season `turn` has reached a court: near, within the season (at once for what
+ * happened as this season began); farther, a season and the couriers' road later.
+ */
+export function wordCame(engine: TurnEngine, p: Power, turn: number, at: string): boolean {
+  const d = engine.wordTo(p, at);
+  return d === 0 ? turn <= engine.s.turn : Number.isFinite(d) && turn + d < engine.s.turn;
+}
+
+const viewOf = (c: Caravan, at: string, grain: number, gold: number, returning: boolean, reported: number | null): CaravanView =>
+  newCaravanView({ from: c.from, to: c.to, grain, at, returning, gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null, reported });
 
 /** The caravans of a court as it knows them. */
 export function caravansKnown(engine: TurnEngine, p: Power): CaravanView[] {
   const s = engine.s;
   const out: CaravanView[] = [];
-  // Near, within the season (a journey ended as this season began, at once); farther, a season and the road later.
-  const came = (turn: number, at: string): boolean => {
-    const d = engine.wordTo(p, at);
-    return d === 0 ? turn <= s.turn : Number.isFinite(d) && turn + d < s.turn;
-  };
+  const came = (turn: number, at: string): boolean => wordCame(engine, p, turn, at);
   const heard = (t: string): boolean => {
     const r = readCaravanReport(t);
     return came(r.turn, r.at);
@@ -30,13 +35,13 @@ export function caravansKnown(engine: TurnEngine, p: Power): CaravanView[] {
     if (c.power !== p || !came(c.since, c.route[0])) continue;
     const live = s.caravans.includes(c);
     if (live && engine.wordTo(p, caravanAt(c)) === 0) {
-      out.push(viewOf(c, caravanAt(c), c.grain, c.gold, c.returning));
+      out.push(viewOf(c, caravanAt(c), c.grain, c.gold, c.returning, null));
       continue;
     }
     const last = [...c.trail].reverse().find(heard);
     if (last === undefined) continue;
     const r = readCaravanReport(last);
-    if (!r.gone) out.push(viewOf(c, r.at, r.grain, r.gold, r.returning));
+    if (!r.gone) out.push(viewOf(c, r.at, r.grain, r.gold, r.returning, r.turn));
   }
   return out;
 }

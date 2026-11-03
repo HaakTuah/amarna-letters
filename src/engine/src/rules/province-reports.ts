@@ -20,7 +20,7 @@ import { obeyedIn, type TurnEngine } from "../turn/core.ts";
 import { knownHolders, sight } from "./known-land.ts";
 
 /** A province's economy as its holder's officials report it this season (item 9+a; its people, item 10+a). */
-export function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: string): ProvinceEconomyView {
+function provinceEconomy(s: GameState, engine: TurnEngine, m: WorldMap, id: string): ProvinceEconomyView {
   const prov = m.get(id);
   const mk = engine.market(id);
   const holder = s.owner.getOrDefault(id, null);
@@ -124,10 +124,10 @@ function reportKnown(s: GameState, p: Power, id: string, k: Known | undefined, s
   if (k?.owner !== p) return null;
   const list = s.reports.tryGet(id);
   if (seen.has(id) || list === undefined) return s.owner.getOrDefault(id, null) === p ? "now" : null;
+  // Never a report newer than the word: none kept that old, none known.
   let r: ProvinceReport | undefined;
   for (const x of list) if (x.turn <= k.turn) r = x;
-  r ??= list[0];
-  return r.holder === p ? r : null;
+  return r !== undefined && r.holder === p ? r : null;
 }
 
 /** The provinces a court knows it holds, each as it knows it ({@link reportKnown}). */

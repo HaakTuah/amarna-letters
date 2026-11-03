@@ -61,7 +61,7 @@ export function economyLines(v: SeatView): string[] {
         ", ",
         v.caravans.map(
           (c) =>
-            `${c.ship ? "ship" : c.sneak ? "smugglers" : "caravan"} with ${c.grain} measures${c.gold > 0 ? ` and ${c.gold} shekels` : ""} ${c.returning ? `coming home to ${c.from}` : `from ${c.from} ${c.trade ? "to trade at" : "to"} ${c.to}`}, at ${c.at}`,
+            `${c.ship ? "ship" : c.sneak ? "smugglers" : "caravan"} with ${c.grain} measures${c.gold > 0 ? ` and ${c.gold} shekels` : ""} ${c.returning ? `coming home to ${c.from}` : `from ${c.from} ${c.trade ? "to trade at" : "to"} ${c.to}`}, at ${c.at}${c.reported !== null ? ` as reported in turn ${c.reported}` : ""}`,
         ),
       )}.`,
     );

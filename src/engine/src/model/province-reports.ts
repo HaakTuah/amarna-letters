@@ -37,5 +37,5 @@ export const ProvinceReportSchema: ObjSchema<ProvinceReport> = obj("ProvinceRepo
   reaped: opt(I),
 });
 
-/** Seasons of reports kept: the longest word takes, with room to spare (`Views.knownHolders` looks back six). */
-export const ReportsKept = 8;
+/** Seasons of reports kept: as far back as `Views.knownHolders` looks (six seasons), and the season before. */
+export const ReportsKept = 7;
