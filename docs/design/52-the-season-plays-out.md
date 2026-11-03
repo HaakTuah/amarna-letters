@@ -1,4 +1,4 @@
-# The season plays out (item 17+++, parts B, D and G)
+# The season plays out (item 17+++, parts B, D, F and G)
 
 The owner (31 October 2026): "the player needs to feel the weight of the whole world, or it becomes meaningless to
 him/her." A season is no longer a new picture but a passage of time on the map, paced by meaning; the next season is

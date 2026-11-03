@@ -99,7 +99,7 @@ realms (part D)".
 - **"Snow creeping down from the passes"** is read as the snow coming by depth over the snow line, the heights first
   (the passes lie among them), and melting from below: the snow is drawn from real elevation, so its depth is the honest
   order. **"The Nile rising along its banks"**: from the south up its valley, as the flood came (#03-nile-rise-north),
-  the black land along both banks filling as it rises; the Delta, of which the source says nothing, last [G]. **"Green
+  the black land along both banks filling as it rises; the Delta last, since it lies downstream of Cairo, which the source names. **"Green
   spreading with the rains"**: from the coast inland, and **"browning from its edges"**: from the inland edges toward the
   coast, both on #03-levant's "less inland"; the order is counted in borders from the nearest coastal province, since
   the game has no rainfall per province. Principle: history holds; a real-world order on the map rests on a dossier line.

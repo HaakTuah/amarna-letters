@@ -54,8 +54,8 @@ Hattusas" [A] ([EIEOL, Hittite lesson 5](https://lrc.la.utexas.edu/eieol/hitol/5
   about a week later [B: [Wikipedia, Flooding of the Nile](https://en.wikipedia.org/wiki/Flooding_of_the_Nile): "The first
   indications of the rise of the river in Akhet could be seen at the first of the cataracts of the Nile at Aswan", and
   "Flooding reached Aswan about a week earlier than modern Cairo, and Luxor five to six days earlier than Cairo"]. The map
-  draws the Nile's flood rising from the south up its valley (item 17+++, part D); the Delta is not covered by the source,
-  and the map takes it as the last [G].
+  draws the Nile's flood rising from the south up its valley (item 17+++, part D); the Delta, which the source does not name,
+  comes last because it lies downstream of Cairo, at the head of the Delta, where the flood arrives after Aswan and Luxor.
 - <a id="03-tigris-euphrates-floods"></a>**The Tigris and the Euphrates** rise with the snowmelt in the Taurus and
   Zagros, the Tigris peaking in April and the Euphrates in May, at or just before the harvest [B:
   [Wikipedia, Agriculture in Mesopotamia](https://en.wikipedia.org/wiki/Agriculture_in_Mesopotamia), citing Sanlaville

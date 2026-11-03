@@ -59,7 +59,7 @@ for (let j = 0; j < H; j++)
     // In eight steps, which the eye does not tell from a smooth edge at this size and which keep the image small.
     soft[j * W + i] = Math.min(255, Math.round(sum / n / 32) * 32);
   }
-// The bands, by the cover's depth in its eight steps: the heights (160 and over), the slopes (96 to 128), the foot (below 96).
+// The bands, by the cover's depth in its eight steps: the heights (160 and over), the slopes (96 to 159), the foot (below 96).
 const Bands = { high: [160, 256], mid: [96, 160], low: [1, 96] };
 const browser = await chromium.launch();
 const page = await browser.newPage();
