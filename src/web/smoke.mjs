@@ -156,6 +156,10 @@ async function watch(viewport, name) {
     await p.waitForFunction((b) => Number(document.querySelector(".slider").max) > b, before, { timeout: 60000 });
   }
   report.push(`${name}: 4 script seasons in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  // Item 17+++: each season played out closes with a short line of what changed.
+  const closing = await p.waitForSelector(".season-close", { timeout: 20000 }).then((el) => el.textContent()).catch(() => null);
+  if (closing === null || closing.trim() === "") failures.push(`${name}: no line closed the season played`);
+  else report.push(`${name}: the season closed with "${closing}"`);
   await namesClear(p, `${name}, a game in progress, in slow motion`);
   // Every tab opens without an error.
   for (const tab of ["Trail", "People", "Provinces", "Standings", "Events", "Rules", "Season"]) {

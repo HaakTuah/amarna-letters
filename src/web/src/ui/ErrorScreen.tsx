@@ -7,6 +7,7 @@
 import { CURRENT_VERSION, dateLabel } from "@amarna/engine";
 import { Component, useState, type ReactNode } from "react";
 import { session } from "../session/client.ts";
+import { Speeds, speedIndex } from "./keys.ts";
 import { reloadInto } from "./update.ts";
 
 declare const __BUILD_ID__: string;
@@ -45,7 +46,7 @@ export function reportText(c: Caught): string {
   try {
     const live = session.live;
     const seed = session.state?.seed ?? null;
-    if (live.hasRunner) game = `seed ${seed ?? "?"}, ${dateLabel(live.turn)} (season ${live.turn}), game ${live.gameId}${live.auto ? ", auto-play" : ""}, speed ${session.delayMs} ms`;
+    if (live.hasRunner) game = `seed ${seed ?? "?"}, ${dateLabel(live.turn)} (season ${live.turn}), game ${live.gameId}${live.auto ? ", auto-play" : ""}, speed ${Speeds[speedIndex(session.delayMs)].name}`;
   } catch (e) {
     game = `unreadable (${messageOf(e)})`;
   }

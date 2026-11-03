@@ -9,6 +9,7 @@ import { ExportLog } from "../components/ExportLog.tsx";
 import { FollowPanel } from "../components/FollowPanel.tsx";
 import { LegendsPanel } from "../components/LegendsPanel.tsx";
 import { GameMap, type MapHandle, type MapView } from "../components/GameMap.tsx";
+import { SimulateProgress } from "../components/SimulateProgress.tsx";
 import { AudioSwitches } from "../audio/AudioSwitches.tsx";
 import { player } from "../audio/player.ts";
 import { useGameAudio } from "../audio/use-game-audio.ts";
@@ -83,7 +84,7 @@ export function Play() {
   useLayoutEffect(() => {
     performance.measure("page:play", { start: renderStart });
   });
-  // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 3 set the pace, + and − step it.
+  // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 4 set the pace, + and − step it.
   const setSpeed = (i: number): void => s.setDelay(Speeds[Math.max(0, Math.min(Speeds.length - 1, i))].ms);
   useKeys({
     pause: () => {
@@ -97,7 +98,11 @@ export function Play() {
     pace1: () => setSpeed(0),
     pace2: () => setSpeed(1),
     pace3: () => setSpeed(2),
-    faster: () => setSpeed(speedIndex(s.delayMs) + 1),
+    pace4: () => setSpeed(3),
+    // + and − step between Slow, Normal and Fast; Simulate is chosen only by its own key ("Pace of play").
+    faster: () => {
+      if (speedIndex(s.delayMs) < 2) setSpeed(speedIndex(s.delayMs) + 1);
+    },
     slower: () => setSpeed(speedIndex(s.delayMs) - 1),
   });
   const [mark, setMark] = useState<string | null>(null);
@@ -125,7 +130,7 @@ export function Play() {
   });
 
   function viewerOf(): Power | null {
-    return s.godView ? null : (s.viewAs ?? live.humans[0] ?? null);
+    return s.viewer;
   }
 
   // The music and the sounds follow the season shown, as this view knows it (item 19+++).
@@ -138,6 +143,17 @@ export function Play() {
   useEffect(() => {
     if (followAt !== null) map.current?.focus(followAt, 1, true);
   }, [followAt?.x, followAt?.y]);
+
+  // Simulate draws nothing while it runs (item 17+++): a progress bar and the count of seasons, and the way back to watching.
+  if (live.hasRunner && s.simulating)
+    return (
+      <SimulateProgress
+        seasons={Math.max(0, s.frames.length - 1)}
+        when={whenCap(live.turn, viewerOf())}
+        onPause={() => s.setAuto(false)}
+        onWatch={() => s.setDelay(Speeds[2].ms)}
+      />
+    );
 
   if (!live.hasRunner || s.frames.length === 0 || s.state === null) {
     // No game on screen yet: the pages' own bar stays, so the other pages are a tap away.
@@ -409,7 +425,7 @@ export function Play() {
                     // Let go of the menu, so Space and the pace keys work again at once.
                     e.target.blur();
                   }}
-                  title="Keys 1 to 3 set the pace; + and − make it faster or slower"
+                  title="Keys 1 to 4 set the pace; + and − make it faster or slower"
                 >
                   {Speeds.map((x, i) => (
                     <option key={x.ms} value={x.ms}>
@@ -454,6 +470,7 @@ export function Play() {
             arrows: useDraft ? draft!.arrows() : null,
             followId,
             followPath,
+            playout: s.playoutAt(index, viewer),
           }}
           viewKey={`${live.gameId}:${viewer ?? "god"}`}
           opening={openingView(viewer)}

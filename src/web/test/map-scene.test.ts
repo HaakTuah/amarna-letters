@@ -20,7 +20,8 @@ import { Assert, removeAll } from "../../engine/test/support.ts";
 import { buildScene, type ScenePerson, wallsIn } from "../src/map/scene.ts";
 import { seasonLayer } from "../src/map/seasons.ts";
 import { roadsLayer, worksAtCities } from "../src/map/built.ts";
-import { lifeLayer, memoryLayer, sceneMarkup, scenesOf } from "../src/map/life.ts";
+import { lifeLayer, memoryLayer } from "../src/map/life.ts";
+import { momentMarkup, seasonPlay } from "../src/map/moments.ts";
 import { catchUpFrames, coverOf, frameFrom, isMove, type SeasonFrame } from "../src/session/frames.ts";
 import { buildLifeRecord } from "../src/session/life-record.ts";
 import { dated } from "../src/ui/format.ts";
@@ -345,7 +346,7 @@ describe("MapSceneTests", () => {
     for (let k = 1; k < frames.length; k++)
       for (const p of [null, ...living(stateAt(runner, k)!)]) {
         let scene = buildScene(frames, k, p);
-        for (const markup of [seasonLayer(scene), roadsLayer(scene), worksAtCities(scene), memoryLayer(scene), lifeLayer(scene), ...scenesOf(frames[k - 1], frames[k], p).map(sceneMarkup)]) {
+        for (const markup of [seasonLayer(scene), roadsLayer(scene), worksAtCities(scene), memoryLayer(scene), lifeLayer(scene), ...seasonPlay(scene, 1).timeline.beats.map((b) => momentMarkup(b.moment, b.at, b.ms)), seasonPlay(scene, 1).line]) {
           Assert.false(markup.includes("undefined") || markup.includes("NaN"), markup.slice(0, 120));
           drawn += markup.length;
         }

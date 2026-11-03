@@ -7,7 +7,8 @@ import { type Power } from "@amarna/engine";
 import { powerName } from "../ui/format.ts";
 import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Rivers, SeaPath, Width, type Pt } from "./art.ts";
 import { roadsLayer, worksAtCities } from "./built.ts";
-import { OmenSigns, lifeLayer, mediumOf, memoryLayer, sceneMarkup, scenesOf } from "./life.ts";
+import { OmenSigns, lifeLayer, mediumOf, memoryLayer } from "./life.ts";
+import { momentMarkup } from "./moments.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { seasonLayer } from "./seasons.ts";
@@ -157,7 +158,8 @@ export class SvgMapRenderer implements MapRenderer {
     this.drawn.set("units", s);
     this.drawn.set("unitsKey", key);
     this.changed = true;
-    reconcile(this.layers.get("units")!, items, this.units);
+    // A unit gone (destroyed, or out of the viewer's sight) stays until the season's results land (item 17+++).
+    reconcile(this.layers.get("units")!, items, this.units, this.landWait(s));
   }
 
   render(input: MapInput): void {
@@ -180,17 +182,13 @@ export class SvgMapRenderer implements MapRenderer {
   private renderNow(input: MapInput): void {
     const s = input.scene;
     this.scene = s;
+    this.playSeason(s, input.playout ?? null);
     const lower = this.view?.querySelector(".map-lower");
     lower?.setAttribute("aria-label", s.viewer !== null ? `Map of the Great Kings' lands as ${powerName(s.viewer)} sees it` : "Map of the Great Kings' lands (god view)");
     const seasonKey = `${s.frame.turn % 3}|${s.viewer}|${[...s.land].join(";")}`;
-    this.steps = [
-      () => {
-        if (this.drawn.get("season") !== seasonKey) {
-          this.layer("season", seasonKey, () => seasonLayer(s));
-          // A river in spate is drawn on the board's course: close up, it takes the finer one the rivers have.
-          if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
-        }
-      },
+    // While a season plays out, its results (who holds what, the fog, the walls, the season's arrows) land on the map when
+    // its cities fall, after the marches and battles (item 17+++); the pieces move at once.
+    const land: (() => void)[] = [
       () => this.layer("tints", `${s.index}|${s.viewer}|${input.mode ?? "realms"}|${s.frame.turn}`, () => tints(s, input.mode ?? "realms")),
       () => this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s)),
       () => {
@@ -212,15 +210,29 @@ export class SvgMapRenderer implements MapRenderer {
           }
         }
       },
-      () => this.layer("roads", `${s.index}|${s.viewer}|${input.followId}|${input.followPath?.length ?? -1}|${input.followPath?.[input.followPath.length - 1]?.index ?? -1}`, () => roads(input)),
       () => this.layer("moves", s, () => moves(s)),
       () => this.layer("outlaws", s, () => outlaws(s)),
+    ];
+    const wait = this.landWait(s);
+    clearTimeout(this.landTimer);
+    if (wait > 0)
+      this.landTimer = window.setTimeout(() => {
+        this.steps.push(...land, () => this.changed && this.placeNames());
+        this.runSteps();
+      }, wait);
+    this.steps = [
+      () => {
+        if (this.drawn.get("season") !== seasonKey) {
+          this.layer("season", seasonKey, () => seasonLayer(s));
+          // A river in spate is drawn on the board's course: close up, it takes the finer one the rivers have.
+          if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
+        }
+      },
+      ...(wait > 0 ? [] : land),
+      () => this.layer("roads", `${s.index}|${s.viewer}|${input.followId}|${input.followPath?.length ?? -1}|${input.followPath?.[input.followPath.length - 1]?.index ?? -1}`, () => roads(input)),
       () => this.drawWorks(s),
       () => this.layer("life", s, () => lifeLayer(s)),
-      () => {
-        this.showScenes(s);
-        this.margin(s);
-      },
+      () => this.margin(s),
       () => this.drawUnits(s),
       () => {
         const peopleKey = `${s.index}|${s.viewer}|${input.followId}`;
@@ -275,26 +287,86 @@ export class SvgMapRenderer implements MapRenderer {
   }
 
   /**
-   * Small scenes at big moments (item 19): when the map steps on by one season, the season's gift processions, sacks and
-   * ambushes play once over the map, briefly, then are taken away; none when the reader asks for reduced motion, when
-   * stepping back, or jumping.
+   * The season plays out (item 17+++): when the map steps on by one season and that season is playing, its moments play in
+   * sequence (session/pacing.ts): the pieces slide together in the marching, each great moment's medallion shows in its
+   * turn, the results land when the cities fall, and the closing line ends it. None when the reader asks for reduced
+   * motion, when stepping back, or jumping: the season then shows as it ended.
    */
   private sceneFrom: { index: number; viewer: Power | null } | null = null;
   private sceneTimer = 0;
-  private showScenes(s: MapScene): void {
+  private marchTimer = 0;
+  private landTimer = 0;
+  private closeTimer = 0;
+  /** The season whose results are held back, and until when (`performance.now()`). */
+  private holdLand: { index: number; viewer: Power | null; until: number } | null = null;
+
+  /** How long until the results of the season shown land: 0 if they are not held back. */
+  private landWait(s: MapScene): number {
+    const h = this.holdLand;
+    return h !== null && h.index === s.index && h.viewer === s.viewer ? Math.max(0, h.until - performance.now()) : 0;
+  }
+
+  private playSeason(s: MapScene, playout: MapInput["playout"]): void {
     const last = this.sceneFrom;
     this.sceneFrom = { index: s.index, viewer: s.viewer };
     if (last !== null && last.index === s.index && last.viewer === s.viewer) return;
     const g = this.layers.get("scenes")!;
-    clearTimeout(this.sceneTimer);
+    for (const t of [this.sceneTimer, this.marchTimer, this.closeTimer]) clearTimeout(t);
     g.innerHTML = "";
-    if (last === null || last.index !== s.index - 1 || last.viewer !== s.viewer || s.prev === null) return;
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const scenes = scenesOf(s.prev, s.frame, s.viewer);
-    if (scenes.length === 0) return;
-    g.innerHTML = scenes.map(sceneMarkup).join("");
-    // Each plays 3.6 s, the next starting 0.35 s after the one before (map-living.css).
-    this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), 3700 + 350 * (scenes.length - 1));
+    this.holdLand = null;
+    this.march(null);
+    this.closingLine(null);
+    if (playout === null || playout === undefined || last === null || last.index !== s.index - 1 || last.viewer !== s.viewer || s.prev === null) return;
+    const { timeline: t, line } = playout.play;
+    const now = performance.now();
+    const gone = now - playout.began;
+    if (gone >= t.total && t.total > 0) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      this.closingLine(line);
+      return;
+    }
+    if (t.landAt - gone > 0) this.holdLand = { index: s.index, viewer: s.viewer, until: now + t.landAt - gone };
+    if (t.marchMs > 0 || t.total === 0) {
+      this.march({ at: t.marchAt - gone, ms: t.marchMs });
+      this.marchTimer = window.setTimeout(() => this.march(null), Math.max(0, t.marchAt + t.marchMs - gone) + 50);
+    }
+    const markup = t.beats.map((b) => (b.moment.kind === "great" ? momentMarkup(b.moment, b.at - gone, b.ms) : "")).join("");
+    if (markup !== "") {
+      g.innerHTML = markup;
+      this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), Math.max(0, t.closeAt - gone) + 100);
+    }
+    this.closeTimer = window.setTimeout(() => this.closingLine(line), Math.max(0, t.closeAt - gone));
+  }
+
+  /** The marching's time for the pieces' slide (app.css: `--march-at`, `--march-ms`), or the ordinary slide. */
+  private march(m: { at: number; ms: number } | null): void {
+    for (const el of [this.layers.get("units"), this.layers.get("travellers")?.closest<SVGGElement>(".people")]) {
+      if (el === null || el === undefined) continue;
+      if (m === null) {
+        el.style.removeProperty("--march-at");
+        el.style.removeProperty("--march-ms");
+      } else {
+        el.style.setProperty("--march-at", `${Math.round(m.at)}ms`);
+        el.style.setProperty("--march-ms", `${Math.round(m.ms)}ms`);
+      }
+    }
+  }
+
+  /** The line that closes the season played, over the map until another season is shown (null: none). */
+  private closingLine(text: string | null): void {
+    const view = this.view;
+    if (view === null) return;
+    let el = view.querySelector<HTMLElement>(":scope > .season-close");
+    if (text === null) {
+      el?.remove();
+      return;
+    }
+    if (el === null) {
+      el = document.createElement("div");
+      el.className = "season-close";
+      view.querySelector(".mapzoom")?.after(el);
+    }
+    el.textContent = text;
   }
 
   /** The realm's own medium (clay for every court but Egypt's, papyrus for Egypt and god view) and the omens in the margin. */
@@ -535,9 +607,10 @@ export class SvgMapRenderer implements MapRenderer {
     cancelAnimationFrame(this.stepping);
     this.steps = [];
     detach(this.view);
-    clearTimeout(this.sceneTimer);
+    for (const t of [this.sceneTimer, this.marchTimer, this.landTimer, this.closeTimer]) clearTimeout(t);
     this.view.querySelector(".mapzoom")?.remove();
     this.view.querySelector(":scope > .omen")?.remove();
+    this.view.querySelector(":scope > .season-close")?.remove();
     delete this.view.dataset.medium;
     delete this.view.dataset.omen;
     this.view = null;
