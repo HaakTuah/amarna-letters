@@ -16,6 +16,7 @@ import type { Power } from "../model/power.ts";
 import { isAlive, logEvent, notify, unitAt, type Unit } from "../model/state.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { wordFromKing } from "../rules/court.ts";
+import { formatMoney, measures } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
@@ -47,7 +48,7 @@ P.setSupply = function (p, o) {
     p,
     "Resolution",
     "Word on the army's food",
-    `Word that your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name} is to ${o.buy ? "buy its food where it stands by leave" : "take its food from the land"}${gold > 0 ? `, with ${gold} shekels for it,` : ""} is on its way; it holds from turn ${at}.${o.buy && gold === 0 ? " Without gold for food it takes what it must." : ""}`,
+    `Your couriers carry word to your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(named).name} to ${o.buy ? "buy its food where it stands" : "take its food from the land"}${gold > 0 ? `, with ${formatMoney(gold)}` : ""}; it reaches them in turn ${at}.${o.buy && gold === 0 ? " No gold went with it, so they will take what they must." : ""}`,
   );
 };
 
@@ -81,7 +82,7 @@ P.keepsFoodGold = function (u) {
   u.chest = 0;
   u.savings -= kept;
   gain(c, kept, "Skimmed");
-  remember(c, this.s.turn, `I kept the ${kept} shekels my king sent for the army's food in ${this.map.get(u.province).name}, and let the men take what they needed.`);
+  remember(c, this.s.turn, `I kept the ${formatMoney(kept)} my king sent for the army's food in ${this.map.get(u.province).name}, and let the men take what they needed.`);
   logEvent(this.s, "supply", `${c.name} kept the gold ${u.power} sent for its army's food in ${this.map.get(u.province).name}.`, [], "supply-kept");
   return true;
 };
@@ -112,8 +113,8 @@ export class TakenBook {
         // Item 17++: a taking its people remember of whoever's troops took it, by how much of their food it was.
         e.take(prov, p, idiv(n * UnrestData.taken, Math.max(1, this.base.getOrDefault(prov, 0))));
         if (holder === null || !isAlive(S, holder)) continue;
-        if (p === holder) e.tell(holder, prov, "Notice", "The people complain", `The people of ${name} complain that your own troops took ${n} measures of their food this season.`);
-        else e.tell(holder, prov, "Notice", "Troops took food", `The troops of ${p} took ${n} measures of food from your land in ${name} this season.`);
+        if (p === holder) e.tell(holder, prov, "Notice", "The people complain", `The people of ${name} complain that your own troops took ${measures(n)} of their food this season.`);
+        else e.tell(holder, prov, "Notice", "Troops took food", `The troops of ${p} took ${measures(n)} of food from your land in ${name} this season.`);
       }
     }
   }

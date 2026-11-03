@@ -77,9 +77,9 @@ describe("TradeTests", () => {
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [trade("hattusa", "washukanni", 100, 100)] })]]));
     untilHome(s, e);
     Assert.true(s.events.some((x) => x.signal === "toll-paid"));
-    Assert.contains("paid Mitanni's toll of 20%", notices(s, "Hatti", "Markets and caravans"));
-    Assert.contains("Goods entering your land paid your tolls", notices(s, "Mitanni", "Tolls"));
-    Assert.contains("16 measures of grain into the stores where they crossed and 20 shekels into the treasury", notices(s, "Mitanni", "Tolls"));
+    Assert.contains("Mitanni at Washukanni took 16 measures of grain and 20 shekels (20 in a hundred)", notices(s, "Hatti", "Markets and caravans"));
+    Assert.contains("Your tolls brought", notices(s, "Mitanni", "Tolls"));
+    Assert.contains("16 measures of grain into the stores where the goods crossed and 20 shekels into the treasury", notices(s, "Mitanni", "Tolls"));
   });
 
   test("Smuggling: no toll is paid, but the odds of being found grow with the load and the watchmen", () => {

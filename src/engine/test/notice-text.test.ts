@@ -43,7 +43,7 @@ describe("NoticeTextTests", () => {
     new TurnEngine(s).beginTurn();
     let notice = single(inboxOf(s, "Egypt"), (i) => i.title === "The treasury");
     Assert.contains("The treasury now holds", notice.body);
-    Assert.contains("gold received at audiences or brought home by your envoys this season is added later", notice.body);
+    Assert.contains("before what this season's audiences and envoys bring in", notice.body);
   });
 
   test("A payment the treasury cannot make is a rejection even when debased gold is found", () => {

@@ -246,7 +246,7 @@ const Known: { issue: number; what: string; is: (difference: string) => boolean 
   { issue: 540, what: "a caravan to or from the far province", is: (d) => /^view\.caravans\[[a-z]+\]: /.test(d) && d.includes('"nippur"') },
   ...["strength", "gold"].map((k) => ({ issue: 540, what: `view.${k}`, is: (d: string) => d.startsWith(`view.${k}: `) })),
   { issue: 540, what: "the treasury notice", is: (d) => /^only where (true|false): The treasury: /.test(d) },
-  { issue: 540, what: "the works notice", is: (d) => /^only where (true|false): Works: What you keep and build cost /.test(d) },
+  { issue: 540, what: "the works notice", is: (d) => /^only where (true|false): Works: (Your works took|Upkeep and building cost|This season the works cost) /.test(d) },
   { issue: 540, what: "a caravan's arrival", is: (d) => /^only where (true|false): Markets and caravans: Your caravan reached /.test(d) },
   { issue: 540, what: "the realm's reaping event", is: (d) => /^only where (true|false): event: Egypt's land reaped its harvest: /.test(d) },
   { issue: 540, what: "a works event of the far province", is: (d) => /^only where (true|false): event: Egypt (raised|repaired) [^.]*Nippur/.test(d) },

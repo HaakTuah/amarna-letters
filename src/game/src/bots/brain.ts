@@ -338,7 +338,7 @@ export class Brain {
           case "Notice":
             // Item 17: his troops took food from our land, a grievance remembered as any wrong is.
             if (item.title === "Troops took food" && item.body.startsWith(`The troops of ${name} took `)) {
-              const n = /took (\d+) measures/.exec(item.body);
+              const n = /took (\d+) measures?/.exec(item.body);
               this.wronged(other, 0.5 + Math.min(1.5, Number(n?.[1] ?? 0) / 100), -0.1, -99);
               break;
             }

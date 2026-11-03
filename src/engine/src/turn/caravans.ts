@@ -15,10 +15,10 @@ import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import { land, type Power } from "../model/power.ts";
 import { isAlive, logEvent, notify, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { legPoints, PointsPerDay, boatDays, type Company } from "../model/travel.ts";
-import { formatMoney } from "../rules/calendar.ts";
+import { measures } from "../rules/calendar.ts";
 import { RoadOdds } from "./travel.ts";
 import { TurnEngine } from "./core.ts";
-import { openToSea, type Sneak, type TollBook } from "./trade.ts";
+import { goods, openToSea, type Sneak, type TollBook } from "./trade.ts";
 import { MarketsTitle } from "./economy.ts";
 
 declare module "./core.ts" {
@@ -66,7 +66,7 @@ P.caravansTravel = function () {
   const perSeason = S.config.travelDays * PointsPerDay;
   const season = seasonOfTurn(S.turn);
   const book: TollBook = new Dict();
-  const what = (c: Caravan): string => [c.grain > 0 || c.gold <= 0 ? `${c.grain} measures of grain` : "", c.gold > 0 ? formatMoney(c.gold) : ""].filter((x) => x !== "").join(" and ");
+  const what = (c: Caravan): string => goods(c.grain, c.gold);
   const noun = (c: Caravan): string => (c.ship !== null ? "ship" : "caravan");
   const arrivals: Caravan[] = [];
   for (const c of sortBy([...S.caravans], [(c: Caravan) => c.id, cmpStr])) {
@@ -134,7 +134,7 @@ P.caravansTravel = function () {
       if (back === null && at !== c.from) {
         S.caravans.splice(S.caravans.indexOf(c), 1);
         if (c.ship !== null) this.rejoinFleet(c);
-        notify(S, c.power, "Notice", MarketsTitle, `Your ${noun(c)} found no way home from ${this.map.get(at).name}: its ${what(c)} were lost.`);
+        notify(S, c.power, "Notice", MarketsTitle, `Your ${noun(c)} found no way home from ${this.map.get(at).name} and was lost, with ${what(c)}.`);
         continue;
       }
       if (back !== null) {
@@ -169,8 +169,8 @@ P.caravansTravel = function () {
       const where = this.map.get(taker.province).name;
       // A captured archive on the road (item 10+b) is the taker's now.
       if (c.archive.length > 0) this.archiveArrives(taker.power, c.archive, c.archiveOf, where);
-      notify(S, c.power, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${taker.power}'s ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; a loaded ship fights badly, and the fleet is lost" : ""}.`);
-      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${c.power}'s ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${kept} measures for their own baggage` : ""}${c.gold > 0 ? ", the gold for your treasury" : ""}.`);
+      notify(S, c.power, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${taker.power}'s ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; the fleet is lost with it" : ""}.`);
+      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${c.power}'s ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${measures(kept)} for their own baggage` : ""}${c.gold > 0 ? ", the gold for your treasury" : ""}.`);
       logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [c.power, taker.power], "caravan-taken");
       continue;
     }
@@ -257,12 +257,12 @@ P.caravanArrives = function (c, traded = null) {
         if (give <= 0) continue;
         u.food += give;
         c.grain -= give;
-        parts.push(`handed ${give} to ${unitLabel(u)}`);
+        parts.push(`handed ${measures(give)} to your ${unitLabel(u)}`);
       }
     if (c.grain > 0 && S.owner.getOrDefault(at, null) === c.power && open) {
       const before = c.grain;
       c.grain = this.putInStores(at, c.grain);
-      if (before > c.grain) parts.push(`put ${before - c.grain} into the stores${besieged ? " of the besieged city" : ""}`);
+      if (before > c.grain) parts.push(`put ${measures(before - c.grain)} into the stores${besieged ? " of the besieged city" : ""}`);
     }
     if (!open) parts.push(c.ship !== null ? "found the harbour blockaded" : "found the city besieged and could not get in");
   }
@@ -273,14 +273,14 @@ P.caravanArrives = function (c, traded = null) {
       c.at = 0;
       c.points = 0;
       c.returning = true;
-      notify(S, c.power, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} reached ${name}${parts.length > 0 ? ` and ${parts.join(", ")}` : ""}; it goes home to ${this.map.get(c.from).name}${c.grain + c.gold > 0 ? ` with ${[c.grain > 0 ? `${c.grain} measures of grain` : "", c.gold > 0 ? formatMoney(c.gold) : ""].filter((x) => x !== "").join(" and ")}` : ""}.`);
+      notify(S, c.power, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} reached ${name}${parts.length > 0 ? ` and ${parts.join(", ")}` : ""}; it goes home to ${this.map.get(c.from).name}${c.grain + c.gold > 0 ? ` with ${goods(c.grain, c.gold)}` : ""}.`);
       logEvent(S, c.trade ? "traded" : "caravan", `${c.power}'s ${c.ship !== null ? "ship" : "caravan"} reached ${name}.`, [c.power], c.trade ? "traded" : "caravan");
       return;
     }
   }
   S.caravans.splice(S.caravans.indexOf(c), 1);
   if (c.ship !== null) this.rejoinFleet(c);
-  const lostLine = c.grain + c.gold > 0 ? ` The other ${c.grain} measures${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""} had no way home and were lost.` : "";
+  const lostLine = c.grain + c.gold > 0 ? ` It found no way home, and the rest was lost: ${goods(c.grain, c.gold)}.` : "";
   notify(S, c.power, "Notice", MarketsTitle, `Your caravan reached ${name}${parts.length > 0 ? ` and ${parts.join(", ")}` : ""}.${lostLine}`);
   logEvent(S, "caravan", `${c.power}'s caravan reached ${name}.`, [c.power], "caravan");
 };
