@@ -141,4 +141,10 @@ as it now stands (below).
 Also: the first benchmark run crashed (a script king keyed its own troops by province, and a gone army's report could
 share one with a live army); a gone unit now moves to an older report like any far unit (`reportIndex`).
 
-Questions for the owner: none. Filed: #615 (bug).
+## Blocked
+
+Codex's review of the escalation's commit found one more P1: a scheduled or standing order for a far unit lost out of
+sight is refused at once, since binding it (`TurnEngine.bind`) and checking a standing order's target look only at the
+units in the game. The review limit is reached, so the PR stays a draft, blocked: question #621.
+
+Questions for the owner: #621 (how #612 goes on). Filed: #615 (bug), #621 (question).

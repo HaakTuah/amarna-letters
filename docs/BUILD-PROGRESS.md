@@ -68,10 +68,11 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
-- ~~**Far troops raised and gone (bug #600)**~~ (done, #612; step 0, #613: the movement news out of `resolve.ts`): a far
-  unit is known once word of its raising could come and kept, as last reported, until word of its end could; its
-  battles, movement lines and losses come home by the road. Save version 54. Left: #615 (the rest of a far unit as it
-  is), #587. Report: `docs/rounds/2026-11-03-far-unit-known.md`.
+- **Far troops raised and gone (bug #600): blocked** (#612, draft; question #621): a far unit known once word of its
+  raising could come and kept, as last reported, until word of its end could; its battles, movement lines, losses and
+  this season's orders by the road. Blocked after three review rounds and the escalation: a scheduled or standing order
+  for a unit lost out of sight is still refused at once (`bind`). Save version 54 on the branch. Report:
+  `docs/rounds/2026-11-03-far-unit-known.md`.
 
 - ~~**A far levy's dropped orders by word (bug #569)**~~ (done, #610): a levy that failed in its province drops the
   orders waiting on its army when word of it comes, in the season of its "Levy failed"; till then they stay listed,
