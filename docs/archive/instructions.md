@@ -1687,3 +1687,16 @@ Given in the design chat with Claude, answering the design questions of the cons
     principles: "Consume what you need to know only!"" The guidelines moved to `docs/review-guidelines.md`, protected,
     which every reviewer reads whole and builders no longer carry; their opening now speaks to every reviewer, and
     `AGENTS.md`, "Review guidelines", points to the file.
+207. **3 November 2026, 17:16 and 17:28 UTC**, in the design chat, quoting the design session's own lines back: "avoid
+    duplications nearly at all cost here. It creates drift and usage" … "have we clearly stated these core
+    pillars/criterias for the codebase, and do we mercilessly enforce them across the board? expert." Then, to the
+    design session's answer (stated, but not enforced: no reviewer was told to look for a copy, and nothing checked for
+    one) and its three proposals (the pillar stated with its reason, named in the review guidelines, and a copies check
+    in CI): "Yes, expertly, so all of the core pillars like those I mentioned are covered. I also like the sound of your
+    third suggestion. Can't it just be part of the tests for snakes without being part of the game, that way we still
+    get to test the stuff? why is it a principle it should not have anything imported, expert?'" The four pillars (one
+    fact, one place; split by meaning; keep it lean; read little) are named at the head of "How to work" in `AGENTS.md`;
+    "One fact, one place" now covers code, data, tests, docs, rule files and briefs, with its reason; the review
+    guidelines block a copy and an entry added to the copies baseline; and the copies check (`scripts/copies.mjs`,
+    `.github/workflows/copies.yml`) fails a new copy of code or of the rule files' prose on every PR, its baseline
+    listing the old ones to be removed.
