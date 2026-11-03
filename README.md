@@ -84,6 +84,8 @@ rumours, and those can be late, shaded or false.
 **Tablets.**
 - Write a treaty on a tablet (20 shekels) for your envoy to offer for sealing.
 - Send a copy of a sealed tablet to a third court as evidence.
+- Repudiate a tablet your envoy sealed in your name as beyond his authority: what it granted ends, and word of it rides
+  to the other king, who counts on the tablet until it comes.
 - Have a tablet examined for forgery, or forge one yourself (40 shekels, with a servant skilled
   enough).
 - Tablets are evidence only: nothing in the engine enforces them.
@@ -225,7 +227,7 @@ for the Aijalon valley, Pihil for Pella, Ashtartu, Hazzatu for Gaza, Biruta, Arw
 Babili for Babylon, Urim for Ur, Ninua and Arbail for Nineveh and Arbela, Shushan for Susa), otherwise the period's
 Egyptian or Hittite (Waset for Thebes, Men-nefer for Memphis, Ta-Mehu for the Delta, Kush for Nubia, the Ways of Horus for
 the north Sinai, Hayasa, Tjehenu for Libya, Seir for the Shasu's land, Kaska and Sutu for the Kaska's hills and the
-Suteans' steppe; their realms still go by "the land of the Tjehenu" and the like); every province has a proper name, never a description: where the period gives none, the oldest name the
+Suteans' steppe, and their realms by the same names); every province has a proper name, never a description: where the period gives none, the oldest name the
 sources do give (Tamassos for the copper hills of Cyprus), and a modern one only where no ancient name survives (Enkomi).
 What a place is ("the copper hills of Alashiya") and its modern name are on the province card, under its name. Pharaoh is Naphurureya to every other court and in every letter, Akhenaten
 in Egypt's own seat; his other names are on his card.
