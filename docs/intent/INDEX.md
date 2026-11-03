@@ -21,10 +21,10 @@ with the copy and say so in the report, and before opening the pull request read
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 83 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 68 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |
-| Characters | `docs/intent/characters/` | `0051b400-09bd` | 28 |
+| Characters | `docs/intent/characters/` | `0051b400-09bd` | 29 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 35 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 111 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 112 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 24 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 46 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 18 |
@@ -90,7 +90,7 @@ session loads.
 | `docs/intent/characters/characters-hidden-facts-memory-and-continuity.md` | Characters: hidden facts, memory and continuity | 3.1 |
 | `docs/intent/characters/characters-careers.md` | Characters' careers | 5.4 |
 | `docs/intent/characters/the-pool-of-characters.md` | The pool of characters | 17.1 |
-| `docs/intent/characters/skills-names-and-knowledge.md` | Skills, names and knowledge | 17.3 |
+| `docs/intent/characters/skills-names-and-knowledge.md` | Skills, names and knowledge | 20.0 |
 | `docs/intent/characters/how-scripts-and-models-play-characters.md` | How scripts and models play characters | 1.4 |
 | `docs/intent/work-money-and-lending/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/work-money-and-lending/recruitment-background-checks-and-the-open-market.md` | Recruitment, background checks and the open market | 6.1 |
@@ -108,7 +108,7 @@ session loads.
 | `docs/intent/war-travel-and-the-seas/territory-and-military-part2.md` | Territory and military (part 2) | 9.2 |
 | `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 9.0 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
-| `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.5 |
+| `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.7 |
 | `docs/intent/war-travel-and-the-seas/travel-passage-and-distance.md` | Travel, passage and distance | 3.3 |
 | `docs/intent/war-travel-and-the-seas/bands-pirates-and-outlaws.md` | Bands, pirates and outlaws | 11.6 |
 | `docs/intent/victory-and-the-ending/front.md` | Title and what the tab holds | 0.1 |
