@@ -104,8 +104,11 @@ const base = JSON.parse(fs.readFileSync(BASELINE, "utf8"));
 // count it raises there fails, whoever wrote it.
 const from = process.env.COPIES_BASE;
 if (from) {
-  let old = null;
-  try { old = JSON.parse(execFileSync("git", ["show", `${from}:${BASELINE}`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })).windows; } catch { /* no baseline there yet */ }
+  const git = args => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  try { git(["rev-parse", "--verify", `${from}^{commit}`]); } catch { console.error(`FAIL: COPIES_BASE ${from} is not a commit here: fetch it`); process.exit(1); }
+  let there = true;
+  try { git(["cat-file", "-e", `${from}:${BASELINE}`]); } catch { there = false; } // no baseline on that branch yet
+  const old = there ? JSON.parse(git(["show", `${from}:${BASELINE}`])).windows || null : null;
   const raised = old ? Object.entries(base.windows).filter(([h, n]) => !(h in old) || n > old[h]) : [];
   if (raised.length) { console.error(`FAIL: ${BASELINE} adds or raises ${raised.length} windows against ${from}: the baseline only shrinks`); process.exit(1); }
 }
