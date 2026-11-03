@@ -423,6 +423,9 @@ gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods s
 battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
 you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
+Your vassals and allies send you word of land they see change hands, so news of a far conquest or revolt can reach
+you before your own word from there: it comes by the road from their court, and the land then shows its new holder,
+"from your vassal" or "from your ally".
 Your land beyond a season's courier ride is shown the same way while you hold it: its stores, people, works and
 harvest as its officials last reported them, your caravans there as their last word has them, and your strength
 reckoned from what you know. Click such a city and its card gives only what your stewards last reported and how many
