@@ -49,12 +49,19 @@ export function cofferOrders(b: Board, spare: number): { orders: Order[]; spent:
 }
 
 /**
- * Whether a caravan of `grain` (and `gold`) can set out from a province of ours for `seasons` of road, there and back if
- * `both`: near, the treasury's checks decide; far, its coffer as last reported must hold its porters' pay and the gold
- * (the audit of #587: departures from far provinces with an empty coffer kept failing).
+ * The pay a caravan of `grain` and `gold` carries for `seasons` of road (a ship, `crew` a season), there and back if `both`:
+ * the engine's `payLoad`, as a king can reckon it.
  */
-export function fundedThere(x: ProvinceEconomyView, grain: number, gold: number, seasons: number, both: boolean): boolean {
-  if (x.reported === null) return true;
-  const pay = Math.max(1, Math.ceil((grain + Math.floor(gold / 10)) / EconomyData.caravanPayPer)) * Math.max(1, seasons) * (both ? 2 : 1);
-  return x.coffer >= pay + gold;
+export function payFor(grain: number, gold: number, seasons: number, both: boolean, crew: number | null = null): number {
+  const season = crew ?? Math.max(1, Math.ceil((grain + Math.floor(gold / 10)) / EconomyData.caravanPayPer));
+  return season * Math.max(1, seasons) * (both ? 2 : 1);
+}
+
+/**
+ * Whether a caravan whose pay and gold come to `cost` can set out from a province of ours: near, from `treasury` (what the
+ * king has left to spend); far, from its coffer as last reported (the audit of #587: departures without the gold there
+ * for their pay kept failing).
+ */
+export function fundedThere(x: ProvinceEconomyView, cost: number, treasury: number): boolean {
+  return (x.reported === null ? treasury : x.coffer) >= cost;
 }

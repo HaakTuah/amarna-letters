@@ -5,7 +5,7 @@
  * own while its waters are open, and sells grain at a starving foreign harbour like any dear market; and it sets its tolls, none on the partners it promised free passage to on a sealed tablet
  * nor on its allies. Every number below is a first guess of the script's own.
  */
-import { fundedThere } from "./coffers.ts";
+import { fundedThere, payFor } from "./coffers.ts";
 import { knownWays } from "./works.ts";
 import {
   EconomyData,
@@ -169,6 +169,7 @@ export function tradeOrders(
   // Caravans abroad count against the cap; fleets are their own limit.
   let traders = v.caravans.filter((c) => c.trade && !c.ship).length;
   const fleetCost = v.prices.getOrDefault("fleet", 150);
+  const fleetUpkeep = v.prices.getOrDefault("fleetUpkeep", 20);
 
   // A besieged harbour of ours, its waters open, its stores short: a ship brings it grain first.
   for (const x of v.sieges.filter((s) => s.holder === b.me)) {
@@ -251,12 +252,13 @@ export function tradeOrders(
         if (best !== null && gain <= best.gain) continue;
         const goldOut = buyGold > 0 && bought.taken > 0 ? Math.min(buyGold, Math.ceil((bought.paid * 100) / Math.max(1, keep))) : 0;
         if (n <= 0 && goldOut <= 0) continue;
-        if (how !== "ship" && !fundedThere(home, n, goldOut, way.seasons, true)) continue;
+        const pay = payFor(n, goldOut, way.seasons, true, how === "ship" ? fleetUpkeep : null);
+        if (!fundedThere(home, pay + goldOut, gold - spent)) continue;
         best = {
           order: how === "ship" ? ship(fleet!.province, home.province, k, n, goldOut, true) : trade(home.province, k, n, goldOut, how === "smuggle"),
           gain,
           grain: n,
-          gold: goldOut,
+          gold: goldOut + (home.reported === null ? pay : 0),
           fleet: how === "ship" ? fleet!.province : null,
         };
       }

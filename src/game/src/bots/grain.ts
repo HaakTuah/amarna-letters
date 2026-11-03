@@ -6,7 +6,7 @@
  * at any price when the treasury needs gold or the grain would be lost for want of room; hands its towns what would still
  * be lost; and buys grain where troops depend on an empty store. Returns the gold its sales should bring.
  */
-import { fundedThere } from "./coffers.ts";
+import { fundedThere, payFor } from "./coffers.ts";
 import { knownWays } from "./works.ts";
 import {
   EconomyData,
@@ -155,7 +155,7 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
     if (r === null || r.seasons > 2) continue;
     // What the porters will eat on the way.
     const amount = Math.ceil((n * 100) / (100 - EconomyData.caravanEatPercent * r.seasons));
-    if (spare(source) < amount || !fundedThere(source, amount, 0, r.seasons, false)) continue;
+    if (spare(source) < amount || !fundedThere(source, payFor(amount, 0, r.seasons, false), gold)) continue;
     orders.push(caravan(source.province, to, amount));
     source.stores -= amount;
     sending.add(to);
