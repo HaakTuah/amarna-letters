@@ -29,12 +29,17 @@ brief, nothing else. The audience speech and the facts in inquiries were left ou
   articles are set once ("the Suteans'", "Kaska's army").
 - **Rules out of notices:** sieges say what changed ("It stands at 2 of the 6 steps to a breach"), not the siege rules.
   Hunger, mutiny, loose men and the province offers lose their rule tails. The rulebook already has each rule.
-- **Recurring frames vary** by a deterministic pick (`rules/wording.ts`: `pick`, keyed by the season and the subject,
-  with no draw on the game's random numbers). This covers the works opener, a job done, a fee due, loans, inquiries
-  (four colon frames), spy sightings and candidates. Each candidate's words now come from its own trade, with three
-  forms per line picked by the person.
+- **Recurring frames vary** by a deterministic pick (`pick` in `rules/wording.ts`, now the only one; `voices.ts`
+  re-exports it). It is keyed by the season and the subject, with no draw on the game's random numbers. This covers
+  the works opener, a job done, a fee due, loans, inquiries (four colon frames) and spy sightings.
+- **Candidates speak from their own calling.** There is a family for each trade and for the cast's own callings
+  (envoys, officials, princes, lords), each with four forms of a boast, a modest line and a plain one, picked by the
+  person. No line names a span of years, a count or a deed of the age: many candidates are real people of 1346, and a
+  figure would read as a fact of their lives ("History holds"). A boast is the speaker's own word, true or not.
 - **Ids** appear only inside an order pointer an order takes ("(order repay, debt d21)"). Tablets are named by what
   they are. "turn N" stays, since the interface shows each one as the court's own date (`dated`).
+- **Fixed on Codex's review:** a bribed envoy hides its host's true observations by the name the notice writes
+  (`courtHead`), and the display names had slipped past that filter. `spy-check.ts` had the same slip.
 - **Fixed along the way:** a disbanded army's savings were always said to go "into the purse of" its home province.
   They now go where the men spend them: where they settle, at home, or carried on the road (`menHome`).
 - **The script kings read the same notices.** Each reader moved with its words: the assay's `FullWeight` ("all fine
@@ -43,6 +48,14 @@ brief, nothing else. The audience speech and the facts in inquiries were left ou
   `baseline-leader.ts` and `talk.ts`, which now read names through `powerNameFor`. Two canary patterns read the
   treasury notice. Both were updated to the new words, with no check loosened (`twin-canary.test.ts` lines 79 and 270).
 
+## The guard
+
+`src/game/test/notice-shapes.test.ts` plays four script kings for ten seasons in the small world. Every notice in the
+engine's own words must carry none of the tells this lane took out: a number that does not agree, a zero told as a
+number, a small letter after a full stop, "%", "->", or two colons in one clause. The works notice, which every court
+reads every season, must open more than one way. On its first run it caught one more tell, "1 measure at Arbail for
+0 shekels", which now reads "for next to nothing".
+
 ## The review (fresh eyes, Opus at high effort; given only the corpus and the brief)
 
 | Round | Score | What kept it from 10 |
@@ -50,7 +63,9 @@ brief, nothing else. The audience speech and the facts in inquiries were left ou
 | 1 | 3 | "1 measures"; a 70-word treasury ledger every season; "this season. no work was done"; "- - army in Apasa holds"; garbled taxes; ids and "->" order syntax; one candidate pitch for every trade; rules repeated in every siege notice |
 | 2 | 6 | Movements still a list; the treasury tail every season; one power under two names ("Karduniash" and "Babylonia"); the assay saying "full weight" of a short lot; colon chains in refusals |
 | 3 | 7 | "beaten by far"; "the kingdom of Arrapha is no more: Assyria took its capital, Arrapha"; "the Damascus", "Suteans has"; rule text in the new province offers; archive ids; frames that never vary |
-| Escalation 1 | (pending) | |
+| Escalation 1 | 7 | Naming each power by its land broke the busiest refugee line ("from Lakisha, Lakisha's land"); names escaping the rule (Hazor/Hasura, Akka/Akko); "give Halab to Halab"; "policing" |
+| Escalation 2 | 8 | The candidates' lines: one template with the place swapped, and a span of years in nearly every line |
+| Escalation 3 | **10** | Nothing open. Noted, not blocking: two armies "held their ground" in one movements notice |
 
 ## Readings taken
 
@@ -81,10 +96,11 @@ script play on other seeds, so it takes **save version 60**. The three games wer
 
 | Helper | Model | What it gave |
 | --- | --- | --- |
-| Reviewer (rounds 1-3 and escalation) | Opus, high | Scores 3, 6, 7, …, each with a ranked list |
+| Reviewer (rounds 1-3, escalations 1-3) | Opus, high | Scores 3, 6, 7, 7, 8, 10, each with a ranked list |
 | Groups A, B, C (round 1 fixes: economy, people, war) | Opus | One commit each, merged; three files each per finding |
 | Groups D, E (round 2 fixes: war and orders, economy and people) | Opus | One commit each, merged |
-| Escalation (round 3 fixes) | Opus, high | All eleven points; the one-name-per-power helper and the readers moved with it |
+| Escalation (round 3 and escalation 1 fixes, Codex's two findings) | Opus, high | The one-name-per-power helper and the readers moved with it; `courtHead`; one `pick` |
+| Builder | Opus | The merges with `develop`, the canary and test words, escalation 2's candidate lines and one-line fixes |
 
 ## Ten lines before and after
 

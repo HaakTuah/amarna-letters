@@ -585,7 +585,7 @@ P.settleMarkets = function (orders) {
           t.gold += r.paid;
           t.income += r.paid;
         }
-        if (r.taken > 0) deal(p, prov, "Sold", `${measures(r.taken)} at ${name} for ${formatMoney(r.paid)}` + (r.taken < net ? ` (its people's purse ran dry, ${net - r.taken} unsold)` : ""));
+        if (r.taken > 0) deal(p, prov, "Sold", `${measures(r.taken)} at ${name} for ${r.paid > 0 ? formatMoney(r.paid) : "next to nothing"}` + (r.taken < net ? ` (its people's purse ran dry, ${net - r.taken} unsold)` : ""));
         else tell(p, prov, `Nobody at ${name} could buy your grain: its people's purse is empty.`);
         if (r.taken > 0) logEvent(S, "sale", `${p} sold grain at ${name}.`, this.nearOf(prov, p), "sale");
         if (r.taken < net) for (const o of list.filter((o) => o.type === "sell")) this.wakeFrom(p, o, prov, "the people's purse ran dry");
@@ -595,7 +595,7 @@ P.settleMarkets = function (orders) {
         m.purse += r.paid;
         t.gold -= r.paid;
         const over = this.putInStores(prov, r.taken);
-        if (r.taken > 0) deal(p, prov, "Bought", `${measures(r.taken)} at ${name} for ${formatMoney(r.paid)}` + (r.taken < -net ? ` (${-net - r.taken} short)` : "") + (over > 0 ? `, ${over} of it lost for want of room in the stores` : ""));
+        if (r.taken > 0) deal(p, prov, "Bought", `${measures(r.taken)} at ${name} for ${r.paid > 0 ? formatMoney(r.paid) : "next to nothing"}` + (r.taken < -net ? ` (${-net - r.taken} short)` : "") + (over > 0 ? `, ${over} of it lost for want of room in the stores` : ""));
         else tell(p, prov, `No grain could be bought at ${name}.`);
         if (r.taken > 0) logEvent(S, "purchase-grain", `${p} bought grain at ${name}.`, this.nearOf(prov, p), "grain-bought");
       } else if (offered > 0) tell(p, prov, `At ${name} your sales and purchases cancelled out: no grain changed hands.`);
