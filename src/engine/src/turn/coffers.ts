@@ -137,13 +137,11 @@ P.noCredit = function (p, province) {
 P.sendGold = function (p, o) {
   const S = this.s;
   const name = this.map.get(o.province).name;
-  const d = reach(this, p, o.province);
-  if (d === null || d < 1) {
-    notify(S, p, "Rejected", "No gold sent", `No gold was sent to ${name}: ${d === null ? "no road for your couriers reaches it" : "it is within the season's reach of your court, where the treasury pays at once"}.`);
-    return;
-  }
+  // The order checks judged it far, as the court knows its roads; it goes whatever the roads truly are, so neither the
+  // treasury nor a notice says more (Codex, #635). With no road at all it arrives as word does, and comes back.
   if (!this.pay(p, o.gold, `the gold for ${name}`, o, "none was sent")) return;
-  S.sent.push(newRemittance({ power: p, province: o.province, gold: o.gold, due: S.turn + d }));
+  const d = reach(this, p, o.province) ?? 1;
+  S.sent.push(newRemittance({ power: p, province: o.province, gold: o.gold, due: S.turn + Math.max(1, d) }));
   notify(S, p, "Resolution", "Gold sent", `${formatMoney(o.gold)} left your treasury with your couriers for the coffer of ${name}; word will come when it reaches there, if the province is still yours and open by then.`);
   logEvent(S, "gold-sent", `${p} sent gold to ${name}.`, [p], "gold-sent");
 };
@@ -275,15 +273,12 @@ P.coffersSettle = function () {
       continue;
     }
     if (!this.isFar(c.power, c.province)) {
-      // Within the season's reach again: the coffer is the treasury's, and the treasury pays what is still owed.
-      const t = S.treasuries.get(c.power);
-      if (c.gold > 0) notify(S, c.power, "Notice", "A coffer comes home", `${name} is within your couriers' season again: the ${formatMoney(c.gold)} kept in its coffer is in your treasury now${c.owed > 0 ? `, which pays what is owed there as far as it can` : ""}.`);
-      t.gold += c.gold;
-      c.gold = 0;
-      const rest = Math.min(Math.max(0, t.gold), c.owed);
-      t.gold -= rest;
-      c.owed -= rest;
-      this.spendAt(c.province, rest);
+      // Within the season's reach: nothing is paid from it any more, and what it holds goes home with a carrier, so the
+      // treasury moves only when the gold arrives (Codex, #635); its debt waits for gold to reach it.
+      if (c.gold > 0 && homeRoad(this, c.power, c.province)) {
+        this.lootHome(c.power, c.province, c.gold, [], "");
+        c.gold = 0;
+      }
     } else if (siegeOf(S, c.province) === null && reach(this, c.power, c.province) !== null && homeRoad(this, c.power, c.province)) {
       // With no road home, or no word, it keeps all it has.
       const keep = seasonNeed(this, c.power, c.province) * (reach(this, c.power, c.province)! + 1);

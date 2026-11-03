@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, OrderValidator, Views, TurnEngine, build, caravan, inboxOf, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, newCaravan, newWorkPlan, purchase, send, setLevel, trade } from "@amarna/engine";
+import { Dict, type GameState, OrderValidator, Views, TurnEngine, build, caravan, newGame, newGameConfig, newOwnerChange, newTurnSubmission, newUnit, newCaravan, newWorkPlan, purchase, send, setLevel, trade } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 // Gold travels both ways (#587, "One treasury, many stores"): what is done far off is paid only from gold that is there.
@@ -108,15 +108,13 @@ describe("CofferTests", () => {
     Assert.equal(after, t.gold);
   });
 
-  test("A province within the season's reach refuses gold sent ahead: the treasury pays there at once", () => {
+  test("The order checks refuse gold sent ahead to a province the court sees within the season's reach: the treasury pays there at once", () => {
     const s = game();
     const e = new TurnEngine(s);
     const near = [...s.owner.entries()].find(([id, p]) => p === "Egypt" && id !== "nippur" && e.wordTo("Egypt", id) === 0)![0];
-    const before = s.treasuries.get("Egypt").gold;
-    e.sendGold("Egypt", send(near, 100));
-    Assert.equal(before, s.treasuries.get("Egypt").gold);
-    Assert.equal(0, s.sent.length);
-    Assert.contains("No gold sent", inboxOf(s, "Egypt").map((i) => i.title).join(" "));
+    const v = new OrderValidator(s, e.map).validate("Egypt", newTurnSubmission({ orders: [send(near, 100)] }));
+    Assert.empty(v.accepted);
+    Assert.contains("within the season's reach", v.rejected.map((r) => r.reason).join(" "));
   });
 
   test("A caravan carries its porters' pay for the road: the treasury pays nothing while it travels", () => {

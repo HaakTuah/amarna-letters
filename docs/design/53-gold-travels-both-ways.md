@@ -24,7 +24,8 @@ Each far province of a king's may keep his gold there (`GameState.coffers`: prov
 - **Debt first:** gold reaching a coffer pays what the province is owed before anything can spend it.
 - **As the season ends** (`coffersSettle`, after the markets): the coffer keeps what its works in gold and the troops there cost a season, times the seasons word takes to the court plus one
   (until word could go and come back), and sends the rest home as a load (`lootHome`), as the province's gold always went.
-  A province near again hands its coffer to the treasury, which pays what is still owed there. A besieged province sends
+  A coffer in a province within the season's reach pays nothing more and sends all it holds home with a carrier; its
+  debt waits for gold to reach it. A besieged province sends
   nothing out.
 - **It falls with its province:** the new holder takes the gold (into his own coffer or treasury, by the same rule); the
   debt dies with the old holder's rule. Land nobody holds keeps it in its people's purse.
@@ -47,8 +48,9 @@ of the province are paid when the bill is; the troops' pay goes into their packs
 
 `send` (a province of the king's and the shekels; the rulebook's `send_gold`) is given at court: the gold leaves the
 treasury now and travels with the couriers (`GameState.sent`), reaching the coffer when word would. If the province is
-lost or besieged by then, the couriers bring it back, as long again. A province within the season's reach refuses it
-(the treasury pays there at once). The seat view lists the gold it sent (`SeatView.goldSent`) until word of what became of it
+lost or besieged by then, the couriers bring it back, as long again. The order checks refuse it for a province the court sees within the season's reach, as its view shows
+(the treasury pays there at once); past the checks it always goes, whatever the true roads, so nothing tells the court of
+roads it has not heard of. The seat view lists the gold it sent (`SeatView.goldSent`) until word of what became of it
 comes, arrived (`Remittance.landed`, kept until then) or come back, and gives no day of arrival, which would tell it the
 roads before any word did. Gold a fleet takes far out at sea stays with its men, with their savings.
 
