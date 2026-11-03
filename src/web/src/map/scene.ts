@@ -309,7 +309,7 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
       captures.push({ province: prov.id, from: was, to: now, how });
     }
 
-  const [travellers, people] = viewer === null ? godPeople(f) : seatPeople(f, viewer);
+  const [travellers, people] = peopleOf(f, viewer);
   const news = viewer !== null ? newsOf(frames, index, viewer) : [];
   // As the court knows them (bug #517): the engine's own reckoning, carried in the frame.
   const sieges = viewer !== null ? [...(f.knownSieges.get(viewer) ?? [])] : [...f.sieges];
@@ -469,6 +469,9 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
 
 /** The fraction of the way a traveller has come by the season after this frame, kept off both ends. */
 const progressOf = (now: number, depart: number, arrive: number): number => (arrive <= depart ? 0.5 : Math.min(Math.max((now - depart - 0.5) / (arrive - depart), 0.12), 0.88));
+
+/** The people on the road and standing somewhere, as the viewer knows them: in god view as they are. */
+export const peopleOf = (f: SeasonFrame, viewer: Power | null): [SceneTraveller[], ScenePerson[]] => (viewer === null ? godPeople(f) : seatPeople(f, viewer));
 
 function godPeople(f: SeasonFrame): [SceneTraveller[], ScenePerson[]] {
   const travellers: SceneTraveller[] = [];

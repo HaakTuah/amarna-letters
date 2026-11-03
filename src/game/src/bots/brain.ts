@@ -163,6 +163,8 @@ export class Brain {
    */
   readonly alarmed = new Dict<string, number>();
   lastSeek = -10;
+  /** #601: the last ride offered for each far province: its season and fee, so a refusal is followed by a better offer. */
+  rideOffers = new Dict<string, { turn: number; fee: number }>();
   lastSpyCaught = -10;
   warTarget: Power | null = null;
   warSince = 0;
@@ -556,7 +558,8 @@ export class Brain {
           for (const line of item.body.split("\n")) {
             const m = line.includes("nobody is left to") ? /the captive (\S+):/.exec(line) : null;
             if (m !== null) this.unclaimed.add(m[1]);
-            const h = line.includes("cannot come to yours") ? /^- hire (\S+) at /.exec(line) : null;
+            // A refused offer reads "- offer c12 a job ...: ... is held at the court of X and cannot come to yours" (bug #656).
+            const h = line.includes("cannot come to yours") ? /^- [Oo]ffer (\S+) a job\b/.exec(line) : null;
             if (h !== null) this.heldElsewhere.add(h[1]);
           }
         break;

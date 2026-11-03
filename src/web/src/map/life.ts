@@ -1,7 +1,7 @@
 /**
  * The memory and the life of the map, drawn (build order item 19; what is drawn and why is in memory.ts): land gone wild,
  * battlefields' memorials, a famine's empty granaries and a town's houses close up, caravans and men on the roads, the
- * realm's own medium and the omens in the margin, and small scenes at big moments.
+ * realm's own medium and the omens in the margin (the season's great moments: moments.ts).
  */
 import { WorldMap, economyOf, type OmenTier, type Power } from "@amarna/engine";
 import { F, Shapes, along, city, landClipOf, route } from "./art.ts";
@@ -86,51 +86,3 @@ export const OmenSigns: Readonly<Record<OmenTier, { text: string; svg: string }>
   Borrowed: { text: "The diviners say the age has outlived its measure: a strange star.", svg: `<path class="sky-tail" d="M-12,10L1,-1"/><circle class="sky-star" cx="2" cy="-2" r="3.2"/>` },
   Darkest: { text: "The diviners read the darkest signs: the sun swallowed.", svg: `<circle class="sky-corona" r="11"/><circle class="sky-black" r="8"/>` },
 };
-
-/** A season's small scenes: an envoy's procession with gifts arriving at court, a sack, an ambush on the road. */
-export interface SmallScene {
-  at: { x: number; y: number };
-  kind: "gift" | "sack" | "ambush";
-  text: string;
-}
-
-const ByName = new Map(Map_.provinces.map((p) => [p.name, p.id] as const));
-/** The place an event names at its end, as the engine writes it ("... sacked Name.", "... near Name.", "... in Name ..."). */
-const placeIn = (text: string): string | null => {
-  const m = /\b(?:sacked|near|in) ([A-Z][^,.()]*?)(?:,| of | \(|\.)/u.exec(text) ?? /\b(?:sacked|near|in) ([A-Z][^,.()]*)\.?$/u.exec(text);
-  return m === null ? null : (ByName.get(m[1].trim()) ?? null);
-};
-
-/** The scenes of the season just shown (frame `f`, after `prev`), as the viewer would know of them. */
-export function scenesOf(prev: SeasonFrame, f: SeasonFrame, viewer: Power | null): SmallScene[] {
-  const out: SmallScene[] = [];
-  const knows = (visible: readonly Power[]): boolean => viewer === null || visible.includes(viewer);
-  // Envoys bearing gifts who reached their court this season.
-  for (const j of prev.journeys) {
-    if (j.kind !== "EnvoyOutbound" || j.gold <= 0 || j.arrive > f.turn || f.journeys.some((x) => x.id === j.id)) continue;
-    if (viewer !== null && viewer !== j.from && viewer !== j.to) continue;
-    out.push({ at: city(Map_.capital(j.to).id), kind: "gift", text: `${powerName(j.from)}'s envoy arrived at the court of ${powerName(j.to)} with gifts` });
-  }
-  for (const e of f.events) {
-    if (!knows(e.visibleTo)) continue;
-    const id = placeIn(e.text);
-    if (id === null) continue;
-    if (e.kind === "sack") out.push({ at: city(id), kind: "sack", text: e.text });
-    else if (e.kind === "caravan-robbed" || e.signal === "road-outlaws") out.push({ at: city(id), kind: "ambush", text: e.text });
-  }
-  return out.slice(0, 6);
-}
-
-/** A scene's markup: a medallion with its figures, which the stylesheet plays once and the renderer then takes away. */
-export function sceneMarkup(sc: SmallScene, i: number): string {
-  const figs =
-    sc.kind === "gift"
-      ? `<use href="#fig-envoy" x="-11" y="-7" width="13" height="13"/><use href="#g-ingot" x="1" y="-3" width="9" height="9"/>`
-      : sc.kind === "sack"
-        ? `<use href="#fig-fire" x="-7" y="-8" width="14" height="14"/>`
-        : `<use href="#fig-clash" x="-6.5" y="-7" width="13" height="13"/>`;
-  return (
-    `<g class="scene ${sc.kind}" transform="translate(${F(sc.at.x)},${F(sc.at.y)})" style="animation-delay:${i * 0.35}s"><title>${esc(sc.text)}</title>` +
-    `<g class="sym"><g transform="translate(0,-34)"><circle class="scene-bg" r="15"/><g class="scene-figs">${figs}</g></g></g></g>`
-  );
-}

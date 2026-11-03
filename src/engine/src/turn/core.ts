@@ -100,6 +100,8 @@ export class TurnEngine {
     this._missedPayNow.clear();
     // Bug #540: each held province's report of the season just ended, which goes to its holder as word does.
     recordReports(this);
+    // #601: riders hired last season are back with their provinces' reports.
+    this.ridersBack();
     this.caravanWordsHome();
     // A siege whose army is gone since it was last pressed (disbanded, given away, lost to plague) is over: it costs nothing.
     this.liftLostSieges();
@@ -279,7 +281,7 @@ export class TurnEngine {
     // The king who lost it knows at once, as his notice tells him, though it leaves his sight; since item 13 only where
     // his couriers bring word within the season (farther off, word of it comes as word does, and his officials' last
     // reports stand in his view until then: bug #540, GameState.reports).
-    if (old !== null && this.wordTo(old, province) === 0) {
+    if (old !== null && this.wordFrom(old, province) === 0) {
       let book = S.known.tryGet(old);
       if (book === undefined) S.known.set(old, (book = new Dict()));
       book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));

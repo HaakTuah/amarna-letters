@@ -203,7 +203,7 @@ export function placesNamed(text: string): string {
 function jobText(o: HireOrder | RenewOrder): string {
   // A court by its power's name, a province by its own.
   const where = o.where === null || o.where === undefined ? "?" : AllPowers.includes(o.where) ? powerName(o.where) : named(o.where);
-  const errand = o.what === "envoy" ? ` as envoy to ${where}` : o.what === "spy" ? ` to watch ${where}` : o.what === "stay" ? " to stay at court" : "";
+  const errand = o.what === "envoy" ? ` as envoy to ${where}` : o.what === "spy" ? ` to watch ${where}` : o.what === "stay" ? " to stay at court" : o.what === "ride" ? ` to ride to ${where} and bring its report home` : "";
   return errand + (o.payOnDone === true ? ", the rest paid when it is done" : "") + (o.offerAgain === true ? ", offered again when done" : "");
 }
 

@@ -21,6 +21,7 @@ import type { Checking } from "./validator-context.ts";
 import { checkEconomyOrder } from "./validator-economy.ts";
 import { checkPeopleOrder } from "./validator-people.ts";
 import { knownLevel, ownWorks } from "./province-reports.ts";
+import { courierSeasons, courtOf } from "./court.ts";
 import type { WorkKind } from "../model/works.ts";
 
 export class ValidationResult {
@@ -113,6 +114,9 @@ export class OrderValidator {
       if (via === null && c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
       if (via === null && c.at !== power && c.heldBy !== power)
         return [`${c.name} is not at your court; an offer to a person elsewhere goes with an envoy you send this season to where they are (via)`, c];
+      if (via !== null && h.what === "ride") return ["a ride is offered at your court, where the rider sets out from: name no envoy (via)", c];
+      if (h.what === "ride" && h.term !== 1) return ["a ride is there and back within the season: its term is 1", c];
+      if (h.what === "ride" && h.offerAgain === true) return ["a ride is offered for one season's report: offer each ride anew (no offer_again)", c];
       if (via !== null) {
         const d = orders.find((o) => o.type === "dispatch" && o.envoy === via) ?? null;
         if (d === null || d.type !== "dispatch") return [`you send no envoy '${via}' this season to carry the offer`, c];
@@ -127,7 +131,7 @@ export class OrderValidator {
     // A job's errand as an order names it: an envoy to a living court not one's own, or a spy on such a court or a province.
     const errandRefusal = (o: { what?: string | null; where?: string | null }): string | null => {
       const what = o.what ?? null;
-      if (what === null) return "name the job's errand, what (envoy, spy or stay) and where";
+      if (what === null) return "name the job's errand, what (envoy, spy, stay or ride) and where";
       const where = o.where ?? "";
       if (what === "envoy") return AllPowers.includes(where as Power) && where !== power && !heardFallen(where as Power) ? null : `an envoy's errand is to a court other than your own; '${where}' is not one`;
       if (what === "spy") {
@@ -136,8 +140,21 @@ export class OrderValidator {
       }
       // The owner's answers to item 11b+: staying at your court until a deadline is an errand like any other.
       if (what === "stay") return where === power ? null : `a stay is at your own court: name ${power}`;
-      return `a job's errand is "envoy", "spy" or "stay", not '${what}'`;
+      // #601: a ride brings home the report of a province of yours beyond the season's reach.
+      if (what === "ride") {
+        if (!Map.exists(where) || Map.get(where).isSea) return `there is no province called '${where}'`;
+        if (knownOwner(where) !== power) return `a ride brings the report of a province of yours: you do not hold ${Map.get(where).name}`;
+        // By the road home, which the report comes by (#616).
+        const home = courierSeasons(S, Map, where, courtOf(S, Map, power));
+        if (!Number.isFinite(home)) return `no road brings word from ${Map.get(where).name} to your court`;
+        return home === 0 ? `${Map.get(where).name}'s report reaches you this season without a rider` : null;
+      }
+      return `a job's errand is "envoy", "spy", "stay" or "ride", not '${what}'`;
     };
+
+    // A job's errand in the words of a refusal.
+    const jobIs = (what: string | null, where: string): string =>
+      what === "envoy" ? `as envoy to ${where}` : what === "stay" ? "to stay at your court" : what === "ride" ? `to ride to ${where}` : `to watch ${where}`;
 
     // Whether a person may be sent on an errand by this submission: its job's errand is this one (or not yet named), or an
     // order earlier in the list offers it a job for this one.
@@ -151,13 +168,13 @@ export class OrderValidator {
       if (cover === null && c.employer !== power) {
         const job = orders.find((o) => o.type === "hire" && o.character === id);
         return job !== undefined && job.type === "hire"
-          ? `the job offered ${c.name} is ${job.what === "envoy" ? `as envoy to ${job.where}` : job.what === "stay" ? "to stay at your court" : `to watch ${job.where}`}: another errand is a new job`
+          ? `the job offered ${c.name} is ${jobIs(job.what ?? null, job.where ?? "")}: another errand is a new job`
           : null;
       }
       const e = cover !== null ? null : (c.contract?.errand ?? null);
       if (e === null) return null;
       if (e.what === what && e.where === where && !e.done) return null;
-      const job = e.done ? `${c.name}'s job's errand is done` : `${c.name}'s job is ${e.what === "envoy" ? `as envoy to ${e.where}` : e.what === "stay" ? "to stay at your court" : `to watch ${e.where}`}`;
+      const job = e.done ? `${c.name}'s job's errand is done` : `${c.name}'s job is ${jobIs(e.what, e.where)}`;
       return `${job}: another errand is a new job, offered with order renew (what, where), which they may take or not`;
     };
 

@@ -415,7 +415,8 @@ province, the city of a court your envoy visited, a province your scribes counte
 land near your court, each as it reaches you and dated from when it was seen. Tap anyone to follow their life: their
 path, along the roads between the places you knew them at, their masters, their missions, what they said and reported;
 the camera keeps to them, where you last knew them, until you move it yourself ("Keep the camera on them" takes it
-back). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
+back). Zoomed out, the realms' colours are full; zoomed in, they thin to a wash and then almost to their borders and
+the emblems on their cities, so the ground and the figures show through (the mood view keeps its colours). Drag and zoom as far as the lands drawn beyond the game: a province on the map's edge can be brought to the
 centre.
 
 The map lives with the year: the Nile's flood in Akhet, green fields and snow on the heights in Peret, the harvest's
@@ -423,9 +424,14 @@ gold in Shemu, rivers in spate and storms on the open sea. Droughts and floods s
 battlefield keeps its stele, and a sacked city lies in ruins until its people come back. Your map shows the world as
 you know it: a city sacked or lost far from your court, out of your sight, stands as you last knew it, its houses, its
 stores and its people as they were, until the news reaches you; only then does it show its ruin or leave your land.
+Your vassals and allies send you word of land they see change hands, so news of a far conquest or revolt reaches you
+as a notice, sometimes before your own word from there: it comes by the road from their court, and your map then shows
+the land's new holder.
 Your land beyond a season's courier ride is shown the same way while you hold it: its stores, people, works and
 harvest as its officials last reported them, your caravans there as their last word has them, and your strength
-reckoned from what you know. Click such a city and its card gives only what your stewards last reported and how many
+reckoned from what you know. To know sooner, hire a rider at your court to fetch one far province's report this
+season: he names his price by what he has heard a ride pays and how badly you want him, and takes less if you haggle,
+up to a point. Click such a city and its card gives only what your stewards last reported and how many
 seasons ago, never its new holder's affairs; a band your people last told of there is drawn faded, with the age of that word. Looking back at an
 earlier season, a card gives the figures recorded in that season, never today's.
 Figures on the roads in the fog are your own: your caravans, near as they are and farther off where their last word
@@ -437,9 +443,14 @@ Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 **Legends** tells the game's stories from the record: each character's life, each tablet's history, the rise and fall
 of courts. When the age ends, every seat may open the whole record in god view.
 
-On a computer, Space pauses and unpauses, 1 to 3 set the pace (Slow, Normal, Fast: seasons are turns, so the pace only
-sets how long each is watched), and + and − step between them; no key acts while you type. Each button's tooltip names
-its key.
+Each season plays out on the map: the envoys arrive, the columns march, then the battles, the sieges and the cities that
+fall, each in its turn, and a short line closes the season with what changed. Only what your court knows plays: an army
+appears where it was seen, and a disaster far away is news in that line, not a scene. On a computer, Space pauses and
+unpauses, 1 to 4 set the pace (seasons are turns, so the pace only sets how long each is watched: Slow, about 15
+seconds a season; Normal, about 6; Fast, about a second of highlights, though a capital falling still takes a moment;
+Simulate draws nothing and computes the game as fast as it can, showing only the count of seasons, then opens it at its
+last season to watch any part from the timeline), and + and − step between them; your own season always waits for your
+orders, and no key acts while you type. Each button's tooltip names its key.
 
 A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
 browser, and a game's log can be exported and loaded again to replay it exactly. The export ("Export log" in the menu)

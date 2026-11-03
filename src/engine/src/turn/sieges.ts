@@ -104,7 +104,7 @@ P.sieges = function (valid) {
   // Each court's lines of the season's sieges near it in one notice; of one farther off, by the road from there (bug #517).
   const tell = (p: Power | null, at: string, line: string): void => {
     if (p === null || !isAlive(S, p)) return;
-    const d = this.wordTo(p, at);
+    const d = this.wordFrom(p, at);
     if (d > 0 && Number.isFinite(d)) {
       this.tell(p, at, "Battle", SiegesTitle, line);
       return;

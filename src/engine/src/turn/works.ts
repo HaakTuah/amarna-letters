@@ -275,7 +275,7 @@ P.worksSeason = function () {
       if (unpaid.length > 0) said.set(id, [`${namedAll(unpaid, prov.name)} went unpaid`, ...said.getOrDefault(id, [])]);
       if (halted.length > 0) say(id, `war halted the work on ${namedAll(halted, prov.name)}`);
       // Bug #540: what a far province's works cost comes home with its report, not in the season's total.
-      if (this.wordTo(p, id) > 0 && (gold > gold0 || men > men0)) {
+      if (this.wordFrom(p, id) > 0 && (gold > gold0 || men > men0)) {
         say(id, `its works cost ${formatMoney(gold - gold0)}${men > men0 ? ` and took ${men - men0} men from the fields by corvée` : ""} this season`);
         [gold, men] = [gold0, men0];
       }
@@ -283,7 +283,7 @@ P.worksSeason = function () {
     // One notice for what the court's couriers bring this season; word of farther provinces comes when it arrives.
     const near: string[] = [];
     for (const [id, l] of said.entries()) {
-      if (this.wordTo(p, id) === 0) near.push(...l);
+      if (this.wordFrom(p, id) === 0) near.push(...l);
       else this.tell(p, id, "Resolution", "Works", `From ${Map.get(id).name}: ${l.join("; ")}.`);
     }
     const spent = [gold > 0 ? formatMoney(gold) : "", men > 0 ? `${men} men from the fields by corvée` : ""].filter((x) => x !== "").join(" and ");

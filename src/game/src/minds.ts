@@ -23,6 +23,31 @@ export function newMindPage(init: Partial<MindPage> = {}): MindPage {
 
 export const MindPageSchema: ObjSchema<MindPage> = obj("MindPage", newMindPage, { turn: I, who: S, page: S, text: S });
 
+/** The longest text a kept page may hold (a journal's notes, summary and plan are capped at 2,000; room to spare). */
+const PageMost = 8000;
+
+/**
+ * A page read from a saved or shared log, checked field by field as it was written, before anything is converted
+ * (SECURITY.md, point 5: anyone can craft a save): a whole season, a power's name, a known page and a text of bounded
+ * length, each of its own type. Anything else fails the load cleanly.
+ */
+export function readMindPage(node: Readonly<Record<string, unknown>>): MindPage {
+  // A power's name: one the map starts with, or a risen one named by its land and ruler ("Suhu of Yapahu 2").
+  const name = (s: unknown): s is string => typeof s === "string" && s.length > 0 && s.length <= 80 && !/\p{Cc}/u.test(s);
+  const { turn, who, page, text } = node;
+  const ok =
+    typeof turn === "number" &&
+    Number.isInteger(turn) &&
+    turn >= 0 &&
+    name(who) &&
+    typeof page === "string" &&
+    (["notes", "summary", "plan"].includes(page) || (page.startsWith("ledger:") && name(page.slice(7)))) &&
+    typeof text === "string" &&
+    text.length <= PageMost;
+  if (!ok) throw new Error("a king's own words in it are not readable");
+  return newMindPage({ turn: turn as number, who: who as string, page: page as string, text: text as string });
+}
+
 /** Every mind's pages over the game, in the order kept. */
 export class MindBook {
   readonly pages: MindPage[] = [];

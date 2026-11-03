@@ -45,6 +45,10 @@ import {
   sell,
   toll,
   welcome,
+  hire,
+  newCharacter,
+  newTraits,
+  wordHomeAt,
 } from "@amarna/engine";
 import { Assert, smallWorld } from "../../engine/test/support.ts";
 
@@ -345,8 +349,8 @@ const levyUnraised: Twin = {
   },
   orders: [],
   scheduled: [newScheduledOrders({ turn: 3, orders: [raise("nubia", "Army")] }), newScheduledOrders({ turn: 5, orders: [move("nubia", "thebes")] })],
-  // Once word of the levy's season in Nubia has come: its report (the land as last reported), or the levy's own notice.
-  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3 || (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Levy failed"),
+  // Once word of the levy's season in Nubia has come: its report and the levy's own notice, which come together (#616).
+  heard: (s) => Views.knownHolders(s, map, "Egypt").get("nubia").turn >= 3,
 };
 
 /** Egypt and Babylonia, Babylonia the seat; in the twin where the fact is true, Egypt grants it passage by order. */
@@ -426,7 +430,54 @@ const grantRepudiatedByGrantee: Twin = {
   heard: (s) => (s.inbox.tryGet("Libya") ?? []).some((i) => i.title === "A tablet repudiated"),
 };
 
-const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee];
+/**
+ * Egypt hires a rider at its court to bring Nippur's report home in the first season (#601); in the twin where the fact
+ * is true, Babylonia takes Nippur in the second, after he rode. His report is of the first season: it tells nothing of
+ * the second.
+ */
+const rideBeforeLoss: Twin = {
+  ...farLoss,
+  name: "a far province lost after a rider brought its report",
+  seasons: 6,
+  make() {
+    const s = farLoss.make(true);
+    for (const x of s.characters) if (x.status === "Free" && x.at === "Egypt") x.at = "Babylonia";
+    s.characters.push(newCharacter({ id: "c990", name: "Ahmose", status: "Free", at: "Egypt", traits: newTraits({ loyalty: 60, greed: 40, ambition: 30, courage: 50, competence: 50 }), tongues: new Dict([["Egyptian", 100]]) }));
+    return s;
+  },
+  later: { at: 2, happen: (s) => holds(s, "Babylonia", 2) },
+  orders: [hire("c990", 500, 1, 500, { what: "ride", where: "nippur" })],
+};
+
+/**
+ * Babylonia, sworn to Egypt in alliance, sees Ashur beside its land; in the twin where the fact is true, Ashur passes to
+ * Elam in the first season. Babylonia's word of it sets out at the season's end and comes by the road (#618): Egypt may
+ * learn of it then, or by word from Ashur itself, never before.
+ */
+const allyWord: Twin = {
+  name: "land changing hands that an ally saw",
+  seat: "Egypt",
+  seasons: 6,
+  make() {
+    const s = world("Egypt", "Babylonia", "Elam");
+    s.tablets.push(newTablet({ id: "t990", text: "Let us be allies.", clauses: [clause("alliance")], proposedBy: "Babylonia", partner: "Egypt", seals: ["Babylonia", "Egypt"], sealedTurn: 0, allianceOath: true }));
+    for (const holder of ["Egypt", "Babylonia"] as const) s.copies.push({ id: `k990${holder[0]}`, tabletId: "t990", holder, acquiredTurn: 0, source: "sealed", authResult: null, unread: null });
+    return s;
+  },
+  later: {
+    at: 1,
+    happen(s) {
+      s.owner.set("ashur", "Elam");
+      s.ownerLog.push(newOwnerChange({ province: "ashur", turn: 1, owner: "Elam" }));
+      s.ledger.set("ashur", new Dict([["Elam", 5000]]));
+    },
+  },
+  orders: [],
+  // Babylonia's word (`heardAt` from its court), or word from Ashur of the first season (`knownHolders`).
+  heard: (s) => s.turn >= 1 + 1 + new TurnEngine(s).wordFrom("Egypt", "babylon") || wordHomeAt(s, map, new TurnEngine(s).courtAt("Egypt"), "ashur", 1) <= s.turn,
+};
+
+const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord, rideBeforeLoss];
 
 describe("TwinCanaryTests", () => {
   test.each(Twins)("A seat receives the same whether or not a hidden fact is true, until word of it can come: $name", (t) => {
