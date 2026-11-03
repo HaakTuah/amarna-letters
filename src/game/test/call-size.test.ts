@@ -131,7 +131,7 @@ describe("CallSizeTests", () => {
     Assert.matches("- turn 2 \\(if your treasury holds at least [^)]*\\): raise army in thebes", situation(v));
     await runner.playTurn();
     const notice = Assert.single(inboxOf(state, "Egypt"), (i) => i.title === "Scheduled orders held back by their conditions");
-    Assert.contains("raise army in thebes", notice.body);
+    Assert.contains("raise army in Waset", notice.body);
     Assert.contains(state.units, (u) => u.power === "Egypt" && u.province === "delta" && u.kind === "Fleet");
     // No new army at Waset: only the one standing there since item 17+.
     Assert.equal(1, state.units.filter((u) => u.power === "Egypt" && u.province === "thebes").length);
@@ -253,10 +253,10 @@ describe("CallSizeTests", () => {
 
   test("Battle reports leave out the units that held", () => {
     Assert.equal(
-      "Movements last season:\n- army in Tuwanuwa -> Mira: fails\nSeen nearby:\n- Arzawa: army in Mira -> Lukka: fails",
-      withoutHolds("Movements last season: - army in Lukka holds\n- army in Tuwanuwa -> Mira: fails\n- fleet in the Western Sea holds\nSeen nearby:\n- Arzawa: army in Mira -> Lukka: fails\n- Mitanni: army in Harran holds"),
+      "Movements last season:\n- Your army in Tuwanuwa did not reach Mira.\nSeen nearby:\n- Arzawa's army in Mira did not reach Lukka.",
+      withoutHolds("Movements last season: - Your army in Lukka held.\n- Your army in Tuwanuwa did not reach Mira.\n- Your fleet in the Western Sea held.\nSeen nearby:\n- Arzawa's army in Mira did not reach Lukka.\n- Mitanni's army in Harran held."),
     );
-    Assert.equal("Movements last season: every unit you saw held.", withoutHolds("Movements last season: - army in Lukka holds\n- fleet in Ugarit holds\nSeen nearby:\n- Egypt: fleet in Ta-Mehu holds"));
+    Assert.equal("Movements last season: every unit you saw held.", withoutHolds("Movements last season: - Your army in Lukka held.\n- Your fleet in Ugarit held.\nSeen nearby:\n- Egypt's fleet in Ta-Mehu held."));
   });
 });
 

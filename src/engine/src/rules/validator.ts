@@ -13,6 +13,8 @@ import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
 import { findCharacter, isAlive, ledger, unitAt, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
+import { formatMoney } from "./calendar.ts";
+
 import { checkArmyOrder } from "./validator-armies.ts";
 import { checkCommandOrder } from "./validator-command.ts";
 import type { Checking } from "./validator-context.ts";
@@ -167,10 +169,9 @@ export class OrderValidator {
     const spend = (cost: number): string | null => {
       if (cost < 0) return "a cost cannot be negative";
       if (cost > budget) {
-        const reserved = ledgerGold - budget;
-        return reserved > 0
-          ? `not enough gold: it needs ${cost} shekels; orders listed before it had reserved ${reserved}, and ${budget} was left`
-          : `not enough gold: it needs ${cost} shekels, and your treasury held ${budget} by your ledger`;
+        return ledgerGold > budget
+          ? `not enough gold: it needs ${formatMoney(cost)}, and the orders listed before it left only ${formatMoney(budget)}`
+          : `not enough gold: it needs ${formatMoney(cost)}, and your treasury held ${formatMoney(budget)} by your ledger`;
       }
       budget -= cost;
       return null;
@@ -180,7 +181,7 @@ export class OrderValidator {
       const unit = unitAt(S, province);
       if (!Map.exists(province)) return [`there is no province called '${province}'`, unit];
       if (unit === null || unit.power !== power) return [OrderValidator.notYours(unit, province, Sight()), unit];
-      if (orderedUnits.has(province)) return [`the unit in ${province} already has an order`, unit];
+      if (orderedUnits.has(province)) return [`the troops in ${Map.get(province).name} already have an order`, unit];
       return [null, unit];
     };
 

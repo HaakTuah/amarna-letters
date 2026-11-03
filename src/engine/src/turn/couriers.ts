@@ -10,10 +10,11 @@
 import { hostileAt, levelOf, waysOf } from "../model/works.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { newCourier } from "../model/command.ts";
-import { describe, unitOf } from "../model/order-reading.ts";
+import { describe, told, unitOf } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
 import { type Order } from "../model/orders.ts";
-import { quoteWords, type Power } from "../model/power.ts";
+import { land, quoteWords, type Power } from "../model/power.ts";
+import { upper } from "./battles.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
 import { logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
 import { courierSeasons, courtOf } from "../rules/court.ts";
@@ -141,7 +142,6 @@ P.sendOrders = function (p, sub) {
   S.couriers = S.couriers.filter((x) => !(x.power === p && x.arrives <= S.turn));
   const keep: Order[] = [];
   const sent: string[] = [];
-  const lost: string[] = [];
   const rng = this.r("couriers", p);
   for (const o of sub.orders) {
     // Command, recall and mandates carry their own delay (the man or the word travels): they name the unit where it truly
@@ -171,18 +171,16 @@ P.sendOrders = function (p, sub) {
     // A courier crossing land whose king closed his roads to this court, where that king's troops stand, may be stopped.
     const stopper = this.courierStopped(p, at.province, rng);
     if (stopper !== null) {
-      lost.push(describe(o));
       logEvent(S, "courier", `${stopper}'s men stopped a courier of ${p}'s.`, [p, stopper], "courier-stopped");
-      notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${p} on the road to ${this.map.get(at.province).name}. The order he carried read: ${quoteWords(describe(o))}.`);
+      notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${land(p)} on the road to ${this.map.get(at.province).name}. The order he carried read: ${quoteWords(upper(told(o)))}.`);
       continue;
     }
     S.couriers.push(newCourier({ power: p, plan, given: S.turn, arrives: S.turn + d }));
     this.courierRead(p, at.province, o);
     logEvent(S, "courier", `${p} sent an order by courier: ${describe(o)}.`, [p], "courier-sent");
-    sent.push(`${describe(o)} (arrives in turn ${S.turn + d})`);
+    sent.push(`${told(o)} (arrives in turn ${S.turn + d})`);
   }
-  if (sent.length > 0) notify(S, p, "Resolution", "Orders on the road", `These orders went with your couriers to places they cannot reach this season, and are carried out when they arrive: ${sent.join("; ")}.`);
-  void lost;
+  if (sent.length > 0) notify(S, p, "Resolution", "Orders on the road", `Your couriers carry these orders to places beyond reach this season: ${sent.join("; ")}.`);
   if (arrived.length === 0 && sent.length === 0) return sub;
   return newTurnSubmission({ ...sub, orders: [...arrived, ...keep] });
 };
@@ -237,7 +235,8 @@ P.courierRead = function (p, to, o) {
     if (holder === null || holder === p || read.has(holder) || levelOf(S, "Stations", x) <= 0) continue;
     if (hostileAt(S, x, holder)) continue;
     read.add(holder);
-    this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${p}'s carried to ${this.map.get(to).name}: ${quoteWords(describe(o))}.`);
+    this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${land(p)} carried to ${this.map.get(to).name}: ${quoteWords(upper(told(o)))}.`);
+
     logEvent(S, "station", `${holder}'s station men read an order of ${p}'s on its way to ${this.map.get(to).name}.`, [holder], "station-read");
   }
 };

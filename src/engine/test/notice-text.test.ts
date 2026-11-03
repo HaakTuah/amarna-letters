@@ -30,7 +30,7 @@ describe("NoticeTextTests", () => {
     let travel = first(s.journeys, (j) => j.characterId === envoy.id).arriveTurn - s.turn + 1;
 
     let inbox = inboxOf(s, "Egypt");
-    Assert.contains(inbox, (i) => i.kind === "Battle" && i.title === "Movements last season" && i.body.includes("army in Men-nefer -> the Ways of Horus: succeeds"));
+    Assert.contains(inbox, (i) => i.kind === "Battle" && i.title === "Movements last season" && i.body.includes("Your army in Men-nefer marched to the Ways of Horus."));
     Assert.contains(
       inbox,
       (i) => i.title === "Envoy dispatched" && i.body === `${envoy.name} set out for Hatti last season; the journey should take about ${travel} ${travel === 1 ? "season" : "seasons"}.`,

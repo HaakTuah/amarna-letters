@@ -96,7 +96,7 @@ describe("ScriptEnvoyTests", () => {
     let trail = trailOf("Hatti", "Go in peace.", "accepted 40 shekels from Hatti (asked: Tell your lord that my armies are few and my thoughts are of peace.)");
     let report = await reportOf(bribed, trail, "Hatti keeps 3 army and 1 fleet near its capital.", "At the court of Hatti, the court is rich.");
     Assert.contains(
-      'What I saw: At the court of Hatti the king told me "My armies are few and my thoughts are of peace", and I saw for myself that it is so.',
+      'At the court of Hatti the king told me "My armies are few and my thoughts are of peace", and I saw for myself that it is so.',
       report,
     );
     Assert.doesNotContain("Hatti keeps 3 army", report);

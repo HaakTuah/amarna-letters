@@ -89,7 +89,8 @@ P.marchesDone = function (result, byProvince, held) {
     const m = held.get(u.province);
     if (m !== undefined) {
       // Its line in the report says it is on the march, not that it held.
-      for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" holds")) l.text = l.text.replace(/ holds$/, ` -> ${m.to}: on the march`);
+      for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" held")) l.text = l.text.replace(/ held$/, ` is on the march to ${this.map.get(m.to).name}`);
+
       continue;
     }
     const o = byProvince.tryGet(u.province);

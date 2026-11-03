@@ -55,10 +55,10 @@ export function letterBrief(l: LetterView): string {
  * holds keeps its first line.
  */
 export function withoutHolds(body: string): string {
-  // Item 17+: units are written as the reports name them ("army in Men-nefer holds", "Assyria: fleet in the Western Sea holds").
-  const hold = /^- (?:[^:]+: )?(?:army|fleet) in [^:>]+ holds$/;
+  // Item 17+: units are written as the reports name them ("Your army in Men-nefer held.", "Assyria's fleet in the Western Sea held.").
+  const hold = /^- [^:.]*\b(?:army|fleet) in [^:.]+ held\.$/;
   const lines = body.split("\n");
-  const first = /^(.*?:) (- (?:army|fleet) in [^:>]+ holds)$/.exec(lines[0]);
+  const first = /^(.*?:) (- [^:.]*\b(?:army|fleet) in [^:.]+ held\.)$/.exec(lines[0]);
   if (first !== null && hold.test(first[2])) lines[0] = first[1];
   const kept = lines.filter((l, i) => i === 0 || !hold.test(l));
   const shown = kept.filter((l, i) => !(l === "Seen nearby:" && (i === kept.length - 1 || !kept[i + 1].startsWith("- "))));

@@ -136,6 +136,6 @@ P.buyNewsOrder = function (p, o) {
     } else if (this.r("report-sold", `${c.id}|${S.turn}`).chance(NewsData.secretsCaught / 100)) this.rumor(master, p, f.text, c.id, "Name", f.id);
     logEvent(S, "report-sold", `${c.name} sold ${p} what their errand to ${o.court} asked of them.`, [], "report-sold");
   }
-  notify(S, p, "SpyReport", `News of ${o.court} from ${c.name}`, `${c.name} sold you what they saw at the court of ${o.court} in season ${n.turn} (${S.turn - n.turn} seasons ago), for ${formatMoney(n.price)}: ${n.lines.join(" ")} A seller's word: it may be stale, and a greedy seller may make more of it than he saw.`, c.id);
+  notify(S, p, "SpyReport", `News of ${o.court} from ${c.name}`, `${c.name} sold you what they saw at the court of ${o.court} in turn ${n.turn}, for ${formatMoney(n.price)}: ${n.lines.join(" ")} It is a seller's word, and may be stale or swollen.`, c.id);
   logEvent(S, "news-sold", `${c.name} sold ${p} news of ${o.court}${n.honest ? "" : ", made out larger than he saw"}.`, [p], "news-sold");
 };
