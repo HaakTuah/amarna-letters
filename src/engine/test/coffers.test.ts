@@ -226,5 +226,7 @@ describe("CofferTests", () => {
     s.caravans.push(c);
     e.caravanHome(c);
     Assert.equal(100, e.cofferOf("Egypt", "nippur")?.gold ?? 0);
+    // Told with its homecoming, as word of it comes.
+    Assert.contains("of its porters' pay unused, kept in the coffer there", s.journeys.map((j) => j.text).join(" "));
   });
 });

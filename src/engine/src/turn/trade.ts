@@ -297,6 +297,10 @@ P.caravanHome = function (c) {
   const parts: string[] = [];
   // The pay it did not need goes into the coffer or treasury where it came home, gold that is there; a load's porters bring
   // their bill, paid from the gold there (#587).
+  if (c.pay > 0) {
+    const where = S.owner.getOrDefault(at, null) === c.power ? (this.isFar(c.power, at) ? "kept in the coffer there" : "into the treasury") : !this.isFar(c.power, at) ? "into the treasury" : homeRoad(this, c.power, at) ? "sent on home" : "left with the people there";
+    parts.push(`${formatMoney(c.pay)} of its porters' pay unused, ${where}`);
+  }
   this.receiveAt(c.power, at, c.pay, false);
   c.pay = 0;
   let porters = "";
