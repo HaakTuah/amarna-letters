@@ -40,12 +40,16 @@ one (archive item 170).
 
 **Hidden information,** for every reviewer: report as P1 any read of the true game state that a seat could not know, in
 what it is shown, what a model is asked, what a script king reads or what an export holds. Check every path: the latest
-season, past seasons, replays and the god view. The canary test ("Follow-ups" in `docs/BUILD-PROGRESS.md`) guards the
-same from the other side, since a reviewer can miss it.
+season, past seasons, replays and the god view. The canary tests (`src/web/test/canary.test.ts` and
+`src/web/test/twin-canary.test.ts`) guard the same from the other
+side, since a reviewer can miss it.
 
 **Text a player reads,** for every reviewer of a change that adds or rewrites it: report as a finding any line that
 reads machine-made (one shape filled in again and again, filler, clichés, two voices alike); the slop audit in
 `docs/BUILD-PROGRESS.md` sets the bar.
+
+**A rule file changed** (`SECURITY.md`, rule 3), for every reviewer: report as P1 a rule that departs from the
+owner's archived words it cites (`docs/archive/instructions.md`), so a rule never drifts from what he said.
 
 **One idea, for every reviewer** of a change to the game (not docs, design copies or Dependabot's updates): end the
 review with one thing outside this change that would make the game better, or "none", the usual answer when nothing is

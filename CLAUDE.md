@@ -9,8 +9,8 @@ helpers and their limits, and its tools. Who fills each role today: `docs/claude
 
 ## Models, effort and helpers
 
-The same in both of the owner's games, except what each row names for its own game: the work the owner gives Fable by
-name. What each role does, its brief and when it runs are in `docs/claude-and-codex.md` ("Who does what", "Codex
+The same in both of the owner's games, except for each game's own names, examples and archive pointers. What each role
+does, its brief and when it runs are in `docs/claude-and-codex.md` ("Who does what", "Codex
 reviews" and "Reviews", point 7, "The briefs"); this table gives only the model and effort.
 
 | Who | Model | Effort | For |
@@ -22,7 +22,7 @@ reviews" and "Reviews", point 7, "The briefs"); this table gives only the model 
 | Design check | Fable (`model: "fable"`, `effort: "medium"`) | medium | the design checker: the strongest fresh eye where misses cost most, in one short call. (Fable's fallback: below the table) |
 | Planning design | Fable (`model: "fable"`, `effort: "high"`) | high | planning design; you build and measure what it returns with Opus. (Fable's fallback: below the table) |
 | Escalation | Opus (`model: "opus"`, `effort: "high"`, or `"xhigh"` if you already run at high) | high or extra high | the escalation step, when Codex is unavailable or has failed at it too (Codex comes first once it can build) |
-| Last escalation | Fable (`model: "fable"`, `effort: "high"`) | high | a problem the escalation step could not solve either, such as the script kings' planning, with the same brief. Otherwise Fable only for the design check, planning design and work the owner gives it by name, since its usage runs out first |
+| Last escalation | Fable (`model: "fable"`, `effort: "high"`) | high | a problem the escalation step could not solve either, with the same brief. Otherwise Fable only for the design check, planning design and work the owner gives it by name, since its usage runs out first |
 
 **Fable's fallback:** if Fable is out of usage or unavailable, or the owner says its share for the week is spent, its
 call goes to Opus (`model: "opus"`, `effort: "high"`); nothing ever waits for Fable.
@@ -43,11 +43,11 @@ well (the table above), a narrow brief and its own files, and check every result
 time, reviewers included; each lane's builder keeps its own four. The PR lists the helpers that ran and what each gave,
 so the rule can be checked against its cost. Never stop to ask about helpers: decide by these shapes.
 
-- **No workflows and no ultracode** (model-game simulations excepted: "Helpers, effort and escalation" in
+- **No agent workflows and no ultracode** (model-game simulations excepted: "Helpers, effort and escalation" in
   `AGENTS.md`). Long runs go in the background with the Bash tool's background mode ("Print little" in `AGENTS.md`).
 - **Effort is set when the session starts** and you can't raise your own, but you can give a helper more. The hard work
-  goes to helpers at `effort: "high"` inside your session, above all the competing approaches of the hardest problems,
-  never to a wait for a session at higher effort; then the escalation chain if a problem beats you twice. If the last
+  ("Who does what" in `docs/claude-and-codex.md`) goes to helpers at `effort: "high"` inside your session;
+  then the escalation chain if a problem beats you twice. If the last
   escalation fails too, or Fable is out of usage or unavailable for it, the problem is blocked as "Don't loop" in
   `AGENTS.md` says; say in your update that it is blocked.
 - Sessions started from a Claude Code Project don't load `.claude/agents/`, so always pass `model` (and `effort`) in

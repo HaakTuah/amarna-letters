@@ -17,7 +17,7 @@ with the copy and say so in the report, and before opening the pull request read
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 571 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 352 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 353 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 83 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 68 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 26 |

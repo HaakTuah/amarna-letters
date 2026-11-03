@@ -1,14 +1,15 @@
 # Security
 
 The rules every builder and reviewer keeps. Who might attack, what is protected and where they could get in is the
-threat model, `docs/threat-model.md`; Codex's security review reads that as its threat model and this file as its
-instructions. A break of a rule here is **blocking** in every review, and P0 or P1 in Codex's terms. The rules are written to take account of every way in and every security concern (archive item 129).
+threat model, `docs/threat-model.md`. A break of a rule here is **blocking** in every review, and P0 or P1 in
+Codex's terms (archive item 129).
 
 ## The rules
 
 1. **Nothing secret in the repository,** its history, a PR, an issue, a comment, a log or a picture: no key, token,
    password, environment id, personal path or address. A secret pushed by mistake is revoked at once (a later commit
    does not remove it from history), and the owner is told.
+   Nor does a key or secret ever go into an environment variable of a session or a cloud environment.
 2. **The workflows** (`.github/workflows/`):
    - never `pull_request_target`; `workflow_run` only with the check that the run's head repository is this one, and
      never running the PR's code with a write token;
@@ -18,10 +19,17 @@ instructions. A break of a rule here is **blocking** in every review, and P0 or 
      it through `env:` and quote it;
    - only GitHub's own actions (`actions/*`), or another pinned to a full commit SHA.
 3. **The protected files:** only the trusted builder's lanes (who fills that role: `docs/claude-and-codex.md`, "Who
-   does what"), never a lane handed to an agent as a cloud task, change `.github/`, `scripts/cloud-setup.sh`,
-   `scripts/statusline.sh`, `.claude/`, `AGENTS.md`, `CLAUDE.md`, `docs/builder-rules.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md`, `docs/review-guidelines.md`, `scripts/copies.mjs` and `scripts/copies-baseline.json` (the copies check), `docs/calibration.md`
-   (the rules for reviews and the agents), `docs/threat-model.md`, `docs/developing.md` (the credentialed GitHub calls
-   builders run) and this file, and a change to `.github/` or the setup script needs the owner's yes in its PR. One exception, narrow: Dependabot's version updates of actions a workflow
+   does what"), never a lane handed to an agent as a cloud task, change them:
+   - **what runs by itself or with credentials:** `.github/`, `.claude/`, `scripts/cloud-setup.sh`,
+     `scripts/statusline.sh`, and `docs/developing.md` (the credentialed GitHub calls builders run);
+   - **the rule files:** `AGENTS.md`, `CLAUDE.md`, `docs/builder-rules.md`, `docs/claude-and-codex.md`,
+     `docs/orchestrating.md`,
+     `docs/review-guidelines.md`, `docs/threat-model.md` and this file;
+   - **the checks on the work:** the copies check (`scripts/copies.mjs` and `scripts/copies-baseline.json`) and the
+     calibration log (`docs/calibration.md`).
+
+   A change to `.github/` or the setup script needs the owner's yes in its PR. One exception, narrow: Dependabot's
+   version updates of actions a workflow
    already uses need no yes when the diff changes nothing but the pinned version (and its comment), CI is green and its
    review is clean; the reviewer checks that the diff is only that. A new workflow, a changed trigger or permission, a
    new secret or a new outside action still needs his yes (archive item 173).
@@ -64,7 +72,8 @@ instructions. A break of a rule here is **blocking** in every review, and P0 or 
    tab's alerts (code scanning, Dependabot, secret scanning) are seen only by the owner, and no agent is given a token
    to read them; he passes on what needs fixing.
    - **In a PR's own change:** it blocks the merge until fixed ("Codex reviews", point 6, in `docs/claude-and-codex.md`),
-     wherever it was reported, Codex's findings on the PR included.
+     wherever it was reported, Codex's findings on the PR included. A CodeQL finding that is a false alarm is no
+     weakness: it is explained in the PR, which may then merge, and left to the owner, who alone dismisses alerts.
    - **In merged code, where it could reach what the threat model protects beyond its lower stakes: the owner's
      accounts or tokens, `main`, `develop` or the site (a workflow, a CI permission, a secret, a dependency), a player's API key, or code run in a player's browser from input that is not the player's
      own (a shared save or link, a model reply);
