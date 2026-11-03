@@ -1,4 +1,5 @@
 /** What each court sees: the seat view, sight, the walls it knows, and how it sees each person and tablet. */
+import { listed } from "./wording.ts";
 import { newsOffered } from "./news.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
@@ -8,7 +9,7 @@ import { WorldMap } from "../model/map.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { tongueWords } from "../model/languages.ts";
-import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, type Power } from "../model/power.ts";
+import { AllPowers, asSeenBy, claimantsOf, claimedName, cmpPower, contestedNames, kingFor, land, nameGivenBy, ownLand, powerName, type Power } from "../model/power.ts";
 import { type PendingTask, repudiationKnown, type Tablet, type TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
@@ -738,7 +739,7 @@ function whereText(c: Character, viewer: Power): string {
  * are added. Never a copy id, which is each court's own: a name another court can read.
  */
 function tabletName(t: Tablet, among: Iterable<Tablet> | null = null): string {
-  const name = `the ${t.inventory ? "inventory" : "tablet"} sealed by ${listed(t.seals)}${t.sealedTurn !== null ? `, dated turn ${t.sealedTurn}` : ""}`;
+  const name = `the ${t.inventory ? "inventory" : "tablet"} sealed by ${sealers(t.seals)}${t.sealedTurn !== null ? `, dated turn ${t.sealedTurn}` : ""}`;
   let twin = false;
   if (among !== null)
     for (const o of among)
@@ -756,9 +757,9 @@ function capitalized(s: string): string {
   return (up.length === 1 ? up : s[0]) + s.slice(1);
 }
 
-/** "Egypt", "Egypt and Hatti", "Egypt, Hatti and Mitanni". */
-function listed(seals: readonly Power[]): string {
-  return seals.length <= 1 ? seals.join("") : `${seals.slice(0, -1).join(", ")} and ${seals[seals.length - 1]}`;
+/** "Egypt", "Egypt and Hatti", "Egypt, Hatti and Mitanni": the sealers by the names notices give them. */
+function sealers(seals: readonly Power[]): string {
+  return listed(seals.map((p) => powerName(p)));
 }
 
 /** A text's first eight words, marked "…" if there are more. */

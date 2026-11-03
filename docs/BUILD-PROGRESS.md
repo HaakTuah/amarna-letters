@@ -83,7 +83,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 - ~~**Gold travels both ways**~~ (done, #635; `docs/design/53-gold-travels-both-ways.md`, report
   `docs/rounds/2026-11-03-gold-travels-both-ways.md`): far provinces pay from their coffers, credit with bills carried
-  home, gold sent ahead, caravans carrying their pay; the twin canary's #587 leak is gone. Save version 60.
+  home, gold sent ahead, caravans carrying their pay; the twin canary's #587 leak is gone. Save version 61.
 
 - **The owner's answers of 3 November, morning** (archive item 185):
   - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
@@ -178,8 +178,10 @@ the workshop check): among them the history check's lines still unclear for a re
   **Done:** the script kings' letters and audience words, #558 (10; report `docs/rounds/2026-11-02-slop-audit-letters.md`;
   the words in `bots/voices.ts`, the guard and the readers' test in `src/game/test/letter-shapes.test.ts`); the
   envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
-  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state). **Next:** notices,
-  news and reports (the bribed envoy's invented news moves with them); then the rest in the order above.
+  `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
+  season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
+  `rules/wording.ts`; save version 60). **Next:** the owner's answer to #591 (the bribed envoy's words); then the rest in
+  the order above, from the rulebook and the seat view.
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:

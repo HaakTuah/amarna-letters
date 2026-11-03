@@ -13,7 +13,7 @@ import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData } from "../model/bands.ts";
 import type { Character } from "../model/people.ts";
-import { AllPowers, land, type Power } from "../model/power.ts";
+import { AllPowers, land, type Power, powerName } from "../model/power.ts";
 import { isAlive, logEvent, type KingdomFall, type Unit } from "../model/state.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine, travelTurns } from "./core.ts";
@@ -66,7 +66,7 @@ P.fallsSpread = function () {
       if (conqueror !== null && S.units.some((u) => u.province === id && u.power === conqueror)) {
         this.setOwner(id, conqueror);
         endSieges(S, this.map, (x) => x.province === id && x.power === conqueror);
-        this.tell(conqueror, id, "Battle", "Land held by force", `Word of the fall of ${land(p)} has reached ${name}, where your troops stand: it is yours, held by force.`);
+        this.tell(conqueror, id, "Battle", "Land held by force", `Word of the fall of ${powerName(p)} has reached ${name}, where your troops stand: it is yours, held by force.`);
         logEvent(S, "fall", `Word of the fall of ${land(p)} reached ${name}, and ${conqueror}'s troops there hold it.`, seeing([conqueror]), "fall-held");
         continue;
       }
@@ -145,8 +145,8 @@ P.governorRises = function (g, c, f) {
     followers,
     gold: 0,
     rising: false,
-    story: `Word has come that the kingdom of ${land(was)} has fallen with its capital, ${this.map.get(f.capital).name}. You governed ${prov.name} for its king.`,
+    story: `Word has come that the kingdom of ${powerName(was)} has fallen with its capital, ${this.map.get(f.capital).name}. You governed ${prov.name} for its king.`,
     memory: `Word came that the kingdom of ${land(was)} has fallen.`,
-    line: `${c.name}, governor of ${prov.name} for ${was}, rules it in his own name now that ${land(was)} has fallen`,
+    line: `${c.name}, governor of ${prov.name} for ${powerName(was)}, rules it in his own name now that ${powerName(was)} has fallen`,
   });
 };

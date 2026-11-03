@@ -96,7 +96,7 @@ describe("ScriptEnvoyTests", () => {
     let trail = trailOf("Hatti", "Go in peace.", "accepted 40 shekels from Hatti (asked: Tell your lord that my armies are few and my thoughts are of peace.)");
     let report = await reportOf(bribed, trail, "Hatti keeps 3 army and 1 fleet near its capital.", "At the court of Hatti, the court is rich.");
     Assert.contains(
-      'What I saw: At the court of Hatti the king told me "My armies are few and my thoughts are of peace", and I saw for myself that it is so.',
+      'At the court of Hatti the king told me "My armies are few and my thoughts are of peace", and I saw for myself that it is so.',
       report,
     );
     Assert.doesNotContain("Hatti keeps 3 army", report);
@@ -109,6 +109,16 @@ describe("ScriptEnvoyTests", () => {
     );
     Assert.doesNotContain("saw for myself", honest);
     Assert.contains("Hatti keeps 3 army", honest);
+  });
+
+  test("A bribed envoy drops what its host showed it, by the name the engine writes for the host (Byblos, Gubla)", async () => {
+    let bribed = envoy(30, 80);
+    bribed.facts.push(newFact({ id: "f1", text: "Took 40 shekels from the king of Gubla.", secrecy: "Hidden", tag: "bribe", knownBy: ["Byblos"] }));
+    let trail = trailOf("Byblos", "Go in peace.", "accepted 40 shekels from Gubla (asked: Tell your lord that my armies are few and my thoughts are of peace.)");
+    let report = await reportOf(bribed, trail, "Gubla keeps 3 army and 1 fleet near its capital.", "Gubla holds Ili, a spy of Egypt, captive (caught in turn 1).");
+    Assert.contains("I saw for myself", report);
+    Assert.doesNotContain("Gubla keeps 3 army", report);
+    Assert.doesNotContain("Gubla holds Ili", report);
   });
 
   test.each([

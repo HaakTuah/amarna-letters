@@ -30,7 +30,7 @@ No file changed was past 50 KB. The new work went into new files: `model/coffers
 - **The order checks** reserve treasury gold only for provinces within the season's reach.
 - **What the seat sees.** Coffers and debts come in each far province's report. The seat view also shows the gold it has
   sent (`goldSent`), counted in its strength, and each caravan's gold with its pay. Bills are lines in the treasury
-  notice. The rulebook has a new "Gold far off" entry, and the README is updated. **Save version 60.**
+  notice. The rulebook has a new "Gold far off" entry, and the README is updated. **Save version 61.**
 - **Twin canary:** the #587 entries are gone from `Known`. Two new twins cover gold sent ahead together with a far
   market's sale and purchase, with the province lost or besieged after the orders set out.
 - **Script kings** send gold ahead to far coffers that owe a debt or hold less than two seasons' need. They no longer

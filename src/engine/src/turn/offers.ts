@@ -11,7 +11,8 @@ import { idiv } from "../core/num.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { OfferUnheard, type Declaration } from "../model/declarations.ts";
 import { gain, newNewsHeld, remember, type Character } from "../model/people.ts";
-import type { Power } from "../model/power.ts";
+import { type Power, powerName, quoteWords } from "../model/power.ts";
+import { upper } from "../rules/wording.ts";
 import { newJourney, offerWords, provinceOf, Waiting, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId } from "../model/state.ts";
 import { bidden } from "../model/works.ts";
@@ -78,7 +79,7 @@ function knows(e: TurnEngine, c: Character, at: string, p: Power, own: boolean):
   remember(c, S.turn, `I carry the word of the people of ${name} to the court of ${p}: they lean his way and offer themselves to him.`);
   if (own && !sellsSecrets(c)) return;
   // One piece of news a court: added to what he holds of the claimant's court, or held on its own, telling only its lines.
-  const line = `The people of ${name} lean toward ${p} and have sent him their offer.`;
+  const line = `The people of ${name} lean toward ${powerName(p)} and have sent him their offer.`;
   const had = c.news.find((n) => n.court === p) ?? null;
   if (had !== null) {
     if (!had.lines.includes(line)) had.lines.push(line);
@@ -86,8 +87,8 @@ function knows(e: TurnEngine, c: Character, at: string, p: Power, own: boolean):
   logEvent(S, "letter", `${c.name} knows of the offer he carries, and may sell it.`, [], "offer-news");
 }
 
-/** What the power an offer reaches is told of answering it, after the people's words. */
-export const OfferTerms = "It is yours only if you take it up (answer it: take it up, or refuse it); until then it stays as it is, and the offer stands only while they lean your way.";
+/** What the power an offer reaches is told of answering it, after the people's words (the rulebook has the rest). */
+export const OfferTerms = "Take it up or refuse it (order take_up_province or refuse_province).";
 
 P.sendOffer = function (d, holder, text) {
   const S = this.s;
@@ -99,8 +100,8 @@ P.sendOffer = function (d, holder, text) {
   const near = holder === null ? new Set<Power>() : enemiesOf(this, holder, d.power);
   const told: [Power, string][] = [
     [d.power, `Travellers say the people of ${name} lean your way. It is talk, not their word: they offer you nothing unless someone brings it.`],
-    ...(holder !== null && isAlive(S, holder) ? [[holder, `Travellers say the people of ${name} lean toward ${d.power}.`] as [Power, string]] : []),
-    ...sortBy([...near], [(x: Power) => x, cmpStr]).map((x): [Power, string] => [x, `Travellers say the people of ${name} lean toward ${d.power}${holder !== null ? `, away from ${holder}` : ""}.`]),
+    ...(holder !== null && isAlive(S, holder) ? [[holder, `Travellers say the people of ${name} lean toward ${powerName(d.power)}.`] as [Power, string]] : []),
+    ...sortBy([...near], [(x: Power) => x, cmpStr]).map((x): [Power, string] => [x, `Travellers say the people of ${name} lean toward ${powerName(d.power)}${holder !== null ? `, away from ${powerName(holder)}` : ""}.`]),
   ];
   for (const [p, words] of told) {
     const seasons = this.travelTurnsBetween(d.province, this.courtAt(p));
@@ -212,7 +213,8 @@ P.offerArrives = function (j) {
   if (d === null || !isAlive(S, j.to)) return;
   d.known = S.turn;
   const c = findCharacter(S, j.carrier);
-  notify(this, j.to, `${offerWords(j)} ${OfferTerms}${c !== null ? ` ${c.name} brought it.` : ""}`);
+  const people = `the people of ${this.map.get(province).name}`;
+  notify(this, j.to, `${c !== null ? `${c.name} has brought you the word of ${people}` : `${upper(people)} send you their word`}: ${quoteWords(offerWords(j))} ${OfferTerms}`);
   logEvent(S, "declare", `The offer of ${this.map.get(province).name}'s people reached ${j.to}.`, [j.to], "offer-arrived");
 };
 

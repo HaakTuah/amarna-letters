@@ -82,7 +82,7 @@ describe("EconomyTests", () => {
     Assert.equal(60, s.stores.get("hattusa"));
     Assert.true(s.treasuries.get("Hatti").gold > gold);
     Assert.equal(purse - (s.treasuries.get("Hatti").gold - gold), m.purse);
-    Assert.contains("Sold 40 measures of grain at Hattusa for", notice(s, "Markets and caravans"));
+    Assert.contains("Sold grain: 40 measures at Hattusa for", notice(s, "Markets and caravans"));
   });
 
   test("Buying grain and feeding a town; only at one's own markets", () => {
@@ -94,7 +94,7 @@ describe("EconomyTests", () => {
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [feed("hattusa", 20), purchase("nesa", 5), sell("babylon", 5)] })]]));
     Assert.equal(stock + 20, m.stock);
     Assert.equal(30, s.stores.get("hattusa"));
-    Assert.contains("Bought 5 measures of grain at Nesa", notice(s, "Markets and caravans"));
+    Assert.contains("Bought grain: 5 measures at Nesa", notice(s, "Markets and caravans"));
   });
 
   test("Troops are paid in gold, spend part of it at home, and eat from the stores where they stand", () => {

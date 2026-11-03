@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { type GameState, OrderValidator, RefusedPoints, TurnEngine, Views, answer, cede, inboxOf, newGame, newGameConfig, newSiege, newTurnSubmission, newUnit, offerWords, WorldMap } from "@amarna/engine";
+import { type GameState, OrderValidator, RefusedPoints, TurnEngine, Views, answer, cede, inboxOf, newGame, newGameConfig, newSiege, newTurnSubmission, newUnit, OfferTerms, offerWords, WorldMap } from "@amarna/engine";
 import { Assert, subs } from "./support.ts";
 
 // Build order item 17++, "taken up, never thrust on anyone" ("Whom a province obeys" under War, decided 2 November 2026):
@@ -34,8 +34,8 @@ describe("DeclarationTests", () => {
     Assert.true(s.events.some((x) => x.kind === "declare" && x.text.includes("declared for Hatti")));
     // Its letter holds the people's words alone: the terms of answering are the claimant's to read on arrival (#553).
     const letter = s.journeys.find((j) => j.kind === "Offer" && j.to === "Hatti")!;
-    Assert.true(offerWords(letter).startsWith(`The people of ${WorldMap.default.get("gaza").name} declare for you: they favour you`));
-    Assert.false(offerWords(letter).includes("It is yours only"));
+    Assert.true(offerWords(letter).startsWith("We declare for you: Egypt's hold on us is weak"));
+    Assert.false(offerWords(letter).includes(OfferTerms));
     // Unanswered, it stays as it is season after season while it leans his way.
     begin(s);
     Assert.equal("Egypt", s.owner.get("gaza"));

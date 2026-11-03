@@ -13,6 +13,8 @@ import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
 import { findCharacter, isAlive, ledger, unitAt, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
+import { formatMoney } from "./calendar.ts";
+
 import { checkArmyOrder } from "./validator-armies.ts";
 import { checkCommandOrder } from "./validator-command.ts";
 import type { Checking } from "./validator-context.ts";
@@ -111,7 +113,7 @@ export class OrderValidator {
       if (via === null && (c.status !== "Free" || c.errand !== null)) return [`${c.name} is not available for hire`, c];
       if (via === null && c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
       if (via === null && c.at !== power && c.heldBy !== power)
-        return [`${c.name} is not at your court: an offer to a person elsewhere goes with an envoy you send this season to where they are (via)`, c];
+        return [`${c.name} is not at your court; an offer to a person elsewhere goes with an envoy you send this season to where they are (via)`, c];
       if (via !== null && h.what === "ride") return ["a ride is offered at your court, where the rider sets out from: name no envoy (via)", c];
       if (h.what === "ride" && h.term !== 1) return ["a ride is there and back within the season: its term is 1", c];
       if (h.what === "ride" && h.offerAgain === true) return ["a ride is offered for one season's report: offer each ride anew (no offer_again)", c];
@@ -129,9 +131,9 @@ export class OrderValidator {
     // A job's errand as an order names it: an envoy to a living court not one's own, or a spy on such a court or a province.
     const errandRefusal = (o: { what?: string | null; where?: string | null }): string | null => {
       const what = o.what ?? null;
-      if (what === null) return "name the job's errand: what (envoy, spy, stay or ride) and where";
+      if (what === null) return "name the job's errand, what (envoy, spy, stay or ride) and where";
       const where = o.where ?? "";
-      if (what === "envoy") return AllPowers.includes(where as Power) && where !== power && !heardFallen(where as Power) ? null : `an envoy's errand is to a court other than your own: '${where}' is not one`;
+      if (what === "envoy") return AllPowers.includes(where as Power) && where !== power && !heardFallen(where as Power) ? null : `an envoy's errand is to a court other than your own; '${where}' is not one`;
       if (what === "spy") {
         if (AllPowers.includes(where as Power)) return where !== power && !heardFallen(where as Power) ? null : `you cannot spy on ${where}`;
         return Map.exists(where) && !Map.get(where).isSea ? null : `there is no court or province called '${where}'`;
@@ -189,10 +191,9 @@ export class OrderValidator {
     const spend = (cost: number): string | null => {
       if (cost < 0) return "a cost cannot be negative";
       if (cost > budget) {
-        const reserved = ledgerGold - budget;
-        return reserved > 0
-          ? `not enough gold: it needs ${cost} shekels; orders listed before it had reserved ${reserved}, and ${budget} was left`
-          : `not enough gold: it needs ${cost} shekels, and your treasury held ${budget} by your ledger`;
+        return ledgerGold > budget
+          ? `not enough gold, for it needs ${formatMoney(cost)} and the orders listed before it left only ${formatMoney(budget)}`
+          : `not enough gold, for it needs ${formatMoney(cost)} and your treasury held ${formatMoney(budget)} by your ledger`;
       }
       budget -= cost;
       return null;
@@ -207,7 +208,7 @@ export class OrderValidator {
       const unit = unitAt(S, province);
       if (!Map.exists(province)) return [`there is no province called '${province}'`, unit];
       if (unit === null || unit.power !== power) return [OrderValidator.notYours(unit, province, Sight()), unit];
-      if (orderedUnits.has(province)) return [`the unit in ${province} already has an order`, unit];
+      if (orderedUnits.has(province)) return [`the troops in ${Map.get(province).name} already have an order`, unit];
       return [null, unit];
     };
 

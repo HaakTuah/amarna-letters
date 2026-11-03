@@ -39,5 +39,6 @@ describe("AudienceTextTests", () => {
       "An envoy takes one gift per audience. If you name gold to send back in more than one exchange, the latest amount named is sent; 0 keeps the amount named before.",
       rules,
     );
+    Assert.contains("Your news of the treasury gives it as it stands here, before the gold that arrivals and audiences bring.", rules);
   });
 });

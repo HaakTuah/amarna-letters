@@ -2,9 +2,10 @@
  * What letters set in motion beyond the audience (build order item 8): the record of who calls whom brother and grants whom
  * the title, a new claim to the rank of Great King becoming established, and supports promised in clauses being kept.
  */
+import { listed } from "../rules/wording.ts";
 import { Dict } from "../core/collections.ts";
 import type { ClaimNameOrder, SupportOrder } from "../model/orders.ts";
-import { claimantsOf, claimedName, house, isGreatKing, knownName, land, nameKnown, ownLand, setNameClaims, type Power } from "../model/power.ts";
+import { claimantsOf, claimedName, house, isGreatKing, knownName, land, nameKnown, ownLand, setNameClaims, type Power, powerName } from "../model/power.ts";
 import { type HeardName, newRecognition } from "../model/recognition.ts";
 import type { GreetingOptions } from "../model/records.ts";
 import { alive, logEvent, notify } from "../model/state.ts";
@@ -117,10 +118,10 @@ P.recognise = function () {
     const long = S.recognition.filter((r) => r.to === c.power && others.includes(r.from) && r.brotherSince !== null && S.turn - r.brotherSince >= S.config.recognitionSeasons);
     if (others.length === 0 || long.length * 2 <= others.length) continue;
     c.established = S.turn;
-    const by = long.map((r) => r.from).join(", ");
+    const by = long.map((r) => r.from);
     for (const p of alive(S))
-      notify(S, p, "Notice", ClaimEstablishedTitle, `The claim of the king of ${land(c.power)} to be a Great King is no longer new: ${by} have called him brother for years.${c.overlord !== null && c.overlord !== c.power ? ` ${c.overlord} once held him a vassal.` : ""}`);
-    logEvent(S, "recognition", `${c.power}'s claim to be a Great King is established: ${by} have called its king brother for years.`, null, "claim-established");
+      notify(S, p, "Notice", ClaimEstablishedTitle, `The claim of the king of ${powerName(c.power)} to be a Great King is no longer new: ${listed(by.map(powerName))} have called him brother for years.${c.overlord !== null && c.overlord !== c.power ? ` ${powerName(c.overlord)} once held him a vassal.` : ""}`);
+    logEvent(S, "recognition", `${c.power}'s claim to be a Great King is established: ${by.join(", ")} have called its king brother for years.`, null, "claim-established");
   }
 };
 

@@ -180,7 +180,7 @@ describe("CommandAtADistanceTests", () => {
     season(s, subs({ Egypt: { orders: [disband("ekallate")] } }));
     Assert.equal("Egypt", unitAt(s, "ekallate")?.power);
     Assert.single(s.couriers);
-    Assert.contains("ekallate", notices(s, "Egypt", "Orders on the road")[0]);
+    Assert.contains("Ekallate", notices(s, "Egypt", "Orders on the road")[0]);
     Assert.doesNotContain(Views.for(s, "Egypt").visible, (x) => x === "ekallate");
     season(s);
     Assert.null(unitAt(s, "ekallate"));
