@@ -9,7 +9,7 @@ import { Assert } from "../../engine/test/support.ts";
 describe("LegendAnnalsTests", () => {
   afterEach(() => setRisen([]));
   const annals = (power: Power, text: string, kind: string, signal: string | null): Promise<string> => {
-    const ctx: ChronicleContext = { power, known: [newGameEvent({ turn: 6, kind, text, visibleTo: [power], signal })], scores: [], winners: [], lastTurn: 6 };
+    const ctx: ChronicleContext = { power, known: [newGameEvent({ turn: 6, kind, text, visibleTo: [power], signal })], scores: [], winners: [], lastTurn: 6, earlier: [] };
     return new TemplateNarrator().chronicle(ctx);
   };
 

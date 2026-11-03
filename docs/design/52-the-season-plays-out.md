@@ -72,6 +72,49 @@ The closing line (`closingLine`) says what changed, the greatest first: "Sumur f
 Qadesh; an envoy reached Babylon; two columns on the march; word came of plague in Mitanni." A seat's quiet season is
 "A quiet season, as far as word has reached you."
 
+## Threads to watch and the director camera (part F)
+
+"And spectator mode points the viewer to what is worth watching" (the item's text). Choosing what is shown, never what
+happens: nothing here is read by the engine, a seat or a request.
+
+**Finding them** (`src/game/src/threads.ts`, plain functions). After each season resolves the runner finds the live
+stories for every pair of eyes (`findThreads`): god view's in the whole state (`worldThreads`), each living seat's in its
+own view alone (`seatThreads`, from `Views.for`), the few with most at stake for each (`ThreadsMost`, 4, a first guess):
+
+| Kind | God view | A seat | The stake (as the model layer's `Stakes.moved`) |
+|---|---|---|---|
+| siege | every siege; "may fall next season" when one more season's wear breaches the walls or the city starves | the sieges it knows of, as it knows them | one province of the holder's land (`ordersStakes`' share of land), the besieger's for his side, +0.1 when a season from falling (a reason that wakes a king); another's siege moves none of the seat's own land |
+| envoy | every envoy on his outbound road (not a false one), where he is on it; whose pay he is in, if not his king's | its own letters not yet reported on, placed at the court he was sent to, never where he is | `courtStakes`' audience: 0.05 + gold against the treasury (the host's in god view, the sender's own for a seat) + 0.5 for a tablet to seal + 0.3 for tablets shown |
+| rising | a man the people would follow who chose to lead them this season (the engine's `risePlan`, seen by nobody) | none | as a siege about to fall |
+
+Foreign troops in the viewer's own capital (in god view, the holder's) rank first (`capital`, as the ladder always pays
+for them); then the stake; then a fixed order, so a replay ranks the same (`byStake`).
+
+**Telling them.** The narrator words them (`INarrator.threads`, one string a thread from its own facts and the names
+of the people it follows); the template narrator's words are `bots/thread-words.ts`, which names powers as the eyes the
+thread was found for name them. The model narrator uses the template's words until it is given its own call. The words
+are kept in the record the first time, as a decision under `t<n>/threads` (`ThreadsSchema`), read back on replay or
+when a game continues and never told again; a record without them (a game saved before) has them told then
+(`recorded`'s `told`). A save's threads are checked as written when it loads (`readThreads`), and their words are
+blanked by the export's filter without human words like every narrator's text.
+
+**Told anew.** The game's owner (the table that holds the game; a loaded replay only reads) may ask for a season's
+threads to be told anew (`tellThreadsAnew`): the narrator words the same threads again under `t<n>/threads/anew<k>`, the
+first telling standing beside the new. The annals likewise (`tellChroniclesAnew`, `end/chronicle/<power>/anew<k>`, shown
+under the first in the Chronicles tab). A persona is not told anew: it plays the character, so a new one would change the
+game, not its telling.
+
+**Who sees them** (`client.ts`: `threads`; the worker filters by `threadsFor`). The Threads tab shows wherever the
+record is open to the page (`canSeeAll`): god view's threads in god view, a seat's own through its eyes. A human king
+during play sees none: the narrator illuminates and never steers, and a ranked list of his own stakes would be advice.
+
+**The director camera** (`src/web/src/map/director.ts`, `directorShot`), a checkbox in the Threads tab, off by default.
+As a season plays out (part B's timeline) it takes the map to one scene: the great moment that plays where the viewer's
+highest-stakes thread is, at its beat; else, when a thread weighs more than every moment, that thread's place as the
+season begins; else the season's greatest moment (a fall, a battle, a disaster, an arrival). It reads only the viewer's
+threads and the moments of its own scene, so it shows no seat more than it knows, and a follow keeps the camera on its
+person instead. A replay plays each season out the same way, so the camera works there too.
+
 ## The land's season under the realms (part D)
 
 The item: "The season is the land's own state beneath the realms: snow, flood, green and drought are drawn on the ground
@@ -131,6 +174,6 @@ each was changed and measured (the numbers are in the item's report, "Part G"):
   them, so they are placed once a season. The layers' steps start at the next frame, never in the task of the worker's
   message or React's redraw.
 
-On the phone profile at Fast the frames over 50 ms fell from about a fifth to an eighth; the bar is met on desktop but for
-a few frames a game, not yet on the phone profile, where the browser's own layerization and paint of a map of thousands
+On the phone profile at Fast the frames over 50 ms fell from about a fifth to an eighth; the bar is met on desktop at Slow,
+Normal and Simulate, not at Fast (3.3% of frames) and not on the phone profile (#666), where the browser's own layerization and paint of a map of thousands
 of SVG elements is what remains (the report's "What is left").

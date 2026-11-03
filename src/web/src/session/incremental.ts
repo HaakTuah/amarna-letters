@@ -246,11 +246,10 @@ export class IncrementalReader {
   }
 
   /**
-   * A node's key: a leaf's number; a container's a hash of its pieces' numbers (two 32-bit FNV-1a hashes), so it costs the
+   * A container's key: a hash of its pieces' numbers (two 32-bit FNV-1a hashes), so it costs the
    * container's length, not a string of all its numbers. A hit is confirmed against the numbers themselves (`same`).
    */
-  private keyOf(x: Node): number | string {
-    if (typeof x === "number") return this.refs[x];
+  private keyOf(x: Container): string {
     if (x.key !== undefined) return x.key;
     let h1 = 0x811c9dc5;
     let h2 = 0x01000193;
@@ -270,16 +269,15 @@ export class IncrementalReader {
   }
 
   /** A cache's object for a node, if it was read from the same pieces. */
-  private lookup(cache: Cache, key: number | string, x: Node): Entry | undefined {
+  private lookup(cache: Cache, key: string, x: Container): Entry | undefined {
     const entries = cache.get(key);
     if (entries === undefined) return undefined;
-    if (typeof x === "number") return entries[0];
     const ids = this.idsOf(x);
     return entries.find((e) => same(e.ids, ids));
   }
 
-  private keep(cache: Cache, key: number | string, x: Node, value: unknown): void {
-    const entry: Entry = { ids: typeof x === "number" ? Empty : this.idsOf(x), value };
+  private keep(cache: Cache, key: string, x: Container, value: unknown): void {
+    const entry: Entry = { ids: this.idsOf(x), value };
     const entries = cache.get(key);
     if (entries === undefined) cache.set(key, [entry]);
     else if (!entries.some((e) => same(e.ids, entry.ids))) entries.push(entry);
