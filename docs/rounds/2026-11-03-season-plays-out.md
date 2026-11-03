@@ -17,9 +17,9 @@ Presentation only, built in parts, each its own pull request.
 
 | Part | What | State |
 |---|---|---|
-| A | A mind's own words kept season by season and shown (the record) | this PR |
-| B | The season in sequence: the next season computed while this one plays, pace by meaning, a closing line | built (part B below) |
-| C | Zoom shapes the realms' colours (full, then a wash, then borders and banners) | not started |
+| A | A mind's own words kept season by season and shown (the record) | merged, #627 |
+| B | The season in sequence: the next season computed while this one plays, pace by meaning, a closing line | this PR |
+| C | Zoom shapes the realms' colours (full, then a wash, then borders and banners) | merged, #634 |
 | D | The land's season under the realms, and its change moving | not started |
 | E | Units drawn as what they are, with weight; the world acting on them | not started |
 | F | Threads to watch and the director camera (spectator) | not started |
@@ -43,6 +43,24 @@ record is open to the page. Design note: `docs/design/38-legends.md`, "A mind's 
 - **Told anew, keeping the first telling beside the new** (the narrator's writings): nothing is told anew yet, since no
   view asks the narrator again; the button belongs with the threads to watch (part F), the next writing the narrator
   does for a viewer.
+
+## Part C: zoom shapes the realms' colours
+
+Zoomed out the realms' colours are full; zoomed in they thin to a wash, then almost to nothing but the realm bands
+(borders) and the emblems on the city seals (banners), so the ground, the season and the figures show through. One
+factor, `washAt` (`src/web/src/map/wash.ts`), multiplies the realm colour's opacity (ruled, governed and a vassal's wash
+alike): 1.6 at 0.45 screen pixels a map unit or less (the whole board in view), 0.2 at 3 or more, log-linear between, in
+eight steps. `zoom.ts` sets it as `--wash` when a gesture settles, and only when the step changes, so the realms' layer is
+painted again only then. The sound already followed the zoom (item 17a+: what is near the view is heard, louder the
+nearer); nothing changed there.
+
+### Readings taken
+
+- **"Borders and banners"** are the realm bands and the owner's emblem on each city seal, both already drawn: no new
+  banner, since a flag per province would clutter the map the owner asked to keep readable ("The main map and its views").
+- **Steps, not a smooth fade**: eight steps keep the heavy layer from being painted at every settle on a phone (17a's 50 ms
+  bar), and each step is small enough not to jump.
+- **First guesses** (item 18 may tune them): the ends 1.6 and 0.2, the scales 0.45 and 3, eight steps.
 
 Questions for the owner: none.
 
