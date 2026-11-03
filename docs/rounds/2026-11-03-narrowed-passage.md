@@ -46,6 +46,12 @@ revoking the last province of a grant whose true land lacked a far province lost
 told the grantor of the loss (the grant vanished where, had he kept the province, it would stay). Fixed: a grant
 narrowed to no land opens nothing but stands, read by what was revoked; its test.
 
+## Review, round 3
+
+Claude's reviewer: 9 of 10, one blocking: revoking the passage in a province its grantor lost out of sight before the
+grant was refused (the order check and the narrowing read the true land), which told him of the loss. Fixed: both read
+what he knows (a province he knows as his, not revoked already); its test, which fails with the old check.
+
 ## Benchmarks
 
 To come.

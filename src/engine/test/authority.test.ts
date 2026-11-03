@@ -295,6 +295,15 @@ describe("AuthorityTests", () => {
     Assert.true(new TurnEngine(s).passageFor("Hatti", "Egypt", rest[0]));
     s.grants = s.grants.filter((g) => g.id !== "p991");
     rest.pop();
+    // A province its grantor still believes his, lost out of his sight before the grant (so not in its land): revoking it
+    // there is accepted and read as any other (Opus's find on #623, round 3).
+    const lost = s.grants.find((g) => g.endedTurn === null && g.grantor === "Hatti")!;
+    lost.lands = lost.lands.filter((x) => x !== rest[0]);
+    Assert.equal(1, new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [revoke("Egypt", rest[0])] })).accepted.length);
+    new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", rest[0]) as RevokeOrder);
+    Assert.equal(3, read("Hatti").length);
+    Assert.equal(rest[0], read("Hatti")[2]);
+    rest.shift();
     // A second narrowing adds to it; the last province revoked leaves a grant that opens nothing, still read as the court
     // knows it, never ended for the land it lacks (which would tell of land lost out of sight).
     for (const x of rest) new TurnEngine(s).revokeGrants("Hatti", revoke("Egypt", x) as RevokeOrder);

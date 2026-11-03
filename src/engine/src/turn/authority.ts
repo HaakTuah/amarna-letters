@@ -178,7 +178,9 @@ P.revokeGrants = function (p, o) {
   // the grantee's court learns of with the word, the old one standing in its view until then (bug #611). One its grantee
   // ended already is only narrowed as its grantor reads it. One left with no land opens nothing, but stands as the courts
   // know it: ending it would tell its grantor that land he thought his was not in it (Codex's find on #623).
-  const cut = o.province === null ? [] : known.filter((g) => g.province === null && g.lands.includes(o.province!));
+  // Chosen by what he revoked it in, not by its true land (which he may not know): the order check holds it to land he
+  // knows as his.
+  const cut = o.province === null ? [] : known.filter((g) => g.province === null && !g.cut.includes(o.province!));
   for (const g of cut) {
     const lands = g.lands.filter((x) => x !== o.province);
     const was = [...g.cut, o.province!];

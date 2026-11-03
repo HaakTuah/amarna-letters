@@ -156,7 +156,9 @@ export function checkPeopleOrder(v: Checking, order: Order): string | null | und
           g.grantee === order.grantee &&
           grantLiveFor(g, power, S.turn) &&
           (g.tabletId === "" || S.copies.some((k) => k.holder === power && k.tabletId === g.tabletId)) &&
-          (order.province === null || g.province === order.province || (g.province === null && g.lands.includes(order.province))),
+          // A passage through all his land, in a province he knows as his and has not revoked it in: never by its true land,
+          // which would tell him of a province lost out of his sight (bug #611).
+          (order.province === null || g.province === order.province || (g.province === null && !g.cut.includes(order.province) && v.knownOwner(order.province) === power)),
       );
       return stands ? null : `you have granted ${order.grantee} no passage or basing${order.province !== null ? ` in ${order.province}` : ""} that still stands`;
     }
