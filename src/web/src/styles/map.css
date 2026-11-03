@@ -50,14 +50,15 @@ svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 .map .compass text { font-size: 8px; fill: var(--peak); text-anchor: middle; font-weight: 700; }
 
 /* ownership */
-.map .tint { cursor: pointer; fill-opacity: var(--tint); }
+/* Item 17+++: the realms' colours thin as the map is zoomed in (--wash, map/wash.ts); the views keep their own. */
+.map .tint { cursor: pointer; fill-opacity: calc(var(--tint) * var(--wash, 1)); }
 .map .tint.free, .map .sea-hit { fill: transparent; cursor: pointer; }
 .map .t-egypt { fill: var(--egypt); } .map .t-hatti { fill: var(--hatti); } .map .t-babylonia { fill: var(--babylonia); }
 .map .t-mitanni { fill: var(--mitanni); } .map .t-assyria { fill: var(--assyria); } .map .t-arzawa { fill: var(--arzawa); }
 .map .t-alashiya { fill: var(--alashiya); }
 /* Item 17++, part C: three steps of a realm's colour (ruled, governed, a vassal's wash), governors' blocs, the mood view. */
-.map .tint.h-gov { fill-opacity: calc(var(--tint) * .62); }
-.map .tint.h-vassal { fill-opacity: calc(var(--tint) * .3); }
+.map .tint.h-gov { fill-opacity: calc(var(--tint) * var(--wash, 1) * .62); }
+.map .tint.h-vassal { fill-opacity: calc(var(--tint) * var(--wash, 1) * .3); }
 .map .holding { pointer-events: none; }
 .map .gov-bloc path { stroke: none; opacity: .85; }
 .map .mood { fill-opacity: .62; }

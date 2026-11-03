@@ -1561,3 +1561,13 @@ Given in the design chat with Claude, answering the design questions of the cons
     (a shared ceiling for endurance and robustness, with a man's visible build running from lean to broad, a first
     guess of 160 of 200 for item 18 to tune): "Yes, expertly!" Written into "One body, one budget" under Characters
     (revision 31) and the "Follow-ups" entry "The body and the road" in `docs/BUILD-PROGRESS.md`.
+189. **3 November 2026, 08:33 to 08:52 UTC**, in the design chat, on Codex's reviews: "How are they doing with the
+    codex reviews, by the way?", then "Where does it say @codex security review is the command?", then "Try to load it
+    again and do a thorough investigation on how to trigger it manually.", then, showing Codex's settings (Auto security
+    review, its trigger, a threat model file and the severities): "We can set criterias here.", and to the design
+    session's takes (test the command with the feature on; point the threat model at `SECURITY.md` with a short threat
+    model section; tell the orchestrator to stop #612's rounds, fix the open code-scanning alert in a side lane, and
+    hold the no-review rule for docs and history): "Yes, expertly to all!" Tested: on #547, with Auto security review
+    off, `@codex security review` ran a code review alone; on Barkstreet Snakes' #463, with it on, a security review.
+    Written into "The threat model" in `SECURITY.md`, "Codex reviews" in `docs/claude-and-codex.md`, and "Follow-ups"
+    in `docs/BUILD-PROGRESS.md`.

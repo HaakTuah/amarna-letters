@@ -78,6 +78,18 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   as orders given now. A courier crossing land whose king closed his roads to his court, where that king's troops stand, is
   stopped 40 in a hundred of such places, and that king reads the order. Scheduled orders run once their word can reach
   their place (`PlannedOrder.given`, `notYetReached`).
+- **Word home from a province, one clock** (`wordHomeAt` in `rules/court.ts`, bug #616): the season word of a province's
+  season reaches a court, by the couriers' road home from the place to the court in that season (it may differ from the
+  road out: rivers, winter at the destination): the same season where they make it within the season, else one more
+  than `courierSeasons`. What a court sees as current (`sight`: word comes within the season), a province's report (who
+  holds it, `knownHolders`; its sieges, `siegesKnown`), the notices told from it (`TurnEngine.heardAt`, `tell`), a
+  census's count, and what is known of caravans and units there (`wordCame`, a caravan's setting out) all read it, so the
+  same season's report and notices arrive together. Any new news brought from a province uses it, and whether word
+  comes within the season (what a court is told at once, sees as it is, or knows of its own units and caravans there)
+  reads the road home too (`TurnEngine.wordFrom`). Orders going out (`sendOrders`, `wordTo`) and loads carried keep
+  the road out. The clock reads today's roads and relay stations, so what word has
+  brought is kept as it came (`seeLand` stores each court's word of each province in `GameState.known`, which
+  `knownHolders` and `siegesKnown` read): roads cut later take nothing back. Save version 57.
 - **Reports**: a king's sight takes in his land and troops only within the season's courier reach; beyond, his units are
   shown where they stood as many seasons ago as the road is long (`Unit.trail`, `UnitView.reported`) and orders naming
   them there follow them (`unitShownAt`); notices from there come by a `Realm` word (`tell`); losing land far off is known
