@@ -36,7 +36,7 @@ export function economyLines(v: SeatView): string[] {
     // Bug #540: those beyond its couriers' season, as their officials' last report has them.
     const reported = ps.filter((x) => x.reported !== null);
     if (reported.length > 0) lines.push(`- Known by their last report, beyond your couriers' season: ${join(", ", reported.map((x) => `${x.province} as reported in turn ${x.reported}`))}.`);
-    // #587: the gold kept far off, and what is owed there, as last reported (GOLD FAR OFF).
+    // #587: the gold kept far off, and what is owed there, as last reported ("Gold far off" in your rules).
     const coffers = ps.filter((x) => x.coffer > 0 || x.owed > 0);
     if (coffers.length > 0) lines.push(`- Coffers of your far provinces, as last reported: ${join(", ", coffers.map((x) => `${x.province} ${x.coffer} shekels${x.owed > 0 ? `, owing ${x.owed} (no credit there until paid)` : ""}`))}.`);
     const spare = sortBy(ps.filter((x) => x.stores >= 20), [(x) => x.stores, desc(cmpNum)]).slice(0, 8);

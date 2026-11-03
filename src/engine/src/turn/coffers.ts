@@ -104,7 +104,8 @@ P.payFar = function (p, province, amount, unit = null) {
   if (c !== null) c.gold = 0;
   const rest = amount - have;
   let b = S.bills.find((x) => x.power === p && x.province === province && x.turn === S.turn) ?? null;
-  if (b === null) S.bills.push((b = newBill({ power: p, province, turn: S.turn, due: S.turn + Math.max(1, d) })));
+  // Due when word of this season's doings there could reach the court (`heardAt`).
+  if (b === null) S.bills.push((b = newBill({ power: p, province, turn: S.turn, due: this.heardAt(p, province) })));
   if (unit !== null) b.units.push(`${unit.id}|${rest}`);
   else b.works += rest;
   return { coffer: have, credit: rest };
@@ -150,8 +151,8 @@ P.goldArrives = function () {
       this.tell(x.power, x.province, "Notice", "Gold sent", `The ${formatMoney(x.gold)} you sent reached the coffer of ${name}.`);
       continue;
     }
-    const back = reach(this, x.power, x.province);
-    S.sent.push(newRemittance({ power: x.power, province: x.province, gold: x.gold, due: S.turn + Math.max(1, back ?? 1), home: true }));
+    // Home again as word from there comes.
+    S.sent.push(newRemittance({ power: x.power, province: x.province, gold: x.gold, due: this.heardAt(x.power, x.province), home: true }));
   }
   // Bills carried home: the treasury pays them as far as it can.
   const bills = sortBy(

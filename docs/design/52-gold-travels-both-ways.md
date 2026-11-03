@@ -4,7 +4,7 @@ From "One treasury, many stores" under Land, people and economy (revision 35; th
 with characters can stipulate one pay upfront and one after. Paying infrastructure work would presumably require pay or
 labour as tax upfront, no?", then "Yes, expertly"). What is done far off is paid only from gold that is there, never from
 the treasury at a distance, so the treasury never shows a far outcome before word of it could come. Code:
-`turn/coffers.ts`, `model/coffers.ts`; the script kings' part in `game/src/bots/coffers.ts`.
+`turn/coffers.ts`, `model/coffers.ts`; the script kings' part in `game/src/bots/coffers.ts`. Save version 56.
 
 ### Far and near
 
@@ -57,8 +57,8 @@ Every caravan and ship carries its porters' (its crew's) pay for its road (`Cara
 the gold that is there: a season's pay for each season of its road at the pace it sets out with, twice for a trader or a
 ship, which come back (`payLoad`). Each season's pay comes out of it, then out of the gold it carries; with neither, they
 desert as before. It sets out only if the pay is there. What it did not need comes home with it (`caravanHome`), or stays
-where its road ended, in its king's coffer or treasury if the province is his, else spent there. A load of gold going
-home pays its porters from the gold it carries. Robbed, taken or seized, the pay goes with the goods.
+where its road ended, in its king's coffer or treasury if the province is his, else spent there. A load going home to its court (`lootHome`: a far province's gold, loot, a captured archive) carries no pay: its
+porters are owed it (`Caravan.bill`), a bill they carry home, paid on arrival from the gold there. Robbed, taken or seized, the pay goes with the goods.
 
 ### What the seat sees
 

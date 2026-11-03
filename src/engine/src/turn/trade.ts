@@ -291,12 +291,18 @@ P.tradeTogether = function (cs, parts) {
  */
 P.caravanHome = function (c) {
   const S = this.s;
-  // The pay it did not need comes home with its load (#587).
+  // The pay it did not need comes home with its load; a load's porters bring their bill, paid from the gold there (#587).
   c.gold += c.pay;
   c.pay = 0;
   const at = caravanAt(c);
   const name = this.map.get(at).name;
   const parts: string[] = [];
+  if (c.bill !== null && c.bill > 0) {
+    const paid = Math.min(this.goldAt(c.power, at), c.bill);
+    this.takeAt(c.power, at, paid);
+    this.spendAt(at, paid);
+    c.bill = 0;
+  }
   // A besieged city takes in nothing by land, and by sea only while its waters are open.
   const open = siegeOf(S, at) === null || (c.ship !== null && openToSea(this, at));
   if (c.grain > 0 && S.owner.getOrDefault(at, null) === c.power && open) {
@@ -514,7 +520,7 @@ P.lootHome = function (taker, from, gold, archive, archiveOf, to) {
     this.archiveArrives(taker, archive, archiveOf, this.map.get(from).name);
     return false;
   }
-  setOut(S, newCaravan({ id: newId(S, "v"), power: taker, from: cap, to: from, gold, route, at: 0, returning: true, since: S.turn, archive: [...archive], archiveOf }));
+  setOut(S, newCaravan({ id: newId(S, "v"), power: taker, from: cap, to: from, gold, route, at: 0, returning: true, since: S.turn, archive: [...archive], archiveOf, bill: 0 }));
   return true;
 };
 

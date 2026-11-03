@@ -94,23 +94,28 @@ P.caravansTravel = function () {
     }
     const pay = this.caravanPay(c);
     const here = caravanAt(c);
-    if (c.pay + c.gold < pay) {
+    if (c.bill === null && c.pay + c.gold < pay) {
       caravanGone(S, c);
       if (c.ship !== null && c.ship.home !== "") this.spendAt(c.ship.home, c.ship.savings);
       this.caravanTell(c, here, "Notice", MarketsTitle, `Your ${noun(c)} from ${this.map.get(c.from).name} to ${this.map.get(c.to).name} went unpaid: its ${c.ship !== null ? "crew" : "porters"} deserted at ${this.map.get(here).name} with its ${what(c)}${c.ship !== null ? ", and the fleet is lost to you" : ""}.`);
       logEvent(S, "caravan-lost", `${c.power}'s unpaid ${noun(c)} deserted with its goods.`, [...this.caravanNear(c, here)], "caravan-lost");
       continue;
     }
-    // #587: out of the pay it carries, then out of its load.
-    const fromPay = Math.min(c.pay, pay);
-    c.pay -= fromPay;
-    c.gold -= pay - fromPay;
+    // #587: out of the pay it carries, then out of its load; a load going home owes it, paid when it arrives.
+    if (c.bill !== null) c.bill += pay;
+    else {
+      const fromPay = Math.min(c.pay, pay);
+      c.pay -= fromPay;
+      c.gold -= pay - fromPay;
+    }
     // The porters spend their pay where they stand openly (at home or in land open to them); smugglers off the road and
     // a crew at sea keep it, the smugglers' going to their homes at once and the crew's into its savings.
-    if (this.map.get(here).isSea) {
-      if (c.ship !== null) c.ship.savings += pay;
-    } else if (this.caravanOffRoad(c.power, here, sneakOf(c))) this.spendAt(c.from, pay);
-    else this.spendAt(here, pay);
+    if (c.bill === null) {
+      if (this.map.get(here).isSea) {
+        if (c.ship !== null) c.ship.savings += pay;
+      } else if (this.caravanOffRoad(c.power, here, sneakOf(c))) this.spendAt(c.from, pay);
+      else this.spendAt(here, pay);
+    }
     // Advance along the route at its pace, counting how much of the season went by boat, meeting each border it crosses.
     const start = perSeason + c.points;
     let budget = start;
