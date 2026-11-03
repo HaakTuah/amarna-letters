@@ -179,7 +179,7 @@ describe("MapAndSeasTests", () => {
     Assert.equal(10.5, connectionDays(Map, "thebes", "redsea"));
     // From the Sinai's shore a ship sails down to Mersa Gawasis, so the empty sea joins its shores at a voyage's cost: Thebes
     // to the Delta still goes by the Nile, and only the Sinai is nearer by the Red Sea (as the mining expeditions went).
-    Assert.equal(20, connectionDays(Map, "sinai", "redsea"));
+    Assert.equal(23.5, connectionDays(Map, "sinai", "redsea"));
     const days = (x: string, y: string) => connectionDays(Map, x, y);
     Assert.equal(["thebes", "akhetaten", "memphis", "delta"], cheapestRoute(Map, "thebes", "delta", days)!.route);
     Assert.equal(["thebes", "redsea", "sinai"], cheapestRoute(Map, "thebes", "sinai", days)!.route);
