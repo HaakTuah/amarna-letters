@@ -93,7 +93,8 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 - **Reports**: a king's sight takes in his land and troops only within the season's courier reach; beyond, his units are
   shown where they stood as many seasons ago as the road is long (`Unit.trail`, `UnitView.reported`) and orders naming
   them there follow them (`unitShownAt`); notices from there come by a `Realm` word (`tell`); losing land far off is known
-  when word comes. Mines and sales beyond the reach send their gold to the court as a load that can be waylaid.
+  when word comes. Mines and sales beyond the reach fill the province's coffer, which pays what is done there; the rest
+  goes to the court as a load that can be waylaid (`53-gold-travels-both-ways.md`).
 - **Far land as last reported** (bug #540; `rules/province-reports.ts`, `rules/caravans-known.ts`): as each season begins,
   every held province's report of the season just ended is kept (`GameState.reports`: its economy, works, worth, holdings
   and last reaping, seven seasons; the first, labelled 0, is the land as the game began). A court shows a province it

@@ -38,7 +38,8 @@ export function caravansKnown(engine: TurnEngine, p: Power): CaravanView[] {
     if (c.power !== p || (first !== null && !came(first.turn, first.at))) continue;
     const live = s.caravans.includes(c);
     if (live && engine.wordFrom(p, caravanAt(c)) === 0) {
-      out.push(viewOf(c, caravanAt(c), c.grain, c.gold, c.returning, null));
+      // Its gold with its porters' pay, as its reports count it (#587).
+      out.push(viewOf(c, caravanAt(c), c.grain, c.gold + c.pay, c.returning, null));
       continue;
     }
     const last = [...c.trail].reverse().find(heard);

@@ -84,12 +84,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   for item 18), so the build a king sees reads both at once. Where there are several roads, characters choose by appetite for risk.
   Built with the first item whose errands use them; a save version.
 
-- **Gold travels both ways** (the owner, 3 November 2026; #587; archive item 186; "One treasury, many stores" under
-  Land, people and economy, revision 35): what is done far off (a caravan's porters, works paid in gold, grain bought
-  at a far market) is paid only from gold that is there: sent with the order up front, the caravan's own load, the
-  province's own stores, taxes or corvée, or a contract's terms with a bill carried home. The treasury moves only when
-  gold leaves it or a carrier brings a payment or a bill home; the twin canary's listed leak under #587 then goes. A
-  save version.
+- ~~**Gold travels both ways**~~ (done, #635; `docs/design/53-gold-travels-both-ways.md`, report
+  `docs/rounds/2026-11-03-gold-travels-both-ways.md`): far provinces pay from their coffers, credit with bills carried
+  home, gold sent ahead, caravans carrying their pay; the twin canary's #587 leak is gone. Save version 61.
 
 - **The owner's answers of 3 November, morning** (archive item 185):
   - **#591, no wording gives an envoy's hidden state away** (script characters only; a model writes its own words):
@@ -234,6 +231,7 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 
 | Item | Feature | Users against ignorers (same seeds) | Verdict |
 |---|---|---|---|
+| #587 | Sending gold ahead to far coffers that owe or run short (`--coffer-play-half`) | 0.81 growth to 0.72, 21 wins to 29, in 50 games; 32 sends in 15 games, 24 bills unpaid in 10 | Pays in growth, not in wins: credit covers most far costs, so sending ahead seldom matters; for item 18 |
 | #618 | Reading word from vassals and allies of land changing hands (`--tidings-play-half`) | 0.79 growth to 0.80, 11 wins to 9, in 20 games; 11.2 pieces of word reached the Great Kings a game | Even: the word mostly makes news of what the map already showed, sooner only where the reporter is nearer |
 | #601 | Hiring a rider for a far province's report, haggling (`--ride-play-half`) | No ride in 20 games: of 6,070 Great King-seasons, 119 held land beyond a season's road home out of sight (all Hatti's), each with a report one season old, which a ride cannot better; the scenario test shows them ride, haggle and raise | Nothing to measure in script games; re-measure in item 18 if realms grow |
 | 17++a | Waging the war chosen, breaking a plain peace for it (`--war-play-half`) | 0.78 growth to 0.87, 13 wins to 7, in 20 games | Pays in wins, not in growth: Assyria and Arzawa lose by their wars of choice; for item 18 |

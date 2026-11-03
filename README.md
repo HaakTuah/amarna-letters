@@ -103,6 +103,10 @@ rumours, and those can be late, shaded or false.
   out now and is carried out when it arrives, and a courier on a foe's closed roads may be stopped. Orders are checked
   against what your court knows: one for land lost or besieged out of your sight goes out, and you hear how it went when
   word comes, as you hear of a siege of a far city of yours.
+- Gold travels both ways. A far province pays its own way: its mines and sales fill its coffer, which pays its works,
+  levies, purchases, caravans and the troops standing there, and sends the rest home as a load. What the coffer lacks
+  is done on credit, with a bill that comes home with the word, and an unpaid bill stops credit there until the debt is
+  paid. Send gold ahead with your couriers to fund a far province up front; caravans carry their porters' pay with them.
 - Grant command of an army, or a province as its governor: a grant of authority, not a job. What the man gets is what
   holding it gives him, and you take it back by sending word. One governor may hold several neighbouring provinces from
   his seat; if he loses or gives up the province he sits in, he sits in another, and a loyal one writes to tell you where,

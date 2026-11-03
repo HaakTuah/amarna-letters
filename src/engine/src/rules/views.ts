@@ -339,6 +339,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     if (r > 0) v.resistance.set(prov.id, r);
   }
   v.foodSent = s.foodWord.filter((w) => w.power === p).map((w) => ({ province: w.province, gold: w.gold, buy: w.buy, at: w.at }));
+  // #587: the gold the court sent, until word of what became of it comes (it reached the coffer, or came back), with no
+  // day of arrival, which would tell it the roads before any word of them (Codex, #635).
+  v.goldSent = s.sent.filter((x) => x.power === p).map((x) => ({ province: x.province, gold: x.gold }));
+  // By the court's one clock for its land, the line its sight already draws (word home within the season).
+  v.far = v.provinces.filter((x) => engine.isFar(p, x.province)).map((x) => x.province);
   // Bug #540: walking home to the land it knows it holds; its caravans as their reports have come.
   const homeward = s.walking.filter((w) => known.tryGet(w.home)?.owner === p && (w.from === "" || wordCame(engine, p, w.departs, w.from)));
   v.walking = sum(homeward.filter((w) => !w.deported), (w) => w.men);
@@ -353,7 +358,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     sum([...own.values()], (x) => x.holding) +
       sum(v.units.filter((u) => u.power === p), (u) => carriedWorth(u.food, u.savings)) +
       sum(homeward, (w) => w.savings) +
-      sum(v.caravans, (c) => carriedWorth(c.grain, c.gold)),
+      sum(v.caravans, (c) => carriedWorth(c.grain, c.gold)) +
+      // #587: and the gold it sent ahead, which it knows is on the road.
+      sum(v.goldSent, (g) => g.gold),
   );
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
   // Its own, as it knows its land (bug #517), are among its provinces instead.
