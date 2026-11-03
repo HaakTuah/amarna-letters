@@ -3,87 +3,202 @@
   "copies": {
     "f85567a7b3c6": {
       "count": 2,
-      "places": "scripts/map-relief.mjs:15-28 scripts/map-snow.mjs:17-30"
+      "places": "scripts/map-relief.mjs:15-28 scripts/map-snow.mjs:17-30",
+      "windows": [
+        "f85567a7b3c6",
+        "43d892e31828",
+        "21357aa8493e",
+        "854a30e0e76f",
+        "066d175334fc",
+        "278f06796757",
+        "6aca88dc0a48"
+      ]
     },
     "f980a2476c48": {
       "count": 2,
-      "places": "src/engine/src/model/order-makers.ts:2-9 src/engine/src/model/orders.ts:7-14"
+      "places": "src/engine/src/model/order-makers.ts:2-9 src/engine/src/model/orders.ts:7-14",
+      "windows": [
+        "f980a2476c48"
+      ]
     },
     "8272cab9cd5b": {
       "count": 2,
-      "places": "src/engine/test/adjudicator.test.ts:24-48 src/engine/test/terrain.test.ts:34-58"
+      "places": "src/engine/test/adjudicator.test.ts:24-48 src/engine/test/terrain.test.ts:34-58",
+      "windows": [
+        "8272cab9cd5b",
+        "a3eb63652663",
+        "b47d14a05b59",
+        "70bd51766f78",
+        "8ffa72ee4c04",
+        "492521f3d9cb",
+        "469ffc3a74fd",
+        "3cfceba883ac",
+        "5447eab8639e",
+        "4937077caf8f",
+        "2103c9d9f991",
+        "a388b6dd6989",
+        "05b71a8ff015"
+      ]
     },
     "fe41f0f5468d": {
       "count": 2,
-      "places": "src/engine/test/contract.test.ts:46-58 src/engine/test/dismissal.test.ts:34-46"
+      "places": "src/engine/test/contract.test.ts:46-58 src/engine/test/dismissal.test.ts:34-46",
+      "windows": [
+        "fe41f0f5468d",
+        "e1729bf69f3f"
+      ]
     },
     "205a5182f343": {
       "count": 3,
-      "places": "src/engine/test/cover.test.ts:49-61 src/engine/test/hidden-spy.test.ts:40-52 src/engine/test/loss-news.test.ts:32-44"
+      "places": "src/engine/test/cover.test.ts:49-61 src/engine/test/hidden-spy.test.ts:40-52 src/engine/test/loss-news.test.ts:32-44",
+      "windows": [
+        "205a5182f343",
+        "9aee9b8c159c"
+      ]
     },
     "28318814190c": {
       "count": 4,
-      "places": "src/engine/test/obedience.test.ts:125-132 src/engine/test/obedience.test.ts:169-176 src/engine/test/obedience.test.ts:187-194 src/engine/test/obedience.test.ts:206-213"
+      "places": "src/engine/test/obedience.test.ts:125-132 src/engine/test/obedience.test.ts:169-176 src/engine/test/obedience.test.ts:187-194 src/engine/test/obedience.test.ts:206-213",
+      "windows": [
+        "28318814190c"
+      ]
     },
     "b5f6b7628b91": {
       "count": 2,
-      "places": "src/engine/test/obedience.test.ts:126-134 src/engine/test/obedience.test.ts:170-178"
+      "places": "src/engine/test/obedience.test.ts:126-134 src/engine/test/obedience.test.ts:170-178",
+      "windows": [
+        "b5f6b7628b91",
+        "2fc0330824c3"
+      ]
     },
     "40242e369cb1": {
       "count": 2,
-      "places": "src/game/test/aimed-threat.test.ts:9-17 src/game/test/script-envoy.test.ts:11-19"
+      "places": "src/game/test/aimed-threat.test.ts:9-17 src/game/test/script-envoy.test.ts:11-19",
+      "windows": [
+        "40242e369cb1",
+        "b80d82ff07fb"
+      ]
     },
     "dde62b692137": {
       "count": 2,
-      "places": "src/game/test/audience-runner.test.ts:35-44 src/game/test/inventory-swap.test.ts:167-176"
+      "places": "src/game/test/audience-runner.test.ts:35-44 src/game/test/inventory-swap.test.ts:167-176",
+      "windows": [
+        "dde62b692137"
+      ]
     },
     "5452edf42b1c": {
       "count": 2,
-      "places": "src/game/test/audience-runner.test.ts:54-63 src/game/test/inventory-swap.test.ts:186-195"
+      "places": "src/game/test/audience-runner.test.ts:54-63 src/game/test/inventory-swap.test.ts:186-195",
+      "windows": [
+        "5452edf42b1c"
+      ]
     },
     "0dd4e6170721": {
       "count": 2,
-      "places": "src/game/test/bot.test.ts:212-219 src/game/test/sealing.test.ts:13-20"
+      "places": "src/game/test/bot.test.ts:212-219 src/game/test/sealing.test.ts:13-20",
+      "windows": [
+        "0dd4e6170721"
+      ]
     },
     "a30fee7e6cbb": {
       "count": 2,
-      "places": "src/game/test/court-asleep.test.ts:96-110 src/game/test/sleep-support.ts:52-66"
+      "places": "src/game/test/court-asleep.test.ts:96-110 src/game/test/sleep-support.ts:52-66",
+      "windows": [
+        "a30fee7e6cbb",
+        "308fcbaef162"
+      ]
     },
     "432c7e67d159": {
       "count": 2,
-      "places": "src/game/test/court-asleep.test.ts:121-132 src/game/test/sleep-support.ts:78-89"
+      "places": "src/game/test/court-asleep.test.ts:121-132 src/game/test/sleep-support.ts:78-89",
+      "windows": [
+        "432c7e67d159",
+        "36595bf92186"
+      ]
     },
     "25e586974a66": {
       "count": 2,
-      "places": "src/game/test/king-record.test.ts:23-33 src/game/test/leader-memory.test.ts:28-38"
+      "places": "src/game/test/king-record.test.ts:23-33 src/game/test/leader-memory.test.ts:28-38",
+      "windows": [
+        "25e586974a66",
+        "fc74d7b56932"
+      ]
     },
     "ae52fbb106a1": {
       "count": 2,
-      "places": "src/game/test/sleep-reading.test.ts:53-61 src/game/test/sleep-reading.test.ts:106-114"
+      "places": "src/game/test/sleep-reading.test.ts:53-61 src/game/test/sleep-reading.test.ts:106-114",
+      "windows": [
+        "ae52fbb106a1"
+      ]
     },
     "96e1d3451b6a": {
       "count": 2,
-      "places": "src/web/measure.mjs:36-49 src/web/soak.mjs:44-57"
+      "places": "src/web/measure.mjs:36-49 src/web/soak.mjs:44-57",
+      "windows": [
+        "96e1d3451b6a",
+        "6afe0e6ff71e",
+        "e349516005ef",
+        "a64ba0a17b4a",
+        "a91302477ea8",
+        "169f77c0afd1"
+      ]
     },
     "112946699f82": {
       "count": 2,
-      "places": "src/web/season-shots.mjs:5-13 src/web/shots.mjs:4-12"
+      "places": "src/web/season-shots.mjs:5-13 src/web/shots.mjs:4-12",
+      "windows": [
+        "112946699f82"
+      ]
     },
     "966d2d2249d0": {
       "count": 2,
-      "places": "src/web/season-shots.mjs:26-41 src/web/shots.mjs:13-28"
+      "places": "src/web/season-shots.mjs:26-41 src/web/shots.mjs:13-28",
+      "windows": [
+        "966d2d2249d0",
+        "fcdbd4c466f7",
+        "a18122ecffdb",
+        "c443d9e1f9ea",
+        "302c93d76197",
+        "75ee3586c010",
+        "35c7aac30d55",
+        "85ee81fc67b6"
+      ]
     },
     "2cc3e136484a": {
       "count": 2,
-      "places": "src/web/src/map/geo-fine-data.ts:94-115 src/web/src/map/geo-fine-data.ts:116-137"
+      "places": "src/web/src/map/geo-fine-data.ts:94-115 src/web/src/map/geo-fine-data.ts:116-137",
+      "windows": [
+        "2cc3e136484a",
+        "455d26777e5f",
+        "fe3efe7a0e57",
+        "3ada0ee27a74",
+        "b7757f38aa7e",
+        "ee1ec157ff01",
+        "ae8fde620697",
+        "0bc4d5e9f3bc",
+        "e5c9047cb19d",
+        "9ad0adda9930",
+        "5e813dbfeb3b",
+        "fd308573ef83",
+        "40916cd47a31",
+        "54eaad2314e3",
+        "535b9ad6e4d4"
+      ]
     },
     "e6cffdd30359": {
       "count": 4,
-      "places": "src/web/test/audio-fog.test.ts:13-20 src/web/test/audio-mix.test.ts:11-18 src/web/test/audio-situation.test.ts:9-16 src/web/test/audio-stream.test.ts:11-18"
+      "places": "src/web/test/audio-fog.test.ts:13-20 src/web/test/audio-mix.test.ts:11-18 src/web/test/audio-situation.test.ts:9-16 src/web/test/audio-stream.test.ts:11-18",
+      "windows": [
+        "e6cffdd30359"
+      ]
     },
     "31ea8fbca212": {
       "count": 2,
-      "places": "docs/builder-rules.md:4-4 docs/builder-rules.md:11-11"
+      "places": "docs/builder-rules.md:4-4 docs/builder-rules.md:11-11",
+      "windows": [
+        "31ea8fbca212",
+        "5d020efdf008"
+      ]
     }
   }
 }
