@@ -293,7 +293,7 @@ describe("SleepTests", () => {
     [
       "Catastrophe",
       "Catastrophe: Plague",
-      "The hand of Nergal is on the land. Plague will cut income by a quarter for two seasons, and it has destroyed your A babylon.",
+      "The hand of Nergal is on the land: plague. For two seasons your land will bring in a quarter less, and the sickness has carried off your A babylon.",
       "plague destroyed troops of yours",
     ],
     ["Notice", "The treasury", "A ur mutinied, unpaid 3 seasons running, and disbanded: its men went home.", "troops of yours mutinied"],

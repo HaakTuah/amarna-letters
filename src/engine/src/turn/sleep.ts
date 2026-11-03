@@ -349,7 +349,7 @@ P.wakeReason = function (i) {
       // Item 17++: land goes over to another, or rises, by the season's rule.
       return LandLostTitles.includes(i.title) ? `land lost: ${i.body}` : null;
     case "Catastrophe":
-      return i.body.includes("it has destroyed your") ? "plague destroyed troops of yours" : null;
+      return i.body.includes("has carried off your") ? "plague destroyed troops of yours" : null;
     case "Notice": {
       if (i.title === FeeDueTitle) return `a fee fell due unpaid: ${findCharacter(this.s, i.subject)?.name ?? i.body}`;
       // The economy's failures (item 9+a): troops that mutinied, went hungry or unpaid, a caravan lost.
@@ -505,7 +505,7 @@ P.lostUnits = function (p, sl) {
     p,
     "Rejected",
     LostTroopsTitle,
-    "These orders were for troops you no longer have (destroyed, deserted, disbanded or given away), so they were dropped. Each names its unit by where it stood when you gave the order:\n" +
+    "Orders for troops you no longer have were dropped. Each names its troops by where they stood when you gave it:\n" +
       lines.map((x) => "- " + x).join("\n"),
   );
 };

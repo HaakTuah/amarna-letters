@@ -16,6 +16,7 @@ import { remember, spend, type Character } from "../model/people.ts";
 import { quoteWords, type Power } from "../model/power.ts";
 import { newTablet, newTabletCopy } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
+import { formatMoney } from "../rules/calendar.ts";
 import { renderClauses } from "../rules/clauses.ts";
 import { wordFromKing } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
@@ -50,7 +51,7 @@ P.grantCrown = function (p, o) {
     c.watchProvince = seat;
   }
   const lands = o.provinces.map((x) => this.map.get(x).name).join(", ");
-  notify(S, p, "Resolution", "A kingship offered", `Word that you would make ${c.name} king of ${lands} under oath, as your vassal, for ${o.tribute} shekels of tribute a year${o.price > 0 ? ` and a price of ${o.price} shekels` : ""}, reaches him at ${this.map.get(seat).name} in turn ${arrives}; his answer comes back by the same road.`, c.id);
+  notify(S, p, "Resolution", "A kingship offered", `Your offer to make ${c.name} your vassal king of ${lands}, for ${formatMoney(o.tribute)} of tribute a year${o.price > 0 ? ` and a price of ${formatMoney(o.price)}` : ""}, reaches him at ${this.map.get(seat).name} in turn ${arrives}. His answer comes back by the same road.`, c.id);
   logEvent(S, "crown", `${p} offered ${c.name} the kingship of ${lands}.`, [p], "crown");
 };
 
@@ -88,7 +89,7 @@ P.crownsSeason = function () {
     if (k.paidArrives !== null && S.turn >= k.paidArrives) {
       if (k.price > 0 && isAlive(S, k.power)) {
         S.treasuries.get(k.power).gold += k.price;
-        notify(S, k.power, "Notice", "A kingship's price", `The ${k.price} shekels ${c?.name ?? "your new vassal"} paid for the kingship of ${lands} reached your treasury.`);
+        notify(S, k.power, "Notice", "A kingship's price", `The ${formatMoney(k.price)} ${c?.name ?? "your new vassal"} paid for the kingship of ${lands} reached your treasury.`);
       }
       k.paidArrives = null;
     }
@@ -185,7 +186,7 @@ TurnEngine.prototype.crowned = function (k: Crown, c: Character, lands: string) 
   k.heard = this.heardAt(k.power, k.seat);
   // His price rides home with his answer: it reaches the treasury as word of it does.
   k.paidArrives = k.heard;
-  this.tell(k.power, k.seat, "Resolution", "A kingship taken", `${c.name} took the kingship of ${lands} under oath: ${own} is your vassal now, its tablet sealed for ${k.tribute} shekels of tribute a year${price > 0 ? `; the ${price} shekels he paid are on the road to you` : ""}.`);
+  this.tell(k.power, k.seat, "Resolution", "A kingship taken", `${c.name} took the kingship of ${lands} under oath: ${own} is your vassal now, its tablet sealed for ${formatMoney(k.tribute)} of tribute a year${price > 0 ? `. The ${formatMoney(price)} he paid is on the road to you` : ""}.`);
   // The new king's own; the granting king learns of it from the notice the road brings (hidden information).
   logEvent(S, "crown", `${c.name} took the kingship of ${lands} from ${k.power}.`, [own], "crown-taken");
 };

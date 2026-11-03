@@ -477,7 +477,7 @@ P.presentUnheard = function (a, c) {
     a.host,
     "Notice",
     UnheardTitle,
-    `${c.name}, an envoy of ${land(a.from)}, stands at your court, but nobody at your court understands him${a.dispatch.gold > 0 ? "; he has brought gifts, which he will present if he is not understood" : "; he brought no gifts"}. Someone who speaks his tongue, a servant you hire or a go-between he pays, may yet carry his words.`,
+    `${c.name}, an envoy of ${land(a.from)}, stands at your court, but nobody here understands him${a.dispatch.gold > 0 ? ". He has brought gifts, and will present them if he stays unheard" : ", and he brought no gifts"}. A servant or go-between who speaks his tongue could carry his words.`,
     c.id,
   );
   logEvent(S, "unheard", `Nobody at ${a.host}'s court understood ${c.name}, envoy of ${a.from}.`, [a.host], "unheard");
@@ -513,7 +513,7 @@ P.presentGifts = function (a, c, plan) {
   a.presented = weighed;
   d.gold = 0;
   d.inventory = false;
-  notify(S, a.host, "Notice", "Gifts presented", `${c.name}, the envoy of ${land(a.from)} whom nobody at your court understands, presented gifts weighing ${weighed} shekels.`, c.id);
+  notify(S, a.host, "Notice", "Gifts presented", `${c.name}, the envoy of ${land(a.from)} whom nobody at your court understands, presented gifts weighing ${formatMoney(weighed)}.`, c.id);
 };
 
 /** What a script envoy keeps of gifts he presents unheard, by the same motive as at an audience (ScriptMind's `kept`). */
