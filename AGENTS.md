@@ -75,6 +75,13 @@ allows, at the lowest cost now and later. Four of them are the pillars that hold
   updated, the rest removed, nothing left behind in the old place. Never edit `docs/intent/` or `docs/builder-rules.md`:
   if the design document seems wrong or unclear, take the most reasonable reading and list it under "Readings taken"; a
   matter of taste is a `question` issue ("Questions, readings and ideas").
+- **No description left untrue** (archive items 86 and 218), so no reader, player, king or builder, meets a text the
+  game no longer matches. A change updates, in the same PR, every place that describes what it changes, found by
+  searching for its names: the design notes (`docs/design/`) and, for what a player or a king sees, the README, the
+  rulebook and the seat view (the builder rules ask the same of every rule). Each of those is the one place for its own
+  readers, so where two notes describe one thing, one becomes a pointer to the other. Dated records (the archive, the
+  round reports) and the design document's copy (`docs/intent/`) stay as they are. Each milestone PR says in one line
+  whether the README is current, and fixes it if not.
 - **Keep it lean** (archive item 133). Every change removes what it replaces, in the same PR: no
   commented-out code, no "old" copies, nothing it made unused (code, files, settings, assets, test helpers). Look for an
   existing helper before writing one. A leftover is a finding in every review.
@@ -96,8 +103,6 @@ allows, at the lowest cost now and later. Four of them are the pillars that hold
   the few tests that guard the whole (replays, the save round trip, a smoke game), and long measurements (benchmarks,
   use against ignore) run in `scripts/sim.sh`, never in the suite. When an item grows the starting world, the tests'
   default does not grow with it. The workshop check measures against code-PR checks of about 10 minutes (29 October).
-- **A change a player sees updates the README** (archive item 86), in the same PR, as the rulebook and seat view already are.
-  Each milestone PR says in one line whether the README is current, and fixes it if not.
 - **The owner's words are kept, in the archive.** Quote each instruction he gives word for word in the item's report and
   in the archive (`docs/archive/instructions.md` says which file), numbered and dated, leaving out personal details as
   `SECURITY.md`, point 11, says. A standing rule goes where it applies in this file
