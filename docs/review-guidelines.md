@@ -24,11 +24,12 @@ re-review. A reviewer reads this file whole with its brief ("Reviews", point 7, 
 description and the sections it names; a broken rule of `AGENTS.md`, of the builder rules or of `SECURITY.md`; a test
 weakened or skipped, or changed beyond what the task forces (a forced change shows in the PR that every check is kept
 and none loosened); and a protected file (`SECURITY.md`, rule 3) changed by a Codex lane. Report anything the change
-leaves behind (code, files or settings it made unused, commented-out code) as a finding. The pillars of "How to work" in
-`AGENTS.md` block too: a fact, rule or piece of logic written a second time instead of pointed to (a copy, or a
-selection of another file's lines), and an entry added to the copies check's baseline. Content put where its readers
-must read past it, such as a file holding what its readers do not need, is a finding, and so is a fact left where a
-clearly better home exists, or a pointer where no reader needs it.
+leaves behind (code, files or settings it made unused, commented-out code, and any description it made untrue: "No
+description left untrue" in `AGENTS.md`) as a finding. The pillars of "How to work" in `AGENTS.md` block too: a fact,
+rule or piece of logic written a second time instead of pointed to (a copy, or a selection of another file's lines), and
+an entry added to the copies check's baseline. Content put where its readers must read past it, such as a file holding
+what its readers do not need, is a finding, and so is a fact left where a clearly better home exists, or a pointer where
+no reader needs it.
 
 **History holds,** for every reviewer: report as P1 a real-world fact (a person, place, date, name, custom or event) the
 change adds or alters that has no source in `docs/history/`, or contradicts the source it cites. Each real fact in the
