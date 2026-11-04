@@ -26,7 +26,13 @@ to the newest stable release once that is a week old, so a bad or hijacked relea
 upkeep, not ideas: they wait for no queue entry and no word from the owner. Dependabot's version updates
 (`.github/dependabot.yml`: weekly, minor and patch grouped) come as PRs into `develop`: the next free lane takes one as
 an ordinary small PR, runs the checks, gets its code review, reads the release notes for breaking changes, and merges
-it, with the licence gate (`SECURITY.md`, point 10) checking it on its own. A new major version is its own PR, with the
+it, with the licence gate (`SECURITY.md`, point 10) checking it on its own. What ships to players (the packages bundled
+into the built app, such as React) also has its source checked, since a lock file only pins whatever was published: the
+PR shows the same publisher and repository as the version before, npm's registry signatures verified against npm's
+published keys (`npm audit signatures`, or by hand where it cannot reach Sigstore, as in a cloud session), and the
+package's diff from the old version (`npm diff`) read against the release notes, naming anything they do not explain,
+such as a new address it contacts or code it builds from text. A release that fails any of these, and any new major
+version of what ships, waits as a `question` issue for the owner. A new major version of a tool is its own PR, with the
 smoke test of the built app as well. One is held back only for a reason: it breaks something, runs or loads worse,
 changes its licence, or its project is abandoned or changes hands. The reason is written in the closed PR and in an
 issue that stays open until the reason is gone.
