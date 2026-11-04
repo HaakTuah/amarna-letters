@@ -24,23 +24,24 @@ gh api repos/HaakTuah/amarna-letters/pulls -f title=... -f head=develop -f base=
 small step away, and small steps stay cheap. Every package is held at an exact version in its `package.json` and the
 lock file, never a range, and moves to the newest stable release once that is a week old, so a bad or hijacked release
 is usually pulled first. Updates are upkeep, not ideas: they wait for no queue entry and no word from the owner, except
-where `SECURITY.md`, point 3, asks for his yes (`.github/`, the setup script, and what ships to players, below).
-Dependabot's version updates (`.github/dependabot.yml`: weekly, minor and patch grouped) come as PRs into `develop`,
-merged under `SECURITY.md`, point 4: the next free lane takes one as an ordinary small PR, runs the checks, gets its
-code review, reads the release notes for breaking changes, and merges it, with the licence gate (`SECURITY.md`, point
-10) checking it on its own. A new major version of a tool is its own PR, with the smoke test of the built app as well.
-**What ships to players** (the packages bundled into the built app, and everything that builds it: Vite, its plugins and
-what they pull in, such as Rollup and esbuild) is prepared the same way but merged only on the owner's yes in its PR,
-since no check a builder can run proves that a release's code is harmless. The PR gives him what that yes needs, for
-each such package: the same publisher and repository as the version before, and npm's provenance naming the same
-repository if the version before had it; npm's registry signature verified (`npm audit signatures` after an install with
-`--ignore-scripts`, or, where that cannot reach Sigstore, the signature over `name@version:integrity` checked against
-the key of the same id at `https://registry.npmjs.org/-/npm/v1/keys`); and the package's diff from the old version (`npm
-diff`) read against the release notes, naming anything they do not explain, such as a new address it contacts or code it
-builds from text. `npm ci` then installs exactly the bytes the lock file names. A check that cannot be run, or one that
-fails, is said in the PR, never skipped. One is held back only for a reason: it breaks something, runs or loads worse,
-changes its licence, or its project is abandoned or changes hands. The reason is written in the closed PR and in an
-issue that stays open until the reason is gone.
+where `SECURITY.md`, point 3, asks for his yes (`.github/` and the setup script). Dependabot's version updates
+(`.github/dependabot.yml`: weekly, minor and patch grouped) come as PRs into `develop`, merged under `SECURITY.md`,
+point 4: the next free lane takes one as an ordinary small PR, runs the checks, gets its code review, reads the release
+notes for breaking changes, and merges it, with the licence gate (`SECURITY.md`, point 10) checking it on its own. A new
+major version of a tool is its own PR, with the smoke test of the built app as well. **What ships to players** (the
+packages bundled into the built app, and everything that builds it: Vite, its plugins and what they pull in, such as
+Rollup and esbuild) also has its source checked before it merges, and the PR shows each check, for each such package:
+the same publisher and repository as the version before, and npm's provenance naming the same repository if the version
+before had it; npm's registry signature verified (`npm audit signatures` after an install with `--ignore-scripts`, or,
+where that cannot reach Sigstore, the signature over `name@version:integrity` checked against the key of the same id at
+`https://registry.npmjs.org/-/npm/v1/keys`); and the package's diff from the old version (`npm diff`) read against the
+release notes, naming anything they do not explain, such as a new address it contacts or code it builds from text. `npm
+ci` then installs exactly the bytes the lock file names. A check that cannot be run leaves the release waiting, never
+skipped, and one that fails holds it back. These checks lower the odds of a bad release but never rule one out, for the
+version in use as much as for a new one; what limits the harm a bad one could do is the page's content security policy
+(the workshop lane in `docs/BUILD-PROGRESS.md`). One is held back only for a reason: it breaks something, runs or loads
+worse, changes its licence, or its project is abandoned or changes hands. The reason is written in the closed PR and in
+an issue that stays open until the reason is gone.
 
 **Node's version.** A new major of `@types/node` is the cue to move Node itself: an even-numbered Node that is
 long-term support (from its October) moves CI's `node-version` and `scripts/cloud-setup.sh` in the same PR, with the
