@@ -20,9 +20,16 @@ gh api repos/HaakTuah/amarna-letters/pulls -f title=... -f head=develop -f base=
 ```
 
 **Dependabot's security PRs** are the one other way into `main`, under the five conditions in `SECURITY.md`, point 4.
-**Its version updates** (`.github/dependabot.yml`: weekly, grouped, each release a week old) aim at `develop` and are
-ordinary small PRs: the next free lane takes one, runs the checks, gets its code review, reads the release notes for
-breaking changes, and merges it, or closes it with the reason.
+**The newest version, unless there is a reason** (archive item 219), so fixes, security fixes above all, are always one
+small step away, and small steps stay cheap. Every package is held at the exact version its lock file records and moves
+to the newest stable release once that is a week old, so a bad or hijacked release is usually pulled first. Updates are
+upkeep, not ideas: they wait for no queue entry and no word from the owner. Dependabot's version updates
+(`.github/dependabot.yml`: weekly, minor and patch grouped) come as PRs into `develop`: the next free lane takes one as
+an ordinary small PR, runs the checks, gets its code review, reads the release notes for breaking changes, and merges
+it, with the licence gate (`SECURITY.md`, point 10) checking it on its own. A new major version is its own PR, with the
+smoke test of the built app as well. One is held back only for a reason: it breaks something, runs or loads worse,
+changes its licence, or its project is abandoned or changes hands. The reason is written in the closed PR and in an
+issue that stays open until the reason is gone.
 
 **Node's version.** A new major of `@types/node` is the cue to move Node itself: an even-numbered Node that is
 long-term support (from its October) moves CI's `node-version` and `scripts/cloud-setup.sh` in the same PR, with the
