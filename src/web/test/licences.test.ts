@@ -2,7 +2,7 @@
 // data, asset and font licences allowed only for the packages named as such in .github/licences.yml.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { licenceOk, packageDir, policy, registryName, registryOverrides, shippedPaths } from "../../../scripts/licences.mjs";
+import { licenceOk, packageDir, policy, registryName, registryOverrides, scriptsOff, shippedPaths } from "../../../scripts/licences.mjs";
 
 const code = policy().allowedFor("some-library");
 const data = policy().allowedFor("caniuse-lite");
@@ -40,6 +40,10 @@ describe("licences", () => {
     const npmrc = ["registry=https://example.com/", "replace-registry-host=always", "@x:registry = https://example.com/", '"registry"=https://example.com/', '"replace-registry-host"=always', "${KEY}=https://example.com/"];
     expect(registryOverrides(npmrc.join("\n"))).toEqual(npmrc);
     expect(registryOverrides("fund=false\naudit=false\n# registry=https://example.com/\n; registry=x\n")).toEqual([]);
+    expect(registryOverrides("ignore-scripts=true\nregistry=https://example.com/\n")).toEqual(["registry=https://example.com/"]);
+    expect(registryOverrides("ignore-scripts=false\nIGNORE-SCRIPTS=true\nignore-scripts=\n")).toEqual(["ignore-scripts=false", "IGNORE-SCRIPTS=true", "ignore-scripts="]);
+    expect(scriptsOff("# packages' own scripts never run\nignore-scripts=true\n")).toBe(true);
+    expect(scriptsOff("ignore-scripts=false\n")).toBe(false);
   });
 
   it("holds what ships to the strict list and lets tools that only run use any open-source licence", () => {
