@@ -214,8 +214,13 @@ export function notices(ids) {
  * above all, fails the check, and `registryName` only vouches for what npm really fetches.
  */
 export function registryOverrides(npmrc) {
-  const harmless = /^(fund|audit|update-notifier|engine-strict|save-exact|progress|loglevel|ignore-scripts)\s*=\s*[\w.-]*$/u;
+  const harmless = /^((fund|audit|update-notifier|engine-strict|save-exact|progress|loglevel)\s*=\s*[\w.-]*|ignore-scripts\s*=\s*true)$/u;
   return npmrc.split(/\r?\n/u).map((l) => l.trim()).filter((l) => l && !/^[#;]/u.test(l) && !harmless.test(l));
+}
+
+/** Whether a `.npmrc` keeps packages' own install scripts off (SECURITY.md, point 7): `ignore-scripts=true`, never undone. */
+export function scriptsOff(npmrc) {
+  return npmrc.split(/\r?\n/u).some((l) => /^ignore-scripts\s*=\s*true$/u.test(l.trim()));
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -226,7 +231,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const npmrcs = execFileSync("git", ["ls-files", "-z", "--", ":(glob)**/.npmrc"], { cwd: root, encoding: "utf8" }).split("\0").filter(Boolean);
   const overrides = npmrcs.flatMap((f) => registryOverrides(readFileSync(join(root, f), "utf8")).map((l) => `${f}: ${l}`));
   for (const o of overrides) console.error(`npm setting not allowed (packages are named by the npm registry they come from): ${o}`);
+  const scripts = npmrcs.includes(".npmrc") && scriptsOff(readFileSync(join(root, ".npmrc"), "utf8"));
+  if (!scripts) console.error("the root .npmrc must set ignore-scripts=true (SECURITY.md, point 7)");
   const shippedCount = all.filter((p) => p.shipped).length;
   console.log(`${all.length} packages checked (${shippedCount} shipped or may be, ${all.length - shippedCount} tools that only run), ${off.length} off their list (SECURITY.md, point 10; .github/licences.yml)`);
-  process.exit(off.length || overrides.length ? 1 : 0);
+  process.exit(off.length || overrides.length || !scripts ? 1 : 0);
 }
