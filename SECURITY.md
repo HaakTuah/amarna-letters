@@ -60,7 +60,8 @@ Codex's terms (archive item 129).
      (`src/web/src/session/storage.ts`); never localStorage, cookies, a save, a report, a log, a URL or an error message;
      sent only to the provider the player chose (`src/llm/src/`).
    - **Dependencies:** `npm ci` from the lockfile; a new package only with a reason in its PR, from a known publisher;
-     no `postinstall` scripts from new packages; CI's audit findings are fixed, not silenced.
+     no package's own install scripts run, new or old (`ignore-scripts` in `.npmrc`, for every install here), and every
+     package is pinned to one exact version in its `package.json`; CI's audit findings are fixed, not silenced.
 8. **Reviews look for these,** and for any new way in: a new input, a new external request, a new dependency or
    script, a weakened check. Nothing from this repository or its PRs runs on the owner's machine, and nothing there
    starts an agent.
