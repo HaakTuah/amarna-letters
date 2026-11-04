@@ -214,7 +214,7 @@ export function notices(ids) {
  * above all, fails the check, and `registryName` only vouches for what npm really fetches.
  */
 export function registryOverrides(npmrc) {
-  const harmless = /^(fund|audit|update-notifier|engine-strict|save-exact|progress|loglevel)\s*=\s*[\w.-]*$/u;
+  const harmless = /^(fund|audit|update-notifier|engine-strict|save-exact|progress|loglevel|ignore-scripts)\s*=\s*[\w.-]*$/u;
   return npmrc.split(/\r?\n/u).map((l) => l.trim()).filter((l) => l && !/^[#;]/u.test(l) && !harmless.test(l));
 }
 
