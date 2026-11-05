@@ -48,6 +48,30 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 
 ## The workshop lane
 
+- **The shared core** (archive items 223 and 224), first among the side lanes and before the rule-file audit. The rules
+  common to every project move to one public repository, `HaakTuah/agent-rules` (the name the design session proposed),
+  and each project carries an exact copy of it under `core/`, pinned to one of its commits, generated and never edited
+  by hand, as this repository treats `docs/intent/`. What moves: the security baseline, the four pillars, the one inbox,
+  keeping the owner's words, the roles and reviews, helpers, models and effort, the Git flow, usage, updates and "No
+  description left untrue". What stays here: what the game is, its build order and builder rules, its commands and
+  whatever only it has, each rule file cut to that, with pointers into `core/`. The steps: (1) the owner creates the
+  repository and adds it to Claude's and Codex's GitHub access, which only he can do; (2) a fresh session the owner
+  starts in the core repository at high effort writes the core from both games' rule files (it reads them, as they are
+  public, and writes only to the core), from this brief: (a) read both games' rule files whole on `main` (`AGENTS.md`,
+  `CLAUDE.md`, `SECURITY.md`, `docs/threat-model.md`, `docs/claude-and-codex.md`, `docs/orchestrating.md`,
+  `docs/review-guidelines.md`, `docs/developing.md`, and Amarna Letters' builder rules); (b) a rule goes into the core
+  if it holds in both games and would hold in any project, and one that differs only in names, paths or examples goes in
+  once, with the difference left as a slot each project fills; a rule only one game has stays in that game; (c) every
+  rule keeps its reason, and the owner's words behind the common rules move word for word into the core's own archive,
+  never rewritten; (d) the four pillars hold for the core itself, so it comes out shorter than the two games' copies
+  together; (e) nothing personal, as both games' `SECURITY.md` say; (f) done when a table lists every rule of both games
+  and where it went (the core, one game, or dropped with its reason), and a fresh reviewer given only the two games'
+  files and the core finds nothing lost. The design session then checks the result against both games before any game
+  takes a copy; (3) each project, in a PR of its own, adds the copy, cuts its rule files to what is its own, and adds a
+  check on every PR that the copy matches the core at its pin (a workflow, so the owner's yes in that PR); (4) from then
+  on a core change reaches a project only through a sync PR in it, reviewed as any other. No session writes to more than
+  one repository. Then the rule-file audit runs once on the core and once on each project's own rules. The same in
+  Barkstreet Snakes. Step 1 is the owner's.
 - **A content security policy for the built app** (archive item 220), first among the side lanes, as security hardening:
   a policy in the built page (GitHub Pages sends no headers) by which it loads code only from itself and contacts only
   its own files, the AI providers on one list, and the player's own machine (`localhost`, for local models and the
