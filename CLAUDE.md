@@ -15,13 +15,13 @@ reviews" and "Reviews", point 7, "The briefs"); this table gives only the model 
 
 | Who | Model | Effort | For |
 | --- | --- | --- | --- |
-| You, the builder | Opus | medium, as the orchestrator starts you; the hard work ("Who does what") goes to helpers at high effort inside your session | the item itself |
+| You, the builder | Opus | the effort you were started at, checked first (below the table) | the item itself |
 | Search helper | Haiku (`model: "haiku"`) | as it comes | finding where things are across many files, the cheap way to look across them instead of reading large files yourself; it returns file:line and one-line conclusions |
 | Parallel helper | Sonnet (`model: "sonnet"`) for routine parts; Opus (`model: "opus"`) for parts that need design judgement | medium; high (`effort: "high"`) for the hard work | one part of the work with a shape from "Helpers: when they pay" ("Who does what"), briefed as it says |
 | Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | the fallback reviewer, for the code review and the security review, and the blind re-review |
 | Design check | Opus (`model: "opus"`, `effort: "high"`) | high | the design checker: a fresh eye where misses cost most, in one short call. Not Fable, which drains the week's usage far faster and is kept for the rare calls below (archive item 221) |
 | Planning design | Fable (`model: "fable"`, `effort: "high"`) | high | planning design; you build and measure what it returns with Opus. (Fable's fallback: below the table) |
-| Escalation | Opus (`model: "opus"`, `effort: "high"`, or `"xhigh"` if you already run at high) | high or extra high | the escalation step, when Codex is unavailable or has failed at it too (Codex comes first once it can build) |
+| Escalation | Opus (`model: "opus"`, `effort: "high"`, or `"xhigh"` if you already run at high or above) | high or extra high | the escalation step, when Codex is unavailable or has failed at it too (Codex comes first once it can build) |
 | Last escalation | Fable (`model: "fable"`, `effort: "high"`) | high | a problem the escalation step could not solve either, with the same brief. Otherwise Fable only for planning design and work the owner gives it by name, since its usage runs out first |
 
 **Fable's fallback:** if Fable is out of usage or unavailable, or the owner says its share for the week is spent, its
@@ -29,9 +29,13 @@ call goes to Opus (`model: "opus"`, `effort: "high"`); nothing ever waits for Fa
 
 - **No agent workflows and no ultracode** (model-game simulations excepted: "Helpers, effort and escalation" in
   `AGENTS.md`). Long runs go in the background with the Bash tool's background mode ("Print little" in `AGENTS.md`).
-- **Effort is set when the session starts** and you can't raise your own, but you can give a helper more. The hard work
-  ("Who does what" in `docs/claude-and-codex.md`) goes to helpers at `effort: "high"` inside your session;
-  then the escalation chain if a problem beats you twice. If the last
+- **Check your own model and effort first,** before following this table (archive item 227): the model is named in
+  your system prompt, the effort is in `$CLAUDE_EFFORT` (unset: take it as medium). The owner may start an
+  orchestrator at medium or high, and every session it starts takes its effort. You can't raise your own effort, but
+  you can give a helper more: below high, the hard work ("Who does what" in `docs/claude-and-codex.md`) goes to a
+  helper at `effort: "high"`; at high or above you do it yourself, since a helper would only add a cold start. Every
+  other row gives what its part needs, whatever your own effort is. If you are not on Opus, say so in your first
+  message, since you can't change your own model. Then the escalation chain if a problem beats you twice. If the last
   escalation fails too, or Fable is out of usage or unavailable for it, the problem is blocked as "Don't loop" in
   `AGENTS.md` says; say in your update that it is blocked.
 - Sessions started from a Claude Code Project don't load `.claude/agents/`, so always pass `model` (and `effort`) in
