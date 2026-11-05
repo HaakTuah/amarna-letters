@@ -19,10 +19,10 @@ reviews" and "Reviews", point 7, "The briefs"); this table gives only the model 
 | Search helper | Haiku (`model: "haiku"`) | as it comes | finding where things are across many files, the cheap way to look across them instead of reading large files yourself; it returns file:line and one-line conclusions |
 | Parallel helper | Sonnet (`model: "sonnet"`) for routine parts; Opus (`model: "opus"`) for parts that need design judgement | medium; high (`effort: "high"`) for the hard work | one part of the work with a shape from "Helpers: when they pay" ("Who does what"), briefed as it says |
 | Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | the fallback reviewer, for the code review and the security review, and the blind re-review |
-| Design check | Fable (`model: "fable"`, `effort: "medium"`) | medium | the design checker: the strongest fresh eye where misses cost most, in one short call. (Fable's fallback: below the table) |
+| Design check | Opus (`model: "opus"`, `effort: "high"`) | high | the design checker: a fresh eye where misses cost most, in one short call. Not Fable, which drains the week's usage far faster and is kept for the rare calls below (archive item 221) |
 | Planning design | Fable (`model: "fable"`, `effort: "high"`) | high | planning design; you build and measure what it returns with Opus. (Fable's fallback: below the table) |
 | Escalation | Opus (`model: "opus"`, `effort: "high"`, or `"xhigh"` if you already run at high) | high or extra high | the escalation step, when Codex is unavailable or has failed at it too (Codex comes first once it can build) |
-| Last escalation | Fable (`model: "fable"`, `effort: "high"`) | high | a problem the escalation step could not solve either, with the same brief. Otherwise Fable only for the design check, planning design and work the owner gives it by name, since its usage runs out first |
+| Last escalation | Fable (`model: "fable"`, `effort: "high"`) | high | a problem the escalation step could not solve either, with the same brief. Otherwise Fable only for planning design and work the owner gives it by name, since its usage runs out first |
 
 **Fable's fallback:** if Fable is out of usage or unavailable, or the owner says its share for the week is spent, its
 call goes to Opus (`model: "opus"`, `effort: "high"`); nothing ever waits for Fable.
