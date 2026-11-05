@@ -15,7 +15,7 @@ reviews" and "Reviews", point 7, "The briefs"); this table gives only the model 
 
 | Who | Model | Effort | For |
 | --- | --- | --- | --- |
-| You, the builder | Opus | the effort you were started at, checked first (below the table) | the item itself |
+| You, the builder | Opus | the model and effort you were started at, read against this table (below it) | the item itself |
 | Search helper | Haiku (`model: "haiku"`) | as it comes | finding where things are across many files, the cheap way to look across them instead of reading large files yourself; it returns file:line and one-line conclusions |
 | Parallel helper | Sonnet (`model: "sonnet"`) for routine parts; Opus (`model: "opus"`) for parts that need design judgement | medium; high (`effort: "high"`) for the hard work | one part of the work with a shape from "Helpers: when they pay" ("Who does what"), briefed as it says |
 | Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | the fallback reviewer, for the code review and the security review, and the blind re-review |
@@ -29,15 +29,22 @@ call goes to Opus (`model: "opus"`, `effort: "high"`); nothing ever waits for Fa
 
 - **No agent workflows and no ultracode** (model-game simulations excepted: "Helpers, effort and escalation" in
   `AGENTS.md`). Long runs go in the background with the Bash tool's background mode ("Print little" in `AGENTS.md`).
-- **Check your own model and effort first,** before following this table (archive item 227): the model is named in
-  your system prompt, the effort is in `$CLAUDE_EFFORT` (unset: take it as medium). The owner may start an
-  orchestrator at medium or high, and every session it starts takes its effort. You can't raise your own effort, but
-  you can give a helper more: below high, the hard work ("Who does what" in `docs/claude-and-codex.md`) goes to a
-  helper at `effort: "high"`; at high or above you do it yourself, since a helper would only add a cold start. Every
-  other row gives what its part needs, whatever your own effort is. If you are not on Opus, say so in your first
-  message, since you can't change your own model. Then the escalation chain if a problem beats you twice. If the last
-  escalation fails too, or Fable is out of usage or unavailable for it, the problem is blocked as "Don't loop" in
-  `AGENTS.md` says; say in your update that it is blocked.
+- **Read this table against yourself** (archive items 227 and 228). Your model is named in your system prompt, your
+  effort is in `$CLAUDE_EFFORT` (unset: take it as medium), and a session another session starts takes its model and
+  effort, whatever they are. Models rank Haiku, Sonnet, Opus, Fable; efforts low, medium, high, xhigh. A helper is
+  above you when its model ranks higher, or its model is yours and its effort higher. A helper for judgement (the hard
+  work, which needs Opus at high; planning design; a part that needs design judgement) is called only when it is above
+  you: otherwise you do that work yourself, since such a helper adds only a cold start. A helper for a fresh eye on
+  finished work (the reviewer, the design check) is used whatever your level, since its worth is that it did not write
+  the work. An escalation step is a fresh solver: one below your level is skipped, except the last, which runs at your
+  level instead; one at your level still pays, for its fresh eye. A helper for cost (search, routine parts) is used
+  whatever your level. You can't change your own model or effort; if you are not on Opus, say so in your first
+  message. If a problem beats you twice, the escalation chain; if its last step fails too, or Fable is out of usage or
+  unavailable for it, the problem is blocked as "Don't loop" in `AGENTS.md` says; say in your update that it is
+  blocked.
+- **A helper above you gets only what needs it,** Fable above all, since its usage runs out first: you do the work
+  before it (finding, measuring, and a brief that points it only at what it must judge) and after it (building,
+  testing, writing up), and it returns its design, answer or text and stops.
 - Sessions started from a Claude Code Project don't load `.claude/agents/`, so always pass `model` (and `effort`) in
   the call. Never max effort: it costs the most and tends to overthink.
 - **GitHub from a cloud session:** the REST calls in `docs/developing.md`, which says why.
