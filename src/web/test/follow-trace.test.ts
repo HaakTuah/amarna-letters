@@ -80,5 +80,9 @@ describe("FollowTraceTests", () => {
     Assert.equal(city("tuwanuwa"), hatti[1].at);
     Assert.equal(city("kizzuwatna"), pathOf(frames, 1, null, c.id)[1].at);
     Assert.equal(0, pathOf(frames, 1, "Egypt", c.id).length);
+    // He turns this season, word not yet home: his court's line still ends at his seat as it believes it, this season.
+    c.employer = null;
+    const turned = [f0, frameFrom(s, 1, f0)];
+    Assert.equal(1, pathOf(turned, 1, "Hatti", c.id).at(-1)?.index);
   });
 });
