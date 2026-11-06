@@ -21,7 +21,6 @@ import { RoadOdds } from "./travel.ts";
 import { TurnEngine } from "./core.ts";
 import { goods, openToSea, type Sneak, type TollBook } from "./trade.ts";
 import { MarketsTitle } from "./economy.ts";
-import { homeRoad } from "./coffers.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -213,12 +212,8 @@ P.caravansTravel = function () {
       else this.credit(taker.power, c.gold + c.pay, taker.province, false);
       const where = this.map.get(taker.province).name;
       // A captured archive on the road (item 10+b) is the taker's now: his men carry it home as loot, as a capital's is,
-      // and his court holds it when it arrives; far off with no road home for a load, they send its tablets by courier,
-      // with word of the seizure. Never before that word could come (#726).
-      if (c.archive.length > 0) {
-        if (!this.isFar(taker.power, taker.province) || homeRoad(this, taker.power, taker.province)) this.lootHome(taker.power, taker.province, 0, c.archive, c.archiveOf);
-        else this.archiveByWord(taker.power, taker.province, c.archive, c.archiveOf);
-      }
+      // and his court holds it when it arrives, never before word of the seizure could come (#726).
+      if (c.archive.length > 0) this.lootHome(taker.power, taker.province, 0, c.archive, c.archiveOf);
       this.caravanTell(c, taker.province, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${whose(taker.power)} ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; the fleet is lost with it" : ""}.`);
       // Its king hears of it as word comes from where it happened (#675).
       this.tell(taker.power, taker.province, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${whose(c.power)} ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${measures(kept)} for their own baggage` : ""}${c.gold + c.pay > 0 ? (!this.isFar(taker.power, taker.province) ? ", the gold for your treasury" : this.map.get(taker.province).isSea ? ", the gold kept by its men" : ", the gold to go home to your treasury") : ""}.`);

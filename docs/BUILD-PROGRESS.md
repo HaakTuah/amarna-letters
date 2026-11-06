@@ -171,6 +171,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - ~~**Tolls and smugglers at a far border, heard by the road (bug #736)**~~ (done, #745): each border's tolls notice
   comes as word from there does and says where its gold went; the events name the holder only where his couriers reach.
   Save version 65. Report: `docs/rounds/2026-11-06-far-border-word.md`.
+- ~~**Loot with no road home, sent by courier (bug #740)**~~ (done, #750): where no road takes a load home, `lootHome`
+  sends gold and tablets by courier, to reach the court with word from where they were taken. Save version 68. Report:
+  `docs/rounds/2026-11-06-loot-by-courier.md`.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.

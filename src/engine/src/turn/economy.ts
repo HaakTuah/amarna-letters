@@ -669,7 +669,7 @@ P.holdings = function (p) {
   for (const u of S.units) if (u.power === p) w += carriedWorth(u.food, u.savings);
   // Discharged men walking home carry their savings to a province of this realm (item 10+a).
   for (const x of S.walking) if (S.owner.getOrDefault(x.home, null) === p) w += x.savings;
-  // #587: and the gold on the road with its couriers to a far coffer or back.
+  // #587, #740: and the gold on the road with its couriers, to a far coffer or back, or loot coming home.
   w += goldSent(this, p);
   for (const c of S.caravans) if (c.power === p) w += carriedWorth(c.grain, c.gold + c.pay) + (c.ship !== null ? carriedWorth(c.ship.food, c.ship.savings) : 0);
   return w;
