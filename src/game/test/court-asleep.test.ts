@@ -1,7 +1,6 @@
 import { describe, test } from "vitest";
 import {
   AllPowers,
-  type AudienceView,
   CapReason,
   type EnvoyReaction,
   type GameConfig,
@@ -15,7 +14,6 @@ import {
   type SeatView,
   StandInCourtReason,
   TurnEngine,
-  type TurnSubmission,
   Views,
   WorldMap,
   addLetters,
@@ -75,63 +73,12 @@ import { str, Assert, last, orderBy, toDict, join, oldWorld } from "../../engine
 import { audience as audienceOf } from "@amarna/llm";
 import { first as firstOf } from "@amarna/engine";
 import { describe as describeOrder } from "@amarna/engine";
+import { Scripted, Sleeper } from "./sleep-support.ts";
 
 // Part H of the simulation-fixes round: an envoy wakes a sleeping king for an audience only. At it the king reads its realm
 // in brief, may send letters, and judges whether to reopen its orders; every other wake reason reopens them directly.
 describe("CourtAsleepTests", () => {
   const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0 });
-
-  // <summary>A seat that may sleep: its orders and its audience replies come from scripts, and it remembers what it was shown.</summary>
-  class Sleeper implements ISeat {
-    readonly #decide: (a0: SeatView) => TurnSubmission;
-    readonly #host: (a0: AudienceView, a1: SeatView) => HostReply;
-    constructor(decide: (a0: SeatView) => TurnSubmission, host: (a0: AudienceView, a1: SeatView) => HostReply) {
-      this.#decide = decide;
-      this.#host = host;
-    }
-    views: SeatView[] = [];
-    audiences: AudienceView[] = [];
-    courts: SeatView[] = [];
-    get calls(): number[] {
-      return this.views.map((v) => v.turn);
-    }
-    get label(): string {
-      return "Test sleeper";
-    }
-    get canSleep(): boolean {
-      return true;
-    }
-
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-      this.views.push(view);
-      return Promise.resolve(this.#decide(view));
-    }
-
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-      {
-        this.audiences.push(view);
-        this.courts.push(court);
-      }
-      return Promise.resolve(this.#host(view, court));
-    }
-  }
-
-  // <summary>A seat that never sleeps and does what it is told each season (nothing, by default).</summary>
-  class Scripted implements ISeat {
-    readonly #decide: ((a0: SeatView) => TurnSubmission) | null;
-    constructor(decide: ((a0: SeatView) => TurnSubmission) | null = null) {
-      this.#decide = decide;
-    }
-    get label(): string {
-      return "Scripted";
-    }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-      return Promise.resolve(this.#decide?.(view) ?? newTurnSubmission());
-    }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-      return Promise.resolve(newHostReply({ end: true }));
-    }
-  }
 
   // <summary>Script characters that remember every host reply an envoy met.</summary>
   class Listening implements ICharacterMind {

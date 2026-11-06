@@ -28,7 +28,8 @@ caravans as carriers (#543), 62.
     (`offer-caravan-brought`), and "A province looks to you" says traders brought it; a road ending elsewhere leaves it
     there (`offer-caravan-lost`); a caravan lost on the road loses it (`caravanOffersLost`, `offer-robbed`); one taken by
     troops gives it to their king to read, "Among what Egypt's caravan carried, ...", by word from where it was taken
-    (`caravanOffersTaken`, through `tell`; his own troops' taking brings it to him). History: merchants and envoys shared the roads (EA 8: "be it a caravan of mine or
+    (`caravanOffersTaken`, through `tell`; his own troops' taking brings it to him); so does one found smuggling and
+    seized at a border, to the border's king (`atBorder`'s "seized"). History: merchants and envoys shared the roads (EA 8: "be it a caravan of mine or
     your own messengers"; `docs/history/15-pirates-bandits-tolls.md`, "Merchants killed at Hinnatuna").
 - A carrier shares the letter's road: robbed or killed, it is lost. He knows whom he carries for and to whom (`knows`): he
   remembers it, and holds it as news (`Character.news`) to sell at any other court he stands at, by its king's order

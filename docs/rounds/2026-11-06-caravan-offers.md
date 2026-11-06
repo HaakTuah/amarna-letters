@@ -65,6 +65,9 @@ told; a caravan takes up a waiting offer as it sets out (`caravanPicksUp`), sinc
 carried; an offer taken far from its captor's court reaches him by word from there (`tell`); the tests play only the
 three powers they need (`smallWorld`).
 
+Round 2: one finding, fixed: a smuggling caravan seized at a border gives the offers it carried to the border's king,
+who reads them, rather than losing them as if robbed.
+
 ## Checks
 
 `scripts/test.sh`: 1616 passed, 1 skipped (seven new tests in `src/engine/test/offer-caravans.test.ts`).

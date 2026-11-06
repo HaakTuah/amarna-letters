@@ -41,14 +41,11 @@ import { support as supportOrder } from "@amarna/engine";
 
 // Sleeping seats: what the kings read, fresh orders, the stand-in, the switch and replays.
 describe("SleepTests", () => {
-  // ------------------------------------------------------------ what the kings read
-
-  test("Every request opens with how long the king slept and what woke it", async () => {
-    // The king reopens its orders at the audience, so an orders request follows it in the same season.
-    let recorder = new ModelRecorder(true);
+  // <summary>A game in which Egypt sends one envoy to Alashiya in the given season, a model king the recorder listens to is Alashiya, and the rest do nothing.</summary>
+  function alashiyaGame(recorder: ModelRecorder, sendTurn: number): { state: GameState; envoyId: string; runner: GameRunner } {
     let envoyId = "";
     let egypt = new Scripted((v) =>
-      v.turn === 1 ? newTurnSubmission({ orders: [dispatch(envoyId, "Alashiya", "Greetings, brother.")] }) : newTurnSubmission(),
+      v.turn === sendTurn ? newTurnSubmission({ orders: [dispatch(envoyId, "Alashiya", "Greetings, brother.")] }) : newTurnSubmission(),
     );
     let state = newGame(31, Quiet);
     envoyId = firstOf(state.characters, (c) => c.employer === "Egypt").id;
@@ -59,6 +56,15 @@ describe("SleepTests", () => {
       (p) => (p === "Alashiya" ? king : p === "Egypt" ? egypt : new Scripted()),
     );
     let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
+    return { state: state, envoyId: envoyId, runner: runner };
+  }
+
+  // ------------------------------------------------------------ what the kings read
+
+  test("Every request opens with how long the king slept and what woke it", async () => {
+    // The king reopens its orders at the audience, so an orders request follows it in the same season.
+    let recorder = new ModelRecorder(true);
+    let { state, runner } = alashiyaGame(recorder, 1);
     let travel = new TurnEngine(state).travelTurns("Egypt", "Alashiya");
     for (let i = 0; i < 1 + travel; i++) await runner.playTurn();
 
@@ -99,19 +105,7 @@ describe("SleepTests", () => {
     // Alashiya sleeps from turn 1. News reaches it in turn 2; Egypt's envoy, sent in turn 2, wakes it later for an
     // audience, where it reopens its orders.
     let recorder = new ModelRecorder(true);
-    let envoyId = "";
-    let egypt = new Scripted((v) =>
-      v.turn === 2 ? newTurnSubmission({ orders: [dispatch(envoyId, "Alashiya", "Greetings, brother.")] }) : newTurnSubmission(),
-    );
-    let state = newGame(31, Quiet);
-    envoyId = firstOf(state.characters, (c) => c.employer === "Egypt").id;
-    let king = new LlmLeaderSeat("Alashiya", recorder, "claude-sonnet-5-5", "medium", true, state.config);
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (p) => (p === "Alashiya" ? king : p === "Egypt" ? egypt : new Scripted()),
-    );
-    let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
+    let { state, envoyId, runner } = alashiyaGame(recorder, 2);
     await runner.playTurn();
     inboxOf(state, "Alashiya").push(newInboxItem({ turn: 2, kind: "Rumor", title: "Rumor", body: "Word spreads that Hatti is restless." }));
     await runner.playTurn();
