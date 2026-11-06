@@ -7,7 +7,7 @@
 import { WorldMap, parsePower, type GameEvent, type Power } from "@amarna/engine";
 import { F, city, type Pt } from "./art.ts";
 import { glyphId } from "./glyphs.ts";
-import { peopleOf, type MapScene } from "./scene.ts";
+import { peopleOf, type MapScene, type SceneMove } from "./scene.ts";
 import { closingLine, Paces, paceSeason, type Moment, type Phase, type Timeline } from "../session/pacing.ts";
 import { powerName, provinceName } from "../ui/format.ts";
 
@@ -64,6 +64,22 @@ function disasterWords(e: GameEvent, place: string | null): { seen: string; hear
     : { seen: `an earthquake in ${where}`, heard: `of an earthquake in ${where}`, figure: "quake" };
 }
 
+/**
+ * The battles among the marches the viewer saw, one a province, each with the side that won it as the moves layer's clash
+ * shows it: a march that took the place, else the troops that threw every march back (part E: "battles flare as a clash
+ * with their outcome").
+ */
+export function battlesOf(moves: readonly SceneMove[]): Map<string, { text: string; side: Power }> {
+  const out = new Map<string, { text: string; side: Power }>();
+  for (const m of moves) {
+    if (m.against === null || (m.style !== "Move" && m.style !== "Attack" && m.style !== "Bounce")) continue;
+    const won = m.style !== "Bounce";
+    const had = out.get(m.to);
+    if (had === undefined || (won && had.side === m.against)) out.set(m.to, { text: m.text, side: won ? m.power : m.against });
+  }
+  return out;
+}
+
 /** The season's moments in the scene shown, as its viewer knows them, in the order the engine resolved them. */
 export function momentsOf(s: MapScene): MapMoment[] {
   const prev = s.prev;
@@ -85,15 +101,10 @@ export function momentsOf(s: MapScene): MapMoment[] {
     add("arrival", "great", provinceName(p.province), city(p.province), gold > 0 ? "gift" : "envoy", `${who} arrived at ${provinceName(p.province)}${gold > 0 ? " with gifts" : ""}`);
   }
   // The marches the viewer saw, and the battles among them: a march that met troops, and a unit destroyed where it stood.
-  const fought = new Set<string>();
-  for (const m of s.moves) {
-    if (m.style !== "Move" && m.style !== "Attack" && m.style !== "Bounce") continue;
-    add("march", "routine", m.text, null, "envoy", m.text);
-    if (m.against === null || fought.has(m.to)) continue;
-    fought.add(m.to);
-    // Who won, as the moves layer's clash shows it: the march, or the troops that threw it back.
-    add("battle", "great", provinceName(m.to), city(m.to), "clash", m.text, m.style === "Bounce" ? m.against : m.power);
-  }
+  for (const m of s.moves) if (m.style === "Move" || m.style === "Attack" || m.style === "Bounce") add("march", "routine", m.text, null, "envoy", m.text);
+  const won = battlesOf(s.moves);
+  for (const [province, b] of won) add("battle", "great", provinceName(province), city(province), "clash", b.text, b.side);
+  const fought = new Set(won.keys());
   for (const u of s.destroyed) {
     if (fought.has(u.province)) continue;
     fought.add(u.province);

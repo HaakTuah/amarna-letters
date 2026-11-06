@@ -2,6 +2,7 @@ import { describe, test } from "vitest";
 import { Assert } from "../../engine/test/support.ts";
 import { city, lengthOf, roadBetween, route } from "../src/map/art.ts";
 import { trailMarkup, travellerRoad, unitRoad } from "../src/map/marching.ts";
+import { battlesOf, momentMarkup, type MapMoment } from "../src/map/moments.ts";
 import type { SceneMove, SceneTraveller } from "../src/map/scene.ts";
 
 // Item 17+++, part E: the pieces travel their roads, and nothing teleports.
@@ -41,5 +42,28 @@ describe("Units drawn as what they are, with weight", () => {
     Assert.true(trailMarkup("Army", 5000).includes('class="dust"'));
     Assert.true(trailMarkup("Fleet", 2000).includes("wake"));
     Assert.true(trailMarkup("Caravan", 0).includes("#fig-caravan"));
+  });
+
+  test("A battle carries the seal of the side that won it, the march that took the place before one thrown back", () => {
+    const m = (power: string, style: SceneMove["style"], against: string | null): SceneMove =>
+      ({ power, kind: "Army", from: "gath", to: "aijalon", style, text: `${power} ${style}`, against }) as SceneMove;
+    // Thrown back by Hatti, then Assyria takes the place from Hatti: Assyria won, whichever is listed first.
+    Assert.equal("Assyria", battlesOf([m("Egypt", "Bounce", "Hatti"), m("Assyria", "Attack", "Hatti")]).get("aijalon")?.side);
+    Assert.equal("Assyria", battlesOf([m("Assyria", "Attack", "Hatti"), m("Egypt", "Bounce", "Hatti")]).get("aijalon")?.side);
+    // Every march thrown back: the defender won. A march that met nobody is no battle.
+    Assert.equal("Hatti", battlesOf([m("Egypt", "Bounce", "Hatti")]).get("aijalon")?.side);
+    Assert.equal(0, battlesOf([m("Egypt", "Move", null)]).size);
+  });
+
+  test("A battle flares with its winner's seal; a siege's tents close in; a moment told as news plays nowhere", () => {
+    const at = city("gath");
+    const battle = { phase: "battle", kind: "great", line: "", at, figure: "clash", title: "", side: "Hatti" } as MapMoment;
+    Assert.true(momentMarkup(battle, 0, 1000).includes("#em-hatti"));
+    Assert.true(momentMarkup(battle, 0, 1000).includes('class="flare"'));
+    const siege = { phase: "siege", kind: "routine", line: "", at, figure: "siege", title: "" } as MapMoment;
+    Assert.true(momentMarkup(siege, 0, 500).includes("ring wide") && momentMarkup(siege, 0, 500).includes("ring tight"));
+    const storm = { phase: "disaster", kind: "great", line: "", at, figure: "storm", title: "" } as MapMoment;
+    Assert.true(momentMarkup(storm, 0, 1000).includes("weather rain") && momentMarkup(storm, 0, 1000).includes("disaster"));
+    Assert.equal("", momentMarkup({ ...storm, kind: "news", at: null }, 0, 1000));
   });
 });

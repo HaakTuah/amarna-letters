@@ -199,14 +199,15 @@ export class SvgMapRenderer implements MapRenderer {
     for (const u of s.units) {
       const from = stood.get(u.key);
       const el = this.units.get(u.key);
-      if (from === undefined || from === null || el === undefined || u.ghost) continue;
+      if (from === undefined || from === null || el === undefined || u.ghost || plan.played.has(u.key)) continue;
       const road = unitRoad(u.kind, u.power, from, u.province, s.moves);
+      if (road !== null) plan.played.add(u.key);
       if (road !== null) this.marchAnims.push(...playRoad(el, road, plan.start - performance.now(), plan.ms, trailMarkup(u.kind, u.men, glyphId(u.power))));
     }
   }
 
   /** The season's marching as it plays out (part E), for the pieces drawn while it is due; null when nothing marches. */
-  private marching(s: MapScene): { start: number; ms: number } | null {
+  private marching(s: MapScene): { start: number; ms: number; played: Set<string> } | null {
     const p = this.marchPlan;
     return p !== null && p.index === s.index && p.viewer === s.viewer && p.start + p.ms > performance.now() ? p : null;
   }
@@ -307,9 +308,11 @@ export class SvgMapRenderer implements MapRenderer {
             s.travellers.forEach((t, i) => {
               const [from, to, progress] = (was.get(t.key) ?? "").split("|");
               const el = this.travellers.get(t.key);
-              if (from !== t.fromProvince || to !== t.toProvince || el === undefined) return;
+              if (from !== t.fromProvince || to !== t.toProvince || el === undefined || plan.played.has(t.key)) return;
               const road = travellerRoad(t, Number(progress), travellerShift(t, i, s.travellers));
-              if (road !== null) this.marchAnims.push(...playRoad(el, road, plan.start - performance.now(), plan.ms, t.kind === "Spy" ? "" : trailMarkup("Caravan", 0)));
+              if (road === null) return;
+              plan.played.add(t.key);
+              this.marchAnims.push(...playRoad(el, road, plan.start - performance.now(), plan.ms, t.kind === "Spy" ? "" : trailMarkup("Caravan", 0)));
             });
         }
       },
@@ -362,8 +365,11 @@ export class SvgMapRenderer implements MapRenderer {
   private sceneFrom: { index: number; viewer: Power | null } | null = null;
   private sceneTimer = 0;
   private marchTimer = 0;
-  /** The season's marching (part E): when it starts (`performance.now()`) and how long it runs, and the pieces' slides. */
-  private marchPlan: { index: number; viewer: Power | null; start: number; ms: number } | null = null;
+  /**
+   * The season's marching (part E): when it starts (`performance.now()`), how long it runs, and the pieces already sent on
+   * their way (each once, however often the pieces are drawn again meanwhile); and the slides themselves.
+   */
+  private marchPlan: { index: number; viewer: Power | null; start: number; ms: number; played: Set<string> } | null = null;
   private marchAnims: Animation[] = [];
   /** Where each traveller was drawn: his road and how far along it, so he goes on from there. */
   private travelWas = new Map<string, string>();
@@ -413,7 +419,7 @@ export class SvgMapRenderer implements MapRenderer {
     if (t.landAt - gone > 0) this.holdLand = { index: s.index, viewer: s.viewer, until: now + t.landAt - gone };
     if (t.marchMs > 0 || t.total === 0) {
       this.march({ at: t.marchAt - gone, ms: t.marchMs });
-      this.marchPlan = { index: s.index, viewer: s.viewer, start: now + t.marchAt - gone, ms: t.marchMs };
+      this.marchPlan = { index: s.index, viewer: s.viewer, start: now + t.marchAt - gone, ms: t.marchMs, played: new Set() };
       this.marchTimer = window.setTimeout(() => this.march(null), Math.max(0, t.marchAt + t.marchMs - gone) + 50);
     }
     const markup = t.beats.map((b) => momentMarkup(b.moment, b.at - gone, b.ms)).join("");

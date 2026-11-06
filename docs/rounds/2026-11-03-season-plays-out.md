@@ -176,6 +176,9 @@ visibly: storms at sea, snow in the passes, rivers in flood, an avalanche taking
   Principle: build the least that meets the text (keep it lean).
 - **"Nothing teleports"** for what the seat knew: a piece it saw before goes along its road; one it sees for the first time
   appears where it is seen ("a rival's army appears where it was seen"). Principle: hidden information.
+- **Gathered tokens**: zoomed out, a province's tokens gather into one a power ("Map on small screens", item 11c+); a unit
+  that joins or leaves a gathering has no token of its own to move, so the gathered token shows its new count, and zooming
+  in shows each march. Principle: zoom shapes what you see (the item's own words), and build the least that meets the text.
 - **"An avalanche taking a column"**: men lost to winter on land play as an avalanche, at sea as a storm, as the sounds
   already hear them (`audio/situation.ts`). Plague and a caravan robbed keep the fire they had. Principle: one fact, one
   place (the same reading as the sounds').
