@@ -181,7 +181,7 @@ describe("MapCrossingsTests", () => {
       // Not told at once, nor in the event, which its court could not have seen; the notice comes by the road.
       Assert.false(event.visibleTo.includes("Babylonia"));
       Assert.false(took());
-      Assert.true(s.journeys.some((j) => j.to === "Babylonia" && j.text.includes("took Hatti") && j.arriveTurn === event.turn + 1 + d));
+      Assert.true(s.journeys.some((j) => j.to === "Babylonia" && (j.text ?? "").includes("took Hatti") && j.arriveTurn === event.turn + 1 + d));
     }
     Assert.true(seized > 0);
   });
