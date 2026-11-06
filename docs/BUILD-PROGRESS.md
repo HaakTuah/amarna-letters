@@ -164,7 +164,7 @@ the workshop check): among them the history check's lines still unclear for a re
     Report: `docs/rounds/2026-11-06-twin-second-place.md`.
   - ~~**#543:**~~ (done, #725) a caravan leaving a province for its claimant's land carries its offer, his own for
     nothing, another's for a fee where the people are far gone; caravans carry talk of the leaning to the land their road
-    ends in. Save version 62. Report: `docs/rounds/2026-11-06-caravan-offers.md`.
+    ends in. Save version 63. Report: `docs/rounds/2026-11-06-caravan-offers.md`.
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km

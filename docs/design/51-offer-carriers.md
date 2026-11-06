@@ -2,7 +2,7 @@
 
 The owner's answer to #431 (2 November 2026, archive items 157 and 158), written into "Whom a province obeys" (War,
 revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 45; the captor reading a caught offer (#553), 50;
-caravans as carriers (#543), 62.
+caravans as carriers (#543), 63.
 
 ## The offer is a letter (`turn/offers.ts`, `Journey` kind `Offer`)
 
@@ -18,8 +18,8 @@ caravans as carriers (#543), 62.
     free person at the court there, hired for the whole journey from the same purse (`offer-hired`). The fees are
     `LetterData`'s.
   - **a caravan** (#543, `turn/offer-caravans.ts`, `caravanTakesOffer`): one standing in the province, its road on to
-    his land (the province its route ends in is his), as it sets out on the season's road (`caravanPicksUp`, before it
-    moves in `caravansTravel`, which runs before the letters are carried) or, one that turned there for home, with the
+    his land (the province its route ends in is his), before the caravans set out on the season's road (`caravansPickUp`,
+    shared among all caravans there, his own first, before any moves in `caravansTravel`, which runs before the letters are carried) or, one that turned there for home, with the
     letters (`carryOffer`, after his own men): his own caravan or ship for nothing
     (`offer-caravan`); another king's only where its people are far gone, for `CaravanOfferData.feePerSeason` (10, first
     guess) a season of its road, from their purse into the gold the caravan carries for its master (`offer-caravan-paid`).
@@ -50,7 +50,8 @@ caravans as carriers (#543), 62.
   Talk is no offer: it cannot be answered. It bends as it travels: no figures, no carrier named, and the holder keeps it
   as a travellers' read of the land's mood (restless, dated, `readMood`), in THE MOOD OF THE LAND until newer word.
   **Along the trade roads** (#543): a caravan hears the talk where it stands and passes (`caravanHearsTalk`), and keeps
-  it as heard (`Caravan.talk`: the province, whom its people lean toward, and its holder then); where its road ends, the
+  it as heard (`Caravan.talk`: the province, whom its people lean toward, its holder then, and the season, which a holder's
+  travellers' read of the mood is dated by); where its road ends, the
   king whose land that is hears "Traders say ..." by his couriers from there (`offer-talk-traders`), as heard, whatever
   has changed since. Each power hears a standing declaration's talk once, by the roads or with a caravan
   (`Declaration.talked`, filled by `talkTo`); talk of a leaning since ended is told where the caravan's road next ends,

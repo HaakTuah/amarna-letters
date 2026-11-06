@@ -33,7 +33,7 @@ Every file changed is under the 50 KB mark; the new code is a file of its own, `
 - **Script kings** (`bots/trade.ts`): a market whose people talk says lean our way is worth a trade venture that only
   pays its way, since our caravan coming home brings their offer (under `--no-talk-play` / `--talk-play-half`).
 - **Rulebook** (`llm/src/rules-freedom.ts`), **design note** 51, signals (`offer-caravan`, `offer-caravan-paid`,
-  `offer-caravan-brought`, `offer-caravan-lost`, `offer-talk-traders`). **Save version 62.**
+  `offer-caravan-brought`, `offer-caravan-lost`, `offer-talk-traders`). **Save version 63.**
 
 ## Measured (`scripts/sim.sh --games 50 --seed 1 --talk-play-half`)
 
@@ -67,6 +67,10 @@ three powers they need (`smallWorld`).
 
 Round 2: one finding, fixed: a smuggling caravan seized at a border gives the offers it carried to the border's king,
 who reads them, rather than losing them as if robbed.
+
+Round 3: two findings, fixed: talk the traders carry keeps the season they heard it, which a holder's travellers' read of
+the land's mood is dated by (not the season they tell it); and the offers waiting where caravans stand are shared out
+among all of them before any sets out (`caravansPickUp`), so the claimant's own takes it whatever the order of their ids.
 
 ## Checks
 

@@ -104,7 +104,7 @@ P.sendOffer = function (d, holder, text) {
   const told = [d.power, ...(holder !== null && isAlive(S, holder) ? [holder] : []), ...sortBy([...near], [(x: Power) => x, cmpStr])];
   for (const p of told) {
     const seasons = this.travelTurnsBetween(d.province, this.courtAt(p));
-    this.talkTo(d.province, d.power, holder, p, S.turn + 1 + (Number.isFinite(seasons) ? seasons : 1), "Travellers");
+    this.talkTo(d.province, d.power, holder, p, S.turn, S.turn + 1 + (Number.isFinite(seasons) ? seasons : 1), "Travellers");
   }
   logEvent(S, "declare", `Talk of ${name}'s leaning toward ${d.power} spread.`, [], "offer-talk");
 };
