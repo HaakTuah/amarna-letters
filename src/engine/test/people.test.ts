@@ -28,6 +28,7 @@ import {
   demand,
   unitAt,
 } from "@amarna/engine";
+import { people } from "../src/turn/people.ts";
 import { Assert, subs, oldWorld, smallWorld } from "./support.ts";
 
 // People at home (build order item 10+a): the three groups, the harvest by the hands on the land, levies, the tax and
@@ -42,6 +43,13 @@ describe("PeopleTests", () => {
     e.resolve(orders ?? new Dict());
     return e;
   }
+
+  test("A count of people in the news is exact below a thousand, and said to be about where it was rounded", () => {
+    Assert.equal("973", people(973));
+    Assert.equal("2,600", people(2_600));
+    Assert.equal("about 2,600", people(2_640));
+    Assert.equal("about 23,000", people(22_800));
+  });
 
   test("The people start as the people dossier counts them, and every province at its old yield", () => {
     const start = startPeople(Map);

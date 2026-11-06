@@ -26,8 +26,8 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { type CallSpec, CharacterSystem, type JsonAsker, type JsonObject, LlmLeaderSeat, Parse, PeriodShares, Schemas, leaderRules, situation, standings } from "@amarna/llm";
-import { removeAll, Assert } from "../../engine/test/support.ts";
+import { type CallSpec, CharacterSystem, type JsonAsker, type JsonObject, LlmLeaderSeat, Parse, PeriodShares, Schemas, leaderRules, news, situation, standings } from "@amarna/llm";
+import { removeAll, smallWorld, Assert } from "../../engine/test/support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
 // <summary>Rules the engine applies that a king must be able to read.</summary>
@@ -81,13 +81,17 @@ describe("RulebookTextTests", () => {
     );
     let text = situation(Views.for(s, "Egypt"));
     Assert.contains(
-      "YOUR ARCHIVE (kept at your capital; a tablet you have read in full at an earlier orders by its opening words):",
+      "YOUR ARCHIVE (kept at your capital):",
       text,
     );
     Assert.contains(
       '- the tablet sealed by Hatti and Egypt, dated turn 1 [your copy k900]: "Peace." (copied from the archive of Hatti by your spy Mane)',
       text,
     );
+    // The vassal treaties sealed before the age began share one oath: it is read once, each vassal with its tribute and copy.
+    Assert.contains('- Vassal treaties sealed before the age began, each named "the tablet sealed by [vassal] and Egypt, dated turn 0", all in one oath with their own tribute in place of N: "I will send you N shekels of gold each year as tribute.', text);
+    Assert.contains("; Gubla (Byblos) 15 [your copy k", text);
+    Assert.doesNotContain("the tablet sealed by Gubla and Egypt", text);
   });
 
   test("The rulebook says that gold comes with an inventory an envoy may swap for a forgery", () => {
@@ -302,7 +306,7 @@ describe("StandingsAndTravelTests", () => {
     let mitanni = (home("Mitanni") + home("Assyria")) / home("Mitanni");
     // Labelled for what it is: a land-yield ratio, not the growth that wins, as the rulebook says too.
     Assert.startsWith(
-      "LAND STANDINGS (land-yield ratios, not growth; see WHAT YOU SEE): Mitanni ",
+      "LAND STANDINGS (land-yield ratios, not growth; see WHAT YOU SEE): Changed since the start: Mitanni ",
       line,
     );
     Assert.contains(
@@ -310,10 +314,10 @@ describe("StandingsAndTravelTests", () => {
       leaderRules(true, newGameConfig()),
     );
     Assert.contains(
-      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.04 (land yield 259, at the start 250); `,
+      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, was ${home("Mitanni")}); Egypt (you) 1.04 (land yield 259, was 250)`,
       line,
     );
-    Assert.contains(`Hatti 1.00 (land yield ${home("Hatti")}, at the start ${home("Hatti")})`, line);
+    Assert.contains(`Unchanged, ratio 1.00 (land yield): Hatti ${home("Hatti")}`, line);
     Assert.endsWith(" Fallen: Assyria.", line);
     Assert.doesNotContain("Assyria 0", line);
     Assert.contains(line, situation(Views.for(s, "Egypt")));
@@ -338,6 +342,8 @@ describe("StandingsAndTravelTests", () => {
       [...courts].sort((a, b) => a - b),
     );
     Assert.all(Views.for(s, "Egypt").travelTimes, (t) => Assert.matches("^[A-Za-z]+: [12] season\\(s\\) each way$", t));
+    // The king reads them by the length of the journey: the few farther courts named, the rest as every other court.
+    Assert.matches("\nENVOY TRAVEL \\(about, by the fastest road open this season\\): two seasons each way to Babylonia, [A-Za-z, ]+ and [A-Za-z]+; one season each way to every other court\\.\n", situation(Views.for(s, "Egypt")));
   });
 });
 
@@ -416,6 +422,14 @@ describe("ViewTextTests", () => {
     }
   }
 
+  test("A season's settlements share one line, each count keeping its own about", () => {
+    let s = smallWorld(newGame(5), "Mitanni");
+    new TurnEngine(s).beginTurn();
+    for (const [n, where] of [["about 2,600", "Harran"], ["973", "Taidu"], ["about 4,300", "Washukanni"]]) notify(s, "Mitanni", "Resolution", "People", `You settled loose men: ${n} in ${where}.`);
+    // Among the season's other news of its people, where the first of them stood.
+    Assert.contains(" You settled loose men: about 2,600 in Harran, 973 in Taidu, about 4,300 in Washukanni.\n", news(Views.for(s, "Mitanni")));
+  });
+
   test("An audience request carries the season s news and the host s own land and troops", async () => {
     let s = newGame(5);
     let e = new TurnEngine(s);
@@ -438,8 +452,8 @@ describe("ViewTextTests", () => {
     let user = Assert.single(recorder.specs).user;
     Assert.contains("YOUR LAND: akhetaten, delta, gaza, memphis, nubia, sinai, sumur, thebes. YOUR TROOPS: army in memphis, army in akhetaten, army in thebes, army in nubia, army in gaza, army in sumur, fleet in delta.", user);
     Assert.contains("NEWS THIS SEASON:", user);
-    Assert.contains("[Rejected] Levy failed: No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", user);
-    Assert.contains("[Notice] The treasury: ", user);
+    Assert.contains("Levy failed: No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", user);
+    Assert.contains("\nThe treasury: ", user);
     Assert.true(user.indexOf("NEWS THIS SEASON:") < user.indexOf("AN AUDIENCE"));
   });
 });
