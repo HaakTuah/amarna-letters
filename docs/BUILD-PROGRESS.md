@@ -173,8 +173,6 @@ the workshop check): among them the history check's lines still unclear for a re
     cited for word travelling with goods.
   - **#539, the polish lane:** beside a followed person on the map, a small dated note ("last seen 2 seasons ago"),
     from the record the follow line is drawn from, absent while he is in sight.
-  - **#578, the polish lane:** the legend's crowded-seal swatch takes its rim from `--small-rim-marked`, the map's own
-    variable.
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km

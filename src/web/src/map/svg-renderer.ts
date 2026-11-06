@@ -552,7 +552,7 @@ export class SvgMapRenderer implements MapRenderer {
           const w = strokeOf(x, e);
           return [w === 0 ? r : grown(r, (w * perUnit(x, r)) / 2)];
         });
-      // Read where they are set: anywhere above .map they would read as no rim at all.
+      // Read at the map, whose seals draw them (they are set on :root, for the legend too).
       const rim = getComputedStyle(view.querySelector(".map")!);
       const smallRim = parseFloat(rim.getPropertyValue("--small-rim")) || 0;
       const markedRim = parseFloat(rim.getPropertyValue("--small-rim-marked")) || 0;
