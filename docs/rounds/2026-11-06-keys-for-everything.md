@@ -67,7 +67,25 @@ on the Keys page a key is changed, a clash refused ("F2 is already Provinces"), 
 ## Benchmarks
 
 Presentation only: the engine's games are `develop`'s. The full `--versus solo` run on seeds 1-40 still due from #523 (the
-Gulf follow-up): BENCH
+Gulf follow-up), run in two halves of 20 seeds on `develop` of 6 November (save versions 62 to 64; one run of all 40
+overran the session's two-hour limit for a background command). One current king against the baselines, the seven Great
+Kings and every seat together (the city-states' rows are in the runner's logs):
+
+| Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
+|---|---|---|---|---|
+| Egypt | 1.27 | 0.95 | 78% | 30% |
+| Hatti | 2.60 | 0.93 | 60% | 0% |
+| Babylonia | 1.41 | 0.66 | 70% | 0% |
+| Mitanni | 2.74 | 0.99 | 80% | 10% |
+| Assyria | 2.81 | 0.85 | 72% | 0% |
+| Arzawa | 1.08 | 0.80 | 5% | 0% |
+| Alashiya | 1.17 | 0.78 | 10% | 0% |
+| All kings (every seat, as the runner prints it) | 2.29 | 1.07 | 124% | 14% |
+
+Against item 5's table (`docs/design/07-script-kings/20-benchmarks.md`) growth is lower over all (2.29 against 2.74), as
+every rule since has made conquest slower and the map has grown from seven seats to forty-seven; the current bot still
+gains on the baseline everywhere, and the Great Kings but Arzawa and Alashiya win most games they play alone. Nothing here
+is a regression of this item, which changes no rule.
 
 Questions for the owner:
 - #754 (closed): are the F-keys and map keys where you expect them from Crusader Kings III? The owner: "Yes to all." (archive item 231).

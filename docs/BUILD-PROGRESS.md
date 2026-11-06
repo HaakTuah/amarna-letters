@@ -182,8 +182,8 @@ the workshop check): among them the history check's lines still unclear for a re
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
-  down the Euphrates and the marshes. Still due: the full `--versus solo` run, seeds 1-40, on save version 47, with the
-  next item's benchmarks (#523 measured two seeds only).
+  down the Euphrates and the marshes. The full `--versus solo` run, seeds 1-40, was run with 17+++a (#753; its report,
+  "Benchmarks"): 2.29 growth alone and 1.07 as baseline over every seat.
 
 - **Five ideas from the reviews, accepted** (the owner, 2 November 2026; archive item 182):
   - **#553, into item 17++ part D (#538):** a king whose troops or people catch an offer's carrier reads the offer, as
