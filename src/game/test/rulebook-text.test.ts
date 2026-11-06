@@ -27,7 +27,7 @@ import {
   sum,
 } from "@amarna/engine";
 import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, Parse, Schemas, leaderRules, news, situation, standings } from "@amarna/llm";
-import { removeAll, Assert } from "../../engine/test/support.ts";
+import { removeAll, smallWorld, Assert } from "../../engine/test/support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
 // <summary>Rules the engine applies that a king must be able to read.</summary>
@@ -418,7 +418,7 @@ describe("ViewTextTests", () => {
   }
 
   test("A season's settlements share one line, each count keeping its own about", () => {
-    let s = newGame(5);
+    let s = smallWorld(newGame(5), "Mitanni");
     new TurnEngine(s).beginTurn();
     for (const [n, where] of [["about 2,600", "Harran"], ["973", "Taidu"], ["about 4,300", "Washukanni"]]) notify(s, "Mitanni", "Resolution", "People", `You settled loose men: ${n} in ${where}.`);
     // Among the season's other news of its people, where the first of them stood.

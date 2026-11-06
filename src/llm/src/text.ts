@@ -1,3 +1,4 @@
+import { ShekelsPerMina } from "@amarna/engine";
 /** Text helpers for the request text: a StringBuilder as C#'s (lines end with "\n"), and string.Join. */
 export class Sb {
   private s = "";
@@ -45,7 +46,7 @@ export function asViewFigures(text: string): string {
     .map((part, i) =>
       i % 2 === 1
         ? part
-        : part.replace(Minas, (_, m: string, s: string | undefined) => `${num(Number(m) * 60 + Number(s ?? 0))} shekels`).replace(Ungrouped, (d) => num(Number(d))),
+        : part.replace(Minas, (_, m: string, s: string | undefined) => `${num(Number(m) * ShekelsPerMina + Number(s ?? 0))} shekels`).replace(Ungrouped, (d) => num(Number(d))),
     )
     .join(`"`);
 }
