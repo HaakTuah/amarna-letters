@@ -118,7 +118,7 @@ land gives nothing to forage, so an army there lives on its baggage, its king's 
 `SeatView.provinces` (each own province's stores, capacity, tax, need, market stock, purse and price), `caravans`,
 `cityPrices`, and each own unit's food, carried, hungry, unpaid and savings; `income` is the gold that came in since the
 last orders (mines this season and sales last season). A model king reads it compactly (`llm/src/prompt-economy.ts`):
-totals, the provinces with grain in store, the towns short of grain, the dearest and cheapest markets, purses nearly
+totals, the provinces with grain in store, the towns short of grain, the markets by price, purses nearly
 empty, the troops' grain and the caravans; the rulebook's ECONOMY part is `llm/src/rules-economy.ts`. The web app shows a
 province's stores and market in its panel, and has a Grain row in the orders panel.
 

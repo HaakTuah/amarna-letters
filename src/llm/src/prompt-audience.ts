@@ -30,18 +30,20 @@ export function person(c: CharacterView): string
             if (c.where.length > 0) parts.push(c.where);
         }
         // Item 13: battles won and lost commanding an army, which anyone who saw them can count.
-        if (c.won + c.lost > 0) parts.push(`commanded in ${c.won + c.lost} battles: won ${c.won}, lost ${c.lost}`);
+        if (c.won + c.lost > 0) parts.push(`commanded in ${c.won + c.lost} battle${c.won + c.lost === 1 ? `` : `s`}: won ${c.won}, lost ${c.lost}`);
         if (c.term.length > 0) parts.push(c.term);
         if (c.owed !== null) parts.push(`you let ${c.owed} shekels of their fee fall due unpaid`);
         if (c.ransomCarrier !== null) parts.push(`a ransom demand for them, with nobody going that way, would hire a carrier at your court for ${c.ransomCarrier} shekels from your treasury`);
         if (c.lends !== null) parts.push(`offers to lend you up to ${c.lends.amount} shekels, asking ${c.lends.perHundred}% more back after ${c.lends.seasons} seasons`);
-        for (const n of c.news) parts.push(`offers news of ${n.court} as they saw it in turn ${n.turn} (${n.lines} ${n.lines === 1 ? "report" : "reports"}) for ${n.price} shekels (order buy_news)`);
-        if (c.knownFacts.length > 0) parts.push(`known: ` + joinS(` `, c.knownFacts));
+        for (const n of c.news) parts.push(`offers news of ${n.court} as they saw it in turn ${n.turn} (${n.lines} ${n.lines === 1 ? "report" : "reports"}) for ${n.price} ${n.price === 1 ? "shekel" : "shekels"} (order buy_news)`);
         if (c.pitch !== null) parts.push(`pitch: "${c.pitch}"`);
         // Item 12: what they say they speak, never their skill.
         if (c.speaks.length > 0) parts.push(`says they speak ${joinS(`, `, c.speaks)}`);
         if (c.askingPrice !== null) parts.push(`asks ${c.askingPrice} a season of a job's term`);
-        return joinS(`; `, parts);
+        // What is known of them is in sentences of its own, so it closes the line.
+        const line = joinS(`; `, parts);
+        const closed = line.endsWith(`.`) ? line : `${line}.`;
+        return c.knownFacts.length > 0 ? `${closed} Known: ${joinS(` `, c.knownFacts)}` : closed;
     }
 
 export function audience(a: AudienceView, inCourt = false): string
