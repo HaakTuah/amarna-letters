@@ -3,6 +3,7 @@ import { useEffect, useImperativeHandle, useRef, useState, type ReactNode, type 
 import type { Pt } from "../map/art.ts";
 import type { MapInput, MapRenderer } from "../map/renderer.ts";
 import { SvgMapRenderer } from "../map/svg-renderer.ts";
+import { useKeys, withKey } from "../ui/keys.ts";
 
 export interface MapHandle {
   /** Brings a point of the board into view (following a character, or a province chosen from the list); `centre` puts it
@@ -77,6 +78,16 @@ export function GameMap({
   const [back, setBack] = useState<MapView | null>(null);
   // Item 17++, part C: the realms view (who holds what) or the mood of the land, one tap away.
   const [mode, setMode] = useState<MapMode>("realms");
+  // The map's keys (ui/keys.ts): its views by letter, and W, A, S, D with the arrows moving it a fifth of the view a step.
+  const Step = 0.2;
+  useKeys({
+    viewRealms: () => setMode("realms"),
+    viewMood: () => setMode("mood"),
+    panUp: () => renderer.current?.panBy(0, -Step),
+    panDown: () => renderer.current?.panBy(0, Step),
+    panLeft: () => renderer.current?.panBy(-Step, 0),
+    panRight: () => renderer.current?.panBy(Step, 0),
+  });
   const key = useRef(viewKey);
   key.current = viewKey;
 
@@ -145,7 +156,7 @@ export function GameMap({
         </button>
         <button
           className={`zb${mode === "mood" ? " on" : ""}`}
-          title={mode === "mood" ? "Back to who holds what" : "The mood of the land"}
+          title={mode === "mood" ? withKey("Back to who holds what", "viewRealms") : withKey("The mood of the land", "viewMood")}
           aria-label={mode === "mood" ? "Back to who holds what" : "The mood of the land"}
           aria-pressed={mode === "mood"}
           onClick={() => setMode(mode === "mood" ? "realms" : "mood")}

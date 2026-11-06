@@ -37,7 +37,7 @@ import { sideScroll } from "../ui/side-scroll.ts";
 import { navigate } from "../ui/router.ts";
 import { getTheme, setTheme } from "../ui/theme.ts";
 import { useSession } from "../ui/use-session.ts";
-import { Speeds, speedIndex, useKeys, withKey } from "../ui/keys.ts";
+import { Speeds, speedIndex, useKeys, withKey, type KeyAction } from "../ui/keys.ts";
 import { authorKind, type Thread } from "@amarna/game";
 
 /** The runner's step of a season ("Turn 4: orders") in the header's words; the season itself is on the line above. */
@@ -86,7 +86,8 @@ export function Play() {
   useLayoutEffect(() => {
     performance.measure("page:play", { start: renderStart });
   });
-  // Space and the pace keys (ui/keys.ts): Space does what the play button shows, 1 to 4 set the pace, + and − step it.
+  // The keys (ui/keys.ts). Space does what the play button shows, 1 to 4 set the pace, + and − step it; the rest are below.
+  const windowKeys = useRef<Partial<Record<KeyAction, () => void>>>({});
   const setSpeed = (i: number): void => s.setDelay(Speeds[Math.max(0, Math.min(Speeds.length - 1, i))].ms);
   useKeys({
     pause: () => {
@@ -106,6 +107,8 @@ export function Play() {
       if (speedIndex(s.delayMs) < 2) setSpeed(speedIndex(s.delayMs) + 1);
     },
     slower: () => setSpeed(speedIndex(s.delayMs) - 1),
+    // The keys whose handlers need the page's tabs and cards, set where those are (below, `windowKeys`), as of the last render.
+    ...windowKeys.current,
   });
   const [mark, setMark] = useState<string | null>(null);
   const [theme, setThemeState] = useState(getTheme);
@@ -320,6 +323,43 @@ export function Play() {
     setTracking(false);
     setTab("season");
   };
+  /** The season's orders sealed (item 19+++ plays the seal): by the orders' own button, or Enter. */
+  const seal = (sleep: boolean): void => {
+    if (pendingOrders === null || draft === null) return;
+    player.play("seal");
+    s.submitOrders(pendingOrders.power, { ...draft.build(), stayAwake: !sleep });
+  };
+  /** A window opened by its key: shown when the page offers it now (a tab it hides is left alone), never toggled. */
+  const open = (t: string, offered: boolean): (() => void) => () => {
+    if (!offered) return;
+    setTab(t);
+    setSheet(false);
+  };
+  windowKeys.current = {
+    endSeason: () => seal(false),
+    // Escape: the card or window in front (a card over the map closes itself: MapCard), the menu, the enlarged panel; else
+    // the menu opens.
+    escape: () => {
+      if (document.querySelector(".mapcard") !== null) return;
+      const menu = document.querySelector<HTMLDetailsElement>("details.menu");
+      if (menu?.open === true) menu.open = false;
+      else if (sheet) setSheet(false);
+      else if (menu !== null) menu.open = true;
+    },
+    winSeat: open(pendingAudience !== null ? "audience" : pendingOrders !== null ? "orders" : "season", true),
+    winProvinces: open("provinces", true),
+    winStandings: open("standings", true),
+    winPeople: open("people", true),
+    winInbox: open("inbox", viewer !== null),
+    winThreads: open("threads", s.canSeeAll),
+    winEvents: open("events", true),
+    winRules: open("rules", true),
+    winChronicles: open("chronicle", state.ended && Object.keys(live.chronicles).length > 0),
+    winMind: open("mind", minded),
+    winTrail: open("trail", s.godView),
+    winFollow: open("follow", followId !== null),
+    winLegends: open("legends", s.godView),
+  };
 
   // The last season's frame still shows the age's end until the next season is played, after the table played on.
   const playedOn = !history && frame.ended && !live.ended;
@@ -441,6 +481,15 @@ export function Play() {
                 }}
               >
                 How it works
+              </a>
+              <a
+                href="keys"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("keys");
+                }}
+              >
+                Keys
               </a>
               {/* The export is the whole record: offered only when the god view is (Engine and models, "Logging and replay"). */}
               {s.canSeeAll && <ExportLog onExport={(parts) => void s.export(parts)} />}
@@ -715,11 +764,7 @@ export function Play() {
             draft={draft!}
             state={state}
             onChanged={() => bump((x) => x + 1)}
-            onSubmit={(sleep) => {
-              // The season's orders sealed (item 19+++).
-              player.play("seal");
-              s.submitOrders(pendingOrders!.power, { ...draft!.build(), stayAwake: !sleep });
-            }}
+            onSubmit={seal}
           />
         );
       case "inbox":

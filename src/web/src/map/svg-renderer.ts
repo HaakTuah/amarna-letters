@@ -14,7 +14,7 @@ import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./ma
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { reseason, seasonLayer } from "./seasons.ts";
 import { type MapScene } from "./scene.ts";
-import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
+import { attach, detach, focus, getView, panBy, reset, setView, zoomBy } from "./zoom.ts";
 import { Land, bands, cities, fog, retint, tints, tintsKey } from "./land-layers.ts";
 import { peopleAtCourts, reconcile, travellerItem, travellerShift, unitItems } from "./tokens.ts";
 import { playRoad, trailMarkup, travellerRoad, unitRoad } from "./marching.ts";
@@ -726,6 +726,10 @@ export class SvgMapRenderer implements MapRenderer {
   zoomBy(factor: number): void {
     if (this.view !== null) zoomBy(this.view, factor);
   }
+  panBy(dx: number, dy: number): void {
+    if (this.view !== null) panBy(this.view, dx, dy);
+  }
+
 
   fit(): void {
     if (this.view !== null) reset(this.view);
