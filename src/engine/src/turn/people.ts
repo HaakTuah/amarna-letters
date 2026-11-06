@@ -253,9 +253,14 @@ P.peopleSeason = function (food) {
   return lines;
 };
 
-/** A count of people as a king reads it, grouped by thousands as his view's figures are: exact below a thousand, to the hundred below ten thousand ("2,600"), to the thousand above. */
+/**
+ * A count of people as a king reads it, grouped by thousands as his view's figures are: exact below a thousand, to the
+ * hundred below ten thousand, to the thousand above, and said to be "about" that where the rounding changed it ("about
+ * 2,600"), so a rounded count never reads as exact.
+ */
 export function people(n: number): string {
-  return fmtN(n < 1000 ? n : n >= 10_000 ? Math.round(n / 1000) * 1000 : Math.round(n / 100) * 100, 0);
+  const shown = n < 1000 ? n : n >= 10_000 ? Math.round(n / 1000) * 1000 : Math.round(n / 100) * 100;
+  return `${shown === n ? "" : "about "}${fmtN(shown, 0)}`;
 }
 
 /** A levy takes its `n` men from the men of fighting age of the province: false, taking none, if it has too few. */

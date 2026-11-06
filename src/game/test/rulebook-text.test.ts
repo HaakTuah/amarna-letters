@@ -26,7 +26,7 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, Parse, Schemas, leaderRules, situation, standings } from "@amarna/llm";
+import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, Parse, Schemas, leaderRules, news, situation, standings } from "@amarna/llm";
 import { removeAll, Assert } from "../../engine/test/support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
@@ -84,8 +84,8 @@ describe("RulebookTextTests", () => {
       text,
     );
     // The vassal treaties sealed before the age began share one oath: it is read once, each vassal with its tribute and copy.
-    Assert.contains('- Vassal treaties sealed before the age began, each "the tablet sealed by" its vassal "and Egypt, dated turn 0", all with one oath, each with its own tribute for N: "I will send you N shekels of gold each year as tribute.', text);
-    Assert.contains("; Gubla (Byblos) 15 (k", text);
+    Assert.contains('- Vassal treaties sealed before the age began, each named "the tablet sealed by [vassal] and Egypt, dated turn 0", all in one oath with their own tribute in place of N: "I will send you N shekels of gold each year as tribute.', text);
+    Assert.contains("; Gubla (Byblos) 15 [your copy k", text);
     Assert.doesNotContain("the tablet sealed by Gubla and Egypt", text);
   });
 
@@ -416,6 +416,14 @@ describe("ViewTextTests", () => {
       );
     }
   }
+
+  test("A season's settlements share one line, each count keeping its own about", () => {
+    let s = newGame(5);
+    new TurnEngine(s).beginTurn();
+    for (const [n, where] of [["about 2,600", "Harran"], ["973", "Taidu"], ["about 4,300", "Washukanni"]]) notify(s, "Mitanni", "Resolution", "People", `You settled loose men: ${n} in ${where}.`);
+    // Among the season's other news of its people, where the first of them stood.
+    Assert.contains(" You settled loose men: about 2,600 in Harran, 973 in Taidu, about 4,300 in Washukanni.\n", news(Views.for(s, "Mitanni")));
+  });
 
   test("An audience request carries the season s news and the host s own land and troops", async () => {
     let s = newGame(5);

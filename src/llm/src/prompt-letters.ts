@@ -82,8 +82,8 @@ export function openingTreaties(tablets: readonly TabletView[], viewer: Power, r
     if (group.length < 2) continue;
     const { overlord, form } = group[0];
     const words = group.every((x) => read.has(x.t.tabletId)) ? opening(form) : form;
-    const vassals = group.map((x) => `${name(x.vassal)}${name(x.vassal) !== x.vassal ? ` (${x.vassal})` : ``} ${x.tribute} (${x.t.copyId})`);
-    lines.push(`Vassal treaties ${OpeningSource}, each "the tablet sealed by" its vassal "and ${name(overlord)}, dated turn 0", all with one oath, each with its own tribute for N: "${words}" Tribute, and your copy: ${joinS(`; `, vassals)}.`);
+    const vassals = group.map((x) => `${name(x.vassal)}${name(x.vassal) !== x.vassal ? ` (${x.vassal})` : ``} ${x.tribute} [your copy ${x.t.copyId}]`);
+    lines.push(`Vassal treaties ${OpeningSource}, each named "the tablet sealed by [vassal] and ${name(overlord)}, dated turn 0", all in one oath with their own tribute in place of N: "${words}" The vassals and their tribute: ${joinS(`; `, vassals)}.`);
     for (const x of group) grouped.add(x.t);
   }
   return { lines, rest: tablets.filter((t) => !grouped.has(t)) };

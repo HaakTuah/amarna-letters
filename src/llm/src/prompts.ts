@@ -260,7 +260,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
 
         sb.appendLine();
         // A list where someone offers news says how to buy it in its header.
-        const newsFor = (cs: readonly CharacterView[]): string => (cs.some((c) => c.news.length > 0) ? ` (buy_news to buy the news one offers)` : ``);
+        const newsFor = (cs: readonly CharacterView[]): string => (cs.some((c) => c.news.length > 0) ? ` (order buy_news for the news each offers)` : ``);
         sb.appendLine(`YOUR SERVANTS${newsFor(v.court)}:`);
         if (v.court.length === 0) sb.appendLine(`- nobody`);
         for (const c of v.court) sb.appendLine(`- ` + person(c));
@@ -492,7 +492,7 @@ function headline(i: InboxItem): string {
 /**
  * A season's news as lines, each "headline: body", in the view's figures. Notices of the season under one headline, with
  * no clauses of their own, share one line where the first stood: sentences that open alike say the opening once ("You
- * settled 2,600 loose men in Harran; 973 loose men in Taidu."), others follow one another.
+ * settled loose men: about 2,600 in Harran, 973 in Taidu."), others follow one another.
  */
 function newsLines(items: readonly InboxItem[]): { text: string; clauses: InboxItem["clauses"] }[] {
   const body = (i: InboxItem): string => asViewFigures(i.kind === "Battle" ? withoutHolds(i.body) : i.body);
@@ -506,15 +506,36 @@ function newsLines(items: readonly InboxItem[]): { text: string; clauses: InboxI
   return lines.map((l) => ({ text: `${l.head}: ${merged(l.bodies)}`, clauses: l.clauses }));
 }
 
-/** Bodies under one headline: one sentence each that open with the same two words or more say the opening once. */
+/**
+ * Bodies under one headline, one after another, except that sentences that open with the same two words say the opening
+ * once, where the first of them stood.
+ */
 function merged(bodies: readonly string[]): string {
-  if (bodies.length === 1) return bodies[0];
-  const single = bodies.every((b) => b.endsWith(`.`) && !b.slice(0, -1).includes(`. `));
-  const words = bodies.map((b) => b.split(` `));
+  const sentence = (b: string): boolean => b.endsWith(`.`) && !b.slice(0, -1).includes(`. `);
+  const opening = (b: string): string => b.split(` `).slice(0, 2).join(` `);
+  const runs: string[][] = [];
+  for (const b of bodies) {
+    const run = sentence(b) ? runs.find((r) => sentence(r[0]) && opening(r[0]) === opening(b)) : undefined;
+    if (run !== undefined) run.push(b);
+    else runs.push([b]);
+  }
+  return joinS(` `, runs.map(saidOnce));
+}
+
+/**
+ * Sentences that open alike, with their opening said once. An opening that ends in a colon is a list's: it stops there, so
+ * each item keeps all of its own words ("about 2,600 in Harran"), and the items are parted by commas where none holds one.
+ */
+function saidOnce(run: readonly string[]): string {
+  if (run.length === 1) return run[0];
+  const words = run.map((b) => b.split(` `));
   let shared = 0;
   while (words.every((w) => shared < w.length - 1 && w[shared] === words[0][shared])) shared++;
-  if (!single || shared < 2) return joinS(` `, bodies);
-  return `${words[0].slice(0, shared).join(` `)} ${joinS(`; `, words.map((w) => w.slice(shared).join(` `).slice(0, -1)))}.`;
+  const colon = words[0].slice(0, shared).map((w) => w.endsWith(`:`)).lastIndexOf(true);
+  if (colon >= 0) shared = colon + 1;
+  if (shared < 2) return joinS(` `, run);
+  const items = words.map((w) => w.slice(shared).join(` `).slice(0, -1));
+  return `${words[0].slice(0, shared).join(` `)} ${joinS(colon >= 0 && !items.some((i) => i.includes(`, `)) ? `, ` : `; `, items)}.`;
 }
 
     /// <summary>The season's news as the court has it: everything delivered to it this season, oldest first.</summary>
