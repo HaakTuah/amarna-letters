@@ -27,15 +27,17 @@ export interface Declaration {
   gone: number | null;
   /** A claim taken up while its giver's troops stayed in it: the treaty broken, told once ("Keeping a promise is an act"). */
   broken: boolean;
+  /** The season it was declared (#592): a letter written before it, sent on later, stands for an older declaration, not this. */
+  since: number;
   /** The powers talk of its leaning has been sent to, by the roads or with a caravan (#543): each hears it once. */
   talked: Power[];
 }
 
 export function newDeclaration(init: Partial<Declaration> = {}): Declaration {
-  return { province: "", power: "Egypt", from: null, known: 0, takenUp: false, takenKnown: null, gone: null, broken: false, talked: [], ...init };
+  return { province: "", power: "Egypt", from: null, known: 0, takenUp: false, takenKnown: null, gone: null, broken: false, since: 0, talked: [], ...init };
 }
 
-export const DeclarationSchema: ObjSchema<Declaration> = obj("Declaration", newDeclaration, { province: S, power: S, from: opt(S), known: I, takenUp: B, takenKnown: opt(I), gone: opt(I), broken: B, talked: list(S) });
+export const DeclarationSchema: ObjSchema<Declaration> = obj("Declaration", newDeclaration, { province: S, power: S, from: opt(S), known: I, takenUp: B, takenKnown: opt(I), gone: opt(I), broken: B, since: I, talked: list(S) });
 
 /** A declaration whose offer has not reached its power's court: no season yet. */
 export const OfferUnheard = Number.MAX_SAFE_INTEGER;

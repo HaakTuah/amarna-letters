@@ -22,6 +22,7 @@ import { basePrice } from "./court.ts";
 import { LetterData } from "./letters.ts";
 import { sellsSecrets } from "./news.ts";
 import { isWalker } from "./travel.ts";
+import { LetterSent } from "./held-letters.ts";
 
 /**
  * First guesses, for item 18: how far a people's lean toward a power must pass its holder's weight before it pays a
@@ -213,12 +214,20 @@ P.carryOffer = function (letter) {
 P.offerArrives = function (j) {
   const S = this.s;
   const province = provinceOf(j);
-  const d = S.declarations.find((x) => x.province === province && x.power === j.to && x.gone === null && x.from === null) ?? null;
+  // The declaration it was written for: one made since it set out (#592: a held letter sent on late) is another's.
+  const d = S.declarations.find((x) => x.province === province && x.power === j.to && x.gone === null && x.from === null && x.since <= j.departTurn) ?? null;
   if (d === null || !isAlive(S, j.to)) return;
   d.known = S.turn;
   const c = findCharacter(S, j.carrier);
   const people = `the people of ${this.map.get(province).name}`;
-  const by = c !== null ? `${c.name} has brought you the word of ${people}` : j.caravan !== null ? `Traders have brought you the word of ${people}` : `${upper(people)} send you their word`;
+  const by =
+    j.sentOnBy !== null
+      ? `${upper(powerName(j.sentOnBy))}${LetterSent.toClaimant}${people}, which it took on the road`
+      : c !== null
+        ? `${c.name} has brought you the word of ${people}`
+        : j.caravan !== null
+          ? `Traders have brought you the word of ${people}`
+          : `${upper(people)} send you their word`;
   notify(this, j.to, `${by}: ${quoteWords(offerWords(j))} ${OfferTerms}`);
   logEvent(S, "declare", `The offer of ${this.map.get(province).name}'s people reached ${j.to}.`, [j.to], "offer-arrived");
 };

@@ -10,7 +10,7 @@ import { cmpBool, cmpNum, desc, distinct, sortBy } from "../core/seq.ts";
 import { isUpper } from "../core/text.ts";
 import { remember, type Character } from "../model/people.ts";
 import { land, type Power, powerName } from "../model/power.ts";
-import { newJourney, newTabletCopy, type Journey, type Tablet, type TabletCopy } from "../model/records.ts";
+import { newTabletCopy, type Journey, type Tablet, type TabletCopy } from "../model/records.ts";
 import { alive, findCharacter, isAlive, logEvent, newId, notify, type GoldLot } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
@@ -28,7 +28,6 @@ declare module "./core.ts" {
     archiveCopiesArrive(j: Journey, spy: Character): string[];
     takeArchive(taker: Power, province: string): void;
     archiveArrives(holder: Power, tabletIds: readonly string[], court: string, place: string): void;
-    archiveByWord(holder: Power, province: string, tabletIds: readonly string[], court: string): void;
     copyLine(copy: TabletCopy): string;
     scribe(writer: Power, text: string | null): string;
     copiesLine(spy: Character, court: Power, copyIds: Iterable<string>): string;
@@ -128,7 +127,7 @@ P.takeArchive = function (taker, province) {
     notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${powerName(court)}; it held no tablet you did not hold already.`);
     return;
   }
-  if (this.lootHome(taker, province, 0, tablets, court))
+  if (this.lootHome(taker, province, 0, tablets, court) !== "here")
     notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${powerName(court)}: your scribes are carrying its ${tablets.length} tablet${tablets.length === 1 ? "" : "s"} home to your capital.`);
 };
 
@@ -153,21 +152,6 @@ P.archiveArrives = function (holder, tabletIds, court, place) {
       ? `The archive of ${powerName(court)} reached you; it held no tablet you did not hold already.`
       : `The archive of ${powerName(court)} reached you: ${taken.length === 1 ? "one tablet" : `${counted(taken.length)} tablets`} new to your own, ${listed(taken.map((k) => this.copyLine(k)))}.`,
   );
-};
-
-/**
- * A captured archive a far force holds where no road takes a load home (#726): its men send the tablets by courier, and
- * they reach the court with word from there (`heardAt`), never sooner.
- */
-P.archiveByWord = function (holder, province, tabletIds, court) {
-  const S = this.s;
-  const place = this.map.get(province).name;
-  const at = this.heardAt(holder, province);
-  if (at <= S.turn + S.deliveryOffset) {
-    this.archiveArrives(holder, tabletIds, court, place);
-    return;
-  }
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: holder, to: holder, news: "Archive", text: [court, place, ...tabletIds].join("|"), seen: [province], reached: [S.turn] }));
 };
 
 /**

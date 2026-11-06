@@ -36,7 +36,7 @@ export const JobOfferSchema: ObjSchema<JobOffer> = obj("JobOffer", newJobOffer, 
   offerAgain: B,
 });
 
-export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer"] as const;
+export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel", "Offer", "LetterPrice"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**
@@ -44,7 +44,7 @@ export type JourneyKind = (typeof JourneyKindValues)[number];
  * tells a court of the world: a king closed or opened his roads to it, a kingdom fell, or (#618) a vassal or ally
  * reports a change of hands its court saw.
  */
-export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "TidingsVassal", "TidingsAlly", "Archive"] as const;
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant", "Job", "Realm", "Foiled", "TidingsVassal", "TidingsAlly", "Loot"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {
@@ -102,6 +102,8 @@ export interface Journey {
    * that way would carry it; it arrives by his couriers from where the caravan ends its road there. Null otherwise.
    */
   caravan: string | null;
+  /** #592: an offer its captor sent on to its claimant, or sold him: that court. Null otherwise. */
+  sentOnBy: Power | null;
 }
 
 /** The arrival of a letter still waiting for its carrier (item 11b): never, until one takes it. */
@@ -152,6 +154,7 @@ export function newJourney(init: Partial<Journey> = {}): Journey {
     border: null,
     fee: 0,
     caravan: null,
+    sentOnBy: null,
     ...init,
   };
 }
@@ -185,6 +188,7 @@ export const JourneySchema: ObjSchema<Journey> = obj("Journey", newJourney, {
   border: opt(S),
   fee: I,
   caravan: opt(S),
+  sentOnBy: opt(S),
 });
 
 /** What a leader hands an envoy: the spoken message, the mandate, and what it carries. */

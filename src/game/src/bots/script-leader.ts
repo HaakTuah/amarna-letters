@@ -31,6 +31,7 @@ import { Board } from "./board.ts";
 import { commandOrders, courtMove, enlistOrders, governorOrders } from "./generals.ts";
 import { crownOrders } from "./crowns.ts";
 import { answerOrders } from "./declarations.ts";
+import { letterOrders } from "./held-letters.ts";
 import { unseatOrders } from "./audit-play.ts";
 import { spyCheckOrders } from "./spy-check.ts";
 import { nameClaims } from "./claims.ts";
@@ -142,6 +143,8 @@ export class ScriptLeader implements ISeat {
     crownOrders(board, orders, busy);
     // Item 17++: provinces that look to us, taken up where they pay and refused where they cost more than they bring.
     answerOrders(board, brain, orders);
+    // #592: offers caught on the road, sent on to a friend or sold; those offered us, bought if the gold is to spare.
+    letterOrders(board, brain, orders);
     // The audit's find 4: a governor whose reports keep calling his land restless, with no foe beside it, is recalled.
     unseatOrders(board, brain, orders, busy);
     // #459: a governor whose letters hide what our own spy finds there is recalled.

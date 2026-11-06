@@ -7,7 +7,7 @@ import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
 import { describe, placesNamed, told } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
-import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SendOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
+import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SendOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type LetterOrder, type BuyLetterOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power, whose, powerName } from "../model/power.ts";
@@ -191,6 +191,9 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is DemandOrder => o.type === "demand")) this.setDemand(p, o);
   for (const [p, o] of all((o): o is CensusOrder => o.type === "census")) this.sendCensus(p, o);
   for (const [p, o] of all((o): o is AnswerOrder => o.type === "answer")) this.answerProvince(p, o);
+  // #592: a caught offer sent on or offered for sale, then those bought.
+  for (const [p, o] of all((o): o is LetterOrder => o.type === "letter")) this.letterOrder(p, o);
+  for (const [p, o] of all((o): o is BuyLetterOrder => o.type === "buyLetter")) this.buyLetter(p, o);
   // People in a king's hands (item 10+b): runaways sent back first, then the loose settled, deportation, mouths put out.
   for (const [p, o] of all((o): o is ReturnRunawaysOrder => o.type === "returnRunaways")) this.returnRunaways(p, o);
   for (const [p, o] of all((o): o is WelcomeOrder => o.type === "welcome")) this.welcome(p, o);
