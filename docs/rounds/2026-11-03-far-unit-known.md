@@ -37,7 +37,7 @@ out of `views.ts` (47 KB).
   (`wakeFrom`, as #537 did for other orders). `GameState.lastSeen` holds the king's own outcomes only where his
   couriers reach.
 - **Rulebook** (`llm/src/rules-command.ts`), **README** (the map paragraph), **design note**
-  `35-command-at-a-distance.md` ("Far troops raised and gone"). **Save version 62** (54 on the branch until it was merged with `develop`, which had reached 61).
+  `35-command-at-a-distance.md` ("Far troops raised and gone"). **Save version 63** (54 on the branch until it was merged with `develop`, which had reached 61, then 62 with #727).
 - **Tests:** a twin in the twin canary (a far army beaten out of sight), failing on `develop` (its view, upkeep, last
   season, two events and the movement notice), passing here; #569's twin (a far levy that raised nothing) no longer
   lists its army's view, upkeep and scheduled binding as known leaks (#600), which the ratchet's last test proves; `units-known.test.ts`: a far unit lost stays as reported
@@ -208,3 +208,22 @@ Round 3: 7 of 10. C fixed; B part-fixed (the `develop` numbers were promised, no
 in one case: the copy went after the live units, so troops that took its province hid it from the check, and the
 order was refused where it would be given. Fixed: the copies come first (`resolveSeason`); the test adds the case
 (the lost army's province taken), failing with the old order.
+
+## Escalation (Opus, high)
+
+After round 3, the escalation helper probed the fired-standing-order path in both worlds (the army lost, and standing)
+and confirmed two more failures of point A, each with its fix, which are now built:
+
+1. A fired order of command, recall, mandate or food names its unit by province only, so it never found the gone
+   army's copy: refused "you have no unit", its gold unspent. Fixed in `compose`: such an order finds the copy where
+   none of the seat's own stands.
+2. A recall that had reached the copy's commander still left the order firing. Fixed in `standingRuns`.
+
+Also taken: the "when your unit is attacked" trigger is named as the king knows the unit (`whenText`). The test "A
+commanded far army's standing order, ..." now covers a hold, a move refused, the province taken, food with gold, a
+recall, a mandate and a commander recalled; it fails before these fixes.
+
+Ruled outside: gold sent with food that finds the army gone comes back to the treasury the season its word arrives
+(`foodArrives`, already so on `develop` for this season's orders), and a season with orders for a gone army checks the
+seat's other orders for its province (pay, food, bands, shipping) as if it stood, which then run on the true state:
+both are the far unit's pay and food, #615.
