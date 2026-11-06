@@ -90,7 +90,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   Helpers by "Helpers: when they pay" (a Haiku search helper per folder). The builder rules and `docs/intent/` come from
   the design document, so what they need goes to the design session as a list in the PR; it condenses them at the
   next refresh.
-- ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done in #PR:
+- ~~**A pointer check and a reading-size check on every PR** (archive item 217).~~ Done in #721:
   `.github/workflows/pointers.yml` runs `scripts/pointers.mjs` and `scripts/reading-size.mjs` (marks in
   `scripts/reading-size.json`). The workshop check's points 2 and 3 in the builder rules, now measured on every PR, go
   to the design session.
