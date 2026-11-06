@@ -15,9 +15,9 @@ import { Uncommanded, mandateText, type CommandTraits, type Mandate } from "../m
 import type { CommandOrder, EnlistOrder, MandateOrder, Order, RelieveOrder } from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { findCharacter, logEvent, newId, newUnit, notify, unitAt, type Unit } from "../model/state.ts";
+import { findCharacter, logEvent, newId, newUnit, notify, type Unit, loseUnit } from "../model/state.ts";
 import { newJourney } from "../model/records.ts";
-import { courtOf, wordFromKing } from "../rules/court.ts";
+import { courtOf, wordFromKing, wordHomeAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
 import { placesNamed } from "../model/order-reading.ts";
@@ -73,7 +73,7 @@ P.commandOf = function (u) {
 
 P.grantCommand = function (p, o) {
   const S = this.s;
-  const u = unitAt(S, o.unit);
+  const u = this.commandedUnit(o);
   const c = findCharacter(S, o.character);
   if (u === null || u.power !== p || c === null) return;
   // He sets out from the court with the grant, and commands from the season he reaches the army (at once where it stands
@@ -89,20 +89,22 @@ P.grantCommand = function (p, o) {
   remember(c, S.turn, `The king of ${p} granted me the command of his ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}.`);
   notify(S, p, "Resolution", "Command granted", `${c.name} set out to take command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}, and commands it from turn ${u.commandFrom}.`, c.id);
   logEvent(S, "command", `${p} granted ${c.name} the command of its ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}.`, [p], "command");
+  this.goneWord(p, o, u);
 };
 
 P.relieveCommand = function (p, o) {
   const S = this.s;
-  const u = unitAt(S, o.unit);
+  const u = this.commandedUnit(o);
   if (u === null || u.power !== p || u.commander === null) return;
   const seasons = wordFromKing(S, this.map, p, u.province);
   u.relieveAt = S.turn + (Number.isFinite(seasons) ? Math.max(1, seasons) : 1);
   notify(S, p, "Resolution", "Command taken back", `Your word recalling the commander of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is on its way; it reaches him in turn ${u.relieveAt}.`);
+  this.goneWord(p, o, u);
 };
 
 P.setMandate = function (p, o) {
   const S = this.s;
-  const u = unitAt(S, o.unit);
+  const u = this.commandedUnit(o);
   if (u === null || u.power !== p) return;
   const seasons = wordFromKing(S, this.map, p, u.province);
   u.mandate = o.mandate;
@@ -116,6 +118,7 @@ P.setMandate = function (p, o) {
       ? `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has no mandate now.`
       : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has its mandate from turn ${u.mandateFrom}: ${placesNamed(mandateText(o.mandate))}.`,
   );
+  this.goneWord(p, o, u);
 };
 
 P.commandSeason = function () {
@@ -146,7 +149,7 @@ P.commandSeason = function () {
         continue;
       }
       if (going < u.men) {
-        const stay = newUnit({ id: newId(S, "u"), power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
+        const stay = newUnit({ id: newId(S, "u"), since: u.since, power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
         u.food -= stay.food;
         u.men = going;
         S.units.push(stay);
@@ -180,13 +183,36 @@ P.commandSeason = function () {
     chief.watchProvince = land;
     S.bands.push(newBand({ id: newId(S, "b"), leaderId: chief.id, province: land, men, since: S.turn, rose: "outlaw" }));
     this.tell(u.power, land, "Resolution", "A band's service ends", `The term of ${chief.name}'s band is over: his ${men} men left your army in ${this.map.get(land).name} as his band again.`);
-    if (u.men <= 0) S.units.splice(S.units.indexOf(u), 1);
+    if (u.men <= 0) loseUnit(S, u);
   }
   // Commanders whose army is gone (destroyed, disbanded, given away, mutinied) go home.
   for (const c of sortBy(
     S.characters.filter((c) => c.duty === "Commanding" && c.status !== "Dead" && !S.units.some((u) => u.commander === c.id || u.hiredChief === c.id)),
     [(c: Character) => c.id, cmpStr],
   )) {
+    // Bug #600: his king, far off, still believes him in command until word of the army's end, or the man, reaches him.
+    const lord = c.grantedBy ?? c.employer;
+    // The word of its end by the one clock of the road home (wordHomeAt, #616), from where and when it ended (the gone
+    // army's own copy), or from where he stood in the season just ended.
+    const army = lord === null ? undefined : S.unitsGone.find((u) => u.commander === c.id && u.power === lord);
+    const court = lord === null ? "" : courtOf(S, this.map, lord);
+    const heard =
+      lord === null || c.watchProvince === null ? 0 : army !== undefined ? wordHomeAt(S, this.map, court, army.province, army.goneTurn) : wordHomeAt(S, this.map, court, c.watchProvince, S.turn - 1);
+    if (lord !== null && c.watchProvince !== null && heard > S.turn) {
+      this.coverFor(c, lord, "Commanding");
+      S.journeys.push(
+        newJourney({
+          id: newId(S, "j"),
+          kind: "Rumor",
+          departTurn: S.turn,
+          arriveTurn: heard,
+          from: lord,
+          to: lord,
+          characterId: c.id,
+          text: `${c.name} no longer commands an army of yours in ${this.map.get(c.watchProvince).name}: it is gone, and he has left it.`,
+        }),
+      );
+    }
     if (c.watchProvince !== null) this.leaveCommand(c, c.watchProvince);
     else c.duty = "None";
   }
@@ -214,8 +240,7 @@ P.leaveCommand = function (c, at) {
 
 P.armyToBand = function (u, c, rose) {
   const S = this.s;
-  const i = S.units.indexOf(u);
-  if (i >= 0) S.units.splice(i, 1);
+  loseUnit(S, u);
   const was = u.power;
   c.formerEmployer = c.employer ?? was;
   c.employer = null;

@@ -13,11 +13,12 @@ import type { TurnEngine } from "../turn/turn-engine.ts";
 /**
  * Whether word of what happened at `at` in season `turn` has reached a court: near, within the season (at once for what
  * happened as this season began); farther, a season and the couriers' road later. The road is reckoned as it was in
- * that season, so word once come never goes back with the seasons' roads.
+ * that season, so word once come never goes back with the seasons' roads. `now`: the season it is read in (the next,
+ * while a season resolves, for what the court reads as it begins).
  */
-export function wordCame(engine: TurnEngine, p: Power, turn: number, at: string): boolean {
+export function wordCame(engine: TurnEngine, p: Power, turn: number, at: string, now: number = engine.s.turn): boolean {
   const s = engine.s;
-  return (engine.map.exists(at) ? wordHomeAt(s, engine.map, courtOf(s, engine.map, p), at, turn) : turn) <= s.turn;
+  return (engine.map.exists(at) ? wordHomeAt(s, engine.map, courtOf(s, engine.map, p), at, turn) : turn) <= now;
 }
 
 const viewOf = (c: Caravan, at: string, grain: number, gold: number, returning: boolean, reported: number | null): CaravanView =>

@@ -24,7 +24,7 @@ import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { courierSeasons } from "../rules/court.ts";
-import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf, unitLabel, type Unit } from "../model/state.ts";
+import { alive, feedsUnit, isAlive, logEvent, newId, notify, ownedBy, paysUnit, siegeOf, unitLabel, type Unit, loseUnit } from "../model/state.ts";
 import { formatMoney, measures } from "../rules/calendar.ts";
 import { listed } from "../rules/wording.ts";
 import { Views } from "../rules/views.ts";
@@ -470,8 +470,7 @@ P.feedTroops = function () {
     const rng = this.r("mutiny-head", u.id);
     if (u.kind === "Army" && !this.map.get(u.province).isSea && rng.chance(Math.min(90, BandData.mutinyHead + idiv(u.men, 500)) / 100)) {
       const men = u.men;
-      const i = S.units.indexOf(u);
-      if (i >= 0) S.units.splice(i, 1);
+      loseUnit(S, u);
       this.liftSiegesOf(u.id);
       const b = this.headRises(u.province, men, "mutiny", rng);
       gain(S.characters.find((c) => c.id === b.leaderId)!, u.savings, "Loot");
@@ -494,8 +493,7 @@ P.feedTroops = function () {
  */
 P.disbandUnit = function (u, settle = false) {
   const S = this.s;
-  const i = S.units.indexOf(u);
-  if (i >= 0) S.units.splice(i, 1);
+  loseUnit(S, u);
   this.liftSiegesOf(u.id);
   // The men carry their savings with them: home when they arrive, or where they settle (the owner, 28 October 2026).
   return this.menHome(u, settle);

@@ -19,14 +19,14 @@ import { Rng } from "../core/rng.ts";
 import { cmpNum, count, distinct, sortBy, sum } from "../core/seq.ts";
 import type { GameConfig } from "../model/config.ts";
 import { newMindRequest, type MindRequest } from "../model/exchanges.ts";
-import { WorldMap } from "../model/map.ts";
+import { type UnitKind, WorldMap } from "../model/map.ts";
 import { EconomyData } from "../model/economy.ts";
 import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
 import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
 import { powerName, setNameClaims, setRisen, type Power } from "../model/power.ts";
-import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState } from "../model/state.ts";
+import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, siegeOf, type GameState, type Unit } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import type { SeatView } from "../model/views.ts";
@@ -70,6 +70,11 @@ export class TurnEngine {
   readonly _foodNow = new Dict<string, number>();
   /** Provinces ceded while this season resolves, and to whom: a levy there later in the season is told so. */
   readonly _cededNow = new Dict<string, Power>();
+  /**
+   * Bug #600: the season's orders of command, recall, mandate and food for a unit gone whose end its king has not heard of,
+   * each with that unit's copy: checked and carried out on it as for one that stands (`sendOrders`).
+   */
+  readonly _goneNow = new Map<Order, Unit>();
   /** The season's battle, once the moves are resolved. */
   _battle: AdjudicationResult | null = null;
   /** The unit orders of the season, by the province of the unit. */
@@ -82,6 +87,11 @@ export class TurnEngine {
   readonly _scheduledNow = new Dict<Power, Order[]>();
   /** Of those, the ones from standing orders that fired, with the standing order's id. */
   readonly _standingNow = new Dict<Power, [Order, string][]>();
+  /**
+   * Bug #600: per seat, the troops' orders a standing order gave this season for a unit lost out of sight, its end
+   * unheard, with its copy: checked as if it stood, then sent out to find it gone instead of run.
+   */
+  readonly _riddenNow = new Dict<Power, Map<Order, Unit>>();
   /** The standing orders that fired this season, per seat, to be told once the orders are checked. */
   readonly _firedNow = new Dict<Power, Firing[]>();
   /** The scheduled moves running this season, per seat, with what was kept: a move that fails holds up its unit's march. */
@@ -209,12 +219,15 @@ export class TurnEngine {
     remember(c, this.s.turn, memory);
   }
 
-  /** The pay of a power's troops a season in gold, and the cost of each siege it presses (GameConfig.siegeUpkeep). */
-  upkeep(p: Power): number {
+  /**
+   * The pay of a power's troops a season in gold, and the cost of each siege it presses (GameConfig.siegeUpkeep): its
+   * troops as they are, or as given (its view's, as it knows them: bug #600).
+   */
+  upkeep(p: Power, units: readonly { kind: UnitKind; men: number }[] = this.s.units.filter((u) => u.power === p)): number {
     const S = this.s;
     return (
       sum(
-        S.units.filter((u) => u.power === p),
+        units,
         // In proportion to its men (item 11a+).
         (u) => forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men),
       ) +
