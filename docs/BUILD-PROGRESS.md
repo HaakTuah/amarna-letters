@@ -201,8 +201,9 @@ the workshop check): among them the history check's lines still unclear for a re
   envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
   `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
   season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
-  `rules/wording.ts`; save version 60); #591, done (#680). **Next:** the rest in the order above, from the rulebook and
-  the seat view. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
+  `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
+  `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725). **Next:** the rest in the order above, from the seat
+  view. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
   (the owner, 6 November 2026, #735; archive item 230): their "in a hundred" goes, and the notice-shapes guard flags it
   in place of "%".
 
