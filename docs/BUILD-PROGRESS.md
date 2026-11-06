@@ -166,8 +166,9 @@ Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
 - **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
-  - **#566:** the twin canary (`src/web/test/twin-canary.test.ts`) plays each hidden fact at a second place too, a far
-    province of another power or one reached only by winter roads or by sea; the place a parameter, not a constant.
+  - ~~**#566:**~~ (done, #722) the twin canary plays each twin bound to a place at Nippur and at Dilmun (two
+    seasons off, by sea), the place a parameter; it found a far levy's army in the movements notice, listed under #600.
+    Report: `docs/rounds/2026-11-06-twin-second-place.md`.
   - **#543, after part D's follow-ups (#550, #553):** a caravan or trader leaving a province for the claimant's market
     carries its offer, as a traveller going that way would, and carries talk along its road; the history dossier
     cited for word travelling with goods.
