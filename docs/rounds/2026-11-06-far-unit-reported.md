@@ -38,7 +38,7 @@ at Nippur, each failing on `develop` before the fix:
   (`Remittance.food`), not into the treasury at once; it is not among the gold sent to coffers in the view.
 - **The map** draws the viewer's own units where and as its view shows them (`Views.ownUnitsShown`, a frame's
   `knownUnits`, read by `buildScene` and the court popup's count).
-- **Tests:** the four twins; `src/engine/test/far-unit-told.test.ts` (a part left behind, food gold coming home, pay held
+- **Tests:** the four twins; `src/engine/test/units-known.test.ts`, "FarUnitToldTests" (a part left behind, food gold coming home, pay held
   where the view shows the troops).
 - **Docs:** design note `35-command-at-a-distance.md` ("A far unit, the rest of it as reported"), the README's map
   paragraph, the rulebook's commanders line. **Save version 70.**

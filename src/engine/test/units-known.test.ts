@@ -23,6 +23,7 @@ import {
   relieve,
   supply,
   unitReport,
+  upkeep,
   type Order,
   type Power,
   type TurnSubmission,
@@ -368,5 +369,66 @@ describe("UnitsKnownTests", () => {
     const titles = inboxOf(s, "Egypt").filter((i) => i.turn === s.turn).map((i) => i.title);
     Assert.false(titles.includes("Orders that could not be carried out"));
     Assert.true(titles.includes("Orders on the road"));
+  });
+});
+
+/**
+ * Bug #615: the rest of a far unit as its king knows it, beyond its raising and end: what befalls it comes home by the
+ * road. The twin canary (`src/web/test/twin-canary.test.ts`) finds the leaks; these pin the rules.
+ */
+describe("FarUnitToldTests", () => {
+  /** `farArmy` once its reports have begun, at the start of a season, with the seasons word from Nippur takes. */
+  function reported() {
+    const { s, u, season } = farArmy();
+    for (let i = 0; i < 3; i++) season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
+    Assert.true(d >= 1);
+    return { s, u, d };
+  }
+
+  test("A part that stays when a far army leaves its king is known to him once word of their parting could come", () => {
+    const { s, u, d } = reported();
+    // Its commander takes most of it away as his own; the rest stay their king's, a new unit.
+    loseUnit(s, u);
+    s.units.push(newUnit({ id: "u991", power: "Egypt", kind: "Army", province: "nippur", home: "thebes", men: 400, since: s.turn, raisedAt: "nippur" }));
+    const heard = s.turn + 1 + d;
+    while (s.turn < heard) {
+      Assert.equal([1000], shown(s).map((x) => x.men));
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    }
+    Assert.equal([400], shown(s).map((x) => x.men));
+  });
+
+  test("Gold sent for a far army's food that finds it gone comes home with the courier, as word from there does", () => {
+    const { s, u } = reported();
+    new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [supply("nippur", true, 30)] })]]));
+    const word = s.foodWord.find((w) => w.power === "Egypt" && w.gold === 30)!;
+    loseUnit(s, u);
+    const back = () => inboxOf(s, "Egypt").filter((i) => i.body.includes("you sent for your troops' food in Nippur came back"));
+    // The word arrives where it was sent, in its season, and finds the army gone: the gold rides home.
+    while (s.foodWord.includes(word)) {
+      new TurnEngine(s, WorldMap.default).beginTurn();
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    }
+    const home = s.sent.find((x) => x.power === "Egypt" && x.food)!;
+    Assert.true(home.due > s.turn);
+    // Its court sees no gold sent while it is on the road, and hears of it in the season it comes.
+    for (let i = 0; i < 6 && back().length === 0; i++) {
+      new TurnEngine(s, WorldMap.default).beginTurn();
+      Assert.empty(Views.for(s, "Egypt").goldSent);
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+    }
+    Assert.equal([home.due], back().map((i) => i.turn));
+  });
+
+  test("Pay held back in a province holds the troops its king's view shows there, not those that truly stand there", () => {
+    const { s, u } = reported();
+    // It marched on to Ur out of its king's sight: his view still shows it in Nippur.
+    u.province = "ur";
+    Assert.equal(1, shown(s).length);
+    new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [upkeep(false, null, "nippur")] })]]));
+    Assert.equal(["u990"], s.upkeep.get("Egypt").payExcept);
   });
 });
