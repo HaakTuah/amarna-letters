@@ -92,6 +92,8 @@ P.caravansTravel = function () {
   const what = (c: Caravan): string => goods(c.grain, c.gold + c.pay);
   const noun = (c: Caravan): string => (c.ship !== null ? "ship" : "caravan");
   const arrivals: Caravan[] = [];
+  // #543: before any sets out on the season's road, the offers waiting where caravans stand go with one that may take them.
+  this.caravansPickUp();
   for (const c of sortBy([...S.caravans], [(c: Caravan) => c.id, cmpStr])) {
     if (!isAlive(S, c.power)) {
       caravanGone(S, c);
@@ -144,7 +146,13 @@ P.caravansTravel = function () {
       c.at++;
       crossed.push(b);
     }
+    // #543: talk of a province's leaning, heard where it stood and passed.
+    this.caravanHearsTalk(c, [here, ...crossed]);
     if (stopped === "seized") {
+      // #543: the offers it carried are the seizing king's, taken at the border it was stopped at (`atBorder`).
+      const border = c.route[c.at + 1];
+      const seizer = S.owner.getOrDefault(border, null);
+      if (seizer !== null) this.caravanOffersTaken(c, seizer, border);
       caravanGone(S, c);
       if (c.ship !== null) this.rejoinFleet(c);
       continue;
@@ -173,7 +181,10 @@ P.caravansTravel = function () {
         c.returning = true;
       }
       c.points = 0;
-      if (c.at >= c.route.length - 1) this.caravanHome(c);
+      if (c.at >= c.route.length - 1) {
+        this.caravanUnloads(c);
+        this.caravanHome(c);
+      }
       continue;
     }
     const arrived = c.at >= c.route.length - 1;
@@ -192,6 +203,8 @@ P.caravansTravel = function () {
     const taker = seen.map((x) => S.units.find((u) => u.province === x && u.power !== c.power && hostile(u.power, x) && !shut(u)) ?? null).find((u) => u !== null) ?? null;
     const roll = this.r("caravan", c.id).nextDouble() * 100;
     if (taker !== null && c.grain + c.gold + c.archive.length > 0 && roll < RoadOdds.troops) {
+      // #543: a province's offer it carried, its taker reads.
+      this.caravanOffersTaken(c, taker.power, taker.province);
       caravanGone(S, c);
       const kept = Math.min(c.grain, unitCarried(taker) - taker.food);
       taker.food += Math.max(0, kept);
@@ -262,6 +275,8 @@ P.caravansTravel = function () {
   const traders = arrivals.filter((c) => !c.returning && c.trade);
   for (const at of [...new Set(traders.map((c) => caravanAt(c)))].sort(cmpStr)) this.tradeTogether(traders.filter((c) => caravanAt(c) === at), traded);
   for (const c of arrivals) this.caravanArrives(c, traded.get(c.id) ?? []);
+  // #543: a province's offer whose caravan was lost on the road this season is lost with it.
+  this.caravanOffersLost();
   this.tellTolls(book);
 };
 
@@ -273,6 +288,8 @@ P.caravansTravel = function () {
  */
 P.caravanArrives = function (c, traded = null) {
   const S = this.s;
+  // #543: the offers and talk it carries, where its road ends.
+  this.caravanUnloads(c);
   if (c.returning) {
     this.caravanHome(c);
     return;

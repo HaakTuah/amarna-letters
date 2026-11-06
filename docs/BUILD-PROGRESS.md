@@ -168,9 +168,9 @@ the workshop check): among them the history check's lines still unclear for a re
   - ~~**#566:**~~ (done, #722) the twin canary plays each twin bound to a place at Nippur and at Dilmun (two
     seasons off, by sea), the place a parameter; it found a far levy's army in the movements notice, listed under #600.
     Report: `docs/rounds/2026-11-06-twin-second-place.md`.
-  - **#543, after part D's follow-ups (#550, #553):** a caravan or trader leaving a province for the claimant's market
-    carries its offer, as a traveller going that way would, and carries talk along its road; the history dossier
-    cited for word travelling with goods.
+  - ~~**#543:**~~ (done, #725) a caravan leaving a province for its claimant's land carries its offer, his own for
+    nothing, another's for a fee where the people are far gone; caravans carry talk of the leaning to the land their road
+    ends in. Save version 64. Report: `docs/rounds/2026-11-06-caravan-offers.md`.
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
@@ -261,6 +261,7 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 | #587 | Sending gold ahead to far coffers that owe or run short (`--coffer-play-half`) | 0.81 growth to 0.72, 21 wins to 29, in 50 games; 32 sends in 15 games, 24 bills unpaid in 10 | Pays in growth, not in wins: credit covers most far costs, so sending ahead seldom matters; for item 18 |
 | #618 | Reading word from vassals and allies of land changing hands (`--tidings-play-half`) | 0.79 growth to 0.80, 11 wins to 9, in 20 games; 11.2 pieces of word reached the Great Kings a game | Even: the word mostly makes news of what the map already showed, sooner only where the reporter is nearer |
 | #601 | Hiring a rider for a far province's report, haggling (`--ride-play-half`) | No ride in 20 games: of 6,070 Great King-seasons, 119 held land beyond a season's road home out of sight (all Hatti's), each with a report one season old, which a ride cannot better; the scenario test shows them ride, haggle and raise | Nothing to measure in script games; re-measure in item 18 if realms grow |
+| #543 | Heeding talk, with caravans as offers' carriers and a trade venture toward a market talk says leans our way (`--talk-play-half`) | 0.79 growth to 0.71, 28 wins to 22, in 50 games; 1,574 offers sent, 153 carried (92 by caravan, 7 of them paid), 106 arrived (49 brought by caravan); talk carried by traders 356 times | Pays: offers now arrive three times as often, so heeding the talk matters |
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".
