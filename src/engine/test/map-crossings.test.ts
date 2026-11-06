@@ -243,8 +243,11 @@ describe("MapCrossingsTests", () => {
     const before = s.treasuries.get("Babylonia").gold;
     const word = e.heardAt("Babylonia", "nesa");
     Assert.true(word > s.turn);
+    const worth = e.holdings("Babylonia");
     Assert.equal("word", e.lootHome("Babylonia", "nesa", 50, [], ""));
     Assert.equal(before, s.treasuries.get("Babylonia").gold);
+    // On the road with the courier it is still the realm's, counted in its holdings as couriers' gold is.
+    Assert.equal(worth + 50, e.holdings("Babylonia"));
     const courier = single(s.journeys, (j) => j.to === "Babylonia" && j.news === "Loot");
     Assert.equal(word, courier.arriveTurn);
     e.wordArrives(courier);

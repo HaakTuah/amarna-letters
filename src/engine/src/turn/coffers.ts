@@ -20,6 +20,7 @@ import { UnrestData } from "../model/unrest.ts";
 import { buildGold, levelOf, upkeepGold, WorksData } from "../model/works.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
+import { lootOf } from "./trade.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -59,7 +60,7 @@ function intoCoffer(e: TurnEngine, c: Coffer, gold: number): void {
   c.gold += gold - debt;
 }
 
-/** Whether a load can go from the province to the king's court by road (`lootHome` puts it in the treasury at once otherwise). */
+/** Whether a load can go from the province to the king's court by road (`lootHome` sends it by courier otherwise, #740). */
 export const homeRoad = (e: TurnEngine, p: Power, province: string): boolean => {
   const cap = e.courtAt(p);
   return province !== cap && e.s.owner.getOrDefault(cap, null) === p && e.tradeRoute(p, province, cap, false) !== null;
@@ -300,10 +301,15 @@ P.coffersSettle = function () {
   }
 };
 
-/** A realm's gold on the road with its couriers, out to a far coffer or back (`TurnEngine.holdings`). */
+/** A realm's gold on the road with its couriers: out to a far coffer or back, or loot coming home (`TurnEngine.holdings`). */
 export function goldSent(e: TurnEngine, p: Power): number {
-  return sum(
-    e.s.sent.filter((x) => x.power === p && !x.landed),
-    (x) => x.gold,
+  return (
+    sum(
+      e.s.sent.filter((x) => x.power === p && !x.landed),
+      (x) => x.gold,
+    ) + sum(
+      e.s.journeys.filter((j) => j.kind === "Word" && j.news === "Loot" && j.to === p),
+      (j) => lootOf(j).gold,
+    )
   );
 }

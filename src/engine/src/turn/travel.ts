@@ -20,7 +20,7 @@ import type { RoadsOrder } from "../model/orders.ts";
 import { remember, type Character } from "../model/people.ts";
 import { land, type Power, quoteWords, whose, powerName } from "../model/power.ts";
 import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind, type InboxKind } from "../model/records.ts";
-import { lootArrives } from "./trade.ts";
+import { lootArrives, lootOf } from "./trade.ts";
 import { GrantTitle } from "./authority.ts";
 import { char, findCharacter, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
 import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/travel.ts";
@@ -653,8 +653,8 @@ P.wordArrives = function (j) {
       break;
     case "Loot": {
       // #726, #740: loot sent home by courier where no road took it as a load (TurnEngine.lootByWord).
-      const [gold, court, place, ...ids] = (j.text ?? "").split("|");
-      lootArrives(this, j.to, Number(gold), ids, court, place);
+      const loot = lootOf(j);
+      lootArrives(this, j.to, loot.gold, loot.ids, loot.court, loot.place);
       break;
     }
     case "TidingsVassal":

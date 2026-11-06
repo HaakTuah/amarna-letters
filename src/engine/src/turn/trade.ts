@@ -18,7 +18,7 @@ import { caravanAt, caravanGone, newCaravan, setOut, type Caravan } from "../mod
 import { buyAlongCurve, needOf, priceAt, sellAlongCurve } from "../model/economy.ts";
 import { newMarketSeen, type MarketSeen } from "../model/views.ts";
 import { newWord, noteMarket, noteTolls, type Word } from "../model/word.ts";
-import { newJourney } from "../model/records.ts";
+import { newJourney, type Journey } from "../model/records.ts";
 import { Views } from "../rules/views.ts";
 import type { Province } from "../model/map.ts";
 import type { Order, ShipOrder, TollOrder, TradeOrder } from "../model/orders.ts";
@@ -572,6 +572,12 @@ P.lootByWord = function (taker, from, gold, archive, archiveOf) {
   }
   S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: at, from: taker, to: taker, news: "Loot", text: [gold, archiveOf, place, ...archive].join("|"), seen: [from], reached: [S.turn] }));
 };
+
+/** What a courier carries home as loot (TurnEngine.lootByWord): its gold, whose archive and where it was taken, the tablets. */
+export function lootOf(j: Journey): { gold: number; court: string; place: string; ids: string[] } {
+  const [gold, court, place, ...ids] = (j.text ?? "").split("|");
+  return { gold: Number(gold), court, place, ids };
+}
 
 /** Loot reaching its king's court by courier, or at once (TurnEngine.lootByWord). */
 export function lootArrives(e: TurnEngine, taker: Power, gold: number, archive: readonly string[], archiveOf: string, place: string): void {
