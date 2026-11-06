@@ -1,26 +1,20 @@
 import { describe, test } from "vitest";
 import {
   AllPowers,
-  type AudienceView,
   type EnvoyReaction,
   type HostReply,
   type MindReply,
-  type SeatView,
-  type TurnSubmission,
-  dispatch,
   first,
   newEnvoyReaction,
   newGame,
   newGameConfig,
   newHostReply,
-  newTurnSubmission,
   single,
 } from "@amarna/engine";
 import {
   type EnvoyContext,
   GameRunner,
   type ICharacterMind,
-  type ISeat,
   type MindContext,
   type PresentResult,
   ScriptMind,
@@ -28,47 +22,10 @@ import {
   newPresentResult,
 } from "@amarna/game";
 import { Assert, toDict } from "../../engine/test/support.ts";
+import { Host, Idle, Sender } from "./audience-support.ts";
 
 // <summary>An audience played through the game runner: the second exchange shows the host what it named and gave in the first.</summary>
 describe("AudienceRunnerTests", () => {
-  // <summary>Sends one envoy to Alashiya in the first season, then does nothing.</summary>
-  class Sender implements ISeat {
-    readonly #envoyId: string;
-    constructor(envoyId: string) {
-      this.#envoyId = envoyId;
-    }
-    get label(): string {
-      return "Sender";
-    }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-      return Promise.resolve(
-        view.turn === 1 ? newTurnSubmission({ orders: [dispatch(this.#envoyId, "Alashiya", "Greetings, brother.")] }) : newTurnSubmission(),
-      );
-    }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-      return Promise.resolve(newHostReply({ end: true }));
-    }
-  }
-
-  // <summary>Names gold to send back and offers a gift in the first exchange, ends the audience in the second, and keeps every view it is shown.</summary>
-  class Host implements ISeat {
-    views: AudienceView[] = [];
-    get label(): string {
-      return "Host";
-    }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-      return Promise.resolve(newTurnSubmission());
-    }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-      this.views.push(view);
-      return Promise.resolve(
-        view.round === 1
-          ? newHostReply({ speech: "Take this home to your lord.", goldBack: 30, bribe: 20 })
-          : newHostReply({ speech: "Go in peace.", end: true }),
-      );
-    }
-  }
-
   // <summary>An envoy who takes every gift and never changes masters; reports are written by the script characters.</summary>
   class Pliant implements ICharacterMind {
     _script: ScriptMind = new ScriptMind();
@@ -86,28 +43,19 @@ describe("AudienceRunnerTests", () => {
     }
   }
 
-  // <summary>Does nothing, every season.</summary>
-  class Idle implements ISeat {
-    get label(): string {
-      return "Idle";
-    }
-    decide(view: SeatView, ct: AbortSignal): Promise<TurnSubmission> {
-      return Promise.resolve(newTurnSubmission());
-    }
-    hostAudience(view: AudienceView, court: SeatView, ct: AbortSignal): Promise<HostReply> {
-      return Promise.resolve(newHostReply({ end: true }));
-    }
-  }
-
   test("The second exchange carries the gold and the gift named in the first", async () => {
     let state = newGame(5, newGameConfig({ catastropheChance: 0, endMedian: 10000 }));
     let envoy = first(state.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
-    let host = new Host();
+    let host = new Host((view) =>
+      view.round === 1
+        ? newHostReply({ speech: "Take this home to your lord.", goldBack: 30, bribe: 20 })
+        : newHostReply({ speech: "Go in peace.", end: true }),
+    );
     let seats = toDict(
       AllPowers,
       (p) => p,
-      (p) => (p === "Egypt" ? new Sender(envoy.id) : p === "Alashiya" ? host : new Idle()),
+      (p) => (p === "Egypt" ? new Sender(envoy.id, "Alashiya") : p === "Alashiya" ? host : new Idle()),
     );
     let runner = Object.assign(new GameRunner(state, seats, new Pliant(), new TemplateNarrator()), { writeChronicles: false });
     await runner.prepare();

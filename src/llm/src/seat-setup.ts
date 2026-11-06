@@ -21,7 +21,8 @@ import { NewPlan, alertsReply, planReply, routineCourt } from "./king-ladder.ts"
 import { Ladder, counselSchema, withLadder } from "./ladder.ts";
 import { Spending, newSpendingSettings, type SpendingSettings } from "./spending.ts";
 import { AnthropicProvider, type ApiTransport } from "./anthropic.ts";
-import { AnthropicId, ModelClient, splitModel, type Provider } from "./client.ts";
+import { ModelClient, splitModel, type Provider } from "./client.ts";
+import { AnthropicId } from "./endpoints.ts";
 import { CompatibleProvider, type ProviderSetting } from "./compatible.ts";
 import { LlmLeaderSeat } from "./leader-seat.ts";
 import { ModelIds, PriceTable, type PriceSetting } from "./models.ts";

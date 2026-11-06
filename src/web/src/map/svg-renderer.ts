@@ -22,9 +22,6 @@ import { moves, outlaws, roads, selection } from "./ways.ts";
 /** Each river's path as the whole board draws it. */
 const RiverPaths: ReadonlyMap<string, string> = new Map(Rivers.map((r) => [r.id, r.path]));
 
-/** The small seal's size against the full seal's (map-uncluttered.css, .city.small .seal). */
-const SmallSeal = 0.45;
-
 // ---------------------------------------------------------------- the renderer
 
 /**
@@ -552,10 +549,12 @@ export class SvgMapRenderer implements MapRenderer {
           const w = strokeOf(x, e);
           return [w === 0 ? r : grown(r, (w * perUnit(x, r)) / 2)];
         });
-      // Read where they are set: anywhere above .map they would read as no rim at all.
+      // Read at the map, whose seals draw them (they are set on :root, for the legend too).
       const rim = getComputedStyle(view.querySelector(".map")!);
       const smallRim = parseFloat(rim.getPropertyValue("--small-rim")) || 0;
       const markedRim = parseFloat(rim.getPropertyValue("--small-rim-marked")) || 0;
+      // The small seal's size against the full seal's (--small-seal, map-uncluttered.css).
+      const smallSeal = parseFloat(rim.getPropertyValue("--small-seal")) || 1;
       const union = (rs: DOMRect[]): DOMRect[] => {
         if (rs.length < 2) return rs;
         const left = Math.min(...rs.map((r) => r.left)), top = Math.min(...rs.map((r) => r.top));
@@ -642,13 +641,13 @@ export class SvgMapRenderer implements MapRenderer {
         // The small seal: the seal's own centre, at the size the stylesheet shrinks it to (.city.small, map-uncluttered.css),
         // with its rim, the marked one where its counters gave way or it is besieged.
         const at = seal.getBoundingClientRect();
-        const k = SmallSeal / 2;
+        const k = smallSeal / 2;
         // A small seal whose counters gave way says so by its darker rim.
         const crowd = (units.get(id) ?? []).length > 0;
         const rimWidth = crowd || c.classList.contains("besieged") ? markedRim : smallRim;
         const small = grown(
           new DOMRect(at.x + at.width * (0.5 - k), at.y + at.height * (0.5 - k), at.width * 2 * k, at.height * 2 * k),
-          (rimWidth * perUnit(seal, at) * SmallSeal) / 2,
+          (rimWidth * perUnit(seal, at) * smallSeal) / 2,
         );
         if (free([small])) {
           writes.push(() => c.classList.add("small", ...(crowd ? ["crowd"] : [])));

@@ -1,6 +1,7 @@
 /** What a game's seats are estimated to cost, and whether a spending limit can hold against them. */
 import { AllPowers, fmt, roundEven } from "@amarna/engine";
-import { AnthropicId, splitModel } from "./client.ts";
+import { splitModel } from "./client.ts";
+import { AnthropicId } from "./endpoints.ts";
 import { BatchDiscount, ModelIds, PriceTable } from "./models.ts";
 import { SeatChoices, characterModel, leaderModel, narratorModel, rungModel, smallModel } from "./seat-setup.ts";
 

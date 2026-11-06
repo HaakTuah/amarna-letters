@@ -8,6 +8,8 @@ import {
   Presets,
   bridgeReady,
   choicesFromHeader,
+  endpointAllowed,
+  isLocalAddress,
   leaderModel,
   rungModel,
   startProblem,
@@ -185,6 +187,7 @@ export function Home() {
   async function bridgeCheck(c: SeatChoices, seed: number | null = null): Promise<{ line: string; ok: boolean; characters: string[] }> {
     // Characters played by local agents need the folders of this game's seed: ids differ from seed to seed.
     const charactersOf = c.characters === "LocalAgent" ? seed : null;
+    if (!isLocalAddress(c.bridgeAddress)) return { ok: false, characters: [], line: "The bridge must run on this machine (localhost or 127.0.0.1): the page calls no other address." };
     const status = await LocalBridge.check(c.bridgeAddress, localKings(c), charactersOf);
     const ok = bridgeReady(status);
     const chars = charactersOf !== null ? ` and the ${status.characters.length} characters of seed ${charactersOf}` : "";
@@ -201,6 +204,11 @@ export function Home() {
     const missing = choices.providersInUse.filter((id) => id !== AnthropicId && !choices.providers.some((p) => p.id === id));
     if (missing.length > 0) {
       setProblem(`A seat names the provider ${missing.join(", ")}, which is not set up under "Other providers".`);
+      return false;
+    }
+    const unlisted = choices.providers.filter((p) => choices.providersInUse.includes(p.id) && !endpointAllowed(p.baseUrl)).map((p) => p.id);
+    if (unlisted.length > 0) {
+      setProblem(`The provider ${unlisted.join(", ")} has an address the page cannot call: choose a listed provider, or an address on this machine.`);
       return false;
     }
     if (choices.providersInUse.includes(AnthropicId) && key.trim() === "") {

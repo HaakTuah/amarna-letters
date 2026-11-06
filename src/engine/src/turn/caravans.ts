@@ -14,7 +14,7 @@ import { EconomyData, grainWorth } from "../model/economy.ts";
 import { unitCarried } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import { type Power, whose } from "../model/power.ts";
-import { isAlive, logEvent, notify, siegeOf, unitLabel, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { legPoints, PointsPerDay, boatDays, type Company } from "../model/travel.ts";
 import { measures } from "../rules/calendar.ts";
 import { RoadOdds } from "./travel.ts";
@@ -201,8 +201,9 @@ P.caravansTravel = function () {
       // A captured archive on the road (item 10+b) is the taker's now.
       if (c.archive.length > 0) this.archiveArrives(taker.power, c.archive, c.archiveOf, where);
       this.caravanTell(c, taker.province, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${whose(taker.power)} ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; the fleet is lost with it" : ""}.`);
-      notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${whose(c.power)} ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${measures(kept)} for their own baggage` : ""}${c.gold + c.pay > 0 ? (!this.isFar(taker.power, taker.province) ? ", the gold for your treasury" : this.map.get(taker.province).isSea ? ", the gold kept by its men" : ", the gold to go home to your treasury") : ""}.`);
-      logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [...this.caravanNear(c, taker.province), taker.power], "caravan-taken");
+      // Its king hears of it as word comes from where it happened (#675).
+      this.tell(taker.power, taker.province, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${whose(c.power)} ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${measures(kept)} for their own baggage` : ""}${c.gold + c.pay > 0 ? (!this.isFar(taker.power, taker.province) ? ", the gold for your treasury" : this.map.get(taker.province).isSea ? ", the gold kept by its men" : ", the gold to go home to your treasury") : ""}.`);
+      logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [...this.caravanNear(c, taker.province), ...this.nearOf(taker.province, taker.power)], "caravan-taken");
       continue;
     }
     // Item 11b: a band working where it passed (at sea, pirates off those coasts) falls on it, and keeps what it takes.

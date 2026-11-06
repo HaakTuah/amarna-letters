@@ -92,9 +92,15 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - A province with many bands drew their campfires in one row from its city, eight of them running across the next province and into the Gulf (Urim, late in a game); below a city stand three marks at most, the third counting the rest ("+6"), its title telling each of them ("6 more bands in Urim:", then their men and chiefs).
 - The game menu's volume sliders were the browser's blue beside the game's brown checkboxes, and its two links were 22 px tall on a phone; every slider takes the game's accent, and with a finger its links and sliders are 44 px targets.
 - A border glowed where two powers' armies faced each other (#583), but the numbers were only on the counters; a province's card now lists, for each glowing frontier, the armies the seat sees that season on the other side (#586, queued by the owner): "In Suhu: an army, 2,877 men, of Babylonia."
+- A followed person's line stopped at the last place the seat knew him, but nothing said how old that was, so a person unseen for years looked as if he stood there now (#539); the line's end now says "last seen 8 seasons ago", and nothing while he is in sight this season.
+- A seat's own governor, at his seat in the land, was on no follow line after he left the court, so Follow kept the camera at the capital he left; his seat is now his place each season, as his court knows it (a seat moved far off only once word of it arrives), and in god view where he truly sits.
+- The legend's swatch for a crowded small seal drew its dark rim at a width of its own, 2, beside the map's 4.5 at the small seal's .45 scale (#578); the swatch now takes the map's own `--small-rim-marked` and the small seal's scale, now one variable, `--small-seal`, for the map, the legend and the placement alike, so the two cannot drift apart (2.025 px now, so it looks the same).
+- The file picker for saved games and replays was the browser's own grey "Choose File" button, unlike every other button in the game, and stark in dark mode; it is now drawn as the game's buttons are, everywhere a file is chosen.
+- On the New game screen, the Local agents card's cost, "your Claude subscription", broke onto two lines beside its note on desktop; the cost stays on one line, and its note moves below it when the card is narrow.
 
 ## Finds not yet fixed
 
+- A court's own people are described by province ids ("governing kizzuwatna · in kizzuwatna") and an envoy's court is said twice, on the People tab and the Follow tab: filed as bug #734, since the line is the engine's character view, which a model king reads and the script kings parse.
 - On the whole map a few army counters stand over a neighbour's seal (Seha's under Apasa's army, Niya's and Tunip's under Qadesh's, Nineveh's under Ashur's, Dur-Kurigalzu's under Babili's at 1280 × 800), so a tap there opens the counter's province.
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.

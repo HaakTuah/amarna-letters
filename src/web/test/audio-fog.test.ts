@@ -6,20 +6,11 @@ import { knownRuins } from "../src/map/known.ts";
 import { bedAt, cuesAt, moodAt, shadeAt } from "../src/audio/situation.ts";
 import { schedule } from "../src/audio/schedule.ts";
 import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
+import { frame } from "./audio-frame.ts";
 
 // Nothing heard reveals the fog of war (the owner, 1 November 2026: "Important! The music must never reveal what's outside
 // the fog of war."), and a seat hears what its own map shows ("you know where a sea is, so some things you can zoom in on
 // and hear, without it revealing anything"). Hand-built frames: three powers, a capital and a province or two.
-function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
-  return {
-    index, turn: index + 1, ended: false, endReason: null, winners: [], owner: new Map(), walls: new Map(), knownWalls: new Map(), knownSieges: new Map(),
-    knownOwner: new Map(), sieges: [], units: [], moves: [], seenBy: new Map(), sight: new Map(), journeys: [], people: new Map(),
-    sleep: new Map(), eliminated: new Set(), events: [], news: [], inboxCount: new Map(), openAge: false, ageBand: "Usual",
-    ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), counted: new Map(), fed: new Map(),
-    unrest: new Map(), caravans: [], walking: [], omen: "Quiet", ...over,
-  } as SeasonFrame;
-}
-
 const map = WorldMap.default;
 // A great king's capital that is not Egypt's: Hatti takes it, out of Egypt's sight.
 const capital = map.provinces.find((p) => p.capital && p.home !== null && p.home !== "Egypt" && p.home !== "Hatti" && isGreatKing(p.home))!;
