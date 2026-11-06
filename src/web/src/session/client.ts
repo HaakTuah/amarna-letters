@@ -125,7 +125,7 @@ export class Session {
   constructor() {
     // Started from a blob that imports the worker's file, so the worker keeps the page's content security policy
     // (src/web/csp.ts): one loaded from the file itself would take the file's headers, and the site sends none.
-    const blob = new Blob([`import ${JSON.stringify(new URL(workerUrl, location.href).href)};`], { type: "text/javascript" });
+    const blob = new Blob([`import ${JSON.stringify(new URL(workerUrl, import.meta.url).href)};`], { type: "text/javascript" });
     this.worker = new Worker(URL.createObjectURL(blob), { type: "module" });
     this.worker.onmessage = (e: MessageEvent<FromWorker>) => this.receive(e.data);
     this.worker.onerror = (e) => {
