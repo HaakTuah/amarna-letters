@@ -1,7 +1,11 @@
 import { describe, test } from "vitest";
+import { newCharacter, newGame, newGameConfig, newId } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
 import { along, between, city, route, type Pt } from "../src/map/art.ts";
-import { traceOf, type PathStep } from "../src/map/scene.ts";
+import type { MapInput } from "../src/map/renderer.ts";
+import { pathOf, traceOf, type MapScene, type PathStep } from "../src/map/scene.ts";
+import { frameFrom } from "../src/session/frames.ts";
+import { roads } from "../src/map/ways.ts";
 
 /** A step of a follow path: at a province, or on the road between two, so far along. */
 const at = (index: number, province: string): PathStep => ({ index, at: city(province), where: "", on: { province } });
@@ -51,5 +55,27 @@ describe("FollowTraceTests", () => {
     const back = traceOf([onRoad(0, "thebes", "delta", 0.1), at(1, "thebes")]);
     Assert.equal(between(route("thebes", "delta"), 0.1, 0), back);
     Assert.false(back.some((p) => near(p, city("delta"))));
+  });
+
+  test("The follow line's end says how old the seat's word of him is, and nothing while he is in sight", () => {
+    const drawn = (shown: number, path: PathStep[]): string =>
+      roads({ scene: { index: shown, viewer: "Egypt", travellers: [] } as unknown as MapScene, followId: "x", followPath: path } as unknown as MapInput);
+    const path = [at(0, "thebes"), at(1, "delta")];
+    Assert.false(drawn(1, path).includes("last seen"));
+    Assert.true(drawn(2, path).includes("last seen 1 season ago"));
+    Assert.true(drawn(4, path).includes("last seen 3 seasons ago"));
+  });
+
+  test("A court knows where its own governor stands, season after season; another court does not", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const c = newCharacter({ id: newId(s, "c"), name: "Hutupiyanza", status: "Employed", employer: "Hatti", duty: "Governing", watchProvince: "tuwanuwa" });
+    s.characters.push(c);
+    const f0 = frameFrom(s, 0, null);
+    const frames = [f0, frameFrom(s, 1, f0)];
+    const hatti = pathOf(frames, 1, "Hatti", c.id);
+    Assert.equal([0, 1], hatti.map((x) => x.index));
+    Assert.equal(city("tuwanuwa"), hatti[1].at);
+    Assert.equal(2, pathOf(frames, 1, null, c.id).length);
+    Assert.equal(0, pathOf(frames, 1, "Egypt", c.id).length);
   });
 });

@@ -92,9 +92,12 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - A province with many bands drew their campfires in one row from its city, eight of them running across the next province and into the Gulf (Urim, late in a game); below a city stand three marks at most, the third counting the rest ("+6"), its title telling each of them ("6 more bands in Urim:", then their men and chiefs).
 - The game menu's volume sliders were the browser's blue beside the game's brown checkboxes, and its two links were 22 px tall on a phone; every slider takes the game's accent, and with a finger its links and sliders are 44 px targets.
 - A border glowed where two powers' armies faced each other (#583), but the numbers were only on the counters; a province's card now lists, for each glowing frontier, the armies the seat sees that season on the other side (#586, queued by the owner): "In Suhu: an army, 2,877 men, of Babylonia."
+- A followed person's line stopped at the last place the seat knew him, but nothing said how old that was, so a person unseen for years looked as if he stood there now (#539); the line's end now says "last seen 8 seasons ago", and nothing while he is in sight this season.
+- A seat's own governor or general, at his post in the land, was on no follow line after he left the court, so Follow kept the camera at the capital he left; his post is now his place each season, as the Follow tab already said, and in god view too.
 
 ## Finds not yet fixed
 
+- The Follow tab says where a court's own governor is by the province's id, "governing delta · in delta", where the map names it Ta-Mehu: the line comes from the engine's character view (`src/engine/src/rules/views.ts`, `dutyText` and `whereText`), which the seat view a model king reads shares, so it is a change to a request, outside this lane.
 - On the whole map a few army counters stand over a neighbour's seal (Seha's under Apasa's army, Niya's and Tunip's under Qadesh's, Nineveh's under Ashur's, Dur-Kurigalzu's under Babili's at 1280 × 800), so a tap there opens the counter's province.
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
