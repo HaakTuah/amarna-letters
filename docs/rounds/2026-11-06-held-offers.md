@@ -49,6 +49,9 @@ same people known: it is dated as written and stands only for a declaration as o
 caravan's offer read is god's view only (from #725). And sending a letter to a claimant who has fallen is refused only
 once the holder has heard of the fall.
 
+Round 3: one finding, fixed: a fresh letter caught from the same people to the same king was dropped when an older one
+was still held; it now takes the older one's place, or stands beside it if that one is under an asking.
+
 ## Readings taken
 
 - **Keyed by its province**, not by a new id: a court holds at most one offer of a province's people at a time, and the

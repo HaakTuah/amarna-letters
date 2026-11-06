@@ -51,7 +51,9 @@ caravans as carriers (#543), 63.
   so nothing that befalls it is told by its disappearing. Kept, it stays held after the people's leaning ends (nobody
   learns of the end through it); sent on then, it finds no offer standing, and it is dated as written, so it never stands
   for a later declaration of the same people (`HeldLetter.written`, `Declaration.since`, checked in `offerArrives`).
-  Whether its claimant has fallen is checked as the holder has heard (`heardFallen`). The seat sees `SeatView.lettersHeld` and
+  Whether its claimant has fallen is checked as the holder has heard (`heardFallen`). A fresh letter of the same people
+  to the same king takes the place of an older one kept, and is held beside one under an asking; orders reach the one
+  not under an asking. The seat sees `SeatView.lettersHeld` and
   `lettersOffered` (OFFERS YOU HOLD, OFFERS FOR SALE TO YOU; on the page, "Offers taken on the road"), and a sleeping
   seat wakes for either. Save version 64.
 - **Arrived** (`offerArrives`): the declaration is known from that season, and the "A province looks to you" notice names

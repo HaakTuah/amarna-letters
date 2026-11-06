@@ -57,15 +57,19 @@ function sendOn(e: TurnEngine, h: HeldLetter, from: Power, to: Power): void {
 P.holdLetter = function (captor, j, known) {
   const S = this.s;
   const province = (j.text ?? "").split("|")[0];
-  if (S.lettersHeld.some((h) => h.heldBy === captor && h.province === province && h.claimant === j.to)) return;
+  const same = (h: HeldLetter): boolean => h.heldBy === captor && h.province === province && h.claimant === j.to;
+  if (S.lettersHeld.some((h) => same(h) && h.written === j.departTurn)) return;
+  // A fresh letter of the same people to the same king takes the place of an older one kept, not of one under an asking.
+  S.lettersHeld = S.lettersHeld.filter((h) => !(same(h) && h.askedOf === null));
   S.lettersHeld.push(newHeldLetter({ province, claimant: j.to, words: (j.text ?? "").split("|").slice(1).join("|"), heldBy: captor, since: S.turn, written: j.departTurn, known: known ?? S.turn }));
 };
 
 P.letterOrder = function (p, o) {
   const S = this.s;
-  const h = S.lettersHeld.find((x) => x.heldBy === p && x.province === o.province && x.known <= S.turn) ?? null;
-  // Already asked of a king (the asking binds), or that king fallen since.
-  if (h === null || h.askedOf !== null || !isAlive(S, o.to)) return;
+  // The letter of that province not under an asking (an asked one waits for its buyer).
+  const h = S.lettersHeld.find((x) => x.heldBy === p && x.province === o.province && x.known <= S.turn && x.askedOf === null) ?? null;
+  // None but one asked of a king (the asking binds), or that king fallen since.
+  if (h === null || !isAlive(S, o.to)) return;
   if (o.fate === "Send") {
     sendOn(this, h, p, o.to);
     logEvent(S, "letter", `${p} sent the offer of ${named(this, h)}'s people on to ${o.to}.`, [p], o.to === h.claimant ? "letter-sent-on" : "letter-sent-holder");

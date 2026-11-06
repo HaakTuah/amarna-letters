@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, LetterHeldTerms, OfferUnheard, OrderValidator, TurnEngine, Views, WorldMap, buyLetter, inboxOf, letter, newCaravan, newDeclaration, newGame, newGameConfig, newTurnSubmission, type Declaration, type Order, type GameState } from "@amarna/engine";
+import { Dict, LetterHeldTerms, OfferUnheard, newJourney, OrderValidator, TurnEngine, Views, WorldMap, buyLetter, inboxOf, letter, newCaravan, newDeclaration, newGame, newGameConfig, newTurnSubmission, type Declaration, type Order, type GameState } from "@amarna/engine";
 import { Assert, removeAll, smallWorld } from "./support.ts";
 
 // #592 (the owner: "Agreed to all, expertly!"): a caught offer is a thing held. Babylon, Babylonia's capital, leans to
@@ -112,6 +112,30 @@ describe("HeldLetterTests", () => {
     e.letterOrder("Hatti", letter("babylon", "Send", "Egypt"));
     arrive(s, e);
     Assert.equal(OfferUnheard, again.known);
+  });
+
+  test("A fresh letter of the same people takes the place of an old one kept, and stands beside one under an asking", () => {
+    const [s, e, d] = caught();
+    const old = s.lettersHeld.find((h) => h.province === "babylon")!;
+    const fresh = (turn: number) => newJourney({ kind: "Offer", departTurn: turn, from: "Babylonia", to: "Egypt", text: `babylon|${old.words}` });
+    // Kept: replaced by the fresh one, which is the one sent on, and stands for the declaration it was written for.
+    e.dropOffer(d);
+    d.gone = s.turn;
+    s.turn += 4;
+    const again = newDeclaration({ province: "babylon", power: "Egypt", since: s.turn, known: OfferUnheard });
+    s.declarations.push(again);
+    e.holdLetter("Hatti", fresh(s.turn));
+    Assert.equal([s.turn], s.lettersHeld.filter((h) => h.province === "babylon").map((h) => h.written));
+    e.letterOrder("Hatti", letter("babylon", "Send", "Egypt"));
+    arrive(s, e);
+    Assert.equal(s.turn, again.known);
+    // Under an asking: the fresh one stands beside it, and orders reach the fresh one.
+    const [s2, e2] = caught();
+    e2.letterOrder("Hatti", letter("babylon", "Sell", "Babylonia", 80));
+    s2.turn += 4;
+    e2.holdLetter("Hatti", fresh(s2.turn));
+    Assert.equal(2, s2.lettersHeld.filter((h) => h.province === "babylon").length);
+    Assert.equal(0, orders(s2, "Hatti", [letter("babylon", "Send", "Egypt")]).rejected.length);
   });
 
   test("A court not yet told its claimant has fallen may still send him the letter", () => {
