@@ -32,6 +32,11 @@ One finding, fixed: a spy caught out of sight and then recalled by his unknowing
 recall's own path (`recallCovered`) with the province's id, unlike a free spy's; it now names it, and keeps the place
 field, as the free one's line does. A test compares the two.
 
+Round 2: one finding, fixed: the page's map placed a covered spy by parsing "in …" in what his court believes, which now
+names the place, and for a watcher of a province is left out; a caught watcher would have vanished from the map. The
+page's frames carry the cover's `province` (`FrameCover.province`) and the map places him by it, as a free one is
+placed (`covered-watcher.test.ts`).
+
 ## Readings taken
 
 - **"In …" dropped where the duty names the place**, rather than the duty's place dropped: the duty says what he does
