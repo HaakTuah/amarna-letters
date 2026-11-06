@@ -31,10 +31,10 @@
 /* Part E: the pieces go along their roads (map/marching.ts, a Web Animation each), their own slide off meanwhile, each drawn
    as what it is: an army's column with dust at its tail, a fleet heeling under sail with its wake, a caravan. */
 .map .unit.marching, .map .traveller.marching { transition: none; }
-.map .trail .file { fill: var(--bitumen); fill-opacity: .8; stroke: var(--paper); stroke-width: .5; }
-.map .trail .dust { fill: #c9a96e; fill-opacity: .55; transform-box: fill-box; transform-origin: center; animation: dust .9s ease-out infinite both; }
+.map .trail .file { stroke: var(--bitumen); stroke-width: .9; }
+.map .trail .dust { fill: #a8864f; fill-opacity: .6; transform-box: fill-box; transform-origin: center; animation: dust .9s ease-out infinite both; }
 @keyframes dust { from { transform: scale(.4); opacity: .8; } to { transform: scale(1.7); opacity: 0; } }
-.map .trail.wake path { fill: none; stroke: #f4ead2; stroke-opacity: .75; stroke-width: 1.4; stroke-linecap: round; }
+.map .trail.wake path { fill: none; stroke: #fff; stroke-opacity: .95; stroke-width: 2.2; stroke-linecap: round; }
 .map .trail.caravan use { fill: var(--bitumen); fill-opacity: .85; }
 .map .marching .wake ~ .tok-icon { transform-box: fill-box; transform-origin: 50% 85%; animation: heel 1.3s ease-in-out infinite alternate; }
 @keyframes heel { from { transform: rotate(-9deg); } to { transform: rotate(-2deg); } }

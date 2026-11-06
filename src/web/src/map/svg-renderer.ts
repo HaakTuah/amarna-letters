@@ -18,6 +18,7 @@ import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.t
 import { Land, bands, cities, fog, retint, tints, tintsKey } from "./land-layers.ts";
 import { peopleAtCourts, reconcile, travellerItem, travellerShift, unitItems } from "./tokens.ts";
 import { playRoad, trailMarkup, travellerRoad, unitRoad } from "./marching.ts";
+import { glyphId } from "./glyphs.ts";
 import { moves, outlaws, roads, selection } from "./ways.ts";
 
 /** Each river's path as the whole board draws it. */
@@ -200,7 +201,7 @@ export class SvgMapRenderer implements MapRenderer {
       const el = this.units.get(u.key);
       if (from === undefined || from === null || el === undefined || u.ghost) continue;
       const road = unitRoad(u.kind, u.power, from, u.province, s.moves);
-      if (road !== null) this.marchAnims.push(...playRoad(el, road, plan.start - performance.now(), plan.ms, trailMarkup(u.kind, u.men)));
+      if (road !== null) this.marchAnims.push(...playRoad(el, road, plan.start - performance.now(), plan.ms, trailMarkup(u.kind, u.men, glyphId(u.power))));
     }
   }
 

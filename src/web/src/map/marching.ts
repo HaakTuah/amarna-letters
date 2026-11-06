@@ -62,21 +62,23 @@ function headings(road: Road, offsets: readonly Keyframe[]): Keyframe[] {
   return out;
 }
 
-/** How many men a figure of a column stands for, and the most figures a column has (first guesses, presentation only). */
-const MenAFigure = 600;
-const MostFigures = 12;
+/**
+ * A column's figures for its men: by their square root, so a band of a hundred and a host of ten thousand both read (one
+ * figure and fourteen; a full levy of 5,000, ten), and the most a column has (first guesses, presentation only).
+ */
+const figuresFor = (men: number): number => Math.max(1, Math.min(MostFigures, Math.round(Math.sqrt(men) / 7)));
+const MostFigures = 14;
 
 /**
- * What a piece draws behind it while it moves, heading along +x: an army's column, a figure a few hundred men, with dust at
- * its tail; a fleet's wake; a caravan's pack donkeys. `men`: what the seat sees of them (a full levy if it counts none).
+ * What a piece draws behind it while it moves, heading along +x: an army's column (`figuresFor`), with dust at its tail; a fleet's wake; a caravan's pack donkeys. `men`: what the seat sees of them (a full levy if it counts none); `realm`: the colour its men are drawn in (`glyphId`).
  */
-export function trailMarkup(what: "Army" | "Fleet" | "Caravan", men: number): string {
+export function trailMarkup(what: "Army" | "Fleet" | "Caravan", men: number, realm = "none"): string {
   if (what === "Fleet") return `<g class="trail wake"><path d="M-12,-4L-34,-12M-12,4L-34,12M-13,0L-26,0"/></g>`;
   if (what === "Caravan") return `<g class="trail caravan"><use href="#fig-caravan" x="-31" y="-7" width="16" height="16"/></g>`;
-  const n = Math.max(2, Math.min(MostFigures, Math.round((men > 0 ? men : 5000) / MenAFigure)));
+  const n = figuresFor(men > 0 ? men : 5000);
   let sb = `<g class="trail column">`;
-  for (let i = 0; i < n; i++) sb += `<circle class="file" cx="${F(-15 - i * 4.4)}" cy="${i % 2 === 0 ? -1.6 : 1.6}" r="1.7"/>`;
-  const tail = -15 - n * 4.4;
+  for (let i = 0; i < n; i++) sb += `<circle class="file f-${realm}" cx="${F(-15 - i * 5)}" cy="${i % 2 === 0 ? -1.8 : 1.8}" r="2.3"/>`;
+  const tail = -15 - n * 5;
   for (let i = 0; i < 3; i++) sb += `<circle class="dust" cx="${F(tail - 3 - i * 3)}" cy="${F((i - 1) * 2.4)}" r="${F(2.6 + i * 0.6)}" style="animation-delay:${i * 160}ms"/>`;
   return sb + "</g>";
 }
@@ -90,6 +92,8 @@ export function playRoad(el: SVGGElement, road: Road, at: number, ms: number, tr
   if (road.length < 2 || ms <= 0) return [];
   const timing: KeyframeAnimationOptions = { delay: at, duration: ms, easing: "cubic-bezier(.45,.05,.55,.95)", fill: "backwards" };
   const keys = places(road);
+  // Drawn over the pieces standing still, so its trail is not hidden under its neighbours.
+  el.parentNode?.appendChild(el);
   const slide = el.animate(keys, timing);
   el.classList.add("marching");
   const holder = el.querySelector(".sym > g") ?? el.querySelector(".sym");

@@ -165,8 +165,8 @@ until its turn (`fill: backwards`); the token's own slide is off meanwhile (`.ma
 had not seen before appears where it is seen, and stepping, jumping and reduced motion show the season at once, as before.
 
 **As what it is.** While it moves each piece draws a trail behind it, put in the token for the march and taken away after,
-turning with the road: an army a column of figures, one for about 600 men it is seen to have (2 to 12; a full levy is
-5,000), with dust at its tail; a fleet its wake, and its figure heeling under sail; an envoy or gold the pack donkeys of
+turning with the road: an army a column of figures in its realm's colour, by the square root of the men it is seen to have (a band of a
+hundred one, a full levy of 5,000 ten, at most fourteen), with dust at its tail; a fleet its wake, and its figure heeling under sail; an envoy or gold the pack donkeys of
 their caravan (`fig-caravan`), facing the way they go. A spy goes alone.
 
 **Battles, sieges and the world** (`map/moments.ts`). A battle's medallion flares and carries the winner's seal, as the
@@ -183,7 +183,7 @@ what it does at the place, under its medallion:
 | an earthquake | the ground cracked | the medallion shaking |
 | plague, a caravan robbed | fire, as before | |
 
-First guesses (presentation only): 600 men a figure, at most 12; the trail's sizes; each effect's length a half of its beat,
+First guesses (presentation only): a figure for each seventh of the men's square root, at most 14; the trail's sizes; each effect's length a half of its beat,
 played twice.
 
 ## Smooth on a phone (part G)
