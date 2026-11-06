@@ -44,7 +44,7 @@ export function answerText(x: StandingAnswer): string {
           : "";
   const deeds: string[] = [];
   if (x.brings === "Tablet" || x.brings === "Anything") deeds.push(x.seal ? "seal his tablet" : "do not seal his tablet");
-  if (x.goldBack > 0) deeds.push(`send back ${x.goldBack} in a hundred of the gold he brings`);
+  if (x.goldBack > 0) deeds.push(`send back ${x.goldBack}% of the gold he brings`);
   const said = x.say.length > 0 ? `; say: "${x.say}"` : "";
   const when = x.conditions.length > 0 ? ` (${conditionsText(x.conditions)})` : "";
   return `${x.id}: ${who}${what}${when}: ${deeds.length > 0 ? deeds.join(", ") : "receive him"}${said}`;
