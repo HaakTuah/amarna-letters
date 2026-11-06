@@ -63,7 +63,9 @@ out of `views.ts` (47 KB).
 
 ## Benchmarks
 
-(at the final code: below)
+The regression check (`scripts/sim.sh --games 20 --seed 1 --verify-replay`), at the code after review round 2: 20 of
+20 games replay exactly. Winners: Babylonia 11, Egypt 7, Hatti 1, Seha 1 (`develop` at the same seeds: below). The
+suite: 1635 tests pass.
 
 ## Review, round 1
 
@@ -185,3 +187,16 @@ Round 1: 6 of 10, two blocking, seven not:
 8. *(P3)* The report promised numbers it lacked. Fixed: the benchmarks below; #613's rerun withdrawn, with why.
 9. *(P3)* A part split off a far army has no reports, so it is shown as it is. Moved to #615 (it predates this PR and
    is the rest of a far unit as it truly is, which #615 builds next).
+
+Round 2: 8 of 10, one blocking, two not:
+
+- A. *(P1)* A fired standing order's own orders for a gone unit took a path of their own, unchecked: an order the
+  validator refuses was told as given, and one that would displace or be displaced could differ. Fixed: they stay in
+  the season's orders and are checked on a state where the copy stands (`_riddenNow`, `resolveSeason`), so a refusal
+  reads as for the unit that stands; given, they ride out (`goneWord`) instead of running. Orders of command, recall,
+  mandate and food go by the copy as this season's do (`_goneNow`); only the unit supported or carried being gone, the
+  order runs and finds nothing. The feint check reads the copy where the move goes. Test: "A commanded far army's
+  standing order, fired after it was lost out of sight, ..." (Hatti's army at Taidu, a season of word home beside land
+  its king sees), given and refused, failing before the fix.
+- B. *(P3)* Point 8's answer said "fixed" before the numbers were in. Fixed: the benchmarks below.
+- C. *(P3)* An export nothing imports. Fixed.
