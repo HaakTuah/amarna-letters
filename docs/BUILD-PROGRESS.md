@@ -20,8 +20,7 @@ polish point to each that it can spend the last credits on also?" and, to the de
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
 - **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
-  (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner), and
-  army counters standing over a neighbour's seal on the whole map.
+  (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
