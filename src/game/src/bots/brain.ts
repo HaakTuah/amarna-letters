@@ -623,7 +623,7 @@ function overdue(c: CharacterView): boolean {
 
 /** The words a letter's warmth is read by (see sentiment), anywhere in a word. */
 export const Warmth = {
-  warm: ["brother", "love", "friend", "peace", "sealed", "gift", "rejoice", "gracious", "kindly"],
+  warm: ["brother", "love", "friend", "peace", "sealed", "gift", "rejoice", "gracious"],
   cold: ["not forgotten", "regret", "withdraw", "war", "punish", "liar", "false", "broke", "detain", "will not seal"],
 } as const;
 
