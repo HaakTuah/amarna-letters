@@ -189,7 +189,8 @@ export class SvgMapRenderer implements MapRenderer {
     this.changed = true;
     const stood = new Map([...this.units].map(([k, el]) => [k, el.getAttribute("data-province")] as const));
     // A unit gone (destroyed, or out of the viewer's sight) stays until the season's results land (item 17+++).
-    reconcile(this.layers.get("units")!, items, this.units, this.landWait(s));
+    const wait = this.landWait(s);
+    reconcile(this.layers.get("units")!, items, this.units, (el) => (wait > 0 ? this.later(`leave${++this.leaving}`, () => el.remove(), wait) : el.remove()));
     // Part E: each unit that marched goes along its road, drawn as what it is.
     const plan = this.marching(s);
     if (plan === null) return;
@@ -374,6 +375,8 @@ export class SvgMapRenderer implements MapRenderer {
    * with what it runs and when, so a season held still keeps them and they run on when it plays again (item 17+++a).
    */
   private timers = new Map<string, { id: number; run: () => void; due: number }>();
+  /** The tokens gone still waiting to be taken away, counted so each has a timer of its own. */
+  private leaving = 0;
   /** When the season playing out was held still (null: it plays). */
   private heldAt: number | null = null;
 
@@ -438,8 +441,9 @@ export class SvgMapRenderer implements MapRenderer {
     this.sceneFrom = { index: s.index, viewer: s.viewer };
     if (last !== null && last.index === s.index && last.viewer === s.viewer) return;
     const g = this.layers.get("scenes")!;
+    // A season held still lets go first, so nothing it paused stays paused.
+    this.hold(false);
     for (const name of ["scene", "march", "close"]) this.cancelLater(name);
-    this.heldAt = null;
     g.innerHTML = "";
     this.holdLand = null;
     this.marchPlan = null;

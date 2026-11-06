@@ -181,10 +181,10 @@ interface Item {
 }
 
 /**
- * Keeps one element per key, so a token that moves keeps its element and its CSS transition slides it. `leaveAfter`: how
- * long a token gone stays where it was before it is taken away (item 17+++: until the season's results land).
+ * Keeps one element per key, so a token that moves keeps its element and its CSS transition slides it. `leave`: what
+ * becomes of a token gone (taken away at once; item 17+++: left where it was until the season's results land).
  */
-export function reconcile(parent: SVGGElement, items: readonly Item[], known: Map<string, SVGGElement>, leaveAfter = 0): void {
+export function reconcile(parent: SVGGElement, items: readonly Item[], known: Map<string, SVGGElement>, leave: (el: SVGGElement) => void = (el) => el.remove()): void {
   const keep = new Set<string>();
   for (const it of items) {
     keep.add(it.key);
@@ -205,7 +205,6 @@ export function reconcile(parent: SVGGElement, items: readonly Item[], known: Ma
   for (const [k, el] of known)
     if (!keep.has(k)) {
       known.delete(k);
-      if (leaveAfter > 0) window.setTimeout(() => el.remove(), leaveAfter);
-      else el.remove();
+      leave(el);
     }
 }

@@ -4,3 +4,6 @@
 .page.keys .keys-table td:nth-child(2) { width: 6.5rem; }
 .page.keys .keys-table td:last-child { width: 14.5rem; white-space: nowrap; text-align: right; }
 @media (max-width: 34rem) { .page.keys .keys-table td:last-child { width: auto; white-space: normal; } }
+/* A phone has no keys: the links to the Keys page show only where there is a fine pointer or a hover (item 17+++a: "The
+   phone is unchanged"). */
+@media (hover: none) and (pointer: coarse) { .topbar nav a[href="keys"], .menu-body a[href="keys"] { display: none; } }

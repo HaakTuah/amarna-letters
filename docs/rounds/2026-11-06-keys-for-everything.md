@@ -50,7 +50,19 @@ on the Keys page a key is changed, a clash refused ("F2 is already Provinces"), 
 - **Space mid-season holds the season**, not only the next one: the pieces, the land and the scenes stop where they stand
   and go on from there. The play button does the same, since Space "does what the play button shows".
 - **Enter on a focused button is the button's own**, so Enter never seals the season by accident while a button has focus.
-- **No key does two things**: a key given to a second action is refused with a word saying which action has it.
+- **No key does two things**: a key given to a second action is refused with a word saying which action has it, and a key
+  the player gives by its place wins over + and −, which are otherwise matched by what they type.
+- **F1 and F5 are the game's, not the browser's**, inside a game: F1 (the browser's help) is the seat and F5 (reload) the
+  people, as in Crusader Kings III; outside a game, and with a key changed or cleared on the Keys page, the browser has them
+  again. Principle: what players of the genre already know (the item's own words); put to the owner in #754.
+- **The timeline's and the zoom's buttons have rows with no key** (one season back, one season on, back to now, zoom in
+  and out, the whole map): neither game's lists I could check gives them a sure like, and the wheel already zooms; each can
+  be given one on the Keys page. Principle: build the least that meets the text, and invent no key.
+- **A season held still lets its sounds already set off play out**, and the music goes on, as a Paradox game's does while
+  paused; the pieces, the land, the scenes and the season's results wait.
+- **Space on a season played by "one season on"** (auto-play off) starts auto-play, as the play button shows; "one season
+  on" while a season is held lets it play on by itself.
+- **The Keys page's links are hidden on a touch-only screen**: "The phone is unchanged".
 
 ## Benchmarks
 

@@ -87,6 +87,9 @@ export function GameMap({
     panDown: () => renderer.current?.panBy(0, Step),
     panLeft: () => renderer.current?.panBy(-Step, 0),
     panRight: () => renderer.current?.panBy(Step, 0),
+    zoomIn: () => renderer.current?.zoomBy(1.6),
+    zoomOut: () => renderer.current?.zoomBy(1 / 1.6),
+    wholeMap: () => whole(),
   });
   const key = useRef(viewKey);
   key.current = viewKey;
@@ -148,10 +151,10 @@ export function GameMap({
   return (
     <div className="mapview lod1" ref={view}>
       <div className="map-ui zoombtns">
-        <button className="zb" title="Zoom in" aria-label="Zoom in" onClick={() => renderer.current?.zoomBy(1.6)}>
+        <button className="zb" title={withKey("Zoom in", "zoomIn")} aria-label="Zoom in" onClick={() => renderer.current?.zoomBy(1.6)}>
           +
         </button>
-        <button className="zb" title="Zoom out" aria-label="Zoom out" onClick={() => renderer.current?.zoomBy(1 / 1.6)}>
+        <button className="zb" title={withKey("Zoom out", "zoomOut")} aria-label="Zoom out" onClick={() => renderer.current?.zoomBy(1 / 1.6)}>
           −
         </button>
         <button
@@ -164,11 +167,11 @@ export function GameMap({
           ◐
         </button>
         {back !== null ? (
-          <button className="zb fit back" title="Back to where you were" aria-label="Back to where you were" onClick={whole}>
+          <button className="zb fit back" title={withKey("Back to where you were", "wholeMap")} aria-label="Back to where you were" onClick={whole}>
             ↩
           </button>
         ) : (
-          <button className="zb fit" title="Show the whole map" aria-label="Show the whole map" onClick={whole}>
+          <button className="zb fit" title={withKey("Show the whole map", "wholeMap")} aria-label="Show the whole map" onClick={whole}>
             ⤢
           </button>
         )}

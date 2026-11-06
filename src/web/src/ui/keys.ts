@@ -9,11 +9,11 @@ import { useEffect, useRef } from "react";
 
 /** Every action with a key. Each item that adds a window, a view or an action adds its row here. */
 export type KeyAction =
-  | "pause" | "pace1" | "pace2" | "pace3" | "pace4" | "faster" | "slower"
+  | "pause" | "pace1" | "pace2" | "pace3" | "pace4" | "faster" | "slower" | "stepBack" | "stepOn" | "toNow"
   | "endSeason" | "escape"
   | "winSeat" | "winProvinces" | "winStandings" | "winPeople" | "winInbox" | "winThreads" | "winEvents" | "winRules" | "winChronicles"
   | "winMind" | "winTrail" | "winFollow" | "winLegends"
-  | "viewRealms" | "viewMood" | "panUp" | "panLeft" | "panDown" | "panRight";
+  | "viewRealms" | "viewMood" | "panUp" | "panLeft" | "panDown" | "panRight" | "zoomIn" | "zoomOut" | "wholeMap";
 
 /**
  * A key as the table holds it. `codes` are physical keys (`KeyboardEvent.code`: the digit row and the number pad, the same
@@ -45,6 +45,9 @@ export const KeyDefaults: Record<KeyAction, { key: Binding; what: string; group:
   pace4: { key: key(["Digit4", "Numpad4"], "4"), what: "Simulate", group: "Time" },
   faster: { key: key(["NumpadAdd"], "+", ["+", "="]), what: "Faster (Slow, Normal, Fast)", group: "Time" },
   slower: { key: key(["NumpadSubtract"], "−", ["-", "_"]), what: "Slower", group: "Time" },
+  stepBack: { key: none, what: "One season back", group: "Time" },
+  stepOn: { key: none, what: "One season on, or play one season", group: "Time" },
+  toNow: { key: none, what: "Back to now", group: "Time" },
   endSeason: { key: key(["Enter", "NumpadEnter"], "Enter"), what: "Seal your season's orders, when it is your turn", group: "Turns and windows" },
   escape: { key: key(["Escape"], "Esc"), what: "Close the window in front; open the menu when none is open", group: "Turns and windows" },
   winSeat: { key: key(["F1"], "F1"), what: "Your seat: the audience or your orders when they wait, else the season", group: "Turns and windows" },
@@ -66,6 +69,9 @@ export const KeyDefaults: Record<KeyAction, { key: Binding; what: string; group:
   panLeft: { key: key(["KeyA", "ArrowLeft"], "A, ←"), what: "Move the map left", group: "The map" },
   panDown: { key: key(["KeyS", "ArrowDown"], "S, ↓"), what: "Move the map down", group: "The map" },
   panRight: { key: key(["KeyD", "ArrowRight"], "D, →"), what: "Move the map right", group: "The map" },
+  zoomIn: { key: none, what: "Zoom in (the wheel zooms too)", group: "The map" },
+  zoomOut: { key: none, what: "Zoom out", group: "The map" },
+  wholeMap: { key: none, what: "The whole map, and back to where you were", group: "The map" },
 };
 
 /** The actions that repeat while their key is held (the map moving); every other acts once a press. */
@@ -168,14 +174,18 @@ function typing(e: KeyboardEvent): boolean {
 /** The action a key press asks for, if any. Enter on a button or a link is the button's own, as the browser has it. */
 export function actionOf(e: KeyboardEvent): KeyAction | null {
   if (e.ctrlKey || e.metaKey || e.altKey || typing(e)) return null;
-  for (const action of Object.keys(KeyDefaults) as KeyAction[]) {
-    const b = bindingOf(action);
-    if (!(b.codes.includes(e.code) || (b.chars !== undefined && !e.code.startsWith("Numpad") && b.chars.includes(e.key)))) continue;
-    if (e.repeat && !Repeating.has(action)) return null;
-    if (action === "endSeason" && (e.target as HTMLElement | null)?.closest?.("button, a, summary") != null) return null;
-    return action;
-  }
-  return null;
+  const all = Object.keys(KeyDefaults) as KeyAction[];
+  // A key given to an action by its place first; only a key no action has by place is matched by what it types (+ and −).
+  const action =
+    all.find((a) => bindingOf(a).codes.includes(e.code)) ??
+    all.find((a) => {
+      const chars = bindingOf(a).chars;
+      return chars !== undefined && !e.code.startsWith("Numpad") && chars.includes(e.key);
+    });
+  if (action === undefined) return null;
+  if (e.repeat && !Repeating.has(action)) return null;
+  if (action === "endSeason" && (e.target as HTMLElement | null)?.closest?.("button, a, summary") != null) return null;
+  return action;
 }
 
 /**

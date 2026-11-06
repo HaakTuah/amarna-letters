@@ -572,7 +572,9 @@ export class Session {
       this.showTurn(this.historyTurn + 1);
       return;
     }
-    if (this.canPlay) this.step();
+    // A season held still plays on, by itself: auto-play stays off.
+    if (this.playoutHeld) this.holdPlayout(false);
+    else if (this.canPlay) this.step();
   }
 
   /** Starts or stops stepping through the recorded seasons, from the start if already at the newest. */

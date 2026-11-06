@@ -337,6 +337,13 @@ export function Play() {
   };
   windowKeys.current = {
     endSeason: () => seal(false),
+    stepBack: () => {
+      if (index > 0) s.stepBack();
+    },
+    stepOn: () => s.stepForward(),
+    toNow: () => {
+      if (history) s.showTurn(null);
+    },
     // Escape: the card or window in front (a card over the map closes itself: MapCard), the menu, the enlarged panel; else
     // the menu opens.
     escape: () => {
@@ -686,7 +693,7 @@ export function Play() {
       </aside>
 
       <footer className="timebar">
-        <button className="tb" disabled={index <= 0} onClick={() => s.stepBack()} title="One season back" aria-label="One season back">
+        <button className="tb" disabled={index <= 0} onClick={() => s.stepBack()} title={withKey("One season back", "stepBack")} aria-label="One season back">
           ◀
         </button>
         {s.autoPlaying ? (
@@ -710,7 +717,7 @@ export function Play() {
           className="tb"
           disabled={!history && !s.canPlay}
           onClick={() => s.stepForward()}
-          title={history ? "One season on" : "Play one season"}
+          title={withKey(history ? "One season on" : "Play one season", "stepOn")}
           aria-label={history ? "One season on" : "Play one season"}
         >
           {history ? "▶︎|" : "+1"}
@@ -732,7 +739,7 @@ export function Play() {
           {!history && <span className="hide-sm"> · now</span>}
         </span>
         {history && (
-          <button className="tb now" onClick={() => s.showTurn(null)} title="Back to now">
+          <button className="tb now" onClick={() => s.showTurn(null)} title={withKey("Back to now", "toNow")}>
             Now
           </button>
         )}
