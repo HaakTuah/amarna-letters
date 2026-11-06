@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 process.chdir(fileURLToPath(new URL("..", import.meta.url)));
 
 // The rule files (SECURITY.md, point 3) and the developer guide that holds their update and GitHub rules.
-const RULES = ["AGENTS.md", "CLAUDE.md", "SECURITY.md", "docs/builder-rules.md", "docs/claude-and-codex.md",
+const RULES = ["AGENTS.md", "CLAUDE.md", "SECURITY.md", "docs/builder-rules.md", "docs/claude-and-codex.md", "docs/codex-building.md",
   "docs/orchestrating.md", "docs/review-guidelines.md", "docs/threat-model.md", "docs/developing.md"];
 const ALIASES = { "the builder rules": "docs/builder-rules.md", "the progress file": "docs/BUILD-PROGRESS.md" };
 const ARCHIVE = "docs/archive/instructions";

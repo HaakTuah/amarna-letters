@@ -2,8 +2,8 @@
   "about": "The marks of the reading-size check (scripts/reading-size.mjs, archive item 217). read: the files every session reads, each held to `mark` bytes, or to its own mark in `past` where it is already over (a baseline that may only shrink); `total` is their sum's mark. step0: a file past it that a PR changes must shrink in that PR (Step 0, \"Split by meaning\" in AGENTS.md), except the generated or recorded files in `exempt`. A PR that crosses a mark moves it here and says why.",
   "read": ["AGENTS.md", "CLAUDE.md", "docs/builder-rules.md", "docs/BUILD-PROGRESS.md"],
   "mark": 20480,
-  "past": { "docs/BUILD-PROGRESS.md": 31580 },
-  "total": 67825,
+  "past": { "docs/BUILD-PROGRESS.md": 27484 },
+  "total": 64034,
   "step0": 51200,
   "exempt": ["docs/intent/", "package-lock.json", "src/web/src/map/geo-fine-data.ts", "tests/fixtures/"]
 }
