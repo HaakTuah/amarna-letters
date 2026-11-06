@@ -84,8 +84,8 @@ describe("RulebookTextTests", () => {
       text,
     );
     // The vassal treaties sealed before the age began share one oath: it is read once, each vassal with its tribute and copy.
-    Assert.contains('- Vassal treaties sealed before the age began, each named "the tablet sealed by" its vassal "and Egypt, dated turn 0", all in these words with its own tribute for N: "I will send you N shekels of gold each year as tribute.', text);
-    Assert.contains("; Gubla (Byblos) 15 [your copy k", text);
+    Assert.contains('- Vassal treaties sealed before the age began, each "the tablet sealed by" its vassal "and Egypt, dated turn 0", all with one oath, each with its own tribute for N: "I will send you N shekels of gold each year as tribute.', text);
+    Assert.contains("; Gubla (Byblos) 15 (k", text);
     Assert.doesNotContain("the tablet sealed by Gubla and Egypt", text);
   });
 

@@ -17,7 +17,8 @@ import { CouncilSection } from "./orders/CouncilSection.tsx";
 
 /**
  * An envoy's journey as the engine words it for kings ("Terqa: 2 season(s) each way"), read for a person: the court by the
- * name the game shows, "1 season" or "2 seasons" rather than "season(s)". The engine's own line, which models read, is unchanged.
+ * name the game shows, "1 season" or "2 seasons" rather than "season(s)". Models read the same line rewritten by their seat view
+ * (`llm/src/prompts.ts`).
  */
 const TravelTime = /^(?<court>.+?): (?<n>\d+) season\(s\) each way$/;
 function travelTime(t: string): string {

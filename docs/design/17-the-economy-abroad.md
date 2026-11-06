@@ -91,7 +91,10 @@ causes and the king's share travels home as a load (`20-people-across-borders.md
 every court learns the markets in the land it sees, as they stand then; since item 10+b the rest only as its caravans,
 ships and envoys bring word home, and the half-season reach (`wordSeasonsShare` 2) is what it knows at the start
 (`20-people-across-borders.md`). The reading of "Prices are known where they are and through news". `SeatView.markets`; the
-model's view lists the dearest and cheapest it knows (FOREIGN MARKETS) and the tolls on its goods.
+model's view gives the markets it knows (FOREIGN MARKETS): where all pay one price, that price once and the purses of
+the first eight, with how many more; up to eight, all by price; more, the four dearest and the four cheapest of those that
+pay less than the dearest (`byPrice` in `llm/src/prompt-economy.ts`, which names all of a king's own markets); and the
+tolls on its goods.
 
 ### Orders, rulebook and the web app
 

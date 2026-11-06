@@ -456,7 +456,7 @@ P.sendTraders = function (orders, tell) {
     setOut(S, c);
     const what = goods(grain, c.gold);
     if (fleet !== null) tell(p, o.from, `Your fleet in ${Map.get(fleet.province).name} loaded ${what} at ${from.name} and sailed for ${to.name} to ${trading ? "trade" : "deliver it"}: it is out of the war until it is back.`);
-    else tell(p, o.from, `${o.type === "trade" && o.sneak ? "Smugglers' caravan" : "Trading caravan"} set out from ${from.name} for ${to.name} with ${what}, by ${listed(route.slice(1, -1).map((x) => Map.get(x).name)) || "the direct road"}.`);
+    else tell(p, o.from, `${o.type === "trade" && o.sneak ? "A smugglers' caravan" : "A trading caravan"} left ${from.name} for ${to.name} with ${what}, by ${listed(route.slice(1, -1).map((x) => Map.get(x).name)) || "the direct road"}.`);
     logEvent(S, fleet !== null ? "ship-out" : "trade-out", `${p} sent ${fleet !== null ? "a ship" : "a trading caravan"} from ${from.name}.`, this.nearOf(o.from, p), fleet !== null ? "ship-out" : "trade-out");
   }
 };

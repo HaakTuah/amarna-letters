@@ -9,7 +9,7 @@
 import { UnrestData } from "../model/unrest.ts";
 import { Dict } from "../core/collections.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
-import { idiv } from "../core/num.ts";
+import { fmtN, idiv } from "../core/num.ts";
 import { cmpStr } from "../core/text.ts";
 import { LandData, menAvailable, unitCarried } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
@@ -285,7 +285,7 @@ P.worksSeason = function () {
       if (halted.length > 0) say(id, `war halted the work on ${namedAll(halted, prov.name)}`);
       // Bug #540: what a far province's works cost comes home with its report, not in the season's total.
       if (this.wordFrom(p, id) > 0 && (gold > gold0 || men > men0)) {
-        say(id, `its works cost ${formatMoney(gold - gold0)}${men > men0 ? ` and took ${men - men0} men from the fields by corvée` : ""} this season`);
+        say(id, `its works cost ${formatMoney(gold - gold0)}${men > men0 ? ` and took ${fmtN(men - men0, 0)} men from the fields by corvée` : ""} this season`);
         [gold, men] = [gold0, men0];
       }
     }
@@ -295,7 +295,7 @@ P.worksSeason = function () {
       if (this.wordFrom(p, id) === 0) near.push(...l);
       else this.tell(p, id, "Resolution", "Works", `From ${Map.get(id).name}: ${l.join("; ")}.`);
     }
-    const spent = [gold > 0 ? formatMoney(gold) : "", men > 0 ? `${men} men from the fields by corvée` : ""].filter((x) => x !== "").join(" and ");
+    const spent = [gold > 0 ? formatMoney(gold) : "", men > 0 ? `${fmtN(men, 0)} men from the fields by corvée` : ""].filter((x) => x !== "").join(" and ");
     const forms = [`Your works took ${spent} this season.`, `Upkeep and building cost ${spent} this season.`, `This season the works cost ${spent}.`];
     const cost = spent !== "" ? pick(forms, `${S.turn}|${p}|works`) : "";
     if (cost !== "" || near.length > 0) notify(S, p, "Resolution", "Works", [cost, sentences(near)].filter((x) => x !== "").join(" "));

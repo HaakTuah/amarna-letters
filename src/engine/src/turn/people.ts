@@ -7,7 +7,7 @@
  */
 import { policedShare } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
-import { clamp, idiv } from "../core/num.ts";
+import { clamp, fmtN, idiv } from "../core/num.ts";
 import { UnrestData } from "../model/unrest.ts";
 import { sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
@@ -253,11 +253,9 @@ P.peopleSeason = function (food) {
   return lines;
 };
 
-/** A count of people as a king reads it. */
+/** A count of people as a king reads it, grouped by thousands as his view's figures are: exact below a thousand, to the hundred below ten thousand ("2,600"), to the thousand above. */
 export function people(n: number): string {
-  if (n < 1000) return `${n}`;
-  const k = n >= 10_000 ? `${Math.round(n / 1000)}` : (n / 1000).toFixed(1).replace(/\.0$/, "");
-  return k === "1" ? "a thousand" : `${k} thousand`;
+  return fmtN(n < 1000 ? n : n >= 10_000 ? Math.round(n / 1000) * 1000 : Math.round(n / 100) * 100, 0);
 }
 
 /** A levy takes its `n` men from the men of fighting age of the province: false, taking none, if it has too few. */

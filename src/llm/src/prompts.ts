@@ -38,11 +38,12 @@ import {
   counted,
   EconomyData,
   type InboxItem,
+  type CharacterView,
 } from "@amarna/engine";
 import { GoldLifeline, economyLines, worksLines } from "./prompt-economy.ts";
 import { person } from "./prompt-audience.ts";
-import { NoneRead, inFull, letterBrief, letterLine, lettersGold, openingTreaties, tabletBrief, tabletLine, whenMet, withoutHolds } from "./prompt-letters.ts";
-import { Sb, andList, joinS } from "./text.ts";
+import { NoneRead, copySource, inFull, letterBrief, letterLine, lettersGold, openingTreaties, tabletBrief, tabletLine, whenMet, withoutHolds } from "./prompt-letters.ts";
+import { Sb, andList, asViewFigures, joinS, num } from "./text.ts";
 export function identity(p: Power): string {
   return `You are ${kingFor(p, p)}, Great King of ${claimedName(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
 }
@@ -149,18 +150,17 @@ export function namesLine(v: SeatView): string
  * owe and how far people trust his word, and his standing orders for carriers and troops (their orders: the rulebook).
  */
 function treasuryLine(v: SeatView): string {
-  const n = (x: number): string => x.toLocaleString("en");
-  const came = v.income > 0 ? `${n(v.income)} came in since your last orders (mines and sales)` : `Nothing came in since your last orders`;
-  const works = v.worksUpkeep > 0 ? `, what you keep and build in gold ${n(v.worksUpkeep)}` : ``;
+  const came = v.income > 0 ? `${num(v.income)} came in since your last orders (mines and sales)` : `Nothing came in since your last orders`;
+  const works = v.worksUpkeep > 0 ? `, what you keep and build in gold ${num(v.worksUpkeep)}` : ``;
   const due = v.feesDue > 0 || v.feesOwed > 0
-    ? ` Of their fees, ${n(v.feesDue)} more falls due as their jobs are done${v.feesOwed > 0 ? `, and you let ${n(v.feesOwed)} fall due unpaid` : ``}.`
+    ? ` Of their fees, ${num(v.feesDue)} more falls due as their jobs are done${v.feesOwed > 0 ? `, and you let ${num(v.feesOwed)} fall due unpaid` : ``}.`
     : ``;
   const promises = v.kept + v.broken === 0 ? `none kept or broken yet` : `you kept ${v.kept} promises to pay and broke ${v.broken}`;
   const carriers = v.payCarriers ? `You pay the carriers of your letters on delivery, by your standing order.` : `You do not pay the carriers of your letters on delivery.`;
   const troops = v.payTroops && v.feedTroops ? "pays and feeds your troops" : v.payTroops ? "pays your troops but does not feed them from your stores" : v.feedTroops ? "feeds your troops but pays them nothing" : "neither pays nor feeds your troops";
   const pay = v.payHeld.length > 0 ? `, ${v.payTroops ? "pay held back from" : "but pays"} those in ${joinS(", ", v.payHeld)}` : "";
   const food = v.feedHeld.length > 0 ? `, ${v.feedTroops ? "food held back from" : "but feeds"} those in ${joinS(", ", v.feedHeld)}` : "";
-  return `TREASURY: ${n(v.gold)} shekels by your ledger. ${came}. Each season: your troops' pay ${n(v.upkeep)}${works}, your servants' fees about ${n(v.fees)}.${due} `
+  return `TREASURY: ${num(v.gold)} shekels by your ledger. ${came}. Each season: your troops' pay ${num(v.upkeep)}${works}, your servants' fees about ${num(v.fees)}.${due} `
     + `People count on ${v.trust}% of what you promise (${promises}). ${carriers} Your standing order ${troops}${pay}${food}.`;
 }
 
@@ -197,8 +197,10 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         if (rank.length > 0) sb.appendLine(rank);
         sb.appendLine(treasuryLine(v));
         sb.appendLine(GoldLifeline);
+        // Order names stand in a section's header only, never in its entries.
+        if (v.debts.length > 0) sb.appendLine("DEBTS YOU OWE (repay, to a tablet's holder standing at your court):");
         for (const d of v.debts)
-            sb.appendLine(`  Your debt ${d.id}: ${d.left} shekels left of ${d.owed} to repay (${d.sealedTurn > 0 ? `${d.principal} lent by ${d.lender} in turn ${d.sealedTurn}` : `owed to ${d.lender} since before the first season`}, to be repaid by turn ${d.dueTurn}); the tablet is held by ${d.holder}${d.here ? `, who stands at your court (order repay)` : ``}.`);
+            sb.appendLine(`  Your debt ${d.id}: ${d.left === d.owed ? `${num(d.owed)} shekels, none yet repaid` : `${num(d.left)} shekels left of ${num(d.owed)} to repay`} (${d.sealedTurn > 0 ? `${num(d.principal)} lent by ${d.lender} in turn ${d.sealedTurn}` : `owed to ${d.lender} since before the first season`}, to be repaid by turn ${d.dueTurn}); the tablet is held by ${d.holder}${d.here ? `, who stands at your court` : ``}.`);
         if (v.debtsHeld.length > 0) sb.appendLine("DEBT TABLETS YOU HOLD (claims on others):");
         for (const d of v.debtsHeld)
             sb.appendLine(`  Tablet ${d.id}: ${d.holder} owes ${d.left} (${d.sealedTurn > 0 ? `lent by ${d.lender} in turn ${d.sealedTurn}` : `owed to ${d.lender} since before the first season`}, to be repaid by turn ${d.dueTurn})${d.here ? `; they stand at your court` : ``}.`);
@@ -227,17 +229,19 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
             if (terrainOf(id) === "Desert") marks.push(`desert`);
             return marks.length === 0 ? `` : ` (${joinS(`, `, marks)})`;
         };
-        // Not seen now (item 7b): how old the news is, and who brought it if one of your people did; nothing if seen now.
+        // In sight now; else (item 7b) how old the news is, and who brought it if one of your people did; else as every court knew it at the start.
+        const sighted = new Set(v.visible);
         const heard = (id: string): string => {
+            if (sighted.has(id)) return `in sight`;
             const asOf = v.ownerAsOf.tryGet(id);
-            if (asOf === undefined) return ``;
+            if (asOf === undefined) return `as it stood at the start`;
             const from = v.ownerFrom.tryGet(id) ?? ``;
             return `heard in turn ${asOf}` + (from === `seen` ? `, when you last saw it` : from.length > 0 && from !== `word from abroad` ? `, from ${from}` : ``);
         };
-        // A holder's provinces by how the court knows them: those seen now, then each date of word, oldest first.
+        // A holder's provinces by how the court knows them: those in sight, those as at the start, then each date of word, oldest first.
         const byWord = (who: string, ids: string[]): string =>
-            joinS(`; `, sortBy(groupBy(ids, heard), [g => v.ownerAsOf.tryGet(g[1][0]) ?? -1, cmpNum], [g => g[0], cmpStr])
-                .map(([h, xs], i) => `${i === 0 ? who : ``}${h.length === 0 ? `` : `${i === 0 ? `, ` : ``}${h}`}: ${joinS(`, `, xs.map(id => id + marksOf(id) + troop(id)))}`));
+            joinS(`; `, sortBy(groupBy(ids, heard), [g => (sighted.has(g[1][0]) ? -1 : v.ownerAsOf.tryGet(g[1][0]) ?? 0), cmpNum], [g => g[0], cmpStr])
+                .map(([h, xs], i) => `${i === 0 ? `${who}, ` : ``}${h}: ${joinS(`, `, xs.map(id => id + marksOf(id) + troop(id)))}`));
         // A power holding only the province of its own name (Gath, gath) goes in one line with the rest of its kind.
         const single = (p: Power | null, ids: string[]): boolean => p !== null && p !== v.power && ids.length === 1 && ids[0] === p.toLowerCase();
         const holders = sortBy(groupBy(v.owner, x => x[1]), [g => (g[0] === null ? 99 : AllPowers.indexOf(g[0])), cmpNum])
@@ -245,7 +249,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         for (const [key, ids] of holders.filter(([key, ids]) => key !== null && !single(key, ids)))
             sb.appendLine(`- ${byWord(key === v.power ? `${key} (you)` : `${key}`, ids)}`);
         const singles = holders.filter(([key, ids]) => single(key, ids)).flatMap(([, ids]) => ids);
-        if (singles.length > 0) sb.appendLine(`- ${byWord(`Provinces each held by the power of the same name, which holds no other`, singles)}`);
+        if (singles.length > 0) sb.appendLine(`- ${byWord(`Powers that hold only the land of their name`, singles)}`);
         const none = holders.find(([key]) => key === null);
         if (none !== undefined) sb.appendLine(`- ${byWord(`Held by no one`, [...none[1]])}`);
         const sieges = siegesLine(v);
@@ -255,12 +259,14 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         sb.appendLine(`You can see troops in: ${joinS(`, `, v.visible)}.`);
 
         sb.appendLine();
-        sb.appendLine(`YOUR SERVANTS:`);
+        // A list where someone offers news says how to buy it in its header.
+        const newsFor = (cs: readonly CharacterView[]): string => (cs.some((c) => c.news.length > 0) ? ` (buy_news to buy the news one offers)` : ``);
+        sb.appendLine(`YOUR SERVANTS${newsFor(v.court)}:`);
         if (v.court.length === 0) sb.appendLine(`- nobody`);
         for (const c of v.court) sb.appendLine(`- ` + person(c));
         if (v.known.length > 0)
         {
-            sb.appendLine(`OTHER PEOPLE YOU KNOW OF:`);
+            sb.appendLine(`OTHER PEOPLE YOU KNOW OF${newsFor(v.known)}:`);
             for (const c of v.known) sb.appendLine(`- ` + person(c));
         }
         // Item 12: envoys waiting at court whom nobody understands.
@@ -280,7 +286,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
             const { lines, rest } = openingTreaties(v.tablets, v.power, read);
             for (const l of lines) sb.appendLine(`- ${l}`);
             for (const t of rest)
-                sb.appendLine(`- ${(read.has(t.tabletId) ? tabletBrief(t) : tabletLine(t))}${(t.allianceOath ? ` A sworn alliance.` : ``)}${(t.vassal !== null ? ` A vassal treaty: ${t.vassal} the vassal.` : ``)} (${t.source}${(t.authResult !== null ? `; examined: ` + t.authResult : ``)})`);
+                sb.appendLine(`- ${(read.has(t.tabletId) ? tabletBrief(t) : tabletLine(t))}${(t.allianceOath ? ` A sworn alliance.` : ``)}${(t.vassal !== null ? ` A vassal treaty: ${t.vassal} the vassal.` : ``)} (${copySource(t)}${(t.authResult !== null ? `; examined: ` + t.authResult : ``)})`);
         }
         sb.appendLine(`ENVOY TRAVEL (about, by the fastest road open this season): ${travelLine(v)}.`);
         if (v.roadsClosed.length > 0) sb.appendLine(`YOUR ROADS ARE CLOSED to the people of: ${joinS(`, `, v.roadsClosed)}.`);
@@ -460,12 +466,12 @@ export function whileYouSlept(v: SeatView): string
         if (v.digest.length > 0)
         {
             sb.appendLine(`In brief${(v.digestLeftOut > 0 ? ` (${v.digestLeftOut} earlier lines left out)` : ``)}:`);
-            for (const d of v.digest) sb.appendLine(`- ${d}`);
+            for (const d of v.digest) sb.appendLine(`- ${asViewFigures(d)}`);
         }
         if (v.whileAsleep.length > 0)
         {
             sb.appendLine(`The news of those seasons, oldest first (routine treasury notices left out${(v.whileAsleepLeftOut > 0 ? `; ${v.whileAsleepLeftOut} earlier items left out` : ``)}):`);
-            for (const i of v.whileAsleep) sb.appendLine(`[turn ${i.turn}] ${headline(i)}: ${i.kind === "Battle" ? withoutHolds(i.body) : i.body}`);
+            for (const [turn, items] of groupBy(v.whileAsleep, (i) => i.turn)) for (const line of newsLines(items)) sb.appendLine(`[turn ${turn}] ${line.text}`);
         }
         return sb.toString();
     }
@@ -483,15 +489,43 @@ function headline(i: InboxItem): string {
   return word === undefined ? title : title === i.kind ? word.charAt(0).toUpperCase() + word.slice(1) : `${title} (${word})`;
 }
 
+/**
+ * A season's news as lines, each "headline: body", in the view's figures. Notices of the season under one headline, with
+ * no clauses of their own, share one line where the first stood: sentences that open alike say the opening once ("You
+ * settled 2,600 loose men in Harran; 973 loose men in Taidu."), others follow one another.
+ */
+function newsLines(items: readonly InboxItem[]): { text: string; clauses: InboxItem["clauses"] }[] {
+  const body = (i: InboxItem): string => asViewFigures(i.kind === "Battle" ? withoutHolds(i.body) : i.body);
+  const lines: { head: string; bodies: string[]; clauses: InboxItem["clauses"] }[] = [];
+  for (const i of items) {
+    const head = headline(i);
+    const same = i.clauses.length === 0 ? lines.find((l) => l.head === head && l.clauses.length === 0) : undefined;
+    if (same !== undefined) same.bodies.push(body(i));
+    else lines.push({ head, bodies: [body(i)], clauses: i.clauses });
+  }
+  return lines.map((l) => ({ text: `${l.head}: ${merged(l.bodies)}`, clauses: l.clauses }));
+}
+
+/** Bodies under one headline: one sentence each that open with the same two words or more say the opening once. */
+function merged(bodies: readonly string[]): string {
+  if (bodies.length === 1) return bodies[0];
+  const single = bodies.every((b) => b.endsWith(`.`) && !b.slice(0, -1).includes(`. `));
+  const words = bodies.map((b) => b.split(` `));
+  let shared = 0;
+  while (words.every((w) => shared < w.length - 1 && w[shared] === words[0][shared])) shared++;
+  if (!single || shared < 2) return joinS(` `, bodies);
+  return `${words[0].slice(0, shared).join(` `)} ${joinS(`; `, words.map((w) => w.slice(shared).join(` `).slice(0, -1)))}.`;
+}
+
     /// <summary>The season's news as the court has it: everything delivered to it this season, oldest first.</summary>
 export function news(v: SeatView): string
     {
         const sb = new Sb();
         sb.appendLine(`NEWS THIS SEASON:`);
         if (v.inbox.length === 0) sb.appendLine(`- nothing`);
-        for (const i of v.inbox) {
-            sb.appendLine(`${headline(i)}: ${i.kind === "Battle" ? withoutHolds(i.body) : i.body}`);
-            if (i.clauses.length > 0) sb.appendLine(`  The answer in clauses, as reported: ${joinS(`; `, i.clauses.map(clauseTag))}.`);
+        for (const line of newsLines(v.inbox)) {
+            sb.appendLine(line.text);
+            if (line.clauses.length > 0) sb.appendLine(`  The answer in clauses, as reported: ${joinS(`; `, line.clauses.map(clauseTag))}.`);
         }
         return sb.toString();
     }
@@ -547,12 +581,11 @@ export function grantLine(g: GrantView, me: Power): string {
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : `, until revoked`} (${g.tablet}).`;
 }
 
-/** A unit's men where it is short of a full levy (item 11a+): ", 600 men"; nothing for a full one. */
 /** An own unit's command (item 13): its commander, on his way or with it, word recalling him, and its mandate. */
 function commandNote(u: UnitView, v: SeatView): string {
   const parts: string[] = [];
   if (u.reported > 0) parts.push(`as reported in turn ${u.reported}`);
-  if (u.hiredMen > 0 && u.hiredUntil !== null) parts.push(`${u.hiredMen} of its men an enlisted band serving until turn ${u.hiredUntil}`);
+  if (u.hiredMen > 0 && u.hiredUntil !== null) parts.push(`${num(u.hiredMen)} of its men an enlisted band serving until turn ${u.hiredUntil}`);
   if (u.commander !== null) {
     const name = v.court.find((c) => c.id === u.commander)?.name ?? u.commander;
     parts.push(u.commandFrom > v.turn ? `${name} on his way to command it, from turn ${u.commandFrom}` : `commanded by ${name} (${u.commander})`);
@@ -562,8 +595,9 @@ function commandNote(u: UnitView, v: SeatView): string {
   return parts.length === 0 ? `` : `; ` + joinS(`; `, parts);
 }
 
+/** A unit's men where it is not a full levy (item 11a+): ", 4,887 men"; nothing for a full one. */
 function menNote(u: { kind: "Army" | "Fleet"; men: number; march?: string | null; marchDays?: number }): string {
   // Since item 13 units start at the sizes the sources give, so any that is not a full levy's says its men.
-  const men = u.men > 0 && u.men !== menOf(u.kind) ? `, ${u.men} men` : ``;
+  const men = u.men > 0 && u.men !== menOf(u.kind) ? `, ${num(u.men)} men` : ``;
   return men + (u.march != null ? `, on the road to ${u.march}, about ${u.marchDays} days of road left` : ``);
 }

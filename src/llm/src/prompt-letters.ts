@@ -32,6 +32,12 @@ function byHand(t: TabletView): string {
   return ` (sealed for ${t.byHandOf ?? ``} by the hand of ${t.byHand}${within}${t.repudiatedTurn !== null ? `; repudiated in turn ${t.repudiatedTurn}` : ``})`;
 }
 
+/** How the king's copy came to him, without the envoy's hand where the tablet's line has named it already. */
+export function copySource(t: TabletView): string {
+  const hand = t.byHand !== null ? ` by the hand of ${t.byHand}` : null;
+  return hand !== null && t.source.endsWith(hand) ? t.source.slice(0, -hand.length) : t.source;
+}
+
 /** The conditions of a scheduled entry or a standing order, after its season or event: " (unless ...)", or nothing. */
 export function whenMet(cs: readonly Condition[]): string {
   return cs.length === 0 ? `` : ` (${conditionsText(cs)})`;
@@ -76,8 +82,8 @@ export function openingTreaties(tablets: readonly TabletView[], viewer: Power, r
     if (group.length < 2) continue;
     const { overlord, form } = group[0];
     const words = group.every((x) => read.has(x.t.tabletId)) ? opening(form) : form;
-    const vassals = group.map((x) => `${name(x.vassal)}${name(x.vassal) !== x.vassal ? ` (${x.vassal})` : ``} ${x.tribute} [your copy ${x.t.copyId}]`);
-    lines.push(`Vassal treaties ${OpeningSource}, each named "the tablet sealed by" its vassal "and ${name(overlord)}, dated turn 0", all in these words with its own tribute for N: "${words}" Vassals and their tribute: ${joinS(`; `, vassals)}.`);
+    const vassals = group.map((x) => `${name(x.vassal)}${name(x.vassal) !== x.vassal ? ` (${x.vassal})` : ``} ${x.tribute} (${x.t.copyId})`);
+    lines.push(`Vassal treaties ${OpeningSource}, each "the tablet sealed by" its vassal "and ${name(overlord)}, dated turn 0", all with one oath, each with its own tribute for N: "${words}" Tribute, and your copy: ${joinS(`; `, vassals)}.`);
     for (const x of group) grouped.add(x.t);
   }
   return { lines, rest: tablets.filter((t) => !grouped.has(t)) };
