@@ -33,7 +33,7 @@ Every file changed is under the 50 KB mark; the new code is a file of its own, `
 - **Script kings** (`bots/trade.ts`): a market whose people talk says lean our way is worth a trade venture that only
   pays its way, since our caravan coming home brings their offer (under `--no-talk-play` / `--talk-play-half`).
 - **Rulebook** (`llm/src/rules-freedom.ts`), **design note** 51, signals (`offer-caravan`, `offer-caravan-paid`,
-  `offer-caravan-brought`, `offer-caravan-lost`, `offer-talk-traders`). **Save version 63.**
+  `offer-caravan-brought`, `offer-caravan-lost`, `offer-talk-traders`). **Save version 64.**
 
 ## Measured (`scripts/sim.sh --games 50 --seed 1 --talk-play-half`)
 
