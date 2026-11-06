@@ -24,25 +24,20 @@ import {
   newGameConfig,
   newId,
   newLossAbroad,
-  newMindReply,
   newTurnSubmission,
   placeSpy,
   serialize,
   single,
 } from "@amarna/engine";
 import { fresh, Assert, last, skilled, smallWorld } from "./support.ts";
+import { begin as turnBegin } from "./turn-begin.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
 // A spy watches a court in secret: the court does not see it there, nor whom it serves, until its watchmen catch it
 // (and then learns its master only if it confesses), unless the spy secretly serves that court (a double agent it
 // turned, or a plant in its pay).
 describe("HiddenSpyTests", () => {
-  function begin(s: GameState): TurnEngine {
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    for (const r of e.mindRequests) e.fulfil(r, newMindReply({ text: `[${r.task}]`, number: 15 }));
-    return e;
-  }
+  const begin = (s: GameState): TurnEngine => turnBegin(s, 15);
 
   function none(): Dict<Power, TurnSubmission> {
     return new Dict();

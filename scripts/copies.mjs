@@ -16,7 +16,7 @@ process.chdir(fileURLToPath(new URL("..", import.meta.url)));
 const BASELINE = "scripts/copies-baseline.json";
 const CODE = () => ls(["src/**/*.ts", "src/**/*.tsx", "src/**/*.mjs", "scripts/*.mjs"]);
 const PROSE = ["AGENTS.md", "CLAUDE.md", "SECURITY.md", "docs/builder-rules.md", "docs/claude-and-codex.md",
-  "docs/orchestrating.md", "docs/review-guidelines.md", "docs/threat-model.md", "docs/developing.md", "docs/calibration.md"];
+  "docs/codex-building.md", "docs/orchestrating.md", "docs/review-guidelines.md", "docs/threat-model.md", "docs/developing.md", "docs/calibration.md"];
 const LINES = 8, MIN_CHARS = 240, WORDS = 12;
 const hash = s => crypto.createHash('sha1').update(s).digest('hex').slice(0, 12);
 

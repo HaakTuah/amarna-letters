@@ -106,6 +106,18 @@ describe("ObedienceTests", () => {
     Assert.equal(UnrestData.forceMost, e.forceIn(city, "Hatti"));
   });
 
+  /** Gaza cleared of units, with Addaya ambitious and disloyal and his people following him over Egypt: the province and the man. */
+  function risingGaza(s: GameState) {
+    const id = "gaza";
+    removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
+    const g = named(s, "Addaya");
+    g.traits.ambition = 90;
+    g.traits.loyalty = 10;
+    s.ledger.get(id).set("Egypt", 0);
+    s.ledger.get(id).set(g.id, 150);
+    return [id, g] as const;
+  }
+
   test("Conquest is the season's rule alone: moving in takes nothing, and the province answers to the taker as the season's reckoning finds it", () => {
     const s = small("Hatti", "Arzawa");
     const e = new TurnEngine(s);
@@ -123,13 +135,7 @@ describe("ObedienceTests", () => {
 
   test("A man whose people would follow him is asked; a script answers by his traits, and the rising breaks out the next season", () => {
     const s = small("Egypt");
-    const id = "gaza";
-    removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
-    const g = named(s, "Addaya");
-    g.traits.ambition = 90;
-    g.traits.loyalty = 10;
-    s.ledger.get(id).set("Egypt", 0);
-    s.ledger.get(id).set(g.id, 150);
+    const [id, g] = risingGaza(s);
     const e = new TurnEngine(s);
     e.obeySeason();
     // Asked, nothing yet.
@@ -167,13 +173,7 @@ describe("ObedienceTests", () => {
 
   test("A model who chooses not to lead them is not made to: the province stays its master's", () => {
     const s = small("Egypt");
-    const id = "gaza";
-    removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
-    const g = named(s, "Addaya");
-    g.traits.ambition = 90;
-    g.traits.loyalty = 10;
-    s.ledger.get(id).set("Egypt", 0);
-    s.ledger.get(id).set(g.id, 150);
+    const [id, g] = risingGaza(s);
     const e = new TurnEngine(s);
     e.obeySeason();
     const req = e.mindRequests.find((r) => r.task === "Rising" && r.characterId === g.id)!;
@@ -185,13 +185,7 @@ describe("ObedienceTests", () => {
 
   test("A rising against the master's troops is fought as a battle: a few among people who lean away are beaten and stay where they stand", () => {
     const s = small("Egypt");
-    const id = "gaza";
-    removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
-    const g = named(s, "Addaya");
-    g.traits.ambition = 90;
-    g.traits.loyalty = 10;
-    s.ledger.get(id).set("Egypt", 0);
-    s.ledger.get(id).set(g.id, 150);
+    const [id] = risingGaza(s);
     const few = newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: id, home: "memphis", men: 300 });
     s.units.push(few);
     new TurnEngine(s).obeySeason();
@@ -204,13 +198,7 @@ describe("ObedienceTests", () => {
 
   test("A rising that wins costs its men too, as a battle's winner loses men", () => {
     const s = small("Egypt");
-    const id = "gaza";
-    removeAll(s.units, (u) => u.province === id || WorldMap.default.neighbors(id).includes(u.province));
-    const g = named(s, "Addaya");
-    g.traits.ambition = 90;
-    g.traits.loyalty = 10;
-    s.ledger.get(id).set("Egypt", 0);
-    s.ledger.get(id).set(g.id, 150);
+    const [id] = risingGaza(s);
     s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: id, home: "memphis", men: 500 }));
     new TurnEngine(s).obeySeason();
     s.turn++;

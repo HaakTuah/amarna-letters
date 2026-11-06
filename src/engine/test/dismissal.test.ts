@@ -27,17 +27,11 @@ import {
   release,
   single,
 } from "@amarna/engine";
+import { begin } from "./turn-begin.ts";
 import { Assert, last, orderBy, homeJob, smallWorld } from "./support.ts";
 
 // <summary>Nobody is moved by a dismissal: a servant dismissed while away keeps going where it was going, and one held stays held.</summary>
 describe("DismissalTests", () => {
-  function begin(s: GameState): TurnEngine {
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    for (const r of e.mindRequests) e.fulfil(r, newMindReply({ text: `[${r.task}]` }));
-    return e;
-  }
-
   function none(): Dict<Power, TurnSubmission> {
     return new Dict();
   }

@@ -7,26 +7,11 @@
 //   node scripts/map-relief.mjs <tile cache dir>      (about 170 tiles, 13 MB, fetched once)
 import { createRequire } from "node:module";
 import { writeFileSync } from "node:fs";
-import { elevation } from "./map-dem.mjs";
+import { Frame, box, rad, scale, top, board, sampler } from "./map-frame.mjs";
 
 const { chromium } = createRequire(import.meta.url)("playwright");
 const dir = process.argv[2] ?? "relief-tiles";
-// The board's frame and projection (src/web/src/map/projection.ts), and the land drawn beyond it (scripts/map-geography.ts).
-const Frame = { west: 25.8, east: 51.2, north: 42.3, south: 20.0, width: 1000 };
-const box = { w: Frame.west - 6, e: Frame.east + 6, s: Frame.south - 3, n: Frame.north + 2.5 };
-const rad = Math.PI / 180;
-const merc = (lat) => Math.log(Math.tan(Math.PI / 4 + (lat * rad) / 2));
-const scale = Frame.width / ((Frame.east - Frame.west) * rad);
-const top = merc(Frame.north);
-const board = (lat, lon) => ({ x: (lon - Frame.west) * rad * scale, y: (top - merc(lat)) * scale });
-const dem = elevation(dir, box, 7);
-const sample = (lat, lon) => {
-  const [x, y] = dem.at(lat, lon);
-  const i0 = Math.max(0, Math.min(dem.width - 2, Math.floor(x))), j0 = Math.max(0, Math.min(dem.height - 2, Math.floor(y)));
-  const fx = Math.min(1, Math.max(0, x - i0)), fy = Math.min(1, Math.max(0, y - j0));
-  const e = (i, j) => dem.elev[j * dem.width + i];
-  return e(i0, j0) * (1 - fx) * (1 - fy) + e(i0 + 1, j0) * fx * (1 - fy) + e(i0, j0 + 1) * (1 - fx) * fy + e(i0 + 1, j0 + 1) * fx * fy;
-};
+const sample = sampler(dir);
 
 // The image: a pixel a board unit (a board unit is about 2.8 km of longitude), over the land drawn.
 const PerUnit = 1;

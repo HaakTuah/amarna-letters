@@ -5,11 +5,10 @@ other: different models have different blind spots (archive item 123). This file
 
 **Status (3 November 2026): Codex reviews, Claude builds.** Codex's code review works on these repositories, but it
 cannot build yet: its GitHub tasks and its command line need a "Codex Cloud (Legacy)" environment, which can no longer
-be created (the one in "Setup" is the newer kind). So no lane goes to Codex until the owner says it can build; until
-then the building and the routing below wait, and all building is Claude's. Nothing on the owner's machine starts Codex,
-ever (archive item 193): once its tasks work, it is started from the pull request itself.
-**Dormant until the owner says Codex can build:** the sections from "What goes to Codex" to "When Codex is not there",
-and the orchestrator's Codex hand-over (merging Codex's work, in `docs/orchestrating.md`).
+be created (the one in "Setup" is the newer kind). So no lane goes to Codex until the owner says it can build, and all
+building is Claude's. Nothing on the owner's machine starts Codex, ever (archive item 193): once its tasks work, it is
+started from the pull request itself. **Dormant until then:** what goes to Codex, the hand-over and the fallback
+(`docs/codex-building.md`), and the orchestrator's merging of Codex's work (`docs/orchestrating.md`).
 
 ## Who does what
 
@@ -19,7 +18,7 @@ fills each today. The models and effort Claude Code gives each of its roles: `CL
 - **The orchestrator** (today: Claude): it writes Codex's briefs, routes the work, takes the readings, merges Codex's
   PRs, and brings the owner his questions (`docs/orchestrating.md`).
 - **The builders:** Claude's builder sessions, and, once it can build, Codex in OpenAI's cloud, started from a draft PR
-  whose description is its brief (below). **The trusted builder,** whose lanes alone may change the protected files
+  whose description is its brief (`docs/codex-building.md`). **The trusted builder,** whose lanes alone may change the protected files
   (`SECURITY.md`, rule 3): Claude's builder sessions.
 - **The code reviewer is the other company's model.** Claude's PRs get Codex's code review ("Codex reviews" below);
   Codex's PRs get **the fallback reviewer,** Claude's reviewer, which also takes Claude's PRs when Codex does not answer
@@ -70,67 +69,6 @@ fills each today. The models and effort Claude Code gives each of its roles: `CL
   and GitHub" say, once the review's verdict ("Reviews" below) allows, and apply the score rules themselves. **Codex
   never merges:** the orchestrator merges its PRs. Codex never touches `main`, and never pushes to a branch it was not
   given.
-
-## What goes to Codex
-
-**Route by how the result can be checked.** If tests, replays and the benchmarks or a measurement can prove the work right, Codex builds
-it, and a wrong result shows itself; if only judgment can (taste, the design, the sources), Claude does.
-
-- **Claude keeps the decisions and hands them over as tests that fail.** Codex makes them pass without changing them;
-  if it thinks one is wrong, it says so on the thread instead of rewriting it.
-- **Hand off only when the implementation is clearly bigger than its brief and review:** many files, a few hundred
-  lines or more, or long measuring runs. Smaller work Claude does itself. The PR says which was chosen and why.
-
-| Claude decides and builds | Codex builds |
-| --- | --- |
-| Each build-order item's rules, numbers and the tests that pin them down | The polish lane: interface, layout, the Music page, keys |
-| The fix passes and the balance pass (item 18) | Tests in the smallest setup, and splitting test files |
-| The script kings' strategy: what should change and why | Splitting files over 50 KB, proven unchanged by replays |
-| Music: the compositions themselves | Scripts and tooling, CI speed, the workshop check's fixes |
-| The soundscape's rules: layers, levels, the fog rule, as tests | Performance work with a measured target |
-| Anything resting on the sources: kings' traits, names, the dossiers | What Claude has specified as tests: an item's implementation, wiring, save version and replays; the music and soundscape wiring; traits and names entered into the data; benchmark runs and their tables |
-| The rulebook, seat view and request texts ("Requests are rules too") | Docs that record what is decided |
-
-Whole with Claude, since there the code is the hard part and a brief cannot hold the decisions: the engine's
-determinism, and the orchestrator's own work (briefs, routing, readings on Codex's questions, merges).
-
-Items stay one at a time, in order, as the builder rules say: a Codex lane runs beside an item, never inside the same
-files. **Trials:** in the first week Codex can build, one art task to Codex if one comes up, compared against Claude's;
-after the first week, one build-order item split the long way (Claude writes the rule and its tests, Codex implements,
-Claude reviews), and if it scores well, more items follow. Codex's first task with a part of a helper's shape uses its
-subagents, so that PR shows whether they start in its cloud, whether they keep to five at a time (Codex's own default
-allows six; if not, its settings set five), and what they give.
-
-## Handing work to Codex
-
-1. **Claim the lane with a draft PR,** as usual: a fresh branch from `develop` with one empty commit ("Claim: ..."),
-   and a draft PR into `develop` whose **description is the brief.** Codex starts fresh each time and sees only the
-   brief and the repository, so the brief stands alone: the item, the sections and files to read (paths), the tests it
-   must pass, what not to touch, and what its report must say ("Readings taken", "Questions for the owner").
-2. **Start Codex from the PR.** How is written here once its tasks work ("Status" above); never by a program on the
-   owner's machine. Codex works in its cloud, pushes to the PR's branch itself, and reports on the PR.
-3. **Questions go on the PR,** both ways: Codex's in its report; the orchestrator answers by adding a section to the
-   description ("Round 2: ...") and starting Codex again. At most **two rounds** per question; then the orchestrator
-   takes the most reasonable reading and writes it under "Readings taken". Whatever only the owner can settle is filed
-   as a `question` issue, and the PR links it.
-4. **The PR is then reviewed as below,** sent back the same way (the review's list added to the description, Codex started again), marked ready, and merged by the orchestrator.
-5. **The Codex mention** is written only to ask for a review ("Codex reviews", point 1).
-
-## When Codex is not there
-
-Codex's usage can run out with no alert, so the orchestrator never waits on Codex for long:
-
-- **A failure Codex reports** (no usage left, an error, a task that could not be applied) **is a take-back at once.**
-- **No sign of Codex starting within about 5 minutes, or no finished work within about 2 hours:** take the lane back.
-  Five minutes leaves room for GitHub's delays; two hours, for the suites and a round of fixes.
-- **Taking back:** write "Taken back by Claude" on the PR with the reason, and give the lane to a Claude builder.
-- **Codex's work never merges after a take-back:** a push that arrives after the take-back is left unmerged, and the
-  branch goes to the Claude builder as it stood before.
-- **After a take-back for no usage, an error or silence, Codex counts as unavailable:** hand it nothing until a small
-  test task gets through, tried at most every few hours (not in use while Codex cannot build: "Status").
-  Meanwhile the work is Claude's alone.
-  A take-back for a slow PR alone does not count: the next lane still goes to Codex.
-- These times are first guesses (archive item 124): change them here when the first weeks show better ones.
 
 ## Codex reviews
 
@@ -239,9 +177,8 @@ guards: the rounds come to an end, and what a 10 means never slips (archive item
      fixed, and a `bug` issue tracks it until the fix is live. More than one miss in fifteen facts checked: every
      dossier a miss came from gets a full check.
    - **A slop check every month** (archive items 178, the slop audit, and 181): a fresh reviewer reads only the text a
-     player reads
-     that changed since the last check, scored as every review is, a 10 meaning nothing reads machine-made; what it
-     finds is fixed in "Follow-ups". The slop audit's formula test runs on every code PR.
+     player reads that changed since the last check, scored against the bar in "Text a player reads" in
+     `docs/review-guidelines.md`; what it finds is fixed in "Follow-ups". The slop audit's formula test runs on every code PR.
    - **Logged and reported:** each check is a row in the calibration log, `docs/calibration.md`, and each milestone
      PR says in one line the misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
           the owner, and the categories it reviews go back to the other reviewer meanwhile.
