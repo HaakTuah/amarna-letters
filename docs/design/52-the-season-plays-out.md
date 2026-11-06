@@ -170,8 +170,10 @@ hundred one, a full levy of 5,000 ten, at most fourteen), with dust at its tail;
 their caravan (`fig-caravan`), facing the way they go. A spy goes alone.
 
 **Battles, sieges and the world** (`map/moments.ts`). A battle's medallion flares and carries the winner's seal, as the
-moves layer's clash shows him (the march, or the troops that threw it back); a unit destroyed where it stood has none. In
-the sieges' beat each siege the seat knows of shows its tents closing round the city. A hazard shows its own figure and
+moves layer's clash shows him (the march, or the troops that threw it back); a unit destroyed where it stood has none. The
+season's scenes lie over the pieces (`scenes`, above `units` and `people`), so none is hidden under the tokens it
+concerns. In the sieges' beat each siege the seat knows of shows its tents closing round the city (a wide ring giving way
+to a tight one). A hazard shows its own figure and
 what it does at the place, under its medallion:
 
 | Event | Figure | At the place |
