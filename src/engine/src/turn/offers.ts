@@ -42,6 +42,8 @@ declare module "./core.ts" {
     offerArrives(j: Journey): void;
     /** A declaration ended: its offer, waiting or on the road, no longer stands. */
     dropOffer(d: Declaration): void;
+    /** Whether a province's people are far gone in `p`'s favour: his weight past its holder's by `OfferData.farGone`, enough to pay a carrier. */
+    offerFarGone(province: string, p: Power): boolean;
     /** A carrier robbed on the road: the offers he carried are lost with what was taken. */
     offersRobbed(c: Character): void;
   }
@@ -102,9 +104,15 @@ P.sendOffer = function (d, holder, text) {
   const told = [d.power, ...(holder !== null && isAlive(S, holder) ? [holder] : []), ...sortBy([...near], [(x: Power) => x, cmpStr])];
   for (const p of told) {
     const seasons = this.travelTurnsBetween(d.province, this.courtAt(p));
-    this.talkTo(d, holder, p, S.turn + 1 + (Number.isFinite(seasons) ? seasons : 1), "Travellers");
+    this.talkTo(d.province, d.power, holder, p, S.turn + 1 + (Number.isFinite(seasons) ? seasons : 1), "Travellers");
   }
   logEvent(S, "declare", `Talk of ${name}'s leaning toward ${d.power} spread.`, [], "offer-talk");
+};
+
+P.offerFarGone = function (province, p) {
+  const S = this.s;
+  const holder = S.owner.getOrDefault(province, null);
+  return this.weightIn(province, p) >= (holder !== null && isAlive(S, holder) ? this.weightIn(province, holder) : 0) + OfferData.farGone;
 };
 
 P.dropOffer = function (d) {
@@ -157,9 +165,8 @@ P.carryOffer = function (letter) {
   // A man whose stakes it serves carries it for nothing: one in his service, one his grant made what he is, or one whose
   // sympathy lies with his court.
   const own = going.find((c) => c.status !== "Captured" && (c.employer === p || c.grantedBy === p || c.traits.sympathy === p)) ?? null;
-  const holder = S.owner.getOrDefault(at, null);
   const purse = this.market(at);
-  const far = this.weightIn(at, p) >= (holder !== null && isAlive(S, holder) ? this.weightIn(at, holder) : 0) + OfferData.farGone;
+  const far = this.offerFarGone(at, p);
   // #543: else a caravan going from there to his land, his own for nothing, another's for a fee where they are far gone.
   if (own === null && this.caravanTakesOffer(letter, far)) return;
   let carrier: Character | null = own;

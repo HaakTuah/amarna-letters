@@ -120,6 +120,8 @@ P.caravansTravel = function () {
       } else if (this.caravanOffRoad(c.power, here, sneakOf(c))) this.spendAt(c.from, pay);
       else this.spendAt(here, pay);
     }
+    // #543: before it sets out on the season's road, it takes up an offer waiting where it stands.
+    this.caravanPicksUp(c);
     // Advance along the route at its pace, counting how much of the season went by boat, meeting each border it crosses.
     const start = perSeason + c.points;
     let budget = start;
@@ -197,7 +199,7 @@ P.caravansTravel = function () {
     const roll = this.r("caravan", c.id).nextDouble() * 100;
     if (taker !== null && c.grain + c.gold + c.archive.length > 0 && roll < RoadOdds.troops) {
       // #543: a province's offer it carried, its taker reads.
-      this.caravanOffersTaken(c, taker.power);
+      this.caravanOffersTaken(c, taker.power, taker.province);
       caravanGone(S, c);
       const kept = Math.min(c.grain, unitCarried(taker) - taker.food);
       taker.food += Math.max(0, kept);
