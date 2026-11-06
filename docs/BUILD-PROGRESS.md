@@ -19,16 +19,14 @@ A side lane of small refinements, beside the item lane and never ahead of it (th
 polish point to each that it can spend the last credits on also?" and, to the design session's shape of it, "Yes, and
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
-- **Next, from the owner's notes of 2 November** (his words in `docs/archive/instructions.md`, item 134): by "Following,
-  travel lines and borders" under Interface, Follow keeps the camera on the person, travel lines follow their roads (your
-  orders' whole path, others' only as reported), and borders are strong between powers and quiet within one (after
-  17++ part C merges, since it redraws the map's steps). Open from the notes' first four: the powers' land names
-  (#403, a question for the owner), and army counters standing over a neighbour's seal on the whole map (the lane's report).
+- **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
+  (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner), and
+  army counters standing over a neighbour's seal on the whole map.
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
-  the camera to the play area's edges (#396), a seal's tap to its own city (#398), and the tabs and the courts scrolled
-  by wheel and drag (#397).
+  the camera to the play area's edges (#396), a seal's tap to its own city (#398), the tabs and the courts scrolled
+  by wheel and drag (#397), and Follow, travel lines and borders (the lane's report).
 - **What belongs:** whatever makes the game feel finished without changing how it plays: graphical glitches and
   inconsistencies (things drawn wrong, out of place, overlapping or flickering; the same thing drawn, named or worded
   differently in two places), as item 19++ asks first; layout at 390 px and desktop, light and dark, reduced motion,
@@ -172,8 +170,6 @@ the workshop check): among them the history check's lines still unclear for a re
   - **#543, after part D's follow-ups (#550, #553):** a caravan or trader leaving a province for the claimant's market
     carries its offer, as a traveller going that way would, and carries talk along its road; the history dossier
     cited for word travelling with goods.
-  - **#539, the polish lane:** beside a followed person on the map, a small dated note ("last seen 2 seasons ago"),
-    from the record the follow line is drawn from, absent while he is in sight.
   - **#578, the polish lane:** the legend's crowded-seal swatch takes its rim from `--small-rim-marked`, the map's own
     variable.
 
@@ -189,10 +185,6 @@ the workshop check): among them the history check's lines still unclear for a re
     heard from its sealed greeting. Done, #574 (`docs/rounds/2026-11-02-names-season.md`).
   - **#554:** a short note, from its sourced basis, on each connection whose travel days are not the plain distance
     (Ur's river to the Gulf, the Ways of Horus, the Wadi Hammamat road). Done, the history lane's PR (`docs/rounds/2026-11-03-connection-notes.md`).
-  - **#549, the polish lane:** a faint accent on a frontier where the seat itself sees two powers' armies on either
-    side, drawn only from what it sees.
-  - **#562, the polish lane:** placement and the smoke test pad each seal's box by half its stroke, so no rim touches
-    a neighbouring marker.
 
 - **The slop audit** (the owner, 2 November 2026; archive item 178): everything a player reads, checked by fresh eyes
   for the tells of machine-written text, as a side lane now.

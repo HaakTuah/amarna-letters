@@ -30,6 +30,10 @@ export function roads(input: MapInput): string {
       const last = i === path.length - 1;
       sb += `<circle class="${last ? "trace-now" : "trace-dot"}" cx="${F(step.at.x)}" cy="${F(step.at.y)}" r="${last ? 5 : 2.6}">${title(`${dateLabel(step.index + 1, s.viewer)}: ${step.where}`)}</circle>`;
     });
+    // How old the seat's word of him is, beside the last place known; nothing while he is in sight this season (#539).
+    const end = path[path.length - 1];
+    const age = s.index - end.index;
+    if (age > 0) sb += `<g transform="translate(${F(end.at.x)},${F(end.at.y)})"><text class="fogdate trace-age" y="16">last seen ${age} season${age === 1 ? "" : "s"} ago</text></g>`;
     sb += "</g>";
   }
   return sb + "</g>";

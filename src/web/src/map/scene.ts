@@ -786,6 +786,14 @@ export function pathOf(frames: readonly SeasonFrame[], index: number, viewer: Po
     // At a court: god view knows everyone's place; a court knows its own people at home.
     const known = viewer === null || (c.employer === viewer && coverOf(c, viewer) === null && c.at === viewer);
     if (known && c.at !== null && c.status !== "Dead") path.push({ index: j, at: city(Map_.capital(c.at).id), where: `at the court of ${powerName(c.at)}`, on: { province: Map_.capital(c.at).id } });
+    // At his seat: a court's own governor where it believes he sits (the frame's `governedKnown`, by `seatKnown`); god
+    // view, where he truly sits. Keyed on that belief alone, never his true employer, cover, duty or life, which would
+    // end the line before word of a moved seat, a death, a turning or a rising reached his king.
+    else {
+      const held = viewer === null ? f.governed : f.governedKnown.get(viewer);
+      const seat = [...(held?.values() ?? [])].find((g) => g.character === id)?.seat;
+      if (seat !== undefined) path.push({ index: j, at: city(seat), where: `governing from ${provinceName(seat)}`, on: { province: seat } });
+    }
   }
   return path;
 }
