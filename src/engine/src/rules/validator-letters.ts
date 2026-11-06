@@ -14,6 +14,7 @@ export function checkLetterOrder(v: Checking, order: Order): string | null | und
       const name = Map.exists(order.province) ? Map.get(order.province).name : order.province;
       const h = S.lettersHeld.find((x) => x.heldBy === power && x.province === order.province && x.known <= S.turn);
       if (h === undefined) return `you hold no offer of the people of ${name}`;
+      if (h.askedOf !== null) return `you offered the word of ${name}'s people to ${powerName(h.askedOf)} for a price; it waits for that king`;
       if (v.taxesSet.has(`letter:${order.province}`)) return `you had already decided what to do with the offer of ${name}'s people this season`;
       // To its claimant, or to the land's king as the court knows him.
       if (order.to !== h.claimant && order.to !== v.knownOwner(order.province)) return `the offer of ${name}'s people can go only to ${powerName(h.claimant)}, to whom they wrote, or to the king of their land`;
@@ -25,7 +26,7 @@ export function checkLetterOrder(v: Checking, order: Order): string | null | und
     }
     case "buyLetter": {
       const name = Map.exists(order.province) ? Map.get(order.province).name : order.province;
-      const h = S.lettersHeld.find((x) => x.askedOf === power && x.province === order.province && x.askKnown !== null && x.askKnown <= S.turn);
+      const h = S.lettersHeld.find((x) => x.askedOf === power && x.province === order.province && x.askKnown !== null && x.askKnown <= S.turn && x.bought === null);
       if (h === undefined) return `no court has offered you the word of ${name}'s people`;
       if (v.taxesSet.has(`buyLetter:${order.province}`)) return `you had already bought the offer of ${name}'s people this season`;
       v.taxesSet.add(`buyLetter:${order.province}`);

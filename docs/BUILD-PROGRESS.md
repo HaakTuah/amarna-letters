@@ -149,7 +149,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     5.9 seasons (5.1 to 7.2 before); Arzawa and Alashiya, with few bonds, stay far off it. Save version 58. Report:
     `docs/rounds/2026-11-03-news-beyond-sight.md`.
   - ~~**#592:**~~ (done, #733) a caught offer is held by its captor, who sends it on (to its claimant or the land's
-    king), asks either a price (bought by order `buy_letter`), or keeps it. Save version 63. Report:
+    king), asks either a price (bought by order `buy_letter`), or keeps it. Save version 64. Report:
     `docs/rounds/2026-11-06-held-offers.md`.
 
 - ~~**A far force's seizure of a caravan, heard by the road (bug #675)**~~ (done, #727): its king's notice comes as word

@@ -120,8 +120,6 @@ P.dropOffer = function (d) {
   const S = this.s;
   // On the road too, so a letter of an ended offer never stands for a later one from the same people.
   S.journeys = S.journeys.filter((j) => !(j.kind === "Offer" && j.to === d.power && provinceOf(j) === d.province));
-  // And caught and held (#592): a letter of a leaning that ended is worth nothing.
-  S.lettersHeld = S.lettersHeld.filter((h) => !(h.claimant === d.power && h.province === d.province));
 };
 
 P.offersRobbed = function (c) {

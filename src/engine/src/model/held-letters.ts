@@ -3,7 +3,8 @@
  * #543). Whoever catches the carrier of a province's offer (a traveller taken captive on the road, or a caravan his troops
  * take) reads it and holds it: he may send it on to its claimant, a favour he can trade on; send it to the land's king,
  * who learns his people's own words; ask either of them a price for it; or keep it back. It stands only while the
- * province's people lean the claimant's way ("No menus": the lever is a thing held, not a button).
+ * province's people lean the claimant's way ("No menus": the lever is a thing held, not a button). An asking binds: the
+ * letter is kept for that king until he buys it, and nobody learns of anything that befalls it but by word of it.
  */
 import { I, type ObjSchema, S, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
@@ -23,13 +24,15 @@ export interface HeldLetter {
   askedOf: Power | null;
   price: number;
   askKnown: number | null;
+  /** The season its buyer paid: the letter goes to him once his gold reaches the holder (a `LetterPrice` journey). */
+  bought: number | null;
 }
 
 export function newHeldLetter(init: Partial<HeldLetter> = {}): HeldLetter {
-  return { province: "", claimant: "Egypt", words: "", heldBy: "Egypt", since: 0, known: 0, askedOf: null, price: 0, askKnown: null, ...init };
+  return { province: "", claimant: "Egypt", words: "", heldBy: "Egypt", since: 0, known: 0, askedOf: null, price: 0, askKnown: null, bought: null, ...init };
 }
 
-export const HeldLetterSchema: ObjSchema<HeldLetter> = obj("HeldLetter", newHeldLetter, { province: S, claimant: S, words: S, heldBy: S, since: I, known: I, askedOf: opt(S), price: I, askKnown: opt(I) });
+export const HeldLetterSchema: ObjSchema<HeldLetter> = obj("HeldLetter", newHeldLetter, { province: S, claimant: S, words: S, heldBy: S, since: I, known: I, askedOf: opt(S), price: I, askKnown: opt(I), bought: opt(I) });
 
 /** What its holder may do with it: send it on (to the claimant or the land's king), or ask one of them a price. */
 export const LetterFateValues = ["Send", "Sell"] as const;

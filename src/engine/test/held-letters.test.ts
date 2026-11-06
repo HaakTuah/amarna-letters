@@ -74,9 +74,15 @@ describe("HeldLetterTests", () => {
     const hatti = s.treasuries.get("Hatti").gold;
     e.buyLetter("Babylonia", buyLetter("babylon"));
     Assert.equal(gold - 80, s.treasuries.get("Babylonia").gold);
-    Assert.equal(0, s.lettersHeld.filter((h) => h.province === "babylon").length);
+    // The buyer has bought it and sees it offered no more; the seller, until the gold comes, still holds it as asked.
+    Assert.equal(0, Views.for(s, "Babylonia").lettersOffered.length);
+    Assert.equal(["Babylonia"], Views.for(s, "Hatti").lettersHeld.map((x) => x.askedOf));
+    Assert.false(s.journeys.some((j) => j.kind === "Word" && j.to === "Babylonia" && (j.text ?? "").includes("A letter taken on the road")));
+    // The gold comes: the seller sends the letter, which comes in its turn.
     arrive(s, e);
     Assert.equal(hatti + 80, s.treasuries.get("Hatti").gold);
+    Assert.equal(0, s.lettersHeld.filter((h) => h.province === "babylon").length);
+    arrive(s, e);
     Assert.contains(inboxOf(s, "Babylonia"), (i) => i.title === "A letter taken on the road");
   });
 
@@ -87,10 +93,23 @@ describe("HeldLetterTests", () => {
     Assert.equal(1, orders(s, "Hatti", [letter("babylon", "Sell", "Egypt", 0)]).rejected.length);
   });
 
-  test("Kept, it lapses when the people's leaning ends", () => {
+  test("An asking binds: offered to one king for a price, it is neither repriced nor sent elsewhere", () => {
+    const [s, e] = caught();
+    e.letterOrder("Hatti", letter("babylon", "Sell", "Babylonia", 80));
+    Assert.equal(1, orders(s, "Hatti", [letter("babylon", "Sell", "Babylonia", 40)]).rejected.length);
+    Assert.equal(1, orders(s, "Hatti", [letter("babylon", "Send", "Egypt")]).rejected.length);
+    e.letterOrder("Hatti", letter("babylon", "Send", "Egypt"));
+    Assert.equal("Babylonia", s.lettersHeld.find((h) => h.province === "babylon")!.askedOf);
+  });
+
+  test("Kept past the end of the leaning, it is still held, and sent on then it finds no offer standing", () => {
     const [s, e, d] = caught();
-    s.ledger.set("babylon", new Dict());
     e.dropOffer(d);
-    Assert.equal(0, s.lettersHeld.filter((h) => h.province === "babylon").length);
+    d.gone = s.turn;
+    // Nobody learns of the end through the letter: its holder still holds it.
+    Assert.equal(["babylon"], Views.for(s, "Hatti").lettersHeld.map((x) => x.province));
+    e.letterOrder("Hatti", letter("babylon", "Send", "Egypt"));
+    arrive(s, e);
+    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "A province looks to you" && i.body.includes(map.get("babylon").name));
   });
 });

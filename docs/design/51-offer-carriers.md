@@ -46,10 +46,12 @@ caravans as carriers (#543), 63.
   him (`Journey.sentOnBy`, `LetterSent.toClaimant`); or to the land's king, who reads his people's words
   ("A letter taken on the road", `LetterSent.toHolder`). Or he asks one of them a price (`Sell`, at least 1 shekel): word
   of the asking reaches that king ("An offer for sale", `askKnown`), who buys it by order `buyLetter` from then, paying
-  from his treasury; the gold goes to the seller by the road (`LetterPrice` journey) and the letter to the buyer as sent
-  on. Kept, it lapses with the people's leaning (`dropOffer`). The seat sees `SeatView.lettersHeld` and
+  from his treasury (`HeldLetter.bought`); the gold goes to the seller by the road (`LetterPrice` journey), and when it
+  comes the seller sends the letter, as sent on. An asking binds: the letter is neither repriced nor sent elsewhere,
+  so nothing that befalls it is told by its disappearing. Kept, it stays held after the people's leaning ends (nobody
+  learns of the end through it); sent on then, it finds no offer standing. The seat sees `SeatView.lettersHeld` and
   `lettersOffered` (OFFERS YOU HOLD, OFFERS FOR SALE TO YOU; on the page, "Offers taken on the road"), and a sleeping
-  seat wakes for either. Save version 63.
+  seat wakes for either. Save version 64.
 - **Arrived** (`offerArrives`): the declaration is known from that season, and the "A province looks to you" notice names
   who brought it (`offer-arrived`).
 - **Never carried**: when the declaration ends (its people no longer lean his way), its letter is dropped, waiting or on

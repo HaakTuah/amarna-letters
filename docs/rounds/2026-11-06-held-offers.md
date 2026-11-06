@@ -27,7 +27,7 @@ Every file changed is under the 50 KB mark; the new code is in files of its own 
 - **A file seat's request** (`llm/src/exchange.ts`, `readable`): the list of order actions had grown to about 1,195
   characters on one line, so any new action passed the 1,200 a file reader's line is kept under; a list of plain values
   that long now wraps, as many to a line as fit, as a long field already did.
-- Rulebook (`rules-freedom.ts`), design note 51, signals. **Save version 63.**
+- Rulebook (`rules-freedom.ts`), design note 51, signals. **Save version 64.**
 
 ## Measured (`scripts/sim.sh --games 50 --seed 1 --talk-play-half`)
 
@@ -36,6 +36,13 @@ Kings heeding talk and trading caught offers: 0.78 growth and 26 wins against 0.
 be told yet (#553 found the same rarity). The run counted the offers' signals but not yet this item's own
 (`letter-sent-on`, `letter-sent-holder`, `letter-asked`, `letter-bought`, listed since for the next run). For item 18,
 with the talk.
+
+## Review (Codex, round 1)
+
+Three findings, all fixed. Courts saw changes to a held letter at once (a new price, a sale elsewhere, the leaning's
+end): an asking now binds, and a letter is no longer dropped when the leaning ends. The letter went to its buyer before
+his gold could reach the seller: it is now sent when the gold comes (`HeldLetter.bought`, `letterPriceArrives`). And
+the order in which caravans were visited chose who carried an offer: fixed in #725 (its code), merged in.
 
 ## Readings taken
 
