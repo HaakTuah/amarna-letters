@@ -168,9 +168,9 @@ the workshop check): among them the history check's lines still unclear for a re
 - **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
   - **#566:** the twin canary (`src/web/test/twin-canary.test.ts`) plays each hidden fact at a second place too, a far
     province of another power or one reached only by winter roads or by sea; the place a parameter, not a constant.
-  - **#543, after part D's follow-ups (#550, #553):** a caravan or trader leaving a province for the claimant's market
-    carries its offer, as a traveller going that way would, and carries talk along its road; the history dossier
-    cited for word travelling with goods.
+  - ~~**#543:**~~ (done, #725) a caravan leaving a province for its claimant's land carries its offer, his own for
+    nothing, another's for a fee where the people are far gone; caravans carry talk of the leaning to the land their road
+    ends in. Save version 62. Report: `docs/rounds/2026-11-06-caravan-offers.md`.
   - **#539, the polish lane:** beside a followed person on the map, a small dated note ("last seen 2 seasons ago"),
     from the record the follow line is drawn from, absent while he is in sight.
   - **#578, the polish lane:** the legend's crowded-seal swatch takes its rim from `--small-rim-marked`, the map's own
@@ -277,6 +277,7 @@ The rows of done items (6c to 17+) are in `docs/archive/progress-done.md`, "Use 
 | 17++ C | Checking a governor's word against one's own spy, recalling one caught hiding unrest (#459, `--spy-check-play-half`) | 0.96 growth to 0.87, 27 wins to 23, in 50 games | Pays |
 | 17++ D, #553 | Heeding an offer read on a carrier caught, as talk of it (`--talk-play-half`, with the talk) | 0.90 growth to 0.84, 25 wins to 25, in 50 games; 1,152 offers sent, 36 carried, 1 caught and read, 33 arrived | Too rare to tell: one catch in 50 games; for item 18, with the talk |
 | 17++ D | Heeding talk of a province's leaning: relief at home, warmth to the claimant, a spy where one is talked of (`--talk-play-half`) | 0.86 growth to 0.86, 26 wins to 24, in 50 games; 988 offers sent, 31 carried, 27 arrived | Even: offers rarely arrive yet, so the threat is rare; for item 18 |
+| #543 | Heeding talk, with caravans as offers' carriers and a trade venture toward a market talk says leans our way (`--talk-play-half`) | 0.79 growth to 0.71, 28 wins to 22, in 50 games; 1,574 offers sent, 153 carried (92 by caravan, 7 of them paid), 106 arrived (49 brought by caravan); talk carried by traders 356 times | Pays: offers now arrive three times as often, so heeding the talk matters |
 | 17++ A | Folding or disbanding remnants (`--remnant-play-half`) | 0.96 growth to 0.88, 29 wins to 21, in 50 games | Pays |
 | 17++ A | The ledger's script play: grain in the king's own name, tax relief, food bought, stirring (`--freedom-play-half`) | 0.95 growth to 0.92, 21 wins to 29, in 50 games; food bought in 0 unit-seasons against 1,056 taken | Not paying yet: the markets hold no grain to spare, so troops take; item 18 tunes the markets and the army's food |
 
