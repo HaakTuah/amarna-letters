@@ -166,7 +166,7 @@ Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
 - **Four more ideas from the reviews, accepted** (the owner, 3 November 2026; archive item 184):
-  - ~~**#566:**~~ (done, PR to come) the twin canary plays each twin bound to a place at Nippur and at Dilmun (two
+  - ~~**#566:**~~ (done, #722) the twin canary plays each twin bound to a place at Nippur and at Dilmun (two
     seasons off, by sea), the place a parameter; it found a far levy's army in the movements notice, listed under #600.
     Report: `docs/rounds/2026-11-06-twin-second-place.md`.
   - **#543, after part D's follow-ups (#550, #553):** a caravan or trader leaving a province for the claimant's market
