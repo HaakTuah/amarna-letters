@@ -21,3 +21,8 @@ export class Sb {
 export function joinS(separator: string, items: Iterable<unknown>): string {
   return [...items].map((x) => (x === null || x === undefined ? "" : String(x))).join(separator);
 }
+
+/** Items as a reader lists them: "a", "a and b", "a, b and c". */
+export function andList(items: readonly string[]): string {
+  return items.length < 2 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}

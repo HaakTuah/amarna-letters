@@ -2,7 +2,7 @@
 
 The owner's answer to #431 (2 November 2026, archive items 157 and 158), written into "Whom a province obeys" (War,
 revision 95). Report: `docs/rounds/2026-11-02-offer-carriers.md`. Save version 45; the captor reading a caught offer (#553), 50;
-caravans as carriers (#543), 63.
+caravans as carriers (#543), 64.
 
 ## The offer is a letter (`turn/offers.ts`, `Journey` kind `Offer`)
 
@@ -56,7 +56,7 @@ caravans as carriers (#543), 63.
   the newest when none is named; `letterHeld`, `letterOffered`): a fresh one stands beside an older, which the court
   keeps knowing until word of the fresh one comes. The seat sees `SeatView.lettersHeld` and
   `lettersOffered` (OFFERS YOU HOLD, OFFERS FOR SALE TO YOU; on the page, "Offers taken on the road"), and a sleeping
-  seat wakes for either. Save version 64.
+  seat wakes for either. Save version 66.
 - **Arrived** (`offerArrives`): the declaration is known from that season, and the "A province looks to you" notice names
   who brought it (`offer-arrived`).
 - **Never carried**: when the declaration ends (its people no longer lean his way), its letter is dropped, waiting or on

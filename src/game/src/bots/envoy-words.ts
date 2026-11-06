@@ -42,6 +42,10 @@ export const Abroad = {
   thanks: ["{T}, I thank you.", "I am grateful, {T}.", "May the gods keep you."],
 } as const satisfies Record<string, readonly string[]>;
 
+/** The king's words told plainly, and told as kindly spoken: `Home.quoted` takes them in turn. */
+const Said = ['The king said: "{W}"', 'His answer was this: "{W}"', 'These were his words: "{W}"'] as const;
+const Kindly = ['The king spoke kindly: "{W}"', 'The king answered kindly: "{W}"', 'He answered me without anger: "{W}"'] as const;
+
 /** An envoy's words to its own king, home again; `{L}` is the host's land, `{W}` the host's words. */
 export const Home = {
   back: ["Your servant has come home from the court of {L}, my lord.", "My lord, I have returned from the court of {L}.", "From the court of {L} I have come back to you, my lord."],
@@ -50,10 +54,11 @@ export const Home = {
   unheard: ["No one at the court of {L} understood me, my lord, or would carry my words", "At the court of {L} no one understood me, my lord, nor would anyone carry my words"],
   unheardGifts: ["; your gifts I gave them, and those they understood", "; I gave them your gifts all the same"],
   heardLie: ["I gave your words to the king, my lord. His answer will follow when he sends it.", "The king heard your words, my lord; his answer will come in its time."],
-  said: ['The king said: "{W}"', 'His answer was this: "{W}"', 'These were his words: "{W}"'],
-  saidKindly: ['The king spoke kindly: "{W}"', 'The king answered kindly: "{W}"', 'He spoke kindly, and said: "{W}"'],
-  friendship: ["The king said only that he is your friend.", "The king spoke of nothing but his friendship for you."],
-  bought: ["In {L} I found a friend to you, my lord, and a king who desires peace.", "The king of {L} is your friend, and seeks peace with you."],
+  said: Said,
+  /** The king's words, with no threat in them, in a plain form or a kindly one: an honest envoy and a bought one alike (#591). */
+  quoted: Said.flatMap((plain, i) => [plain, Kindly[i]]),
+  friendship: ["The king spoke of his friendship for you.", "The king told me he is your friend."],
+  bought: ["In {L} I found a friend to you, my lord.", "The king of {L} is your friend, and spoke no ill of you."],
   boast: ["My words won his favour; another envoy would have come home with less.", "My words turned his heart to you."],
   soothe: ["All is well between you and the king of {L}.", "Nothing stands between you and the king of {L}."],
   sealed: ["He sealed the tablet, and I bring your copy.", "The tablet is sealed; I bring your copy."],

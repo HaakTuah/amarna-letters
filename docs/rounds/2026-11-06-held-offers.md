@@ -27,7 +27,7 @@ Every file changed is under the 50 KB mark; the new code is in files of its own 
 - **A file seat's request** (`llm/src/exchange.ts`, `readable`): the list of order actions had grown to about 1,195
   characters on one line, so any new action passed the 1,200 a file reader's line is kept under; a list of plain values
   that long now wraps, as many to a line as fit, as a long field already did.
-- Rulebook (`rules-freedom.ts`), design note 51, signals. **Save version 64.**
+- Rulebook (`rules-freedom.ts`), design note 51, signals. **Save version 66.**
 
 ## Measured (`scripts/sim.sh --games 50 --seed 1 --talk-play-half`)
 

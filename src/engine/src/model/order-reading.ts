@@ -71,7 +71,7 @@ export function describe(o: Order): string {
     case "deport":
       return `deport ${o.number} people from ${named(o.province)} to ${named(o.to)}${o.purse ? " with their share of the purse" : ""}`;
     case "expel":
-      return `put ${o.percent} in a hundred of the mouths of ${named(o.province)} out of the city`;
+      return `put ${o.percent}% of the mouths of ${named(o.province)} out of the city`;
     case "returnRunaways":
       return `send ${whose(o.to)} runaways in ${named(o.province)} back to ${powerName(o.to)}`;
     case "raise":
@@ -195,7 +195,7 @@ export function told(o: Order): string {
       return `${troops(o.unit, "besiege", "besieges")} the city`;
 
     default:
-      return placesNamed(describe(o)).replace(/(\d+)%/g, "$1 in a hundred");
+      return placesNamed(describe(o));
   }
 }
 
