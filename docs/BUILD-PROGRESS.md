@@ -217,7 +217,10 @@ the workshop check): among them the history check's lines still unclear for a re
   `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725). **Next:** the rest in the order above, from the seat
   view. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
   (the owner, 6 November 2026, #735; archive item 230): done, #744 (the notice-shapes guard flags "in a hundred");
-  `rules-command.ts` and `rules-freedom.ts` follow once #612 and #725 merge.
+  `rules-command.ts` and `rules-freedom.ts` follow once #612 and #725 merge. **In a character's own words** (the script
+  kings' letters, the envoys' speech, and the models' voice guidance for letters and audiences), a share is said as
+  the period said it, "a fifth", "a tenth", "the half", never "%" or "in a hundred", and the letter-shapes guard flags
+  both there (the owner, 6 November 2026; archive item 232); the data a model is given keeps "%".
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
