@@ -234,14 +234,12 @@ describe("UnitsKnownTests", () => {
         return { s, read, left: s.standing.get("Hatti").orders.length, gold };
       };
       const [lost, stands] = [fired(true), fired(false)];
-      // Told alike, its gold spent alike, and fired in both or in neither.
-      Assert.equal(stands.read, lost.read, name);
-      Assert.equal(stands.gold, lost.gold, name);
-      Assert.equal(stands.left, lost.left, name);
-      Assert.equal(told === null ? 1 : 0, stands.left, name);
-      if (told !== null) Assert.contains(lost.read, (x) => x.includes(told), name);
+      // Told alike, its gold spent alike, and fired in both or in neither (each check names its case).
+      Assert.equal([name, stands.read, stands.gold, stands.left], [name, lost.read, lost.gold, lost.left]);
+      Assert.equal([name, told === null ? 1 : 0], [name, stands.left]);
+      if (told !== null) Assert.contains(lost.read, (x) => x.includes(told));
       // Given, it went out by courier to find the army gone.
-      Assert.equal(told === "It gave these orders", lost.s.couriers.some((x) => x.power === "Hatti" && x.plan.unitId === "u990"), name);
+      Assert.equal([name, told === "It gave these orders"], [name, lost.s.couriers.some((x) => x.power === "Hatti" && x.plan.unitId === "u990")]);
     }
   });
 
