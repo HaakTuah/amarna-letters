@@ -25,7 +25,7 @@ import {
   modernOf,
   type GameConfig,
 } from "@amarna/engine";
-import { Sb, joinS } from "./text.ts";
+import { Sb, andList, joinS } from "./text.ts";
 import { seaRules, terrainRules } from "./rules-ground.ts";
 import { travel, travelRules } from "./rules-travel.ts";
 import { authorityRules } from "./rules-authority.ts";
@@ -200,7 +200,7 @@ ${intelligenceRules(c)}`);
         if (primer)
         {
             sb.appendLine(`
-CUSTOMS OF THE AGE (customs, not rules, except where marked)
+CUSTOMS OF THE AGE (not rules, except where marked)
 Every king knows these customs, and knows that every other king knows them. Playing true to history is no aim in itself: keep a custom when it improves your chances, and break it when breaking it serves you better. A custom kept wins trust cheaply; one broken is noticed.
 - Rank is earned (a rule of this game): the game records who calls whom brother and grants whom the title Great King in the greetings kings actually send. A claim to the rank that is still new (the opening positions say whose) becomes established once more than half of the other Great Kings have called its king brother for ${c.recognitionSeasons} seasons without a greeting since that withheld it, and every court hears of it. Recognition changes no rule and no score: what it is worth is for the kings to fight over.
 - A realm's name is a claim. You go by your land's name until you claim another: any realm's name the map knows or a king claims, Pharaoh's included (claim_name, the name in item; your own land's name returns you to it). A claim gives nothing by rule. Your greetings name you so at once. Where two kings claim one name, each court gives it to the one it recognises, in the greetings it sends: a greeting gives the recipient the name he claims unless by_house calls him by his house (Bit- and his founder's name, as Bit-Biryawaza), and that court's letters, reports and notices then call the other by his house. NAMES CLAIMED in your view says which names are contested, whom your court gives each to, and the season each other king's claim was sealed in the newest greeting of his you have read. What a name is worth comes from the other kings and the vassals, not from a rule.
@@ -228,7 +228,7 @@ Every king knows these customs, and knows that every other king knows them. Play
         for (const p of map.provinces)
         {
             const coasts = p.isSea ? map.coastsOf(p.id).map((x) => x.id) : [];
-            const kind = p.isSea ? (coasts.length > 0 ? `sea zone, the waters of ${joinS(` and `, coasts)}` : `sea zone`) : p.isCoastal ? `coast; waters ${p.waters}` : `land`;
+            const kind = p.isSea ? (coasts.length > 0 ? `sea zone, the waters of ${andList(coasts)}` : `sea zone`) : p.isCoastal ? `coast; waters ${p.waters}` : `land`;
             const home = (p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : `held by no one`) + (p.kingless ? `; a land without a town` : ``) + (modernOf(p.id) !== null ? `; today ${modernOf(p.id)}` : ``);
             const armies = p.isSea ? `` : ` armies: ${joinS(`, `, map.movesFrom("Army", p.id).map(n => link(p.id, n)))}.`;
             const fleets = p.isSea || p.isCoastal ? ` fleets: ${joinS(`, `, map.movesFrom("Fleet", p.id).map(n => link(p.id, n)))}.` : ``;
