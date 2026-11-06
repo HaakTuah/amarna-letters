@@ -203,11 +203,13 @@ code { font-size: .9em; }
     padding: 1rem 1.1rem; box-shadow: var(--shadow); margin-bottom: 1rem;
 }
 
-button, .btn {
+/* A file picker's button is drawn as the game's own buttons are, not the browser's grey one. */
+button, .btn, ::file-selector-button {
     font: inherit; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
     border-radius: 7px; padding: .38rem .8rem; cursor: pointer; white-space: nowrap;
 }
-button:hover:not(:disabled) { border-color: var(--accent); }
+button:hover:not(:disabled), input:hover::file-selector-button { border-color: var(--accent); }
+::file-selector-button { margin-right: .6rem; }
 button:disabled { opacity: .45; cursor: default; }
 button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 button.small { padding: .15rem .5rem; font-size: .85rem; }

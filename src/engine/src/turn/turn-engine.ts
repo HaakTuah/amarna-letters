@@ -52,6 +52,7 @@ import "./supply.ts";
 import "./coffers.ts";
 import "./letters.ts";
 import "./offers.ts";
+import "./offer-caravans.ts";
 import "./news.ts";
 import "./tidings.ts";
 import "./rides.ts";
@@ -77,6 +78,7 @@ export { RoadOdds, CaughtOnRoadTitle, RoadsTitle, isWalker, LeaderPace } from ".
 export { BandsTitle } from "./bands.ts";
 export { LetterData, selfWait } from "./letters.ts";
 export { OfferData, OfferTerms } from "./offers.ts";
+export { CaravanOfferData } from "./offer-caravans.ts";
 export { TalkData } from "./moods.ts";
 export { HeardData, lossKey } from "./news.ts";
 export { LanguageData, UnheardTitle, UnheardOutcome, UnheardOnArrival, tongueClaims } from "./languages.ts";

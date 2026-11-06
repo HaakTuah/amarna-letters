@@ -4,7 +4,7 @@
  * obeys him only once he takes it up by an act of rule aimed at it; a treaty's cession gives the receiver the claim, never
  * the province. Troops sent to stand in a province are themselves an order to take or hold it, so they need no answer.
  */
-import { B, I, type ObjSchema, S, obj, opt } from "../core/json.ts";
+import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
 
 /** A province's declaration for a power, or a claim on it ceded by treaty, until it is taken up, refused or lapses. */
@@ -27,13 +27,15 @@ export interface Declaration {
   gone: number | null;
   /** A claim taken up while its giver's troops stayed in it: the treaty broken, told once ("Keeping a promise is an act"). */
   broken: boolean;
+  /** The powers talk of its leaning has been sent to, by the roads or with a caravan (#543): each hears it once. */
+  talked: Power[];
 }
 
 export function newDeclaration(init: Partial<Declaration> = {}): Declaration {
-  return { province: "", power: "Egypt", from: null, known: 0, takenUp: false, takenKnown: null, gone: null, broken: false, ...init };
+  return { province: "", power: "Egypt", from: null, known: 0, takenUp: false, takenKnown: null, gone: null, broken: false, talked: [], ...init };
 }
 
-export const DeclarationSchema: ObjSchema<Declaration> = obj("Declaration", newDeclaration, { province: S, power: S, from: opt(S), known: I, takenUp: B, takenKnown: opt(I), gone: opt(I), broken: B });
+export const DeclarationSchema: ObjSchema<Declaration> = obj("Declaration", newDeclaration, { province: S, power: S, from: opt(S), known: I, takenUp: B, takenKnown: opt(I), gone: opt(I), broken: B, talked: list(S) });
 
 /** A declaration whose offer has not reached its power's court: no season yet. */
 export const OfferUnheard = Number.MAX_SAFE_INTEGER;

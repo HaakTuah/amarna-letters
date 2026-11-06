@@ -4,7 +4,8 @@
  * another king reaches us at the roads' pace, and a script king treats that province as restless, easing what it is asked
  * (`freedom.ts`), before its offer reaches the other king and he takes it up. Talk that a rival's province leans toward
  * someone warms a script king to that claimant (`Brain.learn`); talk that one leans our way sends a spy of ours to watch it,
- * whose reports bring its offer home (`statecraft-court.ts`). An offer read on a carrier we caught (#553) is heeded as
+ * whose reports bring its offer home (`statecraft-court.ts`), and makes a trade venture to its market worth taking if it
+ * only pays its way, since our caravan coming home brings the offer (`trade.ts`, #543). An offer read on a carrier we caught (#553) is heeded as
  * talk of it would be. `--no-talk-play` and `--talk-play-half` ignore the talk and the offers caught, only to measure what
  * heeding them is worth.
  */

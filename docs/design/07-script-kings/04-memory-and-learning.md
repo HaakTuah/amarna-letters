@@ -25,7 +25,7 @@ Each season, before deciding:
 - Our own envoy's report from his court: trust + 0.08 × tone. If it says the host offered it a post and it refused ("The king of Karduniash offered me a post in his service, and I refused it"), the host tried to buy our servant: trust in him − 0.05, and the envoy is proven true, so among servants equally reliable it is chosen first for the letters that carry tablets, gold or pleas, and kept on first when servants give notice (since the script players' audit of the siege package, the fix pass's minor finding 2).
 - Audiences the king hosts change trust by gifts, slights and seals (see Audiences).
 
-**Tone** is a crude word count. Each of nine warm words (brother, love, friend, peace, sealed, gift, rejoice, gracious, kindly) counts +0.5. Each of ten cold phrases (not forgotten, regret, withdraw, war, punish, liar, false, broke, detain, will not seal) counts −1. The total is clamped to ±2 and halved, so tone runs from −1 to +1.
+**Tone** is a crude word count. Each of eight warm words (brother, love, friend, peace, sealed, gift, rejoice, gracious) counts +0.5; "kindly" was one until #591, when an envoy's way of telling stopped warming a report. Each of ten cold phrases (not forgotten, regret, withdraw, war, punish, liar, false, broke, detain, will not seal) counts −1. The total is clamped to ±2 and halved, so tone runs from −1 to +1.
 
 **Troops out of sight.**
 

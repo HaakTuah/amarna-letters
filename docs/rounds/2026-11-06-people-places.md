@@ -19,7 +19,7 @@ Every file changed is under the 50 KB mark (`rules/views.ts` the largest).
   in, as his duty has it; `Cover.province`, frozen with the rest of what a court believes): the script kings read it
   (`bots/freedom.ts`, `watchedProvinces`) instead of cutting an id out of "in …". The field follows the duty, not the
   person, so a spy caught out of sight shows the same place as one still free (the cover tests' twin found it).
-- **Save version 63** (the cover's new field).
+- **Save version 65** (the cover's new field).
 
 ## Measured
 

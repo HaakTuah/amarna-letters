@@ -12,9 +12,9 @@ describe("ContractTextTests", () => {
     Assert.contains("each names a price, as does anyone free at your court.", rules);
     // Item 11a: jobs with a fee, a court's record, the going rate, borrowing and repaying, and what the score counts.
     Assert.contains("WORK AND MONEY", rules);
-    Assert.contains("- A job is an errand. You offer a person a job (order hire): one errand", rules);
-    Assert.contains("- Every payment is your order.", rules);
-    Assert.contains("- Your record is news.", rules);
+    Assert.contains("- Jobs. You offer a person a job (order hire): one errand", rules);
+    Assert.contains("- Payments.", rules);
+    Assert.contains("- Your record.", rules);
     Assert.doesNotContain("going rate", rules);
     Assert.contains("Your strength is what you hold, never what you owe or are owed", rules);
     Assert.doesNotContain("back pay", rules);

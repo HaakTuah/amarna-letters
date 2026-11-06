@@ -735,7 +735,7 @@ P.assay = function (p, a) {
   const weighed = `The lot of ${formatMoney(lot.face)} weighed from ${powerName(lot.from)}`;
   let text =
     pct < 100
-      ? `${weighed} holds only ${formatMoney(lot.true)} of fine gold, ${pct} in a hundred.`
+      ? `${weighed} holds only ${formatMoney(lot.true)} of fine gold, ${pct}%.`
       : lot.true === lot.face
         ? `${weighed} is ${FullWeight}.`
         : `${weighed} is ${FullWeight} near enough: ${formatMoney(lot.true)} of it.`;

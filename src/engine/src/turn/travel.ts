@@ -650,6 +650,12 @@ P.wordArrives = function (j) {
     case "Job":
       notify(S, j.to, "Notice", "An offer abroad", j.text ?? "");
       break;
+    case "Archive": {
+      // #726: tablets a far force seized, sent home by courier where no road took them as a load.
+      const [court, place, ...ids] = (j.text ?? "").split("|");
+      this.archiveArrives(j.to, ids, court, place);
+      break;
+    }
     case "TidingsVassal":
     case "TidingsAlly":
       this.tidingsArrive(j);

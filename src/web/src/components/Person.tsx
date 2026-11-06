@@ -39,7 +39,7 @@ export function Person({ c, court, onFollow }: { c: CharacterView; court: Power 
       {c.lends !== null && (
         <div>
           <small>
-            Offers to lend you up to {shekels(c.lends.amount)}, {c.lends.perHundred} in a hundred more back after {c.lends.seasons} seasons.
+            Offers to lend you up to {shekels(c.lends.amount)}, {c.lends.perHundred}% more back after {c.lends.seasons} seasons.
           </small>
         </div>
       )}

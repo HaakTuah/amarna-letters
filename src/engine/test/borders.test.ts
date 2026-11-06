@@ -206,7 +206,7 @@ describe("BordersTests", () => {
     e.beginTurn();
     e.resolve(orders("Mitanni", expel("carchemish", 100)));
     Assert.equal(LandData.expelMost, s.expelled.get("carchemish"));
-    Assert.contains("1 to 100", refusal(s, "Mitanni", expel("carchemish", 0)) ?? "");
+    Assert.contains("1% to 100%", refusal(s, "Mitanni", expel("carchemish", 0)) ?? "");
   });
 
   test("A besieged city puts out the mouths that cannot fight, and eats less while the siege lasts", () => {
