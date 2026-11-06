@@ -139,11 +139,11 @@ export function stirGold(b: Board, spare: number, cunning: number): number {
 }
 
 /**
- * The provinces our spies watch, posted there or on their way: a spy out in a province stands "in" it (by its id), his duty
- * a watcher's ("watching Gubla") or his quiet errand's.
+ * The provinces our spies watch, posted there or on their way: a spy out in a province stands in it (`province`, by its
+ * id), his duty a watcher's ("watching Gubla") or his quiet errand's.
  */
 export function watchedProvinces(b: Board): Set<string> {
   return new Set(
-    b.v.court.filter((c) => c.where.startsWith("in ") && (c.duty.startsWith("watching ") || c.duty.startsWith("travelling on a quiet errand"))).map((c) => c.where.slice(3)),
+    b.v.court.filter((c) => c.province !== null && (c.duty.startsWith("watching ") || c.duty.startsWith("travelling on a quiet errand"))).map((c) => c.province!),
   );
 }

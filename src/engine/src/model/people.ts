@@ -854,6 +854,8 @@ export interface Cover {
   recalled: boolean;
   dutyText: string;
   whereText: string;
+  /** The province the master believes the servant stands in out in the land (`CharacterView.province`, bug #734). */
+  province: string | null;
   /**
    * When the master believes the servant set out and is due back, as its view read then (see {@link Views.TimingText}).
    */
@@ -884,6 +886,7 @@ export function newCover(init: Partial<Cover> = {}): Cover {
     recalled: false,
     dutyText: "",
     whereText: "",
+    province: null,
     timingText: "",
     fee: 0,
     advance: 0,
@@ -905,6 +908,7 @@ export const CoverSchema: ObjSchema<Cover> = obj("Cover", newCover, {
   recalled: B,
   dutyText: S,
   whereText: S,
+  province: opt(S),
   timingText: S,
   fee: I,
   advance: I,

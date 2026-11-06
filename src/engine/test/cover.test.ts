@@ -360,7 +360,7 @@ describe("CoverTests", () => {
       begin(s).resolve(none());
     }
     let seen = single(Views.for(s, "Hatti").court, (c) => c.id === spy.id);
-    Assert.equal(["watching Washukanni", "in washukanni"], [seen.duty, seen.where]);
+    Assert.equal(["watching Washukanni", ""], [seen.duty, seen.where]);
   });
 
   // ---------------------------------------------------------------- a defector on its new master's errands
@@ -394,7 +394,7 @@ describe("CoverTests", () => {
     let audience = sendTo(s, "Alashiya", defector, "Hatti");
     let egypt = seenOf(s, "Egypt", defector.id);
     let wages = new TurnEngine(s).feesDue("Alashiya");
-    Assert.equal("at the court of Hatti as envoy", single(Views.for(s, "Alashiya").court, (c) => c.id === defector.id).duty);
+    Assert.equal("as envoy", single(Views.for(s, "Alashiya").court, (c) => c.id === defector.id).duty);
 
     // Hatti holds it: Alashiya, which sent it, sees it on the road home, as Egypt still does.
     answer(s, audience, newHostReply({ detain: true }));
