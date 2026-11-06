@@ -261,7 +261,31 @@ async function human(viewport, name) {
   await p.context().close();
 }
 
+/**
+ * The content security policy (src/web/csp.ts) holds in the page and in the engine's worker: a call to an address off the
+ * list is refused before it leaves. Its own page, since each refusal is logged as a console error.
+ */
+async function policyHolds() {
+  const context = await browser.newContext();
+  const p = await context.newPage();
+  const worker = p.waitForEvent("worker", { timeout: 30000 });
+  await p.goto(root);
+  const refused = () =>
+    new Promise((done) => {
+      self.addEventListener("securitypolicyviolation", (e) => done(e.effectiveDirective), { once: true });
+      fetch("https://example.com/").catch(() => undefined);
+      setTimeout(() => done("not refused"), 5000);
+    });
+  for (const [where, target] of [["page", p], ["worker", await worker]]) {
+    const got = await target.evaluate(refused);
+    if (got !== "connect-src") failures.push(`the content security policy: a call from the ${where} to an unlisted address was ${got}`);
+    else report.push(`the content security policy refuses a call from the ${where} to an unlisted address`);
+  }
+  await context.close();
+}
+
 try {
+  await policyHolds();
   await watch({ width: 1280, height: 800 }, "desktop");
   await watch({ width: 390, height: 844 }, "phone");
   await human({ width: 1280, height: 800 }, "human");

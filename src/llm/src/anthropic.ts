@@ -7,7 +7,8 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { raw, write } from "@amarna/engine";
-import { AnthropicId, type ApiResult, type CallSpec, type Provider } from "./client.ts";
+import { type ApiResult, type CallSpec, type Provider } from "./client.ts";
+import { AnthropicId } from "./endpoints.ts";
 import { ApiStatusError, retryAfterMs } from "./limiter.ts";
 import { ModelIds } from "./models.ts";
 import { jsonSchema, type JsonObject, type ReplySchema } from "./schema-tools.ts";
