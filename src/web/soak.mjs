@@ -8,10 +8,10 @@
 // frames, with the season each came in, are reported at the end. --video records the screen to a .webm in the directory.
 // Serves dist/ (after `npm run build`) as smoke.mjs does. Prints one line every few seconds, and a summary at the end.
 import { createRequire } from "node:module";
-import { createServer } from "node:http";
-import { appendFile, readFile, stat, writeFile } from "node:fs/promises";
-import { extname, join, normalize, resolve } from "node:path";
+import { appendFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { serveDist } from "./serve-dist.mjs";
 
 const { chromium } = createRequire(import.meta.url)("playwright");
 const arg = (name, fallback) => {
@@ -38,27 +38,8 @@ const videoSize = (arg("--video-size", "") || "").match(/^(\d+)x(\d+)$/u);
 /** A hitch becomes visible at about 50 ms (item 17a's bar). */
 const HITCH_MS = 50;
 const site = resolve(arg("--site", fileURLToPath(new URL("./dist/", import.meta.url)))) + "/";
-const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".json": "application/json", ".webmanifest": "application/manifest+json" };
 
-const base = "/amarna-letters/pr-0/";
-const server = createServer(async (req, res) => {
-  const path = decodeURIComponent(new URL(req.url, "http://x").pathname);
-  if (!path.startsWith(base)) return void res.writeHead(404).end();
-  let file = normalize(join(site, path.slice(base.length) || "index.html"));
-  if (!file.startsWith(site)) return void res.writeHead(403).end();
-  let body;
-  try {
-    if (!(await stat(file)).isFile()) throw new Error("not a file");
-    body = await readFile(file);
-  } catch {
-    file = join(site, "index.html");
-    body = await readFile(file);
-  }
-  if (file.endsWith("index.html")) body = Buffer.from(body.toString().replace('<base href="/" />', `<base href="${base}" />`));
-  res.writeHead(200, { "content-type": types[extname(file)] ?? "application/octet-stream" }).end(body);
-});
-await new Promise((r) => server.listen(0, r));
-const root = `http://localhost:${server.address().port}${base}`;
+const { server, root } = await serveDist(site, { base: "/amarna-letters/pr-0/" });
 
 const out = async (line) => {
   console.log(line);

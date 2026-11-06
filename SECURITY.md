@@ -23,8 +23,7 @@ Codex's terms (archive item 129).
    - **what runs by itself or with credentials:** `.github/`, `.claude/`, `scripts/cloud-setup.sh`,
      `scripts/statusline.sh`, and `docs/developing.md` (the credentialed GitHub calls builders run);
    - **the rule files:** `AGENTS.md`, `CLAUDE.md`, `docs/builder-rules.md`, `docs/claude-and-codex.md`,
-     `docs/orchestrating.md`,
-     `docs/review-guidelines.md`, `docs/threat-model.md` and this file;
+     `docs/codex-building.md`, `docs/orchestrating.md`, `docs/review-guidelines.md`, `docs/threat-model.md` and this file;
    - **the checks on the work:** the copies check (`scripts/copies.mjs` and `scripts/copies-baseline.json`) and the
      calibration log (`docs/calibration.md`).
 
@@ -61,7 +60,10 @@ Codex's terms (archive item 129).
 7. **What runs in players' browsers:**
    - **Players' API keys** (model seats): kept in memory, or this tab's session storage if the player asks
      (`src/web/src/session/storage.ts`); never localStorage, cookies, a save, a report, a log, a URL or an error message;
-     sent only to the provider the player chose (`src/llm/src/`).
+     sent only to the provider the player chose (`src/llm/src/`). The built page's content security policy
+     (`src/web/csp.ts`) holds the page and its worker to its own files, the providers on one list
+     (`src/llm/src/endpoints.ts`) and the player's own machine; nothing weakens it, and a new provider is a line in that
+     list.
    - **Dependencies:** `npm ci` from the lockfile; a new package only with a reason in its PR, from a known publisher;
      no package's own install scripts run, new or old (`ignore-scripts` in `.npmrc`, for every install here), and every
      package is pinned to one exact version in its `package.json`; CI's audit findings are fixed, not silenced.

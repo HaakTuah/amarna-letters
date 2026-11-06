@@ -9,8 +9,10 @@
 - **Models are settings** ("Built to outlive its models"; fix pass after the conversion, 27 October 2026). Each job (every
   king's seat, the characters, the narrator) names any model: an Anthropic model by its id (`claude-sonnet-5-5`, or a
   model released after the last update), or `<provider>:<model>` for a provider the table sets up
-  (`SeatChoices.providers`: an id and an OpenAI-compatible endpoint, such as another provider's API or a local model's,
-  `http://localhost:11434/v1`). "Haiku", "Sonnet" and "Opus" are only the presets' shorthands for the 5.5 models. The start
+  (`SeatChoices.providers`: an id and an OpenAI-compatible endpoint). In the browser that endpoint is one of the
+  providers on the list in `src/llm/src/endpoints.ts` or a local model's on the player's own machine
+  (`http://localhost:11434/v1`), and the bridge runs there too: the built page's content security policy, written from
+  that list (`src/web/csp.ts`), lets the page and its worker call nothing else. The batch runner takes any endpoint. "Haiku", "Sonnet" and "Opus" are only the presets' shorthands for the 5.5 models. The start
   page's "Other model…" and the batch runner's `--leaders MODEL`, `--provider ID=URL` set them. Keys are held per
   provider, in memory (the Anthropic key also in session storage when the player asks; the batch runner reads
   `ANTHROPIC_API_KEY` and `<ID>_API_KEY`); a local endpoint needs none. A saved game reads its seats back from the log

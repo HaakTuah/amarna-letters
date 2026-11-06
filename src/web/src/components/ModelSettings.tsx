@@ -1,12 +1,27 @@
 /**
  * Models are settings ("Built to outlive its models"): each job names any model, and a table may set up other providers
- * (any OpenAI-compatible endpoint, a local model's included) and set the price of a model the game does not know.
+ * (one on the list in src/llm/src/endpoints.ts, or a local model's) and set the price of a model the game does not know.
  */
 import { FixedPowers } from "@amarna/engine";
-import { CostEstimate, ModelIds, leaderModel, type PriceSetting, type ProviderSetting, type SeatChoices, type SpendMode } from "@amarna/llm";
+import {
+  AnthropicId,
+  CostEstimate,
+  KnownProviders,
+  ModelIds,
+  endpointAllowed,
+  knownProviderAt,
+  leaderModel,
+  type PriceSetting,
+  type ProviderSetting,
+  type SeatChoices,
+  type SpendMode,
+} from "@amarna/llm";
 import { useState } from "react";
 
 const Other = "__other__";
+const Local = "__local__";
+const LocalDefault = "http://localhost:11434/v1";
+const Listed = KnownProviders.filter((p) => p.id !== AnthropicId);
 
 /** A job's choice: the usual ones, or any model, typed as "claude-..." or "<provider>:<model>". */
 export function ModelPicker(props: { value: string; options: [string, string][]; onChange: (v: string) => void }) {
@@ -70,9 +85,10 @@ export function ProvidersPanel(props: {
     <div className="section">
       <h3>Other providers and prices</h3>
       <p className="muted" style={{ maxWidth: "46rem" }}>
-        A seat may name any model: an Anthropic model by its id, or <code>provider:model</code> for a provider set up here, with an OpenAI-compatible endpoint
-        (another provider's API, or a local model's, such as <code>http://localhost:11434/v1</code>). Each provider's key stays in this tab's memory only; a
-        local endpoint needs none. A provider that refuses calls from a browser can still serve the batch runner.
+        A seat may name any model: an Anthropic model by its id, or <code>provider:model</code> for a provider set up here: one of the providers listed, or
+        a local model on this machine, through its OpenAI-compatible endpoint (such as <code>{LocalDefault}</code>). The page calls no other address, so
+        nothing in it can send a key anywhere else. Each provider's key stays in this tab's memory only; a local endpoint needs none. A provider that
+        refuses calls from a browser can still serve the batch runner.
       </p>
       {choices.providers.map((p, i) => (
         <div className="row" key={i}>
@@ -80,8 +96,28 @@ export function ProvidersPanel(props: {
             Id <input style={{ width: "7rem" }} value={p.id} onChange={(e) => setProvider(i, { ...p, id: e.target.value.trim() })} />
           </label>
           <label>
-            Endpoint <input style={{ width: "18rem" }} value={p.baseUrl} onChange={(e) => setProvider(i, { ...p, baseUrl: e.target.value.trim() })} />
+            Endpoint{" "}
+            <select
+              value={knownProviderAt(p.baseUrl)?.baseUrl ?? Local}
+              onChange={(e) => {
+                const known = Listed.find((k) => k.baseUrl === e.target.value);
+                setProvider(i, known !== undefined ? { id: known.id, baseUrl: known.baseUrl } : { ...p, baseUrl: LocalDefault });
+              }}
+            >
+              {Listed.map((k) => (
+                <option key={k.id} value={k.baseUrl}>
+                  {k.name}
+                </option>
+              ))}
+              <option value={Local}>A local model on this machine</option>
+            </select>
           </label>
+          {knownProviderAt(p.baseUrl) === undefined && (
+            <label>
+              Address{" "}
+              <input style={{ width: "14rem" }} value={p.baseUrl} onChange={(e) => setProvider(i, { ...p, baseUrl: e.target.value.trim() })} />
+            </label>
+          )}
           <label>
             Key{" "}
             <input
@@ -95,9 +131,12 @@ export function ProvidersPanel(props: {
           <button className="small" onClick={() => setProvider(i, null)}>
             Remove
           </button>
+          {!endpointAllowed(p.baseUrl) && (
+            <span className="notice">Only an address on this machine (localhost or 127.0.0.1) can be called, besides the providers listed.</span>
+          )}
         </div>
       ))}
-      <button className="small" onClick={() => change((c) => c.providers.push({ id: `p${c.providers.length + 1}`, baseUrl: "http://localhost:11434/v1" }))}>
+      <button className="small" onClick={() => change((c) => c.providers.push({ id: `p${c.providers.length + 1}`, baseUrl: LocalDefault }))}>
         Add a provider
       </button>
       {unpriced.length > 0 && (

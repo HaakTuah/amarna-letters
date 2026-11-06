@@ -14,7 +14,8 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 | What | Where | Notes |
 | --- | --- | --- |
 | Builder rules | `docs/builder-rules.md` | From the design document. Claude loads them in every session; Codex reads them at the start of every task. |
-| Claude and Codex | `docs/claude-and-codex.md` | Who builds what, the hand-over, the fallback, the reviews' score. |
+| Claude and Codex | `docs/claude-and-codex.md` | Who does what, the reviews and their score, Codex's setup. |
+| When Codex builds | `docs/codex-building.md` | What goes to Codex, the hand-over, the fallback. Dormant until Codex can build. |
 | Running builder sessions and lanes | `docs/orchestrating.md` | For the orchestrator: sessions, the cache, hand-overs, lanes. |
 | Developing | `docs/developing.md` | GitHub's REST calls, Dependabot and CodeQL. |
 | Security | `SECURITY.md`, `docs/threat-model.md` | The rules every builder and reviewer keeps; what is protected and who might attack (the threat model). |

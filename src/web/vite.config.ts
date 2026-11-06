@@ -6,6 +6,7 @@ import { join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
 import { notices } from "../../scripts/licences.mjs";
+import { cspPlugin } from "./csp.ts";
 
 /**
  * The offline cache: writes service-worker.js beside the built files, listing every one of them with its hash, so the
@@ -83,7 +84,7 @@ export default defineConfig({
   // Relative URLs throughout: the site lives under a sub-path on GitHub Pages, set by the page's <base href>.
   base: "./",
   define: { __BUILD_ID__: JSON.stringify(buildId()) },
-  plugins: [react(), notice.main, serviceWorker()],
+  plugins: [react(), notice.main, serviceWorker(), cspPlugin()],
   worker: { format: "es", plugins: () => [notice.worker] },
   build: { outDir: "dist", target: "es2022", chunkSizeWarningLimit: 2000 },
   server: { port: 5183 },

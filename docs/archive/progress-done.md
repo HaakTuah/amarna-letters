@@ -16,7 +16,7 @@ Split by kind on 2 November 2026 (the workshop check: the file had grown to 98 K
 | Done items 17a and 17+ (moved 1 November 2026) | `progress-done/done-items.md` |
 | Side lanes | `progress-done/side-lanes.md` |
 | Summaries of items not yet built (moved 1 November 2026, word for word) | `progress-done/summaries-of-items-not-yet-built.md` |
-| Use against ignore: done items (moved 2 November 2026) | `progress-done/use-against-ignore.md` |
+| Use against ignore: done items (moved 2 November 2026; 17++ on 6 November) | `progress-done/use-against-ignore.md` |
 | Follow-ups done and struck (moved 3 November 2026) | `progress-done/follow-ups-done.md` |
 
 ## Pause note of 30 October 2026

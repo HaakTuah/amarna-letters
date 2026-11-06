@@ -2,25 +2,13 @@
 // dark, at the opening and four seasons in, at the opening view and one step closer. Serves dist/ (after a build).
 //   node src/web/shots.mjs <dir>
 import { createRequire } from "node:module";
-import { createServer } from "node:http";
-import { readFile, mkdir } from "node:fs/promises";
-import { extname, join, normalize } from "node:path";
-import { fileURLToPath } from "node:url";
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
+import { serveDist } from "./serve-dist.mjs";
 
 const { chromium } = createRequire(import.meta.url)("playwright");
-const dist = fileURLToPath(new URL("./dist/", import.meta.url));
 const out = process.argv[2] ?? "shots";
-const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".json": "application/json", ".webmanifest": "application/manifest+json" };
-const server = createServer(async (req, res) => {
-  const path = decodeURIComponent(new URL(req.url, "http://x").pathname);
-  let file = normalize(join(dist, path.slice(1) || "index.html"));
-  if (!file.startsWith(dist)) return void res.writeHead(403).end();
-  let body;
-  try { body = await readFile(file); } catch { file = join(dist, "index.html"); body = await readFile(file); }
-  res.writeHead(200, { "content-type": types[extname(file)] ?? "application/octet-stream" }).end(body);
-});
-await new Promise((r) => server.listen(0, r));
-const root = `http://localhost:${server.address().port}/`;
+const { server, root } = await serveDist();
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch();
 const timings = [];
