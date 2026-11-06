@@ -34,12 +34,15 @@ if (base) {
   for (const [what, a, b] of raised) console.log(`RAISED: ${what} from ${kb(a)} to ${kb(b)}; the PR says why`);
 
   const exempt = (f) => marks.exempt.some((e) => (e.endsWith("/") ? f.startsWith(e) : f === e));
-  const changed = git("diff", "--name-only", "--diff-filter=AM", base, "HEAD").split("\n").filter((f) => f && !exempt(f));
-  for (const f of changed) {
+  // each added, changed, renamed or copied file, with the path it had on the base (a rename is measured against it)
+  const changed = git("diff", "--name-status", "-M", "-C", "--diff-filter=ACMR", base, "HEAD").split("\n").filter(Boolean)
+    .map((l) => l.split("\t")).map(([kind, from, to]) => ({ f: to ?? from, was: /^[RC]/u.test(kind) ? from : to ?? from }))
+    .filter(({ f }) => !exempt(f));
+  for (const { f, was } of changed) {
     const size = fs.statSync(f).size;
     if (size <= marks.step0 || fs.readFileSync(f).subarray(0, 8192).includes(0)) continue;
     let old = 0;
-    try { old = Number(git("cat-file", "-s", `${base}:${f}`)); } catch { /* new in this PR */ }
+    try { old = Number(git("cat-file", "-s", `${base}:${was}`)); } catch { /* new in this PR */ }
     if (size >= old) fail.push(`${f} is ${kb(size)}, past ${kb(marks.step0)}, and this PR ${old ? "grows or keeps" : "adds"} it: split it by meaning first, in its own PR (Step 0)`);
   }
 }

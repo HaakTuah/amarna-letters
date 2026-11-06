@@ -34,8 +34,9 @@ function sections(file) {
   lines.forEach((line, i) => {
     const h = /^(#{1,6})\s+(.*)$/u.exec(line);
     if (h) found.push({ title: norm(h[2]), line: i, level: h[1].length });
-    const b = /^\s*(?:[-*]|\d+\.)?\s*\*\*([^*]+)\*\*/u.exec(line);
-    if (b) found.push({ title: norm(b[1]), line: i, level: 7 + (line.length - line.trimStart().length) });
+    // A bold lead: plain, then a bullet's, then a numbered point's, each nested in the one before at the same indent.
+    const b = /^(\s*)([-*]|\d+\.)?\s*\*\*([^*]+)\*\*/u.exec(line);
+    if (b) found.push({ title: norm(b[3]), line: i, level: 7 + 3 * b[1].length + (b[2] ? (/\d/u.test(b[2]) ? 2 : 1) : 0) });
   });
   for (const [k, s] of found.entries()) {
     const next = found.slice(k + 1).find((t) => t.level <= s.level);
@@ -44,7 +45,14 @@ function sections(file) {
   sectionsOf.set(file, found);
   return found;
 }
-const findSection = (file, title) => sections(file).find((s) => s.title.startsWith(norm(title)));
+/** The section an exact title names, else the one section it begins; undefined if none, null if several (not read). */
+function findSection(file, title) {
+  const t = norm(title), all = sections(file);
+  const exact = all.filter((s) => s.title === t);
+  const begun = exact.length ? exact : all.filter((s) => s.title.startsWith(t));
+  if (!begun.length) return undefined;
+  return new Set(begun.map((s) => s.title)).size === 1 ? begun[0] : null;
+}
 const hasPoint = (lines, n) => lines.some((l) => new RegExp(`^\\s*${n}\\.\\s`, "u").test(l));
 const archiveItems = new Set(fs.readdirSync(ARCHIVE).flatMap((f) =>
   [...read(path.join(ARCHIVE, f)).matchAll(/^(\d+)\.\s/gmu)].map((m) => Number(m[1]))));
@@ -81,9 +89,14 @@ for (const file of RULES) {
     }
     for (const m of line.matchAll(/"([^"\n]{2,80})"(?=([^"\n]*))/gu)) {
       const into = target(m[2], file);
-      if (!into || !fs.existsSync(into) || !fs.statSync(into).isFile()) continue;
+      if (!into || !fs.existsSync(into) || !fs.statSync(into).isFile()) {
+        // a section pointer in a form not read here ("in the same doc", "in the PR") is listed, never guessed
+        if (/^\s*(?:,\s*points?\s+\d+,?\s*)?(?:in|of)\s+\S/u.test(m[2])) unread.push(`${where}: "${m[1]}"${m[2].slice(0, 30)}`);
+        continue;
+      }
       checked++;
       const s = findSection(into, m[1]);
+      if (s === null) { unread.push(`${where}: "${m[1]}" begins more than one section of ${into}`); continue; }
       if (!s) { fail(`"${m[1]}" is no section of ${into}`); continue; }
       const n = /^\s*,\s*points?\s+(\d+)/u.exec(m[2]);
       if (n) { checked++; if (!hasPoint(s.body, n[1])) fail(`"${m[1]}" in ${into} has no point ${n[1]}`); }
