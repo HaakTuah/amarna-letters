@@ -105,9 +105,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   `docs/codex-building.md`; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
   the archive. `docs/claude-and-codex.md` is still 22 KB, past the 20 KB warning: what is left is one thing (the roles,
   the reviews, Codex's setup), so it stays whole until the shared core takes its common part.
-- **The old copies, removed** (archive item 207): `scripts/copies-baseline.json` lists 21, nearly all test helpers
-  written again in each test (`begin`, a `Board`), and one passage of the builder rules said twice (to be fixed in the
-  design document). A workshop lane removes them by pointing to one shared helper, and drops each entry as it goes.
+- **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
+  passage of the builder rules said twice (the design document's to fix), the generated `geo-fine-data.ts` (its
+  script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
+  dodge).
 - **A canary for Codex's code review, on resume** ("Reviews", point 5, in `docs/claude-and-codex.md`; archive item 206): the
   review guidelines moved to `docs/review-guidelines.md`, so a test PR with planted faults, one breaking a line only that
   file holds (such as "History holds"), proves Codex follows the pointer from `AGENTS.md`. Never merged.
@@ -136,7 +137,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
     kings' trust readings still behave well.
     **Done** (#680, `lane/591-envoy-tells`; report `docs/rounds/2026-11-03-envoy-tells.md`): no form or shape of an
-    envoy's report home marks its state (`envoy-tells.test.ts`); save version 62; the trust readings measured.
+    envoy's report home marks its state (`envoy-tells.test.ts`); save version 63; the trust readings measured.
   - ~~**#616, one clock for one road:**~~ (done, #639) a far province's report and its notices come by one function,
     the couriers' seasons from the place to the court (`wordHomeAt`), with a test that the same season's both arrive
     together. Save version 57. Report: `docs/rounds/2026-11-03-one-clock.md`.
@@ -151,6 +152,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     `docs/rounds/2026-11-03-news-beyond-sight.md`.
   - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
     land's king, or keep it back.
+
+- ~~**A far force's seizure of a caravan, heard by the road (bug #675)**~~ (done, #727): its king's notice comes as word
+  from where it happened, and the event names him only where his couriers reach. Save version 62. Filed: #726 (a
+  captured archive), #736 (tolls at a far border). Report: `docs/rounds/2026-11-06-far-seizure-heard.md`.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.

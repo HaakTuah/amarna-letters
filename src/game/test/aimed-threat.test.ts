@@ -1,17 +1,7 @@
 import { describe, test } from "vitest";
 import { TextKit } from "../src/bots/textkit.ts";
-import {
-  type Character,
-  type Power,
-  newCharacter,
-  newDispatch,
-  newExchange,
-  newHomeCargo,
-  newMessageTrail,
-  newMindRequest,
-  newTraits,
-} from "@amarna/engine";
-import { ScriptMind, newEnvoyContext, newMindContext } from "@amarna/game";
+import { type Character, type Power, newExchange, newMessageTrail } from "@amarna/engine";
+import * as Support from "./envoy-support.ts";
 import { Abroad, Home } from "../src/bots/envoy-words.ts";
 import { saysOneOf } from "./readings.ts";
 import { Assert } from "../../engine/test/support.ts";
@@ -121,22 +111,13 @@ describe("AimedThreatTests", () => {
   });
 
   function envoy(loyalty: number, courage: number): Character {
-    return newCharacter({
-      id: "c1",
-      name: "Keliya",
-      origin: "Mitanni",
-      calling: "scribe",
-      status: "Employed",
-      employer: "Arzawa",
-      traits: newTraits({ loyalty: loyalty, greed: 30, competence: 70, ambition: 30, courage: courage }),
-    });
+    return Support.envoyOf("Arzawa", loyalty, 30, 70, 30, courage);
   }
 
   test("A timid envoy carries a peace offer whole", async () => {
     let letter =
       "I will not move against Ugarit, Kalavasos or Enkomi, and I will support you if you are attacked in that sea. If you take Lukka, you will regret it.";
-    let ctx = newEnvoyContext({ self: envoy(70, 20), sender: "Arzawa", host: "Alashiya", dispatch: newDispatch({ letter: letter }), turn: 1, seed: 1 });
-    let speech = (await new ScriptMind().present(ctx)).speech;
+    let speech = await Support.delivered(envoy(70, 20), "Arzawa", "Alashiya", letter);
     Assert.contains("I will support you if you are attacked in that sea.", speech);
     Assert.doesNotContain("regret", speech);
     Assert.true(saysOneOf(speech, Abroad.noQuarrel), speech);
@@ -157,14 +138,7 @@ describe("AimedThreatTests", () => {
         }),
       ],
     });
-    let ctx = newMindContext({
-      request: newMindRequest({ task: "EnvoyReport", characterId: timid.id, court: "Arzawa", cargo: newHomeCargo() }),
-      self: timid,
-      turn: 3,
-      seed: 1,
-      trail: trail,
-    });
-    let report = (await new ScriptMind().write(ctx)).text;
+    let report = await Support.reportOf(timid, "Arzawa", trail);
     Assert.true(saysOneOf(report, Home.quoted, { W: "I will crush Assyria in the spring." }), report);
     Assert.doesNotContain("burn", report);
   });

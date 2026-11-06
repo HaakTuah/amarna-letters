@@ -4,47 +4,26 @@ import {
   type Character,
   type MessageTrail,
   type Power,
-  newCharacter,
-  newDispatch,
   newExchange,
   newFact,
-  newHomeCargo,
   newMessageTrail,
-  newMindRequest,
-  newTraits,
 } from "@amarna/engine";
-import { ScriptMind, newEnvoyContext, newMindContext } from "@amarna/game";
+import * as Support from "./envoy-support.ts";
 import { Abroad, Home } from "../src/bots/envoy-words.ts";
 import { saysOneOf } from "./readings.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 describe("ScriptEnvoyTests", () => {
   function envoy(loyalty: number = 70, greed: number = 30, competence: number = 70, ambition: number = 30, courage: number = 60): Character {
-    return newCharacter({
-      id: "c1",
-      name: "Keliya",
-      origin: "Mitanni",
-      calling: "scribe",
-      status: "Employed",
-      employer: "Egypt",
-      traits: newTraits({ loyalty: loyalty, greed: greed, competence: competence, ambition: ambition, courage: courage }),
-    });
+    return Support.envoyOf("Egypt", loyalty, greed, competence, ambition, courage);
   }
 
   async function delivered(envoy: Character, host: Power, letter: string): Promise<string> {
-    let ctx = newEnvoyContext({ self: envoy, sender: "Egypt", host: host, dispatch: newDispatch({ letter: letter }), turn: 1, seed: 1 });
-    return (await new ScriptMind().present(ctx)).speech;
+    return Support.delivered(envoy, "Egypt", host, letter);
   }
 
   async function reportOf(envoy: Character, trail: MessageTrail, ...observations: string[]): Promise<string> {
-    let ctx = newMindContext({
-      request: newMindRequest({ task: "EnvoyReport", characterId: envoy.id, court: "Egypt", cargo: newHomeCargo({ observations: observations }) }),
-      self: envoy,
-      turn: 3,
-      seed: 1,
-      trail: trail,
-    });
-    return (await new ScriptMind().write(ctx)).text;
+    return Support.reportOf(envoy, "Egypt", trail, ...observations);
   }
 
   function trailOf(host: Power, hostWords: string, ...outcomes: string[]): MessageTrail {

@@ -37,7 +37,7 @@ version, and a check that the script kings' trust readings still behave.
   still says "all is well" in every report, where an honest one says it at a warm court about one season in four: the
   wording marks nothing, but how often it comes does. #591 asks about phrasing, and a
   frightened envoy that always soothes is the motive the game models, so it stays.
-- **Save version 62.** The script kings' reading of reports changes.
+- **Save version 63.** The script kings' reading of reports changes.
 - **The guard:** `src/game/test/envoy-tells.test.ts` plays each kind of envoy over sixty seasons. Every form a bribed or
   frightened envoy says at home must also be said by an honest one at a warm court in some season.
 
