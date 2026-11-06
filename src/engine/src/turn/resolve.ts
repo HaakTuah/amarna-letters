@@ -91,9 +91,10 @@ P.resolveSeason = function (submissions) {
   const fires = this.standingFires(seasons, validator);
   for (const p of alive(S)) {
     const sub = this.compose(p, seasons.get(p), fires.tryGet(p) ?? []);
-    // Bug #600: orders for a unit lost out of sight, its end unheard, are checked as if it stood (`_riddenNow`).
+    // Bug #600: orders for a unit lost out of sight, its end unheard, are checked as if it stood (`_riddenNow`): first in
+    // the list, so it is the unit its province names, though another's troops stand there now.
     const ridden = this._riddenNow.tryGet(p) ?? new Map<Order, Unit>();
-    const v = (ridden.size === 0 ? validator : new OrderValidator({ ...S, units: [...S.units, ...ridden.values()] }, this.map, (o) => this._goneNow.get(o) ?? null)).validate(p, sub);
+    const v = (ridden.size === 0 ? validator : new OrderValidator({ ...S, units: [...ridden.values(), ...S.units] }, this.map, (o) => this._goneNow.get(o) ?? null)).validate(p, sub);
     valid.set(p, v);
     if (v.rejected.length > 0)
       notify(S, p, "Rejected", "Orders that could not be carried out", v.rejected.map((r) => `- ${upper(told(r.order))}: ${placesNamed(r.reason)}.`).join("\n"));

@@ -170,7 +170,11 @@ describe("UnitsKnownTests", () => {
   });
 
   test("A commanded far army's standing order, fired after it was lost out of sight, is given, checked and told as for one that stands (bug #600)", () => {
-    for (const refused of [false, true]) {
+    for (const [refused, taken] of [
+      [false, false],
+      [true, false],
+      [false, true],
+    ]) {
       const fired = (lost: boolean) => {
         const map = WorldMap.default;
         const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Babylonia");
@@ -206,6 +210,8 @@ describe("UnitsKnownTests", () => {
         for (let i = 0; i < 3; i++) next();
         new TurnEngine(s, map).beginTurn();
         if (lost) loseUnit(s, u);
+        // Lost to those who now hold its province: their troops stand where its king last knew it.
+        if (lost && taken) s.units.push(newUnit({ id: "u998", power: "Babylonia", kind: "Army", province: at, home: from, men: 1000 }));
         new TurnEngine(s, map).resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [move(from, target)] })]]));
         new TurnEngine(s, map).beginTurn();
         const read = inboxOf(s, "Hatti")
