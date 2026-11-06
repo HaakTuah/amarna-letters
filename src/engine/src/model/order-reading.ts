@@ -165,6 +165,10 @@ export function describe(o: Order): string {
       return `give ${o.character} a gift of ${o.gold} shekels`;
     case "payRansom":
       return `pay the ransom for ${o.character}`;
+    case "letter":
+      return o.fate === "Send" ? `send the offer of ${o.province}'s people to ${powerName(o.to)}` : `ask ${powerName(o.to)} ${o.price} shekels for the offer of ${o.province}'s people`;
+    case "buyLetter":
+      return `buy the offer of ${o.province}'s people`;
   }
 }
 

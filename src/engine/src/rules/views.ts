@@ -23,7 +23,7 @@ import { declarationKnown } from "../model/declarations.ts";
 import { moodsKnown } from "../model/moods.ts";
 import { governorsKnown, seatKnown } from "../model/command.ts";
 import { grantStandsFor, newGrantView } from "../model/authority.ts";
-import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtView, newLotView, newSeatView, newGovernorView, newDeclaredView, newMoodSeenView, newSiegeView, newTabletView, newUnitView, type UnitView, newLetterView, landGrowth, type CharacterView, type DebtView, type LandStanding, type LetterView, type SeatView, type TabletView, newWorkView } from "../model/views.ts";
+import { type CaravanView, newCharacterView, newNewsOffer, newBandSeen, newDebtView, newLotView, newSeatView, newGovernorView, newDeclaredView, newHeldLetterView, newMoodSeenView, newSiegeView, newTabletView, newUnitView, type UnitView, newLetterView, landGrowth, type CharacterView, type DebtView, type LandStanding, type LetterView, type SeatView, type TabletView, newWorkView } from "../model/views.ts";
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
@@ -324,6 +324,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   // As word of them has reached it: one ended stands until word of its end comes; taken up once word of that came home.
   v.moods = [...moodsKnown(s, p).values()].map((r) => newMoodSeenView({ province: r.province, mood: r.mood, seen: r.seen, source: r.source }));
   v.declared = s.declarations.filter((d) => d.power === p && declarationKnown(d, s.turn)).map((d) => newDeclaredView({ province: d.province, from: d.from, takenUp: d.takenKnown !== null && d.takenKnown <= s.turn }));
+  // #592: offers it holds, and those offered it for sale once word of the asking has come (their words only once bought).
+  v.lettersHeld = s.lettersHeld.filter((h) => h.heldBy === p).map((h) => newHeldLetterView({ province: h.province, claimant: h.claimant, words: h.words, heldBy: p, askedOf: h.askedOf, price: h.price }));
+  v.lettersOffered = s.lettersHeld.filter((h) => h.askedOf === p && h.askKnown !== null && h.askKnown <= s.turn).map((h) => newHeldLetterView({ province: h.province, claimant: h.claimant, heldBy: h.heldBy, askedOf: p, price: h.price }));
   // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {

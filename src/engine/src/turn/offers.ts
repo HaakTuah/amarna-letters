@@ -111,6 +111,8 @@ P.dropOffer = function (d) {
   const S = this.s;
   // On the road too, so a letter of an ended offer never stands for a later one from the same people.
   S.journeys = S.journeys.filter((j) => !(j.kind === "Offer" && j.to === d.power && provinceOf(j) === d.province));
+  // And caught and held (#592): a letter of a leaning that ended is worth nothing.
+  S.lettersHeld = S.lettersHeld.filter((h) => !(h.claimant === d.power && h.province === d.province));
 };
 
 P.offersRobbed = function (c) {
@@ -211,7 +213,14 @@ P.offerArrives = function (j) {
   d.known = S.turn;
   const c = findCharacter(S, j.carrier);
   const people = `the people of ${this.map.get(province).name}`;
-  const by = c !== null ? `${c.name} has brought you the word of ${people}` : j.caravan !== null ? `Traders have brought you the word of ${people}` : `${upper(people)} send you their word`;
+  const by =
+    j.sentOnBy !== null
+      ? `${upper(powerName(j.sentOnBy))} has sent on to you the word of ${people}, which it took on the road`
+      : c !== null
+        ? `${c.name} has brought you the word of ${people}`
+        : j.caravan !== null
+          ? `Traders have brought you the word of ${people}`
+          : `${upper(people)} send you their word`;
   notify(this, j.to, `${by}: ${quoteWords(offerWords(j))} ${OfferTerms}`);
   logEvent(S, "declare", `The offer of ${this.map.get(province).name}'s people reached ${j.to}.`, [j.to], "offer-arrived");
 };

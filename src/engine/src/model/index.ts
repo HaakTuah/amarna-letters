@@ -39,3 +39,4 @@ export * from "./command.ts";
 export * from "./languages.ts";
 export * from "./unrest.ts";
 export * from "./sieges-ended.ts";
+export * from "./held-letters.ts";

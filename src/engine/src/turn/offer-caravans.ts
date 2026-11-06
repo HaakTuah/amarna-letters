@@ -19,6 +19,7 @@ import { isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { wordHomeAt } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
+import { LetterHeldTerms } from "./held-letters.ts";
 
 /** First guesses, for item 18: what a caravan's master asks a province's people to carry their offer, a season of its road. */
 export const CaravanOfferData = { feePerSeason: 10 } as const;
@@ -112,7 +113,9 @@ P.caravanOffersTaken = function (c, taker) {
       S.journeys.push({ ...j, waitAt: null, arriveTurn: Math.max(S.turn, wordHomeAt(S, this.map, this.courtAt(taker), caravanAt(c), S.turn)) });
       continue;
     }
-    notify(S, taker, "Notice", "A letter taken on the road", `${OfferCaught.opens}${noun(c)}${OfferCaught.people}${from} to ${powerName(j.to)}: ${quoteWords(offerWords(j))}`);
+    notify(S, taker, "Notice", "A letter taken on the road", `${OfferCaught.opens}${noun(c)}${OfferCaught.people}${from} to ${powerName(j.to)}: ${quoteWords(offerWords(j))} ${LetterHeldTerms}`);
+    // #592: and holds it.
+    this.holdLetter(taker, j);
     logEvent(S, "letter", `${taker} read the offer of ${from}'s people to ${j.to}, taken with ${noun(c)}.`, [taker], "offer-read");
   }
 };

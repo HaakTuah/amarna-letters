@@ -18,6 +18,7 @@ import type { People } from "./land.ts";
 import { type Census, CensusSchema, type Count, CountSchema } from "./counts.ts";
 import { type MoodRead, MoodReadSchema } from "./moods.ts";
 import { type Declaration, DeclarationSchema } from "./declarations.ts";
+import { type HeldLetter, HeldLetterSchema } from "./held-letters.ts";
 import { type SiegeEnded, SiegeEndedSchema } from "./sieges-ended.ts";
 import { type ProvinceReport, ProvinceReportSchema } from "./province-reports.ts";
 import { type Band, BandSchema } from "./bands.ts";
@@ -309,6 +310,8 @@ export interface GameState {
   moodReads: MoodRead[];
   /** Item 17++ ("taken up, never thrust on anyone"): provinces declared for a power, and claims ceded by treaty, until answered or lapsed. */
   declarations: Declaration[];
+  /** #592: provinces' offers caught on the road, held by their captors. */
+  lettersHeld: HeldLetter[];
   /** The men levied this season to build and keep what stands (the corvée, item 15), by province: away from the next harvest. */
   corvee: Dict<string, number>;
   /** How well each province's countryside ate last season, in thousandths, where it went short (item 10+a). */
@@ -588,6 +591,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     censuses: [],
     moodReads: [],
     declarations: [],
+    lettersHeld: [],
     corvee: new Dict(),
     fed: new Dict(),
     losses: [],
@@ -651,6 +655,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   censuses: list(() => CensusSchema),
   moodReads: list(() => MoodReadSchema),
   declarations: list(() => DeclarationSchema),
+  lettersHeld: list(() => HeldLetterSchema),
   corvee: dict(I),
   fed: dict(I),
   caravans: list(() => CaravanSchema),
