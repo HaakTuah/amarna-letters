@@ -201,7 +201,7 @@ P.atBorder = function (c, a, b, book) {
   e.grain += grain - lost;
   e.gold += gold;
   if (grain + gold > 0) {
-    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} paid ${name === powerName(k) ? "the" : whose(k)} toll at ${name}: ${goods(grain, gold)}, ${rate} in a hundred.`);
+    this.caravanTell(c, b, "Notice", MarketsTitle, `Your ${c.ship !== null ? "ship" : "caravan"} paid ${name === powerName(k) ? "the" : whose(k)} toll at ${name}: ${goods(grain, gold)}, ${rate}%.`);
     logEvent(S, "toll", `${c.power}'s goods paid ${k}'s toll at ${name}.`, [...this.caravanNear(c, b), ...this.nearOf(b, k)], "toll-paid");
   }
   return "pass";
@@ -476,7 +476,7 @@ P.setToll = function (p, o) {
   if (o.percent > 0 || o.partner !== null || o.province !== null) S.tolls.push(newToll({ holder: p, province: o.province, partner: o.partner, percent: o.percent }));
   const where = o.province === null ? "your land" : this.map.get(o.province).name;
   const whose = o.partner === null ? "Everyone's" : `${o.partner}'s`;
-  notify(S, p, "Resolution", TollsTitle, o.percent > 0 ? `${whose} goods entering ${where} now pay ${o.percent} in a hundred.` : `${whose} goods enter ${where} free of toll now.`);
+  notify(S, p, "Resolution", TollsTitle, o.percent > 0 ? `${whose} goods entering ${where} now pay ${o.percent}%.` : `${whose} goods enter ${where} free of toll now.`);
   logEvent(S, "toll-set", `${p} set a toll of ${o.percent}% on ${o.partner ?? "everyone"}'s goods entering ${where}.`, [p], "toll-set");
 };
 

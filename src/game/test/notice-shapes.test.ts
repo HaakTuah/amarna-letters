@@ -13,7 +13,7 @@ const Tells: readonly (readonly [string, RegExp])[] = [
   ["a number that does not agree", /(?<![\d.])1 (measures|shekels|minas|seasons|men)\b/],
   ["a zero told as a number", /(?<![\d.])0 (measures|shekels|minas|men)\b/],
   ["a small letter after a full stop", /[a-z]\. [a-z]/],
-  ["a percent sign in prose", /\d%/],
+  ["a share in a hundred, not in % (the owner, #735)", /\bin (?:a hundred|100)\b/],
   ["an order arrow", /->/],
   ["two colons in one clause", /: [^.;:\n]*: [^.;:\n]*:/],
 ];

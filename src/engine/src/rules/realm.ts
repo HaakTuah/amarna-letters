@@ -7,7 +7,7 @@
 import { listed, upper } from "./wording.ts";
 import { economyOf, grainWorth, harvestOf, needOf } from "../model/economy.ts";
 import type { WorldMap } from "../model/map.ts";
-import { cmpPower, land, type Power, powerName, whose } from "../model/power.ts";
+import { cmpPower, type Power, powerName, whose } from "../model/power.ts";
 import { alive, type GameState } from "../model/state.ts";
 import { vassalBonds } from "../model/vassals.ts";
 

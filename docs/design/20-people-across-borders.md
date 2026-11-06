@@ -83,8 +83,9 @@ line in the treasury notice; signal `robbed`. Bands gathering them are item 11b'
   `lootPerHundred` 10 shekels a hundred men; `kingSharePercent` 33% of it is the king's and travels home as a load
   (`lootHome`, a returning caravan with gold), the rest goes into the units' savings. Discipline joins with commanders
   (item 13). **A captured archive** (`takeArchive`) is lost to its court at once and travels to the taker's capital the
-  same way (`Caravan.archive`); its tablets become his copies when it arrives (`archiveArrives`), or the copies of a king
-  whose troops take the load. The breach's pace already follows the besiegers' numbers (support) and time; engineers
+  same way (`Caravan.archive`); its tablets become his copies when it arrives (`archiveArrives`). A king whose troops or fleet take
+  the load sends it home the same way (`lootHome`), or, far off with no road home for a load, sends its tablets by
+  courier (`archiveByWord`, a `Word` journey of news `Archive`), so his court holds them only when they arrive (#726). The breach's pace already follows the besiegers' numbers (support) and time; engineers
   and commanders wait for item 13.
 - **One price at a market** (`tradeTogether`): caravans and ships reaching one market in the same season sell as one lot
   and buy as one purse along the curve, each taking its share in proportion to what it brought.

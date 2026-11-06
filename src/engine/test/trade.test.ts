@@ -76,7 +76,7 @@ describe("TradeTests", () => {
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [trade("hattusa", "washukanni", 100, 100)] })]]));
     untilHome(s, e);
     Assert.true(s.events.some((x) => x.signal === "toll-paid"));
-    Assert.contains("Your caravan paid Mitanni's toll at Washukanni: 16 measures of grain and 20 shekels, 20 in a hundred.", notices(s, "Hatti", "Markets and caravans"));
+    Assert.contains("Your caravan paid Mitanni's toll at Washukanni: 16 measures of grain and 20 shekels, 20%.", notices(s, "Hatti", "Markets and caravans"));
     // Washukanni is Mitanni's capital: its tolls' gold goes into the treasury, and word of them comes at once (#736).
     Assert.contains("Your tolls at Washukanni brought 16 measures of grain into its stores and 20 shekels into your treasury.", notices(s, "Mitanni", "Tolls"));
   });

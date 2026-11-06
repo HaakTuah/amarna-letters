@@ -406,7 +406,7 @@ P.expel = function (p, o) {
   const [n] = share(x, townsfolk);
   shift(x, -n, 0);
   x.loose += n;
-  this.tell(p, o.province, "Resolution", PeopleTitle, `You put ${people(n)} people who cannot fight out of ${prov.name}: they are refugees outside the walls, and the city eats ${after} in a hundred less while the siege lasts.`);
+  this.tell(p, o.province, "Resolution", PeopleTitle, `You put ${people(n)} people who cannot fight out of ${prov.name}: they are refugees outside the walls, and the city eats ${after}% less while the siege lasts.`);
   logEvent(S, "expel", `${p} put ${people(n)} people out of besieged ${prov.name}.`, this.nearOf(o.province, p), "mouths-expelled");
   this.refuge(o.province, n, "the siege");
 };
