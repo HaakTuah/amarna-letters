@@ -268,7 +268,7 @@ describe("EnvoyTests", () => {
     let e = begin(s);
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [assay("g900")] })]]));
     Assert.empty(s.treasuries.get("Hatti").lots);
-    Assert.contains(inboxOf(s, "Hatti"), (i) => i.kind === "Assay" && i.body.includes("60 in a hundred"));
+    Assert.contains(inboxOf(s, "Hatti"), (i) => i.kind === "Assay" && i.body.includes("60%"));
   });
 
   test("Background checks report public facts and deeper ones only by chance", () => {

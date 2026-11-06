@@ -97,7 +97,7 @@ P.setDemand = function (p, o) {
     else if (o.n !== EconomyData.taxPercent) S.shares.set(id, o.n);
   }
   const where = o.province === null ? null : this.map.get(o.province).name;
-  const what = o.how === "amount" ? `${measures(o.n)} of grain a season` : `${o.n} in a hundred of its harvest`;
+  const what = o.how === "amount" ? `${measures(o.n)} of grain a season` : `${o.n}% of its harvest`;
   notify(S, p, "Resolution", "Taxes", `From the next collection, ${where ?? "every province of yours"} gives ${what}.`);
   logEvent(S, "demand-set", `${p} asked ${what} of ${where ?? "all its land"}.`, [p], o.how === "amount" ? "demand-amount" : "demand-share");
 };

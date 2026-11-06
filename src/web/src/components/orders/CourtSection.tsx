@@ -232,7 +232,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
               )}
               {c.lends !== null && (
                 <button className="small" onClick={() => add(borrow(c.id, c.lends!.amount, c.lends!.amount + Math.ceil((c.lends!.amount * c.lends!.perHundred) / 100), c.lends!.seasons))}>
-                  Borrow {shekels(c.lends.amount)}, {c.lends.perHundred} in 100 more back in {c.lends.seasons} seasons
+                  Borrow {shekels(c.lends.amount)}, {c.lends.perHundred}% more back in {c.lends.seasons} seasons
                 </button>
               )}
               {c.news.map((n) => (
@@ -370,7 +370,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
       </div>
       <p className="muted">
         <small>
-          People count on {v.trust} in a hundred of what you promise, as far as they have heard your record (kept {v.kept}, broken {v.broken}). A job is one errand,
+          People count on {v.trust}% of what you promise, as far as they have heard your record (kept {v.kept}, broken {v.broken}). A job is one errand,
           offered to a person at your court (or abroad, by an envoy); nothing is paid but by your order.
         </small>
       </p>

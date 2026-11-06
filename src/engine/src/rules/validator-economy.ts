@@ -143,7 +143,7 @@ export function checkEconomyOrder(v: Checking, order: Order): string | null | un
       const key = `${order.type}|${order.province}|${order.type === "returnRunaways" ? order.to : ""}`;
       if (peopleSet.has(key)) return `you had already given that order for ${name} this season`;
       if (order.type === "expel" && !v.knownSiege(order.province)) return `${name} is not besieged`;
-      if (order.type === "expel" && (!Number.isInteger(order.percent) || order.percent < 1 || order.percent > 100)) return "say how many in a hundred of the mouths still inside to put out, 1 to 100";
+      if (order.type === "expel" && (!Number.isInteger(order.percent) || order.percent < 1 || order.percent > 100)) return "say what share of the mouths still inside to put out, 1% to 100%";
       if (order.type === "returnRunaways" && (!AllPowers.includes(order.to) || order.to === power)) return `you cannot send runaways to '${order.to}'`;
       if (order.type === "deport") {
         if (Map.isHome(power, order.province)) return `${name} is your own homeland; a king deports only from land he has taken`;
