@@ -42,7 +42,7 @@ export function lifeMarks(s: MapScene, province: string): { cls: string; inner: 
   const out: { cls: string; inner: string; text: string }[] = [];
   const fed = s.memory.famine.get(province);
   if (fed !== undefined && fed < FamineBelow)
-    out.push({ cls: "famine", inner: `<path class="fm-dome" d="M-4,5V-1A4,4.6 0 0 1 4,-1V5Z"/><path class="fm-crack" d="M-1,-4L1,-1L-1,2L1,5"/>`, text: `famine: its countryside ate ${Math.round(fed / 10)} in a hundred of its need` });
+    out.push({ cls: "famine", inner: `<path class="fm-dome" d="M-4,5V-1A4,4.6 0 0 1 4,-1V5Z"/><path class="fm-crack" d="M-1,-4L1,-1L-1,2L1,5"/>`, text: `famine: its countryside ate ${Math.round(fed / 10)}% of its need` });
   const t = s.memory.towns.get(province);
   if (t !== undefined) {
     const trend = t.now > t.before * 1.03 ? "growing" : t.now < t.before * 0.97 ? "shrinking" : "holding";

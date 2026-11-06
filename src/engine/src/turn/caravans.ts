@@ -21,6 +21,7 @@ import { RoadOdds } from "./travel.ts";
 import { TurnEngine } from "./core.ts";
 import { goods, openToSea, type Sneak, type TollBook } from "./trade.ts";
 import { MarketsTitle } from "./economy.ts";
+import { homeRoad } from "./coffers.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -91,6 +92,8 @@ P.caravansTravel = function () {
   const what = (c: Caravan): string => goods(c.grain, c.gold + c.pay);
   const noun = (c: Caravan): string => (c.ship !== null ? "ship" : "caravan");
   const arrivals: Caravan[] = [];
+  // #543: before any sets out on the season's road, the offers waiting where caravans stand go with one that may take them.
+  this.caravansPickUp();
   for (const c of sortBy([...S.caravans], [(c: Caravan) => c.id, cmpStr])) {
     if (!isAlive(S, c.power)) {
       caravanGone(S, c);
@@ -143,7 +146,13 @@ P.caravansTravel = function () {
       c.at++;
       crossed.push(b);
     }
+    // #543: talk of a province's leaning, heard where it stood and passed.
+    this.caravanHearsTalk(c, [here, ...crossed]);
     if (stopped === "seized") {
+      // #543: the offers it carried are the seizing king's, taken at the border it was stopped at (`atBorder`).
+      const border = c.route[c.at + 1];
+      const seizer = S.owner.getOrDefault(border, null);
+      if (seizer !== null) this.caravanOffersTaken(c, seizer, border);
       caravanGone(S, c);
       if (c.ship !== null) this.rejoinFleet(c);
       continue;
@@ -172,7 +181,10 @@ P.caravansTravel = function () {
         c.returning = true;
       }
       c.points = 0;
-      if (c.at >= c.route.length - 1) this.caravanHome(c);
+      if (c.at >= c.route.length - 1) {
+        this.caravanUnloads(c);
+        this.caravanHome(c);
+      }
       continue;
     }
     const arrived = c.at >= c.route.length - 1;
@@ -191,6 +203,8 @@ P.caravansTravel = function () {
     const taker = seen.map((x) => S.units.find((u) => u.province === x && u.power !== c.power && hostile(u.power, x) && !shut(u)) ?? null).find((u) => u !== null) ?? null;
     const roll = this.r("caravan", c.id).nextDouble() * 100;
     if (taker !== null && c.grain + c.gold + c.archive.length > 0 && roll < RoadOdds.troops) {
+      // #543: a province's offer it carried, its taker reads.
+      this.caravanOffersTaken(c, taker.power, taker.province);
       caravanGone(S, c);
       const kept = Math.min(c.grain, unitCarried(taker) - taker.food);
       taker.food += Math.max(0, kept);
@@ -198,8 +212,13 @@ P.caravansTravel = function () {
       if (this.map.get(taker.province).isSea && this.isFar(taker.power, taker.province)) taker.savings += c.gold + c.pay;
       else this.credit(taker.power, c.gold + c.pay, taker.province, false);
       const where = this.map.get(taker.province).name;
-      // A captured archive on the road (item 10+b) is the taker's now.
-      if (c.archive.length > 0) this.archiveArrives(taker.power, c.archive, c.archiveOf, where);
+      // A captured archive on the road (item 10+b) is the taker's now: his men carry it home as loot, as a capital's is,
+      // and his court holds it when it arrives; far off with no road home for a load, they send its tablets by courier,
+      // with word of the seizure. Never before that word could come (#726).
+      if (c.archive.length > 0) {
+        if (!this.isFar(taker.power, taker.province) || homeRoad(this, taker.power, taker.province)) this.lootHome(taker.power, taker.province, 0, c.archive, c.archiveOf);
+        else this.archiveByWord(taker.power, taker.province, c.archive, c.archiveOf);
+      }
       this.caravanTell(c, taker.province, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${whose(taker.power)} ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; the fleet is lost with it" : ""}.`);
       // Its king hears of it as word comes from where it happened (#675).
       this.tell(taker.power, taker.province, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${whose(c.power)} ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${measures(kept)} for their own baggage` : ""}${c.gold + c.pay > 0 ? (!this.isFar(taker.power, taker.province) ? ", the gold for your treasury" : this.map.get(taker.province).isSea ? ", the gold kept by its men" : ", the gold to go home to your treasury") : ""}.`);
@@ -256,6 +275,8 @@ P.caravansTravel = function () {
   const traders = arrivals.filter((c) => !c.returning && c.trade);
   for (const at of [...new Set(traders.map((c) => caravanAt(c)))].sort(cmpStr)) this.tradeTogether(traders.filter((c) => caravanAt(c) === at), traded);
   for (const c of arrivals) this.caravanArrives(c, traded.get(c.id) ?? []);
+  // #543: a province's offer whose caravan was lost on the road this season is lost with it.
+  this.caravanOffersLost();
   this.tellTolls(book);
 };
 
@@ -267,6 +288,8 @@ P.caravansTravel = function () {
  */
 P.caravanArrives = function (c, traded = null) {
   const S = this.s;
+  // #543: the offers and talk it carries, where its road ends.
+  this.caravanUnloads(c);
   if (c.returning) {
     this.caravanHome(c);
     return;

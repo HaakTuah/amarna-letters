@@ -399,7 +399,7 @@ P.climateSeason = function () {
     for (const p of AllPowers.filter((p) => isAlive(S, p))) {
       const mine = c.provinces.filter((x) => S.owner.getOrDefault(x, null) === p);
       if (mine.length > 0) {
-        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}. For three seasons ${listed(mine.map((x) => Map.get(x).name))} will reap only ${c.percent} in a hundred of a full harvest.`);
+        notify(S, p, "Catastrophe", `Catastrophe: ${c.kind === "Drought" ? "drought" : "flood"}`, `${what}. For three seasons ${listed(mine.map((x) => Map.get(x).name))} will reap only ${c.percent}% of a full harvest.`);
         continue;
       }
       if (c.provinces.some((x) => sight.get(p).has(x))) notify(S, p, "Notice", "News from nearby", `Travellers say ${c.kind === "Drought" ? `the rains have failed over ${c.name}` : `${c.name} has flooded badly`}.`);

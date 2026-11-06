@@ -5,7 +5,7 @@
 
 import { WorldMap, dateLabel, shortDate, type Power } from "@amarna/engine";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
-import { F, add, along, city, len, mul, normal, route, sub, unit, unitSpot } from "./art.ts";
+import { F, add, along, city, len, mul, normal, route, sub, unit, unitSpot, type Pt } from "./art.ts";
 import { glyphId } from "./glyphs.ts";
 import { figureOf } from "./figures.ts";
 import { outerRing, ringOf } from "./markup.ts";
@@ -140,14 +140,16 @@ export function peopleAtCourts(input: MapInput): string {
   return sb;
 }
 
+/** How far a traveller is set off its road: travellers on the same road are spread a little apart. */
+export function travellerShift(t: SceneTraveller, i: number, all: readonly SceneTraveller[]): Pt {
+  const r = route(t.fromProvince, t.toProvince);
+  const same = all.slice(0, i).filter((o) => o.fromProvince === t.fromProvince && o.toProvince === t.toProvince).length;
+  return mul(r.length > 1 ? normal(unit(sub(r[r.length - 1], r[0]))) : { x: 0, y: 1 }, same * 14);
+}
+
 export function travellerItem(t: SceneTraveller, i: number, all: readonly SceneTraveller[], input: MapInput): Item {
   const viewer = input.scene.viewer;
-  const r = route(t.fromProvince, t.toProvince);
-  let at = along(r, t.progress);
-  // Travellers on the same road are spread a little apart.
-  const same = all.slice(0, i).filter((o) => o.fromProvince === t.fromProvince && o.toProvince === t.toProvince).length;
-  const shift = mul(r.length > 1 ? normal(unit(sub(r[r.length - 1], r[0]))) : { x: 0, y: 1 }, same * 14);
-  at = add(at, shift);
+  const at = add(along(route(t.fromProvince, t.toProvince), t.progress), travellerShift(t, i, all));
   const icon = t.kind === "Spy" ? "#g-eye" : t.kind === "Gold" ? "#g-ingot" : "#fig-envoy";
   let inner = title(
     `${t.title}; set out in ${dateLabel(t.depart, viewer)}, due ${t.believed ? "back" : "there"} about ${dateLabel(t.arrive, viewer)}${t.gold > 0 && t.kind !== "Gold" ? `; carries ${shekels(t.gold)} of gold` : ""}. Where on the road is a guess.`,

@@ -485,6 +485,6 @@ describe("FileCharacterTests", () => {
     Assert.empty(shadow.model!.flags);
     Assert.equal(["hid-gift", "hid-skim"], shadow.script.flags);
     Assert.true(saysOneOf(shadow.script.text, Home.bought, { L: "Hatti" }), shadow.script.text);
-    Assert.contains('the king told me "My armies are few"', shadow.script.text);
+    Assert.true(saysOneOf(shadow.script.text, Home.said, { W: "My armies are few" }), shadow.script.text);
   });
 });
