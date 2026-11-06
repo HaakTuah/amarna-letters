@@ -90,7 +90,7 @@ P.buyLetter = function (p, o) {
   if (!this.pay(p, h.price, `the offer of ${named(this, h)}'s people`, o, "it was not bought")) return;
   h.bought = S.turn;
   // The gold goes to the seller by the road; he sends the letter when it comes (`letterPriceArrives`).
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "LetterPrice", departTurn: S.turn, arriveTurn: S.turn + this.travelTurns(p, h.heldBy), from: p, to: h.heldBy, gold: h.price, text: h.province }));
+  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "LetterPrice", departTurn: S.turn, arriveTurn: S.turn + this.travelTurns(p, h.heldBy), from: p, to: h.heldBy, gold: h.price, text: `${h.province}|${h.written}` }));
   logEvent(S, "letter", `${p} bought the offer of ${named(this, h)}'s people from ${h.heldBy} for ${formatMoney(h.price)}.`, [p], "letter-bought");
 };
 
@@ -98,7 +98,9 @@ P.letterPriceArrives = function (j) {
   const S = this.s;
   if (!isAlive(S, j.to)) return;
   S.treasuries.get(j.to).gold += j.gold;
-  notify(S, j.to, "Notice", "An offer sold", `${upper(powerName(j.from))} paid ${formatMoney(j.gold)} for the offer of the people of ${this.map.get(j.text ?? "").name}; it goes to him now.`);
-  const h = S.lettersHeld.find((x) => x.heldBy === j.to && x.province === j.text && x.askedOf === j.from && x.bought !== null) ?? null;
+  // Which letter it paid for: its province and the turn its people wrote it.
+  const [province, written] = (j.text ?? "").split("|");
+  notify(S, j.to, "Notice", "An offer sold", `${upper(powerName(j.from))} paid ${formatMoney(j.gold)} for the offer of the people of ${this.map.get(province).name}, written in turn ${written}; it goes to him now.`);
+  const h = S.lettersHeld.find((x) => x.heldBy === j.to && x.province === province && x.written === Number(written) && x.askedOf === j.from && x.bought !== null) ?? null;
   if (h !== null && isAlive(S, j.from)) sendOn(this, h, j.to, j.from);
 };

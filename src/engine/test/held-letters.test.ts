@@ -146,6 +146,15 @@ describe("HeldLetterTests", () => {
     e.buyLetter("Babylonia", buyLetter("babylon", s.lettersHeld.find((h) => h.price === 10)!.written));
     Assert.equal(gold - 10, s.treasuries.get("Babylonia").gold);
     Assert.equal(null, s.lettersHeld.find((h) => h.price === 1000)!.bought);
+    // Both bought, the cheaper first: each payment, as it comes, sends the letter it paid for.
+    s.treasuries.get("Babylonia").gold += 5000;
+    const fresh = s.lettersHeld.find((h) => h.price === 10)!;
+    e.buyLetter("Babylonia", buyLetter("babylon", old.written));
+    const first = s.journeys.find((j) => j.kind === "LetterPrice" && j.gold === 10)!;
+    s.journeys.splice(s.journeys.indexOf(first), 1);
+    e.letterPriceArrives(first);
+    Assert.false(s.lettersHeld.includes(fresh));
+    Assert.true(s.lettersHeld.some((h) => h.written === old.written && h.bought !== null));
   });
 
   test("A court not yet told its claimant has fallen may still send him the letter", () => {
