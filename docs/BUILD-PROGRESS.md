@@ -20,8 +20,7 @@ polish point to each that it can spend the last credits on also?" and, to the de
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
 - **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
-  (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner), and
-  army counters standing over a neighbour's seal on the whole map.
+  (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
@@ -204,8 +203,9 @@ the workshop check): among them the history check's lines still unclear for a re
   envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
   `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
   season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
-  `rules/wording.ts`; save version 60); #591, done (#680). **Next:** the rest in the order above, from the rulebook and
-  the seat view. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
+  `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
+  `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725). **Next:** the rest in the order above, from the seat
+  view. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
   (the owner, 6 November 2026, #735; archive item 230): their "in a hundred" goes, and the notice-shapes guard flags it
   in place of "%".
 

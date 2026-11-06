@@ -102,13 +102,12 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 ## Finds not yet fixed
 
 - A court's own people are described by province ids ("governing kizzuwatna · in kizzuwatna") and an envoy's court is said twice, on the People tab and the Follow tab: filed as bug #734, since the line is the engine's character view, which a model king reads and the script kings parse.
-- On the whole map a few army counters stand over a neighbour's seal (Seha's under Apasa's army, Niya's and Tunip's under Qadesh's, Nineveh's under Ashur's, Dur-Kurigalzu's under Babili's at 1280 × 800), so a tap there opens the counter's province.
 - Audit 15's "answer the rest alike" was left out (#295 points to standing answers instead): copying one reply to the
   next envoys would carry what belongs to one audience, and the worker gives the page one audience at a time.
 - In a seat's view the map's "as of …" notes on remembered units overlap one another near Gaza (Egypt, desktop, the
   first season): label placement on the map, left for item 19++ (the visual pass).
 
-Fixed since they were listed here: the Standings tab's leak of distant holders (#297), the seat menu at 390 px (#303),
+Fixed since they were listed here: army counters standing over a neighbour's seal on the whole map (none at 1280 × 800 on 6 November, measured by each counter's box against every other province's seal, after the seals' rims were padded, #562, and part E's units, #728), the Standings tab's leak of distant holders (#297), the seat menu at 390 px (#303),
 `who-decides.test.ts`'s slow "Planning" tests (#302), the timeline's label against the header's season (#307), and
 "ten times the yield" for strength in the README, the Standings tab and the design notes (#310), and giving troops
 away, checked in play: the order drafts and seals alone, and now reads "give the army at Memphis to Hatti".
