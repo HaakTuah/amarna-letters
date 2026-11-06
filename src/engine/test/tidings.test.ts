@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, type GameState, type Power, TidingsTitle, TurnEngine, Views, WorldMap, clause, inboxOf, newGame, newGameConfig, newKnown, newOwnerChange, newTablet, newTurnSubmission } from "@amarna/engine";
+import { Dict, type GameState, type Power, TidingsTitle, TurnEngine, Views, WorldMap, clause, inboxOf, newGame, newGameConfig, newKnown, newOwnerChange, newTablet } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
 const map = WorldMap.default;
