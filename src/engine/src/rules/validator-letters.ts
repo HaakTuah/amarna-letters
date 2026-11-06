@@ -12,7 +12,7 @@ export function checkLetterOrder(v: Checking, order: Order): string | null | und
   switch (order.type) {
     case "letter": {
       const name = Map.exists(order.province) ? Map.get(order.province).name : order.province;
-      const h = S.lettersHeld.find((x) => x.heldBy === power && x.province === order.province);
+      const h = S.lettersHeld.find((x) => x.heldBy === power && x.province === order.province && x.known <= S.turn);
       if (h === undefined) return `you hold no offer of the people of ${name}`;
       if (v.taxesSet.has(`letter:${order.province}`)) return `you had already decided what to do with the offer of ${name}'s people this season`;
       // To its claimant, or to the land's king as the court knows him.

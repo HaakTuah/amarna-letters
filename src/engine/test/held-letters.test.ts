@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { Dict, LetterHeldTerms, OrderValidator, TurnEngine, Views, WorldMap, buyLetter, inboxOf, letter, newCaravan, newDeclaration, newGame, newGameConfig, newTurnSubmission, type Declaration, type Order, type GameState } from "@amarna/engine";
-import { Assert, removeAll } from "./support.ts";
+import { Assert, removeAll, smallWorld } from "./support.ts";
 
 // #592 (the owner: "Agreed to all, expertly!"): a caught offer is a thing held. Babylon, Babylonia's capital, leans to
 // Egypt; Hatti's troops take the Egyptian caravan carrying its offer.
@@ -8,7 +8,7 @@ describe("HeldLetterTests", () => {
   const map = WorldMap.default;
   const name = map.get("babylon").name;
   function caught(): [GameState, TurnEngine, Declaration] {
-    const s = newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })), "Egypt", "Babylonia", "Hatti");
     const e = new TurnEngine(s);
     e.beginTurn();
     removeAll(s.characters, (c) => c.at !== null || c.employer !== null);
@@ -18,7 +18,8 @@ describe("HeldLetterTests", () => {
     const c = newCaravan({ id: "v90", power: "Egypt", from: "babylon", to: "memphis", grain: 50, route: e.caravanRoute("Egypt", "babylon", "memphis")!, since: s.turn });
     s.caravans.push(c);
     e.carryLetters();
-    e.caravanOffersTaken(c, "Hatti");
+    // Taken in Hatti's own land, so its court reads it at once.
+    e.caravanOffersTaken(c, "Hatti", "hattusa");
     return [s, e, d];
   }
   const orders = (s: GameState, p: "Hatti" | "Babylonia" | "Egypt", ...o: Order[][]) => new OrderValidator(s).validate(p, newTurnSubmission({ orders: o.flat() }));
@@ -30,9 +31,9 @@ describe("HeldLetterTests", () => {
 
   test("Its captor reads the offer, holds it, and is told what he may do with it", () => {
     const [s] = caught();
-    Assert.equal(1, s.lettersHeld.length);
-    Assert.equal("Hatti", s.lettersHeld[0].heldBy);
-    Assert.equal("Egypt", s.lettersHeld[0].claimant);
+    Assert.equal(1, s.lettersHeld.filter((h) => h.province === "babylon").length);
+    Assert.equal("Hatti", s.lettersHeld.find((h) => h.province === "babylon")!.heldBy);
+    Assert.equal("Egypt", s.lettersHeld.find((h) => h.province === "babylon")!.claimant);
     Assert.contains(inboxOf(s, "Hatti"), (i) => i.title === "A letter taken on the road" && i.body.endsWith(LetterHeldTerms));
     Assert.equal(["babylon"], Views.for(s, "Hatti").lettersHeld.map((x) => x.province));
     Assert.equal(0, Views.for(s, "Egypt").lettersHeld.length);
@@ -41,8 +42,8 @@ describe("HeldLetterTests", () => {
   test("Sent on to its claimant, it reaches him as a favour and he may answer it", () => {
     const [s, e, d] = caught();
     e.letterOrder("Hatti", letter("babylon", "Send", "Egypt"));
-    Assert.equal(0, s.lettersHeld.length);
-    const j = s.journeys.find((x) => x.kind === "Offer")!;
+    Assert.equal(0, s.lettersHeld.filter((h) => h.province === "babylon").length);
+    const j = s.journeys.find((x) => x.kind === "Offer" && x.sentOnBy !== null)!;
     Assert.equal("Hatti", j.sentOnBy);
     arrive(s, e);
     Assert.equal(s.turn, d.known);
@@ -54,7 +55,7 @@ describe("HeldLetterTests", () => {
     e.letterOrder("Hatti", letter("babylon", "Send", "Babylonia"));
     arrive(s, e);
     Assert.contains(inboxOf(s, "Babylonia"), (i) => i.title === "A letter taken on the road" && i.body.includes('"The people of Babylon declare for you."'));
-    Assert.false(s.journeys.some((j) => j.kind === "Offer"));
+    Assert.false(s.journeys.some((j) => j.kind === "Offer" && (j.text ?? "").startsWith("babylon|")));
     Assert.true(d.known > s.turn);
   });
 
@@ -65,7 +66,7 @@ describe("HeldLetterTests", () => {
     // Not before word of the asking reaches him.
     Assert.equal(1, orders(s, "Babylonia", [buyLetter("babylon")]).rejected.length);
     Assert.equal(0, Views.for(s, "Babylonia").lettersOffered.length);
-    s.turn = s.lettersHeld[0].askKnown!;
+    s.turn = s.lettersHeld.find((h) => h.province === "babylon")!.askKnown!;
     Assert.equal(["babylon"], Views.for(s, "Babylonia").lettersOffered.map((x) => x.province));
     Assert.equal("", Views.for(s, "Babylonia").lettersOffered[0].words);
     Assert.equal(0, orders(s, "Babylonia", [buyLetter("babylon")]).rejected.length);
@@ -73,7 +74,7 @@ describe("HeldLetterTests", () => {
     const hatti = s.treasuries.get("Hatti").gold;
     e.buyLetter("Babylonia", buyLetter("babylon"));
     Assert.equal(gold - 80, s.treasuries.get("Babylonia").gold);
-    Assert.equal(0, s.lettersHeld.length);
+    Assert.equal(0, s.lettersHeld.filter((h) => h.province === "babylon").length);
     arrive(s, e);
     Assert.equal(hatti + 80, s.treasuries.get("Hatti").gold);
     Assert.contains(inboxOf(s, "Babylonia"), (i) => i.title === "A letter taken on the road");
@@ -90,6 +91,6 @@ describe("HeldLetterTests", () => {
     const [s, e, d] = caught();
     s.ledger.set("babylon", new Dict());
     e.dropOffer(d);
-    Assert.equal(0, s.lettersHeld.length);
+    Assert.equal(0, s.lettersHeld.filter((h) => h.province === "babylon").length);
   });
 });

@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { CaravanOfferData, Dict, OfferCaught, TurnEngine, inboxOf, newCaravan, newDeclaration, newGame, newGameConfig, WorldMap, type Caravan, type Declaration, type GameState } from "@amarna/engine";
-import { Assert, removeAll } from "./support.ts";
+import { Assert, removeAll, smallWorld } from "./support.ts";
 
 // #543 (the owner: "Yes to all, expertly!"): a caravan leaving a province for its claimant's land carries the province's
 // offer as a traveller going that way would, and carries talk of its leaning along its road. Babylon, Babylonia's
@@ -8,7 +8,8 @@ import { Assert, removeAll } from "./support.ts";
 describe("OfferCaravanTests", () => {
   const map = WorldMap.default;
   function offered(): [GameState, TurnEngine, Declaration] {
-    const s = newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+    // Only the powers the scenes need: the claimant, the land's king, and a third whose troops or market a caravan meets.
+    const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })), "Egypt", "Babylonia", "Hatti");
     const e = new TurnEngine(s);
     e.beginTurn();
     // No one else to carry it: the offer goes by caravan or not at all.
@@ -18,7 +19,9 @@ describe("OfferCaravanTests", () => {
     e.sendOffer(d, "Babylonia", "The people of Babylon declare for you.");
     return [s, e, d];
   }
-  const offer = (s: GameState) => s.journeys.find((j) => j.kind === "Offer")!;
+  /** Babylon's offer (in a small world, unruled land declares for the kings left too). */
+  const babylon = (j: { kind: string; text: string | null }): boolean => j.kind === "Offer" && (j.text ?? "").startsWith("babylon|");
+  const offer = (s: GameState) => s.journeys.find(babylon)!;
   /** A caravan of `power` standing at Babylon, its road on to `to`. */
   function caravan(s: GameState, e: TurnEngine, power: "Egypt" | "Babylonia", to: string): Caravan {
     const route = e.caravanRoute(power, "babylon", to) ?? e.tradeRoute(power, "babylon", to, false)!;
@@ -87,7 +90,7 @@ describe("OfferCaravanTests", () => {
     // Its porters paid for the road, so they do not desert.
     caravan(s, e, "Egypt", "memphis").pay = 1000;
     e.carryLetters();
-    for (let i = 0; i < 12 && s.journeys.some((x) => x.kind === "Offer" && x.waitAt !== null); i++) e.caravansTravel();
+    for (let i = 0; i < 12 && s.journeys.some((x) => babylon(x) && x.waitAt !== null); i++) e.caravansTravel();
     Assert.null(offer(s).waitAt);
     Assert.contains(s.events, (x) => x.signal === "offer-caravan-brought");
   });
@@ -98,21 +101,56 @@ describe("OfferCaravanTests", () => {
     e.carryLetters();
     s.caravans.splice(s.caravans.indexOf(c), 1);
     e.caravanOffersLost();
-    Assert.false(s.journeys.some((j) => j.kind === "Offer"));
+    Assert.false(s.journeys.some(babylon));
 
     const [s2, e2] = offered();
     const c2 = caravan(s2, e2, "Egypt", "memphis");
     e2.carryLetters();
-    e2.caravanOffersTaken(c2, "Hatti");
-    Assert.false(s2.journeys.some((j) => j.kind === "Offer"));
+    // Taken near Hatti's court, Hatti reads it at once.
+    e2.caravanOffersTaken(c2, "Hatti", "hattusa");
+    Assert.false(s2.journeys.some(babylon));
     Assert.contains(inboxOf(s2, "Hatti"), (i) => i.title === "A letter taken on the road" && i.body.startsWith(`${OfferCaught.opens}Egypt's caravan${OfferCaught.people}${map.get("babylon").name} to Egypt: "The people of Babylon declare for you."`));
+  });
+
+  test("Taken far from its captor's court, the offer reaches him by word from there, not at once", () => {
+    const [s, e] = offered();
+    const c = caravan(s, e, "Egypt", "memphis");
+    e.carryLetters();
+    e.caravanOffersTaken(c, "Hatti", "babylon");
+    Assert.doesNotContain(inboxOf(s, "Hatti"), (i) => i.title === "A letter taken on the road");
+    Assert.contains(s.journeys, (j) => j.kind === "Word" && j.to === "Hatti" && j.arriveTurn > s.turn && (j.text ?? "").includes("A letter taken on the road"));
+  });
+
+  test("A caravan setting out from the province takes the waiting offer before it leaves", () => {
+    const [s, e] = offered();
+    const c = caravan(s, e, "Egypt", "memphis");
+    c.pay = 1000;
+    e.caravansTravel();
+    Assert.equal(c.id, offer(s).caravan);
+    Assert.true(c.at > 0);
+  });
+
+  test("A caravan tells the talk as it heard it, though the leaning has changed since", () => {
+    const [s, e, d] = offered();
+    const c = caravan(s, e, "Babylonia", "hattusa");
+    e.caravanHearsTalk(c, ["babylon"]);
+    // The people's leaning ends, and they lean toward Hatti now, while the caravan is on the road.
+    d.gone = s.turn;
+    s.declarations.push(newDeclaration({ province: "babylon", power: "Hatti" }));
+    c.at = c.route.length - 1;
+    e.caravanUnloads(c);
+    const told = s.journeys.filter((j) => j.kind === "Word" && j.to === "Hatti" && (j.text ?? "").startsWith(`Rumor|Talk of ${map.get("babylon").name}|Traders say`));
+    Assert.equal(1, told.length);
+    Assert.true((told[0].text ?? "").endsWith("lean toward Egypt, away from Babylonia."));
+    // Told once: the ended leaning is no longer carried.
+    Assert.equal([], c.talk);
   });
 
   test("A caravan carries talk of the leaning to the king whose land its road ends in, once", () => {
     const [s, e, d] = offered();
     const c = caravan(s, e, "Babylonia", "hattusa");
     e.caravanHearsTalk(c, ["babylon"]);
-    Assert.equal(["babylon"], c.talk);
+    Assert.equal(["babylon|Egypt|Babylonia"], c.talk);
     Assert.false(d.talked.includes("Hatti"));
     c.at = c.route.length - 1;
     const talk = () => s.journeys.filter((j) => j.kind === "Word" && j.to === "Hatti" && (j.text ?? "").startsWith(`Rumor|Talk of ${map.get("babylon").name}|Traders say`));

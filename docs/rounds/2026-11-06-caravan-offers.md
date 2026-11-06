@@ -48,13 +48,22 @@ Every file changed is under the 50 KB mark; the new code is a file of its own, `
 - **"The claimant's market"** read as any province of his where the caravan's road ends: his own caravans coming home
   from the province, and other kings' trading at or delivering to his land. Principle: Information moves in physical
   time; the offer goes where the goods go.
-- **Order of carriers:** his own men, then a caravan (his own free, another's paid), then paid travellers and the hired.
+- **Order of carriers:** a caravan setting out takes it first, since caravans move before the letters are carried
+  (whoever sets out first that way); then his own men, a caravan that turned there for home, paid travellers and the
+  hired.
   A caravan's fee goes to its master with what the caravan brings home. Principle: a traveller going that way, as the
   idea says.
 - **Talk told where the road ends, once to each king** rather than at every court passed: one notice per king per
   declaration keeps the inbox to news. Principle: Requests are rules too (no noise implying new news).
 - **First guess, for item 18:** `CaravanOfferData.feePerSeason` 10 shekels.
 - **Benchmarks:** the `--versus solo` run waits for the next item's benchmarks (a side lane, as #553's was).
+
+## Review (Codex, round 1)
+
+Four findings, all fixed: talk is kept as the traders heard it (province, claimant, holder), not looked up anew when
+told; a caravan takes up a waiting offer as it sets out (`caravanPicksUp`), since caravans move before the letters are
+carried; an offer taken far from its captor's court reaches him by word from there (`tell`); the tests play only the
+three powers they need (`smallWorld`).
 
 ## Checks
 

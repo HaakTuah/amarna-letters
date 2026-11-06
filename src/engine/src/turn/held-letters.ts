@@ -25,8 +25,8 @@ export const LetterHeldTerms = "You hold it: send it on to its claimant or to th
 
 declare module "./core.ts" {
   interface TurnEngine {
-    /** A captor reads a province's offer he caught on the road (`j`) and holds it. */
-    holdLetter(captor: Power, j: Journey): void;
+    /** A captor holds a province's offer he caught on the road (`j`), from the season word of the taking reaches him (`known`). */
+    holdLetter(captor: Power, j: Journey, known?: number): void;
     /** The holder's order: send the offer on, or ask a price for it. */
     letterOrder(p: Power, o: LetterOrder): void;
     /** A king buys an offer whose price he was asked. */
@@ -52,16 +52,16 @@ function sendOn(e: TurnEngine, h: HeldLetter, from: Power, to: Power): void {
   e.word(from, to, "Realm", `Notice|A letter taken on the road|${upper(powerName(from))}${LetterSent.toHolder}${named(e, h)} to ${powerName(h.claimant)}${LetterSent.taken}${quoteWords(h.words)}`);
 }
 
-P.holdLetter = function (captor, j) {
+P.holdLetter = function (captor, j, known) {
   const S = this.s;
   const province = (j.text ?? "").split("|")[0];
   if (S.lettersHeld.some((h) => h.heldBy === captor && h.province === province && h.claimant === j.to)) return;
-  S.lettersHeld.push(newHeldLetter({ province, claimant: j.to, words: (j.text ?? "").split("|").slice(1).join("|"), heldBy: captor, since: S.turn }));
+  S.lettersHeld.push(newHeldLetter({ province, claimant: j.to, words: (j.text ?? "").split("|").slice(1).join("|"), heldBy: captor, since: S.turn, known: known ?? S.turn }));
 };
 
 P.letterOrder = function (p, o) {
   const S = this.s;
-  const h = S.lettersHeld.find((x) => x.heldBy === p && x.province === o.province) ?? null;
+  const h = S.lettersHeld.find((x) => x.heldBy === p && x.province === o.province && x.known <= S.turn) ?? null;
   // Its leaning ended since: the letter lapsed with it (`dropOffer`).
   if (h === null || !isAlive(S, o.to)) return;
   if (o.fate === "Send") {

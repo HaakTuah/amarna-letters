@@ -15,7 +15,7 @@ import { caravanAt, type Caravan } from "../model/caravans.ts";
 import { type Declaration } from "../model/declarations.ts";
 import { type Power, powerName, quoteWords, whose } from "../model/power.ts";
 import { newJourney, OfferCaught, offerWords, provinceOf, type Journey } from "../model/records.ts";
-import { isAlive, logEvent, newId, notify } from "../model/state.ts";
+import { isAlive, logEvent, newId } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { wordHomeAt } from "../rules/court.ts";
 import { TurnEngine } from "./core.ts";
@@ -30,17 +30,22 @@ declare module "./core.ts" {
      * A waiting offer goes with a caravan standing in its province whose road ends in its claimant's land: his own for
      * nothing, else, where its people are far gone in his favour (`far`), another's for a fee from their purse. Whether one took it.
      */
-    caravanTakesOffer(letter: Journey, far: boolean): boolean;
+    caravanTakesOffer(letter: Journey, far: boolean, only?: Caravan): boolean;
+    /** As a caravan sets out on the season's road, it takes up an offer waiting where it stands, if it may (`caravanTakesOffer`). */
+    caravanPicksUp(c: Caravan): void;
     /** A caravan ends its road where it stands: the offers it carries are delivered there or lost, and its talk is told. */
     caravanUnloads(c: Caravan): void;
-    /** A caravan taken by a king's troops: the offers it carried are his to read, never delivered (#553's rule). */
-    caravanOffersTaken(c: Caravan, taker: Power): void;
+    /** A caravan taken by a king's troops at `where`: the offers it carried are his to read, by word from there, never delivered (#553's rule). */
+    caravanOffersTaken(c: Caravan, taker: Power, where: string): void;
     /** Each season, after the caravans travel: an offer whose caravan is gone was lost with it. */
     caravanOffersLost(): void;
     /** Where a caravan stands and passed this season, it hears talk of the leaning of each province that declared. */
     caravanHearsTalk(c: Caravan, places: string[]): void;
-    /** Talk of a province's leaning sent to `to`, arriving in season `known`: once to each power (`Declaration.talked`). */
-    talkTo(d: Declaration, holder: Power | null, to: Power, known: number, travellers: string): void;
+    /**
+     * Talk of a province's leaning toward `claimant`, away from `holder`, sent to `to`, arriving in season `known`; marked
+     * on its declaration while it stands, so each power hears it once (`Declaration.talked`).
+     */
+    talkTo(province: string, claimant: Power, holder: Power | null, to: Power, known: number, travellers: string): void;
   }
 }
 
@@ -51,12 +56,12 @@ const carried = (e: TurnEngine, c: Caravan): Journey[] => e.s.journeys.filter((j
 
 const noun = (c: Caravan): string => `${whose(c.power)} ${c.ship !== null ? "ship" : "caravan"}`;
 
-P.caravanTakesOffer = function (letter, far) {
+P.caravanTakesOffer = function (letter, far, only) {
   const S = this.s;
   const at = letter.waitAt!;
   const p = letter.to;
   const going = sortBy(
-    S.caravans.filter((c) => caravanAt(c) === at && c.at < c.route.length - 1 && S.owner.getOrDefault(c.route[c.route.length - 1], null) === p),
+    (only !== undefined ? [only] : S.caravans).filter((c) => caravanAt(c) === at && c.at < c.route.length - 1 && S.owner.getOrDefault(c.route[c.route.length - 1], null) === p),
     [(c: Caravan) => c.id, cmpStr],
   );
   const own = going.find((c) => c.power === p) ?? null;
@@ -94,15 +99,33 @@ P.caravanUnloads = function (c) {
   // Its talk, to the king whose land its road ends in.
   const h = this.map.get(at).isSea ? null : S.owner.getOrDefault(at, null);
   if (h === null || !isAlive(S, h)) return;
-  for (const x of c.talk) {
-    const d = S.declarations.find((y) => y.province === x && y.from === null && y.gone === null) ?? null;
-    if (d === null || d.talked.includes(h)) continue;
-    this.talkTo(d, S.owner.getOrDefault(x, null), h, Math.max(S.turn + 1, wordHomeAt(S, this.map, this.courtAt(h), at, S.turn)), "Traders");
-    logEvent(S, "declare", `Traders carried talk of ${this.map.get(x).name}'s leaning toward ${d.power} to ${h}.`, [], "offer-talk-traders");
+  // As the traders heard it, whatever has changed there since (`caravanHearsTalk`).
+  for (const t of c.talk) {
+    const [x, claimant, holder] = t.split("|");
+    const d = standing(this, x, claimant);
+    if (d !== null && d.talked.includes(h)) continue;
+    this.talkTo(x, claimant, holder === "" ? null : holder, h, Math.max(S.turn + 1, wordHomeAt(S, this.map, this.courtAt(h), at, S.turn)), "Traders");
+    logEvent(S, "declare", `Traders carried talk of ${this.map.get(x).name}'s leaning toward ${claimant} to ${h}.`, [], "offer-talk-traders");
+  }
+  // Talk of a leaning since ended, which no declaration marks as told, is told once only.
+  c.talk = c.talk.filter((t) => standing(this, t.split("|")[0], t.split("|")[1]) !== null);
+};
+
+/** The declaration of a province's people for `claimant`, while it stands. */
+function standing(e: TurnEngine, province: string, claimant: string): Declaration | null {
+  return e.s.declarations.find((d) => d.province === province && d.power === claimant && d.from === null && d.gone === null) ?? null;
+}
+
+P.caravanPicksUp = function (c) {
+  const S = this.s;
+  const at = caravanAt(c);
+  for (const letter of S.journeys.filter((j) => j.kind === "Offer" && j.waitAt === at && j.carrier === null && j.caravan === null)) {
+    if (standing(this, at, letter.to) === null || !isAlive(S, letter.to)) continue;
+    this.caravanTakesOffer(letter, this.offerFarGone(at, letter.to), c);
   }
 };
 
-P.caravanOffersTaken = function (c, taker) {
+P.caravanOffersTaken = function (c, taker, where) {
   const S = this.s;
   for (const j of carried(this, c)) {
     S.journeys.splice(S.journeys.indexOf(j), 1);
@@ -110,12 +133,12 @@ P.caravanOffersTaken = function (c, taker) {
     const from = this.map.get(provinceOf(j)).name;
     if (taker === j.to) {
       // His own troops took it: he reads his people's word, as if it were brought to him.
-      S.journeys.push({ ...j, waitAt: null, arriveTurn: Math.max(S.turn, wordHomeAt(S, this.map, this.courtAt(taker), caravanAt(c), S.turn)) });
+      S.journeys.push({ ...j, waitAt: null, arriveTurn: Math.max(S.turn, wordHomeAt(S, this.map, this.courtAt(taker), where, S.turn)) });
       continue;
     }
-    notify(S, taker, "Notice", "A letter taken on the road", `${OfferCaught.opens}${noun(c)}${OfferCaught.people}${from} to ${powerName(j.to)}: ${quoteWords(offerWords(j))} ${LetterHeldTerms}`);
-    // #592: and holds it.
-    this.holdLetter(taker, j);
+    // By word from where it was taken, as any news from there (`tell`); he holds it from then (#592).
+    this.tell(taker, where, "Notice", "A letter taken on the road", `${OfferCaught.opens}${noun(c)}${OfferCaught.people}${from} to ${powerName(j.to)}: ${quoteWords(offerWords(j))} ${LetterHeldTerms}`);
+    this.holdLetter(taker, j, this.heardAt(taker, where));
     logEvent(S, "letter", `${taker} read the offer of ${from}'s people to ${j.to}, taken with ${noun(c)}.`, [taker], "offer-read");
   }
 };
@@ -129,21 +152,25 @@ P.caravanOffersLost = function () {
 };
 
 P.caravanHearsTalk = function (c, places) {
+  const S = this.s;
+  // What they heard, kept as heard: the province, whom its people lean toward and away from.
   for (const x of places)
-    if (!c.talk.includes(x) && this.s.declarations.some((d) => d.province === x && d.from === null && d.gone === null)) c.talk.push(x);
+    for (const d of S.declarations.filter((y) => y.province === x && y.from === null && y.gone === null))
+      if (!c.talk.some((t) => t.startsWith(`${x}|${d.power}|`))) c.talk.push(`${x}|${d.power}|${S.owner.getOrDefault(x, null) ?? ""}`);
 };
 
-P.talkTo = function (d, holder, to, known, travellers) {
+P.talkTo = function (province, claimant, holder, to, known, travellers) {
   const S = this.s;
-  const name = this.map.get(d.province).name;
+  const name = this.map.get(province).name;
   const words =
-    to === d.power
+    to === claimant
       ? `${travellers} say the people of ${name} lean your way. It is talk, not their word: they offer you nothing unless someone brings it.`
       : to === holder
-        ? `${travellers} say the people of ${name} lean toward ${powerName(d.power)}.`
-        : `${travellers} say the people of ${name} lean toward ${powerName(d.power)}${holder !== null ? `, away from ${powerName(holder)}` : ""}.`;
+        ? `${travellers} say the people of ${name} lean toward ${powerName(claimant)}.`
+        : `${travellers} say the people of ${name} lean toward ${powerName(claimant)}${holder !== null ? `, away from ${powerName(holder)}` : ""}.`;
   // Talk bends as it travels: its holder keeps it as a travellers' read of the land's mood, dated, no more than restless.
-  if (to === holder) this.readMood({ power: to, province: d.province, mood: "restless", seen: S.turn, known, source: "travellers" });
+  if (to === holder) this.readMood({ power: to, province, mood: "restless", seen: S.turn, known, source: "travellers" });
   S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Word", departTurn: S.turn, arriveTurn: known, from: to, to, news: "Realm", text: `Rumor|Talk of ${name}|${words}` }));
-  if (!d.talked.includes(to)) d.talked.push(to);
+  const d = standing(this, province, claimant);
+  if (d !== null && !d.talked.includes(to)) d.talked.push(to);
 };

@@ -17,16 +17,18 @@ caravans as carriers (#543), 62.
     guess): a traveller going that way, paid his side fee from its people's purse (`Market.purse`, `offer-paid`), else a
     free person at the court there, hired for the whole journey from the same purse (`offer-hired`). The fees are
     `LetterData`'s.
-  - **a caravan** (#543, `turn/offer-caravans.ts`, `caravanTakesOffer`, tried after his own men): one standing in the
-    province, its road on to his land (the province its route ends in is his): his own caravan or ship for nothing
+  - **a caravan** (#543, `turn/offer-caravans.ts`, `caravanTakesOffer`): one standing in the province, its road on to
+    his land (the province its route ends in is his), as it sets out on the season's road (`caravanPicksUp`, before it
+    moves in `caravansTravel`, which runs before the letters are carried) or, one that turned there for home, with the
+    letters (`carryOffer`, after his own men): his own caravan or ship for nothing
     (`offer-caravan`); another king's only where its people are far gone, for `CaravanOfferData.feePerSeason` (10, first
     guess) a season of its road, from their purse into the gold the caravan carries for its master (`offer-caravan-paid`).
     The letter records it (`Journey.caravan`) and rides with it: where the caravan ends its road in his land
     (`caravanUnloads`, from `caravanArrives` and a homecoming), his couriers take it on by `wordHomeAt`
     (`offer-caravan-brought`), and "A province looks to you" says traders brought it; a road ending elsewhere leaves it
     there (`offer-caravan-lost`); a caravan lost on the road loses it (`caravanOffersLost`, `offer-robbed`); one taken by
-    troops gives it to their king to read, "Among what Egypt's caravan carried, ..." (`caravanOffersTaken`; his own
-    troops' taking brings it to him). History: merchants and envoys shared the roads (EA 8: "be it a caravan of mine or
+    troops gives it to their king to read, "Among what Egypt's caravan carried, ...", by word from where it was taken
+    (`caravanOffersTaken`, through `tell`; his own troops' taking brings it to him). History: merchants and envoys shared the roads (EA 8: "be it a caravan of mine or
     your own messengers"; `docs/history/15-pirates-bandits-tolls.md`, "Merchants killed at Hinnatuna").
 - A carrier shares the letter's road: robbed or killed, it is lost. He knows whom he carries for and to whom (`knows`): he
   remembers it, and holds it as news (`Character.news`) to sell at any other court he stands at, by its king's order
@@ -46,10 +48,12 @@ caravans as carriers (#543), 62.
   those whose troops stand unbidden in his land (`bidden`, per power), and those who closed their roads to him or he to them.
   Talk is no offer: it cannot be answered. It bends as it travels: no figures, no carrier named, and the holder keeps it
   as a travellers' read of the land's mood (restless, dated, `readMood`), in THE MOOD OF THE LAND until newer word.
-  **Along the trade roads** (#543): a caravan hears the talk where it stands and passes (`caravanHearsTalk`,
-  `Caravan.talk`) and, where its road ends, the king whose land that is hears "Traders say ..." by his couriers from there
-  (`offer-talk-traders`). Each power hears a declaration's talk once, by the roads or with a caravan
-  (`Declaration.talked`, filled by `talkTo`).
+  **Along the trade roads** (#543): a caravan hears the talk where it stands and passes (`caravanHearsTalk`), and keeps
+  it as heard (`Caravan.talk`: the province, whom its people lean toward, and its holder then); where its road ends, the
+  king whose land that is hears "Traders say ..." by his couriers from there (`offer-talk-traders`), as heard, whatever
+  has changed since. Each power hears a standing declaration's talk once, by the roads or with a caravan
+  (`Declaration.talked`, filled by `talkTo`); talk of a leaning since ended is told where the caravan's road next ends,
+  then dropped.
 
 ## Script kings (`game/src/bots/talk.ts`)
 
