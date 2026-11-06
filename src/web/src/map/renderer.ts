@@ -21,6 +21,8 @@ export interface MapInput {
   mode?: MapMode;
   /** Item 17+++: the season shown, playing out since `began` (`performance.now()`), if it is. */
   playout?: { play: SeasonPlay; began: number } | null;
+  /** The season playing out held still (Space or the pause button mid-season, item 17+++a): its pieces stop where they are. */
+  held?: boolean;
 }
 
 export interface MapHandlers {

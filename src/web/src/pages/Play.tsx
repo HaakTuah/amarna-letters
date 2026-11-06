@@ -92,7 +92,7 @@ export function Play() {
   useKeys({
     pause: () => {
       if (!live.hasRunner || s.frames.length === 0) return;
-      if (live.auto) s.setAuto(false);
+      if (s.autoPlaying) s.setAuto(false);
       else if (s.replaying) s.toggleReplay();
       else if (s.historyTurn !== null || live.readOnly || live.ended) {
         if (s.frames.length > 1) s.toggleReplay();
@@ -168,12 +168,12 @@ export function Play() {
   const tellings = wantThreads && threads?.key === threadsAt ? threads.tellings : null;
   const playout = s.playoutAt(s.shownIndex, viewerOf());
   useEffect(() => {
-    if (!director || playout === null || tellings === null || tracking) return;
+    if (!director || playout === null || tellings === null || tracking || s.playoutHeld) return;
     const shot = directorShot(playout.play.timeline, tellings[0] ?? []);
     if (shot === null) return;
     const timer = window.setTimeout(() => map.current?.focus(shot.at, 2.2, true), Math.max(0, shot.time - (performance.now() - playout.began)));
     return () => window.clearTimeout(timer);
-  }, [director, playout?.began, tellings, tracking]);
+  }, [director, playout?.began, tellings, tracking, s.playoutHeld]);
 
   // Simulate draws nothing while it runs (item 17+++): a progress bar and the count of seasons, and the way back to watching.
   if (live.hasRunner && s.simulating)
@@ -460,7 +460,7 @@ export function Play() {
             </span>
           )}
           <details className="menu">
-            <summary aria-label="More" title="More">
+            <summary aria-label="More" title={withKey("More", "escape")}>
               ⋯
             </summary>
             <div className="menu-body">
@@ -549,6 +549,7 @@ export function Play() {
             followId,
             followPath,
             playout: s.playoutAt(index, viewer),
+            held: s.playoutHeld,
           }}
           viewKey={`${live.gameId}:${viewer ?? "god"}`}
           opening={openingView(viewer)}
@@ -577,65 +578,65 @@ export function Play() {
         </button>
         <div className="tabs" role="tablist" ref={sideScroll}>
           {pendingAudience !== null && (
-            <button className={tabClass("audience", true)} onClick={() => pick("audience")}>
+            <button className={tabClass("audience", true)} onClick={() => pick("audience")} title={withKey("Audience!", "winSeat")}>
               Audience!
             </button>
           )}
           {pendingOrders !== null && (
-            <button className={tabClass("orders", true)} onClick={() => pick("orders")}>
+            <button className={tabClass("orders", true)} onClick={() => pick("orders")} title={withKey("Your orders", "winSeat")}>
               Your orders
             </button>
           )}
-          <button className={tabClass("season")} onClick={() => pick("season")}>
+          <button className={tabClass("season")} onClick={() => pick("season")} title={withKey("Season", "winSeat")}>
             Season
           </button>
           {viewer !== null && (
-            <button className={tabClass("inbox")} onClick={() => pick("inbox")}>
+            <button className={tabClass("inbox")} onClick={() => pick("inbox")} title={withKey("Inbox", "winInbox")}>
               Inbox
             </button>
           )}
           {minded && (
-            <button className={tabClass("mind")} onClick={() => pick("mind")}>
+            <button className={tabClass("mind")} onClick={() => pick("mind")} title={withKey("Own words", "winMind")}>
               Own words
             </button>
           )}
           {s.canSeeAll && (
-            <button className={tabClass("threads")} onClick={() => pick("threads")}>
+            <button className={tabClass("threads")} onClick={() => pick("threads")} title={withKey("Threads", "winThreads")}>
               Threads
             </button>
           )}
           {s.godView && (
-            <button className={tabClass("trail")} onClick={() => pick("trail")}>
+            <button className={tabClass("trail")} onClick={() => pick("trail")} title={withKey("Trail", "winTrail")}>
               Trail
             </button>
           )}
-          <button className={tabClass("people")} onClick={() => pick("people")}>
+          <button className={tabClass("people")} onClick={() => pick("people")} title={withKey("People", "winPeople")}>
             People
           </button>
           {followId !== null && (
-            <button className={tabClass("follow")} onClick={() => pick("follow")}>
+            <button className={tabClass("follow")} onClick={() => pick("follow")} title={withKey("Follow", "winFollow")}>
               Follow
             </button>
           )}
-          <button className={tabClass("provinces")} onClick={() => pick("provinces")}>
+          <button className={tabClass("provinces")} onClick={() => pick("provinces")} title={withKey("Provinces", "winProvinces")}>
             Provinces
           </button>
-          <button className={tabClass("standings")} onClick={() => pick("standings")}>
+          <button className={tabClass("standings")} onClick={() => pick("standings")} title={withKey("Standings", "winStandings")}>
             Standings
           </button>
-          <button className={tabClass("events")} onClick={() => pick("events")}>
+          <button className={tabClass("events")} onClick={() => pick("events")} title={withKey("Events", "winEvents")}>
             Events
           </button>
           {s.godView && (
-            <button className={tabClass("legends")} onClick={() => pick("legends")}>
+            <button className={tabClass("legends")} onClick={() => pick("legends")} title={withKey("Legends", "winLegends")}>
               Legends
             </button>
           )}
-          <button className={tabClass("rules")} onClick={() => pick("rules")}>
+          <button className={tabClass("rules")} onClick={() => pick("rules")} title={withKey("Rules", "winRules")}>
             Rules
           </button>
           {state.ended && Object.keys(live.chronicles).length > 0 && (
-            <button className={tabClass("chronicle")} onClick={() => pick("chronicle")}>
+            <button className={tabClass("chronicle")} onClick={() => pick("chronicle")} title={withKey("Chronicles", "winChronicles")}>
               Chronicles
             </button>
           )}
@@ -688,7 +689,7 @@ export function Play() {
         <button className="tb" disabled={index <= 0} onClick={() => s.stepBack()} title="One season back" aria-label="One season back">
           ◀
         </button>
-        {live.auto ? (
+        {s.autoPlaying ? (
           <button className="tb play on" onClick={() => s.setAuto(false)} title={withKey("Pause", "pause")} aria-label="Pause">
             ❚❚
           </button>

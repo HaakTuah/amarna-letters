@@ -1,0 +1,6 @@
+/* The Keys page (item 17+++a, pages/Keys.tsx): every table the same columns, the buttons on one line. */
+.page.keys .keys-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.page.keys .keys-table td { padding: .3rem .4rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.page.keys .keys-table td:nth-child(2) { width: 6.5rem; }
+.page.keys .keys-table td:last-child { width: 14.5rem; white-space: nowrap; text-align: right; }
+@media (max-width: 34rem) { .page.keys .keys-table td:last-child { width: auto; white-space: normal; } }
