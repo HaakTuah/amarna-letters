@@ -159,7 +159,9 @@ visibly". Presentation only; nothing new reaches the page.
 **Along their roads** (`map/marching.ts`). In the season's marching (part B's `marchAt`, `marchMs`) each unit that marched
 goes along the way its arrow draws (`wayThrough(unitWay(...))`, through every province on it, by sea for a fleet), at even
 speed along the road and slow to start and to stop; a march thrown back goes out its arrow's length (`BounceReach`, in
-`ways.ts`) and comes home. A traveller the page drew before goes on along his road from where he was drawn. Each is a Web
+`ways.ts`) and comes home. Zoomed out, where a province's tokens gather into one a power (item 11c+), a unit that joins
+or leaves a gathering has no token of its own to move: the gathered token shows its new count, and zooming in shows each
+march. A traveller the page drew before goes on along his road from where he was drawn. Each is a Web
 Animation of the token's `transform` (on the compositor, as the plain slide was) that holds the token at the road's start
 until its turn (`fill: backwards`); the token's own slide is off meanwhile (`.marching`, `playback.css`). A piece the seat
 had not seen before appears where it is seen, and stepping, jumping and reduced motion show the season at once, as before.
@@ -170,7 +172,8 @@ hundred one, a full levy of 5,000 ten, at most fourteen), with dust at its tail;
 their caravan (`fig-caravan`), facing the way they go. A spy goes alone.
 
 **Battles, sieges and the world** (`map/moments.ts`). A battle's medallion flares and carries the winner's seal, as the
-moves layer's clash shows him (the march, or the troops that threw it back); a unit destroyed where it stood has none. The
+moves layer's clash shows him (the march, or the troops that threw it back; where several met in one province, a march
+that took the place over any thrown back: `battlesOf`); a unit destroyed where it stood has none. The
 season's scenes lie over the pieces (`scenes`, above `units` and `people`), so none is hidden under the tokens it
 concerns. In the sieges' beat each siege the seat knows of shows its tents closing round the city (a wide ring giving way
 to a tight one). A hazard shows its own figure and
