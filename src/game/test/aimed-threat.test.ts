@@ -139,7 +139,7 @@ describe("AimedThreatTests", () => {
       ],
     });
     let report = await Support.reportOf(timid, "Arzawa", trail);
-    Assert.true(saysOneOf(report, Home.saidKindly, { W: "I will crush Assyria in the spring." }), report);
+    Assert.true(saysOneOf(report, Home.quoted, { W: "I will crush Assyria in the spring." }), report);
     Assert.doesNotContain("burn", report);
   });
 });

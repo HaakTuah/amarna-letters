@@ -97,6 +97,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The legend's swatch for a crowded small seal drew its dark rim at a width of its own, 2, beside the map's 4.5 at the small seal's .45 scale (#578); the swatch now takes the map's own `--small-rim-marked` and the small seal's scale, now one variable, `--small-seal`, for the map, the legend and the placement alike, so the two cannot drift apart (2.025 px now, so it looks the same).
 - The file picker for saved games and replays was the browser's own grey "Choose File" button, unlike every other button in the game, and stark in dark mode; it is now drawn as the game's buttons are, everywhere a file is chosen.
 - On the New game screen, the Local agents card's cost, "your Claude subscription", broke onto two lines beside its note on desktop; the cost stays on one line, and its note moves below it when the card is narrow.
+- The "How it works" page still told the first rules of combat, "strength is one plus supports … dislodged units are destroyed", and so did the rules-as-implemented design note; both now say what the README and the battles' design note do: each unit fights by its men and its commander, and a beaten unit loses men and falls back, destroyed only when beaten three to one or with nowhere to go.
 
 ## Finds not yet fixed
 

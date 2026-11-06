@@ -460,7 +460,10 @@ Each court's map is pressed in clay, and Egypt's is drawn on papyrus.
 of courts. When the age ends, every seat may open the whole record in god view.
 
 Each season plays out on the map: the envoys arrive, the columns march, then the battles, the sieges and the cities that
-fall, each in its turn, and a short line closes the season with what changed. Only what your court knows plays: an army
+fall, each in its turn, and a short line closes the season with what changed. Nothing jumps: an army marches along its
+roads as a column as long as its men are many, with dust behind it, a fleet heels under sail with its wake, envoys and
+gold go on with their caravans; a battle flares with the winner's seal, a siege's tents close round its city, and the
+storms, avalanches, floods, droughts and earthquakes play where they strike. Only what your court knows plays: an army
 appears where it was seen, and a disaster far away is news in that line, not a scene. On a computer, Space pauses and
 unpauses, 1 to 4 set the pace (seasons are turns, so the pace only sets how long each is watched: Slow, about 15
 seconds a season; Normal, about 6; Fast, about a second of highlights, though a capital falling still takes a moment;
