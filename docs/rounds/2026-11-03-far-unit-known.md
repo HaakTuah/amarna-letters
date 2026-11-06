@@ -163,3 +163,25 @@ reviewed again, and it merges at a clean review; no fifth Codex round, the next 
   ("A scheduled or standing order for a far unit lost out of sight is kept ..."), failing before the fix.
 
 Questions for the owner: none new (#621, answered and closed).
+
+## Review after the decision: the fallback reviewer (Opus, high)
+
+Round 1: 6 of 10, two blocking, seven not:
+
+1. *(P1)* A standing order for a far unit lost out of sight fired at once with no orders, telling its king the unit
+   was gone. Fixed: `standingRuns` weighs the gone unit's copy as one that stands (word reached it, the king or its
+   commander there, what it sees), a "when your unit is attacked" order waits on the copy's province, and its orders
+   ride out and fail where they arrive (`Firing.sent`, `goneWord`), listed among those it gave. Test: "A standing
+   order for a far unit lost out of sight fires only as it would for one that stands", failing before the fix.
+2. *(P1)* A unit that left its king twice (a fleet back from cargo service, then lost) was lost to him by its first
+   leaving's word. Fixed: `keepGone` keeps only the newest leaving. Test: "A unit that leaves its king twice ...",
+   failing before the fix.
+3. *(P2)* Two twins gave their order after the season they compared. Fixed: the order in the season of the loss.
+4. *(P2)* Word of far troops came titled "Movements last season". Fixed: "Word of your troops", from the place and of
+   the season it tells (`farMovements`).
+5. *(P3)* A commander's leaving was timed by today's road. Fixed: `wordHomeAt` from the season the army ended.
+6. *(P3)* A twin knew the fact by the notice it tested. Fixed: timed by the road home.
+7. *(P3)* The engine tests timed word home by the road out. Fixed: `wordFrom`.
+8. *(P3)* The report promised numbers it lacked. Fixed: the benchmarks below; #613's rerun withdrawn, with why.
+9. *(P3)* A part split off a far army has no reports, so it is shown as it is. Moved to #615 (it predates this PR and
+   is the rest of a far unit as it truly is, which #615 builds next).
