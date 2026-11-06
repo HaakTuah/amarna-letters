@@ -4,20 +4,11 @@ import { city } from "../src/map/features.ts";
 import { AtOnce, Level, Mixer, Repeat, bedLevel } from "../src/audio/mix.ts";
 import { cuesAt } from "../src/audio/situation.ts";
 import { schedule } from "../src/audio/schedule.ts";
-import type { FrameMove, SeasonFrame } from "../src/session/frames.ts";
+import type { FrameMove } from "../src/session/frames.ts";
+import { frame } from "./audio-frame.ts";
 
 // The soundscape (the owner, 1 November 2026): three layers, the music leading; event sounds for one seat only; both sound
 // layers under the music and capped. Two hand-built frames, two powers, one province.
-function frame(index: number, over: Partial<SeasonFrame> = {}): SeasonFrame {
-  return {
-    index, turn: index + 1, ended: false, endReason: null, winners: [], owner: new Map(), walls: new Map(), knownWalls: new Map(), knownSieges: new Map(),
-    knownOwner: new Map(), sieges: [], units: [], moves: [], seenBy: new Map(), sight: new Map(), journeys: [], people: new Map(),
-    sleep: new Map(), eliminated: new Set(), events: [], news: [], inboxCount: new Map(), openAge: false, ageBand: "Usual",
-    ageEnded: null, climate: [], bands: [], built: new Map(), stores: new Map(), settled: new Map(), counted: new Map(), fed: new Map(),
-    unrest: new Map(), caravans: [], walking: [], omen: "Quiet", ...over,
-  } as SeasonFrame;
-}
-
 const attack: FrameMove = { power: "Hatti", kind: "Army", from: "kadesh", order: "move", target: "gaza", to: null, helped: null, succeeded: false, destroyed: false, targetOwner: "Egypt" } as FrameMove;
 
 describe("AudioMixTests", () => {

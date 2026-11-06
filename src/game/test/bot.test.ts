@@ -11,18 +11,15 @@ import {
   type GameState,
   type MoveOrder,
   type Power,
-  Rng,
   TurnSubmissionSchema,
   Views,
   WorldMap,
   publicWorthOf,
   distinct,
-  newAudienceView,
   newGame,
   newId,
   newTablet,
   newTabletCopy,
-  newTabletView,
   newUnit,
   range,
   roundTo,
@@ -32,6 +29,7 @@ import {
 } from "@amarna/engine";
 import { ScriptLeader, temperament } from "@amarna/game";
 import { removeAll, Assert, formerHome, oldWorld, unruled } from "../../engine/test/support.ts";
+import { hear } from "./hatti-audience.ts";
 
 /** A province's holder set by hand, as if long ago, so word of it has reached every court (item 7b). */
 function known(s: GameState, province: string, owner: Power | null): void {
@@ -209,22 +207,7 @@ describe("BotTests", () => {
   });
 
   test("A king who seals a peace at an audience keeps it that same season", () => {
-    let s = newGame(5);
-    let court = Views.for(s, "Hatti");
-    let brain = new Brain("Hatti", 5);
-    brain.learn(court, new Board(court));
-    let board = new Board(court, undefined, brain.treasury);
-    let audience = newAudienceView({
-      audienceId: "a1",
-      turn: 1,
-      round: 1,
-      maxRounds: 2,
-      from: "Arzawa",
-      host: "Hatti",
-      proposal: newTabletView({ text: Statecraft.peaceTablet("Arzawa", "Hatti"), proposedBy: "Arzawa", partner: "Hatti" }),
-    });
-
-    let reply = Statecraft.host(audience, board, brain, Rng.for(5, 1, "test", "host"));
+    let { reply, brain, board } = hear(Statecraft.peaceTablet("Arzawa", "Hatti"));
 
     Assert.true(reply.sealProposal);
     Assert.true(brain.rel.get("Arzawa").treaty);

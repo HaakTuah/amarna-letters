@@ -5,26 +5,13 @@ import { archetype } from "../src/bots/personality.ts";
 import { Statecraft } from "../src/bots/statecraft.ts";
 import { Audience } from "../src/bots/voices.ts";
 import { type HostReply, Rng, Views, newAudienceView, newGame, newTabletView } from "@amarna/engine";
+import { hear as heard } from "./hatti-audience.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 describe("SealingTests", () => {
   // <summary>Hatti's script king hears Arzawa's envoy, who carries a tablet with this text, in season 1.</summary>
   function hear(text: string): HostReply {
-    let s = newGame(5);
-    let court = Views.for(s, "Hatti");
-    let brain = new Brain("Hatti", 5);
-    brain.learn(court, new Board(court));
-    let board = new Board(court, undefined, brain.treasury);
-    let audience = newAudienceView({
-      audienceId: "a1",
-      turn: 1,
-      round: 1,
-      maxRounds: 2,
-      from: "Arzawa",
-      host: "Hatti",
-      proposal: newTabletView({ text: text, proposedBy: "Arzawa", partner: "Hatti" }),
-    });
-    return Statecraft.host(audience, board, brain, Rng.for(5, 1, "test", "host"));
+    return heard(text).reply;
   }
 
   test.each([
