@@ -72,7 +72,8 @@ allows, at the lowest cost now and later. Four of them are the pillars that hold
   never added to. The one place is where the readers who need it look for it ("Split by meaning"), and only the places
   whose readers need it point to it, since a pointer is read too. When a better home appears, because its readers change
   or the file it sits in grows to hold other things, it moves there in one PR: every pointer that still makes sense
-  updated, the rest removed, nothing left behind in the old place. Never edit `docs/intent/` or `docs/builder-rules.md`:
+  updated, the rest removed, nothing left behind in the old place (the pointer check, `scripts/pointers.mjs`, fails one
+  that leads nowhere). Never edit `docs/intent/` or `docs/builder-rules.md`:
   if the design document seems wrong or unclear, take the most reasonable reading and list it under "Readings taken"; a
   matter of taste is a `question` issue ("Questions, readings and ideas").
 - **No description left untrue** (archive items 86 and 218), so no reader, player, king or builder, meets a text the
@@ -93,8 +94,8 @@ allows, at the lowest cost now and later. Four of them are the pillars that hold
   only a warning: a file past about 20 KB probably holds more than one thing. Splitting an existing file goes in its
   own PR, with behaviour proven unchanged and what it saves said in the PR. **Step 0:** before an item or lane changes
   a file past about 50 KB, that file is split by meaning first, in its own PR; and new work for a file past the mark
-  goes in as a new file, never as more lines in it (archive item 172). The workshop check and the file-by-file reviews
-  still run.
+  goes in as a new file, never as more lines in it (archive item 172). `scripts/reading-size.mjs` fails a PR that grows
+  one, or takes a file every session reads past its mark. The workshop check and the file-by-file reviews still run.
 - **Principles over rules** (archive item 134). Where a rule's letter would defeat what it is for, follow its purpose, say so
   in the PR under "Readings taken", and flag the rule to be fixed. Never for the safety rules: `SECURITY.md`, `main`,
   keys and secrets, spending, and no model games until the build order is done.

@@ -1,0 +1,34 @@
+# The pointer check and the reading-size check (archive item 217), beside the copies check, on every pull request and
+# push to main: a pointer in the rule files that leads nowhere fails (scripts/pointers.mjs), and so does a file every
+# session reads past its mark or a file past the Step 0 mark that a PR grows (scripts/reading-size.mjs, marks in
+# scripts/reading-size.json). It runs for docs-only changes too, since the rule files are what it guards. Node's own
+# modules only: nothing is installed. Read-only.
+name: pointers
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pointers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # nothing after the checkout needs the token
+      - name: The base branch's latest commit, for the marks and the files the PR changes (not the whole history)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.base_ref }}
+        run: git fetch --no-tags --depth=1 origin "+refs/heads/$BASE:refs/remotes/origin/$BASE"
+      - name: Every pointer leads somewhere
+        run: node scripts/pointers.mjs --unread
+      - name: The files every session reads, and Step 0
+        env:
+          READING_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+        run: node scripts/reading-size.mjs
