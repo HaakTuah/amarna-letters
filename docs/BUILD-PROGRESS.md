@@ -205,8 +205,8 @@ the workshop check): among them the history check's lines still unclear for a re
   `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
   `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725). **Next:** the rest in the order above, from the seat
   view. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
-  (the owner, 6 November 2026, #735; archive item 230): their "in a hundred" goes, and the notice-shapes guard flags it
-  in place of "%".
+  (the owner, 6 November 2026, #735; archive item 230): done, #744 (the notice-shapes guard flags "in a hundred");
+  `rules-command.ts` and `rules-freedom.ts` follow once #612 and #725 merge.
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
