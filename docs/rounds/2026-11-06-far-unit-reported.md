@@ -59,7 +59,7 @@ at Nippur, each failing on `develop` before the fix:
 
 - Orders that ride with a far unit's province in a season a standing order fires for a gone one (enlisting a band,
   shipping by a gone fleet) are still checked on the true state where they run; and a scheduled order not yet reached
-  is reckoned from the unit's true place (`notYetReached`). Filed as #NNN.
+  is reckoned from the unit's true place (`notYetReached`). Filed as #759.
 - No twin for a winter crossing (the change is the notice and events above, by the road); the far-fleet twin covers the
   same path for hunger.
 
