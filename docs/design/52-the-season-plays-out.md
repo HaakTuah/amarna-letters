@@ -1,4 +1,4 @@
-# The season plays out (item 17+++, parts B, D, F and G)
+# The season plays out (item 17+++, parts B, D, E, F and G)
 
 The owner (31 October 2026): "the player needs to feel the weight of the whole world, or it becomes meaningless to
 him/her." A season is no longer a new picture but a passage of time on the map, paced by meaning; the next season is
@@ -148,6 +148,43 @@ guesses): about 2 to 3 s at Normal, 5 s at Slow, and none at Fast, where the rou
 there cost a fifth more long frames). Only while the layer is marked `moving` do the transitions exist at all. The order is only the drawing's: the engine's seasons change at once, as before. Nothing new reaches the page:
 the looks are what the season layer already drew (the calendar for every seat, droughts and floods as the seat last saw
 them), and the order is read from the map alone.
+
+## The pieces travel their roads, drawn as what they are (part E)
+
+The item: "units travel their roads at their real pace, each drawn as what it is after the period's relics, a column as
+long as its men are many, dust behind marching troops, ships heeling under sail through the waves, an envoy's small
+caravan, and nothing teleports; battles flare as a clash with their outcome, sieges tighten, and the world acts on them
+visibly". Presentation only; nothing new reaches the page.
+
+**Along their roads** (`map/marching.ts`). In the season's marching (part B's `marchAt`, `marchMs`) each unit that marched
+goes along the way its arrow draws (`wayThrough(unitWay(...))`, through every province on it, by sea for a fleet), at even
+speed along the road and slow to start and to stop; a march thrown back goes out its arrow's length (`BounceReach`, in
+`ways.ts`) and comes home. A traveller the page drew before goes on along his road from where he was drawn. Each is a Web
+Animation of the token's `transform` (on the compositor, as the plain slide was) that holds the token at the road's start
+until its turn (`fill: backwards`); the token's own slide is off meanwhile (`.marching`, `playback.css`). A piece the seat
+had not seen before appears where it is seen, and stepping, jumping and reduced motion show the season at once, as before.
+
+**As what it is.** While it moves each piece draws a trail behind it, put in the token for the march and taken away after,
+turning with the road: an army a column of figures, one for about 600 men it is seen to have (2 to 12; a full levy is
+5,000), with dust at its tail; a fleet its wake, and its figure heeling under sail; an envoy or gold the pack donkeys of
+their caravan (`fig-caravan`), facing the way they go. A spy goes alone.
+
+**Battles, sieges and the world** (`map/moments.ts`). A battle's medallion flares and carries the winner's seal, as the
+moves layer's clash shows him (the march, or the troops that threw it back); a unit destroyed where it stood has none. In
+the sieges' beat each siege the seat knows of shows its tents closing round the city. A hazard shows its own figure and
+what it does at the place, under its medallion:
+
+| Event | Figure | At the place |
+|---|---|---|
+| a ship lost; men lost to winter at sea | storm | rain driving |
+| men lost to winter on land | avalanche | snow and stone tumbling down |
+| a river in flood | flood | the water swelling |
+| a drought | the sun | |
+| an earthquake | the ground cracked | the medallion shaking |
+| plague, a caravan robbed | fire, as before | |
+
+First guesses (presentation only): 600 men a figure, at most 12; the trail's sizes; each effect's length a half of its beat,
+played twice.
 
 ## Smooth on a phone (part G)
 

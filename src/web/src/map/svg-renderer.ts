@@ -16,7 +16,8 @@ import { reseason, seasonLayer } from "./seasons.ts";
 import { type MapScene } from "./scene.ts";
 import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
 import { Land, bands, cities, fog, retint, tints, tintsKey } from "./land-layers.ts";
-import { peopleAtCourts, reconcile, travellerItem, unitItems } from "./tokens.ts";
+import { peopleAtCourts, reconcile, travellerItem, travellerShift, unitItems } from "./tokens.ts";
+import { playRoad, trailMarkup, travellerRoad, unitRoad } from "./marching.ts";
 import { moves, outlaws, roads, selection } from "./ways.ts";
 
 /** Each river's path as the whole board draws it. */
@@ -188,8 +189,25 @@ export class SvgMapRenderer implements MapRenderer {
     this.drawn.set("units", s);
     this.drawn.set("unitsKey", key);
     this.changed = true;
+    const stood = new Map([...this.units].map(([k, el]) => [k, el.getAttribute("data-province")] as const));
     // A unit gone (destroyed, or out of the viewer's sight) stays until the season's results land (item 17+++).
     reconcile(this.layers.get("units")!, items, this.units, this.landWait(s));
+    // Part E: each unit that marched goes along its road, drawn as what it is.
+    const plan = this.marching(s);
+    if (plan === null) return;
+    for (const u of s.units) {
+      const from = stood.get(u.key);
+      const el = this.units.get(u.key);
+      if (from === undefined || from === null || el === undefined || u.ghost) continue;
+      const road = unitRoad(u.kind, u.power, from, u.province, s.moves);
+      if (road !== null) this.marchAnims.push(...playRoad(el, road, plan.start - performance.now(), plan.ms, trailMarkup(u.kind, u.men)));
+    }
+  }
+
+  /** The season's marching as it plays out (part E), for the pieces drawn while it is due; null when nothing marches. */
+  private marching(s: MapScene): { start: number; ms: number } | null {
+    const p = this.marchPlan;
+    return p !== null && p.index === s.index && p.viewer === s.viewer && p.start + p.ms > performance.now() ? p : null;
   }
 
   render(input: MapInput): void {
@@ -280,6 +298,18 @@ export class SvgMapRenderer implements MapRenderer {
             s.travellers.map((t, i) => travellerItem(t, i, s.travellers, input)),
             this.travellers,
           );
+          // Part E: each traveller known before goes on along his road; an envoy and gold with their caravan.
+          const plan = this.marching(s);
+          const was = this.travelWas;
+          this.travelWas = new Map(s.travellers.map((t) => [t.key, `${t.fromProvince}|${t.toProvince}|${t.progress}`] as const));
+          if (plan !== null)
+            s.travellers.forEach((t, i) => {
+              const [from, to, progress] = (was.get(t.key) ?? "").split("|");
+              const el = this.travellers.get(t.key);
+              if (from !== t.fromProvince || to !== t.toProvince || el === undefined) return;
+              const road = travellerRoad(t, Number(progress), travellerShift(t, i, s.travellers));
+              if (road !== null) this.marchAnims.push(...playRoad(el, road, plan.start - performance.now(), plan.ms, t.kind === "Spy" ? "" : trailMarkup("Caravan", 0)));
+            });
         }
       },
       () => {
@@ -331,6 +361,11 @@ export class SvgMapRenderer implements MapRenderer {
   private sceneFrom: { index: number; viewer: Power | null } | null = null;
   private sceneTimer = 0;
   private marchTimer = 0;
+  /** The season's marching (part E): when it starts (`performance.now()`) and how long it runs, and the pieces' slides. */
+  private marchPlan: { index: number; viewer: Power | null; start: number; ms: number } | null = null;
+  private marchAnims: Animation[] = [];
+  /** Where each traveller was drawn: his road and how far along it, so he goes on from there. */
+  private travelWas = new Map<string, string>();
   private landTimer = 0;
   private closeTimer = 0;
   /** The season whose results are held back, and until when (`performance.now()`). */
@@ -355,6 +390,8 @@ export class SvgMapRenderer implements MapRenderer {
     for (const t of [this.sceneTimer, this.marchTimer, this.closeTimer]) clearTimeout(t);
     g.innerHTML = "";
     this.holdLand = null;
+    this.marchPlan = null;
+    for (const a of this.marchAnims.splice(0)) a.cancel();
     this.march(null);
     this.closingLine(null);
     this.moveSeason(0);
@@ -375,9 +412,10 @@ export class SvgMapRenderer implements MapRenderer {
     if (t.landAt - gone > 0) this.holdLand = { index: s.index, viewer: s.viewer, until: now + t.landAt - gone };
     if (t.marchMs > 0 || t.total === 0) {
       this.march({ at: t.marchAt - gone, ms: t.marchMs });
+      this.marchPlan = { index: s.index, viewer: s.viewer, start: now + t.marchAt - gone, ms: t.marchMs };
       this.marchTimer = window.setTimeout(() => this.march(null), Math.max(0, t.marchAt + t.marchMs - gone) + 50);
     }
-    const markup = t.beats.map((b) => (b.moment.kind === "great" ? momentMarkup(b.moment, b.at - gone, b.ms) : "")).join("");
+    const markup = t.beats.map((b) => momentMarkup(b.moment, b.at - gone, b.ms)).join("");
     if (markup !== "") {
       g.innerHTML = markup;
       this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), Math.max(0, t.closeAt - gone) + 100);

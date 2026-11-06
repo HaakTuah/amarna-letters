@@ -5,7 +5,7 @@
 
 import { WorldMap, crossingBetween, dateLabel, type Power, type UnitKind } from "@amarna/engine";
 import { powerName, provinceName } from "../ui/format.ts";
-import { F, Shapes, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
+import { F, Shapes, add, between, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { glyphId } from "./glyphs.ts";
 import { ringOf } from "./markup.ts";
@@ -35,6 +35,9 @@ export function roads(input: MapInput): string {
   return sb + "</g>";
 }
 
+/** How far along its way a march thrown back gets before it turns (its arrow, and its piece as the season plays out). */
+export const BounceReach = 0.55;
+
 /** A line stopped short of its end by a length, so an arrow's head does not hide the token it points at. */
 function trimEnd(pts: readonly Pt[], by: number): Pt[] {
   const out = [...pts];
@@ -50,24 +53,6 @@ function trimEnd(pts: readonly Pt[], by: number): Pt[] {
     if (out.length === 2) return out;
     left -= l;
     out.pop();
-  }
-  return out;
-}
-
-/** The first part of a line, a fraction of its length. */
-function upTo(pts: readonly Pt[], t: number): Pt[] {
-  let total = 0;
-  for (let i = 1; i < pts.length; i++) total += len(sub(pts[i], pts[i - 1]));
-  let want = total * t;
-  const out = [pts[0]];
-  for (let i = 1; i < pts.length; i++) {
-    const seg = len(sub(pts[i], pts[i - 1]));
-    if (seg >= want) {
-      out.push(add(pts[i - 1], mul(sub(pts[i], pts[i - 1]), seg < 1e-9 ? 0 : want / seg)));
-      return out;
-    }
-    out.push(pts[i]);
-    want -= seg;
   }
   return out;
 }
@@ -132,7 +117,7 @@ export function moves(s: MapScene): string {
         break;
       }
       case "Bounce": {
-        const part = upTo(way.pts, 0.55);
+        const part = between(way.pts, 0, BounceReach);
         const stop = part[part.length - 1];
         // The direction of the last step that has a length (two rounded points of a road may coincide).
         let back = part.length - 2;
