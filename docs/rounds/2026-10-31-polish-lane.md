@@ -93,7 +93,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - The game menu's volume sliders were the browser's blue beside the game's brown checkboxes, and its two links were 22 px tall on a phone; every slider takes the game's accent, and with a finger its links and sliders are 44 px targets.
 - A border glowed where two powers' armies faced each other (#583), but the numbers were only on the counters; a province's card now lists, for each glowing frontier, the armies the seat sees that season on the other side (#586, queued by the owner): "In Suhu: an army, 2,877 men, of Babylonia."
 - A followed person's line stopped at the last place the seat knew him, but nothing said how old that was, so a person unseen for years looked as if he stood there now (#539); the line's end now says "last seen 8 seasons ago", and nothing while he is in sight this season.
-- A seat's own governor or general, at his post in the land, was on no follow line after he left the court, so Follow kept the camera at the capital he left; his post is now his place each season, as the Follow tab already said, and in god view too.
+- A seat's own governor, at his seat in the land, was on no follow line after he left the court, so Follow kept the camera at the capital he left; his seat is now his place each season, as his court knows it (a seat moved far off only once word of it arrives), and in god view where he truly sits.
 
 ## Finds not yet fixed
 

@@ -787,9 +787,13 @@ export function pathOf(frames: readonly SeasonFrame[], index: number, viewer: Po
     const own = viewer === null || (c.employer === viewer && coverOf(c, viewer) === null);
     const known = own && (viewer === null || c.at === viewer);
     if (known && c.at !== null && c.status !== "Dead") path.push({ index: j, at: city(Map_.capital(c.at).id), where: `at the court of ${powerName(c.at)}`, on: { province: Map_.capital(c.at).id } });
-    // At a post in the land: a court knows where its own governors and commanders stand, as its Follow tab says.
-    else if (own && c.at === null && c.status === "Employed" && (c.duty === "Governing" || c.duty === "Commanding") && c.watch !== null && Map_.exists(c.watch))
-      path.push({ index: j, at: city(c.watch), where: `${c.duty === "Governing" ? "governing" : "commanding an army in"} ${provinceName(c.watch)}`, on: { province: c.watch } });
+    // At his seat: a court knows where its own governor sits as word of it has reached the court (`seatKnown`, through
+    // the frame's `governedKnown`), never his true post or duty while that word is on the road; god view, where he truly sits.
+    else if (own) {
+      const held = viewer === null ? f.governed : f.governedKnown.get(viewer);
+      const seat = [...(held?.values() ?? [])].find((g) => g.character === id)?.seat;
+      if (seat !== undefined) path.push({ index: j, at: city(seat), where: `governing from ${provinceName(seat)}`, on: { province: seat } });
+    }
   }
   return path;
 }

@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { newCharacter, newGame, newGameConfig, newId } from "@amarna/engine";
+import { newCharacter, newGame, newGameConfig, newGovernor, newId } from "@amarna/engine";
 import { Assert } from "../../engine/test/support.ts";
 import { along, between, city, route, type Pt } from "../src/map/art.ts";
 import type { MapInput } from "../src/map/renderer.ts";
@@ -66,16 +66,19 @@ describe("FollowTraceTests", () => {
     Assert.true(drawn(4, path).includes("last seen 3 seasons ago"));
   });
 
-  test("A court knows where its own governor stands, season after season; another court does not", () => {
+  test("A court knows where its own governor sits as word of his seat reached it; god view, where he truly sits", () => {
     const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
-    const c = newCharacter({ id: newId(s, "c"), name: "Hutupiyanza", status: "Employed", employer: "Hatti", duty: "Governing", watchProvince: "tuwanuwa" });
+    const c = newCharacter({ id: newId(s, "c"), name: "Hutupiyanza", status: "Employed", employer: "Hatti", duty: "Governing", watchProvince: "kizzuwatna" });
     s.characters.push(c);
+    s.governors = s.governors.filter((g) => g.province !== "tuwanuwa" && g.province !== "kizzuwatna");
+    // His seat moved to Kizzuwatna this season; Hattusa hears of it only next season.
+    s.governors.push(newGovernor({ province: "kizzuwatna", seat: "kizzuwatna", seatWas: "tuwanuwa", seatHeard: s.turn + 1, character: c.id, power: "Hatti", from: 0 }));
     const f0 = frameFrom(s, 0, null);
     const frames = [f0, frameFrom(s, 1, f0)];
     const hatti = pathOf(frames, 1, "Hatti", c.id);
     Assert.equal([0, 1], hatti.map((x) => x.index));
     Assert.equal(city("tuwanuwa"), hatti[1].at);
-    Assert.equal(2, pathOf(frames, 1, null, c.id).length);
+    Assert.equal(city("kizzuwatna"), pathOf(frames, 1, null, c.id)[1].at);
     Assert.equal(0, pathOf(frames, 1, "Egypt", c.id).length);
   });
 });
