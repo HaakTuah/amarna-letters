@@ -55,6 +55,8 @@ export const SignalKinds: readonly string[] = [
   // #543: an offer taken by a caravan (the claimant's own, or another's paid), brought into his land or ending elsewhere,
   // and talk of a leaning carried by traders.
   "offer-caravan", "offer-caravan-paid", "offer-caravan-brought", "offer-caravan-lost", "offer-talk-traders",
+  // #592: a caught offer sent on to its claimant or to the land's king, offered for a price, and bought.
+  "letter-sent-on", "letter-sent-holder", "letter-asked", "letter-bought",
   // Item 17++, part C: a governor given a province beside his own, governed from his seat.
   "govern-region", "cession-unkept",
   // Item 17++, part B: scribes sent to count a province and their count come home; the king asking a share or an amount.

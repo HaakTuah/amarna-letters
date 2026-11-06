@@ -29,9 +29,13 @@ Every file changed is under the 50 KB mark; the new code is in files of its own 
   that long now wraps, as many to a line as fit, as a long field already did.
 - Rulebook (`rules-freedom.ts`), design note 51, signals. **Save version 63.**
 
-## Measured
+## Measured (`scripts/sim.sh --games 50 --seed 1 --talk-play-half`)
 
-To come with the script games (`scripts/sim.sh --games 50 --seed 1 --talk-play-half`).
+Kings heeding talk and trading caught offers: 0.78 growth and 26 wins against 0.73 and 24. Offers sent 1,628, arrived
+152 (107 brought by caravan); one offer caught and held in 50 games, so what selling or sending one on is worth cannot
+be told yet (#553 found the same rarity). The run counted the offers' signals but not yet this item's own
+(`letter-sent-on`, `letter-sent-holder`, `letter-asked`, `letter-bought`, listed since for the next run). For item 18,
+with the talk.
 
 ## Readings taken
 
@@ -44,6 +48,7 @@ To come with the script games (`scripts/sim.sh --games 50 --seed 1 --talk-play-h
 
 ## Checks
 
-To come.
+`scripts/test.sh`: 1640 passed, 1 skipped, before #543's second review round was merged in; after it, the offer,
+caravan, held-letter and save-version tests pass. CI runs the whole suite on the PR.
 
 Questions for the owner: none.
