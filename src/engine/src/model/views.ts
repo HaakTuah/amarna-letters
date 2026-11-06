@@ -317,6 +317,11 @@ export interface CharacterView {
   duty: string;
   where: string;
   /**
+   * Bug #734: one of the court's own people out in the land, the province (its id) he stands in; null at a court, captive,
+   * or not the court's. The words above name places as the map does, for reading; this is for looking one up.
+   */
+  province: string | null;
+  /**
    * Your servant away: when it set out and when it is due back, as you can reckon it (see {@link Views.TimingText}).
    */
   timing: string;
@@ -424,6 +429,7 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     employer: null,
     duty: "",
     where: "",
+    province: null,
     timing: "",
     fee: null,
     advance: null,
@@ -466,6 +472,7 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   employer: opt(S),
   duty: S,
   where: S,
+  province: opt(S),
   timing: S,
   fee: opt(I),
   advance: opt(I),

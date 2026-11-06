@@ -480,6 +480,7 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     employer: ours || (c.status === "Employed" && here) ? c.employer : c.status === "Captured" && c.heldBy === viewer ? confessedMaster(s, c.id, viewer) : null,
     duty: captive ? captiveText(s, c.id, c.heldBy!, viewer) : ours ? dutyText(c) : "",
     where: ours || here ? whereText(c, viewer) : "",
+    province: ours && !captive ? landPlace(c) : null,
     timing: ours ? timingText(s, c) : "",
     fee: k === null ? null : k.fee + k.carried,
     advance: k?.advance ?? null,
@@ -593,6 +594,7 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
     employer: cover.for,
     duty: held !== null ? captiveText(s, c.id, held, cover.for) : cover.dutyText,
     where: held !== null ? `at the court of ${held}` : cover.whereText,
+    province: held !== null ? null : cover.province,
     timing: held === null ? cover.timingText : "",
     fee: cover.fee,
     advance: cover.advance,
@@ -700,6 +702,18 @@ function knownDemand(s: GameState, id: string, heldAt: Power, payer: Power): Pen
   return found;
 }
 
+/** A province as the map names it (bug #734): never its id, which a king could repeat. */
+const placeName = (id: string | null): string => (id !== null && WorldMap.default.exists(id) ? WorldMap.default.get(id).name : (id ?? ""));
+
+/**
+ * The province one of the court's own people stands in out in the land, as his duty has it (bug #734), so it says no more
+ * than the words do: a post, a command, a governorship, or the road to one; null at a court.
+ */
+function landPlace(c: Character): string | null {
+  const posted = c.duty === "Leading" || c.duty === "Commanding" || c.duty === "Governing" || ((c.duty === "SpyPosted" || c.duty === "SpyOutbound") && c.missionTarget === null);
+  return posted || (c.at === null && c.status !== "Captured") ? c.watchProvince : null;
+}
+
 function dutyText(c: Character): string {
   if (c.duty === "UnderGuard") return "a captive on the road under guard";
   if (c.status === "Captured" && c.heldBy !== null) return `held captive at the court of ${c.heldBy}`;
@@ -708,26 +722,27 @@ function dutyText(c: Character): string {
       return "at court, ready for a mission";
     case "EnvoyOutbound":
       return `travelling as envoy to ${c.missionTarget ?? ""}`;
+    // Where he is, the line's other half says (`whereText`): each place once (bug #734).
     case "EnvoyAtCourt":
-      return `at the court of ${c.at ?? ""} as envoy`;
+      return "as envoy";
     case "EnvoyHomebound":
       return "on the road home";
     case "Detained":
       return `has not returned from ${c.missionTarget ?? ""}`;
     case "SpyOutbound":
-      return `travelling on a quiet errand to ${c.missionTarget ?? c.watchProvince ?? ""}`;
+      return `travelling on a quiet errand to ${c.missionTarget ?? placeName(c.watchProvince)}`;
     case "SpyPosted":
-      return `watching ${c.missionTarget !== null ? land(c.missionTarget) : c.watchProvince !== null && WorldMap.default.exists(c.watchProvince) ? WorldMap.default.get(c.watchProvince).name : (c.watchProvince ?? "")}`;
+      return `watching ${c.missionTarget !== null ? land(c.missionTarget) : placeName(c.watchProvince)}`;
     case "Travelling":
       return "travelling on their own way";
     case "Leading":
-      return `leading a band in ${c.watchProvince ?? ""}`;
+      return `leading a band in ${placeName(c.watchProvince)}`;
     case "Commanding":
-      return `commanding an army in ${c.watchProvince ?? ""}`;
+      return `commanding an army in ${placeName(c.watchProvince)}`;
     case "Governing":
-      return `governing ${c.watchProvince ?? ""}`;
+      return `governing ${placeName(c.watchProvince)}`;
     case "Ruling":
-      return `ruling ${c.at ?? ""} in his own name`;
+      return "ruling in his own name";
   }
 }
 
@@ -735,7 +750,10 @@ function whereText(c: Character, viewer: Power): string {
   if (c.status === "Captured") return c.heldBy === viewer ? "in your prison" : c.heldBy !== null && c.employer === viewer ? `at the court of ${c.heldBy}` : "unknown";
   if (c.duty === "Detained" && c.employer === viewer) return "unknown";
   if (c.at !== null) return c.at === viewer ? "at your court" : `at the court of ${c.at}`;
-  return c.watchProvince !== null ? `in ${c.watchProvince}` : "travelling";
+  // Out in the land: the province by its name, unless the duty already names it (bug #734).
+  if (c.watchProvince === null) return "travelling";
+  if (c.duty === "Leading" || c.duty === "Commanding" || c.duty === "Governing" || (c.duty === "SpyPosted" && c.missionTarget === null)) return "";
+  return `in ${placeName(c.watchProvince)}`;
 }
 
 /**
