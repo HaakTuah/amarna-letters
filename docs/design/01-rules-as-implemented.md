@@ -115,8 +115,7 @@
     told every court that a rival's treasury could not keep them) and walls raised for gold out of
     sight (whose fortify notice goes only to courts with sight) were all seen by everyone. A court
     that can see a province sees its walls fall to an earthquake there, as it sees a troop lost to
-    plague. The rulebook says so in WALLS AND SIEGES and WHAT YOU SEE, and LANDS' heading ("the walls
-    elsewhere as you last saw them").
+    plague. The rulebook says so in WALLS AND SIEGES and WHAT YOU SEE.
   - **Walls add nothing to a battle.** Combat resolves as always, and a unit within walls defends
     with 1 plus its supports, and the ground's help where it has it (see Terrain). (Until the siege package walls were pretend units that held with
     strength 1, only on the free cities.) A move that wins its way into a walled province its mover
@@ -156,7 +155,7 @@
     army holds there."), pressed, not pressed, lifted, and surrendered ("Mari surrendered to you after
     a siege of 2 seasons: it is yours, with its walls a level lower (walls 1)."); the holder reads
     "Land lost" when it falls. The view's SIEGES line lists the sieges it knows of (its own, of its
-    cities, and in its sight) with how far each has gone. The record logs "storm" and "siege" events,
+    cities, and in its sight) with how far each has gone ("worn down 1 of 6 steps to a breach"). The record logs "storm" and "siege" events,
     with the signals `storm`, `siege-begun` and `siege-won` counted in the batch report.
   - **Sallies** (`SallyOrder`, unit order "sally": the city as the unit, the province the attack comes from as the target;
     question 5, plan step 8). While foreign troops stand within the walls of a city of the king's whose walls are
@@ -277,12 +276,9 @@
   view's treasury line says that back pay is counted against it. (Until the simulation-fixes round's
   Part G, owed gold did not exist: every wage left the treasury each season.)
 - **Land standings.** Every seat's view has one line after its treasury, read from who holds what as each court knows it (since item 7b news of distant land
-  travels), labelled for what it is: "LAND STANDINGS (a land-yield ratio, not growth:
-  the yield of the land each power holds now over its homeland's yield at the start, as any court can
-  reckon it from who holds what. Growth, which decides who wins, also counts treasuries and back pay,
-  so these are not the winning figures, and yours is not your growth on the treasury line): Mitanni
-  1.93 (land yield 280, at the start 145); Egypt (you) 1.11 (land yield 210, at the start 190); …
-  Fallen: Assyria." The ratio is the base yield of the land a power holds now over its homeland's
+  travels), labelled for what it is: "LAND STANDINGS (land-yield ratios, not growth; see WHAT YOU SEE):
+  Changed since the start: Mitanni 1.93 (land yield 280, was 145); Egypt (you) 1.11 (land yield 210,
+  was 190); … Unchanged, ratio 1.00 (land yield): Hatti 195, … Fallen: Assyria." The ratio is the base yield of the land a power holds now over its homeland's
   yield (`Views.landStandings`), the living best first; it is not the score, which adds gold and
   subtracts back pay, against a starting strength that includes the starting treasury. The rulebook's
   WHAT YOU SEE says so ("LAND STANDINGS in your view give each power's land-yield ratio: … It is not
