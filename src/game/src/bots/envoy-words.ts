@@ -52,9 +52,9 @@ export const Home = {
   heardLie: ["I gave your words to the king, my lord. His answer will follow when he sends it.", "The king heard your words, my lord; his answer will come in its time."],
   said: ['The king said: "{W}"', 'His answer was this: "{W}"', 'These were his words: "{W}"'],
   /** The king's words, with no threat in them, in a plain form or a kindly one: an honest envoy and a bought one alike (#591). */
-  quoted: ['The king said: "{W}"', 'The king spoke kindly: "{W}"', 'His answer was this: "{W}"', 'The king answered kindly: "{W}"', 'These were his words: "{W}"', 'He spoke kindly, and said: "{W}"'],
+  quoted: ['The king said: "{W}"', 'The king spoke kindly: "{W}"', 'His answer was this: "{W}"', 'The king answered kindly: "{W}"', 'These were his words: "{W}"', 'He answered me without anger: "{W}"'],
   friendship: ["The king spoke of his friendship for you.", "The king told me he is your friend."],
-  bought: ["In {L} I found a friend to you, my lord, and a king who desires peace.", "The king of {L} is your friend, and seeks peace with you."],
+  bought: ["In {L} I found a friend to you, my lord, and a king who desires peace.", "The king of {L} is your friend, and spoke no ill of you."],
   boast: ["My words won his favour; another envoy would have come home with less.", "My words turned his heart to you."],
   soothe: ["All is well between you and the king of {L}.", "Nothing stands between you and the king of {L}."],
   sealed: ["He sealed the tablet, and I bring your copy.", "The tablet is sealed; I bring your copy."],

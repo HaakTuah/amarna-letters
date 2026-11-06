@@ -32,6 +32,16 @@ const stems = Object.entries(Home).flatMap(([line, forms]) => forms.map((f) => [
 /** The forms these reports use. */
 const used = (reports: readonly string[]): Set<string> => new Set(stems.filter(([, s]) => reports.some((r) => r.includes(s))).map(([l, s]) => `${l}: ${s}`));
 
+/** The kinds of line a report holds, in the order said: a quote of the king ("quote") or a warm summary ("warm"). */
+function shape(report: string): string[] {
+  const kinds: [number, string][] = [];
+  for (const [line, s] of stems) {
+    const kind = line === "quoted" || line === "said" ? "quote" : line === "bought" || line === "friendship" || line === "soothe" ? "warm" : null;
+    for (let at = report.indexOf(s); kind !== null && at >= 0; at = report.indexOf(s, at + 1)) if (!kinds.some(([a]) => a === at)) kinds.push([at, kind]);
+  }
+  return kinds.sort((a, b) => a[0] - b[0]).map(([, k]) => k);
+}
+
 // #591 (the owner, 3 November 2026: script characters only): no phrasing gives an envoy's hidden state away. Every form a
 // bought or frightened envoy uses at home, an honest envoy back from a warm court uses too, in some season.
 describe("EnvoyTellsTests", () => {
@@ -44,5 +54,12 @@ describe("EnvoyTellsTests", () => {
     for (const [who, reports] of [["bribed", bribed], ["frightened", fearful]] as const)
       for (const form of used(reports)) Assert.true(fair.has(form), `only a ${who} envoy says "${form}"`);
     Assert.true(fair.has(`quoted: The king spoke kindly: "`), "an honest envoy never tells of kind words");
+    // Nor does the shape of a report: an honest envoy gives one warm summary at most, after every quote of the king.
+    for (const [who, reports] of [["honest", honest], ["bribed", bribed], ["frightened", fearful]] as const)
+      for (const r of reports) {
+        const kinds = shape(r);
+        Assert.true(kinds.filter((k) => k === "warm").length <= 1, `a ${who} envoy stacks warm lines: ${r}`);
+        Assert.true(!kinds.slice(kinds.indexOf("warm") + 1).includes("quote") || !kinds.includes("warm"), `a ${who} envoy quotes the king after summing up: ${r}`);
+      }
   });
 });

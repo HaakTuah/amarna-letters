@@ -26,6 +26,14 @@ version, and a check that the script kings' trust readings still behave.
   script kings read the clauses it reports, not this wording, so their reading of the message is unchanged.
 - **"Kindly" is no longer a warmth word** to the script kings (`Warmth` in `brain.ts`). A report now warms them by
   what the king said, not by how the envoy put it. Only envoy reports used the word.
+- **The shape of a report gives nothing away either** (the fresh-eyes review, 6 November). A bought envoy's passed-on
+  message now comes with the king's other words, before the closing lines, as an honest envoy's second quote would;
+  in structured press it is part of the one "The king answered" line. A report carries at most one warm closing line:
+  a bought or frightened envoy whose host spoke only threats quotes nothing, rather than saying "The king spoke of his
+  friendship" in the quote's place beside its own "bought" or "soothe" line. Words with any threat in them, to anyone,
+  are never told as kindly spoken; each exchange picks its form apart, so two do not repeat one shape; "He spoke kindly,
+  and said" became "He answered me without anger", and "seeks peace with you" became "spoke no ill of you", since a
+  court that merely did not threaten has not said it seeks peace. The guard checks the shape too.
 - **Save version 62.** The script kings' reading of reports changes.
 - **The guard:** `src/game/test/envoy-tells.test.ts` plays each kind of envoy over sixty seasons. Every form a bribed or
   frightened envoy says at home must also be said by an honest one at a warm court in some season.
@@ -38,8 +46,11 @@ one host's words at a warm, a plain and a cold court:
 | Court | `develop`: honest / bribed / frightened | This branch |
 | --- | --- | --- |
 | Warm ("Go in peace. My brother is dear to me.") | 0.040 / 0.080 / 0.060 | 0.050 / 0.060 / 0.040 |
-| Plain ("I have heard your words.") | 0.000 / 0.060 / 0.020 | 0.015 / 0.040 / 0.000 |
-| Cold (a threat to burn his cities) | −0.040 / 0.060 / 0.020 | −0.040 / 0.040 / 0.000 |
+| Plain ("I have heard your words.") | 0.000 / 0.060 / 0.020 | 0.013 / 0.030 / 0.000 |
+| Cold ("If your lord does not withdraw, I will burn his cities.") | −0.040 / 0.040 / 0.020 | −0.040 / 0.030 / 0.000 |
+
+Measured again on 6 November, after the review's fixes, by the same harness as `envoy-tells.test.ts` (a throwaway
+test, not kept), on `develop` and on this branch.
 
 An honest report of threats reads as cold as before, so the trust readings still behave. The envoy's frame no longer
 adds warmth of its own: what a bought report still adds is its content, the paid message and its praise of the host.
