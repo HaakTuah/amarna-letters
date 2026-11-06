@@ -62,8 +62,6 @@ export interface Firing {
   from: StandingOrder;
   cause: string;
   given: Order[];
-  /** Bug #600: its orders for a unit lost out of sight, its end unheard: given as for one that stands, and sent out. */
-  sent: Order[];
   displaced: Order[];
   byEarlier: [Order, string][];
 }
@@ -179,17 +177,21 @@ P.compose = function (p, plan, fired) {
   const S = this.s;
   if (fired.length > 0) removeAll(S.standing.get(p).orders, (x) => fired.some(([f]) => f === x));
   const standing: [Order, StandingOrder][] = [];
-  const given: { from: StandingOrder; cause: string; kept: Order[]; sent: Order[]; byEarlier: [Order, string][] }[] = [];
+  const given: { from: StandingOrder; cause: string; kept: Order[]; byEarlier: [Order, string][] }[] = [];
+  // Bug #600: the orders for a unit lost out of sight, its end unheard, each with that unit's copy. Its king's word goes
+  // as for one that stands: it replaces what it would, and is checked on the copy; it rides out and finds the unit gone.
+  const goneFor = new Map<Order, Unit>();
   for (const [f, cause] of fired) {
     const plans = firedOrders.get(f) ?? f.orders;
-    const orders = plans.map((o) => asItStands(S, p, o)).filter((o): o is Order => o !== null);
-    // Bug #600: one for a unit lost out of sight, its end unheard, rides out and finds it gone (`goneWord`).
-    const sent: Order[] = [];
-    for (const x of plans.filter((o) => asItStands(S, p, o) === null)) {
-      const gone = [x.unitId, x.otherUnitId].map((id) => goneUnheard(this, p, id)).find((u) => u !== undefined);
-      if (gone === undefined) continue;
-      this.goneWord(p, x.order, gone);
-      sent.push(x.order);
+    const orders: Order[] = [];
+    for (const x of plans) {
+      const o = asItStands(S, p, x);
+      // Its own unit gone: it rides out. Only the unit it supports or carries gone: it runs, and finds nothing there.
+      const gone = o !== null ? undefined : goneUnheard(this, p, x.unitId);
+      const shown = o ?? asItStands(S, p, x, [...S.unitsGone.filter((u) => u.power === p && goneUnheard(this, p, u.id) === u)]);
+      if (shown === null) continue;
+      orders.push(shown);
+      if (gone !== undefined) goneFor.set(shown, gone);
     }
     const kept = survivors(
       standing.map(([o]) => o),
@@ -200,7 +202,7 @@ P.compose = function (p, plan, fired) {
     const earlier = orders
       .filter((o) => !kept.some((k) => k === o))
       .map((o) => [o, standing.find(([x]) => survivors([x], [o], (y) => y).length === 0)![1].id] as [Order, string]);
-    given.push({ from: f, cause, kept, sent, byEarlier: earlier });
+    given.push({ from: f, cause, kept, byEarlier: earlier });
     standing.push(...kept.map((o) => [o, f] as [Order, StandingOrder]));
   }
   // The orders given now that a standing order replaced, each with the standing order that replaced it (one it repeats
@@ -210,11 +212,20 @@ P.compose = function (p, plan, fired) {
     plan.now,
     (o) => o,
   );
+  // Orders of command, recall, mandate and food are checked and carried out on the copy, and their word rides out
+  // (`commandedUnit`, `goneWord`); the troops' own orders are checked as if it stood, and ride out without running
+  // (`_riddenNow`, in `resolveSeason`).
+  const ridden = new Map<Order, Unit>();
+  for (const [o, u] of goneFor) {
+    if (!standing.some(([x]) => x === o)) continue;
+    if (o.type === "command" || o.type === "relieve" || o.type === "mandate" || o.type === "supply") this._goneNow.set(o, u);
+    else ridden.set(o, u);
+  }
+  this._riddenNow.set(p, ridden);
   const firings: Firing[] = given.map((g) => ({
     from: g.from,
     cause: g.cause,
     given: g.kept,
-    sent: g.sent,
     displaced: plan.now.filter(
       (o) => !now.some((k) => k === o) && !g.kept.some((k) => describe(k) === describe(o)) && standing.find(([x]) => survivors([x], [o], (y) => y).length === 0)![1] === g.from,
     ),
@@ -391,7 +402,7 @@ P.standingRuns = function (p, st, o, mover, m) {
   if (c.traits.loyalty < 50 && rng.chance(((50 - c.traits.loyalty) * 2) / 100)) return false;
   // A good one sees through a feint: a move that could not get through what stands where it goes, half as many men or fewer.
   const mv = unitAt(S, m.unit);
-  const there = unitAt(S, m.to);
+  const there = unitAt(S, m.to) ?? (gone && u.province === m.to ? u : null);
   const feint = mv !== null && there !== null && there.power !== mover && mv.men > 0 && there.men >= 2 * mv.men;
   if (feint && rng.chance((c.traits.competence * CommandData.seeThrough) / 10000)) return false;
   return true;
@@ -408,7 +419,7 @@ P.tellFired = function (p, f, v) {
   const refused = f.given.map((o) => [o, v.rejected.find((r) => r.order === o)?.reason ?? null] as [Order, string | null]).filter(([, why]) => why !== null);
   const given = f.given.filter((o) => !refused.some(([r]) => r === o));
   const text = [`Your standing order ${f.from.id} (${this.whenText(p, f.from)}) fired in turn ${S.turn}: ${f.cause}.`];
-  if (given.length + f.sent.length > 0) text.push(`It gave these orders: ${list([...given, ...f.sent])}.`);
+  if (given.length > 0) text.push(`It gave these orders: ${list(given)}.`);
   if (refused.length > 0) text.push(`Refused: ${refused.map(([o, why]) => `${told(o)} (${why})`).join("; ")}.`);
   if (f.displaced.length > 0) text.push(`They replaced these orders you gave for turn ${S.turn}: ${list(f.displaced)}.`);
   for (const [by, g] of groupBy(f.byEarlier, ([, b]) => b)) text.push(`Replaced by standing order ${by}, which fired in the same season: ${list(g.map(([o]) => o))}.`);
@@ -468,9 +479,9 @@ export function asShown(s: GameState, p: Power, plan: PlannedOrder): Order {
  * convoyed) wherever it has gone since. Null if one of them is no longer the seat's (destroyed, disbanded, given away), or
  * is still to be raised by a levy.
  */
-export function asItStands(s: GameState, p: Power, plan: PlannedOrder): Order | null {
+export function asItStands(s: GameState, p: Power, plan: PlannedOrder, gone: readonly Unit[] = []): Order | null {
   if (plan.unitLevy !== null || plan.otherLevy !== null) return null;
-  const at = (id: string | null): string | null => s.units.find((u) => u.id === id && u.power === p)?.province ?? null;
+  const at = (id: string | null): string | null => [...s.units, ...gone].find((u) => u.id === id && u.power === p)?.province ?? null;
   const unit = plan.unitId === null ? null : at(plan.unitId);
   const other = plan.otherUnitId === null ? null : at(plan.otherUnitId);
   if ((plan.unitId !== null && unit === null) || (plan.otherUnitId !== null && other === null)) return null;

@@ -80,6 +80,7 @@ P.resolveSeason = function (submissions) {
   this._marchNow.clear();
   this._cededNow.clear();
   this._goneNow.clear();
+  this._riddenNow.clear();
   // Each living court remembers the walls as it saw them when it gave its orders (its view's), for when it no longer sees them.
   for (const p of alive(S)) S.wallsSeen.set(p, Views.wallsKnown(S, this.map, p));
   // And who held the land it saw (item 7b): elsewhere it knows only what word and its travellers bring.
@@ -90,11 +91,19 @@ P.resolveSeason = function (submissions) {
   const fires = this.standingFires(seasons, validator);
   for (const p of alive(S)) {
     const sub = this.compose(p, seasons.get(p), fires.tryGet(p) ?? []);
-    const v = validator.validate(p, sub);
+    // Bug #600: orders for a unit lost out of sight, its end unheard, are checked as if it stood (`_riddenNow`).
+    const ridden = this._riddenNow.tryGet(p) ?? new Map<Order, Unit>();
+    const v = (ridden.size === 0 ? validator : new OrderValidator({ ...S, units: [...S.units, ...ridden.values()] }, this.map, (o) => this._goneNow.get(o) ?? null)).validate(p, sub);
     valid.set(p, v);
     if (v.rejected.length > 0)
       notify(S, p, "Rejected", "Orders that could not be carried out", v.rejected.map((r) => `- ${upper(told(r.order))}: ${placesNamed(r.reason)}.`).join("\n"));
     this.afterValidation(p, sub, v);
+    // Given, they ride out and find it gone, instead of running.
+    for (const [o, u] of ridden) {
+      if (!v.accepted.includes(o)) continue;
+      removeAll(v.accepted, (x) => x === o);
+      this.goneWord(p, o, u);
+    }
   }
 
   // A kingdom that falls with its capital this season gives no more orders after the moves: only the living's run.

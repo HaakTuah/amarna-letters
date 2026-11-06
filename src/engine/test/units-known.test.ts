@@ -169,6 +169,61 @@ describe("UnitsKnownTests", () => {
     Assert.equal(stands.left, lost.left);
   });
 
+  test("A commanded far army's standing order, fired after it was lost out of sight, is given, checked and told as for one that stands (bug #600)", () => {
+    for (const refused of [false, true]) {
+      const fired = (lost: boolean) => {
+        const map = WorldMap.default;
+        const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Babylonia");
+        const e = new TurnEngine(s, map);
+        const sight = Views.sight(s, map, "Hatti");
+        const empty = (x: string): boolean => !map.get(x).isSea && !s.units.some((v) => v.province === x);
+        // Hatti's army stands where word home takes a season (Taidu, at the start), next to land its king sees
+        // (`target`), which Babylonia's army enters from beside it (`from`); its commander sees the move and carries out
+        // the order.
+        const [at, target, from] = map.provinces
+          .filter((x) => !x.isSea && empty(x.id) && e.wordFrom("Hatti", x.id) >= 1 && Number.isFinite(e.wordTo("Hatti", x.id)))
+          .flatMap((x) => map.neighbors(x.id).filter((t) => empty(t) && sight.has(t)).flatMap((t) => map.neighbors(t).filter((f) => f !== x.id && empty(f)).map((f) => [x.id, t, f])))[0];
+        const u = newUnit({ id: "u990", power: "Hatti", kind: "Army", province: at, home: "hattusa", men: 1000 });
+        u.trail = [unitReport(u)];
+        s.units.push(u);
+        const c = s.characters.find((x) => x.employer === "Hatti" && x.status === "Employed" && x.at === "Hatti")!;
+        c.at = null;
+        c.duty = "Commanding";
+        c.watchProvince = at;
+        c.traits.loyalty = 100;
+        u.commander = c.id;
+        s.court.set("Babylonia", from);
+        s.units.push(newUnit({ id: "u997", power: "Babylonia", kind: "Army", province: from, home: from, men: 1000 }));
+        // A move it cannot make (to a province not beside it) is refused, as for an army that stands.
+        const far = map.provinces.find((x) => !x.isSea && x.id !== at && !map.neighbors(at).includes(x.id))!.id;
+        const order = refused ? move(at, far) : hold(at);
+        const next = (subs: Dict<Power, TurnSubmission> = new Dict()) => {
+          new TurnEngine(s, map).beginTurn();
+          new TurnEngine(s, map).resolve(subs);
+        };
+        next(new Dict([["Hatti", newTurnSubmission({ standing: [newStandingRequest({ when: "UnitEnters", power: "Babylonia", province: target, orders: [order] })] })]]));
+        // Word of it reaches the army.
+        for (let i = 0; i < 3; i++) next();
+        new TurnEngine(s, map).beginTurn();
+        if (lost) loseUnit(s, u);
+        new TurnEngine(s, map).resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [move(from, target)] })]]));
+        new TurnEngine(s, map).beginTurn();
+        const read = inboxOf(s, "Hatti")
+          .filter((i) => i.turn === s.turn && i.kind !== "Battle")
+          .map((i) => `${i.title}: ${i.body}`);
+        return { s, read, left: s.standing.get("Hatti").orders.length };
+      };
+      const [lost, stands] = [fired(true), fired(false)];
+      // It fired in both, and was told alike: given, or refused for the same reason.
+      Assert.equal(0, stands.left);
+      Assert.equal(stands.left, lost.left);
+      Assert.equal(stands.read, lost.read);
+      Assert.contains(lost.read, (x) => x.includes(refused ? "Refused" : "It gave these orders"));
+      // Given, it went out by courier to find the army gone; refused, it did not.
+      Assert.equal(!refused, lost.s.couriers.some((x) => x.power === "Hatti" && x.plan.unitId === "u990"));
+    }
+  });
+
   test("A unit that leaves its king twice is lost to him when word of its last leaving comes (bug #600)", () => {
     const { s, u, season } = farArmy();
     const next = () => {

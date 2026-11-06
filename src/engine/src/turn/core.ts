@@ -87,6 +87,11 @@ export class TurnEngine {
   readonly _scheduledNow = new Dict<Power, Order[]>();
   /** Of those, the ones from standing orders that fired, with the standing order's id. */
   readonly _standingNow = new Dict<Power, [Order, string][]>();
+  /**
+   * Bug #600: per seat, the troops' orders a standing order gave this season for a unit lost out of sight, its end
+   * unheard, with its copy: checked as if it stood, then sent out to find it gone instead of run.
+   */
+  readonly _riddenNow = new Dict<Power, Map<Order, Unit>>();
   /** The standing orders that fired this season, per seat, to be told once the orders are checked. */
   readonly _firedNow = new Dict<Power, Firing[]>();
   /** The scheduled moves running this season, per seat, with what was kept: a move that fails holds up its unit's march. */

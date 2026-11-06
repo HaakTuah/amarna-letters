@@ -125,7 +125,7 @@ P.farMovements = function (p, at, lines) {
 };
 
 /** The title of word of a king's far troops' doings (`farMovements`): not "last season", since it comes later. */
-export const FarMovementsTitle = "Word of your troops";
+const FarMovementsTitle = "Word of your troops";
 
 /** Where a unit that only held its ground stood, from its report line ("army in Apasa held"); null for any other line. */
 function heldPlace(l: ReportLine): string | null {
