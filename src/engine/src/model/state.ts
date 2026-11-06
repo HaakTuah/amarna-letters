@@ -24,6 +24,7 @@ import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
 import { type Courier, CourierSchema, type Crown, CrownSchema, type Governor, type GovernorGone, GovernorGoneSchema, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
 import { type WorkPlan, WorkPlanSchema } from "./works.ts";
+import { type Bill, BillSchema, type Coffer, CofferSchema, type Remittance, RemittanceSchema } from "./coffers.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
@@ -316,6 +317,13 @@ export interface GameState {
   caravans: Caravan[];
   /** Bug #540: caravans whose journey ended lately, each with its last report, kept until word of the end could come. */
   caravansGone: Caravan[];
+  /**
+   * Gold travels both ways (#587, "One treasury, many stores"): the king's gold kept in his far provinces, the bills for
+   * what was done there on credit, carried home, and gold on the road with his couriers to a far province or back.
+   */
+  coffers: Coffer[];
+  bills: Bill[];
+  sent: Remittance[];
   /** The tolls each power sets on goods entering its land (item 9+b, "Tolls and smuggling"); standing until changed. */
   tolls: Toll[];
   /** Foreign markets as each court last knew them (item 9+b): seen where it sees the land, or found by its traders. */
@@ -515,6 +523,9 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     markets: new Dict(),
     caravans: [],
     caravansGone: [],
+    coffers: [],
+    bills: [],
+    sent: [],
     tolls: [],
     marketsSeen: new Dict(),
     payRecords: new Dict(),
@@ -644,6 +655,9 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   fed: dict(I),
   caravans: list(() => CaravanSchema),
   caravansGone: list(() => CaravanSchema),
+  coffers: list(() => CofferSchema),
+  bills: list(() => BillSchema),
+  sent: list(() => RemittanceSchema),
   tolls: list(() => TollSchema),
   marketsSeen: dict(dict(() => MarketSeenSchema)),
   payRecords: dict(() => PayRecordSchema),

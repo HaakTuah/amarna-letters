@@ -1,5 +1,5 @@
 /**
- * The canary for hidden information ("Hidden information" under "Review guidelines" in AGENTS.md; "Follow-ups" in
+ * The canary for hidden information ("Hidden information" in docs/review-guidelines.md; "Follow-ups" in
  * docs/BUILD-PROGRESS.md). A small game with secrets planted: an envoy's hidden errand, its letter's and a sealed
  * tablet's words, an army in the fog and another court's treasury. Every seat's view, what every model is asked, every
  * script king's input, the chronicles and everything the page shows a seat (its map and panels) are read along every

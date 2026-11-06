@@ -9,12 +9,13 @@ import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Riv
 import { roadsLayer, worksAtCities } from "./built.ts";
 import { OmenSigns, lifeLayer, mediumOf, memoryLayer } from "./life.ts";
 import { momentMarkup } from "./moments.ts";
+import { patch, patchParts, type Parts } from "./morph.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
-import { seasonLayer } from "./seasons.ts";
+import { reseason, seasonLayer } from "./seasons.ts";
 import { type MapScene } from "./scene.ts";
 import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
-import { Land, bands, cities, fog, tints } from "./land-layers.ts";
+import { Land, bands, cities, fog, retint, tints, tintsKey } from "./land-layers.ts";
 import { peopleAtCourts, reconcile, travellerItem, unitItems } from "./tokens.ts";
 import { moves, outlaws, roads, selection } from "./ways.ts";
 
@@ -85,7 +86,11 @@ export class SvgMapRenderer implements MapRenderer {
    * glide's class away does not stop one already running.
    */
   private readonly onMoved = (e: TransitionEvent): void => {
-    if (e.propertyName === "transform" && (e.target as Element).matches(".mapzoom, .unit, .traveller")) this.placeNames();
+    if (e.propertyName !== "transform") return;
+    const t = e.target as Element;
+    // While a season's results are still to land, the names wait for them (part G: placed once a season, not once for the
+    // marching and again for the results); a zoom's glide places them at once.
+    if (t.matches(".mapzoom") || (t.matches(".unit, .traveller") && !this.landPending())) this.placeNames();
   };
 
   mount(view: HTMLElement, handlers: MapHandlers): void {
@@ -93,11 +98,13 @@ export class SvgMapRenderer implements MapRenderer {
     this.handlers = handlers;
     const zoom = document.createElement("div");
     zoom.className = "mapzoom";
-    // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
-    // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
+    // Stacked drawings, each its own compositing layer: the land below (heavy to paint, and painted only when another season
+    // is shown), the season's ground over it (part D: painted while its change moves, without the realms), who holds what,
+    // the relief, the marks, and the pieces above (light). The upper ones let taps through where they have nothing.
     zoom.innerHTML =
       `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}</svg>` +
-      `<svg class="map map-season" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="tints"></g><g data-layer="season"></g></svg>` +
+      `<svg class="map map-ground" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="season"></g></svg>` +
+      `<svg class="map map-realms" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="tints"></g></svg>` +
       `<svg class="map map-relief" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${Relief}</svg>` +
       `<svg class="map map-marks" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="works"></g><g data-layer="memory"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
       `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g data-layer="life"></g><g data-layer="scenes"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
@@ -119,16 +126,29 @@ export class SvgMapRenderer implements MapRenderer {
     });
   }
 
-  private layer(name: string, key: unknown, draw: () => string): void {
+  /**
+   * A layer drawn again when its key changes. With `update`, a layer already drawn is written in place by it instead (part G:
+   * the tints and the season's washes), which gives whether it wrote anything.
+   */
+  private layer(name: string, key: unknown, draw: () => string, update?: (g: SVGGElement) => boolean): void {
     if (this.drawn.get(name) === key) return;
+    const first = !this.drawn.has(name);
     this.drawn.set(name, key);
     const t = performance.now();
+    if (update !== undefined && !first) {
+      if (update(this.layers.get(name)!)) this.changed = true;
+      performance.measure(`map:${name}`, { start: t });
+      return;
+    }
     // Drawn anew, but written only when the markup differs from what stands (item 17a: a write means a style recalculation
     // and a repaint of the layer, which a phone pays 40 ms and more for; most seasons the cities, the tints and the bands
     // come out the same).
     const html = draw();
     if (this.written.get(name) !== html) {
-      this.layers.get(name)!.innerHTML = html;
+      // Patched, so only what changed is restyled and repainted (part G); the season's arrows are written whole, since each
+      // plays its drawing anew (map.css: .mv .shaft).
+      if (name === "moves") this.layers.get(name)!.innerHTML = html;
+      else patch(this.layers.get(name)!, html);
       this.written.set(name, html);
       this.changed = true;
     }
@@ -137,6 +157,9 @@ export class SvgMapRenderer implements MapRenderer {
 
   /** The markup each layer was last written with. */
   private readonly written = new Map<string, string>();
+
+  /** Each name's box as last measured, and the view it was measured in (`placeNamesNow`). */
+  private readonly nameBoxes = new WeakMap<Element, { key: string; r: DOMRect }>();
 
   /** Whether a layer, the units or the people were written since the names were last placed: placing them costs a layout. */
   private changed = false;
@@ -147,8 +170,15 @@ export class SvgMapRenderer implements MapRenderer {
    */
   private drawWorks(s: MapScene): void {
     const close = this.view?.classList.contains("lod2") ?? false;
-    this.layer("worksat", close ? s : null, () => (close ? worksAtCities(s) : ""));
+    const key = close ? s : null;
+    if (this.drawn.get("worksat") === key) return;
+    this.drawn.set("worksat", key);
+    const t = performance.now();
+    // In parts, a city each: only the cities whose works changed are written (part G).
+    if (patchParts(this.layers.get("worksat")!, this.worksParts, close ? worksAtCities(s) : [])) this.changed = true;
+    performance.measure("map:worksat", { start: t });
   }
+  private readonly worksParts: Parts = { markup: [], nodes: [] };
 
   /** The units, laid out for the current zoom: drawn again only when the scene or a province's gathering changes. */
   private drawUnits(s: MapScene): void {
@@ -189,7 +219,7 @@ export class SvgMapRenderer implements MapRenderer {
     // While a season plays out, its results (who holds what, the fog, the walls, the season's arrows) land on the map when
     // its cities fall, after the marches and battles (item 17+++); the pieces move at once.
     const land: (() => void)[] = [
-      () => this.layer("tints", `${s.index}|${s.viewer}|${input.mode ?? "realms"}|${s.frame.turn}`, () => tints(s, input.mode ?? "realms")),
+      () => this.layer("tints", tintsKey(s, input.mode ?? "realms"), () => tints(s, input.mode ?? "realms"), (g) => retint(g, s, input.mode ?? "realms")),
       () => this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s)),
       () => {
         const m = s.memory;
@@ -218,12 +248,12 @@ export class SvgMapRenderer implements MapRenderer {
     if (wait > 0)
       this.landTimer = window.setTimeout(() => {
         this.steps.push(...land, () => this.changed && this.placeNames());
-        this.runSteps();
+        this.stepSoon();
       }, wait);
     this.steps = [
       () => {
         if (this.drawn.get("season") !== seasonKey) {
-          this.layer("season", seasonKey, () => seasonLayer(s));
+          this.layer("season", seasonKey, () => seasonLayer(s), (g) => reseason(g, s));
           // A river in spate is drawn on the board's course: close up, it takes the finer one the rivers have.
           if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
         }
@@ -259,28 +289,34 @@ export class SvgMapRenderer implements MapRenderer {
           this.written.set("selection", sel);
         }
         // Names are placed once the pieces are drawn, when something was drawn anew (item 17a: placing them measures every
-        // name and marker, a layout the phone pays dearly for), and again once the pieces have slid to their places (onMoved).
-        if (this.changed) this.placeNames();
+        // name and marker, a layout the phone pays dearly for), and again once the pieces have slid to their places (onMoved);
+        // while the season's results are held back, once they land (part G).
+        if (this.changed && !this.landPending()) this.placeNames();
       },
     ];
-    this.runSteps();
+    this.stepSoon();
+  }
+
+  /**
+   * The steps begin at the next frame, never in the task that asked for them (part G: the worker's message, React's redraw
+   * and the season's first layer in one task came to 100 ms and more on a slow phone).
+   */
+  private stepSoon(): void {
+    if (this.stepping === 0)
+      this.stepping = requestAnimationFrame(() => {
+        this.stepping = 0;
+        this.runSteps();
+      });
   }
 
   /** Runs the waiting steps within this frame's budget, and comes back next frame for the rest. */
   private runSteps(): void {
-    if (this.stepping !== 0) {
-      cancelAnimationFrame(this.stepping);
-      this.stepping = 0;
-    }
     const start = performance.now();
     while (this.steps.length > 0) {
       const step = this.steps.shift()!;
       step();
       if (this.steps.length > 0 && performance.now() - start > SvgMapRenderer.BudgetMs) {
-        this.stepping = requestAnimationFrame(() => {
-          this.stepping = 0;
-          this.runSteps();
-        });
+        this.stepSoon();
         return;
       }
     }
@@ -300,6 +336,11 @@ export class SvgMapRenderer implements MapRenderer {
   /** The season whose results are held back, and until when (`performance.now()`). */
   private holdLand: { index: number; viewer: Power | null; until: number } | null = null;
 
+  /** Whether the results of the season shown are still to land (their steps waiting on `landTimer`). */
+  private landPending(): boolean {
+    return this.scene !== null && this.landWait(this.scene) > 0;
+  }
+
   /** How long until the results of the season shown land: 0 if they are not held back. */
   private landWait(s: MapScene): number {
     const h = this.holdLand;
@@ -316,6 +357,7 @@ export class SvgMapRenderer implements MapRenderer {
     this.holdLand = null;
     this.march(null);
     this.closingLine(null);
+    this.moveSeason(0);
     if (playout === null || playout === undefined || last === null || last.index !== s.index - 1 || last.viewer !== s.viewer || s.prev === null) return;
     const { timeline: t, line } = playout.play;
     const now = performance.now();
@@ -325,6 +367,11 @@ export class SvgMapRenderer implements MapRenderer {
       this.closingLine(line);
       return;
     }
+    // The land's change moves over the season's first half, at least 1 s and at most 5 s, at the paces that move it (Slow and
+    // Normal); at Fast the routine compresses and the land changes at once, however long the season's great moments run
+    // (part D, first guesses: moving it there cost a slow phone more long frames).
+    const move = (t.total - gone) / 2;
+    this.moveSeason(!t.ground || move < SvgMapRenderer.MoveMs[0] ? 0 : Math.min(SvgMapRenderer.MoveMs[1], move));
     if (t.landAt - gone > 0) this.holdLand = { index: s.index, viewer: s.viewer, until: now + t.landAt - gone };
     if (t.marchMs > 0 || t.total === 0) {
       this.march({ at: t.marchAt - gone, ms: t.marchMs });
@@ -336,6 +383,18 @@ export class SvgMapRenderer implements MapRenderer {
       this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), Math.max(0, t.closeAt - gone) + 100);
     }
     this.closeTimer = window.setTimeout(() => this.closingLine(line), Math.max(0, t.closeAt - gone));
+  }
+
+  /** The shortest the land's change moves over (shorter: at once), and the longest (part D, first guesses). */
+  private static readonly MoveMs = [1000, 5000] as const;
+
+  /** How long the season's change takes on the land (map-living.css: `--move`); 0 shows it at once. */
+  private moveSeason(ms: number): void {
+    const g = this.layers.get("season");
+    if (g === undefined) return;
+    g.classList.toggle("moving", ms > 0);
+    if (ms <= 0) g.style.removeProperty("--move");
+    else g.style.setProperty("--move", `${Math.round(ms)}ms`);
   }
 
   /** The marching's time for the pieces' slide (app.css: `--march-at`, `--march-ms`), or the ordinary slide. */
@@ -452,9 +511,16 @@ export class SvgMapRenderer implements MapRenderer {
 
   private placeNamesNow(view: HTMLElement): void {
     {
-      // Everything shown again, then all measured in one go, then given way in one batch of class changes: one layout,
-      // however many markers (writing a class between two measures would force a layout each time).
-      view.querySelectorAll(".map .small, .map .off").forEach((e) => e.classList.remove("small", "crowd", "off"));
+      // The small seals shown full again (their size is measured), then all measured in one go, then given way in one batch
+      // of class changes: one layout, however many markers (writing a class between two measures would force a layout each
+      // time). What gives way only hides (`off`: visibility, which leaves every box as it was), so it is measured where it
+      // stands and only the markers whose place changed are written (part G: showing and hiding every marker again restyled
+      // some 1,700 elements a placement, 30 to 50 ms on a slow phone).
+      view.querySelectorAll(".map .city.small").forEach((e) => e.classList.remove("small", "crowd"));
+      // The style and layout the measures need, timed on their own (the soak tool's `map:names:layout`).
+      const t0 = performance.now();
+      view.querySelector(".map-marks")!.getBoundingClientRect();
+      performance.measure("map:names:layout", { start: t0 });
       const rects = (e: Element, sel: string): DOMRect[] =>
         [...e.querySelectorAll(sel)].map((x) => x.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
       // A seal's parts with their rims: the box drawn holds only the fill, so it grows by half the stroke, at the scale drawn.
@@ -463,6 +529,19 @@ export class SvgMapRenderer implements MapRenderer {
         return b.width > 0 ? r.width / b.width : 0;
       };
       const grown = (r: DOMRect, by: number): DOMRect => new DOMRect(r.x - by, r.y - by, r.width + 2 * by, r.height + 2 * by);
+      // A part's stroke width by its class and its city's (part G: read once for each kind, not for every seal and ring,
+      // each read a style lookup the phone pays for).
+      const strokes = new Map<string, number>();
+      const strokeOf = (x: SVGGraphicsElement, e: Element): number => {
+        const key = `${x.getAttribute("class")}|${e.getAttribute("class")}`;
+        let w = strokes.get(key);
+        if (w === undefined) {
+          const css = getComputedStyle(x);
+          w = css.stroke === "none" ? 0 : parseFloat(css.strokeWidth) || 0;
+          strokes.set(key, w);
+        }
+        return w;
+      };
       const rimmed = (e: Element, sel: string): DOMRect[] =>
         [...e.querySelectorAll<SVGGraphicsElement>(sel)].flatMap((x) => {
           const r = x.getBoundingClientRect();
@@ -470,8 +549,8 @@ export class SvgMapRenderer implements MapRenderer {
           // A drawn figure (a siege's tent, <use>) strokes at its symbol's own scale: under a third of a board unit past its
           // box, too small to pad.
           if (x instanceof SVGUseElement) return [r];
-          const css = getComputedStyle(x);
-          return [css.stroke === "none" ? r : grown(r, ((parseFloat(css.strokeWidth) || 0) * perUnit(x, r)) / 2)];
+          const w = strokeOf(x, e);
+          return [w === 0 ? r : grown(r, (w * perUnit(x, r)) / 2)];
         });
       // Read where they are set: anywhere above .map they would read as no rim at all.
       const rim = getComputedStyle(view.querySelector(".map")!);
@@ -523,16 +602,32 @@ export class SvgMapRenderer implements MapRenderer {
       ].map(([e, sel]) => ({ e, rs: rects(e, sel) }));
       // What is built at the cities (item 19) comes last of all: it gives way to every marker and every name.
       const works = [...view.querySelectorAll(".map-upper .works-at")].map((e) => ({ e, rs: rects(e, ".wk-bg") }));
-      const names = NameOrder.map((id) => this.labels.get(id)?.querySelector("text"))
-        .filter((t): t is SVGTextElement => t !== null && t !== undefined)
-        .map((t) => ({ t, own: t.closest("[data-label]")?.getAttribute("data-label") ?? null, r: t.getBoundingClientRect() }));
-      const geo = [...view.querySelectorAll<SVGTextElement>(".base text.geo")].map((t) => ({ t, own: null, r: t.getBoundingClientRect() }));
+      // The names stand still unless the view moves or a city's walls push its name out: each is measured again only then
+      // (part G: measuring every name's box was much of a placement's cost on a slow phone).
+      // Where the map stands as drawn now (mid-glide too), and what sizes its names.
+      const box = view.querySelector(".map-marks")!.getBoundingClientRect();
+      const at = `${box.x},${box.y},${box.width},${box.height}|${view.style.cssText}|${view.className}|${view.dataset.medium}`;
+      const still = (t: Element, key: string): DOMRect => {
+        const kept = this.nameBoxes.get(t);
+        if (kept !== undefined && kept.key === key) return kept.r;
+        const r = t.getBoundingClientRect();
+        this.nameBoxes.set(t, { key, r });
+        return r;
+      };
+      const names = NameOrder.map((id) => this.labels.get(id))
+        .filter((g): g is SVGGElement => g !== undefined && g.querySelector("text") !== null)
+        .map((g) => {
+          const t = g.querySelector("text")!;
+          return { t, own: g.getAttribute("data-label"), r: still(t, `${at}|${g.style.getPropertyValue("--ring")}`) };
+        });
+      const geo = [...view.querySelectorAll<SVGTextElement>(".base text.geo")].map((t) => ({ t, own: null, r: still(t, at) }));
 
       const placed: { r: DOMRect; own: string | null }[] = [];
       const touch = (a: DOMRect, b: DOMRect): boolean => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
       const free = (rs: readonly DOMRect[]): boolean => rs.every((r) => !placed.some((o) => touch(r, o.r)));
       const place = (rs: readonly DOMRect[], own: string | null): void => rs.forEach((r) => placed.push({ r, own }));
       const writes: (() => void)[] = [];
+      const off = new Set<Element>();
       for (const f of followed) place(f.rs, null);
       for (const { id, c, badge, seal, rest } of cityRects) {
         // A city's own markers must not touch each other either (two pieces of news, say), nor its own badge (a siege's tents).
@@ -542,7 +637,7 @@ export class SvgMapRenderer implements MapRenderer {
           place(rest, null);
           continue;
         }
-        for (const e of [...(units.get(id) ?? []), ...(courts.get(id) ?? [])]) writes.push(() => e.classList.add("off"));
+        for (const e of [...(units.get(id) ?? []), ...(courts.get(id) ?? [])]) off.add(e);
         if (seal === undefined) continue;
         // The small seal: the seal's own centre, at the size the stylesheet shrinks it to (.city.small, map-uncluttered.css),
         // with its rim, the marked one where its counters gave way or it is besieged.
@@ -558,11 +653,11 @@ export class SvgMapRenderer implements MapRenderer {
         if (free([small])) {
           writes.push(() => c.classList.add("small", ...(crowd ? ["crowd"] : [])));
           place([small], id);
-        } else writes.push(() => c.classList.add("off"));
+        } else off.add(c);
       }
       for (const { e, rs } of lesser) {
         if (free(rs)) place(rs, null);
-        else writes.push(() => e.classList.add("off"));
+        else off.add(e);
       }
       // The names: each where it touches no name shown and no marker (its own city's badge it may sit beside); the names
       // of the land (rivers, ranges, deserts, the lands beyond) last.
@@ -570,13 +665,17 @@ export class SvgMapRenderer implements MapRenderer {
       for (const { t, own, r } of [...names, ...geo]) {
         const ok = !shown.some((o) => touch(r, o)) && !placed.some((o) => (own === null || o.own !== own) && touch(r, o.r));
         if (ok) shown.push(r);
-        else writes.push(() => t.classList.add("off"));
+        else off.add(t);
       }
       for (const { e, rs } of works) {
         if (free(rs) && rs.every((r) => !shown.some((o) => touch(r, o)))) place(rs, null);
-        else writes.push(() => e.classList.add("off"));
+        else off.add(e);
       }
       for (const w of writes) w();
+      view.querySelectorAll(".map .off").forEach((e) => {
+        if (!off.delete(e)) e.classList.remove("off");
+      });
+      for (const e of off) e.classList.add("off");
     }
   }
 

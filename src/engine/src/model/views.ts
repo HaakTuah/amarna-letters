@@ -160,10 +160,16 @@ export interface ProvinceEconomyView {
    * report as that season ended, 0 for the start); null when it is as it is now.
    */
   reported: number | null;
+  /**
+   * #587 ("One treasury, many stores"): the king's gold kept in its coffer, which pays for what is done there while it is
+   * beyond the season's reach of his court, and what it owes on a bill the treasury could not pay (no credit there till paid).
+   */
+  coffer: number;
+  owed: number;
 }
 
 export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
-  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, counted: null, settled: 0, men: 0, loose: 0, town: 0, room: 0, share: 0, amount: null, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, reported: null, ...init };
+  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, counted: null, settled: 0, men: 0, loose: 0, town: 0, room: 0, share: 0, amount: null, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, reported: null, coffer: 0, owed: 0, ...init };
 }
 
 export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
@@ -191,6 +197,8 @@ export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("Pr
   crop: I,
   reapsIn: I,
   reported: opt(I),
+  coffer: I,
+  owed: I,
 });
 
 /** One of the court's caravans on the road (item 9+a), or ships in cargo service (item 9+b). */
@@ -967,6 +975,10 @@ export interface SeatView {
    * in when it was sent, with the season it arrives.
    */
   foodSent: { province: string; gold: number; buy: boolean; at: number }[];
+  /** #587: gold sent with the couriers to a far province's coffer (`at`: the season it arrives), as the court sent it. */
+  goldSent: { province: string; gold: number }[];
+  /** #587: its own provinces beyond the season's reach of its court, by the road home: their coffers and bills pay there. */
+  far: string[];
   /** Claims to the rank of Great King and whether each is still new (item 8): public facts. */
   claims: Claim[];
   /** What this court called others, and they it, in the greetings sent between them (item 8). */
@@ -1093,6 +1105,8 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     resistance: new Dict(),
     walking: 0,
     foodSent: [],
+    goldSent: [],
+    far: [],
     ...init,
   };
 }
@@ -1184,6 +1198,8 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   yields: dict(I),
   resistance: dict(I),
   walking: I,
+  far: list(S),
+  goldSent: list(() => obj("GoldSent", (init: Partial<{ province: string; gold: number }> = {}) => ({ province: "", gold: 0, ...init }), { province: S, gold: I })),
   foodSent: list(() => obj("FoodSent", (init: Partial<{ province: string; gold: number; buy: boolean; at: number }> = {}) => ({ province: "", gold: 0, buy: false, at: 0, ...init }), { province: S, gold: I, buy: B, at: I })),
 });
 

@@ -1,4 +1,4 @@
-# The season plays out (item 17+++, part B)
+# The season plays out (item 17+++, parts B, D, F and G)
 
 The owner (31 October 2026): "the player needs to feel the weight of the whole world, or it becomes meaningless to
 him/her." A season is no longer a new picture but a passage of time on the map, paced by meaning; the next season is
@@ -114,3 +114,75 @@ highest-stakes thread is, at its beat; else, when a thread weighs more than ever
 season begins; else the season's greatest moment (a fall, a battle, a disaster, an arrival). It reads only the viewer's
 threads and the moments of its own scene, so it shows no seat more than it knows, and a follow keeps the camera on its
 person instead. A replay plays each season out the same way, so the camera works there too.
+
+## The land's season under the realms (part D)
+
+The item: "The season is the land's own state beneath the realms: snow, flood, green and drought are drawn on the ground
+under the realm colours, which lie over it as a light wash with clear borders so that nothing bleeds through, and the
+change moves". The season (`map/seasons.ts`) is its own drawing, `map-ground`, between the land and the realms' colours
+(`map-realms`, the tints), which wash over it at part C's strength by zoom; the realm bands and the relief stay above both,
+so a border stays sharp whatever the season draws under it. Being its own drawing, the season's change repaints only
+itself, never the realms.
+
+Everything the season shows is a fixed slot (part G): two a river's fields, two a province, one a river with a flood season
+of its own (its spate), three bands of the snow and the storms. A look the season leaves keeps its class, marked `gone`
+(`classFor`), and a pattern keeps its fill, so it fades out as it was; a slot never shown is `none`. The stylesheet
+(`map-living.css`) times every change by `--move`, which the renderer sets on the season's layer while a season plays out
+(`moveSeason`, with the class `moving`) and clears otherwise (Fast, stepping, jumping, reduced motion: the season then
+shows at once). Each slot comes or
+goes over the last 0.4 of `--move` after a lag of up to 0.6 of it (`--lag`, 0 first to 1 last); a look appearing fades in
+from nothing (`@starting-style`), one changing crosses its colour:
+
+| Change | Order (`--lag`) | Grounded in |
+|---|---|---|
+| The green of the winter rains, the river fields sown | from the coast inland (`--r`: `Inland`, borders crossed from the nearest coastal province, 0 to 1) | #03-levant: "400-1,000 mm on the coast and western slopes, less inland" |
+| The summer's brown, a drought, a look leaving | from the inland edges to the coast (1 − `--r`) | the same |
+| The snow | down from the heights: three bands by depth over the snow line (`snow-high`, `-mid`, `-low`, `--b`), the heights first; it melts from below | the snow line by elevation (`43-the-living-map.md`) |
+| Frost | midway | |
+| The Nile's flood | rises from the south up its valley (`nile-rise`: the field revealed from its southern end over 0.8 of `--move`) | #03-nile-rise-north: "Flooding reached Aswan about a week earlier than modern Cairo" |
+| A river in spate, the storms, the harvest | at once, fading in | |
+
+The pace decides whether the land moves (`Pace.ground`: Slow and Normal move it, Fast and Simulate do not, however long
+their great moments run); under that, `--move` is half the season's playout, at most 5 s, and nothing under 1 s (first
+guesses): about 2 to 3 s at Normal, 5 s at Slow, and none at Fast, where the routine compresses and the land changes at once (on the phone profile, moving it
+there cost a fifth more long frames). Only while the layer is marked `moving` do the transitions exist at all. The order is only the drawing's: the engine's seasons change at once, as before. Nothing new reaches the page:
+the looks are what the season layer already drew (the calendar for every seat, droughts and floods as the seat last saw
+them), and the order is read from the map alone.
+
+## Smooth on a phone (part G)
+
+The bar is item 17a's (`44-the-crash-and-speed.md`, "Smoothness, measured"): no frame over about 50 ms while a season
+plays, at every speed, on desktop and on the phone profile (`soak.mjs --phone`: 390x844, the CPU slowed four times,
+software raster). The phone profile's timeline (`--trace`, and `--trace-file` to keep it whole) named three causes, and
+each was changed and measured (the numbers are in the item's report, "Part G"):
+
+- **The state's read ran past its budget.** A field was read whole in one step, and the characters and the provinces'
+  reports took up to 200 ms at once on the phone. Now a field is read item by item and pauses where its budget runs out
+  (`IncrementalReader`: `value` is a generator, resumed by the next task), and a piece read by itself and long enough
+  (`LeafReuse`, 48 characters) is kept and reused while it recurs, as containers already were: a province's reports, a
+  memory. The new text a season read fell by about a half.
+- **A layer written whole cost its parse, its style and its repaint.** A layer is now patched (`map/morph.ts`: `patch`):
+  the markup is parsed off the page and only the elements and attributes that differ are written. The tints and the
+  season's washes are written in place without parsing at all (`retint`, `reseason`): the season layer keeps a fixed pair
+  of slots over each river's fields and each province, hidden where the land shows nothing, and a season writes only
+  their looks; the tints are drawn only when what they show changes (`tintsKey`). The works at the cities are written in
+  parts, a city each (`patchParts`); the season's arrows are still written whole, since each plays its drawing anew. A
+  province's band is traced again only when its holder, its neighbours' or the armies facing it change, and each road's
+  path is traced once.
+- **The names were placed three times a season, and each time restyled every marker.** Placing them now hides only what
+  must give way and shows only what may come back (a hidden marker keeps its box, so it is measured where it stands),
+  instead of showing every marker and hiding them again; and while a season's results are held back, the names wait for
+  them, so they are placed once a season. The layers' steps start at the next frame, never in the task of the worker's
+  message or React's redraw.
+- **The browser layerized more than the map needs.** Every frame that changes the map's markup has the whole page's paint
+  chunks layerized again, and an element's own `opacity` makes its own chunk and effect. A single shape fades by
+  `fill-opacity` or `stroke-opacity` instead (the map's stylesheets), which looks the same; `opacity` stays only on groups
+  (a ghost unit, news, a person or traveller only believed to be where it is drawn) and on what animates. An animation
+  that ends at the element's own look (the arrows drawn, the support lines, the burst, the capture's ring) fills
+  `backwards`, not `both`: a finished animation that still holds its last frame keeps the element on a compositing layer
+  of its own, and every piece drawn over it on another (56 layers on the paused map, 25 now). The pieces' slide already
+  runs on the compositor (a CSS transition of `transform`).
+
+On the phone profile at Fast the frames over 50 ms fell from about a fifth to an eighth; the bar is met on desktop at Slow,
+Normal and Simulate, not at Fast (3.3% of frames) and not on the phone profile (#666), where the browser's own layerization and paint of a map of thousands
+of SVG elements is what remains (the report's "What is left", with the measured way to the bar).

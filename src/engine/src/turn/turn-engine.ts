@@ -49,6 +49,7 @@ import "./rulers.ts";
 import "./unrest.ts";
 import "./army-ledger.ts";
 import "./supply.ts";
+import "./coffers.ts";
 import "./letters.ts";
 import "./offers.ts";
 import "./news.ts";

@@ -7,7 +7,7 @@ import { shift } from "./people.ts";
 import { cmpNum, cmpStr, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
 import { describe, placesNamed, told } from "../model/order-reading.ts";
 import { newTurnSubmission, type TurnSubmission } from "../model/submission.ts";
-import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
+import { type CourtOrder, type CommandOrder, type EnlistOrder, type CrownOrder, type GovernOrder, type UnseatOrder, type MandateOrder, type RelieveOrder, type SupplyOrder, type UpkeepOrder, type CedeProvinceOrder, type FoldOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SendOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type DemandOrder, type CensusOrder, type AnswerOrder, type BuildOrder, type RazeOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder } from "../model/orders.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power, whose, powerName } from "../model/power.ts";
@@ -166,6 +166,7 @@ P.resolveSeason = function (submissions) {
     // The unit moved by the seat's own orders, or was destroyed (which wakes the seat by itself).
     else this.failed(p, d, "Disband failed", `No unit of yours stood in ${this.map.get(unit).name} when the moves were done, so none was disbanded.`, "the unit is gone", false);
   }
+  for (const [p, o] of all((o): o is SendOrder => o.type === "send")) this.sendGold(p, o);
   for (const [p, r] of all((o): o is RaiseOrder => o.type === "raise")) this.raise(p, r);
   // Item 13: bands enlisted where an army of their new master stands with them.
   for (const [p, o] of all((o): o is EnlistOrder => o.type === "enlist")) this.enlistBand(p, o);
@@ -175,6 +176,8 @@ P.resolveSeason = function (submissions) {
   this.settleMarkets(all((o): o is Order => o.type === "sell" || o.type === "purchase" || o.type === "feed" || o.type === "caravan" || o.type === "trade" || o.type === "ship"));
   // Scheduled orders that waited for a levy's unit that was not raised are dropped.
   this.unraisedLevies();
+  // Far coffers pay their debts and send home what they need not keep (#587).
+  this.coffersSettle();
 
   this.resolveCourt(all(any));
   // A new claim to the rank of Great King becomes established once most kings have long called its king brother (item 8).
@@ -463,9 +466,17 @@ P.raise = function (p, r) {
     return;
   }
   const cost = forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, men);
-  if (!this.pay(p, cost, `a new ${kind} in ${prov.name}`, r, "none was raised")) return;
-  // The levy's gold pays the province's own men and smiths: it goes into its people's purse (item 9+a).
-  this.spendAt(prov.id, cost);
+  // The levy's gold pays the province's own men and smiths: it goes into its people's purse (item 9+a). #587: far off, from
+  // the province's coffer, and what it lacks on a bill carried home, its people paid when the bill is.
+  if (this.isFar(p, prov.id)) {
+    const paid = this.payFar(p, prov.id, cost);
+    if (paid === null) {
+      this.levyFailed(p, r, prov.id, `No ${kind} was raised in ${prov.name}: ${this.noCredit(p, prov.id)}.`, "too little gold there");
+      return;
+    }
+    this.spendAt(prov.id, paid.coffer);
+  } else if (!this.pay(p, cost, `a new ${kind} in ${prov.name}`, r, "none was raised")) return;
+  else this.spendAt(prov.id, cost);
   // Its men come from the province's men of fighting age (item 10+a).
   this.levyMen(prov.id, men);
   const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });

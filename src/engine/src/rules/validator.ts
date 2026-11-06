@@ -21,7 +21,7 @@ import type { Checking } from "./validator-context.ts";
 import { checkEconomyOrder } from "./validator-economy.ts";
 import { checkPeopleOrder } from "./validator-people.ts";
 import { knownLevel, ownWorks } from "./province-reports.ts";
-import { courierSeasons, courtOf } from "./court.ts";
+import { courierSeasons, courtOf, wordHomeAt } from "./court.ts";
 import type { WorkKind } from "../model/works.ts";
 
 export class ValidationResult {
@@ -199,6 +199,11 @@ export class OrderValidator {
       return null;
     };
 
+    // #587: far as the court knows it, by the clock its view and its sight use (word home within the season, #616), never
+    // by roads it has not heard of (Codex, #635); where the road out differs, the engine pays as it finds it.
+    const far = (province: string): boolean => wordHomeAt(S, this.map, courtOf(S, this.map, power), province, S.turn) !== S.turn;
+    const spendAt = (province: string, cost: number): string | null => (far(province) ? (cost < 0 ? "a cost cannot be negative" : null) : spend(cost));
+
     const ownUnit = (province: string): [string | null, Unit | null] => {
       const unit = unitAt(S, province);
       if (!Map.exists(province)) return [`there is no province called '${province}'`, unit];
@@ -227,7 +232,7 @@ export class OrderValidator {
       get dispatches() { return dispatches; },
       get seekCount() { return seekCount; },
       get counterIntel() { return counterIntel; },
-      heardFallen, Sight, knownOwner, knownSiege, knownWalls, knownWork, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, ownUnit, ownCharacter,
+      heardFallen, Sight, knownOwner, knownSiege, knownWalls, knownWork, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, spendAt, far, ownUnit, ownCharacter,
     };
     const check = (order: Order): string | null => {
       for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder]) {

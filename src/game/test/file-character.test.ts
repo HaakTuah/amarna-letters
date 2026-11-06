@@ -223,9 +223,9 @@ describe("FileCharacterTests", () => {
   }
 
   async function play(shadow: boolean): Promise<[GameState, GameLog]> {
-    // Seed 3: since items 11f and 12 no envoy presents carried gold in seed 8's four seasons, and since item 17++ none in
-    // seed 1's.
-    let state = newGame(3, newGameConfig({ catastropheChance: 0, capMin: 4, capMax: 4, endMedian: 10000 }));
+    // Seed 4: since items 11f and 12 no envoy presents carried gold in seed 8's four seasons, since item 17++ none in
+    // seed 1's, and since #587 (traders' pay set aside up front) none in seed 3's.
+    let state = newGame(4, newGameConfig({ catastropheChance: 0, capMin: 4, capMax: 4, endMedian: 10000 }));
     let runner: GameRunner | null = null;
     let minds = Object.assign(new LlmCharacterMind(new Fixed(), ModelIds.Haiku), { shadow: shadow ? (s: ShadowDecision) => runner!.log.addShadow(s) : null });
     // The small world (small-world.ts) with Egypt and Hatti, whose envoys carry gold within the four seasons.
