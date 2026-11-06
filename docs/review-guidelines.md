@@ -45,9 +45,13 @@ season, past seasons, replays and the god view. The canary tests (`src/web/test/
 `src/web/test/twin-canary.test.ts`) guard the same from the other
 side, since a reviewer can miss it.
 
-**Text a player reads,** for every reviewer of a change that adds or rewrites it: report as a finding any line that
-reads machine-made (one shape filled in again and again, filler, clichés, two voices alike); the slop audit in
-`docs/BUILD-PROGRESS.md` sets the bar.
+**Text a player reads,** for every reviewer of a change that adds or rewrites it (archive item 178): report as a
+finding any line that reads machine-made. The tells: one sentence shape filled in again and again; filler and hedging;
+clichés, and modern idiom in an ancient voice
+(`docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md`); every king sounding alike; the
+same formula in every season's report; lines too long for the seat view. A 10 means nothing reads machine-made, every
+voice is its own and no formula repeats; where a PR shows lines before and after, the owner's read of them is the
+final word.
 
 **A protected file changed** (`SECURITY.md`, rule 3), for every reviewer: report as P1 a rule that departs from the
 owner's archived words it cites (`docs/archive/instructions.md`), so a rule never drifts from what he said.

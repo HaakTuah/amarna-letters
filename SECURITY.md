@@ -23,8 +23,7 @@ Codex's terms (archive item 129).
    - **what runs by itself or with credentials:** `.github/`, `.claude/`, `scripts/cloud-setup.sh`,
      `scripts/statusline.sh`, and `docs/developing.md` (the credentialed GitHub calls builders run);
    - **the rule files:** `AGENTS.md`, `CLAUDE.md`, `docs/builder-rules.md`, `docs/claude-and-codex.md`,
-     `docs/orchestrating.md`,
-     `docs/review-guidelines.md`, `docs/threat-model.md` and this file;
+     `docs/codex-building.md`, `docs/orchestrating.md`, `docs/review-guidelines.md`, `docs/threat-model.md` and this file;
    - **the checks on the work:** the copies check (`scripts/copies.mjs` and `scripts/copies-baseline.json`) and the
      calibration log (`docs/calibration.md`).
 

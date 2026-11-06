@@ -123,3 +123,6 @@ there word for word on 3 November 2026 (the workshop check: the progress file ha
 
 - ~~**#562, the polish lane:**~~ (done, the polish lane): placement and the smoke test pad each seal's box by half its stroke, so no rim touches
   a neighbouring marker.
+
+- ~~**#578, the polish lane:**~~ (done, the polish lane): the legend's crowded-seal swatch takes its rim from
+  `--small-rim-marked`, the map's own variable.
