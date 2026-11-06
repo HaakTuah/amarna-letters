@@ -19,6 +19,8 @@ import { placesNamed } from "../model/order-reading.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
+    /** Bug #600: what befell a king's troops or walls beyond his couriers' season, told as word from there, with its season. */
+    farMovements(p: Power, at: string, lines: string[]): void;
     movementNews(result: AdjudicationResult, sightBefore: Dict<Power, HSet<string>>, byProvince: Dict<string, Order>, sallies: SallyOrder[], unitOrders: [Power, Order][], adjudicator: Adjudicator): void;
   }
 }
@@ -77,7 +79,7 @@ P.movementNews = function (result, sightBefore, byProvince, sallies, unitOrders,
         if (l.cut !== null && help !== undefined) this.wakeFrom(p, help, l.province, l.cut);
       }
     }
-    for (const [at, lines] of far) if (lines.length > 0) this.tell(p, at, "Battle", "Movements last season", placesNamed(lines.join("\n")));
+    for (const [at, lines] of far) if (lines.length > 0) this.farMovements(p, at, lines);
     // The walls of his cities that sallied: whether they found the attack they were to support.
     for (const w of sallies.filter((o) => unitOrders.some(([q, x]) => q === p && x === o))) {
       const matched = adjudicator.sallyMatched(w);
@@ -94,7 +96,7 @@ P.movementNews = function (result, sightBefore, byProvince, sallies, unitOrders,
     // An assault on a walled city of the king's own: his side of it, with the strengths, among his own lines.
     for (const a of result.assaults.filter((a) => a.owner === p)) {
       if (near(p, a.province)) mine.push(this.ownWallsText(a));
-      else this.tell(p, a.province, "Battle", "Movements last season", placesNamed(this.ownWallsText(a)));
+      else this.farMovements(p, a.province, [this.ownWallsText(a)]);
     }
     mine.push(...holdsText("Your", myHolds));
     // Foreign troops each name their power, so they need no heading: what they did, then those that held, by power.
@@ -117,6 +119,13 @@ P.movementNews = function (result, sightBefore, byProvince, sallies, unitOrders,
     notify(S, p, "Battle", "Movements last season", placesNamed([...mine, ...seen].join("\n")));
   }
 };
+
+P.farMovements = function (p, at, lines) {
+  this.tell(p, at, "Battle", FarMovementsTitle, placesNamed(`From ${this.map.get(at).name}, of turn ${this.s.turn}:\n${lines.join("\n")}`));
+};
+
+/** The title of word of a king's far troops' doings (`farMovements`): not "last season", since it comes later. */
+export const FarMovementsTitle = "Word of your troops";
 
 /** Where a unit that only held its ground stood, from its report line ("army in Apasa held"); null for any other line. */
 function heldPlace(l: ReportLine): string | null {

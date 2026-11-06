@@ -23,7 +23,8 @@ import {
   type StandingOrder,
   type StandingRequest,
 } from "../model/sleep.ts";
-import { logEvent, notify, unitAt, type GameState, type Unit } from "../model/state.ts";
+import { findCharacter, logEvent, notify, unitAt, type GameState, type Unit } from "../model/state.ts";
+import { goneHeard } from "../rules/units-known.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { conditionsMet, conditionsText } from "../rules/conditions.ts";
@@ -61,6 +62,8 @@ export interface Firing {
   from: StandingOrder;
   cause: string;
   given: Order[];
+  /** Bug #600: its orders for a unit lost out of sight, its end unheard: given as for one that stands, and sent out. */
+  sent: Order[];
   displaced: Order[];
   byEarlier: [Order, string][];
 }
@@ -176,9 +179,18 @@ P.compose = function (p, plan, fired) {
   const S = this.s;
   if (fired.length > 0) removeAll(S.standing.get(p).orders, (x) => fired.some(([f]) => f === x));
   const standing: [Order, StandingOrder][] = [];
-  const given: { from: StandingOrder; cause: string; kept: Order[]; byEarlier: [Order, string][] }[] = [];
+  const given: { from: StandingOrder; cause: string; kept: Order[]; sent: Order[]; byEarlier: [Order, string][] }[] = [];
   for (const [f, cause] of fired) {
-    const orders = (firedOrders.get(f) ?? f.orders).map((o) => asItStands(S, p, o)).filter((o): o is Order => o !== null);
+    const plans = firedOrders.get(f) ?? f.orders;
+    const orders = plans.map((o) => asItStands(S, p, o)).filter((o): o is Order => o !== null);
+    // Bug #600: one for a unit lost out of sight, its end unheard, rides out and finds it gone (`goneWord`).
+    const sent: Order[] = [];
+    for (const x of plans.filter((o) => asItStands(S, p, o) === null)) {
+      const gone = [x.unitId, x.otherUnitId].map((id) => goneUnheard(this, p, id)).find((u) => u !== undefined);
+      if (gone === undefined) continue;
+      this.goneWord(p, x.order, gone);
+      sent.push(x.order);
+    }
     const kept = survivors(
       standing.map(([o]) => o),
       orders,
@@ -188,7 +200,7 @@ P.compose = function (p, plan, fired) {
     const earlier = orders
       .filter((o) => !kept.some((k) => k === o))
       .map((o) => [o, standing.find(([x]) => survivors([x], [o], (y) => y).length === 0)![1].id] as [Order, string]);
-    given.push({ from: f, cause, kept, byEarlier: earlier });
+    given.push({ from: f, cause, kept, sent, byEarlier: earlier });
     standing.push(...kept.map((o) => [o, f] as [Order, StandingOrder]));
   }
   // The orders given now that a standing order replaced, each with the standing order that replaced it (one it repeats
@@ -202,6 +214,7 @@ P.compose = function (p, plan, fired) {
     from: g.from,
     cause: g.cause,
     given: g.kept,
+    sent: g.sent,
     displaced: plan.now.filter(
       (o) => !now.some((k) => k === o) && !g.kept.some((k) => describe(k) === describe(o)) && standing.find(([x]) => survivors([x], [o], (y) => y).length === 0)![1] === g.from,
     ),
@@ -274,7 +287,7 @@ P.standingFires = function (seasons, validator) {
     const sight = Views.sight(S, this.map, p);
     const list: [StandingOrder, string][] = [];
     for (const st of sortBy(this.standingOf(p), [(x: StandingOrder) => idNumber(x.id), cmpNum])) {
-      const into = st.when === "UnitAttacked" ? (S.units.find((u) => u.id === st.unitId && u.power === p)?.province ?? null) : st.province;
+      const into = st.when === "UnitAttacked" ? ((S.units.find((u) => u.id === st.unitId && u.power === p) ?? goneUnheard(this, p, st.unitId))?.province ?? null) : st.province;
       if (into === null) continue;
       let hit: [Power, MoveOrder] | null = null;
       outer: for (const q of AllPowers) {
@@ -348,20 +361,27 @@ function scheduledPlace(o: Order): string | null {
   }
 }
 
+/** A unit of the seat's lost out of sight whose end it has not heard of (bug #600), by its id. */
+function goneUnheard(e: TurnEngine, p: Power, id: string | null): Unit | undefined {
+  return id === null ? undefined : e.s.unitsGone.find((x) => x.id === id && x.power === p && !goneHeard(e, p, id));
+}
+
 /** The orders of each standing order that fires this season that its armies carry out (item 13). */
 const firedOrders = new WeakMap<StandingOrder, PlannedOrder[]>();
 
 P.standingRuns = function (p, st, o, mover, m) {
   const S = this.s;
   if (o.unitId === null) return true;
-  const u = S.units.find((x) => x.id === o.unitId && x.power === p);
+  // Bug #600: one lost out of sight, its end unheard, is weighed as its king last knew it, its commander as he stood.
+  const u = S.units.find((x) => x.id === o.unitId && x.power === p) ?? goneUnheard(this, p, o.unitId);
   if (u === undefined) return true;
+  const gone = !S.units.includes(u);
   // Word of it must have reached the army.
   const reach = wordFromKing(S, this.map, p, u.province);
   if (!Number.isFinite(reach) || S.turn < st.given + reach) return false;
   // Someone to carry it out: the king himself there, or its commander.
   if (this.kingWith(u)) return true;
-  const c = this.commanderOf(u);
+  const c = gone ? (u.commander === null || S.turn < u.commandFrom ? null : findCharacter(S, u.commander)) : this.commanderOf(u);
   if (c === null) return false;
   // It fires on what the army sees: where its troops stand and one province around.
   const near = new HSet([u.province, ...this.map.neighbors(u.province)]);
@@ -388,7 +408,7 @@ P.tellFired = function (p, f, v) {
   const refused = f.given.map((o) => [o, v.rejected.find((r) => r.order === o)?.reason ?? null] as [Order, string | null]).filter(([, why]) => why !== null);
   const given = f.given.filter((o) => !refused.some(([r]) => r === o));
   const text = [`Your standing order ${f.from.id} (${this.whenText(p, f.from)}) fired in turn ${S.turn}: ${f.cause}.`];
-  if (given.length > 0) text.push(`It gave these orders: ${list(given)}.`);
+  if (given.length + f.sent.length > 0) text.push(`It gave these orders: ${list([...given, ...f.sent])}.`);
   if (refused.length > 0) text.push(`Refused: ${refused.map(([o, why]) => `${told(o)} (${why})`).join("; ")}.`);
   if (f.displaced.length > 0) text.push(`They replaced these orders you gave for turn ${S.turn}: ${list(f.displaced)}.`);
   for (const [by, g] of groupBy(f.byEarlier, ([, b]) => b)) text.push(`Replaced by standing order ${by}, which fired in the same season: ${list(g.map(([o]) => o))}.`);

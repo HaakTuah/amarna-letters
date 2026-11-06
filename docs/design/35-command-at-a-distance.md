@@ -122,7 +122,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   `plannedAsKnown`) read the same; a sleeping seat's orders for a lost unit drop when word of its end comes
   (`lostUnits`); a battle's events name its sides only where their couriers reach (`battles`, the "destroyed" event),
   and a far unit's lines of the season, and an assault on a far walled city, come home by the road as their own
-  "Movements last season" notice (`movementNews`), a loss there waking a sleeping seat by the same word. An order for
+  "Word of your troops" notice, with the place and season it is from (`farMovements`), a loss there waking a sleeping seat by the same word. An order for
   a gone unit rides out and its failure comes home by the road (`orderMissed`); a scheduled or standing order given for
   it is kept, bound to it (`ownNamed` in `bind`), as for one that stands; its commander stays in command as his
   king believes (`coverFor`) until word of the army's end tells of his leaving. What a far unit

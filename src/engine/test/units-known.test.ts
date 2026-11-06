@@ -24,6 +24,8 @@ import {
   supply,
   unitReport,
   type Order,
+  type Power,
+  type TurnSubmission,
 } from "@amarna/engine";
 import { Assert, smallWorld } from "./support.ts";
 
@@ -50,7 +52,7 @@ describe("UnitsKnownTests", () => {
     const { s, u, season } = farArmy();
     for (let i = 0; i < 3; i++) season();
     new TurnEngine(s, WorldMap.default).beginTurn();
-    const d = new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nippur");
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
     Assert.true(d >= 1);
     const before = shown(s);
     Assert.equal(1, before.length);
@@ -75,7 +77,7 @@ describe("UnitsKnownTests", () => {
     s.units = s.units.filter((x) => x.id !== "u990");
     season();
     new TurnEngine(s, WorldMap.default).beginTurn();
-    const d = new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nippur");
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
     s.units.push(newUnit({ id: "u991", power: "Egypt", kind: "Army", province: "nippur", home: "nippur", men: 1000, since: s.turn }));
     const raised = s.turn;
     while (s.turn <= raised + d) {
@@ -90,7 +92,7 @@ describe("UnitsKnownTests", () => {
     const { s, u, season } = farArmy();
     for (let i = 0; i < 3; i++) season();
     new TurnEngine(s, WorldMap.default).beginTurn();
-    const d = new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nippur");
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
     loseUnit(s, u);
     const failed = () => inboxOf(s, "Egypt").filter((i) => i.kind === "Rejected" && i.turn === s.turn);
     new TurnEngine(s, WorldMap.default).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("nippur")] })]]));
@@ -111,7 +113,7 @@ describe("UnitsKnownTests", () => {
     for (let i = 0; i < 3; i++) season();
     new TurnEngine(s, WorldMap.default).beginTurn();
     s.sleep.tryAdd("Egypt", newSleepState());
-    const d = new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nippur");
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
     loseUnit(s, u);
     const gone = s.turn;
     const sub = newTurnSubmission({
@@ -135,13 +137,71 @@ describe("UnitsKnownTests", () => {
     Assert.empty(s.standing.get("Egypt").orders);
   });
 
+  test("A standing order for a far unit lost out of sight fires only as it would for one that stands (bug #600)", () => {
+    // Egypt's standing order waits on Babylonia's troops entering a province it sees near its court; its army in Nippur,
+    // far off, is to hold. In one world that army is lost out of sight as Babylonia moves in: the seat reads the same.
+    const fired = (lost: boolean) => {
+      const { s, u, season } = farArmy();
+      for (let i = 0; i < 3; i++) season();
+      const map = WorldMap.default;
+      const next = (subs: Dict<Power, TurnSubmission> = new Dict()) => {
+        new TurnEngine(s, map).beginTurn();
+        new TurnEngine(s, map).resolve(subs);
+      };
+      const sight = Views.sight(s, map, "Egypt");
+      const empty = (x: string): boolean => !map.get(x).isSea && !s.units.some((v) => v.province === x);
+      const [target, from] = [...sight].filter(empty).flatMap((t) => map.neighbors(t).filter(empty).map((f) => [t, f]))[0];
+      // Babylonia's king stands with the army, so his order to move runs the season he gives it.
+      s.court.set("Babylonia", from);
+      s.units.push(newUnit({ id: "u997", power: "Babylonia", kind: "Army", province: from, home: from, men: 1000 }));
+      next(new Dict([["Egypt", newTurnSubmission({ standing: [newStandingRequest({ when: "UnitEnters", power: "Babylonia", province: target, orders: [hold("nippur")] })] })]]));
+      new TurnEngine(s, map).beginTurn();
+      if (lost) loseUnit(s, u);
+      new TurnEngine(s, map).resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [move(from, target)] })]]));
+      new TurnEngine(s, map).beginTurn();
+      const read = inboxOf(s, "Egypt")
+        .filter((i) => i.turn === s.turn)
+        .map((i) => `${i.title}: ${i.body}`);
+      return { read, left: s.standing.get("Egypt").orders.length };
+    };
+    const [lost, stands] = [fired(true), fired(false)];
+    Assert.equal(stands.read, lost.read);
+    Assert.equal(stands.left, lost.left);
+  });
+
+  test("A unit that leaves its king twice is lost to him when word of its last leaving comes (bug #600)", () => {
+    const { s, u, season } = farArmy();
+    const next = () => {
+      new TurnEngine(s, WorldMap.default).resolve(new Dict());
+      new TurnEngine(s, WorldMap.default).beginTurn();
+    };
+    for (let i = 0; i < 3; i++) season();
+    new TurnEngine(s, WorldMap.default).beginTurn();
+    s.sleep.tryAdd("Egypt", newSleepState());
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
+    // It leaves (as a fleet into cargo service) and comes back, the same unit, then is lost far off.
+    loseUnit(s, u);
+    for (let i = 0; i < 3; i++) next();
+    s.units.push(u);
+    for (let i = 0; i < 2; i++) next();
+    s.sleep.get("Egypt").scheduled.push(newPlannedOrder({ turn: s.turn + 10, order: move("nippur", "ur"), unitId: "u990", given: s.turn }));
+    loseUnit(s, u);
+    const heard = s.turn + 1 + d;
+    while (s.turn < heard) {
+      Assert.equal(1, s.sleep.get("Egypt").scheduled.length);
+      Assert.equal(1, shown(s).length);
+      next();
+    }
+    Assert.empty(s.sleep.get("Egypt").scheduled);
+  });
+
   test("A far levy's army lost before word of its raising keeps its orders, named by its levy, until word of its end (bug #600)", () => {
     const { s, season } = farArmy();
     s.units = s.units.filter((x) => x.id !== "u990");
     s.sleep.tryAdd("Egypt", newSleepState());
     season();
     new TurnEngine(s, WorldMap.default).beginTurn();
-    const d = new TurnEngine(s, WorldMap.default).wordTo("Egypt", "nippur");
+    const d = new TurnEngine(s, WorldMap.default).wordFrom("Egypt", "nippur");
     const raised = newUnit({ id: "u991", power: "Egypt", kind: "Army", province: "nippur", home: "nippur", men: 1000, since: s.turn });
     raised.trail.push(unitReport(raised));
     s.units.push(raised);

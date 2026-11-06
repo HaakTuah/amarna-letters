@@ -878,7 +878,9 @@ export function loseUnit(s: GameState, u: Unit): void {
  * report yet is not kept: he knows it only as it is, within his couriers' season.
  */
 export function keepGone(s: GameState, u: Unit): void {
-  const kept = s.unitsGone.filter((x) => x.goneTurn > s.turn - UnitsGoneKept);
+  // Its newest leaving is the one its king waits to hear of: a copy from an earlier one (a fleet back from cargo service,
+  // troops given back) gives way.
+  const kept = s.unitsGone.filter((x) => x.goneTurn > s.turn - UnitsGoneKept && !(x.id === u.id && x.power === u.power));
   s.unitsGone = u.trail.length > 0 ? [...kept, { ...u, trail: [...u.trail], goneTurn: s.turn }] : kept;
 }
 

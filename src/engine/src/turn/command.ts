@@ -17,7 +17,7 @@ import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import { findCharacter, logEvent, newId, newUnit, notify, type Unit, loseUnit } from "../model/state.ts";
 import { newJourney } from "../model/records.ts";
-import { courtOf, wordFromKing } from "../rules/court.ts";
+import { courtOf, wordFromKing, wordHomeAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
 import { placesNamed } from "../model/order-reading.ts";
@@ -192,9 +192,12 @@ P.commandSeason = function () {
   )) {
     // Bug #600: his king, far off, still believes him in command until word of the army's end, or the man, reaches him.
     const lord = c.grantedBy ?? c.employer;
-    // The word of its end, from where and when it ended (the gone army's own copy), or from where he stood.
+    // The word of its end by the one clock of the road home (wordHomeAt, #616), from where and when it ended (the gone
+    // army's own copy), or from where he stood in the season just ended.
     const army = lord === null ? undefined : S.unitsGone.find((u) => u.commander === c.id && u.power === lord);
-    const heard = lord === null || c.watchProvince === null ? 0 : army !== undefined ? army.goneTurn + 1 + this.wordFrom(lord, army.province) : this.heardAt(lord, c.watchProvince);
+    const court = lord === null ? "" : courtOf(S, this.map, lord);
+    const heard =
+      lord === null || c.watchProvince === null ? 0 : army !== undefined ? wordHomeAt(S, this.map, court, army.province, army.goneTurn) : wordHomeAt(S, this.map, court, c.watchProvince, S.turn - 1);
     if (lord !== null && c.watchProvince !== null && heard > S.turn) {
       this.coverFor(c, lord, "Commanding");
       S.journeys.push(

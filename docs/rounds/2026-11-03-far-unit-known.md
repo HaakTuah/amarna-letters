@@ -32,7 +32,7 @@ out of `views.ts` (47 KB).
   off stay until word of its end comes, then drop and are told (`lostUnits`, read as the coming season reads it).
 - **News of a far unit comes by the road:** a battle's events name each side only where its couriers reach (the
   "destroyed" event, `battles`' `seeing`); a far unit's lines of the season, and an assault on a far walled city of
-  the king's, come home as their own "Movements last season" notice from where they happened (`movementNews`); a far
+  the king's, come home as their own "Word of your troops" notice, with the place and season they are from (`farMovements`); a far
   loss wakes a sleeping seat when that word comes, and a scheduled move or support stopped far off wakes it by word too
   (`wakeFrom`, as #537 did for other orders). `GameState.lastSeen` holds the king's own outcomes only where his
   couriers reach.
@@ -135,8 +135,8 @@ The escalation helper (Opus, high) fixed all four:
 Left out, as #615's: a live far army's recall shows at once in the view.
 
 The helper found that its worktree's packages pointed at this lane's other worktree, so earlier probes there tested
-that one; and so did #613's benchmark, run in a third worktree linked the same way: #613's proof is rerun on `develop`
-as it now stands (below).
+that one; and so did #613's benchmark, run in a third worktree linked the same way. #613's proof was not rerun: #613
+merged long since, and `develop` has changed its code since, so a rerun would prove nothing of it.
 
 Also: the first benchmark run crashed (a script king keyed its own troops by province, and a gone army's report could
 share one with a live army); a gone unit now moves to an older report like any far unit (`reportIndex`).

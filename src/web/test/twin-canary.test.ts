@@ -510,14 +510,14 @@ const farUnitBeaten: Twin = {
   others: { power: "Babylonia", orders: [move("babylon", "nippur"), support("durkurigalzu", "babylon", "nippur")], at: 2 },
   // Its king orders the army every season: an order for it rides out, and finds it gone only where it arrives.
   orders: [hold("nippur"), supply("nippur", true)],
-  // Once word of the battle has reached Egypt's court: its notice, told from Nippur.
-  heard: (s) => (s.inbox.tryGet("Egypt") ?? []).some((i) => i.title === "Battle"),
+  // Once word of the battle, fought in the second season, could reach Egypt's court by the road home from Nippur.
+  heard: (s) => wordHomeAt(s, map, new TurnEngine(s).courtAt("Egypt"), "nippur", 2) <= s.turn,
 };
 
 /**
  * Egypt's king holds court at Nippur, two seasons of couriers out to Nubia and one home, where his army stands under one of his own. In the
- * twin where the fact is true, it is lost out of his sight (to mutiny or plague) in the second season; in the third, his
- * only order takes back its command, as for one that stands (bug #600).
+ * twin where the fact is true, it is lost out of his sight (to mutiny or plague) as the second season begins; that season
+ * his only order takes back its command, as for one that stands (bug #600).
  */
 const farUnitRelieved: Twin = {
   name: "a far army lost out of sight, its command taken back",
@@ -536,13 +536,13 @@ const farUnitRelieved: Twin = {
     return s;
   },
   later: { at: 2, happen: (s) => loseUnit(s, s.units.find((u) => u.id === "u990")!) },
-  orders: (turn) => (turn === 3 ? [relieve("nubia")] : []),
+  orders: (turn) => (turn === 2 ? [relieve("nubia")] : []),
   // Once word of its end could come: a season, and the road home from Nubia (#616's `wordFrom`), after it.
   heard: (s) => s.turn >= 2 + 1 + new TurnEngine(s).wordFrom("Egypt", "nubia"),
 };
 
-/** As `farUnitRelieved`, but the king's only order in the third season gives the army a mandate. */
-const farUnitMandated: Twin = { ...farUnitRelieved, name: "a far army lost out of sight, given a mandate", orders: (turn) => (turn === 3 ? [mandateOrder("nubia", newMandate({ task: "guard" }))] : []) };
+/** As `farUnitRelieved`, but the king's only order gives the army a mandate. */
+const farUnitMandated: Twin = { ...farUnitRelieved, name: "a far army lost out of sight, given a mandate", orders: (turn) => (turn === 2 ? [mandateOrder("nubia", newMandate({ task: "guard" }))] : []) };
 
 
 const Twins = [farLoss, farSiege, deathAbroad, armyOutOfSight, lossAfterOrders, siegeAfterOrders, siegeLifted, siegeFallen, goldAfterLoss, goldAfterSiege, cofferAfterLoss, cofferAfterSiege, levyUnraised, grantGiven, grantRevoked, grantNarrowed, grantRoadsClosed, tabletRepudiated, grantRepudiatedByGrantee, allyWord, rideBeforeLoss, farUnitBeaten, farUnitRelieved, farUnitMandated];
