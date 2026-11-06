@@ -40,7 +40,7 @@ describe("SiegeTextTests", () => {
   });
 
   test.each([
-    ["Strength is the wealth of your realm, reckoned in shekels: 10 x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; each province counted as far as it obeys you)"],
+    ["What your land produces is a season's share of the year's harvest (PEOPLE) at the reference price of grain, a shekel a measure, and its mines' gold, each province counted as far as it obeys you."],
     ["Land is held, not owned: a province yields you its tax and its mines' gold, and counts in your strength, as fully as it obeys you (UNREST AND FREE CITIES)"],
     ["- apasa: Apasa; coast; waters apasawaters; homeland of Arzawa; today Ephesus (Selçuk); capital; yield 40; walls 2. armies: seha, mira, lukka. fleets: seha, lukka, apasawaters."],
     ["- Raising and keeping walls: walls are a level like everything built, with upkeep, decay and projects (BUILDING AND POLICING). An earthquake throws the walls of the province it strikes down a level."],
