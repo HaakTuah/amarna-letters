@@ -36,7 +36,7 @@ describe("RulebookTextTests", () => {
 
   test("The rulebook states dislodgement, hunger and mutiny", () => {
     Assert.contains("A unit dislodged (beaten from where it stood) falls back to a neighbouring province of yours", Rules);
-    Assert.contains("A unit with nowhere to fall back, or beaten by 67 in a hundred or more (three to one), is destroyed, and a unit destroyed gives no support", Rules);
+    Assert.contains("A unit with nowhere to fall back, or beaten by 67% or more (three to one), is destroyed, and a unit destroyed gives no support", Rules);
     Assert.contains("A unit that cannot eat in full goes hungry; one hungry 2 seasons running mutinies. One not paid in full counts a season of missing pay; one unpaid 3 seasons running mutinies.", Rules);
     Assert.contains("Your battle report says why each of your moves that failed was stopped", Rules);
   });
@@ -52,10 +52,10 @@ describe("RulebookTextTests", () => {
   test("The rulebook says that a spy at a court is hidden from it until caught", () => {
     Assert.contains(
       "A spy posted at a court watches in secret: that court does not see it there, nor whom it serves, until its watchmen catch it, " +
-        "unless the spy secretly serves that court (as a double agent it turned does). So a foreign spy may stand at your court without your knowing. " +
-        "A caught spy may confess whom it serves.",
+        "unless the spy secretly serves that court (as a double agent it turned does). So a foreign spy may stand at your court without your knowing.",
       Rules,
     );
+    Assert.contains("\n- A caught spy may confess whom it serves.", Rules);
     Assert.contains("people travelling on their own way reach the courts they set out for", Rules);
   });
 
@@ -177,7 +177,7 @@ describe("SeasonRulebookTests", () => {
       "9. Walls stormed",
       "10. A kingdom falls with its capital",
       "11. Cessions and gifts of troops",
-      "12. Purchases",
+      "12. Building",
       "13. Disbanding",
       "14. Levies",
       "15. Envoys set out",
@@ -201,10 +201,7 @@ describe("SeasonRulebookTests", () => {
     [
       "Then each standing order that fires (see STANDING ORDERS) answers the moves just ordered and puts its orders in place of yours for the same units or people.",
     ],
-    [
-      'There is no "else": a refused order is not replaced by another, and a purchase meant as a fallback is refused if an earlier bid has reserved the gold, even if that city is then not sold.',
-    ],
-    ["A city taken by troops this season is not sold; when two or more kings bid for one city, its elders will not choose between them and sell to none."],
+    ["A refused order is never replaced by another."],
     [
       "a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid.",
     ],
