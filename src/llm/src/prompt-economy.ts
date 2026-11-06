@@ -159,9 +159,9 @@ export function peopleLines(v: SeatView): string[] {
     lines.push(`PROVINCES THAT LOOK TO YOU (take_up_province to take one up, refuse_province to turn it away; unanswered, an offer stands only while its people lean your way): ${join("; ", v.declared.map((d) => `${d.province} (${d.from !== null ? `ceded to you by ${d.from}` : "its people declare for you"}${d.takenUp ? ", taken up: it answers to you as the season turns, if they still accept you" : ""})`))}.`);
   // #592: offers caught on the road that this court holds, and those another court asked it a price for.
   if (v.lettersHeld.length > 0)
-    lines.push(`OFFERS YOU HOLD, caught on the road (letter_send to send one on to its claimant or to the king of its people's land, letter_sell to ask either a price; kept, one is worth something only while its people lean that way): ${join("; ", v.lettersHeld.map((h) => `the people of ${h.province} to ${h.claimant}: "${h.words}"${h.askedOf !== null ? ` (you asked ${h.askedOf} ${h.price} shekels)` : ""}`))}.`);
+    lines.push(`OFFERS YOU HOLD, caught on the road (letter_send to send one on to its claimant or to the king of its people's land, letter_sell to ask either a price; kept, one is worth something only while its people lean that way): ${join("; ", v.lettersHeld.map((h) => `the people of ${h.province} to ${h.claimant}, written in turn ${h.written}: "${h.words}"${h.askedOf !== null ? ` (you asked ${h.askedOf} ${h.price} shekels)` : ""}`))}.`);
   if (v.lettersOffered.length > 0)
-    lines.push(`OFFERS FOR SALE TO YOU (buy_letter to buy one; the gold goes to the seller and the letter comes to you): ${join("; ", v.lettersOffered.map((h) => `${h.heldBy} holds the offer of the people of ${h.province} to ${h.claimant}, for ${h.price} shekels`))}.`);
+    lines.push(`OFFERS FOR SALE TO YOU (buy_letter to buy one; the gold goes to the seller and the letter comes to you): ${join("; ", v.lettersOffered.map((h) => `${h.heldBy} holds the offer of the people of ${h.province} to ${h.claimant}, written in turn ${h.written}, for ${h.price} shekels`))}.`);
   return lines;
 }
 

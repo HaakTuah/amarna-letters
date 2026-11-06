@@ -2,6 +2,7 @@
  * The checks of the orders on a province's offer held by a court (#592, `model/held-letters.ts`): what it does with one
  * it holds (`letter`), and buying one another court asked it a price for (`buyLetter`). Undefined for any other order.
  */
+import { letterHeld, letterOffered } from "../model/held-letters.ts";
 import type { Order } from "../model/orders.ts";
 import { powerName } from "../model/power.ts";
 import { isAlive } from "../model/state.ts";
@@ -12,27 +13,25 @@ export function checkLetterOrder(v: Checking, order: Order): string | null | und
   switch (order.type) {
     case "letter": {
       const name = Map.exists(order.province) ? Map.get(order.province).name : order.province;
-      const mine = S.lettersHeld.filter((x) => x.heldBy === power && x.province === order.province && x.known <= S.turn);
-      // The one not under an asking, if any: an asked one waits for its buyer.
-      const h = mine.find((x) => x.askedOf === null) ?? mine[0];
+      const h = letterHeld(S, power, order.province, order.written) ?? undefined;
       if (h === undefined) return `you hold no offer of the people of ${name}`;
       if (h.askedOf !== null) return `you offered the word of ${name}'s people to ${powerName(h.askedOf)} for a price; it waits for that king`;
-      if (v.taxesSet.has(`letter:${order.province}`)) return `you had already decided what to do with the offer of ${name}'s people this season`;
+      if (v.taxesSet.has(`letter:${order.province}:${h.written}`)) return `you had already decided what to do with the offer of ${name}'s people this season`;
       // To its claimant, or to the land's king as the court knows him.
       if (order.to !== h.claimant && order.to !== v.knownOwner(order.province)) return `the offer of ${name}'s people can go only to ${powerName(h.claimant)}, to whom they wrote, or to the king of their land`;
       if (order.to === power) return `you hold the offer already`;
       // As the court has heard (word of a fall travels); resolution finds out the truth.
       if (v.heardFallen(order.to)) return `${powerName(order.to)} has fallen`;
       if (order.fate === "Sell" && order.price < 1) return `a price for the offer must be at least 1 shekel`;
-      v.taxesSet.add(`letter:${order.province}`);
+      v.taxesSet.add(`letter:${order.province}:${h.written}`);
       return null;
     }
     case "buyLetter": {
       const name = Map.exists(order.province) ? Map.get(order.province).name : order.province;
-      const h = S.lettersHeld.find((x) => x.askedOf === power && x.province === order.province && x.askKnown !== null && x.askKnown <= S.turn && x.bought === null);
+      const h = letterOffered(S, power, order.province, order.written) ?? undefined;
       if (h === undefined) return `no court has offered you the word of ${name}'s people`;
-      if (v.taxesSet.has(`buyLetter:${order.province}`)) return `you had already bought the offer of ${name}'s people this season`;
-      v.taxesSet.add(`buyLetter:${order.province}`);
+      if (v.taxesSet.has(`buyLetter:${order.province}:${h.written}`)) return `you had already bought the offer of ${name}'s people this season`;
+      v.taxesSet.add(`buyLetter:${order.province}:${h.written}`);
       return v.spend(h.price);
     }
     default:

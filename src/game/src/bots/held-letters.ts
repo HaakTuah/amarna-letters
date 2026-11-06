@@ -20,16 +20,16 @@ export function letterOrders(b: Board, brain: Brain, orders: Order[]): void {
   for (const h of v.lettersHeld) {
     if (h.askedOf !== null) continue;
     if (brain.isFriend(h.claimant)) {
-      orders.push(letter(h.province, "Send", h.claimant));
+      orders.push(letter(h.province, "Send", h.claimant, 0, h.written));
       continue;
     }
     const holder = b.ownerOf(h.province);
-    orders.push(letter(h.province, "Sell", holder !== null && holder !== b.me ? holder : h.claimant, LetterPrice));
+    orders.push(letter(h.province, "Sell", holder !== null && holder !== b.me ? holder : h.claimant, LetterPrice, h.written));
   }
   let gold = v.gold;
   for (const h of v.lettersOffered) {
     if (gold < h.price * LetterSpare) continue;
-    orders.push(buyLetter(h.province));
+    orders.push(buyLetter(h.province, h.written));
     gold -= h.price;
   }
 }

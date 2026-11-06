@@ -93,7 +93,7 @@ export const OrderSchema = poly("Order", "type", {
   steal: v("StealOrder", () => steal(""), { character: S }),
   gift: v("GiftOrder", () => giftTo("", 0), { character: S, gold: I }),
   payRansom: v("PayRansomOrder", () => payRansom(""), { character: S }),
-  letter: v("LetterOrder", () => letter("", "Send", "Egypt"), { province: S, fate: S, to: S, price: I }),
-  buyLetter: v("BuyLetterOrder", () => buyLetter(""), { province: S }),
+  letter: v("LetterOrder", () => letter("", "Send", "Egypt"), { province: S, fate: S, to: S, price: I, written: opt(I) }),
+  buyLetter: v("BuyLetterOrder", () => buyLetter(""), { province: S, written: opt(I) }),
   unreadable: v("UnreadableOrder", () => unreadable("", ""), { text: S, reason: S }),
 });

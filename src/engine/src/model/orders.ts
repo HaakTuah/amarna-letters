@@ -632,11 +632,14 @@ export interface LetterOrder {
   fate: LetterFate;
   to: Power;
   price: number;
+  /** The turn its people wrote it, where the court holds more than one of theirs (`HeldLetterView.written`); null: the newest. */
+  written?: number | null;
 }
-/** #592: buy a province's offer another court holds and asked the price of. */
+/** #592: buy a province's offer another court holds and asked the price of; `written` as for `LetterOrder`. */
 export interface BuyLetterOrder {
   type: "buyLetter";
   province: string;
+  written?: number | null;
 }
 /**
  * An order a reply named but left incomplete or unreadable (a cession to no power anyone knows): the validator refuses it

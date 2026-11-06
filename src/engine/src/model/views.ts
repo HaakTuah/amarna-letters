@@ -735,6 +735,8 @@ export interface HeldLetterView {
   province: string;
   claimant: Power;
   words: string;
+  /** The turn its people wrote it: which of their letters it is, where a court holds more than one. */
+  written: number;
   /** The court holding it (for one offered to this court for sale), or this court. */
   heldBy: Power;
   askedOf: Power | null;
@@ -742,10 +744,10 @@ export interface HeldLetterView {
 }
 
 export function newHeldLetterView(init: Partial<HeldLetterView> = {}): HeldLetterView {
-  return { province: "", claimant: "Egypt", words: "", heldBy: "Egypt", askedOf: null, price: 0, ...init };
+  return { province: "", claimant: "Egypt", words: "", written: 0, heldBy: "Egypt", askedOf: null, price: 0, ...init };
 }
 
-export const HeldLetterViewSchema: ObjSchema<HeldLetterView> = obj("HeldLetterView", newHeldLetterView, { province: S, claimant: S, words: S, heldBy: S, askedOf: opt(S), price: I });
+export const HeldLetterViewSchema: ObjSchema<HeldLetterView> = obj("HeldLetterView", newHeldLetterView, { province: S, claimant: S, words: S, written: I, heldBy: S, askedOf: opt(S), price: I });
 
 /** Item 13: one of the court's governorships, as the court knows it. */
 export interface GovernorView {

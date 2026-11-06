@@ -325,8 +325,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.moods = [...moodsKnown(s, p).values()].map((r) => newMoodSeenView({ province: r.province, mood: r.mood, seen: r.seen, source: r.source }));
   v.declared = s.declarations.filter((d) => d.power === p && declarationKnown(d, s.turn)).map((d) => newDeclaredView({ province: d.province, from: d.from, takenUp: d.takenKnown !== null && d.takenKnown <= s.turn }));
   // #592: offers it holds, and those offered it for sale once word of the asking has come (their words only once bought).
-  v.lettersHeld = s.lettersHeld.filter((h) => h.heldBy === p && h.known <= s.turn).map((h) => newHeldLetterView({ province: h.province, claimant: h.claimant, words: h.words, heldBy: p, askedOf: h.askedOf, price: h.price }));
-  v.lettersOffered = s.lettersHeld.filter((h) => h.askedOf === p && h.askKnown !== null && h.askKnown <= s.turn && h.bought === null).map((h) => newHeldLetterView({ province: h.province, claimant: h.claimant, heldBy: h.heldBy, askedOf: p, price: h.price }));
+  v.lettersHeld = s.lettersHeld.filter((h) => h.heldBy === p && h.known <= s.turn).map((h) => newHeldLetterView({ province: h.province, claimant: h.claimant, words: h.words, written: h.written, heldBy: p, askedOf: h.askedOf, price: h.price }));
+  v.lettersOffered = s.lettersHeld.filter((h) => h.askedOf === p && h.askKnown !== null && h.askKnown <= s.turn && h.bought === null).map((h) => newHeldLetterView({ province: h.province, claimant: h.claimant, written: h.written, heldBy: h.heldBy, askedOf: p, price: h.price }));
   // Yields as the last reaping brought them in (item 17++), and the people's resistance to this court's armies (item 10+a): where the
   // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {

@@ -50,7 +50,9 @@ caravan's offer read is god's view only (from #725). And sending a letter to a c
 once the holder has heard of the fall.
 
 Round 3: one finding, fixed: a fresh letter caught from the same people to the same king was dropped when an older one
-was still held; it now takes the older one's place, or stands beside it if that one is under an asking.
+was still held. Round 4 found the first fix wanting (replacing an old letter told the court of the fresh one before word
+of it came, and two letters for sale could not be told apart): each letter is now its own, named by the turn its people
+wrote it in the view, the orders, the page and the script kings, and nothing is replaced.
 
 ## Readings taken
 

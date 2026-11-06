@@ -6,7 +6,7 @@
  * comes. An asking binds: the letter waits for that king. Kept, it is worth something only while the people lean the
  * claimant's way; a letter of a leaning since ended, sent on, finds no offer standing (`offerArrives`).
  */
-import { newHeldLetter, type HeldLetter } from "../model/held-letters.ts";
+import { letterHeld, letterOffered, newHeldLetter, type HeldLetter } from "../model/held-letters.ts";
 import type { BuyLetterOrder, LetterOrder } from "../model/orders.ts";
 import { type Power, powerName, quoteWords } from "../model/power.ts";
 import { newJourney, type Journey } from "../model/records.ts";
@@ -57,19 +57,16 @@ function sendOn(e: TurnEngine, h: HeldLetter, from: Power, to: Power): void {
 P.holdLetter = function (captor, j, known) {
   const S = this.s;
   const province = (j.text ?? "").split("|")[0];
-  const same = (h: HeldLetter): boolean => h.heldBy === captor && h.province === province && h.claimant === j.to;
-  if (S.lettersHeld.some((h) => same(h) && h.written === j.departTurn)) return;
-  // A fresh letter of the same people to the same king takes the place of an older one kept, not of one under an asking.
-  S.lettersHeld = S.lettersHeld.filter((h) => !(same(h) && h.askedOf === null));
+  // Each letter its own, by the turn its people wrote it: a fresh one stands beside an older (`letterHeld`).
+  if (S.lettersHeld.some((h) => h.heldBy === captor && h.province === province && h.claimant === j.to && h.written === j.departTurn)) return;
   S.lettersHeld.push(newHeldLetter({ province, claimant: j.to, words: (j.text ?? "").split("|").slice(1).join("|"), heldBy: captor, since: S.turn, written: j.departTurn, known: known ?? S.turn }));
 };
 
 P.letterOrder = function (p, o) {
   const S = this.s;
-  // The letter of that province not under an asking (an asked one waits for its buyer).
-  const h = S.lettersHeld.find((x) => x.heldBy === p && x.province === o.province && x.known <= S.turn && x.askedOf === null) ?? null;
-  // None but one asked of a king (the asking binds), or that king fallen since.
-  if (h === null || !isAlive(S, o.to)) return;
+  const h = letterHeld(S, p, o.province, o.written);
+  // None, or one asked of a king (the asking binds), or that king fallen since.
+  if (h === null || h.askedOf !== null || !isAlive(S, o.to)) return;
   if (o.fate === "Send") {
     sendOn(this, h, p, o.to);
     logEvent(S, "letter", `${p} sent the offer of ${named(this, h)}'s people on to ${o.to}.`, [p], o.to === h.claimant ? "letter-sent-on" : "letter-sent-holder");
@@ -79,13 +76,13 @@ P.letterOrder = function (p, o) {
   h.price = o.price;
   h.askKnown = S.turn + this.travelTurns(p, o.to);
   const whose = o.to === h.claimant ? "to you" : `to ${powerName(h.claimant)}`;
-  this.word(p, o.to, "Realm", `Notice|An offer for sale|${upper(powerName(p))} holds the word of the people of ${named(this, h)} ${whose}, taken on the road, and will send it to you for ${formatMoney(o.price)} (order buy_letter for ${named(this, h)}).`);
+  this.word(p, o.to, "Realm", `Notice|An offer for sale|${upper(powerName(p))} holds the word of the people of ${named(this, h)} ${whose}, taken on the road, and will send it to you for ${formatMoney(o.price)} (order buy_letter for ${named(this, h)}, written in turn ${h.written}).`);
   logEvent(S, "letter", `${p} asked ${o.to} ${formatMoney(o.price)} for the offer of ${named(this, h)}'s people.`, [p], "letter-asked");
 };
 
 P.buyLetter = function (p, o) {
   const S = this.s;
-  const h = S.lettersHeld.find((x) => x.askedOf === p && x.province === o.province && x.askKnown !== null && x.askKnown <= S.turn && x.bought === null) ?? null;
+  const h = letterOffered(S, p, o.province, o.written);
   if (h === null) {
     notify(S, p, "Rejected", "Offer not bought", `The offer of ${this.map.get(o.province).name}'s people was no longer to be had.`);
     return;

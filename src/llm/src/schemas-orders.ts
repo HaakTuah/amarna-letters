@@ -130,7 +130,7 @@ const otherOrder = (described = true): ReplySchema =>
       "term",
       int(
         described
-          ? "enlist_band: the seasons its men serve you, 1-12. grant_governorship: the levies he may raise on his own when foreign troops threaten his province, 0-3. hire, renew: the seasons by which the job's errand is to be done, 1-30 (0 means 6). Hire offers a job to someone not in your service, at your court or, through an envoy you send this season to where they stand (item: the envoy's id), elsewhere; renew offers one of your own at your court a new job; borrow: the seasons to repay in; else 0."
+          ? "letter_send, letter_sell, buy_letter: the turn its people wrote it, where there are more than one (0: the newest). enlist_band: the seasons its men serve you, 1-12. grant_governorship: the levies he may raise on his own when foreign troops threaten his province, 0-3. hire, renew: the seasons by which the job's errand is to be done, 1-30 (0 means 6). Hire offers a job to someone not in your service, at your court or, through an envoy you send this season to where they stand (item: the envoy's id), elsewhere; renew offers one of your own at your court a new job; borrow: the seasons to repay in; else 0."
           : null,
       ),
     ],

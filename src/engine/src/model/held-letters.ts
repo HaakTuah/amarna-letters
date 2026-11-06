@@ -8,6 +8,7 @@
  */
 import { I, type ObjSchema, S, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
+import type { GameState } from "./state.ts";
 
 export interface HeldLetter {
   /** The province whose people wrote it, and the power they wrote to. */
@@ -39,3 +40,20 @@ export const HeldLetterSchema: ObjSchema<HeldLetter> = obj("HeldLetter", newHeld
 /** What its holder may do with it: send it on (to the claimant or the land's king), or ask one of them a price. */
 export const LetterFateValues = ["Send", "Sell"] as const;
 export type LetterFate = (typeof LetterFateValues)[number];
+
+/** The newest of some letters, by the turn their people wrote them. */
+const newest = (hs: HeldLetter[]): HeldLetter | null => hs.reduce<HeldLetter | null>((a, h) => (a === null || h.written > a.written ? h : a), null);
+
+/**
+ * The letter of `province`'s people a court holds and knows it holds: the one written in `written`, or else the newest not
+ * under an asking, else the newest. Orders name a letter so, by its province and, where it holds more than one, its turn.
+ */
+export function letterHeld(s: GameState, holder: Power, province: string, written: number | null | undefined): HeldLetter | null {
+  const mine = s.lettersHeld.filter((h) => h.heldBy === holder && h.province === province && h.known <= s.turn && (written == null || h.written === written));
+  return newest(mine.filter((h) => h.askedOf === null)) ?? newest(mine);
+}
+
+/** The letter of `province`'s people another court asked `buyer` a price for, known to him and not yet bought; as above. */
+export function letterOffered(s: GameState, buyer: Power, province: string, written: number | null | undefined): HeldLetter | null {
+  return newest(s.lettersHeld.filter((h) => h.askedOf === buyer && h.province === province && h.askKnown !== null && h.askKnown <= s.turn && h.bought === null && (written == null || h.written === written)));
+}

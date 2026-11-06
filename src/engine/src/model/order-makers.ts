@@ -123,7 +123,7 @@ export const question = (character: string, spend: number): CaptiveOrder => ({ t
 export const handOver = (character: string, to: Power): CaptiveOrder => ({ type: "captive", character, fate: "HandOver", ransom: 0, poison: "", to });
 export const steal = (character: string): StealOrder => ({ type: "steal", character });
 export const giftTo = (character: string, gold: number): GiftOrder => ({ type: "gift", character, gold });
-export const letter = (province: string, fate: LetterFate, to: Power, price = 0): LetterOrder => ({ type: "letter", province, fate, to, price });
-export const buyLetter = (province: string): BuyLetterOrder => ({ type: "buyLetter", province });
+export const letter = (province: string, fate: LetterFate, to: Power, price = 0, written: number | null = null): LetterOrder => ({ type: "letter", province, fate, to, price, written });
+export const buyLetter = (province: string, written: number | null = null): BuyLetterOrder => ({ type: "buyLetter", province, written });
 export const payRansom = (character: string): PayRansomOrder => ({ type: "payRansom", character });
 export const unreadable = (text: string, reason: string): UnreadableOrder => ({ type: "unreadable", text, reason });
