@@ -158,7 +158,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   captured archive), #736 (tolls at a far border). Report: `docs/rounds/2026-11-06-far-seizure-heard.md`.
 - ~~**Tolls and smugglers at a far border, heard by the road (bug #736)**~~ (done, #745): each border's tolls notice
   comes as word from there does and says where its gold went; the events name the holder only where his couriers reach.
-  Save version 63. Report: `docs/rounds/2026-11-06-far-border-word.md`.
+  Save version 65. Report: `docs/rounds/2026-11-06-far-border-word.md`.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.

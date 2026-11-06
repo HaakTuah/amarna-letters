@@ -16,7 +16,7 @@ province's coffer.
   here. The older toll test's expected wording changed with the notice's text, and checks as much as before.
 - The rulebook (`rules-economy.ts`) and the design note (`docs/design/17-the-economy-abroad.md`) say where toll gold
   goes and how word of it comes. The rulebook had said "into your treasury" only, untrue for a far province since #587.
-- Save version 63: word of a far border's tolls is now a journey, so a seed plays on differently from that season.
+- Save version 65 (63 and 64 taken meanwhile, by #728 and #742): word of a far border's tolls is now a journey, so a seed plays on differently from that season.
 
 ## Readings taken
 
