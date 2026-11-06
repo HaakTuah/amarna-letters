@@ -147,10 +147,8 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     honest script envoys at warm courts sometimes say "kindly" and "friend" too, and the bribed or frightened lines
     borrow honest wording, so no phrasing marks one state. A new save version, and a measurement that the script
     kings' trust readings still behave well.
-    **In progress, paused for usage** (#680, `lane/591-envoy-tells`; report `docs/rounds/2026-11-03-envoy-tells.md`): the
-    wording, the guard (`envoy-tells.test.ts`), save version 62 and the trust measurement are done and pushed. Left: the
-    regression batch on `develop` and the branch, the fresh-eyes slop review of the envoy lines, Codex's review, then
-    merge and close #591.
+    **Done** (#680, `lane/591-envoy-tells`; report `docs/rounds/2026-11-03-envoy-tells.md`): no form or shape of an
+    envoy's report home marks its state (`envoy-tells.test.ts`); save version 62; the trust readings measured.
   - ~~**#616, one clock for one road:**~~ (done, #639) a far province's report and its notices come by one function,
     the couriers' seasons from the place to the court (`wordHomeAt`), with a test that the same season's both arrive
     together. Save version 57. Report: `docs/rounds/2026-11-03-one-clock.md`.
@@ -220,8 +218,7 @@ the workshop check): among them the history check's lines still unclear for a re
   envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
   `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
   season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
-  `rules/wording.ts`; save version 60). **Next:** the owner's answer to #591 (the bribed envoy's words); then the rest in
-  the order above, from the rulebook and the seat view.
+  `rules/wording.ts`; save version 60). #591, done (#680). **Next:** the rest in the order above, from the rulebook and the seat view.
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:

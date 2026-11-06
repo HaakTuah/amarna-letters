@@ -60,8 +60,17 @@ adds warmth of its own: what a bought report still adds is its content, the paid
 That is the deception the owner keeps, and a king learns it only by checking. A frightened envoy's report of a cold
 court now reads neutral (0.000) rather than warm.
 
-**Not yet run (paused for usage, 3 November):** a regression batch of script games on `develop` and on this branch
-(`scripts/sim.sh --games 20 --seed 1` on each), and the fresh-eyes slop review of the new lines.
+**The regression batch** (`scripts/sim.sh --games 20 --seed 1`, 6 November, on `develop` at `62f4f94` and on this
+branch after the review's first round, which is the last change to what the envoys say): no signal moved by more than
+a few in a hundred. A capital fell in 20 of 20 games on both, the first in season 4, none in the first two seasons;
+kingdoms fallen 453 and 452; declarations 615 and 627, crowns asked 62 and 59, tribute and census within a few in ten
+thousand. The script kings play as before.
+
+## Reviews
+
+The fresh-eyes slop review (Opus, high), three rounds: 7, 8, 9. Round 1 found the shape of a report still marking a
+bribed envoy (its passed-on message after the closing lines; two warm lines stacked); round 2, the guard blind to the
+"bought" forms; round 3, an unused import, a stale comment and a long line, all three fixed in `39224e6`.
 
 ## Readings taken
 
