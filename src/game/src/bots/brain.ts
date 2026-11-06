@@ -2,7 +2,7 @@
  * A script king's memory and judgement: relations with every other king, the war it has chosen, the people it has checked,
  * the evidence it has sent. One per power, kept across seasons.
  */
-import { claimantsTalkedOf, CourtTrust, offersCaught, TalkHeeded } from "./talk.ts";
+import { claimantsTalkedOf, CourtTrust, offersCaught, offersSentUs, TalkHeeded } from "./talk.ts";
 import {
   AllPowers,
   RoadsTitle,
@@ -244,6 +244,8 @@ export class Brain {
       if (b.ownerOf(o.province) === this.me) this.offersRead.set(o.province, v.turn);
       else if (o.claimant !== this.me && this.rel.has(o.claimant)) this.rel.get(o.claimant).trust = Math.min(1, this.rel.get(o.claimant).trust + CourtTrust);
     }
+    // #592: a court that sent on to us an offer it caught did us a favour.
+    for (const x of offersSentUs(b)) if (this.rel.has(x)) this.rel.get(x).trust = Math.min(1, this.rel.get(x).trust + CourtTrust);
     for (const g of v.governors) {
       const word = v.moods.find((x) => x.province === g.province);
       const bad = word !== undefined && word.source === "governor" && (word.mood === "restless" || word.mood === "near revolt");

@@ -734,6 +734,28 @@ export function newDeclaredView(init: Partial<DeclaredView> = {}): DeclaredView 
 
 export const DeclaredViewSchema: ObjSchema<DeclaredView> = obj("DeclaredView", newDeclaredView, { province: S, from: opt(S), takenUp: B });
 
+/**
+ * #592: a province's offer caught on the road, as the court that holds it or was asked a price for it knows it: whose
+ * people wrote to whom, their words (for the holder), whether the holder asked a price of anyone and how much.
+ */
+export interface HeldLetterView {
+  province: string;
+  claimant: Power;
+  words: string;
+  /** The turn its people wrote it: which of their letters it is, where a court holds more than one. */
+  written: number;
+  /** The court holding it (for one offered to this court for sale), or this court. */
+  heldBy: Power;
+  askedOf: Power | null;
+  price: number;
+}
+
+export function newHeldLetterView(init: Partial<HeldLetterView> = {}): HeldLetterView {
+  return { province: "", claimant: "Egypt", words: "", written: 0, heldBy: "Egypt", askedOf: null, price: 0, ...init };
+}
+
+export const HeldLetterViewSchema: ObjSchema<HeldLetterView> = obj("HeldLetterView", newHeldLetterView, { province: S, claimant: S, words: S, written: I, heldBy: S, askedOf: opt(S), price: I });
+
 /** Item 13: one of the court's governorships, as the court knows it. */
 export interface GovernorView {
   province: string;
@@ -952,6 +974,9 @@ export interface SeatView {
    * it by their people, or ceded to it by `from`; `takenUp` once its word taking one up has reached it.
    */
   declared: DeclaredView[];
+  /** #592: offers the court caught on the road and holds (order letter), and those another court asked it a price for (order buy_letter). */
+  lettersHeld: HeldLetterView[];
+  lettersOffered: HeldLetterView[];
   /**
    * Item 17++ ("Who holds what, and the mood of the land"): the mood of each province as the court last heard it, its own
    * and its rivals', in the words said, the season it was seen and by whom (governor, spy, envoy, census, travellers, court).
@@ -1104,6 +1129,8 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     counting: [],
     crowning: [],
     declared: [],
+    lettersHeld: [],
+    lettersOffered: [],
     moods: [],
     caravans: [],
     markets: new Dict(),
@@ -1198,6 +1225,8 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   counting: list(S),
   crowning: list(S),
   declared: list(() => DeclaredViewSchema),
+  lettersHeld: list(() => HeldLetterViewSchema),
+  lettersOffered: list(() => HeldLetterViewSchema),
   moods: list(() => MoodSeenViewSchema),
   caravans: list(() => CaravanViewSchema),
   markets: dict(() => MarketSeenSchema),
