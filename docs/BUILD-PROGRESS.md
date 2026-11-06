@@ -151,6 +151,10 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
     land's king, or keep it back.
 
+- ~~**A far force's seizure of a caravan, heard by the road (bug #675)**~~ (done, #727): its king's notice comes as word
+  from where it happened, and the event names him only where his couriers reach. Save version 62. Filed: #726 (a
+  captured archive), #736 (tolls at a far border). Report: `docs/rounds/2026-11-06-far-seizure-heard.md`.
+
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
 
@@ -196,7 +200,9 @@ the workshop check): among them the history check's lines still unclear for a re
   `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
   season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
   `rules/wording.ts`; save version 60). **Next:** the owner's answer to #591 (the bribed envoy's words); then the rest in
-  the order above, from the rulebook and the seat view.
+  the order above, from the rulebook and the seat view. **Shares are written "15%"** wherever a player or king reads
+  them, notices, news and reports included (the owner, 6 November 2026, #735; archive item 230): their "in a hundred"
+  goes, and the notice-shapes guard flags it in place of "%".
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
