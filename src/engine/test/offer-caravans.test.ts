@@ -168,11 +168,39 @@ describe("OfferCaravanTests", () => {
     Assert.equal([], c.talk);
   });
 
+  test("Talk the traders carry is dated by when they heard it, not when they tell it", () => {
+    const [s, e] = offered();
+    const c = caravan(s, e, "Egypt", "babylon");
+    e.caravanHearsTalk(c, ["babylon"]);
+    const heard = s.turn;
+    s.turn += 5;
+    // Its road ends in Babylonia's own land: the holder, not yet told by these traders, reads it as of when they heard it.
+    s.declarations.find((d) => d.province === "babylon")!.talked = [];
+    s.moodReads = [];
+    c.at = c.route.length - 1;
+    e.caravanUnloads(c);
+    Assert.contains(s.moodReads, (r) => r.power === "Babylonia" && r.province === "babylon" && r.seen === heard);
+  });
+
+  test("Two caravans setting out together: the claimant's own takes it, whichever is first in line", () => {
+    for (const ids of [["v1", "v2"], ["v2", "v1"]]) {
+      const [s, e] = offered();
+      farGone(s, e, 1000);
+      const own = caravan(s, e, "Egypt", "memphis");
+      const other = caravan(s, e, "Babylonia", "memphis");
+      [own.id, other.id] = ids;
+      own.pay = other.pay = 1000;
+      e.caravansTravel();
+      Assert.equal(own.id, offer(s).caravan);
+      Assert.false(s.events.some((x) => x.signal === "offer-caravan-paid"));
+    }
+  });
+
   test("A caravan carries talk of the leaning to the king whose land its road ends in, once", () => {
     const [s, e, d] = offered();
     const c = caravan(s, e, "Babylonia", "hattusa");
     e.caravanHearsTalk(c, ["babylon"]);
-    Assert.equal(["babylon|Egypt|Babylonia"], c.talk);
+    Assert.equal([`babylon|Egypt|Babylonia|${s.turn}`], c.talk);
     Assert.false(d.talked.includes("Hatti"));
     c.at = c.route.length - 1;
     const talk = () => s.journeys.filter((j) => j.kind === "Word" && j.to === "Hatti" && (j.text ?? "").startsWith(`Rumor|Talk of ${map.get("babylon").name}|Traders say`));

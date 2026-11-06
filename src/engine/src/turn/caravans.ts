@@ -91,6 +91,8 @@ P.caravansTravel = function () {
   const what = (c: Caravan): string => goods(c.grain, c.gold + c.pay);
   const noun = (c: Caravan): string => (c.ship !== null ? "ship" : "caravan");
   const arrivals: Caravan[] = [];
+  // #543: before any sets out on the season's road, the offers waiting where caravans stand go with one that may take them.
+  this.caravansPickUp();
   for (const c of sortBy([...S.caravans], [(c: Caravan) => c.id, cmpStr])) {
     if (!isAlive(S, c.power)) {
       caravanGone(S, c);
@@ -120,8 +122,6 @@ P.caravansTravel = function () {
       } else if (this.caravanOffRoad(c.power, here, sneakOf(c))) this.spendAt(c.from, pay);
       else this.spendAt(here, pay);
     }
-    // #543: before it sets out on the season's road, it takes up an offer waiting where it stands.
-    this.caravanPicksUp(c);
     // Advance along the route at its pace, counting how much of the season went by boat, meeting each border it crosses.
     const start = perSeason + c.points;
     let budget = start;
