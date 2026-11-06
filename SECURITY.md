@@ -24,8 +24,9 @@ Codex's terms (archive item 129).
      `scripts/statusline.sh`, and `docs/developing.md` (the credentialed GitHub calls builders run);
    - **the rule files:** `AGENTS.md`, `CLAUDE.md`, `docs/builder-rules.md`, `docs/claude-and-codex.md`,
      `docs/codex-building.md`, `docs/orchestrating.md`, `docs/review-guidelines.md`, `docs/threat-model.md` and this file;
-   - **the checks on the work:** the copies check (`scripts/copies.mjs` and `scripts/copies-baseline.json`) and the
-     calibration log (`docs/calibration.md`).
+   - **the checks on the work:** the copies check (`scripts/copies.mjs` and `scripts/copies-baseline.json`), the
+     pointer and reading-size checks (`scripts/pointers.mjs`, `scripts/reading-size.mjs` and
+     `scripts/reading-size.json`) and the calibration log (`docs/calibration.md`).
 
    A change to `.github/` or the setup script needs the owner's yes in its PR. One exception, narrow: Dependabot's
    version updates of actions a workflow already uses need no yes when the diff changes nothing but the pinned version
