@@ -14,26 +14,13 @@ import {
   newTabletCopy,
   single,
 } from "@amarna/engine";
-import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, leaderRules, situation } from "@amarna/llm";
+import { LlmLeaderSeat, leaderRules, situation } from "@amarna/llm";
+import { ScriptedAsker } from "./scripted-asker.ts";
 import { Assert, last } from "../../engine/test/support.ts";
 
 // What a model king reads of what he himself said, sent and sealed, after the second agent simulation (the fix pass after
 // item 4, part 2): his audience speeches and the tablets he holds in full, and his own letters in his record.
 describe("KingRecordTests", () => {
-  // <summary>Answers each request with the JSON the test gives for it, and keeps every request.</summary>
-  class Scripted implements JsonAsker {
-    readonly #reply: (a0: CallSpec) => string;
-    constructor(reply: (a0: CallSpec) => string) {
-      this.#reply = reply;
-    }
-    asked: CallSpec[] = [];
-
-    askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
-      this.asked.push(spec);
-      return Promise.resolve(JSON.parse(this.#reply(spec)) as JsonObject);
-    }
-  }
-
   function host(speech: string): string {
     return JSON.stringify({
       ["speech"]: speech,
@@ -81,7 +68,7 @@ describe("KingRecordTests", () => {
   test("A kings audience speech stays in his record in full", async () => {
     let speech = "I swear to keep my ships out of Cyprus and my armies out of Mira. ".repeat(12).trim(); // about 800 characters
     let s = newGame(5);
-    let asker = new Scripted((spec) => (spec.key.includes("/aud/") ? host(speech) : orders()));
+    let asker = new ScriptedAsker((spec) => (spec.key.includes("/aud/") ? host(speech) : orders()));
     let seat = new LlmLeaderSeat("Hatti", asker, "m", "medium", true, s.config);
     await seat.decide(view(s, 1));
     await seat.hostAudience(envoy(2), view(s, 2));
@@ -141,7 +128,7 @@ describe("KingRecordTests", () => {
     let s = newGame(5);
     s.tablets.push(newTablet({ id: "t900", text: text, proposedBy: "Egypt", partner: "Hatti", seals: ["Egypt", "Hatti"], createdTurn: 1, sealedTurn: 1 }));
     s.copies.push(newTabletCopy({ id: "k901", tabletId: "t900", holder: "Hatti", acquiredTurn: 1, source: "sealed at audience" }));
-    let asker = new Scripted((_) => host("Welcome."));
+    let asker = new ScriptedAsker((_) => host("Welcome."));
     await new LlmLeaderSeat("Hatti", asker, "m", "medium", true, s.config).hostAudience(envoy(2), view(s, 2));
 
     // Hatti also holds its vassal tablet with Azzi (item 11f), read by its opening words.

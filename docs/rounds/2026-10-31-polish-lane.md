@@ -94,6 +94,7 @@ Moved word for word from `docs/BUILD-PROGRESS.md` on 1 November 2026 ("The works
 - A border glowed where two powers' armies faced each other (#583), but the numbers were only on the counters; a province's card now lists, for each glowing frontier, the armies the seat sees that season on the other side (#586, queued by the owner): "In Suhu: an army, 2,877 men, of Babylonia."
 - A followed person's line stopped at the last place the seat knew him, but nothing said how old that was, so a person unseen for years looked as if he stood there now (#539); the line's end now says "last seen 8 seasons ago", and nothing while he is in sight this season.
 - A seat's own governor, at his seat in the land, was on no follow line after he left the court, so Follow kept the camera at the capital he left; his seat is now his place each season, as his court knows it (a seat moved far off only once word of it arrives), and in god view where he truly sits.
+- The legend's swatch for a crowded small seal drew its dark rim at a width of its own, 2, beside the map's 4.5 at the small seal's .45 scale (#578); the swatch now takes the map's own `--small-rim-marked` and the small seal's scale, now one variable, `--small-seal`, for the map, the legend and the placement alike, so the two cannot drift apart (2.025 px now, so it looks the same).
 
 ## Finds not yet fixed
 

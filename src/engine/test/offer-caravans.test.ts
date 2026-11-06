@@ -121,6 +121,28 @@ describe("OfferCaravanTests", () => {
     Assert.contains(s.journeys, (j) => j.kind === "Word" && j.to === "Hatti" && j.arriveTurn > s.turn && (j.text ?? "").includes("A letter taken on the road"));
   });
 
+  test("Seized at a border, its offers go to the border's king, who reads them", () => {
+    // Smugglers are found by chance: the first of a few caravans whose border check finds them.
+    let seized = false;
+    for (let k = 0; k < 40 && !seized; k++) {
+      const [s, e] = offered();
+      const c = caravan(s, e, "Egypt", "memphis");
+      c.id = `v8${k}`;
+      c.pay = 1000;
+      c.gold = 2000;
+      c.sneak = true;
+      // Its next border is Hatti's, watched by Hatti's people.
+      s.owner.set(c.route[1], "Hatti");
+      s.counterIntel.set("Hatti", 1000);
+      e.caravansTravel();
+      if (!s.events.some((x) => x.signal === "smuggler-found")) continue;
+      seized = true;
+      Assert.false(s.journeys.some(babylon));
+      Assert.true(inboxOf(s, "Hatti").some((x) => x.title === "A letter taken on the road") || s.journeys.some((j) => j.kind === "Word" && j.to === "Hatti" && (j.text ?? "").includes("A letter taken on the road")));
+    }
+    Assert.true(seized);
+  });
+
   test("A caravan setting out from the province takes the waiting offer before it leaves", () => {
     const [s, e] = offered();
     const c = caravan(s, e, "Egypt", "memphis");
