@@ -11,17 +11,33 @@ import { distinct } from "../core/seq.ts";
 import { crossingBetween } from "../model/geography.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import { AllPowers, type Power } from "../model/power.ts";
-import { logEvent, notify, unitLabel, type Unit, loseUnit } from "../model/state.ts";
+import { logEvent, unitLabel, type Unit, loseUnit } from "../model/state.ts";
 import { idiv } from "../core/num.ts";
-import { LandData, shareOfFull, unitCarried, unitFood, WinterData } from "../model/land.ts";
+import {
+  LandData,
+  shareOfFull,
+  unitCarried,
+  unitFood,
+  WinterData,
+} from "../model/land.ts";
 import { CommandData } from "../model/command.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
-    winterCrossings(moves: Dict<string, string>): { unit: Unit; from: string; to: string; how: WinterCrossing }[];
+    winterCrossings(
+      moves: Dict<string, string>,
+    ): { unit: Unit; from: string; to: string; how: WinterCrossing }[];
     coastalConvoy(from: string, to: string): boolean;
-    loseToWinter(crossings: { unit: Unit; from: string; to: string; how: WinterCrossing }[], sightBefore: Dict<Power, HSet<string>>): void;
+    loseToWinter(
+      crossings: {
+        unit: Unit;
+        from: string;
+        to: string;
+        how: WinterCrossing;
+      }[],
+      sightBefore: Dict<Power, HSet<string>>,
+    ): void;
   }
 }
 
@@ -41,17 +57,21 @@ const P = TurnEngine.prototype;
 P.winterCrossings = function (moves) {
   const S = this.s;
   const Map = this.map;
-  const out: { unit: Unit; from: string; to: string; how: WinterCrossing }[] = [];
+  const out: { unit: Unit; from: string; to: string; how: WinterCrossing }[] =
+    [];
   if (seasonOfTurn(S.turn) !== WinterSeason) return out;
   for (const [id, to] of moves) {
     const u = S.units.find((x) => x.id === id);
     if (u === undefined || u.province === to) continue;
     const from = u.province;
     if (u.kind === "Fleet") {
-      if (Map.openCrossing(from, to) !== null) out.push({ unit: u, from, to, how: "sea" });
+      if (Map.openCrossing(from, to) !== null)
+        out.push({ unit: u, from, to, how: "sea" });
     } else if (Map.canMove("Army", from, to)) {
-      if (crossingBetween(from, to)?.kind === "Mountain") out.push({ unit: u, from, to, how: "pass" });
-    } else if (!this.coastalConvoy(from, to)) out.push({ unit: u, from, to, how: "sea" });
+      if (crossingBetween(from, to)?.kind === "Mountain")
+        out.push({ unit: u, from, to, how: "pass" });
+    } else if (!this.coastalConvoy(from, to))
+      out.push({ unit: u, from, to, how: "sea" });
   }
   return out;
 };
@@ -64,16 +84,26 @@ P.coastalConvoy = function (from, to) {
   const S = this.s;
   const W = this.map.winter;
   const zones = new Set<string>();
-  for (const [at, o] of this._unitOrdersNow) if (o.type === "convoy" && o.army === from && o.to === to && S.units.some((u) => u.province === at && u.kind === "Fleet")) zones.add(at);
-  const reached = new Set<string>([...zones].filter((z) => W.areAdjacent(from, z)));
+  for (const [at, o] of this._unitOrdersNow)
+    if (
+      o.type === "convoy" &&
+      o.army === from &&
+      o.to === to &&
+      S.units.some((u) => u.province === at && u.kind === "Fleet")
+    )
+      zones.add(at);
+  const reached = new Set<string>(
+    [...zones].filter((z) => W.areAdjacent(from, z)),
+  );
   const queue = [...reached];
   while (queue.length > 0) {
     const z = queue.shift()!;
     if (W.areAdjacent(z, to)) return true;
-    for (const n of W.neighbors(z)) if (zones.has(n) && !reached.has(n)) {
-      reached.add(n);
-      queue.push(n);
-    }
+    for (const n of W.neighbors(z))
+      if (zones.has(n) && !reached.has(n)) {
+        reached.add(n);
+        queue.push(n);
+      }
   }
   return false;
 };
@@ -93,32 +123,59 @@ P.loseToWinter = function (crossings, sightBefore) {
     const u = x.unit;
     const i = S.units.indexOf(u);
     if (i < 0) continue;
-    const base = u.kind === "Army" ? S.config.winterArmyLoss : S.config.winterFleetLoss;
+    const base =
+      u.kind === "Army" ? S.config.winterArmyLoss : S.config.winterFleetLoss;
     const supplied = u.food >= unitFood(u);
     const weather = this.r("winter", u.id).range(50, 150);
-    let percent = idiv(idiv(base * shareOfFull(u.kind, u.men), 1000) * weather, 100);
+    let percent = idiv(
+      idiv(base * shareOfFull(u.kind, u.men), 1000) * weather,
+      100,
+    );
     if (supplied) percent = idiv(percent * WinterData.suppliedPercent, 100);
     // A skilled commander cuts the losses, a poor one adds to them (item 13).
-    percent = Math.max(0, idiv(percent * (100 - idiv(this.commandOf(u).competence - 50, CommandData.winterPer)), 100));
+    percent = Math.max(
+      0,
+      idiv(
+        percent *
+          (100 -
+            idiv(this.commandOf(u).competence - 50, CommandData.winterPer)),
+        100,
+      ),
+    );
     const lost = Math.min(u.men, idiv(u.men * percent, 100));
     const what = u.kind === "Army" ? "army" : "fleet";
-    const crossing = x.how === "pass" ? (crossingBetween(x.from, x.to)?.name ?? "the pass") : "the open sea";
+    const crossing =
+      x.how === "pass"
+        ? (crossingBetween(x.from, x.to)?.name ?? "the pass")
+        : "the open sea";
     if (lost <= 0) {
-      logEvent(S, "winter", `${u.power}'s ${what} crossed ${x.how === "pass" ? crossing : "the open sea"} into ${Map.get(x.to).name} in winter.`, [u.power], "winter-crossed");
+      logEvent(
+        S,
+        "winter",
+        `${u.power}'s ${what} crossed ${x.how === "pass" ? crossing : "the open sea"} into ${Map.get(x.to).name} in winter.`,
+        this.nearOf(x.to, u.power),
+        "winter-crossed",
+      );
       continue;
     }
     const whole = u.men - lost < LandData.levyLeast;
     const gone = whole ? u.men : lost;
-    const deserted = x.how === "pass" ? idiv(gone * WinterData.desertPercent, 100) : 0;
+    const deserted =
+      x.how === "pass" ? idiv(gone * WinterData.desertPercent, 100) : 0;
     if (deserted > 0) this.peopleOf(x.from).loose += deserted;
     u.men -= gone;
     u.food = Math.min(u.food, unitCarried(u));
     if (whole) loseUnit(S, u);
     const why = x.how === "pass" ? "cold, hunger and desertion" : "the storms";
-    const where = x.how === "pass" ? `crossing ${crossing} into ${Map.get(x.to).name} in winter` : `crossing the open sea to ${Map.get(x.to).name} in winter`;
-    notify(
-      S,
+    const where =
+      x.how === "pass"
+        ? `crossing ${crossing} into ${Map.get(x.to).name} in winter`
+        : `crossing the open sea to ${Map.get(x.to).name} in winter`;
+    // Bug #615: its king hears of it by the road, from where it came through or where it was lost.
+    const at = whole ? x.from : x.to;
+    this.tell(
       u.power,
+      at,
       "Battle",
       WinterLossTitle,
       whole
@@ -131,7 +188,13 @@ P.loseToWinter = function (crossings, sightBefore) {
       whole
         ? `${u.power}'s ${unitLabel({ ...u, province: x.from })} was lost ${where}, to ${why}.`
         : `${u.power}'s ${unitLabel({ ...u, province: x.from })} lost ${gone} ${gone === 1 ? "man" : "men"} to ${why}, ${where}.`,
-      distinct([...AllPowers.filter((p) => sightBefore.get(p)?.has(x.from) || sightBefore.get(p)?.has(x.to)), u.power]),
+      distinct([
+        ...AllPowers.filter(
+          (p) =>
+            sightBefore.get(p)?.has(x.from) || sightBefore.get(p)?.has(x.to),
+        ),
+        ...this.nearOf(at, u.power),
+      ]),
       "winter-loss",
     );
   }

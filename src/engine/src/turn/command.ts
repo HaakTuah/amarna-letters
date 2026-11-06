@@ -11,16 +11,36 @@
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData, bandCost, newBand, type Band } from "../model/bands.ts";
-import { Uncommanded, mandateText, type CommandTraits, type Mandate } from "../model/command.ts";
-import type { CommandOrder, EnlistOrder, MandateOrder, Order, RelieveOrder } from "../model/orders.ts";
+import {
+  Uncommanded,
+  mandateText,
+  type CommandTraits,
+  type Mandate,
+} from "../model/command.ts";
+import type {
+  CommandOrder,
+  EnlistOrder,
+  MandateOrder,
+  Order,
+  RelieveOrder,
+} from "../model/orders.ts";
 import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
-import { findCharacter, logEvent, newId, newUnit, notify, type Unit, loseUnit } from "../model/state.ts";
+import {
+  findCharacter,
+  logEvent,
+  newId,
+  newUnit,
+  notify,
+  type Unit,
+  loseUnit,
+} from "../model/state.ts";
 import { newJourney } from "../model/records.ts";
 import { courtOf, wordFromKing, wordHomeAt } from "../rules/court.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
 import { placesNamed } from "../model/order-reading.ts";
+import { placeKnown } from "../rules/units-known.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -52,14 +72,20 @@ declare module "./core.ts" {
  * king's reaches it, giving the unit's order (or null to hold). The game's script commanders set it (`bots/commander.ts`);
  * left unset, an army with a mandate holds.
  */
-export const CommanderMinds: { decide: ((e: TurnEngine, u: Unit, c: Character, m: Mandate) => Order | null) | null } = { decide: null };
+export const CommanderMinds: {
+  decide:
+    | ((e: TurnEngine, u: Unit, c: Character, m: Mandate) => Order | null)
+    | null;
+} = { decide: null };
 
 const P = TurnEngine.prototype;
 
 P.commanderOf = function (u) {
   if (u.commander === null || this.s.turn < u.commandFrom) return null;
   const c = findCharacter(this.s, u.commander);
-  return c !== null && c.status !== "Dead" && c.duty === "Commanding" ? c : null;
+  return c !== null && c.status !== "Dead" && c.duty === "Commanding"
+    ? c
+    : null;
 };
 
 P.kingWith = function (u) {
@@ -68,7 +94,13 @@ P.kingWith = function (u) {
 
 P.commandOf = function (u) {
   const c = this.commanderOf(u);
-  return c === null ? Uncommanded : { competence: c.traits.competence, loyalty: c.traits.loyalty, greed: c.traits.greed };
+  return c === null
+    ? Uncommanded
+    : {
+        competence: c.traits.competence,
+        loyalty: c.traits.loyalty,
+        greed: c.traits.greed,
+      };
 };
 
 P.grantCommand = function (p, o) {
@@ -78,7 +110,9 @@ P.grantCommand = function (p, o) {
   if (u === null || u.power !== p || c === null) return;
   // He sets out from the court with the grant, and commands from the season he reaches the army (at once where it stands
   // with the king: from next season).
-  const seasons = Math.max(1, wordFromKing(S, this.map, p, u.province));
+  // Bug #615: for where its king believes it stands (`placeKnown`), as his word names it.
+  const at = placeKnown(this, u);
+  const seasons = Math.max(1, wordFromKing(S, this.map, p, at));
   u.commander = c.id;
   u.commandFrom = S.turn + (Number.isFinite(seasons) ? seasons : 1);
   u.relieveAt = null;
@@ -86,9 +120,26 @@ P.grantCommand = function (p, o) {
   c.at = null;
   c.grantedBy = p;
   c.watchProvince = u.province;
-  remember(c, S.turn, `The king of ${p} granted me the command of his ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}.`);
-  notify(S, p, "Resolution", "Command granted", `${c.name} set out to take command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}, and commands it from turn ${u.commandFrom}.`, c.id);
-  logEvent(S, "command", `${p} granted ${c.name} the command of its ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name}.`, [p], "command");
+  remember(
+    c,
+    S.turn,
+    `The king of ${p} granted me the command of his ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(at).name}.`,
+  );
+  notify(
+    S,
+    p,
+    "Resolution",
+    "Command granted",
+    `${c.name} set out to take command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(at).name}, and commands it from turn ${u.commandFrom}.`,
+    c.id,
+  );
+  logEvent(
+    S,
+    "command",
+    `${p} granted ${c.name} the command of its ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(at).name}.`,
+    [p],
+    "command",
+  );
   this.goneWord(p, o, u);
 };
 
@@ -96,9 +147,16 @@ P.relieveCommand = function (p, o) {
   const S = this.s;
   const u = this.commandedUnit(o);
   if (u === null || u.power !== p || u.commander === null) return;
-  const seasons = wordFromKing(S, this.map, p, u.province);
+  const at = placeKnown(this, u);
+  const seasons = wordFromKing(S, this.map, p, at);
   u.relieveAt = S.turn + (Number.isFinite(seasons) ? Math.max(1, seasons) : 1);
-  notify(S, p, "Resolution", "Command taken back", `Your word recalling the commander of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is on its way; it reaches him in turn ${u.relieveAt}.`);
+  notify(
+    S,
+    p,
+    "Resolution",
+    "Command taken back",
+    `Your word recalling the commander of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(at).name} is on its way; it reaches him in turn ${u.relieveAt}.`,
+  );
   this.goneWord(p, o, u);
 };
 
@@ -106,7 +164,8 @@ P.setMandate = function (p, o) {
   const S = this.s;
   const u = this.commandedUnit(o);
   if (u === null || u.power !== p) return;
-  const seasons = wordFromKing(S, this.map, p, u.province);
+  const at = placeKnown(this, u);
+  const seasons = wordFromKing(S, this.map, p, at);
   u.mandate = o.mandate;
   u.mandateFrom = S.turn + (Number.isFinite(seasons) ? seasons : 1);
   notify(
@@ -115,8 +174,8 @@ P.setMandate = function (p, o) {
     "Resolution",
     "Mandate sent",
     o.mandate === null
-      ? `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has no mandate now.`
-      : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} has its mandate from turn ${u.mandateFrom}: ${placesNamed(mandateText(o.mandate))}.`,
+      ? `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(at).name} has no mandate now.`
+      : `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(at).name} has its mandate from turn ${u.mandateFrom}: ${placesNamed(mandateText(o.mandate))}.`,
   );
   this.goneWord(p, o, u);
 };
@@ -125,7 +184,12 @@ P.commandSeason = function () {
   const S = this.s;
   for (const u of sortBy(S.units, [(u: Unit) => u.id, cmpStr])) {
     // A mandate whose last season has passed holds no more.
-    if (u.mandate !== null && u.mandate.until !== null && u.mandate.until < S.turn) u.mandate = null;
+    if (
+      u.mandate !== null &&
+      u.mandate.until !== null &&
+      u.mandate.until < S.turn
+    )
+      u.mandate = null;
     if (u.commander === null) continue;
     const c = findCharacter(S, u.commander);
     if (c === null || c.status === "Dead" || c.duty !== "Commanding") {
@@ -144,26 +208,69 @@ P.commandSeason = function () {
       if (going < BandData.least) {
         u.commander = null;
         u.relieveAt = null;
-        this.tell(u.power, u.province, "Battle", "A commander refuses", `${c.name} refused to give up the command of your army in ${this.map.get(u.province).name}, but its men would not follow him against you, and he left them.`);
+        this.tell(
+          u.power,
+          u.province,
+          "Battle",
+          "A commander refuses",
+          `${c.name} refused to give up the command of your army in ${this.map.get(u.province).name}, but its men would not follow him against you, and he left them.`,
+        );
         this.leaveCommand(c, u.province);
         continue;
       }
       if (going < u.men) {
-        const stay = newUnit({ id: newId(S, "u"), since: u.since, power: u.power, kind: u.kind, province: u.province, home: u.home, men: u.men - going, food: idiv(u.food * (u.men - going), u.men), buy: u.buy });
+        const stay = newUnit({
+          id: newId(S, "u"),
+          since: S.turn,
+          raisedAt: u.province,
+          power: u.power,
+          kind: u.kind,
+          province: u.province,
+          home: u.home,
+          men: u.men - going,
+          food: idiv(u.food * (u.men - going), u.men),
+          buy: u.buy,
+        });
         u.food -= stay.food;
         u.men = going;
         S.units.push(stay);
-        this.armyEntry(stay, u.power, S.armies.tryGet(u.id)?.getOrDefault(u.power, 0) ?? 0);
+        this.armyEntry(
+          stay,
+          u.power,
+          S.armies.tryGet(u.id)?.getOrDefault(u.power, 0) ?? 0,
+        );
       }
-      this.tell(u.power, u.province, "Battle", "A commander refuses", `${c.name} refused to give up the command of your army in ${this.map.get(u.province).name}, and keeps ${u.men} of its men as his own.`);
-      logEvent(S, "defect", `${c.name} refused his recall by ${u.power} and kept the army in ${this.map.get(u.province).name} as his own.`, [u.power], "defect");
+      this.tell(
+        u.power,
+        u.province,
+        "Battle",
+        "A commander refuses",
+        `${c.name} refused to give up the command of your army in ${this.map.get(u.province).name}, and keeps ${u.men} of its men as his own.`,
+      );
+      logEvent(
+        S,
+        "defect",
+        `${c.name} refused his recall by ${u.power} and kept the army in ${this.map.get(u.province).name} as his own.`,
+        this.nearOf(u.province, u.power),
+        "defect",
+      );
       this.armyToBand(u, c, "commander");
       continue;
     }
     u.commander = null;
     u.relieveAt = null;
-    remember(c, S.turn, `I gave up the command of the army in ${this.map.get(u.province).name}, as the king of ${u.power} ordered.`);
-    this.tell(u.power, u.province, "Resolution", "Command given up", `${c.name} gave up the command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} and is on the road to your court.`);
+    remember(
+      c,
+      S.turn,
+      `I gave up the command of the army in ${this.map.get(u.province).name}, as the king of ${u.power} ordered.`,
+    );
+    this.tell(
+      u.power,
+      u.province,
+      "Resolution",
+      "Command given up",
+      `${c.name} gave up the command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} and is on the road to your court.`,
+    );
     this.leaveCommand(c, u.province);
   }
   // Bands enlisted whose term is over leave as their chief's band again (hiring bands as soldiers).
@@ -174,30 +281,64 @@ P.commandSeason = function () {
     u.hiredMen = 0;
     u.hiredUntil = null;
     u.hiredChief = null;
-    if (u.commander !== null && chief !== null && u.commander === chief.id) u.commander = null;
+    if (u.commander !== null && chief !== null && u.commander === chief.id)
+      u.commander = null;
     const land = this.map.get(u.province).isSea ? null : u.province;
-    if (chief === null || chief.status === "Dead" || land === null || men < BandData.least) continue;
+    if (
+      chief === null ||
+      chief.status === "Dead" ||
+      land === null ||
+      men < BandData.least
+    )
+      continue;
     u.men -= men;
     chief.duty = "Leading";
     chief.grantedBy = null;
     chief.watchProvince = land;
-    S.bands.push(newBand({ id: newId(S, "b"), leaderId: chief.id, province: land, men, since: S.turn, rose: "outlaw" }));
-    this.tell(u.power, land, "Resolution", "A band's service ends", `The term of ${chief.name}'s band is over: his ${men} men left your army in ${this.map.get(land).name} as his band again.`);
+    S.bands.push(
+      newBand({
+        id: newId(S, "b"),
+        leaderId: chief.id,
+        province: land,
+        men,
+        since: S.turn,
+        rose: "outlaw",
+      }),
+    );
+    this.tell(
+      u.power,
+      land,
+      "Resolution",
+      "A band's service ends",
+      `The term of ${chief.name}'s band is over: his ${men} men left your army in ${this.map.get(land).name} as his band again.`,
+    );
     if (u.men <= 0) loseUnit(S, u);
   }
   // Commanders whose army is gone (destroyed, disbanded, given away, mutinied) go home.
   for (const c of sortBy(
-    S.characters.filter((c) => c.duty === "Commanding" && c.status !== "Dead" && !S.units.some((u) => u.commander === c.id || u.hiredChief === c.id)),
+    S.characters.filter(
+      (c) =>
+        c.duty === "Commanding" &&
+        c.status !== "Dead" &&
+        !S.units.some((u) => u.commander === c.id || u.hiredChief === c.id),
+    ),
     [(c: Character) => c.id, cmpStr],
   )) {
     // Bug #600: his king, far off, still believes him in command until word of the army's end, or the man, reaches him.
     const lord = c.grantedBy ?? c.employer;
     // The word of its end by the one clock of the road home (wordHomeAt, #616), from where and when it ended (the gone
     // army's own copy), or from where he stood in the season just ended.
-    const army = lord === null ? undefined : S.unitsGone.find((u) => u.commander === c.id && u.power === lord);
+    const army =
+      lord === null
+        ? undefined
+        : S.unitsGone.find((u) => u.commander === c.id && u.power === lord);
     const court = lord === null ? "" : courtOf(S, this.map, lord);
     const heard =
-      lord === null || c.watchProvince === null ? 0 : army !== undefined ? wordHomeAt(S, this.map, court, army.province, army.goneTurn) : wordHomeAt(S, this.map, court, c.watchProvince, S.turn - 1);
+      lord === null || c.watchProvince === null
+        ? 0
+        : army !== undefined
+          ? wordHomeAt(S, this.map, court, army.province, army.goneTurn)
+          : wordHomeAt(S, this.map, court, c.watchProvince, S.turn - 1);
     if (lord !== null && c.watchProvince !== null && heard > S.turn) {
       this.coverFor(c, lord, "Commanding");
       S.journeys.push(
@@ -232,7 +373,14 @@ P.leaveCommand = function (c, at) {
   }
   c.duty = "Travelling";
   c.at = null;
-  const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from: home, to: home, characterId: c.id });
+  const j = newJourney({
+    id: newId(S, "j"),
+    kind: "Travel",
+    departTurn: S.turn,
+    from: home,
+    to: home,
+    characterId: c.id,
+  });
   S.journeys.push(j);
   c.sent++;
   this.setOut(j, at, courtOf(S, this.map, home));
@@ -251,31 +399,71 @@ P.armyToBand = function (u, c, rose) {
   c.grantedBy = null;
   c.watchProvince = u.province;
   // The men keep what they carry; a fleet's crews keep their ships and turn pirate.
-  S.bands.push(newBand({ id: newId(S, "b"), leaderId: c.id, province: u.kind === "Fleet" ? (this.map.landProvinces.find((x) => x.waters === u.province)?.id ?? u.province) : u.province, men: u.men, ship: u.kind === "Fleet", since: S.turn, rose }));
+  S.bands.push(
+    newBand({
+      id: newId(S, "b"),
+      leaderId: c.id,
+      province:
+        u.kind === "Fleet"
+          ? (this.map.landProvinces.find((x) => x.waters === u.province)?.id ??
+            u.province)
+          : u.province,
+      men: u.men,
+      ship: u.kind === "Fleet",
+      since: S.turn,
+      rose,
+    }),
+  );
   // Their savings go with them, as loose men's gold where they stand.
-  if (!this.map.get(u.province).isSea) S.loot.set(u.province, S.loot.getOrDefault(u.province, 0) + u.savings);
-  remember(c, S.turn, `I kept the ${u.kind === "Army" ? "army" : "fleet"} of ${was} in ${this.map.get(u.province).name} as my own band.`);
+  if (!this.map.get(u.province).isSea)
+    S.loot.set(u.province, S.loot.getOrDefault(u.province, 0) + u.savings);
+  remember(
+    c,
+    S.turn,
+    `I kept the ${u.kind === "Army" ? "army" : "fleet"} of ${was} in ${this.map.get(u.province).name} as my own band.`,
+  );
 };
 
 P.enlistBand = function (p, o) {
   const S = this.s;
-  const u = S.units.find((x) => x.province === o.province && x.power === p && x.kind === "Army") ?? null;
+  const u =
+    S.units.find(
+      (x) => x.province === o.province && x.power === p && x.kind === "Army",
+    ) ?? null;
   const b: Band | undefined = sortBy(
     S.bands.filter((x) => x.province === o.province),
     [(x: Band) => -x.men, (a: number, c: number) => a - c],
   )[0];
   if (u === null || b === undefined) return;
   const chief = findCharacter(S, b.leaderId);
-  if (chief === null || chief.status !== "Free" || chief.duty !== "Leading") return;
+  if (chief === null || chief.status !== "Free" || chief.duty !== "Leading")
+    return;
   // The chief takes it if it pays at least what his men cost him and what they take on the roads, for the term, and his
   // own cut by his greed (a script chief's formula; a model chief's own choice of it is not built).
-  const want = Math.max(bandCost(b.men), b.take) * o.term + Math.floor((bandCost(b.men) * o.term * chief.traits.greed) / 100);
+  const want =
+    Math.max(bandCost(b.men), b.take) * o.term +
+    Math.floor((bandCost(b.men) * o.term * chief.traits.greed) / 100);
   const name = this.map.get(o.province).name;
   if (o.fee < want) {
-    this.tell(p, o.province, "Rejected", "Offer refused", `${chief.name}, chief of the band in ${name}, would not serve you for ${formatMoney(o.fee)} over ${o.term === 1 ? "a season" : `${o.term} seasons`}. No gold was paid.`);
+    this.tell(
+      p,
+      o.province,
+      "Rejected",
+      "Offer refused",
+      `${chief.name}, chief of the band in ${name}, would not serve you for ${formatMoney(o.fee)} over ${o.term === 1 ? "a season" : `${o.term} seasons`}. No gold was paid.`,
+    );
     return;
   }
-  if (!this.pay(p, o.fee, `the band of ${chief.name} in ${name}`, o, "it did not join you")) return;
+  if (
+    !this.pay(
+      p,
+      o.fee,
+      `the band of ${chief.name} in ${name}`,
+      o,
+      "it did not join you",
+    )
+  )
+    return;
   gain(chief, o.fee, "Fees");
   S.bands = S.bands.filter((x) => x !== b);
   u.men += b.men;
@@ -290,7 +478,23 @@ P.enlistBand = function (p, o) {
     u.commander = chief.id;
     u.commandFrom = S.turn + 1;
   }
-  remember(chief, S.turn, `I took ${o.fee} shekels from the king of ${p} for my band to serve in his army in ${name} for ${o.term} seasons.`);
-  this.tell(p, o.province, "Resolution", "A band enlisted", `${chief.name} took your ${formatMoney(o.fee)}: his ${b.men} men serve in your army in ${name} until turn ${u.hiredUntil}${u.commander === chief.id ? ", and he commands it" : ""}.`);
-  logEvent(S, "enlisted", `${chief.name}'s band took service with ${p} in ${name}.`, [p], "band-enlisted");
+  remember(
+    chief,
+    S.turn,
+    `I took ${o.fee} shekels from the king of ${p} for my band to serve in his army in ${name} for ${o.term} seasons.`,
+  );
+  this.tell(
+    p,
+    o.province,
+    "Resolution",
+    "A band enlisted",
+    `${chief.name} took your ${formatMoney(o.fee)}: his ${b.men} men serve in your army in ${name} until turn ${u.hiredUntil}${u.commander === chief.id ? ", and he commands it" : ""}.`,
+  );
+  logEvent(
+    S,
+    "enlisted",
+    `${chief.name}'s band took service with ${p} in ${name}.`,
+    [p],
+    "band-enlisted",
+  );
 };

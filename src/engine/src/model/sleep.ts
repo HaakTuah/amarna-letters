@@ -16,7 +16,9 @@ export interface ScheduledOrders {
   conditions: Condition[];
 }
 
-export function newScheduledOrders(init: Partial<ScheduledOrders> = {}): ScheduledOrders {
+export function newScheduledOrders(
+  init: Partial<ScheduledOrders> = {},
+): ScheduledOrders {
   return {
     turn: 0,
     orders: [],
@@ -25,11 +27,15 @@ export function newScheduledOrders(init: Partial<ScheduledOrders> = {}): Schedul
   };
 }
 
-export const ScheduledOrdersSchema: ObjSchema<ScheduledOrders> = obj("ScheduledOrders", newScheduledOrders, {
-  turn: I,
-  orders: list(() => OrderSchema),
-  conditions: list(() => ConditionSchema),
-});
+export const ScheduledOrdersSchema: ObjSchema<ScheduledOrders> = obj(
+  "ScheduledOrders",
+  newScheduledOrders,
+  {
+    turn: I,
+    orders: list(() => OrderSchema),
+    conditions: list(() => ConditionSchema),
+  },
+);
 
 /**
  * An order a seat keeps for later: scheduled for a season, or among a standing order's orders. The king named each of
@@ -66,7 +72,9 @@ export interface PlannedOrder {
   given: number;
 }
 
-export function newPlannedOrder(init: Partial<PlannedOrder> = {}): PlannedOrder {
+export function newPlannedOrder(
+  init: Partial<PlannedOrder> = {},
+): PlannedOrder {
   return {
     turn: 0,
     order: null!,
@@ -82,18 +90,22 @@ export function newPlannedOrder(init: Partial<PlannedOrder> = {}): PlannedOrder 
   };
 }
 
-export const PlannedOrderSchema: ObjSchema<PlannedOrder> = obj("PlannedOrder", newPlannedOrder, {
-  turn: I,
-  order: () => OrderSchema,
-  unitId: S,
-  otherUnitId: S,
-  unitLevy: () => LevyRefSchema,
-  otherLevy: () => LevyRefSchema,
-  unraisedHeard: I,
-  retry: B,
-  conditions: list(() => ConditionSchema),
-  given: I,
-});
+export const PlannedOrderSchema: ObjSchema<PlannedOrder> = obj(
+  "PlannedOrder",
+  newPlannedOrder,
+  {
+    turn: I,
+    order: () => OrderSchema,
+    unitId: S,
+    otherUnitId: S,
+    unitLevy: () => LevyRefSchema,
+    otherLevy: () => LevyRefSchema,
+    unraisedHeard: I,
+    retry: B,
+    conditions: list(() => ConditionSchema),
+    given: I,
+  },
+);
 
 /**
  * A levy a scheduled order waits for: the unit of this kind to be raised in this province in this season.
@@ -150,7 +162,9 @@ export interface StandingRequest {
   unreadable: string | null;
 }
 
-export function newStandingRequest(init: Partial<StandingRequest> = {}): StandingRequest {
+export function newStandingRequest(
+  init: Partial<StandingRequest> = {},
+): StandingRequest {
   return {
     when: "UnitEnters",
     power: null,
@@ -162,14 +176,18 @@ export function newStandingRequest(init: Partial<StandingRequest> = {}): Standin
   };
 }
 
-export const StandingRequestSchema: ObjSchema<StandingRequest> = obj("StandingRequest", newStandingRequest, {
-  when: S,
-  power: opt(S),
-  province: S,
-  orders: list(() => OrderSchema),
-  conditions: list(() => ConditionSchema),
-  unreadable: S,
-});
+export const StandingRequestSchema: ObjSchema<StandingRequest> = obj(
+  "StandingRequest",
+  newStandingRequest,
+  {
+    when: S,
+    power: opt(S),
+    province: S,
+    orders: list(() => OrderSchema),
+    conditions: list(() => ConditionSchema),
+    unreadable: S,
+  },
+);
 
 /** A standing order a seat keeps until it fires, once, or is cancelled. */
 export interface StandingOrder {
@@ -188,7 +206,9 @@ export interface StandingOrder {
   given: number;
 }
 
-export function newStandingOrder(init: Partial<StandingOrder> = {}): StandingOrder {
+export function newStandingOrder(
+  init: Partial<StandingOrder> = {},
+): StandingOrder {
   return {
     id: "",
     when: "UnitEnters",
@@ -202,16 +222,20 @@ export function newStandingOrder(init: Partial<StandingOrder> = {}): StandingOrd
   };
 }
 
-export const StandingOrderSchema: ObjSchema<StandingOrder> = obj("StandingOrder", newStandingOrder, {
-  id: S,
-  when: S,
-  power: opt(S),
-  province: S,
-  unitId: S,
-  orders: list(() => PlannedOrderSchema),
-  conditions: list(() => ConditionSchema),
-  given: I,
-});
+export const StandingOrderSchema: ObjSchema<StandingOrder> = obj(
+  "StandingOrder",
+  newStandingOrder,
+  {
+    id: S,
+    when: S,
+    power: opt(S),
+    province: S,
+    unitId: S,
+    orders: list(() => PlannedOrderSchema),
+    conditions: list(() => ConditionSchema),
+    given: I,
+  },
+);
 
 /**
  * A seat's standing orders. Every seat may keep them, awake or asleep, script, human, model or file seat (since the
@@ -225,7 +249,9 @@ export interface StandingBook {
   last: number;
 }
 
-export function newStandingBook(init: Partial<StandingBook> = {}): StandingBook {
+export function newStandingBook(
+  init: Partial<StandingBook> = {},
+): StandingBook {
   return {
     orders: [],
     last: 0,
@@ -233,10 +259,14 @@ export function newStandingBook(init: Partial<StandingBook> = {}): StandingBook 
   };
 }
 
-export const StandingBookSchema: ObjSchema<StandingBook> = obj("StandingBook", newStandingBook, {
-  orders: list(() => StandingOrderSchema),
-  last: I,
-});
+export const StandingBookSchema: ObjSchema<StandingBook> = obj(
+  "StandingBook",
+  newStandingBook,
+  {
+    orders: list(() => StandingOrderSchema),
+    last: I,
+  },
+);
 
 /** A standing order as its seat reads it: its unit and its orders named by where they stand now. */
 export interface StandingOrderView {
@@ -251,7 +281,9 @@ export interface StandingOrderView {
   conditions: Condition[];
 }
 
-export function newStandingOrderView(init: Partial<StandingOrderView> = {}): StandingOrderView {
+export function newStandingOrderView(
+  init: Partial<StandingOrderView> = {},
+): StandingOrderView {
   return {
     id: "",
     when: "UnitEnters",
@@ -263,14 +295,46 @@ export function newStandingOrderView(init: Partial<StandingOrderView> = {}): Sta
   };
 }
 
-export const StandingOrderViewSchema: ObjSchema<StandingOrderView> = obj("StandingOrderView", newStandingOrderView, {
-  id: S,
-  when: S,
-  power: opt(S),
-  province: S,
-  orders: list(() => OrderSchema),
-  conditions: list(() => ConditionSchema),
-});
+export const StandingOrderViewSchema: ObjSchema<StandingOrderView> = obj(
+  "StandingOrderView",
+  newStandingOrderView,
+  {
+    id: S,
+    when: S,
+    power: opt(S),
+    province: S,
+    orders: list(() => OrderSchema),
+    conditions: list(() => ConditionSchema),
+  },
+);
+
+/**
+ * Bug #615: the unit `unitId`'s scheduled orders as its seat knew them before they changed in season `turn`, until the
+ * season word of it could come.
+ */
+export interface ScheduleUnheard {
+  unitId: string;
+  turn: number;
+  until: number;
+  orders: PlannedOrder[];
+}
+
+export const ScheduleUnheardSchema: ObjSchema<ScheduleUnheard> = obj(
+  "ScheduleUnheard",
+  (init: Partial<ScheduleUnheard> = {}) => ({
+    unitId: "",
+    turn: 0,
+    until: 0,
+    orders: [],
+    ...init,
+  }),
+  {
+    unitId: S,
+    turn: I,
+    until: I,
+    orders: list(() => PlannedOrderSchema),
+  },
+);
 
 /**
  * A sleeping seat's state. Only seats that may sleep (model and file seats, when the setting is on) have one. A seat woken
@@ -290,6 +354,11 @@ export interface SleepState {
    * which every seat may keep, are in {@link GameState.Standing}.)
    */
   scheduled: PlannedOrder[];
+  /**
+   * Bug #615: a far unit's scheduled orders as its seat last knew them, before its march was held up or ended out of its
+   * sight: shown in their place until word of that could come.
+   */
+  scheduleUnheard: ScheduleUnheard[];
   /**
    * What happened in the seasons it slept through that did not wake it, one line each, shown when it wakes.
    */
@@ -337,6 +406,7 @@ export function newSleepState(init: Partial<SleepState> = {}): SleepState {
     lastCalled: 0,
     wakeAt: 0,
     scheduled: [],
+    scheduleUnheard: [],
     digest: [],
     digestLeftOut: 0,
     wokenBecause: [],
@@ -351,22 +421,27 @@ export function newSleepState(init: Partial<SleepState> = {}): SleepState {
   };
 }
 
-export const SleepStateSchema: ObjSchema<SleepState> = obj("SleepState", newSleepState, {
-  asleep: B,
-  lastCalled: I,
-  wakeAt: I,
-  scheduled: list(() => PlannedOrderSchema),
-  digest: list(S),
-  digestLeftOut: I,
-  wokenBecause: list(S),
-  pendingWake: list(S),
-  history: list(() => SleepSpellSchema),
-  holdsCourt: B,
-  reopen: B,
-  stoodIn: B,
-  courtLetters: list(() => OrderSchema),
-  courts: list(() => CourtHeldSchema),
-});
+export const SleepStateSchema: ObjSchema<SleepState> = obj(
+  "SleepState",
+  newSleepState,
+  {
+    asleep: B,
+    lastCalled: I,
+    wakeAt: I,
+    scheduled: list(() => PlannedOrderSchema),
+    scheduleUnheard: list(() => ScheduleUnheardSchema),
+    digest: list(S),
+    digestLeftOut: I,
+    wokenBecause: list(S),
+    pendingWake: list(S),
+    history: list(() => SleepSpellSchema),
+    holdsCourt: B,
+    reopen: B,
+    stoodIn: B,
+    courtLetters: list(() => OrderSchema),
+    courts: list(() => CourtHeldSchema),
+  },
+);
 
 /**
  * A season a sleeping seat held court while its orders stood: how many envoys waited to be received, and whether it reopened its orders.
@@ -395,12 +470,16 @@ export function newCourtHeld(init: Partial<CourtHeld> = {}): CourtHeld {
   };
 }
 
-export const CourtHeldSchema: ObjSchema<CourtHeld> = obj("CourtHeld", newCourtHeld, {
-  turn: I,
-  envoys: I,
-  reopened: B,
-  standIn: B,
-});
+export const CourtHeldSchema: ObjSchema<CourtHeld> = obj(
+  "CourtHeld",
+  newCourtHeld,
+  {
+    turn: I,
+    envoys: I,
+    reopened: B,
+    standIn: B,
+  },
+);
 
 /** One stretch of sleep, for the reports: when it began, and when and why it woke. */
 export interface SleepSpell {
@@ -418,11 +497,15 @@ export function newSleepSpell(init: Partial<SleepSpell> = {}): SleepSpell {
   };
 }
 
-export const SleepSpellSchema: ObjSchema<SleepSpell> = obj("SleepSpell", newSleepSpell, {
-  from: I,
-  wokeAt: I,
-  reasons: list(S),
-});
+export const SleepSpellSchema: ObjSchema<SleepSpell> = obj(
+  "SleepSpell",
+  newSleepSpell,
+  {
+    from: I,
+    wokeAt: I,
+    reasons: list(S),
+  },
+);
 
 /** The unit the levy is to raise, in the words its seat reads ("the army to be raised in nippur in turn 3"). */
 export function describeLevy(l: LevyRef): string {
