@@ -167,8 +167,6 @@ describe("MapCrossingsTests", () => {
       single(s.units, (x) => x.province === "sippar").province = "nesa";
       s.roadsClosed.set("Babylonia", ["Hatti"]);
       s.roadsHeard.set("Hatti", ["Babylonia"]);
-      const d = e.wordFrom("Babylonia", "nesa");
-      Assert.true(d >= 1);
       e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [caravan("hattusa", "nesa", 60)] })]]));
       for (let i = 0; i < 2 && !s.events.some((x) => x.signal === "caravan-taken"); i++) {
         s.turn++;
@@ -181,7 +179,10 @@ describe("MapCrossingsTests", () => {
       // Not told at once, nor in the event, which its court could not have seen; the notice comes by the road.
       Assert.false(event.visibleTo.includes("Babylonia"));
       Assert.false(took());
-      Assert.true(s.journeys.some((j) => j.to === "Babylonia" && (j.text ?? "").includes("took Hatti") && j.arriveTurn === event.turn + 1 + d));
+      // Far in the season it happened: word of it comes later, when the province's word does.
+      const at = e.heardAt("Babylonia", "nesa");
+      Assert.true(at > event.turn);
+      Assert.true(s.journeys.some((j) => j.to === "Babylonia" && (j.text ?? "").includes("took Hatti") && j.arriveTurn === at));
     }
     Assert.true(seized > 0);
   });
