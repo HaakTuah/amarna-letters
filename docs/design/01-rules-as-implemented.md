@@ -1,6 +1,7 @@
 ## Rules as implemented
 
-- **No retreat phase.** A dislodged unit is destroyed. This keeps one order round per season.
+- **No retreat phase.** A unit beaten from its place falls back by itself, or is destroyed ("Falling back" in
+  `35-command-at-a-distance.md`). This keeps one order round per season.
 - **Battle reports.** Next season each king reads its own orders as they resolved, and every
   foreign order whose unit stood, or moved to, a province it could see before the moves. Each of
   its own failed moves says why, from the adjudicator's own checks in their order: no convoy carried
