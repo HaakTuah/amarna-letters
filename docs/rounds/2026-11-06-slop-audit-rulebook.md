@@ -42,7 +42,7 @@ other open lanes are changing them: `rules-freedom.ts` (#725) and `rules-command
   - Floods are grouped by season, and the river boats by which way they go.
   - Each mountain pass is named once, with every link it crosses.
   - Every list of three or more reads "a, b and c" (`andList` in `src/llm/src/text.ts`).
-- **One way to write a percentage: "%"** (it had three). See "Readings taken".
+- **One way to write a percentage: "%"** (it had three), as the owner settled for all the game's text (#735).
 - **Plain labels for slogans.** "A job is an errand." became "Jobs.", "Your record is news." became "Your record.", and
   "People live their own lives." became "Free people.", among others. Slogans that are themselves the rule stay ("Ships
   keep to the coasts", "Land is held, not owned").
@@ -96,9 +96,9 @@ commit.
 
 ## Readings taken
 
-- **"%" in the rulebook, "in a hundred" in notices.** The rulebook is reference text full of formulas ("5% + …,
-  between 2% and 60%"), and "in a hundred" reads badly there. The notices are the court's prose, and #605 set "in a
-  hundred" for them. This is a matter of taste, so it went to the owner as #735.
+- **"%" for shares.** Taken here because the rulebook's formulas ("5% + …, between 2% and 60%") read badly in words,
+  and filed as #735 since notices then said "in a hundred". The owner answered (6 November 2026; archive item 230):
+  "15% sounds to me like the more clear phrasing." The notices, news and reports follow in the slop audit's lane.
 - **A rulebook is judged as a rulebook.** Its voice is plain instruction, not the period's. "Voice of the age" governs
   what characters and kings say, not the rules of the game.
 - **Script kings untouched.** They do not read the rulebook, so no benchmark or use-against-ignore measurement applies:
@@ -106,4 +106,4 @@ commit.
 
 ## Questions for the owner
 
-- #735: percentages, "%" in the rulebook and "in a hundred" in notices?
+Questions for the owner: none (#735, answered).
