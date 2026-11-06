@@ -35,7 +35,7 @@ describe("Units drawn as what they are, with weight", () => {
   });
 
   test("A column is as long as its men are many; a fleet draws its wake, a caravan its donkeys", () => {
-    const files = (m: string): number => (m.match(/class="file"/g) ?? []).length;
+    const files = (m: string): number => (m.match(/class="file /g) ?? []).length;
     Assert.true(files(trailMarkup("Army", 1200)) < files(trailMarkup("Army", 5000)));
     Assert.true(files(trailMarkup("Army", 5000)) < files(trailMarkup("Army", 20000)));
     Assert.true(trailMarkup("Army", 5000).includes('class="dust"'));
