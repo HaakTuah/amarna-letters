@@ -181,7 +181,8 @@ guards: the rounds come to an end, and what a 10 means never slips (archive item
      `docs/review-guidelines.md`; what it finds is fixed in "Follow-ups". The slop audit's formula test runs on every code PR.
    - **Logged and reported:** each check is a row in the calibration log, `docs/calibration.md`, and each milestone
      PR says in one line the misses since the last one. Two misses in a row by the same reviewer: its brief or guidelines are tightened, with
-          the owner, and the categories it reviews go back to the other reviewer meanwhile.
+     the owner, a test is added for each fault it missed, and a canary runs again at once. It keeps reviewing meanwhile,
+     since Claude's usage is the scarcer and a reviewer that catches most faults beats none (archive item 229).
    - **The log is the schedule:** the first milestone PR of each week also opens a lane for every check whose last row
      in the log is older than its interval (two weeks for the canary, a month for the monthly checks), so none waits
      on anyone's memory (archive item 216).
