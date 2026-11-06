@@ -154,6 +154,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - ~~**A far force's seizure of a caravan, heard by the road (bug #675)**~~ (done, #727): its king's notice comes as word
   from where it happened, and the event names him only where his couriers reach. Save version 62. Filed: #726 (a
   captured archive), #736 (tolls at a far border). Report: `docs/rounds/2026-11-06-far-seizure-heard.md`.
+- ~~**An archive a far force seizes on the road, sent home as a load (bug #726)**~~ (done, #PR): it goes to the taker's
+  capital by the road (`lootHome`), as a taken capital's archive does. Save version 63. Filed: #740 (loot with no road
+  home arrives at once). Report: `docs/rounds/2026-11-06-far-archive-home.md`.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
