@@ -111,7 +111,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - **The rule-file audit's larger moves** (the workshop check's point 6, 3 November 2026; archive item 212): (1) the
   builder rules carry what only some roles need: the model-game debrief question, the sorting of model mistakes and the
   simulation kit's start prompt belong in `sim/README.md`, and the workshop check in `docs/orchestrating.md`, moved by
-  the design session at the design document's next refresh. (2) to (4) done in #PR: what waits until Codex can build is
+  the design session at the design document's next refresh. (2) to (4) done in #732: what waits until Codex can build is
   `docs/codex-building.md`; the slop bar is "Text a player reads" in `docs/review-guidelines.md`; 17++'s rows are in
   the archive. `docs/claude-and-codex.md` is still 22 KB, past the 20 KB warning: what is left is one thing (the roles,
   the reviews, Codex's setup), so it stays whole until the shared core takes its common part.
