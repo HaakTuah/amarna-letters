@@ -192,6 +192,21 @@ const FleetPaths: Record<FleetStyle, string> = {
  * II's tomb at Amarna; a band's campfire, flames over crossed logs; a besieger's tent; and a clash of arms, a spear across
  * a sickle sword.
  */
+/** A band of water between two crests, `y` its top (the flood's three, one under another). */
+const wave = (y: number): string =>
+  `M-10,${n(y)}Q-7.5,${n(y - 3)} -5,${n(y)}Q-2.5,${n(y + 3)} 0,${n(y)}Q2.5,${n(y - 3)} 5,${n(y)}Q7.5,${n(y + 3)} 10,${n(y)}` +
+  `V${n(y + 2.6)}Q7.5,${n(y + 5.6)} 5,${n(y + 2.6)}Q2.5,${n(y - 0.4)} 0,${n(y + 2.6)}Q-2.5,${n(y + 5.6)} -5,${n(y + 2.6)}Q-7.5,${n(y - 0.4)} -10,${n(y + 2.6)}Z`;
+/** The sun's eight rays, each a narrow wedge from `r0` out to `r1`. */
+const rays = (r0: number, r1: number): string =>
+  Array.from({ length: 8 }, (_, k) => {
+    const a = (k * Math.PI) / 4;
+    const at = (r: number, d: number): string => `${n(r * Math.cos(a + d))},${n(r * Math.sin(a + d))}`;
+    return `M${at(r0, -0.22)}L${at(r1, 0)}L${at(r0, 0.22)}Z`;
+  }).join(" ");
+/** A crack in the ground, from top to bottom, as a narrow band zigzagging down. */
+const Crack = [[2, -11], [-1, -4], [3, -1], [-1, 5], [2, 11]] as const;
+const crack = `M${Crack.map(([x, y]) => `${n(x)},${n(y)}`).join("L")}L${[...Crack].reverse().map(([x, y]) => `${n(x - 3.4)},${n(y)}`).join("L")}Z`;
+
 const Others: Record<string, string> = {
   envoy: man(-2.4, 0.6, 1.05) + `M-1.2,-4.8L3.2,-3.6L3,-2.6L-1.4,-3.8Z M2.6,-7.6h6v7.2h-6Z`,
   fire:
@@ -209,6 +224,15 @@ const Others: Record<string, string> = {
   walkers: man(-6.4, 0.4, 0.8) + man(-0.2, 0.4, 0.8) + man(6, 0.4, 0.8) + `M3.6,-8.6h3.6v3h-3.6Z`,
   // A town's houses, flat-roofed, as the period built them.
   houses: `M-9,6V-1h6V6Z M-3.4,6V-5h7V6Z M4,6V0h5.6V6Z M-1.6,-7h3.2v2h-3.2Z`,
+  // The world acting on the pieces (item 17+++, part E): a storm at sea, an avalanche in a pass, a river in flood, the sun of a
+  // drought, the ground cracked by an earthquake.
+  storm:
+    circle(-4, -3, 4.2) + circle(1.6, -5.4, 5) + circle(6.4, -2, 3.4) + `M-8.2,-2.6H9.8V1.2H-8.2Z` +
+    `M0.4,1.2L4.6,1.2L2,5L4.8,5L-1.8,11.6L-0.2,6.6L-2.8,6.6Z M-7,2.4L-5.8,2.4L-7.8,7.6L-9,7.6Z M6.4,2.4L7.6,2.4L5.6,7.6L4.4,7.6Z`,
+  avalanche: `M-11,9L-4,-10L1,-2L4,9Z` + circle(4, -3, 2) + circle(7.4, 1.6, 2.4) + circle(9.6, 6.6, 2.6),
+  flood: wave(-7) + wave(-1) + wave(5),
+  drought: circle(0, 0, 4.6) + rays(6, 10.6),
+  quake: crack + `M-11,9H-3.4L-4.6,11H-11Z M3.4,9H11V11H4.6Z`,
   clash:
     `M-9.6,-8.4L-8.4,-9.6L9.6,8.4L8.4,9.6Z M-10.4,-10.4L-6.4,-9.4L-9.4,-6.4Z` +
     `M8.8,-9.6L10.2,-8.2L-3,4.6L-4.4,3.2Z M-4.4,3.2Q-9.6,6.4 -8.4,10.4Q-7.4,6.8 -3,4.6Z`,
