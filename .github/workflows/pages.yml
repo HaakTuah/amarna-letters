@@ -110,7 +110,7 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ env.PLAYWRIGHT }}
-      - run: npx playwright install --with-deps chromium
+      - run: npx --no-install playwright install --with-deps chromium
       - run: npm run build --workspace src/web && node src/web/smoke.mjs
 
   build:

@@ -30,7 +30,7 @@ jobs:
         run: |
           [ -f "$RUNNER_TEMP/versions.md" ] || { echo "Every version is current."; exit 0; }
           open=$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&labels=enhancement&per_page=100" \
-            --jq '.[] | select(.title == env.TITLE and .pull_request == null) | .number' | head -n 1)
+            --jq '.[] | select(.title == env.TITLE and .pull_request == null and .user.login == "github-actions[bot]") | .number' | head -n 1)
           if [ -n "$open" ]; then
             gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$open" -F "body=@$RUNNER_TEMP/versions.md" --silent
           else
