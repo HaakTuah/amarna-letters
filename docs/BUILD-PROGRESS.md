@@ -117,7 +117,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   here, which moves to the archive when done; (4) the use-against-ignore rows of 17++ to the archive once its parts are
   all measured, bringing this file under 20 KB.
 
-- **The old copies, removed** (archive item 207): 18 of the 21 in #PR. Left in `scripts/copies-baseline.json`: the
+- **The old copies, removed** (archive item 207): 18 of the 21 in #731. Left in `scripts/copies-baseline.json`: the
   passage of the builder rules said twice (the design document's to fix), the generated `geo-fine-data.ts` (its
   script's output), and the `import type` lines `order-makers.ts` and `orders.ts` both use whole (no fix that is not a
   dodge).
