@@ -265,7 +265,7 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
             ))}
           </select>
         )}
-        {f.peopleAction === "expel" && <input type="number" min={1} max={100} placeholder="in 100" value={f.peopleAmount} onChange={(e) => set({ peopleAmount: e.target.value })} style={{ width: "5rem" }} />}
+        {f.peopleAction === "expel" && <input type="number" min={1} max={100} placeholder="%" value={f.peopleAmount} onChange={(e) => set({ peopleAmount: e.target.value })} style={{ width: "5rem" }} />}
         {f.peopleAction === "deport" && <input type="number" min={1} placeholder="people" value={f.peopleAmount} onChange={(e) => set({ peopleAmount: e.target.value })} style={{ width: "6rem" }} />}
         <button
           className="small"

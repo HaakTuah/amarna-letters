@@ -20,6 +20,7 @@ import { checkCommandOrder } from "./validator-command.ts";
 import type { Checking } from "./validator-context.ts";
 import { checkEconomyOrder } from "./validator-economy.ts";
 import { checkPeopleOrder } from "./validator-people.ts";
+import { checkLetterOrder } from "./validator-letters.ts";
 import { knownLevel, ownWorks } from "./province-reports.ts";
 import { courierSeasons, courtOf, wordHomeAt } from "./court.ts";
 import type { WorkKind } from "../model/works.ts";
@@ -228,7 +229,7 @@ export class OrderValidator {
       return null;
     };
 
-    // The checks, by kind of order, live in validator-armies.ts, validator-economy.ts and validator-people.ts.
+    // The checks, by kind of order, live in validator-armies.ts, validator-economy.ts, validator-people.ts and validator-letters.ts.
     const v: Checking = {
       S, Map, power, orders,
       assayed, roadsSet, ceded, fortified, sallied, orderedUnits, raisedIn, busyCharacters, ransomed, renewed, hiredNow, tollsSet, taxesSet, peopleSet,
@@ -239,7 +240,7 @@ export class OrderValidator {
       heardFallen, Sight, knownOwner, knownSiege, knownWalls, knownWork, nobody, covered, hireRefusal, errandRefusal, errandFits, spend, spendAt, far, ownUnit, ownCharacter,
     };
     const check = (order: Order): string | null => {
-      for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder]) {
+      for (const group of [checkCommandOrder, checkArmyOrder, checkEconomyOrder, checkPeopleOrder, checkLetterOrder]) {
         const why = group(v, order);
         if (why !== undefined) return why;
       }

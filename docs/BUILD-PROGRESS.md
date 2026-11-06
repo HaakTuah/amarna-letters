@@ -20,8 +20,7 @@ polish point to each that it can spend the last credits on also?" and, to the de
 make things as refined as possible!"). Taken when the item lane's current item is merged or parked, and on the second
 account until its usage is spent; on the main account the usage brake closes it first (from about 85%).
 - **Next:** finds of its own, from the lane's report ("Finds not yet fixed"). Open from the owner's notes of 2 November
-  (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner), and
-  army counters standing over a neighbour's seal on the whole map.
+  (his words in `docs/archive/instructions.md`, item 134): the powers' land names (#403, a question for the owner).
 - **Done:** the README brought up to the game as built (#256), the far-zoom edge (#259), Space and the speed keys (#293),
   the soundtracks and the Music page (#350), the soundscape (#351, #352), whose briefs are in
   `docs/archive/progress-done.md`, "Side lanes"; and from the notes of 2 November every province a proper name (#391),
@@ -91,7 +90,9 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
   #444); the parity check (#443); the code: `orders.ts` (#532) and `svg-renderer.ts` (#561) split, unused imports and
   locals out (#556), engine tests on `smallWorld` (#567), the review's small finds (#568), and the splits it found:
   `prompts.ts` (#572), `schemas.ts` (#573), `seat-setup.ts` (#577), `statecraft-letters.ts` (#588). **Left:**
-  `--noUnusedLocals` again on the files open PRs held (one known: `renew` in `bots/statecraft-court.ts`). Looked at and
+  `--noUnusedLocals` again (6 November 2026: `realm.ts`, `validator-armies.ts` and `tidings.test.ts` cleared, #748)
+  on the files open PRs still held then: `turn/counts.ts` and `web/src/map/life.ts` (#744), and `turn/couriers.ts`,
+  `turn/economy.ts`, `turn/resolve.ts` and `turn/unrest.ts` (#612). Looked at and
   left whole, each one thing whose split would mean redesigning it, not moving code: `bots/tactics.ts` (one 620-line
   `makePlan`), `llm/src/character-mind.ts` and `web/src/audio/player.ts` (one class each), `web/src/pages/Home.tsx`
   (the start screen; its saved-games card is 2.5 KB).
@@ -115,7 +116,7 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
 - ~~**Far troops raised and gone (bug #600)**~~ (done, #612, as the owner decided on 3 November 2026, archive item
   204): a far unit is known once word of its raising could come and kept, as last reported, until word of its end
   could; its battles, movements, losses, and orders of every kind given for it meanwhile (this season's, scheduled and
-  standing) by the road. Save version 64. Left to #615: the rest of a far unit as it truly is. Report:
+  standing) by the road. Save version 68. Left to #615: the rest of a far unit as it truly is. Report:
   `docs/rounds/2026-11-03-far-unit-known.md`.
 - **For the orchestrator's next wake** (the owner, 3 November 2026; archive item 189): (1) done (#612). (2) The
   code-scanning alert open on `develop` (the Security tab) gets a small side lane now, kept private as `SECURITY.md`, rule 9, says for a weakness whose kind the
@@ -151,12 +152,23 @@ Fixes: one line each in `docs/rounds/2026-10-31-polish-lane.md`, "Fixes, one lin
     road to the king it is bound to: a notice, and his map. The Great Kings hear of a change of the map every 4.3 to
     5.9 seasons (5.1 to 7.2 before); Arzawa and Alashiya, with few bonds, stay far off it. Save version 58. Report:
     `docs/rounds/2026-11-03-news-beyond-sight.md`.
-  - **#592, after #543:** a caught offer is a thing held: its captor may send it on, sell it to its claimant or to the
-    land's king, or keep it back.
+  - ~~**#592:**~~ (done, #733) a caught offer is held by its captor, who sends it on (to its claimant or the land's
+    king), asks either a price (bought by order `buy_letter`), or keeps it. Save version 67. Report:
+    `docs/rounds/2026-11-06-held-offers.md`.
+  - **Held letters never lapse** (the fallback security review of #733, P2): a letter kept, never bought, or held by a
+    court since fallen stays in `GameState.lettersHeld` for the rest of the game. Rare (one caught offer in 50 script
+    games) and not raisable by input; a lapse that tells no court what it has not heard (a holder's fall, a buyer's) is
+    the fix.
 
 - ~~**A far force's seizure of a caravan, heard by the road (bug #675)**~~ (done, #727): its king's notice comes as word
   from where it happened, and the event names him only where his couriers reach. Save version 62. Filed: #726 (a
   captured archive), #736 (tolls at a far border). Report: `docs/rounds/2026-11-06-far-seizure-heard.md`.
+- ~~**An archive a far force seizes on the road, sent home as a load (bug #726)**~~ (done, #742): it goes to the taker's
+  capital by the road (`lootHome`), as a taken capital's archive does. Save version 64. Filed: #740 (loot with no road
+  home arrives at once). Report: `docs/rounds/2026-11-06-far-archive-home.md`.
+- ~~**Tolls and smugglers at a far border, heard by the road (bug #736)**~~ (done, #745): each border's tolls notice
+  comes as word from there does and says where its gold went; the events name the holder only where his couriers reach.
+  Save version 65. Report: `docs/rounds/2026-11-06-far-border-word.md`.
 
 Follow-ups done and struck are in `docs/archive/progress-done/follow-ups-done.md`, word for word (moved 3 November 2026,
 the workshop check): among them the history check's lines still unclear for a reader with the editions.
@@ -165,9 +177,9 @@ the workshop check): among them the history check's lines still unclear for a re
   - ~~**#566:**~~ (done, #722) the twin canary plays each twin bound to a place at Nippur and at Dilmun (two
     seasons off, by sea), the place a parameter; it found a far levy's army in the movements notice, listed under #600.
     Report: `docs/rounds/2026-11-06-twin-second-place.md`.
-  - **#543, after part D's follow-ups (#550, #553):** a caravan or trader leaving a province for the claimant's market
-    carries its offer, as a traveller going that way would, and carries talk along its road; the history dossier
-    cited for word travelling with goods.
+  - ~~**#543:**~~ (done, #725) a caravan leaving a province for its claimant's land carries its offer, his own for
+    nothing, another's for a fee where the people are far gone; caravans carry talk of the leaning to the land their road
+    ends in. Save version 64. Report: `docs/rounds/2026-11-06-caravan-offers.md`.
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
@@ -202,10 +214,11 @@ the workshop check): among them the history check's lines still unclear for a re
   envoys' speech, #585 (10; report `docs/rounds/2026-11-02-slop-audit-envoys.md`; `bots/envoy-words.ts`, read through
   `src/game/test/readings.ts`; #591 asks whether an envoy's wording may give away its hidden state); notices, news and the
   season's reports, #605 (10; report `docs/rounds/2026-11-03-slop-audit-notices.md`; one name per power, `pick` in
-  `rules/wording.ts`; save version 60); #591, done (#680). **Next:** the rest in the order above, from the rulebook and
-  the seat view. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
-  (the owner, 6 November 2026, #735; archive item 230): their "in a hundred" goes, and the notice-shapes guard flags it
-  in place of "%".
+  `rules/wording.ts`; save version 60); #591, done (#680); the rulebook, #730 (report `docs/rounds/2026-11-06-slop-audit-rulebook.md`;
+  `rules-command.ts` and `rules-freedom.ts` wait for #612 and #725). **Next:** the rest in the order above, from the seat
+  view. **Shares are written "15%"** wherever a player or king reads them, notices, news and reports included
+  (the owner, 6 November 2026, #735; archive item 230): done, #744 (the notice-shapes guard flags "in a hundred");
+  `rules-command.ts` and `rules-freedom.ts` follow once #612 and #725 merge.
 
 - **The owner's answers to the history check, 2 November 2026** (archive item 170), each with a new save version where
   it moves a seed:
@@ -257,6 +270,8 @@ ledger's script play, 17++ D a carrier caught (too rare); nothing to measure for
 | #587 | Sending gold ahead to far coffers that owe or run short (`--coffer-play-half`) | 0.81 growth to 0.72, 21 wins to 29, in 50 games; 32 sends in 15 games, 24 bills unpaid in 10 | Pays in growth, not in wins: credit covers most far costs, so sending ahead seldom matters; for item 18 |
 | #618 | Reading word from vassals and allies of land changing hands (`--tidings-play-half`) | 0.79 growth to 0.80, 11 wins to 9, in 20 games; 11.2 pieces of word reached the Great Kings a game | Even: the word mostly makes news of what the map already showed, sooner only where the reporter is nearer |
 | #601 | Hiring a rider for a far province's report, haggling (`--ride-play-half`) | No ride in 20 games: of 6,070 Great King-seasons, 119 held land beyond a season's road home out of sight (all Hatti's), each with a report one season old, which a ride cannot better; the scenario test shows them ride, haggle and raise | Nothing to measure in script games; re-measure in item 18 if realms grow |
+| #543 | Heeding talk, with caravans as offers' carriers and a trade venture toward a market talk says leans our way (`--talk-play-half`) | 0.79 growth to 0.71, 28 wins to 22, in 50 games; 1,574 offers sent, 153 carried (92 by caravan, 7 of them paid), 106 arrived (49 brought by caravan); talk carried by traders 356 times | Pays: offers now arrive three times as often, so heeding the talk matters |
+| #592 | Heeding talk, with caught offers sent on to friends, sold to the land's king, and bought (`--talk-play-half`) | 0.78 growth to 0.73, 26 wins to 24, in 50 games; 1,628 offers sent, 152 arrived (107 by caravan); 1 offer caught and held | Too rare to tell: one catch in 50 games; for item 18 |
 
 ## Items
 Each item's text is its brief (`docs/intent/build-order/`); the summaries these rows carried before 1 November 2026 are in `docs/archive/progress-done.md`, "Summaries of items not yet built".

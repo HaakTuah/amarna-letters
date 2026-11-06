@@ -228,7 +228,7 @@ export function pressReport(games: readonly GameSummary[]): string[] {
   lines.push(`  Written: ${ClauseKindValues.filter((k) => n(`w:${k}`) > 0).map((k) => `${k} ${n(`w:${k}`)}`).join(", ")}.`);
   // Item 12 ("Calibration"): how often each court's envoys were not understood where they arrived.
   lines.push(
-    `  Envoys not understood on arrival, by the court that sent them (in a hundred of those that arrived): ${AllPowers.filter((p) => n(`arrived:${p}`) > 0)
+    `  Envoys not understood on arrival, by the court that sent them (% of those that arrived): ${AllPowers.filter((p) => n(`arrived:${p}`) > 0)
       .map((p) => `${p} ${Math.round((100 * n(`unheard:${p}`)) / n(`arrived:${p}`))} (${n(`arrived:${p}`)})`)
       .join(", ")}.`,
   );

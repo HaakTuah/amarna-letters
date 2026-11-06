@@ -135,7 +135,7 @@ export function peopleLines(v: SeatView): string[] {
     // Item 11b: the bands it sees, in its land and its sight; an army of its own standing where one works falls on it.
     if (v.bands.length > 0) lines.push(`- Bands you see (an army of yours standing where one works in your land falls on it): ${join(", ", v.bands.map((b) => `${b.chief}'s ${b.men} men in ${b.province}${b.ship ? ", with a ship" : ""}`))}.`);
     const out = ps.filter((x) => x.expelled > 0);
-    if (out.length > 0) lines.push(`- Mouths put out of (in a hundred of the town): ${join(", ", out.map((x) => `${x.province} ${x.expelled}`))}.`);
+    if (out.length > 0) lines.push(`- Mouths put out of the town: ${join(", ", out.map((x) => `${x.province} ${x.expelled}%`))}.`);
     const empty = ps.filter((x) => x.counted !== null && x.room > 0 && x.settled * 10 < x.room * 9);
     if (empty.length > 0) lines.push(`- Land with room for more settled (settled of what it carries): ${join(", ", empty.map((x) => `${x.province} ${counts(v, [x], x.settled)} of ${k(x.room)}`))}.`);
     const home = new Set(WorldMap.default.homeOf(v.power).map((p) => p.id));
@@ -157,6 +157,11 @@ export function peopleLines(v: SeatView): string[] {
   // Item 17++ ("taken up, never thrust on anyone"): provinces that declared for this court, or were ceded to it.
   if (v.declared.length > 0)
     lines.push(`PROVINCES THAT LOOK TO YOU (take_up_province to take one up, refuse_province to turn it away; unanswered, an offer stands only while its people lean your way): ${join("; ", v.declared.map((d) => `${d.province} (${d.from !== null ? `ceded to you by ${d.from}` : "its people declare for you"}${d.takenUp ? ", taken up: it answers to you as the season turns, if they still accept you" : ""})`))}.`);
+  // #592: offers caught on the road that this court holds, and those another court asked it a price for.
+  if (v.lettersHeld.length > 0)
+    lines.push(`OFFERS YOU HOLD, caught on the road (letter_send to send one on to its claimant or to the king of its people's land, letter_sell to ask either a price; kept, one is worth something only while its people lean that way): ${join("; ", v.lettersHeld.map((h) => `the people of ${h.province} to ${h.claimant}, written in turn ${h.written}: "${h.words}"${h.askedOf !== null ? ` (you asked ${h.askedOf} ${h.price} shekels)` : ""}`))}.`);
+  if (v.lettersOffered.length > 0)
+    lines.push(`OFFERS FOR SALE TO YOU (buy_letter to buy one; the gold goes to the seller and the letter comes to you): ${join("; ", v.lettersOffered.map((h) => `${h.heldBy} holds the offer of the people of ${h.province} to ${h.claimant}, written in turn ${h.written}, for ${h.price} shekels`))}.`);
   return lines;
 }
 

@@ -115,7 +115,7 @@ export function markText(m: MapMark, config: GameConfig = newGameConfig()): { ti
   }
   if (snowbound(Map_, a, b, WinterSeason))
     lines.push(
-      `Winter makes it dangerous: in Peret the pass is under snow, twice as slow, and a full army crossing it loses about ${config.winterArmyLoss} in a hundred of its men to cold, hunger and desertion, between half that and half again as much by the weather (half as many if it carries a season's food).`,
+      `Winter makes it dangerous: in Peret the pass is under snow, twice as slow, and a full army crossing it loses about ${config.winterArmyLoss}% of its men to cold, hunger and desertion, between half that and half again as much by the weather (half as many if it carries a season's food).`,
     );
   else lines.push("Winter brings no danger on it, though the roads are slower in Peret where the winter is cool or hard.");
   for (const end of [a, b])

@@ -188,7 +188,9 @@ P.recallCovered = function (p, c, cover) {
   cover.believed = "EnvoyHomebound";
   cover.recalled = true;
   cover.dutyText = "on the road home";
-  cover.whereText = c.watchProvince !== null ? `in ${c.watchProvince}` : "travelling";
+  // As a free one's would read (bug #734): the province by its name, and its place for looking it up.
+  cover.whereText = c.watchProvince !== null ? `in ${Map.get(c.watchProvince).name}` : "travelling";
+  cover.province = c.watchProvince;
   const post = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(p));
   const place = c.missionTarget !== null ? `the court of ${powerName(c.missionTarget)}` : c.watchProvince !== null ? Map.get(c.watchProvince).name : p;
   const due = S.turn + this.travelTurnsBetween(post, this.courtAt(p));
@@ -733,7 +735,7 @@ P.assay = function (p, a) {
   const weighed = `The lot of ${formatMoney(lot.face)} weighed from ${powerName(lot.from)}`;
   let text =
     pct < 100
-      ? `${weighed} holds only ${formatMoney(lot.true)} of fine gold, ${pct} in a hundred.`
+      ? `${weighed} holds only ${formatMoney(lot.true)} of fine gold, ${pct}%.`
       : lot.true === lot.face
         ? `${weighed} is ${FullWeight}.`
         : `${weighed} is ${FullWeight} near enough: ${formatMoney(lot.true)} of it.`;

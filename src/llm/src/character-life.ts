@@ -24,7 +24,7 @@ export function lifeText(v: LifeView): string {
   sb.appendLine(
     `Your purse holds ${v.purse} shekels${v.hoard !== null ? `; your hoard at ${land(v.hoard.at)} holds ${v.hoard.gold} (its temple or merchant house keeps it for a fee each season; it is safe from the road, but lost if that city falls)` : ""}. Living here costs you ${v.living} shekels a season${v.living === 0 ? " (you are your master's guest)" : ", paid at the market"}.`,
   );
-  if (v.lendOffer !== null) sb.appendLine(`You offer to lend the king here up to ${v.lendOffer.amount}, asking ${v.lendOffer.perHundred} in a hundred more back after ${v.lendOffer.seasons} seasons.`);
+  if (v.lendOffer !== null) sb.appendLine(`You offer to lend the king here up to ${v.lendOffer.amount}, asking ${v.lendOffer.perHundred}% more back after ${v.lendOffer.seasons} seasons.`);
   for (const d of v.held) sb.appendLine(`You hold the debt tablet ${d.id}: ${d.other} owes ${d.left}, to be repaid by season ${d.dueTurn}; it lies ${d.kept}. Whoever holds a tablet holds the claim.`);
   for (const d of v.owes) sb.appendLine(`You owe ${d.left} on tablet ${d.id}, held by ${d.other}, to be repaid by season ${d.dueTurn}.`);
   const e = v.errand;
@@ -37,7 +37,7 @@ export function lifeText(v: LifeView): string {
   sb.appendLine("The courts as you know them (seasons of travel from here; when each last asked for candidates; how far its promises to pay are kept; grain at its market, 100 the usual price; what you would ask it a season):");
   for (const k of v.courts)
     sb.appendLine(
-      `- ${k.court}: ${k.travel === 0 ? "here" : `${k.travel} seasons away`}; ${k.hiring === null ? "not hiring" : `asked for candidates in season ${k.hiring}`}; promises to pay you heard it kept ${k.kept}, broke ${k.broken} (you count on ${k.trust} in a hundred); ${k.executions > 0 ? `you heard it put ${k.executions} to death; ` : ""}${k.lost > 0 ? `you heard ${k.lost} of its people were caught or put to death abroad; ` : ""}${k.seized > 0 ? `you heard it seized ${k.seized} hoard${k.seized === 1 ? "" : "s"}; ` : ""}grain ${k.grain}; growth ${k.growth} in a hundred${k.besieged ? "; its capital is besieged" : ""}; you would ask ${k.ask}.`,
+      `- ${k.court}: ${k.travel === 0 ? "here" : `${k.travel} seasons away`}; ${k.hiring === null ? "not hiring" : `asked for candidates in season ${k.hiring}`}; promises to pay you heard it kept ${k.kept}, broke ${k.broken} (you count on ${k.trust}%); ${k.executions > 0 ? `you heard it put ${k.executions} to death; ` : ""}${k.lost > 0 ? `you heard ${k.lost} of its people were caught or put to death abroad; ` : ""}${k.seized > 0 ? `you heard it seized ${k.seized} hoard${k.seized === 1 ? "" : "s"}; ` : ""}grain ${k.grain}; growth ${k.growth}%${k.besieged ? "; its capital is besieged" : ""}; you would ask ${k.ask}.`,
     );
   // Item 12: what it speaks, and whom it can make itself understood to this season (settled before it is asked).
   if (v.tongues.length > 0) sb.appendLine(`You speak ${v.tongues.join(", ")}. You learn the languages spoken where you live, quickly at first; a court serves and hears only those it understands.`);
@@ -86,7 +86,7 @@ export function lifeSchema(v: LifeView): ReplySchema {
   if (v.free) f.push(["seek_service", z.boolean().describe("True to seek service at courts; false to work for yourself (lending, dealing).")]);
   f.push(["hoard", int("Gold to put into a hoard here (above 0) or take out of your hoard here (below 0); 0 for neither. One city only.")]);
   f.push(["lend_amount", int("What you offer to lend the king where you stand, from your purse; 0 for no offer.")]);
-  f.push(["lend_per_hundred", int("With an offer to lend: how much in a hundred more you ask back.")]);
+  f.push(["lend_per_hundred", int("With an offer to lend: how much more you ask back, in % (20 for 20%).")]);
   f.push(["lend_seasons", int("With an offer to lend: within how many seasons.")]);
   if (v.here.length > 0) {
     f.push(["approach_to", str("The id of someone here you make an offer to, or empty.")]);
@@ -152,7 +152,7 @@ export function lifeSummary(ch: LifeChoice | null): string {
   if (ch.go !== null) parts.push(`go to ${ch.go}`);
   parts.push(ch.seek ? "seek service" : "work for itself");
   if (ch.hoard !== 0) parts.push(`hoard ${ch.hoard}`);
-  if (ch.lend !== null) parts.push(`lend ${ch.lend.amount} at ${ch.lend.perHundred} in 100 over ${ch.lend.seasons}`);
+  if (ch.lend !== null) parts.push(`lend ${ch.lend.amount} at ${ch.lend.perHundred}% over ${ch.lend.seasons}`);
   if (ch.approach !== null) parts.push(`approach ${ch.approach.to}${ch.approach.collect !== null ? " to collect" : ch.approach.repay > 0 ? " for a loan" : ""}`);
   if (ch.accept.length > 0) parts.push(`accept ${ch.accept.join(", ")}`);
   if (ch.repay.length > 0) parts.push(`repay ${ch.repay.join(", ")}`);

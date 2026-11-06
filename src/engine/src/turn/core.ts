@@ -411,6 +411,9 @@ export class TurnEngine {
         case "Offer":
           this.offerArrives(j);
           break;
+        case "LetterPrice":
+          this.letterPriceArrives(j);
+          break;
         case "Rumor": {
           if (!isAlive(S, j.to)) break;
           // Talk of what a character was seen to do (item 10): it goes into the court's records, not its inbox.

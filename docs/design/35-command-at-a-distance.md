@@ -126,7 +126,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   a gone unit rides out and its failure comes home by the road (`orderMissed`); a scheduled or standing order given for
   it is kept, bound to it (`ownNamed` in `bind`), as for one that stands; its commander stays in command as his
   king believes (`coverFor`) until word of the army's end tells of his leaving. What a far unit
-  carries, eats and is paid is still as it is: bug #615. Save version 64.
+  carries, eats and is paid is still as it is: bug #615. Save version 68.
 - **Moving the court** (order `court`, `move_court`; `turn/kings.ts`): 20 shekels and 5 for every ten days of road, at the
   pace of a company of 300. Each season the king goes on, his court where he got to. Envoys, servants and reports that
   reach a court the king has left are sent on after him (`ForwardedKinds`). He is taken, and his kingdom falls, where the
