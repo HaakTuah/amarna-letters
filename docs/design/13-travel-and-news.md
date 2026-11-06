@@ -100,8 +100,9 @@ on sealed tablets comes with item 9.
   lost land does (`TurnEngine.lostOrder`). A grant of passage or basing, given at court, is recorded as given even over
   land lost out of sight: it means nothing while another holds the land (`grantCovers`). The yields, markets and
   resistance in the view go by the land the court knows it holds; resistance only where it sees. The twin canary (`src/web/test/twin-canary.test.ts`) plays a seat's
-  seasons twice, a hidden fact true and false, and finds any difference before word could come; what it still finds
-  (bug #540: a far province's economy, works, people and caravans, and the realm's totals) it lists by issue.
+  seasons twice, a hidden fact true and false, and finds any difference before word could come, each fact at a far place
+  played at two (`Places`: Nippur, a season off by road, and Dilmun, two seasons off by sea; #566); what it still finds
+  it lists by issue (`Known`).
 - **Fallen kingdoms** (`GameState.fallsHeard`, `SeatView.fallen`): a court that sees the fallen capital hears at once,
   the rest by word; the fall's event is visible only to the fallen court and those that saw it. Until it hears, a court
   may still send an envoy or a spy to the fallen court, or close or open its roads to it (the validator accepts them):
