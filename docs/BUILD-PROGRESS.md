@@ -230,10 +230,11 @@ the workshop check): among them the history check's lines still unclear for a re
   5. **A king may confront a governor his spy caught** (#502): built in item 17 ("How cities become free", revision
      344), not before.
 
-- **Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
+- ~~**Every version where Dependabot sees it** (the owner, 2 November 2026). Playwright moves into `package.json` as a
   devDependency, and `.github/workflows/pages.yml` and `scripts/cloud-setup.sh` read its version from there instead of
   writing it twice; anything Dependabot still cannot read is listed in one file, checked by a monthly scheduled
-  workflow that opens an `enhancement` issue when one is behind.
+  workflow that opens an `enhancement` issue when one is behind.~~ Done in #547: the list is `.github/versions.json`
+  (Node, in CI and the cloud setup), checked by `.github/workflows/versions.yml` with `scripts/versions.mjs`.
 
 Points a review moved out of its PR, each with its reason ("Reviews" in `docs/claude-and-codex.md`, point 2); struck when
 fixed.

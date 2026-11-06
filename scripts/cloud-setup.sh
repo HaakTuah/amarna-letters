@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Prepare a cloud machine (Ubuntu 24.04, run as root): the npm packages and Playwright's Chromium for the smoke test
-# and the phone measurements, and Node 26 where the machine has an older one: the same Node as CI's `node-version` in
-# .github/workflows/pages.yml, the two moved together ("Git and GitHub" in AGENTS.md). Safe to run twice; always exits
-# 0 and says what it could not install. The same script can be pasted into a cloud environment's "Setup script" field,
-# so that new sessions start with it done.
+# Prepare a cloud machine (Ubuntu 24.04, run as root): the npm packages and Playwright's Chromium for the smoke test and
+# the phone measurements, and Node 26 where the machine has an older one: the same Node as CI's `node-version` in
+# .github/workflows/pages.yml, the two moved together ("Node's version" in docs/developing.md). Safe to run twice;
+# always exits 0 and says what it could not install. The same script can be pasted into a cloud environment's "Setup
+# script" field, so that new sessions start with it done.
 NODE_VERSION=26.13.0
 have() { command -v "$1" >/dev/null 2>&1; }
 cd "$(dirname "$0")/.." || exit 0
@@ -30,11 +30,12 @@ fi
 if have npm; then
   if npm ci --silent >/tmp/npm-ci.log 2>&1; then echo "npm packages: installed"; else echo "NOT INSTALLED: npm packages (see /tmp/npm-ci.log)"; fi
 fi
-if have node && node -e "require('playwright').chromium" >/dev/null 2>&1; then
+# Playwright is a devDependency (package.json, where Dependabot updates it), so npm ci brings it; its Chromium is
+# looked for where that version expects it, and installed by that version if missing, as CI's smoke job does.
+if have node && node -e "require('fs').accessSync(require('playwright').chromium.executablePath())" >/dev/null 2>&1; then
   echo "playwright chromium: already there"
 elif have npx && [ "${SKIP_PLAYWRIGHT:-}" != "1" ]; then
-  # The version CI's smoke job installs (PLAYWRIGHT in .github/workflows/pages.yml): change both together.
-  if npx -y playwright@1.63.0 install --with-deps chromium >/tmp/playwright-install.log 2>&1; then
+  if npx --no-install playwright install --with-deps chromium >/tmp/playwright-install.log 2>&1; then
     echo "playwright chromium: installed"
   else
     echo "NOT INSTALLED: Playwright's Chromium (see /tmp/playwright-install.log)"
