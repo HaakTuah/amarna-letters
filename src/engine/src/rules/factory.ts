@@ -19,7 +19,7 @@ import { renderClauses } from "./clauses.ts";
 import { clamp } from "../core/num.ts";
 import { newCharacter, newContract, newFact, newJobErrand, newTie, newTraits, type Character, type Secrecy } from "../model/people.ts";
 import { AllPowers, adjective, isGreatKing, land, setNameClaims, setRisen, type Power } from "../model/power.ts";
-import { newTreasury, newGameState, newUnit, logEvent, newId, notify, type GameState } from "../model/state.ts";
+import { newTreasury, newGameState, newUnit, logEvent, newId, notify, unitReport, type GameState } from "../model/state.ts";
 import { StateOfRealmTitle, stateOfRealm } from "./realm.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { drawFinalSeason } from "./ending.ts";
@@ -69,8 +69,12 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
     s.reaped.set(p.id, 3 * h);
     s.granary.set(p.id, h * d);
   }
-  for (const u of StartUnits)
-    s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.home, food: forMen(carriedOf(u.kind), u.kind, u.men ?? menOf(u.kind)), men: u.men ?? menOf(u.kind) }));
+  for (const u of StartUnits) {
+    const unit = newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.home, food: forMen(carriedOf(u.kind), u.kind, u.men ?? menOf(u.kind)), men: u.men ?? menOf(u.kind) });
+    // Bug #600: every king knows his troops as the game begins, the first of their reports.
+    unit.trail.push(unitReport(unit));
+    s.units.push(unit);
+  }
   for (const p of AllPowers) {
     s.treasuries.set(p, newTreasury({ gold: StartGold.get(p)! }));
     s.inbox.set(p, []);

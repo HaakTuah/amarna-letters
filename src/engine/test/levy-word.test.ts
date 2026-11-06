@@ -124,7 +124,7 @@ describe("LevyWordTests", () => {
     Assert.equal(1, e.wordFrom("Egypt", "hattusa"));
     const u = newUnit({ id: "u990", power: "Egypt", province: "hattusa", trail: ["nesa", "hattusa"] });
     s.units.push(u);
-    Assert.equal("nesa", e.shownAt(u));
+    Assert.equal(u, e.unitShownAt("Egypt", "nesa"));
   });
 
   test("A levy where the road out is near but word home is not is checked by the last count, not the men there (bug #616)", () => {

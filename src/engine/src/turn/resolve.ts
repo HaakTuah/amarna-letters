@@ -12,7 +12,7 @@ import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, king, land, type Power, whose, powerName } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
-import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit } from "../model/state.ts";
+import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf, type Unit, loseUnit, keepGone } from "../model/state.ts";
 import { listed, upper } from "../rules/wording.ts";
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
@@ -70,7 +70,7 @@ P.resolve = function (submissions) {
 
 P.resolveSeason = function (submissions) {
   const S = this.s;
-  const validator = new OrderValidator(S, this.map);
+  const validator = new OrderValidator(S, this.map, (o) => this._goneNow.get(o) ?? null);
   const valid = new Dict<Power, ValidationResult>();
   this._stealing.clear();
   this._scheduledNow.clear();
@@ -79,6 +79,8 @@ P.resolveSeason = function (submissions) {
   this._mandatedNow.clear();
   this._marchNow.clear();
   this._cededNow.clear();
+  this._goneNow.clear();
+  this._riddenNow.clear();
   // Each living court remembers the walls as it saw them when it gave its orders (its view's), for when it no longer sees them.
   for (const p of alive(S)) S.wallsSeen.set(p, Views.wallsKnown(S, this.map, p));
   // And who held the land it saw (item 7b): elsewhere it knows only what word and its travellers bring.
@@ -89,11 +91,20 @@ P.resolveSeason = function (submissions) {
   const fires = this.standingFires(seasons, validator);
   for (const p of alive(S)) {
     const sub = this.compose(p, seasons.get(p), fires.tryGet(p) ?? []);
-    const v = validator.validate(p, sub);
+    // Bug #600: orders for a unit lost out of sight, its end unheard, are checked as if it stood (`_riddenNow`): first in
+    // the list, so it is the unit its province names, though another's troops stand there now.
+    const ridden = this._riddenNow.tryGet(p) ?? new Map<Order, Unit>();
+    const v = (ridden.size === 0 ? validator : new OrderValidator({ ...S, units: [...ridden.values(), ...S.units] }, this.map, (o) => this._goneNow.get(o) ?? null)).validate(p, sub);
     valid.set(p, v);
     if (v.rejected.length > 0)
       notify(S, p, "Rejected", "Orders that could not be carried out", v.rejected.map((r) => `- ${upper(told(r.order))}: ${placesNamed(r.reason)}.`).join("\n"));
     this.afterValidation(p, sub, v);
+    // Given, they ride out and find it gone, instead of running.
+    for (const [o, u] of ridden) {
+      if (!v.accepted.includes(o)) continue;
+      removeAll(v.accepted, (x) => x === o);
+      this.goneWord(p, o, u);
+    }
   }
 
   // A kingdom that falls with its capital this season gives no more orders after the moves: only the living's run.
@@ -284,11 +295,12 @@ P.resolveMovement = function (unitOrders) {
     for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" was beaten from its place")) l.text = l.text.replace(/ was beaten from its place$/, to === undefined || to === null ? " was destroyed" : ` was beaten back to ${Map.get(to).name}`);
   }
   for (const u of gone) {
-    S.units.splice(S.units.indexOf(u), 1);
+    loseUnit(S, u);
     result.newPositions.delete(u.id);
     // Some of its men die, and the rest run and turn loose where it fell (item 10+a).
     this.unitDestroyed(u);
-    logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), u.power]);
+    // Its own king reads of it here only where his couriers reach; farther off, by the battle's word (bug #600).
+    logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), ...this.nearOf(u.province, u.power)]);
   }
   // Moves the people of a land held off (item 10+a).
   for (const l of result.lines.filter((x) => x.failure?.stop === "Resisted"))
@@ -372,7 +384,7 @@ P.foldUnit = function (p, o) {
     this.armyEntry(into, a, v - (joined?.getOrDefault(a, 0) ?? 0));
   }
   S.armies.delete(u.id);
-  S.units.splice(S.units.indexOf(u), 1);
+  loseUnit(S, u);
   this.liftSiegesOf(u.id);
   logEvent(S, "fold", `${p}'s troops in ${this.map.get(o.unit).name} joined those in ${this.map.get(into.province).name}.`, [p], "fold");
   notify(S, p, "Resolution", "Troops joined", `Your ${unitLabel(u)} marched to ${this.map.get(into.province).name} and joined the troops there, who are now ${into.men} men strong.`);
@@ -416,15 +428,16 @@ P.resolveTransfers = function (cessions, gifts) {
   }
   for (const [p, g] of gifts) {
     const u = unitAt(S, g.unit);
+    // Bug #600: its king reads how a gift far off went when word of it comes, and knows the unit till then.
     if (u === null || u.power !== p) {
-      this.failed(p, g, "Gift of troops failed", `No unit of yours stood in ${Map.get(g.unit).name} when the moves were done, so none was given to ${powerName(g.to)}.`, "the unit is gone", false);
+      this.tell(p, g.unit, "Rejected", "Gift of troops failed", `No unit of yours stood in ${Map.get(g.unit).name} when the moves were done, so none was given to ${powerName(g.to)}.`);
       continue;
     }
+    keepGone(S, u);
     u.power = g.to;
-    notify(S, p, "Resolution", "Troops given", `Your ${unitLabel(u)} now serves ${powerName(g.to)}.`);
+    this.tell(p, u.province, "Resolution", "Troops given", `Your ${unitLabel(u)} now serves ${powerName(g.to)}.`);
     notify(S, g.to, "Resolution", "Troops received", `${upper(powerName(p))} has placed its ${unitLabel(u)} under your command.`);
-
-    logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [p, g.to]);
+    logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [...this.nearOf(u.province, p), g.to]);
   }
   // A king who cedes his own capital this season can receive none: whichever were reckoned first would decide it.
   const ceding = new Set(capitals.map(([p]) => p));
@@ -482,7 +495,7 @@ P.raise = function (p, r) {
   else this.spendAt(prov.id, cost);
   // Its men come from the province's men of fighting age (item 10+a).
   this.levyMen(prov.id, men);
-  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });
+  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men, since: S.turn });
   S.units.push(u);
   this.tell(p, prov.id, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ", every man of fighting age the province could give" : ""}` : ""}.`
 );

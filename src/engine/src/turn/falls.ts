@@ -14,7 +14,7 @@ import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData } from "../model/bands.ts";
 import type { Character } from "../model/people.ts";
 import { AllPowers, land, type Power, powerName } from "../model/power.ts";
-import { isAlive, logEvent, type KingdomFall, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, type KingdomFall, type Unit, loseUnit } from "../model/state.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine, travelTurns } from "./core.ts";
 import type { Governor } from "../model/command.ts";
@@ -124,7 +124,7 @@ P.fallenUnit = function (u, p) {
   const ranks = this.r("captain", `${p}|${u.id}`);
   const land_ = this.map.get(u.province).isSea ? (this.map.landProvinces.find((x) => x.waters === u.province)?.id ?? null) : u.province;
   if (u.kind === "Army" && land_ !== null && u.men >= BandData.least && (u.unpaid > 0 || u.hungry > 0) && ranks.chance(Math.min(100, BandData.mutinyHead + idiv(u.men, 500)) / 100)) {
-    S.units.splice(S.units.indexOf(u), 1);
+    loseUnit(S, u);
     this.headRises(land_, u.men, "captain", ranks, p);
     S.loot.set(land_, S.loot.getOrDefault(land_, 0) + u.savings);
     return;

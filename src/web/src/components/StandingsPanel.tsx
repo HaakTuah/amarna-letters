@@ -79,7 +79,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
                   </td>
                   <td>{mine ? growth(p).toFixed(2) : "?"}</td>
                   <td>{seatView === null ? ownedBy(state, p).length : [...seatView.owner.values()].filter((o) => o === p).length}</td>
-                  <td>{mine ? String(state.units.filter((u) => u.power === p).length) : "?"}</td>
+                  <td>{mine ? String((seatView === null ? state.units : seatView.units).filter((u) => u.power === p).length) : "?"}</td>
                   <td className="nowrap">{mine ? shekels(known ? t.gold : ledger(t)) : "?"}</td>
                 </tr>
               );
