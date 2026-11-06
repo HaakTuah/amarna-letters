@@ -17,7 +17,7 @@ word from his far men could come.
   rather than copying it. It covers both branches: the load on the road, and the courier where no road leads home (the
   test removes the trade road on its engine). Arrival of a load is already tested in `archive.test.ts`.
 - The rulebook (`rules-economy.ts`) and the design note (`docs/design/20-people-across-borders.md`) say so.
-- Save version 63: a seized archive is now a caravan on the road, so a seed plays on differently from that season.
+- Save version 64: a seized archive is now a caravan on the road, so a seed plays on differently from that season.
 
 ## Left to its issue
 
