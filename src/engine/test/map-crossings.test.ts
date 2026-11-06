@@ -160,10 +160,10 @@ describe("MapCrossingsTests", () => {
 
   /**
    * Hatti's caravan from Hattusa to Nesa, where Babylonia's army stands, a season of word from its court, its roads closed
-   * to Hatti; `load` adds to the caravan once it is on the road. Each seed where the army takes it, with the engine and the
+   * to Hatti; `load` changes the game once the caravan is on the road. Each seed where the army takes it, with the engine and the
    * seizure's event.
    */
-  function farSeizures(load: (s: GameState) => void = () => {}): { s: GameState; e: TurnEngine; turn: number }[] {
+  function farSeizures(load: (s: GameState, e: TurnEngine) => void = () => {}): { s: GameState; e: TurnEngine; turn: number }[] {
     const out: { s: GameState; e: TurnEngine; turn: number }[] = [];
     for (let seed = 1; seed <= 12; seed++) {
       const s = smallWorld(game(seed), "Hatti", "Babylonia");
@@ -173,7 +173,7 @@ describe("MapCrossingsTests", () => {
       s.roadsClosed.set("Babylonia", ["Hatti"]);
       s.roadsHeard.set("Hatti", ["Babylonia"]);
       e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [caravan("hattusa", "nesa", 60)] })]]));
-      load(s);
+      load(s, e);
       for (let i = 0; i < 2 && !s.events.some((x) => x.signal === "caravan-taken"); i++) {
         s.turn++;
         e.beginTurn();
@@ -201,19 +201,37 @@ describe("MapCrossingsTests", () => {
 
   test("An archive a far force seizes on the road goes home as a load, not into its king's archive at once (#726)", () => {
     // The caravan carries a tablet Babylonia does not hold, as a captured archive going home would.
-    const load = (s: GameState): void => {
+    const archive = (s: GameState): void => {
       s.tablets.push(newTablet({ id: "t726", text: "Hatti and Assyria swear peace.", proposedBy: "Hatti", partner: "Assyria", seals: ["Hatti", "Assyria"], createdTurn: 0, sealedTurn: 0 }));
       const c = single(s.caravans, (x) => x.power === "Hatti");
       c.archive = ["t726"];
       c.archiveOf = "Assyria";
     };
-    for (const { s } of farSeizures(load)) {
+    const held = (s: GameState): boolean => s.copies.some((k) => k.holder === "Babylonia" && k.tabletId === "t726");
+    for (const { s } of farSeizures(archive)) {
       // The season it happened, the tablet is in no court of Babylonia's: its men carry it home, where it can be waylaid.
-      Assert.doesNotContain(s.copies, (k) => k.holder === "Babylonia" && k.tabletId === "t726");
+      Assert.false(held(s));
       // Going home to Babylon by the road, as a captured capital's archive does (its arrival: archive.test.ts).
       const home = single(s.caravans, (c) => c.power === "Babylonia" && c.archive.includes("t726"));
       Assert.true(home.returning);
       Assert.equal("Assyria", home.archiveOf);
+    }
+    // Where no road takes a load home (none, for the test), its men send the tablets by courier: they come with word
+    // from where it happened, never before.
+    const closed = (s: GameState, e: TurnEngine): void => {
+      archive(s);
+      e.tradeRoute = () => null;
+    };
+    for (const { s, e } of farSeizures(closed)) {
+      Assert.false(held(s));
+      Assert.doesNotContain(s.caravans, (c) => c.power === "Babylonia" && c.archive.includes("t726"));
+      const word = e.heardAt("Babylonia", "nesa");
+      const courier = single(s.journeys, (j) => j.to === "Babylonia" && j.news === "Archive");
+      Assert.equal(word, courier.arriveTurn);
+      Assert.true(word > s.turn);
+      // When it arrives, the tablet is the court's.
+      e.wordArrives(courier);
+      Assert.true(held(s));
     }
   });
 });
