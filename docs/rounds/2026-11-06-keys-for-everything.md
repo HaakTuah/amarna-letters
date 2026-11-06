@@ -70,4 +70,4 @@ Presentation only: the engine's games are `develop`'s. The full `--versus solo` 
 Gulf follow-up): BENCH
 
 Questions for the owner:
-- #754: are the F-keys and map keys where you expect them from Crusader Kings III (the source of the keys, and our windows on them)?
+- #754 (closed): are the F-keys and map keys where you expect them from Crusader Kings III? The owner: "Yes to all." (archive item 231).
