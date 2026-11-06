@@ -14,6 +14,12 @@ import { formatMoney } from "../rules/calendar.ts";
 import { upper } from "../rules/wording.ts";
 import { TurnEngine } from "./core.ts";
 
+/**
+ * How a notice of a caught offer sent on reads: to the land's king "Hatti sends you the word of the people of Babili to
+ * Egypt, taken on the road: "..."", to its claimant "Hatti has sent on to you the word of ..."; script kings read both.
+ */
+export const LetterSent = { toHolder: " sends you the word of the people of ", taken: ", taken on the road: ", toClaimant: " has sent on to you the word of " } as const;
+
 /** What a captor is told he may do with an offer he caught, after its words. */
 export const LetterHeldTerms = "You hold it: send it on to its claimant or to the king of their land, ask either a price for it, or keep it back (order letter).";
 
@@ -43,7 +49,7 @@ function sendOn(e: TurnEngine, h: HeldLetter, from: Power, to: Power): void {
     S.journeys.push(newJourney({ id: newId(S, "j"), kind: "Offer", departTurn: S.turn, arriveTurn: arrive, from, to, text: `${h.province}|${h.words}`, sentOnBy: from }));
     return;
   }
-  e.word(from, to, "Realm", `Notice|A letter taken on the road|${upper(powerName(from))} sends you the word of the people of ${named(e, h)} to ${powerName(h.claimant)}, taken on the road: ${quoteWords(h.words)}`);
+  e.word(from, to, "Realm", `Notice|A letter taken on the road|${upper(powerName(from))}${LetterSent.toHolder}${named(e, h)} to ${powerName(h.claimant)}${LetterSent.taken}${quoteWords(h.words)}`);
 }
 
 P.holdLetter = function (captor, j) {

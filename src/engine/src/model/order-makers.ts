@@ -1,4 +1,5 @@
 /** The makers of every order (`orders.ts`), with the C# records' defaults. */
+import type { LetterFate } from "./held-letters.ts";
 import type { UnitKind } from "./map.ts";
 import type { WorkKind } from "./works.ts";
 import type { Power } from "./power.ts";
@@ -7,7 +8,6 @@ import type { GreetingOptions, TabletProposal } from "./records.ts";
 import type { Authority, GrantKind } from "./authority.ts";
 import type { JobWhat } from "./people.ts";
 import type { Mandate } from "./command.ts";
-import type { LetterFate } from "./held-letters.ts";
 import type { HoldOrder, MoveOrder, SupportOrder, ConvoyOrder, BesiegeOrder, BuildOrder, RazeOrder, SallyOrder, SellOrder, PurchaseOrder, FeedOrder, SendOrder, CaravanOrder, TradeOrder, ShipOrder, TollOrder, DemandOrder, AnswerOrder, CensusOrder, WelcomeOrder, DeportOrder, ExpelOrder, ReturnRunawaysOrder, RaiseOrder, DisbandOrder, FoldOrder, CedeProvinceOrder, GiftUnitOrder, DispatchOrder, ReleaseOrder, SeekCandidatesOrder, HireOrder, RenewOrder, SeizeHoardOrder, SellDebtOrder, PayCarriersOrder, UpkeepOrder, CommandOrder, RelieveOrder, SupplyOrder, MandateOrder, GovernOrder, CrownOrder, UnseatOrder, EnlistOrder, CourtOrder, HuntOrder, HuntBandsOrder, PayFeeOrder, BorrowOrder, RepayOrder, BuyNewsOrder, DismissOrder, BackgroundCheckOrder, PlaceSpyOrder, RecallSpyOrder, StealOrder, GiftOrder, CounterIntelOrder, RoadsOrder, ClaimNameOrder, RevokeOrder, GrantOrder, RepudiateOrder, AssayOrder, AuthenticateOrder, ForgeOrder, CaptiveFate, CaptiveOrder, PayRansomOrder, LetterOrder, BuyLetterOrder, UnreadableOrder } from "./orders.ts";
 
 export const hold = (unit: string): HoldOrder => ({ type: "hold", unit });

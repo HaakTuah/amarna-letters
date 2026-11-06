@@ -9,7 +9,7 @@
  * talk of it would be. `--no-talk-play` and `--talk-play-half` ignore the talk and the offers caught, only to measure what
  * heeding them is worth.
  */
-import { AllPowers, OfferCaught, powerNameFor, type Power } from "@amarna/engine";
+import { AllPowers, LetterSent, OfferCaught, powerNameFor, type Power } from "@amarna/engine";
 import { Board } from "./board.ts";
 
 /** Script kings that ignore talk of their land's leaning (`--no-talk-play`, `--talk-play-half`). None by default. */
@@ -52,13 +52,29 @@ function offerCaught(body: string): [string, string] | null {
   return to < 0 ? null : [said.slice(0, to), said.slice(to + " to ".length)];
 }
 
-/** The offers read this season on carriers we caught (#553): from which province, to which claimant. */
+/** The province's name and the claimant's in a notice of an offer another court sent or sold us (#592); null otherwise. */
+function offerSent(body: string): [string, string] | null {
+  const at = body.indexOf(LetterSent.toHolder);
+  const ends = at < 0 ? -1 : body.indexOf(LetterSent.taken, at);
+  if (ends < 0) return null;
+  const said = body.slice(at + LetterSent.toHolder.length, ends);
+  const to = said.lastIndexOf(" to ");
+  return to < 0 ? null : [said.slice(0, to), said.slice(to + " to ".length)];
+}
+
+/** The courts that sent on to us this season an offer they caught (#592): a favour. */
+export function offersSentUs(b: Board): Power[] {
+  if (!TalkPlay.on(b.me)) return [];
+  return b.v.inbox.filter((m) => m.title === "A province looks to you" && m.body.includes(LetterSent.toClaimant)).map((m) => named(b, m.body.slice(0, m.body.indexOf(LetterSent.toClaimant)))).filter((x): x is Power => x !== null);
+}
+
+/** The offers read this season on carriers we caught (#553), or that another court sent or sold us (#592): from which province, to which claimant. */
 export function offersCaught(b: Board): { province: string; claimant: Power }[] {
   if (!TalkPlay.on(b.me)) return [];
   const out: { province: string; claimant: Power }[] = [];
   for (const m of b.v.inbox) {
     if (m.title !== "A letter taken on the road") continue;
-    const x = offerCaught(m.body);
+    const x = offerCaught(m.body) ?? offerSent(m.body);
     const p = x !== null ? Board.Map.provinces.find((q) => q.name === x[0]) : undefined;
     const claimant = p === undefined ? null : named(b, x![1]);
     if (p !== undefined && claimant !== null) out.push({ province: p.id, claimant });

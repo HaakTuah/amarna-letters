@@ -80,7 +80,7 @@ export { BandsTitle } from "./bands.ts";
 export { LetterData, selfWait } from "./letters.ts";
 export { OfferData, OfferTerms } from "./offers.ts";
 export { CaravanOfferData } from "./offer-caravans.ts";
-export { LetterHeldTerms } from "./held-letters.ts";
+export { LetterHeldTerms, LetterSent } from "./held-letters.ts";
 export { TalkData } from "./moods.ts";
 export { HeardData, lossKey } from "./news.ts";
 export { LanguageData, UnheardTitle, UnheardOutcome, UnheardOnArrival, tongueClaims } from "./languages.ts";

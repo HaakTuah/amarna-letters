@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { Dict, LetterHeldTerms, OrderValidator, TurnEngine, Views, WorldMap, buyLetter, inboxOf, letter, newCaravan, newDeclaration, newGame, newGameConfig, newTurnSubmission, type Declaration, type GameState } from "@amarna/engine";
+import { Dict, LetterHeldTerms, OrderValidator, TurnEngine, Views, WorldMap, buyLetter, inboxOf, letter, newCaravan, newDeclaration, newGame, newGameConfig, newTurnSubmission, type Declaration, type Order, type GameState } from "@amarna/engine";
 import { Assert, removeAll } from "./support.ts";
 
 // #592 (the owner: "Agreed to all, expertly!"): a caught offer is a thing held. Babylon, Babylonia's capital, leans to
@@ -21,7 +21,7 @@ describe("HeldLetterTests", () => {
     e.caravanOffersTaken(c, "Hatti");
     return [s, e, d];
   }
-  const orders = (s: GameState, p: "Hatti" | "Babylonia" | "Egypt", ...o: Parameters<typeof newTurnSubmission>[0]["orders"][]) => new OrderValidator(s).validate(p, newTurnSubmission({ orders: o.flat() }));
+  const orders = (s: GameState, p: "Hatti" | "Babylonia" | "Egypt", ...o: Order[][]) => new OrderValidator(s).validate(p, newTurnSubmission({ orders: o.flat() }));
   /** Every journey due by now arrives. */
   function arrive(s: GameState, e: TurnEngine): void {
     s.turn = Math.max(...s.journeys.filter((j) => j.kind !== "Offer" || j.waitAt === null).map((j) => j.arriveTurn).filter((t) => t < 100000), s.turn);

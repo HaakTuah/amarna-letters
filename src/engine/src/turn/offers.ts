@@ -22,6 +22,7 @@ import { basePrice } from "./court.ts";
 import { LetterData } from "./letters.ts";
 import { sellsSecrets } from "./news.ts";
 import { isWalker } from "./travel.ts";
+import { LetterSent } from "./held-letters.ts";
 
 /**
  * First guesses, for item 18: how far a people's lean toward a power must pass its holder's weight before it pays a
@@ -215,7 +216,7 @@ P.offerArrives = function (j) {
   const people = `the people of ${this.map.get(province).name}`;
   const by =
     j.sentOnBy !== null
-      ? `${upper(powerName(j.sentOnBy))} has sent on to you the word of ${people}, which it took on the road`
+      ? `${upper(powerName(j.sentOnBy))}${LetterSent.toClaimant}${people}, which it took on the road`
       : c !== null
         ? `${c.name} has brought you the word of ${people}`
         : j.caravan !== null
