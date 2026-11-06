@@ -156,4 +156,33 @@ describe("MapCrossingsTests", () => {
     Assert.true(taken(false) > 0);
     Assert.equal(0, taken(true));
   });
+
+  test("A king hears of his far troops' seizure of a caravan as word comes from where it happened (#675)", () => {
+    let seized = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      const s = smallWorld(game(seed), "Hatti", "Babylonia");
+      const e = new TurnEngine(s);
+      // Hatti's caravan from Hattusa to Nesa, where Babylonia's army stands, a season of word from its court, its roads closed to Hatti.
+      s.stores.set("hattusa", 200);
+      single(s.units, (x) => x.province === "sippar").province = "nesa";
+      s.roadsClosed.set("Babylonia", ["Hatti"]);
+      s.roadsHeard.set("Hatti", ["Babylonia"]);
+      const d = e.wordFrom("Babylonia", "nesa");
+      Assert.true(d >= 1);
+      e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [caravan("hattusa", "nesa", 60)] })]]));
+      for (let i = 0; i < 2 && !s.events.some((x) => x.signal === "caravan-taken"); i++) {
+        s.turn++;
+        e.beginTurn();
+      }
+      const event = s.events.find((x) => x.signal === "caravan-taken");
+      if (event === undefined) continue;
+      seized++;
+      const took = () => (s.inbox.tryGet("Babylonia") ?? []).some((i) => i.body.includes("took Hatti"));
+      // Not told at once, nor in the event, which its court could not have seen; the notice comes by the road.
+      Assert.false(event.visibleTo.includes("Babylonia"));
+      Assert.false(took());
+      Assert.true(s.journeys.some((j) => j.to === "Babylonia" && j.text.includes("took Hatti") && j.arriveTurn === event.turn + 1 + d));
+    }
+    Assert.true(seized > 0);
+  });
 });
