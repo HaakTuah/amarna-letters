@@ -170,8 +170,6 @@ the workshop check): among them the history check's lines still unclear for a re
   - **#543, after part D's follow-ups (#550, #553):** a caravan or trader leaving a province for the claimant's market
     carries its offer, as a traveller going that way would, and carries talk along its road; the history dossier
     cited for word travelling with goods.
-  - **#578, the polish lane:** the legend's crowded-seal swatch takes its rim from `--small-rim-marked`, the map's own
-    variable.
 
 - **The Gulf's head as it stood in the Late Bronze Age** (#527; archive item 175): **done** in #523 (save version 47):
   the shore at the estuary some 140 km below Ur, the middle of the dated published lines; Ur a river port, its Gulf door 150 km
