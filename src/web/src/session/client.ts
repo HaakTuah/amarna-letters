@@ -29,6 +29,7 @@ import { fromWire, sameMap, samePerson, sameSet, type SeasonFrame } from "./fram
 import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
 import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
 import { download } from "./storage.ts";
+import workerUrl from "./worker.ts?worker&url";
 
 type Update = Extract<FromWorker, { type: "update" }>;
 
@@ -122,7 +123,10 @@ export class Session {
   private fallSeen = false;
 
   constructor() {
-    this.worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
+    // Started from a blob that imports the worker's file, so the worker keeps the page's content security policy
+    // (src/web/csp.ts): one loaded from the file itself would take the file's headers, and the site sends none.
+    const blob = new Blob([`import ${JSON.stringify(new URL(workerUrl, import.meta.url).href)};`], { type: "text/javascript" });
+    this.worker = new Worker(URL.createObjectURL(blob), { type: "module" });
     this.worker.onmessage = (e: MessageEvent<FromWorker>) => this.receive(e.data);
     this.worker.onerror = (e) => {
       this.live = { ...this.live, error: `The game's worker stopped: ${e.message}` };

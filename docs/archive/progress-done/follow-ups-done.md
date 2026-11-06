@@ -114,3 +114,15 @@ there word for word on 3 November 2026 (the workshop check: the progress file ha
   caravans, and the realm's strength, as last reported; far harvests, works' costs and caravan news by the road. Save
   version 51. Left open: question #587 (what the treasury pays far off, paid at once). Report:
   `docs/rounds/2026-11-03-far-as-reported.md`.
+
+- ~~**#539, the polish lane:**~~ (done, the polish lane): beside a followed person on the map, a small dated note ("last seen 2 seasons ago"),
+  from the record the follow line is drawn from, absent while he is in sight.
+
+- ~~**#549, the polish lane:**~~ (done, the polish lane): a faint accent on a frontier where the seat itself sees two powers' armies on either
+  side, drawn only from what it sees.
+
+- ~~**#562, the polish lane:**~~ (done, the polish lane): placement and the smoke test pad each seal's box by half its stroke, so no rim touches
+  a neighbouring marker.
+
+- ~~**#578, the polish lane:**~~ (done, the polish lane): the legend's crowded-seal swatch takes its rim from
+  `--small-rim-marked`, the map's own variable.
