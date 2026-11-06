@@ -26,7 +26,7 @@ version, and a check that the script kings' trust readings still behave.
   script kings read the clauses it reports, not this wording, so their reading of the message is unchanged.
 - **"Kindly" is no longer a warmth word** to the script kings (`Warmth` in `brain.ts`). A report now warms them by
   what the king said, not by how the envoy put it. Only envoy reports used the word.
-- **Save version 61.** The script kings' reading of reports changes.
+- **Save version 62.** The script kings' reading of reports changes.
 - **The guard:** `src/game/test/envoy-tells.test.ts` plays each kind of envoy over sixty seasons. Every form a bribed or
   frightened envoy says at home must also be said by an honest one at a warm court in some season.
 
