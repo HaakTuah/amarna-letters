@@ -170,11 +170,18 @@ describe("UnitsKnownTests", () => {
   });
 
   test("A commanded far army's standing order, fired after it was lost out of sight, is given, checked and told as for one that stands (bug #600)", () => {
-    for (const [refused, taken] of [
-      [false, false],
-      [true, false],
-      [false, true],
-    ]) {
+    // Each case: the order it gives (from the army's province and one not beside it), whether the army's province is taken
+    // by the time it fires, whether a recall had reached its commander, and what the seat reads of it.
+    const cases: [string, (at: string, far: string) => Order, boolean, boolean, string | null][] = [
+      ["a hold", (at) => hold(at), false, false, "It gave these orders"],
+      ["a move it cannot make", (at, far) => move(at, far), false, false, "Refused"],
+      ["a hold, its province taken", (at) => hold(at), true, false, "It gave these orders"],
+      ["food, with gold", (at) => supply(at, true, 50), false, false, "It gave these orders"],
+      ["a recall", (at) => relieve(at), false, false, "It gave these orders"],
+      ["a mandate", (at) => mandateOrder(at, newMandate({ task: "guard" })), false, false, "It gave these orders"],
+      ["a hold, its commander recalled", (at) => hold(at), false, true, null],
+    ];
+    for (const [name, give, taken, recalled, told] of cases) {
       const fired = (lost: boolean) => {
         const map = WorldMap.default;
         const s = smallWorld(newGame(1, newGameConfig({ catastropheChance: 0 })), "Hatti", "Babylonia");
@@ -200,7 +207,7 @@ describe("UnitsKnownTests", () => {
         s.units.push(newUnit({ id: "u997", power: "Babylonia", kind: "Army", province: from, home: from, men: 1000 }));
         // A move it cannot make (to a province not beside it) is refused, as for an army that stands.
         const far = map.provinces.find((x) => !x.isSea && x.id !== at && !map.neighbors(at).includes(x.id))!.id;
-        const order = refused ? move(at, far) : hold(at);
+        const order = give(at, far);
         const next = (subs: Dict<Power, TurnSubmission> = new Dict()) => {
           new TurnEngine(s, map).beginTurn();
           new TurnEngine(s, map).resolve(subs);
@@ -209,24 +216,32 @@ describe("UnitsKnownTests", () => {
         // Word of it reaches the army.
         for (let i = 0; i < 3; i++) next();
         new TurnEngine(s, map).beginTurn();
+        // A recall that reached him before the army was lost: where it stands, he has left it.
+        if (recalled) {
+          u.relieveAt = s.turn;
+          new TurnEngine(s, map).commandSeason();
+        }
         if (lost) loseUnit(s, u);
         // Lost to those who now hold its province: their troops stand where its king last knew it.
         if (lost && taken) s.units.push(newUnit({ id: "u998", power: "Babylonia", kind: "Army", province: at, home: from, men: 1000 }));
         new TurnEngine(s, map).resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [move(from, target)] })]]));
+        // What the season spent (gold sent with food that finds the army gone comes back later: #615).
+        const gold = s.treasuries.get("Hatti").gold;
         new TurnEngine(s, map).beginTurn();
         const read = inboxOf(s, "Hatti")
           .filter((i) => i.turn === s.turn && i.kind !== "Battle")
           .map((i) => `${i.title}: ${i.body}`);
-        return { s, read, left: s.standing.get("Hatti").orders.length };
+        return { s, read, left: s.standing.get("Hatti").orders.length, gold };
       };
       const [lost, stands] = [fired(true), fired(false)];
-      // It fired in both, and was told alike: given, or refused for the same reason.
-      Assert.equal(0, stands.left);
-      Assert.equal(stands.left, lost.left);
-      Assert.equal(stands.read, lost.read);
-      Assert.contains(lost.read, (x) => x.includes(refused ? "Refused" : "It gave these orders"));
-      // Given, it went out by courier to find the army gone; refused, it did not.
-      Assert.equal(!refused, lost.s.couriers.some((x) => x.power === "Hatti" && x.plan.unitId === "u990"));
+      // Told alike, its gold spent alike, and fired in both or in neither.
+      Assert.equal(stands.read, lost.read, name);
+      Assert.equal(stands.gold, lost.gold, name);
+      Assert.equal(stands.left, lost.left, name);
+      Assert.equal(told === null ? 1 : 0, stands.left, name);
+      if (told !== null) Assert.contains(lost.read, (x) => x.includes(told), name);
+      // Given, it went out by courier to find the army gone.
+      Assert.equal(told === "It gave these orders", lost.s.couriers.some((x) => x.power === "Hatti" && x.plan.unitId === "u990"), name);
     }
   });
 

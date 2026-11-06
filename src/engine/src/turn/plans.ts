@@ -192,6 +192,12 @@ P.compose = function (p, plan, fired) {
       if (shown === null) continue;
       orders.push(shown);
       if (gone !== undefined) goneFor.set(shown, gone);
+      // An order of command, recall, mandate or food names its unit by province only: the copy where none stands now.
+      if (shown.type === "command" || shown.type === "relieve" || shown.type === "mandate" || shown.type === "supply") {
+        const here = unitAt(S, shown.unit);
+        const copy = here !== null && here.power === p ? undefined : S.unitsGone.find((u) => u.power === p && u.province === shown.unit && goneUnheard(this, p, u.id) === u);
+        if (copy !== undefined) goneFor.set(shown, copy);
+      }
     }
     const kept = survivors(
       standing.map(([o]) => o),
@@ -392,7 +398,8 @@ P.standingRuns = function (p, st, o, mover, m) {
   if (!Number.isFinite(reach) || S.turn < st.given + reach) return false;
   // Someone to carry it out: the king himself there, or its commander.
   if (this.kingWith(u)) return true;
-  const c = gone ? (u.commander === null || S.turn < u.commandFrom ? null : findCharacter(S, u.commander)) : this.commanderOf(u);
+  // A recall that has reached him would have left it without one.
+  const c = gone ? (u.commander === null || S.turn < u.commandFrom || (u.relieveAt !== null && S.turn >= u.relieveAt) ? null : findCharacter(S, u.commander)) : this.commanderOf(u);
   if (c === null) return false;
   // It fires on what the army sees: where its troops stand and one province around.
   const near = new HSet([u.province, ...this.map.neighbors(u.province)]);
@@ -835,7 +842,7 @@ P.cancelStanding = function (p, ids) {
 /** What a standing order waits for, in the words its seat reads: its unit named by where it stands now. */
 P.whenText = function (p, st) {
   if (st.when === "UnitAttacked") {
-    const u = this.s.units.find((u) => u.id === st.unitId && u.power === p);
+    const u = this.s.units.find((u) => u.id === st.unitId && u.power === p) ?? goneUnheard(this, p, st.unitId);
     return u !== undefined ? `when your ${kindName(u.kind)} in ${u.province} is attacked` : `when your unit that stood in ${st.province ?? ""} is attacked`;
   }
   return entersText(p, st.power, st.province ?? "?");
