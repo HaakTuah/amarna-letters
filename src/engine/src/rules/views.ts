@@ -618,12 +618,14 @@ function termText(fee: number | null, advance: number | null, until: number | nu
   if (fee === null) return "";
   const e = k?.errand ?? null;
   const errand = e === null ? "a job whose first errand you name when you send them" : e.what === "stay" ? "a job to stay at your court until its term ends (any other errand is a new job, with its own fee)" : e.what === "ride" ? `a job to ride to ${e.where} and bring its report home this season` : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
-  const serves = `${errand}, for ${fee} shekels, ${advance ?? 0} handed over and ${Math.max(0, fee - (advance ?? 0))} due when it is done`;
-  const standing = k === null ? "" : `${k.payOnDone ? "; you ordered the rest paid when it is done" : "; the rest is paid only if you order it (pay_fee)"}${k.offerAgain ? "; the same job is offered again when it is done" : ""}`;
-  if (until === null) return serves + standing;
+  const rest = Math.max(0, fee - (advance ?? 0));
+  const due = k === null ? `${rest} due when it is done` : k.payOnDone ? `${rest} paid when it is done, as you ordered` : `${rest} due when it is done, paid only if you order it (pay_fee)`;
+  const serves = `${errand}, for ${fee} shekels (${advance ?? 0} handed over, ${due})`;
+  const again = k !== null && k.offerAgain ? "; the same job is offered again when it is done" : "";
+  if (until === null) return serves + again;
   return until >= turn
-    ? `${serves}, by turn ${until}${standing}. When it is done at your court, the job ends`
-    : `${serves}; its term ended with turn ${until}: the job is done when they are next at your court with no task${standing}`;
+    ? `${serves}, by turn ${until}${again}; the job ends once it is done at your court`
+    : `${serves}; its term ended with turn ${until}: the job is done when they are next at your court with no task${again}`;
 }
 
 /**

@@ -232,7 +232,7 @@ P.welcome = function (p, o) {
   x.loose -= n;
   shift(x, n, idiv(n * LandData.menPercent, 100));
   this.looseLeave(o.province, n);
-  this.tell(p, o.province, "Resolution", PeopleTitle, `You settled ${people(n)} loose men on the land of ${name}.`);
+  this.tell(p, o.province, "Resolution", PeopleTitle, `You settled ${people(n)} loose men in ${name}.`);
   logEvent(S, "welcome", `${p} settled ${people(n)} loose men in ${name}${fled.length > 0 ? `, among them runaways from ${fled.join(" and ")}` : ""}.`, this.nearOf(o.province, p), "welcomed");
 };
 
